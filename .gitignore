@@ -35,3 +35,14 @@ build/
 
 # Claude Code
 .claude/
+
+# Log files
+*.log
+*.json
+agents/*/logs/
+
+# Web logs
+web/logs/
+
+# Database files (anywhere)
+*.db
