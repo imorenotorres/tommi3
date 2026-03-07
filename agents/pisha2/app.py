@@ -25,13 +25,13 @@ from agent import Agent
 # Configuración del agente
 AGENT_CONFIG = {
     "id": "pisha2",
-    "name": "Pisha2",
+    "name": "Agoria DB assistant",
     "type": "text2sql",
-    "description": "Asistente Pisha2",
-    "welcome_message": "¡Hola! Soy Pisha2. ¿En qué puedo ayudarte?",
-    "example_queries": ["¿Qué acuerdos hay con The Hague University of Applied Sciences?", 
-                        "¿Qué universidades de Holanda tienen acuerdos?",
-                        "¿Hay algún convenio que tenga como requisito de idioma 'Inglés B1'?",
+    "description": "Database assistant for university agreements",
+    "welcome_message": "Hi! I'm the Agoria DB assistant. How can I help you?",
+    "example_queries": ["What agreements are there with The Hague University of Applied Sciences?",
+                        "Which Dutch universities have agreements?",
+                        "Are there any agreements with 'English B1' as language requirement?",
                         "Do we have agreements with the Netherlands?"
                         ]
 }

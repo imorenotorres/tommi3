@@ -93,12 +93,18 @@ RESPONSE FORMAT:
         """Detecta si el usuario quiere ver más resultados."""
         question_lower = question.lower().strip()
         show_more_patterns = [
+            # Spanish
             "muéstrame más", "muestrame mas", "muestrame más", "muéstrame mas",
             "ver más", "ver mas", "mostrar más", "mostrar mas",
             "siguientes", "los siguientes", "más resultados", "mas resultados",
             "continuar", "continúa", "continua",
             "muéstrame todos", "muestrame todos", "ver todos", "mostrar todos",
             "todos los resultados", "lista completa",
+            # English
+            "show me more", "show more", "see more", "more results",
+            "next", "the next", "following", "continue",
+            "show me all", "show all", "see all", "all results",
+            "complete list", "full list",
         ]
         for pattern in show_more_patterns:
             if pattern in question_lower:
@@ -109,12 +115,17 @@ RESPONSE FORMAT:
         """Detecta si el usuario quiere volver a una búsqueda anterior."""
         question_lower = question.lower().strip()
         back_patterns = [
+            # Spanish
             "volver atrás", "volver atras", "vuelve atrás", "vuelve atras",
             "búsqueda anterior", "busqueda anterior", "consulta anterior",
-            "deshacer", "undo", "atrás", "atras",
+            "deshacer", "atrás", "atras",
             "volver a la anterior", "restaurar", "recuperar anterior",
             "quita el filtro", "quitar filtro", "sin filtro",
             "volver al principio", "empezar de nuevo",
+            # English
+            "go back", "back", "undo", "previous search", "previous query",
+            "restore", "recover previous", "remove filter", "without filter",
+            "start over", "start again",
         ]
         for pattern in back_patterns:
             if pattern in question_lower:
@@ -125,11 +136,18 @@ RESPONSE FORMAT:
         """Detecta si el usuario quiere ver el historial de consultas."""
         question_lower = question.lower().strip()
         history_patterns = [
+            # Spanish
             "historial", "ver historial", "mostrar historial",
             "mis consultas", "ver consultas", "consultas anteriores",
             "mis preguntas", "ver preguntas", "preguntas anteriores",
             "qué he preguntado", "que he preguntado",
             "ver sql", "mostrar sql", "mis sql",
+            # English
+            "history", "show history", "view history",
+            "my queries", "view queries", "previous queries",
+            "my questions", "view questions", "previous questions",
+            "what have i asked", "what did i ask",
+            "show sql", "view sql", "my sql",
         ]
         for pattern in history_patterns:
             if pattern in question_lower:
@@ -146,6 +164,7 @@ RESPONSE FORMAT:
 
         # Mapeo de términos del usuario a nombres de campos
         field_mapping = {
+            # Spanish
             'centro': 'uma_faculties',
             'centros': 'uma_faculties',
             'facultad': 'uma_faculties',
@@ -180,10 +199,45 @@ RESPONSE FORMAT:
             'facultad destino': 'destination_faculty',
             'nivel': 'available_levels',
             'niveles': 'available_levels',
+            # English
+            'faculty': 'uma_faculties',
+            'faculties': 'uma_faculties',
+            'school': 'uma_faculties',
+            'schools': 'uma_faculties',
+            'degree': 'uma_degrees',
+            'degrees': 'uma_degrees',
+            'major': 'uma_degrees',
+            'majors': 'uma_degrees',
+            'program': 'mobility_program',
+            'programs': 'mobility_program',
+            'program type': 'mobility_program',
+            'language': 'language_requirements',
+            'languages': 'language_requirements',
+            'requirement': 'language_requirements',
+            'requirements': 'language_requirements',
+            'vacancy': 'student_vacancies',
+            'vacancies': 'student_vacancies',
+            'spots': 'student_vacancies',
+            'slots': 'student_vacancies',
+            'duration': 'student_vacancies',
+            'date': 'start_date',
+            'dates': 'start_date',
+            'validity': 'start_date',
+            'country': 'destination_country',
+            'countries': 'destination_country',
+            'university': 'host_institution',
+            'universities': 'host_institution',
+            'institution': 'host_institution',
+            'institutions': 'host_institution',
+            'destination faculty': 'destination_faculty',
+            'host faculty': 'destination_faculty',
+            'level': 'available_levels',
+            'levels': 'available_levels',
         }
 
         # Patrones para detectar peticiones de mostrar campo adicional
         show_patterns = [
+            # Spanish
             r'muestra(?:me)?\s+también\s+(?:el|la|los|las)?\s*(.+)',
             r'añade\s+también\s+(?:el|la|los|las)?\s*(.+)',
             r'incluye\s+también\s+(?:el|la|los|las)?\s*(.+)',
@@ -193,6 +247,14 @@ RESPONSE FORMAT:
             r'pon(?:me)?\s+(?:el|la|los|las)?\s*(.+)',
             r'quiero\s+ver\s+(?:el|la|los|las)?\s*(.+)',
             r'ver\s+(?:el|la|los|las)?\s*(.+)',
+            # English
+            r'also\s+show\s+(?:me\s+)?(?:the\s+)?(.+)',
+            r'show\s+(?:me\s+)?also\s+(?:the\s+)?(.+)',
+            r'add\s+(?:the\s+)?(.+)',
+            r'include\s+(?:the\s+)?(.+)',
+            r'show\s+(?:me\s+)?(?:the\s+)?(.+)',
+            r'i\s+want\s+to\s+see\s+(?:the\s+)?(.+)',
+            r'see\s+(?:the\s+)?(.+)',
         ]
 
         for pattern in show_patterns:
@@ -216,6 +278,7 @@ RESPONSE FORMAT:
 
         # Mapeo de términos a campos de ordenación
         sort_mapping = {
+            # Spanish
             'pais': 'destination_country',
             'país': 'destination_country',
             'universidad': 'host_institution',
@@ -228,21 +291,40 @@ RESPONSE FORMAT:
             'centro': 'uma_faculties',
             'alfabeticamente': 'host_institution',
             'alfabéticamente': 'host_institution',
+            # English
+            'country': 'destination_country',
+            'university': 'host_institution',
+            'name': 'host_institution',
+            'institution': 'host_institution',
+            'program': 'mobility_program',
+            'language': 'language_requirements',
+            'faculty': 'uma_faculties',
+            'school': 'uma_faculties',
+            'alphabetically': 'host_institution',
+            'alphabetical': 'host_institution',
         }
 
         # Patrones para detectar peticiones de ordenación
         sort_patterns = [
+            # Spanish
             r'ordena(?:r|los|las|me)?\s+(?:por|según)?\s*(.+)',
             r'ordéna(?:me|los|las)?\s+(?:por|según)?\s*(.+)',
             r'clasifica(?:r|los|las)?\s+(?:por|según)?\s*(.+)',
             r'organiza(?:r|los|las)?\s+(?:por|según)?\s*(.+)',
             r'(?:de\s+)?(?:la\s+)?(?:a\s+a\s+la\s+)?z(?:\s+|$)',
             r'(?:de\s+)?(?:la\s+)?z\s+a\s+(?:la\s+)?a(?:\s+|$)',
+            # English
+            r'sort\s+(?:by|them\s+by)?\s*(.+)',
+            r'order\s+(?:by|them\s+by)?\s*(.+)',
+            r'arrange\s+(?:by|them\s+by)?\s*(.+)',
+            r'organize\s+(?:by|them\s+by)?\s*(.+)',
+            r'(?:from\s+)?a\s+to\s+z(?:\s+|$)',
+            r'(?:from\s+)?z\s+to\s+a(?:\s+|$)',
         ]
 
         # Detectar dirección
         ascending = True
-        if 'descend' in question_lower or 'z a a' in question_lower or 'mayor a menor' in question_lower:
+        if 'descend' in question_lower or 'z a a' in question_lower or 'mayor a menor' in question_lower or 'z to a' in question_lower:
             ascending = False
 
         for pattern in sort_patterns:
@@ -274,9 +356,9 @@ RESPONSE FORMAT:
         state = self._get_session_state(session_id)
 
         if not state['query_history'] and not state['last_sql_query']:
-            return "📋 No hay historial de consultas todavía."
+            return "📋 No query history yet."
 
-        response_parts = ["📋 **Historial de consultas**\n"]
+        response_parts = ["📋 **Query history**\n"]
 
         # Mostrar consultas del historial (de más antigua a más reciente)
         all_queries = []
@@ -297,15 +379,15 @@ RESPONSE FORMAT:
             })
 
         if not all_queries:
-            return "📋 No hay historial de consultas todavía."
+            return "📋 No query history yet."
 
         for i, entry in enumerate(all_queries, 1):
             response_parts.append(f"### {i}. {entry['question']}")
             response_parts.append(f"```sql\n{entry['sql']}\n```")
-            response_parts.append(f"*Resultados: {entry['num_results']}*\n")
+            response_parts.append(f"*Results: {entry['num_results']}*\n")
 
         response_parts.append("---")
-        response_parts.append("💡 *Puedes decir \"volver atrás\" para restaurar una consulta anterior.*")
+        response_parts.append("💡 *You can say \"go back\" to restore a previous query.*")
 
         return "\n".join(response_parts)
 
@@ -325,7 +407,7 @@ RESPONSE FORMAT:
             num_results = len(state['last_results'])
             history_remaining = len(state['query_history'])
 
-            response_parts = [f"⏪ **Volviendo a la búsqueda anterior**\n"]
+            response_parts = [f"⏪ **Going back to previous search**\n"]
 
             # Mostrar la pregunta original si existe
             if state['last_user_question']:
@@ -334,12 +416,12 @@ RESPONSE FORMAT:
             response_parts.append(f"```sql\n{state['last_sql_query']}\n```\n")
 
             if history_remaining > 0:
-                response_parts.append(f"*({history_remaining} búsqueda(s) más en el historial)*\n")
+                response_parts.append(f"*({history_remaining} more search(es) in history)*\n")
 
             # Mostrar resumen de resultados
             if num_results > 20:
-                response_parts.append(f"📊 **{num_results} resultados**\n")
-                response_parts.append('💡 *Di "Muéstrame los resultados" para ver la lista*')
+                response_parts.append(f"📊 **{num_results} results**\n")
+                response_parts.append('💡 *Say "Show me the results" to see the list*')
             else:
                 response_parts.append(self._format_results_basic(state['last_results']))
 
@@ -350,7 +432,7 @@ RESPONSE FORMAT:
             state['last_display_offset'] = min(self.default_page_size, len(state['last_results']))
             num_results = len(state['last_results'])
 
-            response_parts = [f"📋 **Volviendo a los resultados actuales**\n"]
+            response_parts = [f"📋 **Returning to current results**\n"]
 
             # Mostrar la pregunta original si existe
             if state['last_user_question']:
@@ -359,14 +441,14 @@ RESPONSE FORMAT:
             response_parts.append(f"```sql\n{state['last_sql_query']}\n```\n")
 
             if num_results > 20:
-                response_parts.append(f"📊 **{num_results} resultados**\n")
-                response_parts.append('💡 *Di "Muéstrame los resultados" para ver la lista*')
+                response_parts.append(f"📊 **{num_results} results**\n")
+                response_parts.append('💡 *Say "Show me the results" to see the list*')
             else:
                 response_parts.append(self._format_results_basic(state['last_results']))
 
             return "\n".join(response_parts)
 
-        return "⚠️ No hay búsquedas anteriores en el historial."
+        return "⚠️ No previous searches in history."
 
     def _save_to_history(self, session_id: str, user_question: str = None):
         """Guarda el estado actual en el historial antes de refinar."""
@@ -393,24 +475,24 @@ RESPONSE FORMAT:
         state = self._get_session_state(session_id)
 
         if not state['last_results']:
-            return "⚠️ No hay resultados previos. Primero realiza una búsqueda."
+            return "⚠️ No previous results. Please perform a search first."
 
         results = state['last_results']
         num_results = len(results)
 
         # Mapeo de nombres de campo a etiquetas legibles
         field_labels = {
-            'uma_faculties': '🏫 Centro UMA',
-            'uma_degrees': '📚 Titulaciones',
-            'mobility_program': '📋 Programa',
-            'language_requirements': '🗣️ Idioma',
-            'student_vacancies': '🎓 Plazas',
-            'start_date': '📅 Fecha inicio',
-            'end_date': '📅 Fecha fin',
-            'destination_country': '🌍 País',
-            'host_institution': '🏛️ Universidad',
-            'destination_faculty': '🎯 Facultad destino',
-            'available_levels': '📈 Niveles',
+            'uma_faculties': '🏫 UMA Faculty',
+            'uma_degrees': '📚 Degrees',
+            'mobility_program': '📋 Program',
+            'language_requirements': '🗣️ Language',
+            'student_vacancies': '🎓 Vacancies',
+            'start_date': '📅 Start date',
+            'end_date': '📅 End date',
+            'destination_country': '🌍 Country',
+            'host_institution': '🏛️ University',
+            'destination_faculty': '🎯 Destination faculty',
+            'available_levels': '📈 Levels',
         }
 
         # Campos que ya se muestran por defecto
@@ -421,9 +503,9 @@ RESPONSE FORMAT:
 
         # Si el campo ya se muestra por defecto, indicarlo
         if field_name in default_fields:
-            response_parts = [f"✅ **{num_results} resultado(s)** (el campo {label} ya se muestra)\n"]
+            response_parts = [f"✅ **{num_results} result(s)** (field {label} already shown)\n"]
         else:
-            response_parts = [f"✅ **{num_results} resultado(s)** - Añadiendo: {label}\n"]
+            response_parts = [f"✅ **{num_results} result(s)** - Adding: {label}\n"]
 
         # Mostrar máximo 20 resultados con información completa + campo adicional
         max_display = min(20, num_results)
@@ -433,8 +515,8 @@ RESPONSE FORMAT:
             program = r.get('mobility_program', 'N/A')
 
             response_parts.append(f"**{i}. 🏛️ {institution}**")
-            response_parts.append(f"- **País:** {country}")
-            response_parts.append(f"- **Programa:** {program}")
+            response_parts.append(f"- **Country:** {country}")
+            response_parts.append(f"- **Program:** {program}")
 
             # Plazas (resumido)
             vacancies = r.get('student_vacancies', 'N/A')
@@ -443,9 +525,9 @@ RESPONSE FORMAT:
                 import re
                 match = re.search(r'Plazas:\s*(\d+)', str(vacancies))
                 if match:
-                    response_parts.append(f"- **Plazas:** {match.group(1)}")
+                    response_parts.append(f"- **Vacancies:** {match.group(1)}")
                 else:
-                    response_parts.append(f"- **Plazas:** {str(vacancies)[:50]}...")
+                    response_parts.append(f"- **Vacancies:** {str(vacancies)[:50]}...")
 
             # Idioma (resumido)
             lang = r.get('language_requirements', 'N/A')
@@ -453,7 +535,7 @@ RESPONSE FORMAT:
                 lang_short = self._extract_language_level(lang) if hasattr(self, '_extract_language_level') else lang
                 if len(str(lang_short)) > 50:
                     lang_short = str(lang_short)[:50] + "..."
-                response_parts.append(f"- **Idioma:** {lang_short}")
+                response_parts.append(f"- **Language:** {lang_short}")
 
             # Campo adicional solicitado (si no es uno de los que ya mostramos)
             if field_name not in default_fields:
@@ -468,10 +550,11 @@ RESPONSE FORMAT:
 
         if num_results > max_display:
             remaining = num_results - max_display
-            response_parts.append(f"*... y {remaining} convenio(s) más*")
+            response_parts.append(f"*... and {remaining} more agreement(s)*")
 
         response_parts.append("---")
-        response_parts.append('💡 *"Muestra también las titulaciones" | "Ordena por país"*')
+        displayed_results = results[:max_display]
+        response_parts.append(self._generate_contextual_suggestions(displayed_results, has_more=(num_results > max_display), show_expand=True))
 
         return "\n".join(response_parts)
 
@@ -480,7 +563,7 @@ RESPONSE FORMAT:
         state = self._get_session_state(session_id)
 
         if not state['last_results']:
-            return "⚠️ No hay resultados previos. Primero realiza una búsqueda."
+            return "⚠️ No previous results. Please perform a search first."
 
         results = state['last_results'].copy()
         num_results = len(results)
@@ -490,21 +573,21 @@ RESPONSE FORMAT:
             results.sort(key=lambda x: str(x.get(sort_field, '')).lower(), reverse=not ascending)
             state['last_results'] = results
         except Exception as e:
-            return f"⚠️ No se pudo ordenar por ese campo: {e}"
+            return f"⚠️ Could not sort by that field: {e}"
 
         # Mapeo de nombres de campo a etiquetas legibles
         field_labels = {
-            'destination_country': 'país',
-            'host_institution': 'universidad',
-            'mobility_program': 'programa',
-            'language_requirements': 'idioma',
-            'uma_faculties': 'facultad UMA',
+            'destination_country': 'country',
+            'host_institution': 'university',
+            'mobility_program': 'program',
+            'language_requirements': 'language',
+            'uma_faculties': 'UMA faculty',
         }
 
         sort_label = field_labels.get(sort_field, sort_field)
         direction = "A→Z" if ascending else "Z→A"
 
-        response_parts = [f"📊 **{num_results} resultado(s)** - Ordenados por {sort_label} ({direction})\n"]
+        response_parts = [f"📊 **{num_results} result(s)** - Sorted by {sort_label} ({direction})\n"]
 
         # Mostrar máximo 20 resultados
         max_display = min(20, num_results)
@@ -519,11 +602,11 @@ RESPONSE FORMAT:
 
         if num_results > max_display:
             remaining = num_results - max_display
-            response_parts.append(f"*... y {remaining} convenio(s) más*")
-            response_parts.append(f'💡 *"Muéstrame los siguientes 20" | "Muestra también el centro" | "Ordena por país"*')
-        else:
-            response_parts.append("---")
-            response_parts.append('💡 *"Muestra también el centro" | "Ordena por país"*')
+            response_parts.append(f"*... and {remaining} more agreement(s)*")
+            response_parts.append(f'💡 *To see more, say: "Show me the next 20"*')
+        response_parts.append("---")
+        displayed_results = results[:max_display]
+        response_parts.append(self._generate_contextual_suggestions(displayed_results, has_more=(num_results > max_display), show_expand=True))
 
         return "\n".join(response_parts)
 
@@ -539,13 +622,14 @@ RESPONSE FORMAT:
         # IMPORTANTE: Excluir ordinales como "1er", "2do", "3ro" para no confundir "del 2do cuatrimestre"
         detail_patterns = [
             r"ampl[ií]a.*?(\d+)",
+            r"expand.*?(\d+)",
             r"detalle[s]?.*?(\d+)",
             r"m[aá]s info.*?(\d+)",
             r"info(?:rmaci[oó]n)?.*?(\d+)",
             r"(?:el|del|número|numero)\s*(\d+)(?!(?:er|do|ro|to|º))",  # Excluir ordinales
             r"acuerdo\s*(?:número|numero)?\s*(\d+)",
             r"convenio\s*(?:número|numero)?\s*(\d+)",
-            r"^(\d+)$",  # Solo el número
+            r"#(\d+)",  # Solo el número y #
         ]
 
         for pattern in detail_patterns:
@@ -561,88 +645,88 @@ RESPONSE FORMAT:
         state = self._get_session_state(session_id)
 
         if not state['last_results']:
-            return "⚠️ No hay resultados previos. Haz primero una consulta."
+            return "⚠️ No previous results. Please perform a query first."
 
         # Si los resultados estaban agrupados, no se puede ampliar por número
         if state['last_results_grouped']:
-            return ("⚠️ Los resultados están agrupados y no se pueden ampliar por número.\n\n"
-                    "💡 Para ver detalles, refina la búsqueda indicando el grupo que te interesa.\n"
-                    "Por ejemplo: *\"muéstrame los de Alemania\"* o *\"los de la Universidad de Berlín\"*")
+            return ("⚠️ Results are grouped and cannot be expanded by number.\n\n"
+                    "💡 To see details, refine your search by specifying the group you're interested in.\n"
+                    "For example: *\"show me those from Germany\"* or *\"those from Berlin University\"*")
 
         if index < 1 or index > len(state['last_results']):
-            return f"⚠️ Número inválido. Elige un número entre 1 y {len(state['last_results'])}."
+            return f"⚠️ Invalid number. Choose a number between 1 and {len(state['last_results'])}."
 
         r = state['last_results'][index - 1]
 
         # Detectar si es una consulta de campos específicos (no tiene host_institution)
         if 'host_institution' not in r:
             # Mostrar solo los campos disponibles
-            response_parts = [f"📋 **Detalle #{index}**\n"]
+            response_parts = [f"📋 **Detail #{index}**\n"]
             field_labels = {
-                'uma_faculties': '🏫 Facultad UMA',
-                'destination_country': '🌍 País',
-                'host_institution': '🏛️ Universidad',
-                'mobility_program': '📄 Programa',
-                'destination_faculty': '🎯 Facultad de destino',
-                'uma_degrees': '📚 Titulaciones',
-                'language_requirements': '🗣️ Idioma',
+                'uma_faculties': '🏫 UMA Faculty',
+                'destination_country': '🌍 Country',
+                'host_institution': '🏛️ University',
+                'mobility_program': '📄 Program',
+                'destination_faculty': '🎯 Destination Faculty',
+                'uma_degrees': '📚 Degrees',
+                'language_requirements': '🗣️ Language',
             }
             for field, value in r.items():
                 if value:
                     label = field_labels.get(field, field.replace('_', ' ').title())
                     response_parts.append(f"**{label}:** {value}")
             response_parts.append("")
-            response_parts.append("ℹ️ *Para ver convenios completos, haz una búsqueda más específica.*")
+            response_parts.append("ℹ️ *To see complete agreements, perform a more specific search.*")
             return "\n".join(response_parts)
 
-        response_parts = [f"📋 **Detalles del acuerdo #{index}**\n"]
+        response_parts = [f"📋 **Agreement details #{index}**\n"]
 
         # Información principal
         response_parts.append(f"### 🏛️ {r.get('host_institution', 'N/A')}")
-        response_parts.append(f"**País:** {r.get('destination_country', 'N/A')}")
-        response_parts.append(f"**Programa:** {r.get('mobility_program', 'N/A')}")
+        response_parts.append(f"**Country:** {r.get('destination_country', 'N/A')}")
+        response_parts.append(f"**Program:** {r.get('mobility_program', 'N/A')}")
         response_parts.append("")
 
         # Vigencia
         start = r.get('start_date', '')
         end = r.get('end_date', '')
         if start or end:
-            response_parts.append(f"**📅 Vigencia:** {start} → {end}")
+            response_parts.append(f"**📅 Validity:** {start} → {end}")
 
         # Plazas
         vacancies = r.get('student_vacancies', '')
         if vacancies:
-            response_parts.append(f"**🎓 Plazas:** {vacancies}")
+            response_parts.append(f"**🎓 Vacancies:** {vacancies}")
 
         # Requisitos de idioma
         lang = r.get('language_requirements', '')
         if lang:
-            response_parts.append(f"**🗣️ Idioma:** {lang}")
+            response_parts.append(f"**🗣️ Language:** {lang}")
 
         # Facultades UMA
         uma_fac = r.get('uma_faculties', '')
         if uma_fac:
-            response_parts.append(f"**🏫 Facultades UMA:** {uma_fac}")
+            response_parts.append(f"**🏫 UMA Faculties:** {uma_fac}")
 
         # Titulaciones UMA
         uma_deg = r.get('uma_degrees', '')
         if uma_deg:
-            response_parts.append(f"**📚 Titulaciones:** {uma_deg}")
+            response_parts.append(f"**📚 Degrees:** {uma_deg}")
 
         # Facultad destino
         dest_fac = r.get('destination_faculty', '')
         if dest_fac and dest_fac != 'General/No especificada':
-            response_parts.append(f"**🎯 Facultad destino:** {dest_fac}")
+            response_parts.append(f"**🎯 Destination faculty:** {dest_fac}")
 
         # Códigos ISCED
         isced = r.get('isced_codes', '')
         if isced:
-            response_parts.append(f"**📊 Áreas (ISCED):** {isced}")
+            response_parts.append(f"**📊 Areas (ISCED):** {isced}")
 
         # Niveles disponibles
         levels = r.get('available_levels', '')
         if levels:
-            response_parts.append(f"**📈 Niveles:** {levels}")
+            response_parts.append(f"**📈 Levels:** {levels}")
 
         # Tutores
         tutors = r.get('tutors', '')
@@ -650,18 +734,18 @@ RESPONSE FORMAT:
             # Simplificar lista de tutores (puede ser muy larga)
             tutor_list = tutors.split('|')
             unique_tutors = list(set(t.strip() for t in tutor_list if t.strip()))[:3]
-            response_parts.append(f"**👤 Coordinador(es):** {', '.join(unique_tutors)}")
+            response_parts.append(f"**👤 Coordinator(s):** {', '.join(unique_tutors)}")
 
         # Requisitos académicos
         acad_req = r.get('academic_requirements_text', '')
         if acad_req:
-            response_parts.append(f"\n**📝 Requisitos académicos:**")
+            response_parts.append(f"\n**📝 Academic requirements:**")
             response_parts.append(f"_{acad_req[:500]}{'...' if len(acad_req) > 500 else ''}_")
 
         # Comentarios públicos
         comments = r.get('public_comments', '')
         if comments:
-            response_parts.append(f"\n**💬 Notas:**")
+            response_parts.append(f"\n**💬 Notes:**")
             response_parts.append(f"_{comments[:500]}{'...' if len(comments) > 500 else ''}_")
 
         return "\n".join(response_parts)
@@ -671,13 +755,13 @@ RESPONSE FORMAT:
         state = self._get_session_state(session_id)
 
         if not state['last_results']:
-            return "⚠️ No hay resultados previos. Haz primero una consulta."
+            return "⚠️ No previous results. Please perform a query first."
 
         question_lower = question.lower()
         total = len(state['last_results'])
 
         # Detectar si quiere ver todos
-        if "todos" in question_lower or "completa" in question_lower:
+        if "todos" in question_lower or "completa" in question_lower or "all" in question_lower:
             # Mostrar TODOS los resultados desde el principio
             state['last_display_offset'] = total
             return self._format_results_basic(state['last_results'], max_display=total)
@@ -692,26 +776,27 @@ RESPONSE FORMAT:
         end = min(start + page_size, total)
 
         if start >= total:
-            return f"✅ Ya se han mostrado todos los {total} resultados."
+            return f"✅ All {total} results have been shown."
 
         # Obtener siguiente página
         next_page = state['last_results'][start:end]
         state['last_display_offset'] = end
 
         remaining = total - end
-        response_parts = [f"📄 **Mostrando resultados {start + 1} a {end} de {total}**\n"]
+        response_parts = [f"📄 **Showing results {start + 1} to {end} of {total}**\n"]
 
         for i, r in enumerate(next_page, start + 1):
             response_parts.append(f"### {i}. {r.get('host_institution', 'N/A')}")
-            response_parts.append(f"- **País:** {r.get('destination_country', 'N/A')}")
-            response_parts.append(f"- **Programa:** {r.get('mobility_program', 'N/A')}")
-            response_parts.append(f"- **Plazas:** {r.get('student_vacancies', 'N/A')}")
-            response_parts.append(f"- **Idioma:** {r.get('language_requirements', 'N/A')}")
+            response_parts.append(f"- **Country:** {r.get('destination_country', 'N/A')}")
+            response_parts.append(f"- **Program:** {r.get('mobility_program', 'N/A')}")
+            response_parts.append(f"- **Vacancies:** {r.get('student_vacancies', 'N/A')}")
+            response_parts.append(f"- **Language:** {r.get('language_requirements', 'N/A')}")
             response_parts.append("")
 
         if remaining > 0:
-            response_parts.append(f"*... quedan {remaining} convenio(s) más*")
-            response_parts.append(f'💡 *"Muéstrame más" | "Muestra también el centro" | "Ordena por país"*')
+            response_parts.append(f"*... {remaining} more agreement(s) remaining*")
+        response_parts.append("---")
+        response_parts.append(self._generate_contextual_suggestions(next_page, has_more=(remaining > 0), show_expand=True))
 
         return "\n".join(response_parts)
 
@@ -728,7 +813,7 @@ RESPONSE FORMAT:
 
         # Patrones que indican refinamiento (con y sin acentos)
         refinement_patterns = [
-            # Referencias a resultados previos
+            # Spanish - Referencias a resultados previos
             "de esos", "de estos", "de ellos", "de esas",
             "los de ", "las de ", "solo los", "solo las", "solo ",
             # Con acentos
@@ -755,6 +840,24 @@ RESPONSE FORMAT:
             # Cuatrimestres y plazas
             "primer cuatrimestre", "segundo cuatrimestre", "1er cuatrimestre", "2do cuatrimestre",
             "anual", "anuales",
+            # English - References to previous results
+            "of those", "from those", "of these", "from these", "of them", "from them",
+            "the ones from", "only the", "only those", "just the", "just those",
+            # Imperative (show me, give me)
+            "show me the", "show me only", "show me just",
+            "give me the", "give me only", "give me just",
+            # Confirmation + refinement
+            "yes,", "yes ", "yeah,", "yeah ",
+            # Filters
+            "filter by", "filter the", "filter those",
+            "from the previous", "of the previous",
+            "those that", "the ones that", "which have", "which require",
+            # Add/change condition
+            "but only", "but that", "and also", "that also",
+            "with requirement", "without requirement",
+            # Semesters and vacancies
+            "first semester", "second semester", "1st semester", "2nd semester",
+            "full year", "annual",
         ]
 
         for pattern in refinement_patterns:
@@ -861,7 +964,7 @@ RESPONSE FORMAT:
             return self._cached_schema
 
         if not os.path.exists(self.db_path):
-            return "ERROR: Base de datos no encontrada en data/database.db"
+            return "ERROR: Database not found at data/database.db"
 
         try:
             conn = sqlite3.connect(self.db_path)
@@ -871,7 +974,7 @@ RESPONSE FORMAT:
 
             if not tables:
                 conn.close()
-                return "La base de datos está vacía (no hay tablas)."
+                return "The database is empty (no tables found)."
 
             schema_parts = ["ESQUEMA DE LA BASE DE DATOS:"]
             schema_parts.append("Base de datos de acuerdos de movilidad para estudiantes de la Universidad de Málaga.")
@@ -1189,7 +1292,7 @@ EJEMPLOS CORRECTOS:
             return any_select.group(1).strip()
 
         logger.warning("⚠️ No se pudo extraer SQL del razonamiento")
-        return "ERROR: No se pudo generar SQL válido"
+        return "ERROR: Could not generate valid SQL"
 
     def _clean_sql_comments(self, query: str) -> str:
         """
@@ -1683,21 +1786,21 @@ EJEMPLOS CORRECTOS:
                 search_desc += " (con plazas disponibles)"
 
         # Mensaje base
-        msg = f"🔍 **No se encontraron convenios** con {search_desc}.\n\n"
+        msg = f"🔍 **No agreements found** with {search_desc}.\n\n"
 
         # Análisis detallado si hay más de 1 condición
         if len(condiciones) > 1:
             analisis = self._analyze_search_criteria(context)
             if analisis:
-                msg += "📊 **Análisis de criterios:**\n\n"
+                msg += "📊 **Criteria analysis:**\n\n"
 
                 # Cabecera de tabla (con o sin columna de plazas)
                 if filtrar_plazas:
-                    msg += "| Criterio | Convenios | Con plazas |\n"
-                    msg += "|----------|----------:|----------:|\n"
+                    msg += "| Criterion | Agreements | With vacancies |\n"
+                    msg += "|-----------|----------:|---------------:|\n"
                 else:
-                    msg += "| Criterio | Convenios |\n"
-                    msg += "|----------|----------:|\n"
+                    msg += "| Criterion | Agreements |\n"
+                    msg += "|-----------|----------:|\n"
 
                 # Mostrar criterios individuales
                 # Formato: (desc, count, count_plazas, tipo, condicion)
@@ -1759,8 +1862,8 @@ EJEMPLOS CORRECTOS:
 
                 if criterios_sin_resultados:
                     # Algún criterio individual no existe en la BD
-                    msg += f"⚠️ **Criterio sin coincidencias en la BD:** {', '.join(criterios_sin_resultados)}\n"
-                    msg += "No existen convenios con este requisito en toda la base de datos.\n\n"
+                    msg += f"⚠️ **Criterion with no matches in DB:** {', '.join(criterios_sin_resultados)}\n"
+                    msg += "There are no agreements with this requirement in the entire database.\n\n"
                 elif len(criterios_con_resultados) > 1:
                     # Todos los criterios individuales existen
                     # Analizar qué combinaciones de pares fallan
@@ -1769,44 +1872,44 @@ EJEMPLOS CORRECTOS:
 
                     if combos_fail and combos_ok:
                         # Algunas combinaciones de pares funcionan, otras no
-                        msg += f"⚠️ **Combinaciones que fallan:**\n"
+                        msg += f"⚠️ **Failing combinations:**\n"
                         for desc, _ in combos_fail:
-                            msg += f"  • {desc}: no hay convenios con ambos criterios\n"
+                            msg += f"  • {desc}: no agreements with both criteria\n"
                         msg += "\n"
                     elif combos_fail and not combos_ok:
                         # Todas las combinaciones de pares fallan
-                        msg += f"⚠️ **Ninguna combinación de criterios tiene resultados**\n"
-                        msg += f"Existen convenios con cada criterio por separado:\n"
+                        msg += f"⚠️ **No combination of criteria has results**\n"
+                        msg += f"There are agreements with each criterion separately:\n"
                         for nombre, cantidad in criterios_con_resultados:
-                            msg += f"  • {nombre}: {cantidad} convenios\n"
-                        msg += f"Pero no hay ningún convenio que cumpla dos criterios a la vez.\n\n"
+                            msg += f"  • {nombre}: {cantidad} agreements\n"
+                        msg += f"But there are no agreements that meet two criteria at once.\n\n"
                     elif combos_ok and combo_total and combo_total[0][1] == 0:
                         # Algunas combinaciones de pares funcionan, pero la combinación total falla
-                        msg += f"⚠️ **No hay convenios que cumplan los 3 criterios a la vez**\n"
-                        msg += f"Combinaciones parciales que sí existen:\n"
+                        msg += f"⚠️ **No agreements meet all 3 criteria at once**\n"
+                        msg += f"Partial combinations that do exist:\n"
                         for desc, count in combos_ok:
-                            msg += f"  • {desc}: {count} convenios\n"
+                            msg += f"  • {desc}: {count} agreements\n"
                         msg += "\n"
 
         # Sugerencias basadas en el contexto
-        msg += "💡 **Sugerencias:**\n"
+        msg += "💡 **Suggestions:**\n"
         suggestions = []
 
         if context["idioma"] and context["nivel"]:
-            suggestions.append(f"- Buscar convenios con {context['idioma']} sin filtrar por nivel")
-            suggestions.append(f"- Probar con otro nivel (B1, B2, C1...)")
+            suggestions.append(f"- Search for agreements with {context['idioma']} without filtering by level")
+            suggestions.append(f"- Try another level (B1, B2, C1...)")
         if context["pais"]:
-            suggestions.append(f"- Buscar otros países con requisitos similares")
+            suggestions.append(f"- Search for other countries with similar requirements")
         if context["idioma"]:
-            suggestions.append(f"- Buscar destinos sin requisito de idioma")
+            suggestions.append(f"- Search for destinations without language requirement")
         if context["facultad"]:
-            suggestions.append(f"- Buscar convenios de otras facultades en el mismo país")
+            suggestions.append(f"- Search for agreements from other faculties in the same country")
 
         if not suggestions:
             suggestions = [
-                "- Ampliar los criterios de búsqueda",
-                "- Probar con otros países o programas",
-                "- Consultar destinos sin requisito de idioma"
+                "- Broaden the search criteria",
+                "- Try other countries or programs",
+                "- Look for destinations without language requirement"
             ]
 
         msg += "\n".join(suggestions[:3])
@@ -1818,13 +1921,63 @@ EJEMPLOS CORRECTOS:
         Formatea los resultados de la consulta SQL usando Python (rápido).
         """
         if not success:
-            return f"❌ **Error en la consulta**\n\n{results}\n\nIntenta reformular tu pregunta."
+            return f"❌ **Query error**\n\n{results}\n\nTry rephrasing your question."
 
         if not results:
             return self._generate_empty_result_message(user_question, sql_query)
 
         logger.info("📊 Formateando resultados con Python...")
         return self._format_results_basic(results, session_state=session_state)
+
+    def _generate_contextual_suggestions(self, results: list, has_more: bool = False, show_expand: bool = True) -> str:
+        """
+        Generates contextual help suggestions based on the results.
+
+        Args:
+            results: List of result dictionaries
+            has_more: Whether there are more results to show
+            show_expand: Whether to show the "Expand #N" suggestion
+
+        Returns:
+            Formatted suggestion string
+        """
+        suggestions = []
+
+        # Check if results have multiple countries
+        if results:
+            countries = set(r.get('destination_country', '') for r in results if r.get('destination_country'))
+            has_multiple_countries = len(countries) > 1
+
+            # Check if results have multiple universities
+            universities = set(r.get('host_institution', '') for r in results if r.get('host_institution'))
+            has_multiple_universities = len(universities) > 1
+        else:
+            has_multiple_countries = False
+            has_multiple_universities = False
+
+        # Add "Show more" if there are more results
+        if has_more:
+            suggestions.append('"Show me more"')
+
+        # Add "Expand #N" if showing numbered results
+        if show_expand and len(results) > 0:
+            # Use a number from the middle of the displayed results for variety
+            example_num = min(3, len(results))
+            suggestions.append(f'"Expand #{example_num}"')
+
+        # Add "Also show faculty" always (usually useful)
+        suggestions.append('"Also show faculty"')
+
+        # Add sorting suggestion only if it makes sense
+        if has_multiple_countries:
+            suggestions.append('"Sort by country"')
+        elif has_multiple_universities:
+            suggestions.append('"Sort by university"')
+
+        # Build the suggestion line
+        if suggestions:
+            return '💡 *' + ' | '.join(suggestions) + '*'
+        return ''
 
     def _format_results_basic(self, results: list, max_display: int = 20, session_state: dict = None) -> str:
         """Formateo básico sin LLM (fallback)."""
@@ -1848,27 +2001,29 @@ EJEMPLOS CORRECTOS:
         if num_results <= 5:
             return self._format_results_detailed(results)
 
-        response_parts = [f"✅ **Encontré {num_results} convenio(s)**\n"]
+        response_parts = [f"✅ **Found {num_results} agreement(s)**\n"]
 
         # Mostrar hasta max_display resultados con formato compacto
         display_count = min(num_results, max_display)
         for i, r in enumerate(results[:display_count], 1):
             response_parts.append(f"### {i}. {r.get('host_institution', 'N/A')}")
-            response_parts.append(f"- **País:** {r.get('destination_country', 'N/A')}")
-            response_parts.append(f"- **Programa:** {r.get('mobility_program', 'N/A')}")
-            response_parts.append(f"- **Plazas:** {r.get('student_vacancies', 'N/A')}")
-            response_parts.append(f"- **Idioma:** {r.get('language_requirements', 'N/A')}")
+            response_parts.append(f"- **Country:** {r.get('destination_country', 'N/A')}")
+            response_parts.append(f"- **Program:** {r.get('mobility_program', 'N/A')}")
+            response_parts.append(f"- **Vacancies:** {r.get('student_vacancies', 'N/A')}")
+            response_parts.append(f"- **Language:** {r.get('language_requirements', 'N/A')}")
             response_parts.append("")
 
         if num_results > max_display:
             remaining = num_results - max_display
-            response_parts.append(f"*... y {remaining} convenio(s) más*")
-            response_parts.append(f'💡 *Para ver más, di: "Muéstrame los siguientes 20" o "Muéstrame todos"*')
-            response_parts.append('💡 *También: "Muestra también el centro", "Ordena por país"*')
+            response_parts.append(f"*... and {remaining} more agreement(s)*")
+            response_parts.append(f'💡 *To see more, say: "Show me the next 20" or "Show me all"*')
+            # Add contextual suggestions for the displayed results
+            displayed_results = results[:max_display]
+            response_parts.append(self._generate_contextual_suggestions(displayed_results, has_more=False, show_expand=True))
         else:
             # Con resultados moderados, mostrar ayuda para ampliar
             response_parts.append("---")
-            response_parts.append('💡 *"Amplía el 1" | "Muestra también el centro" | "Ordena por país"*')
+            response_parts.append(self._generate_contextual_suggestions(results, has_more=False, show_expand=True))
 
         return "\n".join(response_parts)
 
@@ -1878,23 +2033,23 @@ EJEMPLOS CORRECTOS:
         Muestra información extendida de cada convenio.
         """
         num_results = len(results)
-        response_parts = [f"✅ **Encontré {num_results} convenio(s)**\n"]
+        response_parts = [f"✅ **Found {num_results} agreement(s)**\n"]
 
         for i, r in enumerate(results, 1):
             response_parts.append(f"### {i}. 🏛️ {r.get('host_institution', 'N/A')}")
-            response_parts.append(f"**País:** {r.get('destination_country', 'N/A')} | **Programa:** {r.get('mobility_program', 'N/A')}")
+            response_parts.append(f"**Country:** {r.get('destination_country', 'N/A')} | **Program:** {r.get('mobility_program', 'N/A')}")
             response_parts.append("")
 
             # Vigencia
             start = r.get('start_date', '')
             end = r.get('end_date', '')
             if start or end:
-                response_parts.append(f"📅 **Vigencia:** {start} → {end}")
+                response_parts.append(f"📅 **Validity:** {start} → {end}")
 
             # Plazas
             vacancies = r.get('student_vacancies', '')
             if vacancies:
-                response_parts.append(f"🎓 **Plazas:** {vacancies}")
+                response_parts.append(f"🎓 **Vacancies:** {vacancies}")
 
             # Requisitos de idioma
             lang = r.get('language_requirements', '')
@@ -1902,9 +2057,9 @@ EJEMPLOS CORRECTOS:
                 # Simplificar si es muy largo
                 if len(lang) > 100:
                     lang_short = self._extract_language_level(lang)
-                    response_parts.append(f"🗣️ **Idioma:** {lang_short}")
+                    response_parts.append(f"🗣️ **Language:** {lang_short}")
                 else:
-                    response_parts.append(f"🗣️ **Idioma:** {lang}")
+                    response_parts.append(f"🗣️ **Language:** {lang}")
 
             # Facultades UMA
             uma_fac = r.get('uma_faculties', '')
@@ -1912,31 +2067,31 @@ EJEMPLOS CORRECTOS:
                 # Acortar si hay muchas facultades
                 if len(uma_fac) > 150:
                     uma_fac = uma_fac[:150] + "..."
-                response_parts.append(f"🏫 **Facultades UMA:** {uma_fac}")
+                response_parts.append(f"🏫 **UMA Faculties:** {uma_fac}")
 
             # Titulaciones UMA
             uma_deg = r.get('uma_degrees', '')
             if uma_deg:
                 if len(uma_deg) > 150:
                     uma_deg = uma_deg[:150] + "..."
-                response_parts.append(f"📚 **Titulaciones:** {uma_deg}")
+                response_parts.append(f"📚 **Degrees:** {uma_deg}")
 
             # Facultad destino (si está especificada y no es genérica)
             dest_fac = r.get('destination_faculty', '')
             if dest_fac and dest_fac not in ['General/No especificada', 'N/A', '']:
-                response_parts.append(f"🎯 **Facultad destino:** {dest_fac}")
+                response_parts.append(f"🎯 **Destination faculty:** {dest_fac}")
 
             # Niveles disponibles
             levels = r.get('available_levels', '')
             if levels:
-                response_parts.append(f"📈 **Niveles:** {levels}")
+                response_parts.append(f"📈 **Levels:** {levels}")
 
             response_parts.append("")  # Línea en blanco entre convenios
 
         # Ayuda para ver más detalles
         if num_results > 1:
             response_parts.append("---")
-            response_parts.append('💡 *"Amplía el 1" | "Muestra también el centro" | "Ordena por país"*')
+            response_parts.append(self._generate_contextual_suggestions(results, has_more=False, show_expand=True))
 
         return "\n".join(response_parts)
 
@@ -1968,7 +2123,7 @@ EJEMPLOS CORRECTOS:
         # Obtener países únicos
         countries = {}
         for r in results:
-            country = r.get('destination_country', 'Sin país')
+            country = r.get('destination_country', 'Unknown country')
             if country not in countries:
                 countries[country] = []
             countries[country].append(r)
@@ -1993,7 +2148,7 @@ EJEMPLOS CORRECTOS:
     def _format_grouped_by_country(self, results: list, countries: dict, num_results: int) -> str:
         """Formatea resultados agrupados por país."""
         response_parts = []
-        response_parts.append(f"📊 **Se encontraron {num_results} resultados agrupados por país**\n")
+        response_parts.append(f"📊 **Found {num_results} results grouped by country**\n")
 
         # Ordenar países por número de convenios (descendente)
         sorted_countries = sorted(countries.items(), key=lambda x: len(x[1]), reverse=True)
@@ -2005,16 +2160,16 @@ EJEMPLOS CORRECTOS:
             num_universities = len(universities)
 
             response_parts.append(f"### 🌍 {country}")
-            response_parts.append(f"- **Convenios:** {num_convenios}")
-            response_parts.append(f"- **Universidades:** {num_universities}")
+            response_parts.append(f"- **Agreements:** {num_convenios}")
+            response_parts.append(f"- **Universities:** {num_universities}")
             response_parts.append("")
 
         # Añadir sugerencia para afinar búsqueda
         response_parts.append("---")
-        response_parts.append("💡 **¿Deseas afinar la búsqueda?**")
+        response_parts.append("💡 **Would you like to refine the search?**")
         top_country = sorted_countries[0][0]
-        response_parts.append(f'Puedes decir: *"Sí, muéstrame los de {top_country}"*')
-        response_parts.append('O añade más filtros: *"Los que además requieran inglés B2"*, *"Solo los del primer cuatrimestre"*')
+        response_parts.append(f'You can say: *"Yes, show me those from {top_country}"*')
+        response_parts.append('Or add more filters: *"Those that also require English B2"*, *"Only first semester"*')
 
         return "\n".join(response_parts)
 
@@ -2023,19 +2178,19 @@ EJEMPLOS CORRECTOS:
         response_parts = []
 
         # Obtener el país (es único)
-        country = results[0].get('destination_country', 'Sin país') if results else 'Sin país'
+        country = results[0].get('destination_country', 'Unknown country') if results else 'Unknown country'
 
         # Agrupar por universidad
         universities = {}
         for r in results:
-            uni = r.get('host_institution', 'Sin universidad')
+            uni = r.get('host_institution', 'Unknown university')
             if uni not in universities:
                 universities[uni] = []
             universities[uni].append(r)
 
         num_universities = len(universities)
 
-        response_parts.append(f"📊 **Se encontraron {num_results} resultados en {country}, agrupados por universidad**\n")
+        response_parts.append(f"📊 **Found {num_results} results in {country}, grouped by university**\n")
 
         # Ordenar universidades por número de convenios (descendente)
         sorted_unis = sorted(universities.items(), key=lambda x: len(x[1]), reverse=True)
@@ -2046,18 +2201,18 @@ EJEMPLOS CORRECTOS:
             programs = set(r.get('mobility_program', 'N/A') for r in uni_results)
 
             response_parts.append(f"### 🏛️ {uni}")
-            response_parts.append(f"- **Convenios:** {num_convenios}")
-            response_parts.append(f"- **Programas:** {', '.join(programs)}")
+            response_parts.append(f"- **Agreements:** {num_convenios}")
+            response_parts.append(f"- **Programs:** {', '.join(programs)}")
             response_parts.append("")
 
         # Añadir sugerencia para afinar búsqueda
         response_parts.append("---")
-        response_parts.append("💡 **¿Deseas afinar la búsqueda?**")
+        response_parts.append("💡 **Want to refine your search?**")
         top_uni = sorted_unis[0][0]
         # Acortar el nombre si es muy largo
         short_uni = top_uni[:40] + "..." if len(top_uni) > 40 else top_uni
-        response_parts.append(f'Puedes decir: *"Sí, muéstrame los de {short_uni}"*')
-        response_parts.append('O añade más filtros: *"Los que además requieran inglés B2"*, *"Solo los del primer cuatrimestre"*')
+        response_parts.append(f'You can say: *"Yes, show me those from {short_uni}"*')
+        response_parts.append('Or add more filters: *"Those that also require English B2"*, *"Only first semester"*')
 
         return "\n".join(response_parts)
 
@@ -2067,7 +2222,7 @@ EJEMPLOS CORRECTOS:
         Ejemplo: "ALEMÁN (Nivel: B1) -> Certificado..." → "ALEMÁN B1"
         """
         import re
-        if not value or value == 'Sin especificar':
+        if not value or value in ['Sin especificar', 'Not specified']:
             return value
 
         # Buscar todos los patrones IDIOMA (Nivel: X)
@@ -2080,7 +2235,7 @@ EJEMPLOS CORRECTOS:
 
         # Si no hay patrón de nivel, buscar "No requiere acreditación"
         if 'no requiere' in value.lower():
-            return "Sin requisito de idioma"
+            return "No language requirement"
 
         # Fallback: devolver valor truncado
         return value[:40] + "..." if len(value) > 40 else value
@@ -2091,18 +2246,18 @@ EJEMPLOS CORRECTOS:
 
         # Nombres legibles para los campos
         field_labels = {
-            'language_requirements': 'nivel de idioma',
-            'mobility_program': 'programa',
-            'host_institution': 'universidad',
-            'destination_country': 'país',
-            'uma_faculties': 'facultad UMA',
+            'language_requirements': 'language level',
+            'mobility_program': 'program',
+            'host_institution': 'university',
+            'destination_country': 'country',
+            'uma_faculties': 'UMA faculty',
         }
         label = field_labels.get(field_name, field_name)
 
         # Agrupar por valores únicos del campo
         groups = {}
         for r in results:
-            raw_value = r.get(field_name, 'Sin especificar')
+            raw_value = r.get(field_name, 'Not specified')
 
             # Para language_requirements, extraer solo idioma y nivel
             if field_name == 'language_requirements':
@@ -2117,37 +2272,37 @@ EJEMPLOS CORRECTOS:
         # Ordenar alfabéticamente por el campo de agrupación
         sorted_groups = sorted(groups.items(), key=lambda x: x[0])
 
-        response_parts.append(f"📊 **Se encontraron {num_results} resultados agrupados por {label}**\n")
+        response_parts.append(f"📊 **Found {num_results} results grouped by {label}**\n")
 
         for value, count in sorted_groups[:15]:  # Limitar a 15 grupos
             # Truncar valores muy largos
             display_value = value[:80] + "..." if len(str(value)) > 80 else value
-            response_parts.append(f"- **{display_value}**: {count} convenio(s)")
+            response_parts.append(f"- **{display_value}**: {count} agreement(s)")
 
         if len(sorted_groups) > 15:
-            response_parts.append(f"\n*... y {len(sorted_groups) - 15} grupos más*")
+            response_parts.append(f"\n*... and {len(sorted_groups) - 15} more groups*")
 
         # Añadir sugerencia de refinamiento con ejemplos personalizados
         response_parts.append("")
         response_parts.append("---")
-        response_parts.append("💡 **¿Deseas afinar la búsqueda?**")
+        response_parts.append("💡 **Would you like to refine the search?**")
 
         # Generar ejemplos basados en los grupos mostrados
-        example_value = sorted_groups[0][0] if sorted_groups else "valor"
+        example_value = sorted_groups[0][0] if sorted_groups else "value"
 
         # Personalizar el ejemplo según el campo
         if field_name == 'language_requirements':
-            response_parts.append(f'Puedes decir: *"Sí, muéstrame los de {example_value}"*')
+            response_parts.append(f'You can say: *"Yes, show me those with {example_value}"*')
         elif field_name == 'destination_country':
-            response_parts.append(f'Puedes decir: *"Sí, muéstrame los de {example_value}"*')
+            response_parts.append(f'You can say: *"Yes, show me those from {example_value}"*')
         elif field_name == 'mobility_program':
-            response_parts.append(f'Puedes decir: *"Sí, solo los de {example_value}"*')
+            response_parts.append(f'You can say: *"Yes, only those from {example_value}"*')
         elif field_name == 'host_institution':
-            response_parts.append(f'Puedes decir: *"Sí, muéstrame los de {example_value}"*')
+            response_parts.append(f'You can say: *"Yes, show me those from {example_value}"*')
         else:
-            response_parts.append(f'Puedes decir: *"Sí, muéstrame los de {example_value}"*')
+            response_parts.append(f'You can say: *"Yes, show me those from {example_value}"*')
 
-        response_parts.append('O añade más filtros: *"Los que además requieran inglés B2"*, *"Solo los del primer cuatrimestre"*')
+        response_parts.append('Or add more filters: *"Those that also require English B2"*, *"Only first semester"*')
 
         return "\n".join(response_parts)
 
@@ -2158,27 +2313,27 @@ EJEMPLOS CORRECTOS:
         """
         num_results = len(results)
         if not results:
-            return "🔍 **No se encontraron resultados**"
+            return "🔍 **No results found**"
 
         # Obtener los nombres de los campos
         fields = list(results[0].keys())
 
         # Mapeo de campos a nombres legibles
         field_labels = {
-            'uma_faculties': 'Facultades UMA',
-            'destination_country': 'País',
-            'host_institution': 'Universidad',
-            'mobility_program': 'Programa',
-            'destination_faculty': 'Facultad de destino',
-            'uma_degrees': 'Titulaciones UMA',
-            'language_requirements': 'Idioma',
+            'uma_faculties': 'UMA Faculties',
+            'destination_country': 'Country',
+            'host_institution': 'University',
+            'mobility_program': 'Program',
+            'destination_faculty': 'Destination Faculty',
+            'uma_degrees': 'UMA Degrees',
+            'language_requirements': 'Language',
         }
 
         # Si es un solo campo, mostrar como lista simple
         if len(fields) == 1:
             field = fields[0]
             label = field_labels.get(field, field.replace('_', ' ').title())
-            response_parts = [f"✅ **Encontré {num_results} {label.lower()}:**\n"]
+            response_parts = [f"✅ **Found {num_results} {label.lower()}:**\n"]
 
             for i, r in enumerate(results, 1):
                 value = r.get(field, 'N/A')
@@ -2188,7 +2343,7 @@ EJEMPLOS CORRECTOS:
             return "\n".join(response_parts)
 
         # Si hay múltiples campos, mostrar en formato tabla
-        response_parts = [f"✅ **Encontré {num_results} resultado(s)**\n"]
+        response_parts = [f"✅ **Found {num_results} result(s)**\n"]
 
         for i, r in enumerate(results[:20], 1):
             parts = []
@@ -2201,13 +2356,13 @@ EJEMPLOS CORRECTOS:
                 response_parts.append(f"{i}. " + " | ".join(parts))
 
         if num_results > 20:
-            response_parts.append(f"\n*... y {num_results - 20} más*")
+            response_parts.append(f"\n*... and {num_results - 20} more*")
 
         return "\n".join(response_parts)
 
     def _format_results_simple_list(self, results: list, num_results: int) -> str:
         """Formato simple cuando no hay campo claro para agrupar."""
-        response_parts = [f"✅ **Encontré {num_results} resultado(s)**\n"]
+        response_parts = [f"✅ **Found {num_results} result(s)**\n"]
 
         # Mostrar los primeros resultados con todos sus campos
         for i, r in enumerate(results[:10], 1):
@@ -2219,14 +2374,14 @@ EJEMPLOS CORRECTOS:
             response_parts.append("")
 
         if num_results > 10:
-            response_parts.append(f"*... y {num_results - 10} más*")
+            response_parts.append(f"*... and {num_results - 10} more*")
 
         return "\n".join(response_parts)
 
     def _format_as_html_table(self, results: list) -> str:
         """Formatea los resultados JSON como una tabla HTML interactiva."""
         if not results:
-            return "<p><em>Sin resultados</em></p>"
+            return "<p><em>No results</em></p>"
 
         import json as json_module
         columns = list(results[0].keys())
@@ -2242,7 +2397,7 @@ EJEMPLOS CORRECTOS:
 .sql-table .null {{ color: #999; font-style: italic; }}
 .sql-stats {{ margin-bottom: 10px; color: #666; font-size: 13px; }}
 </style>
-<div class="sql-stats">Resultados: <strong>{row_count}</strong> filas</div>
+<div class="sql-stats">Results: <strong>{row_count}</strong> rows</div>
 <div style="overflow-x: auto;">
 <table class="sql-table">
 <thead><tr>{headers}</tr></thead>
@@ -2345,13 +2500,13 @@ EJEMPLOS CORRECTOS:
 
         # Verificar que existe la BD
         if not os.path.exists(self.db_path):
-            return """⚠️ **Base de datos no encontrada**
+            return """⚠️ **Database not found**
 
-Por favor, crea una base de datos SQLite en `data/database.db`.
+Please create a SQLite database at `data/database.db`.
 
-Ejemplo:
+Example:
 ```bash
-sqlite3 data/database.db < tu_schema.sql
+sqlite3 data/database.db < your_schema.sql
 ```"""
 
         # ⏱️ Fase 1: Recepción de pregunta y obtención de esquema
@@ -2408,7 +2563,7 @@ sqlite3 data/database.db < tu_schema.sql
                 t_fase3_end = time.perf_counter()
                 timings["3. Ejecución SQLite"] = t_fase3_end - t_fase3_start
                 self._log_timing_summary(timings)
-                return f"⚠️ Error ejecutando consulta: {error_msg}"
+                return f"⚠️ Error executing query: {error_msg}"
 
             json_output = consultar_result.stdout
             logger.info(f"✅ Consulta ejecutada correctamente")
@@ -2448,7 +2603,7 @@ sqlite3 data/database.db < tu_schema.sql
         self._log_timing_summary(timings)
 
         # Paso 5: Combinar SQL + explicación (sin tabla HTML redundante)
-        return f"**Consulta SQL generada:**\n{sql_display}{formatted}"
+        return f"**Generated SQL query:**\n{sql_display}{formatted}"
 
     async def chat_stream(self, user_message: str, history: list = None, session_id: str = None):
         """
@@ -2507,7 +2662,7 @@ sqlite3 data/database.db < tu_schema.sql
 
         # Verificar BD
         if not os.path.exists(self.db_path):
-            yield ("content", "⚠️ **Base de datos no encontrada**\n\nCrea una base de datos SQLite en `data/database.db`.")
+            yield ("content", "⚠️ **Database not found**\n\nCreate a SQLite database at `data/database.db`.")
             return
 
         # ⏱️ Fase 1: Recepción de pregunta y obtención de esquema
@@ -2546,11 +2701,11 @@ sqlite3 data/database.db < tu_schema.sql
         state['last_user_question'] = user_message
 
         # Mostrar la SQL generada inmediatamente
-        yield ("content", f"**Consulta SQL generada:**\n```sql\n{sql_query}\n```\n\n")
+        yield ("content", f"**Generated SQL query:**\n```sql\n{sql_query}\n```\n\n")
 
         # ⏱️ Fase 3: Ejecutar SQL
         t_fase3_start = time.perf_counter()
-        yield ("status", "Ejecutando consulta...")
+        yield ("status", "Executing query...")
 
         # Ejecutar SQL usando consultar_sql.py
         html_table = ""
@@ -2568,13 +2723,13 @@ sqlite3 data/database.db < tu_schema.sql
                 t_fase3_end = time.perf_counter()
                 timings["3. Ejecución SQLite"] = t_fase3_end - t_fase3_start
                 self._log_timing_summary(timings)
-                yield ("content", f"⚠️ Error ejecutando consulta: {error_msg}")
+                yield ("content", f"⚠️ Error executing query: {error_msg}")
                 return
 
             json_output = consultar_result.stdout
             logger.info(f"✅ Consulta ejecutada correctamente")
 
-            yield ("status", "Procesando resultados...")
+            yield ("status", "Processing results...")
 
             # Parsear JSON
             import json as json_module
@@ -2674,7 +2829,7 @@ sqlite3 data/database.db < tu_schema.sql
 
         # Verificar que existe la BD
         if not os.path.exists(self.db_path):
-            metrics["error"] = "Base de datos no encontrada"
+            metrics["error"] = "Database not found"
             return metrics
 
         # Fase 1: Obtener esquema

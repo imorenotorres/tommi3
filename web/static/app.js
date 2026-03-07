@@ -16,6 +16,7 @@ const elements = {
     agentSelect: document.getElementById('agent-select'),
     agentDescription: document.getElementById('agent-description'),
     agentType: document.getElementById('agent-type'),
+    verifyStatus: document.getElementById('verify-status'),
     exampleQueries: document.getElementById('example-queries'),
     examplesContainer: document.getElementById('examples-container'),
     queryHistory: document.getElementById('query-history'),
@@ -292,6 +293,34 @@ function showAgentInfo() {
         elements.agentType.classList.remove('oneshot', 'rag', 'toolcall', 'text2sql');
     }
 
+    // Show verification status for oneshot and RAG agents
+    if (elements.verifyStatus) {
+        const agentType = state.currentAgent.agent_type;
+        const supportsVerification = agentType === 'oneshot' || agentType === 'rag';
+        console.log('Verification check:', { agentType, supportsVerification, verify_grounding: state.currentAgent.verify_grounding });
+
+        if (supportsVerification) {
+            const verifyIcon = document.getElementById('verify-status-icon');
+            const verifyLabel = document.getElementById('verify-status-label');
+
+            if (state.currentAgent.verify_grounding) {
+                verifyIcon.textContent = '✓';
+                verifyLabel.textContent = 'Verification active';
+                elements.verifyStatus.classList.remove('hidden', 'inactive');
+                elements.verifyStatus.classList.add('active');
+            } else {
+                verifyIcon.textContent = '○';
+                verifyLabel.textContent = 'Verification inactive';
+                elements.verifyStatus.classList.remove('hidden', 'active');
+                elements.verifyStatus.classList.add('inactive');
+            }
+        } else {
+            elements.verifyStatus.classList.add('hidden');
+        }
+    } else {
+        console.warn('verifyStatus element not found');
+    }
+
     // Mostrar descripción
     if (state.currentAgent.description) {
         elements.agentDescription.textContent = state.currentAgent.description;
@@ -319,6 +348,9 @@ function showAgentInfo() {
 // Ocultar información del agente
 function hideAgentInfo() {
     elements.agentType.classList.add('hidden');
+    if (elements.verifyStatus) {
+        elements.verifyStatus.classList.add('hidden');
+    }
     elements.agentDescription.classList.add('hidden');
     elements.exampleQueries.classList.add('hidden');
 }

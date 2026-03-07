@@ -3,24 +3,24 @@ chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 :: =============================================================================
-:: TOMMI - Script de configuración para Windows
+:: TOMMI - Setup Script for Windows
 :: =============================================================================
 
 echo.
 echo ==============================================
-echo        TOMMI - Configuracion inicial
+echo        TOMMI - Initial Setup
 echo ==============================================
 echo.
 
-:: Obtener directorio del script y cambiar al directorio raíz del proyecto
+:: Get script directory and change to project root directory
 cd /d "%~dp0.."
 
 :: -----------------------------------------------------------------------------
-:: 1. Detectar version de Python compatible
+:: 1. Detect compatible Python version
 :: -----------------------------------------------------------------------------
-echo [1/7] Detectando version de Python compatible...
+echo [1/7] Detecting compatible Python version...
 
-:: Detectar si hay agentes RAG (requieren Python 3.11-3.13)
+:: Detect if there are RAG agents (require Python 3.11-3.13)
 set "HAS_RAG_AGENTS=false"
 if exist "agents" (
     for /d %%D in (agents\*) do (
@@ -33,23 +33,23 @@ if exist "agents" (
     )
 )
 
-:: Obtener version de Python
+:: Get Python version
 for /f "tokens=2" %%V in ('python --version 2^>^&1') do set PYTHON_VERSION=%%V
-echo   - Python detectado: %PYTHON_VERSION%
+echo   - Python detected: %PYTHON_VERSION%
 
-:: Verificar compatibilidad con RAG
+:: Check RAG compatibility
 if "!HAS_RAG_AGENTS!"=="true" (
-    echo   - Detectados agentes RAG ^(requieren Python 3.11-3.13^)
+    echo   - RAG agents detected ^(require Python 3.11-3.13^)
     echo %PYTHON_VERSION% | findstr /r "^3\.14\." >nul
     if not errorlevel 1 (
         echo.
-        echo   ADVERTENCIA: Python 3.14+ detectado
-        echo   Los agentes RAG no funcionaran con esta version
-        echo   ChromaDB requiere Python 3.11-3.13
+        echo   WARNING: Python 3.14+ detected
+        echo   RAG agents will not work with this version
+        echo   ChromaDB requires Python 3.11-3.13
         echo.
-        set /p CONTINUE="  Continuar de todos modos? [s/N]: "
-        if /i not "!CONTINUE!"=="s" (
-            echo Cancelado.
+        set /p CONTINUE="  Continue anyway? [y/N]: "
+        if /i not "!CONTINUE!"=="y" (
+            echo Cancelled.
             pause
             exit /b 1
         )
@@ -57,71 +57,71 @@ if "!HAS_RAG_AGENTS!"=="true" (
 )
 
 :: -----------------------------------------------------------------------------
-:: 2. Crear entorno virtual
+:: 2. Create virtual environment
 :: -----------------------------------------------------------------------------
-echo [2/7] Creando entorno virtual .venv...
+echo [2/7] Creating virtual environment .venv...
 
 if exist "web\.venv" (
-    echo   - El entorno virtual ya existe en web\.venv
+    echo   - Virtual environment already exists in web\.venv
 ) else (
     python -m venv web\.venv
     if errorlevel 1 (
-        echo   ERROR: No se pudo crear el entorno virtual
-        echo   Asegurate de tener Python 3.10 o superior instalado
+        echo   ERROR: Could not create virtual environment
+        echo   Make sure you have Python 3.10 or higher installed
         pause
         exit /b 1
     )
-    echo   - Entorno virtual creado en web\.venv
+    echo   - Virtual environment created in web\.venv
 )
 
 :: -----------------------------------------------------------------------------
-:: 3. Activar entorno virtual
+:: 3. Activate virtual environment
 :: -----------------------------------------------------------------------------
-echo [3/7] Activando entorno virtual...
+echo [3/7] Activating virtual environment...
 call web\.venv\Scripts\activate.bat
-echo   - Entorno activado
+echo   - Environment activated
 
 :: -----------------------------------------------------------------------------
-:: 4. Instalar dependencias
+:: 4. Install dependencies
 :: -----------------------------------------------------------------------------
-echo [4/7] Instalando dependencias...
+echo [4/7] Installing dependencies...
 
-:: Actualizar pip
+:: Update pip
 python -m pip install --upgrade pip -q
 
-:: Instalar requirements de web
+:: Install web requirements
 if exist "web\requirements.txt" (
-    echo   - Instalando requirements de web...
+    echo   - Installing web requirements...
     pip install -r web\requirements.txt -q
-    echo   - Requirements de web instalados
+    echo   - Web requirements installed
 )
 
 :: -----------------------------------------------------------------------------
-:: 5. Configurar logging de conversaciones
+:: 5. Configure conversation logging
 :: -----------------------------------------------------------------------------
-echo [5/7] Configurando logging de conversaciones...
+echo [5/7] Configuring conversation logging...
 echo.
-echo   Deseas habilitar el registro de conversaciones?
-echo   (Util para pruebas. Los logs se guardan en web/logs/conversations.log)
+echo   Do you want to enable conversation logging?
+echo   (Useful for testing. Logs are saved to web/logs/conversations.log)
 echo.
-set /p ENABLE_LOG="  Habilitar logging [s/N]: "
+set /p ENABLE_LOG="  Enable logging [y/N]: "
 
-:: Guardar preferencia de logging para escribir al final
-if /i "!ENABLE_LOG!"=="s" (
+:: Save logging preference to write at the end
+if /i "!ENABLE_LOG!"=="y" (
     set "LOGGING_VALUE=true"
-    echo   - Logging habilitado
+    echo   - Logging enabled
 ) else (
     set "LOGGING_VALUE=false"
-    echo   - Logging deshabilitado
+    echo   - Logging disabled
 )
 
 :: -----------------------------------------------------------------------------
-:: 6. Configurar API key para los agentes
+:: 6. Configure API key for agents
 :: -----------------------------------------------------------------------------
-echo [6/7] Configurando API key de Mistral...
+echo [6/7] Configuring Mistral API key...
 echo.
 
-:: Detectar carpetas de agentes en agents/
+:: Detect agent folders in agents/
 set "AGENTS="
 if exist "agents" (
     for /d %%D in (agents\*) do (
@@ -133,34 +133,34 @@ if exist "agents" (
 
 set "API_KEY="
 if "!AGENTS!"=="" (
-    echo   - No se encontraron carpetas de agentes
+    echo   - No agent folders found
 ) else (
-    echo   Agentes detectados:!AGENTS!
+    echo   Agents detected:!AGENTS!
     echo.
-    echo   Introduce tu API key de Mistral:
-    echo   (Puedes obtenerla en https://console.mistral.ai/api-keys^)
+    echo   Enter your Mistral API key:
+    echo   (You can get it at https://console.mistral.ai/api-keys^)
     echo.
     set /p API_KEY="  MISTRAL_API_KEY: "
 
     if "!API_KEY!"=="" (
         echo.
-        echo   - No se proporciono API key. Puedes configurarla manualmente mas tarde.
+        echo   - No API key provided. You can configure it manually later.
     ) else (
         for /d %%D in (agents\*) do (
             if exist "%%D\agent.py" (
                 echo MISTRAL_API_KEY=!API_KEY!> "%%D\.env"
-                echo   - Configurado: %%D\.env
+                echo   - Configured: %%D\.env
             )
         )
         echo.
-        echo   - API key configurada en los agentes
+        echo   - API key configured in agents
     )
 )
 
 :: -----------------------------------------------------------------------------
-:: 7. Crear archivo web/.env con configuracion completa
+:: 7. Create web/.env configuration file
 :: -----------------------------------------------------------------------------
-echo [7/7] Creando archivo de configuracion web\.env...
+echo [7/7] Creating web\.env configuration file...
 
 (
 echo ENABLE_LOGGING=!LOGGING_VALUE!
@@ -182,17 +182,17 @@ echo # OLLAMA_BASE_URL=http://localhost:11434
 echo # OLLAMA_MODEL=mistral
 ) > "web\.env"
 
-echo   - Archivo web\.env creado
+echo   - web\.env file created
 
 :: -----------------------------------------------------------------------------
-:: Resumen final
+:: Final summary
 :: -----------------------------------------------------------------------------
 echo.
 echo ==============================================
-echo         Configuracion completada
+echo         Setup completed
 echo ==============================================
 echo.
-echo Para iniciar el servidor web:
+echo To start the web server:
 echo   cd ..
 echo   cd web
 echo   run_html_server.bat

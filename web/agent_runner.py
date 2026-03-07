@@ -27,6 +27,7 @@ class AgentInfo:
     example_queries: list[str]
     path: str
     public: bool = True
+    verify_grounding: bool = False
 
 
 @dataclass
@@ -67,6 +68,20 @@ class AgentRunner:
                 if not config:
                     continue
 
+                # Check if verification is enabled in agent's .env
+                verify_grounding = False
+                env_file = agent_dir / ".env"
+                if env_file.exists():
+                    try:
+                        env_content = env_file.read_text(encoding="utf-8")
+                        for line in env_content.split('\n'):
+                            if line.strip().startswith('VERIFY_GROUNDING'):
+                                value = line.split('=', 1)[1].strip().lower()
+                                verify_grounding = value == 'true'
+                                break
+                    except Exception:
+                        pass
+
                 agent = AgentInfo(
                     id=config.get("id", agent_dir.name),
                     name=config.get("name", agent_dir.name),
@@ -76,6 +91,7 @@ class AgentRunner:
                     example_queries=config.get("example_queries", []),
                     path=str(agent_dir),
                     public=config.get("public", True),
+                    verify_grounding=verify_grounding,
                 )
 
                 if agent.public:

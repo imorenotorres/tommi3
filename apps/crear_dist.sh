@@ -1,142 +1,142 @@
 #!/bin/bash
 
 # =============================================================================
-# TOMMI - Script para crear archivos de distribución
+# TOMMI - Script to create distribution files
 # =============================================================================
-# Crea los archivos tar.gz (Linux/Mac) y zip (Windows) para distribución
+# Creates tar.gz (Linux/Mac) and zip (Windows) files for distribution
 # =============================================================================
 
 set -e
 
-# Variable para rastrear templates creados (para limpieza)
+# Variable to track created templates (for cleanup)
 CREATED_TEMPLATES=()
 
-# Función de limpieza en caso de error o salida
+# Cleanup function in case of error or exit
 cleanup() {
     if [ ${#CREATED_TEMPLATES[@]} -gt 0 ]; then
-        echo -e "${YELLOW}Limpiando archivos temporales...${NC}"
+        echo -e "${YELLOW}Cleaning up temporary files...${NC}"
         for template in "${CREATED_TEMPLATES[@]}"; do
             if [ -f "$template" ]; then
                 rm -f "$template"
-                echo -e "  → Eliminado $template"
+                echo -e "  → Removed $template"
             fi
         done
     fi
 }
 
-# Ejecutar limpieza en caso de error o salida
+# Run cleanup on error or exit
 trap cleanup EXIT
 
-# Colores para output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Obtener directorio del script y cambiar al directorio raíz del proyecto
+# Get script directory and change to project root directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
 
-# Fecha actual para el nombre del archivo
+# Current date for filename
 DATE=$(date +%Y-%m-%d)
 
-# Directorio de salida
+# Output directory
 DIST_DIR="dist"
 
-# Nombres de los archivos
+# File names
 TAR_FILE="tommi-${DATE}-linux-mac.tar.gz"
 ZIP_FILE="tommi-${DATE}-windows.zip"
 
 echo -e "${BLUE}"
 echo "=============================================="
-echo "    TOMMI - Crear archivos de distribución   "
+echo "    TOMMI - Create distribution files        "
 echo "=============================================="
 echo -e "${NC}"
 
-# Crear directorio dist si no existe
+# Create dist directory if it doesn't exist
 mkdir -p "$DIST_DIR"
 
 # -----------------------------------------------------------------------------
-# Detectar agentes disponibles en agents/
+# Detect available agents in agents/
 # -----------------------------------------------------------------------------
 AVAILABLE_AGENTS=()
 if [ -d "agents" ]; then
     for dir in agents/*/; do
         dir_name="${dir%/}"
-        # Un agente es un directorio con app.py y agent.py
+        # An agent is a directory with app.py and agent.py
         if [ -f "${dir_name}/app.py" ] && [ -f "${dir_name}/agent.py" ]; then
             AVAILABLE_AGENTS+=("$dir_name")
         fi
     done
 fi
 
-echo -e "${YELLOW}Agentes disponibles:${NC}"
+echo -e "${YELLOW}Available agents:${NC}"
 for agent in "${AVAILABLE_AGENTS[@]}"; do
     echo "  - $agent"
 done
 echo ""
 
 # -----------------------------------------------------------------------------
-# Preguntar qué agentes incluir
+# Ask which agents to include
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}¿Desea incluir agentes en la distribución?${NC}"
-echo "  1) Sí - Incluir todos los agentes"
-echo "  2) No - Solo archivos base (sin agentes)"
+echo -e "${YELLOW}Do you want to include agents in the distribution?${NC}"
+echo "  1) Yes - Include all agents"
+echo "  2) No - Base files only (no agents)"
 echo ""
-read -p "Seleccione una opción [1-2] (por defecto: 1): " AGENT_OPTION
+read -p "Select an option [1-2] (default: 1): " AGENT_OPTION
 
 AGENTS_TO_INCLUDE=()
 case "$AGENT_OPTION" in
     2)
         AGENTS_TO_INCLUDE=()
-        echo -e "${GREEN}  ✓ No se incluirán agentes${NC}"
+        echo -e "${GREEN}  ✓ No agents will be included${NC}"
         TAR_FILE="tommi-${DATE}-base-linux-mac.tar.gz"
         ZIP_FILE="tommi-${DATE}-base-windows.zip"
         ;;
     *)
         AGENTS_TO_INCLUDE=("${AVAILABLE_AGENTS[@]}")
-        echo -e "${GREEN}  ✓ Se incluirán todos los agentes: ${AGENTS_TO_INCLUDE[*]}${NC}"
+        echo -e "${GREEN}  ✓ All agents will be included: ${AGENTS_TO_INCLUDE[*]}${NC}"
         ;;
 esac
 echo ""
 
 # -----------------------------------------------------------------------------
-# Crear archivos .env.template para agentes text2sql
+# Create .env.template files for text2sql agents
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}Creando archivos .env.template para agentes text2sql...${NC}"
+echo -e "${YELLOW}Creating .env.template files for text2sql agents...${NC}"
 
 for agent in "${AGENTS_TO_INCLUDE[@]}"; do
     if [ -f "$agent/app.py" ]; then
-        # Detectar si es un agente text2sql
+        # Detect if it's a text2sql agent
         if grep -q '"type": "text2sql"' "$agent/app.py" 2>/dev/null; then
-            echo -e "  → Creando .env.template para $agent (text2sql)"
+            echo -e "  → Creating .env.template for $agent (text2sql)"
             cat > "$agent/.env.template" << 'ENVTEMPLATE'
 # ============================================
 # Text2SQL Agent - Dual LLM Configuration
 # ============================================
-# Este agente usa DOS LLMs:
-#   1. LLM Principal (cloud) - para convertir texto a SQL
-#   2. LLM Local (Ollama) - para formatear resultados
+# This agent uses TWO LLMs:
+#   1. Main LLM (cloud) - to convert text to SQL
+#   2. Local LLM (Ollama) - to format results
 
-# ----- LLM PRINCIPAL (texto a SQL) -----
+# ----- MAIN LLM (text to SQL) -----
 LLM_PROVIDER=mistral
-MISTRAL_API_KEY=TU_API_KEY_AQUI
+MISTRAL_API_KEY=YOUR_API_KEY_HERE
 MISTRAL_MODEL=mistral-large-latest
 
-# ----- LLM LOCAL (formatear resultados) -----
-# Siempre usa Ollama local para formatear
+# ----- LOCAL LLM (format results) -----
+# Always uses local Ollama for formatting
 LOCAL_LLM_BASE_URL=http://localhost:11434
 LOCAL_LLM_MODEL=mistral
 ENVTEMPLATE
-            # Registrar para limpieza automática
+            # Register for automatic cleanup
             CREATED_TEMPLATES+=("$agent/.env.template")
         fi
     fi
 done
 
 # -----------------------------------------------------------------------------
-# Archivos a incluir
+# Files to include
 # -----------------------------------------------------------------------------
 FILES_TO_INCLUDE=(
     "apps/"
@@ -150,13 +150,13 @@ FILES_TO_INCLUDE=(
     ".dockerignore"
 )
 
-# Añadir los agentes seleccionados
+# Add selected agents
 for agent in "${AGENTS_TO_INCLUDE[@]}"; do
     FILES_TO_INCLUDE+=("$agent")
 done
 
-# Verificar que los archivos existen
-echo -e "${YELLOW}Verificando archivos...${NC}"
+# Verify that files exist
+echo -e "${YELLOW}Verifying files...${NC}"
 MISSING_FILES=()
 for file in "${FILES_TO_INCLUDE[@]}"; do
     if [ ! -e "$file" ]; then
@@ -165,20 +165,20 @@ for file in "${FILES_TO_INCLUDE[@]}"; do
 done
 
 if [ ${#MISSING_FILES[@]} -gt 0 ]; then
-    echo -e "${RED}Error: Los siguientes archivos no existen:${NC}"
+    echo -e "${RED}Error: The following files do not exist:${NC}"
     for file in "${MISSING_FILES[@]}"; do
         echo "  - $file"
     done
     exit 1
 fi
-echo -e "${GREEN}  ✓ Todos los archivos encontrados${NC}"
+echo -e "${GREEN}  ✓ All files found${NC}"
 
 # -----------------------------------------------------------------------------
-# Crear tar.gz para Linux/Mac
+# Create tar.gz for Linux/Mac
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}Creando ${TAR_FILE}...${NC}"
+echo -e "${YELLOW}Creating ${TAR_FILE}...${NC}"
 
-# Usar sintaxis compatible con BSD tar (macOS) y GNU tar (Linux)
+# Use syntax compatible with BSD tar (macOS) and GNU tar (Linux)
 if tar -czvf "${DIST_DIR}/${TAR_FILE}" \
     --exclude '.venv' \
     --exclude '.env' \
@@ -189,18 +189,18 @@ if tar -czvf "${DIST_DIR}/${TAR_FILE}" \
     --exclude '*.pyc' \
     --exclude 'logs' \
     "${FILES_TO_INCLUDE[@]}"; then
-    echo -e "${GREEN}  ✓ ${TAR_FILE} creado${NC}"
+    echo -e "${GREEN}  ✓ ${TAR_FILE} created${NC}"
 else
-    echo -e "${RED}  ✗ Error al crear ${TAR_FILE}${NC}"
+    echo -e "${RED}  ✗ Error creating ${TAR_FILE}${NC}"
     exit 1
 fi
 
 # -----------------------------------------------------------------------------
-# Crear zip para Windows
+# Create zip for Windows
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}Creando ${ZIP_FILE}...${NC}"
+echo -e "${YELLOW}Creating ${ZIP_FILE}...${NC}"
 
-# Eliminar zip anterior si existe
+# Remove previous zip if exists
 rm -f "${DIST_DIR}/${ZIP_FILE}"
 
 if zip -r "${DIST_DIR}/${ZIP_FILE}" \
@@ -217,23 +217,23 @@ if zip -r "${DIST_DIR}/${ZIP_FILE}" \
     -x "*/venv/*" \
     -x "*.pyc" \
     -x "*/logs/*"; then
-    echo -e "${GREEN}  ✓ ${ZIP_FILE} creado${NC}"
+    echo -e "${GREEN}  ✓ ${ZIP_FILE} created${NC}"
 else
-    echo -e "${RED}  ✗ Error al crear ${ZIP_FILE}${NC}"
+    echo -e "${RED}  ✗ Error creating ${ZIP_FILE}${NC}"
     exit 1
 fi
 
 # -----------------------------------------------------------------------------
-# Resumen final
+# Final summary
 # -----------------------------------------------------------------------------
 echo ""
 echo -e "${BLUE}=============================================="
-echo "           Distribución completada           "
+echo "           Distribution completed            "
 echo "==============================================${NC}"
 echo ""
-echo "Archivos creados en ${DIST_DIR}/:"
+echo "Files created in ${DIST_DIR}/:"
 echo ""
 ls -lh "${DIST_DIR}/${TAR_FILE}" "${DIST_DIR}/${ZIP_FILE}" 2>/dev/null | awk '{print "  " $9 " (" $5 ")"}'
 echo ""
 
-# La limpieza de .env.template se hace automáticamente via trap EXIT
+# .env.template cleanup is done automatically via trap EXIT

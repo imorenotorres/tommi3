@@ -26,10 +26,10 @@ from agent import Agent
 AGENT_CONFIG = {
     "id": "conf26_nube",
     "type": "oneshot",
-    "name": "Novis en la nube",
-    "description": "Asistente de la conferencia de UNINOVIS (cloud)",
-    "welcome_message": "¡Hola! Soy Novis en la nube. ¿En qué puedo ayudarte?",
-    "example_queries": ["¿Qué sesiones hay el día 26?", "¿Quién interviene en la sesión 6b?"]
+    "name": "UNINOVIS Conf. information",
+    "description": "UNINOVIS conference assistant (cloud)",
+    "welcome_message": "Hi! I'm the UNINOVIS conference assistant. How can I help you?",
+    "example_queries": ["What sessions are on day 26?", "Who speaks in session 6b?"]
 }
 
 agent: Agent = None
@@ -63,6 +63,7 @@ class ChatRequest(BaseModel):
     message: str
     history: Optional[list] = None
     stream: Optional[bool] = True
+    verify: Optional[bool] = None  # None = usar VERIFY_GROUNDING del .env
 
 
 class ChatResponse(BaseModel):
@@ -96,12 +97,12 @@ async def chat(request: ChatRequest):
 
     if request.stream:
         async def generate():
-            async for chunk in agent.chat_stream(request.message, request.history):
+            async for chunk in agent.chat_stream(request.message, request.history, verify=request.verify):
                 yield chunk
 
         return StreamingResponse(generate(), media_type="text/plain")
 
-    response = agent.chat(request.message, request.history)
+    response = agent.chat(request.message, request.history, verify=request.verify)
     return ChatResponse(response=response)
 
 

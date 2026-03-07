@@ -246,6 +246,37 @@ body {
     filter: brightness(0) invert(1);
 }
 
+/* Verification Status */
+.verify-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    margin-top: 0.4rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #000000;
+}
+
+.verify-status.active {
+    background-color: #86efac;
+}
+
+.verify-status.active #verify-status-icon {
+    font-size: 0.9rem;
+    color: #166534;
+}
+
+.verify-status.inactive {
+    background-color: #e2e8f0;
+}
+
+.verify-status.inactive #verify-status-icon {
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
 .agent-description {
     color: #ffffff;
     font-size: 0.9rem;

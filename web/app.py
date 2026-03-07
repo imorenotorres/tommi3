@@ -114,6 +114,7 @@ class AgentResponse(BaseModel):
     description: str
     welcome_message: str
     example_queries: list[str]
+    verify_grounding: bool = False
 
 
 @app.get("/")
@@ -434,7 +435,8 @@ async def list_agents():
             agent_type=a.agent_type,
             description=a.description,
             welcome_message=a.welcome_message,
-            example_queries=a.example_queries
+            example_queries=a.example_queries,
+            verify_grounding=a.verify_grounding
         )
         for a in agents
     ]

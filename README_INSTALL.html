@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>TOMMI Installation</title>
+  <title>TOMMI Installation Guide</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -238,11 +238,11 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">TOMMI Installation</h1>
+<h1 class="title">TOMMI Installation Guide</h1>
 </header>
 <p>This document explains step-by-step how to install Tommi. If you have
-already downloaded and unzipped the Tommi installation file, start from
-2. Requirements.</p>
+already downloaded and unzipped the Tommi installation file, jump to
+step 2. Requirements.</p>
 <h2 id="download-tommi">1. Download Tommi</h2>
 <p>Get the latest version of Tommi and uncompress it to where you want
 to work in your Hard Disk. You may want to rename the long name of the
@@ -252,11 +252,11 @@ main folder with just Tommi.</p>
 <li>Python 3.10 or higher</li>
 <li>One of the following LLM providers:
 <ul>
-<li><strong>Mistral API key</strong> (cloud, recommended for starters)</li>
+<li><strong>Mistral API key</strong> (cloud, recommended for
+starters)</li>
 <li><strong>Ollama</strong> (local, easy setup)</li>
 <li><strong>vLLM</strong> (local, high-performance)</li>
-</ul>
-</li>
+</ul></li>
 </ol>
 <h2 id="installation">3. Installation</h2>
 <ol type="1">
@@ -269,8 +269,8 @@ or run from cmd)</li>
 </ul></li>
 <li>The script will automatically:
 <ul>
-<li>Create the virtual environment <code>.venv</code> in the
-<code>web/</code> folder</li>
+<li>Create the virtual environment <code>.venv</code> in the tommi3 root
+folder</li>
 <li>Install all dependencies</li>
 <li>Configure conversation logging (optional, useful for testing)</li>
 <li>Configure the Mistral API key for each agent</li>
@@ -281,19 +281,19 @@ or run from cmd)</li>
 <ul>
 <li><p><strong>Local access (localhost):</strong></p>
 <div class="sourceCode" id="cb1"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="bu">source</span> .venv/bin/activate <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span></span></code></pre></div></li>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span></span></code></pre></div></li>
 <li><p><strong>Network access:</strong></p>
 <div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="bu">source</span> .venv/bin/activate <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span> <span class="at">--host</span> 0.0.0.0</span></code></pre></div></li>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span> <span class="at">--host</span> 0.0.0.0</span></code></pre></div></li>
 </ul>
 <h3 id="windows">Windows</h3>
 <ul>
 <li><p><strong>Local access (localhost):</strong></p>
 <div class="sourceCode" id="cb3"><pre
-class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> .venv\Scripts\activate <span class="kw">&amp;&amp;</span> uvicorn app:app -<span class="at">-reload</span></span></code></pre></div></li>
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>.venv\Scripts\activate <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> uvicorn app:app -<span class="at">-reload</span></span></code></pre></div></li>
 <li><p><strong>Network access:</strong></p>
 <div class="sourceCode" id="cb4"><pre
-class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> .venv\Scripts\activate <span class="kw">&amp;&amp;</span> uvicorn app:app -<span class="at">-reload</span> -<span class="at">-host</span> 0.0.0.0</span></code></pre></div></li>
+class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>.venv\Scripts\activate <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> uvicorn app:app -<span class="at">-reload</span> -<span class="at">-host</span> 0.0.0.0</span></code></pre></div></li>
 </ul>
 <h3 id="notes">Notes</h3>
 <ul>
@@ -303,6 +303,8 @@ class="sourceCode cmd"><code class="sourceCode dosbat"><span id="cb4-1"><a href=
 <code>http://150.150.150.150:8000</code></li>
 <li><strong>Stop:</strong> <code>Ctrl+C</code> in the terminal</li>
 </ul>
+<p>With the server running, we recommend you to open the Tommi Virtual
+Tutor, which provides plenty of information about Tommi.</p>
 <h2 id="troubleshooting">5. Troubleshooting</h2>
 <h3 id="no-such-file-or-directory-python3">“No such file or directory:
 python3”</h3>
@@ -351,13 +353,14 @@ instead of writing a prompt from scratch.</p>
 </tr>
 </tbody>
 </table>
-<p>See <code>HOWTO.html</code> section 5.2 for detailed configuration of local LLMs.</p>
+<p>See <code>HOWTO.md</code> section 5.2 for detailed configuration of
+local LLMs.</p>
 <h2 id="more-information">8. More information</h2>
 <p>To learn how to create agents and use the web interface:</p>
 <ul>
-<li>See <code>HOWTO.html</code></li>
+<li>See <code>HOWTO.md</code> or <code>HOWTO.html</code></li>
 <li>Once you have your web interface in place, you can start using
-"Tommi virtual tutor"</li>
+“Tommi virtual tutor”</li>
 </ul>
 </body>
 </html>

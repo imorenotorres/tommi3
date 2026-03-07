@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Helper para activar automáticamente el entorno virtual de tommi3.
+Helper to automatically activate the tommi3 virtual environment.
 
-Uso: Importar al inicio del script ANTES de cualquier otra importación que dependa del venv.
+Usage: Import at the beginning of the script BEFORE any other import that depends on the venv.
 
     from apps.venv_helper import ensure_venv
     ensure_venv()
 
-    # Ahora ya puedes importar dependencias del venv
+    # Now you can import venv dependencies
     import ollama
 """
 
@@ -15,15 +15,15 @@ import os
 import sys
 from pathlib import Path
 
-# Ruta al venv de tommi3 (relativa a la raíz del proyecto)
+# Path to tommi3 venv (relative to project root)
 TOMMI3_ROOT = Path(__file__).parent.parent
-VENV_PATH = TOMMI3_ROOT / "venv"
+VENV_PATH = TOMMI3_ROOT / ".venv"
 VENV_PYTHON = VENV_PATH / "bin" / "python"
 
 
 def is_venv_active() -> bool:
-    """Verifica si el venv de tommi3 está activo."""
-    # Método más fiable: verificar sys.prefix
+    """Check if the tommi3 venv is active."""
+    # Most reliable method: check sys.prefix
     current_prefix = Path(sys.prefix).resolve()
     venv_path_resolved = VENV_PATH.resolve()
 
@@ -32,24 +32,24 @@ def is_venv_active() -> bool:
 
 def ensure_venv():
     """
-    Asegura que el script se ejecute con el venv de tommi3.
-    Si no está activo, re-ejecuta el script con el Python del venv.
+    Ensure the script runs with the tommi3 venv.
+    If not active, re-executes the script with the venv Python.
     """
     if is_venv_active():
-        return  # Ya estamos en el venv correcto
+        return  # Already in the correct venv
 
     if not VENV_PYTHON.exists():
-        print(f"Error: No se encontró el venv en {VENV_PATH}")
-        print(f"Ejecuta: python3 -m venv {VENV_PATH}")
+        print(f"Error: venv not found at {VENV_PATH}")
+        print("Run: python3 -m venv .venv")
         sys.exit(1)
 
-    # Re-ejecutar el script con el Python del venv
-    print(f"[venv] Activando entorno virtual: {VENV_PATH}")
+    # Re-execute the script with the venv Python
+    print(f"[venv] Activating virtual environment: {VENV_PATH}")
     os.execv(str(VENV_PYTHON), [str(VENV_PYTHON)] + sys.argv)
 
 
 def get_venv_python() -> str:
-    """Retorna la ruta al Python del venv."""
+    """Returns the path to the venv Python."""
     return str(VENV_PYTHON)
 
 

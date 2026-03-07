@@ -12,6 +12,8 @@ ensure_venv()
 
 import os
 import sys
+import json
+import re
 
 # Añadir web/ al path para importar llm_client
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "web"))
@@ -23,6 +25,8 @@ class Agent:
         self.client = LLMClient()
         self.model = os.getenv("OLLAMA_MODEL", "mistral-small-latest") if os.getenv("LLM_PROVIDER", "mistral") == "ollama" else "mistral-small-latest"
         self.system_prompt = self._build_system_prompt()
+        # Configuración de verificación desde .env (VERIFY_GROUNDING=true/false)
+        self.verify_grounding = os.getenv("VERIFY_GROUNDING", "false").lower() == "true"
 
     def _load_data(self) -> str:
         """Carga los datos del agente desde data.md"""
@@ -59,17 +63,85 @@ class Agent:
             return f"{base_prompt}\n\nDatos disponibles:\n{data}"
         return base_prompt
 
-    def chat(self, user_message: str, history: list = None) -> str:
+    def _verify_grounding(self, response: str, user_question: str) -> dict:
+        """
+        Verifica si la respuesta está basada SOLO en los datos proporcionados.
+
+        Args:
+            response: Respuesta generada por el agente
+            user_question: Pregunta original del usuario
+
+        Returns:
+            dict con {"grounded": bool, "reason": str}
+        """
+        data = self._load_data()
+
+        verify_prompt = f"""You are a strict verification assistant. Your job is to verify if a response contains ONLY information that is EXPLICITLY stated in the provided data.
+
+AVAILABLE DATA:
+{data}
+
+USER QUESTION: {user_question}
+
+AGENT RESPONSE: {response}
+
+STRICT VERIFICATION RULES:
+1. The response is "grounded" ONLY if ALL factual claims are EXPLICITLY written in the AVAILABLE DATA
+2. It is NOT grounded if the response:
+   - Infers or deduces information not explicitly stated (e.g., assuming people collaborated just because they work on similar topics)
+   - Adds relationships between entities that are not explicitly documented
+   - Makes assumptions about events, contacts, or collaborations not explicitly mentioned
+   - Uses names/data from the source but creates new claims about them
+3. General courtesies, greetings, or formatting are allowed
+4. If the response correctly declines to answer, it IS grounded
+5. BE VERY STRICT: if a claim cannot be found VERBATIM or nearly verbatim in the data, it is NOT grounded
+
+Respond ONLY with a valid JSON object (no markdown, no extra text):
+{{"grounded": true, "reason": "brief explanation"}}
+or
+{{"grounded": false, "reason": "specific claim that was not explicitly in the data"}}
+"""
+
+        result = self.client.chat.complete(
+            model=self.model,
+            messages=[{"role": "user", "content": verify_prompt}]
+        )
+
+        try:
+            content = result.choices[0].message.content.strip()
+            # Limpiar posibles bloques de código markdown
+            if content.startswith("```"):
+                content = re.sub(r"```(?:json)?\n?", "", content)
+                content = content.strip()
+            return json.loads(content)
+        except (json.JSONDecodeError, IndexError):
+            # Si falla el parsing, asumir que está grounded para no bloquear
+            return {"grounded": True, "reason": "Verification parsing failed"}
+
+    def _get_fallback_response(self, user_question: str) -> str:
+        """Genera una respuesta cuando la verificación falla."""
+        return (
+            "I apologize, but I cannot find specific information about that in my database. "
+            "I can only provide information about UNINOVIS Conference 2026 and DiPYUA Workshop "
+            "that is explicitly documented. Could you please ask something else about these events?"
+        )
+
+    def chat(self, user_message: str, history: list = None, verify: bool = None) -> str:
         """
         Envía un mensaje y obtiene respuesta.
 
         Args:
             user_message: Mensaje del usuario
             history: Lista de mensajes previos [{"role": "user/assistant", "content": "..."}]
+            verify: Si True, verifica que la respuesta esté basada en los datos.
+                    Si None, usa el valor de VERIFY_GROUNDING del .env
 
         Returns:
-            Respuesta del agente
+            Respuesta del agente (verificada si verify=True)
         """
+        # Usar configuración del .env si no se especifica
+        should_verify = verify if verify is not None else self.verify_grounding
+
         messages = [{"role": "system", "content": self.system_prompt}]
 
         if history:
@@ -82,15 +154,34 @@ class Agent:
             messages=messages
         )
 
-        return response.choices[0].message.content
+        response_content = response.choices[0].message.content
 
-    async def chat_stream(self, user_message: str, history: list = None):
+        if should_verify:
+            verification = self._verify_grounding(response_content, user_message)
+            if not verification.get("grounded", True):
+                # Log para debugging (opcional)
+                print(f"[GROUNDING FAILED] Reason: {verification.get('reason', 'Unknown')}")
+                return self._get_fallback_response(user_message)
+
+        return response_content
+
+    async def chat_stream(self, user_message: str, history: list = None, verify: bool = None):
         """
         Envía un mensaje y obtiene respuesta en streaming.
 
+        Args:
+            user_message: Mensaje del usuario
+            history: Lista de mensajes previos
+            verify: Si True, verifica la respuesta al final del streaming.
+                    Si None, usa el valor de VERIFY_GROUNDING del .env
+
         Yields:
             Chunks de texto de la respuesta
+            Si verify=True y falla, yield del mensaje de fallback en lugar del contenido
         """
+        # Usar configuración del .env si no se especifica
+        should_verify = verify if verify is not None else self.verify_grounding
+
         messages = [{"role": "system", "content": self.system_prompt}]
 
         if history:
@@ -98,12 +189,31 @@ class Agent:
 
         messages.append({"role": "user", "content": user_message})
 
-        async for chunk in await self.client.chat.stream_async(
-            model=self.model,
-            messages=messages
-        ):
-            if chunk.data.choices[0].delta.content:
-                yield chunk.data.choices[0].delta.content
+        if should_verify:
+            # Acumular respuesta completa para verificar
+            full_response = ""
+            async for chunk in await self.client.chat.stream_async(
+                model=self.model,
+                messages=messages
+            ):
+                if chunk.data.choices[0].delta.content:
+                    full_response += chunk.data.choices[0].delta.content
+
+            # Verificar después de obtener la respuesta completa
+            verification = self._verify_grounding(full_response, user_message)
+            if not verification.get("grounded", True):
+                print(f"[GROUNDING FAILED] Reason: {verification.get('reason', 'Unknown')}")
+                yield self._get_fallback_response(user_message)
+            else:
+                yield full_response
+        else:
+            # Sin verificación: streaming normal
+            async for chunk in await self.client.chat.stream_async(
+                model=self.model,
+                messages=messages
+            ):
+                if chunk.data.choices[0].delta.content:
+                    yield chunk.data.choices[0].delta.content
 
 
 def main():

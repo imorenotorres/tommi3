@@ -1,19 +1,19 @@
 """
-LLM Client - Cliente unificado para Mistral Cloud, Ollama y vLLM (on premise)
+LLM Client - Unified client for Mistral Cloud, Ollama, and vLLM (on premise)
 
-Configuración via variables de entorno:
-    LLM_PROVIDER: "mistral" (default), "ollama" o "vllm"
+Configuration via environment variables:
+    LLM_PROVIDER: "mistral" (default), "ollama", or "vllm"
 
-    Para Mistral:
-        MISTRAL_API_KEY: API key de Mistral
+    For Mistral:
+        MISTRAL_API_KEY: Mistral API key
 
-    Para Ollama:
-        OLLAMA_BASE_URL: URL del servidor Ollama (default: http://localhost:11434)
-        OLLAMA_MODEL: Modelo a usar (default: mistral)
+    For Ollama:
+        OLLAMA_BASE_URL: Ollama server URL (default: http://localhost:11434)
+        OLLAMA_MODEL: Model to use (default: mistral)
 
-    Para vLLM:
-        VLLM_BASE_URL: URL del servidor vLLM (default: http://localhost:8000/v1)
-        VLLM_MODEL: Modelo a usar (requerido)
+    For vLLM:
+        VLLM_BASE_URL: vLLM server URL (default: http://localhost:8000/v1)
+        VLLM_MODEL: Model to use (required)
 """
 
 import os
@@ -23,31 +23,31 @@ from typing import List, Dict, Any, Optional, AsyncIterator
 
 @dataclass
 class Message:
-    """Mensaje de chat."""
+    """Chat message."""
     role: str
     content: str
 
 
 @dataclass
 class Choice:
-    """Opción de respuesta."""
+    """Response option."""
     message: Message
 
     @property
     def delta(self):
-        """Para compatibilidad con streaming."""
+        """For streaming compatibility."""
         return self.message
 
 
 @dataclass
 class ChatResponse:
-    """Respuesta de chat normalizada."""
+    """Normalized chat response."""
     choices: List[Choice]
 
 
 @dataclass
 class StreamChunk:
-    """Chunk de streaming normalizado."""
+    """Normalized streaming chunk."""
     data: 'StreamChunk'
     choices: List[Choice]
 
@@ -57,8 +57,8 @@ class StreamChunk:
 
 class LLMClient:
     """
-    Cliente unificado para LLMs.
-    Soporta Mistral Cloud y Ollama con la misma interfaz.
+    Unified LLM client.
+    Supports Mistral Cloud and Ollama with the same interface.
     """
 
     def __init__(self):
@@ -73,21 +73,21 @@ class LLMClient:
         elif self.provider == "vllm":
             self._init_vllm()
         else:
-            raise ValueError(f"Proveedor LLM no soportado: {self.provider}. Usa 'mistral', 'ollama' o 'vllm'")
+            raise ValueError(f"Unsupported LLM provider: {self.provider}. Use 'mistral', 'ollama', or 'vllm'")
 
     def _init_mistral(self):
-        """Inicializa cliente de Mistral."""
+        """Initialize Mistral client."""
         from mistralai import Mistral
 
         api_key = os.getenv("MISTRAL_API_KEY")
         if not api_key:
-            raise ValueError("MISTRAL_API_KEY no configurada")
+            raise ValueError("MISTRAL_API_KEY not configured")
 
         self._client = Mistral(api_key=api_key)
         self._default_model = "mistral-small-latest"
 
     def _init_ollama(self):
-        """Inicializa cliente de Ollama."""
+        """Initialize Ollama client."""
         import ollama
 
         base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -95,35 +95,35 @@ class LLMClient:
         self._default_model = os.getenv("OLLAMA_MODEL", "mistral")
 
     def _init_vllm(self):
-        """Inicializa cliente de vLLM (compatible con OpenAI API)."""
+        """Initialize vLLM client (OpenAI API compatible)."""
         from openai import OpenAI
 
         base_url = os.getenv("VLLM_BASE_URL", "http://localhost:8000/v1")
-        # vLLM no requiere API key real, pero OpenAI SDK lo exige
+        # vLLM doesn't require a real API key, but OpenAI SDK requires one
         api_key = os.getenv("VLLM_API_KEY", "dummy")
         self._client = OpenAI(base_url=base_url, api_key=api_key)
         self._default_model = os.getenv("VLLM_MODEL")
         if not self._default_model:
-            raise ValueError("VLLM_MODEL es requerido cuando usas vLLM")
+            raise ValueError("VLLM_MODEL is required when using vLLM")
 
     @property
     def chat(self):
-        """Devuelve self para mantener compatibilidad con client.chat.complete()"""
+        """Returns self to maintain compatibility with client.chat.complete()"""
         return self
 
     def complete(self, model: str = None, messages: List[Dict[str, str]] = None,
                  tools: List[Dict] = None, tool_choice: str = None) -> ChatResponse:
         """
-        Llamada de chat síncrona.
+        Synchronous chat call.
 
         Args:
-            model: Modelo a usar (usa default si no se especifica)
-            messages: Lista de mensajes [{"role": "...", "content": "..."}]
-            tools: Lista de herramientas (solo Mistral por ahora)
-            tool_choice: Modo de selección de herramientas
+            model: Model to use (uses default if not specified)
+            messages: List of messages [{"role": "...", "content": "..."}]
+            tools: List of tools (Mistral only for now)
+            tool_choice: Tool selection mode
 
         Returns:
-            ChatResponse con la respuesta normalizada
+            ChatResponse with normalized response
         """
         model = model or self._default_model
 
@@ -136,7 +136,7 @@ class LLMClient:
 
     def _complete_mistral(self, model: str, messages: List[Dict],
                           tools: List[Dict] = None, tool_choice: str = None) -> ChatResponse:
-        """Llamada a Mistral Cloud."""
+        """Call to Mistral Cloud."""
         kwargs = {"model": model, "messages": messages}
         if tools:
             kwargs["tools"] = tools
@@ -148,14 +148,14 @@ class LLMClient:
 
     def _complete_ollama(self, model: str, messages: List[Dict],
                          tools: List[Dict] = None) -> ChatResponse:
-        """Llamada a Ollama."""
+        """Call to Ollama."""
         kwargs = {"model": model, "messages": messages}
         if tools:
             kwargs["tools"] = tools
 
         response = self._client.chat(**kwargs)
 
-        # Normalizar respuesta de Ollama al formato de Mistral
+        # Normalize Ollama response to Mistral format
         message = Message(
             role=response["message"]["role"],
             content=response["message"].get("content", "")
@@ -163,7 +163,7 @@ class LLMClient:
 
         choice = Choice(message=message)
 
-        # Manejar tool_calls si existen
+        # Handle tool_calls if they exist
         if tools and "tool_calls" in response["message"]:
             # Crear objeto compatible con Mistral para tool_calls
             choice.message.tool_calls = self._normalize_ollama_tool_calls(
@@ -173,7 +173,7 @@ class LLMClient:
         return ChatResponse(choices=[choice])
 
     def _normalize_ollama_tool_calls(self, tool_calls: List[Dict]) -> List:
-        """Normaliza tool_calls de Ollama al formato de Mistral."""
+        """Normalize Ollama tool_calls to Mistral format."""
         import json
         from dataclasses import dataclass
 
@@ -201,7 +201,7 @@ class LLMClient:
 
     def _complete_vllm(self, model: str, messages: List[Dict],
                        tools: List[Dict] = None, tool_choice: str = None) -> ChatResponse:
-        """Llamada a vLLM (API compatible con OpenAI)."""
+        """Call to vLLM (OpenAI API compatible)."""
         kwargs = {"model": model, "messages": messages}
         if tools:
             kwargs["tools"] = tools
@@ -210,7 +210,7 @@ class LLMClient:
 
         response = self._client.chat.completions.create(**kwargs)
 
-        # Normalizar respuesta de OpenAI/vLLM al formato interno
+        # Normalize OpenAI/vLLM response to internal format
         msg = response.choices[0].message
         message = Message(
             role=msg.role,
@@ -219,14 +219,14 @@ class LLMClient:
 
         choice = Choice(message=message)
 
-        # Manejar tool_calls si existen
+        # Handle tool_calls if they exist
         if tools and msg.tool_calls:
             choice.message.tool_calls = self._normalize_vllm_tool_calls(msg.tool_calls)
 
         return ChatResponse(choices=[choice])
 
     def _normalize_vllm_tool_calls(self, tool_calls) -> List:
-        """Normaliza tool_calls de vLLM/OpenAI al formato interno."""
+        """Normalize vLLM/OpenAI tool_calls to internal format."""
         from dataclasses import dataclass
 
         @dataclass
@@ -253,15 +253,15 @@ class LLMClient:
     async def stream_async(self, model: str = None,
                            messages: List[Dict[str, str]] = None):
         """
-        Streaming asíncrono de respuestas.
-        Devuelve un async iterator compatible con el formato de Mistral.
+        Asynchronous response streaming.
+        Returns an async iterator compatible with Mistral format.
 
         Args:
-            model: Modelo a usar
-            messages: Lista de mensajes
+            model: Model to use
+            messages: List of messages
 
         Returns:
-            Async iterator de StreamChunk
+            Async iterator of StreamChunk
         """
         model = model or self._default_model
 
@@ -273,16 +273,16 @@ class LLMClient:
             return self._create_vllm_stream(model, messages)
 
     def _create_ollama_stream(self, model: str, messages: List[Dict]):
-        """Crea un async iterator para Ollama."""
+        """Creates an async iterator for Ollama."""
         return OllamaStreamIterator(self._client, model, messages)
 
     def _create_vllm_stream(self, model: str, messages: List[Dict]):
-        """Crea un async iterator para vLLM."""
+        """Creates an async iterator for vLLM."""
         return VLLMStreamIterator(self._client, model, messages)
 
 
 class OllamaStreamIterator:
-    """Async iterator para streaming de Ollama."""
+    """Async iterator for Ollama streaming."""
 
     def __init__(self, client, model: str, messages: List[Dict]):
         self._client = client
@@ -333,7 +333,7 @@ class OllamaStreamIterator:
 
 
 class VLLMStreamIterator:
-    """Async iterator para streaming de vLLM."""
+    """Async iterator for vLLM streaming."""
 
     def __init__(self, client, model: str, messages: List[Dict]):
         self._client = client

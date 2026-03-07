@@ -188,6 +188,8 @@ Soporta Mistral Cloud y Ollama via LLM_PROVIDER
 
 import os
 import sys
+import json
+import re
 
 # Añadir web/ al path para importar llm_client
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "web"))
@@ -199,6 +201,10 @@ class Agent:
         self.client = LLMClient()
         self.model = self._get_model()
         self.system_prompt = self._build_system_prompt()
+        # Configuración de verificación desde .env (VERIFY_GROUNDING=true/false)
+        self.verify_grounding = os.getenv("VERIFY_GROUNDING", "false").lower() == "true"
+        # Query history for the sidebar
+        self._query_history = []
 
     def _get_model(self) -> str:
         """Obtiene el modelo según el proveedor configurado."""
@@ -222,20 +228,87 @@ class Agent:
         base_prompt = """{system_prompt}"""
 
         if data:
-            return f"{{base_prompt}}\n\nDatos disponibles:\n{{data}}"
+            return f"{{base_prompt}}\\n\\nDatos disponibles:\\n{{data}}"
         return base_prompt
 
-    def chat(self, user_message: str, history: list = None) -> str:
+    def _verify_grounding(self, response: str, user_question: str) -> dict:
+        """
+        Verifica si la respuesta está basada SOLO en los datos proporcionados.
+
+        Args:
+            response: Respuesta generada por el agente
+            user_question: Pregunta original del usuario
+
+        Returns:
+            dict con {{"grounded": bool, "reason": str}}
+        """
+        data = self._load_data()
+
+        verify_prompt = f"""You are a strict verification assistant. Your job is to verify if a response contains ONLY information that is EXPLICITLY stated in the provided data.
+
+AVAILABLE DATA:
+{{data}}
+
+USER QUESTION: {{user_question}}
+
+AGENT RESPONSE: {{response}}
+
+STRICT VERIFICATION RULES:
+1. The response is "grounded" ONLY if ALL factual claims are EXPLICITLY written in the AVAILABLE DATA
+2. It is NOT grounded if the response:
+   - Infers or deduces information not explicitly stated
+   - Adds relationships between entities that are not explicitly documented
+   - Makes assumptions about events, contacts, or collaborations not explicitly mentioned
+   - Uses names/data from the source but creates new claims about them
+3. General courtesies, greetings, or formatting are allowed
+4. If the response correctly declines to answer, it IS grounded
+5. BE VERY STRICT: if a claim cannot be found VERBATIM or nearly verbatim in the data, it is NOT grounded
+
+Respond ONLY with a valid JSON object (no markdown, no extra text):
+{{{{"grounded": true, "reason": "brief explanation"}}}}
+or
+{{{{"grounded": false, "reason": "specific claim that was not explicitly in the data"}}}}"""
+
+        result = self.client.chat.complete(
+            model=self.model,
+            messages=[{{"role": "user", "content": verify_prompt}}]
+        )
+
+        try:
+            content = result.choices[0].message.content.strip()
+            # Limpiar posibles bloques de código markdown
+            if content.startswith("```"):
+                content = re.sub(r"```(?:json)?\\n?", "", content)
+                content = content.strip()
+            return json.loads(content)
+        except (json.JSONDecodeError, IndexError):
+            # Si falla el parsing, asumir que está grounded para no bloquear
+            return {{"grounded": True, "reason": "Verification parsing failed"}}
+
+    def _get_fallback_response(self, user_question: str) -> str:
+        """Genera una respuesta cuando la verificación falla."""
+        return (
+            "I apologize, but I cannot find specific information about that in my database. "
+            "I can only provide information that is explicitly documented. "
+            "Could you please ask something else?"
+        )
+
+    def chat(self, user_message: str, history: list = None, verify: bool = None) -> str:
         """
         Envía un mensaje y obtiene respuesta.
 
         Args:
             user_message: Mensaje del usuario
             history: Lista de mensajes previos [{{"role": "user/assistant", "content": "..."}}]
+            verify: Si True, verifica que la respuesta esté basada en los datos.
+                    Si None, usa el valor de VERIFY_GROUNDING del .env
 
         Returns:
-            Respuesta del agente
+            Respuesta del agente (verificada si verify=True)
         """
+        # Usar configuración del .env si no se especifica
+        should_verify = verify if verify is not None else self.verify_grounding
+
         messages = [{{"role": "system", "content": self.system_prompt}}]
 
         if history:
@@ -248,15 +321,38 @@ class Agent:
             messages=messages
         )
 
-        return response.choices[0].message.content
+        response_content = response.choices[0].message.content
 
-    async def chat_stream(self, user_message: str, history: list = None):
+        if should_verify:
+            verification = self._verify_grounding(response_content, user_message)
+            if not verification.get("grounded", True):
+                print(f"[GROUNDING FAILED] Reason: {{verification.get('reason', 'Unknown')}}")
+                response_content = self._get_fallback_response(user_message)
+
+        # Track query in history
+        self._query_history.append({{
+            'question': user_message,
+            'response_length': len(response_content)
+        }})
+
+        return response_content
+
+    async def chat_stream(self, user_message: str, history: list = None, verify: bool = None):
         """
         Envía un mensaje y obtiene respuesta en streaming.
+
+        Args:
+            user_message: Mensaje del usuario
+            history: Lista de mensajes previos
+            verify: Si True, verifica la respuesta al final del streaming.
+                    Si None, usa el valor de VERIFY_GROUNDING del .env
 
         Yields:
             Chunks de texto de la respuesta
         """
+        # Usar configuración del .env si no se especifica
+        should_verify = verify if verify is not None else self.verify_grounding
+
         messages = [{{"role": "system", "content": self.system_prompt}}]
 
         if history:
@@ -264,12 +360,54 @@ class Agent:
 
         messages.append({{"role": "user", "content": user_message}})
 
-        async for chunk in await self.client.chat.stream_async(
-            model=self.model,
-            messages=messages
-        ):
-            if chunk.data.choices[0].delta.content:
-                yield chunk.data.choices[0].delta.content
+        if should_verify:
+            # Acumular respuesta completa para verificar
+            full_response = ""
+            async for chunk in await self.client.chat.stream_async(
+                model=self.model,
+                messages=messages
+            ):
+                if chunk.data.choices[0].delta.content:
+                    full_response += chunk.data.choices[0].delta.content
+
+            # Verificar después de obtener la respuesta completa
+            verification = self._verify_grounding(full_response, user_message)
+            if not verification.get("grounded", True):
+                print(f"[GROUNDING FAILED] Reason: {{verification.get('reason', 'Unknown')}}")
+                full_response = self._get_fallback_response(user_message)
+
+            # Track query in history
+            self._query_history.append({{
+                'question': user_message,
+                'response_length': len(full_response)
+            }})
+            yield full_response
+        else:
+            # Sin verificación: streaming normal
+            full_response = ""
+            async for chunk in await self.client.chat.stream_async(
+                model=self.model,
+                messages=messages
+            ):
+                if chunk.data.choices[0].delta.content:
+                    full_response += chunk.data.choices[0].delta.content
+                    yield chunk.data.choices[0].delta.content
+
+            # Track query in history
+            self._query_history.append({{
+                'question': user_message,
+                'response_length': len(full_response)
+            }})
+
+    def get_history(self, session_id: str = None) -> list:
+        """Returns query history for the sidebar."""
+        return [
+            {{
+                'question': entry['question'],
+                'num_results': 1  # For oneshot agents, each query = 1 result
+            }}
+            for entry in self._query_history
+        ]
 '''
 
 # ============================================================================
@@ -285,6 +423,8 @@ NOTA: ChromaDB no es compatible con Python 3.14+. Requiere Python 3.11-3.13.
 
 import os
 import sys
+import json
+import re
 
 # Añadir web/ al path para importar llm_client y error_codes
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "web"))
@@ -299,6 +439,10 @@ class Agent:
         self.client = LLMClient()
         self.model = self._get_model()
         self.system_prompt = """{system_prompt}"""
+        # Configuración de verificación desde .env (VERIFY_GROUNDING=true/false)
+        self.verify_grounding = os.getenv("VERIFY_GROUNDING", "false").lower() == "true"
+        # Query history for the sidebar
+        self._query_history = []
 
         # Inicializar ChromaDB con manejo de errores
         try:
@@ -415,10 +559,82 @@ class Agent:
 
         return "\n\n---\n\n".join(context_parts)
 
-    def chat(self, user_message: str, history: list = None) -> str:
+    def _verify_grounding(self, response: str, user_question: str, context: str) -> dict:
+        """
+        Verifica si la respuesta está basada SOLO en el contexto recuperado.
+
+        Args:
+            response: Respuesta generada por el agente
+            user_question: Pregunta original del usuario
+            context: Contexto recuperado de ChromaDB
+
+        Returns:
+            dict con {{"grounded": bool, "reason": str}}
+        """
+        if not context:
+            # Sin contexto, no podemos verificar
+            return {{"grounded": True, "reason": "No context to verify against"}}
+
+        verify_prompt = f"""You are a strict verification assistant. Your job is to verify if a response contains ONLY information that is EXPLICITLY stated in the provided context.
+
+RETRIEVED CONTEXT:
+{{context}}
+
+USER QUESTION: {{user_question}}
+
+AGENT RESPONSE: {{response}}
+
+STRICT VERIFICATION RULES:
+1. The response is "grounded" ONLY if ALL factual claims are EXPLICITLY written in the CONTEXT
+2. It is NOT grounded if the response:
+   - Infers or deduces information not explicitly stated in the context
+   - Adds details, relationships, or facts not present in the context
+   - Makes assumptions or generalizations beyond the context
+   - Uses information that might be true but is not in the provided context
+3. General courtesies, greetings, or formatting are allowed
+4. If the response correctly states it cannot find information, it IS grounded
+5. BE VERY STRICT: if a claim cannot be found in the context, it is NOT grounded
+
+Respond ONLY with a valid JSON object (no markdown, no extra text):
+{{{{"grounded": true, "reason": "brief explanation"}}}}
+or
+{{{{"grounded": false, "reason": "specific claim that was not in the context"}}}}"""
+
+        result = self.client.chat.complete(
+            model=self.model,
+            messages=[{{"role": "user", "content": verify_prompt}}]
+        )
+
+        try:
+            content = result.choices[0].message.content.strip()
+            if content.startswith("```"):
+                content = re.sub(r"```(?:json)?\\n?", "", content)
+                content = content.strip()
+            return json.loads(content)
+        except (json.JSONDecodeError, IndexError):
+            return {{"grounded": True, "reason": "Verification parsing failed"}}
+
+    def _get_fallback_response(self, user_question: str) -> str:
+        """Genera una respuesta cuando la verificación falla."""
+        return (
+            "I apologize, but I cannot find specific information about that in my knowledge base. "
+            "I can only provide information that is explicitly documented in my sources. "
+            "Could you please ask something else or rephrase your question?"
+        )
+
+    def chat(self, user_message: str, history: list = None, verify: bool = None) -> str:
         """
         Envía un mensaje con contexto RAG y obtiene respuesta.
+
+        Args:
+            user_message: Mensaje del usuario
+            history: Lista de mensajes previos
+            verify: Si True, verifica que la respuesta esté basada en el contexto.
+                    Si None, usa el valor de VERIFY_GROUNDING del .env
         """
+        # Usar configuración del .env si no se especifica
+        should_verify = verify if verify is not None else self.verify_grounding
+
         # Verificar si ChromaDB está disponible
         if self._chromadb_error:
             err = self._chromadb_error
@@ -444,12 +660,35 @@ class Agent:
             messages=messages
         )
 
-        return response.choices[0].message.content
+        response_content = response.choices[0].message.content
 
-    async def chat_stream(self, user_message: str, history: list = None):
+        if should_verify and context:
+            verification = self._verify_grounding(response_content, user_message, context)
+            if not verification.get("grounded", True):
+                print(f"[GROUNDING FAILED] Reason: {{verification.get('reason', 'Unknown')}}")
+                response_content = self._get_fallback_response(user_message)
+
+        # Track query in history
+        self._query_history.append({{
+            'question': user_message,
+            'response_length': len(response_content)
+        }})
+
+        return response_content
+
+    async def chat_stream(self, user_message: str, history: list = None, verify: bool = None):
         """
         Envía un mensaje con contexto RAG y obtiene respuesta en streaming.
+
+        Args:
+            user_message: Mensaje del usuario
+            history: Lista de mensajes previos
+            verify: Si True, verifica la respuesta al final del streaming.
+                    Si None, usa el valor de VERIFY_GROUNDING del .env
         """
+        # Usar configuración del .env si no se especifica
+        should_verify = verify if verify is not None else self.verify_grounding
+
         # Verificar si ChromaDB está disponible
         if self._chromadb_error:
             err = self._chromadb_error
@@ -469,12 +708,54 @@ class Agent:
 
         messages.append({{"role": "user", "content": user_message}})
 
-        async for chunk in await self.client.chat.stream_async(
-            model=self.model,
-            messages=messages
-        ):
-            if chunk.data.choices[0].delta.content:
-                yield chunk.data.choices[0].delta.content
+        if should_verify and context:
+            # Acumular respuesta completa para verificar
+            full_response = ""
+            async for chunk in await self.client.chat.stream_async(
+                model=self.model,
+                messages=messages
+            ):
+                if chunk.data.choices[0].delta.content:
+                    full_response += chunk.data.choices[0].delta.content
+
+            # Verificar después de obtener la respuesta completa
+            verification = self._verify_grounding(full_response, user_message, context)
+            if not verification.get("grounded", True):
+                print(f"[GROUNDING FAILED] Reason: {{verification.get('reason', 'Unknown')}}")
+                full_response = self._get_fallback_response(user_message)
+
+            # Track query in history
+            self._query_history.append({{
+                'question': user_message,
+                'response_length': len(full_response)
+            }})
+            yield full_response
+        else:
+            # Sin verificación: streaming normal
+            full_response = ""
+            async for chunk in await self.client.chat.stream_async(
+                model=self.model,
+                messages=messages
+            ):
+                if chunk.data.choices[0].delta.content:
+                    full_response += chunk.data.choices[0].delta.content
+                    yield chunk.data.choices[0].delta.content
+
+            # Track query in history
+            self._query_history.append({{
+                'question': user_message,
+                'response_length': len(full_response)
+            }})
+
+    def get_history(self, session_id: str = None) -> list:
+        """Returns query history for the sidebar."""
+        return [
+            {{
+                'question': entry['question'],
+                'num_results': 1  # For RAG agents, each query = 1 result
+            }}
+            for entry in self._query_history
+        ]
 
     def reindex(self):
         """Reindexa todos los documentos (útil después de añadir nuevos)."""
@@ -658,38 +939,38 @@ Se intentó ejecutar:
 {{sql_query}}
 ```
 
-**Problema:** {{error_msg}}
+**Problem:** {{error_msg}}
 
-Intenta reformular tu pregunta o verifica que los datos existan en la base de datos."""
+Try rephrasing your question or verify that the data exists in the database."""
 
     def _format_empty(self, sql_query: str) -> str:
         """Formatea un mensaje cuando no hay resultados (sin LLM)."""
-        return f"""**Sin resultados**
+        return f"""**No results**
 
-La consulta se ejecutó correctamente pero no encontró datos:
+The query executed successfully but found no data:
 ```sql
 {{sql_query}}
 ```
 
-Prueba con otros criterios de búsqueda."""
+Try different search criteria."""
 
     def _format_success(self, results: list, sql_query: str) -> str:
         """Formatea los resultados exitosos (sin LLM) - solo resumen."""
         num_rows = len(results)
         num_cols = len(results[0]) if results else 0
 
-        summary = f"**Consulta ejecutada:** `{{sql_query}}`\\n\\n"
-        summary += f"**Resultados:** {{num_rows}} fila(s), {{num_cols}} columna(s)"
+        summary = f"**Query executed:** `{{sql_query}}`\\n\\n"
+        summary += f"**Results:** {{num_rows}} row(s), {{num_cols}} column(s)"
 
         if num_rows > 100:
-            summary += " (mostrando primeras 100)"
+            summary += " (showing first 100)"
 
         return summary
 
     def _format_as_html_table(self, results: list) -> str:
         """Formatea los resultados JSON como una tabla HTML."""
         if not results:
-            return "<p><em>Sin resultados</em></p>"
+            return "<p><em>No results</em></p>"
 
         columns = list(results[0].keys())
 
@@ -704,7 +985,7 @@ Prueba con otros criterios de búsqueda."""
 .sql-table .null {{ color: #999; font-style: italic; }}
 .sql-stats {{ margin-bottom: 10px; color: #666; font-size: 13px; }}
 </style>
-<div class="sql-stats">Resultados: <strong>{{row_count}}</strong> filas</div>
+<div class="sql-stats">Results: <strong>{{row_count}}</strong> rows</div>
 <div style="overflow-x: auto;">
 <table class="sql-table">
 <thead><tr>{{headers}}</tr></thead>
@@ -899,7 +1180,7 @@ def consultar_sql(query: str) -> str:
         conn.close()
 
         if not rows:
-            return "La consulta no devolvió resultados."
+            return "The query returned no results."
 
         # Formatear resultados como tabla
         columns = rows[0].keys()
@@ -1460,7 +1741,7 @@ Por favor, explica al usuario qué salió mal de manera amigable y sugiere cómo
 
 Se ejecutó esta consulta SQL: {{sql_query}}
 
-La consulta no devolvió ningún resultado.
+The query returned no results.
 
 Por favor, informa al usuario de manera amigable que no se encontraron datos que coincidan con su búsqueda."""
 
@@ -1510,7 +1791,7 @@ Por favor, presenta estos resultados al usuario de manera clara y amigable:
     def _format_as_html_table(self, results: list) -> str:
         """Formatea los resultados JSON como una tabla HTML interactiva."""
         if not results:
-            return "<p><em>Sin resultados</em></p>"
+            return "<p><em>No results</em></p>"
 
         import json as json_module
         columns = list(results[0].keys())
@@ -1670,7 +1951,7 @@ Por favor, presenta estos resultados al usuario de manera clara y amigable:
             json_output = consultar_result.stdout
             logger.info(f"✅ Consulta ejecutada correctamente")
 
-            yield ("status", "Generando tabla de resultados...")
+            yield ("status", "Generating results table...")
 
             # Parsear JSON y generar tabla HTML
             import json as json_module
@@ -1974,7 +2255,7 @@ Por favor, explica al usuario qué salió mal de manera amigable y sugiere cómo
 
 Se ejecutó esta consulta SQL: {{sql_query}}{{retry_note}}
 
-La consulta no devolvió ningún resultado.
+The query returned no results.
 
 Por favor, informa al usuario de manera amigable que no se encontraron datos que coincidan con su búsqueda."""
 
@@ -2024,7 +2305,7 @@ Por favor, presenta estos resultados al usuario de manera clara y amigable:
     def _format_as_html_table(self, results: list) -> str:
         """Formatea los resultados JSON como una tabla HTML interactiva."""
         if not results:
-            return "<p><em>Sin resultados</em></p>"
+            return "<p><em>No results</em></p>"
 
         import json as json_module
         columns = list(results[0].keys())
@@ -2135,7 +2416,7 @@ Por favor, presenta estos resultados al usuario de manera clara y amigable:
             yield ("content", formatted)
             return
 
-        yield ("status", "Generando tabla de resultados...")
+        yield ("status", "Generating results table...")
         html_table = self._format_as_html_table(results)
         logger.info(f"📊 Tabla HTML generada con {{len(results)}} filas")
 
@@ -2312,7 +2593,7 @@ Write ONLY the SQL query (SQLite). No explanations."""
     def _format_as_html_table(self, results: list) -> str:
         """Formatea resultados como tabla HTML."""
         if not results:
-            return "<p><em>Sin resultados</em></p>"
+            return "<p><em>No results</em></p>"
 
         columns = list(results[0].keys())
 
@@ -2940,6 +3221,7 @@ class ChatRequest(BaseModel):
     message: str
     history: Optional[list] = None
     stream: Optional[bool] = False
+    verify: Optional[bool] = None  # None = usar VERIFY_GROUNDING del .env
 
 
 class ChatResponse(BaseModel):
@@ -2968,12 +3250,12 @@ async def chat(request: ChatRequest):
 
     if request.stream:
         async def generate():
-            async for chunk in agent.chat_stream(request.message, request.history):
+            async for chunk in agent.chat_stream(request.message, request.history, verify=request.verify):
                 yield chunk
 
         return StreamingResponse(generate(), media_type="text/plain")
 
-    response = agent.chat(request.message, request.history)
+    response = agent.chat(request.message, request.history, verify=request.verify)
     return ChatResponse(response=response)
 
 
@@ -3047,6 +3329,7 @@ class ChatRequest(BaseModel):
     message: str
     history: Optional[list] = None
     stream: Optional[bool] = False
+    verify: Optional[bool] = None  # None = usar VERIFY_GROUNDING del .env
 
 
 class ChatResponse(BaseModel):
@@ -3075,12 +3358,12 @@ async def chat(request: ChatRequest):
 
     if request.stream:
         async def generate():
-            async for chunk in agent.chat_stream(request.message, request.history):
+            async for chunk in agent.chat_stream(request.message, request.history, verify=request.verify):
                 yield chunk
 
         return StreamingResponse(generate(), media_type="text/plain")
 
-    response = agent.chat(request.message, request.history)
+    response = agent.chat(request.message, request.history, verify=request.verify)
     return ChatResponse(response=response)
 
 
@@ -4025,6 +4308,265 @@ El agente solo permite consultas SELECT por seguridad:
 # README CONSULTABD_SQL
 # ============================================================================
 
+# ============================================================================
+# PLANTILLA BENCHMARK TEXT2SQL
+# ============================================================================
+
+BENCHMARK_TEXT2SQL_TEMPLATE = '''#!/usr/bin/env python3
+"""
+Benchmark de {agent_name} - Script para pruebas de rendimiento
+
+Ejecuta un paquete de preguntas predefinidas y genera un log con:
+- Tiempos de cada fase (text_to_sql, execute, format)
+- SQL generado para cada pregunta
+- Resultados y errores
+
+Uso:
+    python benchmark.py              # Ejecutar todas las preguntas
+    python benchmark.py -n 5         # Ejecutar solo 5 preguntas
+    python benchmark.py --quick      # Ejecutar preguntas rápidas
+    python benchmark.py --help       # Mostrar ayuda
+"""
+
+import os
+import sys
+import json
+import argparse
+import statistics
+from datetime import datetime
+
+# Cargar variables de entorno desde .env ANTES de importar el agente
+def load_env_file(env_path: str) -> None:
+    """Carga variables de entorno desde un archivo .env."""
+    if not os.path.exists(env_path):
+        return
+    with open(env_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" in line:
+                key, _, value = line.partition("=")
+                key = key.strip()
+                value = value.strip()
+                if value and value[0] in ('"', "'") and value[-1] == value[0]:
+                    value = value[1:-1]
+                os.environ[key] = value
+
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+load_env_file(env_path)
+
+sys.path.insert(0, os.path.dirname(__file__))
+
+from agent import Agent
+
+# ============================================================================
+# PAQUETE DE PREGUNTAS DE PRUEBA
+# Personaliza estas preguntas según tu base de datos
+# ============================================================================
+
+PREGUNTAS_BENCHMARK = [
+    # --- Warm-up (se repite la primera pregunta) ---
+    "¿Cuántos registros hay en total?",
+    "¿Cuántos registros hay en total?",
+
+    # --- Consultas básicas ---
+    "Muéstrame todos los registros",
+    "¿Cuáles son las tablas disponibles?",
+
+    # --- Añade aquí tus preguntas de prueba ---
+    # "¿Qué registros hay de tipo X?",
+    # "¿Cuántos elementos hay en la categoría Y?",
+    # "Muéstrame los últimos 10 registros",
+]
+
+PREGUNTAS_QUICK = [
+    "¿Cuántos registros hay?",
+    "Muéstrame los primeros 5 registros",
+]
+
+# ============================================================================
+# RESPUESTAS SQL DE REFERENCIA (opcional)
+# Añade el SQL esperado para comparar con el generado
+# ============================================================================
+
+RESPUESTAS_REFERENCIA = {{
+    # "¿Cuántos registros hay en total?": "SELECT COUNT(*) FROM tabla",
+    # "Muéstrame todos los registros": "SELECT * FROM tabla",
+}}
+
+
+def run_benchmark(questions: list, output_prefix: str = "benchmark") -> dict:
+    """
+    Ejecuta el benchmark con las preguntas proporcionadas.
+
+    Args:
+        questions: Lista de preguntas a ejecutar
+        output_prefix: Prefijo para el archivo de salida
+
+    Returns:
+        dict con resultados del benchmark
+    """
+    print("=" * 70)
+    print("BENCHMARK {agent_name} - Prueba de Rendimiento")
+    print("=" * 70)
+    print(f"Preguntas a ejecutar: {{len(questions)}}")
+    print(f"Inicio: {{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}")
+    print("=" * 70)
+    print()
+
+    # Inicializar agente
+    print("Inicializando agente...")
+    agent = Agent()
+    print(f"Modelo SQL: {{agent.sql_model}}")
+    print(f"Base de datos: {{agent.db_path}}")
+    print()
+
+    # Resultados del benchmark
+    results = {{
+        "metadata": {{
+            "timestamp": datetime.now().isoformat(),
+            "num_questions": len(questions),
+            "sql_model": agent.sql_model,
+            "db_path": agent.db_path,
+        }},
+        "questions": [],
+        "summary": {{
+            "total_time": 0,
+            "avg_time": 0,
+            "successful": 0,
+            "failed": 0,
+            "sql_errors": 0,
+        }}
+    }}
+
+    times_total = []
+
+    # Ejecutar cada pregunta
+    for i, question in enumerate(questions, 1):
+        is_warmup = (i == 1)
+        warmup_tag = " [WARM-UP]" if is_warmup else ""
+        print(f"[{{i}}/{{len(questions)}}]{{warmup_tag}} {{question[:60]}}...")
+
+        # Mostrar SQL de referencia si existe
+        sql_ref = RESPUESTAS_REFERENCIA.get(question, None)
+        if sql_ref:
+            print(f"    Ref: {{sql_ref}}")
+
+        try:
+            # Usar chat_with_metrics si está disponible
+            if hasattr(agent, 'chat_with_metrics'):
+                metrics = agent.chat_with_metrics(question)
+                success = metrics.get("success", False)
+                sql_query = metrics.get("sql_query", "")
+                total_time = metrics.get("total_time", 0)
+                num_results = metrics.get("num_results", 0)
+                error = metrics.get("error", "")
+                timings = metrics.get("timings", {{}})
+            else:
+                # Fallback: usar chat normal con timing manual
+                import time
+                start = time.time()
+                response = agent.chat(question)
+                total_time = time.time() - start
+                success = True
+                sql_query = ""
+                num_results = 0
+                error = ""
+                timings = {{}}
+
+            question_result = {{
+                "id": i,
+                "question": question,
+                "is_warmup": is_warmup,
+                "sql_query": sql_query,
+                "sql_referencia": sql_ref,
+                "success": success,
+                "num_results": num_results,
+                "timings": timings,
+                "total_time": total_time,
+                "error": error
+            }}
+            results["questions"].append(question_result)
+
+            if not is_warmup:
+                times_total.append(total_time)
+
+            status = "OK" if success else "ERROR"
+            print(f"    -> {{status}} | {{total_time:.2f}}s | Resultados: {{num_results}}")
+
+            if success:
+                results["summary"]["successful"] += 1
+            else:
+                results["summary"]["failed"] += 1
+                if error:
+                    print(f"    !! Error: {{error[:80]}}")
+
+        except Exception as e:
+            print(f"    !! Excepción: {{str(e)}}")
+            results["questions"].append({{
+                "id": i,
+                "question": question,
+                "sql_query": None,
+                "success": False,
+                "error": str(e),
+                "total_time": 0
+            }})
+            results["summary"]["failed"] += 1
+
+        print()
+
+    # Calcular resumen
+    if times_total:
+        results["summary"]["total_time"] = sum(times_total)
+        results["summary"]["avg_time"] = statistics.mean(times_total)
+
+    # Mostrar resumen
+    print("=" * 70)
+    print("RESUMEN")
+    print("=" * 70)
+    print(f"Preguntas ejecutadas: {{len(questions)}}")
+    print(f"Exitosas: {{results['summary']['successful']}}")
+    print(f"Fallidas: {{results['summary']['failed']}}")
+    print(f"Tiempo total: {{results['summary']['total_time']:.2f}}s")
+    print(f"Tiempo promedio: {{results['summary']['avg_time']:.2f}}s")
+    print("=" * 70)
+
+    # Guardar resultados
+    os.makedirs("logs", exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = f"logs/{{output_prefix}}_{{timestamp}}.json"
+
+    with open(log_file, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+
+    print(f"\\nResultados guardados en: {{log_file}}")
+
+    return results
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Benchmark de {agent_name}")
+    parser.add_argument("-n", "--num", type=int, help="Número de preguntas a ejecutar")
+    parser.add_argument("--quick", action="store_true", help="Ejecutar solo preguntas rápidas")
+    parser.add_argument("-o", "--output", default="benchmark", help="Prefijo del archivo de salida")
+
+    args = parser.parse_args()
+
+    if args.quick:
+        questions = PREGUNTAS_QUICK
+    elif args.num:
+        questions = PREGUNTAS_BENCHMARK[:args.num]
+    else:
+        questions = PREGUNTAS_BENCHMARK
+
+    run_benchmark(questions, args.output)
+
+
+if __name__ == "__main__":
+    main()
+'''
+
 README_CONSULTABD_SQL_TEMPLATE = '''# {agent_name}
 
 {description}
@@ -4133,9 +4675,37 @@ python cli.py {agent_id}
 ├── agent.py           # Lógica ConsultaBD_SQL
 ├── app.py             # Servidor FastAPI
 ├── run.sh             # Script de ejecución
+├── benchmark.py       # Script de pruebas de rendimiento
+├── logs/              # Resultados de benchmarks
 └── data/
     └── database.db    # Base de datos SQLite (debes crearla)
 ```
+
+## Benchmark (Pruebas de rendimiento)
+
+El agente incluye un script de benchmark para probar el rendimiento:
+
+```bash
+# Ejecutar todas las preguntas de prueba
+python benchmark.py
+
+# Ejecutar solo N preguntas
+python benchmark.py -n 5
+
+# Ejecutar preguntas rápidas
+python benchmark.py --quick
+
+# Ver ayuda
+python benchmark.py --help
+```
+
+### Personalizar preguntas
+
+Edita `benchmark.py` y modifica:
+- `PREGUNTAS_BENCHMARK`: Lista de preguntas de prueba
+- `RESPUESTAS_REFERENCIA`: SQL esperado para cada pregunta (opcional)
+
+Los resultados se guardan en `logs/benchmark_YYYYMMDD_HHMMSS.json`.
 
 ## Seguridad
 
@@ -4159,7 +4729,7 @@ def get_agents_dir() -> str:
 
 
 def input_with_default(prompt: str, default: str = "") -> str:
-    """Solicita input con valor por defecto."""
+    """Request input with default value."""
     if default:
         result = input(f"{prompt} [{default}]: ").strip()
         return result if result else default
@@ -4167,8 +4737,8 @@ def input_with_default(prompt: str, default: str = "") -> str:
 
 
 def input_multiline(prompt: str) -> str:
-    """Solicita input multilínea (termina con línea vacía)."""
-    print(f"{prompt} (línea vacía para terminar):")
+    """Request multiline input (ends with empty line)."""
+    print(f"{prompt} (empty line to finish):")
     lines = []
     while True:
         line = input()
@@ -4180,95 +4750,95 @@ def input_multiline(prompt: str) -> str:
 
 def main():
     print("=" * 60)
-    print("  Crear Agente (FastAPI + Mistral/Ollama)")
+    print("  Create Agent (FastAPI + Mistral/Ollama)")
     print("=" * 60)
     print()
 
-    # 1. Tipo de agente
-    print("Tipos de agente disponibles:")
-    print("  1. oneshot        - Agente simple con prompt y datos estáticos")
-    print("  2. rag            - Agente con búsqueda semántica en documentos (ChromaDB)")
-    print("  3. consultabd_sql - Agente que convierte lenguaje natural a SQL (Text2SQL)")
+    # 1. Agent type
+    print("Available agent types:")
+    print("  1. oneshot        - Simple agent with prompt and static data")
+    print("  2. rag            - Agent with semantic search in documents (ChromaDB)")
+    print("  3. consultabd_sql - Agent that converts natural language to SQL (Text2SQL)")
     print()
 
     agent_type = ""
     while agent_type not in ["1", "2", "3", "oneshot", "rag", "consultabd_sql"]:
-        agent_type = input("Tipo de agente [1/2/3]: ").strip().lower()
+        agent_type = input("Agent type [1/2/3]: ").strip().lower()
 
-    # Normalizar tipo
+    # Normalize type
     type_map = {"1": "oneshot", "2": "rag", "3": "consultabd_sql"}
     agent_type = type_map.get(agent_type, agent_type)
-    print(f"  → Tipo seleccionado: {agent_type}")
+    print(f"  → Selected type: {agent_type}")
 
-    # Advertencia para RAG si Python 3.14+
+    # Warning for RAG if Python 3.14+
     if agent_type == "rag":
         import platform
         py_version = tuple(map(int, platform.python_version().split('.')[:2]))
         if py_version >= (3, 14):
             print()
-            print("  ⚠️  ADVERTENCIA: Estás usando Python 3.14+")
-            print("     ChromaDB NO es compatible con esta versión.")
-            print("     El agente mostrará Error 307 al intentar usarse.")
-            print("     Solución: Instala Python 3.12 o 3.13:")
+            print("  ⚠️  WARNING: You are using Python 3.14+")
+            print("     ChromaDB is NOT compatible with this version.")
+            print("     The agent will show Error 307 when trying to use it.")
+            print("     Solution: Install Python 3.12 or 3.13:")
             print("       brew install python@3.12")
-            print("     El script run.sh buscará automáticamente una versión compatible.")
+            print("     The run.sh script will automatically look for a compatible version.")
             print()
-            confirm_rag = input("  ¿Continuar de todos modos? (s/n): ").strip().lower()
-            if confirm_rag != "s":
-                print("Cancelado.")
+            confirm_rag = input("  Continue anyway? (y/n): ").strip().lower()
+            if confirm_rag != "y":
+                print("Cancelled.")
                 sys.exit(0)
 
     print()
 
-    # 2. Nombre del agente (ID)
+    # 2. Agent name (ID)
     agent_id = ""
     while not agent_id:
-        agent_id = input("Nombre del agente (sin espacios ni mayúsculas): ").strip().lower()
+        agent_id = input("Agent name (no spaces or uppercase): ").strip().lower()
         if " " in agent_id or not agent_id.replace("_", "").replace("-", "").isalnum():
-            print("  Error: usa solo letras minúsculas, números, guiones o guiones bajos")
+            print("  Error: use only lowercase letters, numbers, hyphens or underscores")
             agent_id = ""
 
-    # 3. Directorio de salida (dentro de tommi2/agents/)
+    # 3. Output directory (inside tommi2/agents/)
     agents_base = get_agents_dir()
     default_output = os.path.join(agents_base, agent_id)
-    output_dir = input_with_default("Directorio de salida", default_output)
+    output_dir = input_with_default("Output directory", default_output)
 
-    # 4. Nombre público del agente
-    agent_name = input_with_default("Nombre público del agente", agent_id.replace("_", " ").title())
+    # 4. Public agent name
+    agent_name = input_with_default("Public agent name", agent_id.replace("_", " ").title())
 
-    # 5. Descripción
-    description = input_with_default("Descripción corta del agente", f"Asistente {agent_name}")
+    # 5. Description
+    description = input_with_default("Short agent description", f"{agent_name} Assistant")
 
-    # 6. Mensaje de bienvenida
+    # 6. Welcome message
     welcome = input_with_default(
-        "Mensaje de bienvenida",
-        f"¡Hola! Soy {agent_name}. ¿En qué puedo ayudarte?"
+        "Welcome message",
+        f"Hello! I'm {agent_name}. How can I help you?"
     )
 
-    # 7. Preguntas de ejemplo
-    print("\nPreguntas de ejemplo (una por línea, línea vacía para terminar):")
+    # 7. Example questions
+    print("\nExample questions (one per line, empty line to finish):")
     examples = []
     while True:
-        ex = input(f"  Pregunta {len(examples) + 1}: ").strip()
+        ex = input(f"  Question {len(examples) + 1}: ").strip()
         if not ex:
             break
         examples.append(ex)
     if not examples:
         if agent_type == "rag":
-            examples = ["¿Qué información tienes?", "Busca sobre X"]
+            examples = ["What information do you have?", "Search for X"]
         elif agent_type == "consultabd_sql":
-            examples = ["¿Cuántos registros hay?", "Muéstrame los últimos 10 registros"]
+            examples = ["How many records are there?", "Show me the last 10 records"]
         else:
-            examples = ["¿Qué puedes hacer?", "Dame información"]
+            examples = ["What can you do?", "Give me information"]
 
-    # 8. System prompt - seleccionar de plantillas disponibles
+    # 8. System prompt - select from available templates
     print("\nSystem prompt:")
 
     # List available templates
     templates = list_prompt_templates(agent_type)
 
     if templates:
-        print("  Plantillas disponibles:")
+        print("  Available templates:")
         for i, (name, _) in enumerate(templates, 1):
             print(f"    {i}. {name}")
         print()
@@ -4276,99 +4846,117 @@ def main():
         template_choice = ""
         valid_choices = [str(i) for i in range(1, len(templates) + 1)]
         while template_choice not in valid_choices:
-            template_choice = input(f"  Selecciona plantilla [1-{len(templates)}]: ").strip()
+            template_choice = input(f"  Select template [1-{len(templates)}]: ").strip()
 
         template_idx = int(template_choice) - 1
         template_name, template_path = templates[template_idx]
         system_prompt = load_prompt_template(template_path, agent_name)
-        print(f"  → Plantilla cargada: {template_name}")
+        print(f"  → Template loaded: {template_name}")
     else:
         # No templates found, use default prompt
-        print("  (No se encontraron plantillas en prompts/)")
+        print("  (No templates found in prompts/)")
         system_prompt = ""
 
-    # Prompt por defecto si no hay plantillas
+    # Default prompt if no templates
     if not system_prompt:
         if agent_type == "rag":
-            system_prompt = f"Eres {agent_name}, un asistente útil. Responde preguntas basándote en el contexto proporcionado de la base de conocimiento. Si no encuentras información relevante, dilo claramente."
+            system_prompt = f"You are {agent_name}, a helpful assistant. Answer questions based on the context provided from the knowledge base. If you don't find relevant information, say so clearly."
         elif agent_type == "consultabd_sql":
-            system_prompt = f"Eres {agent_name}, un asistente especializado en consultas de bases de datos. Ayudas a los usuarios a obtener información de la base de datos respondiendo sus preguntas en lenguaje natural."
+            system_prompt = f"You are {agent_name}, an assistant specialized in database queries. You help users get information from the database by answering their questions in natural language."
         else:
-            system_prompt = f"Eres {agent_name}, un asistente útil. Responde preguntas basándote en los datos proporcionados."
+            system_prompt = f"You are {agent_name}, a helpful assistant. Answer questions based on the provided data."
 
-    # 9. Proveedor LLM
-    print("\nConfiguración LLM:")
-    print("  1. default  - Usar configuración de web/.env (recomendado)")
-    print("  2. mistral  - Configurar Mistral Cloud específico para este agente")
-    print("  3. ollama   - Configurar Ollama específico para este agente")
+    # 9. LLM Provider
+    print("\nLLM Configuration:")
+    print("  1. default  - Use web/.env configuration (recommended)")
+    print("  2. mistral  - Configure Mistral Cloud specific for this agent")
+    print("  3. ollama   - Configure Ollama specific for this agent")
     print()
 
     llm_provider = ""
     while llm_provider not in ["1", "2", "3", "default", "mistral", "ollama"]:
-        llm_provider = input("Configuración LLM [1/2/3]: ").strip().lower()
+        llm_provider = input("LLM Configuration [1/2/3]: ").strip().lower()
 
     provider_map = {"1": "default", "2": "mistral", "3": "ollama"}
     llm_provider = provider_map.get(llm_provider, llm_provider)
-    print(f"  → Configuración seleccionada: {llm_provider}")
+    print(f"  → Selected configuration: {llm_provider}")
 
-    # 10. Configuración según proveedor
+    # 10. Configuration by provider
     api_key = ""
     ollama_url = ""
     ollama_model = ""
     model = "mistral-large-latest"  # Default
 
     if llm_provider == "mistral":
-        print("\nModelos Mistral: mistral-large-latest, mistral-medium-latest, mistral-small-latest")
-        model = input_with_default("Modelo", "mistral-large-latest")
-        api_key = input("API Key de Mistral (o déjalo vacío para añadirla después): ").strip()
+        print("\nMistral models: mistral-large-latest, mistral-medium-latest, mistral-small-latest")
+        model = input_with_default("Model", "mistral-large-latest")
+        api_key = input("Mistral API Key (or leave empty to add later): ").strip()
         if not api_key:
-            api_key = "TU_API_KEY_AQUI"
+            api_key = "YOUR_API_KEY_HERE"
     elif llm_provider == "ollama":
-        ollama_url = input_with_default("URL de Ollama", "http://localhost:11434")
-        print("\nModelos Ollama comunes: mistral-large:latest, mistral, llama3, codellama, phi3")
-        ollama_model = input_with_default("Modelo Ollama", "mistral-large:latest")
+        ollama_url = input_with_default("Ollama URL", "http://localhost:11434")
+        print("\nCommon Ollama models: mistral-large:latest, mistral, llama3, codellama, phi3")
+        ollama_model = input_with_default("Ollama Model", "mistral-large:latest")
         model = ollama_model
-    # else: default - no necesita configuración adicional
+    # else: default - no additional configuration needed
 
-    # Confirmar
+    # 11. Grounding verification (for oneshot and rag)
+    verify_grounding = False
+    if agent_type in ["oneshot", "rag"]:
+        print("\nGrounding verification (anti-hallucination):")
+        if agent_type == "oneshot":
+            print("  This option verifies that agent responses are based")
+            print("  ONLY on data from data.md, avoiding hallucinations.")
+        else:  # rag
+            print("  This option verifies that agent responses are based")
+            print("  ONLY on the context retrieved from documents, avoiding hallucinations.")
+        print("  NOTE: Doubles LLM calls (higher latency and cost).")
+        print()
+        verify_choice = input("  Enable grounding verification? (y/n) [n]: ").strip().lower()
+        verify_grounding = verify_choice == "y"
+        print(f"  → Verification: {'Enabled' if verify_grounding else 'Disabled'}")
+
+    # Confirm
     print("\n" + "=" * 60)
-    print("Resumen:")
+    print("Summary:")
     print("=" * 60)
-    print(f"  Tipo:         {agent_type}")
+    print(f"  Type:         {agent_type}")
     print(f"  ID:           {agent_id}")
-    print(f"  Directorio:   {output_dir}/")
-    print(f"  Nombre:       {agent_name}")
+    print(f"  Directory:    {output_dir}/")
+    print(f"  Name:         {agent_name}")
     if llm_provider == "default":
-        print(f"  LLM:          Usa configuración de web/.env")
+        print(f"  LLM:          Uses web/.env configuration")
     else:
-        print(f"  Proveedor:    {llm_provider}")
-        print(f"  Modelo:       {model}")
+        print(f"  Provider:     {llm_provider}")
+        print(f"  Model:        {model}")
         if llm_provider == "ollama":
-            print(f"  URL Ollama:   {ollama_url}")
-    print(f"  Ejemplos:     {len(examples)} pregunta(s)")
+            print(f"  Ollama URL:   {ollama_url}")
+    print(f"  Examples:     {len(examples)} question(s)")
+    if agent_type in ["oneshot", "rag"]:
+        print(f"  Verification: {'Yes (grounding check)' if verify_grounding else 'No'}")
     print("=" * 60)
 
-    confirm = input("\n¿Crear agente? (s/n): ").strip().lower()
-    if confirm != "s":
-        print("Cancelado.")
+    confirm = input("\nCreate agent? (y/n): ").strip().lower()
+    if confirm != "y":
+        print("Cancelled.")
         sys.exit(0)
 
-    # Crear estructura
-    print("\nCreando estructura...")
+    # Create structure
+    print("\nCreating structure...")
 
-    # Asegurar que existe la carpeta agents de tommi2
+    # Ensure tommi2 agents folder exists
     os.makedirs(get_agents_dir(), exist_ok=True)
 
-    # Directorio principal y data
+    # Main directory and data
     data_dir = os.path.join(output_dir, "data")
     os.makedirs(data_dir, exist_ok=True)
 
-    # Para RAG, crear directorio de documentos
+    # For RAG, create documents directory
     if agent_type == "rag":
         docs_dir = os.path.join(data_dir, "docs")
         os.makedirs(docs_dir, exist_ok=True)
 
-    # requirements.txt según tipo
+    # requirements.txt by type
     requirements_map = {
         "oneshot": REQUIREMENTS_ONESHOT,
         "rag": REQUIREMENTS_RAG,
@@ -4386,6 +4974,18 @@ def main():
             f.write(ENV_TEMPLATE_MISTRAL.format(api_key=api_key, model=model))
         elif llm_provider == "ollama":
             f.write(ENV_TEMPLATE_OLLAMA.format(ollama_url=ollama_url, ollama_model=ollama_model))
+
+        # Add verification configuration for oneshot and rag
+        if agent_type in ["oneshot", "rag"]:
+            f.write("\n# ============================================\n")
+            f.write("# Grounding Verification (Anti-hallucination)\n")
+            f.write("# ============================================\n")
+            if agent_type == "oneshot":
+                f.write("# Verifies that responses are based ONLY on data.md\n")
+            else:  # rag
+                f.write("# Verifies that responses are based ONLY on retrieved context\n")
+            f.write("# NOTE: Doubles LLM calls (higher latency and cost)\n")
+            f.write(f"VERIFY_GROUNDING={'true' if verify_grounding else 'false'}\n")
     print(f"  ✓ {output_dir}/.env")
 
     # .gitignore
@@ -4430,43 +5030,43 @@ def main():
         f.write(app_content)
     print(f"  ✓ {output_dir}/app.py")
 
-    # data/data.md (para oneshot) o ejemplo en docs/ (para rag) o README para consultabd_sql
+    # data/data.md (for oneshot) or example in docs/ (for rag) or README for consultabd_sql
     if agent_type == "rag":
-        example_doc = f"# Ejemplo de documento para {agent_name}\n\nAñade aquí tu contenido.\n\nEste archivo será indexado automáticamente al iniciar el agente.\n"
-        with open(os.path.join(docs_dir, "ejemplo.md"), "w", encoding="utf-8") as f:
+        example_doc = f"# Example document for {agent_name}\n\nAdd your content here.\n\nThis file will be automatically indexed when the agent starts.\n"
+        with open(os.path.join(docs_dir, "example.md"), "w", encoding="utf-8") as f:
             f.write(example_doc)
-        print(f"  ✓ {docs_dir}/ejemplo.md")
+        print(f"  ✓ {docs_dir}/example.md")
     elif agent_type == "consultabd_sql":
-        # Para consultabd_sql, crear un README explicando cómo crear la BD
-        db_readme = f"""# Base de datos para {agent_name}
+        # For consultabd_sql, create a README explaining how to create the DB
+        db_readme = f"""# Database for {agent_name}
 
-Crea aquí tu base de datos SQLite llamada `database.db`.
+Create your SQLite database here named `database.db`.
 
-## Ejemplo de creación
+## Creation example
 
 ```bash
 sqlite3 database.db << 'EOF'
-CREATE TABLE ejemplo (
+CREATE TABLE example (
     id INTEGER PRIMARY KEY,
-    nombre TEXT NOT NULL,
-    valor REAL
+    name TEXT NOT NULL,
+    value REAL
 );
 
-INSERT INTO ejemplo VALUES (1, 'Item 1', 100.0);
-INSERT INTO ejemplo VALUES (2, 'Item 2', 200.0);
+INSERT INTO example VALUES (1, 'Item 1', 100.0);
+INSERT INTO example VALUES (2, 'Item 2', 200.0);
 EOF
 ```
 
-## Importar desde CSV
+## Import from CSV
 
 ```bash
 sqlite3 database.db << 'EOF'
 .mode csv
-.import tu_archivo.csv nombre_tabla
+.import your_file.csv table_name
 EOF
 ```
 
-Una vez creada la BD, el agente podrá responder preguntas en lenguaje natural.
+Once the DB is created, the agent will be able to answer questions in natural language.
 """
         with open(os.path.join(data_dir, "README.md"), "w", encoding="utf-8") as f:
             f.write(db_readme)
@@ -4499,69 +5099,88 @@ Una vez creada la BD, el agente podrá responder preguntas en lenguaje natural.
         f.write(readme_content)
     print(f"  ✓ {output_dir}/README.md")
 
+    # benchmark.py para consultabd_sql
+    if agent_type == "consultabd_sql":
+        benchmark_content = BENCHMARK_TEXT2SQL_TEMPLATE.format(
+            agent_id=agent_id,
+            agent_name=agent_name
+        )
+        with open(os.path.join(output_dir, "benchmark.py"), "w", encoding="utf-8") as f:
+            f.write(benchmark_content)
+        os.chmod(os.path.join(output_dir, "benchmark.py"), 0o755)
+        print(f"  ✓ {output_dir}/benchmark.py")
+
+        # Crear directorio logs para benchmark
+        logs_dir = os.path.join(output_dir, "logs")
+        os.makedirs(logs_dir, exist_ok=True)
+        print(f"  ✓ {output_dir}/logs/")
+
     print("\n" + "=" * 60)
-    print(f"¡Agente {agent_type.upper()} creado!")
+    print(f"{agent_type.upper()} agent created!")
     print("=" * 60)
 
-    # Mostrar estructura según tipo
-    print(f"\nEstructura generada:")
+    # Show structure by type
+    print(f"\nGenerated structure:")
     print(f"  {output_dir}/")
     print(f"  ├── .env              # API key")
-    print(f"  ├── requirements.txt  # Dependencias")
-    print(f"  ├── agent.py          # Lógica del agente")
-    print(f"  ├── app.py            # Servidor FastAPI")
-    print(f"  ├── run.sh            # Script de ejecución")
-    print(f"  ├── README.md         # Documentación")
+    print(f"  ├── requirements.txt  # Dependencies")
+    print(f"  ├── agent.py          # Agent logic")
+    print(f"  ├── app.py            # FastAPI server")
+    print(f"  ├── run.sh            # Run script")
+    print(f"  ├── README.md         # Documentation")
+    if agent_type == "consultabd_sql":
+        print(f"  ├── benchmark.py      # Performance test script")
+        print(f"  ├── logs/             # Benchmark results")
     print(f"  └── data/")
     if agent_type == "rag":
-        print(f"      └── docs/         # Documentos a indexar")
+        print(f"      └── docs/         # Documents to index")
     elif agent_type == "consultabd_sql":
-        print(f"      └── database.db   # Base de datos SQLite (debes crearla)")
+        print(f"      └── database.db   # SQLite database (you must create it)")
     else:
-        print(f"      └── data.md       # Datos del agente")
+        print(f"      └── data.md       # Agent data")
 
     print()
-    print("Próximos pasos:")
+    print("Next steps:")
     step = 1
     if agent_type == "rag":
-        print(f"  {step}. Añade documentos (.txt, .md) en {data_dir}/docs/")
+        print(f"  {step}. Add documents (.txt, .md) in {data_dir}/docs/")
     elif agent_type == "consultabd_sql":
-        print(f"  {step}. Crea tu base de datos SQLite en {data_dir}/database.db")
+        print(f"  {step}. Create your SQLite database at {data_dir}/database.db")
     else:
-        print(f"  {step}. Edita {data_dir}/data.md con tus datos")
+        print(f"  {step}. Edit {data_dir}/data.md with your data")
     step += 1
 
     if llm_provider == "default":
-        print(f"  {step}. Asegúrate de que web/.env tiene la configuración LLM correcta")
+        print(f"  {step}. Make sure web/.env has the correct LLM configuration")
         step += 1
-    elif api_key == "TU_API_KEY_AQUI":
-        print(f"  {step}. Añade tu API key en {output_dir}/.env")
+    elif api_key == "YOUR_API_KEY_HERE":
+        print(f"  {step}. Add your API key in {output_dir}/.env")
         step += 1
 
-    print(f"  {step}. Ejecuta:")
+    print(f"  {step}. Run:")
     print(f"     - (Linux/Mac) cd web && ./run_html_server.sh")
     print(f"     - (Windows) cd web && run_html_server.bat")
     step += 1
-    print(f"  {step}. Abre: http://localhost:8000")
+    print(f"  {step}. Open: http://localhost:8000")
     step += 1
-    print(f"  {step}. O usa el CLI directo: cd web && python cli.py {agent_id}")
+    print(f"  {step}. Or use the CLI directly: cd web && python cli.py {agent_id}")
 
     print()
-    print("Endpoints disponibles:")
-    print("  GET  /         - Info del agente")
-    print("  GET  /examples - Preguntas de ejemplo")
-    print("  POST /chat     - Enviar mensaje")
+    print("Available endpoints:")
+    print("  GET  /         - Agent info")
+    print("  GET  /examples - Example questions")
+    print("  POST /chat     - Send message")
     if agent_type == "rag":
-        print("  POST /reindex  - Reindexar documentos")
+        print("  POST /reindex  - Reindex documents")
         print()
-        print("⚠️  NOTA: Los agentes RAG requieren Python 3.11-3.13")
-        print("   ChromaDB no es compatible con Python 3.14+")
-        print("   El script run.sh detectará automáticamente la versión correcta")
+        print("⚠️  NOTE: RAG agents require Python 3.11-3.13")
+        print("   ChromaDB is not compatible with Python 3.14+")
+        print("   The run.sh script will automatically detect the correct version")
     elif agent_type == "consultabd_sql":
-        print("  GET  /schema   - Ver esquema de la base de datos")
+        print("  GET  /schema   - View database schema")
         print()
-        print("📝 NOTA: Debes crear la base de datos SQLite en data/database.db")
-        print("   Ejemplo: sqlite3 data/database.db < tu_esquema.sql")
+        print("📝 NOTE: You must create the SQLite database at data/database.db")
+        print("   Example: sqlite3 data/database.db < your_schema.sql")
     print()
 
 

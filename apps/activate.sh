@@ -1,13 +1,13 @@
 #!/bin/bash
-# Activa el entorno virtual de tommi3
-# Uso: source activate.sh
+# Activates the tommi3 virtual environment
+# Usage: source activate.sh
 
-VENV_PATH="/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/venv"
+VENV_PATH="/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/.venv"
 
 if [ -f "$VENV_PATH/bin/activate" ]; then
     source "$VENV_PATH/bin/activate"
-    echo "✅ Entorno virtual activado: $VIRTUAL_ENV"
+    echo "✅ Virtual environment activated: $VIRTUAL_ENV"
 else
-    echo "❌ No se encontró el entorno virtual en: $VENV_PATH"
+    echo "❌ Virtual environment not found at: $VENV_PATH"
     exit 1
 fi

@@ -60,6 +60,7 @@ TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, an
      - [3.5.1 Oneshot Agents: Single Data File](#oneshot-agents-single-data-file)
      - [3.5.2 RAG Agents: Document Collection](#rag-agents-document-collection)
      - [3.5.3 ConsultaBD_SQL Agents: Database Only](#consultabd_sql-agents-database-only)
+   - [3.6 Grounding Verification (Anti-hallucination)](#grounding-verification-anti-hallucination)
 4. [Interacting with Agents](#interacting-with-agents)
    - [4.1 Web Interface](#web-interface)
      - [4.1.1 Starting the Web Hub](#starting-the-web-hub)
@@ -130,6 +131,8 @@ The simplest type. Loads all data into memory and includes it directly in the LL
 - FAQ systems
 - Static information assistants
 
+**Optional feature:** [Grounding verification](#grounding-verification-anti-hallucination) can be enabled to prevent hallucinations by verifying responses against the source data.
+
 **Example:** Conference information assistant that answers questions about schedules, speakers, and venues.
 
 ### 1.2 RAG Agents (Retrieval-Augmented Generation)
@@ -166,6 +169,8 @@ Uses semantic search to find relevant information before generating responses.
 - Large document collections
 - Academic papers or manuals
 - Frequently updated content (supports re-indexing)
+
+**Optional feature:** [Grounding verification](#grounding-verification-anti-hallucination) can be enabled to ensure responses are based only on retrieved documents.
 
 **Example:** Academic proceedings Q&A system that searches through hundreds of papers.
 
@@ -225,12 +230,15 @@ Converts natural language questions directly to SQL queries against a database.
 | Feature | Oneshot | RAG | ConsultaBD_SQL |
 |---------|:-------:|:---:|:--------------:|
 | **Complexity** | Low | Medium | Medium |
-| **LLM Calls per Query** | 1 | 1 | 1 |
+| **LLM Calls per Query** | 1 (or 2)* | 1 (or 2)* | 1 |
 | **Vector Database** | - | ✓ | - |
 | **SQL Database** | - | - | ✓ |
 | **Document Search** | - | ✓ | - |
 | **Dynamic Knowledge** | - | ✓ | ✓ |
+| **Grounding Verification** | ✓ | ✓ | - |
 | **Python Version** | Any | 3.11-3.13 | Any |
+
+\* With grounding verification enabled, requires 2 LLM calls per query.
 
 #### Use Case Recommendations
 
@@ -247,8 +255,8 @@ Converts natural language questions directly to SQL queries against a database.
 
 | Type | LLM Calls | Total Cost Profile |
 |------|-----------|-------------------|
-| **Oneshot** | 1 | Low |
-| **RAG** | 1 | Low |
+| **Oneshot** | 1 (2 with verification) | Low (Medium with verification) |
+| **RAG** | 1 (2 with verification) | Low (Medium with verification) |
 | **ConsultaBD_SQL** | 1 | Low |
 
 #### Architecture Summary
@@ -401,8 +409,9 @@ The script will prompt you for:
 6. **Welcome message** - Greeting shown to users
 7. **Example queries** - Sample questions users can ask
 8. **System prompt** - Instructions for the LLM behavior
-9. **LLM Provider** - Mistral Cloud or Ollama
-10. **Model** - Which model to use
+9. **Grounding verification** - (oneshot/RAG only) Enable anti-hallucination verification
+10. **LLM Provider** - Mistral Cloud or Ollama
+11. **Model** - Which model to use
 
 ### 3.2 Prompt Templates
 
@@ -620,6 +629,103 @@ MISTRAL_MODEL=mistral-large-latest
 
 **Tip:** The agent automatically reads the database schema at startup. Well-designed table and column names (e.g., `student_name` instead of `sn`) help the LLM generate more accurate SQL queries.
 
+### 3.6 Grounding Verification (Anti-hallucination)
+
+Oneshot and RAG agents can optionally verify that their responses are **grounded** in the provided data, preventing the LLM from hallucinating or inventing information not present in the knowledge base.
+
+**How it works:**
+
+1. The agent generates a response based on the data (data.md for oneshot, retrieved chunks for RAG)
+2. A second LLM call verifies that ALL factual claims in the response are explicitly stated in the source data
+3. If verification fails, a fallback response is returned instead
+
+**Architecture with verification:**
+```
+┌──────────────┐
+│   Question   │──────────────────────┐
+└──────────────┘                      │
+                                      ▼
+┌──────────────┐                ┌──────────┐    ┌──────────────┐
+│    Data      │───────────────▶│   LLM    │───▶│   Response   │
+│  (context)   │                │(generate)│    └──────┬───────┘
+└──────────────┘                └──────────┘           │
+       │                                               ▼
+       │                                        ┌──────────────┐
+       └───────────────────────────────────────▶│   LLM        │
+                                                │  (verify)    │
+                                                └──────┬───────┘
+                                                       │
+                                          ┌────────────┴────────────┐
+                                          │                         │
+                                          ▼                         ▼
+                                    ┌──────────┐             ┌──────────────┐
+                                    │ Grounded │             │ NOT Grounded │
+                                    │ (return) │             │  (fallback)  │
+                                    └──────────┘             └──────────────┘
+```
+
+**Enabling verification:**
+
+During agent creation, the script will ask:
+
+```
+Verificación de grounding (anti-alucinaciones):
+  - Verifica que las respuestas estén basadas SOLO en los datos proporcionados
+  - NOTA: Duplica las llamadas al LLM (mayor latencia y coste)
+  ¿Activar verificación de grounding? (s/n) [n]:
+```
+
+The setting is stored in the agent's `.env` file:
+
+```bash
+# Grounding Verification (Anti-hallucination)
+VERIFY_GROUNDING=true   # Enable verification
+VERIFY_GROUNDING=false  # Disable verification (default)
+```
+
+**Per-request override:**
+
+You can also enable/disable verification per request via the API:
+
+```bash
+# Force verification for this request
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Your question", "verify": true}'
+
+# Skip verification for this request
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Your question", "verify": false}'
+```
+
+**Trade-offs:**
+
+| Aspect | Without Verification | With Verification |
+|--------|---------------------|-------------------|
+| **LLM Calls** | 1 | 2 |
+| **Latency** | Lower | ~2x higher |
+| **Cost** | Lower | ~2x higher |
+| **Hallucination Risk** | Possible | Minimized |
+| **Best for** | General Q&A | Critical/factual data |
+
+**When to use verification:**
+
+- ✅ When accuracy is critical (legal, medical, academic data)
+- ✅ When the knowledge base contains specific facts that must not be mixed with general knowledge
+- ✅ When users might ask questions that could lead to plausible-sounding but incorrect answers
+- ❌ When latency is critical and some inaccuracy is acceptable
+- ❌ For general-purpose assistants where creative responses are welcome
+
+**Strict verification rules:**
+
+The verification prompt is intentionally strict. A response is considered **NOT grounded** if it:
+
+- Infers or deduces information not explicitly stated in the data
+- Adds relationships between entities not documented in the data
+- Makes assumptions or generalizations beyond the source content
+- Uses information that might be true but is not in the provided context
+
 [↑ Back to index](#index){.back-to-top}
 
 ---
@@ -715,17 +821,17 @@ These commands add the requested field to the basic information (university, cou
 **Example interaction:**
 ```
 User: ¿Qué universidades hay en Alemania?
-Agent: ✅ Encontré 45 convenios... [shows first 20 with basic info]
+Agent: ✅ Found 45 agreements... [shows first 20 with basic info]
 
 User: Ordena por universidad
-Agent: 📊 45 resultados - Ordenados por universidad (A→Z)
+Agent: 📊 45 result(s) - Sorted by university (A→Z)
 
 User: Muestra también el centro
-Agent: ✅ 45 resultados - Añadiendo: 🏫 Centro UMA
+Agent: ✅ 45 result(s) - Adding: 🏫 UMA Faculty
        [shows results with basic info + center field]
 
 User: Los que requieren inglés B2
-Agent: ✅ Encontré 12 convenios con requisito de inglés B2...
+Agent: ✅ Found 12 agreements with English B2 requirement...
 ```
 
 ### 4.2 Terminal
@@ -1059,7 +1165,7 @@ TOMMI uses structured error codes to help you quickly identify and resolve issue
 | **304** | ChromaDB error | Database corruption or permission issue | Delete `data/chroma_db/` and call `/reindex` endpoint |
 | **305** | Database not found | Missing SQLite database | Create or copy your database to `data/database.db` |
 | **306** | Context too large | `data/data.md` exceeds 100KB | Reduce file size or switch to RAG agent type |
-| **307** | ChromaDB Python incompatible | ChromaDB not compatible with Python 3.14+ | Install Python 3.12 or 3.13 and recreate venv |
+| **307** | ChromaDB Python incompatible | ChromaDB not compatible with Python 3.14+ | Install Python 3.12 or 3.13 and recreate `.venv` |
 
 ---
 

@@ -26,7 +26,7 @@ from agent import Agent
 # Configuración del agente
 AGENT_CONFIG = {
     "id": "tommi_tutor_nube",
-    "name": "Tommi virtual tutor (nube)",
+    "name": "Tommi virtual tutor",
     "type": "oneshot",
     "description": "Your virtual tutor to learn the basics of AI Agents development with Tommi, and somme advanced options also",
     "welcome_message": "Hi, I am Tommi virtual tutor. Is there anything I can do for you today?",
@@ -68,6 +68,7 @@ class ChatRequest(BaseModel):
     message: str
     history: Optional[list] = None
     stream: Optional[bool] = False
+    verify: Optional[bool] = None  # None = usar VERIFY_GROUNDING del .env
 
 
 class ChatResponse(BaseModel):
@@ -96,12 +97,12 @@ async def chat(request: ChatRequest):
 
     if request.stream:
         async def generate():
-            async for chunk in agent.chat_stream(request.message, request.history):
+            async for chunk in agent.chat_stream(request.message, request.history, verify=request.verify):
                 yield chunk
 
         return StreamingResponse(generate(), media_type="text/plain")
 
-    response = agent.chat(request.message, request.history)
+    response = agent.chat(request.message, request.history, verify=request.verify)
     return ChatResponse(response=response)
 
 

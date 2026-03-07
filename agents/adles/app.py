@@ -25,11 +25,11 @@ from agent import Agent
 # Configuración del agente
 AGENT_CONFIG = {
     "id": "adles",
-    "name": "Adles",
+    "name": "ADLES Conference Papers",
     "type": "rag",
-    "description": "Information from ADLES Conference",
-    "welcome_message": "Hi, I am Adles experimental Agent, how can I help you today?",
-    "example_queries": ["Which were the most important topics?", "Any study about language acquisition?"]
+    "description": "Research assistant for ADLES Conference papers",
+    "welcome_message": "Hi, I'm Adles, your research assistant for the ADLES Conference. I have access to a database of research papers presented at the conference. I can help you explore specific topics, find details about presentations, and discover non-obvious connections among different research papers. What would you like to know?",
+    "example_queries": ["What were the main research themes?", "Find connections between language acquisition studies", "Which papers discuss methodology innovations?"]
 }
 
 agent: Agent = None
@@ -63,6 +63,7 @@ class ChatRequest(BaseModel):
     message: str
     history: Optional[list] = None
     stream: Optional[bool] = False
+    verify: Optional[bool] = None  # None = usar VERIFY_GROUNDING del .env
 
 
 class ChatResponse(BaseModel):
@@ -91,12 +92,12 @@ async def chat(request: ChatRequest):
 
     if request.stream:
         async def generate():
-            async for chunk in agent.chat_stream(request.message, request.history):
+            async for chunk in agent.chat_stream(request.message, request.history, verify=request.verify):
                 yield chunk
 
         return StreamingResponse(generate(), media_type="text/plain")
 
-    response = agent.chat(request.message, request.history)
+    response = agent.chat(request.message, request.history, verify=request.verify)
     return ChatResponse(response=response)
 
 

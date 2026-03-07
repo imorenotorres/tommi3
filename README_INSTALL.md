@@ -19,7 +19,7 @@ Get the latest version of Tommi and uncompress it to where you want to work in y
    - **Windows:** `apps\setup.bat` (double-click or run from cmd)
    - **Linux/macOS:** `./apps/setup.sh`
 3. The script will automatically:
-   - Create the virtual environment `.venv` in the `web/` folder
+   - Create the virtual environment `.venv` in the tommi3 root folder
    - Install all dependencies
    - Configure conversation logging (optional, useful for testing)
    - Configure the Mistral API key for each agent
@@ -30,24 +30,24 @@ Get the latest version of Tommi and uncompress it to where you want to work in y
 
 - **Local access (localhost):**
   ```bash
-  cd web && source .venv/bin/activate && uvicorn app:app --reload
+  source .venv/bin/activate && cd web && uvicorn app:app --reload
   ```
 
 - **Network access:**
   ```bash
-  cd web && source .venv/bin/activate && uvicorn app:app --reload --host 0.0.0.0
+  source .venv/bin/activate && cd web && uvicorn app:app --reload --host 0.0.0.0
   ```
 
 ### Windows
 
 - **Local access (localhost):**
   ```cmd
-  cd web && .venv\Scripts\activate && uvicorn app:app --reload
+  .venv\Scripts\activate && cd web && uvicorn app:app --reload
   ```
 
 - **Network access:**
   ```cmd
-  cd web && .venv\Scripts\activate && uvicorn app:app --reload --host 0.0.0.0
+  .venv\Scripts\activate && cd web && uvicorn app:app --reload --host 0.0.0.0
   ```
 
 ### Notes
