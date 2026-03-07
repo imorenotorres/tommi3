@@ -81,6 +81,17 @@ TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, an
    - [7.2 Agent Errors (2xx)](#agent-errors-2xx)
    - [7.3 Data Errors (3xx)](#data-errors-3xx)
    - [7.4 Server Errors (5xx)](#server-errors-5xx)
+8. [Annex A: Terminal Command Reference](#annex-a-terminal-command-reference)
+   - [A.1 Environment Setup](#a1-environment-setup)
+   - [A.2 Agent Management](#a2-agent-management)
+   - [A.3 Web Server](#a3-web-server)
+   - [A.4 RAG Agent Operations](#a4-rag-agent-operations)
+   - [A.5 ConsultaBD_SQL Agent Operations](#a5-consultabd_sql-agent-operations)
+   - [A.6 Ollama Commands (Local LLM)](#a6-ollama-commands-local-llm)
+   - [A.7 API Testing with curl](#a7-api-testing-with-curl)
+   - [A.8 Logs and Debugging](#a8-logs-and-debugging)
+   - [A.9 Distribution](#a9-distribution)
+   - [A.10 Useful Environment Variables](#a10-useful-environment-variables)
 
 ---
 
@@ -669,10 +680,10 @@ Oneshot and RAG agents can optionally verify that their responses are **grounded
 During agent creation, the script will ask:
 
 ```
-Verificación de grounding (anti-alucinaciones):
-  - Verifica que las respuestas estén basadas SOLO en los datos proporcionados
-  - NOTA: Duplica las llamadas al LLM (mayor latencia y coste)
-  ¿Activar verificación de grounding? (s/n) [n]:
+Grounding verification (anti-hallucination):
+  - Verifies that responses are based ONLY on provided data
+  - NOTE: Doubles LLM calls (higher latency and cost)
+  Enable grounding verification? (y/n) [n]:
 ```
 
 The setting is stored in the agent's `.env` file:
@@ -772,16 +783,16 @@ Text-to-SQL agents (ConsultaBD_SQL) offer several interactive commands to explor
 
 | Command | Description |
 |---------|-------------|
-| "Muéstrame más" | Show next batch of results |
-| "Muéstrame los siguientes 20" | Show next 20 results |
-| "Muéstrame todos" | Show all results |
+| "Show me more" | Show next batch of results |
+| "Show me the next 20" | Show next 20 results |
+| "Show me all" | Show all results |
 
 **Viewing details:**
 
 | Command | Description |
 |---------|-------------|
-| "Amplía el 1" | Show full details of result #1 |
-| "Detalles del 3" | Show full details of result #3 |
+| "Expand #1" | Show full details of result #1 |
+| "Details of #3" | Show full details of result #3 |
 
 **Showing additional fields:**
 
@@ -789,48 +800,48 @@ These commands add the requested field to the basic information (university, cou
 
 | Command | Description |
 |---------|-------------|
-| "Muestra también el centro" | Add the faculty/center field |
-| "Muestra también las titulaciones" | Add degree programs |
-| "Muestra también la vigencia" | Add validity dates |
-| "Muestra también la facultad destino" | Add destination faculty |
+| "Also show the center" | Add the faculty/center field |
+| "Also show the degrees" | Add degree programs |
+| "Also show the validity" | Add validity dates |
+| "Also show the destination faculty" | Add destination faculty |
 
 **Sorting results:**
 
 | Command | Description |
 |---------|-------------|
-| "Ordena por país" | Sort results by country (A→Z) |
-| "Ordena por universidad" | Sort results by institution name |
-| "Ordena alfabéticamente" | Sort results alphabetically |
-| "Ordena de Z a A" | Sort in descending order |
+| "Sort by country" | Sort results by country (A→Z) |
+| "Sort by university" | Sort results by institution name |
+| "Sort alphabetically" | Sort results alphabetically |
+| "Sort from Z to A" | Sort in descending order |
 
 **Refining your query:**
 
 | Command | Description |
 |---------|-------------|
-| "Los de Francia" | Filter previous results to France only |
-| "Solo los que requieren inglés" | Add language filter to previous query |
-| "Del primer cuatrimestre" | Filter by semester |
+| "Only France" | Filter previous results to France only |
+| "Only those requiring English" | Add language filter to previous query |
+| "From the first semester" | Filter by semester |
 
 **Navigation:**
 
 | Command | Description |
 |---------|-------------|
-| "Volver atrás" | Return to previous query results |
-| "Historial" | Show query history |
+| "Go back" | Return to previous query results |
+| "History" | Show query history |
 
 **Example interaction:**
 ```
-User: ¿Qué universidades hay en Alemania?
+User: What universities are in Germany?
 Agent: ✅ Found 45 agreements... [shows first 20 with basic info]
 
-User: Ordena por universidad
+User: Sort by university
 Agent: 📊 45 result(s) - Sorted by university (A→Z)
 
-User: Muestra también el centro
+User: Also show the center
 Agent: ✅ 45 result(s) - Adding: 🏫 UMA Faculty
        [shows results with basic info + center field]
 
-User: Los que requieren inglés B2
+User: Only those requiring English B2
 Agent: ✅ Found 12 agreements with English B2 requirement...
 ```
 
@@ -1211,5 +1222,174 @@ TOMMI uses structured error codes to help you quickly identify and resolve issue
 5. **Restart services:** After changing `.env` files, restart the web server for changes to take effect.
 
 6. **Check file permissions:** Ensure the user running TOMMI has read/write access to agent directories and data files.
+
+[↑ Back to index](#index){.back-to-top}
+
+---
+
+## Annex A: Terminal Command Reference
+
+Quick reference of useful terminal commands for working with TOMMI agents.
+
+### A.1 Environment Setup
+
+```bash
+# Activate virtual environment
+source .venv/bin/activate          # Linux/macOS
+.venv\Scripts\activate             # Windows
+
+# Deactivate virtual environment
+deactivate
+
+# Check Python version
+python --version
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### A.2 Agent Management
+
+```bash
+# Create a new agent
+python apps/crear_agente.py
+
+# List available agents
+python web/cli.py -l
+
+# Test a specific agent interactively
+cd web && python cli.py <agent_id>
+
+# Run batch tests
+python web/batch_test.py <agent_id> <questions_file>
+
+# Run batch tests with session context
+python web/batch_test.py <agent_id> <questions_file> -s
+```
+
+### A.3 Web Server
+
+```bash
+# Start the web hub (recommended)
+./web/run_html_server.sh           # Linux/macOS
+web\run_html_server.bat            # Windows
+
+# Start server manually (with auto-reload)
+cd web && uvicorn app:app --reload --host 0.0.0.0 --port 8000
+
+# Free a port in use
+./web/liberar-puerto.sh 8000
+
+# Check which process is using a port
+lsof -i :8000                      # Linux/macOS
+netstat -ano | findstr :8000       # Windows
+```
+
+### A.4 RAG Agent Operations
+
+```bash
+# Reindex documents (via API)
+curl -X POST http://localhost:8000/reindex
+
+# Delete ChromaDB to force full reindex
+rm -rf agents/<agent_id>/data/chroma_db/
+```
+
+### A.5 ConsultaBD_SQL Agent Operations
+
+```bash
+# View database schema (via API)
+curl http://localhost:8000/schema
+
+# Create a new SQLite database
+sqlite3 agents/<agent_id>/data/database.db < schema.sql
+
+# Open database interactively
+sqlite3 agents/<agent_id>/data/database.db
+
+# Common SQLite commands
+.tables                            # List all tables
+.schema <table_name>               # Show table structure
+.quit                              # Exit SQLite
+```
+
+### A.6 Ollama Commands (Local LLM)
+
+```bash
+# Start Ollama server
+ollama serve
+
+# List available models
+ollama list
+
+# Download a model
+ollama pull mistral
+ollama pull mixtral:8x7b
+
+# Test a model
+ollama run mistral "Hello, world"
+
+# Delete a model
+ollama rm <model_name>
+
+# Check Ollama status
+curl http://localhost:11434/api/tags
+```
+
+### A.7 API Testing with curl
+
+```bash
+# List all agents
+curl http://localhost:8000/api/agents
+
+# Send a chat message
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "<agent_id>", "message": "Hello"}'
+
+# Send message with grounding verification
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "<agent_id>", "message": "Your question", "verify": true}'
+
+# Check agent health
+curl http://localhost:8000/api/agents/<agent_id>/health
+```
+
+### A.8 Logs and Debugging
+
+```bash
+# View conversation logs (if enabled)
+tail -f web/logs/conversations.log
+
+# View last 50 lines of logs
+tail -50 web/logs/conversations.log
+
+# Search logs for specific agent
+grep "<agent_id>" web/logs/conversations.log
+
+# Clear logs
+> web/logs/conversations.log
+```
+
+### A.9 Distribution
+
+```bash
+# Create distribution package
+./apps/crear_dist.sh               # Linux/macOS
+apps\crear_dist.bat                # Windows
+```
+
+### A.10 Useful Environment Variables
+
+```bash
+# Check current LLM configuration
+cat web/.env | grep LLM
+cat agents/<agent_id>/.env | grep LLM
+
+# Edit environment variables
+nano web/.env                      # Linux/macOS
+notepad web\.env                   # Windows
+```
 
 [↑ Back to index](#index){.back-to-top}
