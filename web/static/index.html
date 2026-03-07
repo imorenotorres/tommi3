@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tommi Agents</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Marked.js for rendering markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar with agent selector -->
+        <aside class="sidebar">
+            <!-- Top section with UMA logo (white background) -->
+            <div class="sidebar-top">
+                <div class="logo-uma">
+                    <img src="/static/logo_uma.png" alt="Universidad de Málaga">
+                </div>
+            </div>
+            <!-- Bottom section with selector and UNINOVIS logo -->
+            <div class="sidebar-bottom" style="background-image: url('/static/fondo.png'); background-size: cover; background-position: center;">
+                <div class="agent-selector">
+                    <select id="agent-select">
+                        <option value="">Loading agents...</option>
+                    </select>
+                </div>
+                <div id="llm-status" class="llm-status">
+                    <span id="llm-badge" class="llm-badge loading">Loading...</span>
+                </div>
+                <div id="agent-type" class="agent-type hidden">
+                    <img id="agent-type-icon" src="" alt="" class="agent-type-icon">
+                    <span id="agent-type-label"></span>
+                </div>
+                <p id="agent-description" class="agent-description hidden"></p>
+                <div id="example-queries" class="example-queries hidden">
+                    <h4>Example queries:</h4>
+                    <div id="examples-container"></div>
+                </div>
+                <div id="query-history" class="query-history hidden">
+                    <details id="history-details" open>
+                        <summary>📋 Query history</summary>
+                        <div id="history-container"></div>
+                    </details>
+                </div>
+                <div class="logo-uninovis">
+                    <img src="/static/logo_uninovis.png" alt="UNINOVIS">
+                </div>
+            </div>
+        </aside>
+
+        <!-- Chat area -->
+        <main class="chat-area">
+            <!-- Top section with same background as sidebar -->
+            <div class="chat-area-top">
+                <div class="disclaimer">
+                    <p class="disclaimer-title">REMEMBER</p>
+                    <p>You are interacting with a test agent that may make mistakes.</p>
+                    <p id="logging-notice" style="display: none;">This agent is currently in testing. All conversations will be saved to a log file.</p>
+                </div>
+            </div>
+            <!-- Bottom section with messages and form -->
+            <div class="chat-area-bottom">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="welcome-message">
+                        <p>Select an agent to start chatting.</p>
+                    </div>
+                </div>
+
+                <form id="chat-form" class="chat-form">
+                    <input
+                        type="text"
+                        id="message-input"
+                        placeholder="Type your message..."
+                        autocomplete="off"
+                        disabled
+                    >
+                    <button type="submit" id="send-button" disabled>Send</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

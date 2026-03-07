@@ -1,0 +1,628 @@
+{
+  "metadata": {
+    "timestamp": "2026-03-05T22:54:32.388871",
+    "num_questions": 33,
+    "num_warmup": 1,
+    "num_benchmark": 32,
+    "sql_model": "mistral-small-latest",
+    "db_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/agents/pisha2/data/database.db"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question": "¿Qué destinos hay disponibles en Alemania?",
+      "is_warmup": true,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 221,
+      "timings": {
+        "1_schema": 0.0005,
+        "2_text_to_sql": 0.3302,
+        "3_execute_sql": 0.0077,
+        "4_format_response": 0.0006
+      },
+      "total_time": 0.3391,
+      "error": null
+    },
+    {
+      "id": 2,
+      "question": "¿Qué destinos hay disponibles en Alemania?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 221,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.6456,
+        "3_execute_sql": 0.014,
+        "4_format_response": 0.0007
+      },
+      "total_time": 0.6604,
+      "error": null
+    },
+    {
+      "id": 3,
+      "question": "¿A qué universidades puedo ir en Italia?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%'",
+      "sql_referencia": "SELECT host_institution FROM destinations WHERE destination_country LIKE '%Italia%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 349,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.2858,
+        "3_execute_sql": 0.0172,
+        "4_format_response": 0.0006
+      },
+      "total_time": 0.3038,
+      "error": null
+    },
+    {
+      "id": 4,
+      "question": "¿Hay convenios con Francia?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Francia%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Francia%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 204,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.3955,
+        "3_execute_sql": 0.0135,
+        "4_format_response": 0.0005
+      },
+      "total_time": 0.4097,
+      "error": null
+    },
+    {
+      "id": 5,
+      "question": "¿Cuántos destinos hay en América Latina?",
+      "is_warmup": false,
+      "sql_query": "SELECT COUNT(*) FROM destinations WHERE destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela')",
+      "sql_referencia": "SELECT COUNT(*) FROM destinations WHERE destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela')",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 1,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.3957,
+        "3_execute_sql": 0.0112,
+        "4_format_response": 0.0001
+      },
+      "total_time": 0.4072,
+      "error": null
+    },
+    {
+      "id": 6,
+      "question": "¿Tenemos convenios Erasmus con países de Ásia?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS%' AND destination_country IN ('Armenia', 'Corea del Sur', 'Filipinas', 'India', 'Indonesia', 'Japón', 'Kazajistán', 'Malasia', 'Nepal', 'Tailandia', 'Taiwán')",
+      "sql_referencia": "SELECT DISTINCT host_institution, destination_country FROM destinations WHERE mobility_program LIKE '%ERASMUS%' AND destination_country IN ('Armenia', 'Corea del Sur', 'Filipinas', 'India', 'Indonesia', 'Japón', 'Kazajistán', 'Malasia', 'Nepal', 'Tailandia', 'Taiwán')",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 18,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.3986,
+        "3_execute_sql": 0.0119,
+        "4_format_response": 0.0002
+      },
+      "total_time": 0.4108,
+      "error": null
+    },
+    {
+      "id": 7,
+      "question": "¿Qué destinos hay para estudiantes de la Facultad de Derecho?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE uma_faculties LIKE '%Derecho%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE uma_faculties LIKE '%Derecho%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 255,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.3966,
+        "3_execute_sql": 0.0259,
+        "4_format_response": 0.0004
+      },
+      "total_time": 0.423,
+      "error": null
+    },
+    {
+      "id": 8,
+      "question": "¿A dónde puedo ir si estudio Ingeniería Informática?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE uma_degrees LIKE '%Ingeniería Informática%'",
+      "sql_referencia": "SELECT host_institution, destination_country, mobility_program, student_vacancies, language_requirements FROM destinations WHERE uma_degrees LIKE '%Ingeniería Informática%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 91,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 1.2076,
+        "3_execute_sql": 0.0183,
+        "4_format_response": 0.0002
+      },
+      "total_time": 1.2262,
+      "error": null
+    },
+    {
+      "id": 9,
+      "question": "¿Qué opciones de movilidad tiene la Facultad de Medicina?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE uma_faculties LIKE '%Medicina%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE uma_faculties LIKE '%Medicina%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 157,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.2855,
+        "3_execute_sql": 0.0169,
+        "4_format_response": 0.0002
+      },
+      "total_time": 0.3028,
+      "error": null
+    },
+    {
+      "id": 10,
+      "question": "¿Qué destinos hay con ERASMUS+ KA131?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS+ KA131%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS+ KA131%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 1674,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.2765,
+        "3_execute_sql": 0.0437,
+        "4_format_response": 0.0009
+      },
+      "total_time": 0.3211,
+      "error": null
+    },
+    {
+      "id": 11,
+      "question": "¿Cuáles son las opciones de MOVILIDAD INTERNACIONAL UMA?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE mobility_program LIKE '%MOVILIDAD INTERNACIONAL UMA%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE mobility_program LIKE '%MOVILIDAD INTERNACIONAL UMA%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 145,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.4258,
+        "3_execute_sql": 0.0153,
+        "4_format_response": 0.0003
+      },
+      "total_time": 0.4416,
+      "error": null
+    },
+    {
+      "id": 12,
+      "question": "¿Qué universidades participan en el programa ISEP?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE mobility_program LIKE '%ISEP%'",
+      "sql_referencia": "SELECT host_institution FROM destinations WHERE mobility_program LIKE '%ISEP%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 3,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.342,
+        "3_execute_sql": 0.0061,
+        "4_format_response": 0.001
+      },
+      "total_time": 0.3493,
+      "error": null
+    },
+    {
+      "id": 13,
+      "question": "¿Qué destinos no requieren acreditación de idioma?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE language_requirements = 'No requiere acreditación de idioma'",
+      "sql_referencia": "SELECT * FROM destinations WHERE language_requirements = 'No requiere acreditación de idioma'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 182,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.3029,
+        "3_execute_sql": 0.0222,
+        "4_format_response": 0.0002
+      },
+      "total_time": 0.3253,
+      "error": null
+    },
+    {
+      "id": 14,
+      "question": "¿Qué nivel de inglés necesito para ir a Alemania?",
+      "is_warmup": false,
+      "sql_query": "SELECT language_requirements, host_institution, destination_country FROM destinations WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'",
+      "sql_referencia": "SELECT language_requirements FROM destinations WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 130,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.4218,
+        "3_execute_sql": 0.0163,
+        "4_format_response": 0.0004
+      },
+      "total_time": 0.4386,
+      "error": null
+    },
+    {
+      "id": 15,
+      "question": "¿Hay destinos donde se requiera solo B1 de inglés?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%' AND language_requirements NOT LIKE '%C1%' AND language_requirements NOT LIKE '%C2%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 368,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.6108,
+        "3_execute_sql": 0.0177,
+        "4_format_response": 0.0002
+      },
+      "total_time": 0.6289,
+      "error": null
+    },
+    {
+      "id": 16,
+      "question": "¿Hay destinos en Europa que no requieran idioma?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND language_requirements = 'No requiere acreditación de idioma'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND language_requirements = 'No requiere acreditación de idioma'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 39,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.6526,
+        "3_execute_sql": 0.0135,
+        "4_format_response": 0.0001
+      },
+      "total_time": 0.6663,
+      "error": null
+    },
+    {
+      "id": 17,
+      "question": "¿Qué destinos tienen plazas disponibles?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE student_vacancies NOT LIKE '%Plazas: 0%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE student_vacancies NOT LIKE '%Plazas: 0%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 1925,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.3923,
+        "3_execute_sql": 0.0419,
+        "4_format_response": 0.0009
+      },
+      "total_time": 0.4352,
+      "error": null
+    },
+    {
+      "id": 18,
+      "question": "¿Cuántas plazas hay para el primer cuatrimestre en universidades de Finlandia?",
+      "is_warmup": false,
+      "sql_query": "SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Finlandia%' AND student_vacancies LIKE '%1er CUATRIMESTRE%'",
+      "sql_referencia": "SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Finlandia%' AND student_vacancies LIKE '%1er CUATRIMESTRE%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 1,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.4706,
+        "3_execute_sql": 0.01,
+        "4_format_response": 0.0001
+      },
+      "total_time": 0.4808,
+      "error": null
+    },
+    {
+      "id": 19,
+      "question": "¿Cuántas plazas en universidades de Finlandia en las que el nivel de inglés sea B1?",
+      "is_warmup": false,
+      "sql_query": "SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Finlandia%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+      "sql_referencia": "SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Finlandia%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 1,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.4997,
+        "3_execute_sql": 0.0106,
+        "4_format_response": 0.0001
+      },
+      "total_time": 0.5105,
+      "error": null
+    },
+    {
+      "id": 20,
+      "question": "¿Qué universidades de Europa tienen convenio con la Facultad de Ciencias en los que el nivel de inglés es B1?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%'",
+      "sql_referencia": "SELECT host_institution, destination_country FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 167,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.3814,
+        "3_execute_sql": 0.0151,
+        "4_format_response": 0.0003
+      },
+      "total_time": 0.3968,
+      "error": null
+    },
+    {
+      "id": 21,
+      "question": "¿Hay algún convenio en alemania que pida nivel de alemán B2 para la Facultad de Filosofía y Letras?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Filosofía y Letras%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B2%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B2%' AND uma_faculties LIKE '%Filosofía y Letras%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 18,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.6218,
+        "3_execute_sql": 0.0101,
+        "4_format_response": 0.0002
+      },
+      "total_time": 0.6322,
+      "error": null
+    },
+    {
+      "id": 22,
+      "question": "¿Con qué paises de América latina tiene convenios la Facultad de Medicina?",
+      "is_warmup": false,
+      "sql_query": "SELECT DISTINCT destination_country, host_institution, mobility_program FROM destinations WHERE destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela') AND uma_faculties LIKE '%Medicina%'",
+      "sql_referencia": "SELECT DISTINCT destination_country FROM destinations WHERE destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela') AND uma_faculties LIKE '%Medicina%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 94,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.2799,
+        "3_execute_sql": 0.0104,
+        "4_format_response": 0.0001
+      },
+      "total_time": 0.2905,
+      "error": null
+    },
+    {
+      "id": 23,
+      "question": "¿Qué acuerdos hay con The Hague University of Applied Sciences?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE host_institution LIKE '%The Hague%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE host_institution LIKE '%The Hague University of Applied Sciences%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 1,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.2526,
+        "3_execute_sql": 0.0078,
+        "4_format_response": 0.0001
+      },
+      "total_time": 0.2606,
+      "error": null
+    },
+    {
+      "id": 24,
+      "question": "¿Hay convenios con universidades de Rumanía?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Rumanía%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Rumanía%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 44,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.2616,
+        "3_execute_sql": 0.0122,
+        "4_format_response": 0.0001
+      },
+      "total_time": 0.274,
+      "error": null
+    },
+    {
+      "id": 25,
+      "question": "¿Qué destinos hay disponibles en Italia para grado de enfermería que no requieran título de idioma?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%enfermería%' AND language_requirements = 'No requiere acreditación de idioma'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%Enfermería%' AND language_requirements = 'No requiere acreditación de idioma'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 0,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.5895,
+        "3_execute_sql": 0.0095,
+        "4_format_response": 0.0011
+      },
+      "total_time": 0.6002,
+      "error": null
+    },
+    {
+      "id": 26,
+      "question": "¿Qué nivel de idioma se necesita para estudiar arquitectura en la universidad de La Sapienza?",
+      "is_warmup": false,
+      "sql_query": "SELECT language_requirements, host_institution, destination_country FROM destinations WHERE host_institution LIKE '%La Sapienza%' AND uma_degrees LIKE '%arquitectura%'",
+      "sql_referencia": "SELECT language_requirements FROM destinations WHERE host_institution LIKE '%La Sapienza%' AND uma_degrees LIKE '%Arquitectura%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 0,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.4011,
+        "3_execute_sql": 0.0096,
+        "4_format_response": 0.0001
+      },
+      "total_time": 0.4119,
+      "error": null
+    },
+    {
+      "id": 27,
+      "question": "¿Hace falta una nota media mínima para poder estudiar en la universidad de Berlín?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE host_institution LIKE '%Berlín%' AND language_requirements LIKE '%Nota media%'",
+      "sql_referencia": "SELECT host_institution, minimum_gpa FROM destinations WHERE host_institution LIKE '%Berlín%' OR host_institution LIKE '%Berlin%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 0,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.4028,
+        "3_execute_sql": 0.0107,
+        "4_format_response": 0.0001
+      },
+      "total_time": 0.4137,
+      "error": null
+    },
+    {
+      "id": 28,
+      "question": "¿Hay convenios en Japón que requieran coreano B2?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Japón%' AND language_requirements LIKE '%COREANO%' AND language_requirements LIKE '%B2%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Japón%' AND language_requirements LIKE '%COREANO%' AND language_requirements LIKE '%B2%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 0,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.397,
+        "3_execute_sql": 0.0096,
+        "4_format_response": 0.0152
+      },
+      "total_time": 0.4218,
+      "error": null
+    },
+    {
+      "id": 29,
+      "question": "¿Por qué no hay plazas con alemán B1 en Corea del Sur?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Corea del Sur%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Corea del Sur%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 0,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.3806,
+        "3_execute_sql": 0.0091,
+        "4_format_response": 0.0195
+      },
+      "total_time": 0.4093,
+      "error": null
+    },
+    {
+      "id": 30,
+      "question": "¿Hay convenios en Finlandia que pidan francés B2?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Finlandia%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Finlandia%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 0,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.588,
+        "3_execute_sql": 0.0095,
+        "4_format_response": 0.0151
+      },
+      "total_time": 0.6126,
+      "error": null
+    },
+    {
+      "id": 31,
+      "question": "¿Hay plazas en Alemania para Medicina que pidan inglés C1?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Medicina%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%C1%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Medicina%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%C1%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 0,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.5894,
+        "3_execute_sql": 0.0088,
+        "4_format_response": 0.0387
+      },
+      "total_time": 0.6369,
+      "error": null
+    },
+    {
+      "id": 32,
+      "question": "¿Hay convenios en Alemania para Derecho que pidan francés B2?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_degrees LIKE '%Derecho%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Derecho%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 0,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.359,
+        "3_execute_sql": 0.0067,
+        "4_format_response": 0.0128
+      },
+      "total_time": 0.3786,
+      "error": null
+    },
+    {
+      "id": 33,
+      "question": "¿Hay plazas disponibles en Italia para la Facultad de Ciencias con inglés B2?",
+      "is_warmup": false,
+      "sql_query": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B2%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+      "sql_referencia": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B2%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+      "success": true,
+      "has_sql_error": null,
+      "num_results": 12,
+      "timings": {
+        "1_schema": 0.0,
+        "2_text_to_sql": 0.7017,
+        "3_execute_sql": 0.0083,
+        "4_format_response": 0.0001
+      },
+      "total_time": 0.7102,
+      "error": null
+    }
+  ],
+  "summary": {
+    "total_time": 15.53,
+    "avg_time": 0.47,
+    "successful": 33,
+    "failed": 0,
+    "sql_errors_count": 0,
+    "sql_errors_total": 0,
+    "avg_time_text_to_sql": 0.46,
+    "avg_time_execute": 0.0145,
+    "warmup": {
+      "total_time": 0.34,
+      "time_text_to_sql": 0.33,
+      "time_execute": 0.0077
+    },
+    "rest_total_time": 15.19,
+    "std_time": 0.188,
+    "p90_time": 0.665,
+    "std_time_text_to_sql": 0.188,
+    "p90_time_text_to_sql": 0.65,
+    "std_time_execute": 0.009,
+    "p90_time_execute": 0.025
+  }
+}

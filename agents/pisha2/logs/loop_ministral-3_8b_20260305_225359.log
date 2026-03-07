@@ -1,0 +1,442 @@
+================================================================================
+BENCHMARK PISHA2 - 2026-03-05 22:53:59
+================================================================================
+
+Modelo: ministral-3:8b
+Preguntas: 33 (1 warm-up + 32 benchmark)
+Exitosas: 33
+Fallidas: 0
+Errores SQL: 0 sentencias con error (0 errores totales)
+
+--------------------------------------------------------------------------------
+DETALLE POR PREGUNTA
+--------------------------------------------------------------------------------
+
+[1] [WARM-UP] ¿Qué destinos hay disponibles en Alemania?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    Status: OK
+    Resultados: 221
+    Tiempos:
+        1_schema: 0.0005s
+        2_text_to_sql: 17.2237s
+        3_execute_sql: 0.0189s
+        4_format_response: 0.0003s
+    Total: 17.2434s
+
+[2] ¿Qué destinos hay disponibles en Alemania?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    Status: OK
+    Resultados: 221
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.6996s
+        3_execute_sql: 0.0167s
+        4_format_response: 0.0007s
+    Total: 1.717s
+
+[3] ¿A qué universidades puedo ir en Italia?
+    SQL Referencia: SELECT host_institution FROM destinations WHERE destination_country LIKE '%Italia%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Italia%'
+    Status: OK
+    Resultados: 349
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.0894s
+        3_execute_sql: 0.017s
+        4_format_response: 0.0004s
+    Total: 1.1069s
+
+[4] ¿Hay convenios con Francia?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Francia%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Francia%'
+    Status: OK
+    Resultados: 204
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.0505s
+        3_execute_sql: 0.012s
+        4_format_response: 0.0007s
+    Total: 1.0632s
+
+[5] ¿Cuántos destinos hay en América Latina?
+    SQL Referencia: SELECT COUNT(*) FROM destinations WHERE destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela')
+    SQL Generado:   SELECT COUNT(*) FROM destinations WHERE destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela')
+    Status: OK
+    Resultados: 1
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.0922s
+        3_execute_sql: 0.0144s
+        4_format_response: 0.0001s
+    Total: 1.1069s
+
+[6] ¿Tenemos convenios Erasmus con países de Ásia?
+    SQL Referencia: SELECT DISTINCT host_institution, destination_country FROM destinations WHERE mobility_program LIKE '%ERASMUS%' AND destination_country IN ('Armenia', 'Corea del Sur', 'Filipinas', 'India', 'Indonesia', 'Japón', 'Kazajistán', 'Malasia', 'Nepal', 'Tailandia', 'Taiwán')
+    SQL Generado:   SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS%' AND destination_country IN ('Armenia', 'Corea del Sur', 'Filipinas', 'India', 'Indonesia', 'Japón', 'Kazajistán', 'Malasia', 'Nepal', 'Tailandia', 'Taiwán')
+    Status: OK
+    Resultados: 18
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.5508s
+        3_execute_sql: 0.0276s
+        4_format_response: 0.0001s
+    Total: 1.5785s
+
+[7] ¿Qué destinos hay para estudiantes de la Facultad de Derecho?
+    SQL Referencia: SELECT * FROM destinations WHERE uma_faculties LIKE '%Derecho%'
+    SQL Generado:   SELECT * FROM destinations WHERE uma_faculties LIKE '%Derecho%'
+    Status: OK
+    Resultados: 255
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.2802s
+        3_execute_sql: 0.0201s
+        4_format_response: 0.0003s
+    Total: 1.3007s
+
+[8] ¿A dónde puedo ir si estudio Ingeniería Informática?
+    SQL Referencia: SELECT host_institution, destination_country, mobility_program, student_vacancies, language_requirements FROM destinations WHERE uma_degrees LIKE '%Ingeniería Informática%'
+    SQL Generado:   SELECT * FROM destinations WHERE uma_degrees LIKE '%Ingeniería Informática%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    Status: OK
+    Resultados: 90
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 2.1914s
+        3_execute_sql: 0.0164s
+        4_format_response: 0.0003s
+    Total: 2.2081s
+
+[9] ¿Qué opciones de movilidad tiene la Facultad de Medicina?
+    SQL Referencia: SELECT * FROM destinations WHERE uma_faculties LIKE '%Medicina%'
+    SQL Generado:   SELECT * FROM destinations WHERE uma_faculties LIKE '%Medicina%'
+    Status: OK
+    Resultados: 157
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.252s
+        3_execute_sql: 0.0155s
+        4_format_response: 0.0003s
+    Total: 1.2679s
+
+[10] ¿Qué destinos hay con ERASMUS+ KA131?
+    SQL Referencia: SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS+ KA131%'
+    SQL Generado:   SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS+ KA131%'
+    Status: OK
+    Resultados: 1674
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.4242s
+        3_execute_sql: 0.0285s
+        4_format_response: 0.0006s
+    Total: 1.4534s
+
+[11] ¿Cuáles son las opciones de MOVILIDAD INTERNACIONAL UMA?
+    SQL Referencia: SELECT * FROM destinations WHERE mobility_program LIKE '%MOVILIDAD INTERNACIONAL UMA%'
+    SQL Generado:   SELECT * FROM destinations WHERE mobility_program LIKE '%MOVILIDAD INTERNACIONAL UMA%'
+    Status: OK
+    Resultados: 145
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.8124s
+        3_execute_sql: 0.0122s
+        4_format_response: 0.0002s
+    Total: 1.8248s
+
+[12] ¿Qué universidades participan en el programa ISEP?
+    SQL Referencia: SELECT host_institution FROM destinations WHERE mobility_program LIKE '%ISEP%'
+    SQL Generado:   SELECT DISTINCT host_institution, destination_country, mobility_program FROM destinations WHERE mobility_program LIKE '%ISEP%'
+    Status: OK
+    Resultados: 3
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.3371s
+        3_execute_sql: 0.008s
+        4_format_response: 0.0006s
+    Total: 1.3458s
+
+[13] ¿Qué destinos no requieren acreditación de idioma?
+    SQL Referencia: SELECT * FROM destinations WHERE language_requirements = 'No requiere acreditación de idioma'
+    SQL Generado:   SELECT * FROM destinations WHERE language_requirements = 'No requiere acreditación de idioma'
+    Status: OK
+    Resultados: 182
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.243s
+        3_execute_sql: 0.0195s
+        4_format_response: 0.0002s
+    Total: 1.2629s
+
+[14] ¿Qué nivel de inglés necesito para ir a Alemania?
+    SQL Referencia: SELECT language_requirements FROM destinations WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'
+    Status: OK
+    Resultados: 130
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.7736s
+        3_execute_sql: 0.0089s
+        4_format_response: 0.0005s
+    Total: 1.7831s
+
+[15] ¿Hay destinos donde se requiera solo B1 de inglés?
+    SQL Referencia: SELECT * FROM destinations WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%'
+    SQL Generado:   SELECT * FROM destinations WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    Status: OK
+    Resultados: 368
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 3.5255s
+        3_execute_sql: 0.0737s
+        4_format_response: 0.0005s
+    Total: 3.5997s
+
+[16] ¿Hay destinos en Europa que no requieran idioma?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND language_requirements = 'No requiere acreditación de idioma'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND language_requirements = 'No requiere acreditación de idioma'
+    Status: OK
+    Resultados: 39
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.6787s
+        3_execute_sql: 0.0087s
+        4_format_response: 0.0001s
+    Total: 1.6876s
+
+[17] ¿Qué destinos tienen plazas disponibles?
+    SQL Referencia: SELECT * FROM destinations WHERE student_vacancies NOT LIKE '%Plazas: 0%'
+    SQL Generado:   SELECT * FROM destinations WHERE student_vacancies NOT LIKE '%Plazas: 0%'
+    Status: OK
+    Resultados: 1925
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.4839s
+        3_execute_sql: 0.0421s
+        4_format_response: 0.0007s
+    Total: 1.5267s
+
+[18] ¿Cuántas plazas hay para el primer cuatrimestre en universidades de Finlandia?
+    SQL Referencia: SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Finlandia%' AND student_vacancies LIKE '%1er CUATRIMESTRE%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    SQL Generado:   SELECT SUM( CASE WHEN student_vacancies LIKE '%Plazas: %' THEN CAST(SUBSTR( student_vacancies, INSTR(student_vacancies, 'Plazas: ') + 8, INSTR(student_vacancies, ',') - (INSTR(student_vacancies, 'Plazas: ') + 8) ) AS INTEGER) ELSE 0 END ) AS total_plazas_primer_cuatrimestre FROM destinations WHERE destination_country LIKE '%Finlandia%' AND student_vacancies LIKE '%1er CUATRIMESTRE%' AND student_vacancies LIKE '%Plazas: %'
+    Status: OK
+    Resultados: 1
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 8.219s
+        3_execute_sql: 0.0096s
+        4_format_response: 0.0001s
+    Total: 8.2287s
+
+[19] ¿Cuántas plazas en universidades de Finlandia en las que el nivel de inglés sea B1?
+    SQL Referencia: SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Finlandia%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    SQL Generado:   SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Finlandia%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    Status: OK
+    Resultados: 1
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 3.2271s
+        3_execute_sql: 0.0075s
+        4_format_response: 0.0001s
+    Total: 3.2347s
+
+[20] ¿Qué universidades de Europa tienen convenio con la Facultad de Ciencias en los que el nivel de inglés es B1?
+    SQL Referencia: SELECT host_institution, destination_country FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%'
+    Status: OK
+    Resultados: 140
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 3.6811s
+        3_execute_sql: 0.0118s
+        4_format_response: 0.0002s
+    Total: 3.6931s
+
+[21] ¿Hay algún convenio en alemania que pida nivel de alemán B2 para la Facultad de Filosofía y Letras?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B2%' AND uma_faculties LIKE '%Filosofía y Letras%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Filosofía y Letras%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B2%'
+    Status: OK
+    Resultados: 18
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 3.1572s
+        3_execute_sql: 0.0123s
+        4_format_response: 0.0001s
+    Total: 3.1696s
+
+[22] ¿Con qué paises de América latina tiene convenios la Facultad de Medicina?
+    SQL Referencia: SELECT DISTINCT destination_country FROM destinations WHERE destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela') AND uma_faculties LIKE '%Medicina%'
+    SQL Generado:   SELECT DISTINCT destination_country, host_institution, mobility_program FROM destinations WHERE uma_faculties LIKE '%Medicina%' AND destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela')
+    Status: OK
+    Resultados: 94
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.9869s
+        3_execute_sql: 0.0181s
+        4_format_response: 0.0001s
+    Total: 2.0052s
+
+[23] ¿Qué acuerdos hay con The Hague University of Applied Sciences?
+    SQL Referencia: SELECT * FROM destinations WHERE host_institution LIKE '%The Hague University of Applied Sciences%'
+    SQL Generado:   SELECT * FROM destinations WHERE host_institution LIKE '%The Hague University of Applied Sciences%'
+    Status: OK
+    Resultados: 1
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.3965s
+        3_execute_sql: 0.0104s
+        4_format_response: 0.0001s
+    Total: 1.4071s
+
+[24] ¿Hay convenios con universidades de Rumanía?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Rumanía%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Rumanía%'
+    Status: OK
+    Resultados: 44
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.1054s
+        3_execute_sql: 0.0144s
+        4_format_response: 0.0002s
+    Total: 1.12s
+
+[25] ¿Qué destinos hay disponibles en Italia para grado de enfermería que no requieran título de idioma?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%Enfermería%' AND language_requirements = 'No requiere acreditación de idioma'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%Enfermería%' AND language_requirements = 'No requiere acreditación de idioma' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    Status: OK
+    Resultados: 0
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 3.386s
+        3_execute_sql: 0.0089s
+        4_format_response: 0.0008s
+    Total: 3.3957s
+
+[26] ¿Qué nivel de idioma se necesita para estudiar arquitectura en la universidad de La Sapienza?
+    SQL Referencia: SELECT language_requirements FROM destinations WHERE host_institution LIKE '%La Sapienza%' AND uma_degrees LIKE '%Arquitectura%'
+    SQL Generado:   SELECT language_requirements, host_institution, destination_country FROM destinations WHERE host_institution LIKE '%La Sapienza%' AND uma_faculties LIKE '%Arquitectura%'
+    Status: OK
+    Resultados: 0
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 2.2844s
+        3_execute_sql: 0.007s
+        4_format_response: 0.0108s
+    Total: 2.3023s
+
+[27] ¿Hace falta una nota media mínima para poder estudiar en la universidad de Berlín?
+    SQL Referencia: SELECT host_institution, minimum_gpa FROM destinations WHERE host_institution LIKE '%Berlín%' OR host_institution LIKE '%Berlin%'
+    SQL Generado:   SELECT * FROM destinations WHERE host_institution LIKE '%Berlín%' AND language_requirements LIKE '%NOTA MEDIA%'
+    Status: OK
+    Resultados: 0
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 1.885s
+        3_execute_sql: 0.0056s
+        4_format_response: 0.0002s
+    Total: 1.8909s
+
+[28] ¿Hay convenios en Japón que requieran coreano B2?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Japón%' AND language_requirements LIKE '%COREANO%' AND language_requirements LIKE '%B2%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Japón%' AND language_requirements LIKE '%COREANO%' AND language_requirements LIKE '%B2%'
+    Status: OK
+    Resultados: 0
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 2.309s
+        3_execute_sql: 0.0073s
+        4_format_response: 0.0174s
+    Total: 2.3338s
+
+[29] ¿Por qué no hay plazas con alemán B1 en Corea del Sur?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Corea del Sur%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Corea del Sur%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    Status: OK
+    Resultados: 0
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 3.3207s
+        3_execute_sql: 0.0095s
+        4_format_response: 0.0176s
+    Total: 3.3479s
+
+[30] ¿Hay convenios en Finlandia que pidan francés B2?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Finlandia%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Finlandia%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%'
+    Status: OK
+    Resultados: 0
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 2.4457s
+        3_execute_sql: 0.0078s
+        4_format_response: 0.015s
+    Total: 2.4686s
+
+[31] ¿Hay plazas en Alemania para Medicina que pidan inglés C1?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Medicina%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%C1%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Medicina%' AND student_vacancies NOT LIKE '%Plazas: 0%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%C1%' AND language_requirements NOT LIKE '%B2%' AND language_requirements NOT LIKE '%C2%'
+    Status: OK
+    Resultados: 0
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 5.3039s
+        3_execute_sql: 0.0096s
+        4_format_response: 0.0341s
+    Total: 5.3476s
+
+[32] ¿Hay convenios en Alemania para Derecho que pidan francés B2?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Derecho%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_degrees LIKE '%Derecho%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    Status: OK
+    Resultados: 0
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 4.422s
+        3_execute_sql: 0.0098s
+        4_format_response: 0.021s
+    Total: 4.4528s
+
+[33] ¿Hay plazas disponibles en Italia para la Facultad de Ciencias con inglés B2?
+    SQL Referencia: SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B2%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    SQL Generado:   SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B2%' AND student_vacancies NOT LIKE '%Plazas: 0%'
+    Status: OK
+    Resultados: 12
+    Tiempos:
+        1_schema: 0.0s
+        2_text_to_sql: 4.0084s
+        3_execute_sql: 0.0112s
+        4_format_response: 0.0001s
+    Total: 4.0199s
+
+--------------------------------------------------------------------------------
+RESUMEN
+--------------------------------------------------------------------------------
+Preguntas: 33 (1 warm-up + 32 benchmark)
+Tiempo total: 95.49s
+
+Errores SQL:
+  Sentencias con error: 0
+  Total de errores: 0
+
+WARM-UP (primera pregunta):
+  Total: 17.24s
+  Text-to-SQL: 17.22s
+  Ejecución SQL: 0.0189s
+
+BENCHMARK (preguntas 2-33):
+  Tiempo total: 78.25s
+
+  Tiempo por pregunta:
+    Promedio: 2.45s
+    Desv. Estándar: 1.533s
+    Percentil 90: 4.323s
+
+  Text-to-SQL (LLM):
+    Promedio: 2.43s
+    Desv. Estándar: 1.531s
+    Percentil 90: 4.298s
+
+  Ejecución SQL:
+    Promedio: 0.0157s
+    Desv. Estándar: 0.013s
+    Percentil 90: 0.028s

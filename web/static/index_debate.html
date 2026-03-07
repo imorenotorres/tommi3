@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tommi Debate</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style_debate.css">
+    <!-- Marked.js for rendering markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar with debate configuration -->
+        <aside class="sidebar">
+            <!-- Top section with UMA logo (white background) -->
+            <div class="sidebar-top">
+                <div class="logo-uma">
+                    <img src="/static/logo_uma.png" alt="Universidad de Malaga">
+                </div>
+            </div>
+            <!-- Bottom section with debate config -->
+            <div class="sidebar-bottom" style="background-image: url('/static/fondo.png'); background-size: cover; background-position: center;">
+                <h2 class="debate-title">Configurar Debate</h2>
+
+                <!-- Participant 1 -->
+                <div class="config-section">
+                    <label for="agent-a-select">Participante 1:</label>
+                    <select id="agent-a-select" class="agent-select">
+                        <option value="">Cargando agentes...</option>
+                    </select>
+                    <div class="role-input">
+                        <label for="role-a">Rol:</label>
+                        <input type="text" id="role-a" value="a favor" placeholder="a favor">
+                    </div>
+                </div>
+
+                <!-- Participant 2 -->
+                <div class="config-section">
+                    <label for="agent-b-select">Participante 2:</label>
+                    <select id="agent-b-select" class="agent-select">
+                        <option value="">Cargando agentes...</option>
+                    </select>
+                    <div class="role-input">
+                        <label for="role-b">Rol:</label>
+                        <input type="text" id="role-b" value="en contra" placeholder="en contra">
+                    </div>
+                </div>
+
+                <!-- Moderator -->
+                <div class="config-section">
+                    <label for="moderator-select">Moderador:</label>
+                    <select id="moderator-select" class="agent-select">
+                        <option value="">Cargando agentes...</option>
+                    </select>
+                </div>
+
+                <!-- Debate topic -->
+                <div class="config-section">
+                    <label for="debate-topic">Tema del debate:</label>
+                    <textarea id="debate-topic" rows="3" placeholder="Escribe la pregunta o tema del debate..."></textarea>
+                </div>
+
+                <!-- Rounds -->
+                <div class="config-section">
+                    <label for="rounds">Rondas:</label>
+                    <select id="rounds">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+
+                <!-- Start button -->
+                <button id="start-debate" class="start-button" disabled>
+                    Iniciar Debate
+                </button>
+
+                <div class="logo-uninovis">
+                    <img src="/static/logo_uninovis.png" alt="UNINOVIS">
+                </div>
+                <p class="powered-by">Powered by Mistral</p>
+            </div>
+        </aside>
+
+        <!-- Debate area -->
+        <main class="chat-area">
+            <!-- Top section with same background as sidebar -->
+            <div class="chat-area-top">
+                <div class="disclaimer">
+                    <p class="disclaimer-title">DEBATE ENTRE AGENTES</p>
+                    <p id="debate-status">Configura el debate en el panel izquierdo</p>
+                </div>
+            </div>
+            <!-- Bottom section with debate content -->
+            <div class="chat-area-bottom">
+                <div id="debate-content" class="debate-messages">
+                    <div class="welcome-message">
+                        <div class="welcome-content">
+                            <h2>Sistema de Debate TOMMI</h2>
+                            <p>Selecciona dos agentes para debatir y un moderador.</p>
+                            <p>Define el tema y el numero de rondas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/app_debate.js"></script>
+</body>
+</html>

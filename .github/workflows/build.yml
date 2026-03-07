@@ -1,0 +1,78 @@
+name: Build Executables
+
+on:
+  workflow_dispatch:  # Manual trigger
+  release:
+    types: [created]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            name: macOS
+            artifact: Tommi-Lite-macOS
+          - os: windows-latest
+            name: Windows
+            artifact: Tommi-Lite-Windows
+          - os: ubuntu-latest
+            name: Linux
+            artifact: Tommi-Lite-Linux
+
+    runs-on: ${{ matrix.os }}
+    name: Build for ${{ matrix.name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install fastapi uvicorn python-multipart python-dotenv mistralai httpx
+
+      - name: Build executable
+        run: python build_exe.py --lite
+
+      - name: Create ZIP (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cd dist
+          zip -r ${{ matrix.artifact }}.zip Tommi-Lite
+
+      - name: Create ZIP (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd dist
+          Compress-Archive -Path Tommi-Lite -DestinationPath ${{ matrix.artifact }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

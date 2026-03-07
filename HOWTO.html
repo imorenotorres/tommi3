@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>A practical guide to TOMMI: building and deploying AI
+agents</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <style>
+    .preface {
+      background-color: #e8f4f8;
+      border-left: 4px solid #2196F3;
+      padding: 1em 1.5em;
+      margin: 1.5em 0;
+      border-radius: 4px;
+    }
+    .caution {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 1em 1.5em;
+      margin: 1.5em 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">A practical guide to TOMMI: building and deploying AI
+agents</h1>
+</header>
+<h1 id="a-practical-guide-to-tommi-building-and-deploying-ai-agents">A
+practical guide to TOMMI:<br>building and deploying AI agents</h1>
+<p><strong>By: UNINOVIS-UMA IT TEAM</strong></p>
+<div class="preface">
+<p>TOMMI is an easy to use educational tool that serves to create and
+test AI agents. With TOMMI:</p>
+<ul>
+<li>IT staff will have rapid hands-on experience with different types of
+agents;</li>
+<li>academic and admin staff, ideally supported by IT experts, will be
+able to create agents for their professional context;</li>
+<li>end-users (students, researchers, admin staff) will be able to
+experience with this technology and explore its potential benefits, thus
+fostering digital literacy.</li>
+</ul>
+<p>TOMMI is built entirely on <strong>open source</strong> tools—Python,
+FastAPI, ChromaDB, and more—ensuring transparency and flexibility.</p>
+</div>
+<div class="caution">
+<p><strong>Caution:</strong> The use of TOMMI agents for other goals
+apart from training requires close supervision. IT experts should pay
+special attention to two main risks. First, no sensitive data should be
+added unless an IT expert confirms that the agent deployment is safe
+(e.g., only specific persons have access to the server). Second, adding
+new tools to TOMMI is feasible, but it may result in dangerous
+situations (e.g., a tool deleting your hard disk); modifications made on
+the agents’ templates are made at your own risk.</p>
+</div>
+<hr />
+<h2 id="index">Index</h2>
+<ol type="1">
+<li><a href="#introduction-to-agents">Introduction to Agents</a>
+<ul>
+<li><a href="#oneshot-agents">1.1 Oneshot Agents</a></li>
+<li><a href="#rag-agents-retrieval-augmented-generation">1.2 RAG
+Agents</a></li>
+<li><a href="#consultabd_sql-agents">1.3 ConsultaBD_SQL Agents</a></li>
+<li><a href="#agent-types-comparison">1.4 Agent Types
+Comparison</a></li>
+</ul></li>
+<li><a href="#setting-up-the-tommi-agents-service">Setting Up the TOMMI
+Agents Service</a>
+<ul>
+<li><a href="#prerequisites">2.1 Prerequisites</a></li>
+<li><a href="#installation">2.2 Installation</a></li>
+<li><a href="#project-structure">2.3 Project Structure</a></li>
+<li><a href="#configuring-llms">2.4 Configuring LLMs</a></li>
+</ul></li>
+<li><a href="#creating-agents">Creating Agents</a>
+<ul>
+<li><a href="#using-the-interactive-creator">3.1 Using the Interactive
+Creator</a></li>
+<li><a href="#prompt-templates">3.2 Prompt Templates</a></li>
+<li><a href="#generated-files">3.3 Generated Files</a></li>
+<li><a href="#agent-configuration">3.4 Agent Configuration</a></li>
+<li><a href="#adding-data-to-your-agent">3.5 Adding Data to Your
+Agent</a>
+<ul>
+<li><a href="#oneshot-agents-single-data-file">3.5.1 Oneshot Agents:
+Single Data File</a></li>
+<li><a href="#rag-agents-document-collection">3.5.2 RAG Agents: Document
+Collection</a></li>
+<li><a href="#consultabd_sql-agents-database-only">3.5.3 ConsultaBD_SQL
+Agents: Database Only</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#interacting-with-agents">Interacting with Agents</a>
+<ul>
+<li><a href="#web-interface">4.1 Web Interface</a>
+<ul>
+<li><a href="#starting-the-web-hub">4.1.1 Starting the Web Hub</a></li>
+<li><a href="#using-the-interface">4.1.2 Using the Interface</a></li>
+</ul></li>
+<li><a href="#terminal">4.2 Terminal</a></li>
+</ul></li>
+<li><a href="#developer-functionalities">Developer Functionalities</a>
+<ul>
+<li><a href="#testing-your-agent">5.1 Testing Your Agent</a></li>
+<li><a href="#using-local-llms">5.2 Using local LLMs</a></li>
+<li><a href="#local-vs-cloud-quality-differences">5.3 Local vs Cloud:
+quality differences</a></li>
+<li><a href="#conversation-logging">5.4 Conversation Logging</a></li>
+</ul></li>
+<li><a href="#quick-reference">Quick Reference</a>
+<ul>
+<li><a href="#end-user-commands">6.1 End-User Commands</a></li>
+<li><a href="#developer-api">6.2 Developer API</a></li>
+<li><a href="#setup-commands">6.3 Setup Commands</a></li>
+</ul></li>
+<li><a href="#troubleshooting-error-codes-reference">Troubleshooting:
+Error Codes Reference</a>
+<ul>
+<li><a href="#llm-connection-errors-1xx">7.1 LLM Connection Errors
+(1xx)</a></li>
+<li><a href="#agent-errors-2xx">7.2 Agent Errors (2xx)</a></li>
+<li><a href="#data-errors-3xx">7.3 Data Errors (3xx)</a></li>
+<li><a href="#server-errors-5xx">7.4 Server Errors (5xx)</a></li>
+</ul></li>
+</ol>
+<hr />
+<h2 id="introduction-to-agents">1. Introduction to Agents</h2>
+<p>An <strong>agent</strong> is an AI-powered system that can understand
+natural language queries and respond intelligently. AI agents should not
+be confused with traditional AI assistants such as ChatGPT or Claude.
+The latter are powerful but generic: they rely solely on their training
+data, have no access to your private information, and cannot perform
+actions beyond generating text. An agent, by contrast, is
+<strong>specialized</strong> and <strong>connected</strong>. It can
+access specific knowledge bases (your documents, your database),
+retrieve relevant information on demand, and even execute actions
+through tools (run calculations, query APIs, send emails). While a
+traditional AI might say “I don’t have access to that information,” an
+agent built with TOMMI can actually look it up and give you a precise
+answer.</p>
+<p>In educational and institutional settings, agents offer significant
+advantages. They can provide <strong>24/7 availability</strong> to
+answer frequently asked questions about admissions, course schedules, or
+administrative procedures—reducing the workload on staff while improving
+response times for students. Agents can also serve as
+<strong>personalized learning assistants</strong>, helping students
+navigate complex documentation, summarize research papers, or explain
+institutional policies in plain language. For administrative staff,
+agents can automate repetitive inquiries and provide consistent,
+accurate information across departments. At the same time, improper use
+of agents may have severe consequences for educational institutions
+(e.g. sensitive data breach, open access to hackers, or even economic
+costs due to excess of use).</p>
+<p>In order for educational institutions to benefit from this novel
+technology while at the same time minimizing risks, it is crucial that
+several actions are adopted. These include:</p>
+<ul>
+<li>A clear regulation on the use of agents</li>
+<li>A safe agentic infrastructure</li>
+<li>Training IT and other staff in creating agents</li>
+<li>Training end users on how to interact with AI Agents.</li>
+</ul>
+<p>With TOMMI we bring a tool that may help universities to address the
+last two aspects. Regarding staff, TOMMI allows rapidly hands-on
+experience with AI Agents, which may accelerate the training process.
+Regarding end-users, its friendly but transparent interface may
+encourage use of AI Agents, thus fostering <strong>digital
+literacy</strong> and critical thinking about how these technologies
+work.</p>
+<p>TOMMI supports three agent types, each suited for different use
+cases:</p>
+<h3 id="oneshot-agents">1.1 Oneshot Agents</h3>
+<p>The simplest type. Loads all data into memory and includes it
+directly in the LLM context.</p>
+<p><strong>How it works:</strong> 1. Loads data from
+<code>data/data.md</code> at startup 2. Includes the full data in every
+system prompt 3. LLM generates response using the embedded context</p>
+<p><strong>Architecture:</strong></p>
+<pre><code>┌──────────────┐
+│   Question   │────┐
+└──────────────┘    │
+                    ▼
+              ┌──────────┐    ┌──────────────┐
+              │    LLM   │───▶│   Response   │
+              └──────────┘    └──────────────┘
+                    ▲
+┌──────────────┐    │
+│   data.md    │────┘
+│   (static)   │
+└──────────────┘</code></pre>
+<p><strong>Best for:</strong> - Small to moderate knowledge bases (&lt;
+100KB) - FAQ systems - Static information assistants</p>
+<p><strong>Example:</strong> Conference information assistant that
+answers questions about schedules, speakers, and venues.</p>
+<h3 id="rag-agents-retrieval-augmented-generation">1.2 RAG Agents
+(Retrieval-Augmented Generation)</h3>
+<p>Uses semantic search to find relevant information before generating
+responses.</p>
+<p><strong>How it works:</strong> 1. Indexes documents from
+<code>data/docs/</code> into ChromaDB vector database 2. When a query
+arrives, searches for the most relevant chunks 3. Includes only relevant
+context in the LLM prompt 4. Generates response based on retrieved
+information</p>
+<p><strong>Architecture:</strong></p>
+<pre><code>┌──────────────┐
+│   Question   │──────────────────────┐
+└──────┬───────┘                      │
+       │                              ▼
+       │                        ┌──────────┐    ┌──────────────┐
+       │                        │   LLM    │───▶│   Response   │
+       │                        └──────────┘    └──────────────┘
+       │                              ▲
+       │    ┌──────────────┐          │
+       └───▶│    Search    │──────────┘
+            └──────┬───────┘    (relevant chunks)
+                   │
+            ┌──────▼───────┐
+            │   ChromaDB   │◀── docs/ (PDF, TXT)
+            │   (vectors)  │
+            └──────────────┘</code></pre>
+<p><strong>Best for:</strong> - Large document collections - Academic
+papers or manuals - Frequently updated content (supports
+re-indexing)</p>
+<p><strong>Example:</strong> Academic proceedings Q&amp;A system that
+searches through hundreds of papers.</p>
+<h3 id="consultabd_sql-agents">1.3 ConsultaBD_SQL Agents</h3>
+<p>Converts natural language questions directly to SQL queries against a
+database.</p>
+<p><strong>How it works:</strong> 1. User asks a question in natural
+language 2. Agent uses the configured LLM (Mistral or Ollama) to convert
+the question to SQL 3. Executes the SQL query against a SQLite database
+(only SELECT queries allowed) 4. Formats results using Python (fast, no
+additional LLM call) 5. Displays results in an interactive HTML
+table</p>
+<p><strong>Architecture:</strong></p>
+<pre><code>┌──────────────┐
+│   Question   │──────────────────────┐
+└──────────────┘                      │
+                                      ▼
+┌──────────────┐                ┌──────────┐    ┌──────────────┐
+│    Schema    │───────────────▶│   LLM    │───▶│ Execute SQL  │
+│   (tables)   │                │(text2sql)│    │   (SQLite)   │
+└──────────────┘                └──────────┘    └──────┬───────┘
+                                                       │
+                                                       ▼
+                                                ┌──────────────┐
+                                                │    Python    │
+                                                │  (format)    │
+                                                └──────┬───────┘
+                                                       │
+                                                       ▼
+                                                ┌──────────────┐
+                                                │   Response   │
+                                                │ + HTML table │
+                                                └──────────────┘</code></pre>
+<p><strong>Best for:</strong> - Database exploration without SQL
+knowledge - Data analysis and reporting - Quick data lookups -
+Educational environments where users need to query data</p>
+<p><strong>Key features:</strong> - <strong>Single LLM call:</strong>
+Uses one LLM for SQL generation; formatting is done with Python for
+speed - <strong>Security:</strong> Only SELECT queries are allowed;
+INSERT, UPDATE, DELETE, and other modifying operations are blocked -
+<strong>Schema awareness:</strong> Automatically reads and understands
+the database structure - <strong>Interactive results:</strong> Displays
+query results in formatted HTML tables</p>
+<p><strong>Example:</strong> A university department needs to query a
+database of courses and professors. Users can ask “How many courses are
+in the Law department?” and get instant results without knowing SQL.</p>
+<h3 id="agent-types-comparison">1.4 Agent Types Comparison</h3>
+<h4 id="feature-comparison-table">Feature Comparison Table</h4>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th style="text-align: center;">Oneshot</th>
+<th style="text-align: center;">RAG</th>
+<th style="text-align: center;">ConsultaBD_SQL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Complexity</strong></td>
+<td style="text-align: center;">Low</td>
+<td style="text-align: center;">Medium</td>
+<td style="text-align: center;">Medium</td>
+</tr>
+<tr>
+<td><strong>LLM Calls per Query</strong></td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td><strong>Vector Database</strong></td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">-</td>
+</tr>
+<tr>
+<td><strong>SQL Database</strong></td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">✓</td>
+</tr>
+<tr>
+<td><strong>Document Search</strong></td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">-</td>
+</tr>
+<tr>
+<td><strong>Dynamic Knowledge</strong></td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+</tr>
+<tr>
+<td><strong>Python Version</strong></td>
+<td style="text-align: center;">Any</td>
+<td style="text-align: center;">3.11-3.13</td>
+<td style="text-align: center;">Any</td>
+</tr>
+</tbody>
+</table>
+<h4 id="use-case-recommendations">Use Case Recommendations</h4>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 54%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Recommended Type</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Simple FAQ with static information</td>
+<td><strong>Oneshot</strong></td>
+<td>Minimal complexity, fastest response</td>
+</tr>
+<tr>
+<td>Q&amp;A over many documents/PDFs</td>
+<td><strong>RAG</strong></td>
+<td>Semantic search scales to thousands of documents</td>
+</tr>
+<tr>
+<td>Database queries by non-technical users</td>
+<td><strong>ConsultaBD_SQL</strong></td>
+<td>Natural language to SQL conversion</td>
+</tr>
+<tr>
+<td>Need lowest latency</td>
+<td><strong>Oneshot</strong></td>
+<td>Single LLM call, no external lookups</td>
+</tr>
+<tr>
+<td>Need to scale to thousands of documents</td>
+<td><strong>RAG</strong></td>
+<td>Vector database handles large collections</td>
+</tr>
+<tr>
+<td>Privacy-sensitive data queries</td>
+<td><strong>ConsultaBD_SQL</strong></td>
+<td>Data stays local, only questions sent to LLM</td>
+</tr>
+</tbody>
+</table>
+<h4 id="cost-comparison">Cost Comparison</h4>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>LLM Calls</th>
+<th>Total Cost Profile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Oneshot</strong></td>
+<td>1</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><strong>RAG</strong></td>
+<td>1</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><strong>ConsultaBD_SQL</strong></td>
+<td>1</td>
+<td>Low</td>
+</tr>
+</tbody>
+</table>
+<h4 id="architecture-summary">Architecture Summary</h4>
+<pre><code>┌────────────────────────────────────────────────┐
+│                  AGENT TYPES                   │
+├────────────────────────────────────────────────┤
+│                                                │
+│  ONESHOT         RAG         CONSULTABD_SQL   │
+│  ───────         ───         ──────────────   │
+│                                                │
+│  Question      Question        Question        │
+│     +             +               +            │
+│   Data         Search          Schema          │
+│     │          Results           │             │
+│     │             │              │             │
+│     ▼             ▼              ▼             │
+│   [LLM]        [LLM]          [LLM]            │
+│     │             │              │             │
+│     │             │              ▼             │
+│     │             │         [SQL DB]           │
+│     │             │              │             │
+│     │             │              ▼             │
+│     │             │          [Python]          │
+│     │             │          (format)          │
+│     │             │              │             │
+│     ▼             ▼              ▼             │
+│  Response     Response       Response          │
+│                              + HTML table      │
+└────────────────────────────────────────────────┘</code></pre>
+<h4 id="quick-selection-guide">Quick Selection Guide</h4>
+<p><strong>Choose based on your primary need:</strong></p>
+<ol type="1">
+<li><strong>“I have a small knowledge base (&lt;100KB)”</strong> →
+<strong>Oneshot</strong></li>
+<li><strong>“I have many documents to search”</strong> →
+<strong>RAG</strong></li>
+<li><strong>“I want users to query a database naturally”</strong> →
+<strong>ConsultaBD_SQL</strong></li>
+</ol>
+<p><a href="#index" class="back-to-top">↑ Back to index</a></p>
+<hr />
+<h2 id="setting-up-the-tommi-agents-service">2. Setting Up the TOMMI
+Agents Service</h2>
+<h3 id="prerequisites">2.1 Prerequisites</h3>
+<ul>
+<li>Python 3.10+ (for Oneshot and Toolcall agents)</li>
+<li>Python 3.11-3.13 (for RAG agents - ChromaDB is <strong>not
+compatible</strong> with Python 3.14+)</li>
+<li>Mistral API key</li>
+</ul>
+<blockquote>
+<p><strong>Note:</strong> If you plan to use RAG agents and have Python
+3.14+, install Python 3.12:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install python@3.12  <span class="co"># macOS</span></span></code></pre></div>
+</blockquote>
+<h3 id="installation">2.2 Installation</h3>
+<p>Run the setup script to configure the environment:</p>
+<ul>
+<li><strong>Windows:</strong> <code>apps\setup.bat</code></li>
+<li><strong>Linux/macOS:</strong> <code>./apps/setup.sh</code></li>
+</ul>
+<p>The script will automatically create a virtual environment, install
+dependencies, and configure your API key.</p>
+<h3 id="project-structure">2.3 Project Structure</h3>
+<pre><code>tommi/
+├── apps/                    # Scripts and utilities
+│   ├── setup.sh             # Setup script (Linux/macOS)
+│   ├── setup.bat            # Setup script (Windows)
+│   ├── crear_agente.py      # Agent creation script
+│   ├── crear_dist.sh        # Distribution script (Linux/macOS)
+│   └── crear_dist.bat       # Distribution script (Windows)
+├── prompts/                 # Prompt templates for agent creation
+│   ├── prompt_Oneshot.txt   # Base prompt for oneshot agents
+│   ├── prompt_RAG.txt       # Base prompt for RAG agents
+│   └── prompt_ToolCall.txt  # Base prompt for toolcall agents
+├── web/                     # Central web service hub
+│   ├── app.py               # FastAPI server
+│   ├── agent_runner.py      # Agent discovery engine
+│   └── static/              # Frontend files
+└── agents/                  # All agents are stored here
+    ├── your_agent/          # Your custom agents
+    ├── conf26_cloud/        # Example: conference assistant (cloud)
+    ├── conf26_local/        # Example: conference assistant (local)
+    └── ...</code></pre>
+<h3 id="configuring-llms">2.4 Configuring LLMs</h3>
+<p>TOMMI supports two LLM providers: - <strong>Mistral Cloud</strong>
+(default) - LLMs on the cloud, requires API key -
+<strong>Ollama</strong> (optional) - Local LLMs, easy setup, good for
+development and privacy</p>
+<p>For starters, Mistral Cloud is recommended as it requires no local
+setup.</p>
+<h4 id="available-mistral-models">Available Mistral Models</h4>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mistral-large-latest</code></td>
+<td>Best quality, complex reasoning (default)</td>
+</tr>
+<tr>
+<td><code>mistral-medium-latest</code></td>
+<td>Balanced performance</td>
+</tr>
+<tr>
+<td><code>mistral-small-latest</code></td>
+<td>Fast responses, simple tasks</td>
+</tr>
+</tbody>
+</table>
+<h4 id="default-configuration-web.env">Default configuration
+(web/.env)</h4>
+<p>The file <code>web/.env</code> sets the <strong>default configuration
+for ALL agents</strong>:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># DEFAULT LLM Provider Configuration</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># This is the DEFAULT configuration for all agents.</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Individual agents can override by adding LLM_PROVIDER to their own .env</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Cloud LLM (Mistral) - DEFAULT ---</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>mistral</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_API_KEY</span><span class="op">=</span>your_api_key_here</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_MODEL</span><span class="op">=</span>mistral-large-latest</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co"># --- To use Local LLM (Ollama) as default, comment above and uncomment below ---</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co"># LLM_PROVIDER=ollama</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># OLLAMA_BASE_URL=http://localhost:11434</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co"># OLLAMA_MODEL=mistral</span></span></code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> Replace <code>your_api_key_here</code> with an
+API key that you should obtain from Mistral at <a
+href="https://mistral.ai/">https://mistral.ai/</a>.</p>
+</blockquote>
+<p><a href="#index" class="back-to-top">↑ Back to index</a></p>
+<hr />
+<h2 id="creating-agents">3. Creating Agents</h2>
+<h3 id="using-the-interactive-creator">3.1 Using the Interactive
+Creator</h3>
+<p>The easiest way to create a new agent:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> apps/crear_agente.py</span></code></pre></div>
+<p>The script will prompt you for:</p>
+<ol type="1">
+<li><strong>Agent type</strong> (1=oneshot, 2=rag,
+3=consultabd_sql)</li>
+<li><strong>Agent ID</strong> - Unique identifier (lowercase,
+alphanumeric)</li>
+<li><strong>Output directory</strong> - Where to create the agent</li>
+<li><strong>Display name</strong> - Human-readable name</li>
+<li><strong>Description</strong> - What the agent does</li>
+<li><strong>Welcome message</strong> - Greeting shown to users</li>
+<li><strong>Example queries</strong> - Sample questions users can
+ask</li>
+<li><strong>System prompt</strong> - Instructions for the LLM
+behavior</li>
+<li><strong>LLM Provider</strong> - Mistral Cloud or Ollama</li>
+<li><strong>Model</strong> - Which model to use</li>
+</ol>
+<h3 id="prompt-templates">3.2 Prompt Templates</h3>
+<p>When creating a new agent, you can choose from pre-defined prompt
+templates instead of writing a system prompt from scratch. Templates are
+stored in the <code>prompts/</code> folder and provide a solid starting
+point for each agent type.</p>
+<p><strong>Available templates:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Template</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>prompt_Oneshot.txt</code></td>
+<td>Instructions for data-based assistants</td>
+</tr>
+<tr>
+<td><code>prompt_RAG.txt</code></td>
+<td>Instructions for document retrieval assistants</td>
+</tr>
+<tr>
+<td><code>prompt_Text2SQL.txt</code></td>
+<td>Instructions for database query assistants</td>
+</tr>
+</tbody>
+</table>
+<p><strong>How it works:</strong></p>
+<p>During agent creation (<code>python apps/crear_agente.py</code>),
+you’ll see:</p>
+<pre><code>System prompt:
+  Available templates:
+    1. prompt_Oneshot
+    2. prompt_RAG
+    3. prompt_Text2SQL
+    4. Your custom prompt
+
+  Select template [1-4]:</code></pre>
+<p><strong>Template variables:</strong></p>
+<p>Templates support the <code>{agent_name}</code> variable, which is
+automatically replaced with your agent’s name. For example:</p>
+<pre><code>You are {agent_name}, an assistant with acess to tools...</code></pre>
+<p>Becomes:</p>
+<pre><code>You are Mi_asistant, an assistant with acess to tools...</code></pre>
+<p><strong>Customizing templates:</strong></p>
+<ol type="1">
+<li><strong>Edit existing templates:</strong> Modify files in
+<code>prompts/</code> to change the default behavior for all new agents
+of that type.</li>
+<li><strong>Add new templates:</strong> Create new <code>.txt</code>
+files in <code>prompts/</code>. They will automatically appear in the
+selection menu.</li>
+<li><strong>Edit after selection:</strong> When creating an agent, you
+can edit the loaded template before it’s saved.</li>
+</ol>
+<p><strong>Tip:</strong> Templates are only used during agent creation.
+Once an agent is created, its prompt is stored in <code>agent.py</code>
+and can be edited independently.</p>
+<h3 id="generated-files">3.3 Generated Files</h3>
+<p>The creator generates a complete agent structure:</p>
+<pre><code>your_agent/
+├── agent.py           # Core agent logic
+├── app.py             # FastAPI wrapper with AGENT_CONFIG
+├── requirements.txt   # Python dependencies
+├── .env               # API credentials
+├── .gitignore         # Security (ignores .env)
+├── run.sh             # Startup script
+├── README.md          # Documentation
+└── data/
+    ├── data.md        # (oneshot/toolcall) Knowledge base (to be replaced by your own data)
+    ├── docs/          # (rag) Document folder for indexing
+    └── database.db    # (text2sql) SQLite database (to be replaced by your own database)</code></pre>
+<h3 id="agent-configuration">3.4 Agent Configuration</h3>
+<p>Each agent defines its metadata in <code>app.py</code>:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>AGENT_CONFIG <span class="op">=</span> {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;id&quot;</span>: <span class="st">&quot;my_agent&quot;</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;name&quot;</span>: <span class="st">&quot;My Agent&quot;</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;type&quot;</span>: <span class="st">&quot;oneshot&quot;</span>,  <span class="co"># or &quot;rag&quot; or &quot;toolcall&quot;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;description&quot;</span>: <span class="st">&quot;Helps with specific tasks&quot;</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;welcome_message&quot;</span>: <span class="st">&quot;Hello! How can I help you?&quot;</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;example_queries&quot;</span>: [</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;What can you do?&quot;</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Tell me about X&quot;</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>You can edit <code>app.py</code> at any time to add or remove example
+queries, change the welcome message, update the description, or modify
+any other metadata field.</p>
+<h3 id="adding-data-to-your-agent">3.5 Adding Data to Your Agent</h3>
+<p><strong>Why data matters:</strong> LLMs have a knowledge cutoff date
+and no access to your private information. Without data, an agent is
+just a generic chatbot. With your data, it becomes a specialized
+assistant that can answer questions about your specific domain.</p>
+<h4 id="oneshot-agents-single-data-file">3.5.1 Oneshot Agents: Single
+Data File</h4>
+<p>Oneshot agents load all their knowledge from a single Markdown
+file.</p>
+<p><strong>Data location:</strong> <code>data/data.md</code></p>
+<p><strong>How to add data:</strong> 1. Edit <code>data/data.md</code>
+with all the information your agent needs 2. Use Markdown formatting for
+structure (headers, lists, tables) 3. Keep the file under ~100KB for
+optimal performance</p>
+<p><strong>Example <code>data/data.md</code>:</strong></p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># Conference information</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sessions</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Session A**: Description of session A, time, room</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Session B**: Description of session B, time, room</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="fu">## FAQ</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="fu">### Where is the conference?</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>...</span></code></pre></div>
+<p><strong>Note:</strong> The entire file is included in every LLM
+prompt, so keep it concise and well-organized.</p>
+<hr />
+<h4 id="rag-agents-document-collection">3.5.2 RAG Agents: Document
+Collection</h4>
+<p>RAG agents index multiple documents and retrieve relevant chunks at
+query time.</p>
+<blockquote>
+<p><strong>Important:</strong> RAG agents require <strong>Python
+3.11-3.13</strong>. ChromaDB is not compatible with Python 3.14+. If you
+see Error 307, install Python 3.12 and recreate the virtual
+environment.</p>
+</blockquote>
+<p><strong>Data location:</strong> <code>data/docs/</code></p>
+<p><strong>Supported formats:</strong> <code>.txt</code>,
+<code>.md</code>, <code>.pdf</code></p>
+<p><strong>How to add data:</strong> 1. Place your documents in
+<code>data/docs/</code> 2. Use descriptive filenames (e.g.,
+<code>user-manual.md</code>, <code>api-reference.txt</code>) 3.
+Documents are automatically chunked and indexed at startup 4. After
+adding new documents, call the <code>/reindex</code> endpoint</p>
+<p><strong>Example structure:</strong></p>
+<pre><code>data/
+└── docs/
+    ├── chapter1-introduction.md
+    ├── chapter2-installation.md
+    ├── chapter3-configuration.md
+    ├── faq.md
+    ├── user-manual.pdf
+    └── troubleshooting.txt</code></pre>
+<p><strong>Re-indexing after changes:</strong></p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/reindex</span></code></pre></div>
+<p><strong>How it works internally:</strong> - PDF text is extracted
+using <code>pypdf</code> - Documents are split into chunks (~500 tokens
+each) - Each chunk is embedded using <code>sentence-transformers</code>
+(all-MiniLM-L6-v2) - Embeddings are stored in ChromaDB at
+<code>data/chroma_db/</code> - On query, the 3 most relevant chunks are
+retrieved and included in the prompt</p>
+<p><strong>Tip:</strong> Structure your documents with clear headers and
+sections for better retrieval accuracy.</p>
+<hr />
+<h4 id="consultabd_sql-agents-database-only">3.5.3 ConsultaBD_SQL
+Agents: Database Only</h4>
+<p>ConsultaBD_SQL agents convert natural language questions to SQL
+queries, executing them against a SQLite database.</p>
+<p><strong>Data location:</strong> <code>data/database.db</code></p>
+<p><strong>How to add data:</strong></p>
+<ol type="1">
+<li>Create a SQLite database file at <code>data/database.db</code></li>
+<li>You can create it using SQL scripts or by importing existing
+data</li>
+</ol>
+<p><strong>Example using SQL script:</strong></p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> your_agent/data</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> database.db <span class="op">&lt;</span> schema.sql</span></code></pre></div>
+<p><strong>Example <code>schema.sql</code>:</strong></p>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> courses (</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">id</span> <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    name TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    department TEXT,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">year</span> <span class="dt">INTEGER</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    credits <span class="dt">INTEGER</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> professors (</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">id</span> <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    name TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    department TEXT,</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    email TEXT</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">1</span>, <span class="st">&#39;Introduction to Law&#39;</span>, <span class="st">&#39;Law&#39;</span>, <span class="dv">1</span>, <span class="dv">6</span>);</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">2</span>, <span class="st">&#39;Constitutional Law&#39;</span>, <span class="st">&#39;Law&#39;</span>, <span class="dv">2</span>, <span class="dv">6</span>);</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">3</span>, <span class="st">&#39;Programming I&#39;</span>, <span class="st">&#39;Computer Science&#39;</span>, <span class="dv">1</span>, <span class="dv">6</span>);</span></code></pre></div>
+<p><strong>How it works:</strong></p>
+<p>ConsultaBD_SQL agents use a single LLM call for SQL generation, and
+Python for fast result formatting:</p>
+<ol type="1">
+<li>The LLM converts the natural language question to SQL</li>
+<li>The SQL is executed against the SQLite database</li>
+<li>Results are formatted as an HTML table using Python (no additional
+LLM call)</li>
+</ol>
+<p><strong>Configuration in <code>.env</code>:</strong></p>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using Mistral Cloud</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>mistral</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_API_KEY</span><span class="op">=</span>your_key_here</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_MODEL</span><span class="op">=</span>mistral-large-latest</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Or using Ollama (local)</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co"># LLM_PROVIDER=ollama</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="co"># OLLAMA_BASE_URL=http://localhost:11434</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co"># OLLAMA_MODEL=mistral</span></span></code></pre></div>
+<p><strong>Security features:</strong></p>
+<ul>
+<li>Only SELECT queries are allowed</li>
+<li>INSERT, UPDATE, DELETE, DROP, and other modifying operations are
+blocked</li>
+<li>SQL injection attempts are rejected</li>
+</ul>
+<p><strong>API endpoints:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /schema</code></td>
+<td>Returns the database schema</td>
+</tr>
+<tr>
+<td><code>POST /chat</code></td>
+<td>Process a natural language question</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tip:</strong> The agent automatically reads the database
+schema at startup. Well-designed table and column names (e.g.,
+<code>student_name</code> instead of <code>sn</code>) help the LLM
+generate more accurate SQL queries.</p>
+<p><a href="#index" class="back-to-top">↑ Back to index</a></p>
+<hr />
+<h2 id="interacting-with-agents">4. Interacting with Agents</h2>
+<p>TOMMI offers two ways to interact with your agents:</p>
+<ul>
+<li><strong>Web Interface:</strong> A visual interface accessible from
+any browser, ideal for end users.</li>
+<li><strong>Terminal:</strong> Direct interaction via command line,
+useful for testing and automation.</li>
+</ul>
+<h3 id="web-interface">4.1 Web Interface</h3>
+<h4 id="starting-the-web-hub">4.1.1 Starting the Web Hub</h4>
+<p>The web hub provides a unified interface to all your agents.</p>
+<p><strong>Starting the server:</strong></p>
+<ul>
+<li><strong>Linux/macOS:</strong>
+<code>web/run_html_server.sh</code></li>
+<li><strong>Windows:</strong> <code>web\run_html_server.bat</code></li>
+</ul>
+<p>Access the web interface at <code>http://localhost:8000</code></p>
+<h4 id="using-the-interface">4.1.2 Using the Interface</h4>
+<p>Once the server is running, open your browser and go to the address
+shown in the terminal.</p>
+<figure>
+<img src="tommi_frontend.png" alt="TOMMI Web Interface" />
+<figcaption aria-hidden="true">TOMMI Web Interface</figcaption>
+</figure>
+<ol type="1">
+<li><strong>Select an agent:</strong> Use the dropdown menu on the left
+side to choose the agent you want to talk to.</li>
+<li><strong>Read the description:</strong> Below the selector, you’ll
+see a brief description of what the selected agent can help you
+with.</li>
+<li><strong>Try example questions:</strong> Click on any of the example
+questions shown on the left panel to quickly start a conversation.</li>
+<li><strong>Type your question:</strong> Write your question in the text
+box at the bottom and press Enter or click Send.</li>
+<li><strong>Read the response:</strong> The agent’s response will appear
+in the chat area. You can continue the conversation by asking follow-up
+questions.</li>
+</ol>
+<p><strong>Tip:</strong> The agent remembers your conversation, so you
+can ask follow-up questions without repeating context.</p>
+<h3 id="terminal">4.2 Terminal</h3>
+<p>You can interact with agents directly from the terminal without
+starting a web server. This is useful for testing, automation, or quick
+queries.</p>
+<p><strong>Interactive CLI:</strong></p>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py</span></code></pre></div>
+<p>This will show available agents and let you select one. You can also
+specify the agent directly:</p>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py my_agent</span></code></pre></div>
+<p>Once inside, type your questions and receive responses directly. Type
+<code>exit</code> or <code>salir</code> to quit.</p>
+<p><strong>List available agents:</strong></p>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py <span class="at">-l</span></span></code></pre></div>
+<p><a href="#index" class="back-to-top">↑ Back to index</a></p>
+<hr />
+<h2 id="developer-functionalities">5. Developer Functionalities</h2>
+<h3 id="testing-your-agent">5.1 Testing Your Agent</h3>
+<p>TOMMI includes a batch testing tool that allows you to evaluate your
+agent by running multiple questions and collecting the responses. This
+is useful for:</p>
+<ul>
+<li>Validating that your agent answers correctly</li>
+<li>Comparing responses before and after changes</li>
+<li>Building a test suite for your agent</li>
+</ul>
+<p><strong>Usage:</strong></p>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">options</span><span class="pp">]</span></span></code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 61%" />
+</colgroup>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--output, -o</code></td>
+<td>Custom output file (default:
+<code>&lt;input&gt;_respuestas.json</code>)</td>
+</tr>
+<tr>
+<td><code>--session, -s</code></td>
+<td>Maintain session context between questions</td>
+</tr>
+<tr>
+<td><code>--list-agents, -l</code></td>
+<td>List available agents and exit</td>
+</tr>
+<tr>
+<td><code>--no-save</code></td>
+<td>Display results in console without saving</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong></p>
+<ol type="1">
+<li>Create a file <code>evals/my_questions.txt</code> with one question
+per line:</li>
+</ol>
+<pre><code># Lines starting with # are ignored
+What is TOMMI?
+How do I create an agent?
+What types of agents are available?</code></pre>
+<ol start="2" type="1">
+<li>Run the test:</li>
+</ol>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> batch_test.py my_agent evals/my_questions.txt</span></code></pre></div>
+<ol start="3" type="1">
+<li>Results are saved to <code>evals/my_questions_respuestas.json</code>
+with all questions, responses, and metadata.</li>
+</ol>
+<h3 id="using-local-llms">5.2. Using local LLMs</h3>
+<p>By default, TOMMI uses <strong>Mistral Cloud</strong>. For local
+inference, TOMMI supports two options: - <strong>Ollama</strong> - Easy
+to use, good for development and testing - <strong>vLLM</strong> -
+High-performance inference, better for production workloads</p>
+<h4 id="using-ollama">Using Ollama</h4>
+<p>To use <strong>local LLMs with Ollama</strong>, you have two
+options:</p>
+<h4 id="option-a-change-the-default-for-all-agents">Option A: Change the
+default for ALL agents</h4>
+<p>Edit <code>web/.env</code> to use Ollama as the default:</p>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Local LLM (Ollama) ---</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Comment out the Mistral configuration</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="co"># LLM_PROVIDER=mistral</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="co"># MISTRAL_API_KEY=your_api_key_here</span></span></code></pre></div>
+<h4 id="option-b-use-local-llm-for-specific-agents-only">Option B: Use
+local LLM for SPECIFIC agents only</h4>
+<p>Keep Mistral as the default in <code>web/.env</code>, and configure
+individual agents to use Ollama by adding <code>LLM_PROVIDER</code> to
+their <code>.env</code> file:</p>
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># agents/my_local_agent/.env</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This agent OVERRIDES the default to use Ollama</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span></code></pre></div>
+<p><strong>Important:</strong> An agent’s <code>.env</code> only
+overrides the default if it contains <code>LLM_PROVIDER</code>. If
+<code>LLM_PROVIDER</code> is not defined (or is commented out), the
+agent uses the default from <code>web/.env</code>.</p>
+<h4 id="hybrid-deployments">Hybrid deployments</h4>
+<p>TOMMI supports <strong>hybrid deployments</strong> where each agent
+can use a different LLM provider:</p>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 40%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>Agent</th>
+<th>Configuration</th>
+<th>Provider Used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>conf26_nube</code></td>
+<td>No <code>LLM_PROVIDER</code> in .env</td>
+<td>Default (Mistral Cloud)</td>
+</tr>
+<tr>
+<td><code>conf26_local</code></td>
+<td><code>LLM_PROVIDER=ollama</code></td>
+<td>Ollama (local)</td>
+</tr>
+<tr>
+<td><code>pisha</code></td>
+<td><code>LLM_PROVIDER=mistral</code> + larger model</td>
+<td>Mistral Cloud (mistral-large)</td>
+</tr>
+<tr>
+<td><code>adles</code></td>
+<td>No <code>LLM_PROVIDER</code> in .env</td>
+<td>Default (Mistral Cloud)</td>
+</tr>
+</tbody>
+</table>
+<p>This is useful for: - Running sensitive data agents locally while
+using cloud for others - Using higher-quality cloud models for complex
+agents - Balancing costs between local and cloud resources</p>
+<p>After changing any <code>.env</code> configuration, restart the web
+server for changes to take effect.</p>
+<h4 id="visual-indicator">Visual indicator</h4>
+<p>The web interface displays a badge in the sidebar showing the current
+LLM provider:</p>
+<table>
+<thead>
+<tr>
+<th>Badge</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🏠 <strong>Local (Ollama: model)</strong></td>
+<td>Using Ollama with the specified model</td>
+</tr>
+<tr>
+<td>☁️ <strong>Cloud (Mistral)</strong></td>
+<td>Using Mistral cloud API</td>
+</tr>
+</tbody>
+</table>
+<p>Hover over the badge to see additional details (model name, server
+URL).</p>
+<h4 id="ollama-setup">Ollama setup</h4>
+<p>To use Ollama locally:</p>
+<ol type="1">
+<li>Install Ollama from <a href="https://ollama.com">ollama.com</a></li>
+<li>Pull a model: <code>ollama pull mistral</code></li>
+<li>Ensure Ollama is running: <code>ollama serve</code></li>
+<li>Configure <code>web/.env</code> with the Ollama settings (see
+above)</li>
+</ol>
+<h3 id="local-vs-cloud-quality-differences">5.3. Local vs Cloud: quality
+differences</h3>
+<p>You may notice that <strong>cloud models produce better
+results</strong> than local models. This is expected due to fundamental
+differences in how these models operate:</p>
+<table>
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 41%" />
+<col style="width: 39%" />
+</colgroup>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Cloud (Mistral)</th>
+<th>Local (Ollama)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Model size</strong></td>
+<td>Full model, uncompressed</td>
+<td>Quantized (compressed) for local hardware</td>
+</tr>
+<tr>
+<td><strong>Precision</strong></td>
+<td>16-bit floating point</td>
+<td>4-bit or 8-bit quantization</td>
+</tr>
+<tr>
+<td><strong>Parameters</strong></td>
+<td>All parameters active</td>
+<td>Reduced precision sacrifices some quality</td>
+</tr>
+<tr>
+<td><strong>Updates</strong></td>
+<td>Frequently updated by Mistral</td>
+<td>Manual updates required</td>
+</tr>
+<tr>
+<td><strong>Reasoning</strong></td>
+<td>Better coherence and accuracy</td>
+<td>May struggle with complex tasks</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The trade-off:</strong> - <strong>Local</strong> = Privacy +
+No API costs + Low latency - <strong>Cloud</strong> = Better quality +
+More capabilities + Usage costs</p>
+<h4 id="improving-local-model-quality">Improving local model
+quality</h4>
+<p>If you want better results from Ollama while staying local, try:</p>
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Other high-quality models</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span></code></pre></div>
+<p>Then update the agent’s <code>.env</code>:</p>
+<div class="sourceCode" id="cb29"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mixtral:8x7b</span></code></pre></div>
+<p><strong>Table</strong>: European LLM models</p>
+<table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 12%" />
+<col style="width: 10%" />
+<col style="width: 11%" />
+<col style="width: 10%" />
+<col style="width: 41%" />
+</colgroup>
+<thead>
+<tr>
+<th>Model</th>
+<th>Number of parameters</th>
+<th>Minimum RAM (FP16)</th>
+<th>Minimum RAM (4-bit)</th>
+<th>GPU?</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mistral-7B</td>
+<td>7B</td>
+<td>~14 GB</td>
+<td>~4-6 GB</td>
+<td>Recommended</td>
+<td>Works on M1 Max with 4-bit quantization.</td>
+</tr>
+<tr>
+<td>Mistral-7B-Instruct</td>
+<td>7B</td>
+<td>~14 GB</td>
+<td>~4-6 GB</td>
+<td>No</td>
+<td>Instruction-tuned version.</td>
+</tr>
+<tr>
+<td>Mixtral-8x7B</td>
+<td>47B (MoE)</td>
+<td>~30-40 GB</td>
+<td>~10-12 GB</td>
+<td>Yes</td>
+<td>Sparse model (Mixture of Experts), more efficient than a dense 47B
+model.</td>
+</tr>
+<tr>
+<td>Mistral-large</td>
+<td>~120B (estimado)</td>
+<td>~240 GB</td>
+<td>~30-40 GB</td>
+<td>Yes</td>
+<td>Requires high-performance hardware.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Notes:</strong> - <strong>FP16</strong>: Standard precision
+(16-bit), requires plenty of RAM. - <strong>4-bit</strong>: Aggressive
+quantization, reduces RAM usage but may slightly affect quality. -
+<strong>Recommended GPU</strong>: For models &gt;13B, a GPU (such as
+NVIDIA A100 or RTX 4090) accelerates inference. - <strong>Apple M1 Max
+(32 GB)</strong>: Only viable for models ≤7B with 4-bit quantization. -
+<strong>Mistral-large</strong>: Not feasible on an M1 Max; requires at
+least 64 GB of RAM and a powerful GPU. - <strong><a
+href="https://openeurollm.eu/">OpenEuroLLM</a></strong>, which is
+supported by the European Commission, is expected to launch further LLMs
+during 2026.</p>
+<h4 id="memory-requirements-for-mistral-large">Memory Requirements for
+Mistral Large</h4>
+<ul>
+<li><strong>FP16 (unquantized)</strong>: Approximately <strong>250 GB of
+RAM</strong> (the model at full precision is extremely demanding and not
+feasible on consumer hardware) <a
+href="https://www.hardware-corner.net/llm-database/Mistral/">hardware-corner.net</a>.</li>
+<li><strong>4-bit (Q4_K_M)</strong>: Between <strong>30-40 GB of
+RAM</strong> (depending on context size and specific implementation).
+This quantization reduces memory usage by about 75% compared to FP16,
+but it is still very demanding for most consumer devices <a
+href="https://www.hardware-corner.net/llm-database/Mistral/">hardware-corner.net</a>,
+<a href="https://apidog.com/blog/small-local-llm/">apidog.com</a>.</li>
+<li><strong>5-bit (Q5_K_M)</strong>: Slightly less than 4-bit, but still
+over <strong>25-35 GB of RAM</strong>.</li>
+<li><strong>8-bit (Q8_0)</strong>: Around <strong>50-70 GB of
+RAM</strong>, as it uses more bits per weight than more aggressively
+quantized versions <a
+href="https://apidog.com/blog/small-local-llm/">apidog.com</a>.</li>
+</ul>
+<p>Technically, <strong>Ollama does support running non-quantized
+(FP16/FP32) versions of models</strong>, but for <strong>Mistral-large
+(123B parameters)</strong>, there are major practical limitations:</p>
+<ul>
+<li><strong>Memory Requirements</strong>: The non-quantized (FP16)
+version of Mistral-large requires <strong>around 250 GB of RAM</strong>
+to load the model weights alone. This is far beyond the capacity of most
+consumer hardware, including high-end workstations [<a
+href="https://www.hardware-corner.net/llm-database/Mistral/">hardware-corner.net</a>].</li>
+<li><strong>Ollama’s Default Behavior</strong>: Ollama typically uses
+quantized versions (e.g., <code>Q4_K_M</code>) by default for large
+models to make them feasible on consumer hardware. Non-quantized
+versions are rarely provided for models of this size due to their
+impractical memory demands [<a
+href="https://apxml.com/tools/vram-calculator">apxml.com</a>].</li>
+<li><strong>Hardware Feasibility</strong>: Even if you could obtain an
+FP16 version, running it would require a system with <strong>250+ GB of
+RAM and a powerful GPU</strong> (e.g., multiple A100/H100 GPUs), which
+is not typical for personal or even most professional setups.</li>
+</ul>
+<h3 id="conversation-logging">5.4 Conversation Logging</h3>
+<blockquote>
+<p><strong>Note:</strong> Conversation logging should only be used
+during testing phases. Disable it in production environments to protect
+user privacy.</p>
+</blockquote>
+<p>TOMMI can log all conversations to a file for auditing or analysis
+purposes. Logs are stored in <code>web/logs/conversations.log</code> and
+include:</p>
+<ul>
+<li>Timestamp</li>
+<li>Client IP address</li>
+<li>Session ID</li>
+<li>Agent ID and name</li>
+<li>Question asked</li>
+<li>Response (truncated to 500 characters)</li>
+</ul>
+<p><strong>Enabling/Disabling logging:</strong></p>
+<p>During installation, the setup script asks whether to enable logging
+(default: disabled). You can change this setting later by editing the
+<code>web/.env</code> file:</p>
+<pre><code>ENABLE_LOGGING=true   # to enable
+ENABLE_LOGGING=false  # to disable</code></pre>
+<p>Valid values: <code>true</code>, <code>1</code>, <code>yes</code>
+(enabled) or <code>false</code>, <code>0</code>, <code>no</code>
+(disabled).</p>
+<p><a href="#index" class="back-to-top">↑ Back to index</a></p>
+<hr />
+<h2 id="quick-reference">6. Quick Reference</h2>
+<h3 id="end-user-commands">6.1 End-User Commands</h3>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr>
+<th>Task</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Create new agent</td>
+<td><code>python apps/crear_agente.py</code></td>
+</tr>
+<tr>
+<td>Start web hub</td>
+<td><code>web/run_html_server.sh</code> (Linux/macOS) or
+<code>web\run_html_server.bat</code> (Windows)</td>
+</tr>
+<tr>
+<td>Interactive CLI</td>
+<td><code>cd web &amp;&amp; source .venv/bin/activate &amp;&amp; python cli.py</code></td>
+</tr>
+<tr>
+<td>CLI with specific agent</td>
+<td><code>python cli.py my_agent</code></td>
+</tr>
+<tr>
+<td>List agents (CLI)</td>
+<td><code>python cli.py -l</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="developer-api">6.2 Developer API</h3>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Endpoint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>List agents</td>
+<td><code>GET /api/agents</code></td>
+</tr>
+<tr>
+<td>Chat</td>
+<td><code>POST /api/chat</code></td>
+</tr>
+<tr>
+<td>Stream chat</td>
+<td><code>GET /api/chat/stream</code></td>
+</tr>
+<tr>
+<td>Reindex RAG</td>
+<td><code>POST /reindex</code></td>
+</tr>
+<tr>
+<td>Get DB schema (ConsultaBD_SQL)</td>
+<td><code>GET /schema</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="setup-commands">6.3 Setup Commands</h3>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Windows</th>
+<th>Linux/macOS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Initial setup</td>
+<td><code>apps\setup.bat</code></td>
+<td><code>./apps/setup.sh</code></td>
+</tr>
+</tbody>
+</table>
+<p><a href="#index" class="back-to-top">↑ Back to index</a></p>
+<hr />
+<h2 id="troubleshooting-error-codes-reference">7. Troubleshooting: Error
+Codes Reference</h2>
+<p>TOMMI uses structured error codes to help you quickly identify and
+resolve issues. When an error occurs, you’ll see a code like
+<strong>Error 101</strong> or <strong>Error 305</strong>. Use this
+reference to understand and fix the problem.</p>
+<h3 id="error-code-structure">Error Code Structure</h3>
+<table>
+<thead>
+<tr>
+<th>Range</th>
+<th>Category</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1xx</strong></td>
+<td>LLM Connection</td>
+<td>Problems connecting to Ollama or Mistral</td>
+</tr>
+<tr>
+<td><strong>2xx</strong></td>
+<td>Agent</td>
+<td>Issues with agent configuration or loading</td>
+</tr>
+<tr>
+<td><strong>3xx</strong></td>
+<td>Data</td>
+<td>Problems with data files, PDFs, or databases</td>
+</tr>
+<tr>
+<td><strong>5xx</strong></td>
+<td>Server</td>
+<td>Server-side or streaming errors</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="llm-connection-errors-1xx">7.1 LLM Connection Errors (1xx)</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>101</strong></td>
+<td>Ollama is not running</td>
+<td>Ollama service is not started</td>
+<td>1. Install Ollama from https://ollama.com<br>2. Run:
+<code>ollama serve</code></td>
+</tr>
+<tr>
+<td><strong>102</strong></td>
+<td>Model not found in Ollama</td>
+<td>The specified model hasn’t been downloaded</td>
+<td>Run: <code>ollama pull &lt;model_name&gt;</code></td>
+</tr>
+<tr>
+<td><strong>103</strong></td>
+<td>Ollama returned an error</td>
+<td>Ollama is running but returned an HTTP error</td>
+<td>Check Ollama logs; restart Ollama service</td>
+</tr>
+<tr>
+<td><strong>104</strong></td>
+<td>Ollama timeout</td>
+<td>Ollama didn’t respond within 5 seconds</td>
+<td>Check that Ollama is running: <code>ollama serve</code></td>
+</tr>
+<tr>
+<td><strong>105</strong></td>
+<td>MISTRAL_API_KEY not configured</td>
+<td>Missing API key for Mistral Cloud</td>
+<td>Add <code>MISTRAL_API_KEY=your_key</code> to <code>.env</code>
+file</td>
+</tr>
+<tr>
+<td><strong>106</strong></td>
+<td>Invalid Mistral API key</td>
+<td>The API key is incorrect or expired</td>
+<td>Get a new key at https://console.mistral.ai</td>
+</tr>
+<tr>
+<td><strong>107</strong></td>
+<td>Mistral API error</td>
+<td>Mistral returned an HTTP error</td>
+<td>Check Mistral status at https://status.mistral.ai</td>
+</tr>
+<tr>
+<td><strong>108</strong></td>
+<td>Cannot connect to Mistral</td>
+<td>Network issues or Mistral unavailable</td>
+<td>Check your internet connection</td>
+</tr>
+<tr>
+<td><strong>109</strong></td>
+<td>Unknown LLM error</td>
+<td>Unexpected error during LLM health check</td>
+<td>Check server logs for details</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="agent-errors-2xx">7.2 Agent Errors (2xx)</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>201</strong></td>
+<td>Agent not found</td>
+<td>Agent ID doesn’t exist</td>
+<td>Verify the agent folder exists in <code>agents/</code>
+directory</td>
+</tr>
+<tr>
+<td><strong>202</strong></td>
+<td>Agent file not found</td>
+<td>Missing <code>agent.py</code> in agent folder</td>
+<td>Ensure the agent directory contains both <code>agent.py</code> and
+<code>app.py</code></td>
+</tr>
+<tr>
+<td><strong>203</strong></td>
+<td>Invalid agent configuration</td>
+<td><code>AGENT_CONFIG</code> in <code>app.py</code> is malformed</td>
+<td>Check syntax of <code>AGENT_CONFIG</code> dictionary in
+<code>app.py</code></td>
+</tr>
+<tr>
+<td><strong>204</strong></td>
+<td>Agent not initialized</td>
+<td>Agent failed to initialize</td>
+<td>Restart the server; check agent initialization logs</td>
+</tr>
+<tr>
+<td><strong>205</strong></td>
+<td>Failed to load agent</td>
+<td>Syntax error or import error in agent code</td>
+<td>Check the agent’s Python code for errors</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="data-errors-3xx">7.3 Data Errors (3xx)</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>301</strong></td>
+<td>Data file not found</td>
+<td>Missing <code>data/data.md</code></td>
+<td>Create <code>data/data.md</code> with your knowledge base
+content</td>
+</tr>
+<tr>
+<td><strong>302</strong></td>
+<td>No documents in docs folder</td>
+<td>Empty <code>data/docs/</code> for RAG agent</td>
+<td>Add <code>.txt</code>, <code>.md</code>, or <code>.pdf</code> files
+to <code>data/docs/</code></td>
+</tr>
+<tr>
+<td><strong>303</strong></td>
+<td>PDF extraction error</td>
+<td>Corrupted PDF or pypdf issue</td>
+<td>Verify PDF opens correctly; run <code>pip install pypdf</code></td>
+</tr>
+<tr>
+<td><strong>304</strong></td>
+<td>ChromaDB error</td>
+<td>Database corruption or permission issue</td>
+<td>Delete <code>data/chroma_db/</code> and call <code>/reindex</code>
+endpoint</td>
+</tr>
+<tr>
+<td><strong>305</strong></td>
+<td>Database not found</td>
+<td>Missing SQLite database</td>
+<td>Create or copy your database to <code>data/database.db</code></td>
+</tr>
+<tr>
+<td><strong>306</strong></td>
+<td>Context too large</td>
+<td><code>data/data.md</code> exceeds 100KB</td>
+<td>Reduce file size or switch to RAG agent type</td>
+</tr>
+<tr>
+<td><strong>307</strong></td>
+<td>ChromaDB Python incompatible</td>
+<td>ChromaDB not compatible with Python 3.14+</td>
+<td>Install Python 3.12 or 3.13 and recreate venv</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="server-errors-5xx">7.4 Server Errors (5xx)</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>501</strong></td>
+<td>Streaming error</td>
+<td>Error during response streaming</td>
+<td>Check server logs for details</td>
+</tr>
+<tr>
+<td><strong>502</strong></td>
+<td>Session not found</td>
+<td>Invalid or expired session ID</td>
+<td>Start a new conversation</td>
+</tr>
+<tr>
+<td><strong>503</strong></td>
+<td>Internal server error</td>
+<td>Unexpected server-side error</td>
+<td>Check server logs; restart if needed</td>
+</tr>
+<tr>
+<td><strong>504</strong></td>
+<td>Port in use</td>
+<td>Another process is using the server port</td>
+<td>Run <code>./liberar-puerto.sh 8000</code> to free the port</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="general-debugging-tips">General Debugging Tips</h3>
+<ol type="1">
+<li><p><strong>Port already in use (Error 504):</strong> If you see
+<code>ERROR 504. Port in use</code>, it means another process is using
+port 8000 (often a previous server instance that wasn’t closed
+properly). To fix it:</p>
+<div class="sourceCode" id="cb31"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./liberar-puerto.sh</span> 8000</span></code></pre></div>
+<p>Then start the server again. You can use this script with any port
+number.</p></li>
+<li><p><strong>Check the error code:</strong> Look for “Error XXX” in
+the message and find it in the tables above.</p></li>
+<li><p><strong>Check logs:</strong> Review the terminal output where the
+server is running:</p>
+<div class="sourceCode" id="cb32"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Logs show detailed error information</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span></span></code></pre></div></li>
+<li><p><strong>Verify environment:</strong> Ensure the virtual
+environment is activated:</p>
+<div class="sourceCode" id="cb33"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate  <span class="co"># Linux/macOS</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>     <span class="co"># Windows</span></span></code></pre></div></li>
+<li><p><strong>Test components individually:</strong></p>
+<ul>
+<li>Test Ollama: <code>ollama list</code> and
+<code>ollama run mistral "Hello"</code></li>
+<li>Test Mistral API: Verify your key at https://console.mistral.ai</li>
+<li>Test agent: Use CLI mode <code>python cli.py &lt;agent_id&gt;</code>
+before web interface</li>
+</ul></li>
+<li><p><strong>Restart services:</strong> After changing
+<code>.env</code> files, restart the web server for changes to take
+effect.</p></li>
+<li><p><strong>Check file permissions:</strong> Ensure the user running
+TOMMI has read/write access to agent directories and data
+files.</p></li>
+</ol>
+<p><a href="#index" class="back-to-top">↑ Back to index</a></p>
+</body>
+</html>

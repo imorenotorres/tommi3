@@ -1,0 +1,46 @@
+# Entornos virtuales Python
+.venv/
+.venv_build/
+venv/
+env/
+.env
+web/.env
+
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build artifacts
+build/
+dist/
+*.spec
+*.egg-info/
+
+# IDE y editores
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Git
+.git/
+.gitignore
+
+# Claude
+.claude/
+
+# Logs
+*.log
+logs/
+
+# Archivos temporales
+*.tmp
+*.temp
+.cache/

@@ -1,0 +1,8 @@
+# Preguntas de ejemplo para testing
+# Las líneas que empiezan con # son ignoradas
+
+Which are the thematic sessions of Uninovis Conference 2026?
+When is session 2b?
+Are you GDPR compliant?
+What's scheduled for DiPYUA on the 26th?
+Any talks about cancer?
