@@ -10,7 +10,7 @@ Get the latest version of Tommi and uncompress it to where you want to work in y
 2. One of the following LLM providers:
    - **Mistral API key** (cloud, recommended for starters)
    - **Ollama** (local, easy setup)
-   - **vLLM** (local, high-performance)
+   - **vLLM** (local, high-performance) (not yet available in Tommi)
 
 ## 3. Installation
 

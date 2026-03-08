@@ -658,6 +658,19 @@ body {
     margin-top: 0.2rem;
 }
 
+.history-operations {
+    margin-top: 0.3rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid #e2e8f0;
+}
+
+.history-operation {
+    font-size: 0.7rem;
+    color: #888;
+    font-style: italic;
+    padding: 0.1rem 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container {
@@ -688,4 +701,28 @@ body {
     .message {
         max-width: 90%;
     }
+}
+
+/* History display styles */
+.history-query {
+    margin: 10px 0 5px 0;
+}
+
+.history-query-dot {
+    color: #22c55e;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.history-query-text {
+    font-weight: bold;
+}
+
+.history-operation {
+    margin: 3px 0 3px 20px;
+    color: #555;
+}
+
+.history-operation-arrow {
+    color: #888;
 }

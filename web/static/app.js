@@ -33,6 +33,12 @@ const elements = {
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
+    // Configure marked to allow HTML
+    marked.setOptions({
+        breaks: true,
+        gfm: true
+    });
+
     await loadConfig();
     await loadAgents();
     setupEventListeners();
@@ -557,9 +563,21 @@ function renderQueryHistory(history) {
     recentHistory.forEach((entry, index) => {
         const historyItem = document.createElement('div');
         historyItem.className = 'history-item';
+
+        // Build operations HTML if any
+        let operationsHtml = '';
+        if (entry.operations && entry.operations.length > 0) {
+            operationsHtml = '<div class="history-operations">';
+            entry.operations.forEach(op => {
+                operationsHtml += `<div class="history-operation">↳ ${op}</div>`;
+            });
+            operationsHtml += '</div>';
+        }
+
         historyItem.innerHTML = `
             <div class="history-question">${entry.question}</div>
             <div class="history-meta">${entry.num_results} results</div>
+            ${operationsHtml}
         `;
         historyItem.addEventListener('click', (e) => {
             e.preventDefault();

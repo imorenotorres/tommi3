@@ -73,9 +73,23 @@ RESPONSE FORMAT:
                 'last_results_grouped': False,
                 'last_display_offset': 0,
                 'query_history': [],
+                'operations_history': [],  # Track modifications on results
                 'last_user_question': None,
             }
         return self._sessions[session_id]
+
+    def _add_operation_to_history(self, session_id: str, operation_type: str, description: str):
+        """Adds an operation (modification) to the history."""
+        state = self._get_session_state(session_id)
+        state['operations_history'].append({
+            'type': operation_type,
+            'description': description,
+            'sql': state['last_sql_query'],
+            'query_index': len(state['query_history'])  # Links to the parent query
+        })
+        # Limit operations history size
+        if len(state['operations_history']) > 50:
+            state['operations_history'].pop(0)
 
     @property
     def last_sql_query(self) -> str | None:
@@ -237,12 +251,12 @@ RESPONSE FORMAT:
 
         # Patrones para detectar peticiones de mostrar campo adicional
         show_patterns = [
-            # Spanish
-            r'muestra(?:me)?\s+también\s+(?:el|la|los|las)?\s*(.+)',
-            r'añade\s+también\s+(?:el|la|los|las)?\s*(.+)',
-            r'incluye\s+también\s+(?:el|la|los|las)?\s*(.+)',
-            r'muestra(?:me)?\s+(?:el|la|los|las)?\s*(.+)',
-            r'añade\s+(?:el|la|los|las)?\s*(.+)',
+            # Spanish (with accent handling: é->e, á->a, etc.)
+            r'mu[eé]stra(?:me)?\s+tambi[eé]n\s+(?:el|la|los|las)?\s*(.+)',
+            r'a[nñ]ade\s+tambi[eé]n\s+(?:el|la|los|las)?\s*(.+)',
+            r'incluye\s+tambi[eé]n\s+(?:el|la|los|las)?\s*(.+)',
+            r'mu[eé]stra(?:me)?\s+(?:el|la|los|las)?\s*(.+)',
+            r'a[nñ]ade\s+(?:el|la|los|las)?\s*(.+)',
             r'incluye\s+(?:el|la|los|las)?\s*(.+)',
             r'pon(?:me)?\s+(?:el|la|los|las)?\s*(.+)',
             r'quiero\s+ver\s+(?:el|la|los|las)?\s*(.+)',
@@ -257,10 +271,29 @@ RESPONSE FORMAT:
             r'see\s+(?:the\s+)?(.+)',
         ]
 
+        # Words that indicate filtering (refinement), NOT showing a field
+        filter_indicators = [
+            'solo', 'only', 'solamente', 'únicamente', 'unicamente',
+            'de derecho', 'de medicina', 'de ingeniería', 'de ingenieria',
+            'de ciencias', 'de económicas', 'de economicas', 'de turismo',
+            'de comercio', 'de educación', 'de educacion', 'de psicología',
+            'of law', 'of medicine', 'of engineering', 'of science',
+            'of business', 'of education', 'of psychology',
+        ]
+
+        # If the question contains filter indicators, it's likely a refinement, not show field
+        for indicator in filter_indicators:
+            if indicator in question_lower:
+                return (False, None)
+
         for pattern in show_patterns:
             match = re.search(pattern, question_lower)
             if match:
                 requested_field = match.group(1).strip()
+                # Only match if the captured part is SHORT (just the field name)
+                # Long phrases like "los acuerdos con la facultad de derecho" are refinements
+                if len(requested_field) > 30:
+                    return (False, None)
                 # Buscar en el mapeo
                 for term, field_name in field_mapping.items():
                     if term in requested_field:
@@ -355,39 +388,66 @@ RESPONSE FORMAT:
         """Muestra el historial de consultas recientes con su SQL."""
         state = self._get_session_state(session_id)
 
-        if not state['query_history'] and not state['last_sql_query']:
+        if not state['query_history'] and not state['last_sql_query'] and not state.get('operations_history'):
             return "📋 No query history yet."
 
-        response_parts = ["📋 **Query history**\n"]
+        response_parts = ["### 📋 Query history\n"]
 
-        # Mostrar consultas del historial (de más antigua a más reciente)
-        all_queries = []
+        # Build a combined timeline of queries and operations
+        timeline = []
 
-        for entry in state['query_history']:
-            all_queries.append({
+        # Add queries from history
+        for i, entry in enumerate(state['query_history']):
+            timeline.append({
+                'type': 'query',
                 'question': entry.get('question', ''),
                 'sql': entry.get('sql', ''),
-                'num_results': len(entry.get('results', []))
+                'num_results': len(entry.get('results', [])),
+                'query_index': i
             })
 
-        # Añadir la consulta actual si existe
+        # Add current query if exists
+        current_query_index = len(state['query_history'])
         if state['last_sql_query']:
-            all_queries.append({
-                'question': state['last_user_question'] or '(consulta actual)',
+            timeline.append({
+                'type': 'query',
+                'question': state['last_user_question'] or '(current query)',
                 'sql': state['last_sql_query'],
-                'num_results': len(state['last_results'])
+                'num_results': len(state['last_results']),
+                'query_index': current_query_index
             })
 
-        if not all_queries:
+        # Group operations by their parent query
+        operations_by_query = {}
+        for op in state.get('operations_history', []):
+            q_idx = op.get('query_index', current_query_index)
+            if q_idx not in operations_by_query:
+                operations_by_query[q_idx] = []
+            operations_by_query[q_idx].append(op)
+
+        if not timeline and not operations_by_query:
             return "📋 No query history yet."
 
-        for i, entry in enumerate(all_queries, 1):
-            response_parts.append(f"### {i}. {entry['question']}")
+        # Display timeline with operations nested under their queries
+        query_num = 0
+        for entry in timeline:
+            query_num += 1
+            q_idx = entry['query_index']
+
+            # Display query: number + bold question
+            response_parts.append(f"#### {query_num}. {entry['question']}")
             response_parts.append(f"```sql\n{entry['sql']}\n```")
-            response_parts.append(f"*Results: {entry['num_results']}*\n")
+            response_parts.append(f"Results: {entry['num_results']}")
+
+            # Display operations for this query (indented list)
+            if q_idx in operations_by_query:
+                for op in operations_by_query[q_idx]:
+                    response_parts.append(f"- ↳ _{op['description']}_")
+
+            response_parts.append("")
 
         response_parts.append("---")
-        response_parts.append("💡 *You can say \"go back\" to restore a previous query.*")
+        response_parts.append("💡 Say \"go back\" to restore a previous query.")
 
         return "\n".join(response_parts)
 
@@ -501,11 +561,19 @@ RESPONSE FORMAT:
 
         label = field_labels.get(field_name, field_name)
 
+        # Add operation to history
+        if field_name not in default_fields:
+            self._add_operation_to_history(session_id, 'show_field', f"Added field: {label}")
+
         # Si el campo ya se muestra por defecto, indicarlo
         if field_name in default_fields:
             response_parts = [f"✅ **{num_results} result(s)** (field {label} already shown)\n"]
         else:
             response_parts = [f"✅ **{num_results} result(s)** - Adding: {label}\n"]
+
+        # Mostrar la SQL de la consulta original
+        if state['last_sql_query']:
+            response_parts.append(f"```sql\n{state['last_sql_query']}\n```\n")
 
         # Mostrar máximo 20 resultados con información completa + campo adicional
         max_display = min(20, num_results)
@@ -568,7 +636,7 @@ RESPONSE FORMAT:
         results = state['last_results'].copy()
         num_results = len(results)
 
-        # Ordenar
+        # Ordenar (in Python, SQL unchanged)
         try:
             results.sort(key=lambda x: str(x.get(sort_field, '')).lower(), reverse=not ascending)
             state['last_results'] = results
@@ -587,7 +655,14 @@ RESPONSE FORMAT:
         sort_label = field_labels.get(sort_field, sort_field)
         direction = "A→Z" if ascending else "Z→A"
 
+        # Add operation to history
+        self._add_operation_to_history(session_id, 'sort', f"Sorted by {sort_label} ({direction})")
+
         response_parts = [f"📊 **{num_results} result(s)** - Sorted by {sort_label} ({direction})\n"]
+
+        # Mostrar la SQL original (sorting done in Python)
+        if state['last_sql_query']:
+            response_parts.append(f"```sql\n{state['last_sql_query']}\n```\n")
 
         # Mostrar máximo 20 resultados
         max_display = min(20, num_results)
@@ -658,10 +733,17 @@ RESPONSE FORMAT:
 
         r = state['last_results'][index - 1]
 
+        # Add operation to history
+        institution = r.get('host_institution', f'Item #{index}')
+        self._add_operation_to_history(session_id, 'expand', f"Expanded details: {institution}")
+
         # Detectar si es una consulta de campos específicos (no tiene host_institution)
         if 'host_institution' not in r:
             # Mostrar solo los campos disponibles
             response_parts = [f"📋 **Detail #{index}**\n"]
+            # Mostrar la SQL de la consulta original
+            if state['last_sql_query']:
+                response_parts.append(f"```sql\n{state['last_sql_query']}\n```\n")
             field_labels = {
                 'uma_faculties': '🏫 UMA Faculty',
                 'destination_country': '🌍 Country',
@@ -680,6 +762,9 @@ RESPONSE FORMAT:
             return "\n".join(response_parts)
 
         response_parts = [f"📋 **Agreement details #{index}**\n"]
+        # Mostrar la SQL de la consulta original
+        if state['last_sql_query']:
+            response_parts.append(f"```sql\n{state['last_sql_query']}\n```\n")
 
         # Información principal
         response_parts.append(f"### 🏛️ {r.get('host_institution', 'N/A')}")
@@ -764,7 +849,12 @@ RESPONSE FORMAT:
         if "todos" in question_lower or "completa" in question_lower or "all" in question_lower:
             # Mostrar TODOS los resultados desde el principio
             state['last_display_offset'] = total
-            return self._format_results_basic(state['last_results'], max_display=total)
+            # Add operation to history
+            self._add_operation_to_history(session_id, 'show_more', f"Showed all {total} results")
+            sql_display = ""
+            if state['last_sql_query']:
+                sql_display = f"```sql\n{state['last_sql_query']}\n```\n\n"
+            return sql_display + self._format_results_basic(state['last_results'], max_display=total)
 
         # Detectar número específico (ej: "siguientes 30")
         import re
@@ -782,8 +872,15 @@ RESPONSE FORMAT:
         next_page = state['last_results'][start:end]
         state['last_display_offset'] = end
 
+        # Add operation to history
+        self._add_operation_to_history(session_id, 'show_more', f"Showed results {start + 1} to {end} of {total}")
+
         remaining = total - end
         response_parts = [f"📄 **Showing results {start + 1} to {end} of {total}**\n"]
+
+        # Mostrar la SQL de la consulta original
+        if state['last_sql_query']:
+            response_parts.append(f"```sql\n{state['last_sql_query']}\n```\n")
 
         for i, r in enumerate(next_page, start + 1):
             response_parts.append(f"### {i}. {r.get('host_institution', 'N/A')}")
@@ -843,6 +940,7 @@ RESPONSE FORMAT:
             # English - References to previous results
             "of those", "from those", "of these", "from these", "of them", "from them",
             "the ones from", "only the", "only those", "just the", "just those",
+            "only agreements", "only with", "show only",
             # Imperative (show me, give me)
             "show me the", "show me only", "show me just",
             "give me the", "give me only", "give me just",
@@ -2775,26 +2873,38 @@ sqlite3 data/database.db < your_schema.sql
         return self._get_db_schema()
 
     def get_history(self, session_id: str = None) -> list:
-        """Devuelve el historial de consultas para la API."""
+        """Devuelve el historial de consultas para la API, incluyendo operaciones."""
         if session_id is None:
             session_id = "default"
 
         state = self._get_session_state(session_id)
+
+        # Group operations by query_index
+        operations_by_query = {}
+        for op in state.get('operations_history', []):
+            q_idx = op.get('query_index', 0)
+            if q_idx not in operations_by_query:
+                operations_by_query[q_idx] = []
+            operations_by_query[q_idx].append(op['description'])
+
         all_queries = []
 
-        for entry in state['query_history']:
+        for i, entry in enumerate(state['query_history']):
             all_queries.append({
                 'question': entry.get('question', ''),
                 'sql': entry.get('sql', ''),
-                'num_results': len(entry.get('results', []))
+                'num_results': len(entry.get('results', [])),
+                'operations': operations_by_query.get(i, [])
             })
 
         # Añadir la consulta actual si existe
+        current_idx = len(state['query_history'])
         if state['last_sql_query']:
             all_queries.append({
                 'question': state['last_user_question'] or '(consulta actual)',
                 'sql': state['last_sql_query'],
-                'num_results': len(state['last_results']) if state['last_results'] else 0
+                'num_results': len(state['last_results']) if state['last_results'] else 0,
+                'operations': operations_by_query.get(current_idx, [])
             })
 
         return all_queries
