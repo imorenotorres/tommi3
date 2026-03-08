@@ -499,7 +499,7 @@ class Agent:
                 text = page.extract_text()
                 if text:
                     text_parts.append(text)
-            return "\n".join(text_parts)
+            return "\\n".join(text_parts)
         except Exception as e:
             print(f"Error extracting text from {{filepath}}: {{e}}")
             return ""
@@ -554,9 +554,9 @@ class Agent:
 
         context_parts = []
         for doc, meta in zip(results['documents'][0], results['metadatas'][0]):
-            context_parts.append(f"[Fuente: {{meta['source']}}]\n{{doc}}")
+            context_parts.append(f"[Fuente: {{meta['source']}}]\\n{{doc}}")
 
-        return "\n\n---\n\n".join(context_parts)
+        return "\\n\\n---\\n\\n".join(context_parts)
 
     def _verify_grounding(self, response: str, user_question: str, context: str) -> dict:
         """
@@ -637,7 +637,7 @@ or
         # Verificar si ChromaDB está disponible
         if self._chromadb_error:
             err = self._chromadb_error
-            return f"**Error {{err['error_code']}}:** {{err['error']}}\n\n{{err.get('instructions', '')}}"
+            return f"**Error {{err['error_code']}}:** {{err['error']}}\\n\\n{{err.get('instructions', '')}}"
 
         # Recuperar contexto relevante
         context = self._retrieve_context(user_message)
@@ -645,7 +645,7 @@ or
         # Construir prompt con contexto
         system_with_context = self.system_prompt
         if context:
-            system_with_context += f"\n\nContexto relevante de la base de conocimiento:\n{{context}}"
+            system_with_context += f"\\n\\nContexto relevante de la base de conocimiento:\\n{{context}}"
 
         messages = [{{"role": "system", "content": system_with_context}}]
 
@@ -691,14 +691,14 @@ or
         # Verificar si ChromaDB está disponible
         if self._chromadb_error:
             err = self._chromadb_error
-            yield f"**Error {{err['error_code']}}:** {{err['error']}}\n\n{{err.get('instructions', '')}}"
+            yield f"**Error {{err['error_code']}}:** {{err['error']}}\\n\\n{{err.get('instructions', '')}}"
             return
 
         context = self._retrieve_context(user_message)
 
         system_with_context = self.system_prompt
         if context:
-            system_with_context += f"\n\nContexto relevante de la base de conocimiento:\n{{context}}"
+            system_with_context += f"\\n\\nContexto relevante de la base de conocimiento:\\n{{context}}"
 
         messages = [{{"role": "system", "content": system_with_context}}]
 
@@ -1139,9 +1139,9 @@ def buscar_en_datos(query: str) -> str:
         with open(data_path, "r", encoding="utf-8") as f:
             content = f.read()
         # Búsqueda simple por líneas que contienen la query
-        matches = [line for line in content.split('\n') if query.lower() in line.lower()]
+        matches = [line for line in content.split('\\n') if query.lower() in line.lower()]
         if matches:
-            return "\n".join(matches[:5])
+            return "\\n".join(matches[:5])
         return "No se encontró información relevante."
     except FileNotFoundError:
         return "Archivo de datos no encontrado."
@@ -1192,7 +1192,7 @@ def consultar_sql(query: str) -> str:
         if len(rows) > 50:
             result_lines.append(f"... ({{len(rows) - 50}} filas más)")
 
-        return "\n".join(result_lines)
+        return "\\n".join(result_lines)
 
     except sqlite3.Error as e:
         return f"Error SQL: {{str(e)}}"
@@ -1219,7 +1219,7 @@ def listar_tablas() -> str:
         if not tables:
             return "No hay tablas en la base de datos."
 
-        return "Tablas disponibles:\n" + "\n".join(f"  - {{t[0]}}" for t in tables)
+        return "Tablas disponibles:\\n" + "\\n".join(f"  - {{t[0]}}" for t in tables)
 
     except sqlite3.Error as e:
         return f"Error SQL: {{str(e)}}"
@@ -4745,6 +4745,185 @@ def input_multiline(prompt: str) -> str:
             break
         lines.append(line)
     return "\n".join(lines)
+
+
+def create_agent_structure(config: dict) -> str:
+    """
+    Creates an agent structure programmatically.
+
+    Args:
+        config: Dictionary with agent configuration:
+            - agent_type: 'oneshot', 'rag', or 'consultabd_sql'
+            - agent_id: Lowercase identifier
+            - output_dir: Directory to create agent in
+            - agent_name: Display name
+            - description: Short description
+            - welcome: Welcome message
+            - examples: List of example questions
+            - system_prompt: System prompt text
+            - llm_provider: 'default', 'mistral', or 'ollama'
+            - model: Model name
+            - api_key: API key (for mistral)
+            - ollama_url: Ollama URL (for ollama)
+            - ollama_model: Ollama model (for ollama)
+            - verify_grounding: Boolean for grounding verification
+
+    Returns:
+        Path to created agent directory
+    """
+    agent_type = config['agent_type']
+    agent_id = config['agent_id']
+    output_dir = config['output_dir']
+    agent_name = config['agent_name']
+    description = config.get('description', f"{agent_name} Assistant")
+    welcome = config.get('welcome', f"Hello! I'm {agent_name}. How can I help you?")
+    examples = config.get('examples', [])
+    system_prompt = config['system_prompt']
+    # Replace {agent_name} placeholder in system prompt
+    system_prompt = system_prompt.replace('{agent_name}', agent_name)
+    llm_provider = config.get('llm_provider', 'default')
+    model = config.get('model', 'mistral-large-latest')
+    api_key = config.get('api_key', '')
+    ollama_url = config.get('ollama_url', 'http://localhost:11434')
+    ollama_model = config.get('ollama_model', '')
+    verify_grounding = config.get('verify_grounding', False)
+
+    # Create directories
+    os.makedirs(get_agents_dir(), exist_ok=True)
+    data_dir = os.path.join(output_dir, "data")
+    os.makedirs(data_dir, exist_ok=True)
+
+    # For RAG, create documents directory
+    if agent_type == "rag":
+        docs_dir = os.path.join(data_dir, "docs")
+        os.makedirs(docs_dir, exist_ok=True)
+
+    # requirements.txt by type
+    requirements_map = {
+        "oneshot": REQUIREMENTS_ONESHOT,
+        "rag": REQUIREMENTS_RAG,
+        "consultabd_sql": REQUIREMENTS_CONSULTABD_SQL
+    }
+    with open(os.path.join(output_dir, "requirements.txt"), "w", encoding="utf-8") as f:
+        f.write(requirements_map[agent_type])
+
+    # .env by provider
+    with open(os.path.join(output_dir, ".env"), "w", encoding="utf-8") as f:
+        if llm_provider == "default":
+            f.write(ENV_TEMPLATE_DEFAULT)
+        elif llm_provider == "mistral":
+            f.write(ENV_TEMPLATE_MISTRAL.format(api_key=api_key or "YOUR_API_KEY_HERE", model=model))
+        elif llm_provider == "ollama":
+            f.write(ENV_TEMPLATE_OLLAMA.format(ollama_url=ollama_url, ollama_model=ollama_model))
+
+        # Add verification configuration for oneshot and rag
+        if agent_type in ["oneshot", "rag"]:
+            f.write("\n# ============================================\n")
+            f.write("# Grounding Verification (Anti-hallucination)\n")
+            f.write("# ============================================\n")
+            if agent_type == "oneshot":
+                f.write("# Verifies that responses are based ONLY on data.md\n")
+            else:
+                f.write("# Verifies that responses are based ONLY on retrieved context\n")
+            f.write("# NOTE: Doubles LLM calls (higher latency and cost)\n")
+            f.write(f"VERIFY_GROUNDING={'true' if verify_grounding else 'false'}\n")
+
+    # .gitignore
+    gitignore_content = GITIGNORE
+    if agent_type == "rag":
+        gitignore_content += "data/chroma_db/\n"
+    with open(os.path.join(output_dir, ".gitignore"), "w", encoding="utf-8") as f:
+        f.write(gitignore_content)
+
+    # agent.py by type
+    agent_templates = {
+        "oneshot": AGENT_PY_TEMPLATE,
+        "rag": AGENT_RAG_TEMPLATE,
+        "consultabd_sql": AGENT_CONSULTABD_SQL_TEMPLATE
+    }
+    agent_content = agent_templates[agent_type].format(
+        agent_id=agent_id,
+        agent_name=agent_name,
+        model=model,
+        system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
+    )
+    with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
+        f.write(agent_content)
+
+    # app.py by type
+    app_templates = {
+        "oneshot": APP_PY_TEMPLATE,
+        "rag": APP_PY_RAG_TEMPLATE,
+        "consultabd_sql": APP_CONSULTABD_SQL_TEMPLATE
+    }
+    app_content = app_templates[agent_type].format(
+        agent_id=agent_id,
+        agent_name=agent_name,
+        description=description,
+        welcome_message=welcome,
+        example_queries=json.dumps(examples, ensure_ascii=False),
+        system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
+    )
+    with open(os.path.join(output_dir, "app.py"), "w", encoding="utf-8") as f:
+        f.write(app_content)
+
+    # Data files by type
+    if agent_type == "rag":
+        example_doc = f"# Example document for {agent_name}\n\nAdd your content here.\n\nThis file will be automatically indexed when the agent starts.\n"
+        with open(os.path.join(docs_dir, "example.md"), "w", encoding="utf-8") as f:
+            f.write(example_doc)
+    elif agent_type == "consultabd_sql":
+        db_readme = f"""# Database for {agent_name}
+
+Create your SQLite database here named `database.db`.
+
+## Creation example
+
+```bash
+sqlite3 database.db << 'EOF'
+CREATE TABLE example (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    value REAL
+);
+
+INSERT INTO example VALUES (1, 'Item 1', 100.0);
+INSERT INTO example VALUES (2, 'Item 2', 200.0);
+EOF
+```
+
+Once the DB is created, the agent will be able to answer questions in natural language.
+"""
+        with open(os.path.join(data_dir, "README.md"), "w", encoding="utf-8") as f:
+            f.write(db_readme)
+    else:
+        data_content = DATA_MD_TEMPLATE.format(agent_name=agent_name)
+        with open(os.path.join(data_dir, "data.md"), "w", encoding="utf-8") as f:
+            f.write(data_content)
+
+    # run.sh
+    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type == "rag" else RUN_SH_TEMPLATE
+    with open(os.path.join(output_dir, "run.sh"), "w", encoding="utf-8") as f:
+        f.write(run_sh_template)
+    os.chmod(os.path.join(output_dir, "run.sh"), 0o755)
+
+    # README.md
+    readme_templates = {
+        "oneshot": README_TEMPLATE,
+        "rag": README_RAG_TEMPLATE,
+        "consultabd_sql": README_CONSULTABD_SQL_TEMPLATE
+    }
+    readme_content = readme_templates[agent_type].format(
+        agent_name=agent_name,
+        agent_id=agent_id,
+        agent_type=agent_type,
+        model=model,
+        description=description
+    )
+    with open(os.path.join(output_dir, "README.md"), "w", encoding="utf-8") as f:
+        f.write(readme_content)
+
+    return output_dir
 
 
 def main():

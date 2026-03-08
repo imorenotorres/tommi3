@@ -213,6 +213,24 @@ async function onAgentChange(event) {
         elements.llmBadge.classList.add('loading');
     }
 
+    // For RAG agents, initialize/index the database first
+    if (state.currentAgent.agent_type === 'rag') {
+        if (elements.llmBadge) {
+            elements.llmBadge.textContent = 'Indexing documents...';
+        }
+        try {
+            const initResponse = await fetch(`/api/agents/${agentId}/init`, { method: 'POST' });
+            const initResult = await initResponse.json();
+            if (!initResponse.ok) {
+                console.error('Error initializing RAG agent:', initResult);
+            } else {
+                console.log('RAG agent initialized:', initResult);
+            }
+        } catch (error) {
+            console.error('Error initializing RAG agent:', error);
+        }
+    }
+
     // Check LLM status FIRST - only proceed if OK
     const llmOk = await loadLLMStatus(agentId);
 

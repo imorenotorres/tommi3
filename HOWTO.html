@@ -294,20 +294,22 @@ Configuring LLMs</a></li>
 <li><a href="#creating-agents" id="toc-creating-agents">3. Creating
 Agents</a>
 <ul>
-<li><a href="#using-the-interactive-creator"
-id="toc-using-the-interactive-creator">3.1 Using the Interactive
-Creator</a></li>
-<li><a href="#prompt-templates" id="toc-prompt-templates">3.2 Prompt
+<li><a href="#using-the-web-interface"
+id="toc-using-the-web-interface">3.1 Using the Web Interface</a></li>
+<li><a href="#using-the-interactive-cli"
+id="toc-using-the-interactive-cli">3.2 Using the Interactive
+CLI</a></li>
+<li><a href="#prompt-templates" id="toc-prompt-templates">3.3 Prompt
 Templates</a></li>
-<li><a href="#generated-files" id="toc-generated-files">3.3 Generated
+<li><a href="#generated-files" id="toc-generated-files">3.4 Generated
 Files</a></li>
-<li><a href="#agent-configuration" id="toc-agent-configuration">3.4
+<li><a href="#agent-configuration" id="toc-agent-configuration">3.5
 Agent Configuration</a></li>
 <li><a href="#adding-data-to-your-agent"
-id="toc-adding-data-to-your-agent">3.5 Adding Data to Your
+id="toc-adding-data-to-your-agent">3.6 Adding Data to Your
 Agent</a></li>
 <li><a href="#grounding-verification-anti-hallucination"
-id="toc-grounding-verification-anti-hallucination">3.6 Grounding
+id="toc-grounding-verification-anti-hallucination">3.7 Grounding
 Verification (Anti-hallucination)</a></li>
 </ul></li>
 <li><a href="#interacting-with-agents"
@@ -411,22 +413,22 @@ Agents Service</a>
 </ul></li>
 <li><a href="#creating-agents">Creating Agents</a>
 <ul>
-<li><a href="#using-the-interactive-creator">3.1 Using the Interactive
-Creator</a></li>
-<li><a href="#prompt-templates">3.2 Prompt Templates</a></li>
-<li><a href="#generated-files">3.3 Generated Files</a></li>
-<li><a href="#agent-configuration">3.4 Agent Configuration</a></li>
-<li><a href="#adding-data-to-your-agent">3.5 Adding Data to Your
+<li><a href="#using-the-web-interface">3.1 Using the Web Interface</a></li>
+<li><a href="#using-the-interactive-cli">3.2 Using the Interactive CLI</a></li>
+<li><a href="#prompt-templates">3.3 Prompt Templates</a></li>
+<li><a href="#generated-files">3.4 Generated Files</a></li>
+<li><a href="#agent-configuration">3.5 Agent Configuration</a></li>
+<li><a href="#adding-data-to-your-agent">3.6 Adding Data to Your
 Agent</a>
 <ul>
-<li><a href="#oneshot-agents-single-data-file">3.5.1 Oneshot Agents:
+<li><a href="#oneshot-agents-single-data-file">3.6.1 Oneshot Agents:
 Single Data File</a></li>
-<li><a href="#rag-agents-document-collection">3.5.2 RAG Agents: Document
+<li><a href="#rag-agents-document-collection">3.6.2 RAG Agents: Document
 Collection</a></li>
-<li><a href="#consultabd_sql-agents-database-only">3.5.3 ConsultaBD_SQL
+<li><a href="#consultabd_sql-agents-database-only">3.6.3 ConsultaBD_SQL
 Agents: Database Only</a></li>
 </ul></li>
-<li><a href="#grounding-verification-anti-hallucination">3.6 Grounding
+<li><a href="#grounding-verification-anti-hallucination">3.7 Grounding
 Verification (Anti-hallucination)</a></li>
 </ul></li>
 <li><a href="#interacting-with-agents">Interacting with Agents</a>
@@ -895,12 +897,32 @@ href="https://mistral.ai/">https://mistral.ai/</a>.</p>
 <p><a href="#index" class="back-to-top">↑ Back to index</a></p>
 <hr />
 <h2 id="creating-agents">3. Creating Agents</h2>
-<h3 id="using-the-interactive-creator">3.1 Using the Interactive
-Creator</h3>
-<p>The easiest way to create a new agent:</p>
+<h3 id="using-the-web-interface">3.1 Using the Web Interface</h3>
+<p>The easiest way to create a new agent is through the web interface. First, start the web server if it's not already running:</p>
+<ul>
+<li><strong>Linux/macOS:</strong> <code>web/run_html_server.sh</code></li>
+<li><strong>Windows:</strong> <code>web\run_html_server.bat</code></li>
+</ul>
+<p>Then access <code>http://localhost:8000</code> and click on the <strong>"Create Agent"</strong> button in the sidebar.</p>
+<p>The web interface provides a visual form where you can configure:</p>
+<ol type="1">
+<li><strong>Agent type</strong> - Select from oneshot, RAG, or text2sql</li>
+<li><strong>Agent ID</strong> - Unique identifier (lowercase, alphanumeric)</li>
+<li><strong>Display name</strong> - Human-readable name</li>
+<li><strong>Description</strong> - What the agent does</li>
+<li><strong>Welcome message</strong> - Greeting shown to users</li>
+<li><strong>Example queries</strong> - Sample questions users can ask</li>
+<li><strong>System prompt</strong> - Instructions for the LLM behavior (with templates available)</li>
+<li><strong>Grounding verification</strong> - (oneshot/RAG only) Enable anti-hallucination verification</li>
+<li><strong>LLM Provider</strong> - Mistral Cloud or Ollama</li>
+<li><strong>Model</strong> - Which model to use</li>
+</ol>
+<p>After filling out the form, click <strong>"Create Agent"</strong> and your new agent will be immediately available in the agent selector.</p>
+<h3 id="using-the-interactive-cli">3.2 Using the Interactive CLI</h3>
+<p>Alternatively, you can create agents from the command line:</p>
 <div class="sourceCode" id="cb8"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> apps/crear_agente.py</span></code></pre></div>
-<p>The script will prompt you for:</p>
+<p>The script will prompt you for the same options as the web interface:</p>
 <ol type="1">
 <li><strong>Agent type</strong> (1=oneshot, 2=rag,
 3=consultabd_sql)</li>
@@ -919,7 +941,7 @@ anti-hallucination verification</li>
 <li><strong>LLM Provider</strong> - Mistral Cloud or Ollama</li>
 <li><strong>Model</strong> - Which model to use</li>
 </ol>
-<h3 id="prompt-templates">3.2 Prompt Templates</h3>
+<h3 id="prompt-templates">3.3 Prompt Templates</h3>
 <p>When creating a new agent, you can choose from pre-defined prompt
 templates instead of writing a system prompt from scratch. Templates are
 built into the <code>crear_agente.py</code> script and provide a solid
@@ -957,7 +979,7 @@ automatically replaced with your agent’s name.</p>
 <p><strong>Customizing after creation:</strong></p>
 <p>Once an agent is created, its prompt is stored in
 <code>agent.py</code> and can be edited independently.</p>
-<h3 id="generated-files">3.3 Generated Files</h3>
+<h3 id="generated-files">3.4 Generated Files</h3>
 <p>The creator generates a complete agent structure:</p>
 <pre><code>your_agent/
 ├── agent.py           # Core agent logic
@@ -971,7 +993,7 @@ automatically replaced with your agent’s name.</p>
     ├── data.md        # (oneshot) Knowledge base (to be replaced by your own data)
     ├── docs/          # (rag) Document folder for indexing
     └── database.db    # (text2sql) SQLite database (to be replaced by your own database)</code></pre>
-<h3 id="agent-configuration">3.4 Agent Configuration</h3>
+<h3 id="agent-configuration">3.5 Agent Configuration</h3>
 <p>Each agent defines its metadata in <code>app.py</code>:</p>
 <div class="sourceCode" id="cb10"><pre
 class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>AGENT_CONFIG <span class="op">=</span> {</span>
@@ -988,12 +1010,12 @@ class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a h
 <p>You can edit <code>app.py</code> at any time to add or remove example
 queries, change the welcome message, update the description, or modify
 any other metadata field.</p>
-<h3 id="adding-data-to-your-agent">3.5 Adding Data to Your Agent</h3>
+<h3 id="adding-data-to-your-agent">3.6 Adding Data to Your Agent</h3>
 <p><strong>Why data matters:</strong> LLMs have a knowledge cutoff date
 and no access to your private information. Without data, an agent is
 just a generic chatbot. With your data, it becomes a specialized
 assistant that can answer questions about your specific domain.</p>
-<h4 id="oneshot-agents-single-data-file">3.5.1 Oneshot Agents: Single
+<h4 id="oneshot-agents-single-data-file">3.6.1 Oneshot Agents: Single
 Data File</h4>
 <p>Oneshot agents load all their knowledge from a single Markdown
 file.</p>
@@ -1017,7 +1039,7 @@ class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb11-1">
 <p><strong>Note:</strong> The entire file is included in every LLM
 prompt, so keep it concise and well-organized.</p>
 <hr />
-<h4 id="rag-agents-document-collection">3.5.2 RAG Agents: Document
+<h4 id="rag-agents-document-collection">3.6.2 RAG Agents: Document
 Collection</h4>
 <p>RAG agents index multiple documents and retrieve relevant chunks at
 query time.</p>
@@ -1056,7 +1078,7 @@ retrieved and included in the prompt</p>
 <p><strong>Tip:</strong> Structure your documents with clear headers and
 sections for better retrieval accuracy.</p>
 <hr />
-<h4 id="consultabd_sql-agents-database-only">3.5.3 ConsultaBD_SQL
+<h4 id="consultabd_sql-agents-database-only">3.6.3 ConsultaBD_SQL
 Agents: Database Only</h4>
 <p>ConsultaBD_SQL agents convert natural language questions to SQL
 queries, executing them against a SQLite database.</p>
@@ -1141,7 +1163,7 @@ blocked</li>
 schema at startup. Well-designed table and column names (e.g.,
 <code>student_name</code> instead of <code>sn</code>) help the LLM
 generate more accurate SQL queries.</p>
-<h3 id="grounding-verification-anti-hallucination">3.6 Grounding
+<h3 id="grounding-verification-anti-hallucination">3.7 Grounding
 Verification (Anti-hallucination)</h3>
 <p>Oneshot and RAG agents can optionally verify that their responses are
 <strong>grounded</strong> in the provided data, preventing the LLM from
@@ -1865,7 +1887,11 @@ ENABLE_LOGGING=false  # to disable</code></pre>
 </thead>
 <tbody>
 <tr>
-<td>Create new agent</td>
+<td>Create new agent (web)</td>
+<td>Start web hub, then click "Create Agent" button</td>
+</tr>
+<tr>
+<td>Create new agent (CLI)</td>
 <td><code>python apps/crear_agente.py</code></td>
 </tr>
 <tr>

@@ -52,15 +52,16 @@ TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, an
    - [2.3 Project Structure](#project-structure)
    - [2.4 Configuring LLMs](#configuring-llms)
 3. [Creating Agents](#creating-agents)
-   - [3.1 Using the Interactive Creator](#using-the-interactive-creator)
-   - [3.2 Prompt Templates](#prompt-templates)
-   - [3.3 Generated Files](#generated-files)
-   - [3.4 Agent Configuration](#agent-configuration)
-   - [3.5 Adding Data to Your Agent](#adding-data-to-your-agent)
-     - [3.5.1 Oneshot Agents: Single Data File](#oneshot-agents-single-data-file)
-     - [3.5.2 RAG Agents: Document Collection](#rag-agents-document-collection)
-     - [3.5.3 ConsultaBD_SQL Agents: Database Only](#consultabd_sql-agents-database-only)
-   - [3.6 Grounding Verification (Anti-hallucination)](#grounding-verification-anti-hallucination)
+   - [3.1 Using the Web Interface](#using-the-web-interface)
+   - [3.2 Using the Interactive CLI](#using-the-interactive-cli)
+   - [3.3 Prompt Templates](#prompt-templates)
+   - [3.4 Generated Files](#generated-files)
+   - [3.5 Agent Configuration](#agent-configuration)
+   - [3.6 Adding Data to Your Agent](#adding-data-to-your-agent)
+     - [3.6.1 Oneshot Agents: Single Data File](#oneshot-agents-single-data-file)
+     - [3.6.2 RAG Agents: Document Collection](#rag-agents-document-collection)
+     - [3.6.3 ConsultaBD_SQL Agents: Database Only](#consultabd_sql-agents-database-only)
+   - [3.7 Grounding Verification (Anti-hallucination)](#grounding-verification-anti-hallucination)
 4. [Interacting with Agents](#interacting-with-agents)
    - [4.1 Web Interface](#web-interface)
      - [4.1.1 Starting the Web Hub](#starting-the-web-hub)
@@ -402,15 +403,39 @@ MISTRAL_MODEL=mistral-large-latest
 
 ## 3. Creating Agents
 
-### 3.1 Using the Interactive Creator
+### 3.1 Using the Web Interface
 
-The easiest way to create a new agent:
+The easiest way to create a new agent is through the web interface. First, start the web server if it's not already running:
+
+- **Linux/macOS:** `web/run_html_server.sh`
+- **Windows:** `web\run_html_server.bat`
+
+Then access `http://localhost:8000` and click on the **"Create Agent"** button in the sidebar.
+
+The web interface provides a visual form where you can configure:
+
+1. **Agent type** - Select from oneshot, RAG, or text2sql
+2. **Agent ID** - Unique identifier (lowercase, alphanumeric)
+3. **Display name** - Human-readable name
+4. **Description** - What the agent does
+5. **Welcome message** - Greeting shown to users
+6. **Example queries** - Sample questions users can ask
+7. **System prompt** - Instructions for the LLM behavior (with templates available)
+8. **Grounding verification** - (oneshot/RAG only) Enable anti-hallucination verification
+9. **LLM Provider** - Mistral Cloud or Ollama
+10. **Model** - Which model to use
+
+After filling out the form, click **"Create Agent"** and your new agent will be immediately available in the agent selector.
+
+### 3.2 Using the Interactive CLI
+
+Alternatively, you can create agents from the command line:
 
 ```bash
 python apps/crear_agente.py
 ```
 
-The script will prompt you for:
+The script will prompt you for the same options as the web interface:
 
 1. **Agent type** (1=oneshot, 2=rag, 3=consultabd_sql)
 2. **Agent ID** - Unique identifier (lowercase, alphanumeric)
@@ -424,7 +449,7 @@ The script will prompt you for:
 10. **LLM Provider** - Mistral Cloud or Ollama
 11. **Model** - Which model to use
 
-### 3.2 Prompt Templates
+### 3.3 Prompt Templates
 
 When creating a new agent, you can choose from pre-defined prompt templates instead of writing a system prompt from scratch. Templates are built into the `crear_agente.py` script and provide a solid starting point for each agent type.
 
@@ -448,7 +473,7 @@ Templates support the `{agent_name}` variable, which is automatically replaced w
 
 Once an agent is created, its prompt is stored in `agent.py` and can be edited independently.
 
-### 3.3 Generated Files
+### 3.4 Generated Files
 
 The creator generates a complete agent structure:
 
@@ -467,7 +492,7 @@ your_agent/
     └── database.db    # (text2sql) SQLite database (to be replaced by your own database)
 ```
 
-### 3.4 Agent Configuration
+### 3.5 Agent Configuration
 
 Each agent defines its metadata in `app.py`:
 
@@ -487,12 +512,12 @@ AGENT_CONFIG = {
 
 You can edit `app.py` at any time to add or remove example queries, change the welcome message, update the description, or modify any other metadata field.
 
-### 3.5 Adding Data to Your Agent
+### 3.6 Adding Data to Your Agent
 
 **Why data matters:** LLMs have a knowledge cutoff date and no access to your private information. Without data, an agent is just a generic chatbot. With your data, it becomes a specialized assistant that can answer questions about your specific domain.
 
 
-#### 3.5.1 Oneshot Agents: Single Data File
+#### 3.6.1 Oneshot Agents: Single Data File
 
 Oneshot agents load all their knowledge from a single Markdown file.
 
@@ -521,7 +546,7 @@ Oneshot agents load all their knowledge from a single Markdown file.
 
 ---
 
-#### 3.5.2 RAG Agents: Document Collection
+#### 3.6.2 RAG Agents: Document Collection
 
 RAG agents index multiple documents and retrieve relevant chunks at query time.
 
@@ -565,7 +590,7 @@ curl -X POST http://localhost:8000/reindex
 
 ---
 
-#### 3.5.3 ConsultaBD_SQL Agents: Database Only
+#### 3.6.3 ConsultaBD_SQL Agents: Database Only
 
 ConsultaBD_SQL agents convert natural language questions to SQL queries, executing them against a SQLite database.
 
@@ -640,7 +665,7 @@ MISTRAL_MODEL=mistral-large-latest
 
 **Tip:** The agent automatically reads the database schema at startup. Well-designed table and column names (e.g., `student_name` instead of `sn`) help the LLM generate more accurate SQL queries.
 
-### 3.6 Grounding Verification (Anti-hallucination)
+### 3.7 Grounding Verification (Anti-hallucination)
 
 Oneshot and RAG agents can optionally verify that their responses are **grounded** in the provided data, preventing the LLM from hallucinating or inventing information not present in the knowledge base.
 
@@ -1097,7 +1122,8 @@ Valid values: `true`, `1`, `yes` (enabled) or `false`, `0`, `no` (disabled).
 
 | Task | Command |
 |------|---------|
-| Create new agent | `python apps/crear_agente.py` |
+| Create new agent (web) | Start web hub, then click "Create Agent" button |
+| Create new agent (CLI) | `python apps/crear_agente.py` |
 | Start web hub | `web/run_html_server.sh` (Linux/macOS) or `web\run_html_server.bat` (Windows) |
 | Interactive CLI | `cd web && source .venv/bin/activate && python cli.py` |
 | CLI with specific agent | `python cli.py my_agent` |

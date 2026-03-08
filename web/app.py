@@ -442,6 +442,18 @@ async def list_agents():
     ]
 
 
+@app.post("/api/agents/{agent_id}/init")
+async def init_agent(agent_id: str):
+    """
+    Initialize an agent, forcing ChromaDB indexing for RAG agents.
+    Call this when selecting a RAG agent to ensure the database is ready.
+    """
+    result = runner.init_agent(agent_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=result.get("error", "Unknown error"))
+    return result
+
+
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """Envía un mensaje a un agente y obtiene respuesta completa"""
@@ -522,6 +534,186 @@ async def chat_stream(
             "X-Accel-Buffering": "no",
         }
     )
+
+
+# ============================================================================
+# Agent Creation Endpoints
+# ============================================================================
+
+@app.get("/create-agent")
+async def create_agent_page():
+    """Serve the create agent page"""
+    return FileResponse(SCRIPT_DIR / "static" / "create_agent.html")
+
+
+@app.get("/api/prompt-templates")
+async def get_prompt_templates(agent_type: str = Query(...)):
+    """List available prompt templates for an agent type"""
+    # Import from crear_agente
+    apps_dir = SCRIPT_DIR.parent / "apps"
+    sys.path.insert(0, str(apps_dir))
+
+    try:
+        from crear_agente import list_prompt_templates
+        templates = list_prompt_templates(agent_type)
+        return [{"name": name, "path": path} for name, path in templates]
+    except Exception as e:
+        return []
+
+
+@app.get("/api/prompt-template")
+async def get_prompt_template(path: str = Query(...)):
+    """Get content of a prompt template"""
+    try:
+        # Security: ensure path is within prompts directory
+        prompts_dir = SCRIPT_DIR.parent / "prompts"
+        template_path = Path(path).resolve()
+
+        if not str(template_path).startswith(str(prompts_dir.resolve())):
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        with open(template_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        return {"content": content}
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Template not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+from fastapi import Form, UploadFile, File
+from typing import List, Optional
+
+@app.post("/api/create-agent")
+async def create_agent(
+    agent_type: str = Form(...),
+    agent_id: str = Form(...),
+    agent_name: str = Form(...),
+    description: str = Form(""),
+    welcome_message: str = Form(""),
+    examples: str = Form("[]"),  # JSON array
+    system_prompt: str = Form(...),
+    llm_provider: str = Form("default"),
+    mistral_model: str = Form("mistral-large-latest"),
+    mistral_api_key: str = Form(""),
+    ollama_url: str = Form("http://localhost:11434"),
+    ollama_model: str = Form(""),
+    verify_grounding: bool = Form(False),
+    database_schema: str = Form(""),
+    data_file: Optional[UploadFile] = File(None),
+    schema_file: Optional[UploadFile] = File(None),
+    rag_documents: List[UploadFile] = File(None),
+    database_file: Optional[UploadFile] = File(None),
+):
+    """Create a new agent"""
+    import json as json_module
+    import shutil
+
+    try:
+        # Parse examples
+        example_list = json_module.loads(examples) if examples else []
+
+        # Validate agent_id
+        if not agent_id or " " in agent_id or not agent_id.replace("_", "").replace("-", "").isalnum():
+            raise HTTPException(status_code=400, detail="Invalid agent ID. Use only lowercase letters, numbers, hyphens or underscores.")
+
+        # Check if agent already exists
+        output_dir = AGENTS_PATH / agent_id
+        if output_dir.exists():
+            raise HTTPException(status_code=400, detail=f"Agent '{agent_id}' already exists")
+
+        # Import crear_agente functions
+        apps_dir = SCRIPT_DIR.parent / "apps"
+        sys.path.insert(0, str(apps_dir))
+        from crear_agente import (
+            create_agent_structure,
+            get_agents_dir
+        )
+
+        # Prepare configuration
+        config = {
+            "agent_type": agent_type,
+            "agent_id": agent_id,
+            "output_dir": str(output_dir),
+            "agent_name": agent_name,
+            "description": description or f"{agent_name} Assistant",
+            "welcome": welcome_message or f"Hello! I'm {agent_name}. How can I help you?",
+            "examples": example_list,
+            "system_prompt": system_prompt,
+            "llm_provider": llm_provider,
+            "model": mistral_model if llm_provider == "mistral" else ollama_model,
+            "api_key": mistral_api_key if llm_provider == "mistral" else "",
+            "ollama_url": ollama_url if llm_provider == "ollama" else "",
+            "ollama_model": ollama_model if llm_provider == "ollama" else "",
+            "verify_grounding": verify_grounding,
+        }
+
+        # Create agent structure
+        create_agent_structure(config)
+
+        # Create data directory
+        data_dir = output_dir / "data"
+        data_dir.mkdir(exist_ok=True)
+
+        # Handle data based on agent type
+        if agent_type == "oneshot" and data_file and data_file.filename:
+            # Save uploaded data.md file
+            content = await data_file.read()
+            with open(data_dir / "data.md", "wb") as f:
+                f.write(content)
+
+        elif agent_type == "rag" and rag_documents:
+            # Create docs subfolder for RAG
+            docs_dir = data_dir / "docs"
+            docs_dir.mkdir(exist_ok=True)
+            # Save uploaded documents (from folder selection)
+            for doc in rag_documents:
+                if doc.filename:
+                    # Handle folder structure - get just the filename
+                    filename = Path(doc.filename).name
+                    # Skip hidden files and non-document files
+                    if filename.startswith('.'):
+                        continue
+                    ext = Path(filename).suffix.lower()
+                    if ext in ['.pdf', '.txt', '.md', '.docx', '.doc']:
+                        doc_path = docs_dir / filename
+                        content = await doc.read()
+                        with open(doc_path, "wb") as f:
+                            f.write(content)
+
+        elif agent_type == "consultabd_sql":
+            # Handle database schema - from file or textarea
+            if schema_file and schema_file.filename:
+                content = await schema_file.read()
+                with open(data_dir / "database_schema.md", "wb") as f:
+                    f.write(content)
+            elif database_schema:
+                with open(data_dir / "database_schema.md", "w", encoding="utf-8") as f:
+                    f.write(database_schema)
+
+            # Save database file
+            if database_file and database_file.filename:
+                db_path = data_dir / "database.db"
+                content = await database_file.read()
+                with open(db_path, "wb") as f:
+                    f.write(content)
+
+        # Reload agents
+        runner.discover_agents()
+
+        return {
+            "success": True,
+            "agent_id": agent_id,
+            "path": str(output_dir),
+            "message": f"Agent '{agent_name}' created successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

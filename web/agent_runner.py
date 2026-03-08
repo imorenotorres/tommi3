@@ -311,3 +311,34 @@ class AgentRunner:
                 return agent_instance.get_history(session_id=session_id)
             return agent_instance.get_history()
         return []
+
+    def init_agent(self, agent_id: str) -> dict:
+        """
+        Initializes an agent, forcing reload if needed.
+        For RAG agents, this triggers ChromaDB indexing.
+        Returns status dict with 'success' and optional 'indexed_chunks'.
+        """
+        # Remove from cache to force reload
+        if agent_id in self._agent_instances:
+            del self._agent_instances[agent_id]
+
+        try:
+            agent_instance = self._load_agent_module(agent_id)
+            result = {"success": True, "agent_id": agent_id}
+
+            # If it's a RAG agent, check if reindex is needed
+            if hasattr(agent_instance, 'collection') and agent_instance.collection is not None:
+                if agent_instance.collection.count() == 0:
+                    # Force reindex
+                    if hasattr(agent_instance, 'reindex'):
+                        count = agent_instance.reindex()
+                        result["indexed_chunks"] = count
+                    elif hasattr(agent_instance, '_index_documents'):
+                        agent_instance._index_documents()
+                        result["indexed_chunks"] = agent_instance.collection.count()
+                else:
+                    result["indexed_chunks"] = agent_instance.collection.count()
+
+            return result
+        except Exception as e:
+            return {"success": False, "error": str(e)}
