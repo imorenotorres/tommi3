@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Agent - Tommi</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .create-agent-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .create-agent-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .create-agent-header h1 {
+            margin: 0;
+            color: var(--sidebar-bg);
+        }
+
+        .back-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .form-group .hint {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group textarea.large {
+            min-height: 200px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-section {
+            background-color: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-section h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .radio-option:hover {
+            border-color: var(--primary-color);
+        }
+
+        .radio-option input[type="radio"] {
+            margin: 0;
+        }
+
+        .radio-option.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+
+        .conditional-field {
+            display: none;
+        }
+
+        .conditional-field.visible {
+            display: block;
+        }
+
+        .submit-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .submit-btn:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: none;
+        }
+
+        .status-message.success {
+            display: block;
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .status-message.error {
+            display: block;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .status-message.loading {
+            display: block;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #7dd3fc;
+        }
+
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+
+        .examples-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .example-input-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .example-input-row input {
+            flex: 1;
+        }
+
+        .example-input-row button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+
+        .example-input-row button:hover {
+            background-color: #f1f5f9;
+        }
+
+        .add-example-btn {
+            padding: 0.5rem 1rem;
+            border: 2px dashed var(--border-color);
+            background-color: transparent;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .add-example-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="create-agent-container">
+        <div class="create-agent-header">
+            <h1>Create New Agent</h1>
+            <a href="/" class="back-link">&larr; Back to Chat</a>
+        </div>
+
+        <form id="create-agent-form">
+            <!-- Agent Type -->
+            <div class="form-section">
+                <h3>1. Agent Type</h3>
+                <div class="form-group">
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="agent_type" value="oneshot" checked>
+                            <div>
+                                <strong>Oneshot</strong>
+                                <div class="hint">Simple agent with prompt and static data</div>
+                            </div>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="agent_type" value="rag">
+                            <div>
+                                <strong>RAG</strong>
+                                <div class="hint">Semantic search in documents (ChromaDB)</div>
+                            </div>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="agent_type" value="consultabd_sql">
+                            <div>
+                                <strong>Text2SQL</strong>
+                                <div class="hint">Natural language to SQL queries</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basic Info -->
+            <div class="form-section">
+                <h3>2. Basic Information</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="agent_id">Agent ID *</label>
+                        <div class="hint">Lowercase, no spaces (e.g., my_agent)</div>
+                        <input type="text" id="agent_id" name="agent_id" required
+                               pattern="[a-z0-9_-]+"
+                               placeholder="my_agent">
+                    </div>
+                    <div class="form-group">
+                        <label for="agent_name">Public Name *</label>
+                        <div class="hint">Display name for the agent</div>
+                        <input type="text" id="agent_name" name="agent_name" required
+                               placeholder="My Agent">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" id="description" name="description"
+                           placeholder="Short description of what the agent does">
+                </div>
+                <div class="form-group">
+                    <label for="welcome_message">Welcome Message</label>
+                    <input type="text" id="welcome_message" name="welcome_message"
+                           placeholder="Hello! I'm your assistant. How can I help you?">
+                </div>
+            </div>
+
+            <!-- Example Questions -->
+            <div class="form-section">
+                <h3>3. Example Questions</h3>
+                <div class="hint" style="margin-bottom: 1rem;">Add sample questions users can ask</div>
+                <div id="examples-container" class="examples-list">
+                    <div class="example-input-row">
+                        <input type="text" name="examples[]" placeholder="Example question 1">
+                        <button type="button" class="remove-example" onclick="removeExample(this)">&times;</button>
+                    </div>
+                    <div class="example-input-row">
+                        <input type="text" name="examples[]" placeholder="Example question 2">
+                        <button type="button" class="remove-example" onclick="removeExample(this)">&times;</button>
+                    </div>
+                </div>
+                <button type="button" class="add-example-btn" onclick="addExample()">+ Add another example</button>
+            </div>
+
+            <!-- System Prompt -->
+            <div class="form-section">
+                <h3>4. System Prompt</h3>
+                <div class="form-group">
+                    <label for="prompt_template">Template</label>
+                    <select id="prompt_template" name="prompt_template" onchange="loadPromptTemplate()">
+                        <option value="">-- Select a template or write custom --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="system_prompt">System Prompt *</label>
+                    <div class="hint">Instructions for the agent. Use {agent_name} as placeholder.</div>
+                    <textarea id="system_prompt" name="system_prompt" class="large" required
+                              placeholder="You are {agent_name}, a helpful assistant..."></textarea>
+                </div>
+            </div>
+
+            <!-- Data -->
+            <div class="form-section">
+                <h3>5. Agent Data</h3>
+                <div id="data-oneshot" class="conditional-field visible">
+                    <div class="form-group">
+                        <label for="data_file">Data File (Markdown)</label>
+                        <div class="hint">Select a .md file with the static data the agent will use to answer questions</div>
+                        <input type="file" id="data_file" name="data_file" accept=".md,.txt">
+                    </div>
+                </div>
+                <div id="data-rag" class="conditional-field">
+                    <div class="form-group">
+                        <label for="rag_folder">Documents Folder</label>
+                        <div class="hint">Select a folder containing documents for RAG (PDF, TXT, MD, DOCX)</div>
+                        <input type="file" id="rag_folder" name="rag_documents"
+                               webkitdirectory directory multiple>
+                    </div>
+                    <div class="hint" style="margin-top: 0.5rem; color: #dc2626;">
+                        Note: Folder selection only works with Chrome. You can also add documents later to the agent's data/docs/ folder.
+                    </div>
+                </div>
+                <div id="data-sql" class="conditional-field">
+                    <div class="form-group">
+                        <label for="database_file">SQLite Database</label>
+                        <div class="hint">Select the .db file with your data</div>
+                        <input type="file" id="database_file" name="database_file" accept=".db,.sqlite,.sqlite3">
+                    </div>
+                    <div class="form-group">
+                        <label for="schema_file">Database Schema (Markdown)</label>
+                        <div class="hint">Select a .md file describing your database schema, or write it below</div>
+                        <input type="file" id="schema_file" name="schema_file" accept=".md,.txt">
+                    </div>
+                    <div class="form-group">
+                        <label for="database_schema">Or write schema here:</label>
+                        <textarea id="database_schema" name="database_schema" class="large"
+                                  placeholder="# Database Schema
+
+## Table: users
+| Column | Type | Description |
+|--------|------|-------------|
+| id | INTEGER | Primary key |
+| name | TEXT | User name |
+..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LLM Configuration -->
+            <div class="form-section">
+                <h3>6. LLM Configuration</h3>
+                <div class="form-group">
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="llm_provider" value="default" checked>
+                            <div>
+                                <strong>Default</strong>
+                                <div class="hint">Use server configuration</div>
+                            </div>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="llm_provider" value="mistral">
+                            <div>
+                                <strong>Mistral Cloud</strong>
+                                <div class="hint">Configure specific API key</div>
+                            </div>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="llm_provider" value="ollama">
+                            <div>
+                                <strong>Ollama</strong>
+                                <div class="hint">Local LLM server</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div id="mistral-config" class="conditional-field">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mistral_model">Model</label>
+                            <select id="mistral_model" name="mistral_model">
+                                <option value="mistral-large-latest">mistral-large-latest</option>
+                                <option value="mistral-medium-latest">mistral-medium-latest</option>
+                                <option value="mistral-small-latest">mistral-small-latest</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="mistral_api_key">API Key</label>
+                            <input type="text" id="mistral_api_key" name="mistral_api_key"
+                                   placeholder="Leave empty to configure later">
+                        </div>
+                    </div>
+                </div>
+                <div id="ollama-config" class="conditional-field">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ollama_url">Ollama URL</label>
+                            <input type="text" id="ollama_url" name="ollama_url"
+                                   value="http://localhost:11434">
+                        </div>
+                        <div class="form-group">
+                            <label for="ollama_model">Model</label>
+                            <input type="text" id="ollama_model" name="ollama_model"
+                                   placeholder="mistral-large:latest">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Options -->
+            <div class="form-section" id="options-section">
+                <h3>7. Options</h3>
+                <div class="form-group">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="verify_grounding" name="verify_grounding">
+                        <div>
+                            <strong>Enable Grounding Verification</strong>
+                            <div class="hint">Verify responses are based only on provided data (doubles LLM calls)</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="submit-section">
+                <button type="submit" class="submit-btn" id="submit-btn">Create Agent</button>
+                <div id="status-message" class="status-message"></div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Form handling
+        const form = document.getElementById('create-agent-form');
+        const statusMessage = document.getElementById('status-message');
+        const submitBtn = document.getElementById('submit-btn');
+
+        // Auto-fill agent name from ID
+        document.getElementById('agent_id').addEventListener('input', function(e) {
+            const nameField = document.getElementById('agent_name');
+            if (!nameField.value || nameField.dataset.autoFilled === 'true') {
+                nameField.value = e.target.value.replace(/[_-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                nameField.dataset.autoFilled = 'true';
+            }
+        });
+
+        document.getElementById('agent_name').addEventListener('input', function(e) {
+            e.target.dataset.autoFilled = 'false';
+        });
+
+        // Handle agent type change
+        document.querySelectorAll('input[name="agent_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                updateAgentTypeUI();
+            });
+        });
+
+        function updateAgentTypeUI() {
+            const agentType = document.querySelector('input[name="agent_type"]:checked').value;
+
+            // Update radio option styles
+            document.querySelectorAll('.radio-group .radio-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector('input[name="agent_type"]:checked').closest('.radio-option').classList.add('selected');
+
+            // Show/hide data fields
+            document.getElementById('data-oneshot').classList.toggle('visible', agentType === 'oneshot');
+            document.getElementById('data-rag').classList.toggle('visible', agentType === 'rag');
+            document.getElementById('data-sql').classList.toggle('visible', agentType === 'consultabd_sql');
+
+            // Show/hide options section (grounding only for oneshot/rag)
+            document.getElementById('options-section').style.display =
+                (agentType === 'oneshot' || agentType === 'rag') ? 'block' : 'none';
+
+            // Load appropriate prompt templates
+            loadPromptTemplates(agentType);
+        }
+
+        // Handle LLM provider change
+        document.querySelectorAll('input[name="llm_provider"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                updateLLMProviderUI();
+            });
+        });
+
+        function updateLLMProviderUI() {
+            const provider = document.querySelector('input[name="llm_provider"]:checked').value;
+
+            // Update radio option styles
+            document.querySelectorAll('input[name="llm_provider"]').forEach(r => {
+                r.closest('.radio-option').classList.remove('selected');
+            });
+            document.querySelector('input[name="llm_provider"]:checked').closest('.radio-option').classList.add('selected');
+
+            // Show/hide config fields
+            document.getElementById('mistral-config').classList.toggle('visible', provider === 'mistral');
+            document.getElementById('ollama-config').classList.toggle('visible', provider === 'ollama');
+        }
+
+        // Example questions management
+        function addExample() {
+            const container = document.getElementById('examples-container');
+            const count = container.querySelectorAll('.example-input-row').length + 1;
+            const row = document.createElement('div');
+            row.className = 'example-input-row';
+            row.innerHTML = `
+                <input type="text" name="examples[]" placeholder="Example question ${count}">
+                <button type="button" class="remove-example" onclick="removeExample(this)">&times;</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeExample(btn) {
+            const container = document.getElementById('examples-container');
+            if (container.querySelectorAll('.example-input-row').length > 1) {
+                btn.closest('.example-input-row').remove();
+            }
+        }
+
+        // Load prompt templates
+        async function loadPromptTemplates(agentType) {
+            try {
+                const response = await fetch(`/api/prompt-templates?agent_type=${agentType}`);
+                const templates = await response.json();
+
+                const select = document.getElementById('prompt_template');
+                select.innerHTML = '<option value="">-- Select a template or write custom --</option>';
+
+                templates.forEach(template => {
+                    const option = document.createElement('option');
+                    option.value = template.path;
+                    option.textContent = template.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+        }
+
+        async function loadPromptTemplate() {
+            const select = document.getElementById('prompt_template');
+            const textarea = document.getElementById('system_prompt');
+
+            if (!select.value) return;
+
+            try {
+                const response = await fetch(`/api/prompt-template?path=${encodeURIComponent(select.value)}`);
+                const data = await response.json();
+                textarea.value = data.content;
+            } catch (error) {
+                console.error('Error loading template:', error);
+            }
+        }
+
+        // Form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            submitBtn.disabled = true;
+            statusMessage.className = 'status-message loading';
+            statusMessage.textContent = 'Creating agent...';
+
+            try {
+                const formData = new FormData(form);
+
+                // Collect examples as array
+                const examples = [];
+                document.querySelectorAll('input[name="examples[]"]').forEach(input => {
+                    if (input.value.trim()) {
+                        examples.push(input.value.trim());
+                    }
+                });
+                formData.delete('examples[]');
+                formData.append('examples', JSON.stringify(examples));
+
+                const response = await fetch('/api/create-agent', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    statusMessage.className = 'status-message success';
+                    statusMessage.innerHTML = `
+                        <strong>Agent created successfully!</strong><br>
+                        Location: ${result.path}<br>
+                        <a href="/">Go to Chat</a> to test your new agent.
+                    `;
+                } else {
+                    throw new Error(result.error || 'Failed to create agent');
+                }
+            } catch (error) {
+                statusMessage.className = 'status-message error';
+                statusMessage.textContent = 'Error: ' + error.message;
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Initialize
+        updateAgentTypeUI();
+        updateLLMProviderUI();
+    </script>
+</body>
+</html>
