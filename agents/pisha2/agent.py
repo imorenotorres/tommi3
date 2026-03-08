@@ -29,6 +29,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger("pisha2")
 
+# UNINOVIS Alliance members (excluding UMA which is the home university)
+UNINOVIS_MEMBERS = [
+    "Sorbonne Paris Nord",      # USPN - France
+    "Campania",                 # UDCLV - Italy (Luigi Vanvitelli)
+    "Kauno Kolegija",           # KK - Lithuania
+    "Tirana",                   # UT - Albania
+    "Würzburg-Schweinfurt",     # THWS - Germany
+    "Tampere",                  # TAMK - Finland
+    "The Hague",                # THUAS - Netherlands
+]
+
 
 class Agent:
     def __init__(self):
@@ -75,6 +86,7 @@ RESPONSE FORMAT:
                 'query_history': [],
                 'operations_history': [],  # Track modifications on results
                 'last_user_question': None,
+                'shown_fields': set(),  # Track extra fields that have been shown
             }
         return self._sessions[session_id]
 
@@ -481,7 +493,7 @@ RESPONSE FORMAT:
             # Mostrar resumen de resultados
             if num_results > 20:
                 response_parts.append(f"📊 **{num_results} results**\n")
-                response_parts.append('💡 *Say "Show me the results" to see the list*')
+                response_parts.append(f'💡 {self._make_clickable("Show me the results")}')
             else:
                 response_parts.append(self._format_results_basic(state['last_results']))
 
@@ -502,7 +514,7 @@ RESPONSE FORMAT:
 
             if num_results > 20:
                 response_parts.append(f"📊 **{num_results} results**\n")
-                response_parts.append('💡 *Say "Show me the results" to see the list*')
+                response_parts.append(f'💡 {self._make_clickable("Show me the results")}')
             else:
                 response_parts.append(self._format_results_basic(state['last_results']))
 
@@ -561,9 +573,10 @@ RESPONSE FORMAT:
 
         label = field_labels.get(field_name, field_name)
 
-        # Add operation to history
+        # Add operation to history and track shown fields
         if field_name not in default_fields:
             self._add_operation_to_history(session_id, 'show_field', f"Added field: {label}")
+            state['shown_fields'].add(field_name)
 
         # Si el campo ya se muestra por defecto, indicarlo
         if field_name in default_fields:
@@ -622,7 +635,10 @@ RESPONSE FORMAT:
 
         response_parts.append("---")
         displayed_results = results[:max_display]
-        response_parts.append(self._generate_contextual_suggestions(displayed_results, has_more=(num_results > max_display), show_expand=True))
+        # Check if faculty fields have been shown
+        faculty_fields = {'uma_faculties', 'uma_degrees', 'destination_faculty'}
+        faculty_shown = bool(state['shown_fields'] & faculty_fields)
+        response_parts.append(self._generate_contextual_suggestions(displayed_results, has_more=(num_results > max_display), show_expand=True, faculty_shown=faculty_shown))
 
         return "\n".join(response_parts)
 
@@ -678,10 +694,13 @@ RESPONSE FORMAT:
         if num_results > max_display:
             remaining = num_results - max_display
             response_parts.append(f"*... and {remaining} more agreement(s)*")
-            response_parts.append(f'💡 *To see more, say: "Show me the next 20"*')
+            response_parts.append(f'💡 {self._make_clickable("Show me the next 20")} | {self._make_clickable("Show me all")}')
         response_parts.append("---")
         displayed_results = results[:max_display]
-        response_parts.append(self._generate_contextual_suggestions(displayed_results, has_more=(num_results > max_display), show_expand=True))
+        # Check if faculty fields have been shown
+        faculty_fields = {'uma_faculties', 'uma_degrees', 'destination_faculty'}
+        faculty_shown = bool(state.get('shown_fields', set()) & faculty_fields)
+        response_parts.append(self._generate_contextual_suggestions(displayed_results, has_more=(num_results > max_display), show_expand=True, faculty_shown=faculty_shown))
 
         return "\n".join(response_parts)
 
@@ -893,7 +912,10 @@ RESPONSE FORMAT:
         if remaining > 0:
             response_parts.append(f"*... {remaining} more agreement(s) remaining*")
         response_parts.append("---")
-        response_parts.append(self._generate_contextual_suggestions(next_page, has_more=(remaining > 0), show_expand=True))
+        # Check if faculty fields have been shown
+        faculty_fields = {'uma_faculties', 'uma_degrees', 'destination_faculty'}
+        faculty_shown = bool(state.get('shown_fields', set()) & faculty_fields)
+        response_parts.append(self._generate_contextual_suggestions(next_page, has_more=(remaining > 0), show_expand=True, faculty_shown=faculty_shown))
 
         return "\n".join(response_parts)
 
@@ -1157,7 +1179,7 @@ REGLAS:
 - IMPORTANTE: Busca PAÍSES en destination_country (ej: Alemania, Francia, Italia, España)
 - Los nombres de países NUNCA van en host_institution (que solo tiene nombres de universidades)
 - REGIONES GEOGRÁFICAS: Para "Europa", "Asia", "África", "América Latina", "Oceanía" usa destination_country LIKE '%NombreRegion%' (el sistema lo expandirá a los países de esa región)
-- REDES DE UNIVERSIDADES: Para "UNINOVIS" usa host_institution LIKE '%UNINOVIS%' (el sistema lo expandirá a las universidades de la red)
+- REDES DE UNIVERSIDADES: Para "UNINOVIS" usa host_institution LIKE '%UNINOVIS%' (el sistema lo expandirá a las universidades de la red: USPN, UDCLV, KK, UT, THWS, TAMK, THUAS)
 - INTERPRETACIÓN SEMÁNTICA IMPORTANTE:
   * "¿Qué nivel de INGLÉS necesito para X?" → FILTRAR por language_requirements LIKE '%INGLÉS%' (devolver solo los que piden inglés)
   * "¿Hay destinos con SOLO B1?" o "requiera solo B1" → EXCLUIR niveles superiores: AND language_requirements NOT LIKE '%B2%'
@@ -1186,6 +1208,8 @@ EJEMPLOS:
 - "¿Con qué países tiene convenios la Facultad de Medicina?" → SELECT DISTINCT destination_country FROM destinations WHERE uma_faculties LIKE '%Medicina%'
 - "¿Qué facultades tienen convenios con universidades de Africa?" → SELECT * FROM destinations WHERE destination_country LIKE '%Africa%'
 - "¿Qué facultades tienen acuerdos con Alemania?" → SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%'
+- "¿Hay convenios con universidades UNINOVIS?" → SELECT * FROM destinations WHERE host_institution LIKE '%UNINOVIS%'
+- "What agreements do we have with UNINOVIS members?" → SELECT * FROM destinations WHERE host_institution LIKE '%UNINOVIS%'
 
 PREGUNTA: {normalized_question}
 
@@ -1504,15 +1528,16 @@ EJEMPLOS CORRECTOS:
 
         # Redes de universidades - cada entrada tiene patrones de búsqueda (nombre inglés, acrónimo, etc.)
         # Usar patrones específicos para evitar falsos positivos
+        # Acronyms <=4 chars use exact match to avoid false positives
         UNIVERSITY_NETWORKS = {
             'UNINOVIS': [
-                ['Sorbonne Paris Nord', 'USPN'],                    # France
-                ['Campania', 'Vanvitelli'],                         # Italy
-                ['Kauno Kolegija'],                                 # Lithuania
-                ['University of Tirana', 'UNIVERSITY OF TIRANA'],   # Albania (específico)
-                ['Würzburg-Schweinfurt', 'THWS'],                   # Germany
-                ['Tampere University of Applied', 'TAMK'],          # Finland (TAMK usa igualdad exacta)
-                ['Hague University', 'THUAS'],                      # Netherlands
+                ['Sorbonne Paris Nord', 'USPN'],                    # France - University of Sorbonne Paris Nord
+                ['Campania', 'Vanvitelli', 'UDCLV'],                # Italy - University of Campania "Luigi Vanvitelli"
+                ['Kauno Kolegija', 'KK'],                           # Lithuania - Kauno Kolegija Higher Education Institution
+                ['University of Tirana', 'UNIVERSITY OF TIRANA', 'UT'],  # Albania - University of Tirana
+                ['Würzburg-Schweinfurt', 'THWS'],                   # Germany - Technical University of Applied Sciences
+                ['Tampere University of Applied', 'TAMK'],          # Finland - Tampere University of Applied Sciences
+                ['Hague University', 'THUAS'],                      # Netherlands - The Hague University of Applied Sciences
             ],
         }
 
@@ -2027,7 +2052,11 @@ EJEMPLOS CORRECTOS:
         logger.info("📊 Formateando resultados con Python...")
         return self._format_results_basic(results, session_state=session_state)
 
-    def _generate_contextual_suggestions(self, results: list, has_more: bool = False, show_expand: bool = True) -> str:
+    def _make_clickable(self, text: str) -> str:
+        """Wraps text in a clickable span for the frontend."""
+        return f'<span class="clickable-suggestion">{text}</span>'
+
+    def _generate_contextual_suggestions(self, results: list, has_more: bool = False, show_expand: bool = True, faculty_shown: bool = False) -> str:
         """
         Generates contextual help suggestions based on the results.
 
@@ -2035,6 +2064,7 @@ EJEMPLOS CORRECTOS:
             results: List of result dictionaries
             has_more: Whether there are more results to show
             show_expand: Whether to show the "Expand #N" suggestion
+            faculty_shown: Whether faculty information is already displayed
 
         Returns:
             Formatted suggestion string
@@ -2055,26 +2085,27 @@ EJEMPLOS CORRECTOS:
 
         # Add "Show more" if there are more results
         if has_more:
-            suggestions.append('"Show me more"')
+            suggestions.append(self._make_clickable('Show me more'))
 
         # Add "Expand #N" if showing numbered results
         if show_expand and len(results) > 0:
             # Use a number from the middle of the displayed results for variety
             example_num = min(3, len(results))
-            suggestions.append(f'"Expand #{example_num}"')
+            suggestions.append(self._make_clickable(f'Expand #{example_num}'))
 
-        # Add "Also show faculty" always (usually useful)
-        suggestions.append('"Also show faculty"')
+        # Add "Also show faculty" only if faculty is not already shown
+        if not faculty_shown:
+            suggestions.append(self._make_clickable('Also show faculty'))
 
         # Add sorting suggestion only if it makes sense
         if has_multiple_countries:
-            suggestions.append('"Sort by country"')
+            suggestions.append(self._make_clickable('Sort by country'))
         elif has_multiple_universities:
-            suggestions.append('"Sort by university"')
+            suggestions.append(self._make_clickable('Sort by university'))
 
         # Build the suggestion line
         if suggestions:
-            return '💡 *' + ' | '.join(suggestions) + '*'
+            return '💡 ' + ' | '.join(suggestions)
         return ''
 
     def _format_results_basic(self, results: list, max_display: int = 20, session_state: dict = None) -> str:
@@ -2114,14 +2145,20 @@ EJEMPLOS CORRECTOS:
         if num_results > max_display:
             remaining = num_results - max_display
             response_parts.append(f"*... and {remaining} more agreement(s)*")
-            response_parts.append(f'💡 *To see more, say: "Show me the next 20" or "Show me all"*')
+            response_parts.append(f'💡 {self._make_clickable("Show me the next 20")} | {self._make_clickable("Show me all")}')
             # Add contextual suggestions for the displayed results
             displayed_results = results[:max_display]
-            response_parts.append(self._generate_contextual_suggestions(displayed_results, has_more=False, show_expand=True))
+            # Check if faculty fields have been shown
+            faculty_fields = {'uma_faculties', 'uma_degrees', 'destination_faculty'}
+            faculty_shown = bool(session_state.get('shown_fields', set()) & faculty_fields) if session_state else False
+            response_parts.append(self._generate_contextual_suggestions(displayed_results, has_more=False, show_expand=True, faculty_shown=faculty_shown))
         else:
             # Con resultados moderados, mostrar ayuda para ampliar
             response_parts.append("---")
-            response_parts.append(self._generate_contextual_suggestions(results, has_more=False, show_expand=True))
+            # Check if faculty fields have been shown
+            faculty_fields = {'uma_faculties', 'uma_degrees', 'destination_faculty'}
+            faculty_shown = bool(session_state.get('shown_fields', set()) & faculty_fields) if session_state else False
+            response_parts.append(self._generate_contextual_suggestions(results, has_more=False, show_expand=True, faculty_shown=faculty_shown))
 
         return "\n".join(response_parts)
 
@@ -2186,10 +2223,10 @@ EJEMPLOS CORRECTOS:
 
             response_parts.append("")  # Línea en blanco entre convenios
 
-        # Ayuda para ver más detalles
+        # Ayuda para ver más detalles (faculty already shown in detailed view)
         if num_results > 1:
             response_parts.append("---")
-            response_parts.append(self._generate_contextual_suggestions(results, has_more=False, show_expand=True))
+            response_parts.append(self._generate_contextual_suggestions(results, has_more=False, show_expand=True, faculty_shown=True))
 
         return "\n".join(response_parts)
 
@@ -2639,6 +2676,7 @@ sqlite3 data/database.db < your_schema.sql
         # Guardar la consulta y pregunta para posibles refinamientos futuros
         state['last_sql_query'] = sql_query
         state['last_user_question'] = user_message
+        state['shown_fields'] = set()  # Reset shown fields for new query
 
         # Mostrar la SQL generada
         sql_display = f"```sql\n{sql_query}\n```\n\n"
@@ -2797,6 +2835,7 @@ sqlite3 data/database.db < your_schema.sql
         # Guardar la consulta y pregunta para posibles refinamientos futuros
         state['last_sql_query'] = sql_query
         state['last_user_question'] = user_message
+        state['shown_fields'] = set()  # Reset shown fields for new query
 
         # Mostrar la SQL generada inmediatamente
         yield ("content", f"**Generated SQL query:**\n```sql\n{sql_query}\n```\n\n")

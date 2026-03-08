@@ -1,5 +1,5 @@
 /**
- * Tokki Web Interface - Frontend JavaScript
+ * Tommi, tokki-based Web Interface - Frontend JavaScript
  */
 
 // Estado de la aplicación
@@ -33,7 +33,7 @@ const elements = {
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
-    // Configure marked to allow HTML
+    // Configure marked to allow HTML passthrough
     marked.setOptions({
         breaks: true,
         gfm: true
@@ -172,6 +172,16 @@ function renderAgentSelector() {
 function setupEventListeners() {
     elements.agentSelect.addEventListener('change', onAgentChange);
     elements.chatForm.addEventListener('submit', onSubmitMessage);
+
+    // Event delegation for clickable suggestions in chat messages
+    elements.chatMessages.addEventListener('click', (e) => {
+        if (e.target.classList.contains('clickable-suggestion')) {
+            e.preventDefault();
+            const suggestionText = e.target.textContent;
+            elements.messageInput.value = suggestionText;
+            elements.messageInput.focus();
+        }
+    });
 }
 
 // When selected agent changes

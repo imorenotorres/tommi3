@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Script interactivo para crear agentes independientes con FastAPI + LLM.
+Script para crear agentes independientes con FastAPI + LLM.
 Soporta Mistral Cloud y Ollama como proveedores de LLM.
-No requiere tokki - es 100% standalone.
 """
 
 # Activar venv automáticamente si no está activo

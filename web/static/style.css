@@ -726,3 +726,21 @@ body {
 .history-operation-arrow {
     color: #888;
 }
+
+/* Clickable suggestions in chat */
+.clickable-suggestion {
+    display: inline-block;
+    color: #2563eb;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+    padding: 0.1rem 0.2rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.clickable-suggestion:hover {
+    background-color: rgba(37, 99, 235, 0.1);
+    text-decoration-style: solid;
+}
