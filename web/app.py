@@ -454,6 +454,18 @@ async def init_agent(agent_id: str):
     return result
 
 
+@app.post("/api/agents/{agent_id}/reindex")
+async def reindex_agent(agent_id: str):
+    """
+    Force reindex of a RAG agent's documents.
+    Use this after adding, removing, or modifying documents in data/docs/.
+    """
+    result = runner.reindex_agent(agent_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Unknown error"))
+    return result
+
+
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """Envía un mensaje a un agente y obtiene respuesta completa"""

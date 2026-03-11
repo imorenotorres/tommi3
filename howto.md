@@ -93,6 +93,10 @@ TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, an
    - [A.8 Logs and Debugging](#a8-logs-and-debugging)
    - [A.9 Distribution](#a9-distribution)
    - [A.10 Useful Environment Variables](#a10-useful-environment-variables)
+9. [Annex B: CLI Quick Reference](#annex-b-cli-quick-reference)
+   - [B.1 Interactive CLI](#b1-interactive-cli)
+   - [B.2 Batch Testing](#b2-batch-testing)
+   - [B.3 HTTP API with curl](#b3-http-api-with-curl)
 
 ---
 
@@ -576,7 +580,7 @@ data/
 
 **Re-indexing after changes:**
 ```bash
-curl -X POST http://localhost:8000/reindex
+curl -X POST http://localhost:8000/api/agents/<agent_id>/reindex
 ```
 
 **How it works internally:**
@@ -1136,7 +1140,8 @@ Valid values: `true`, `1`, `yes` (enabled) or `false`, `0`, `no` (disabled).
 | List agents | `GET /api/agents` |
 | Chat | `POST /api/chat` |
 | Stream chat | `GET /api/chat/stream` |
-| Reindex RAG | `POST /reindex` |
+| Initialize agent | `POST /api/agents/<agent_id>/init` |
+| Reindex RAG agent | `POST /api/agents/<agent_id>/reindex` |
 | Get DB schema (ConsultaBD_SQL) | `GET /schema` |
 
 ### 6.3 Setup Commands
@@ -1315,7 +1320,7 @@ netstat -ano | findstr :8000       # Windows
 
 ```bash
 # Reindex documents (via API)
-curl -X POST http://localhost:8000/reindex
+curl -X POST http://localhost:8000/api/agents/<agent_id>/reindex
 
 # Delete ChromaDB to force full reindex
 rm -rf agents/<agent_id>/data/chroma_db/
@@ -1416,6 +1421,82 @@ cat agents/<agent_id>/.env | grep LLM
 # Edit environment variables
 nano web/.env                      # Linux/macOS
 notepad web\.env                   # Windows
+```
+
+[↑ Back to index](#index){.back-to-top}
+
+---
+
+## Annex B: CLI Quick Reference
+
+Quick reference for interacting with TOMMI agents from the command line.
+
+### B.1 Interactive CLI
+
+The interactive CLI (`web/cli.py`) allows direct conversation with agents without starting a web server.
+
+```bash
+# List available agents
+python web/cli.py -l
+python web/cli.py --list
+
+# Start interactive session with a specific agent
+python web/cli.py conf26
+python web/cli.py pisha2
+
+# Without arguments - interactive agent selection menu
+python web/cli.py
+
+# Show help
+python web/cli.py -h
+python web/cli.py --help
+```
+
+**Exiting the session:** Type `exit`, `quit`, `q`, or `salir` to end the conversation.
+
+### B.2 Batch Testing
+
+The batch testing tool (`web/batch_test.py`) runs multiple questions against an agent from a file.
+
+```bash
+# Run questions from a file
+python web/batch_test.py conf26 questions.txt
+
+# Maintain session context between questions
+python web/batch_test.py conf26 questions.txt --session
+
+# Save results to a specific file
+python web/batch_test.py conf26 questions.txt -o results.json
+
+# Display results in console only (no file output)
+python web/batch_test.py conf26 questions.txt --no-save
+
+# List available agents
+python web/batch_test.py --list-agents
+```
+
+**Question file format:** One question per line. Lines starting with `#` are treated as comments and ignored.
+
+### B.3 HTTP API with curl
+
+When the web server is running, you can interact with agents via HTTP.
+
+```bash
+# Send a question (agent-specific endpoint)
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Your question here"}'
+
+# Send a question to a specific agent (central API)
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "conf26", "message": "Your question"}'
+
+# List all available agents
+curl http://localhost:8000/api/agents
+
+# Check agent health
+curl http://localhost:8000/api/agents/<agent_id>/health
 ```
 
 [↑ Back to index](#index){.back-to-top}

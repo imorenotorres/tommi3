@@ -342,3 +342,29 @@ class AgentRunner:
             return result
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    def reindex_agent(self, agent_id: str) -> dict:
+        """
+        Force reindex of a RAG agent's documents.
+        Returns status dict with 'success' and 'indexed_chunks'.
+        """
+        # Load agent if not already loaded
+        if agent_id not in self._agent_instances:
+            try:
+                self._load_agent_module(agent_id)
+            except Exception as e:
+                return {"success": False, "error": f"Failed to load agent: {str(e)}"}
+
+        agent_instance = self._agent_instances.get(agent_id)
+        if not agent_instance:
+            return {"success": False, "error": "Agent not found"}
+
+        # Check if agent supports reindexing
+        if not hasattr(agent_instance, 'reindex'):
+            return {"success": False, "error": "Agent does not support reindexing (not a RAG agent)"}
+
+        try:
+            count = agent_instance.reindex()
+            return {"success": True, "agent_id": agent_id, "indexed_chunks": count}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
