@@ -1,6 +1,6 @@
-# Rag4
+# Normativa Uninovis
 
-Fourth attempt
+Normativa andaluza, nacional y europea sobre UNINOVIS
 
 **Tipo**: Agente RAG (Retrieval-Augmented Generation)
 
@@ -49,7 +49,7 @@ También puedes interactuar directamente desde el terminal sin servidor web:
 ```bash
 cd web
 source .venv/bin/activate
-python cli.py rag4
+python cli.py normativa_uninovis
 ```
 
 ## API Endpoints
@@ -75,7 +75,7 @@ curl -X POST http://localhost:8000/reindex
 ## Estructura
 
 ```
-rag4/
+normativa_uninovis/
 ├── .env                # API key (no subir a git)
 ├── requirements.txt    # Dependencias
 ├── agent.py           # Lógica del agente con RAG

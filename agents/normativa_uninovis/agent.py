@@ -1,5 +1,5 @@
 """
-Rag4 - Agente RAG con ChromaDB
+Normativa Uninovis - Agente RAG con ChromaDB
 Soporta Mistral Cloud y Ollama via LLM_PROVIDER
 
 NOTA: ChromaDB no es compatible con Python 3.14+. Requiere Python 3.11-3.13.
@@ -22,7 +22,7 @@ class Agent:
     def __init__(self):
         self.client = LLMClient()
         self.model = self._get_model()
-        self.system_prompt = """You are Rag4, a helpful assistant with access to a document knowledge base.
+        self.system_prompt = """You are Normativa Uninovis, a helpful assistant with access to a document knowledge base.
 
 IMPORTANT RULES:
 1. Answer questions based ONLY on the context retrieved from your document database

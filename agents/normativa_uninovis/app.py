@@ -1,5 +1,5 @@
 """
-Rag4 - Servidor FastAPI (RAG)
+Normativa Uninovis - Servidor FastAPI (RAG)
 """
 
 import os
@@ -17,12 +17,12 @@ from agent import Agent
 
 # Configuración del agente
 AGENT_CONFIG = {
-    "id": "rag4",
-    "name": "Rag4",
+    "id": "normativa_uninovis",
+    "name": "Normativa Uninovis",
     "type": "rag",
-    "description": "Fourth attempt",
-    "welcome_message": "Hello! I'm Rag4. How can I help you?",
-    "example_queries": ["Which are the key topics"]
+    "description": "Normativa andaluza, nacional y europea sobre UNINOVIS",
+    "welcome_message": "Hola, soy tu agente para crear eventos",
+    "example_queries": ["Qué condiciones debe cumplir un Grado Conjunto europeo", "Es posible hacer un master conjunto con dos socios solamente"]
 }
 
 agent: Agent = None
