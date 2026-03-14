@@ -424,6 +424,13 @@ import os
 import sys
 import json
 import re
+import warnings
+import logging
+
+# Suppress pypdf warnings about malformed PDFs
+logging.getLogger("pypdf").setLevel(logging.ERROR)
+# Suppress sentence-transformers position_ids warning
+warnings.filterwarnings("ignore", message=".*position_ids.*")
 
 # Añadir web/ al path para importar llm_client y error_codes
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "web"))
@@ -442,6 +449,9 @@ class Agent:
         self.verify_grounding = os.getenv("VERIFY_GROUNDING", "false").lower() == "true"
         # Query history for the sidebar
         self._query_history = []
+
+        # RAG Chunking Configuration
+        self._load_rag_config()
 
         # Inicializar ChromaDB con manejo de errores
         try:
@@ -464,10 +474,8 @@ class Agent:
                 embedding_function=self.embedding_fn
             )
 
-            # Indexar documentos si la colección está vacía
-            if self.collection.count() == 0:
-                print("Indexing documents for the first time...")
-                self._index_documents()
+            # Indexar documentos nuevos automáticamente
+            self._sync_documents()
 
             print("RAG database ready.")
             self._chromadb_error = None
@@ -490,6 +498,28 @@ class Agent:
             return os.getenv("OLLAMA_MODEL", "{model}")
         return os.getenv("MISTRAL_MODEL", "{model}")
 
+    def _load_rag_config(self):
+        """Load RAG chunking configuration from environment variables."""
+        approach = os.getenv("RAG_APPROACH", "context_preserving").lower()
+
+        if approach == "basic":
+            self.chunk_size = 500
+            self.chunk_overlap = 100
+            self.retrieve_chunks = 3
+            self.chunking_strategy = "fixed"
+        elif approach == "context_preserving":
+            self.chunk_size = 2000
+            self.chunk_overlap = 400
+            self.retrieve_chunks = 8
+            self.chunking_strategy = "smart"
+        else:  # custom
+            self.chunk_size = int(os.getenv("RAG_CHUNK_SIZE", "2000"))
+            self.chunk_overlap = int(os.getenv("RAG_CHUNK_OVERLAP", "400"))
+            self.retrieve_chunks = int(os.getenv("RAG_RETRIEVE_CHUNKS", "8"))
+            self.chunking_strategy = os.getenv("RAG_CHUNKING_STRATEGY", "smart").lower()
+
+        print(f"RAG config: {{approach}} (chunks={{self.chunk_size}}, overlap={{self.chunk_overlap}}, retrieve={{self.retrieve_chunks}}, strategy={{self.chunking_strategy}})")
+
     def _extract_pdf_text(self, filepath: str) -> str:
         """Extrae texto de un archivo PDF."""
         try:
@@ -504,8 +534,69 @@ class Agent:
             print(f"Error extracting text from {{filepath}}: {{e}}")
             return ""
 
-    def _index_documents(self):
-        """Indexa los documentos del directorio data/docs/"""
+    def _get_indexed_sources(self) -> set:
+        """Obtiene el conjunto de fuentes ya indexadas en ChromaDB."""
+        if self.collection is None or self.collection.count() == 0:
+            return set()
+
+        # Obtener todos los metadatos para extraer fuentes únicas
+        all_data = self.collection.get(include=["metadatas"])
+        sources = set()
+        for meta in all_data.get("metadatas", []):
+            if meta and "source" in meta:
+                sources.add(meta["source"])
+        return sources
+
+    def _get_docs_files(self) -> set:
+        """Obtiene el conjunto de archivos en data/docs/."""
+        docs_path = os.path.join(os.path.dirname(__file__), "data", "docs")
+        if not os.path.exists(docs_path):
+            return set()
+
+        files = set()
+        for filename in os.listdir(docs_path):
+            filepath = os.path.join(docs_path, filename)
+            if os.path.isfile(filepath) and filename.endswith(('.txt', '.md', '.pdf')):
+                files.add(filename)
+        return files
+
+    def _sync_documents(self):
+        """Sincroniza documentos: indexa nuevos y elimina huérfanos."""
+        indexed = self._get_indexed_sources()
+        on_disk = self._get_docs_files()
+
+        # Documentos nuevos (en disco pero no indexados)
+        new_docs = on_disk - indexed
+        # Documentos eliminados (indexados pero ya no en disco)
+        removed_docs = indexed - on_disk
+
+        if not new_docs and not removed_docs:
+            print(f"Documents in sync ({{len(indexed)}} indexed)")
+            return
+
+        # Eliminar documentos huérfanos de ChromaDB
+        if removed_docs:
+            print(f"Removing {{len(removed_docs)}} deleted documents from index...")
+            for source in removed_docs:
+                # Obtener IDs de chunks de este documento
+                results = self.collection.get(where={{"source": source}})
+                if results["ids"]:
+                    self.collection.delete(ids=results["ids"])
+            print(f"Removed: {{', '.join(removed_docs)}}")
+
+        # Indexar documentos nuevos
+        if new_docs:
+            print(f"Indexing {{len(new_docs)}} new documents...")
+            self._index_documents(only_files=new_docs)
+            print(f"Added: {{', '.join(new_docs)}}")
+
+    def _index_documents(self, only_files: set = None):
+        """Indexa los documentos del directorio data/docs/
+
+        Args:
+            only_files: Si se especifica, solo indexa estos archivos.
+                       Si es None, indexa todos los archivos.
+        """
         docs_path = os.path.join(os.path.dirname(__file__), "data", "docs")
         if not os.path.exists(docs_path):
             os.makedirs(docs_path)
@@ -519,6 +610,9 @@ class Agent:
             filepath = os.path.join(docs_path, filename)
             if not os.path.isfile(filepath):
                 continue
+            # Si only_files está especificado, solo procesar esos archivos
+            if only_files is not None and filename not in only_files:
+                continue
 
             content = None
             if filename.endswith(('.txt', '.md')):
@@ -528,19 +622,48 @@ class Agent:
                 content = self._extract_pdf_text(filepath)
 
             if content:
-                # Dividir en chunks de ~500 caracteres
-                chunks = [content[j:j+500] for j in range(0, len(content), 400)]
+                # Chunking based on configured strategy
+                chunks = []
+                if self.chunking_strategy == "smart":
+                    # Smart chunking: try to cut at natural boundaries
+                    start = 0
+                    while start < len(content):
+                        end = start + self.chunk_size
+                        chunk = content[start:end]
+                        # Try to cut at paragraph/sentence boundary
+                        if end < len(content):
+                            for sep in ['\\n\\n', '. ', '\\n']:
+                                last_sep = chunk.rfind(sep)
+                                if last_sep > self.chunk_size * 0.6:
+                                    chunk = chunk[:last_sep + len(sep)]
+                                    end = start + len(chunk)
+                                    break
+                        chunks.append(chunk.strip())
+                        start = end - self.chunk_overlap
+                else:
+                    # Fixed chunking: cut at exact positions
+                    step = self.chunk_size - self.chunk_overlap
+                    chunks = [content[j:j+self.chunk_size] for j in range(0, len(content), step)]
+
                 for k, chunk in enumerate(chunks):
-                    documents.append(chunk)
-                    metadatas.append({{"source": filename, "chunk": k}})
-                    ids.append(f"{{filename}}_{{k}}")
+                    if chunk:  # Only add non-empty chunks
+                        documents.append(chunk)
+                        metadatas.append({{"source": filename, "chunk": k}})
+                        ids.append(f"{{filename}}_{{k}}")
 
         if documents:
             self.collection.add(documents=documents, metadatas=metadatas, ids=ids)
             print(f"Indexed {{len(documents)}} chunks from {{len(set(m['source'] for m in metadatas))}} documents")
 
-    def _retrieve_context(self, query: str, n_results: int = 3) -> str:
-        """Recupera contexto relevante para la query."""
+    def _retrieve_context(self, query: str, n_results: int = None) -> str:
+        """Recupera contexto relevante para la query.
+
+        Args:
+            query: The search query
+            n_results: Number of chunks to retrieve (uses self.retrieve_chunks if None)
+        """
+        if n_results is None:
+            n_results = self.retrieve_chunks
         if self.collection is None or self.collection.count() == 0:
             return ""
 
@@ -4767,6 +4890,7 @@ def create_agent_structure(config: dict) -> str:
             - ollama_url: Ollama URL (for ollama)
             - ollama_model: Ollama model (for ollama)
             - verify_grounding: Boolean for grounding verification
+            - rag_approach: 'basic', 'context_preserving', or 'custom' (for RAG agents)
 
     Returns:
         Path to created agent directory
@@ -4787,6 +4911,7 @@ def create_agent_structure(config: dict) -> str:
     ollama_url = config.get('ollama_url', 'http://localhost:11434')
     ollama_model = config.get('ollama_model', '')
     verify_grounding = config.get('verify_grounding', False)
+    rag_approach = config.get('rag_approach', 'context_preserving')
 
     # Create directories
     os.makedirs(get_agents_dir(), exist_ok=True)
@@ -4827,6 +4952,22 @@ def create_agent_structure(config: dict) -> str:
                 f.write("# Verifies that responses are based ONLY on retrieved context\n")
             f.write("# NOTE: Doubles LLM calls (higher latency and cost)\n")
             f.write(f"VERIFY_GROUNDING={'true' if verify_grounding else 'false'}\n")
+
+        # Add RAG chunking configuration for rag agents
+        if agent_type == "rag":
+            f.write("\n# ============================================\n")
+            f.write("# RAG Chunking Configuration\n")
+            f.write("# ============================================\n")
+            f.write("# RAG_APPROACH: basic | context_preserving | custom\n")
+            f.write("#   - basic: Fast indexing (500 chars, 100 overlap, 3 results)\n")
+            f.write("#   - context_preserving: Better retrieval (2000 chars, 400 overlap, 8 results, smart boundaries)\n")
+            f.write("#   - custom: Use the custom values below\n")
+            f.write(f"RAG_APPROACH={rag_approach}\n")
+            f.write("\n# Custom RAG parameters (only used when RAG_APPROACH=custom)\n")
+            f.write("# RAG_CHUNK_SIZE=2000\n")
+            f.write("# RAG_CHUNK_OVERLAP=400\n")
+            f.write("# RAG_RETRIEVE_CHUNKS=8\n")
+            f.write("# RAG_CHUNKING_STRATEGY=smart\n")
 
     # .gitignore
     gitignore_content = GITIGNORE
@@ -5094,6 +5235,56 @@ def main():
         verify_grounding = verify_choice == "y"
         print(f"  → Verification: {'Enabled' if verify_grounding else 'Disabled'}")
 
+    # 12. RAG Chunking Approach (for rag agents only)
+    rag_approach = "context_preserving"  # Default
+    rag_chunk_size = 2000
+    rag_chunk_overlap = 400
+    rag_retrieve_chunks = 8
+    rag_chunking_strategy = "smart"
+
+    if agent_type == "rag":
+        print("\nRAG Chunking Approach:")
+        print("  1. basic             - Fast indexing, lower accuracy")
+        print("                         (500 chars, 100 overlap, 3 results)")
+        print("  2. context_preserving - Better retrieval, recommended for dense documents")
+        print("                         (2000 chars, 400 overlap, 8 results, smart boundaries)")
+        print("  3. custom            - Define your own parameters")
+        print()
+
+        rag_choice = ""
+        while rag_choice not in ["1", "2", "3", "basic", "context_preserving", "custom"]:
+            rag_choice = input("  RAG approach [1/2/3]: ").strip().lower()
+
+        rag_map = {"1": "basic", "2": "context_preserving", "3": "custom"}
+        rag_approach = rag_map.get(rag_choice, rag_choice)
+
+        if rag_approach == "basic":
+            rag_chunk_size = 500
+            rag_chunk_overlap = 100
+            rag_retrieve_chunks = 3
+            rag_chunking_strategy = "fixed"
+        elif rag_approach == "context_preserving":
+            rag_chunk_size = 2000
+            rag_chunk_overlap = 400
+            rag_retrieve_chunks = 8
+            rag_chunking_strategy = "smart"
+        elif rag_approach == "custom":
+            print("\n  Custom RAG parameters:")
+            rag_chunk_size = int(input_with_default("    Chunk size (chars)", "2000"))
+            rag_chunk_overlap = int(input_with_default("    Chunk overlap (chars)", "400"))
+            rag_retrieve_chunks = int(input_with_default("    Chunks to retrieve", "8"))
+            print("    Chunking strategy:")
+            print("      - fixed: Cut at exact character positions")
+            print("      - smart: Try to cut at paragraph/sentence boundaries")
+            rag_chunking_strategy = input_with_default("    Strategy", "smart")
+            if rag_chunking_strategy not in ["fixed", "smart"]:
+                rag_chunking_strategy = "smart"
+
+        print(f"  → RAG approach: {rag_approach}")
+        if rag_approach == "custom":
+            print(f"     Chunk size: {rag_chunk_size}, Overlap: {rag_chunk_overlap}")
+            print(f"     Retrieve: {rag_retrieve_chunks} chunks, Strategy: {rag_chunking_strategy}")
+
     # Confirm
     print("\n" + "=" * 60)
     print("Summary:")
@@ -5112,6 +5303,8 @@ def main():
     print(f"  Examples:     {len(examples)} question(s)")
     if agent_type in ["oneshot", "rag"]:
         print(f"  Verification: {'Yes (grounding check)' if verify_grounding else 'No'}")
+    if agent_type == "rag":
+        print(f"  RAG approach: {rag_approach}")
     print("=" * 60)
 
     confirm = input("\nCreate agent? (y/n): ").strip().lower()
@@ -5164,6 +5357,28 @@ def main():
                 f.write("# Verifies that responses are based ONLY on retrieved context\n")
             f.write("# NOTE: Doubles LLM calls (higher latency and cost)\n")
             f.write(f"VERIFY_GROUNDING={'true' if verify_grounding else 'false'}\n")
+
+        # Add RAG chunking configuration for rag agents
+        if agent_type == "rag":
+            f.write("\n# ============================================\n")
+            f.write("# RAG Chunking Configuration\n")
+            f.write("# ============================================\n")
+            f.write("# RAG_APPROACH: basic | context_preserving | custom\n")
+            f.write("#   - basic: Fast indexing (500 chars, 100 overlap, 3 results)\n")
+            f.write("#   - context_preserving: Better retrieval (2000 chars, 400 overlap, 8 results, smart boundaries)\n")
+            f.write("#   - custom: Use the custom values below\n")
+            f.write(f"RAG_APPROACH={rag_approach}\n")
+            f.write("\n# Custom RAG parameters (only used when RAG_APPROACH=custom)\n")
+            if rag_approach == "custom":
+                f.write(f"RAG_CHUNK_SIZE={rag_chunk_size}\n")
+                f.write(f"RAG_CHUNK_OVERLAP={rag_chunk_overlap}\n")
+                f.write(f"RAG_RETRIEVE_CHUNKS={rag_retrieve_chunks}\n")
+                f.write(f"RAG_CHUNKING_STRATEGY={rag_chunking_strategy}\n")
+            else:
+                f.write("# RAG_CHUNK_SIZE=2000\n")
+                f.write("# RAG_CHUNK_OVERLAP=400\n")
+                f.write("# RAG_RETRIEVE_CHUNKS=8\n")
+                f.write("# RAG_CHUNKING_STRATEGY=smart\n")
     print(f"  ✓ {output_dir}/.env")
 
     # .gitignore

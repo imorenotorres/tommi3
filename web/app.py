@@ -115,6 +115,7 @@ class AgentResponse(BaseModel):
     welcome_message: str
     example_queries: list[str]
     verify_grounding: bool = False
+    rag_approach: str = "context_preserving"
 
 
 @app.get("/")
@@ -436,7 +437,8 @@ async def list_agents():
             description=a.description,
             welcome_message=a.welcome_message,
             example_queries=a.example_queries,
-            verify_grounding=a.verify_grounding
+            verify_grounding=a.verify_grounding,
+            rag_approach=a.rag_approach
         )
         for a in agents
     ]
@@ -464,6 +466,29 @@ async def reindex_agent(agent_id: str):
     if not result.get("success"):
         raise HTTPException(status_code=400, detail=result.get("error", "Unknown error"))
     return result
+
+
+@app.get("/api/agents/{agent_id}/token-usage")
+async def get_token_usage(agent_id: str):
+    """
+    Get token usage statistics for an agent.
+    Returns prompt tokens, completion tokens, and total tokens for the session.
+    """
+    result = runner.get_agent_token_usage(agent_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Agent not loaded or doesn't support token tracking")
+    return result
+
+
+@app.post("/api/agents/{agent_id}/reset-token-usage")
+async def reset_token_usage(agent_id: str):
+    """
+    Reset token usage counters for an agent.
+    """
+    result = runner.reset_agent_token_usage(agent_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Agent not loaded or doesn't support token tracking")
+    return {"success": True, "message": "Token usage counters reset"}
 
 
 @app.post("/api/chat", response_model=ChatResponse)
@@ -611,6 +636,7 @@ async def create_agent(
     ollama_url: str = Form("http://localhost:11434"),
     ollama_model: str = Form(""),
     verify_grounding: bool = Form(False),
+    context_preserving: bool = Form(True),  # RAG chunking approach
     database_schema: str = Form(""),
     data_file: Optional[UploadFile] = File(None),
     schema_file: Optional[UploadFile] = File(None),
@@ -658,6 +684,7 @@ async def create_agent(
             "ollama_url": ollama_url if llm_provider == "ollama" else "",
             "ollama_model": ollama_model if llm_provider == "ollama" else "",
             "verify_grounding": verify_grounding,
+            "rag_approach": "context_preserving" if context_preserving else "basic",
         }
 
         # Create agent structure

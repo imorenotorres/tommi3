@@ -130,6 +130,7 @@ body {
     color: rgba(255, 255, 255, 0.7);
 }
 
+/* Local LLM (Ollama, vLLM) - Green */
 .llm-badge.local {
     background-color: #22c55e;
     color: #ffffff;
@@ -139,6 +140,27 @@ body {
     content: "\1F3E0";
 }
 
+/* Cloud small models (e.g., mistral-small, gpt-3.5) - Yellow/Orange */
+.llm-badge.cloud-small {
+    background-color: #f59e0b;
+    color: #ffffff;
+}
+
+.llm-badge.cloud-small::before {
+    content: "\2601\FE0F";
+}
+
+/* Cloud large models (e.g., mistral-large, gpt-4) - Red */
+.llm-badge.cloud-large {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+.llm-badge.cloud-large::before {
+    content: "\2601\FE0F";
+}
+
+/* Fallback for generic cloud (backward compatibility) */
 .llm-badge.cloud {
     background-color: #3b82f6;
     color: #ffffff;
@@ -218,32 +240,26 @@ body {
     border-radius: 0.75rem;
     font-size: 0.75rem;
     font-weight: 600;
-    background-color: #3b82f6;
-    color: #ffffff;
+    background-color: #e5e7eb; /* light grey - same style as verification */
+    color: #000000; /* black text */
     cursor: default;
 }
 
-.agent-type.oneshot {
-    background-color: #166534; /* dark green */
-}
-
-.agent-type.rag {
-    background-color: #c2410c; /* dark orange */
-}
-
-.agent-type.toolcall {
-    background-color: #991b1b; /* dark red */
-}
-
-.agent-type.text2sql {
-    background-color: #6d28d9; /* purple */
+/* All agent types use the same light grey background */
+.agent-type.oneshot,
+.agent-type.rag,
+.agent-type.toolcall,
+.agent-type.text2sql,
+.agent-type.consultabd_sql {
+    background-color: #e5e7eb;
+    color: #000000;
 }
 
 .agent-type-icon {
     width: 16px;
     height: 16px;
     object-fit: contain;
-    filter: brightness(0) invert(1);
+    /* No filter - show icons in original colors */
 }
 
 /* Verification Status */

@@ -75,10 +75,8 @@ Answer questions based on the context provided from the knowledge base. If you c
                 embedding_function=self.embedding_fn
             )
 
-            # Indexar documentos si la colección está vacía
-            if self.collection.count() == 0:
-                print("Indexing documents for the first time...")
-                self._index_documents()
+            # Indexar documentos nuevos automáticamente
+            self._sync_documents()
 
             print("RAG database ready.")
             self._chromadb_error = None
@@ -111,8 +109,69 @@ Answer questions based on the context provided from the knowledge base. If you c
             print(f"Error 303: Error extrayendo texto de {filename}: {e}")
             return ""
 
-    def _index_documents(self):
-        """Indexa los documentos del directorio data/docs/"""
+    def _get_indexed_sources(self) -> set:
+        """Obtiene el conjunto de fuentes ya indexadas en ChromaDB."""
+        if self.collection is None or self.collection.count() == 0:
+            return set()
+
+        # Obtener todos los metadatos para extraer fuentes únicas
+        all_data = self.collection.get(include=["metadatas"])
+        sources = set()
+        for meta in all_data.get("metadatas", []):
+            if meta and "source" in meta:
+                sources.add(meta["source"])
+        return sources
+
+    def _get_docs_files(self) -> set:
+        """Obtiene el conjunto de archivos en data/docs/."""
+        docs_path = os.path.join(os.path.dirname(__file__), "data", "docs")
+        if not os.path.exists(docs_path):
+            return set()
+
+        files = set()
+        for filename in os.listdir(docs_path):
+            filepath = os.path.join(docs_path, filename)
+            if os.path.isfile(filepath) and filename.endswith(('.txt', '.md', '.pdf')):
+                files.add(filename)
+        return files
+
+    def _sync_documents(self):
+        """Sincroniza documentos: indexa nuevos y elimina huérfanos."""
+        indexed = self._get_indexed_sources()
+        on_disk = self._get_docs_files()
+
+        # Documentos nuevos (en disco pero no indexados)
+        new_docs = on_disk - indexed
+        # Documentos eliminados (indexados pero ya no en disco)
+        removed_docs = indexed - on_disk
+
+        if not new_docs and not removed_docs:
+            print(f"Documents in sync ({len(indexed)} indexed)")
+            return
+
+        # Eliminar documentos huérfanos de ChromaDB
+        if removed_docs:
+            print(f"Removing {len(removed_docs)} deleted documents from index...")
+            for source in removed_docs:
+                # Obtener IDs de chunks de este documento
+                results = self.collection.get(where={"source": source})
+                if results["ids"]:
+                    self.collection.delete(ids=results["ids"])
+            print(f"Removed: {', '.join(removed_docs)}")
+
+        # Indexar documentos nuevos
+        if new_docs:
+            print(f"Indexing {len(new_docs)} new documents...")
+            self._index_documents(only_files=new_docs)
+            print(f"Added: {', '.join(new_docs)}")
+
+    def _index_documents(self, only_files: set = None):
+        """Indexa los documentos del directorio data/docs/
+
+        Args:
+            only_files: Si se especifica, solo indexa estos archivos.
+                       Si es None, indexa todos los archivos.
+        """
         docs_path = os.path.join(os.path.dirname(__file__), "data", "docs")
         if not os.path.exists(docs_path):
             os.makedirs(docs_path)
@@ -125,6 +184,9 @@ Answer questions based on the context provided from the knowledge base. If you c
         for i, filename in enumerate(os.listdir(docs_path)):
             filepath = os.path.join(docs_path, filename)
             if not os.path.isfile(filepath):
+                continue
+            # Si only_files está especificado, solo procesar esos archivos
+            if only_files is not None and filename not in only_files:
                 continue
 
             content = None
@@ -144,7 +206,7 @@ Answer questions based on the context provided from the knowledge base. If you c
 
         if documents:
             self.collection.add(documents=documents, metadatas=metadatas, ids=ids)
-            print(f"Indexados {len(documents)} chunks de {len(set(m['source'] for m in metadatas))} documentos")
+            print(f"Indexed {len(documents)} chunks from {len(set(m['source'] for m in metadatas))} documents")
 
     def _retrieve_context(self, query: str, n_results: int = 3) -> str:
         """Recupera contexto relevante para la query."""

@@ -28,6 +28,7 @@ class AgentInfo:
     path: str
     public: bool = True
     verify_grounding: bool = False
+    rag_approach: str = "context_preserving"  # basic, context_preserving, custom
 
 
 @dataclass
@@ -68,17 +69,20 @@ class AgentRunner:
                 if not config:
                     continue
 
-                # Check if verification is enabled in agent's .env
+                # Check settings in agent's .env
                 verify_grounding = False
+                rag_approach = "context_preserving"
                 env_file = agent_dir / ".env"
                 if env_file.exists():
                     try:
                         env_content = env_file.read_text(encoding="utf-8")
                         for line in env_content.split('\n'):
-                            if line.strip().startswith('VERIFY_GROUNDING'):
+                            line = line.strip()
+                            if line.startswith('VERIFY_GROUNDING'):
                                 value = line.split('=', 1)[1].strip().lower()
                                 verify_grounding = value == 'true'
-                                break
+                            elif line.startswith('RAG_APPROACH'):
+                                rag_approach = line.split('=', 1)[1].strip().lower()
                     except Exception:
                         pass
 
@@ -92,6 +96,7 @@ class AgentRunner:
                     path=str(agent_dir),
                     public=config.get("public", True),
                     verify_grounding=verify_grounding,
+                    rag_approach=rag_approach,
                 )
 
                 if agent.public:
@@ -368,3 +373,30 @@ class AgentRunner:
             return {"success": True, "agent_id": agent_id, "indexed_chunks": count}
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    def get_agent_token_usage(self, agent_id: str) -> Optional[dict]:
+        """
+        Get token usage statistics for an agent.
+        Returns None if agent is not loaded or doesn't support token tracking.
+        """
+        agent_instance = self._agent_instances.get(agent_id)
+        if not agent_instance:
+            return None
+
+        if hasattr(agent_instance, 'get_token_usage'):
+            return agent_instance.get_token_usage()
+        return None
+
+    def reset_agent_token_usage(self, agent_id: str) -> bool:
+        """
+        Reset token usage counters for an agent.
+        Returns True if successful, False if agent not found or doesn't support it.
+        """
+        agent_instance = self._agent_instances.get(agent_id)
+        if not agent_instance:
+            return False
+
+        if hasattr(agent_instance, 'reset_token_usage'):
+            agent_instance.reset_token_usage()
+            return True
+        return False

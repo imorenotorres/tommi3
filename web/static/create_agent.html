@@ -477,6 +477,15 @@
                         </div>
                     </label>
                 </div>
+                <div class="form-group" id="rag-context-option" style="display: none;">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="context_preserving" name="context_preserving" checked>
+                        <div>
+                            <strong>Context-preserving chunking</strong>
+                            <div class="hint">Better retrieval for dense documents (larger chunks, smart boundaries). Disable for faster indexing with smaller documents.</div>
+                        </div>
+                    </label>
+                </div>
             </div>
 
             <!-- Submit -->
@@ -530,6 +539,10 @@
             // Show/hide options section (grounding only for oneshot/rag)
             document.getElementById('options-section').style.display =
                 (agentType === 'oneshot' || agentType === 'rag') ? 'block' : 'none';
+
+            // Show/hide RAG-specific options
+            document.getElementById('rag-context-option').style.display =
+                (agentType === 'rag') ? 'block' : 'none';
 
             // Load appropriate prompt templates
             loadPromptTemplates(agentType);

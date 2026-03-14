@@ -29,6 +29,43 @@ const elements = {
     llmBadge: document.getElementById('llm-badge')
 };
 
+/**
+ * Determines the size category of a cloud model based on its name.
+ * Returns 'cloud-small' (yellow) or 'cloud-large' (red).
+ *
+ * Small models: contain 'small', 'mini', 'tiny', '3.5', 'lite', 'nano'
+ * Large models: everything else (large, medium, pro, etc.)
+ */
+function getCloudModelSize(modelName) {
+    if (!modelName) return 'cloud-large';
+
+    const model = modelName.toLowerCase();
+
+    // Patterns that indicate small/lightweight models
+    const smallPatterns = [
+        'small',
+        'mini',
+        'tiny',
+        'lite',
+        'nano',
+        'micro',
+        '3.5',      // e.g., gpt-3.5
+        '7b',       // 7 billion params
+        '8b',       // 8 billion params
+        'haiku',    // Claude Haiku
+    ];
+
+    // Check if model matches any small pattern
+    for (const pattern of smallPatterns) {
+        if (model.includes(pattern)) {
+            return 'cloud-small';
+        }
+    }
+
+    // Default to large for: large, medium, pro, opus, sonnet, gpt-4, etc.
+    return 'cloud-large';
+}
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', init);
 
@@ -96,13 +133,16 @@ async function loadLLMStatus(agentId = null) {
         if (elements.llmBadge) {
             elements.llmBadge.style.display = '';
             elements.llmBadge.textContent = status.display_name;
-            elements.llmBadge.classList.remove('loading', 'local', 'cloud', 'unknown', 'error');
+            elements.llmBadge.classList.remove('loading', 'local', 'cloud', 'cloud-small', 'cloud-large', 'unknown', 'error');
 
             if (status.is_local) {
+                // Green for local LLMs
                 elements.llmBadge.classList.add('local');
                 elements.llmBadge.title = `Local LLM: ${status.model} at ${status.base_url}`;
             } else {
-                elements.llmBadge.classList.add('cloud');
+                // Cloud LLM - determine size by model name
+                const modelSize = getCloudModelSize(status.model);
+                elements.llmBadge.classList.add(modelSize);
                 elements.llmBadge.title = `Cloud LLM: ${status.provider} (${status.model})`;
             }
         }
@@ -308,8 +348,21 @@ function showAgentInfo() {
             'toolcall': 'Toolcall',
             'text2sql': 'Text2SQL'
         };
+        const ragApproachLabels = {
+            'basic': 'Basic',
+            'context_preserving': 'Context-preserving',
+            'custom': 'Custom'
+        };
         const agentType = state.currentAgent.agent_type;
-        const typeLabel = typeLabels[agentType] || agentType;
+        let typeLabel = typeLabels[agentType] || agentType;
+
+        // For RAG agents, append the approach in parentheses
+        if (agentType === 'rag') {
+            const approach = state.currentAgent.rag_approach || 'context_preserving';
+            const approachLabel = ragApproachLabels[approach] || approach;
+            typeLabel = `RAG (${approachLabel})`;
+            console.log('RAG agent approach:', approach, '-> label:', approachLabel);
+        }
 
         // Actualizar icono y texto
         const iconEl = document.getElementById('agent-type-icon');

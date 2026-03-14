@@ -1,5 +1,5 @@
 """
-Normativa Uninovis - Servidor FastAPI (RAG)
+Joint international programs - FastAPI Server (RAG)
 """
 
 import os
@@ -17,12 +17,14 @@ from agent import Agent
 
 # Configuración del agente
 AGENT_CONFIG = {
-    "id": "normativa_uninovis",
-    "name": "Normativa Uninovis",
+    "id": "joint_degrees",
+    "name": "Joint Programs",
     "type": "rag",
-    "description": "Normativa andaluza, nacional y europea sobre UNINOVIS",
-    "welcome_message": "Hola, soy tu agente para crear eventos",
-    "example_queries": ["Qué condiciones debe cumplir un Grado Conjunto europeo", "Es posible hacer un master conjunto con dos socios solamente"]
+    "description": "Regional, national and European information about joint programs in HE",
+    "welcome_message": "Hello, I am Jopo, your AI Agent to help you develop Joint International Programmes",
+    "example_queries": 
+        ["Make a concept note for a Joint Bachelor in Applied data science degree proposal. The participants will the UMA (leader), THUAS and USPN, and it will be open to other UNINOVIS partners", 
+        "Which are the agreed Standards for Quality Assurance of Joint Programmes in the EHEA"]
 }
 
 agent: Agent = None

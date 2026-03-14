@@ -60,6 +60,7 @@ TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, an
    - [3.6 Adding Data to Your Agent](#adding-data-to-your-agent)
      - [3.6.1 Oneshot Agents: Single Data File](#oneshot-agents-single-data-file)
      - [3.6.2 RAG Agents: Document Collection](#rag-agents-document-collection)
+       - [RAG Chunking Approaches](#rag-chunking-approaches)
      - [3.6.3 ConsultaBD_SQL Agents: Database Only](#consultabd_sql-agents-database-only)
    - [3.7 Grounding Verification (Anti-hallucination)](#grounding-verification-anti-hallucination)
 4. [Interacting with Agents](#interacting-with-agents)
@@ -563,8 +564,8 @@ RAG agents index multiple documents and retrieve relevant chunks at query time.
 **How to add data:**
 1. Place your documents in `data/docs/`
 2. Use descriptive filenames (e.g., `user-manual.md`, `api-reference.txt`)
-3. Documents are automatically chunked and indexed at startup
-4. After adding new documents, call the `/reindex` endpoint
+3. **New documents are automatically detected and indexed** when the agent starts
+4. Documents removed from `data/docs/` are automatically removed from the index
 
 **Example structure:**
 ```
@@ -578,19 +579,88 @@ data/
     └── troubleshooting.txt
 ```
 
-**Re-indexing after changes:**
+**Automatic synchronization:**
+
+When the agent starts, it automatically compares files in `data/docs/` with the indexed documents:
+- **New files** are indexed without re-indexing existing documents
+- **Deleted files** are removed from the index
+- **No changes** = fast startup (no re-indexing needed)
+
+Example output when starting an agent with new documents:
+```
+Preparing RAG database...
+Indexing 2 new documents...
+Indexed 150 chunks from 2 documents
+Added: new_manual.pdf, updated_faq.md
+RAG database ready.
+```
+
+**Manual re-indexing:**
+
+If you need to force a complete re-index (e.g., after modifying an existing document), use the `/reindex` endpoint:
 ```bash
 curl -X POST http://localhost:8000/api/agents/<agent_id>/reindex
 ```
 
 **How it works internally:**
 - PDF text is extracted using `pypdf`
-- Documents are split into chunks (~500 tokens each)
+- Documents are split into chunks (size depends on RAG approach)
 - Each chunk is embedded using `sentence-transformers` (all-MiniLM-L6-v2)
 - Embeddings are stored in ChromaDB at `data/chroma_db/`
-- On query, the 3 most relevant chunks are retrieved and included in the prompt
+- On query, relevant chunks are retrieved and included in the prompt
 
 **Tip:** Structure your documents with clear headers and sections for better retrieval accuracy.
+
+#### RAG Chunking Approaches
+
+When creating a RAG agent, you can choose from three chunking approaches that affect how documents are split and retrieved:
+
+| Approach | Chunk Size | Overlap | Retrieved | Strategy | Best For |
+|----------|-----------|---------|-----------|----------|----------|
+| **Basic** | 500 chars | 100 chars | 3 chunks | Fixed cut | Small documents, quick indexing |
+| **Context-preserving** | 2000 chars | 400 chars | 8 chunks | Smart boundaries | Dense documents (PDFs, manuals, regulations) |
+| **Custom** | Configurable | Configurable | Configurable | Configurable | Fine-tuning for specific use cases |
+
+**Basic approach:**
+- Fast indexing with smaller chunks
+- Lower accuracy for complex queries
+- Suitable for FAQs, short documents
+
+**Context-preserving approach (recommended):**
+- Larger chunks preserve more context
+- Smart boundary detection (cuts at paragraphs/sentences)
+- Better for dense documents like academic papers, regulations, manuals
+- More context retrieved per query
+
+**Custom approach:**
+- Full control over all parameters
+- Configure via environment variables:
+  - `RAG_CHUNK_SIZE`: Characters per chunk (default: 2000)
+  - `RAG_CHUNK_OVERLAP`: Overlap between chunks (default: 400)
+  - `RAG_RETRIEVE_CHUNKS`: Chunks to retrieve per query (default: 8)
+  - `RAG_CHUNKING_STRATEGY`: `fixed` or `smart` (default: smart)
+
+**Configuration in `.env`:**
+```bash
+# RAG Chunking Configuration
+RAG_APPROACH=context_preserving  # basic | context_preserving | custom
+
+# Custom parameters (only used when RAG_APPROACH=custom)
+RAG_CHUNK_SIZE=2000
+RAG_CHUNK_OVERLAP=400
+RAG_RETRIEVE_CHUNKS=8
+RAG_CHUNKING_STRATEGY=smart  # fixed | smart
+```
+
+**When to change the approach:**
+- Switch to **basic** if you have very small documents or need faster indexing
+- Use **context_preserving** (default) for most document types
+- Use **custom** when you need to fine-tune retrieval for specific document structures
+
+**Important:** After changing RAG configuration, delete the ChromaDB folder and restart the agent to reindex with new settings:
+```bash
+rm -rf agents/<agent_id>/data/chroma_db/
+```
 
 ---
 
@@ -1009,12 +1079,22 @@ After changing any `.env` configuration, restart the web server for changes to t
 
 #### Visual indicator
 
-The web interface displays a badge in the sidebar showing the current LLM provider:
+The web interface displays a color-coded badge in the sidebar showing the current LLM provider and model size:
 
-| Badge | Meaning |
-|-------|---------|
-| 🏠 **Local (Ollama: model)** | Using Ollama with the specified model |
-| ☁️ **Cloud (Mistral)** | Using Mistral cloud API |
+| Color | Badge | Meaning |
+|-------|-------|---------|
+| 🟢 **Green** | 🏠 Local | Using a local LLM (Ollama, vLLM) - data stays on your machine |
+| 🟡 **Yellow/Orange** | ☁️ Cloud (small) | Using a small cloud model (e.g., mistral-small, gpt-3.5) - lower cost |
+| 🔴 **Red** | ☁️ Cloud (large) | Using a large cloud model (e.g., mistral-large, gpt-4) - higher cost/quality |
+
+**Color coding rationale:**
+- **Green (Local):** Data privacy + Sustainability - your data never leaves your machine, and local models have lower environmental impact
+- **Yellow (Cloud Small):** Moderate cost - smaller models are cheaper and more energy-efficient, but less capable
+- **Red (Cloud Large):** Higher cost + Lower sustainability - large models provide best quality but cost more per query and have higher energy consumption
+
+**Sustainability note:** Large cloud LLMs require significant computational resources and energy. Using local models or smaller cloud models is more ecologically sustainable. Consider using the smallest model that meets your quality requirements.
+
+The system automatically detects model size based on the model name. Models containing "small", "mini", "tiny", "lite", "3.5", "7b", "8b", or "haiku" are classified as small; all others (including "large", "medium", "pro", "opus", "sonnet", "gpt-4") are classified as large.
 
 Hover over the badge to see additional details (model name, server URL).
 

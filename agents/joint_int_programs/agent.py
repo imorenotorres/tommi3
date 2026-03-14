@@ -9,6 +9,13 @@ import os
 import sys
 import json
 import re
+import warnings
+import logging
+
+# Suppress pypdf warnings about malformed PDFs
+logging.getLogger("pypdf").setLevel(logging.ERROR)
+# Suppress sentence-transformers position_ids warning
+warnings.filterwarnings("ignore", message=".*position_ids.*")
 
 # Añadir web/ al path para importar llm_client y error_codes
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "web"))
@@ -22,14 +29,26 @@ class Agent:
     def __init__(self):
         self.client = LLMClient()
         self.model = self._get_model()
-        self.system_prompt = """You are Normativa Uninovis, a helpful assistant with access to a document knowledge base.
+        self.system_prompt = """You are Joint Programs, a helpful AI assistant with access to a document knowledge base.
 
 IMPORTANT RULES:
 1. Answer questions based ONLY on the context retrieved from your document database
 2. If the retrieved context doesn\'t contain relevant information, clearly state that
 3. Never make up or infer information not present in the provided context
-4. Cite the source document when possible
+4. When citing sources, mention the document name in bold (e.g., **2025_AQU_Guide.pdf**). Do NOT create hyperlinks or URLs - just use the filename in bold text.
 5. Use the same language as the user\'s question
+6. When asked about the criteria or standards for Quality Assurance of Joint Programmes in the EHEA, you should provide the information found in '2025_AQU_Guide to the accreditation of joint programmes using the European Approach.pdf'
+7. When you provide a list or summary of items (e.g., standards, criteria, guidelines), and more detailed information is available in the database, end your response with a suggestion like: "Would you like more details on any specific item? For example, you can ask about [item name]."
+7. UNINOVIS alliance is composed of 8 partners:
+| University of Sorbonne Paris Nord             | USPN       | France
+| University of Campania "Luigi Vanvitelli"     | UDCLV      | Italy
+| University of Malaga                          | UMA        | Spain
+| Kauno Kolegija Higher Education Institution   | KK         | Lithuana
+| University of Tirana                          | UT         | Albania     
+| Technical University of Applied Sciences Würzburg-Schweinfurt | THWS   | Germany
+| Tampere University of Applied Sciences        | TAMK       | Finland     
+| The Hague University of Applied Sciences      | THUAS      | Netherlands 
+7. If you ever use information that is not in the database, colour the text in blue
 
 RESPONSE FORMAT:
 - Provide clear, well-structured answers based on the retrieved documents
@@ -39,6 +58,17 @@ RESPONSE FORMAT:
         self.verify_grounding = os.getenv("VERIFY_GROUNDING", "false").lower() == "true"
         # Query history for the sidebar
         self._query_history = []
+
+        # Token usage tracking
+        self._token_usage = {
+            'total_prompt_tokens': 0,
+            'total_completion_tokens': 0,
+            'total_tokens': 0,
+            'queries': []  # Per-query token usage
+        }
+
+        # RAG Chunking Configuration
+        self._load_rag_config()
 
         # Inicializar ChromaDB con manejo de errores
         try:
@@ -61,10 +91,8 @@ RESPONSE FORMAT:
                 embedding_function=self.embedding_fn
             )
 
-            # Indexar documentos si la colección está vacía
-            if self.collection.count() == 0:
-                print("Indexing documents for the first time...")
-                self._index_documents()
+            # Indexar documentos nuevos automáticamente
+            self._sync_documents()
 
             print("RAG database ready.")
             self._chromadb_error = None
@@ -87,6 +115,70 @@ RESPONSE FORMAT:
             return os.getenv("OLLAMA_MODEL", "")
         return os.getenv("MISTRAL_MODEL", "")
 
+    def _load_rag_config(self):
+        """Load RAG chunking configuration from environment variables."""
+        approach = os.getenv("RAG_APPROACH", "context_preserving").lower()
+
+        if approach == "basic":
+            self.chunk_size = 500
+            self.chunk_overlap = 100
+            self.retrieve_chunks = 3
+            self.chunking_strategy = "fixed"
+        elif approach == "context_preserving":
+            self.chunk_size = 2000
+            self.chunk_overlap = 400
+            self.retrieve_chunks = 8
+            self.chunking_strategy = "smart"
+        else:  # custom
+            self.chunk_size = int(os.getenv("RAG_CHUNK_SIZE", "2000"))
+            self.chunk_overlap = int(os.getenv("RAG_CHUNK_OVERLAP", "400"))
+            self.retrieve_chunks = int(os.getenv("RAG_RETRIEVE_CHUNKS", "8"))
+            self.chunking_strategy = os.getenv("RAG_CHUNKING_STRATEGY", "smart").lower()
+
+        print(f"RAG config: {approach} (chunks={self.chunk_size}, overlap={self.chunk_overlap}, retrieve={self.retrieve_chunks}, strategy={self.chunking_strategy})")
+
+    def _track_token_usage(self, response, question: str):
+        """Track token usage from an LLM response."""
+        if hasattr(response, 'usage') and response.usage:
+            usage = response.usage
+            prompt_tokens = getattr(usage, 'prompt_tokens', 0) or 0
+            completion_tokens = getattr(usage, 'completion_tokens', 0) or 0
+            total = getattr(usage, 'total_tokens', 0) or (prompt_tokens + completion_tokens)
+
+            # Update totals
+            self._token_usage['total_prompt_tokens'] += prompt_tokens
+            self._token_usage['total_completion_tokens'] += completion_tokens
+            self._token_usage['total_tokens'] += total
+
+            # Track per-query usage
+            self._token_usage['queries'].append({
+                'question': question[:50] + '...' if len(question) > 50 else question,
+                'prompt_tokens': prompt_tokens,
+                'completion_tokens': completion_tokens,
+                'total_tokens': total
+            })
+
+    def get_token_usage(self) -> dict:
+        """Returns token usage statistics for the current session."""
+        return {
+            'session_totals': {
+                'prompt_tokens': self._token_usage['total_prompt_tokens'],
+                'completion_tokens': self._token_usage['total_completion_tokens'],
+                'total_tokens': self._token_usage['total_tokens']
+            },
+            'query_count': len(self._token_usage['queries']),
+            'recent_queries': self._token_usage['queries'][-10:]  # Last 10 queries
+        }
+
+    def reset_token_usage(self):
+        """Resets token usage counters."""
+        self._token_usage = {
+            'total_prompt_tokens': 0,
+            'total_completion_tokens': 0,
+            'total_tokens': 0,
+            'queries': []
+        }
+
     def _extract_pdf_text(self, filepath: str) -> str:
         """Extrae texto de un archivo PDF."""
         try:
@@ -101,8 +193,69 @@ RESPONSE FORMAT:
             print(f"Error extracting text from {filepath}: {e}")
             return ""
 
-    def _index_documents(self):
-        """Indexa los documentos del directorio data/docs/"""
+    def _get_indexed_sources(self) -> set:
+        """Obtiene el conjunto de fuentes ya indexadas en ChromaDB."""
+        if self.collection is None or self.collection.count() == 0:
+            return set()
+
+        # Obtener todos los metadatos para extraer fuentes únicas
+        all_data = self.collection.get(include=["metadatas"])
+        sources = set()
+        for meta in all_data.get("metadatas", []):
+            if meta and "source" in meta:
+                sources.add(meta["source"])
+        return sources
+
+    def _get_docs_files(self) -> set:
+        """Obtiene el conjunto de archivos en data/docs/."""
+        docs_path = os.path.join(os.path.dirname(__file__), "data", "docs")
+        if not os.path.exists(docs_path):
+            return set()
+
+        files = set()
+        for filename in os.listdir(docs_path):
+            filepath = os.path.join(docs_path, filename)
+            if os.path.isfile(filepath) and filename.endswith(('.txt', '.md', '.pdf')):
+                files.add(filename)
+        return files
+
+    def _sync_documents(self):
+        """Sincroniza documentos: indexa nuevos y elimina huérfanos."""
+        indexed = self._get_indexed_sources()
+        on_disk = self._get_docs_files()
+
+        # Documentos nuevos (en disco pero no indexados)
+        new_docs = on_disk - indexed
+        # Documentos eliminados (indexados pero ya no en disco)
+        removed_docs = indexed - on_disk
+
+        if not new_docs and not removed_docs:
+            print(f"Documents in sync ({len(indexed)} indexed)")
+            return
+
+        # Eliminar documentos huérfanos de ChromaDB
+        if removed_docs:
+            print(f"Removing {len(removed_docs)} deleted documents from index...")
+            for source in removed_docs:
+                # Obtener IDs de chunks de este documento
+                results = self.collection.get(where={"source": source})
+                if results["ids"]:
+                    self.collection.delete(ids=results["ids"])
+            print(f"Removed: {', '.join(removed_docs)}")
+
+        # Indexar documentos nuevos
+        if new_docs:
+            print(f"Indexing {len(new_docs)} new documents...")
+            self._index_documents(only_files=new_docs)
+            print(f"Added: {', '.join(new_docs)}")
+
+    def _index_documents(self, only_files: set = None):
+        """Indexa los documentos del directorio data/docs/
+
+        Args:
+            only_files: Si se especifica, solo indexa estos archivos.
+                       Si es None, indexa todos los archivos.
+        """
         docs_path = os.path.join(os.path.dirname(__file__), "data", "docs")
         if not os.path.exists(docs_path):
             os.makedirs(docs_path)
@@ -116,6 +269,9 @@ RESPONSE FORMAT:
             filepath = os.path.join(docs_path, filename)
             if not os.path.isfile(filepath):
                 continue
+            # Si only_files está especificado, solo procesar esos archivos
+            if only_files is not None and filename not in only_files:
+                continue
 
             content = None
             if filename.endswith(('.txt', '.md')):
@@ -125,19 +281,48 @@ RESPONSE FORMAT:
                 content = self._extract_pdf_text(filepath)
 
             if content:
-                # Dividir en chunks de ~500 caracteres
-                chunks = [content[j:j+500] for j in range(0, len(content), 400)]
+                # Chunking based on configured strategy
+                chunks = []
+                if self.chunking_strategy == "smart":
+                    # Smart chunking: try to cut at natural boundaries
+                    start = 0
+                    while start < len(content):
+                        end = start + self.chunk_size
+                        chunk = content[start:end]
+                        # Try to cut at paragraph/sentence boundary
+                        if end < len(content):
+                            for sep in ['\n\n', '. ', '\n']:
+                                last_sep = chunk.rfind(sep)
+                                if last_sep > self.chunk_size * 0.6:
+                                    chunk = chunk[:last_sep + len(sep)]
+                                    end = start + len(chunk)
+                                    break
+                        chunks.append(chunk.strip())
+                        start = end - self.chunk_overlap
+                else:
+                    # Fixed chunking: cut at exact positions
+                    step = self.chunk_size - self.chunk_overlap
+                    chunks = [content[j:j+self.chunk_size] for j in range(0, len(content), step)]
+
                 for k, chunk in enumerate(chunks):
-                    documents.append(chunk)
-                    metadatas.append({"source": filename, "chunk": k})
-                    ids.append(f"{filename}_{k}")
+                    if chunk:  # Only add non-empty chunks
+                        documents.append(chunk)
+                        metadatas.append({"source": filename, "chunk": k})
+                        ids.append(f"{filename}_{k}")
 
         if documents:
             self.collection.add(documents=documents, metadatas=metadatas, ids=ids)
             print(f"Indexed {len(documents)} chunks from {len(set(m['source'] for m in metadatas))} documents")
 
-    def _retrieve_context(self, query: str, n_results: int = 3) -> str:
-        """Recupera contexto relevante para la query."""
+    def _retrieve_context(self, query: str, n_results: int = None) -> str:
+        """Recupera contexto relevante para la query.
+
+        Args:
+            query: The search query
+            n_results: Number of chunks to retrieve (uses self.retrieve_chunks if None)
+        """
+        if n_results is None:
+            n_results = self.retrieve_chunks
         if self.collection is None or self.collection.count() == 0:
             return ""
 
@@ -255,6 +440,9 @@ or
             model=self.model,
             messages=messages
         )
+
+        # Track token usage
+        self._track_token_usage(response, user_message)
 
         response_content = response.choices[0].message.content
 

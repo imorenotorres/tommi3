@@ -254,6 +254,10 @@ agents</title>
   </style>
 </head>
 <body>
+<header id="title-block-header">
+<h1 class="title">A practical guide to TOMMI: building and deploying AI
+agents</h1>
+</header>
 <h1 id="a-practical-guide-to-tommi-building-and-deploying-ai-agents">A
 practical guide to TOMMI:<br>building and deploying AI agents</h1>
 <p><strong>By: UNINOVIS-UMA IT TEAM</strong></p>
@@ -983,8 +987,9 @@ environment.</p>
 <p><strong>How to add data:</strong> 1. Place your documents in
 <code>data/docs/</code> 2. Use descriptive filenames (e.g.,
 <code>user-manual.md</code>, <code>api-reference.txt</code>) 3.
-Documents are automatically chunked and indexed at startup 4. After
-adding new documents, call the <code>/reindex</code> endpoint</p>
+<strong>New documents are automatically detected and indexed</strong>
+when the agent starts 4. Documents removed from <code>data/docs/</code>
+are automatically removed from the index</p>
 <p><strong>Example structure:</strong></p>
 <pre><code>data/
 └── docs/
@@ -994,9 +999,23 @@ adding new documents, call the <code>/reindex</code> endpoint</p>
     ├── faq.md
     ├── user-manual.pdf
     └── troubleshooting.txt</code></pre>
-<p><strong>Re-indexing after changes:</strong></p>
-<div class="sourceCode" id="cb13"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/reindex</span></code></pre></div>
+<p><strong>Automatic synchronization:</strong></p>
+<p>When the agent starts, it automatically compares files in
+<code>data/docs/</code> with the indexed documents: - <strong>New
+files</strong> are indexed without re-indexing existing documents -
+<strong>Deleted files</strong> are removed from the index - <strong>No
+changes</strong> = fast startup (no re-indexing needed)</p>
+<p>Example output when starting an agent with new documents:</p>
+<pre><code>Preparing RAG database...
+Indexing 2 new documents...
+Indexed 150 chunks from 2 documents
+Added: new_manual.pdf, updated_faq.md
+RAG database ready.</code></pre>
+<p><strong>Manual re-indexing:</strong></p>
+<p>If you need to force a complete re-index (e.g., after modifying an
+existing document), use the <code>/reindex</code> endpoint:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/reindex</span></code></pre></div>
 <p><strong>How it works internally:</strong> - PDF text is extracted
 using <code>pypdf</code> - Documents are split into chunks (~500 tokens
 each) - Each chunk is embedded using <code>sentence-transformers</code>
@@ -1018,29 +1037,29 @@ queries, executing them against a SQLite database.</p>
 data</li>
 </ol>
 <p><strong>Example using SQL script:</strong></p>
-<div class="sourceCode" id="cb14"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> your_agent/data</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> database.db <span class="op">&lt;</span> schema.sql</span></code></pre></div>
-<p><strong>Example <code>schema.sql</code>:</strong></p>
 <div class="sourceCode" id="cb15"><pre
-class="sourceCode sql"><code class="sourceCode sql"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> courses (</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">id</span> <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    name TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    department TEXT,</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">year</span> <span class="dt">INTEGER</span>,</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    credits <span class="dt">INTEGER</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>);</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> professors (</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">id</span> <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    name TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    department TEXT,</span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    email TEXT</span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>);</span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">1</span>, <span class="st">&#39;Introduction to Law&#39;</span>, <span class="st">&#39;Law&#39;</span>, <span class="dv">1</span>, <span class="dv">6</span>);</span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">2</span>, <span class="st">&#39;Constitutional Law&#39;</span>, <span class="st">&#39;Law&#39;</span>, <span class="dv">2</span>, <span class="dv">6</span>);</span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">3</span>, <span class="st">&#39;Programming I&#39;</span>, <span class="st">&#39;Computer Science&#39;</span>, <span class="dv">1</span>, <span class="dv">6</span>);</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> your_agent/data</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> database.db <span class="op">&lt;</span> schema.sql</span></code></pre></div>
+<p><strong>Example <code>schema.sql</code>:</strong></p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> courses (</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">id</span> <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    name TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    department TEXT,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">year</span> <span class="dt">INTEGER</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    credits <span class="dt">INTEGER</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> professors (</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">id</span> <span class="dt">INTEGER</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    name TEXT <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    department TEXT,</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    email TEXT</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">1</span>, <span class="st">&#39;Introduction to Law&#39;</span>, <span class="st">&#39;Law&#39;</span>, <span class="dv">1</span>, <span class="dv">6</span>);</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">2</span>, <span class="st">&#39;Constitutional Law&#39;</span>, <span class="st">&#39;Law&#39;</span>, <span class="dv">2</span>, <span class="dv">6</span>);</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">3</span>, <span class="st">&#39;Programming I&#39;</span>, <span class="st">&#39;Computer Science&#39;</span>, <span class="dv">1</span>, <span class="dv">6</span>);</span></code></pre></div>
 <p><strong>How it works:</strong></p>
 <p>ConsultaBD_SQL agents use a single LLM call for SQL generation, and
 Python for fast result formatting:</p>
@@ -1051,16 +1070,16 @@ Python for fast result formatting:</p>
 LLM call)</li>
 </ol>
 <p><strong>Configuration in <code>.env</code>:</strong></p>
-<div class="sourceCode" id="cb16"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using Mistral Cloud</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>mistral</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_API_KEY</span><span class="op">=</span>your_key_here</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_MODEL</span><span class="op">=</span>mistral-large-latest</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Or using Ollama (local)</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"># LLM_PROVIDER=ollama</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co"># OLLAMA_BASE_URL=http://localhost:11434</span></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co"># OLLAMA_MODEL=mistral</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using Mistral Cloud</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>mistral</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_API_KEY</span><span class="op">=</span>your_key_here</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_MODEL</span><span class="op">=</span>mistral-large-latest</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Or using Ollama (local)</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co"># LLM_PROVIDER=ollama</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co"># OLLAMA_BASE_URL=http://localhost:11434</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co"># OLLAMA_MODEL=mistral</span></span></code></pre></div>
 <p><strong>Security features:</strong></p>
 <ul>
 <li>Only SELECT queries are allowed</li>
@@ -1134,22 +1153,22 @@ are explicitly stated in the source data</li>
   - NOTE: Doubles LLM calls (higher latency and cost)
   Enable grounding verification? (y/n) [n]:</code></pre>
 <p>The setting is stored in the agent’s <code>.env</code> file:</p>
-<div class="sourceCode" id="cb19"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Grounding Verification (Anti-hallucination)</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="va">VERIFY_GROUNDING</span><span class="op">=</span>true   <span class="co"># Enable verification</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="va">VERIFY_GROUNDING</span><span class="op">=</span>false  <span class="co"># Disable verification (default)</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Grounding Verification (Anti-hallucination)</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="va">VERIFY_GROUNDING</span><span class="op">=</span>true   <span class="co"># Enable verification</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="va">VERIFY_GROUNDING</span><span class="op">=</span>false  <span class="co"># Disable verification (default)</span></span></code></pre></div>
 <p><strong>Per-request override:</strong></p>
 <p>You can also enable/disable verification per request via the API:</p>
-<div class="sourceCode" id="cb20"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Force verification for this request</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/chat <span class="dt">\</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;message&quot;: &quot;Your question&quot;, &quot;verify&quot;: true}&#39;</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Skip verification for this request</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/chat <span class="dt">\</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;message&quot;: &quot;Your question&quot;, &quot;verify&quot;: false}&#39;</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Force verification for this request</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/chat <span class="dt">\</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;message&quot;: &quot;Your question&quot;, &quot;verify&quot;: true}&#39;</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Skip verification for this request</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/chat <span class="dt">\</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;message&quot;: &quot;Your question&quot;, &quot;verify&quot;: false}&#39;</span></span></code></pre></div>
 <p><strong>Trade-offs:</strong></p>
 <table>
 <thead>
@@ -1417,19 +1436,19 @@ Agent: ✅ Found 12 agreements with English B2 requirement...</code></pre>
 starting a web server. This is useful for testing, automation, or quick
 queries.</p>
 <p><strong>Interactive CLI:</strong></p>
-<div class="sourceCode" id="cb22"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py</span></code></pre></div>
 <p>This will show available agents and let you select one. You can also
 specify the agent directly:</p>
-<div class="sourceCode" id="cb23"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py my_agent</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py my_agent</span></code></pre></div>
 <p>Once inside, type your questions and receive responses directly. Type
 <code>exit</code> or <code>salir</code> to quit.</p>
 <p><strong>List available agents:</strong></p>
-<div class="sourceCode" id="cb24"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py <span class="at">-l</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py <span class="at">-l</span></span></code></pre></div>
 <p><a href="#index" class="back-to-top">↑ Back to index</a></p>
 <hr />
 <h2 id="developer-functionalities">5. Developer Functionalities</h2>
@@ -1443,9 +1462,9 @@ is useful for:</p>
 <li>Building a test suite for your agent</li>
 </ul>
 <p><strong>Usage:</strong></p>
-<div class="sourceCode" id="cb25"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">options</span><span class="pp">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">options</span><span class="pp">]</span></span></code></pre></div>
 <p><strong>Options:</strong></p>
 <table>
 <colgroup>
@@ -1490,8 +1509,8 @@ What types of agents are available?</code></pre>
 <ol start="2" type="1">
 <li>Run the test:</li>
 </ol>
-<div class="sourceCode" id="cb27"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> batch_test.py my_agent evals/my_questions.txt</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> batch_test.py my_agent evals/my_questions.txt</span></code></pre></div>
 <ol start="3" type="1">
 <li>Results are saved to <code>evals/my_questions_respuestas.json</code>
 with all questions, responses, and metadata.</li>
@@ -1507,26 +1526,26 @@ options:</p>
 <h4 id="option-a-change-the-default-for-all-agents">Option A: Change the
 default for ALL agents</h4>
 <p>Edit <code>web/.env</code> to use Ollama as the default:</p>
-<div class="sourceCode" id="cb28"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Local LLM (Ollama) ---</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Comment out the Mistral configuration</span></span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co"># LLM_PROVIDER=mistral</span></span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co"># MISTRAL_API_KEY=your_api_key_here</span></span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Local LLM (Ollama) ---</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Comment out the Mistral configuration</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="co"># LLM_PROVIDER=mistral</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="co"># MISTRAL_API_KEY=your_api_key_here</span></span></code></pre></div>
 <h4 id="option-b-use-local-llm-for-specific-agents-only">Option B: Use
 local LLM for SPECIFIC agents only</h4>
 <p>Keep Mistral as the default in <code>web/.env</code>, and configure
 individual agents to use Ollama by adding <code>LLM_PROVIDER</code> to
 their <code>.env</code> file:</p>
-<div class="sourceCode" id="cb29"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># agents/my_local_agent/.env</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This agent OVERRIDES the default to use Ollama</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># agents/my_local_agent/.env</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This agent OVERRIDES the default to use Ollama</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span></code></pre></div>
 <p><strong>Important:</strong> An agent’s <code>.env</code> only
 overrides the default if it contains <code>LLM_PROVIDER</code>. If
 <code>LLM_PROVIDER</code> is not defined (or is commented out), the
@@ -1576,26 +1595,44 @@ agents - Balancing costs between local and cloud resources</p>
 <p>After changing any <code>.env</code> configuration, restart the web
 server for changes to take effect.</p>
 <h4 id="visual-indicator">Visual indicator</h4>
-<p>The web interface displays a badge in the sidebar showing the current
-LLM provider:</p>
+<p>The web interface displays a color-coded badge in the sidebar showing the current
+LLM provider and model size:</p>
 <table>
 <thead>
 <tr>
+<th>Color</th>
 <th>Badge</th>
 <th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>🏠 <strong>Local (Ollama: model)</strong></td>
-<td>Using Ollama with the specified model</td>
+<td>🟢 <strong>Green</strong></td>
+<td>🏠 Local</td>
+<td>Using a local LLM (Ollama, vLLM) - data stays on your machine</td>
 </tr>
 <tr>
-<td>☁️ <strong>Cloud (Mistral)</strong></td>
-<td>Using Mistral cloud API</td>
+<td>🟡 <strong>Yellow/Orange</strong></td>
+<td>☁️ Cloud (small)</td>
+<td>Using a small cloud model (e.g., mistral-small, gpt-3.5) - lower cost</td>
+</tr>
+<tr>
+<td>🔴 <strong>Red</strong></td>
+<td>☁️ Cloud (large)</td>
+<td>Using a large cloud model (e.g., mistral-large, gpt-4) - higher cost/quality</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Color coding rationale:</strong></p>
+<ul>
+<li><strong>Green (Local):</strong> Data privacy + Sustainability - your data never leaves your machine, and local models have lower environmental impact</li>
+<li><strong>Yellow (Cloud Small):</strong> Moderate cost - smaller models are cheaper and more energy-efficient, but less capable</li>
+<li><strong>Red (Cloud Large):</strong> Higher cost + Lower sustainability - large models provide best quality but cost more per query and have higher energy consumption</li>
+</ul>
+<p><strong>Sustainability note:</strong> Large cloud LLMs require significant computational resources and energy. Using local models or smaller cloud models is more ecologically sustainable. Consider using the smallest model that meets your quality requirements.</p>
+<p>The system automatically detects model size based on the model name. Models containing
+"small", "mini", "tiny", "lite", "3.5", "7b", "8b", or "haiku" are classified as small;
+all others (including "large", "medium", "pro", "opus", "sonnet", "gpt-4") are classified as large.</p>
 <p>Hover over the badge to see additional details (model name, server
 URL).</p>
 <h4 id="ollama-setup">Ollama setup</h4>
@@ -1659,12 +1696,12 @@ More capabilities + Usage costs</p>
 <h4 id="improving-local-model-quality">Improving local model
 quality</h4>
 <p>If you want better results from Ollama while staying local, try:</p>
-<div class="sourceCode" id="cb30"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Other high-quality models</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span></code></pre></div>
-<p>Then update the agent’s <code>.env</code>:</p>
 <div class="sourceCode" id="cb31"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mixtral:8x7b</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Other high-quality models</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span></code></pre></div>
+<p>Then update the agent’s <code>.env</code>:</p>
+<div class="sourceCode" id="cb32"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mixtral:8x7b</span></code></pre></div>
 <p><strong>Table</strong>: European LLM models</p>
 <table>
 <colgroup>
@@ -2178,23 +2215,23 @@ endpoint</td>
 <code>ERROR 504. Port in use</code>, it means another process is using
 port 8000 (often a previous server instance that wasn’t closed
 properly). To fix it:</p>
-<div class="sourceCode" id="cb33"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./liberar-puerto.sh</span> 8000</span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./liberar-puerto.sh</span> 8000</span></code></pre></div>
 <p>Then start the server again. You can use this script with any port
 number.</p></li>
 <li><p><strong>Check the error code:</strong> Look for “Error XXX” in
 the message and find it in the tables above.</p></li>
 <li><p><strong>Check logs:</strong> Review the terminal output where the
 server is running:</p>
-<div class="sourceCode" id="cb34"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Logs show detailed error information</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span></span></code></pre></div></li>
+<div class="sourceCode" id="cb35"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Logs show detailed error information</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span></span></code></pre></div></li>
 <li><p><strong>Verify environment:</strong> Ensure the virtual
 environment is activated:</p>
-<div class="sourceCode" id="cb35"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate  <span class="co"># Linux/macOS</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>     <span class="co"># Windows</span></span></code></pre></div></li>
+<div class="sourceCode" id="cb36"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate  <span class="co"># Linux/macOS</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>     <span class="co"># Windows</span></span></code></pre></div></li>
 <li><p><strong>Test components individually:</strong></p>
 <ul>
 <li>Test Ollama: <code>ollama list</code> and
@@ -2217,139 +2254,139 @@ Reference</h2>
 <p>Quick reference of useful terminal commands for working with TOMMI
 agents.</p>
 <h3 id="a.1-environment-setup">A.1 Environment Setup</h3>
-<div class="sourceCode" id="cb36"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Activate virtual environment</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate          <span class="co"># Linux/macOS</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>             <span class="co"># Windows</span></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Deactivate virtual environment</span></span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="ex">deactivate</span></span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Check Python version</span></span>
-<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">--version</span></span>
-<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Install dependencies</span></span>
-<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span></code></pre></div>
-<h3 id="a.2-agent-management">A.2 Agent Management</h3>
 <div class="sourceCode" id="cb37"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new agent</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> apps/crear_agente.py</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-l</span></span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Test a specific agent interactively</span></span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">python</span> cli.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span></span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Run batch tests</span></span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span></span>
-<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Run batch tests with session context</span></span>
-<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span> -s</span></code></pre></div>
-<h3 id="a.3-web-server">A.3 Web Server</h3>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Activate virtual environment</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate          <span class="co"># Linux/macOS</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>             <span class="co"># Windows</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Deactivate virtual environment</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="ex">deactivate</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Check Python version</span></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">--version</span></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Install dependencies</span></span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span></code></pre></div>
+<h3 id="a.2-agent-management">A.2 Agent Management</h3>
 <div class="sourceCode" id="cb38"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start the web hub (recommended)</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./web/run_html_server.sh</span>           <span class="co"># Linux/macOS</span></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="ex">web\run_html_server.bat</span>            <span class="co"># Windows</span></span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Start server manually (with auto-reload)</span></span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span> <span class="at">--host</span> 0.0.0.0 <span class="at">--port</span> 8000</span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Free a port in use</span></span>
-<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="ex">./web/liberar-puerto.sh</span> 8000</span>
-<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Check which process is using a port</span></span>
-<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="ex">lsof</span> <span class="at">-i</span> :8000                      <span class="co"># Linux/macOS</span></span>
-<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a><span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="ex">findstr</span> :8000       <span class="co"># Windows</span></span></code></pre></div>
-<h3 id="a.4-rag-agent-operations">A.4 RAG Agent Operations</h3>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new agent</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> apps/crear_agente.py</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-l</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Test a specific agent interactively</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">python</span> cli.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Run batch tests</span></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span></span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Run batch tests with session context</span></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span> -s</span></code></pre></div>
+<h3 id="a.3-web-server">A.3 Web Server</h3>
 <div class="sourceCode" id="cb39"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reindex documents (via API)</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/reindex</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete ChromaDB to force full reindex</span></span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/chroma_db/</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start the web hub (recommended)</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./web/run_html_server.sh</span>           <span class="co"># Linux/macOS</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="ex">web\run_html_server.bat</span>            <span class="co"># Windows</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Start server manually (with auto-reload)</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span> <span class="at">--host</span> 0.0.0.0 <span class="at">--port</span> 8000</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Free a port in use</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="ex">./web/liberar-puerto.sh</span> 8000</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Check which process is using a port</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="ex">lsof</span> <span class="at">-i</span> :8000                      <span class="co"># Linux/macOS</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="ex">findstr</span> :8000       <span class="co"># Windows</span></span></code></pre></div>
+<h3 id="a.4-rag-agent-operations">A.4 RAG Agent Operations</h3>
+<div class="sourceCode" id="cb40"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reindex documents (via API)</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/reindex</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete ChromaDB to force full reindex</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/chroma_db/</span></code></pre></div>
 <h3 id="a.5-consultabd_sql-agent-operations">A.5 ConsultaBD_SQL Agent
 Operations</h3>
-<div class="sourceCode" id="cb40"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View database schema (via API)</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/schema</span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new SQLite database</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/database.db <span class="op">&lt;</span> schema.sql</span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Open database interactively</span></span>
-<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/database.db</span>
-<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Common SQLite commands</span></span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a><span class="ex">.tables</span>                            <span class="co"># List all tables</span></span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a><span class="ex">.schema</span> <span class="op">&lt;</span>table_name<span class="op">&gt;</span>               <span class="co"># Show table structure</span></span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a><span class="ex">.quit</span>                              <span class="co"># Exit SQLite</span></span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View database schema (via API)</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/schema</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new SQLite database</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/database.db <span class="op">&lt;</span> schema.sql</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Open database interactively</span></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/database.db</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Common SQLite commands</span></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a><span class="ex">.tables</span>                            <span class="co"># List all tables</span></span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a><span class="ex">.schema</span> <span class="op">&lt;</span>table_name<span class="op">&gt;</span>               <span class="co"># Show table structure</span></span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a><span class="ex">.quit</span>                              <span class="co"># Exit SQLite</span></span></code></pre></div>
 <h3 id="a.6-ollama-commands-local-llm">A.6 Ollama Commands (Local
 LLM)</h3>
-<div class="sourceCode" id="cb41"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start Ollama server</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> serve</span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a><span class="co"># List available models</span></span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> list</span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Download a model</span></span>
-<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mistral</span>
-<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span>
-<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Test a model</span></span>
-<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> run mistral <span class="st">&quot;Hello, world&quot;</span></span>
-<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete a model</span></span>
-<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> rm <span class="op">&lt;</span>model_name<span class="op">&gt;</span></span>
-<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Check Ollama status</span></span>
-<span id="cb41-18"><a href="#cb41-18" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:11434/api/tags</span></code></pre></div>
-<h3 id="a.7-api-testing-with-curl">A.7 API Testing with curl</h3>
 <div class="sourceCode" id="cb42"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List all agents</span></span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents</span>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start Ollama server</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> serve</span>
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a chat message</span></span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
-<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;&lt;agent_id&gt;&quot;, &quot;message&quot;: &quot;Hello&quot;}&#39;</span></span>
-<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Send message with grounding verification</span></span>
-<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
-<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;&lt;agent_id&gt;&quot;, &quot;message&quot;: &quot;Your question&quot;, &quot;verify&quot;: true}&#39;</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="co"># List available models</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> list</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Download a model</span></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mistral</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Test a model</span></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> run mistral <span class="st">&quot;Hello, world&quot;</span></span>
 <span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Check agent health</span></span>
-<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/health</span></code></pre></div>
-<h3 id="a.8-logs-and-debugging">A.8 Logs and Debugging</h3>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete a model</span></span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> rm <span class="op">&lt;</span>model_name<span class="op">&gt;</span></span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Check Ollama status</span></span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:11434/api/tags</span></code></pre></div>
+<h3 id="a.7-api-testing-with-curl">A.7 API Testing with curl</h3>
 <div class="sourceCode" id="cb43"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View conversation logs (if enabled)</span></span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-f</span> web/logs/conversations.log</span>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List all agents</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents</span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co"># View last 50 lines of logs</span></span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-50</span> web/logs/conversations.log</span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Search logs for specific agent</span></span>
-<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="st">&quot;&lt;agent_id&gt;&quot;</span> web/logs/conversations.log</span>
-<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Clear logs</span></span>
-<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> web/logs/conversations.log</span></code></pre></div>
-<h3 id="a.9-distribution">A.9 Distribution</h3>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a chat message</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;&lt;agent_id&gt;&quot;, &quot;message&quot;: &quot;Hello&quot;}&#39;</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Send message with grounding verification</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;&lt;agent_id&gt;&quot;, &quot;message&quot;: &quot;Your question&quot;, &quot;verify&quot;: true}&#39;</span></span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Check agent health</span></span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/health</span></code></pre></div>
+<h3 id="a.8-logs-and-debugging">A.8 Logs and Debugging</h3>
 <div class="sourceCode" id="cb44"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create distribution package</span></span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./apps/crear_dist.sh</span>               <span class="co"># Linux/macOS</span></span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="ex">apps\crear_dist.bat</span>                <span class="co"># Windows</span></span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View conversation logs (if enabled)</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-f</span> web/logs/conversations.log</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="co"># View last 50 lines of logs</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-50</span> web/logs/conversations.log</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Search logs for specific agent</span></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="st">&quot;&lt;agent_id&gt;&quot;</span> web/logs/conversations.log</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Clear logs</span></span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> web/logs/conversations.log</span></code></pre></div>
+<h3 id="a.9-distribution">A.9 Distribution</h3>
+<div class="sourceCode" id="cb45"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create distribution package</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./apps/crear_dist.sh</span>               <span class="co"># Linux/macOS</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="ex">apps\crear_dist.bat</span>                <span class="co"># Windows</span></span></code></pre></div>
 <h3 id="a.10-useful-environment-variables">A.10 Useful Environment
 Variables</h3>
-<div class="sourceCode" id="cb45"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check current LLM configuration</span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> web/.env <span class="kw">|</span> <span class="fu">grep</span> LLM</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/.env <span class="kw">|</span> <span class="fu">grep</span> LLM</span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Edit environment variables</span></span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> web/.env                      <span class="co"># Linux/macOS</span></span>
-<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a><span class="ex">notepad</span> web<span class="dt">\.</span>env                   <span class="co"># Windows</span></span></code></pre></div>
+<div class="sourceCode" id="cb46"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check current LLM configuration</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> web/.env <span class="kw">|</span> <span class="fu">grep</span> LLM</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/.env <span class="kw">|</span> <span class="fu">grep</span> LLM</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Edit environment variables</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> web/.env                      <span class="co"># Linux/macOS</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a><span class="ex">notepad</span> web<span class="dt">\.</span>env                   <span class="co"># Windows</span></span></code></pre></div>
 <p><a href="#index" class="back-to-top">↑ Back to index</a></p>
 <hr />
 <h2 id="annex-b-cli-quick-reference">Annex B: CLI Quick Reference</h2>
@@ -2358,63 +2395,63 @@ line.</p>
 <h3 id="b.1-interactive-cli">B.1 Interactive CLI</h3>
 <p>The interactive CLI (<code>web/cli.py</code>) allows direct
 conversation with agents without starting a web server.</p>
-<div class="sourceCode" id="cb46"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-l</span></span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">--list</span></span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Start interactive session with a specific agent</span></span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py conf26</span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py pisha2</span>
-<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Without arguments - interactive agent selection menu</span></span>
-<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py</span>
-<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Show help</span></span>
-<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-h</span></span>
-<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">--help</span></span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-l</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">--list</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Start interactive session with a specific agent</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py conf26</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py pisha2</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Without arguments - interactive agent selection menu</span></span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Show help</span></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-h</span></span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">--help</span></span></code></pre></div>
 <p><strong>Exiting the session:</strong> Type <code>exit</code>,
 <code>quit</code>, <code>q</code>, or <code>salir</code> to end the
 conversation.</p>
 <h3 id="b.2-batch-testing">B.2 Batch Testing</h3>
 <p>The batch testing tool (<code>web/batch_test.py</code>) runs multiple
 questions against an agent from a file.</p>
-<div class="sourceCode" id="cb47"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run questions from a file</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt</span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Maintain session context between questions</span></span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">--session</span></span>
-<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Save results to a specific file</span></span>
-<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">-o</span> results.json</span>
-<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Display results in console only (no file output)</span></span>
-<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">--no-save</span></span>
-<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
-<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="at">--list-agents</span></span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run questions from a file</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Maintain session context between questions</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">--session</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Save results to a specific file</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">-o</span> results.json</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Display results in console only (no file output)</span></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">--no-save</span></span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="at">--list-agents</span></span></code></pre></div>
 <p><strong>Question file format:</strong> One question per line. Lines
 starting with <code>#</code> are treated as comments and ignored.</p>
 <h3 id="b.3-http-api-with-curl">B.3 HTTP API with curl</h3>
 <p>When the web server is running, you can interact with agents via
 HTTP.</p>
-<div class="sourceCode" id="cb48"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a question (agent-specific endpoint)</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/chat <span class="dt">\</span></span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;message&quot;: &quot;Your question here&quot;}&#39;</span></span>
-<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a question to a specific agent (central API)</span></span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;conf26&quot;, &quot;message&quot;: &quot;Your question&quot;}&#39;</span></span>
-<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a><span class="co"># List all available agents</span></span>
-<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents</span>
-<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Check agent health</span></span>
-<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/health</span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a question (agent-specific endpoint)</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/chat <span class="dt">\</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;message&quot;: &quot;Your question here&quot;}&#39;</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a question to a specific agent (central API)</span></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;conf26&quot;, &quot;message&quot;: &quot;Your question&quot;}&#39;</span></span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a><span class="co"># List all available agents</span></span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents</span>
+<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Check agent health</span></span>
+<span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/health</span></code></pre></div>
 <p><a href="#index" class="back-to-top">↑ Back to index</a></p>
 </body>
 </html>

@@ -40,9 +40,18 @@ class Choice:
 
 
 @dataclass
+class TokenUsage:
+    """Token usage statistics."""
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+
+
+@dataclass
 class ChatResponse:
     """Normalized chat response."""
     choices: List[Choice]
+    usage: Optional[TokenUsage] = None
 
 
 @dataclass
@@ -112,7 +121,8 @@ class LLMClient:
         return self
 
     def complete(self, model: str = None, messages: List[Dict[str, str]] = None,
-                 tools: List[Dict] = None, tool_choice: str = None) -> ChatResponse:
+                 tools: List[Dict] = None, tool_choice: str = None,
+                 max_tokens: int = None) -> ChatResponse:
         """
         Synchronous chat call.
 
@@ -121,35 +131,46 @@ class LLMClient:
             messages: List of messages [{"role": "...", "content": "..."}]
             tools: List of tools (Mistral only for now)
             tool_choice: Tool selection mode
+            max_tokens: Maximum tokens in response (default: 4096)
 
         Returns:
             ChatResponse with normalized response
         """
         model = model or self._default_model
+        max_tokens = max_tokens or 4096  # Default to 4096 for longer responses
 
         if self.provider == "mistral":
-            return self._complete_mistral(model, messages, tools, tool_choice)
+            return self._complete_mistral(model, messages, tools, tool_choice, max_tokens)
         elif self.provider == "ollama":
-            return self._complete_ollama(model, messages, tools)
+            return self._complete_ollama(model, messages, tools, max_tokens)
         else:  # vllm
-            return self._complete_vllm(model, messages, tools, tool_choice)
+            return self._complete_vllm(model, messages, tools, tool_choice, max_tokens)
 
     def _complete_mistral(self, model: str, messages: List[Dict],
-                          tools: List[Dict] = None, tool_choice: str = None) -> ChatResponse:
+                          tools: List[Dict] = None, tool_choice: str = None,
+                          max_tokens: int = 4096) -> ChatResponse:
         """Call to Mistral Cloud."""
-        kwargs = {"model": model, "messages": messages}
+        kwargs = {"model": model, "messages": messages, "max_tokens": max_tokens}
         if tools:
             kwargs["tools"] = tools
         if tool_choice:
             kwargs["tool_choice"] = tool_choice
 
         response = self._client.chat.complete(**kwargs)
-        return response  # Mistral ya devuelve formato compatible
+        # Mistral response includes usage info - attach it to our response
+        if hasattr(response, 'usage') and response.usage:
+            response.usage = TokenUsage(
+                prompt_tokens=response.usage.prompt_tokens,
+                completion_tokens=response.usage.completion_tokens,
+                total_tokens=response.usage.total_tokens
+            )
+        return response
 
     def _complete_ollama(self, model: str, messages: List[Dict],
-                         tools: List[Dict] = None) -> ChatResponse:
+                         tools: List[Dict] = None, max_tokens: int = 4096) -> ChatResponse:
         """Call to Ollama."""
         kwargs = {"model": model, "messages": messages}
+        kwargs["options"] = {"num_predict": max_tokens}
         if tools:
             kwargs["tools"] = tools
 
@@ -170,7 +191,16 @@ class LLMClient:
                 response["message"]["tool_calls"]
             )
 
-        return ChatResponse(choices=[choice])
+        # Extract token usage from Ollama response
+        usage = None
+        if "prompt_eval_count" in response or "eval_count" in response:
+            usage = TokenUsage(
+                prompt_tokens=response.get("prompt_eval_count", 0),
+                completion_tokens=response.get("eval_count", 0),
+                total_tokens=response.get("prompt_eval_count", 0) + response.get("eval_count", 0)
+            )
+
+        return ChatResponse(choices=[choice], usage=usage)
 
     def _normalize_ollama_tool_calls(self, tool_calls: List[Dict]) -> List:
         """Normalize Ollama tool_calls to Mistral format."""
@@ -200,9 +230,10 @@ class LLMClient:
         return normalized
 
     def _complete_vllm(self, model: str, messages: List[Dict],
-                       tools: List[Dict] = None, tool_choice: str = None) -> ChatResponse:
+                       tools: List[Dict] = None, tool_choice: str = None,
+                       max_tokens: int = 4096) -> ChatResponse:
         """Call to vLLM (OpenAI API compatible)."""
-        kwargs = {"model": model, "messages": messages}
+        kwargs = {"model": model, "messages": messages, "max_tokens": max_tokens}
         if tools:
             kwargs["tools"] = tools
         if tool_choice:
@@ -223,7 +254,16 @@ class LLMClient:
         if tools and msg.tool_calls:
             choice.message.tool_calls = self._normalize_vllm_tool_calls(msg.tool_calls)
 
-        return ChatResponse(choices=[choice])
+        # Extract token usage from OpenAI/vLLM response
+        usage = None
+        if hasattr(response, 'usage') and response.usage:
+            usage = TokenUsage(
+                prompt_tokens=response.usage.prompt_tokens,
+                completion_tokens=response.usage.completion_tokens,
+                total_tokens=response.usage.total_tokens
+            )
+
+        return ChatResponse(choices=[choice], usage=usage)
 
     def _normalize_vllm_tool_calls(self, tool_calls) -> List:
         """Normalize vLLM/OpenAI tool_calls to internal format."""
@@ -251,7 +291,8 @@ class LLMClient:
         return normalized
 
     async def stream_async(self, model: str = None,
-                           messages: List[Dict[str, str]] = None):
+                           messages: List[Dict[str, str]] = None,
+                           max_tokens: int = None):
         """
         Asynchronous response streaming.
         Returns an async iterator compatible with Mistral format.
@@ -259,35 +300,38 @@ class LLMClient:
         Args:
             model: Model to use
             messages: List of messages
+            max_tokens: Maximum tokens in response (default: 4096)
 
         Returns:
             Async iterator of StreamChunk
         """
         model = model or self._default_model
+        max_tokens = max_tokens or 4096
 
         if self.provider == "mistral":
-            return await self._client.chat.stream_async(model=model, messages=messages)
+            return await self._client.chat.stream_async(model=model, messages=messages, max_tokens=max_tokens)
         elif self.provider == "ollama":
-            return self._create_ollama_stream(model, messages)
+            return self._create_ollama_stream(model, messages, max_tokens)
         else:  # vllm
-            return self._create_vllm_stream(model, messages)
+            return self._create_vllm_stream(model, messages, max_tokens)
 
-    def _create_ollama_stream(self, model: str, messages: List[Dict]):
+    def _create_ollama_stream(self, model: str, messages: List[Dict], max_tokens: int = 4096):
         """Creates an async iterator for Ollama."""
-        return OllamaStreamIterator(self._client, model, messages)
+        return OllamaStreamIterator(self._client, model, messages, max_tokens)
 
-    def _create_vllm_stream(self, model: str, messages: List[Dict]):
+    def _create_vllm_stream(self, model: str, messages: List[Dict], max_tokens: int = 4096):
         """Creates an async iterator for vLLM."""
-        return VLLMStreamIterator(self._client, model, messages)
+        return VLLMStreamIterator(self._client, model, messages, max_tokens)
 
 
 class OllamaStreamIterator:
     """Async iterator for Ollama streaming."""
 
-    def __init__(self, client, model: str, messages: List[Dict]):
+    def __init__(self, client, model: str, messages: List[Dict], max_tokens: int = 4096):
         self._client = client
         self._model = model
         self._messages = messages
+        self._max_tokens = max_tokens
         self._stream = None
         self._iterator = None
         self._exhausted = False
@@ -308,7 +352,8 @@ class OllamaStreamIterator:
                 lambda: self._client.chat(
                     model=self._model,
                     messages=self._messages,
-                    stream=True
+                    stream=True,
+                    options={"num_predict": self._max_tokens}
                 )
             )
             self._iterator = iter(self._stream)
@@ -335,10 +380,11 @@ class OllamaStreamIterator:
 class VLLMStreamIterator:
     """Async iterator for vLLM streaming."""
 
-    def __init__(self, client, model: str, messages: List[Dict]):
+    def __init__(self, client, model: str, messages: List[Dict], max_tokens: int = 4096):
         self._client = client
         self._model = model
         self._messages = messages
+        self._max_tokens = max_tokens
         self._stream = None
         self._iterator = None
         self._exhausted = False
@@ -359,7 +405,8 @@ class VLLMStreamIterator:
                 lambda: self._client.chat.completions.create(
                     model=self._model,
                     messages=self._messages,
-                    stream=True
+                    stream=True,
+                    max_tokens=self._max_tokens
                 )
             )
             self._iterator = iter(self._stream)
