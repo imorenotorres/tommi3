@@ -2,7 +2,7 @@
 """
 Benchmarking Loop - Ejecuta benchmarks con diferentes LLMs y compara resultados
 
-Este script permite ejecutar el benchmark de Pisha2 en bucle, configurando
+Este script permite ejecutar el benchmark de Pisha3 en bucle, configurando
 diferentes LLMs en cada iteración, y luego comparar los resultados.
 
 Uso:
@@ -154,7 +154,7 @@ LLM_CONFIGS = {
 # LLMs por defecto a ejecutar (puedes modificar esta lista)
 # IMPORTANTE: Los nombres deben coincidir con las claves de LLM_CONFIGS
 DEFAULT_LLMS = ["mistral_7b", "ministral-3_8b", "mistral-large", "mistral-small","codestral","qwen2.5-coder-14b", "qwen2.5-coder-7b", "codestral-local","qwen3:4b"]
-DEFAULT_LLMS = ["mistral_7b", "ministral-3_8b", "mistral-small"]
+DEFAULT_LLMS = ["mistral_7b","mistral-small"]
 
 def write_env_file(config: dict) -> None:
     """Escribe el archivo .env con la configuración especificada."""
@@ -383,13 +383,21 @@ def compare_results(all_results: list[dict], scenarios: bool = False) -> dict:
             warmup_data = summary.get("warmup", {})
             num_warmup = metadata.get("num_warmup", 1)
 
+            # Contar preguntas reales de la lista (más fiable que usar summary)
+            questions = result.get("questions", [])
+            # Excluir preguntas de warmup del conteo
+            benchmark_questions = [q for q in questions if not q.get("is_warmup", False)]
+            total_questions = len(benchmark_questions)
+            successful = sum(1 for q in benchmark_questions if q.get("success", False))
+            failed = total_questions - successful
+
             llm_summary = {
                 "key": result.get("llm_key"),
                 "name": result.get("llm_name"),
-                "total_questions": summary.get("successful", 0) + summary.get("failed", 0),
+                "total_questions": total_questions,
                 "num_warmup": num_warmup,
-                "successful": summary.get("successful", 0),
-                "failed": summary.get("failed", 0),
+                "successful": successful,
+                "failed": failed,
                 "sql_errors_count": summary.get("sql_errors_count", 0),
                 "sql_errors_total": summary.get("sql_errors_total", 0),
                 "total_time": summary.get("total_time", 0),
@@ -918,7 +926,7 @@ def list_available_llms():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Ejecuta benchmarks de Pisha2 con diferentes LLMs y compara resultados",
+        description="Ejecuta benchmarks de Pisha3 con diferentes LLMs y compara resultados",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Ejemplos de uso:
@@ -1023,11 +1031,33 @@ Ejemplos de uso:
             all_results = load_existing_results(pattern="loop_*.json")
 
         if len(all_results) >= 1:
-            # Detectar si son escenarios o preguntas
-            is_scenarios = any("scenarios" in r.get("metadata", {}) for r in all_results)
-            comparison = compare_results(all_results, scenarios=is_scenarios)
-            print_comparison_report(comparison)
-            save_comparison_report(comparison, all_results)
+            # Separar resultados de preguntas y escenarios
+            scenario_results = [
+                r for r in all_results
+                if "scenarios" in r or r.get("metadata", {}).get("type") == "conversation_scenarios"
+            ]
+            question_results = [
+                r for r in all_results
+                if "questions" in r and "scenarios" not in r
+            ]
+
+            # Generar comparación para escenarios si hay
+            if scenario_results:
+                print(f"\n📊 Comparando {len(scenario_results)} resultados de ESCENARIOS...")
+                comparison = compare_results(scenario_results, scenarios=True)
+                print_comparison_report(comparison)
+                save_comparison_report(comparison, scenario_results)
+
+            # Generar comparación para preguntas si hay
+            if question_results:
+                print(f"\n📊 Comparando {len(question_results)} resultados de PREGUNTAS...")
+                comparison = compare_results(question_results, scenarios=False)
+                print_comparison_report(comparison)
+                save_comparison_report(comparison, question_results)
+
+            if not scenario_results and not question_results:
+                print("\nNo se encontraron resultados válidos para comparar.")
+                print("Los archivos no contienen 'scenarios' ni 'questions'.")
         else:
             print("\nNo se encontraron resultados para comparar.")
             print("Usa --list-results para ver archivos disponibles.")
@@ -1114,10 +1144,27 @@ Ejemplos de uso:
 
     # Generar comparación si hay resultados
     if len(all_results) >= 1:
-        is_scenarios = num_scenarios is not None and num_questions is None
-        comparison = compare_results(all_results, scenarios=is_scenarios)
-        print_comparison_report(comparison)
-        save_comparison_report(comparison, all_results)
+        # Separar resultados de preguntas y escenarios
+        scenario_results = [
+            r for r in all_results
+            if "scenarios" in r or r.get("metadata", {}).get("type") == "conversation_scenarios"
+        ]
+        question_results = [
+            r for r in all_results
+            if "questions" in r and "scenarios" not in r
+        ]
+
+        # Generar comparación para escenarios si hay
+        if scenario_results:
+            comparison = compare_results(scenario_results, scenarios=True)
+            print_comparison_report(comparison)
+            save_comparison_report(comparison, scenario_results)
+
+        # Generar comparación para preguntas si hay
+        if question_results:
+            comparison = compare_results(question_results, scenarios=False)
+            print_comparison_report(comparison)
+            save_comparison_report(comparison, question_results)
     else:
         print("\nNo hay suficientes resultados para comparar.")
 

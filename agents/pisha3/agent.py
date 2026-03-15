@@ -291,6 +291,10 @@ RESPONSE FORMAT:
             'de comercio', 'de educación', 'de educacion', 'de psicología',
             'of law', 'of medicine', 'of engineering', 'of science',
             'of business', 'of education', 'of psychology',
+            # Language levels - "nivel B2" is a language filter, not academic level
+            'nivel a1', 'nivel a2', 'nivel b1', 'nivel b2', 'nivel c1', 'nivel c2',
+            'level a1', 'level a2', 'level b1', 'level b2', 'level c1', 'level c2',
+            'de nivel a1', 'de nivel a2', 'de nivel b1', 'de nivel b2', 'de nivel c1', 'de nivel c2',
         ]
 
         # If the question contains filter indicators, it's likely a refinement, not show field
@@ -789,7 +793,7 @@ RESPONSE FORMAT:
             response_parts.append("ℹ️ *To see complete agreements, perform a more specific search.*")
             return "\n".join(response_parts)
 
-        response_parts = [f"📋 **Agreement details #{index}**\n"]
+        response_parts = [f"📋 **Detalles del acuerdo #{index}**\n"]
         # Mostrar la SQL de la consulta original
         if state['last_sql_query']:
             response_parts.append(f"```sql\n{state['last_sql_query']}\n```\n")
@@ -804,7 +808,7 @@ RESPONSE FORMAT:
         start = r.get('start_date', '')
         end = r.get('end_date', '')
         if start or end:
-            response_parts.append(f"**📅 Validity:** {start} → {end}")
+            response_parts.append(f"**📅 Vigencia:** {start} → {end}")
 
         # Plazas
         vacancies = r.get('student_vacancies', '')
@@ -904,7 +908,7 @@ RESPONSE FORMAT:
         self._add_operation_to_history(session_id, 'show_more', f"Showed results {start + 1} to {end} of {total}")
 
         remaining = total - end
-        response_parts = [f"📄 **Showing results {start + 1} to {end} of {total}**\n"]
+        response_parts = [f"📄 **Mostrando resultados {start + 1} a {end} de {total}**\n"]
 
         # Mostrar la SQL de la consulta original
         if state['last_sql_query']:
@@ -1035,7 +1039,11 @@ RESPONSE FORMAT:
         # 2. Detectar si el SQL anterior tiene un nivel diferente
         nivel_anterior = None
         for nivel in niveles:
-            if f"'%{nivel}%'" in sql_upper or f'"%{nivel}%"' in sql_upper:
+            # Buscar patrones como '%B1%' o = 'B1' (con o sin LIKE)
+            if (f"'%{nivel}%'" in sql_upper or
+                f'"%{nivel}%"' in sql_upper or
+                f"= '{nivel}'" in sql_upper or
+                f"='{nivel}'" in sql_upper):
                 nivel_anterior = nivel
                 break
 
@@ -1047,6 +1055,8 @@ RESPONSE FORMAT:
         patrones_nivel = [
             (rf"'%{nivel_anterior}%'", f"'%{nivel_pedido}%'"),
             (rf'"%{nivel_anterior}%"', f'"%{nivel_pedido}%"'),
+            (rf"= '{nivel_anterior}'", f"= '{nivel_pedido}'"),
+            (rf"='{nivel_anterior}'", f"='{nivel_pedido}'"),
         ]
 
         sql_modificado = previous_sql
@@ -1059,6 +1069,333 @@ RESPONSE FORMAT:
             logger.debug(f"   SQL modificado: {sql_modificado}")
 
         return sql_modificado
+
+    def _postprocess_level_substitution(self, question: str, generated_sql: str, previous_sql: str) -> str:
+        """
+        Post-procesa el SQL generado para forzar la sustitución de niveles de idioma.
+
+        Las LLMs tienden a ignorar las instrucciones de sustituir niveles (B1→B2) y
+        mantienen el nivel anterior. Esta función fuerza la sustitución DESPUÉS de
+        que la LLM genere el SQL.
+
+        Args:
+            question: La pregunta del usuario
+            generated_sql: El SQL generado por la LLM
+            previous_sql: El SQL de la consulta anterior
+
+        Returns:
+            El SQL con el nivel corregido si aplica
+        """
+        import re
+
+        if not previous_sql or not generated_sql:
+            return generated_sql
+
+        question_upper = question.upper()
+
+        # Niveles de idioma
+        niveles = ["B1", "B2", "A1", "A2", "C1", "C2"]
+
+        # 1. Detectar si el usuario está pidiendo un nivel específico
+        nivel_pedido = None
+        for nivel in niveles:
+            if re.search(rf'\b{nivel}\b', question_upper):
+                nivel_pedido = nivel
+                break
+
+        if not nivel_pedido:
+            return generated_sql
+
+        # 2. Detectar si el SQL anterior tenía un nivel diferente
+        sql_anterior_upper = previous_sql.upper()
+        nivel_anterior = None
+        for nivel in niveles:
+            if f"= '{nivel}'" in sql_anterior_upper or f"='{nivel}'" in sql_anterior_upper:
+                nivel_anterior = nivel
+                break
+
+        if not nivel_anterior or nivel_anterior == nivel_pedido:
+            return generated_sql
+
+        # 3. Verificar si el SQL generado todavía contiene el nivel anterior
+        generated_upper = generated_sql.upper()
+        sql_corregido = generated_sql
+        cambios = False
+
+        if f"= '{nivel_anterior}'" in generated_upper or f"='{nivel_anterior}'" in generated_upper:
+            # Forzar la sustitución del nivel
+            patrones = [
+                (rf"= '{nivel_anterior}'", f"= '{nivel_pedido}'"),
+                (rf"='{nivel_anterior}'", f"='{nivel_pedido}'"),
+            ]
+
+            for patron, reemplazo in patrones:
+                sql_corregido = re.sub(patron, reemplazo, sql_corregido, flags=re.IGNORECASE)
+
+            if sql_corregido != generated_sql:
+                cambios = True
+
+        # 4. Eliminar cláusulas NOT IN que excluyan el nivel pedido
+        # Buscar "AND NOT (" y eliminar hasta el paréntesis de cierre balanceado
+        match_and_not = re.search(r'\s*AND\s+NOT\s*\(', sql_corregido, flags=re.IGNORECASE)
+        if match_and_not:
+            start_idx = match_and_not.start()
+            paren_start = match_and_not.end() - 1  # Posición del '('
+            # Contar paréntesis para encontrar el cierre balanceado
+            count = 1
+            end_idx = paren_start + 1
+            while end_idx < len(sql_corregido) and count > 0:
+                if sql_corregido[end_idx] == '(':
+                    count += 1
+                elif sql_corregido[end_idx] == ')':
+                    count -= 1
+                end_idx += 1
+            if count == 0:
+                clausula_not = sql_corregido[start_idx:end_idx]
+                # Solo eliminar si contiene el nivel pedido
+                if nivel_pedido in clausula_not.upper():
+                    sql_nuevo = sql_corregido[:start_idx] + sql_corregido[end_idx:]
+                    if sql_nuevo != sql_corregido:
+                        sql_corregido = sql_nuevo
+                        cambios = True
+                        logger.info(f"🔄 Post-procesamiento: Eliminada cláusula NOT IN que excluía {nivel_pedido}")
+
+        if cambios:
+            logger.info(f"🔄 Post-procesamiento: Forzado nivel {nivel_anterior}→{nivel_pedido} en SQL generado")
+            return sql_corregido
+
+        return generated_sql
+
+    def _postprocess_country_substitution(self, question: str, generated_sql: str, previous_sql: str) -> str:
+        """
+        Post-procesa el SQL generado para forzar la sustitución de país/región.
+
+        Cuando el usuario pide "los de Asia" después de buscar en "Alemania", la LLM
+        tiende a AÑADIR Asia en vez de SUSTITUIR Alemania. Esta función detecta y
+        corrige estos casos.
+
+        Args:
+            question: La pregunta del usuario
+            generated_sql: El SQL generado por la LLM
+            previous_sql: El SQL de la consulta anterior
+
+        Returns:
+            El SQL con el país/región corregido si aplica
+        """
+        import re
+
+        if not previous_sql or not generated_sql:
+            return generated_sql
+
+        question_lower = question.lower()
+
+        # Regiones que indican sustitución
+        regiones = ['asia', 'europa', 'américa latina', 'america latina', 'latinoamérica',
+                    'latinoamerica', 'áfrica', 'africa', 'oceanía', 'oceania',
+                    'países nórdicos', 'paises nordicos', 'europa del este']
+
+        # Detectar si el usuario pide una REGIÓN o un PAÍS diferente
+        # Patrones que indican sustitución (no ampliación)
+        patrones_sustitucion = [
+            r'(?:los|las|muéstrame|muestrame|ver|dame)\s+(?:los\s+)?(?:de\s+)?(\w+)',
+            r'(?:cambiar?|cambia)\s+a\s+(\w+)',
+            r'(?:mejor|prefiero)\s+(?:los\s+de\s+)?(\w+)',
+            r'^(?:los\s+de\s+)?(\w+)$',  # Solo el nombre de una región/país
+        ]
+
+        region_pedida = None
+        for patron in patrones_sustitucion:
+            match = re.search(patron, question_lower)
+            if match:
+                candidato = match.group(1).lower()
+                # Verificar si es una región conocida
+                for region in regiones:
+                    if candidato in region or region.startswith(candidato):
+                        region_pedida = candidato
+                        break
+                if region_pedida:
+                    break
+
+        if not region_pedida:
+            return generated_sql
+
+        # Detectar si el SQL anterior tenía un país específico
+        # Buscar patrones como: destination_country LIKE '%Alemania%'
+        pais_anterior_match = re.search(
+            r"destination_country\s+LIKE\s+'%([^%]+)%'",
+            previous_sql,
+            re.IGNORECASE
+        )
+
+        if not pais_anterior_match:
+            return generated_sql
+
+        pais_anterior = pais_anterior_match.group(1)
+
+        # Verificar si el SQL generado todavía contiene el país anterior
+        if pais_anterior.lower() in generated_sql.lower():
+            # El SQL tiene AMBOS: el país anterior y la nueva región
+            # Necesitamos eliminar la referencia al país anterior
+
+            # Patrones para eliminar el país anterior
+            patrones_eliminar = [
+                # destination_country LIKE '%Alemania%' AND
+                rf"destination_country\s+LIKE\s+'%{re.escape(pais_anterior)}%'\s+AND\s+",
+                # AND destination_country LIKE '%Alemania%'
+                rf"\s+AND\s+destination_country\s+LIKE\s+'%{re.escape(pais_anterior)}%'",
+            ]
+
+            sql_corregido = generated_sql
+            for patron in patrones_eliminar:
+                sql_corregido = re.sub(patron, " ", sql_corregido, flags=re.IGNORECASE)
+
+            # Limpiar espacios múltiples y WHERE AND
+            sql_corregido = re.sub(r'\s+', ' ', sql_corregido)
+            sql_corregido = re.sub(r'WHERE\s+AND', 'WHERE', sql_corregido, flags=re.IGNORECASE)
+            sql_corregido = sql_corregido.strip()
+
+            if sql_corregido != generated_sql:
+                logger.info(f"🔄 Post-procesamiento: Eliminado país anterior '{pais_anterior}' (sustitución por región)")
+                return sql_corregido
+
+        return generated_sql
+
+    def _postprocess_preserve_conditions(self, question: str, generated_sql: str, previous_sql: str) -> str:
+        """
+        Post-procesa el SQL generado para preservar condiciones del SQL anterior
+        que no deberían haberse perdido.
+
+        Cuando el usuario añade un filtro (ej: "solo los de Derecho"), la LLM
+        a veces genera un SQL que pierde condiciones anteriores (ej: pierde Alemania).
+        Esta función detecta y corrige esos casos.
+
+        Args:
+            question: La pregunta del usuario
+            generated_sql: El SQL generado por la LLM
+            previous_sql: El SQL de la consulta anterior
+
+        Returns:
+            El SQL con las condiciones preservadas si aplica
+        """
+        import re
+
+        if not previous_sql or not generated_sql:
+            return generated_sql
+
+        question_lower = question.lower()
+
+        # Patrones que indican AÑADIR filtro (no sustituir)
+        # Estos patrones sugieren que el usuario quiere filtrar más, no cambiar
+        patrones_anadir = [
+            r'^solo\s+los',  # "solo los de Derecho"
+            r'^solo\s+las',
+            r'^los\s+de\s+(?:la\s+)?(?:facultad|medicina|derecho|ciencias|ingeniería)',
+            r'^las\s+de\s+(?:la\s+)?(?:facultad|medicina|derecho|ciencias|ingeniería)',
+            r'^de\s+(?:la\s+)?(?:facultad|medicina|derecho|ciencias)',
+            r'^(?:y\s+)?que\s+(?:tengan|requieran|pidan)',
+            r'^(?:y\s+)?los\s+del\s+primer',
+            r'^(?:y\s+)?los\s+del\s+segundo',
+            r'^(?:y\s+)?del\s+primer\s+cuatrimestre',
+            r'^(?:y\s+)?del\s+segundo\s+cuatrimestre',
+            r'^(?:y\s+)?solo\s+(?:los\s+)?del',
+            r'^(?:y\s+)?que\s+no\s+requieran',
+            r'^filtra',
+        ]
+
+        es_filtro_anadir = False
+        for patron in patrones_anadir:
+            if re.search(patron, question_lower):
+                es_filtro_anadir = True
+                break
+
+        if not es_filtro_anadir:
+            return generated_sql
+
+        # Extraer condiciones clave del SQL anterior
+        condiciones_a_preservar = []
+
+        # 1. Condición de país (destination_country)
+        pais_match = re.search(
+            r"(destination_country\s+(?:LIKE\s+'%[^%]+%'|IN\s*\([^)]+\)))",
+            previous_sql,
+            re.IGNORECASE
+        )
+        if pais_match:
+            condicion_pais = pais_match.group(1)
+            # Verificar si el SQL generado tiene esta condición
+            if 'destination_country' not in generated_sql.upper():
+                condiciones_a_preservar.append(condicion_pais)
+                logger.info(f"🔄 Preservando condición de país: {condicion_pais[:50]}...")
+
+        # 2. Condición de facultad (uma_faculties)
+        facultad_match = re.search(
+            r"(uma_faculties\s+LIKE\s+'%[^%]+%')",
+            previous_sql,
+            re.IGNORECASE
+        )
+        if facultad_match:
+            condicion_facultad = facultad_match.group(1)
+            # Verificar si el SQL generado tiene esta condición
+            if 'uma_faculties' not in generated_sql.upper():
+                condiciones_a_preservar.append(condicion_facultad)
+                logger.info(f"🔄 Preservando condición de facultad: {condicion_facultad[:50]}...")
+
+        # 3. Condición de idioma (lang_1_name o lang_2_name)
+        idioma_match = re.search(
+            r"(\(?\s*(?:lang_1_name|lang_2_name)\s+LIKE\s+'%[^%]+%'(?:\s+(?:AND|OR)\s+(?:lang_1_name|lang_2_name)\s+LIKE\s+'%[^%]+%')?\s*\)?)",
+            previous_sql,
+            re.IGNORECASE
+        )
+        if idioma_match:
+            condicion_idioma = idioma_match.group(1)
+            # Verificar si el SQL generado tiene condición de idioma
+            if 'lang_1_name' not in generated_sql.upper() and 'lang_2_name' not in generated_sql.upper():
+                condiciones_a_preservar.append(condicion_idioma)
+                logger.info(f"🔄 Preservando condición de idioma: {condicion_idioma[:50]}...")
+
+        # Si no hay condiciones a preservar, devolver el SQL original
+        if not condiciones_a_preservar:
+            return generated_sql
+
+        # Añadir las condiciones al SQL generado
+        # Buscar el WHERE en el SQL generado
+        where_match = re.search(r'\bWHERE\b(.+?)(?:ORDER BY|GROUP BY|LIMIT|$)', generated_sql, re.IGNORECASE | re.DOTALL)
+
+        if where_match:
+            # Ya tiene WHERE, añadir con AND
+            where_clause = where_match.group(1).strip()
+            nuevas_condiciones = " AND ".join(condiciones_a_preservar)
+
+            # Insertar las condiciones preservadas al principio del WHERE
+            nuevo_where = f"WHERE {nuevas_condiciones} AND {where_clause}"
+            sql_corregido = re.sub(
+                r'\bWHERE\b.+?(?=ORDER BY|GROUP BY|LIMIT|$)',
+                nuevo_where + " ",
+                generated_sql,
+                flags=re.IGNORECASE | re.DOTALL
+            )
+        else:
+            # No tiene WHERE (raro, pero posible)
+            nuevas_condiciones = " AND ".join(condiciones_a_preservar)
+            # Insertar WHERE antes de ORDER BY, GROUP BY, LIMIT o al final
+            if re.search(r'\b(ORDER BY|GROUP BY|LIMIT)\b', generated_sql, re.IGNORECASE):
+                sql_corregido = re.sub(
+                    r'\b(ORDER BY|GROUP BY|LIMIT)\b',
+                    f"WHERE {nuevas_condiciones} \\1",
+                    generated_sql,
+                    count=1,
+                    flags=re.IGNORECASE
+                )
+            else:
+                sql_corregido = generated_sql.rstrip() + f" WHERE {nuevas_condiciones}"
+
+        # Limpiar espacios múltiples
+        sql_corregido = re.sub(r'\s+', ' ', sql_corregido).strip()
+
+        if sql_corregido != generated_sql:
+            logger.info(f"🔧 Condiciones preservadas añadidas al SQL")
+
+        return sql_corregido
 
     def _init_local_client(self):
         """Inicializa un cliente Ollama local para formatear resultados."""
@@ -1147,6 +1484,7 @@ RESPONSE FORMAT:
 
         # Detectar si es un refinamiento
         is_refinement = previous_sql is not None
+        original_previous_sql = previous_sql  # Guardar el SQL original ANTES de preprocesamiento
         if is_refinement:
             logger.info(f"🔍 Detectado refinamiento. SQL anterior: {previous_sql[:80]}...")
             # Pre-procesar sustitución de niveles (B1→B2, etc.) antes de enviar a la LLM
@@ -1391,6 +1729,16 @@ EJEMPLOS CORRECTOS:
         # Añadir campos de contexto si el SELECT tiene pocos campos
         sql = self._add_context_fields_to_sql(sql)
 
+        # Post-procesar sustituciones si es un refinamiento
+        if is_refinement and original_previous_sql:
+            # Forzar sustitución de nivel (B1→B2) si la LLM no lo hizo
+            # Usamos original_previous_sql (antes de preprocesamiento) para detectar el nivel anterior
+            sql = self._postprocess_level_substitution(normalized_question, sql, original_previous_sql)
+            # Forzar sustitución de país/región si la LLM añadió en vez de sustituir
+            sql = self._postprocess_country_substitution(normalized_question, sql, previous_sql)
+            # Preservar condiciones del SQL anterior que se perdieron incorrectamente
+            sql = self._postprocess_preserve_conditions(user_question, sql, previous_sql)
+
         logger.info(f"📝 SQL generado: {sql}")
         return sql
 
@@ -1520,6 +1868,11 @@ EJEMPLOS CORRECTOS:
             'países nórdicos': NORDIC_COUNTRIES,
             'Países nórdicos': NORDIC_COUNTRIES,
             'paises nordicos': NORDIC_COUNTRIES,  # Sin tildes
+            'nórdicos': NORDIC_COUNTRIES,  # Sin "países"
+            'Nórdicos': NORDIC_COUNTRIES,  # Sin "países", capitalizado
+            'nordicos': NORDIC_COUNTRIES,  # Sin "países" ni tildes
+            'escandinavos': NORDIC_COUNTRIES,  # Sin "países"
+            'Escandinavos': NORDIC_COUNTRIES,  # Sin "países", capitalizado
             'Europa del Este': EASTERN_EUROPE,
             'europa del este': EASTERN_EUROPE,
             'países de habla alemana': GERMAN_SPEAKING,

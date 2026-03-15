@@ -86,7 +86,12 @@ class LLMClient:
 
     def _init_mistral(self):
         """Initialize Mistral client."""
-        from mistralai import Mistral
+        try:
+            # mistralai v2.x
+            from mistralai.client import Mistral
+        except ImportError:
+            # mistralai v1.x (fallback)
+            from mistralai import Mistral
 
         api_key = os.getenv("MISTRAL_API_KEY")
         if not api_key:

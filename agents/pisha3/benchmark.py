@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Benchmark de Pisha2 - Script para pruebas de rendimiento
+Benchmark de Pisha3 - Script para pruebas de rendimiento
 
 Ejecuta un paquete de preguntas predefinidas y genera un log con:
 - Tiempos de cada fase (schema, text_to_sql, execute, format)
@@ -415,10 +415,10 @@ ESCENARIOS_CONVERSACION = [
         "descripcion": "Hacer consulta y ampliar detalles del primer resultado",
         "pasos": [
             {
-                "pregunta": "¿Qué acuerdos hay con The Hague University of Applied Siences?",
+                "pregunta": "¿Qué acuerdos hay con The Hague University of Applied Sciences?",
                 "tipo": "inicial",
                 "validar": {
-                    "sql_contiene": ["The Hague University of Applied Siences"],
+                    "sql_contiene": ["The Hague"],
                     "resultados_min": 1
                 }
             },
@@ -805,7 +805,7 @@ def run_scenario_benchmark(scenarios: list, output_prefix: str = "scenarios") ->
         dict con resultados del benchmark de escenarios
     """
     print("=" * 70)
-    print("BENCHMARK PISHA2 - Escenarios de Conversación")
+    print("BENCHMARK PISHA3 - Escenarios de Conversación")
     print("=" * 70)
     print(f"Escenarios a ejecutar: {len(scenarios)}")
     print(f"Inicio: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -945,7 +945,7 @@ def run_scenario_benchmark(scenarios: list, output_prefix: str = "scenarios") ->
 
     with open(log_path, "w", encoding="utf-8") as f:
         f.write("=" * 80 + "\n")
-        f.write(f"BENCHMARK ESCENARIOS PISHA2 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"BENCHMARK ESCENARIOS PISHA3 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write("=" * 80 + "\n\n")
 
         f.write("RESUMEN\n")
@@ -993,7 +993,7 @@ def run_benchmark(questions: list, output_prefix: str = "benchmark") -> dict:
         dict con resultados del benchmark
     """
     print("=" * 70)
-    print("BENCHMARK PISHA2 - Prueba de Rendimiento")
+    print("BENCHMARK PISHA3 - Prueba de Rendimiento")
     print("=" * 70)
     print(f"Preguntas a ejecutar: {len(questions)}")
     print(f"Inicio: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -1214,7 +1214,7 @@ def run_benchmark(questions: list, output_prefix: str = "benchmark") -> dict:
 
     with open(log_path, "w", encoding="utf-8") as f:
         f.write("=" * 80 + "\n")
-        f.write(f"BENCHMARK PISHA2 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"BENCHMARK PISHA3 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write("=" * 80 + "\n\n")
 
         f.write(f"Modelo: {agent.sql_model}\n")
