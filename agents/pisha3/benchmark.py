@@ -130,6 +130,22 @@ PREGUNTAS_QUICK = [
     "¿Qué opciones hay para Derecho?",
 ]
 
+# Preguntas específicas de idiomas (para benchmark --idiomas)
+PREGUNTAS_IDIOMAS = [
+    # Warm-up
+    "¿Qué destinos no requieren acreditación de idioma?",
+    # Preguntas de idiomas
+    "¿Qué destinos no requieren acreditación de idioma?",
+    "¿Qué nivel de inglés necesito para ir a Alemania?",
+    "¿Hay destinos donde se requiera solo B1 de inglés?",
+    "¿Hay destinos en Europa que no requieran idioma?",
+    "¿Qué nivel de idioma se necesita para estudiar arquitectura en la universidad de La Sapienza?",
+    "¿Hay algún convenio en alemania que pida nivel de alemán B2 para la Facultad de Filosofía y Letras?",
+    "¿Cuántas plazas en universidades de Finlandia en las que el nivel de inglés sea B1?",
+    "¿Hay convenios en Finlandia que pidan francés B2?",
+    "¿Hay plazas en Alemania para Medicina que pidan inglés C1?",
+]
+
 # ============================================================================
 # PREGUNTAS EXTRACOMPLEJAS (errores ortográficos, criterios adicionales, regiones)
 # Se asume que algún fallo es normal en esta sección
@@ -150,7 +166,7 @@ PREGUNTAS_EXTRACOMPLEJAS = [
     # 6. Pregunta mal estructurada
     "plazas italia ciencias inglés B2 hay?",
     # 7. Errores múltiples + región
-    "convenios en paises nordicos sin requisito de idioma para filosofia y letras?",
+    "convenios en paises nordicos sin requisito de idioma para filosofia y letras",
 
     # --- Con criterios adicionales (3-4 criterios) ---
     # 8. País + facultad + idioma + nivel específico
@@ -208,68 +224,68 @@ RESPUESTAS_REFERENCIA = {
     "¿Cuántos destinos hay en América Latina?": "SELECT COUNT(*) FROM destinations WHERE destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela')",
     "¿Tenemos convenios Erasmus con países de Ásia?": "SELECT DISTINCT host_institution, destination_country FROM destinations WHERE mobility_program LIKE '%ERASMUS%' AND destination_country IN ('Armenia', 'Corea del Sur', 'Filipinas', 'India', 'Indonesia', 'Japón', 'Kazajistán', 'Malasia', 'Nepal', 'Tailandia', 'Taiwán')",
     "¿Qué destinos hay para estudiantes de la Facultad de Derecho?": "SELECT * FROM destinations WHERE uma_faculties LIKE '%Derecho%'",
-    "¿A dónde puedo ir si estudio Ingeniería Informática?": "SELECT host_institution, destination_country, mobility_program, student_vacancies, language_requirements FROM destinations WHERE uma_degrees LIKE '%Ingeniería Informática%'",
+    "¿A dónde puedo ir si estudio Ingeniería Informática?": "SELECT host_institution, destination_country, mobility_program, student_vacancies, lang_1_name, lang_1_level FROM destinations WHERE uma_degrees LIKE '%Ingeniería Informática%'",
     "¿Qué opciones de movilidad tiene la Facultad de Medicina?": "SELECT * FROM destinations WHERE uma_faculties LIKE '%Medicina%'",
     "¿Qué destinos hay con ERASMUS+ KA131?": "SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS+ KA131%'",
     "¿Cuáles son las opciones de MOVILIDAD INTERNACIONAL UMA?": "SELECT * FROM destinations WHERE mobility_program LIKE '%MOVILIDAD INTERNACIONAL UMA%'",
     "¿Qué universidades participan en el programa ISEP?": "SELECT host_institution FROM destinations WHERE mobility_program LIKE '%ISEP%'",
-    "¿Qué destinos no requieren acreditación de idioma?": "SELECT * FROM destinations WHERE language_requirements = 'No requiere acreditación de idioma'",
-    "¿Qué nivel de inglés necesito para ir a Alemania?": "SELECT language_requirements FROM destinations WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'",
-    "¿Hay destinos donde se requiera solo B1 de inglés?": "SELECT * FROM destinations WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%'",
-    "¿Hay destinos en Europa que no requieran idioma?": "SELECT * FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND language_requirements = 'No requiere acreditación de idioma'",
+    "¿Qué destinos no requieren acreditación de idioma?": "SELECT * FROM destinations WHERE lang_1_name IS NULL",
+    "¿Qué nivel de inglés necesito para ir a Alemania?": "SELECT lang_1_name, lang_1_level, lang_2_name, lang_2_level FROM destinations WHERE destination_country LIKE '%Alemania%' AND (lang_1_name LIKE '%Inglés%' OR lang_2_name LIKE '%Inglés%')",
+    "¿Hay destinos donde se requiera solo B1 de inglés?": "SELECT * FROM destinations WHERE ((lang_1_name LIKE '%Inglés%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%Inglés%' AND lang_2_level = 'B1')) AND NOT (lang_1_level IN ('B2','C1','C2') OR lang_2_level IN ('B2','C1','C2'))",
+    "¿Hay destinos en Europa que no requieran idioma?": "SELECT * FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND lang_1_name IS NULL",
     "¿Qué destinos tienen plazas disponibles?": "SELECT * FROM destinations WHERE student_vacancies NOT LIKE '%Plazas: 0%'",
     "¿Cuántas plazas hay para el primer cuatrimestre en universidades de Finlandia?": "SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Finlandia%' AND student_vacancies LIKE '%1er CUATRIMESTRE%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
-    "¿Cuántas plazas en universidades de Finlandia en las que el nivel de inglés sea B1?": "SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Finlandia%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
-    "¿Qué universidades de Europa tienen convenio con la Facultad de Ciencias en los que el nivel de inglés es B1?": "SELECT host_institution, destination_country FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%'",
-    "¿Hay algún convenio en alemania que pida nivel de alemán B2 para la Facultad de Filosofía y Letras?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B2%' AND uma_faculties LIKE '%Filosofía y Letras%'",
+    "¿Cuántas plazas en universidades de Finlandia en las que el nivel de inglés sea B1?": "SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Finlandia%' AND ((lang_1_name LIKE '%Inglés%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%Inglés%' AND lang_2_level = 'B1')) AND student_vacancies NOT LIKE '%Plazas: 0%'",
+    "¿Qué universidades de Europa tienen convenio con la Facultad de Ciencias en los que el nivel de inglés es B1?": "SELECT host_institution, destination_country FROM destinations WHERE destination_country IN ('Albania', 'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'República Checa', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Georgia', 'Grecia', 'Hungría', 'Irlanda', 'Islandia', 'Italia', 'Letonia', 'Lituania', 'Malta', 'Moldavia', 'Noruega', 'Países Bajos', 'Polonia', 'Portugal', 'Reino Unido', 'República de Chipre', 'República de Macedonia', 'Rumanía', 'Serbia', 'Suecia', 'Suiza', 'Turquía', 'Ucrania') AND uma_faculties LIKE '%Ciencias%' AND ((lang_1_name LIKE '%Inglés%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%Inglés%' AND lang_2_level = 'B1'))",
+    "¿Hay algún convenio en alemania que pida nivel de alemán B2 para la Facultad de Filosofía y Letras?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND ((lang_1_name LIKE '%Alemán%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Alemán%' AND lang_2_level = 'B2')) AND uma_faculties LIKE '%Filosofía y Letras%'",
     "¿Con qué paises de América latina tiene convenios la Facultad de Medicina?": "SELECT DISTINCT destination_country FROM destinations WHERE destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela') AND uma_faculties LIKE '%Medicina%'",
     "¿Qué acuerdos hay con The Hague University of Applied Sciences?": "SELECT * FROM destinations WHERE host_institution LIKE '%The Hague University of Applied Sciences%'",
     "¿Hay convenios con universidades de Rumanía?": "SELECT * FROM destinations WHERE destination_country LIKE '%Rumanía%'",
     # Consultas nuevas (combinación de criterios avanzados)
-    "¿Qué destinos hay disponibles en Italia para grado de enfermería que no requieran título de idioma?": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%Enfermería%' AND language_requirements = 'No requiere acreditación de idioma'",
-    "¿Qué nivel de idioma se necesita para estudiar arquitectura en la universidad de La Sapienza?": "SELECT language_requirements FROM destinations WHERE host_institution LIKE '%La Sapienza%' AND uma_degrees LIKE '%Arquitectura%'",
+    "¿Qué destinos hay disponibles en Italia para grado de enfermería que no requieran título de idioma?": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%Enfermería%' AND lang_1_name IS NULL",
+    "¿Qué nivel de idioma se necesita para estudiar arquitectura en la universidad de La Sapienza?": "SELECT lang_1_name, lang_1_level, lang_2_name, lang_2_level FROM destinations WHERE host_institution LIKE '%La Sapienza%' AND uma_degrees LIKE '%Arquitectura%'",
     "¿Hace falta una nota media mínima para poder estudiar en la universidad de Berlín?": "SELECT host_institution, academic_requirements_text FROM destinations WHERE host_institution LIKE '%Berlín%' OR host_institution LIKE '%Berlin%'",
     # Consultas con múltiples criterios (análisis de causas)
-    "¿Hay convenios en Japón que requieran coreano B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Japón%' AND language_requirements LIKE '%COREANO%' AND language_requirements LIKE '%B2%'",
-    "¿Por qué no hay plazas con alemán B1 en Corea del Sur?": "SELECT * FROM destinations WHERE destination_country LIKE '%Corea del Sur%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
-    "¿Hay convenios en Finlandia que pidan francés B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Finlandia%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%'",
-    "¿Hay plazas en Alemania para Medicina que pidan inglés C1?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Medicina%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%C1%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
-    "¿Hay convenios en Alemania para Derecho que pidan francés B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Derecho%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%'",
-    "¿Hay plazas disponibles en Italia para la Facultad de Ciencias con inglés B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B2%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+    "¿Hay convenios en Japón que requieran coreano B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Japón%' AND ((lang_1_name LIKE '%Coreano%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Coreano%' AND lang_2_level = 'B2'))",
+    "¿Por qué no hay plazas con alemán B1 en Corea del Sur?": "SELECT * FROM destinations WHERE destination_country LIKE '%Corea del Sur%' AND ((lang_1_name LIKE '%Alemán%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%Alemán%' AND lang_2_level = 'B1')) AND student_vacancies NOT LIKE '%Plazas: 0%'",
+    "¿Hay convenios en Finlandia que pidan francés B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Finlandia%' AND ((lang_1_name LIKE '%Francés%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Francés%' AND lang_2_level = 'B2'))",
+    "¿Hay plazas en Alemania para Medicina que pidan inglés C1?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Medicina%' AND ((lang_1_name LIKE '%Inglés%' AND lang_1_level = 'C1') OR (lang_2_name LIKE '%Inglés%' AND lang_2_level = 'C1')) AND student_vacancies NOT LIKE '%Plazas: 0%'",
+    "¿Hay convenios en Alemania para Derecho que pidan francés B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Derecho%' AND ((lang_1_name LIKE '%Francés%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Francés%' AND lang_2_level = 'B2'))",
+    "¿Hay plazas disponibles en Italia para la Facultad de Ciencias con inglés B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_faculties LIKE '%Ciencias%' AND ((lang_1_name LIKE '%Inglés%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Inglés%' AND lang_2_level = 'B2')) AND student_vacancies NOT LIKE '%Plazas: 0%'",
 
     # --- RESPUESTAS EXTRACOMPLEJAS ---
     # Con errores ortográficos/gramaticales (el SQL debe ser correcto aunque la pregunta tenga errores)
     "que universidades hay en belgica para erasmus?": "SELECT host_institution FROM destinations WHERE destination_country LIKE '%Bélgica%' AND mobility_program LIKE '%ERASMUS%'",
     "¿Hay convenios con Finlandia o Noruega para ingenieria informatica?": "SELECT * FROM destinations WHERE (destination_country LIKE '%Finlandia%' OR destination_country LIKE '%Noruega%') AND uma_degrees LIKE '%Ingeniería Informática%'",
-    "oye, donde puedo ir si hago derecho y quiero ir a sitios que no pidan mucho idioma?": "SELECT host_institution, destination_country FROM destinations WHERE uma_faculties LIKE '%Derecho%' AND (language_requirements = 'No requiere acreditación de idioma' OR language_requirements LIKE '%B1%')",
-    "QUIERO IR A ALEMANIA con nivel b1 de aleman, hay plazas?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+    "oye, donde puedo ir si hago derecho y quiero ir a sitios que no pidan mucho idioma?": "SELECT host_institution, destination_country FROM destinations WHERE uma_faculties LIKE '%Derecho%' AND (lang_1_name IS NULL OR lang_1_level = 'B1' OR lang_2_level = 'B1')",
+    "QUIERO IR A ALEMANIA con nivel b1 de aleman, hay plazas?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND ((lang_1_name LIKE '%Alemán%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%Alemán%' AND lang_2_level = 'B1')) AND student_vacancies NOT LIKE '%Plazas: 0%'",
     "q unis hay en italia pa medicina?": "SELECT host_institution FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_faculties LIKE '%Medicina%'",
-    "plazas italia ciencias inglés B2 hay?": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_faculties LIKE '%Ciencias%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B2%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
-    "convenios en paises nordicos sin requisito de idioma para filosofia y letras?": "SELECT * FROM destinations WHERE destination_country IN ('Dinamarca', 'Finlandia', 'Islandia', 'Noruega', 'Suecia') AND language_requirements = 'No requiere acreditación de idioma' AND uma_faculties LIKE '%Filosofía y Letras%'",
+    "plazas italia ciencias inglés B2 hay?": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_faculties LIKE '%Ciencias%' AND ((lang_1_name LIKE '%Inglés%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Inglés%' AND lang_2_level = 'B2')) AND student_vacancies NOT LIKE '%Plazas: 0%'",
+    "convenios en paises nordicos sin requisito de idioma para filosofia y letras?": "SELECT * FROM destinations WHERE destination_country IN ('Dinamarca', 'Finlandia', 'Islandia', 'Noruega', 'Suecia') AND lang_1_name IS NULL AND uma_faculties LIKE '%Filosofía y Letras%'",
 
     # Con criterios adicionales (3-4 criterios)
-    "¿Hay convenios en Francia para Económicas que pidan francés B2 y tengan plazas en el primer cuatrimestre?": "SELECT * FROM destinations WHERE destination_country LIKE '%Francia%' AND uma_faculties LIKE '%Económicas%' AND language_requirements LIKE '%FRANCÉS%' AND language_requirements LIKE '%B2%' AND student_vacancies LIKE '%1er CUATRIMESTRE%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
-    "¿Qué universidades de Europa del Este tienen programa Erasmus para Derecho con inglés B1?": "SELECT host_institution, destination_country FROM destinations WHERE destination_country IN ('Bulgaria', 'Croacia', 'Eslovaquia', 'Eslovenia', 'Estonia', 'Hungría', 'Letonia', 'Lituania', 'Polonia', 'República Checa', 'Rumanía', 'Serbia', 'Ucrania') AND mobility_program LIKE '%ERASMUS%' AND uma_faculties LIKE '%Derecho%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%'",
-    "¿Hay destinos en Alemania para estudiantes de Ciencias o Ingeniería que requieran alemán?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND (uma_faculties LIKE '%Ciencias%' OR uma_faculties LIKE '%Ingeniería%') AND language_requirements LIKE '%ALEMÁN%'",
+    "¿Hay convenios en Francia para Económicas que pidan francés B2 y tengan plazas en el primer cuatrimestre?": "SELECT * FROM destinations WHERE destination_country LIKE '%Francia%' AND uma_faculties LIKE '%Económicas%' AND ((lang_1_name LIKE '%Francés%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Francés%' AND lang_2_level = 'B2')) AND student_vacancies LIKE '%1er CUATRIMESTRE%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
+    "¿Qué universidades de Europa del Este tienen programa Erasmus para Derecho con inglés B1?": "SELECT host_institution, destination_country FROM destinations WHERE destination_country IN ('Bulgaria', 'Croacia', 'Eslovaquia', 'Eslovenia', 'Estonia', 'Hungría', 'Letonia', 'Lituania', 'Polonia', 'República Checa', 'Rumanía', 'Serbia', 'Ucrania') AND mobility_program LIKE '%ERASMUS%' AND uma_faculties LIKE '%Derecho%' AND ((lang_1_name LIKE '%Inglés%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%Inglés%' AND lang_2_level = 'B1'))",
+    "¿Hay destinos en Alemania para estudiantes de Ciencias o Ingeniería que requieran alemán?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND (uma_faculties LIKE '%Ciencias%' OR uma_faculties LIKE '%Ingeniería%') AND (lang_1_name LIKE '%Alemán%' OR lang_2_name LIKE '%Alemán%')",
     "¿Cuántas plazas Erasmus hay en países nórdicos para el segundo cuatrimestre?": "SELECT COUNT(*) FROM destinations WHERE destination_country IN ('Dinamarca', 'Finlandia', 'Islandia', 'Noruega', 'Suecia') AND mobility_program LIKE '%ERASMUS%' AND student_vacancies LIKE '%2º CUATRIMESTRE%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
-    "Universidades en Portugal para Turismo con portugués B1 y plazas disponibles": "SELECT host_institution FROM destinations WHERE destination_country LIKE '%Portugal%' AND uma_faculties LIKE '%Turismo%' AND language_requirements LIKE '%PORTUGUÉS%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'",
-    "¿Hay convenios ISEP en Latinoamérica para Medicina sin requisito de idioma?": "SELECT * FROM destinations WHERE mobility_program LIKE '%ISEP%' AND destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela') AND uma_faculties LIKE '%Medicina%' AND language_requirements = 'No requiere acreditación de idioma'",
-    "¿Qué opciones hay en Alemania, Austria o Suiza para Filosofía con alemán B2?": "SELECT * FROM destinations WHERE destination_country IN ('Alemania', 'Austria', 'Suiza') AND uma_faculties LIKE '%Filosofía%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B2%'",
+    "Universidades en Portugal para Turismo con portugués B1 y plazas disponibles": "SELECT host_institution FROM destinations WHERE destination_country LIKE '%Portugal%' AND uma_faculties LIKE '%Turismo%' AND ((lang_1_name LIKE '%Portugués%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%Portugués%' AND lang_2_level = 'B1')) AND student_vacancies NOT LIKE '%Plazas: 0%'",
+    "¿Hay convenios ISEP en Latinoamérica para Medicina sin requisito de idioma?": "SELECT * FROM destinations WHERE mobility_program LIKE '%ISEP%' AND destination_country IN ('Argentina', 'Bolivia', 'Brasil', 'Chile', 'Colombia', 'Costa Rica', 'Ecuador', 'Honduras', 'México', 'Panamá', 'Paraguay', 'Perú', 'Puerto Rico', 'República Dominicana', 'Uruguay', 'Venezuela') AND uma_faculties LIKE '%Medicina%' AND lang_1_name IS NULL",
+    "¿Qué opciones hay en Alemania, Austria o Suiza para Filosofía con alemán B2?": "SELECT * FROM destinations WHERE destination_country IN ('Alemania', 'Austria', 'Suiza') AND uma_faculties LIKE '%Filosofía%' AND ((lang_1_name LIKE '%Alemán%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Alemán%' AND lang_2_level = 'B2'))",
 
     # Con regiones o grupos de países
     "¿Qué convenios hay con los países escandinavos para cualquier facultad?": "SELECT * FROM destinations WHERE destination_country IN ('Dinamarca', 'Finlandia', 'Islandia', 'Noruega', 'Suecia')",
-    "¿Hay destinos en Europa del Este que no requieran idioma?": "SELECT * FROM destinations WHERE destination_country IN ('Bulgaria', 'Croacia', 'Eslovaquia', 'Eslovenia', 'Estonia', 'Hungría', 'Letonia', 'Lituania', 'Polonia', 'República Checa', 'Rumanía', 'Serbia', 'Ucrania') AND language_requirements = 'No requiere acreditación de idioma'",
+    "¿Hay destinos en Europa del Este que no requieran idioma?": "SELECT * FROM destinations WHERE destination_country IN ('Bulgaria', 'Croacia', 'Eslovaquia', 'Eslovenia', 'Estonia', 'Hungría', 'Letonia', 'Lituania', 'Polonia', 'República Checa', 'Rumanía', 'Serbia', 'Ucrania') AND lang_1_name IS NULL",
     "¿Qué universidades hay en países de habla inglesa con plazas disponibles?": "SELECT host_institution, destination_country FROM destinations WHERE destination_country IN ('Irlanda', 'Reino Unido', 'Estados Unidos', 'Canadá', 'Australia') AND student_vacancies NOT LIKE '%Plazas: 0%'",
     "¿Hay convenios fuera de la Unión Europea para Ingeniería?": "SELECT * FROM destinations WHERE destination_country NOT IN ('Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'Croacia', 'Dinamarca', 'Eslovaquia', 'Eslovenia', 'España', 'Estonia', 'Finlandia', 'Francia', 'Grecia', 'Hungría', 'Irlanda', 'Italia', 'Letonia', 'Lituania', 'Luxemburgo', 'Malta', 'Países Bajos', 'Polonia', 'Portugal', 'República Checa', 'República de Chipre', 'Rumanía', 'Suecia') AND uma_faculties LIKE '%Ingeniería%'",
     "Destinos en países mediterráneos con Erasmus+ para Turismo": "SELECT * FROM destinations WHERE destination_country IN ('España', 'Francia', 'Italia', 'Grecia', 'Croacia', 'Eslovenia', 'Malta', 'República de Chipre', 'Turquía', 'Marruecos', 'Túnez', 'Argelia', 'Egipto') AND mobility_program LIKE '%ERASMUS%' AND uma_faculties LIKE '%Turismo%'",
     "¿Qué opciones de movilidad hay en países de habla alemana para Económicas?": "SELECT * FROM destinations WHERE destination_country IN ('Alemania', 'Austria', 'Suiza') AND uma_faculties LIKE '%Económicas%'",
-    "¿Hay plazas en el Benelux para estudiantes de Derecho con inglés o francés?": "SELECT * FROM destinations WHERE destination_country IN ('Bélgica', 'Países Bajos', 'Luxemburgo') AND uma_faculties LIKE '%Derecho%' AND (language_requirements LIKE '%INGLÉS%' OR language_requirements LIKE '%FRANCÉS%') AND student_vacancies NOT LIKE '%Plazas: 0%'",
+    "¿Hay plazas en el Benelux para estudiantes de Derecho con inglés o francés?": "SELECT * FROM destinations WHERE destination_country IN ('Bélgica', 'Países Bajos', 'Luxemburgo') AND uma_faculties LIKE '%Derecho%' AND (lang_1_name LIKE '%Inglés%' OR lang_2_name LIKE '%Inglés%' OR lang_1_name LIKE '%Francés%' OR lang_2_name LIKE '%Francés%') AND student_vacancies NOT LIKE '%Plazas: 0%'",
 
-    "¿Qué destinos hay disponibles en Italia para grado de enfermería que no requieran título de idioma?": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%Enfermería%' AND language_requirements = 'No requiere acreditación de idioma'",
-    "¿Qué nivel de idioma se necesita para estudiar arquitectura en la universidad de La Sapienza?": "SELECT language_requirements FROM destinations WHERE host_institution LIKE '%La Sapienza%' AND uma_degrees LIKE '%Arquitectura%'",
+    "¿Qué destinos hay disponibles en Italia para grado de enfermería que no requieran título de idioma?": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%Enfermería%' AND lang_1_name IS NULL",
+    "¿Qué nivel de idioma se necesita para estudiar arquitectura en la universidad de La Sapienza?": "SELECT lang_1_name, lang_1_level, lang_2_name, lang_2_level FROM destinations WHERE host_institution LIKE '%La Sapienza%' AND uma_degrees LIKE '%Arquitectura%'",
     "¿Hace falta una nota media mínima para poder estudiar en la universidad de Berlín?": "SELECT host_institution, minimum_gpa FROM destinations WHERE host_institution LIKE '%Berlín%' OR host_institution LIKE '%Berlin%'",
-    "¿Hay convenios en Japón que requieran coreano B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Japón%' AND language_requirements LIKE '%COREANO%' AND language_requirements LIKE '%B2%'",
-    "¿Por qué no hay plazas con alemán B1 en Corea del Sur?": "SELECT * FROM destinations WHERE destination_country LIKE '%Corea del Sur%' AND language_requirements LIKE '%ALEMÁN%' AND language_requirements LIKE '%B1%' AND student_vacancies NOT LIKE '%Plazas: 0%'"
+    "¿Hay convenios en Japón que requieran coreano B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Japón%' AND ((lang_1_name LIKE '%Coreano%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Coreano%' AND lang_2_level = 'B2'))",
+    "¿Por qué no hay plazas con alemán B1 en Corea del Sur?": "SELECT * FROM destinations WHERE destination_country LIKE '%Corea del Sur%' AND ((lang_1_name LIKE '%Alemán%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%Alemán%' AND lang_2_level = 'B1')) AND student_vacancies NOT LIKE '%Plazas: 0%'"
 }
 
 
@@ -603,8 +619,8 @@ ESCENARIOS_CONVERSACION = [
                 "pregunta": "Solo los que no requieran acreditación de idioma",
                 "tipo": "refinamiento",
                 "validar": {
-                    "sql_contiene": ["language_requirements"],
-                    "sql_contiene_alguno": ["No requiere", "sin requisito", "= 'No"],
+                    "sql_contiene": ["lang_1_name"],
+                    "sql_contiene_alguno": ["IS NULL", "NULL"],
                     "resultados_menor_que_anterior": True
                 }
             }
@@ -1274,6 +1290,7 @@ Ejemplos de uso:
   python benchmark.py -s 5         # Ejecutar solo 5 escenarios
   python benchmark.py --all        # Ejecutar todo (preguntas + escenarios)
   python benchmark.py -q -s        # Ejecutar todas las preguntas y escenarios
+  python benchmark.py -i           # Ejecutar solo preguntas de idiomas
 """
     )
     parser.add_argument(
@@ -1295,6 +1312,11 @@ Ejemplos de uso:
         help="Ejecutar escenarios (sin N = todos, con N = solo N escenarios)"
     )
     parser.add_argument(
+        "-i", "--idiomas",
+        action="store_true",
+        help="Ejecutar solo preguntas relacionadas con idiomas"
+    )
+    parser.add_argument(
         "--all",
         action="store_true",
         help="Ejecutar todo: todas las preguntas + todos los escenarios"
@@ -1310,13 +1332,18 @@ Ejemplos de uso:
     args = parser.parse_args()
 
     # Si no se especifica ninguna opción, mostrar ayuda
-    if args.questions is None and args.scenarios is None and not args.all:
+    if args.questions is None and args.scenarios is None and not args.all and not args.idiomas:
         parser.print_help()
         return
 
     # Determinar prefijos de salida
     questions_prefix = args.output if args.output else "benchmark"
     scenarios_prefix = args.output if args.output else "scenarios"
+
+    # Ejecutar preguntas de idiomas
+    if args.idiomas:
+        idiomas_prefix = args.output if args.output else "benchmark_idiomas"
+        run_benchmark(PREGUNTAS_IDIOMAS.copy(), idiomas_prefix)
 
     # Ejecutar preguntas
     if args.questions is not None or args.all:

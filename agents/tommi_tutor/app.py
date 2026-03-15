@@ -1,6 +1,6 @@
 """
-Tommi virtual tutor (nube) - Servidor FastAPI (Oneshot)
-Versión cloud usando Mistral API
+Tommi virtual tutor - Servidor FastAPI (RAG)
+Versión RAG con búsqueda semántica usando ChromaDB
 """
 
 # Activar venv automáticamente si no está activo
@@ -27,7 +27,7 @@ from agent import Agent
 AGENT_CONFIG = {
     "id": "tommi_tutor_nube",
     "name": "Tommi virtual tutor",
-    "type": "oneshot",
+    "type": "rag",
     "description": "Your virtual tutor to learn the basics of AI Agents development with Tommi, and somme advanced options also",
     "welcome_message": "Hi, I am Tommi virtual tutor. Is there anything I can do for you today?",
     "example_queries": ["Which types of agents can I create with Tommi?", 
@@ -104,6 +104,16 @@ async def chat(request: ChatRequest):
 
     response = agent.chat(request.message, request.history, verify=request.verify)
     return ChatResponse(response=response)
+
+
+@app.post("/reindex")
+async def reindex():
+    """Reindexa los documentos en data/docs/"""
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agente no inicializado")
+
+    count = agent.reindex()
+    return {"status": "ok", "indexed_chunks": count}
 
 
 @app.get("/examples")

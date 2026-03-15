@@ -204,10 +204,10 @@ RESPONSE FORMAT:
             'programa': 'mobility_program',
             'programas': 'mobility_program',
             'tipo de programa': 'mobility_program',
-            'idioma': 'language_requirements',
-            'idiomas': 'language_requirements',
-            'requisito': 'language_requirements',
-            'requisitos': 'language_requirements',
+            'idioma': 'lang_1_name',
+            'idiomas': 'lang_1_name',
+            'requisito': 'lang_1_name',
+            'requisitos': 'lang_1_name',
             'plaza': 'student_vacancies',
             'plazas': 'student_vacancies',
             'vacantes': 'student_vacancies',
@@ -237,10 +237,10 @@ RESPONSE FORMAT:
             'program': 'mobility_program',
             'programs': 'mobility_program',
             'program type': 'mobility_program',
-            'language': 'language_requirements',
-            'languages': 'language_requirements',
-            'requirement': 'language_requirements',
-            'requirements': 'language_requirements',
+            'language': 'lang_1_name',
+            'languages': 'lang_1_name',
+            'requirement': 'lang_1_name',
+            'requirements': 'lang_1_name',
             'vacancy': 'student_vacancies',
             'vacancies': 'student_vacancies',
             'spots': 'student_vacancies',
@@ -331,7 +331,7 @@ RESPONSE FORMAT:
             'institucion': 'host_institution',
             'institución': 'host_institution',
             'programa': 'mobility_program',
-            'idioma': 'language_requirements',
+            'idioma': 'lang_1_name',
             'facultad': 'uma_faculties',
             'centro': 'uma_faculties',
             'alfabeticamente': 'host_institution',
@@ -342,7 +342,7 @@ RESPONSE FORMAT:
             'name': 'host_institution',
             'institution': 'host_institution',
             'program': 'mobility_program',
-            'language': 'language_requirements',
+            'language': 'lang_1_name',
             'faculty': 'uma_faculties',
             'school': 'uma_faculties',
             'alphabetically': 'host_institution',
@@ -557,7 +557,10 @@ RESPONSE FORMAT:
             'uma_faculties': '🏫 UMA Faculty',
             'uma_degrees': '📚 Degrees',
             'mobility_program': '📋 Program',
-            'language_requirements': '🗣️ Language',
+            'lang_1_name': '🗣️ Language 1',
+            'lang_1_level': '📊 Level 1',
+            'lang_2_name': '🗣️ Language 2',
+            'lang_2_level': '📊 Level 2',
             'student_vacancies': '🎓 Vacancies',
             'start_date': '📅 Start date',
             'end_date': '📅 End date',
@@ -569,7 +572,7 @@ RESPONSE FORMAT:
 
         # Campos que ya se muestran por defecto
         default_fields = {'host_institution', 'destination_country', 'mobility_program',
-                         'student_vacancies', 'language_requirements'}
+                         'student_vacancies', 'lang_1_name', 'lang_1_level'}
 
         label = field_labels.get(field_name, field_name)
 
@@ -611,17 +614,20 @@ RESPONSE FORMAT:
                     response_parts.append(f"- **Vacancies:** {str(vacancies)[:50]}...")
 
             # Idioma (resumido)
-            lang = r.get('language_requirements', 'N/A')
-            if lang and lang != 'N/A':
-                lang_short = self._extract_language_level(lang) if hasattr(self, '_extract_language_level') else lang
-                if len(str(lang_short)) > 50:
-                    lang_short = str(lang_short)[:50] + "..."
-                response_parts.append(f"- **Language:** {lang_short}")
+            lang = self._format_language_from_fields(r)
+            if lang and lang != 'No requiere acreditación de idioma':
+                if len(str(lang)) > 50:
+                    lang = str(lang)[:50] + "..."
+                response_parts.append(f"- **Language:** {lang}")
 
             # Campo adicional solicitado (si no es uno de los que ya mostramos)
             if field_name not in default_fields:
-                field_value = r.get(field_name, 'N/A')
-                if field_value and field_value != 'N/A':
+                # Manejar campos especiales que requieren formateo
+                if field_name == 'available_levels':
+                    field_value = self._format_available_levels(r)
+                else:
+                    field_value = r.get(field_name, 'N/A')
+                if field_value and field_value != 'N/A' and field_value != 'No especificado':
                     # Truncar valores muy largos
                     if len(str(field_value)) > 100:
                         field_value = str(field_value)[:100] + "..."
@@ -664,7 +670,7 @@ RESPONSE FORMAT:
             'destination_country': 'country',
             'host_institution': 'university',
             'mobility_program': 'program',
-            'language_requirements': 'language',
+            'lang_1_name': 'language',
             'uma_faculties': 'UMA faculty',
         }
 
@@ -770,7 +776,10 @@ RESPONSE FORMAT:
                 'mobility_program': '📄 Program',
                 'destination_faculty': '🎯 Destination Faculty',
                 'uma_degrees': '📚 Degrees',
-                'language_requirements': '🗣️ Language',
+                'lang_1_name': '🗣️ Language 1',
+                'lang_1_level': '📊 Level 1',
+                'lang_2_name': '🗣️ Language 2',
+                'lang_2_level': '📊 Level 2',
             }
             for field, value in r.items():
                 if value:
@@ -803,8 +812,8 @@ RESPONSE FORMAT:
             response_parts.append(f"**🎓 Vacancies:** {vacancies}")
 
         # Requisitos de idioma
-        lang = r.get('language_requirements', '')
-        if lang:
+        lang = self._format_language_from_fields(r)
+        if lang and lang != 'No requiere acreditación de idioma':
             response_parts.append(f"**🗣️ Language:** {lang}")
 
         # Facultades UMA
@@ -828,8 +837,8 @@ RESPONSE FORMAT:
             response_parts.append(f"**📊 Areas (ISCED):** {isced}")
 
         # Niveles disponibles
-        levels = r.get('available_levels', '')
-        if levels:
+        levels = self._format_available_levels(r)
+        if levels and levels != 'No especificado':
             response_parts.append(f"**📈 Levels:** {levels}")
 
         # Tutores
@@ -906,7 +915,7 @@ RESPONSE FORMAT:
             response_parts.append(f"- **Country:** {r.get('destination_country', 'N/A')}")
             response_parts.append(f"- **Program:** {r.get('mobility_program', 'N/A')}")
             response_parts.append(f"- **Vacancies:** {r.get('student_vacancies', 'N/A')}")
-            response_parts.append(f"- **Language:** {r.get('language_requirements', 'N/A')}")
+            response_parts.append(f"- **Language:** {self._format_language_from_fields(r)}")
             response_parts.append("")
 
         if remaining > 0:
@@ -1115,7 +1124,10 @@ RESPONSE FORMAT:
                     schema_parts.append("- mobility_program: programa completo (ej: 'ERASMUS+ KA131', 'ERASMUS+ KA171', 'MOVILIDAD INTERNACIONAL UMA')")
                     schema_parts.append("- uma_faculties: facultades UMA que pueden aplicar")
                     schema_parts.append("- uma_degrees: titulaciones UMA permitidas")
-                    schema_parts.append("- language_requirements: requisitos de idioma")
+                    schema_parts.append("- lang_1_name, lang_1_level: primer idioma y nivel requerido")
+                    schema_parts.append("- lang_2_name, lang_2_level: segundo idioma y nivel (si aplica)")
+                    schema_parts.append("- allows_undergraduate, allows_master, allows_phd: niveles académicos permitidos")
+                    schema_parts.append("- min_gpa_requirement: nota media mínima requerida")
                     schema_parts.append("- student_vacancies: plazas disponibles")
 
             conn.close()
@@ -1153,7 +1165,14 @@ BASE DE DATOS (convenios de movilidad universitaria):
   * mobility_program: nombre COMPLETO del programa (ej: "ERASMUS+ KA131", "ERASMUS+ KA171", "MOVILIDAD INTERNACIONAL UMA", "ISEP")
   * uma_faculties: facultades de la UMA que participan
   * uma_degrees: titulaciones de la UMA permitidas
-  * language_requirements: requisitos de idioma
+  * lang_1_name: nombre del primer idioma requerido en MAYÚSCULAS (ej: "INGLÉS", "FRANCÉS", "ALEMÁN"). NULL si no requiere idioma
+  * lang_1_level: nivel del primer idioma (ej: "B1", "B2", "C1")
+  * lang_2_name: nombre del segundo idioma si lo hay. NULL si no hay segundo idioma
+  * lang_2_level: nivel del segundo idioma
+  * allows_undergraduate: "Sí" o "No" - si permite estudiantes de Grado
+  * allows_master: "Sí" o "No" - si permite estudiantes de Máster
+  * allows_phd: "Sí" o "No" - si permite estudiantes de Doctorado
+  * min_gpa_requirement: nota media mínima requerida (REAL). NULL si no hay requisito
   * student_vacancies: plazas disponibles
 
 REGLAS:
@@ -1163,12 +1182,18 @@ REGLAS:
 - PLAZAS y CUATRIMESTRES: student_vacancies es TEXTO con formato "[Grado] Plazas: 4, Periodos permitidos: 1er CUATRIMESTRE"
   * Para filtrar por cuatrimestre: WHERE student_vacancies LIKE '%1er CUATRIMESTRE%' o '%2do CUATRIMESTRE%' o '%ANUAL%'
   * NO uses SUM() con student_vacancies (es texto). Usa COUNT(*) para contar destinos o SELECT student_vacancies para ver detalles
-- REQUISITOS DE IDIOMA: language_requirements tiene formato "IDIOMA (Nivel: X) -> Detalles"
-  * Ejemplo de valor: "INGLÉS (Nivel: B2) -> Certificado Obligatorio..."
-  * Sin requisito de idioma: WHERE language_requirements = 'No requiere acreditación de idioma'
-  * IMPORTANTE: Para buscar "Inglés B1" usa DOS condiciones separadas:
-    WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%'
-  * NUNCA uses '%INGLÉS B1%' porque el formato real es 'INGLÉS (Nivel: B1)'
+- REQUISITOS DE IDIOMA: Usa los campos lang_1_name, lang_1_level, lang_2_name, lang_2_level
+  * Sin requisito de idioma: WHERE lang_1_name IS NULL
+  * Buscar idioma específico: WHERE lang_1_name LIKE '%INGLÉS%' OR lang_2_name LIKE '%INGLÉS%'
+  * Buscar idioma Y nivel: WHERE (lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B2')
+  * SOLO nivel B1 (sin niveles superiores): WHERE ((lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B1')) AND NOT ((lang_1_level IN ('B2','C1','C2')) OR (lang_2_level IN ('B2','C1','C2')))
+- NIVELES ACADÉMICOS:
+  * Solo Grado: WHERE allows_undergraduate = 'Sí'
+  * Solo Máster: WHERE allows_master = 'Sí'
+  * Solo Doctorado: WHERE allows_phd = 'Sí'
+- NOTA MEDIA MÍNIMA:
+  * Con requisito de nota: WHERE min_gpa_requirement IS NOT NULL
+  * Nota específica: WHERE min_gpa_requirement >= 7.0
 - Si pregunta "qué...", "cuáles...", "muéstrame...", "hay...", "universidades...", "facultades..." → usa SELECT * (NO COUNT, NO columnas específicas)
 - SIEMPRE usa SELECT * excepto para:
   * COUNT(*) para contar convenios/acuerdos
@@ -1181,8 +1206,7 @@ REGLAS:
 - REGIONES GEOGRÁFICAS: Para "Europa", "Asia", "África", "América Latina", "Oceanía" usa destination_country LIKE '%NombreRegion%' (el sistema lo expandirá a los países de esa región)
 - REDES DE UNIVERSIDADES: Para "UNINOVIS" usa host_institution LIKE '%UNINOVIS%' (el sistema lo expandirá a las universidades de la red: USPN, UDCLV, KK, UT, THWS, TAMK, THUAS)
 - INTERPRETACIÓN SEMÁNTICA IMPORTANTE:
-  * "¿Qué nivel de INGLÉS necesito para X?" → FILTRAR por language_requirements LIKE '%INGLÉS%' (devolver solo los que piden inglés)
-  * "¿Hay destinos con SOLO B1?" o "requiera solo B1" → EXCLUIR niveles superiores: AND language_requirements NOT LIKE '%B2%'
+  * "¿Qué nivel de INGLÉS necesito para X?" → FILTRAR por lang_1_name o lang_2_name LIKE '%INGLÉS%' (devolver solo los que piden inglés)
   * "plazas disponibles" o "destinos con plazas" → EXCLUIR plazas vacías: WHERE student_vacancies NOT LIKE '%Plazas: 0%'
   * "¿Con qué PAÍSES tiene convenios X?" → usar SELECT DISTINCT destination_country para evitar duplicados
 
@@ -1190,26 +1214,27 @@ EJEMPLOS:
 - "¿Qué acuerdos hay con The Hague University of Applied Sciences?" → SELECT * FROM destinations WHERE host_institution LIKE '%The Hague%'
 - "¿Cuántos acuerdos hay con Alemania?" → SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Alemania%'
 - "¿Hay convenios con Italia?" → SELECT * FROM destinations WHERE destination_country LIKE '%Italia%'
-- "¿Qué nivel de inglés necesito para ir a Alemania?" → SELECT language_requirements FROM destinations WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'
+- "¿Qué nivel de inglés necesito para ir a Alemania?" → SELECT lang_1_name, lang_1_level, lang_2_name, lang_2_level FROM destinations WHERE destination_country LIKE '%Alemania%' AND (lang_1_name LIKE '%INGLÉS%' OR lang_2_name LIKE '%INGLÉS%')
 - "¿Qué universidades hay en Francia?" → SELECT * FROM destinations WHERE destination_country LIKE '%Francia%'
 - "¿Qué destinos hay con ERASMUS+ KA131?" → SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS+ KA131%'
 - "¿Qué programas de movilidad hay?" → SELECT DISTINCT mobility_program FROM destinations
 - "¿Cuántas plazas hay para el primer cuatrimestre?" → SELECT COUNT(*) FROM destinations WHERE student_vacancies LIKE '%1er CUATRIMESTRE%'
 - "¿Qué destinos hay para el segundo cuatrimestre?" → SELECT * FROM destinations WHERE student_vacancies LIKE '%2do CUATRIMESTRE%'
 - "¿Qué plazas hay en Italia?" → SELECT * FROM destinations WHERE destination_country LIKE '%Italia%'
-- "¿Qué destinos no requieren idioma?" → SELECT * FROM destinations WHERE language_requirements = 'No requiere acreditación de idioma'
-- "¿Qué destinos requieren inglés B2?" → SELECT * FROM destinations WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B2%'
-- "¿Hay convenios con requisito de Inglés B1?" → SELECT * FROM destinations WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%'
+- "¿Qué destinos no requieren idioma?" → SELECT * FROM destinations WHERE lang_1_name IS NULL
+- "¿Qué destinos requieren inglés B2?" → SELECT * FROM destinations WHERE (lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B2')
+- "¿Hay convenios con requisito de Inglés B1?" → SELECT * FROM destinations WHERE (lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B1')
 - "¿Cuántos destinos hay en América Latina?" → SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%América Latina%'
 - "¿Qué universidades hay en Europa?" → SELECT * FROM destinations WHERE destination_country LIKE '%Europa%'
 - "¿Cuántos convenios hay en Asia?" → SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Asia%'
-- "¿Hay destinos donde se requiera SOLO B1 de inglés?" → SELECT * FROM destinations WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND language_requirements NOT LIKE '%B2%'
 - "¿Qué destinos tienen plazas disponibles?" → SELECT * FROM destinations WHERE student_vacancies NOT LIKE '%Plazas: 0%'
 - "¿Con qué países tiene convenios la Facultad de Medicina?" → SELECT DISTINCT destination_country FROM destinations WHERE uma_faculties LIKE '%Medicina%'
 - "¿Qué facultades tienen convenios con universidades de Africa?" → SELECT * FROM destinations WHERE destination_country LIKE '%Africa%'
 - "¿Qué facultades tienen acuerdos con Alemania?" → SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%'
 - "¿Hay convenios con universidades UNINOVIS?" → SELECT * FROM destinations WHERE host_institution LIKE '%UNINOVIS%'
 - "What agreements do we have with UNINOVIS members?" → SELECT * FROM destinations WHERE host_institution LIKE '%UNINOVIS%'
+- "¿Hay destinos para estudiantes de Máster?" → SELECT * FROM destinations WHERE allows_master = 'Sí'
+- "¿Qué destinos exigen nota media mínima?" → SELECT * FROM destinations WHERE min_gpa_requirement IS NOT NULL
 
 PREGUNTA: {normalized_question}
 
@@ -1239,13 +1264,13 @@ REGLAS OBLIGATORIAS:
 3. CONSERVA SIEMPRE: destination_country, host_institution, uma_faculties, y otras condiciones no mencionadas
 
 CUÁNDO AÑADIR (conservar TODO lo anterior + nuevo filtro):
-- "los que requieran inglés" → AÑADIR language_requirements, CONSERVAR destination_country
-- "solo nivel B1" → AÑADIR B1, CONSERVAR destination_country e INGLÉS
+- "los que requieran inglés" → AÑADIR filtro de idioma (lang_1_name/lang_2_name), CONSERVAR destination_country
+- "solo nivel B1" → AÑADIR nivel (lang_1_level/lang_2_level = 'B1'), CONSERVAR destination_country e idioma
 - "del primer cuatrimestre" → AÑADIR student_vacancies, CONSERVAR TODO lo anterior
 
 CUÁNDO SUSTITUIR (mantener el resto):
-- País/Región: "los de Asia" → sustituir destination_country, CONSERVAR language_requirements
-- Nivel: "los de B2" → sustituir el nivel (B1→B2), CONSERVAR destination_country e INGLÉS
+- País/Región: "los de Asia" → sustituir destination_country, CONSERVAR filtros de idioma
+- Nivel: "los de B2" → sustituir el nivel (lang_X_level = 'B1' → lang_X_level = 'B2'), CONSERVAR destination_country e idioma
 - Universidad: "los de Sorbonne" → sustituir host_institution, CONSERVAR todo lo demás
 
 IMPORTANTE - PAÍSES Y REGIONES:
@@ -1257,61 +1282,45 @@ IMPORTANTE - PAÍSES Y REGIONES:
 - Para regiones usa LIKE y el sistema las expandirá: destination_country LIKE '%países escandinavos%'
 
 IMPORTANTE PARA IDIOMAS Y NIVELES:
+- Campos de idioma: lang_1_name, lang_1_level, lang_2_name, lang_2_level
 - NIVELES: A1, A2, B1, B2, C1, C2
 - Si ya hay un NIVEL (B1) y el usuario pide OTRO NIVEL (B2) → SUSTITUIR el nivel
-- Si ya hay "LIKE '%INGLÉS%'" y el usuario pide "nivel B1" (sin nivel previo) → AÑADIR B1
-- Si ya hay "LIKE '%B1%'" y el usuario pide "nivel B2" → SUSTITUIR B1 por B2
-- Ejemplo: B1 existente + usuario pide B2 → quitar '%B1%' y poner '%B2%'
+- Si ya hay filtro de idioma y el usuario pide "nivel B1" (sin nivel previo) → AÑADIR lang_X_level = 'B1'
+- Si ya hay lang_X_level = 'B1' y el usuario pide "nivel B2" → SUSTITUIR B1 por B2
 
 EJEMPLOS CORRECTOS:
 
 🔴 CASO CRÍTICO - AÑADIR IDIOMA CONSERVANDO PAÍS:
 - Anterior: "WHERE destination_country LIKE '%Alemania%'"
   Usuario: "los que requieran inglés" → AÑADIR idioma, CONSERVAR país:
-  WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'
-  ❌ INCORRECTO: WHERE language_requirements LIKE '%INGLÉS%' (perdió Alemania!)
+  WHERE destination_country LIKE '%Alemania%' AND (lang_1_name LIKE '%INGLÉS%' OR lang_2_name LIKE '%INGLÉS%')
+  ❌ INCORRECTO: WHERE lang_1_name LIKE '%INGLÉS%' (perdió Alemania!)
 
-- Anterior: "WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'"
+- Anterior: "WHERE destination_country LIKE '%Alemania%' AND (lang_1_name LIKE '%INGLÉS%' OR lang_2_name LIKE '%INGLÉS%')"
   Usuario: "solo nivel B1" → AÑADIR B1, CONSERVAR Alemania e INGLÉS:
-  WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%'
-  ❌ INCORRECTO: WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' (perdió Alemania!)
+  WHERE destination_country LIKE '%Alemania%' AND ((lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B1'))
+  ❌ INCORRECTO: WHERE lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B1' (perdió Alemania!)
 
-- Anterior: "WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'"
+- Anterior: "WHERE destination_country LIKE '%Alemania%' AND lang_1_name LIKE '%INGLÉS%'"
   Usuario: "los de Asia" → SUSTITUIR país por región:
-  WHERE destination_country LIKE '%Asia%' AND language_requirements LIKE '%INGLÉS%'
-
-- Anterior: "WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'"
-  Usuario: "solo los de nivel B1" → AÑADIR B1 (no había nivel):
-  WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%'
-
-- Anterior: "WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%'"
-  Usuario: "los de nivel B2" → SUSTITUIR solo B1→B2, CONSERVAR Alemania e INGLÉS:
-  WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B2%'
-
-- Anterior: "WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B1%' AND destination_country LIKE '%Alemania%'"
-  Usuario: "muestra los de inglés B2" → SUSTITUIR solo B1→B2, CONSERVAR Alemania:
-  WHERE language_requirements LIKE '%INGLÉS%' AND language_requirements LIKE '%B2%' AND destination_country LIKE '%Alemania%'
-
-- Anterior: "WHERE language_requirements LIKE '%INGLÉS%' AND destination_country LIKE '%Alemania%'"
-  Usuario: "los de TECHNISCHE UNIVERSITÄT" → AÑADIR universidad:
-  WHERE language_requirements LIKE '%INGLÉS%' AND destination_country LIKE '%Alemania%' AND host_institution LIKE '%TECHNISCHE UNIVERSITÄT%'
+  WHERE destination_country LIKE '%Asia%' AND lang_1_name LIKE '%INGLÉS%'
 
 - Anterior: "WHERE destination_country LIKE '%Italia%'"
   Usuario: "mejor los de Turquía" → SUSTITUIR país:
   WHERE destination_country LIKE '%Turquía%'
 
-- Anterior: "WHERE language_requirements LIKE '%B1%'"
+- Anterior: "WHERE lang_1_level = 'B1'"
   Usuario: "los de Alemania" → AÑADIR país (no había filtro de país):
-  WHERE language_requirements LIKE '%B1%' AND destination_country LIKE '%Alemania%'
+  WHERE lang_1_level = 'B1' AND destination_country LIKE '%Alemania%'
 
-- Anterior: "WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%'"
+- Anterior: "WHERE destination_country LIKE '%Alemania%' AND lang_1_name LIKE '%INGLÉS%'"
   Usuario: "solo primer cuatrimestre" → AÑADIR cuatrimestre:
-  WHERE destination_country LIKE '%Alemania%' AND language_requirements LIKE '%INGLÉS%' AND student_vacancies LIKE '%1er CUATRIMESTRE%'
+  WHERE destination_country LIKE '%Alemania%' AND lang_1_name LIKE '%INGLÉS%' AND student_vacancies LIKE '%1er CUATRIMESTRE%'
 
 🔴 MÁS EJEMPLOS DE AÑADIR (NUNCA PERDER CONDICIONES):
 - Anterior: "WHERE destination_country LIKE '%Italia%'"
   Usuario: "que requieran francés" → AÑADIR idioma:
-  WHERE destination_country LIKE '%Italia%' AND language_requirements LIKE '%FRANCÉS%'
+  WHERE destination_country LIKE '%Italia%' AND (lang_1_name LIKE '%Francés%' OR lang_2_name LIKE '%Francés%')
 
 - Anterior: "WHERE uma_faculties LIKE '%Medicina%'"
   Usuario: "en Europa" → AÑADIR región:
@@ -1608,7 +1617,10 @@ EJEMPLOS CORRECTOS:
             'host_institution': ['destination_country', 'mobility_program'],
             'destination_country': ['host_institution', 'mobility_program'],
             'mobility_program': ['host_institution', 'destination_country'],
-            'language_requirements': ['host_institution', 'destination_country'],
+            'lang_1_name': ['host_institution', 'destination_country'],
+            'lang_1_level': ['host_institution', 'destination_country'],
+            'lang_2_name': ['host_institution', 'destination_country'],
+            'lang_2_level': ['host_institution', 'destination_country'],
             'student_vacancies': ['host_institution', 'destination_country'],
             'uma_faculties': ['destination_country', 'host_institution'],
             'uma_degrees': ['destination_country', 'host_institution'],
@@ -1784,12 +1796,12 @@ EJEMPLOS CORRECTOS:
             if context["nivel"]:
                 criterios.append((
                     f"Idioma: {context['idioma']} {context['nivel']}",
-                    f"language_requirements LIKE '%{context['idioma']}%' AND language_requirements LIKE '%{context['nivel']}%'"
+                    f"((lang_1_name LIKE '%{context['idioma']}%' AND lang_1_level = '{context['nivel']}') OR (lang_2_name LIKE '%{context['idioma']}%' AND lang_2_level = '{context['nivel']}'))"
                 ))
             else:
                 criterios.append((
                     f"Idioma: {context['idioma']}",
-                    f"language_requirements LIKE '%{context['idioma']}%'"
+                    f"(lang_1_name LIKE '%{context['idioma']}%' OR lang_2_name LIKE '%{context['idioma']}%')"
                 ))
         if context["facultad"]:
             criterios.append((
@@ -2139,7 +2151,7 @@ EJEMPLOS CORRECTOS:
             response_parts.append(f"- **Country:** {r.get('destination_country', 'N/A')}")
             response_parts.append(f"- **Program:** {r.get('mobility_program', 'N/A')}")
             response_parts.append(f"- **Vacancies:** {r.get('student_vacancies', 'N/A')}")
-            response_parts.append(f"- **Language:** {r.get('language_requirements', 'N/A')}")
+            response_parts.append(f"- **Language:** {self._format_language_from_fields(r)}")
             response_parts.append("")
 
         if num_results > max_display:
@@ -2187,14 +2199,9 @@ EJEMPLOS CORRECTOS:
                 response_parts.append(f"🎓 **Vacancies:** {vacancies}")
 
             # Requisitos de idioma
-            lang = r.get('language_requirements', '')
-            if lang:
-                # Simplificar si es muy largo
-                if len(lang) > 100:
-                    lang_short = self._extract_language_level(lang)
-                    response_parts.append(f"🗣️ **Language:** {lang_short}")
-                else:
-                    response_parts.append(f"🗣️ **Language:** {lang}")
+            lang = self._format_language_from_fields(r)
+            if lang and lang != 'No requiere acreditación de idioma':
+                response_parts.append(f"🗣️ **Language:** {lang}")
 
             # Facultades UMA
             uma_fac = r.get('uma_faculties', '')
@@ -2217,8 +2224,8 @@ EJEMPLOS CORRECTOS:
                 response_parts.append(f"🎯 **Destination faculty:** {dest_fac}")
 
             # Niveles disponibles
-            levels = r.get('available_levels', '')
-            if levels:
+            levels = self._format_available_levels(r)
+            if levels and levels != 'No especificado':
                 response_parts.append(f"📈 **Levels:** {levels}")
 
             response_parts.append("")  # Línea en blanco entre convenios
@@ -2248,7 +2255,7 @@ EJEMPLOS CORRECTOS:
         # Si no hay destination_country, buscar otro campo para agrupar
         if 'destination_country' not in available_fields:
             # Prioridad de campos para agrupar
-            grouping_priority = ['host_institution', 'mobility_program', 'language_requirements', 'uma_faculties']
+            grouping_priority = ['host_institution', 'mobility_program', 'lang_1_name', 'uma_faculties']
             for field in grouping_priority:
                 if field in available_fields:
                     return self._format_grouped_by_field(results, field, num_results)
@@ -2275,7 +2282,7 @@ EJEMPLOS CORRECTOS:
                 return self._format_grouped_by_university(results, num_results)
             else:
                 # Buscar otro campo para agrupar
-                for field in ['mobility_program', 'language_requirements']:
+                for field in ['mobility_program', 'lang_1_name']:
                     if field in available_fields:
                         return self._format_grouped_by_field(results, field, num_results)
                 return self._format_results_simple_list(results, num_results)
@@ -2351,29 +2358,76 @@ EJEMPLOS CORRECTOS:
 
         return "\n".join(response_parts)
 
-    def _extract_language_level(self, value: str) -> str:
+    def _format_language_from_fields(self, row: dict) -> str:
         """
-        Extrae idioma y nivel de un campo language_requirements.
-        Ejemplo: "ALEMÁN (Nivel: B1) -> Certificado..." → "ALEMÁN B1"
+        Construye un string legible de requisitos de idioma a partir de los campos lang_1_* y lang_2_*.
+        Ejemplo: "INGLÉS B2, ALEMÁN B1" o "No requiere acreditación de idioma"
         """
-        import re
-        if not value or value in ['Sin especificar', 'Not specified']:
-            return value
+        parts = []
 
-        # Buscar todos los patrones IDIOMA (Nivel: X)
-        pattern = r'([A-ZÁÉÍÓÚÑ]+)\s*\(Nivel:\s*([A-Z0-9]+)\)'
-        matches = re.findall(pattern, value, re.IGNORECASE)
+        # Primer idioma
+        lang1_name = row.get('lang_1_name', '')
+        lang1_level = row.get('lang_1_level', '')
+        if lang1_name and lang1_name.strip():
+            lang_str = lang1_name.upper()
+            if lang1_level and lang1_level.strip():
+                lang_str += f" {lang1_level.upper()}"
+            parts.append(lang_str)
 
-        if matches:
-            # Combinar todos los idiomas encontrados: "ALEMÁN B1, INGLÉS B2"
-            return ", ".join(f"{idioma.upper()} {nivel.upper()}" for idioma, nivel in matches)
+        # Segundo idioma
+        lang2_name = row.get('lang_2_name', '')
+        lang2_level = row.get('lang_2_level', '')
+        if lang2_name and lang2_name.strip():
+            lang_str = lang2_name.upper()
+            if lang2_level and lang2_level.strip():
+                lang_str += f" {lang2_level.upper()}"
+            parts.append(lang_str)
 
-        # Si no hay patrón de nivel, buscar "No requiere acreditación"
-        if 'no requiere' in value.lower():
+        if parts:
+            return ", ".join(parts)
+        return "No requiere acreditación de idioma"
+
+    def _format_available_levels(self, row: dict) -> str:
+        """
+        Construye un string de niveles disponibles a partir de allows_undergraduate, allows_master, allows_phd.
+        Ejemplo: "Grado, Máster" o "Grado, Máster, Doctorado"
+        """
+        levels = []
+        if row.get('allows_undergraduate', '').lower() in ['sí', 'si', 'yes', '1', 'true']:
+            levels.append("Grado")
+        if row.get('allows_master', '').lower() in ['sí', 'si', 'yes', '1', 'true']:
+            levels.append("Máster")
+        if row.get('allows_phd', '').lower() in ['sí', 'si', 'yes', '1', 'true']:
+            levels.append("Doctorado")
+        return ", ".join(levels) if levels else "No especificado"
+
+    def _format_language_info(self, row: dict) -> str:
+        """
+        Formatea la información de idiomas desde los campos lang_1_* y lang_2_*.
+        Ejemplo: lang_1_name="Inglés", lang_1_level="B2" → "Inglés B2"
+        """
+        parts = []
+
+        lang_1_name = row.get('lang_1_name', '')
+        lang_1_level = row.get('lang_1_level', '')
+        if lang_1_name:
+            if lang_1_level:
+                parts.append(f"{lang_1_name} {lang_1_level}")
+            else:
+                parts.append(lang_1_name)
+
+        lang_2_name = row.get('lang_2_name', '')
+        lang_2_level = row.get('lang_2_level', '')
+        if lang_2_name:
+            if lang_2_level:
+                parts.append(f"{lang_2_name} {lang_2_level}")
+            else:
+                parts.append(lang_2_name)
+
+        if not parts:
             return "No language requirement"
 
-        # Fallback: devolver valor truncado
-        return value[:40] + "..." if len(value) > 40 else value
+        return ", ".join(parts)
 
     def _format_grouped_by_field(self, results: list, field_name: str, num_results: int) -> str:
         """Agrupa resultados por un campo específico."""
@@ -2381,7 +2435,7 @@ EJEMPLOS CORRECTOS:
 
         # Nombres legibles para los campos
         field_labels = {
-            'language_requirements': 'language level',
+            'lang_1_name': 'language',
             'mobility_program': 'program',
             'host_institution': 'university',
             'destination_country': 'country',
@@ -2392,26 +2446,24 @@ EJEMPLOS CORRECTOS:
         # Agrupar por valores únicos del campo
         groups = {}
         for r in results:
-            raw_value = r.get(field_name, 'Not specified')
-
-            # Para language_requirements, extraer solo idioma y nivel
-            if field_name == 'language_requirements':
-                value = self._extract_language_level(raw_value)
+            # Para campos de idioma, usar el formateador especial
+            if field_name == 'lang_1_name':
+                value = self._format_language_from_fields(r)
             else:
-                value = raw_value
+                value = r.get(field_name, 'Not specified') or 'Not specified'
 
             if value not in groups:
                 groups[value] = 0
             groups[value] += 1
 
         # Ordenar alfabéticamente por el campo de agrupación
-        sorted_groups = sorted(groups.items(), key=lambda x: x[0])
+        sorted_groups = sorted(groups.items(), key=lambda x: str(x[0]))
 
         response_parts.append(f"📊 **Found {num_results} results grouped by {label}**\n")
 
         for value, count in sorted_groups[:15]:  # Limitar a 15 grupos
             # Truncar valores muy largos
-            display_value = value[:80] + "..." if len(str(value)) > 80 else value
+            display_value = str(value)[:80] + "..." if len(str(value)) > 80 else value
             response_parts.append(f"- **{display_value}**: {count} agreement(s)")
 
         if len(sorted_groups) > 15:
@@ -2426,7 +2478,7 @@ EJEMPLOS CORRECTOS:
         example_value = sorted_groups[0][0] if sorted_groups else "value"
 
         # Personalizar el ejemplo según el campo
-        if field_name == 'language_requirements':
+        if field_name == 'lang_1_name':
             response_parts.append(f'You can say: *"Yes, show me those with {example_value}"*')
         elif field_name == 'destination_country':
             response_parts.append(f'You can say: *"Yes, show me those from {example_value}"*')
@@ -2461,7 +2513,10 @@ EJEMPLOS CORRECTOS:
             'mobility_program': 'Program',
             'destination_faculty': 'Destination Faculty',
             'uma_degrees': 'UMA Degrees',
-            'language_requirements': 'Language',
+            'lang_1_name': 'Language 1',
+            'lang_1_level': 'Level 1',
+            'lang_2_name': 'Language 2',
+            'lang_2_level': 'Level 2',
         }
 
         # Si es un solo campo, mostrar como lista simple

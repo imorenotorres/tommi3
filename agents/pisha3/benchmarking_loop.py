@@ -10,6 +10,7 @@ Uso:
     python benchmarking_loop.py -q 10              # Ejecuta 10 preguntas con LLMs por defecto
     python benchmarking_loop.py -s                 # Ejecuta todos los escenarios
     python benchmarking_loop.py -s 5               # Ejecuta 5 escenarios
+    python benchmarking_loop.py -i                 # Ejecuta solo preguntas de idiomas
     python benchmarking_loop.py --all              # Ejecuta todo (preguntas + escenarios)
     python benchmarking_loop.py -q --llms mistral-large,qwen2.5-coder-14b  # Solo LLMs específicas
     python benchmarking_loop.py --list             # Lista LLMs disponibles
@@ -153,8 +154,7 @@ LLM_CONFIGS = {
 # LLMs por defecto a ejecutar (puedes modificar esta lista)
 # IMPORTANTE: Los nombres deben coincidir con las claves de LLM_CONFIGS
 DEFAULT_LLMS = ["mistral_7b", "ministral-3_8b", "mistral-large", "mistral-small","codestral","qwen2.5-coder-14b", "qwen2.5-coder-7b", "codestral-local","qwen3:4b"]
-DEFAULT_LLMS = ["qwen3:4b"]
-
+DEFAULT_LLMS = ["mistral_7b", "ministral-3_8b", "mistral-small"]
 
 def write_env_file(config: dict) -> None:
     """Escribe el archivo .env con la configuración especificada."""
@@ -215,7 +215,7 @@ def check_model_available(model: str, base_url: str = "http://localhost:11434") 
         return False
 
 
-def run_benchmark(llm_key: str, config: dict, num_questions: int = None, num_scenarios: int = None) -> dict | None:
+def run_benchmark(llm_key: str, config: dict, num_questions: int = None, num_scenarios: int = None, run_idiomas: bool = False) -> dict | None:
     """
     Ejecuta el benchmark para una LLM específica.
 
@@ -224,6 +224,7 @@ def run_benchmark(llm_key: str, config: dict, num_questions: int = None, num_sce
         config: Configuración de la LLM
         num_questions: Número de preguntas a ejecutar (None = no ejecutar, -1 = todas)
         num_scenarios: Número de escenarios a ejecutar (None = no ejecutar, -1 = todos)
+        run_idiomas: Si True, ejecuta solo preguntas de idiomas
 
     Returns:
         dict con resultados del benchmark o None si falla
@@ -257,6 +258,9 @@ def run_benchmark(llm_key: str, config: dict, num_questions: int = None, num_sce
     cmd.extend(["-o", output_prefix])
 
     # Añadir opciones según lo solicitado
+    if run_idiomas:
+        cmd.append("-i")  # Solo preguntas de idiomas
+
     if num_questions is not None:
         if num_questions > 0:
             cmd.extend(["-q", str(num_questions)])
@@ -924,6 +928,7 @@ Ejemplos de uso:
   python benchmarking_loop.py -s 5            # Solo 5 escenarios
   python benchmarking_loop.py --all           # Todo (preguntas + escenarios)
   python benchmarking_loop.py -q -s           # Todas las preguntas y escenarios
+  python benchmarking_loop.py -i              # Solo preguntas de idiomas
   python benchmarking_loop.py -q --llms mistral-large,qwen2.5-coder-14b
 """
     )
@@ -944,6 +949,11 @@ Ejemplos de uso:
         default=None,
         metavar="N",
         help="Ejecutar escenarios (sin N = todos, con N = solo N escenarios)"
+    )
+    parser.add_argument(
+        "-i", "--idiomas",
+        action="store_true",
+        help="Ejecutar solo preguntas relacionadas con idiomas"
     )
     parser.add_argument(
         "--all",
@@ -1024,13 +1034,14 @@ Ejemplos de uso:
         return
 
     # Si no se especifica ninguna opción de ejecución, mostrar ayuda
-    if args.questions is None and args.scenarios is None and not args.all:
+    if args.questions is None and args.scenarios is None and not args.all and not args.idiomas:
         parser.print_help()
         return
 
     # Determinar qué ejecutar
     num_questions = None
     num_scenarios = None
+    run_idiomas = args.idiomas
 
     if args.all:
         num_questions = -1  # Todas
@@ -1054,6 +1065,8 @@ Ejemplos de uso:
 
     # Descripción del modo
     mode_parts = []
+    if run_idiomas:
+        mode_parts.append("Preguntas de idiomas")
     if num_questions is not None:
         if num_questions > 0:
             mode_parts.append(f"{num_questions} preguntas")
@@ -1085,7 +1098,8 @@ Ejemplos de uso:
                 llm_key=llm_key,
                 config=config,
                 num_questions=num_questions,
-                num_scenarios=num_scenarios
+                num_scenarios=num_scenarios,
+                run_idiomas=run_idiomas
             )
 
             if result:

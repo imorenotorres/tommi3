@@ -1081,11 +1081,11 @@ After changing any `.env` configuration, restart the web server for changes to t
 
 The web interface displays a color-coded badge in the sidebar showing the current LLM provider and model size:
 
-| Color | Badge | Meaning |
-|-------|-------|---------|
-| 🟢 **Green** | 🏠 Local | Using a local LLM (Ollama, vLLM) - data stays on your machine |
-| 🟡 **Yellow/Orange** | ☁️ Cloud (small) | Using a small cloud model (e.g., mistral-small, gpt-3.5) - lower cost |
-| 🔴 **Red** | ☁️ Cloud (large) | Using a large cloud model (e.g., mistral-large, gpt-4) - higher cost/quality |
+| Color | Badge | Background Color | Meaning |
+|-------|-------|------------------|---------|
+| 🟢 **Green** | 🏠 Local | `#22c55e` | Using a local LLM (Ollama, vLLM) - data stays on your machine |
+| 🟡 **Yellow/Orange** | ☁️ Cloud (small) | `#f59e0b` | Using a small cloud model (e.g., mistral-small, gpt-3.5) - lower cost |
+| 🔴 **Red** | ☁️ Cloud (large) | `#ef4444` | Using a large cloud model (e.g., mistral-large, gpt-4) - higher cost/quality |
 
 **Color coding rationale:**
 - **Green (Local):** Data privacy + Sustainability - your data never leaves your machine, and local models have lower environmental impact
@@ -1094,7 +1094,24 @@ The web interface displays a color-coded badge in the sidebar showing the curren
 
 **Sustainability note:** Large cloud LLMs require significant computational resources and energy. Using local models or smaller cloud models is more ecologically sustainable. Consider using the smallest model that meets your quality requirements.
 
-The system automatically detects model size based on the model name. Models containing "small", "mini", "tiny", "lite", "3.5", "7b", "8b", or "haiku" are classified as small; all others (including "large", "medium", "pro", "opus", "sonnet", "gpt-4") are classified as large.
+**How model size is detected:**
+
+The system automatically classifies cloud models as "small" or "large" based on their name. The classification is implemented in `web/static/app.js` (function `getCloudModelSize`).
+
+A model is classified as **small** if its name contains any of these patterns:
+- `small`, `mini`, `tiny`, `lite`, `nano`, `micro`
+- `3.5` (e.g., gpt-3.5)
+- `7b`, `8b` (7 or 8 billion parameters)
+- `haiku` (Claude Haiku)
+
+All other models are classified as **large**, including those containing: `large`, `medium`, `pro`, `opus`, `sonnet`, `gpt-4`, etc.
+
+**Badge CSS classes:**
+
+The badge styling is defined in `web/static/style.css`. The relevant CSS classes are:
+- `.llm-badge.local` - Green background for local LLMs
+- `.llm-badge.cloud-small` - Yellow/orange background for small cloud models
+- `.llm-badge.cloud-large` - Red background for large cloud models
 
 Hover over the badge to see additional details (model name, server URL).
 
