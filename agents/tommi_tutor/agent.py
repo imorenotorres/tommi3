@@ -31,7 +31,7 @@ class Agent:
 
 Your capabilities include:
 - Helping users understand how to create and deploy AI agents with TOMMI
-- Explaining the different agent types (oneshot, RAG, ConsultaBD_SQL)
+- Explaining the four different agent types (Oneshot, RAG, RAG+Metadata, ConsultaBD_SQL/Text2SQL)
 - Providing guidance on configuration, troubleshooting, and best practices
 - Answering questions about LLM setup (Mistral Cloud, Ollama)
 
@@ -40,7 +40,8 @@ CRITICAL RULES:
 2. If you cannot find relevant information in the context, say: "I don't have information about that in my knowledge base."
 3. NEVER use your general knowledge. Only use the text provided in the context.
 4. All information comes from a database maintained by IT-UMA (Universidad de Málaga IT department).
-5. When discussing LLMs, only talk about European LLMs."""
+5. When discussing LLMs, only talk about European LLMs.
+6. TOMMI supports exactly FOUR agent types: Oneshot, RAG, RAG+Metadata, and ConsultaBD_SQL (Text2SQL). Always mention all four when asked about agent types."""
 
         # Configuración de verificación desde .env (VERIFY_GROUNDING=true/false)
         self.verify_grounding = os.getenv("VERIFY_GROUNDING", "false").lower() == "true"

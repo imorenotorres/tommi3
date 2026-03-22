@@ -45,7 +45,8 @@ TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, an
    - [1.1 Oneshot Agents](#oneshot-agents)
    - [1.2 RAG Agents](#rag-agents-retrieval-augmented-generation)
    - [1.3 ConsultaBD_SQL Agents](#consultabd_sql-agents)
-   - [1.4 Agent Types Comparison](#agent-types-comparison)
+   - [1.4 RAG+Metadata Agents](#ragmetadata-agents)
+   - [1.5 Agent Types Comparison](#agent-types-comparison)
 2. [Setting Up the TOMMI Agents Service](#setting-up-the-tommi-agents-service)
    - [2.1 Prerequisites](#prerequisites)
    - [2.2 Installation](#installation)
@@ -61,7 +62,8 @@ TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, an
      - [3.6.1 Oneshot Agents: Single Data File](#oneshot-agents-single-data-file)
      - [3.6.2 RAG Agents: Document Collection](#rag-agents-document-collection)
        - [RAG Chunking Approaches](#rag-chunking-approaches)
-     - [3.6.3 ConsultaBD_SQL Agents: Database Only](#consultabd_sql-agents-database-only)
+       - [3.6.3 RAG+Metadata Agents: Documents with Metadata](#ragmetadata-agents-documents-with-metadata)
+     - [3.6.4 ConsultaBD_SQL Agents: Database Only](#consultabd_sql-agents-database-only)
    - [3.7 Grounding Verification (Anti-hallucination)](#grounding-verification-anti-hallucination)
 4. [Interacting with Agents](#interacting-with-agents)
    - [4.1 Web Interface](#web-interface)
@@ -88,12 +90,13 @@ TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, an
    - [A.2 Agent Management](#a2-agent-management)
    - [A.3 Web Server](#a3-web-server)
    - [A.4 RAG Agent Operations](#a4-rag-agent-operations)
-   - [A.5 ConsultaBD_SQL Agent Operations](#a5-consultabd_sql-agent-operations)
-   - [A.6 Ollama Commands (Local LLM)](#a6-ollama-commands-local-llm)
-   - [A.7 API Testing with curl](#a7-api-testing-with-curl)
-   - [A.8 Logs and Debugging](#a8-logs-and-debugging)
-   - [A.9 Distribution](#a9-distribution)
-   - [A.10 Useful Environment Variables](#a10-useful-environment-variables)
+   - [A.5 RAG+Metadata Agent Operations](#a5-ragmetadata-agent-operations)
+   - [A.6 ConsultaBD_SQL Agent Operations](#a6-consultabd_sql-agent-operations)
+   - [A.7 Ollama Commands (Local LLM)](#a7-ollama-commands-local-llm)
+   - [A.8 API Testing with curl](#a8-api-testing-with-curl)
+   - [A.9 Logs and Debugging](#a9-logs-and-debugging)
+   - [A.10 Distribution](#a10-distribution)
+   - [A.11 Useful Environment Variables](#a11-useful-environment-variables)
 9. [Annex B: CLI Quick Reference](#annex-b-cli-quick-reference)
    - [B.1 Interactive CLI](#b1-interactive-cli)
    - [B.2 Batch Testing](#b2-batch-testing)
@@ -116,7 +119,7 @@ In order for educational institutions to benefit from this novel technology whil
 
 With TOMMI we bring a tool that may help universities to address the last two aspects. Regarding staff, TOMMI allows rapidly hands-on experience with AI Agents, which may accelerate the training process. Regarding end-users, its friendly but transparent interface may encourage use of AI Agents, thus fostering **digital literacy** and critical thinking about how these technologies work.
 
-TOMMI supports three agent types, each suited for different use cases:
+TOMMI supports four agent types, each suited for different use cases:
 
 ### 1.1 Oneshot Agents
 
@@ -240,20 +243,77 @@ Converts natural language questions directly to SQL queries against a database.
 
 **Example:** A university department needs to query a database of courses and professors. Users can ask "How many courses are in the Law department?" and get instant results without knowing SQL.
 
-### 1.4 Agent Types Comparison
+### 1.4 RAG+Metadata Agents
+
+An enhanced version of RAG agents designed for **multi-institution research paper analysis**. Beyond basic RAG, these agents provide publication analytics per university, topic aggregation from paper metadata, and interactive map visualizations.
+
+**How it works:**
+1. Indexes PDF documents from `data/docs/` into ChromaDB vector database
+2. Loads structured paper metadata from `*_papers.json` files (per university)
+3. Automatically extracts and aggregates research topics from paper concepts
+4. Provides publication counts per university and top research topics to the LLM
+5. Generates interactive maps showing paper distribution across universities
+6. All configuration is driven by `config.json` — no code changes needed for new topics
+
+**Architecture:**
+```
+┌──────────────┐
+│   Question   │──────────────────────┐
+└──────┬───────┘                      │
+       │                              ▼
+       │                        ┌──────────┐    ┌──────────────┐
+       │                        │   LLM    │───▶│   Response   │
+       │                        └──────────┘    └──────────────┘
+       │                              ▲
+       │    ┌──────────────┐          │
+       └───▶│    Search    │──────────┘
+            └──────┬───────┘  (chunks + metadata + topics + counts)
+                   │
+            ┌──────▼───────┐    ┌────────────────────┐
+            │   ChromaDB   │    │  *_papers.json      │
+            │  (vectors +  │    │  (per-university    │
+            │   metadata)  │    │   paper metadata,   │
+            └──────────────┘    │   concepts, authors)│
+                   ▲            └────────────────────┘
+                   │                     ▲
+            docs/ (PDFs)          metadata.json
+```
+
+**Best for:**
+- Analyzing research output across multiple institutions
+- Comparing publication counts and research topics per university
+- Interactive visualizations on maps
+- Filtering and searching papers by university, author, topic, or content
+
+**Key features:**
+- **Fully configurable via `config.json`**: agent name, research topic, universities, coordinates — no code changes needed
+- Publication counts per university included in LLM context
+- Top research topics aggregated from paper concepts (OpenAlex)
+- Interactive Leaflet maps embedded inline in chat responses
+- Side panels with paper lists and "open in new window" option
+- Automatic metadata extraction from PDFs (title, author, date, page count)
+- External metadata from `metadata.json` (maps papers to universities)
+- All RAG features (smart chunking, grounding verification)
+
+**Optional feature:** [Grounding verification](#grounding-verification-anti-hallucination) can be enabled, same as RAG agents.
+
+**Example:** The *Responsible AI* agent analyzes AI & Responsibility papers across 8 UNINOVIS universities. Users can ask "How many publications does each university have?", "Which are the most important topics?", or "Which universities have publications about Ethics & AI?" — and get tables, aggregated topic data, and interactive maps.
+
+### 1.5 Agent Types Comparison
 
 #### Feature Comparison Table
 
-| Feature | Oneshot | RAG | ConsultaBD_SQL |
-|---------|:-------:|:---:|:--------------:|
-| **Complexity** | Low | Medium | Medium |
-| **LLM Calls per Query** | 1 (or 2)* | 1 (or 2)* | 1 |
-| **Vector Database** | - | ✓ | - |
-| **SQL Database** | - | - | ✓ |
-| **Document Search** | - | ✓ | - |
-| **Dynamic Knowledge** | - | ✓ | ✓ |
-| **Grounding Verification** | ✓ | ✓ | - |
-| **Python Version** | Any | 3.11-3.13 | Any |
+| Feature | Oneshot | RAG | RAG+Metadata | ConsultaBD_SQL |
+|---------|:-------:|:---:|:------------:|:--------------:|
+| **Complexity** | Low | Medium | Medium | Medium |
+| **LLM Calls per Query** | 1 (or 2)* | 1 (or 2)* | 1 (or 2)* | 1 |
+| **Vector Database** | - | ✓ | ✓ | - |
+| **SQL Database** | - | - | - | ✓ |
+| **Document Search** | - | ✓ | ✓ | - |
+| **Metadata Filtering** | - | - | ✓ | - |
+| **Dynamic Knowledge** | - | ✓ | ✓ | ✓ |
+| **Grounding Verification** | ✓ | ✓ | ✓ | - |
+| **Python Version** | Any | 3.11-3.13 | 3.11-3.13 | Any |
 
 \* With grounding verification enabled, requires 2 LLM calls per query.
 
@@ -263,6 +323,7 @@ Converts natural language questions directly to SQL queries against a database.
 |----------|------------------|-----|
 | Simple FAQ with static information | **Oneshot** | Minimal complexity, fastest response |
 | Q&A over many documents/PDFs | **RAG** | Semantic search scales to thousands of documents |
+| Document collection with metadata filtering | **RAG+Metadata** | Metadata extraction + semantic search |
 | Database queries by non-technical users | **ConsultaBD_SQL** | Natural language to SQL conversion |
 | Need lowest latency | **Oneshot** | Single LLM call, no external lookups |
 | Need to scale to thousands of documents | **RAG** | Vector database handles large collections |
@@ -274,37 +335,39 @@ Converts natural language questions directly to SQL queries against a database.
 |------|-----------|-------------------|
 | **Oneshot** | 1 (2 with verification) | Low (Medium with verification) |
 | **RAG** | 1 (2 with verification) | Low (Medium with verification) |
+| **RAG+Metadata** | 1 (2 with verification) | Low (Medium with verification) |
 | **ConsultaBD_SQL** | 1 | Low |
 
 #### Architecture Summary
 
 ```
-┌────────────────────────────────────────────────┐
-│                  AGENT TYPES                   │
-├────────────────────────────────────────────────┤
-│                                                │
-│  ONESHOT         RAG         CONSULTABD_SQL   │
-│  ───────         ───         ──────────────   │
-│                                                │
-│  Question      Question        Question        │
-│     +             +               +            │
-│   Data         Search          Schema          │
-│     │          Results           │             │
-│     │             │              │             │
-│     ▼             ▼              ▼             │
-│   [LLM]        [LLM]          [LLM]            │
-│     │             │              │             │
-│     │             │              ▼             │
-│     │             │         [SQL DB]           │
-│     │             │              │             │
-│     │             │              ▼             │
-│     │             │          [Python]          │
-│     │             │          (format)          │
-│     │             │              │             │
-│     ▼             ▼              ▼             │
-│  Response     Response       Response          │
-│                              + HTML table      │
-└────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                          AGENT TYPES                             │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ONESHOT         RAG       RAG+METADATA   CONSULTABD_SQL        │
+│  ───────         ───       ────────────   ──────────────        │
+│                                                                  │
+│  Question      Question     Question        Question             │
+│     +             +            +               +                 │
+│   Data         Search       Search          Schema               │
+│     │          Results    Results +           │                  │
+│     │             │       Metadata            │                  │
+│     │             │            │              │                  │
+│     ▼             ▼            ▼              ▼                  │
+│   [LLM]        [LLM]        [LLM]          [LLM]                │
+│     │             │            │              │                  │
+│     │             │            │              ▼                  │
+│     │             │            │         [SQL DB]                │
+│     │             │            │              │                  │
+│     │             │            │              ▼                  │
+│     │             │            │          [Python]               │
+│     │             │            │          (format)               │
+│     │             │            │              │                  │
+│     ▼             ▼            ▼              ▼                  │
+│  Response     Response     Response       Response               │
+│                                           + HTML table           │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 #### Quick Selection Guide
@@ -314,6 +377,7 @@ Converts natural language questions directly to SQL queries against a database.
 1. **"I have a small knowledge base (<100KB)"** → **Oneshot**
 2. **"I have many documents to search"** → **RAG**
 3. **"I want users to query a database naturally"** → **ConsultaBD_SQL**
+4. **"I have documents and need to filter by author/date/type"** → **RAG+Metadata**
 
 [↑ Back to index](#index){.back-to-top}
 
@@ -324,10 +388,10 @@ Converts natural language questions directly to SQL queries against a database.
 ### 2.1 Prerequisites
 
 - Python 3.10+ (for Oneshot and ConsultaBD_SQL agents)
-- Python 3.11-3.13 (for RAG agents - ChromaDB is **not compatible** with Python 3.14+)
+- Python 3.11-3.13 (for RAG and RAG+Metadata agents - ChromaDB is **not compatible** with Python 3.14+)
 - Mistral API key
 
-> **Note:** If you plan to use RAG agents and have Python 3.14+, install Python 3.12:
+> **Note:** If you plan to use RAG or RAG+Metadata agents and have Python 3.14+, install Python 3.12:
 > ```bash
 > brew install python@3.12  # macOS
 > ```
@@ -419,7 +483,7 @@ Then access `http://localhost:8000` and click on the **"Create Agent"** button i
 
 The web interface provides a visual form where you can configure:
 
-1. **Agent type** - Select from oneshot, RAG, or text2sql
+1. **Agent type** - Select from oneshot, RAG, RAG+Metadata, or text2sql
 2. **Agent ID** - Unique identifier (lowercase, alphanumeric)
 3. **Display name** - Human-readable name
 4. **Description** - What the agent does
@@ -442,7 +506,7 @@ python apps/crear_agente.py
 
 The script will prompt you for the same options as the web interface:
 
-1. **Agent type** (1=oneshot, 2=rag, 3=consultabd_sql)
+1. **Agent type** (1=oneshot, 2=rag, 3=consultabd_sql, 4=rag_metadata)
 2. **Agent ID** - Unique identifier (lowercase, alphanumeric)
 3. **Output directory** - Where to create the agent
 4. **Display name** - Human-readable name
@@ -464,6 +528,7 @@ When creating a new agent, you can choose from pre-defined prompt templates inst
 |----------|-------------|
 | Oneshot | Instructions for data-based assistants |
 | RAG | Instructions for document retrieval assistants |
+| RAG+Metadata | Instructions for metadata-aware document retrieval assistants |
 | Text2SQL | Instructions for database query assistants |
 
 **How it works:**
@@ -486,6 +551,7 @@ The creator generates a complete agent structure:
 your_agent/
 ├── agent.py           # Core agent logic
 ├── app.py             # FastAPI wrapper with AGENT_CONFIG
+├── config.json        # (rag_metadata) Agent configuration (name, topic, universities)
 ├── requirements.txt   # Python dependencies
 ├── .env               # API credentials
 ├── .gitignore         # Security (ignores .env)
@@ -493,19 +559,22 @@ your_agent/
 ├── README.md          # Documentation
 └── data/
     ├── data.md        # (oneshot) Knowledge base (to be replaced by your own data)
-    ├── docs/          # (rag) Document folder for indexing
+    ├── docs/          # (rag, rag_metadata) Document folder for indexing
+    ├── metadata.json  # (rag_metadata) Paper-to-university mapping
+    ├── *_papers.json  # (rag_metadata) Per-university paper metadata from OpenAlex
+    ├── institution_ids.json  # (rag_metadata) University identifiers
     └── database.db    # (text2sql) SQLite database (to be replaced by your own database)
 ```
 
 ### 3.5 Agent Configuration
 
-Each agent defines its metadata in `app.py`:
+For **oneshot**, **RAG**, and **text2sql** agents, configuration is defined in `app.py`:
 
 ```python
 AGENT_CONFIG = {
     "id": "my_agent",
     "name": "My Agent",
-    "type": "oneshot",  # or "rag" or "text2sql"
+    "type": "oneshot",  # or "rag", "rag_metadata", or "text2sql"
     "description": "Helps with specific tasks",
     "welcome_message": "Hello! How can I help you?",
     "example_queries": [
@@ -516,6 +585,43 @@ AGENT_CONFIG = {
 ```
 
 You can edit `app.py` at any time to add or remove example queries, change the welcome message, update the description, or modify any other metadata field.
+
+For **RAG+Metadata** agents, all configuration is centralized in `config.json` (both `app.py` and `agent.py` read from it automatically):
+
+```json
+{
+  "agent_id": "my_research_agent",
+  "agent_name": "My Research Agent",
+  "description": "Research assistant for Topic X papers",
+  "welcome_message": "Hello! I'm a research assistant for Topic X. How can I help?",
+  "research_topic": "Topic X (subtopic A, subtopic B, etc.)",
+  "example_queries": [
+    "Which are the most important topics",
+    "Show a table with the number of publications per university",
+    "Which universities have publications about subtopic A?"
+  ],
+  "alliance": {
+    "name": "MY_ALLIANCE",
+    "description": "Description of the university alliance or research network."
+  },
+  "universities": {
+    "UNI1": {"name": "University One", "country": "Country", "lat": 40.0, "lon": 2.0},
+    "UNI2": {"name": "University Two", "country": "Country", "lat": 48.0, "lon": 10.0}
+  }
+}
+```
+
+The `config.json` fields control:
+
+| Field | What it controls |
+|-------|-----------------|
+| `agent_id` | Agent identifier (used in URLs and API routes) |
+| `agent_name` | Display name in the UI and system prompt |
+| `research_topic` | Describes the research area for the LLM |
+| `alliance` | Name and description of the institutional network |
+| `universities` | List of institutions with coordinates for map visualization |
+| `example_queries` | Suggested questions shown to users |
+| `welcome_message` | Greeting when the agent is selected |
 
 ### 3.6 Adding Data to Your Agent
 
@@ -664,7 +770,104 @@ rm -rf agents/<agent_id>/data/chroma_db/
 
 ---
 
-#### 3.6.3 ConsultaBD_SQL Agents: Database Only
+#### 3.6.3 RAG+Metadata Agents: Multi-Institution Research Analysis
+
+RAG+Metadata agents are designed for analyzing research papers across multiple institutions. They combine full-text search with structured paper metadata, publication analytics, topic aggregation, and interactive map visualizations.
+
+**Creating a new RAG+Metadata agent for a different research topic:**
+
+To create a new agent, copy an existing one (e.g., `responsible_ai`) and replace:
+
+1. **`config.json`** — Change `agent_id`, `agent_name`, `research_topic`, `description`, `welcome_message`, `example_queries`, and `universities` (with coordinates for the map)
+2. **`data/docs/`** — Replace with your PDF documents
+3. **`data/*_papers.json`** — One file per university (e.g., `UMA_papers.json`), containing paper metadata with `concepts`, `authors`, `title`, `abstract`, etc.
+4. **`data/metadata.json`** — Update the `universities` structure mapping papers to institutions
+5. **`data/institution_ids.json`** — Update university identifiers if needed
+
+No Python code changes are required.
+
+**Data files explained:**
+
+| File | Purpose |
+|------|---------|
+| `config.json` | Agent configuration: name, topic, universities with coordinates |
+| `data/docs/*.pdf` | Full-text PDF documents indexed into ChromaDB |
+| `data/UNI_papers.json` | Per-university paper metadata (concepts, authors, citations) |
+| `data/metadata.json` | Maps paper IDs to universities; provides paper counts |
+| `data/institution_ids.json` | University identifiers (e.g., OpenAlex IDs, ROR) |
+
+**Example `UMA_papers.json` structure:**
+```json
+[
+  {
+    "id": "W4409459278",
+    "title": "Implementing ethical principles in AI",
+    "authors": [{"name": "John Smith", "orcid": null}],
+    "publication_date": "2025-04-15",
+    "publication_year": 2025,
+    "cited_by_count": 3,
+    "abstract": "In recent years...",
+    "concepts": [
+      {"name": "Engineering ethics", "score": 0.44},
+      {"name": "Artificial intelligence", "score": 0.38}
+    ],
+    "doi": "https://doi.org/10.1007/...",
+    "affiliations": ["Universidad de Málaga"]
+  }
+]
+```
+
+**Example `metadata.json` structure:**
+```json
+{
+  "collection_date": "2026-03-18T09:25:06",
+  "universities": {
+    "UMA": {
+      "name": "Universidad de Málaga",
+      "papers_count": 50,
+      "papers": [{"id": "W4409459278", "title": "...", "authors": [...], ...}]
+    }
+  },
+  "total_papers": 183
+}
+```
+
+**What the LLM receives as context:**
+
+The agent automatically builds and includes in every LLM call:
+- **Publication counts per university** (e.g., "UMA: 50 papers, USPN: 27 papers")
+- **Top 30 research topics** aggregated from paper concepts, with frequency and which universities cover each topic
+- **Per-document metadata** (title, author, date, university) for indexed PDFs
+- **Retrieved text chunks** from semantic search (standard RAG)
+
+**Interactive map feature:**
+
+When users ask about topics per university or publication counts, the agent includes an interactive Leaflet map embedded directly in the chat response. The map shows:
+- Circles sized by the number of papers at each university
+- A side panel (left for western universities, right for eastern) with the paper list when clicking a circle
+- An "Open in new window" button for detailed viewing
+
+**API endpoints:**
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /metadata` | Returns metadata for all indexed documents |
+| `POST /reindex` | Reindexes all documents with metadata |
+| `GET /topic-search?topic=X` | Search papers by topic across universities (JSON) |
+| `GET /topic-map?topic=X` | Interactive map for a specific topic (HTML) |
+| `GET /publications-search` | All papers grouped by university (JSON) |
+| `GET /publications-map` | Interactive map with total publications (HTML) |
+
+**How queries work:**
+
+- **Content questions** (e.g., "What does paper X say about fairness?"): uses semantic search on indexed PDFs, enriched with university metadata
+- **Metadata questions** (e.g., "How many papers does UMA have?"): uses the publication counts and paper metadata provided in the LLM context
+- **Topic questions** (e.g., "Which are the most important topics?"): uses the aggregated topic data from paper concepts
+- **Map questions** (e.g., "Which universities study Ethics & AI?"): returns an inline interactive map
+
+---
+
+#### 3.6.4 ConsultaBD_SQL Agents: Database Only
 
 ConsultaBD_SQL agents convert natural language questions to SQL queries, executing them against a SQLite database.
 
@@ -741,7 +944,7 @@ MISTRAL_MODEL=mistral-large-latest
 
 ### 3.7 Grounding Verification (Anti-hallucination)
 
-Oneshot and RAG agents can optionally verify that their responses are **grounded** in the provided data, preventing the LLM from hallucinating or inventing information not present in the knowledge base.
+Oneshot, RAG, and RAG+Metadata agents can optionally verify that their responses are **grounded** in the provided data, preventing the LLM from hallucinating or inventing information not present in the knowledge base.
 
 **How it works:**
 
@@ -1423,7 +1626,45 @@ curl -X POST http://localhost:8000/api/agents/<agent_id>/reindex
 rm -rf agents/<agent_id>/data/chroma_db/
 ```
 
-### A.5 ConsultaBD_SQL Agent Operations
+### A.5 RAG+Metadata Agent Operations
+
+```bash
+# Reindex documents with metadata (via API)
+curl -X POST http://localhost:8000/api/agents/<agent_id>/reindex
+
+# Get metadata for all indexed documents
+curl http://localhost:8000/api/agents/<agent_id>/metadata
+
+# Search papers by topic across universities
+curl "http://localhost:8000/api/agents/<agent_id>/topic-search?topic=ethics"
+
+# Get all papers grouped by university
+curl http://localhost:8000/api/agents/<agent_id>/publications-search
+
+# Delete ChromaDB to force full reindex with metadata
+rm -rf agents/<agent_id>/data/chroma_db/
+```
+
+**Creating a new agent for a different research topic:**
+```bash
+# 1. Copy an existing agent
+cp -r agents/responsible_ai agents/my_new_topic
+
+# 2. Edit config.json (agent name, topic, universities, etc.)
+nano agents/my_new_topic/config.json
+
+# 3. Replace data files
+rm agents/my_new_topic/data/docs/*.pdf
+rm agents/my_new_topic/data/*_papers.json
+# ... add your own PDFs, papers.json files, and metadata.json
+
+# 4. Delete old ChromaDB index
+rm -rf agents/my_new_topic/data/chroma_db/
+
+# 5. Restart the server — the new agent will be auto-detected
+```
+
+### A.6 ConsultaBD_SQL Agent Operations
 
 ```bash
 # View database schema (via API)
@@ -1441,7 +1682,7 @@ sqlite3 agents/<agent_id>/data/database.db
 .quit                              # Exit SQLite
 ```
 
-### A.6 Ollama Commands (Local LLM)
+### A.7 Ollama Commands (Local LLM)
 
 ```bash
 # Start Ollama server
@@ -1464,7 +1705,7 @@ ollama rm <model_name>
 curl http://localhost:11434/api/tags
 ```
 
-### A.7 API Testing with curl
+### A.8 API Testing with curl
 
 ```bash
 # List all agents
@@ -1484,7 +1725,7 @@ curl -X POST http://localhost:8000/api/chat \
 curl http://localhost:8000/api/agents/<agent_id>/health
 ```
 
-### A.8 Logs and Debugging
+### A.9 Logs and Debugging
 
 ```bash
 # View conversation logs (if enabled)
@@ -1500,7 +1741,7 @@ grep "<agent_id>" web/logs/conversations.log
 > web/logs/conversations.log
 ```
 
-### A.9 Distribution
+### A.10 Distribution
 
 ```bash
 # Create distribution package
@@ -1508,7 +1749,7 @@ grep "<agent_id>" web/logs/conversations.log
 apps\crear_dist.bat                # Windows
 ```
 
-### A.10 Useful Environment Variables
+### A.11 Useful Environment Variables
 
 ```bash
 # Check current LLM configuration

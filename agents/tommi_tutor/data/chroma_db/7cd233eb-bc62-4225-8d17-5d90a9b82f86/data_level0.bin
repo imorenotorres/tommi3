@@ -1,0 +1,2197 @@
+,
+    lifespan=lifespan
+)
+
+# CORS para permitir llamadas desde frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: Optional[list] = None
+    stream: Optional[bool] = False
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
+@app.get("/")
+async def root():
+    """InformaciÃ³n del agente."""
+    return AGENT_CONFIG
+
+
+@app.get("/health")
+async def health():
+    """Health check."""
+    return {{"status": "ok"}}
+
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """
+    Endpoint principal de chat.
+
+    Body:
+        message: Mensaje del usuario
+        history: Historial de conversaciÃ³n (opcional)
+        stream: Si es True, devuelve streaming (opcional)
+    """
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agente no inicializado")
+
+    if request.stream:
+        async def generate():
+            async for event_type, content in agent.chat_stream(request.message, request.history):
+                # event_type puede ser "status" o "content"
+                # Solo emitimos el contenido al frontend
+                if event_type == "content":
+                    yield content
+
+        return StreamingResponse(generate(), media_type="text/plain")
+
+    response = agent.chat(request.message, request.history)
+    return ChatResponse(response=response)
+
+
+@app.get("/examples")
+async def examples():
+    """Devuelve preguntas de ejemplo."""
+    return {{"examples": AGENT_CONFIG["example_queries"]}}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+'''
+
+APP_PY_TEXT2SQL_TEMPLATE = '''"""
+{agent_name} - Servidor FastAPI (Text-to-SQL)
+"""
+
+import os
+from contextlib import asynccontextmanager
+from typing import Optional
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+
+load_dotenv()
+
+from agent import Agent
+
+# ConfiguraciÃ³n del agente
+AGENT_CONFIG = {{
+    "id": "{agent_id}",
+    "name": "{agent_name}",
+    "type": "text2sql",
+    "description": "{description}",
+    "welcome_message": "{welcome_message}",
+    "example_queries": {example_queries}
+}}
+
+agent: Agent = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Inicializa el agente al arrancar."""
+    global agent
+    agent = Agent()
+    yield
+
+
+app = FastAPI(
+    title=AGENT_CONFIG["name"],
+    description=AGENT_CONFIG["description"],
+    lifespan=lifespan
+)
+
+# CORS para permitir llamadas desde frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: Optional[list] = None
+    stream: Optional[bool] = False
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
+@app.get("/")
+async def root():
+    """InformaciÃ³n del agente."""
+    return AGENT_CONFIG
+
+
+@app.get("/health")
+async def health():
+    """Health check."""
+    return {{"status": "ok"}}
+
+
+@app.get("/schema")
+async def schema():
+    """Devuelve el esquema de la base de datos."""
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agente no inicializado")
+    return {{"schema": agent.get_schema()}}
+
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """
+    Endpoint principal de chat.
+    Convierte la pregunta a SQL, ejecuta y formatea resultados.
+    """
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agente no inicializado")
+
+    if request.stream:
+        async def generate():
+            async for event_type, content in agent.chat_stream(request.message, request.history):
+                if event_type == "content":
+                    yield content
+
+        return StreamingResponse(generate(), media_type="text/plain")
+
+    response = agent.chat(request.message, request.history)
+    return ChatResponse(response=response)
+
+
+@app.get("/examples")
+async def examples():
+    """Devuelve preguntas de ejemplo."""
+    return {{"examples": AGENT_CONFIG["example_queries"]}}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+'''
+
+# ============================================================================
+# APP CONSULTABD_SQL
+# ============================================================================
+
+APP_CONSULTABD_SQL_TEMPLATE = '''"""
+{agent_name} - Servidor FastAPI (ConsultaBD_SQL)
+"""
+
+import os
+from contextlib import asynccontextmanager
+from typing import Optional
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+
+load_dotenv()
+
+from agent import Agent
+
+# ConfiguraciÃ³n del agente
+AGENT_CONFIG = {{
+    "id": "{agent_id}",
+    "name": "{agent_name}",
+    "type": "consultabd_sql",
+    "description": "{description}",
+    "welcome_message": "{welcome_message}",
+    "example_queries": {example_queries}
+}}
+
+agent: Agent = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Inicializa el agente al arrancar."""
+    global agent
+    agent = Agent()
+    yield
+
+
+app = FastAPI(
+    title=AGENT_CONFIG["name"],
+    description=AGENT_CONFIG["description"],
+    lifespan=lifespan
+)
+
+# CORS para permitir llamadas desde frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: Optional[list] = None
+    stream: Optional[bool] = False
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
+@app.get("/")
+async def root():
+    """InformaciÃ³n del agente."""
+    return AGENT_CONFIG
+
+
+@app.get("/health")
+async def health():
+    """Health check."""
+    return {{"status": "ok"}}
+
+
+@app.get("/schema")
+async def schema():
+    """Devuelve el esquema de la base de datos."""
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agente no inicializado")
+    return {{"schema": agent.get_schema()}}
+
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """
+    Endpoint principal de chat.
+    Convierte la pregunta a SQL, ejecuta y formatea resultados.
+    """
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agente no inicializado")
+
+    if request.stream:
+        async def generate():
+            async for event_type, content in agent.chat_stream(request.message, request.history):
+                if event_type == "content":
+                    yield content
+
+        return StreamingResponse(generate(), media_type="text/plain")
+
+    response = agent.chat(request.message, request.history)
+    return ChatResponse(response=response)
+
+
+@app.get("/examples")
+async def examples():
+    """Devuelve preguntas de ejemplo."""
+    return {{"examples": AGENT_CONFIG["example_queries"]}}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+'''
+
+DATA_MD_TEMPLATE = '''# Datos para {agent_name}
+
+AÃ±ade aquÃ­ la informaciÃ³n que el agente usarÃ¡ para responder preguntas.
+
+## SecciÃ³n 1
+
+Contenido...
+
+## SecciÃ³n 2
+
+Contenido...
+'''
+
+RUN_SH_TEMPLATE = '''#!/bin/bash
+cd "$(dirname "$0")"
+
+# Puerto configurable (por defecto 8000)
+PORT=${{PORT:-8000}}
+
+# Crear entorno virtual si no existe
+if [ ! -d ".venv" ]; then
+    echo "Creando entorno virtual..."
+    python3 -m venv .venv
+fi
+
+# Activar entorno
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -q -r requirements.txt
+
+# Ejecutar servidor
+echo "Iniciando servidor en http://localhost:$PORT"
+PORT=$PORT python app.py
+'''
+
+# Template especial para RAG que requiere Python 3.12 (ChromaDB incompatible con 3.14+)
+RUN_SH_RAG_TEMPLATE = '''#!/bin/bash
+cd "$(dirname "$0")"
+
+# Puerto configurable (por defecto 8000)
+PORT=${{PORT:-8000}}
+
+# RAG agents requieren Python <= 3.13 (ChromaDB incompatible con 3.14+)
+# Buscar Python compatible
+PYTHON_CMD=""
+for cmd in python3.12 python3.13 python3.11; do
+    if command -v $cmd &> /dev/null; then
+        PYTHON_CMD=$cmd
+        break
+    fi
+done
+
+if [ -z "$PYTHON_CMD" ]; then
+    echo "ERROR: Se requiere Python 3.11, 3.12 o 3.13 para agentes RAG"
+    echo "       ChromaDB no es compatible con Python 3.14+"
+    echo "       Instala Python 3.12: brew install python@3.12"
+    exit 1
+fi
+
+echo "Usando $PYTHON_CMD"
+
+# Crear entorno virtual si no existe
+if [ ! -d ".venv" ]; then
+    echo "Creando entorno virtual con $PYTHON_CMD..."
+    $PYTHON_CMD -m venv .venv
+fi
+
+# Activar entorno
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -q -r requirements.txt
+
+# Ejecutar servidor
+echo "Iniciando servidor en http://localhost:$PORT"
+PORT=$PORT python app.py
+'''
+
+README_TEMPLATE = '''# {agent_name}
+
+{description}
+
+## InstalaciÃ³n
+
+```bash
+# Crear entorno virtual
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+## ConfiguraciÃ³n
+
+1. Copia tu API key de Mistral en `.env`:
+```
+MISTRAL_API_KEY=tu_api_key
+```
+
+2. Edita `data/data.md` con la informaciÃ³n de tu agente.
+
+## EjecuciÃ³n
+
+```bash
+# OpciÃ³n 1: Script automÃ¡tico
+./run.sh
+
+# OpciÃ³n 2: Manual
+source .venv/bin/activate
+python app.py
+```
+
+El servidor estarÃ¡ disponible en http://localhost:8000
+
+Para usar un puerto diferente: `PORT=8001 ./run.sh`
+
+## InteracciÃ³n por terminal
+
+TambiÃ©n puedes interactuar directamente desde el terminal sin servidor web:
+
+```bash
+cd web
+source .venv/bin/activate
+python cli.py {agent_id}
+```
+
+## API Endpoints
+
+- `GET /` - InformaciÃ³n del agente
+- `GET /health` - Health check
+- `GET /examples` - Preguntas de ejemplo
+- `POST /chat` - Enviar mensaje
+
+### Ejemplo de uso con curl
+
+```bash
+curl -X POST http://localhost:8000/chat \\
+  -H "Content-Type: application/json" \\
+  -d '{{"message": "Hola, Â¿quÃ© puedes hacer?"}}'
+```
+
+## Estructura
+
+```
+{agent_id}/
+â”œâ”€â”€ .env                # API key (no subir a git)
+â”œâ”€â”€ requirements.txt    # Dependencias
+â”œâ”€â”€ agent.py           # LÃ³gica del agente
+â”œâ”€â”€ app.py             # Servidor FastAPI
+â”œâ”€â”€ run.sh             # Script de ejecuciÃ³n
+â””â”€â”€ data/
+    â””â”€â”€ data.md        # Datos del agente
+```
+'''
+
+README_RAG_TEMPLATE = '''# {agent_name}
+
+{description}
+
+**Tipo**: Agente RAG (Retrieval-Augmented Generation)
+
+> âš ï¸ **IMPORTANTE**: Los agentes RAG requieren Python 3.11, 3.12 o 3.13.
+> ChromaDB **no es compatible con Python 3.14+**. Si ves el error 307, usa una versiÃ³n anterior de Python.
+
+## InstalaciÃ³n
+
+```bash
+# Crear entorno virtual (requiere Python 3.11-3.13)
+python3.12 -m venv .venv  # o python3.13, python3.11
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+## ConfiguraciÃ³n
+
+1. Copia tu API key de Mistral en `.env`:
+```
+MISTRAL_API_KEY=tu_api_key
+```
+
+2. AÃ±ade tus documentos en `data/docs/` (formatos soportados: .txt, .md)
+
+## EjecuciÃ³n
+
+```bash
+# OpciÃ³n 1: Script automÃ¡tico
+./run.sh
+
+# OpciÃ³n 2: Manual
+source .venv/bin/activate
+python app.py
+```
+
+El servidor estarÃ¡ disponible en http://localhost:8000
+
+Para usar un puerto diferente: `PORT=8001 ./run.sh`
+
+## InteracciÃ³n por terminal
+
+TambiÃ©n puedes interactuar directamente desde el terminal sin servidor web:
+
+```bash
+cd web
+source .venv/bin/activate
+python cli.py {agent_id}
+```
+
+## API Endpoints
+
+- `GET /` - InformaciÃ³n del agente
+- `GET /health` - Health check
+- `GET /examples` - Preguntas de ejemplo
+- `POST /chat` - Enviar mensaje (busca contexto relevante automÃ¡ticamente)
+- `POST /reindex` - Reindexa los documentos (usar despuÃ©s de aÃ±adir nuevos)
+
+### Ejemplo de uso con curl
+
+```bash
+# Chat normal
+curl -X POST http://localhost:8000/chat \\
+  -H "Content-Type: application/json" \\
+  -d '{{"message": "Â¿QuÃ© informaciÃ³n tienes sobre X?"}}'
+
+# Reindexar documentos
+curl -X POST http://localhost:8000/reindex
+```
+
+## Estructura
+
+```
+{agent_id}/
+â”œâ”€â”€ .env                # API key (no subir a git)
+â”œâ”€â”€ requirements.txt    # Dependencias
+â”œâ”€â”€ agent.py           # LÃ³gica del agente con RAG
+â”œâ”€â”€ app.py             # Servidor FastAPI
+â”œâ”€â”€ run.sh             # Script de ejecuciÃ³n
+â””â”€â”€ data/
+    â”œâ”€â”€ docs/          # Documentos a indexar (.txt, .md)
+    â””â”€â”€ chroma_db/     # Base de datos vectorial (se genera automÃ¡ticamente)
+```
+
+## CÃ³mo funciona
+
+1. Al iniciar, el agente indexa todos los documentos en `data/docs/`
+2. Cuando recibes una pregunta, busca los fragmentos mÃ¡s relevantes
+3. Incluye ese contexto en el prompt para generar una respuesta informada
+'''
+
+README_RAG_METADATA_TEMPLATE = '''# {agent_name}
+
+{description}
+
+**Tipo**: Agente RAG+Metadata (Retrieval-Augmented Generation with Metadata)
+
+> âš ï¸ **IMPORTANTE**: Los agentes RAG+Metadata requieren Python 3.11, 3.12 o 3.13.
+> ChromaDB **no es compatible con Python 3.14+**. Si ves el error 307, usa una versiÃ³n anterior de Python.
+
+## InstalaciÃ³n
+
+```bash
+# Crear entorno virtual (requiere Python 3.11-3.13)
+python3.12 -m venv .venv  # o python3.13, python3.11
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+## ConfiguraciÃ³n
+
+1. Copia tu API key de Mistral en `.env`:
+```
+MISTRAL_API_KEY=tu_api_key
+```
+
+2. AÃ±ade tus documentos en `data/docs/` (formatos soportados: .txt, .md, .pdf)
+
+3. (Opcional) Configura campos de metadatos personalizados en `data/metadata.json`
+
+## EjecuciÃ³n
+
+```bash
+# OpciÃ³n 1: Script automÃ¡tico
+./run.sh
+
+# OpciÃ³n 2: Manual
+source .venv/bin/activate
+python app.py
+```
+
+El servidor estarÃ¡ disponible en http://localhost:8000
+
+Para usar un puerto diferente: `PORT=8001 ./run.sh`
+
+## InteracciÃ³n por terminal
+
+TambiÃ©n puedes interactuar directamente desde el terminal sin servidor web:
+
+```bash
+cd web
+source .venv/bin/activate
+python cli.py {agent_id}
+```
+
+## API Endpoints
+
+- `GET /` - InformaciÃ³n del agente
+- `GET /health` - Health check
+- `GET /examples` - Preguntas de ejemplo
+- `GET /metadata` - Metadatos de todos los documentos indexados
+- `POST /chat` - Enviar mensaje (busca contexto relevante con metadatos)
+- `POST /reindex` - Reindexa los documentos con metadatos
+
+### Ejemplo de uso con curl
+
+```bash
+# Chat normal
+curl -X POST http://localhost:8000/chat \\
+  -H "Content-Type: application/json" \\
+  -d '{{"message": "Â¿QuÃ© informaciÃ³n tienes sobre X?"}}'
+
+# Ver metadatos de documentos
+curl http://localhost:8000/metadata
+
+# Reindexar documentos
+curl -X POST http://localhost:8000/reindex
+```
+
+## Metadatos
+
+Los metadatos se extraen automÃ¡ticamente de los documentos:
+
+| Campo | PDF | TXT/MD |
+|-------|-----|--------|
+| title | Del PDF o nombre de archivo | Nombre de archivo |
+| author | Del PDF | - |
+| date | Del PDF | - |
+| page_count | SÃ­ | - |
+| file_size | SÃ­ | SÃ­ |
+| file_type | SÃ­ | SÃ­ |
+
+### ConfiguraciÃ³n personalizada de metadatos
+
+Puedes personalizar los campos de metadatos creando `data/metadata.json`:
+
+```json
+{{
+    "fields": ["title", "author", "date", "file_type", "file_size", "page_count", "department", "category"]
+}}
+```
+
+## Estructura
+
+```
+{agent_id}/
+â”œâ”€â”€ .env                # API key (no subir a git)
+â”œâ”€â”€ requirements.txt    # Dependencias
+â”œâ”€â”€ agent.py           # LÃ³gica del agente con RAG+Metadata
+â”œâ”€â”€ app.py             # Servidor FastAPI
+â”œâ”€â”€ run.sh             # Script de ejecuciÃ³n
+â””â”€â”€ data/
+    â”œâ”€â”€ docs/          # Documentos a indexar (.txt, .md, .pdf)
+    â”œâ”€â”€ metadata.json  # (Opcional) ConfiguraciÃ³n de campos de metadatos
+    â””â”€â”€ chroma_db/     # Base de datos vectorial (se genera automÃ¡ticamente)
+```
+
+## CÃ³mo funciona
+
+1. Al iniciar, el agente indexa todos los documentos en `data/docs/` extrayendo contenido y metadatos
+2. Los metadatos (autor, tÃ­tulo, fecha, etc.) se almacenan junto a cada chunk en ChromaDB
+3. Cuando recibes una pregunta, busca los fragmentos mÃ¡s relevantes
+4. El LLM recibe tanto el contenido relevante como los metadatos para generar respuestas informadas
+5. Las preguntas sobre metadatos (e.g., "Â¿quÃ© documentos hay de tal autor?") se responden usando la informaciÃ³n de metadatos
+'''
+
+README_TOOLCALL_TEMPLATE = '''# {agent_name}
+
+{description}
+
+**Tipo**: Agente con Function Calling (Toolcall)
+
+## InstalaciÃ³n
+
+```bash
+# Crear entorno virtual
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+## ConfiguraciÃ³n
+
+1. Copia tu API key de Mistral en `.env`:
+```
+MISTRAL_API_KEY=tu_api_key
+```
+
+2. Personaliza las herramientas en `agent.py` (ver secciÃ³n "AÃ±adir herramientas")
+
+## EjecuciÃ³n
+
+```bash
+# OpciÃ³n 1: Script automÃ¡tico
+./run.sh
+
+# OpciÃ³n 2: Manual
+source .venv/bin/activate
+python app.py
+```
+
+El servidor estarÃ¡ disponible en http://localhost:8000
+
+Para usar un puerto diferente: `PORT=8001 ./run.sh`
+
+## InteracciÃ³n por terminal
+
+TambiÃ©n puedes interactuar directamente desde el terminal sin servidor web:
+
+```bash
+cd web
+source .venv/bin/activate
+python cli.py {agent_id}
+```
+
+## Herramientas incluidas
+
+- `obtener_hora_actual` - Devuelve la fecha y hora actual
+- `calcular` - Calcula expresiones matemÃ¡ticas
+- `buscar_en_datos` - Busca informaciÃ³n en data/data.md
+- `consultar_sql` - Ejecuta consultas SELECT en la base de datos SQLite
+- `listar_tablas` - Lista las tablas disponibles en la base de datos
+- `describir_tabla` - Muestra la estructura de una tabla
+
+## Configurar base de datos SQL
+
+Para usar las herramientas SQL, crea una base de datos SQLite en `data/database.db`:
+
+```bash
+# Crear base de datos de ejemplo
+sqlite3 data/database.db << 'EOF'
+CREATE TABLE productos (
+    id INTEGER PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    precio REAL,
+    stock INTEGER
+);
+
+INSERT INTO productos VALUES (1, 'Laptop', 999.99, 10);
+INSERT INTO productos VALUES (2, 'Mouse', 29.99, 50);
+INSERT INTO productos VALUES (3, 'Teclado', 79.99, 30);
+EOF
+```
+
+El agente podrÃ¡ consultar la base de datos con preguntas como:
+- "Â¿QuÃ© tablas hay en la base de datos?"
+- "Â¿CuÃ¡l es la estructura de la tabla productos?"
+- "MuÃ©strame los productos con precio mayor a 50"
+
+## AÃ±adir herramientas
+
+Para aÃ±adir una nueva herramienta, edita `agent.py`:
+
+1. Define la funciÃ³n:
+```python
+def mi_herramienta(parametro: str) -> str:
+    \"\"\"DescripciÃ³n de lo que hace.\"\"\"
+    # Tu cÃ³digo aquÃ­
+    return resultado
+```
+
+2. AÃ±Ã¡dela al mapeo:
+```python
+AVAILABLE_TOOLS = {{
+    ...
+    "mi_herramienta": mi_herramienta,
+}}
+```
+
+3. AÃ±ade la especificaciÃ³n:
+```python
+TOOLS_SPEC.append({{
+    "type": "function",
+    "function": {{
+        "name": "mi_herramienta",
+        "description": "DescripciÃ³n para el modelo",
+        "parameters": {{
+            "type": "object",
+            "properties": {{
+                "parametro": {{
+                    "type": "string",
+                    "description": "DescripciÃ³n del parÃ¡metro"
+                }}
+            }},
+            "required": ["parametro"]
+        }}
+    }}
+}})
+```
+
+## API Endpoints
+
+- `GET /` - InformaciÃ³n del agente
+- `GET /health` - Health check
+- `GET /examples` - Preguntas de ejemplo
+- `POST /chat` - Enviar mensaje (ejecuta herramientas automÃ¡ticamente)
+
+### Ejemplo de uso con curl
+
+```bash
+curl -X POST http://localhost:8000/chat \\
+  -H "Content-Type: application/json" \\
+  -d '{{"message": "Â¿QuÃ© hora es?"}}'
+
+curl -X POST http://localhost:8000/chat \\
+  -H "Content-Type: application/json" \\
+  -d '{{"message": "Calcula 25 * 4 + 100"}}'
+```
+
+## Estructura
+
+```
+{agent_id}/
+â”œâ”€â”€ .env                # API key (no subir a git)
+â”œâ”€â”€ requirements.txt    # Dependencias
+â”œâ”€â”€ agent.py           # LÃ³gica del agente + definiciÃ³n de herramientas
+â”œâ”€â”€ app.py             # Servidor FastAPI
+â”œâ”€â”€ run.sh             # Script de ejecuciÃ³n
+â””â”€â”€ data/
+    â””â”€â”€ data.md        # Datos para la herramienta buscar_en_datos
+```
+'''
+
+README_TEXT2SQL_TEMPLATE = '''# {agent_name}
+
+{description}
+
+**Tipo**: Agente Text-to-SQL (Consultas en lenguaje natural)
+
+## CÃ³mo funciona
+
+Este agente convierte preguntas en lenguaje natural a consultas SQL:
+
+1. **AnÃ¡lisis**: El LLM analiza tu pregunta y el esquema de la base de datos
+2. **GeneraciÃ³n SQL**: Convierte la pregunta a una consulta SQL vÃ¡lida
+3. **EjecuciÃ³n**: Ejecuta la consulta en la base de datos SQLite local
+4. **Formateo**: El LLM presenta los resultados de forma clara y amigable
+
+## InstalaciÃ³n
+
+```bash
+# Crear entorno virtual
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+## ConfiguraciÃ³n
+
+1. Configura tu LLM en `.env`:
+```
+MISTRAL_API_KEY=tu_api_key
+```
+
+2. **IMPORTANTE**: Crea tu base de datos SQLite en `data/database.db`:
+```bash
+# Ejemplo: crear base de datos desde un archivo SQL
+sqlite3 data/database.db < tu_esquema.sql
+
+# O crear tablas manualmente
+sqlite3 data/database.db << 'EOF'
+CREATE TABLE clientes (
+    id INTEGER PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    email TEXT,
+    ciudad TEXT
+);
+
+INSERT INTO clientes VALUES (1, 'Ana GarcÃ­a', 'ana@email.com', 'Madrid');
+INSERT INTO clientes VALUES (2, 'Carlos LÃ³pez', 'carlos@email.com', 'Barcelona');
+EOF
+```
+
+## EjecuciÃ³n
+
+```bash
+# OpciÃ³n 1: Script automÃ¡tico
+./run.sh
+
+# OpciÃ³n 2: Manual
+source .venv/bin/activate
+python app.py
+```
+
+El servidor estarÃ¡ disponible en http://localhost:8000
+
+## Ejemplos de uso
+
+Una vez configurada la base de datos, puedes hacer preguntas como:
+
+- "Â¿CuÃ¡ntos clientes hay en total?"
+- "MuÃ©strame los clientes de Madrid"
+- "Â¿CuÃ¡l es el producto mÃ¡s vendido?"
+- "Dame las ventas del Ãºltimo mes ordenadas por fecha"
+
+### Con curl
+
+```bash
+# Pregunta simple
+curl -X POST http://localhost:8000/chat \\
+  -H "Content-Type: application/json" \\
+  -d '{{"message": "Â¿CuÃ¡ntos registros hay en la tabla clientes?"}}'
+
+# Ver el esquema de la BD
+curl http://localhost:8000/schema
+```
+
+## InteracciÃ³n por terminal
+
+```bash
+cd web
+source .venv/bin/activate
+python cli.py {agent_id}
+```
+
+## API Endpoints
+
+- `GET /` - InformaciÃ³n del agente
+- `GET /health` - Health check
+- `GET /schema` - Ver esquema de la base de datos
+- `GET /examples` - Preguntas de ejemplo
+- `POST /chat` - Enviar pregunta en lenguaje natural
+
+## Estructura
+
+```
+{agent_id}/
+â”œâ”€â”€ .env                # API key (no subir a git)
+â”œâ”€â”€ requirements.txt    # Dependencias
+â”œâ”€â”€ agent.py           # LÃ³gica Text-to-SQL
+â”œâ”€â”€ app.py             # Servidor FastAPI
+â”œâ”€â”€ run.sh             # Script de ejecuciÃ³n
+â””â”€â”€ data/
+    â””â”€â”€ database.db    # Base de datos SQLite (debes crearla)
+```
+
+## Seguridad
+
+El agente solo permite consultas SELECT por seguridad:
+- No se pueden ejecutar INSERT, UPDATE, DELETE
+- No se permite DROP, CREATE, ALTER
+- Los comentarios SQL (--) estÃ¡n bloqueados
+
+## Consejos
+
+- **Esquema claro**: Usa nombres de tablas y columnas descriptivos
+- **Datos de ejemplo**: AÃ±ade algunos registros para probar
+- **Preguntas especÃ­ficas**: Cuanto mÃ¡s especÃ­fica la pregunta, mejor el SQL generado
+'''
+
+# ============================================================================
+# README CONSULTABD_SQL
+# ============================================================================
+
+# ============================================================================
+# PLANTILLA BENCHMARK TEXT2SQL
+# ============================================================================
+
+BENCHMARK_TEXT2SQL_TEMPLATE = '''#!/usr/bin/env python3
+"""
+Benchmark de {agent_name} - Script para pruebas de rendimiento
+
+Ejecuta un paquete de preguntas predefinidas y genera un log con:
+- Tiempos de cada fase (text_to_sql, execute, format)
+- SQL generado para cada pregunta
+- Resultados y errores
+
+Uso:
+    python benchmark.py              # Ejecutar todas las preguntas
+    python benchmark.py -n 5         # Ejecutar solo 5 preguntas
+    python benchmark.py --quick      # Ejecutar preguntas rÃ¡pidas
+    python benchmark.py --help       # Mostrar ayuda
+"""
+
+import os
+import sys
+import json
+import argparse
+import statistics
+from datetime import datetime
+
+# Cargar variables de entorno desde .env ANTES de importar el agente
+def load_env_file(env_path: str) -> None:
+    """Carga variables de entorno desde un archivo .env."""
+    if not os.path.exists(env_path):
+        return
+    with open(env_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" in line:
+                key, _, value = line.partition("=")
+                key = key.strip()
+                value = value.strip()
+                if value and value[0] in ('"', "'") and value[-1] == value[0]:
+                    value = value[1:-1]
+                os.environ[key] = value
+
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+load_env_file(env_path)
+
+sys.path.insert(0, os.path.dirname(__file__))
+
+from agent import Agent
+
+# ============================================================================
+# PAQUETE DE PREGUNTAS DE PRUEBA
+# Personaliza estas preguntas segÃºn tu base de datos
+# ============================================================================
+
+PREGUNTAS_BENCHMARK = [
+    # --- Warm-up (se repite la primera pregunta) ---
+    "Â¿CuÃ¡ntos registros hay en total?",
+    "Â¿CuÃ¡ntos registros hay en total?",
+
+    # --- Consultas bÃ¡sicas ---
+    "MuÃ©strame todos los registros",
+    "Â¿CuÃ¡les son las tablas disponibles?",
+
+    # --- AÃ±ade aquÃ­ tus preguntas de prueba ---
+    # "Â¿QuÃ© registros hay de tipo X?",
+    # "Â¿CuÃ¡ntos elementos hay en la categorÃ­a Y?",
+    # "MuÃ©strame los Ãºltimos 10 registros",
+]
+
+PREGUNTAS_QUICK = [
+    "Â¿CuÃ¡ntos registros hay?",
+    "MuÃ©strame los primeros 5 registros",
+]
+
+# ============================================================================
+# RESPUESTAS SQL DE REFERENCIA (opcional)
+# AÃ±ade el SQL esperado para comparar con el generado
+# ============================================================================
+
+RESPUESTAS_REFERENCIA = {{
+    # "Â¿CuÃ¡ntos registros hay en total?": "SELECT COUNT(*) FROM tabla",
+    # "MuÃ©strame todos los registros": "SELECT * FROM tabla",
+}}
+
+
+def run_benchmark(questions: list, output_prefix: str = "benchmark") -> dict:
+    """
+    Ejecuta el benchmark con las preguntas proporcionadas.
+
+    Args:
+        questions: Lista de preguntas a ejecutar
+        output_prefix: Prefijo para el archivo de salida
+
+    Returns:
+        dict con resultados del benchmark
+    """
+    print("=" * 70)
+    print("BENCHMARK {agent_name} - Prueba de Rendimiento")
+    print("=" * 70)
+    print(f"Preguntas a ejecutar: {{len(questions)}}")
+    print(f"Inicio: {{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}")
+    print("=" * 70)
+    print()
+
+    # Inicializar agente
+    print("Inicializando agente...")
+    agent = Agent()
+    print(f"Modelo SQL: {{agent.sql_model}}")
+    print(f"Base de datos: {{agent.db_path}}")
+    print()
+
+    # Resultados del benchmark
+    results = {{
+        "metadata": {{
+            "timestamp": datetime.now().isoformat(),
+            "num_questions": len(questions),
+            "sql_model": agent.sql_model,
+            "db_path": agent.db_path,
+        }},
+        "questions": [],
+        "summary": {{
+            "total_time": 0,
+            "avg_time": 0,
+            "successful": 0,
+            "failed": 0,
+            "sql_errors": 0,
+        }}
+    }}
+
+    times_total = []
+
+    # Ejecutar cada pregunta
+    for i, question in enumerate(questions, 1):
+        is_warmup = (i == 1)
+        warmup_tag = " [WARM-UP]" if is_warmup else ""
+        print(f"[{{i}}/{{len(questions)}}]{{warmup_tag}} {{question[:60]}}...")
+
+        # Mostrar SQL de referencia si existe
+        sql_ref = RESPUESTAS_REFERENCIA.get(question, None)
+        if sql_ref:
+            print(f"    Ref: {{sql_ref}}")
+
+        try:
+            # Usar chat_with_metrics si estÃ¡ disponible
+            if hasattr(agent, 'chat_with_metrics'):
+                metrics = agent.chat_with_metrics(question)
+                success = metrics.get("success", False)
+                sql_query = metrics.get("sql_query", "")
+                total_time = metrics.get("total_time", 0)
+                num_results = metrics.get("num_results", 0)
+                error = metrics.get("error", "")
+                timings = metrics.get("timings", {{}})
+            else:
+                # Fallback: usar chat normal con timing manual
+                import time
+                start = time.time()
+                response = agent.chat(question)
+                total_time = time.time() - start
+                success = True
+                sql_query = ""
+                num_results = 0
+                error = ""
+                timings = {{}}
+
+            question_result = {{
+                "id": i,
+                "question": question,
+                "is_warmup": is_warmup,
+                "sql_query": sql_query,
+                "sql_referencia": sql_ref,
+                "success": success,
+                "num_results": num_results,
+                "timings": timings,
+                "total_time": total_time,
+                "error": error
+            }}
+            results["questions"].append(question_result)
+
+            if not is_warmup:
+                times_total.append(total_time)
+
+            status = "OK" if success else "ERROR"
+            print(f"    -> {{status}} | {{total_time:.2f}}s | Resultados: {{num_results}}")
+
+            if success:
+                results["summary"]["successful"] += 1
+            else:
+                results["summary"]["failed"] += 1
+                if error:
+                    print(f"    !! Error: {{error[:80]}}")
+
+        except Exception as e:
+            print(f"    !! ExcepciÃ³n: {{str(e)}}")
+            results["questions"].append({{
+                "id": i,
+                "question": question,
+                "sql_query": None,
+                "success": False,
+                "error": str(e),
+                "total_time": 0
+            }})
+            results["summary"]["failed"] += 1
+
+        print()
+
+    # Calcular resumen
+    if times_total:
+        results["summary"]["total_time"] = sum(times_total)
+        results["summary"]["avg_time"] = statistics.mean(times_total)
+
+    # Mostrar resumen
+    print("=" * 70)
+    print("RESUMEN")
+    print("=" * 70)
+    print(f"Preguntas ejecutadas: {{len(questions)}}")
+    print(f"Exitosas: {{results['summary']['successful']}}")
+    print(f"Fallidas: {{results['summary']['failed']}}")
+    print(f"Tiempo total: {{results['summary']['total_time']:.2f}}s")
+    print(f"Tiempo promedio: {{results['summary']['avg_time']:.2f}}s")
+    print("=" * 70)
+
+    # Guardar resultados
+    os.makedirs("logs", exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = f"logs/{{output_prefix}}_{{timestamp}}.json"
+
+    with open(log_file, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+
+    print(f"\\nResultados guardados en: {{log_file}}")
+
+    return results
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Benchmark de {agent_name}")
+    parser.add_argument("-n", "--num", type=int, help="NÃºmero de preguntas a ejecutar")
+    parser.add_argument("--quick", action="store_true", help="Ejecutar solo preguntas rÃ¡pidas")
+    parser.add_argument("-o", "--output", default="benchmark", help="Prefijo del archivo de salida")
+
+    args = parser.parse_args()
+
+    if args.quick:
+        questions = PREGUNTAS_QUICK
+    elif args.num:
+        questions = PREGUNTAS_BENCHMARK[:args.num]
+    else:
+        questions = PREGUNTAS_BENCHMARK
+
+    run_benchmark(questions, args.output)
+
+
+if __name__ == "__main__":
+    main()
+'''
+
+README_CONSULTABD_SQL_TEMPLATE = '''# {agent_name}
+
+{description}
+
+**Tipo**: Agente ConsultaBD_SQL (Consultas en lenguaje natural a SQL)
+
+## CÃ³mo funciona
+
+Este agente convierte preguntas en lenguaje natural a consultas SQL:
+
+1. **AnÃ¡lisis**: El LLM analiza tu pregunta y el esquema de la base de datos
+2. **GeneraciÃ³n SQL**: Convierte la pregunta a una consulta SQL vÃ¡lida
+3. **EjecuciÃ³n**: Ejecuta la consulta en la base de datos SQLite local
+4. **Formateo**: El LLM presenta los resultados de forma clara y amigable
+
+## InstalaciÃ³n
+
+```bash
+# Crear entorno virtual
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+## ConfiguraciÃ³n
+
+1. Configura tu LLM en `.env` (Mistral Cloud u Ollama)
+
+2. **IMPORTANTE**: Crea tu base de datos SQLite en `data/database.db`:
+```bash
+# Ejemplo: crear base de datos desde un archivo SQL
+sqlite3 data/database.db < tu_esquema.sql
+
+# O crear tablas manualmente
+sqlite3 data/database.db << 'EOF'
+CREATE TABLE clientes (
+    id INTEGER PRIMARY KEY,
+    nombre TEXT NOT NULL,
+    email TEXT,
+    ciudad TEXT
+);
+
+INSERT INTO clientes VALUES (1, 'Ana GarcÃ­a', 'ana@email.com', 'Madrid');
+INSERT INTO clientes VALUES (2, 'Carlos LÃ³pez', 'carlos@email.com', 'Barcelona');
+EOF
+```
+
+## EjecuciÃ³n
+
+```bash
+# OpciÃ³n 1: Script automÃ¡tico
+./run.sh
+
+# OpciÃ³n 2: Manual
+source .venv/bin/activate
+python app.py
+```
+
+El servidor estarÃ¡ disponible en http://localhost:8000
+
+## Ejemplos de uso
+
+Una vez configurada la base de datos, puedes hacer preguntas como:
+
+- "Â¿CuÃ¡ntos clientes hay en total?"
+- "MuÃ©strame los clientes de Madrid"
+- "Â¿CuÃ¡l es el producto mÃ¡s vendido?"
+- "Dame las ventas del Ãºltimo mes ordenadas por fecha"
+
+### Con curl
+
+```bash
+# Pregunta simple
+curl -X POST http://localhost:8000/chat \\
+  -H "Content-Type: application/json" \\
+  -d '{{"message": "Â¿CuÃ¡ntos registros hay en la tabla clientes?"}}'
+
+# Ver el esquema de la BD
+curl http://localhost:8000/schema
+```
+
+## InteracciÃ³n por terminal
+
+```bash
+cd web
+source .venv/bin/activate
+python cli.py {agent_id}
+```
+
+## API Endpoints
+
+- `GET /` - InformaciÃ³n del agente
+- `GET /health` - Health check
+- `GET /schema` - Ver esquema de la base de datos
+- `GET /examples` - Preguntas de ejemplo
+- `POST /chat` - Enviar pregunta en lenguaje natural
+
+## Estructura
+
+```
+{agent_id}/
+â”œâ”€â”€ .env                # API key (no subir a git)
+â”œâ”€â”€ requirements.txt    # Dependencias
+â”œâ”€â”€ agent.py           # LÃ³gica ConsultaBD_SQL
+â”œâ”€â”€ app.py             # Servidor FastAPI
+â”œâ”€â”€ run.sh             # Script de ejecuciÃ³n
+â”œâ”€â”€ benchmark.py       # Script de pruebas de rendimiento
+â”œâ”€â”€ logs/              # Resultados de benchmarks
+â””â”€â”€ data/
+    â””â”€â”€ database.db    # Base de datos SQLite (debes crearla)
+```
+
+## Benchmark (Pruebas de rendimiento)
+
+El agente incluye un script de benchmark para probar el rendimiento:
+
+```bash
+# Ejecutar todas las preguntas de prueba
+python benchmark.py
+
+# Ejecutar solo N preguntas
+python benchmark.py -n 5
+
+# Ejecutar preguntas rÃ¡pidas
+python benchmark.py --quick
+
+# Ver ayuda
+python benchmark.py --help
+```
+
+### Personalizar preguntas
+
+Edita `benchmark.py` y modifica:
+- `PREGUNTAS_BENCHMARK`: Lista de preguntas de prueba
+- `RESPUESTAS_REFERENCIA`: SQL esperado para cada pregunta (opcional)
+
+Los resultados se guardan en `logs/benchmark_YYYYMMDD_HHMMSS.json`.
+
+## Seguridad
+
+El agente solo permite consultas SELECT por seguridad:
+- No se pueden ejecutar INSERT, UPDATE, DELETE
+- No se permite DROP, CREATE, ALTER
+- Los comentarios SQL (--) estÃ¡n bloqueados
+
+## Consejos
+
+- **Esquema claro**: Usa nombres de tablas y columnas descriptivos
+- **Datos de ejemplo**: AÃ±ade algunos registros para probar
+- **Preguntas especÃ­ficas**: Cuanto mÃ¡s especÃ­fica la pregunta, mejor el SQL generado
+'''
+
+
+def get_agents_dir() -> str:
+    """Obtiene la ruta de la carpeta agents en tommi2."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(os.path.dirname(script_dir), "agents")
+
+
+def input_with_default(prompt: str, default: str = "") -> str:
+    """Request input with default value."""
+    if default:
+        result = input(f"{prompt} [{default}]: ").strip()
+        return result if result else default
+    return input(f"{prompt}: ").strip()
+
+
+def input_multiline(prompt: str) -> str:
+    """Request multiline input (ends with empty line)."""
+    print(f"{prompt} (empty line to finish):")
+    lines = []
+    while True:
+        line = input()
+        if not line:
+            break
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def create_agent_structure(config: dict) -> str:
+    """
+    Creates an agent structure programmatically.
+
+    Args:
+        config: Dictionary with agent configuration:
+            - agent_type: 'oneshot', 'rag', 'rag_metadata', or 'consultabd_sql'
+            - agent_id: Lowercase identifier
+            - output_dir: Directory to create agent in
+            - agent_name: Display name
+            - description: Short description
+            - welcome: Welcome message
+            - examples: List of example questions
+            - system_prompt: System prompt text
+            - llm_provider: 'default', 'mistral', or 'ollama'
+            - model: Model name
+            - api_key: API key (for mistral)
+            - ollama_url: Ollama URL (for ollama)
+            - ollama_model: Ollama model (for ollama)
+            - verify_grounding: Boolean for grounding verification
+            - rag_approach: 'basic', 'context_preserving', or 'custom' (for RAG agents)
+
+    Returns:
+        Path to created agent directory
+    """
+    agent_type = config['agent_type']
+    agent_id = config['agent_id']
+    output_dir = config['output_dir']
+    agent_name = config['agent_name']
+    description = config.get('description', f"{agent_name} Assistant")
+    welcome = config.get('welcome', f"Hello! I'm {agent_name}. How can I help you?")
+    examples = config.get('examples', [])
+    system_prompt = config['system_prompt']
+    # Replace {agent_name} placeholder in system prompt
+    system_prompt = system_prompt.replace('{agent_name}', agent_name)
+    llm_provider = config.get('llm_provider', 'default')
+    model = config.get('model', 'mistral-large-latest')
+    api_key = config.get('api_key', '')
+    ollama_url = config.get('ollama_url', 'http://localhost:11434')
+    ollama_model = config.get('ollama_model', '')
+    verify_grounding = config.get('verify_grounding', False)
+    rag_approach = config.get('rag_approach', 'context_preserving')
+
+    # Create directories
+    os.makedirs(get_agents_dir(), exist_ok=True)
+    data_dir = os.path.join(output_dir, "data")
+    os.makedirs(data_dir, exist_ok=True)
+
+    # For RAG/RAG+Metadata, create documents directory
+    if agent_type in ["rag", "rag_metadata"]:
+        docs_dir = os.path.join(data_dir, "docs")
+        os.makedirs(docs_dir, exist_ok=True)
+
+    # requirements.txt by type
+    requirements_map = {
+        "oneshot": REQUIREMENTS_ONESHOT,
+        "rag": REQUIREMENTS_RAG,
+        "rag_metadata": REQUIREMENTS_RAG_METADATA,
+        "consultabd_sql": REQUIREMENTS_CONSULTABD_SQL
+    }
+    with open(os.path.join(output_dir, "requirements.txt"), "w", encoding="utf-8") as f:
+        f.write(requirements_map[agent_type])
+
+    # .env by provider
+    with open(os.path.join(output_dir, ".env"), "w", encoding="utf-8") as f:
+        if llm_provider == "default":
+            f.write(ENV_TEMPLATE_DEFAULT)
+        elif llm_provider == "mistral":
+            f.write(ENV_TEMPLATE_MISTRAL.format(api_key=api_key or "YOUR_API_KEY_HERE", model=model))
+        elif llm_provider == "ollama":
+            f.write(ENV_TEMPLATE_OLLAMA.format(ollama_url=ollama_url, ollama_model=ollama_model))
+
+        # Add verification configuration for oneshot and rag
+        if agent_type in ["oneshot", "rag", "rag_metadata"]:
+            f.write("\n# ============================================\n")
+            f.write("# Grounding Verification (Anti-hallucination)\n")
+            f.write("# ============================================\n")
+            if agent_type == "oneshot":
+                f.write("# Verifies that responses are based ONLY on data.md\n")
+            else:
+                f.write("# Verifies that responses are based ONLY on retrieved context\n")
+            f.write("# NOTE: Doubles LLM calls (higher latency and cost)\n")
+            f.write(f"VERIFY_GROUNDING={'true' if verify_grounding else 'false'}\n")
+
+        # Add RAG chunking configuration for rag agents
+        if agent_type in ["rag", "rag_metadata"]:
+            f.write("\n# ============================================\n")
+            f.write("# RAG Chunking Configuration\n")
+            f.write("# ============================================\n")
+            f.write("# RAG_APPROACH: basic | context_preserving | custom\n")
+            f.write("#   - basic: Fast indexing (500 chars, 100 overlap, 3 results)\n")
+            f.write("#   - context_preserving: Better retrieval (2000 chars, 400 overlap, 8 results, smart boundaries)\n")
+            f.write("#   - custom: Use the custom values below\n")
+            f.write(f"RAG_APPROACH={rag_approach}\n")
+            f.write("\n# Custom RAG parameters (only used when RAG_APPROACH=custom)\n")
+            f.write("# RAG_CHUNK_SIZE=2000\n")
+            f.write("# RAG_CHUNK_OVERLAP=400\n")
+            f.write("# RAG_RETRIEVE_CHUNKS=8\n")
+            f.write("# RAG_CHUNKING_STRATEGY=smart\n")
+
+    # .gitignore
+    gitignore_content = GITIGNORE
+    if agent_type in ["rag", "rag_metadata"]:
+        gitignore_content += "data/chroma_db/\n"
+    with open(os.path.join(output_dir, ".gitignore"), "w", encoding="utf-8") as f:
+        f.write(gitignore_content)
+
+    # agent.py by type
+    agent_templates = {
+        "oneshot": AGENT_PY_TEMPLATE,
+        "rag": AGENT_RAG_TEMPLATE,
+        "rag_metadata": AGENT_RAG_METADATA_TEMPLATE,
+        "consultabd_sql": AGENT_CONSULTABD_SQL_TEMPLATE
+    }
+    agent_content = agent_templates[agent_type].format(
+        agent_id=agent_id,
+        agent_name=agent_name,
+        model=model,
+        system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
+    )
+    with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
+        f.write(agent_content)
+
+    # app.py by type
+    app_templates = {
+        "oneshot": APP_PY_TEMPLATE,
+        "rag": APP_PY_RAG_TEMPLATE,
+        "rag_metadata": APP_PY_RAG_METADATA_TEMPLATE,
+        "consultabd_sql": APP_CONSULTABD_SQL_TEMPLATE
+    }
+    app_content = app_templates[agent_type].format(
+        agent_id=agent_id,
+        agent_name=agent_name,
+        description=description,
+        welcome_message=welcome,
+        example_queries=json.dumps(examples, ensure_ascii=False),
+        system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
+    )
+    with open(os.path.join(output_dir, "app.py"), "w", encoding="utf-8") as f:
+        f.write(app_content)
+
+    # Data files by type
+    if agent_type in ["rag", "rag_metadata"]:
+        example_doc = f"# Example document for {agent_name}\n\nAdd your content here.\n\nThis file will be automatically indexed when the agent starts.\n"
+        with open(os.path.join(docs_dir, "example.md"), "w", encoding="utf-8") as f:
+            f.write(example_doc)
+        # Create sample metadata.json for rag_metadata agents
+        if agent_type == "rag_metadata":
+            sample_metadata = json.dumps({
+                "fields": ["title", "author", "date", "file_type", "file_size", "page_count"],
+                "documents": {
+                    "example.md": {
+                        "title": "Example Document",
+                        "author": "Your Name",
+                        "date": "2024-01-01"
+                    }
+                }
+            }, indent=2, ensure_ascii=False)
+            with open(os.path.join(data_dir, "metadata.json"), "w", encoding="utf-8") as f:
+                f.write(sample_metadata)
+    elif agent_type == "consultabd_sql":
+        db_readme = f"""# Database for {agent_name}
+
+Create your SQLite database here named `database.db`.
+
+## Creation example
+
+```bash
+sqlite3 database.db << 'EOF'
+CREATE TABLE example (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    value REAL
+);
+
+INSERT INTO example VALUES (1, 'Item 1', 100.0);
+INSERT INTO example VALUES (2, 'Item 2', 200.0);
+EOF
+```
+
+Once the DB is created, the agent will be able to answer questions in natural language.
+"""
+        with open(os.path.join(data_dir, "README.md"), "w", encoding="utf-8") as f:
+            f.write(db_readme)
+    else:
+        data_content = DATA_MD_TEMPLATE.format(agent_name=agent_name)
+        with open(os.path.join(data_dir, "data.md"), "w", encoding="utf-8") as f:
+            f.write(data_content)
+
+    # run.sh
+    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type in ["rag", "rag_metadata"] else RUN_SH_TEMPLATE
+    with open(os.path.join(output_dir, "run.sh"), "w", encoding="utf-8") as f:
+        f.write(run_sh_template)
+    os.chmod(os.path.join(output_dir, "run.sh"), 0o755)
+
+    # README.md
+    readme_templates = {
+        "oneshot": README_TEMPLATE,
+        "rag": README_RAG_TEMPLATE,
+        "rag_metadata": README_RAG_METADATA_TEMPLATE,
+        "consultabd_sql": README_CONSULTABD_SQL_TEMPLATE
+    }
+    readme_content = readme_templates[agent_type].format(
+        agent_name=agent_name,
+        agent_id=agent_id,
+        agent_type=agent_type,
+        model=model,
+        description=description
+    )
+    with open(os.path.join(output_dir, "README.md"), "w", encoding="utf-8") as f:
+        f.write(readme_content)
+
+    return output_dir
+
+
+def main():
+    print("=" * 60)
+    print("  Create Agent (FastAPI + Mistral/Ollama)")
+    print("=" * 60)
+    print()
+
+    # 1. Agent type
+    print("Available agent types:")
+    print("  1. oneshot        - Simple agent with prompt and static data")
+    print("  2. rag            - Agent with semantic search in documents (ChromaDB)")
+    print("  3. consultabd_sql - Agent that converts natural language to SQL (Text2SQL)")
+    print("  4. rag_metadata   - Agent with semantic search + document metadata (ChromaDB)")
+    print()
+
+    agent_type = ""
+    while agent_type not in ["1", "2", "3", "4", "oneshot", "rag", "consultabd_sql", "rag_metadata"]:
+        agent_type = input("Agent type [1/2/3/4]: ").strip().lower()
+
+    # Normalize type
+    type_map = {"1": "oneshot", "2": "rag", "3": "consultabd_sql", "4": "rag_metadata"}
+    agent_type = type_map.get(agent_type, agent_type)
+    print(f"  â†’ Selected type: {agent_type}")
+
+    # Warning for RAG if Python 3.14+
+    if agent_type in ["rag", "rag_metadata"]:
+        import platform
+        py_version = tuple(map(int, platform.python_version().split('.')[:2]))
+        if py_version >= (3, 14):
+            print()
+            print("  âš ï¸  WARNING: You are using Python 3.14+")
+            print("     ChromaDB is NOT compatible with this version.")
+            print("     The agent will show Error 307 when trying to use it.")
+            print("     Solution: Install Python 3.12 or 3.13:")
+            print("       brew install python@3.12")
+            print("     The run.sh script will automatically look for a compatible version.")
+            print()
+            confirm_rag = input("  Continue anyway? (y/n): ").strip().lower()
+            if confirm_rag != "y":
+                print("Cancelled.")
+                sys.exit(0)
+
+    print()
+
+    # 2. Agent name (ID)
+    agent_id = ""
+    while not agent_id:
+        agent_id = input("Agent name (no spaces or uppercase): ").strip().lower()
+        if " " in agent_id or not agent_id.replace("_", "").replace("-", "").isalnum():
+            print("  Error: use only lowercase letters, numbers, hyphens or underscores")
+            agent_id = ""
+
+    # 3. Output directory (inside tommi2/agents/)
+    agents_base = get_agents_dir()
+    default_output = os.path.join(agents_base, agent_id)
+    output_dir = input_with_default("Output directory", default_output)
+
+    # 4. Public agent name
+    agent_name = input_with_default("Public agent name", agent_id.replace("_", " ").title())
+
+    # 5. Description
+    description = input_with_default("Short agent description", f"{agent_name} Assistant")
+
+    # 6. Welcome message
+    welcome = input_with_default(
+        "Welcome message",
+        f"Hello! I'm {agent_name}. How can I help you?"
+    )
+
+    # 7. Example questions
+    print("\nExample questions (one per line, empty line to finish):")
+    examples = []
+    while True:
+        ex = input(f"  Question {len(examples) + 1}: ").strip()
+        if not ex:
+            break
+        examples.append(ex)
+    if not examples:
+        if agent_type == "rag":
+            examples = ["What information do you have?", "Search for X"]
+        elif agent_type == "rag_metadata":
+            examples = ["What documents are available?", "Show me documents by author X", "Search for X"]
+        elif agent_type == "consultabd_sql":
+            examples = ["How many records are there?", "Show me the last 10 records"]
+        else:
+            examples = ["What can you do?", "Give me information"]
+
+    # 8. System prompt - select from available templates
+    print("\nSystem prompt:")
+
+    # List available templates
+    templates = list_prompt_templates(agent_type)
+
+    if templates:
+        print("  Available templates:")
+        for i, (name, _) in enumerate(templates, 1):
+            print(f"    {i}. {name}")
+        print()
+
+        template_choice = ""
+        valid_choices = [str(i) for i in range(1, len(templates) + 1)]
+        while template_choice not in valid_choices:
+            template_choice = input(f"  Select template [1-{len(templates)}]: ").strip()
+
+        template_idx = int(template_choice) - 1
+        template_name, template_path = templates[template_idx]
+        system_prompt = load_prompt_template(template_path, agent_name)
+        print(f"  â†’ Template loaded: {template_name}")
+    else:
+        # No templates found, use default prompt
+        print("  (No templates found in prompts/)")
+        system_prompt = ""
+
+    # Default prompt if no templates
+    if not system_prompt:
+        if agent_type == "rag":
+            system_prompt = f"You are {agent_name}, a helpful assistant. Answer questions based on the context provided from the knowledge base. If you don't find relevant information, say so clearly."
+        elif agent_type == "rag_metadata":
+            system_prompt = f"You are {agent_name}, a helpful assistant. Answer questions based on the context provided from the knowledge base. You have access to document metadata (author, title, date, etc.) and can answer questions about document properties. If you don't find relevant information, say so clearly."
+        elif agent_type == "consultabd_sql":
+            system_prompt = f"You are {agent_name}, an assistant specialized in database queries. You help users get information from the database by answering their questions in natural language."
+        else:
+            system_prompt = f"You are {agent_name}, a helpful assistant. Answer questions based on the provided data."
+
+    # 9. LLM Provider
+    print("\nLLM Configuration:")
+    print("  1. default  - Use web/.env configuration (recommended)")
+    print("  2. mistral  - Configure Mistral Cloud specific for this agent")
+    print("  3. ollama   - Configure Ollama specific for this agent")
+    print()
+
+    llm_provider = ""
+    while llm_provider not in ["1", "2", "3", "default", "mistral", "ollama"]:
+        llm_provider = input("LLM Configuration [1/2/3]: ").strip().lower()
+
+    provider_map = {"1": "default", "2": "mistral", "3": "ollama"}
+    llm_provider = provider_map.get(llm_provider, llm_provider)
+    print(f"  â†’ Selected configuration: {llm_provider}")
+
+    # 10. Configuration by provider
+    api_key = ""
+    ollama_url = ""
+    ollama_model = ""
+    model = "mistral-large-latest"  # Default
+
+    if llm_provider == "mistral":
+        print("\nMistral models: mistral-large-latest, mistral-medium-latest, mistral-small-latest")
+        model = input_with_default("Model", "mistral-large-latest")
+        api_key = input("Mistral API Key (or leave empty to add later): ").strip()
+        if not api_key:
+            api_key = "YOUR_API_KEY_HERE"
+    elif llm_provider == "ollama":
+        ollama_url = input_with_default("Ollama URL", "http://localhost:11434")
+        print("\nCommon Ollama models: mistral-large:latest, mistral, llama3, codellama, phi3")
+        ollama_model = input_with_default("Ollama Model", "mistral-large:latest")
+        model = ollama_model
+    # else: default - no additional configuration needed
+
+    # 11. Grounding verification (for oneshot and rag)
+    verify_grounding = False
+    if agent_type in ["oneshot", "rag", "rag_metadata"]:
+        print("\nGrounding verification (anti-hallucination):")
+        if agent_type == "oneshot":
+            print("  This option verifies that agent responses are based")
+            print("  ONLY on data from data.md, avoiding hallucinations.")
+        else:  # rag
+            print("  This option verifies that agent responses are based")
+            print("  ONLY on the context retrieved from documents, avoiding hallucinations.")
+        print("  NOTE: Doubles LLM calls (higher latency and cost).")
+        print()
+        verify_choice = input("  Enable grounding verification? (y/n) [n]: ").strip().lower()
+        verify_grounding = verify_choice == "y"
+        print(f"  â†’ Verification: {'Enabled' if verify_grounding else 'Disabled'}")
+
+    # 12. RAG Chunking Approach (for rag agents only)
+    rag_approach = "context_preserving"  # Default
+    rag_chunk_size = 2000
+    rag_chunk_overlap = 400
+    rag_retrieve_chunks = 8
+    rag_chunking_strategy = "smart"
+
+    if agent_type in ["rag", "rag_metadata"]:
+        print("\nRAG Chunking Approach:")
+        print("  1. basic             - Fast indexing, lower accuracy")
+        print("                         (500 chars, 100 overlap, 3 results)")
+        print("  2. context_preserving - Better retrieval, recommended for dense documents")
+        print("                         (2000 chars, 400 overlap, 8 results, smart boundaries)")
+        print("  3. custom            - Define your own parameters")
+        print()
+
+        rag_choice = ""
+        while rag_choice not in ["1", "2", "3", "basic", "context_preserving", "custom"]:
+            rag_choice = input("  RAG approach [1/2/3]: ").strip().lower()
+
+        rag_map = {"1": "basic", "2": "context_preserving", "3": "custom"}
+        rag_approach = rag_map.get(rag_choice, rag_choice)
+
+        if rag_approach == "basic":
+            rag_chunk_size = 500
+            rag_chunk_overlap = 100
+            rag_retrieve_chunks = 3
+            rag_chunking_strategy = "fixed"
+        elif rag_approach == "context_preserving":
+            rag_chunk_size = 2000
+            rag_chunk_overlap = 400
+            rag_retrieve_chunks = 8
+            rag_chunking_strategy = "smart"
+        elif rag_approach == "custom":
+            print("\n  Custom RAG parameters:")
+            rag_chunk_size = int(input_with_default("    Chunk size (chars)", "2000"))
+            rag_chunk_overlap = int(input_with_default("    Chunk overlap (chars)", "400"))
+            rag_retrieve_chunks = int(input_with_default("    Chunks to retrieve", "8"))
+            print("    Chunking strategy:")
+            print("      - fixed: Cut at exact character positions")
+            print("      - smart: Try to cut at paragraph/sentence boundaries")
+            rag_chunking_strategy = input_with_default("    Strategy", "smart")
+            if rag_chunking_strategy not in ["fixed", "smart"]:
+                rag_chunking_strategy = "smart"
+
+        print(f"  â†’ RAG approach: {rag_approach}")
+        if rag_approach == "custom":
+            print(f"     Chunk size: {rag_chunk_size}, Overlap: {rag_chunk_overlap}")
+            print(f"     Retrieve: {rag_retrieve_chunks} chunks, Strategy: {rag_chunking_strategy}")
+
+    # Confirm
+    print("\n" + "=" * 60)
+    print("Summary:")
+    print("=" * 60)
+    print(f"  Type:         {agent_type}")
+    print(f"  ID:           {agent_id}")
+    print(f"  Directory:    {output_dir}/")
+    print(f"  Name:         {agent_name}")
+    if llm_provider == "default":
+        print(f"  LLM:          Uses web/.env configuration")
+    else:
+        print(f"  Provider:     {llm_provider}")
+        print(f"  Model:        {model}")
+        if llm_provider == "ollama":
+            print(f"  Ollama URL:   {ollama_url}")
+    print(f"  Examples:     {len(examples)} question(s)")
+    if agent_type in ["oneshot", "rag", "rag_metadata"]:
+        print(f"  Verification: {'Yes (grounding check)' if verify_grounding else 'No'}")
+    if agent_type in ["rag", "rag_metadata"]:
+        print(f"  RAG approach: {rag_approach}")
+    print("=" * 60)
+
+    confirm = input("\nCreate agent? (y/n): ").strip().lower()
+    if confirm != "y":
+        print("Cancelled.")
+        sys.exit(0)
+
+    # Create structure
+    print("\nCreating structure...")
+
+    # Ensure tommi2 agents folder exists
+    os.makedirs(get_agents_dir(), exist_ok=True)
+
+    # Main directory and data
+    data_dir = os.path.join(output_dir, "data")
+    os.makedirs(data_dir, exist_ok=True)
+
+    # For RAG/RAG+Metadata, create documents directory
+    if agent_type in ["rag", "rag_metadata"]:
+        docs_dir = os.path.join(data_dir, "docs")
+        os.makedirs(docs_dir, exist_ok=True)
+
+    # requirements.txt by type
+    requirements_map = {
+        "oneshot": REQUIREMENTS_ONESHOT,
+        "rag": REQUIREMENTS_RAG,
+        "rag_metadata": REQUIREMENTS_RAG_METADATA,
+        "consultabd_sql": REQUIREMENTS_CONSULTABD_SQL
+    }
+    with open(os.path.join(output_dir, "requirements.txt"), "w", encoding="utf-8") as f:
+        f.write(requirements_map[agent_type])
+    print(f"  âœ“ {output_dir}/requirements.txt")
+
+    # .env segÃºn proveedor
+    with open(os.path.join(output_dir, ".env"), "w", encoding="utf-8") as f:
+        if llm_provider == "default":
+            f.write(ENV_TEMPLATE_DEFAULT)
+        elif llm_provider == "mistral":
+            f.write(ENV_TEMPLATE_MISTRAL.format(api_key=api_key, model=model))
+        elif llm_provider == "ollama":
+            f.write(ENV_TEMPLATE_OLLAMA.format(ollama_url=ollama_url, ollama_model=ollama_model))
+
+        # Add verification configuration for oneshot and rag
+        if agent_type in ["oneshot", "rag", "rag_metadata"]:
+            f.write("\n# ============================================\n")
+            f.write("# Grounding Verification (Anti-hallucination)\n")
+            f.write("# ============================================\n")
+            if agent_type == "oneshot":
+                f.write("# Verifies that responses are based ONLY on data.md\n")
+            else:  # rag or rag_metadata
+                f.write("# Verifies that responses are based ONLY on retrieved context\n")
+            f.write("# NOTE: Doubles LLM calls (higher latency and cost)\n")
+            f.write(f"VERIFY_GROUNDING={'true' if verify_grounding else 'false'}\n")
+
+        # Add RAG chunking configuration for rag agents
+        if agent_type in ["rag", "rag_metadata"]:
+            f.write("\n# ============================================\n")
+            f.write("# RAG Chunking Configuration\n")
+            f.write("# ============================================\n")
+            f.write("# RAG_APPROACH: basic | context_preserving | custom\n")
+            f.write("#   - basic: Fast indexing (500 chars, 100 overlap, 3 results)\n")
+            f.write("#   - context_preserving: Better retrieval (2000 chars, 400 overlap, 8 results, smart boundaries)\n")
+            f.write("#   - custom: Use the custom values below\n")
+            f.write(f"RAG_APPROACH={rag_approach}\n")
+            f.write("\n# Custom RAG parameters (only used when RAG_APPROACH=custom)\n")
+            if rag_approach == "custom":
+                f.write(f"RAG_CHUNK_SIZE={rag_chunk_size}\n")
+                f.write(f"RAG_CHUNK_OVERLAP={rag_chunk_overlap}\n")
+                f.write(f"RAG_RETRIEVE_CHUNKS={rag_retrieve_chunks}\n")
+                f.write(f"RAG_CHUNKING_STRATEGY={rag_chunking_strategy}\n")
+            else:
+                f.write("# RAG_CHUNK_SIZE=2000\n")
+                f.write("# RAG_CHUNK_OVERLAP=400\n")
+                f.write("# RAG_RETRIEVE_CHUNKS=8\n")
+                f.write("# RAG_CHUNKING_STRATEGY=smart\n")
+    print(f"  âœ“ {output_dir}/.env")
+
+    # .gitignore
+    gitignore_content = GITIGNORE
+    if agent_type in ["rag", "rag_metadata"]:
+        gitignore_content += "data/chroma_db/\n"
+    with open(os.path.join(output_dir, ".gitignore"), "w", encoding="utf-8") as f:
+        f.write(gitignore_content)
+    print(f"  âœ“ {output_dir}/.gitignore")
+
+    # agent.py segÃºn tipo
+    agent_templates = {
+        "oneshot": AGENT_PY_TEMPLATE,
+        "rag": AGENT_RAG_TEMPLATE,
+        "rag_metadata": AGENT_RAG_METADATA_TEMPLATE,
+        "consultabd_sql": AGENT_CONSULTABD_SQL_TEMPLATE
+    }
+    agent_content = agent_templates[agent_type].format(
+        agent_id=agent_id,
+        agent_name=agent_name,
+        model=model,
+        system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
+    )
+    with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
+        f.write(agent_content)
+    print(f"  âœ“ {output_dir}/agent.py")
+
+    # app.py segÃºn tipo
+    app_templates = {
+        "oneshot": APP_PY_TEMPLATE,
+        "rag": APP_PY_RAG_TEMPLATE,
+        "rag_metadata": APP_PY_RAG_METADATA_TEMPLATE,
+        "consultabd_sql": APP_CONSULTABD_SQL_TEMPLATE
+    }
+    app_content = app_templates[agent_type].format(
+        agent_id=agent_id,
+        agent_name=agent_name,
+        description=description,
+        welcome_message=welcome,
+        example_queries=json.dumps(examples, ensure_ascii=False),
+        system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
+    )
+    with open(os.path.join(output_dir, "app.py"), "w", encoding="utf-8") as f:
+        f.write(app_content)
+    print(f"  âœ“ {output_dir}/app.py")
+
+    # data/data.md (for oneshot) or example in docs/ (for rag/rag_metadata) or README for consultabd_sql
+    if agent_type in ["rag", "rag_metadata"]:
+        example_doc = f"# Example document for {agent_name}\n\nAdd your content here.\n\nThis file will be automatically indexed when the agent starts.\n"
+        with open(os.path.join(docs_dir, "example.md"), "w", encoding="utf-8") as f:
+            f.write(example_doc)
+        print(f"  âœ“ {docs_dir}/example.md")
+        # Create sample metadata.json for rag_metadata agents
+        if agent_type == "rag_metadata":
+            sample_metadata = json.dumps({
+                "fields": ["title", "author", "date", "file_type", "file_size", "page_count"],
+                "documents": {
+                    "example.md": {
+                        "title": "Example Document",
+                        "author": "Your Name",
+                        "date": "2024-01-01"
+                    }
+                }
+            }, indent=2, ensure_ascii=False)
+            with open(os.path.join(data_dir, "metadata.json"), "w", encoding="utf-8") as f:
+                f.write(sample_metadata)
+            print(f"  âœ“ {data_dir}/metadata.json")
+    elif agent_type == "consultabd_sql":
+        # For consultabd_sql, create a README explaining how to create the DB
+        db_readme = f"""# Database for {agent_name}
+
+Create your SQLite database here named `database.db`.
+
+## Creation example
+
+```bash
+sqlite3 database.db << 'EOF'
+CREATE TABLE example (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    value REAL
+);
+
+INSERT INTO example VALUES (1, 'Item 1', 100.0);
+INSERT INTO example VALUES (2, 'Item 2', 200.0);
+EOF
+```
+
+## Import from CSV
+
+```bash
+sqlite3 database.db << 'EOF'
+.mode csv
+.import your_file.csv table_name
+EOF
+```
+
+Once the DB is created, the agent will be able to answer questions in natural language.
+"""
+        with open(os.path.join(data_dir, "README.md"), "w", encoding="utf-8") as f:
+            f.write(db_readme)
+        print(f"  âœ“ {data_dir}/README.md")
+    else:
+        data_content = DATA_MD_TEMPLATE.format(agent_name=agent_name)
+        with open(os.path.join(data_dir, "data.md"), "w", encoding="utf-8") as f:
+            f.write(data_content)
+        print(f"  âœ“ {data_dir}/data.md")
+
+    # run.sh (usa template especial para RAG por compatibilidad con Python)
+    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type in ["rag", "rag_metadata"] else RUN_SH_TEMPLATE
+    with open(os.path.join(output_dir, "run.sh"), "w", encoding="utf-8") as f:
+        f.write(run_sh_template)
+    os.chmod(os.path.join(output_dir, "run.sh"), 0o755)
+    print(f"  âœ“ {output_dir}/run.sh")
+
+    # README.md segÃºn tipo
+    readme_templates = {
+        "oneshot": README_TEMPLATE,
+        "rag": README_RAG_TEMPLATE,
+        "rag_metadata": README_RAG_METADATA_TEMPLATE,
+        "consultabd_sql": README_CONSULTABD_SQL_TEMPLATE
+    }
+    readme_content = readme_templates[agent_type].format(
+        agent_id=agent_id,
+        agent_name=agent_name,
+        description=description
+    )
+    with open(os.path.join(output_dir, "README.md"), "w", encoding="utf-8") as f:
+        f.write(readme_content)
+    print(f"  âœ“ {output_dir}/README.md")
+
+    # benchmark.py para consultabd_sql
+    if agent_type == "consultabd_sql":
+        benchmark_content = BENCHMARK_TEXT2SQL_TEMPLATE.format(
+            agent_id=agent_id,
+            agent_name=agent_name
+        )
+        with open(os.path.join(output_dir, "benchmark.py"), "w", encoding="utf-8") as f:
+            f.write(benchmark_content)
+        os.chmod(os.path.join(output_dir, "benchmark.py"), 0o755)
+        print(f"  âœ“ {output_dir}/benchmark.py")
+
+        # Crear directorio logs para benchmark
+        logs_dir = os.path.join(output_dir, "logs")
+        os.makedirs(logs_dir, exist_ok=True)
+        print(f"  âœ“ {output_dir}/logs/")
+
+    print("\n" + "=" * 60)
+    print(f"{agent_type.upper()} agent created!")
+    print("=" * 60)
+
+    # Show structure by type
+    print(f"\nGenerated structure:")
+    print(f"  {output_dir}/")
+    print(f"  â”œâ”€â”€ .env              # API key")
+    print(f"  â”œâ”€â”€ requirements.txt  # Dependencies")
+    print(f"  â”œâ”€â”€ agent.py          # Agent logic")
+    print(f"  â”œâ”€â”€ app.py            # FastAPI server")
+    print(f"  â”œâ”€â”€ run.sh            # Run script")
+    print(f"  â”œâ”€â”€ README.md         # Documentation")
+    if agent_type == "consultabd_sql":
+        print(f"  â”œâ”€â”€ benchmark.py      # Performance test script")
+        print(f"  â”œâ”€â”€ logs/             # Benchmark results")
+    print(f"  â””â”€â”€ data/")
+    if agent_type in ["rag", "rag_metadata"]:
+        print(f"      â””â”€â”€ docs/         # Documents to index")
+    elif agent_type == "consultabd_sql":
+        print(f"      â””â”€â”€ database.db   # SQLite database (you must create it)")
+    else:
+        print(f"      â””â”€â”€ data.md       # Agent data")
+
+    print()
+    print("Next steps:")
+    step = 1
+    if agent_type in ["rag", "rag_metadata"]:
+        print(f"  {step}. Add documents (.txt, .md) in {data_dir}/docs/")
+    elif agent_type == "consultabd_sql":
+        print(f"  {step}. Create your SQLite database at {data_dir}/database.db")
+    else:
+        print(f"  {step}. Edit {data_dir}/data.md with your data")
+    step += 1
+
+    if llm_provider == "default":
+        print(f"  {step}. Make sure web/.env has the correct LLM configuration")
+        step += 1
+    elif api_key == "YOUR_API_KEY_HERE":
+        print(f"  {step}. Add your API key in {output_dir}/.env")
+        step += 1
+
+    print(f"  {step}. Run:")
+    print(f"     - (Linux/Mac) cd web && ./run_html_server.sh")
+    print(f"     - (Windows) cd web && run_html_server.bat")
+    step += 1
+    print(f"  {step}. Open: http://localhost:8000")
+    step += 1
+    print(f"  {step}. Or use the CLI directly: cd web && python cli.py {agent_id}")
+
+    print()
+    print("Available endpoints:")
+    print("  GET  /         - Agent info")
+    print("  GET  /examples - Example questions")
+    print("  POST /chat     - Send message")
+    if agent_type in ["rag", "rag_metadata"]:
+        print("  POST /reindex  - Reindex documents")
+        if agent_type == "rag_metadata":
+            print("  GET  /metadata - View document metadata")
+        print()
+        print("âš ï¸  NOTE: RAG agents require Python 3.11-3.13")
+        print("   ChromaDB is not compatible with Python 3.14+")
+        print("   The run.sh script will automatically detect the correct version")
+    elif agent_type == "consultabd_sql":
+        print("  GET  /schema   - View database schema")
+        print()
+        print("ğŸ“ NOTE: You must create the SQLite database at data/database.db")
+        print("   Example: sqlite3 data/database.db < your_schema.sql")
+    print()
+
+
+if __name__ == "__main__":
+    main()
+ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ'      Œ„   àáĞ    (      ğÅò   ğÆò   )      pÅò   ğÄò   *      pÄò   pÃò   +      ğÂò   pÂò   ,      ğÁò   pÁò   -      ğÀò   °òò   .      òò   Ğòò   /      Ğóò   °ôò   0      ôò   0õò   1      ğóò   ôò   2      PÀò   ĞÀò   3      PÁò   0ôò   4      ĞÁò   ĞÂò   5      PÃò   ĞÃò   6      PÄò   ĞÄò   7      Åò   ĞÅò   8      PÆò   ĞÆò   9      PÇò   Çò   :      PÈò   ĞÈò   ;      PÉò   ĞÇò   <      ĞÉò   ĞÊò   =      PËò   ĞËò   >      PÌò   ĞÌò   ?      Íò   ĞÍò   @      PÎò   ĞÎò   A      PÍò   PÏò   B      PĞò   ĞĞò   C      PÑò   ĞÑò   D      PÒò   Òò   E      PÓò   ĞÓò   F      Ôò   °äò   G      0äò   °ãò   H      0ãò   °âò   I      0âò   °áò   J      0áò   °àò   K      0àò   °ßò   L      0ßò   °Şò   M      0Şò   °İò   N      0İò   °Üò   O      0Üò   °Ûò   P      0Ûò   °Úò   Q      0Úò   °Ùò   R      0Ùò   °Øò   S      0Øò   °×ò   T      0×ò   °Öò   U      0Öò   °Õò   V      0Õò   °Ôò   W      0Ôò   °Óò   X      0Óò   °Òò   Y      0Òò   °Ñò   Z      0Ñò   °Ğò   [      0Ğò   °Ïò   \      0Ïò   °Îò   ]      0Îò   °Íò   ^      0Íò   °Ìò   _      0Ìò   °Ëò   `      0Ëò   °Êò   a      0Êò   °Éò   b      0Éò   °Èò   c      0Èò   °Çò   d      0Çò   °Æò   e      0Æò   °Åò   f      0Åò   °Äò   g      0Äò   °Ãò   h      0Ãò   °Âò   i      0Âò   °Áò   j      0Áò   ñò   k      ğòò   0óò   l      Póò   pôò   m      Ğôò   õò   n      °óò   óò   o      óò   Àò   p      Áò   Áò   q      Âò   PÂò   r      Ãò   Ãò   s      Äò   Âò   t      Äò   Åò   u      Æò   Æò   v      PÅò   Çò   w      Èò   Èò   x      Éò   Éò   y      Êò   PÊò   z      Ëò   Ëò   {      Ìò   Êò   |      Ìò   Íò   }      Îò   Îò   ~      Ïò   Ïò         ĞÏò   Ğò   €      Ñò   Ñò         Ğò   Òò   ‚      Óò   Óò   ƒ      PÔò   ĞÒò   „      ğìò   °ìò   …      0åò   Ğëò   †      ìò   îò   ‡      Ğíò   Ğîò   ˆ      îò   Píò   ‰      íò   íò   Š      Ğìò   ïò   ‹      Ğïò   ïò   Œ      Ğğò   Pğò         Pñò   ñò         Ğñò   òò         0Àò   °Àò           àĞ    Pëò           àĞ    ìò          @àĞ    êò          `àĞ    ëò          €àĞ    Ğêò           àĞ    Pêò          ÀàĞ    Ğéò          ààĞ    êò   	        áĞ    éò   
+        áĞ    éò          @áĞ    Péò          `áĞ    Ğèò          €áĞ    èò           áĞ    Pİò          ÀáĞ    Pèò          àáĞ    İò           âĞ    PŞò           âĞ    Şò          @âĞ    Şò          `âĞ    ßò          €âĞ    Ğİò           âĞ    ĞŞò          ÀâĞ    Ğßò          àâĞ    Pßò           ãĞ    ßò           ãĞ    àò          @ãĞ    àò          `ãĞ    Pàò          €ãĞ    Ğàò           ãĞ    áò          ÀãĞ    Páò           àãĞ    áò   !        äĞ    âò   "        äĞ    Ğáò   #       @äĞ    Pâò   $       `äĞ    âò   %       €äĞ    Ğâò   &        äĞ    ãò   '       ÀäĞ    Pãò   (       àäĞ    Ğãò   )        åĞ    ãò   *        åĞ    äò   +       @åĞ    Pïò   ,       `åĞ    ğò   -       €åĞ    Päò   .        åĞ    Ğäò   /       ÀåĞ    äò   0       àåĞ    åò   1        æĞ    Påò   2        æĞ    åò   3       @æĞ    Ğåò   4       `æĞ    Pæò   5       €æĞ    æò   6        æĞ    æò   7       ÀæĞ    Ğæò   8       àæĞ    çò   9        çĞ    Pçò   :        çĞ    Ğçò   ;       @çĞ    çò   <       `çĞ    èò   =       €çĞ    ĞÜò   >        çĞ    Üò   ?       ÀçĞ    İò   @       àçĞ    PÜò   A        èĞ    ğò   B        èĞ    Üò   C       @èĞ    üò   D       `èĞ    Ğúò   E       €èĞ    üò   F        èĞ    Ğüò   G       ÀèĞ    Püò   H       àèĞ    ıò   I        éĞ    Pıò   J        éĞ    ıò   K       @éĞ    Ğıò   L       `éĞ    şò   M       €éĞ    Pşò   N        éĞ    şò   O       ÀéĞ    Ğşò   P       àéĞ    ÿò   Q        êĞ    Pÿò   R        êĞ    pöò   S       @êĞ    ÿò   T       `êĞ    Ğÿò   U       €êĞ    ğôò   V        êĞ    ğõò   W       ÀêĞ    p÷ò   X       àêĞ    ğöò   Y        ëĞ    Pùò   Z        ëĞ    Pøò   [       @ëĞ    Ğøò   \       `ëĞ    P÷ò   ]       €ëĞ    Ğöò   ^        ëĞ    Põò   _       ÀëĞ    Ğõò   `       àëĞ    Pöò   a        ìĞ    Ğ÷ò   b        ìĞ    pûò   c       @ìĞ    Ôò   d       `ìĞ    ĞÔò   e       €ìĞ    Õò   f        ìĞ    ĞÕò   g       ÀìĞ    PÕò   h       àìĞ    Õò   i        íĞ    Öò   j        íĞ    PÖò   k       @íĞ    Öò   l       `íĞ    ĞÖò   m       €íĞ    ×ò   n        íĞ    ×ò   o       ÀíĞ    P×ò   p       àíĞ    Ğ×ò   q        îĞ    Øò   r        îĞ    PØò   s       @îĞ    Øò   t       `îĞ    Ùò   u       €îĞ    ĞØò   v        îĞ    PÙò   w       ÀîĞ    Ùò   x       àîĞ    ĞÙò   y        ïĞ    Úò   z        ïĞ    Úò   {       @ïĞ    PÚò   |       `ïĞ    ĞÚò   }       €ïĞ    Ûò   ~        ïĞ    PÛò          ÀïĞ    ĞÛò   €       àïĞ    Ûò           ğĞ    Púò   ‚        ğĞ    Ğùò   ƒ       @ğĞ    Pûò   „       `ğĞ    ğ÷ò   …       €ğĞ    pøò   †        ğĞ    ğøò   ‡       ÀğĞ    ğñò   ˆ       àğĞ    pñò   ‰        ñĞ    póò   Š        ñĞ    pòò   ‹       @ñĞ    pşò   Œ       `ñĞ    °şò          €ñĞ    Pòò           ñĞ    ğşò          ÀñĞ    0ÿò          àñĞ    pÿò   ‘        òĞ    °ÿò   ’        òĞ    Pôò   “       @òĞ    õò   ”       `òĞ    0öò   •       €òĞ    °öò   –        òĞ    0÷ò   —       ÀòĞ    °÷ò   ˜       àòĞ    0øò   ™        óĞ    °øò   š        óĞ    0ùò   ›       @óĞ    °ùò   œ       `óĞ    0úò          €óĞ    °úò           óĞ    0ûò   Ÿ       ÀóĞ    ûò           àóĞ    0şò   ¡        ôĞ    ğıò   ¢        ôĞ    pıò   £       @ôĞ    °ıò   ¤       `ôĞ    0üò   ¥       €ôĞ    püò   ¦        ôĞ    0ıò   §       ÀôĞ    ğüò   ¨       àôĞ    °üò   ©        õĞ    °ûò   ª        õĞ    úò   «       @õĞ    ûò   ¬       `õĞ    pùò   ­       €õĞ    ğùò   ®        õĞ    púò   ¯       ÀõĞ    ğúò   °       àõĞ    ğûò   ±        öĞ    Ğûò   ²        öĞ    põò   ³       @öĞ    öò   ´       `öĞ    öò   µ       €öĞ    ùò   ¶        öĞ    ÷ò   ·       ÀöĞ    ÷ò   ¸       àöĞ    øò   ¹        ÷Ğ    øò   º        ÷Ğ    úò   »       @÷Ğ    ùò   ¼       `÷Ğ    0ñò   ½       €÷Ğ    ğğò   ¾        ÷Ğ    °ñò   ¿       À÷Ğ    0òò   À       à÷Ğ    pğò   Á        øĞ    °ğò   Â        øĞ    0ğò   Ã       @øĞ    ğïò   Ä       `øĞ    °ïò   Å       €øĞ    pïò   Æ        øĞ    0ïò   Ç       ÀøĞ    ğîò   È       àøĞ    pîò   É        ùĞ    °îò   Ê        ùĞ    0îò   Ë       @ùĞ    ğíò   Ì       `ùĞ    0íò   Í       €ùĞ    °íò   Î        ùĞ    píò   Ï       ÀùĞ    pìò   Ğ       àùĞ    0ìò   Ñ        úĞ    0ëò   Ò        úĞ    ğçò   Ó       @úĞ    0çò   Ô       `úĞ    pçò   Õ       €úĞ    pæò   Ö        úĞ    ğæò   ×       ÀúĞ    °æò   Ø       àúĞ    0æò   Ù        ûĞ    ğåò   Ú        ûĞ    ğäò   Û       @ûĞ    °åò   Ü       `ûĞ    påò   İ       €ûĞ    päò   Ş        ûĞ    Ğˆ©   ß       ÀûĞ    ˆ©   à       àûĞ    pˆ©   á        üĞ    Pˆ©   â        üĞ    0ˆ©   ã       @üĞ    ˆ©   ä       `üĞ    ğ‡©   å       €üĞ    Ğ‡©   æ        üĞ    °‡©   ç       ÀüĞ    ‡©   è       àüĞ    p‡©   é        ıĞ    P‡©   ê        ıĞ    0‡©   ë       @ıĞ    ‡©   ì       `ıĞ    ğ†©   í       €ıĞ    Ğ†©   î        ıĞ    °†©   ï       ÀıĞ    †©   ğ       àıĞ    p†©   ñ        şĞ    P†©   ò        şĞ    0†©   ó       @şĞ    †©   ô       `şĞ    ğ…©   õ       €şĞ    Ğ…©   ö        şĞ    °…©   ÷       ÀşĞ    …©   ø       àşĞ    p…©   ù        ÿĞ    P…©   ú        ÿĞ    0…©   û       @ÿĞ    …©   ü       `ÿĞ    ğ„©   ı       €ÿĞ    Ğ„©   ş        ÿĞ    °„©   ÿ       ÀÿĞ    „©          àÿĞ    p„©         0„©   „©         P„©   Ğƒ©         ğƒ©   ƒ©         °ƒ©   Pƒ©         pƒ©   ƒ©         0ƒ©   Ğ‚©         ğ‚©   ‚©         °‚©   P‚©   	      p‚©   ‚©   
+      0‚©   Ğ©         ğ©   ©         °©   P©         p©   ©         0©   Ğ€©         ğ€©   €©         °€©   P€©         p€©   °Š©         0€©   Š©         Š©   PŠ©         pŠ©   0Š©         0‰©   ğ‰©         Ğ‰©   ‰©         P‰©   °‰©         p‰©   ‰©         ğˆ©   0­©         °ˆ©   p­©         P­©   °­©         ­©   ğ­©         Ğ­©   0®©         ®©   p®©         P®©   °®©          ®©   ğ®©   !      Ğ®©   0¯©   "      ¯©   p¯©   #      P¯©   °¯©   $      ¯©   ğ¯©   %      Ğ¯©   0°©   &      °©   p°©   '      P°©   °°©   (      °©   ğ°©   )      Ğ°©   0±©   *      ±©   p±©   +      P±©   °±©   ,      ±©   ğ±©   -      Ğ±©   0²©   .      ²©   p²©   /      P²©   °²©   0      ²©   ğ²©   1      Ğ²©   0³©   2      ³©   p³©   3      P³©   °³©   4      ³©   ğ³©   5      Ğ³©   0´©   6      ´©   p´©   7      P´©   °´©   8      ´©   ğ´©   9      Ğ´©   0µ©   :      µ©   pµ©   ;      Pµ©   °µ©   <      µ©   ğµ©   =      Ğµ©   0¶©   >      ¶©   p¶©   ?      P¶©   °¶©   @      ¶©   ğ¶©   A      Ğ¶©   0·©   B      ·©   p·©   C      P·©   °·©   D      ·©   ğ·©   E      Ğ·©   0¸©   F      ¸©   p¸©   G      P¸©   °¸©   H      ¸©   ğ¸©   I      Ğ¸©   0¹©   J      ¹©   p¹©   K      P¹©   °¹©   L      ¹©   ğ¹©   M      Ğ¹©   0º©   N      º©   pº©   O      Pº©   °º©   P      º©   ğº©   Q      Ğº©   0»©   R      »©   p»©   S      P»©   °»©   T      »©   ğ»©   U      Ğ»©   0¼©   V      ¼©   p¼©   W      P¼©   °¼©   X      ¼©   ğ¼©   Y      Ğ¼©   0½©   Z      ½©   p½©   [      P½©   °½©   \      ½©   ğ½©   ]      Ğ½©   0¾©   ^      ¾©   p¾©   _      P¾©   °¾©   `      ¾©   ğ¾©   a      Ğ¾©   0¿©   b      ¿©   p¿©   c      P¿©   °¿©   d      ¿©   0@	   e      Ğ¿©   p@	   f      P@	   °@	   g      @	   ğ@	   h      Ğ@	   0A	   i      A	   pA	   j      PA	   °A	   k      A	   ğA	   l      ĞA	   0B	   m      B	   pB	   n      PB	   °B	   o      B	   ğB	   p      ĞB	   0C	   q      C	   pC	   r      PC	   °C	   s      C	   ğC	   t      ĞC	   0D	   u      D	   pD	   v      PD	   °D	   w      D	   ğD	   x      ĞD	   0E	   y      E	   pE	   z      PE	   °E	   {      E	   ğE	   |      ĞE	   0F	   }      F	   pF	   ~      PF	   °F	         F	   ğF	   €      ĞF	   0G	         G	   pG	   ‚      PG	   °G	   ƒ      G	   ğG	   „      ĞG	   0H	   …      H	   pH	   †      PH	   °H	   ‡      H	   ğH	   ˆ      ĞH	   0I	   ‰      I	   pI	   Š      PI	   °I	   ‹      I	   ğI	   Œ      ĞI	   0J	         J	   pJ	         PJ	   °J	         J	   ğJ	         ĞJ	   0K	   ‘      K	   pK	   ’      PK	   °K	   “      K	   ğK	   ”      ĞK	   0L	   •      L	   pL	   –      PL	   °L	   —      L	   ğL	   ˜      ĞL	   0M	   ™      M	   pM	   š      PM	   °M	   ›      M	   ğM	   œ      ĞM	   0N	         N	   pN	         PN	   °N	   Ÿ      N	   ğN	          ĞN	   0O	   ¡      O	   pO	   ¢      PO	   °O	   £      O	   ğO	   ¤      ĞO	   0P	   ¥      P	   pP	   ¦      PP	   °P	   §      P	   ğP	   ¨      ĞP	   0Q	   ©      Q	   pQ	   ª      PQ	   °Q	   «      Q	   ğQ	   ¬      ĞQ	   0R	   ­      R	   pR	   ®      PR	   °R	   ¯      R	   ğR	   °      ĞR	   0S	   ±      S	   pS	   ²      PS	   °S	   ³      S	   ğS	   ´      ĞS	   0T	   µ      T	   pT	   ¶      PT	   °T	   ·      T	   ğT	   ¸      ĞT	   0U	   ¹      U	   pU	   º      PU	   °U	   »      U	   ğU	   ¼      ĞU	   0V	   ½      V	   pV	   ¾      PV	   °V	   ¿      V	   ğV	   À      ĞV	   0W	   Á      W	   pW	   Â      PW	   °W	   Ã      W	   ğW	   Ä      ĞW	   0X	   Å      X	   pX	   Æ      PX	   °X	   Ç      X	   ğX	   È      ĞX	   0Y	   É      Y	   pY	   Ê      PY	   °Y	   Ë      Y	   ğY	   Ì      ĞY	   0Z	   Í      Z	   pZ	   Î      PZ	   °Z	   Ï      Z	   ğZ	   Ğ      ĞZ	   0[	   Ñ      [	   p[	   Ò      P[	   °[	   Ó      [	   ğ[	   Ô      Ğ[	   0\	   Õ      \	   p\	   Ö      P\	   °\	   ×      \	   ğ\	   Ø      Ğ\	   0]	   Ù      ]	   p]	   Ú      P]	   °]	   Û      ]	   ğ]	   Ü      Ğ]	   0^	   İ      ^	   p^	   Ş      P^	   °^	   ß      ^	   ğ^	   à      Ğ^	   0_	   á      _	   p_	   â      P_	   °_	   ã      _	   ğ_	   ä      Ğ_	   0`	   å      `	   p`	   æ      P`	   °`	   ç      `	   ğ`	   è      Ğ`	   0a	   é      a	   pa	   ê      Pa	   °a	   ë      a	   ğa	   ì      Ğa	   0b	   í      b	   pb	   î      Pb	   °b	   ï      b	   ğb	   ğ      Ğb	   0c	   ñ      c	   pc	   ò      Pc	   °c	   ó      c	   ğc	   ô      Ğc	   0d	   õ      d	   pd	   ö      Pd	   °d	   ÷      d	   ğd	   ø      Ğd	   0e	   ù      e	   pe	   ú      Pe	   °e	   û      e	   ğe	   ü      Ğe	   0f	   ı      f	   pf	   ş      Pf	   °f	   ÿ      f	   ğf	          Ğf	   0g	         g	   pg	         Pg	   °g	         g	   ğg	         Ğg	   0h	         h	   ph	         Ph	   °h	         h	   ğh	         Ğh	   0i	   	      i	   pi	   
+      Pi	   °i	         i	   ği	         Ği	   0j	         j	   pj	         Pj	   °j	         j	   ğj	         Ğj	   0k	         k	   pk	         Pk	   °k	         k	   ğk	         Ğk	   0l	         l	   pl	         Pl	   °l	         l	   ğl	         Ğl	   0m	         m	   pm	         Pm	   °m	         m	   ğm	         Ğm	   0n	         n	   pn	         Pn	   °n	         n	   ğn	          Ğn	   0o	   !      o	   po	   "      Po	   °o	   #      o	   ğo	   $      Ğo	   0p	   %      p	   pp	   &      Pp	   °p	   '      p	   ğp	   (      Ğp	   0q	   )      q	   pq	   *      Pq	   °q	   +      q	   ğq	   ,      Ğq	   0r	   -      r	   pr	   .      Pr	   °r	   /      r	   ğr	   0      Ğr	   0s	   1      s	   ps	   2      Ps	   °s	   3      s	   ğs	   4      Ğs	   0t	   5      t	   pt	   6      Pt	   °t	   7      t	   ğt	   8      Ğt	   0u	   9      u	   pu	   :      Pu	   °u	   ;      u	   ğu	   <      Ğu	   0v	   =      v	   pv	   >      Pv	   °v	   ?      v	   ğv	   @      Ğv	   0w	   A      w	   pw	   B      Pw	   °w	   C      w	   ğw	   D      Ğw	   0x	   E      x	   px	   F      Px	   °x	   G      x	   ğx	   H      Ğx	   0y	   I      y	   py	   J      Py	   °y	   K      y	   ğy	   L      Ğy	   0z	   M      z	   pz	   N      Pz	   °z	   O      z	   ğz	   P      Ğz	   0{	   Q      {	   p{	   R      P{	   °{	   S      {	   ğ{	   T      Ğ{	   0|	   U      |	   p|	   V      P|	   °|	   W      |	   ğ|	   X      Ğ|	   0}	   Y      }	   p}	   Z      P}	   °}	   [      }	   ğ}	   \      Ğ}	   0~	   ]      ~	   p~	   ^      P~	   °~	   _      ~	   ğ~	   `      Ğ~	   0	   a      	   p	   b      P	   °	   c      	   0€ë   d      Ğ	   p€ë   e      P€ë   °€ë   f      €ë   ğ€ë   g      Ğ€ë   0ë   h      ë   pë   i      Pë   °ë   j      ë   ğë   k      Ğë   0‚ë   l      ‚ë   p‚ë   m      P‚ë   °‚ë   n      ‚ë   ğ‚ë   o      Ğ‚ë   0ƒë   p      ƒë   pƒë   q      Pƒë   °ƒë   r      ƒë   ğƒë   s      Ğƒë   0„ë   t      „ë   p„ë   u      P„ë   °„ë   v      „ë   ğ„ë   w      Ğ„ë   0…ë   x      …ë   p…ë   y      P…ë   °…ë   z      …ë   ğ…ë   {      Ğ…ë   0†ë   |      †ë   p†ë   }      P†ë   °†ë   ~      †ë   ğ†ë         Ğ†ë   0‡ë   €      ‡ë   p‡ë         P‡ë   °‡ë   ‚      ‡ë   ğ‡ë   ƒ      Ğ‡ë   0ˆë   „      ˆë   pˆë   …      Pˆë   °ˆë   †      ˆë   ğˆë   ‡      Ğˆë   0‰ë   ˆ      ‰ë   p‰ë   ‰      P‰ë   °‰ë   Š      ‰ë   ğ‰ë   ‹      Ğ‰ë   0Šë   Œ      Šë   pŠë         PŠë   °Šë         Šë   ğŠë         ĞŠë   0‹ë         ‹ë   p‹ë   ‘      P‹ë   °‹ë   ’      ‹ë   ğ‹ë   “      Ğ‹ë   0Œë   ”      Œë   pŒë   •      PŒë   °Œë   –      Œë   ğŒë   —      ĞŒë   0ë   ˜      ë   pë   ™      Pë   °ë   š      ë   ğë   ›      Ğë   0ë   œ      ë   pë         Pë   °ë         ë   ğë   Ÿ      Ğë   0ë          ë   pë   ¡      Pë   °ë   ¢      ë   ğë   £      Ğë   0ë   ¤      ë   pë   ¥      Pë   °ë   ¦      ë   ğë   §      Ğë   0‘ë   ¨      ‘ë   p‘ë   ©      P‘ë   °‘ë   ª      ‘ë   ğ‘ë   «      Ğ‘ë   0’ë   ¬      ’ë   p’ë   ­      P’ë   °’ë   ®      ’ë   ğ’ë   ¯      Ğ’ë   0“ë   °      “ë   p“ë   ±      P“ë   °“ë   ²      “ë   ğ“ë   ³      Ğ“ë   0”ë   ´      ”ë   p”ë   µ      P”ë   °”ë   ¶      ”ë   ğ”ë   ·      Ğ”ë   0•ë   ¸      •ë   p•ë   ¹      P•ë   °•ë   º      •ë   ğ•ë   »      Ğ•ë   0–ë   ¼      –ë   p–ë   ½      P–ë   °–ë   ¾      –ë   ğ–ë   ¿      Ğ–ë   0—ë   À      —ë   p—ë   Á      P—ë   °—ë   Â      —ë   ğ—ë   Ã      Ğ—ë   0˜ë   Ä      ˜ë   p˜ë   Å      P˜ë   °˜ë   Æ      ˜ë   ğ˜ë   Ç      Ğ˜ë   0™ë   È      ™ë   p™ë   É      P™ë   °™ë   Ê      ™ë   ğ™ë   Ë      Ğ™ë   0šë   Ì      šë   pšë   Í      Pšë   °šë   Î      šë   ğšë   Ï      Ğšë   0›ë   Ğ      ›ë   p›ë   Ñ      P›ë   °›ë   Ò      ›ë   ğ›ë   Ó      Ğ›ë   0œë   Ô      œë   pœë   Õ      Pœë   °œë   Ö      œë   ğœë   ×      Ğœë   0ë   Ø      ë   pë   Ù      Pë   °ë   Ú      ë   ğë   Û      Ğë   0ë   Ü      ë   pë   İ      Pë   °ë   Ş      ë   ğë   ß      Ğë   0Ÿë   à      Ÿë   pŸë   á      PŸë   °Ÿë   â      Ÿë   ğŸë   ã      ĞŸë   0 ë   ä       ë   p ë   å      P ë   ° ë   æ       ë   ğ ë   ç      Ğ ë   0¡ë   è      ¡ë   p¡ë   é      P¡ë   °¡ë   ê      ¡ë   ğ¡ë   ë      Ğ¡ë   0¢ë   ì      ¢ë   p¢ë   í      P¢ë   °¢ë   î      ¢ë   ğ¢ë   ï      Ğ¢ë   0£ë   ğ      £ë   p£ë   ñ      P£ë   °£ë   ò      £ë   ğ£ë   ó      Ğ£ë   0¤ë   ô      ¤ë   p¤ë   õ      P¤ë   °¤ë   ö      ¤ë   ğ¤ë   ÷      Ğ¤ë   0¥ë   ø      ¥ë   p¥ë   ù      P¥ë   °¥ë   ú      ¥ë   ğ¥ë   û      Ğ¥ë   0¦ë   ü      ¦ë   p¦ë   ı      P¦ë   °¦ë   ş      ¦ë   ğ¦ë   ÿ      Ğ¦ë   0§ë          §ë   p§ë         P§ë   °§ë         §ë   ğ§ë         Ğ§ë   0¨ë         ¨ë   p¨ë         P¨ë   °¨ë         ¨ë   ğ¨ë         Ğ¨ë   0©ë         ©ë   p©ë   	      P©ë   °©ë   
+      ©ë   ğ©ë         Ğ©ë   0ªë         ªë   pªë         Pªë   °ªë         ªë   ğªë         Ğªë   0«ë         «ë   p«ë         P«ë   °«ë         «ë   ğ«ë         Ğ«ë   0¬ë         ¬ë   p¬ë         P¬ë   °¬ë         ¬ë   ğ¬ë         Ğ¬ë   0­ë         ­ë   p­ë         P­ë   °­ë         ­ë   ğ­ë         Ğ­ë   0®ë         ®ë   p®ë         P®ë   °®ë         ®ë   ğ®ë         Ğ®ë   0¯ë          ¯ë   p¯ë   !      P¯ë   °¯ë   "      ¯ë   ğ¯ë   #      Ğ¯ë   0°ë   $      °ë   p°ë   %      P°ë   °°ë   &      °ë   ğ°ë   '      Ğ°ë   0±ë   (      ±ë   p±ë   )      P±ë   °±ë   *      ±ë   ğ±ë   +      Ğ±ë   0²ë   ,      ²ë   p²ë   -      P²ë   °²ë   .      ²ë   ğ²ë   /      Ğ²ë   0³ë   0      ³ë   p³ë   1      P³ë   °³ë   2      ³ë   ğ³ë   3      Ğ³ë   0´ë   4      ´ë   p´ë   5      P´ë   °´ë   6      ´ë   ğ´ë   7      Ğ´ë   0µë   8      µë   pµë   9      Pµë   °µë   :      µë   ğµë   ;      Ğµë   0¶ë   <      ¶ë   p¶ë   =      P¶ë   °¶ë   >      ¶ë   ğ¶ë   ?      Ğ¶ë   0·ë   @      ·ë   p·ë   A      P·ë   °·ë   B      ·ë   ğ·ë   C      Ğ·ë   0¸ë   D      ¸ë   p¸ë   E      P¸ë   °¸ë   F      ¸ë   ğ¸ë   G      Ğ¸ë   0¹ë   H      ¹ë   p¹ë   I      P¹ë   °¹ë   J      ¹ë   ğ¹ë   K      Ğ¹ë   0ºë   L      ºë   pºë   M      Pºë   °ºë   N      ºë   ğºë   O      Ğºë   0»ë   P      »ë   p»ë   Q      P»ë   °»ë   R      »ë   ğ»ë   S      Ğ»ë   0¼ë   T      ¼ë   p¼ë   U      P¼ë   °¼ë   V      ¼ë   ğ¼ë   W      Ğ¼ë   0½ë   X      ½ë   p½ë   Y      P½ë   °½ë   Z      ½ë   ğ½ë   [      Ğ½ë   0¾ë   \      ¾ë   p¾ë   ]      P¾ë   °¾ë   ^      ¾ë   ğ¾ë   _      Ğ¾ë   0¿ë   `      ¿ë   p¿ë   a      P¿ë   °¿ë   b      ¿ë   0Àí   c      Ğ¿ë   pÀí   d      PÀí   °Àí   e      Àí   ğÀí   f      ĞÀí   0Áí   g      Áí   pÁí   h      PÁí   °Áí   i      Áí   ğÁí   j      ĞÁí   0Âí   k      Âí   pÂí   l      PÂí   °Âí   m      Âí   ğÂí   n      ĞÂí   0Ãí   o      Ãí   pÃí   p      PÃí   °Ãí   q      Ãí   ğÃí   r      ĞÃí   0Äí   s      Äí   pÄí   t      PÄí   °Äí   u      Äí   ğÄí   v      ĞÄí   0Åí   w      Åí   pÅí   x      PÅí   °Åí   y      Åí   ğÅí   z      ĞÅí   0Æí   {      Æí   pÆí   |      PÆí   °Æí   }      Æí   ğÆí   ~      ĞÆí   0Çí         Çí   pÇí   €      PÇí   °Çí         Çí   ğÇí   ‚      ĞÇí   0Èí   ƒ      Èí   pÈí   „      PÈí   °Èí   …      Èí   ğÈí   †      ĞÈí   0Éí   ‡      Éí   pÉí   ˆ      PÉí   °Éí   ‰      Éí   ğÉí   Š      ĞÉí   0Êí   ‹      Êí   pÊí   Œ      PÊí   °Êí         Êí   ğÊí         ĞÊí   0Ëí         Ëí   pËí         PËí   °Ëí   ‘      Ëí   ğËí   ’      ĞËí   0Ìí   “      Ìí   pÌí   ”      PÌí   °Ìí   •      Ìí   ğÌí   –      ĞÌí   0Íí   —      Íí   pÍí   ˜      PÍí   °Íí   ™      Íí   ğÍí   š      ĞÍí   0Îí   ›      Îí   pÎí   œ      PÎí   °Îí         Îí   ğÎí         ĞÎí   0Ïí   Ÿ      Ïí   pÏí          PÏí   °Ïí   ¡      Ïí   ğÏí   ¢      ĞÏí   0Ğí   £      Ğí   pĞí   ¤      PĞí   °Ğí   ¥      Ğí   ğĞí   ¦      ĞĞí   0Ñí   §      Ñí   pÑí   ¨      PÑí   °Ñí   ©      Ñí   ğÑí   ª      ĞÑí   0Òí   «      Òí   pÒí   ¬      PÒí   °Òí   ­      Òí   ğÒí   ®      ĞÒí   0Óí   ¯      Óí   pÓí   °      PÓí   °Óí   ±      Óí   ğÓí   ²      ĞÓí   0Ôí   ³      Ôí   pÔí   ´      PÔí   °Ôí   µ      Ôí   ğÔí   ¶      ĞÔí   0Õí   ·      Õí   pÕí   ¸      PÕí   °Õí   ¹      Õí   ğÕí   º      ĞÕí   0Öí   »      Öí   pÖí   ¼      PÖí   °Öí   ½      Öí   ğÖí   ¾      ĞÖí   0×í   ¿      ×í   p×í   À      P×í   °×í   Á      ×í   ğ×í   Â      Ğ×í   0Øí   Ã      Øí   pØí   Ä      PØí   °Øí   Å      Øí   ğØí   Æ      ĞØí   0Ùí   Ç      Ùí   pÙí   È      PÙí   °Ùí   É      Ùí   ğÙí   Ê      ĞÙí   0Úí   Ë      Úí   pÚí   Ì      PÚí   °Úí   Í      Úí   ğÚí   Î      ĞÚí   0Ûí   Ï      Ûí   pÛí   Ğ      PÛí   °Ûí   Ñ      Ûí   ğÛí   Ò      ĞÛí   0Üí   Ó      Üí   pÜí   Ô      PÜí   °Üí   Õ      Üí   ğÜí   Ö      ĞÜí   0İí   ×      İí   pİí   Ø      Pİí   °İí   Ù      İí   ğİí   Ú      Ğİí   0Şí   Û      Şí   pŞí   Ü      PŞí   °Şí   İ      Şí   ğŞí   Ş      ĞŞí   0ßí   ß      ßí   pßí   à      Pßí   °ßí   á      ßí   ğßí   â      Ğßí   0àí   ã      àí   pàí   ä      Pàí   °àí   å      àí   ğàí   æ      Ğàí   0áí   ç      áí   páí   è      Páí   °áí   é      áí   ğáí   ê      Ğáí   0âí   ë      âí   pâí   ì      Pâí   °âí   í      âí   ğâí   î      Ğâí   0ãí   ï      ãí   pãí   ğ      Pãí   °ãí   ñ      ãí   ğãí   ò      Ğãí   0äí   ó      äí   päí   ô      Päí   °äí   õ      äí   ğäí   ö      Ğäí   0åí   ÷      åí   påí   ø      Påí   °åí   ù      åí   ğåí   ú      Ğåí   0æí   û      æí   pæí   ü      Pæí   °æí   ı      æí   ğæí   ş      Ğæí   0çí   ÿ      çí   pçí          Pçí   °çí         çí   ğçí         Ğçí   0èí         èí   pèí         Pèí   °èí         èí   ğèí         Ğèí   0éí         éí   péí         Péí   °éí   	      éí   ğéí   
+      Ğéí   0êí         êí   pêí         Pêí   °êí         êí   ğêí         Ğêí   0ëí         ëí   pëí         Pëí   °ëí         ëí   ğëí         Ğëí   0ìí         ìí   pìí         Pìí   °ìí         ìí   ğìí         Ğìí   0íí         íí   píí         Píí   °íí         íí   ğíí         Ğíí   0îí         îí   pîí         Pîí   °îí         îí   ğîí         Ğîí   0ïí         ïí   pïí          Pïí   °ïí   !      ïí   ğïí   "      Ğïí   0ğí   #      ğí   pğí   $      Pğí   °ğí   %      ğí   ğğí   &      Ğğí   0ñí   '      ñí   pñí   (      Pñí   °ñí   )      ñí   ğñí   *      Ğñí   0òí   +      òí   pòí   ,      Pòí   °òí   -      òí   ğòí   .      Ğòí   0óí   /      óí   póí   0      Póí   °óí   1      óí   ğóí   2      Ğóí   0ôí   3      ôí   pôí   4      Pôí   °ôí   5      ôí   ğôí   6      Ğôí   0õí   7      õí   põí   8      Põí   °õí   9      õí   ğõí   :      Ğõí   0öí   ;      öí   pöí   <      Pöí   °öí   =      öí   ğöí   >      Ğöí   0÷í   ?      ÷í   p÷í   @      P÷í   °÷í   A      ÷í   ğ÷í   B      Ğ÷í   0øí   C      øí   pøí   D      Pøí   °øí   E      øí   ğøí   F      Ğøí   0ùí   G      ùí   pùí   H      Pùí   °ùí   I      ùí   ğùí   J      Ğùí   0úí   K      úí   púí   L      Púí   °úí   M      úí   ğúí   N      Ğúí   0ûí   O      ûí   pûí   P      Pûí   °ûí   Q      ûí   ğûí   R      Ğûí   0üí   S      üí   püí   T      Püí   °üí   U      üí   ğüí   V      Ğüí   0ıí   W      ıí   pıí   X      Pıí   °ıí   Y      ıí   ğıí   Z      Ğıí   0şí   [      şí   pşí   \      Pşí   °şí   ]      şí   ğşí   ^      Ğşí   0ÿí   _      ÿí   pÿí   `      Pÿí   °ÿí   a      ÿí   0@ë   b      Ğÿí   p@ë   c      P@ë   °@ë   d      @ë   ğ@ë   e      Ğ@ë   0Aë   f      Aë   pAë   g      PAë   °Aë   h      Aë   ğAë   i      ĞAë   0Bë   j      Bë   pBë   k      PBë   °Bë   l      Bë   ğBë   m      ĞBë   0Cë   n      Cë   pCë   o      PCë   °Cë   p      Cë   ğCë   q      ĞCë   0Dë   r      Dë   pDë   s      PDë   °Dë   t      Dë   ğDë   u      ĞDë   0Eë   v      Eë   pEë   w      PEë   °Eë   x      Eë   ğEë   y      ĞEë   0Fë   z      Fë   pFë   {      PFë   °Fë   |      Fë   ğFë   }      ĞFë   0Gë   ~      Gë   pGë         PGë   °Gë   €      Gë   ğGë         ĞGë   0Hë   ‚      Hë   pHë   ƒ      PHë   °Hë   „      Hë   ğHë   …      ĞHë   0Ië   †      Ië   pIë   ‡      PIë   °Ië   ˆ      Ië   ğIë   ‰      ĞIë   0Jë   Š      Jë   pJë   ‹      PJë   °Jë   Œ      Jë   ğJë         ĞJë   0Kë         Kë   pKë         PKë   °Kë         Kë   ğKë   ‘      ĞKë   0Lë   ’      Lë   pLë   “      PLë   °Lë   ”      Lë   ğLë   •      ĞLë   0Më   –      Më   pMë   —      PMë   °Më   ˜      Më   ğMë   ™      ĞMë   0Në   š      Në   pNë   ›      PNë   °Në   œ      Në   ğNë         ĞNë   0Oë         Oë   pOë   Ÿ      POë   °Oë          Oë   ğOë   ¡      ĞOë   0Pë   ¢      Pë   pPë   £      PPë   °Pë   ¤      Pë   ğPë   ¥      ĞPë   0Që   ¦      Që   pQë   §      PQë   °Që   ¨      Që   ğQë   ©      ĞQë   0Rë   ª      Rë   pRë   «      PRë   °Rë   ¬      Rë   ğRë   ­      ĞRë   0Së   ®      Së   pSë   ¯      PSë   °Së   °      Së   ğSë   ±      ĞSë   0Të   ²      Të   pTë   ³      PTë   °Të   ´      Të   ğTë   µ      ĞTë   0Uë   ¶      Uë   pUë   ·      PUë   °Uë   ¸      Uë   ğUë   ¹      ĞUë   0Vë   º      Vë   pVë   »      PVë   °Vë   ¼      Vë   ğVë   ½      ĞVë   0Wë   ¾      Wë   pWë   ¿      PWë   °Wë   À      Wë   ğWë   Á      ĞWë   0Xë   Â      Xë   pXë   Ã      PXë   °Xë   Ä      Xë   ğXë   Å      ĞXë   0Yë   Æ      Yë   pYë   Ç      PYë   °Yë   È      Yë   ğYë   É      ĞYë   0Zë   Ê      Zë   pZë   Ë      PZë   °Zë   Ì      Zë   ğZë   Í      ĞZë   0[ë   Î      [ë   p[ë   Ï      P[ë   °[ë   Ğ      [ë   ğ[ë   Ñ      Ğ[ë   0\ë   Ò      \ë   p\ë   Ó      P\ë   °\ë   Ô      \ë   ğ\ë   Õ      Ğ\ë   0]ë   Ö      ]ë   p]ë   ×      P]ë   °]ë   Ø      ]ë   ğ]ë   Ù      Ğ]ë   0^ë   Ú      ^ë   p^ë   Û      P^ë   °^ë   Ü      ^ë   ğ^ë   İ      Ğ^ë   0_ë   Ş      _ë   p_ë   ß      P_ë   °_ë   à      _ë   ğ_ë   á      Ğ_ë   0`ë   â      `ë   p`ë   ã      P`ë   °`ë   ä      `ë   ğ`ë   å      Ğ`ë   0aë   æ      aë   paë   ç      Paë   °aë   è      aë   ğaë   é      Ğaë   0bë   ê      bë   pbë   ë      Pbë   °bë   ì      bë   ğbë   í      Ğbë   0cë   î      cë   pcë   ï      Pcë   °cë   ğ      cë   ğcë   ñ      Ğcë   0dë   ò      dë   pdë   ó      Pdë   °dë   ô      dë   ğdë   õ      Ğdë   0eë   ö      eë   peë   ÷      Peë   °eë   ø      eë   ğeë   ù      Ğeë   0fë   ú      fë   pfë   û      Pfë   °fë   ü      fë   ğfë   ı      Ğfë   0gë   ş      gë   pgë   ÿ      Pgë   °gë          gë   ğgë         Ğgë   0hë         hë   phë         Phë   °hë         hë   ğhë         Ğhë   0ië         ië   pië         Pië   °ië         ië   ğië   	      Ğië   0jë   
+      jë   pjë         Pjë   °jë         jë   ğjë         Ğjë   0kë         kë   pkë         Pkë   °kë         kë   ğkë         Ğkë   0lë         lë   plë         Plë   °lë         lë   ğlë         Ğlë   0më         më   pmë         Pmë   °më         më   ğmë         Ğmë   0në         në   pnë         Pnë   °në         në   ğnë         Ğnë   0oë         oë   poë         Poë   °oë          oë   ğoë   !      Ğoë   0pë   "      pë   ppë   #      Ppë   °pë   $      pë   ğpë   %      Ğpë   0që   &      që   pqë   '      Pqë   °që   (      që   ğqë   )      Ğqë   0rë   *      rë   prë   +      Prë   °rë   ,      rë   ğrë   -      Ğrë   0së   .      së   psë   /      Psë   °së   0      së   ğsë   1      Ğsë   0të   2      të   ptë   3      Ptë   °të   4      të   ğtë   5      Ğtë   0uë   6      uë   puë   7      Puë   °uë   8      uë   ğuë   9      Ğuë   0vë   :      vë   pvë   ;      Pvë   °vë   <      vë   ğvë   =      Ğvë   0wë   >      wë   pwë   ?      Pwë   °wë   @      wë   ğwë   A      Ğwë   0xë   B      xë   pxë   C      Pxë   °xë   D      xë   ğxë   E      Ğxë   0yë   F      yë   pyë   G      Pyë   °yë   H      yë   ğyë   I      Ğyë   0zë   J      zë   pzë   K      Pzë   °zë   L      zë   ğzë   M      Ğzë   0{ë   N      {ë   p{ë   O      P{ë   °{ë   P      {ë   ğ{ë   Q      Ğ{ë   0|ë   R      |ë   p|ë   S      P|ë   °|ë   T      |ë   ğ|ë   U      Ğ|ë   0}ë   V      }ë   p}ë   W      P}ë   °}ë   X      }ë   ğ}ë   Y      Ğ}ë   0~ë   Z      ~ë   p~ë   [      P~ë   °~ë   \      ~ë   ğ~ë   ]      Ğ~ë   0ë   ^      ë   pë   _      Pë   °ë   `      ë   0@—   a      Ğë   p@—   b      P@—   °@—   c      @—   ğ@—   d      Ğ@—   0A—   e      A—   pA—   f      PA—   °A—   g      A—   ğA—   h      ĞA—   0B—   i      B—   pB—   j      PB—   °B—   k      B—   ğB—   l      ĞB—   0C—   m      C—   pC—   n      PC—   °C—   o      C—   ğC—   p      ĞC—   0D—   q      D—   pD—   r      PD—   °D—   s      D—   ğD—   t      ĞD—   0E—   u      E—   pE—   v      PE—   °E—   w      E—   ğE—   x      ĞE—   0F—   y      F—   pF—   z      PF—   °F—   {      F—   ğF—   |      ĞF—   0G—   }      G—   pG—   ~      PG—   °G—         G—   ğG—   €      ĞG—   0H—         H—   pH—   ‚      PH—   °H—   ƒ      H—   ğH—   „      ĞH—   0I—   …      I—   pI—   †      PI—   °I—   ‡      I—   ğI—   ˆ      ĞI—   0J—   ‰      J—   pJ—   Š      PJ—   °J—   ‹      J—   ğJ—   Œ      ĞJ—   0K—         K—   pK—         PK—   °K—         K—   ğK—         ĞK—   0L—   ‘      L—   pL—   ’      PL—   °L—   “      L—   ğL—   ”      ĞL—   0M—   •      M—   pM—   –      PM—   °M—   —      M—   ğM—   ˜      ĞM—   0N—   ™      N—   pN—   š      PN—   °N—   ›      N—   ğN—   œ      ĞN—   0O—         O—   pO—         PO—   °O—   Ÿ      O—   ğO—          ĞO—   0P—   ¡      P—   pP—   ¢      PP—   °P—   £      P—   ğP—   ¤      ĞP—   0Q—   ¥      Q—   pQ—   ¦      PQ—   °Q—   §      Q—   ğQ—   ¨      ĞQ—   0R—   ©      R—   pR—   ª      PR—   °R—   «      R—   ğR—   ¬      ĞR—   0S—   ­      S—   pS—   ®      PS—   °S—   ¯      S—   ğS—   °      ĞS—   0T—   ±      T—   pT—   ²      PT—   °T—   ³      T—   ğT—   ´      ĞT—   0U—   µ      U—   pU—   ¶      PU—   °U—   ·      U—   ğU—   ¸      ĞU—   0V—   ¹      V—   pV—   º      PV—   °V—   »      V—   ğV—   ¼      ĞV—   0W—   ½      W—   pW—   ¾      PW—   °W—   ¿      W—   ğW—   À      ĞW—   0X—   Á      X—   pX—   Â      PX—   °X—   Ã      X—   ğX—   Ä      ĞX—   0Y—   Å      Y—   pY—   Æ      PY—   °Y—   Ç      Y—   ğY—   È      ĞY—   0Z—   É      Z—   pZ—   Ê      PZ—   °Z—   Ë      Z—   ğZ—   Ì      ĞZ—   0[—   Í      [—   p[—   Î      P[—   °[—   Ï      [—   ğ[—   Ğ      Ğ[—   0\—   Ñ      \—   p\—   Ò      P\—   °\—   Ó      \—   ğ\—   Ô      Ğ\—   0]—   Õ      ]—   p]—   Ö      P]—   °]—   ×      ]—   ğ]—   Ø      Ğ]—   0^—   Ù      ^—   p^—   Ú      P^—   °^—   Û      ^—   ğ^—   Ü      Ğ^—   0_—   İ      _—   p_—   Ş      P_—   °_—   ß      _—   ğ_—   à      Ğ_—   0`—   á      `—   p`—   â      P`—   °`—   ã      `—   ğ`—   ä      Ğ`—   0a—   å      a—   pa—   æ      Pa—   °a—   ç      a—   ğa—   è      Ğa—   0b—   é      b—   pb—   ê      Pb—   °b—   ë      b—   ğb—   ì      Ğb—   0c—   í      c—   pc—   î      Pc—   °c—   ï      c—   ğc—   ğ      Ğc—   0d—   ñ      d—   pd—   ò      Pd—   °d—   ó      d—   ğd—   ô      Ğd—   0e—   õ      e—   pe—   ö      Pe—   °e—   ÷      e—   ğe—   ø      Ğe—   0f—   ù      f—   pf—   ú      Pf—   °f—   û      f—   ğf—   ü      Ğf—   0g—   ı      g—   pg—   ş      Pg—   °g—   ÿ      g—   ğg—          Ğg—   0h—         h—   ph—         Ph—   °h—         h—   ğh—         Ğh—   0i—         i—   pi—         Pi—   °i—         i—   ği—         Ği—   0j—   	      j—   pj—   
+      Pj—   °j—         j—   ğj—         Ğj—   0k—         k—   pk—         Pk—   °k—         k—   ğk—         Ğk—   0l—         l—   pl—         Pl—   °l—         l—   ğl—         Ğl—   0m—         m—   pm—         Pm—   °m—         m—   ğm—         Ğm—   0n—         n—   pn—         Pn—   °n—         n—   ğn—         Ğn—   0o—         o—   po—         Po—   °o—         o—   ğo—          Ğo—   0p—   !      p—   pp—   "      Pp—   °p—   #      p—   ğp—   $      Ğp—   0q—   %      q—   pq—   &      Pq—   °q—                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           >      pâ»   ğEÍ    ?      â»   ğEÍ    @      °â»   ğEÍ    A      Ğâ»   ğEÍ    B      ğâ»   ğEÍ    C      ã»   ğEÍ    D      0ã»   ğEÍ    E      Pã»   ğEÍ    G      ã»   ğEÍ    H      °ã»   ğEÍ    I      Ğã»   ğEÍ    J      pã»   ğEÍ    K      ä»   ğEÍ    L      ğã»   ğEÍ    M      0ä»   ğEÍ    O      pä»   ğEÍ    P      ä»   ğEÍ    Q      °ä»   ğEÍ    R      Pä»   ğEÍ    S      ğä»   ğEÍ    T      Ğä»   ğEÍ    U      å»   ğEÍ    V      0å»   ğEÍ    W      På»   ğEÍ    Y      å»   ğEÍ    Z      °å»   ğEÍ    [      Ğå»   ğEÍ    \      på»   ğEÍ    ]      æ»   ğEÍ    ^      ğå»   ğEÍ    _      0æ»   ğEÍ    `      Pæ»   ğEÍ    a      pæ»   ğEÍ    b      æ»   ğEÍ    c      °æ»   ğEÍ    d      Ğæ»   ğEÍ    e      ğæ»   ğEÍ    f      ç»   ğEÍ    g      0ç»   ğEÍ    h      Pç»   ğEÍ    j      ç»   ğEÍ    k      °ç»   ğEÍ    l      Ğç»   ğEÍ    m      pç»   ğEÍ    n      è»   ğEÍ    o      ğç»   ğEÍ    p      0è»   ğEÍ    q      Pè»   ğEÍ    r      pè»   ğEÍ    s      è»   ğEÍ    t      °è»   ğEÍ    u      Ğè»   ğEÍ    v      ğè»   ğEÍ    w      é»   ğEÍ    x      0é»   ğEÍ    y      Pé»   ğEÍ    z      pé»   ğEÍ    |      °é»   ğEÍ    }      Ğé»   ğEÍ    ~      ğé»   ğEÍ          é»   ğEÍ    €      0ê»   ğEÍ          ê»   ğEÍ    ‚      Pê»   ğEÍ    ƒ      pê»   ğEÍ    „      ê»   ğEÍ    …      °ê»   ğEÍ    †      Ğê»   ğEÍ    ‡      ğê»   ğEÍ    ˆ      ë»   ğEÍ    ‰      0ë»   ğEÍ    Š      Pë»   ğEÍ    ‹      pë»   ğEÍ    Œ      ë»   ğEÍ          °ë»   ğEÍ          ğë»   ğEÍ          ì»   ğEÍ    ‘      0ì»   ğEÍ    ’      Ğë»   ğEÍ    “      pì»   ğEÍ    ”      Pì»   ğEÍ    •      ì»   ğEÍ    –      °ì»   ğEÍ    —      Ğì»   ğEÍ    ˜      ğì»   ğEÍ    ™      í»   ğEÍ    š      0í»   ğEÍ    ›      Pí»   ğEÍ    œ      pí»   ğEÍ          í»   ğEÍ          °í»   ğEÍ           ğí»   ğEÍ    ¡      î»   ğEÍ    ¢      0î»   ğEÍ    £      Ğí»   ğEÍ    ¤      pî»   ğEÍ    ¥      Pî»   ğEÍ    ¦      î»   ğEÍ    §      °î»   ğEÍ    ¨      Ğî»   ğEÍ    ©      ğî»   ğEÍ    ª      ï»   ğEÍ    «      0ï»   ğEÍ    ­      pï»   ğEÍ    ®      ï»   ğEÍ    ¯      °ï»   ğEÍ    °      Pï»   ğEÍ    ±      ğï»   ğEÍ    ²      Ğï»   ğEÍ    ³      ğ»   ğEÍ    ´      0ğ»   ğEÍ    ¶      pğ»   ğEÍ    ·      ğ»   ğEÍ    ¸      °ğ»   ğEÍ    ¹      Pğ»   ğEÍ    º      ğğ»   ğEÍ    »      Ğğ»   ğEÍ    ¼      ñ»   ğEÍ    ½      0ñ»   ğEÍ    ¾      Pñ»   ğEÍ    ¿      pñ»   ğEÍ    À      ñ»   ğEÍ    Â      Ğñ»   ğEÍ    Ã      ğñ»   ğEÍ    Ä      ò»   ğEÍ    Å      °ñ»   ğEÍ    Æ      Pò»   ğEÍ    Ç      0ò»   ğEÍ    È      pò»   ğEÍ    É      ò»   ğEÍ    Ë      Ğò»   ğEÍ    Ì      ğò»   ğEÍ    Í      ó»   ğEÍ    Î      °ò»   ğEÍ    Ï      Pó»   ğEÍ    Ğ      0ó»   ğEÍ    Ñ      pó»   ğEÍ    Ò      ó»   ğEÍ    Ó      °ó»   ğEÍ    Ô      Ğó»   ğEÍ    Ö      ô»   ğEÍ    ×      0ô»   ğEÍ    Ø      Pô»   ğEÍ    Ù      ğó»   ğEÍ    Ú      ô»   ğEÍ    Û      pô»   ğEÍ    Ü      °ô»   ğEÍ    İ      Ğô»   ğEÍ    ß      õ»   ğEÍ    à      0õ»   ğEÍ    á      Põ»   ğEÍ    â      ğô»   ğEÍ    ã      õ»   ğEÍ    å      °õ»   ğEÍ    æ      Ğõ»   ğEÍ    ç      ğõ»   ğEÍ    è      põ»   ğEÍ    é      0ö»   ğEÍ    ê      ö»   ğEÍ    ë      Pö»   ğEÍ    ì      pö»   ğEÍ    í      ö»   ğEÍ    î      °ö»   ğEÍ    ğ      ğö»   ğEÍ    ñ      ÷»   ğEÍ    ò      0÷»   ğEÍ    ó      Ğö»   ğEÍ    õ      P÷»   ğEÍ    ö      ÷»   ğEÍ    ÷      °÷»   ğEÍ    ø      p÷»   ğEÍ    ù      ğ÷»   ğEÍ    ú      Ğ÷»   ğEÍ    ü      0ø»   ğEÍ    ı      Pø»   ğEÍ    ş      pø»   ğEÍ    ÿ      ø»   ğEÍ           °ø»   ğEÍ          ø»   ğEÍ          Ğø»   ğEÍ          ğø»   ğEÍ          0ù»   ğEÍ          Pù»   ğEÍ          pù»   ğEÍ          ù»   ğEÍ    	      °ù»   ğEÍ    
+      ù»   ğEÍ          Ğù»   ğEÍ          ğù»   ğEÍ          ú»   ğEÍ          0ú»   ğEÍ          Pú»   ğEÍ          pú»   ğEÍ          ú»   ğEÍ          Ğú»   ğEÍ          ğú»   ğEÍ          û»   ğEÍ          °ú»   ğEÍ          Pû»   ğEÍ          0û»   ğEÍ          pû»   ğEÍ          û»   ğEÍ          °û»   ğEÍ          ğû»   ğEÍ          ü»   ğEÍ          0ü»   ğEÍ           Ğû»   ğEÍ    !      pü»   ğEÍ    "      Pü»   ğEÍ    #      ü»   ğEÍ    $      °ü»   ğEÍ    %      Ğü»   ğEÍ    &      ğü»   ğEÍ    (      0ı»   ğEÍ    )      Pı»   ğEÍ    *      pı»   ğEÍ    +      ı»   ğEÍ    ,      °ı»   ğEÍ    -      ı»   ğEÍ    .      Ğı»   ğEÍ    /      ğı»   ğEÍ    1      0ş»   ğEÍ    2      Pş»   ğEÍ    3      pş»   ğEÍ    4      ş»   ğEÍ    5      °ş»   ğEÍ    6      ş»   ğEÍ    7      Ğş»   ğEÍ    8      ğş»   ğEÍ    9      ÿ»   ğEÍ    :      0ÿ»   ğEÍ    ;      Pÿ»   ğEÍ    <      pÿ»   ğEÍ    =      ÿ»   ğEÍ    ?      Ğÿ»   ğEÍ    @      0 ½   ğEÍ    A      P ½   ğEÍ    B      °ÿ»   ğEÍ    C       ½   ğEÍ    D      p ½   ğEÍ    E      ° ½   ğEÍ    F      Ğ ½   ğEÍ    H      ½   ğEÍ    I      0½   ğEÍ    J      P½   ğEÍ    K      ğ ½   ğEÍ    L      ½   ğEÍ    M      p½   ğEÍ    N      °½   ğEÍ    O      Ğ½   ğEÍ    P      ğ½   ğEÍ    Q      ½   ğEÍ    R      0½   ğEÍ    S      P½   ğEÍ    T      p½   ğEÍ    U      ½   ğEÍ    W      Ğ½   ğEÍ    X      ğ½   ğEÍ    Y      ½   ğEÍ    Z      °½   ğEÍ    [      P½   ğEÍ    \      0½   ğEÍ    ]      p½   ğEÍ    ^      ½   ğEÍ    `      Ğ½   ğEÍ    a      ğ½   ğEÍ    b      ½   ğEÍ    c      °½   ğEÍ    d      P½   ğEÍ    e      0½   ğEÍ    f      p½   ğEÍ    g      ½   ğEÍ    i      Ğ½   ğEÍ    j      ğ½   ğEÍ    k      ½   ğEÍ    l      °½   ğEÍ    m      P½   ğEÍ    n      0½   ğEÍ    o      p½   ğEÍ    p      ½   ğEÍ    q      °½   ğEÍ    r      Ğ½   ğEÍ    s      ğ½   ğEÍ    t      ½   ğEÍ    u      0½   ğEÍ    w      p½   ğEÍ    x      ½   ğEÍ    y      °½   ğEÍ    z      P½   ğEÍ    {      ğ½   ğEÍ    |      Ğ½   ğEÍ    }      ½   ğEÍ    ~      0½   ğEÍ          P½   ğEÍ    €      p½   ğEÍ          ½   ğEÍ    ‚      °½   ğEÍ    ƒ      Ğ½   ğEÍ    „      ğ½   ğEÍ    …      ½   ğEÍ    †      0½   ğEÍ    ‡      P½   ğEÍ    ˆ      p½   ğEÍ    ‰      ½   ğEÍ    Š      °½   ğEÍ    ‹      Ğ½   ğEÍ    Œ      ğ½   ğEÍ          	½   ğEÍ          0	½   ğEÍ          P	½   ğEÍ          p	½   ğEÍ    ‘      	½   ğEÍ    ’      °	½   ğEÍ    “      Ğ	½   ğEÍ    ”      ğ	½   ğEÍ    •      
+½   ğEÍ    –      0
+½   ğEÍ    —      P
+½   ğEÍ    ˜      p
+½   ğEÍ    ™      
+½   ğEÍ    š      °
+½   ğEÍ    ›      Ğ
+½   ğEÍ    œ      ğ
+½   ğEÍ          ½   ğEÍ    Ÿ      P½   ğEÍ           p½   ğEÍ    ¡      ½   ğEÍ    ¢      0½   ğEÍ    £      Ğ½   ğEÍ    ¤      °½   ğEÍ    ¥      ğ½   ğEÍ    §      0½   ğEÍ    ¨      P½   ğEÍ    ©      p½   ğEÍ    ª      ½   ğEÍ    «      °½   ğEÍ    ¬      ½   ğEÍ    ­      Ğ½   ğEÍ    ®      ğ½   ğEÍ    ¯      ½   ğEÍ    °      0½   ğEÍ    ±      P½   ğEÍ    ²      p½   ğEÍ    ³      ½   ğEÍ    ´      °½   ğEÍ    µ      Ğ½   ğEÍ    ¶      ğ½   ğEÍ    ·      ½   ğEÍ    ¸      0½   ğEÍ    ¹      P½   ğEÍ    º      p½   ğEÍ    »      ½   ğEÍ    ¼      °½   ğEÍ    ½      Ğ½   ğEÍ    ¾      ğ½   ğEÍ    ¿      ½   ğEÍ    À      0½   ğEÍ    Á      P½   ğEÍ    Â      p½   ğEÍ    Ã      ½   ğEÍ    Ä      °½   ğEÍ    Å      Ğ½   ğEÍ    Æ      ğ½   ğEÍ    Ç      ½   ğEÍ    È      0½   ğEÍ    É      P½   ğEÍ    Ê      p½   ğEÍ    Ë      ½   ğEÍ    Ì      °½   ğEÍ    Í      Ğ½   ğEÍ    Î      ğ½   ğEÍ    Ï      ½   ğEÍ    Ğ      0½   ğEÍ    Ñ      P½   ğEÍ    Ò      p½   ğEÍ    Ó      ½   ğEÍ    Ô      °½   ğEÍ    Õ      Ğ½   ğEÍ    Ö      ğ½   ğEÍ    ×      ½   ğEÍ    Ø      0½   ğEÍ    Ù      P½   ğEÍ    Ú      p½   ğEÍ    Ü      °½   ğEÍ    İ      Ğ½   ğEÍ    Ş      ğ½   ğEÍ    ß      ½   ğEÍ    à      0½   ğEÍ    á      ½   ğEÍ    â      P½   ğEÍ    ã      p½   ğEÍ    ä      ½   ğEÍ    å      °½   ğEÍ    æ      Ğ½   ğEÍ    ç      ğ½   ğEÍ    è      ½   ğEÍ    é      0½   ğEÍ    ê      P½   ğEÍ    ë      p½   ğEÍ    ì      ½   ğEÍ    í      °½   ğEÍ    î      Ğ½   ğEÍ    ï      ğ½   ğEÍ    ğ      ½   ğEÍ    ñ      0½   ğEÍ    ò      P½   ğEÍ    ó      p½   ğEÍ    ô      ½   ğEÍ    õ      °½   ğEÍ    ö      Ğ½   ğEÍ    ÷      ğ½   ğEÍ    ø      ½   ğEÍ    ù      0½   ğEÍ    ú      P½   ğEÍ    û      p½   ğEÍ    ü      ½   ğEÍ    ı      °½   ğEÍ    ş      Ğ½   ğEÍ    ÿ      ğ½   ğEÍ           ½   ğEÍ          0½   ğEÍ          P½   ğEÍ          ½   ğEÍ          °½   ğEÍ          Ğ½   ğEÍ          p½   ğEÍ          ½   ğEÍ    	      ğ½   ğEÍ    
+      0½   ğEÍ          p½   ğEÍ          ½   ğEÍ          °½   ğEÍ          P½   ğEÍ          ğ½   ğEÍ          Ğ½   ğEÍ          ½   ğEÍ          0½   ğEÍ          P½   ğEÍ          p½   ğEÍ          ½   ğEÍ          °½   ğEÍ          Ğ½   ğEÍ          ğ½   ğEÍ          ½   ğEÍ          0½   ğEÍ          P½   ğEÍ          p½   ğEÍ          ½   ğEÍ          °½   ğEÍ           Ğ½   ğEÍ    !      ğ½   ğEÍ    "      ½   ğEÍ    #      0½   ğEÍ    $      P½   ğEÍ    %      p½   ğEÍ    &      ½   ğEÍ    '      °½   ğEÍ    (      Ğ½   ğEÍ    )      ğ½   ğEÍ    *      ½   ğEÍ    +      0½   ğEÍ    ,      P½   ğEÍ    -      p½   ğEÍ    .      ½   ğEÍ    /      °½   ğEÍ    1      ğ½   ğEÍ    2      ½   ğEÍ    3      0½   ğEÍ    4      Ğ½   ğEÍ    5      p½   ğEÍ    6      P½   ğEÍ    7      ½   ğEÍ    8      °½   ğEÍ    9      Ğ½   ğEÍ    :      ğ½   ğEÍ    ;      ½   ğEÍ    <      0½   ğEÍ    >      p½   ğEÍ    ?      ½   ğEÍ    @      °½   ğEÍ    A      P½   ğEÍ    B      ğ½   ğEÍ    C      Ğ½   ğEÍ    D      ½   ğEÍ    E      0½   ğEÍ    G      p½   ğEÍ    H      ½   ğEÍ    I      °½   ğEÍ    J      P½   ğEÍ    K      ğ½   ğEÍ    L      Ğ½   ğEÍ    M       ½   ğEÍ    N      0 ½   ğEÍ    P      p ½   ğEÍ    Q       ½   ğEÍ    R      ° ½   ğEÍ    S      P ½   ğEÍ    T      ğ ½   ğEÍ    U      Ğ ½   ğEÍ    V      !½   ğEÍ    W      0!½   ğEÍ    X      P!½   ğEÍ    Y      p!½   ğEÍ    Z      !½   ğEÍ    \      Ğ!½   ğEÍ    ]      ğ!½   ğEÍ    ^      "½   ğEÍ    _      °!½   ğEÍ    `      P"½   ğEÍ    a      0"½   ğEÍ    b      p"½   ğEÍ    c      "½   ğEÍ    e      Ğ"½   ğEÍ    f      ğ"½   ğEÍ    g      #½   ğEÍ    h      °"½   ğEÍ    i      P#½   ğEÍ    j      0#½   ğEÍ    k      p#½   ğEÍ    l      #½   ğEÍ    m      °#½   ğEÍ    o      ğ#½   ğEÍ    p      $½   ğEÍ    q      0$½   ğEÍ    r      Ğ#½   ğEÍ    s      p$½   ğEÍ    t      P$½   ğEÍ    u      $½   ğEÍ    v      °$½   ğEÍ    x      ğ$½   ğEÍ    y      %½   ğEÍ    z      0%½   ğEÍ    {      Ğ$½   ğEÍ    |      p%½   ğEÍ    }      P%½   ğEÍ    ~      %½   ğEÍ          °%½   ğEÍ    €      Ğ%½   ğEÍ          ğ%½   ğEÍ    ‚      &½   ğEÍ    „      P&½   ğEÍ    …      p&½   ğEÍ    †      &½   ğEÍ    ‡      0&½   ğEÍ    ˆ      Ğ&½   ğEÍ    ‰      °&½   ğEÍ    Š      ğ&½   ğEÍ    ‹      '½   ğEÍ          P'½   ğEÍ          p'½   ğEÍ          '½   ğEÍ          0'½   ğEÍ    ‘      Ğ'½   ğEÍ    ’      °'½   ğEÍ    “      ğ'½   ğEÍ    ”      (½   ğEÍ    –      P(½   ğEÍ    —      p(½   ğEÍ    ˜      (½   ğEÍ    ™      0(½   ğEÍ    š      Ğ(½   ğEÍ    ›      °(½   ğEÍ    œ      ğ(½   ğEÍ          )½   ğEÍ    Ÿ      P)½   ğEÍ           p)½   ğEÍ    ¡      )½   ğEÍ    ¢      0)½   ğEÍ    £      Ğ)½   ğEÍ    ¤      °)½   ğEÍ    ¥      ğ)½   ğEÍ    ¦      *½   ğEÍ    §      0*½   ğEÍ    ¨      P*½   ğEÍ    ©      p*½   ğEÍ    ª      *½   ğEÍ    «      °*½   ğEÍ    ¬      Ğ*½   ğEÍ    ®      +½   ğEÍ    ¯      0+½   ğEÍ    °      P+½   ğEÍ    ±      ğ*½   ğEÍ    ²      +½   ğEÍ    ³      p+½   ğEÍ    ´      °+½   ğEÍ    µ      Ğ+½   ğEÍ    ¶      ğ+½   ğEÍ    ·      ,½   ğEÍ    ¸      0,½   ğEÍ    º      p,½   ğEÍ    »      ,½   ğEÍ    ¼      °,½   ğEÍ    ½      P,½   ğEÍ    ¾      ğ,½   ğEÍ    À      -½   ğEÍ    Á      0-½   ğEÍ    Â      P-½   ğEÍ    Ã      Ğ,½   ğEÍ    Ä      -½   ğEÍ    Å      p-½   ğEÍ    Æ      °-½   ğEÍ    Ç      Ğ-½   ğEÍ    È      ğ-½   ğEÍ    É      .½   ğEÍ    Ë      P.½   ğEÍ    Ì      p.½   ğEÍ    Í      .½   ğEÍ    Î      0.½   ğEÍ    Ï      Ğ.½   ğEÍ    Ğ      °.½   ğEÍ    Ñ      ğ.½   ğEÍ    Ò      /½   ğEÍ    Ô      P/½   ğEÍ    Õ      p/½   ğEÍ    Ö      /½   ğEÍ    ×      0/½   ğEÍ    Ø      Ğ/½   ğEÍ    Ù      °/½   ğEÍ    Ú      ğ/½   ğEÍ    Ü      00½   ğEÍ    İ      P0½   ğEÍ    Ş      p0½   ğEÍ    ß      0½   ğEÍ    à      °0½   ğEÍ    á      0½   ğEÍ    ã      ğ0½   ğEÍ    ä      1½   ğEÍ    å      01½   ğEÍ    æ      Ğ0½   ğEÍ    ç      p1½   ğEÍ    è      P1½   ğEÍ    é      1½   ğEÍ    ê      °1½   ğEÍ    ë      Ğ1½   ğEÍ    ì      ğ1½   ğEÍ    í      2½   ğEÍ    ï      P2½   ğEÍ    ğ      p2½   ğEÍ    ñ      2½   ğEÍ    ò      02½   ğEÍ    ó      Ğ2½   ğEÍ    ô      °2½   ğEÍ    õ      ğ2½   ğEÍ    ö      3½   ğEÍ    ÷      03½   ğEÍ    ø      P3½   ğEÍ    ù      p3½   ğEÍ    û      °3½   ğEÍ    ü      Ğ3½   ğEÍ    ı      ğ3½   ğEÍ    ş      3½   ğEÍ    ÿ      04½   ğEÍ           4½   ğEÍ          P4½   ğEÍ          p4½   ğEÍ          °4½   ğEÍ          Ğ4½   ğEÍ          ğ4½   ğEÍ          4½   ğEÍ          05½   ğEÍ    	      5½   ğEÍ    
+      P5½   ğEÍ          p5½   ğEÍ          5½   ğEÍ          °5½   ğEÍ          Ğ5½   ğEÍ          ğ5½   ğEÍ          6½   ğEÍ          06½   ğEÍ          P6½   ğEÍ          p6½   ğEÍ          6½   ğEÍ          °6½   ğEÍ          Ğ6½   ğEÍ          ğ6½   ğEÍ          7½   ğEÍ          07½   ğEÍ          P7½   ğEÍ          p7½   ğEÍ          7½   ğEÍ          °7½   ğEÍ          Ğ7½   ğEÍ          ğ7½   ğEÍ           8½   ğEÍ    !      08½   ğEÍ    "      P8½   ğEÍ    #      p8½   ğEÍ    $      8½   ğEÍ    &      Ğ8½   ğEÍ    '      ğ8½   ğEÍ    (      9½   ğEÍ    )      °8½   ğEÍ    *      P9½   ğEÍ    +      09½   ğEÍ    ,      p9½   ğEÍ    -      9½   ğEÍ    .      °9½   ğEÍ    /      Ğ9½   ğEÍ    0      ğ9½   ğEÍ    1      :½   ğEÍ    2      0:½   ğEÍ    3      P:½   ğEÍ    4      p:½   ğEÍ    5      :½   ğEÍ    6      °:½   ğEÍ    7      Ğ:½   ğEÍ    8      ğ:½   ğEÍ    9      ;½   ğEÍ    :      0;½   ğEÍ    ;      P;½   ğEÍ    <      p;½   ğEÍ    =      ;½   ğEÍ    >      °;½   ğEÍ    ?      Ğ;½   ğEÍ    @      ğ;½   ğEÍ    A      <½   ğEÍ    B      0<½   ğEÍ    C      P<½   ğEÍ    D      p<½   ğEÍ    E      <½   ğEÍ    F      °<½   ğEÍ    G      Ğ<½   ğEÍ    H      ğ<½   ğEÍ    I      =½   ğEÍ    J      0=½   ğEÍ    K      P=½   ğEÍ    L      p=½   ğEÍ    M      =½   ğEÍ    N      °=½   ğEÍ    O      Ğ=½   ğEÍ    P      ğ=½   ğEÍ    Q      >½   ğEÍ    R      0>½   ğEÍ    S      P>½   ğEÍ    T      p>½   ğEÍ    U      >½   ğEÍ    V      °>½   ğEÍ    W      Ğ>½   ğEÍ    X      ğ>½   ğEÍ    Y      ?½   ğEÍ    Z      0?½   ğEÍ    [      P?½   ğEÍ    \      p?½   ğEÍ    ]      ?½   ğEÍ    ^      °?½   ğEÍ    _      Ğ?½   ğEÍ    `      0@¿   ğEÍ    a      P@¿   ğEÍ    b      p@¿   ğEÍ    c      @¿   ğEÍ    d      °@¿   ğEÍ    e      Ğ@¿   ğEÍ    f      ğ@¿   ğEÍ    g      A¿   ğEÍ    h      0A¿   ğEÍ    j      pA¿   ğEÍ    k      A¿   ğEÍ    l      °A¿   ğEÍ    m      PA¿   ğEÍ    n      ğA¿   ğEÍ    o      ĞA¿   ğEÍ    p      B¿   ğEÍ    q      0B¿   ğEÍ    r      PB¿   ğEÍ    s      pB¿   ğEÍ    t      B¿   ğEÍ    u      °B¿   ğEÍ    v      ĞB¿   ğEÍ    w      ğB¿   ğEÍ    x      C¿   ğEÍ    y      0C¿   ğEÍ    z      PC¿   ğEÍ    {      pC¿   ğEÍ    |      C¿   ğEÍ    }      °C¿   ğEÍ    ~      ĞC¿   ğEÍ          ğC¿   ğEÍ    €      D¿   ğEÍ          0D¿   ğEÍ    ‚      PD¿   ğEÍ    ƒ      pD¿   ğEÍ    „      D¿   ğEÍ    …      °D¿   ğEÍ    †      ĞD¿   ğEÍ    ‡      ğD¿   ğEÍ    ˆ      E¿   ğEÍ    ‰      0E¿   ğEÍ    Š      PE¿   ğEÍ    ‹      pE¿   ğEÍ    Œ      E¿   ğEÍ          °E¿   ğEÍ          ĞE¿   ğEÍ          ğE¿   ğEÍ          F¿   ğEÍ    ‘      0F¿   ğEÍ    ’      PF¿   ğEÍ    “      pF¿   ğEÍ    ”      F¿   ğEÍ    •      °F¿   ğEÍ    –      ĞF¿   ğEÍ    —      ğF¿   ğEÍ    ˜      G¿   ğEÍ    ™      0G¿   ğEÍ    š      PG¿   ğEÍ    ›      pG¿   ğEÍ    œ      G¿   ğEÍ          °G¿   ğEÍ          ĞG¿   ğEÍ    Ÿ      ğG¿   ğEÍ           H¿   ğEÍ    ¡      0H¿   ğEÍ    ¢      PH¿   ğEÍ    £      pH¿   ğEÍ    ¤      H¿   ğEÍ    ¥      °H¿   ğEÍ    ¦      ĞH¿   ğEÍ    §      ğH¿   ğEÍ    ¨      I¿   ğEÍ    ©      0I¿   ğEÍ    ª      PI¿   ğEÍ    «      pI¿   ğEÍ    ¬      I¿   ğEÍ    ­      °I¿   ğEÍ    ®      ĞI¿   ğEÍ    ¯      ğI¿   ğEÍ    °      J¿   ğEÍ    ±      0J¿   ğEÍ    ²      PJ¿   ğEÍ    ³      pJ¿   ğEÍ    ´      J¿   ğEÍ    µ      °J¿   ğEÍ    ¶      ĞJ¿   ğEÍ    ·      ğJ¿   ğEÍ    ¸      K¿   ğEÍ    ¹      0K¿   ğEÍ    º      PK¿   ğEÍ    »      pK¿   ğEÍ    ¼      K¿   ğEÍ    ½      °K¿   ğEÍ    ¾      ĞK¿   ğEÍ    ¿      ğK¿   ğEÍ    À      L¿   ğEÍ    Á      0L¿   ğEÍ    Â      PL¿   ğEÍ    Ã      pL¿   ğEÍ    Ä      L¿   ğEÍ    Å      °L¿   ğEÍ    Æ      ĞL¿   ğEÍ    Ç      ğL¿   ğEÍ    È      M¿   ğEÍ    É      0M¿   ğEÍ    Ê      PM¿   ğEÍ    Ë      pM¿   ğEÍ    Ì      M¿   ğEÍ    Í      °M¿   ğEÍ    Î      ĞM¿   ğEÍ    Ï      ğM¿   ğEÍ    Ğ      N¿   ğEÍ    Ñ      0N¿   ğEÍ    Ò      PN¿   ğEÍ    Ó      pN¿   ğEÍ    Õ      °N¿   ğEÍ    Ö      ĞN¿   ğEÍ    ×      ğN¿   ğEÍ    Ø      N¿   ğEÍ    Ù      0O¿   ğEÍ    Ú      O¿   ğEÍ    Û      PO¿   ğEÍ    Ü      pO¿   ğEÍ    İ      O¿   ğEÍ    Ş      °O¿   ğEÍ    ß      ĞO¿   ğEÍ    à      ğO¿   ğEÍ    á      P¿   ğEÍ    â      0P¿   ğEÍ    ã      PP¿   ğEÍ    ä      pP¿   ğEÍ    å      P¿   ğEÍ    æ      °P¿   ğEÍ    ç      ĞP¿   ğEÍ    è      ğP¿   ğEÍ    é      Q¿   ğEÍ    ê      0Q¿   ğEÍ    ë      PQ¿   ğEÍ    ì      pQ¿   ğEÍ    í      Q¿   ğEÍ    î      °Q¿   ğEÍ    ï      ĞQ¿   ğEÍ    ğ      ğQ¿   ğEÍ    ñ      R¿   ğEÍ    ò      0R¿   ğEÍ    ó      PR¿   ğEÍ    ô      pR¿   ğEÍ    õ      R¿   ğEÍ    ö      °R¿   ğEÍ    ÷      ĞR¿   ğEÍ    ø      ğR¿   ğEÍ    ù      S¿   ğEÍ    ú      0S¿   ğEÍ    û      PS¿   ğEÍ    ü      pS¿   ğEÍ    ı      S¿   ğEÍ    ş      °S¿   ğEÍ    ÿ      ĞS¿   ğEÍ           ğS¿   ğEÍ          T¿   ğEÍ          0T¿   ğEÍ          PT¿   ğEÍ          pT¿   ğEÍ          T¿   ğEÍ          °T¿   ğEÍ          ĞT¿   ğEÍ          ğT¿   ğEÍ    	      U¿   ğEÍ    
+      0U¿   ğEÍ          PU¿   ğEÍ          pU¿   ğEÍ          U¿   ğEÍ          °U¿   ğEÍ          ĞU¿   ğEÍ          ğU¿   ğEÍ          V¿   ğEÍ          0V¿   ğEÍ          PV¿   ğEÍ          pV¿   ğEÍ          V¿   ğEÍ          °V¿   ğEÍ          ĞV¿   ğEÍ          ğV¿   ğEÍ          W¿   ğEÍ          0W¿   ğEÍ          PW¿   ğEÍ          pW¿   ğEÍ          W¿   ğEÍ          °W¿   ğEÍ          ĞW¿   ğEÍ           ğW¿   ğEÍ    !      X¿   ğEÍ    "      0X¿   ğEÍ    #      PX¿   ğEÍ    $      pX¿   ğEÍ    %      X¿   ğEÍ    &      °X¿   ğEÍ    '      ĞX¿   ğEÍ    (      ğX¿   ğEÍ    )      Y¿   ğEÍ    *      0Y¿   ğEÍ    +      PY¿   ğEÍ    ,      pY¿   ğEÍ    -      Y¿   ğEÍ    .      °Y¿   ğEÍ    /      ĞY¿   ğEÍ    0      ğY¿   ğEÍ    1      Z¿   ğEÍ    2      0Z¿   ğEÍ    3      PZ¿   ğEÍ    4      pZ¿   ğEÍ    5      Z¿   ğEÍ    6      °Z¿   ğEÍ    7      ĞZ¿   ğEÍ    8      ğZ¿   ğEÍ    9      [¿   ğEÍ    :      0[¿   ğEÍ    ;      P[¿   ğEÍ    <      p[¿   ğEÍ    =      [¿   ğEÍ    >      °[¿   ğEÍ    ?      Ğ[¿   ğEÍ    @      ğ[¿   ğEÍ    A      \¿   ğEÍ    C      P\¿   ğEÍ    D      p\¿   ğEÍ    E      \¿   ğEÍ    F      0\¿   ğEÍ    G      Ğ\¿   ğEÍ    H      °\¿   ğEÍ    I      ğ\¿   ğEÍ    J      ]¿   ğEÍ    K      0]¿   ğEÍ    L      P]¿   ğEÍ    M      p]¿   ğEÍ    N      ]¿   ğEÍ    O      °]¿   ğEÍ    P      Ğ]¿   ğEÍ    Q      ğ]¿   ğEÍ    R      ^¿   ğEÍ    S      0^¿   ğEÍ    T      P^¿   ğEÍ    U      p^¿   ğEÍ    V      ^¿   ğEÍ    W      °^¿   ğEÍ    X      Ğ^¿   ğEÍ    Y      ğ^¿   ğEÍ    Z      _¿   ğEÍ    [      0_¿   ğEÍ    \      P_¿   ğEÍ    ]      p_¿   ğEÍ    ^      _¿   ğEÍ    _      °_¿   ğEÍ    `      Ğ_¿   ğEÍ    a      ğ_¿   ğEÍ    b      `¿   ğEÍ    c      0`¿   ğEÍ    d      P`¿   ğEÍ    e      p`¿   ğEÍ    f      `¿   ğEÍ    g      °`¿   ğEÍ    h      Ğ`¿   ğEÍ    i      ğ`¿   ğEÍ    j      a¿   ğEÍ    k      0a¿   ğEÍ    l      Pa¿   ğEÍ    m      pa¿   ğEÍ    n      a¿   ğEÍ    o      °a¿   ğEÍ    p      Ğa¿   ğEÍ    q      ğa¿   ğEÍ    r      b¿   ğEÍ    s      0b¿   ğEÍ    t      Pb¿   ğEÍ    u      pb¿   ğEÍ    v      b¿   ğEÍ    ‹      °b¿   FÍ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            

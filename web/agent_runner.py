@@ -4,6 +4,7 @@ Agent Runner - Ejecuta agentes Tommi directamente
 
 import asyncio
 import importlib.util
+import json
 import sys
 from pathlib import Path
 from typing import AsyncGenerator, Optional
@@ -29,6 +30,7 @@ class AgentInfo:
     public: bool = True
     verify_grounding: bool = False
     rag_approach: str = "context_preserving"  # basic, context_preserving, custom
+    show_history: bool = True
 
 
 @dataclass
@@ -97,6 +99,7 @@ class AgentRunner:
                     public=config.get("public", True),
                     verify_grounding=verify_grounding,
                     rag_approach=rag_approach,
+                    show_history=config.get("show_history", True),
                 )
 
                 if agent.public:
@@ -110,11 +113,37 @@ class AgentRunner:
         return agents
 
     def _extract_agent_config(self, app_py: Path) -> Optional[dict]:
-        """Extrae AGENT_CONFIG del archivo app.py"""
+        """Extrae la configuración del agente.
+
+        Primero intenta leer config.json junto a app.py.  Si no existe,
+        parsea AGENT_CONFIG como diccionario literal del propio app.py.
+        """
+        # 1. Try config.json first (preferred single source of truth)
+        config_json = app_py.parent / "config.json"
+        if config_json.exists():
+            try:
+                with open(config_json, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                # Normalise key names so the rest of the code works
+                config = {
+                    "id": cfg.get("agent_id", app_py.parent.name),
+                    "name": cfg.get("agent_name", app_py.parent.name),
+                    "description": cfg.get("description", ""),
+                    "welcome_message": cfg.get("welcome_message", ""),
+                    "example_queries": cfg.get("example_queries", []),
+                    "show_history": cfg.get("show_history", True),
+                    "public": cfg.get("public", True),
+                }
+                # Preserve type from AGENT_CONFIG in app.py (not in config.json)
+                config["type"] = self._extract_agent_type(app_py) or "oneshot"
+                return config
+            except Exception as e:
+                print(f"Warning: Could not load {config_json}: {e}")
+
+        # 2. Fallback: parse AGENT_CONFIG literal from app.py
         try:
             content = app_py.read_text(encoding="utf-8")
 
-            # Buscar AGENT_CONFIG en el código
             import ast
             tree = ast.parse(content)
 
@@ -122,7 +151,6 @@ class AgentRunner:
                 if isinstance(node, ast.Assign):
                     for target in node.targets:
                         if isinstance(target, ast.Name) and target.id == "AGENT_CONFIG":
-                            # Evaluar el diccionario de forma segura
                             if isinstance(node.value, ast.Dict):
                                 config = {}
                                 for key, value in zip(node.value.keys, node.value.values):
@@ -141,7 +169,25 @@ class AgentRunner:
             print(f"Error parsing {app_py}: {e}")
             return None
 
-    def _load_agent_module(self, agent_id: str) -> object:
+    @staticmethod
+    def _extract_agent_type(app_py: Path) -> Optional[str]:
+        """Extract the 'type' value from AGENT_CONFIG in app.py."""
+        try:
+            import ast
+            tree = ast.parse(app_py.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Assign):
+                    for target in node.targets:
+                        if isinstance(target, ast.Name) and target.id == "AGENT_CONFIG":
+                            if isinstance(node.value, ast.Dict):
+                                for key, value in zip(node.value.keys, node.value.values):
+                                    if isinstance(key, ast.Constant) and key.value == "type" and isinstance(value, ast.Constant):
+                                        return value.value
+        except Exception:
+            pass
+        return None
+
+    def _load_agent_module(self, agent_id: str, progress_callback=None) -> object:
         """Carga dinámicamente el módulo agent.py y retorna una instancia de Agent"""
         if agent_id in self._agent_instances:
             return self._agent_instances[agent_id]
@@ -194,11 +240,15 @@ class AgentRunner:
                 except Exception as e:
                     print(f"Warning: Could not load build_system_prompt from {app_py}: {e}")
 
-            # Crear instancia con system_prompt si está disponible
+            # Crear instancia con system_prompt y progress_callback si están disponibles
+            import inspect
+            sig = inspect.signature(module.Agent.__init__)
+            kwargs = {}
             if system_prompt:
-                agent_instance = module.Agent(system_prompt=system_prompt)
-            else:
-                agent_instance = module.Agent()
+                kwargs['system_prompt'] = system_prompt
+            if progress_callback and 'progress_callback' in sig.parameters:
+                kwargs['progress_callback'] = progress_callback
+            agent_instance = module.Agent(**kwargs)
 
             self._agent_instances[agent_id] = agent_instance
             return agent_instance
@@ -210,6 +260,10 @@ class AgentRunner:
         if not self._agents_cache:
             self.discover_agents()
         return self._agents_cache.get(agent_id)
+
+    def get_agent_instance(self, agent_id: str) -> Optional[object]:
+        """Returns the loaded agent instance, or None if not loaded."""
+        return self._agent_instances.get(agent_id)
 
     def _get_session_history(self, session_id: str) -> list:
         """Obtiene el historial de una sesión"""
@@ -335,6 +389,30 @@ class AgentRunner:
             if hasattr(agent_instance, 'collection') and agent_instance.collection is not None:
                 if agent_instance.collection.count() == 0:
                     # Force reindex
+                    if hasattr(agent_instance, 'reindex'):
+                        count = agent_instance.reindex()
+                        result["indexed_chunks"] = count
+                    elif hasattr(agent_instance, '_index_documents'):
+                        agent_instance._index_documents()
+                        result["indexed_chunks"] = agent_instance.collection.count()
+                else:
+                    result["indexed_chunks"] = agent_instance.collection.count()
+
+            return result
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def init_agent_with_callback(self, agent_id: str, progress_callback=None) -> dict:
+        """Like init_agent but accepts a progress_callback for reporting indexing progress."""
+        if agent_id in self._agent_instances:
+            del self._agent_instances[agent_id]
+
+        try:
+            agent_instance = self._load_agent_module(agent_id, progress_callback=progress_callback)
+            result = {"success": True, "agent_id": agent_id}
+
+            if hasattr(agent_instance, 'collection') and agent_instance.collection is not None:
+                if agent_instance.collection.count() == 0:
                     if hasattr(agent_instance, 'reindex'):
                         count = agent_instance.reindex()
                         result["indexed_chunks"] = count

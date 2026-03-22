@@ -154,7 +154,7 @@ fi
 # Find compatible Python
 PYTHON_CMD=""
 if [ "$HAS_RAG_AGENTS" = true ]; then
-    echo -e "  → RAG agents detected (require Python 3.11-3.13)"
+    echo -e "  → RAG/RAG+Metadata agents detected (require Python 3.11-3.13)"
     # RAG agents: find Python 3.11-3.13 (ChromaDB not compatible with 3.14+)
     for cmd in python3.12 python3.13 python3.11; do
         if command -v $cmd &> /dev/null; then

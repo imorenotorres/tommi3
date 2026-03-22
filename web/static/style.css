@@ -606,6 +606,15 @@ body {
     font-size: 1.2rem;
 }
 
+/* Indexing notice */
+.indexing-notice .message-content {
+    background-color: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    color: #92400e;
+    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
+}
+
 /* Query History */
 .query-history {
     margin-top: 1rem;
@@ -783,4 +792,140 @@ body {
 .create-agent-link a:hover {
     background-color: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Inline topic maps embedded in chat messages */
+.inline-map-container {
+    margin: 12px 0;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    position: relative;
+}
+
+.inline-map-panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 320px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 16px;
+    font-size: 14px;
+    color: #1e293b;
+    transition: transform 0.2s ease;
+}
+
+.inline-map-panel.panel-left {
+    left: 0;
+    border-radius: 10px 0 0 10px;
+}
+
+.inline-map-panel.panel-right {
+    right: 0;
+    border-radius: 0 10px 10px 0;
+}
+
+.inline-map-panel .panel-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #64748b;
+    line-height: 1;
+}
+
+.inline-map-panel .panel-close:hover {
+    color: #1e293b;
+}
+
+.inline-map-panel .panel-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    padding-right: 24px;
+}
+
+.inline-map-panel .panel-country {
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.inline-map-panel .panel-count {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2563eb;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.inline-map-panel .panel-papers {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.inline-map-panel .panel-papers b {
+    color: #1e293b;
+}
+
+.inline-map-panel .panel-papers a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.inline-map-panel .panel-papers a:hover {
+    text-decoration: underline;
+}
+
+.inline-map-panel .panel-open-btn {
+    display: block;
+    margin-top: 12px;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    width: 100%;
+    text-align: center;
+}
+
+.inline-map-panel .panel-open-btn:hover {
+    background: #1e40af;
+}
+
+.inline-map-header {
+    background: var(--sidebar-bg);
+    color: #ffffff;
+    padding: 8px 14px;
+    font-size: 0.85em;
+    font-weight: 600;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.inline-map {
+    height: 620px;
+    width: 100%;
+    background: #f8fafc;
+}
+
+.inline-map-label {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.inline-map-label div {
+    box-sizing: border-box !important;
 }

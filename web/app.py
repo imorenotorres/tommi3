@@ -116,6 +116,7 @@ class AgentResponse(BaseModel):
     example_queries: list[str]
     verify_grounding: bool = False
     rag_approach: str = "context_preserving"
+    show_history: bool = True
 
 
 @app.get("/")
@@ -438,7 +439,8 @@ async def list_agents():
             welcome_message=a.welcome_message,
             example_queries=a.example_queries,
             verify_grounding=a.verify_grounding,
-            rag_approach=a.rag_approach
+            rag_approach=a.rag_approach,
+            show_history=a.show_history
         )
         for a in agents
     ]
@@ -454,6 +456,64 @@ async def init_agent(agent_id: str):
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=result.get("error", "Unknown error"))
     return result
+
+
+@app.get("/api/agents/{agent_id}/init-stream")
+async def init_agent_stream(agent_id: str):
+    """
+    Initialize a RAG agent with SSE progress reporting.
+    Streams progress events during document indexing.
+    """
+    import asyncio
+    import threading
+
+    agent_info = runner.get_agent(agent_id)
+    if not agent_info:
+        err = format_error(AGENT_NOT_FOUND, agent_id=agent_id)
+        raise HTTPException(status_code=404, detail=f"Error {err['error_code']}: {err['error']}")
+
+    async def event_generator():
+        loop = asyncio.get_event_loop()
+        aq = asyncio.Queue()
+
+        def progress_callback(current, total, filename):
+            loop.call_soon_threadsafe(aq.put_nowait, {
+                "event": "progress",
+                "current": current,
+                "total": total,
+                "filename": filename,
+            })
+
+        def run_init():
+            try:
+                result = runner.init_agent_with_callback(agent_id, progress_callback)
+                loop.call_soon_threadsafe(aq.put_nowait, {"event": "done", "result": result})
+            except Exception as e:
+                loop.call_soon_threadsafe(aq.put_nowait, {
+                    "event": "done",
+                    "result": {"success": False, "error": str(e)},
+                })
+
+        thread = threading.Thread(target=run_init, daemon=True)
+        thread.start()
+
+        while True:
+            event = await aq.get()
+            if event["event"] == "progress":
+                yield f"event: progress\ndata: {json.dumps(event)}\n\n"
+            elif event["event"] == "done":
+                yield f"event: done\ndata: {json.dumps(event['result'])}\n\n"
+                break
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.post("/api/agents/{agent_id}/reindex")
@@ -574,6 +634,95 @@ async def chat_stream(
 
 
 # ============================================================================
+# Topic Map Endpoint (for agents with search_papers_by_topic)
+# ============================================================================
+
+@app.get("/api/agents/{agent_id}/publications-search")
+async def agent_publications_search(agent_id: str, year: Optional[int] = Query(None)):
+    """Return all papers grouped by university as JSON data."""
+    agent_instance = runner.get_agent_instance(agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not loaded")
+    if not hasattr(agent_instance, "get_all_papers_by_university"):
+        raise HTTPException(status_code=400, detail="Agent does not support publications search")
+    results = agent_instance.get_all_papers_by_university(year=year)
+    title = f"Publications ({year})" if year else "All Publications"
+    return {"topic": title, "universities": results}
+
+
+@app.get("/api/agents/{agent_id}/publications-map")
+async def agent_publications_map(agent_id: str, year: Optional[int] = Query(None)):
+    """Returns an interactive Leaflet map showing publications per university, optionally filtered by year."""
+    from fastapi.responses import HTMLResponse
+    import json as json_module
+
+    agent_instance = runner.get_agent_instance(agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not loaded")
+    if not hasattr(agent_instance, "get_all_papers_by_university"):
+        raise HTTPException(status_code=400, detail="Agent does not support publications search")
+
+    results = agent_instance.get_all_papers_by_university(year=year)
+    results_json = json_module.dumps(results)
+    title = f"Publications ({year})" if year else "All Publications"
+
+    if hasattr(agent_instance, "build_topic_map_html"):
+        html = agent_instance.build_topic_map_html(results_json, title)
+        return HTMLResponse(content=html)
+
+    return HTMLResponse(content=f"<html><body><h1>All Publications</h1><pre>{results_json}</pre></body></html>")
+
+
+@app.get("/api/agents/{agent_id}/collaboration-search")
+async def agent_collaboration_search(agent_id: str, topic: str = Query(None),
+                                     year: int = Query(None)):
+    """Return collaboration data (universities + connections) as JSON."""
+    agent_instance = runner.get_agent_instance(agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not loaded")
+    if not hasattr(agent_instance, "get_collaboration_map_data"):
+        raise HTTPException(status_code=400, detail="Agent does not support collaboration search")
+    return agent_instance.get_collaboration_map_data(topic=topic, year=year)
+
+
+@app.get("/api/agents/{agent_id}/topic-search")
+async def agent_topic_search(agent_id: str, topic: str = Query(...)):
+    """Search papers by topic across universities. Returns JSON data."""
+    agent_instance = runner.get_agent_instance(agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not loaded")
+    if not hasattr(agent_instance, "search_papers_by_topic"):
+        raise HTTPException(status_code=400, detail="Agent does not support topic search")
+    results = agent_instance.search_papers_by_topic(topic)
+    return {"topic": topic, "universities": results}
+
+
+@app.get("/api/agents/{agent_id}/topic-map")
+async def agent_topic_map(agent_id: str, topic: str = Query(...)):
+    """Returns an interactive Leaflet map for a topic across UNINOVIS universities."""
+    from fastapi.responses import HTMLResponse
+    import json as json_module
+
+    agent_instance = runner.get_agent_instance(agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not loaded")
+    if not hasattr(agent_instance, "search_papers_by_topic"):
+        raise HTTPException(status_code=400, detail="Agent does not support topic search")
+
+    results = agent_instance.search_papers_by_topic(topic)
+    results_json = json_module.dumps(results)
+    topic_escaped = topic.replace("&", "&amp;").replace("<", "&lt;").replace('"', "&quot;")
+
+    # Use the agent's build_topic_map_html if available
+    if hasattr(agent_instance, "build_topic_map_html"):
+        html = agent_instance.build_topic_map_html(results_json, topic_escaped)
+        return HTMLResponse(content=html)
+
+    # Fallback: simple response
+    return HTMLResponse(content=f"<html><body><h1>Topic map for {topic_escaped}</h1><pre>{results_json}</pre></body></html>")
+
+
+# ============================================================================
 # Agent Creation Endpoints
 # ============================================================================
 
@@ -641,6 +790,8 @@ async def create_agent(
     data_file: Optional[UploadFile] = File(None),
     schema_file: Optional[UploadFile] = File(None),
     rag_documents: List[UploadFile] = File(None),
+    rag_metadata_documents: List[UploadFile] = File(None),
+    metadata_file: Optional[UploadFile] = File(None),
     database_file: Optional[UploadFile] = File(None),
 ):
     """Create a new agent"""
@@ -719,6 +870,29 @@ async def create_agent(
                         content = await doc.read()
                         with open(doc_path, "wb") as f:
                             f.write(content)
+
+        elif agent_type == "rag_metadata":
+            # Create docs subfolder for RAG+Metadata
+            docs_dir = data_dir / "docs"
+            docs_dir.mkdir(exist_ok=True)
+            # Save uploaded documents (from folder selection)
+            if rag_metadata_documents:
+                for doc in rag_metadata_documents:
+                    if doc.filename:
+                        filename = Path(doc.filename).name
+                        if filename.startswith('.'):
+                            continue
+                        ext = Path(filename).suffix.lower()
+                        if ext in ['.pdf', '.txt', '.md', '.docx', '.doc']:
+                            doc_path = docs_dir / filename
+                            content = await doc.read()
+                            with open(doc_path, "wb") as f:
+                                f.write(content)
+            # Save metadata file if provided
+            if metadata_file and metadata_file.filename:
+                content = await metadata_file.read()
+                with open(data_dir / "metadata.json", "wb") as f:
+                    f.write(content)
 
         elif agent_type == "consultabd_sql":
             # Handle database schema - from file or textarea

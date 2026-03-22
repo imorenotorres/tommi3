@@ -44,6 +44,7 @@ def list_prompt_templates(agent_type: str) -> list:
     type_patterns = {
         "oneshot": ["prompt_Oneshot.txt"],
         "rag": ["prompt_RAG.txt"],
+        "rag_metadata": ["prompt_RAG_Metadata.txt"],
         "consultabd_sql": ["prompt_Text2SQL.txt"]
     }
 
@@ -99,6 +100,18 @@ httpx>=0.27.0
 """
 
 REQUIREMENTS_RAG = """fastapi>=0.115.0
+uvicorn>=0.32.0
+mistralai>=1.0.0
+ollama>=0.3.0
+openai>=1.0.0
+python-dotenv>=1.0.0
+httpx>=0.27.0
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+pypdf>=4.0.0
+"""
+
+REQUIREMENTS_RAG_METADATA = """fastapi>=0.115.0
 uvicorn>=0.32.0
 mistralai>=1.0.0
 ollama>=0.3.0
@@ -887,6 +900,591 @@ or
             name="documents",
             embedding_function=self.embedding_fn
         )
+        self._index_documents()
+        return self.collection.count()
+'''
+
+# ============================================================================
+# PLANTILLA AGENTE RAG_METADATA (RAG con metadatos enriquecidos)
+# ============================================================================
+
+AGENT_RAG_METADATA_TEMPLATE = '''"""
+{agent_name} - Agente RAG+Metadata con ChromaDB
+Soporta Mistral Cloud y Ollama via LLM_PROVIDER
+Incluye extracción y filtrado por metadatos de documentos.
+
+NOTA: ChromaDB no es compatible con Python 3.14+. Requiere Python 3.11-3.13.
+"""
+
+import os
+import sys
+import json
+import re
+import warnings
+import logging
+
+# Suppress pypdf warnings about malformed PDFs
+logging.getLogger("pypdf").setLevel(logging.ERROR)
+# Suppress sentence-transformers position_ids warning
+warnings.filterwarnings("ignore", message=".*position_ids.*")
+
+# Añadir web/ al path para importar llm_client y error_codes
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "web"))
+from llm_client import LLMClient
+from error_codes import format_error, DATA_CHROMADB_PYTHON_INCOMPATIBLE, DATA_CHROMADB_ERROR
+
+from pypdf import PdfReader
+
+
+class Agent:
+    def __init__(self):
+        self.client = LLMClient()
+        self.model = self._get_model()
+        self.system_prompt = """{system_prompt}"""
+        # Configuración de verificación desde .env (VERIFY_GROUNDING=true/false)
+        self.verify_grounding = os.getenv("VERIFY_GROUNDING", "false").lower() == "true"
+        # Query history for the sidebar
+        self._query_history = []
+        # Document metadata cache
+        self._documents_metadata = {{}}
+
+        # RAG Chunking Configuration
+        self._load_rag_config()
+
+        # Load metadata configuration
+        self._load_metadata_config()
+
+        # Inicializar ChromaDB con manejo de errores
+        try:
+            import chromadb
+            from chromadb.utils import embedding_functions
+
+            db_path = os.path.join(os.path.dirname(__file__), "data", "chroma_db")
+            self.chroma_client = chromadb.PersistentClient(path=db_path)
+
+            # Función de embeddings (usa sentence-transformers por defecto)
+            print("Preparing RAG+Metadata database...")
+            self.embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name="all-MiniLM-L6-v2"
+            )
+
+            # Obtener o crear colección
+            self.collection = self.chroma_client.get_or_create_collection(
+                name="documents",
+                embedding_function=self.embedding_fn
+            )
+
+            # Indexar documentos nuevos automáticamente
+            self._sync_documents()
+
+            print("RAG+Metadata database ready.")
+            self._chromadb_error = None
+
+        except Exception as e:
+            error_msg = str(e)
+            if "unable to infer type" in error_msg or "chroma_server" in error_msg:
+                self._chromadb_error = format_error(DATA_CHROMADB_PYTHON_INCOMPATIBLE)
+            else:
+                self._chromadb_error = format_error(DATA_CHROMADB_ERROR, details=error_msg)
+            print(f"Warning: ChromaDB initialization failed: {{error_msg}}")
+            self.chroma_client = None
+            self.collection = None
+
+    def _get_model(self) -> str:
+        """Obtiene el modelo según el proveedor configurado."""
+        provider = os.getenv("LLM_PROVIDER", "mistral").lower()
+        if provider == "ollama":
+            return os.getenv("OLLAMA_MODEL", "{model}")
+        return os.getenv("MISTRAL_MODEL", "{model}")
+
+    def _load_rag_config(self):
+        """Load RAG chunking configuration from environment variables."""
+        approach = os.getenv("RAG_APPROACH", "context_preserving").lower()
+
+        if approach == "basic":
+            self.chunk_size = 500
+            self.chunk_overlap = 100
+            self.retrieve_chunks = 3
+            self.chunking_strategy = "fixed"
+        elif approach == "context_preserving":
+            self.chunk_size = 2000
+            self.chunk_overlap = 400
+            self.retrieve_chunks = 8
+            self.chunking_strategy = "smart"
+        else:  # custom
+            self.chunk_size = int(os.getenv("RAG_CHUNK_SIZE", "2000"))
+            self.chunk_overlap = int(os.getenv("RAG_CHUNK_OVERLAP", "400"))
+            self.retrieve_chunks = int(os.getenv("RAG_RETRIEVE_CHUNKS", "8"))
+            self.chunking_strategy = os.getenv("RAG_CHUNKING_STRATEGY", "smart").lower()
+
+        print(f"RAG config: {{approach}} (chunks={{self.chunk_size}}, overlap={{self.chunk_overlap}}, retrieve={{self.retrieve_chunks}}, strategy={{self.chunking_strategy}})")
+
+    def _load_metadata_config(self):
+        """Load metadata configuration and external metadata from data/metadata.json.
+
+        The metadata.json file can contain:
+        - "fields": list of metadata field names to track
+        - "documents": dict mapping filenames to their metadata values,
+          e.g. {{"file.pdf": {{"author": "Dr. Smith", "department": "CS"}}}}
+
+        External metadata supplements auto-extracted metadata (PDF metadata).
+        If a field is provided in both, the external value takes precedence.
+        """
+        config_path = os.path.join(os.path.dirname(__file__), "data", "metadata.json")
+        self.metadata_fields = ["title", "author", "date", "file_type", "file_size", "page_count"]
+        self._external_metadata = {{}}
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                if "fields" in config:
+                    self.metadata_fields = config["fields"]
+                if "documents" in config and isinstance(config["documents"], dict):
+                    self._external_metadata = config["documents"]
+                    print(f"External metadata loaded for {{len(self._external_metadata)}} document(s)")
+                print(f"Metadata config loaded: fields={{self.metadata_fields}}")
+            except Exception as e:
+                print(f"Warning: Could not load metadata config: {{e}}")
+
+    def _extract_pdf_text(self, filepath: str) -> str:
+        """Extrae texto de un archivo PDF."""
+        try:
+            reader = PdfReader(filepath)
+            text_parts = []
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    text_parts.append(text)
+            return "\\n".join(text_parts)
+        except Exception as e:
+            print(f"Error extracting text from {{filepath}}: {{e}}")
+            return ""
+
+    def _extract_metadata(self, filepath: str) -> dict:
+        """Extrae metadatos de un archivo y los combina con metadatos externos.
+
+        Fuentes de metadatos (en orden de prioridad, de menor a mayor):
+        1. Información básica del archivo (nombre, tamaño, tipo)
+        2. Metadatos embebidos en el PDF (título, autor, fecha)
+        3. Metadatos externos de data/metadata.json (mayor prioridad)
+        """
+        filename = os.path.basename(filepath)
+        file_size = os.path.getsize(filepath)
+        file_type = os.path.splitext(filename)[1].lower().lstrip(".")
+
+        metadata = {{
+            "title": os.path.splitext(filename)[0],
+            "author": "",
+            "date": "",
+            "file_type": file_type,
+            "file_size": file_size,
+            "page_count": 0,
+            "source": filename,
+        }}
+
+        # 2. Extract embedded PDF metadata
+        if filename.endswith(".pdf"):
+            try:
+                reader = PdfReader(filepath)
+                info = reader.metadata
+                if info:
+                    if info.title:
+                        metadata["title"] = info.title
+                    if info.author:
+                        metadata["author"] = info.author
+                    if info.creation_date:
+                        metadata["date"] = str(info.creation_date)
+                metadata["page_count"] = len(reader.pages)
+            except Exception as e:
+                print(f"Warning: Could not extract PDF metadata from {{filename}}: {{e}}")
+
+        # 3. Override/supplement with external metadata (highest priority)
+        if hasattr(self, '_external_metadata') and filename in self._external_metadata:
+            external = self._external_metadata[filename]
+            for key, value in external.items():
+                if value:  # Only override with non-empty values
+                    metadata[key] = value
+
+        return metadata
+
+    def _get_indexed_sources(self) -> set:
+        """Obtiene el conjunto de fuentes ya indexadas en ChromaDB."""
+        if self.collection is None or self.collection.count() == 0:
+            return set()
+
+        all_data = self.collection.get(include=["metadatas"])
+        sources = set()
+        for meta in all_data.get("metadatas", []):
+            if meta and "source" in meta:
+                sources.add(meta["source"])
+        return sources
+
+    def _get_docs_files(self) -> set:
+        """Obtiene el conjunto de archivos en data/docs/."""
+        docs_path = os.path.join(os.path.dirname(__file__), "data", "docs")
+        if not os.path.exists(docs_path):
+            return set()
+
+        files = set()
+        for filename in os.listdir(docs_path):
+            filepath = os.path.join(docs_path, filename)
+            if os.path.isfile(filepath) and filename.endswith(('.txt', '.md', '.pdf')):
+                files.add(filename)
+        return files
+
+    def _sync_documents(self):
+        """Sincroniza documentos: indexa nuevos y elimina huérfanos."""
+        indexed = self._get_indexed_sources()
+        on_disk = self._get_docs_files()
+
+        new_docs = on_disk - indexed
+        removed_docs = indexed - on_disk
+
+        if not new_docs and not removed_docs:
+            print(f"Documents in sync ({{len(indexed)}} indexed)")
+            # Load metadata for existing documents
+            self._refresh_metadata_cache()
+            return
+
+        if removed_docs:
+            print(f"Removing {{len(removed_docs)}} deleted documents from index...")
+            for source in removed_docs:
+                results = self.collection.get(where={{"source": source}})
+                if results["ids"]:
+                    self.collection.delete(ids=results["ids"])
+                if source in self._documents_metadata:
+                    del self._documents_metadata[source]
+            print(f"Removed: {{', '.join(removed_docs)}}")
+
+        if new_docs:
+            print(f"Indexing {{len(new_docs)}} new documents...")
+            self._index_documents(only_files=new_docs)
+            print(f"Added: {{', '.join(new_docs)}}")
+
+        self._refresh_metadata_cache()
+
+    def _refresh_metadata_cache(self):
+        """Refresh the metadata cache from indexed documents."""
+        docs_path = os.path.join(os.path.dirname(__file__), "data", "docs")
+        if not os.path.exists(docs_path):
+            return
+
+        self._documents_metadata = {{}}
+        for filename in os.listdir(docs_path):
+            filepath = os.path.join(docs_path, filename)
+            if os.path.isfile(filepath) and filename.endswith(('.txt', '.md', '.pdf')):
+                self._documents_metadata[filename] = self._extract_metadata(filepath)
+
+    def _index_documents(self, only_files: set = None):
+        """Indexa los documentos del directorio data/docs/ con metadatos enriquecidos."""
+        docs_path = os.path.join(os.path.dirname(__file__), "data", "docs")
+        if not os.path.exists(docs_path):
+            os.makedirs(docs_path)
+            return
+
+        documents = []
+        metadatas = []
+        ids = []
+
+        for i, filename in enumerate(os.listdir(docs_path)):
+            filepath = os.path.join(docs_path, filename)
+            if not os.path.isfile(filepath):
+                continue
+            if only_files is not None and filename not in only_files:
+                continue
+
+            # Extract metadata
+            file_metadata = self._extract_metadata(filepath)
+            self._documents_metadata[filename] = file_metadata
+
+            # Extract content
+            content = None
+            if filename.endswith(('.txt', '.md')):
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            elif filename.endswith('.pdf'):
+                content = self._extract_pdf_text(filepath)
+
+            if content:
+                # Chunking based on configured strategy
+                chunks = []
+                if self.chunking_strategy == "smart":
+                    start = 0
+                    while start < len(content):
+                        end = start + self.chunk_size
+                        chunk = content[start:end]
+                        if end < len(content):
+                            for sep in ['\\n\\n', '. ', '\\n']:
+                                last_sep = chunk.rfind(sep)
+                                if last_sep > self.chunk_size * 0.6:
+                                    chunk = chunk[:last_sep + len(sep)]
+                                    end = start + len(chunk)
+                                    break
+                        chunks.append(chunk.strip())
+                        start = end - self.chunk_overlap
+                else:
+                    step = self.chunk_size - self.chunk_overlap
+                    chunks = [content[j:j+self.chunk_size] for j in range(0, len(content), step)]
+
+                for k, chunk in enumerate(chunks):
+                    if chunk:
+                        documents.append(chunk)
+                        # Store enriched metadata with each chunk
+                        chunk_metadata = {{
+                            "source": filename,
+                            "chunk": k,
+                            "title": file_metadata.get("title", ""),
+                            "author": file_metadata.get("author", ""),
+                            "date": file_metadata.get("date", ""),
+                            "file_type": file_metadata.get("file_type", ""),
+                            "page_count": file_metadata.get("page_count", 0),
+                        }}
+                        metadatas.append(chunk_metadata)
+                        ids.append(f"{{filename}}_{{k}}")
+
+        if documents:
+            self.collection.add(documents=documents, metadatas=metadatas, ids=ids)
+            print(f"Indexed {{len(documents)}} chunks from {{len(set(m['source'] for m in metadatas))}} documents (with metadata)")
+
+    def _retrieve_context(self, query: str, n_results: int = None, metadata_filter: dict = None) -> str:
+        """Recupera contexto relevante para la query, con filtro de metadatos opcional.
+
+        Args:
+            query: The search query
+            n_results: Number of chunks to retrieve
+            metadata_filter: Optional ChromaDB where filter for metadata
+                            e.g. {{"author": "John"}} or {{"file_type": "pdf"}}
+        """
+        if n_results is None:
+            n_results = self.retrieve_chunks
+        if self.collection is None or self.collection.count() == 0:
+            return ""
+
+        query_params = {{
+            "query_texts": [query],
+            "n_results": n_results,
+        }}
+        if metadata_filter:
+            query_params["where"] = metadata_filter
+
+        results = self.collection.query(**query_params)
+
+        if not results['documents'][0]:
+            return ""
+
+        context_parts = []
+        for doc, meta in zip(results['documents'][0], results['metadatas'][0]):
+            meta_info = f"[Source: {{meta['source']}}"
+            if meta.get('title'):
+                meta_info += f" | Title: {{meta['title']}}"
+            if meta.get('author'):
+                meta_info += f" | Author: {{meta['author']}}"
+            if meta.get('date'):
+                meta_info += f" | Date: {{meta['date']}}"
+            meta_info += "]"
+            context_parts.append(f"{{meta_info}}\\n{{doc}}")
+
+        return "\\n\\n---\\n\\n".join(context_parts)
+
+    def get_metadata_summary(self) -> list:
+        """Returns metadata summary for all indexed documents."""
+        return list(self._documents_metadata.values())
+
+    def _build_metadata_context(self) -> str:
+        """Builds a metadata summary string to include in the system prompt."""
+        if not self._documents_metadata:
+            return ""
+
+        lines = ["Available documents and their metadata:"]
+        for filename, meta in self._documents_metadata.items():
+            parts = [f"- {{filename}}"]
+            if meta.get("title") and meta["title"] != os.path.splitext(filename)[0]:
+                parts.append(f"Title: {{meta['title']}}")
+            if meta.get("author"):
+                parts.append(f"Author: {{meta['author']}}")
+            if meta.get("date"):
+                parts.append(f"Date: {{meta['date']}}")
+            if meta.get("page_count"):
+                parts.append(f"Pages: {{meta['page_count']}}")
+            if meta.get("file_type"):
+                parts.append(f"Type: {{meta['file_type']}}")
+            lines.append(" | ".join(parts))
+
+        return "\\n".join(lines)
+
+    def _verify_grounding(self, response: str, user_question: str, context: str) -> dict:
+        """Verifica si la respuesta está basada SOLO en el contexto recuperado."""
+        if not context:
+            return {{"grounded": True, "reason": "No context to verify against"}}
+
+        verify_prompt = f"""You are a strict verification assistant. Your job is to verify if a response contains ONLY information that is EXPLICITLY stated in the provided context.
+
+RETRIEVED CONTEXT:
+{{context}}
+
+USER QUESTION: {{user_question}}
+
+AGENT RESPONSE: {{response}}
+
+STRICT VERIFICATION RULES:
+1. The response is "grounded" ONLY if ALL factual claims are EXPLICITLY written in the CONTEXT
+2. It is NOT grounded if the response:
+   - Infers or deduces information not explicitly stated in the context
+   - Adds details, relationships, or facts not present in the context
+   - Makes assumptions or generalizations beyond the context
+   - Uses information that might be true but is not in the provided context
+3. General courtesies, greetings, or formatting are allowed
+4. If the response correctly states it cannot find information, it IS grounded
+5. BE VERY STRICT: if a claim cannot be found in the context, it is NOT grounded
+
+Respond ONLY with a valid JSON object (no markdown, no extra text):
+{{{{"grounded": true, "reason": "brief explanation"}}}}
+or
+{{{{"grounded": false, "reason": "specific claim that was not in the context"}}}}"""
+
+        result = self.client.chat.complete(
+            model=self.model,
+            messages=[{{"role": "user", "content": verify_prompt}}]
+        )
+
+        try:
+            content = result.choices[0].message.content.strip()
+            if content.startswith("```"):
+                content = re.sub(r"```(?:json)?\\n?", "", content)
+                content = content.strip()
+            return json.loads(content)
+        except (json.JSONDecodeError, IndexError):
+            return {{"grounded": True, "reason": "Verification parsing failed"}}
+
+    def _get_fallback_response(self, user_question: str) -> str:
+        """Genera una respuesta cuando la verificación falla."""
+        return (
+            "I apologize, but I cannot find specific information about that in my knowledge base. "
+            "I can only provide information that is explicitly documented in my sources. "
+            "Could you please ask something else or rephrase your question?"
+        )
+
+    def chat(self, user_message: str, history: list = None, verify: bool = None) -> str:
+        """Envía un mensaje con contexto RAG+Metadata y obtiene respuesta."""
+        should_verify = verify if verify is not None else self.verify_grounding
+
+        if self._chromadb_error:
+            err = self._chromadb_error
+            return f"**Error {{err['error_code']}}:** {{err['error']}}\\n\\n{{err.get('instructions', '')}}"
+
+        context = self._retrieve_context(user_message)
+
+        system_with_context = self.system_prompt
+        metadata_ctx = self._build_metadata_context()
+        if metadata_ctx:
+            system_with_context += f"\\n\\n{{metadata_ctx}}"
+        if context:
+            system_with_context += f"\\n\\nRelevant context from the knowledge base:\\n{{context}}"
+
+        messages = [{{"role": "system", "content": system_with_context}}]
+
+        if history:
+            messages.extend(history)
+
+        messages.append({{"role": "user", "content": user_message}})
+
+        response = self.client.chat.complete(
+            model=self.model,
+            messages=messages
+        )
+
+        response_content = response.choices[0].message.content
+
+        if should_verify and context:
+            verification = self._verify_grounding(response_content, user_message, context)
+            if not verification.get("grounded", True):
+                print(f"[GROUNDING FAILED] Reason: {{verification.get('reason', 'Unknown')}}")
+                response_content = self._get_fallback_response(user_message)
+
+        self._query_history.append({{
+            'question': user_message,
+            'response_length': len(response_content)
+        }})
+
+        return response_content
+
+    async def chat_stream(self, user_message: str, history: list = None, verify: bool = None):
+        """Envía un mensaje con contexto RAG+Metadata y obtiene respuesta en streaming."""
+        should_verify = verify if verify is not None else self.verify_grounding
+
+        if self._chromadb_error:
+            err = self._chromadb_error
+            yield f"**Error {{err['error_code']}}:** {{err['error']}}\\n\\n{{err.get('instructions', '')}}"
+            return
+
+        context = self._retrieve_context(user_message)
+
+        system_with_context = self.system_prompt
+        metadata_ctx = self._build_metadata_context()
+        if metadata_ctx:
+            system_with_context += f"\\n\\n{{metadata_ctx}}"
+        if context:
+            system_with_context += f"\\n\\nRelevant context from the knowledge base:\\n{{context}}"
+
+        messages = [{{"role": "system", "content": system_with_context}}]
+
+        if history:
+            messages.extend(history)
+
+        messages.append({{"role": "user", "content": user_message}})
+
+        if should_verify and context:
+            full_response = ""
+            async for chunk in await self.client.chat.stream_async(
+                model=self.model,
+                messages=messages
+            ):
+                if chunk.data.choices[0].delta.content:
+                    full_response += chunk.data.choices[0].delta.content
+
+            verification = self._verify_grounding(full_response, user_message, context)
+            if not verification.get("grounded", True):
+                print(f"[GROUNDING FAILED] Reason: {{verification.get('reason', 'Unknown')}}")
+                full_response = self._get_fallback_response(user_message)
+
+            self._query_history.append({{
+                'question': user_message,
+                'response_length': len(full_response)
+            }})
+            yield full_response
+        else:
+            full_response = ""
+            async for chunk in await self.client.chat.stream_async(
+                model=self.model,
+                messages=messages
+            ):
+                if chunk.data.choices[0].delta.content:
+                    full_response += chunk.data.choices[0].delta.content
+                    yield chunk.data.choices[0].delta.content
+
+            self._query_history.append({{
+                'question': user_message,
+                'response_length': len(full_response)
+            }})
+
+    def get_history(self, session_id: str = None) -> list:
+        """Returns query history for the sidebar."""
+        return [
+            {{
+                'question': entry['question'],
+                'num_results': 1
+            }}
+            for entry in self._query_history
+        ]
+
+    def reindex(self):
+        """Reindexa todos los documentos con metadatos."""
+        self.chroma_client.delete_collection("documents")
+        self.collection = self.chroma_client.create_collection(
+            name="documents",
+            embedding_function=self.embedding_fn
+        )
+        self._documents_metadata = {{}}
         self._index_documents()
         return self.collection.count()
 '''
@@ -3511,6 +4109,130 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=port)
 '''
 
+APP_PY_RAG_METADATA_TEMPLATE = '''"""
+{agent_name} - Servidor FastAPI (RAG+Metadata)
+"""
+
+import os
+from contextlib import asynccontextmanager
+from typing import Optional
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+
+load_dotenv()
+
+from agent import Agent
+
+# Configuración del agente
+AGENT_CONFIG = {{
+    "id": "{agent_id}",
+    "name": "{agent_name}",
+    "type": "rag_metadata",
+    "description": "{description}",
+    "welcome_message": "{welcome_message}",
+    "example_queries": {example_queries}
+}}
+
+agent: Agent = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Inicializa el agente al arrancar."""
+    global agent
+    agent = Agent()
+    yield
+
+
+app = FastAPI(
+    title=AGENT_CONFIG["name"],
+    description=AGENT_CONFIG["description"],
+    lifespan=lifespan
+)
+
+# CORS para permitir llamadas desde frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: Optional[list] = None
+    stream: Optional[bool] = False
+    verify: Optional[bool] = None
+
+
+class ChatResponse(BaseModel):
+    response: str
+
+
+@app.get("/")
+async def root():
+    """Información del agente."""
+    return AGENT_CONFIG
+
+
+@app.get("/health")
+async def health():
+    """Health check."""
+    return {{"status": "ok"}}
+
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    """Endpoint principal de chat con RAG+Metadata."""
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agente no inicializado")
+
+    if request.stream:
+        async def generate():
+            async for chunk in agent.chat_stream(request.message, request.history, verify=request.verify):
+                yield chunk
+
+        return StreamingResponse(generate(), media_type="text/plain")
+
+    response = agent.chat(request.message, request.history, verify=request.verify)
+    return ChatResponse(response=response)
+
+
+@app.post("/reindex")
+async def reindex():
+    """Reindexa los documentos en data/docs/ con metadatos"""
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agente no inicializado")
+
+    count = agent.reindex()
+    return {{"status": "ok", "indexed_chunks": count}}
+
+
+@app.get("/metadata")
+async def metadata():
+    """Devuelve los metadatos de todos los documentos indexados."""
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agente no inicializado")
+    return {{"documents": agent.get_metadata_summary()}}
+
+
+@app.get("/examples")
+async def examples():
+    """Devuelve preguntas de ejemplo."""
+    return {{"examples": AGENT_CONFIG["example_queries"]}}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+'''
+
 APP_PY_TOOLCALL_TEMPLATE = '''"""
 {agent_name} - Servidor FastAPI (Toolcall)
 """
@@ -4136,6 +4858,133 @@ curl -X POST http://localhost:8000/reindex
 1. Al iniciar, el agente indexa todos los documentos en `data/docs/`
 2. Cuando recibes una pregunta, busca los fragmentos más relevantes
 3. Incluye ese contexto en el prompt para generar una respuesta informada
+'''
+
+README_RAG_METADATA_TEMPLATE = '''# {agent_name}
+
+{description}
+
+**Tipo**: Agente RAG+Metadata (Retrieval-Augmented Generation with Metadata)
+
+> ⚠️ **IMPORTANTE**: Los agentes RAG+Metadata requieren Python 3.11, 3.12 o 3.13.
+> ChromaDB **no es compatible con Python 3.14+**. Si ves el error 307, usa una versión anterior de Python.
+
+## Instalación
+
+```bash
+# Crear entorno virtual (requiere Python 3.11-3.13)
+python3.12 -m venv .venv  # o python3.13, python3.11
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+## Configuración
+
+1. Copia tu API key de Mistral en `.env`:
+```
+MISTRAL_API_KEY=tu_api_key
+```
+
+2. Añade tus documentos en `data/docs/` (formatos soportados: .txt, .md, .pdf)
+
+3. (Opcional) Configura campos de metadatos personalizados en `data/metadata.json`
+
+## Ejecución
+
+```bash
+# Opción 1: Script automático
+./run.sh
+
+# Opción 2: Manual
+source .venv/bin/activate
+python app.py
+```
+
+El servidor estará disponible en http://localhost:8000
+
+Para usar un puerto diferente: `PORT=8001 ./run.sh`
+
+## Interacción por terminal
+
+También puedes interactuar directamente desde el terminal sin servidor web:
+
+```bash
+cd web
+source .venv/bin/activate
+python cli.py {agent_id}
+```
+
+## API Endpoints
+
+- `GET /` - Información del agente
+- `GET /health` - Health check
+- `GET /examples` - Preguntas de ejemplo
+- `GET /metadata` - Metadatos de todos los documentos indexados
+- `POST /chat` - Enviar mensaje (busca contexto relevante con metadatos)
+- `POST /reindex` - Reindexa los documentos con metadatos
+
+### Ejemplo de uso con curl
+
+```bash
+# Chat normal
+curl -X POST http://localhost:8000/chat \\
+  -H "Content-Type: application/json" \\
+  -d '{{"message": "¿Qué información tienes sobre X?"}}'
+
+# Ver metadatos de documentos
+curl http://localhost:8000/metadata
+
+# Reindexar documentos
+curl -X POST http://localhost:8000/reindex
+```
+
+## Metadatos
+
+Los metadatos se extraen automáticamente de los documentos:
+
+| Campo | PDF | TXT/MD |
+|-------|-----|--------|
+| title | Del PDF o nombre de archivo | Nombre de archivo |
+| author | Del PDF | - |
+| date | Del PDF | - |
+| page_count | Sí | - |
+| file_size | Sí | Sí |
+| file_type | Sí | Sí |
+
+### Configuración personalizada de metadatos
+
+Puedes personalizar los campos de metadatos creando `data/metadata.json`:
+
+```json
+{{
+    "fields": ["title", "author", "date", "file_type", "file_size", "page_count", "department", "category"]
+}}
+```
+
+## Estructura
+
+```
+{agent_id}/
+├── .env                # API key (no subir a git)
+├── requirements.txt    # Dependencias
+├── agent.py           # Lógica del agente con RAG+Metadata
+├── app.py             # Servidor FastAPI
+├── run.sh             # Script de ejecución
+└── data/
+    ├── docs/          # Documentos a indexar (.txt, .md, .pdf)
+    ├── metadata.json  # (Opcional) Configuración de campos de metadatos
+    └── chroma_db/     # Base de datos vectorial (se genera automáticamente)
+```
+
+## Cómo funciona
+
+1. Al iniciar, el agente indexa todos los documentos en `data/docs/` extrayendo contenido y metadatos
+2. Los metadatos (autor, título, fecha, etc.) se almacenan junto a cada chunk en ChromaDB
+3. Cuando recibes una pregunta, busca los fragmentos más relevantes
+4. El LLM recibe tanto el contenido relevante como los metadatos para generar respuestas informadas
+5. Las preguntas sobre metadatos (e.g., "¿qué documentos hay de tal autor?") se responden usando la información de metadatos
 '''
 
 README_TOOLCALL_TEMPLATE = '''# {agent_name}
@@ -4876,7 +5725,7 @@ def create_agent_structure(config: dict) -> str:
 
     Args:
         config: Dictionary with agent configuration:
-            - agent_type: 'oneshot', 'rag', or 'consultabd_sql'
+            - agent_type: 'oneshot', 'rag', 'rag_metadata', or 'consultabd_sql'
             - agent_id: Lowercase identifier
             - output_dir: Directory to create agent in
             - agent_name: Display name
@@ -4918,8 +5767,8 @@ def create_agent_structure(config: dict) -> str:
     data_dir = os.path.join(output_dir, "data")
     os.makedirs(data_dir, exist_ok=True)
 
-    # For RAG, create documents directory
-    if agent_type == "rag":
+    # For RAG/RAG+Metadata, create documents directory
+    if agent_type in ["rag", "rag_metadata"]:
         docs_dir = os.path.join(data_dir, "docs")
         os.makedirs(docs_dir, exist_ok=True)
 
@@ -4927,6 +5776,7 @@ def create_agent_structure(config: dict) -> str:
     requirements_map = {
         "oneshot": REQUIREMENTS_ONESHOT,
         "rag": REQUIREMENTS_RAG,
+        "rag_metadata": REQUIREMENTS_RAG_METADATA,
         "consultabd_sql": REQUIREMENTS_CONSULTABD_SQL
     }
     with open(os.path.join(output_dir, "requirements.txt"), "w", encoding="utf-8") as f:
@@ -4942,7 +5792,7 @@ def create_agent_structure(config: dict) -> str:
             f.write(ENV_TEMPLATE_OLLAMA.format(ollama_url=ollama_url, ollama_model=ollama_model))
 
         # Add verification configuration for oneshot and rag
-        if agent_type in ["oneshot", "rag"]:
+        if agent_type in ["oneshot", "rag", "rag_metadata"]:
             f.write("\n# ============================================\n")
             f.write("# Grounding Verification (Anti-hallucination)\n")
             f.write("# ============================================\n")
@@ -4954,7 +5804,7 @@ def create_agent_structure(config: dict) -> str:
             f.write(f"VERIFY_GROUNDING={'true' if verify_grounding else 'false'}\n")
 
         # Add RAG chunking configuration for rag agents
-        if agent_type == "rag":
+        if agent_type in ["rag", "rag_metadata"]:
             f.write("\n# ============================================\n")
             f.write("# RAG Chunking Configuration\n")
             f.write("# ============================================\n")
@@ -4971,7 +5821,7 @@ def create_agent_structure(config: dict) -> str:
 
     # .gitignore
     gitignore_content = GITIGNORE
-    if agent_type == "rag":
+    if agent_type in ["rag", "rag_metadata"]:
         gitignore_content += "data/chroma_db/\n"
     with open(os.path.join(output_dir, ".gitignore"), "w", encoding="utf-8") as f:
         f.write(gitignore_content)
@@ -4980,6 +5830,7 @@ def create_agent_structure(config: dict) -> str:
     agent_templates = {
         "oneshot": AGENT_PY_TEMPLATE,
         "rag": AGENT_RAG_TEMPLATE,
+        "rag_metadata": AGENT_RAG_METADATA_TEMPLATE,
         "consultabd_sql": AGENT_CONSULTABD_SQL_TEMPLATE
     }
     agent_content = agent_templates[agent_type].format(
@@ -4995,6 +5846,7 @@ def create_agent_structure(config: dict) -> str:
     app_templates = {
         "oneshot": APP_PY_TEMPLATE,
         "rag": APP_PY_RAG_TEMPLATE,
+        "rag_metadata": APP_PY_RAG_METADATA_TEMPLATE,
         "consultabd_sql": APP_CONSULTABD_SQL_TEMPLATE
     }
     app_content = app_templates[agent_type].format(
@@ -5009,10 +5861,24 @@ def create_agent_structure(config: dict) -> str:
         f.write(app_content)
 
     # Data files by type
-    if agent_type == "rag":
+    if agent_type in ["rag", "rag_metadata"]:
         example_doc = f"# Example document for {agent_name}\n\nAdd your content here.\n\nThis file will be automatically indexed when the agent starts.\n"
         with open(os.path.join(docs_dir, "example.md"), "w", encoding="utf-8") as f:
             f.write(example_doc)
+        # Create sample metadata.json for rag_metadata agents
+        if agent_type == "rag_metadata":
+            sample_metadata = json.dumps({
+                "fields": ["title", "author", "date", "file_type", "file_size", "page_count"],
+                "documents": {
+                    "example.md": {
+                        "title": "Example Document",
+                        "author": "Your Name",
+                        "date": "2024-01-01"
+                    }
+                }
+            }, indent=2, ensure_ascii=False)
+            with open(os.path.join(data_dir, "metadata.json"), "w", encoding="utf-8") as f:
+                f.write(sample_metadata)
     elif agent_type == "consultabd_sql":
         db_readme = f"""# Database for {agent_name}
 
@@ -5043,7 +5909,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
             f.write(data_content)
 
     # run.sh
-    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type == "rag" else RUN_SH_TEMPLATE
+    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type in ["rag", "rag_metadata"] else RUN_SH_TEMPLATE
     with open(os.path.join(output_dir, "run.sh"), "w", encoding="utf-8") as f:
         f.write(run_sh_template)
     os.chmod(os.path.join(output_dir, "run.sh"), 0o755)
@@ -5052,6 +5918,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
     readme_templates = {
         "oneshot": README_TEMPLATE,
         "rag": README_RAG_TEMPLATE,
+        "rag_metadata": README_RAG_METADATA_TEMPLATE,
         "consultabd_sql": README_CONSULTABD_SQL_TEMPLATE
     }
     readme_content = readme_templates[agent_type].format(
@@ -5078,19 +5945,20 @@ def main():
     print("  1. oneshot        - Simple agent with prompt and static data")
     print("  2. rag            - Agent with semantic search in documents (ChromaDB)")
     print("  3. consultabd_sql - Agent that converts natural language to SQL (Text2SQL)")
+    print("  4. rag_metadata   - Agent with semantic search + document metadata (ChromaDB)")
     print()
 
     agent_type = ""
-    while agent_type not in ["1", "2", "3", "oneshot", "rag", "consultabd_sql"]:
-        agent_type = input("Agent type [1/2/3]: ").strip().lower()
+    while agent_type not in ["1", "2", "3", "4", "oneshot", "rag", "consultabd_sql", "rag_metadata"]:
+        agent_type = input("Agent type [1/2/3/4]: ").strip().lower()
 
     # Normalize type
-    type_map = {"1": "oneshot", "2": "rag", "3": "consultabd_sql"}
+    type_map = {"1": "oneshot", "2": "rag", "3": "consultabd_sql", "4": "rag_metadata"}
     agent_type = type_map.get(agent_type, agent_type)
     print(f"  → Selected type: {agent_type}")
 
     # Warning for RAG if Python 3.14+
-    if agent_type == "rag":
+    if agent_type in ["rag", "rag_metadata"]:
         import platform
         py_version = tuple(map(int, platform.python_version().split('.')[:2]))
         if py_version >= (3, 14):
@@ -5145,6 +6013,8 @@ def main():
     if not examples:
         if agent_type == "rag":
             examples = ["What information do you have?", "Search for X"]
+        elif agent_type == "rag_metadata":
+            examples = ["What documents are available?", "Show me documents by author X", "Search for X"]
         elif agent_type == "consultabd_sql":
             examples = ["How many records are there?", "Show me the last 10 records"]
         else:
@@ -5180,6 +6050,8 @@ def main():
     if not system_prompt:
         if agent_type == "rag":
             system_prompt = f"You are {agent_name}, a helpful assistant. Answer questions based on the context provided from the knowledge base. If you don't find relevant information, say so clearly."
+        elif agent_type == "rag_metadata":
+            system_prompt = f"You are {agent_name}, a helpful assistant. Answer questions based on the context provided from the knowledge base. You have access to document metadata (author, title, date, etc.) and can answer questions about document properties. If you don't find relevant information, say so clearly."
         elif agent_type == "consultabd_sql":
             system_prompt = f"You are {agent_name}, an assistant specialized in database queries. You help users get information from the database by answering their questions in natural language."
         else:
@@ -5221,7 +6093,7 @@ def main():
 
     # 11. Grounding verification (for oneshot and rag)
     verify_grounding = False
-    if agent_type in ["oneshot", "rag"]:
+    if agent_type in ["oneshot", "rag", "rag_metadata"]:
         print("\nGrounding verification (anti-hallucination):")
         if agent_type == "oneshot":
             print("  This option verifies that agent responses are based")
@@ -5242,7 +6114,7 @@ def main():
     rag_retrieve_chunks = 8
     rag_chunking_strategy = "smart"
 
-    if agent_type == "rag":
+    if agent_type in ["rag", "rag_metadata"]:
         print("\nRAG Chunking Approach:")
         print("  1. basic             - Fast indexing, lower accuracy")
         print("                         (500 chars, 100 overlap, 3 results)")
@@ -5301,9 +6173,9 @@ def main():
         if llm_provider == "ollama":
             print(f"  Ollama URL:   {ollama_url}")
     print(f"  Examples:     {len(examples)} question(s)")
-    if agent_type in ["oneshot", "rag"]:
+    if agent_type in ["oneshot", "rag", "rag_metadata"]:
         print(f"  Verification: {'Yes (grounding check)' if verify_grounding else 'No'}")
-    if agent_type == "rag":
+    if agent_type in ["rag", "rag_metadata"]:
         print(f"  RAG approach: {rag_approach}")
     print("=" * 60)
 
@@ -5322,8 +6194,8 @@ def main():
     data_dir = os.path.join(output_dir, "data")
     os.makedirs(data_dir, exist_ok=True)
 
-    # For RAG, create documents directory
-    if agent_type == "rag":
+    # For RAG/RAG+Metadata, create documents directory
+    if agent_type in ["rag", "rag_metadata"]:
         docs_dir = os.path.join(data_dir, "docs")
         os.makedirs(docs_dir, exist_ok=True)
 
@@ -5331,6 +6203,7 @@ def main():
     requirements_map = {
         "oneshot": REQUIREMENTS_ONESHOT,
         "rag": REQUIREMENTS_RAG,
+        "rag_metadata": REQUIREMENTS_RAG_METADATA,
         "consultabd_sql": REQUIREMENTS_CONSULTABD_SQL
     }
     with open(os.path.join(output_dir, "requirements.txt"), "w", encoding="utf-8") as f:
@@ -5347,19 +6220,19 @@ def main():
             f.write(ENV_TEMPLATE_OLLAMA.format(ollama_url=ollama_url, ollama_model=ollama_model))
 
         # Add verification configuration for oneshot and rag
-        if agent_type in ["oneshot", "rag"]:
+        if agent_type in ["oneshot", "rag", "rag_metadata"]:
             f.write("\n# ============================================\n")
             f.write("# Grounding Verification (Anti-hallucination)\n")
             f.write("# ============================================\n")
             if agent_type == "oneshot":
                 f.write("# Verifies that responses are based ONLY on data.md\n")
-            else:  # rag
+            else:  # rag or rag_metadata
                 f.write("# Verifies that responses are based ONLY on retrieved context\n")
             f.write("# NOTE: Doubles LLM calls (higher latency and cost)\n")
             f.write(f"VERIFY_GROUNDING={'true' if verify_grounding else 'false'}\n")
 
         # Add RAG chunking configuration for rag agents
-        if agent_type == "rag":
+        if agent_type in ["rag", "rag_metadata"]:
             f.write("\n# ============================================\n")
             f.write("# RAG Chunking Configuration\n")
             f.write("# ============================================\n")
@@ -5383,7 +6256,7 @@ def main():
 
     # .gitignore
     gitignore_content = GITIGNORE
-    if agent_type == "rag":
+    if agent_type in ["rag", "rag_metadata"]:
         gitignore_content += "data/chroma_db/\n"
     with open(os.path.join(output_dir, ".gitignore"), "w", encoding="utf-8") as f:
         f.write(gitignore_content)
@@ -5393,6 +6266,7 @@ def main():
     agent_templates = {
         "oneshot": AGENT_PY_TEMPLATE,
         "rag": AGENT_RAG_TEMPLATE,
+        "rag_metadata": AGENT_RAG_METADATA_TEMPLATE,
         "consultabd_sql": AGENT_CONSULTABD_SQL_TEMPLATE
     }
     agent_content = agent_templates[agent_type].format(
@@ -5409,6 +6283,7 @@ def main():
     app_templates = {
         "oneshot": APP_PY_TEMPLATE,
         "rag": APP_PY_RAG_TEMPLATE,
+        "rag_metadata": APP_PY_RAG_METADATA_TEMPLATE,
         "consultabd_sql": APP_CONSULTABD_SQL_TEMPLATE
     }
     app_content = app_templates[agent_type].format(
@@ -5423,12 +6298,27 @@ def main():
         f.write(app_content)
     print(f"  ✓ {output_dir}/app.py")
 
-    # data/data.md (for oneshot) or example in docs/ (for rag) or README for consultabd_sql
-    if agent_type == "rag":
+    # data/data.md (for oneshot) or example in docs/ (for rag/rag_metadata) or README for consultabd_sql
+    if agent_type in ["rag", "rag_metadata"]:
         example_doc = f"# Example document for {agent_name}\n\nAdd your content here.\n\nThis file will be automatically indexed when the agent starts.\n"
         with open(os.path.join(docs_dir, "example.md"), "w", encoding="utf-8") as f:
             f.write(example_doc)
         print(f"  ✓ {docs_dir}/example.md")
+        # Create sample metadata.json for rag_metadata agents
+        if agent_type == "rag_metadata":
+            sample_metadata = json.dumps({
+                "fields": ["title", "author", "date", "file_type", "file_size", "page_count"],
+                "documents": {
+                    "example.md": {
+                        "title": "Example Document",
+                        "author": "Your Name",
+                        "date": "2024-01-01"
+                    }
+                }
+            }, indent=2, ensure_ascii=False)
+            with open(os.path.join(data_dir, "metadata.json"), "w", encoding="utf-8") as f:
+                f.write(sample_metadata)
+            print(f"  ✓ {data_dir}/metadata.json")
     elif agent_type == "consultabd_sql":
         # For consultabd_sql, create a README explaining how to create the DB
         db_readme = f"""# Database for {agent_name}
@@ -5471,7 +6361,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
         print(f"  ✓ {data_dir}/data.md")
 
     # run.sh (usa template especial para RAG por compatibilidad con Python)
-    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type == "rag" else RUN_SH_TEMPLATE
+    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type in ["rag", "rag_metadata"] else RUN_SH_TEMPLATE
     with open(os.path.join(output_dir, "run.sh"), "w", encoding="utf-8") as f:
         f.write(run_sh_template)
     os.chmod(os.path.join(output_dir, "run.sh"), 0o755)
@@ -5481,6 +6371,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
     readme_templates = {
         "oneshot": README_TEMPLATE,
         "rag": README_RAG_TEMPLATE,
+        "rag_metadata": README_RAG_METADATA_TEMPLATE,
         "consultabd_sql": README_CONSULTABD_SQL_TEMPLATE
     }
     readme_content = readme_templates[agent_type].format(
@@ -5525,7 +6416,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
         print(f"  ├── benchmark.py      # Performance test script")
         print(f"  ├── logs/             # Benchmark results")
     print(f"  └── data/")
-    if agent_type == "rag":
+    if agent_type in ["rag", "rag_metadata"]:
         print(f"      └── docs/         # Documents to index")
     elif agent_type == "consultabd_sql":
         print(f"      └── database.db   # SQLite database (you must create it)")
@@ -5535,7 +6426,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
     print()
     print("Next steps:")
     step = 1
-    if agent_type == "rag":
+    if agent_type in ["rag", "rag_metadata"]:
         print(f"  {step}. Add documents (.txt, .md) in {data_dir}/docs/")
     elif agent_type == "consultabd_sql":
         print(f"  {step}. Create your SQLite database at {data_dir}/database.db")
@@ -5563,8 +6454,10 @@ Once the DB is created, the agent will be able to answer questions in natural la
     print("  GET  /         - Agent info")
     print("  GET  /examples - Example questions")
     print("  POST /chat     - Send message")
-    if agent_type == "rag":
+    if agent_type in ["rag", "rag_metadata"]:
         print("  POST /reindex  - Reindex documents")
+        if agent_type == "rag_metadata":
+            print("  GET  /metadata - View document metadata")
         print()
         print("⚠️  NOTE: RAG agents require Python 3.11-3.13")
         print("   ChromaDB is not compatible with Python 3.14+")

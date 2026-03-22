@@ -283,6 +283,13 @@
                             </div>
                         </label>
                         <label class="radio-option">
+                            <input type="radio" name="agent_type" value="rag_metadata">
+                            <div>
+                                <strong>RAG+Metadata</strong>
+                                <div class="hint">Semantic search + document metadata filtering (ChromaDB)</div>
+                            </div>
+                        </label>
+                        <label class="radio-option">
                             <input type="radio" name="agent_type" value="consultabd_sql">
                             <div>
                                 <strong>Text2SQL</strong>
@@ -376,6 +383,22 @@
                     </div>
                     <div class="hint" style="margin-top: 0.5rem; color: #dc2626;">
                         Note: Folder selection only works with Chrome. You can also add documents later to the agent's data/docs/ folder.
+                    </div>
+                </div>
+                <div id="data-rag-metadata" class="conditional-field">
+                    <div class="form-group">
+                        <label for="rag_metadata_folder">Documents Folder</label>
+                        <div class="hint">Select a folder containing documents for RAG+Metadata (PDF, TXT, MD). Metadata is extracted automatically from PDFs.</div>
+                        <input type="file" id="rag_metadata_folder" name="rag_metadata_documents"
+                               webkitdirectory directory multiple>
+                    </div>
+                    <div class="hint" style="margin-top: 0.5rem; color: #dc2626;">
+                        Note: Folder selection only works with Chrome. You can also add documents later to the agent's data/docs/ folder.
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="metadata_file">Metadata File (optional)</label>
+                        <div class="hint">Upload a JSON file with metadata for your documents. This supplements or overrides auto-extracted metadata. Format: <code>{"documents": {"file.pdf": {"author": "...", "date": "...", ...}}}</code></div>
+                        <input type="file" id="metadata_file" name="metadata_file" accept=".json">
                     </div>
                 </div>
                 <div id="data-sql" class="conditional-field">
@@ -534,15 +557,16 @@
             // Show/hide data fields
             document.getElementById('data-oneshot').classList.toggle('visible', agentType === 'oneshot');
             document.getElementById('data-rag').classList.toggle('visible', agentType === 'rag');
+            document.getElementById('data-rag-metadata').classList.toggle('visible', agentType === 'rag_metadata');
             document.getElementById('data-sql').classList.toggle('visible', agentType === 'consultabd_sql');
 
-            // Show/hide options section (grounding only for oneshot/rag)
+            // Show/hide options section (grounding only for oneshot/rag/rag_metadata)
             document.getElementById('options-section').style.display =
-                (agentType === 'oneshot' || agentType === 'rag') ? 'block' : 'none';
+                (agentType === 'oneshot' || agentType === 'rag' || agentType === 'rag_metadata') ? 'block' : 'none';
 
             // Show/hide RAG-specific options
             document.getElementById('rag-context-option').style.display =
-                (agentType === 'rag') ? 'block' : 'none';
+                (agentType === 'rag' || agentType === 'rag_metadata') ? 'block' : 'none';
 
             // Load appropriate prompt templates
             loadPromptTemplates(agentType);
