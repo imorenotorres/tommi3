@@ -29,7 +29,7 @@ def list_prompt_templates(agent_type: str) -> list:
     Busca archivos .txt en la carpeta prompts/ que coincidan con el tipo.
 
     Args:
-        agent_type: Tipo de agente (oneshot, rag, consultabd_sql)
+        agent_type: Tipo de agente (oneshot, rag, text2sql)
 
     Returns:
         Lista de tuplas (nombre_mostrar, ruta_archivo)
@@ -45,7 +45,7 @@ def list_prompt_templates(agent_type: str) -> list:
         "oneshot": ["prompt_Oneshot.txt"],
         "rag": ["prompt_RAG.txt"],
         "rag_metadata": ["prompt_RAG_Metadata.txt"],
-        "consultabd_sql": ["prompt_Text2SQL.txt"]
+        "text2sql": ["prompt_Text2SQL.txt"]
     }
 
     # Primero añadir las plantillas específicas del tipo
@@ -123,7 +123,7 @@ sentence-transformers>=2.2.0
 pypdf>=4.0.0
 """
 
-REQUIREMENTS_CONSULTABD_SQL = """fastapi>=0.115.0
+REQUIREMENTS_TEXT2SQL = """fastapi>=0.115.0
 uvicorn>=0.32.0
 mistralai>=1.0.0
 ollama>=0.3.0
@@ -1490,11 +1490,11 @@ or
 '''
 
 # ============================================================================
-# PLANTILLA AGENTE CONSULTABD_SQL (Text-to-SQL simplificado)
+# PLANTILLA AGENTE TEXT2SQL (Text-to-SQL simplificado)
 # ============================================================================
 
-AGENT_CONSULTABD_SQL_TEMPLATE = '''"""
-{agent_name} - Agente ConsultaBD_SQL
+AGENT_TEXT2SQL_TEMPLATE = '''"""
+{agent_name} - Agente Text2SQL
 Convierte preguntas en lenguaje natural a consultas SQL.
 Soporta Mistral Cloud y Ollama via LLM_PROVIDER.
 """
@@ -4488,11 +4488,11 @@ if __name__ == "__main__":
 '''
 
 # ============================================================================
-# APP CONSULTABD_SQL
+# APP TEXT2SQL
 # ============================================================================
 
-APP_CONSULTABD_SQL_TEMPLATE = '''"""
-{agent_name} - Servidor FastAPI (ConsultaBD_SQL)
+APP_TEXT2SQL_TEMPLATE = '''"""
+{agent_name} - Servidor FastAPI (Text2SQL)
 """
 
 import os
@@ -4512,7 +4512,7 @@ from agent import Agent
 AGENT_CONFIG = {{
     "id": "{agent_id}",
     "name": "{agent_name}",
-    "type": "consultabd_sql",
+    "type": "text2sql",
     "description": "{description}",
     "welcome_message": "{welcome_message}",
     "example_queries": {example_queries}
@@ -5276,7 +5276,7 @@ El agente solo permite consultas SELECT por seguridad:
 '''
 
 # ============================================================================
-# README CONSULTABD_SQL
+# README TEXT2SQL
 # ============================================================================
 
 # ============================================================================
@@ -5538,11 +5538,11 @@ if __name__ == "__main__":
     main()
 '''
 
-README_CONSULTABD_SQL_TEMPLATE = '''# {agent_name}
+README_TEXT2SQL_TEMPLATE = '''# {agent_name}
 
 {description}
 
-**Tipo**: Agente ConsultaBD_SQL (Consultas en lenguaje natural a SQL)
+**Tipo**: Agente Text2SQL (Consultas en lenguaje natural a SQL)
 
 ## Cómo funciona
 
@@ -5643,7 +5643,7 @@ python cli.py {agent_id}
 {agent_id}/
 ├── .env                # API key (no subir a git)
 ├── requirements.txt    # Dependencias
-├── agent.py           # Lógica ConsultaBD_SQL
+├── agent.py           # Lógica Text2SQL
 ├── app.py             # Servidor FastAPI
 ├── run.sh             # Script de ejecución
 ├── benchmark.py       # Script de pruebas de rendimiento
@@ -5725,7 +5725,7 @@ def create_agent_structure(config: dict) -> str:
 
     Args:
         config: Dictionary with agent configuration:
-            - agent_type: 'oneshot', 'rag', 'rag_metadata', or 'consultabd_sql'
+            - agent_type: 'oneshot', 'rag', 'rag_metadata', or 'text2sql'
             - agent_id: Lowercase identifier
             - output_dir: Directory to create agent in
             - agent_name: Display name
@@ -5777,7 +5777,7 @@ def create_agent_structure(config: dict) -> str:
         "oneshot": REQUIREMENTS_ONESHOT,
         "rag": REQUIREMENTS_RAG,
         "rag_metadata": REQUIREMENTS_RAG_METADATA,
-        "consultabd_sql": REQUIREMENTS_CONSULTABD_SQL
+        "text2sql": REQUIREMENTS_TEXT2SQL
     }
     with open(os.path.join(output_dir, "requirements.txt"), "w", encoding="utf-8") as f:
         f.write(requirements_map[agent_type])
@@ -5791,8 +5791,8 @@ def create_agent_structure(config: dict) -> str:
         elif llm_provider == "ollama":
             f.write(ENV_TEMPLATE_OLLAMA.format(ollama_url=ollama_url, ollama_model=ollama_model))
 
-        # Add verification configuration for oneshot and rag
-        if agent_type in ["oneshot", "rag", "rag_metadata"]:
+        # Add verification configuration for oneshot and rag (not rag_metadata — uses lightweight grounding)
+        if agent_type in ["oneshot", "rag"]:
             f.write("\n# ============================================\n")
             f.write("# Grounding Verification (Anti-hallucination)\n")
             f.write("# ============================================\n")
@@ -5827,27 +5827,63 @@ def create_agent_structure(config: dict) -> str:
         f.write(gitignore_content)
 
     # agent.py by type
-    agent_templates = {
-        "oneshot": AGENT_PY_TEMPLATE,
-        "rag": AGENT_RAG_TEMPLATE,
-        "rag_metadata": AGENT_RAG_METADATA_TEMPLATE,
-        "consultabd_sql": AGENT_CONSULTABD_SQL_TEMPLATE
-    }
-    agent_content = agent_templates[agent_type].format(
-        agent_id=agent_id,
-        agent_name=agent_name,
-        model=model,
-        system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
-    )
-    with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
-        f.write(agent_content)
+    if agent_type == "rag_metadata":
+        # RAG+Metadata agents use a reference agent.py (config-driven, no template needed)
+        import shutil
+        reference_agent = os.path.join(os.path.dirname(__file__), "..", "agents", "responsible_ai", "agent.py")
+        if os.path.exists(reference_agent):
+            shutil.copy2(reference_agent, os.path.join(output_dir, "agent.py"))
+        else:
+            # Fallback to template if reference agent not found
+            agent_content = AGENT_RAG_METADATA_TEMPLATE.format(
+                agent_id=agent_id, agent_name=agent_name, model=model,
+                system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
+            )
+            with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
+                f.write(agent_content)
+
+        # Generate config.json for RAG+Metadata agents
+        reliability_green = config.get('reliability_green_max_llm', 20)
+        reliability_red = config.get('reliability_red_min_llm', 50)
+        agent_config = {
+            "agent_id": agent_id,
+            "agent_name": agent_name,
+            "description": description,
+            "welcome_message": welcome,
+            "research_topic": config.get('research_topic', description),
+            "show_history": False,
+            "example_queries": examples,
+            "alliance": {
+                "name": config.get('alliance_name', 'UNINOVIS'),
+                "description": config.get('alliance_description', 'European university alliance.')
+            },
+            "universities": config.get('universities', {}),
+            "reliability_green_max_llm": reliability_green,
+            "reliability_red_min_llm": reliability_red
+        }
+        with open(os.path.join(output_dir, "config.json"), "w", encoding="utf-8") as f:
+            json.dump(agent_config, f, indent=2, ensure_ascii=False)
+    else:
+        agent_templates = {
+            "oneshot": AGENT_PY_TEMPLATE,
+            "rag": AGENT_RAG_TEMPLATE,
+            "text2sql": AGENT_TEXT2SQL_TEMPLATE
+        }
+        agent_content = agent_templates[agent_type].format(
+            agent_id=agent_id,
+            agent_name=agent_name,
+            model=model,
+            system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
+        )
+        with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
+            f.write(agent_content)
 
     # app.py by type
     app_templates = {
         "oneshot": APP_PY_TEMPLATE,
         "rag": APP_PY_RAG_TEMPLATE,
         "rag_metadata": APP_PY_RAG_METADATA_TEMPLATE,
-        "consultabd_sql": APP_CONSULTABD_SQL_TEMPLATE
+        "text2sql": APP_TEXT2SQL_TEMPLATE
     }
     app_content = app_templates[agent_type].format(
         agent_id=agent_id,
@@ -5879,7 +5915,7 @@ def create_agent_structure(config: dict) -> str:
             }, indent=2, ensure_ascii=False)
             with open(os.path.join(data_dir, "metadata.json"), "w", encoding="utf-8") as f:
                 f.write(sample_metadata)
-    elif agent_type == "consultabd_sql":
+    elif agent_type == "text2sql":
         db_readme = f"""# Database for {agent_name}
 
 Create your SQLite database here named `database.db`.
@@ -5919,7 +5955,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
         "oneshot": README_TEMPLATE,
         "rag": README_RAG_TEMPLATE,
         "rag_metadata": README_RAG_METADATA_TEMPLATE,
-        "consultabd_sql": README_CONSULTABD_SQL_TEMPLATE
+        "text2sql": README_TEXT2SQL_TEMPLATE
     }
     readme_content = readme_templates[agent_type].format(
         agent_name=agent_name,
@@ -5944,16 +5980,16 @@ def main():
     print("Available agent types:")
     print("  1. oneshot        - Simple agent with prompt and static data")
     print("  2. rag            - Agent with semantic search in documents (ChromaDB)")
-    print("  3. consultabd_sql - Agent that converts natural language to SQL (Text2SQL)")
+    print("  3. text2sql - Agent that converts natural language to SQL (Text2SQL)")
     print("  4. rag_metadata   - Agent with semantic search + document metadata (ChromaDB)")
     print()
 
     agent_type = ""
-    while agent_type not in ["1", "2", "3", "4", "oneshot", "rag", "consultabd_sql", "rag_metadata"]:
+    while agent_type not in ["1", "2", "3", "4", "oneshot", "rag", "text2sql", "rag_metadata"]:
         agent_type = input("Agent type [1/2/3/4]: ").strip().lower()
 
     # Normalize type
-    type_map = {"1": "oneshot", "2": "rag", "3": "consultabd_sql", "4": "rag_metadata"}
+    type_map = {"1": "oneshot", "2": "rag", "3": "text2sql", "4": "rag_metadata"}
     agent_type = type_map.get(agent_type, agent_type)
     print(f"  → Selected type: {agent_type}")
 
@@ -6015,7 +6051,7 @@ def main():
             examples = ["What information do you have?", "Search for X"]
         elif agent_type == "rag_metadata":
             examples = ["What documents are available?", "Show me documents by author X", "Search for X"]
-        elif agent_type == "consultabd_sql":
+        elif agent_type == "text2sql":
             examples = ["How many records are there?", "Show me the last 10 records"]
         else:
             examples = ["What can you do?", "Give me information"]
@@ -6052,7 +6088,7 @@ def main():
             system_prompt = f"You are {agent_name}, a helpful assistant. Answer questions based on the context provided from the knowledge base. If you don't find relevant information, say so clearly."
         elif agent_type == "rag_metadata":
             system_prompt = f"You are {agent_name}, a helpful assistant. Answer questions based on the context provided from the knowledge base. You have access to document metadata (author, title, date, etc.) and can answer questions about document properties. If you don't find relevant information, say so clearly."
-        elif agent_type == "consultabd_sql":
+        elif agent_type == "text2sql":
             system_prompt = f"You are {agent_name}, an assistant specialized in database queries. You help users get information from the database by answering their questions in natural language."
         else:
             system_prompt = f"You are {agent_name}, a helpful assistant. Answer questions based on the provided data."
@@ -6204,7 +6240,7 @@ def main():
         "oneshot": REQUIREMENTS_ONESHOT,
         "rag": REQUIREMENTS_RAG,
         "rag_metadata": REQUIREMENTS_RAG_METADATA,
-        "consultabd_sql": REQUIREMENTS_CONSULTABD_SQL
+        "text2sql": REQUIREMENTS_TEXT2SQL
     }
     with open(os.path.join(output_dir, "requirements.txt"), "w", encoding="utf-8") as f:
         f.write(requirements_map[agent_type])
@@ -6267,7 +6303,7 @@ def main():
         "oneshot": AGENT_PY_TEMPLATE,
         "rag": AGENT_RAG_TEMPLATE,
         "rag_metadata": AGENT_RAG_METADATA_TEMPLATE,
-        "consultabd_sql": AGENT_CONSULTABD_SQL_TEMPLATE
+        "text2sql": AGENT_TEXT2SQL_TEMPLATE
     }
     agent_content = agent_templates[agent_type].format(
         agent_id=agent_id,
@@ -6284,7 +6320,7 @@ def main():
         "oneshot": APP_PY_TEMPLATE,
         "rag": APP_PY_RAG_TEMPLATE,
         "rag_metadata": APP_PY_RAG_METADATA_TEMPLATE,
-        "consultabd_sql": APP_CONSULTABD_SQL_TEMPLATE
+        "text2sql": APP_TEXT2SQL_TEMPLATE
     }
     app_content = app_templates[agent_type].format(
         agent_id=agent_id,
@@ -6298,7 +6334,7 @@ def main():
         f.write(app_content)
     print(f"  ✓ {output_dir}/app.py")
 
-    # data/data.md (for oneshot) or example in docs/ (for rag/rag_metadata) or README for consultabd_sql
+    # data/data.md (for oneshot) or example in docs/ (for rag/rag_metadata) or README for text2sql
     if agent_type in ["rag", "rag_metadata"]:
         example_doc = f"# Example document for {agent_name}\n\nAdd your content here.\n\nThis file will be automatically indexed when the agent starts.\n"
         with open(os.path.join(docs_dir, "example.md"), "w", encoding="utf-8") as f:
@@ -6319,8 +6355,8 @@ def main():
             with open(os.path.join(data_dir, "metadata.json"), "w", encoding="utf-8") as f:
                 f.write(sample_metadata)
             print(f"  ✓ {data_dir}/metadata.json")
-    elif agent_type == "consultabd_sql":
-        # For consultabd_sql, create a README explaining how to create the DB
+    elif agent_type == "text2sql":
+        # For text2sql, create a README explaining how to create the DB
         db_readme = f"""# Database for {agent_name}
 
 Create your SQLite database here named `database.db`.
@@ -6372,7 +6408,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
         "oneshot": README_TEMPLATE,
         "rag": README_RAG_TEMPLATE,
         "rag_metadata": README_RAG_METADATA_TEMPLATE,
-        "consultabd_sql": README_CONSULTABD_SQL_TEMPLATE
+        "text2sql": README_TEXT2SQL_TEMPLATE
     }
     readme_content = readme_templates[agent_type].format(
         agent_id=agent_id,
@@ -6383,8 +6419,8 @@ Once the DB is created, the agent will be able to answer questions in natural la
         f.write(readme_content)
     print(f"  ✓ {output_dir}/README.md")
 
-    # benchmark.py para consultabd_sql
-    if agent_type == "consultabd_sql":
+    # benchmark.py para text2sql
+    if agent_type == "text2sql":
         benchmark_content = BENCHMARK_TEXT2SQL_TEMPLATE.format(
             agent_id=agent_id,
             agent_name=agent_name
@@ -6412,13 +6448,13 @@ Once the DB is created, the agent will be able to answer questions in natural la
     print(f"  ├── app.py            # FastAPI server")
     print(f"  ├── run.sh            # Run script")
     print(f"  ├── README.md         # Documentation")
-    if agent_type == "consultabd_sql":
+    if agent_type == "text2sql":
         print(f"  ├── benchmark.py      # Performance test script")
         print(f"  ├── logs/             # Benchmark results")
     print(f"  └── data/")
     if agent_type in ["rag", "rag_metadata"]:
         print(f"      └── docs/         # Documents to index")
-    elif agent_type == "consultabd_sql":
+    elif agent_type == "text2sql":
         print(f"      └── database.db   # SQLite database (you must create it)")
     else:
         print(f"      └── data.md       # Agent data")
@@ -6428,7 +6464,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
     step = 1
     if agent_type in ["rag", "rag_metadata"]:
         print(f"  {step}. Add documents (.txt, .md) in {data_dir}/docs/")
-    elif agent_type == "consultabd_sql":
+    elif agent_type == "text2sql":
         print(f"  {step}. Create your SQLite database at {data_dir}/database.db")
     else:
         print(f"  {step}. Edit {data_dir}/data.md with your data")
@@ -6462,7 +6498,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
         print("⚠️  NOTE: RAG agents require Python 3.11-3.13")
         print("   ChromaDB is not compatible with Python 3.14+")
         print("   The run.sh script will automatically detect the correct version")
-    elif agent_type == "consultabd_sql":
+    elif agent_type == "text2sql":
         print("  GET  /schema   - View database schema")
         print()
         print("📝 NOTE: You must create the SQLite database at data/database.db")

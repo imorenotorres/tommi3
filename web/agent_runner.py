@@ -342,6 +342,7 @@ class AgentRunner:
                 else:
                     event_type, content = "content", item
 
+                # Only accumulate content chunks in the full response (not badges/status)
                 if event_type == "content":
                     full_response += content
 

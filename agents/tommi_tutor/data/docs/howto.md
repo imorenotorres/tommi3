@@ -23,28 +23,33 @@ header-includes: |
 
 **By: UNINOVIS-UMA IT TEAM**
 
-::: {.preface}
-TOMMI is an easy to use educational tool that serves to create and test AI agents. With TOMMI:
+## Preface
 
-- IT staff will have rapid hands-on experience with different types of agents;
-- academic and admin staff, ideally supported by IT experts, will be able to create agents for their professional context;
-- end-users (students, researchers, admin staff) will be able to experience with this technology and explore its potential benefits, thus fostering digital literacy.
+AI agents are becoming increasingly available across industries, education, and public services. Their ability to retrieve information, answer questions, and automate tasks makes them attractive tools for a wide range of applications. However, the deployment and use of AI agents requires a good understanding of their risks and limitations.
 
-TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, and more—ensuring transparency and flexibility.
-:::
+Most AI agent applications fail in two important aspects:
 
-::: {.caution}
-**Caution:** The use of TOMMI agents for other goals apart from training requires close supervision. IT experts should pay special attention to two main risks. First, no sensitive data should be added unless an IT expert confirms that the agent deployment is safe (e.g., only specific persons have access to the server). Second, adding new tools to TOMMI is feasible, but it may result in dangerous situations (e.g., a tool deleting your hard disk); modifications made on the agents' templates are made at your own risk.
-:::
+- **Technical transparency:** Different models have different capabilities, biases, knowledge cutoffs, and cost profiles — yet this information is rarely disclosed.
+- **Content transparency:** When an agent provides an answer, users generally cannot tell whether the response comes from a curated database, a retrieved document, or the LLM's own training data — which may include hallucinated or outdated content.
+
+This lack of transparency makes it difficult for users to assess the reliability of the information they receive, and for developers to understand and communicate the limitations of the systems they build.
+
+The main motivation in developing TOMMI was to create an AI agent framework that, by being transparent, would help:
+
+1. **Developers** understand the key characteristics of AI agents and be able to responsibly develop new ones — knowing exactly which data sources are used, how retrieval works, and where the LLM contributes.
+2. **End-users** evaluate the potential interest and/or risks of using AI agents as information sources — through visible reliability indicators that show the origin of each response.
+
+TOMMI addresses these goals through features such as open-source architecture, configurable LLM selection (with visible model badges), structured data pipelines, and a **reliability badge system** that transparently breaks down each response into the percentage sourced from human-checked content and LLMs whose reliability cannot be checked (see [Section 3.7](#reliability-badges)).
 
 ---
 
 ## Index
 
+- [Preface](#preface)
 1. [Introduction to Agents](#introduction-to-agents)
    - [1.1 Oneshot Agents](#oneshot-agents)
    - [1.2 RAG Agents](#rag-agents-retrieval-augmented-generation)
-   - [1.3 ConsultaBD_SQL Agents](#consultabd_sql-agents)
+   - [1.3 Text2SQL Agents](#text2sql-agents)
    - [1.4 RAG+Metadata Agents](#ragmetadata-agents)
    - [1.5 Agent Types Comparison](#agent-types-comparison)
 2. [Setting Up the TOMMI Agents Service](#setting-up-the-tommi-agents-service)
@@ -63,8 +68,13 @@ TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, an
      - [3.6.2 RAG Agents: Document Collection](#rag-agents-document-collection)
        - [RAG Chunking Approaches](#rag-chunking-approaches)
        - [3.6.3 RAG+Metadata Agents: Documents with Metadata](#ragmetadata-agents-documents-with-metadata)
-     - [3.6.4 ConsultaBD_SQL Agents: Database Only](#consultabd_sql-agents-database-only)
-   - [3.7 Grounding Verification (Anti-hallucination)](#grounding-verification-anti-hallucination)
+     - [3.6.4 Text2SQL Agents: Database Only](#text2sql-agents-database-only)
+   - [3.7 Reliability Badges](#reliability-badges)
+     - [3.7.1 Why Reliability Matters](#why-reliability-matters)
+     - [3.7.2 How Reliability Is Measured (Back-office)](#how-reliability-is-measured-back-office)
+     - [3.7.3 How Reliability Is Displayed (Front-office)](#how-reliability-is-displayed-front-office)
+     - [3.7.4 Configuring Reliability Thresholds](#configuring-reliability-thresholds)
+     - [3.7.5 Similarity Tuning with `similarity_test.py`](#similarity-tuning-with-similarity_testpy)
 4. [Interacting with Agents](#interacting-with-agents)
    - [4.1 Web Interface](#web-interface)
      - [4.1.1 Starting the Web Hub](#starting-the-web-hub)
@@ -91,7 +101,7 @@ TOMMI is built entirely on **open source** tools—Python, FastAPI, ChromaDB, an
    - [A.3 Web Server](#a3-web-server)
    - [A.4 RAG Agent Operations](#a4-rag-agent-operations)
    - [A.5 RAG+Metadata Agent Operations](#a5-ragmetadata-agent-operations)
-   - [A.6 ConsultaBD_SQL Agent Operations](#a6-consultabd_sql-agent-operations)
+   - [A.6 Text2SQL Agent Operations](#a6-text2sql-agent-operations)
    - [A.7 Ollama Commands (Local LLM)](#a7-ollama-commands-local-llm)
    - [A.8 API Testing with curl](#a8-api-testing-with-curl)
    - [A.9 Logs and Debugging](#a9-logs-and-debugging)
@@ -194,7 +204,7 @@ Uses semantic search to find relevant information before generating responses.
 
 **Example:** Academic proceedings Q&A system that searches through hundreds of papers.
 
-### 1.3 ConsultaBD_SQL Agents
+### 1.3 Text2SQL Agents
 
 Converts natural language questions directly to SQL queries against a database.
 
@@ -303,7 +313,7 @@ An enhanced version of RAG agents designed for **multi-institution research pape
 
 #### Feature Comparison Table
 
-| Feature | Oneshot | RAG | RAG+Metadata | ConsultaBD_SQL |
+| Feature | Oneshot | RAG | RAG+Metadata | Text2SQL |
 |---------|:-------:|:---:|:------------:|:--------------:|
 | **Complexity** | Low | Medium | Medium | Medium |
 | **LLM Calls per Query** | 1 (or 2)* | 1 (or 2)* | 1 (or 2)* | 1 |
@@ -324,10 +334,10 @@ An enhanced version of RAG agents designed for **multi-institution research pape
 | Simple FAQ with static information | **Oneshot** | Minimal complexity, fastest response |
 | Q&A over many documents/PDFs | **RAG** | Semantic search scales to thousands of documents |
 | Document collection with metadata filtering | **RAG+Metadata** | Metadata extraction + semantic search |
-| Database queries by non-technical users | **ConsultaBD_SQL** | Natural language to SQL conversion |
+| Database queries by non-technical users | **Text2SQL** | Natural language to SQL conversion |
 | Need lowest latency | **Oneshot** | Single LLM call, no external lookups |
 | Need to scale to thousands of documents | **RAG** | Vector database handles large collections |
-| Privacy-sensitive data queries | **ConsultaBD_SQL** | Data stays local, only questions sent to LLM |
+| Privacy-sensitive data queries | **Text2SQL** | Data stays local, only questions sent to LLM |
 
 #### Cost Comparison
 
@@ -336,7 +346,7 @@ An enhanced version of RAG agents designed for **multi-institution research pape
 | **Oneshot** | 1 (2 with verification) | Low (Medium with verification) |
 | **RAG** | 1 (2 with verification) | Low (Medium with verification) |
 | **RAG+Metadata** | 1 (2 with verification) | Low (Medium with verification) |
-| **ConsultaBD_SQL** | 1 | Low |
+| **Text2SQL** | 1 | Low |
 
 #### Architecture Summary
 
@@ -376,7 +386,7 @@ An enhanced version of RAG agents designed for **multi-institution research pape
 
 1. **"I have a small knowledge base (<100KB)"** → **Oneshot**
 2. **"I have many documents to search"** → **RAG**
-3. **"I want users to query a database naturally"** → **ConsultaBD_SQL**
+3. **"I want users to query a database naturally"** → **Text2SQL**
 4. **"I have documents and need to filter by author/date/type"** → **RAG+Metadata**
 
 [↑ Back to index](#index){.back-to-top}
@@ -387,7 +397,7 @@ An enhanced version of RAG agents designed for **multi-institution research pape
 
 ### 2.1 Prerequisites
 
-- Python 3.10+ (for Oneshot and ConsultaBD_SQL agents)
+- Python 3.10+ (for Oneshot and Text2SQL agents)
 - Python 3.11-3.13 (for RAG and RAG+Metadata agents - ChromaDB is **not compatible** with Python 3.14+)
 - Mistral API key
 
@@ -506,7 +516,7 @@ python apps/crear_agente.py
 
 The script will prompt you for the same options as the web interface:
 
-1. **Agent type** (1=oneshot, 2=rag, 3=consultabd_sql, 4=rag_metadata)
+1. **Agent type** (1=oneshot, 2=rag, 3=text2sql, 4=rag_metadata)
 2. **Agent ID** - Unique identifier (lowercase, alphanumeric)
 3. **Output directory** - Where to create the agent
 4. **Display name** - Human-readable name
@@ -617,11 +627,17 @@ The `config.json` fields control:
 |-------|-----------------|
 | `agent_id` | Agent identifier (used in URLs and API routes) |
 | `agent_name` | Display name in the UI and system prompt |
-| `research_topic` | Describes the research area for the LLM |
+| `description` | Short description of the agent's purpose |
+| `research_topic` | Describes the research area for the LLM's system prompt |
+| `welcome_message` | Greeting shown when the agent is selected |
+| `show_history` | Whether to display query history in the sidebar |
+| `example_queries` | Suggested questions shown to users in the UI |
 | `alliance` | Name and description of the institutional network |
-| `universities` | List of institutions with coordinates for map visualization |
-| `example_queries` | Suggested questions shown to users |
-| `welcome_message` | Greeting when the agent is selected |
+| `universities` | List of institutions with name, country, and coordinates for map visualization |
+| `rag_domain_keywords` | Domain-specific keywords used by `similarity_test.py` for calibration |
+| `rag_keyword_boost` | Similarity boost per keyword, used by `similarity_test.py` |
+| `reliability_green_max_llm` | Maximum LLM % for green badge (High reliability) |
+| `reliability_red_min_llm` | Minimum LLM % for red badge (Poor reliability) |
 
 ### 3.6 Adding Data to Your Agent
 
@@ -867,9 +883,9 @@ When users ask about topics per university or publication counts, the agent incl
 
 ---
 
-#### 3.6.4 ConsultaBD_SQL Agents: Database Only
+#### 3.6.4 Text2SQL Agents: Database Only
 
-ConsultaBD_SQL agents convert natural language questions to SQL queries, executing them against a SQLite database.
+Text2SQL agents convert natural language questions to SQL queries, executing them against a SQLite database.
 
 **Data location:** `data/database.db`
 
@@ -908,7 +924,7 @@ INSERT INTO courses VALUES (3, 'Programming I', 'Computer Science', 1, 6);
 
 **How it works:**
 
-ConsultaBD_SQL agents use a single LLM call for SQL generation, and Python for fast result formatting:
+Text2SQL agents use a single LLM call for SQL generation, and Python for fast result formatting:
 
 1. The LLM converts the natural language question to SQL
 2. The SQL is executed against the SQLite database
@@ -942,102 +958,155 @@ MISTRAL_MODEL=mistral-large-latest
 
 **Tip:** The agent automatically reads the database schema at startup. Well-designed table and column names (e.g., `student_name` instead of `sn`) help the LLM generate more accurate SQL queries.
 
-### 3.7 Grounding Verification (Anti-hallucination)
+### 3.7 Reliability Badges
 
-Oneshot, RAG, and RAG+Metadata agents can optionally verify that their responses are **grounded** in the provided data, preventing the LLM from hallucinating or inventing information not present in the knowledge base.
+RAG+Metadata agents include a **reliability badge** system that informs end users about how much of the response is grounded in the database versus generated by the LLM. This is essential for responsible AI: users should know whether they can trust a response as factual or whether it contains unverified content.
 
-**How it works:**
+#### 3.7.1 Why Reliability Matters
 
-1. The agent generates a response based on the data (data.md for oneshot, retrieved chunks for RAG)
-2. A second LLM call verifies that ALL factual claims in the response are explicitly stated in the source data
-3. If verification fails, a fallback response is returned instead
+When an AI agent answers a question, its response can draw from three distinct sources:
 
-**Architecture with verification:**
+1. **Metadata (keyword search):** Structured data from `papers.json` — paper titles, authors, years, university assignments, topic counts, and researcher indexes. This data is authoritative and factual.
+2. **Database (RAG):** Text chunks retrieved from ChromaDB via semantic similarity search. The retrieved content is real, but the LLM interprets and synthesizes it, which can introduce errors.
+3. **LLM (ungrounded):** Content generated by the language model from its own training data, not backed by any source in the agent's database. This may include suggestions, interpretations, or hallucinations.
+
+Without reliability indicators, users have no way to distinguish a fact retrieved from the database from a plausible-sounding hallucination. The reliability badge system makes this distinction transparent.
+
+**Why is an LLM needed when the data comes from the database?**
+
+A common question is: if the agent can find the answer in structured metadata (papers.json, researchers.json), why involve an LLM at all? The agent could format the data directly — faster, cheaper, and with zero hallucination risk. However, the LLM adds value in three ways:
+
+1. **Natural language formatting.** The LLM turns raw structured data into readable, well-organized prose and adapts its response to the user's language (English, Spanish, etc.).
+2. **Interpretation.** Questions like *"Which university publishes the most?"* or *"Compare the research focus of THUAS and UMA"* require comparing, ranking, or summarizing data — tasks that go beyond simple formatting.
+3. **Flexibility.** Users phrase questions in many different ways. The LLM handles this variety naturally, whereas template-based formatters would require explicit rules for each phrasing.
+
+Removing the LLM from metadata responses is technically feasible by building template-based formatters for each query type (paper lists, researcher lists, topic summaries, etc.), but it adds rigidity and maintenance cost. The current approach keeps the LLM in the loop for all responses, and the **reliability badge** transparently shows how much of the response comes from the database versus the LLM — so users always know what to trust.
+
+#### 3.7.2 How Reliability Is Measured (Back-office)
+
+The reliability system operates in two stages:
+
+**Stage 1 — Source Classification.** When a user query arrives, the agent determines which data source to use:
+
+- **Metadata path:** The query triggers keyword-based search (`search_papers_by_topic`), researcher lookup, affiliation search, or university paper listing. The response is constrained to structured data.
+- **RAG path:** When no structured context matches, the query is embedded and compared against ChromaDB chunks via cosine similarity. The top-N most similar chunks are retrieved and passed to the LLM as context.
+
+**Stage 2 — Lightweight Grounding Check.** After the LLM generates its response, the agent extracts **verifiable claims** from the response text:
+
+- Quoted strings (paper titles)
+- Bold markdown text (key terms, titles)
+- Author names (capitalized multi-word patterns)
+- Years (e.g., 2024)
+- University acronyms (THUAS, UMA, etc.)
+- Paper IDs (e.g., W4405602662)
+
+Each claim is checked against two context pools:
+
+- **Metadata context:** Structured data from keyword search, topic summaries, researcher indexes, and paper lists.
+- **RAG context:** Text chunks retrieved from ChromaDB.
+
+Claims found in either pool are **grounded**. Claims not found in any pool are attributed to the **LLM**. The result is a percentage breakdown:
+
 ```
-┌──────────────┐
-│   Question   │──────────────────────┐
-└──────────────┘                      │
-                                      ▼
-┌──────────────┐                ┌──────────┐    ┌──────────────┐
-│    Data      │───────────────▶│   LLM    │───▶│   Response   │
-│  (context)   │                │(generate)│    └──────┬───────┘
-└──────────────┘                └──────────┘           │
-       │                                               ▼
-       │                                        ┌──────────────┐
-       └───────────────────────────────────────▶│   LLM        │
-                                                │  (verify)    │
-                                                └──────┬───────┘
-                                                       │
-                                          ┌────────────┴────────────┐
-                                          │                         │
-                                          ▼                         ▼
-                                    ┌──────────┐             ┌──────────────┐
-                                    │ Grounded │             │ NOT Grounded │
-                                    │ (return) │             │  (fallback)  │
-                                    └──────────┘             └──────────────┘
+Example: Metadata: 75% | Database: 10% | LLM: 15%
 ```
 
-**Enabling verification:**
+This means 75% of the verifiable claims in the response come from structured metadata, 10% from RAG-retrieved text chunks, and 15% were generated by the LLM without database backing.
 
-During agent creation, the script will ask:
+**Special cases:**
+
+| Scenario | Badge behaviour |
+|----------|----------------|
+| **Figure/map requests** | Always green (Metadata: 100%) — figures are rendered from structured data |
+| **"Not found" responses** | Green — the database confirmed the absence of results |
+| **Follow-up queries** ("expand on 1", "more details") | No badge — relies on conversation history |
+| **Gap analysis** ("topics not studied") | Always red (LLM: 100%) — the LLM identifies gaps from its own knowledge |
+
+#### 3.7.3 How Reliability Is Displayed (Front-office)
+
+The badge appears at the top of each response in the web interface, using a traffic-light colour scheme:
+
+| Colour | Label | Meaning | Condition |
+|--------|-------|---------|-----------|
+| 🟢 Green | **Reliability: High** | Response is grounded in the database | LLM ≤ `reliability_green_max_llm` (default: 20%) |
+| 🟡 Yellow | **Reliability: Good** | Response is mostly grounded with some LLM content | LLM between green and red thresholds |
+| 🔴 Red | **Reliability: Poor** | Response is mostly or entirely LLM-generated | LLM ≥ `reliability_red_min_llm` (default: 50%) |
+
+Each badge includes the source breakdown in parentheses. When there is a mix of sources, an explanatory note appears:
 
 ```
-Grounding verification (anti-hallucination):
-  - Verifies that responses are based ONLY on provided data
-  - NOTE: Doubles LLM calls (higher latency and cost)
-  Enable grounding verification? (y/n) [n]:
+Reliability: High (Metadata: 85% | LLM: 15%)
+Factual claims are grounded in structured metadata (keyword search).
+Suggestions and interpretations may come from the LLM.
 ```
 
-The setting is stored in the agent's `.env` file:
+```
+Reliability: Good (Metadata: 40% | Database: 25% | LLM: 35%)
+Factual claims are grounded in structured metadata (keyword search)
+and document database (RAG). Suggestions and interpretations may
+come from the LLM.
+```
+
+```
+Reliability: Poor (LLM: 100%)
+```
+
+#### 3.7.4 Configuring Reliability Thresholds
+
+All reliability parameters are set in the agent's `config.json`:
+
+```json
+{
+  "reliability_green_max_llm": 20,
+  "reliability_red_min_llm": 50
+}
+```
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `reliability_green_max_llm` | 20 | Maximum LLM percentage for the green badge (High reliability). |
+| `reliability_red_min_llm` | 50 | Minimum LLM percentage for the red badge (Poor reliability). Values between `green_max` and `red_min` produce a yellow badge (Good reliability). |
+
+**Tuning guidance:**
+
+- **Stricter reliability:** Lower `reliability_green_max_llm` (e.g., 10) and/or lower `reliability_red_min_llm` (e.g., 40). More responses will show yellow or red.
+- **More permissive:** Raise `reliability_green_max_llm` (e.g., 30) and/or raise `reliability_red_min_llm` (e.g., 60). More responses will show green.
+
+#### 3.7.5 Similarity Tuning with `similarity_test.py`
+
+The agent directory includes a utility script `similarity_test.py` for testing and calibrating the similarity threshold and keyword boost. It processes a list of queries and reports their similarity scores, allowing you to find the optimal threshold.
+
+**Usage:**
 
 ```bash
-# Grounding Verification (Anti-hallucination)
-VERIFY_GROUNDING=true   # Enable verification
-VERIFY_GROUNDING=false  # Disable verification (default)
+python similarity_test.py queries.txt              # Print to stdout
+python similarity_test.py queries.txt -o results.tsv  # Save to file
+python similarity_test.py queries.txt -t 0.75       # Custom threshold
+python similarity_test.py queries.txt -n 4          # Use 4 chunks (default: 3)
 ```
 
-**Per-request override:**
+**Input file format** (`queries.txt`): one query per line. Blank lines and lines starting with `#` are skipped.
 
-You can also enable/disable verification per request via the API:
+```
+# Off-topic queries (should score Poor)
+What is the recipe for chocolate cake?
+How tall is the Eiffel Tower?
 
-```bash
-# Force verification for this request
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Your question", "verify": true}'
-
-# Skip verification for this request
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Your question", "verify": false}'
+# On-topic queries (should score Good)
+What ethical guidelines exist for AI development?
+Tell me about bias detection in machine learning
 ```
 
-**Trade-offs:**
+**Output:** TSV with columns `similarity`, `status`, `query`.
 
-| Aspect | Without Verification | With Verification |
-|--------|---------------------|-------------------|
-| **LLM Calls** | 1 | 2 |
-| **Latency** | Lower | ~2x higher |
-| **Cost** | Lower | ~2x higher |
-| **Hallucination Risk** | Possible | Minimized |
-| **Best for** | General Q&A | Critical/factual data |
+**Calibration workflow:**
 
-**When to use verification:**
-
-- ✅ When accuracy is critical (legal, medical, academic data)
-- ✅ When the knowledge base contains specific facts that must not be mixed with general knowledge
-- ✅ When users might ask questions that could lead to plausible-sounding but incorrect answers
-- ❌ When latency is critical and some inaccuracy is acceptable
-- ❌ For general-purpose assistants where creative responses are welcome
-
-**Strict verification rules:**
-
-The verification prompt is intentionally strict. A response is considered **NOT grounded** if it:
-
-- Infers or deduces information not explicitly stated in the data
-- Adds relationships between entities not documented in the data
-- Makes assumptions or generalizations beyond the source content
-- Uses information that might be true but is not in the provided context
+1. Create a `queries.txt` with ~20 off-topic queries, ~20 general tech queries, and ~20 on-topic queries.
+2. Run `similarity_test.py` and examine the scores.
+3. Find the threshold that best separates off-topic from on-topic. Look for a natural gap in scores.
+4. Add domain keywords to `rag_domain_keywords` for on-topic queries that score just below the threshold.
+5. Adjust `rag_keyword_boost` to control how much each keyword increases the score.
+6. Re-run to verify. Aim for a clean separation: all off-topic below threshold, all on-topic above.
 
 [↑ Back to index](#index){.back-to-top}
 
@@ -1079,7 +1148,7 @@ Once the server is running, open your browser and go to the address shown in the
 
 #### 4.1.3 Interactive Commands for Text-to-SQL Agents
 
-Text-to-SQL agents (ConsultaBD_SQL) offer several interactive commands to explore and manipulate results after your initial query:
+Text-to-SQL agents (Text2SQL) offer several interactive commands to explore and manipulate results after your initial query:
 
 **Viewing more results:**
 
@@ -1442,7 +1511,7 @@ Valid values: `true`, `1`, `yes` (enabled) or `false`, `0`, `no` (disabled).
 | Stream chat | `GET /api/chat/stream` |
 | Initialize agent | `POST /api/agents/<agent_id>/init` |
 | Reindex RAG agent | `POST /api/agents/<agent_id>/reindex` |
-| Get DB schema (ConsultaBD_SQL) | `GET /schema` |
+| Get DB schema (Text2SQL) | `GET /schema` |
 
 ### 6.3 Setup Commands
 
@@ -1664,7 +1733,7 @@ rm -rf agents/my_new_topic/data/chroma_db/
 # 5. Restart the server — the new agent will be auto-detected
 ```
 
-### A.6 ConsultaBD_SQL Agent Operations
+### A.6 Text2SQL Agent Operations
 
 ```bash
 # View database schema (via API)

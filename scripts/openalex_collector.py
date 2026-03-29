@@ -9,7 +9,7 @@ Two-step workflow:
                      papers that were kept (column "keep" == "yes").
 
 Usage:
-  python openalex_collector.py collect  [-o DIR] [-m N]
+  python openalex_collector.py collect  -t TOPICS_FILE [-o DIR] [-m N]
   python openalex_collector.py download [-o DIR] [--csv PATH]
   python openalex_collector.py discover                        # only resolve institution IDs
 """
@@ -51,7 +51,7 @@ UNINOVIS_UNIVERSITIES = {
     "KK": {
         "name": "Kauno Kolegija Higher Education Institution",
         "country": "Lithuania",
-        "search_names": ["Kauno Kolegija", "Kaunas College"],
+        "search_names": ["Kauno Kolegija", "Kaunas College", "Kaunas kolegija"],
     },
     "UT": {
         "name": "University of Tirana",
@@ -87,40 +87,70 @@ UNINOVIS_UNIVERSITIES = {
     },
 }
 
-# Focused search queries — each one already combines AI + Responsibility/Ethics
-FOCUSED_QUERIES = [
-    '"responsible AI"',
-    '"ethical AI"',
-    '"trustworthy AI"',
-    '"AI ethics"',
-    '"AI governance"',
-    '"AI accountability"',
-    '"AI fairness"',
-    '"AI bias"',
-    '"algorithmic fairness"',
-    '"algorithmic bias"',
-    '"algorithmic accountability"',
-    '"explainable AI"',
-    '"explainable artificial intelligence"',
-    '"XAI"',
-    '"artificial intelligence" AND ethics',
-    '"artificial intelligence" AND responsibility',
-    '"artificial intelligence" AND governance',
-    '"artificial intelligence" AND fairness',
-    '"artificial intelligence" AND transparency',
-    '"machine learning" AND ethics',
-    '"machine learning" AND bias',
-    '"machine learning" AND fairness',
-    '"deep learning" AND ethics',
-    '"AI" AND "social responsibility"',
-    '"AI" AND "human rights"',
-    '"AI regulation"',
-    '"AI policy"',
-]
+def load_queries(topics_file: str) -> list[str]:
+    """Load search queries from an external text file (one query per line).
+    Lines starting with # are comments and are ignored."""
+    path = Path(topics_file)
+    if not path.exists():
+        raise FileNotFoundError(f"Topics file not found: {topics_file}")
+    queries = [
+        line.strip() for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+    if not queries:
+        raise ValueError(f"Topics file is empty: {topics_file}")
+    return queries
+
+
+def load_relevance_filter(filter_file: str) -> dict:
+    """Load relevance filter terms from a file.
+
+    The file has two sections separated by headers:
+        [ai_terms]
+        artificial intelligence
+        machine learning
+        ...
+
+        [domain_terms]
+        ethic
+        bias
+        ...
+
+    Lines starting with # are comments. Each line is a substring to match
+    (case-insensitive) against title + abstract.
+
+    Returns: {"ai_terms": [...], "domain_terms": [...]}
+    If no file is provided, returns None (no filtering).
+    """
+    if not filter_file:
+        return None
+    path = Path(filter_file)
+    if not path.exists():
+        raise FileNotFoundError(f"Relevance filter file not found: {filter_file}")
+
+    result = {"ai_terms": [], "domain_terms": []}
+    current_section = None
+
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.lower() == "[ai_terms]":
+            current_section = "ai_terms"
+        elif line.lower() == "[domain_terms]":
+            current_section = "domain_terms"
+        elif current_section:
+            result[current_section].append(line.lower())
+
+    if not result["ai_terms"] and not result["domain_terms"]:
+        raise ValueError(f"Relevance filter file has no terms: {filter_file}")
+
+    return result
 
 # OpenAlex API
 OPENALEX_BASE_URL = "https://api.openalex.org"
 POLITE_EMAIL = "imoreno@uma.es"
+OPENALEX_API_KEY = "6W3BYzvteRggqFVXQi9fth"  # Premium API key for higher rate limits
 
 # CSV columns produced during Step 1
 CSV_COLUMNS = [
@@ -143,8 +173,10 @@ CSV_COLUMNS = [
 
 
 class OpenAlexCollector:
-    def __init__(self, output_dir: str = None):
+    def __init__(self, output_dir: str = None, queries: list[str] = None, relevance_filter: dict = None):
         self.output_dir = Path(output_dir) if output_dir else DEFAULT_DATA_DIR
+        self.queries = queries or []
+        self.relevance_filter = relevance_filter  # None = no filtering
         self.papers_dir = self.output_dir / "papers"
         self.metadata_dir = self.output_dir / "metadata"
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -157,21 +189,42 @@ class OpenAlexCollector:
     # OpenAlex helpers
     # ------------------------------------------------------------------
 
-    def _api_request(self, endpoint: str, params: dict = None) -> dict:
-        """Make a request to OpenAlex API with rate limiting."""
+    def _api_request(self, endpoint: str, params: dict = None, max_retries: int = 8) -> dict:
+        """Make a request to OpenAlex API with rate limiting and retry on 429."""
         url = f"{OPENALEX_BASE_URL}/{endpoint}"
         if params is None:
             params = {}
         params["mailto"] = POLITE_EMAIL
+        if OPENALEX_API_KEY:
+            params["api_key"] = OPENALEX_API_KEY
 
-        try:
-            response = self.session.get(url, params=params)
-            response.raise_for_status()
-            time.sleep(0.1)  # Polite rate limiting
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"  API request error: {e}")
-            return {}
+        for attempt in range(max_retries):
+            try:
+                response = self.session.get(url, params=params)
+                if response.status_code == 429:
+                    # Respect Retry-After header if present, otherwise exponential backoff
+                    # Cap at 120s to avoid absurdly long waits
+                    retry_after = response.headers.get("Retry-After")
+                    if retry_after:
+                        wait = min(int(retry_after), 120)
+                    else:
+                        wait = min(2 ** attempt, 60)
+                    print(f"  Rate limited (429), retrying in {wait}s (attempt {attempt + 1}/{max_retries})...")
+                    time.sleep(wait)
+                    continue
+                response.raise_for_status()
+                time.sleep(0.5)  # Rate limiting — premium API key allows faster requests
+                return response.json()
+            except requests.exceptions.RequestException as e:
+                if attempt < max_retries - 1 and "429" in str(e):
+                    wait = min(2 ** attempt, 60)
+                    print(f"  Rate limited, retrying in {wait}s...")
+                    time.sleep(wait)
+                    continue
+                print(f"  API request error: {e}")
+                return {}
+        print(f"  Max retries exceeded for {endpoint}")
+        return {}
 
     def find_institution(self, search_name: str) -> Optional[dict]:
         """Find an institution by name in OpenAlex."""
@@ -238,9 +291,16 @@ class OpenAlexCollector:
     # Relevance filter
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def _is_relevant(paper: dict) -> bool:
-        """Check that the paper is actually about AI AND responsibility/ethics."""
+    def _is_relevant(self, paper: dict) -> bool:
+        """Check that the paper matches the relevance filter.
+
+        If no relevance filter is configured, all papers are considered relevant.
+        If a filter is configured, the paper must contain at least one ai_term
+        AND at least one domain_term in its title + abstract.
+        """
+        if self.relevance_filter is None:
+            return True
+
         title = (paper.get("title") or "").lower()
         abstract_inv = paper.get("abstract_inverted_index")
         abstract = ""
@@ -248,16 +308,12 @@ class OpenAlexCollector:
             abstract = " ".join(abstract_inv.keys()).lower()
         text = title + " " + abstract
 
-        ai_terms = [
-            "artificial intelligence", " ai ", "machine learning",
-            "deep learning", "algorithm", "neural network", "automated decision",
-        ]
-        ethics_terms = [
-            "ethic", "responsib", "bias", "fair", "accountab",
-            "transparen", "explain", "trust", "governance", "regulat",
-            "privacy", "discriminat", "right", "safe",
-        ]
-        return any(t in text for t in ai_terms) and any(t in text for t in ethics_terms)
+        ai_terms = self.relevance_filter.get("ai_terms", [])
+        domain_terms = self.relevance_filter.get("domain_terms", [])
+
+        ai_match = (not ai_terms) or any(t in text for t in ai_terms)
+        domain_match = (not domain_terms) or any(t in text for t in domain_terms)
+        return ai_match and domain_match
 
     # ------------------------------------------------------------------
     # Affiliation check — only keep papers where a UNINOVIS institution
@@ -313,19 +369,26 @@ class OpenAlexCollector:
             cursor = result.get("meta", {}).get("next_cursor")
         return all_results
 
-    def collect(self, max_per_institution: int = 0, continue_from_csv: bool = False) -> Path:
+    def collect(self, max_per_institution: int = 0, continue_from_csv: bool = False, only_university: str = None) -> Path:
         """Query OpenAlex and write a CSV table for manual review.
 
         Args:
             max_per_institution: Max papers per institution (0 = unlimited).
             continue_from_csv: If True, skip papers already in the existing CSV
                                and append new papers to it.
+            only_university: If set, restrict collection to this university acronym.
         """
         print("=" * 60)
         print("STEP 1 — Collect paper metadata for review")
         print("=" * 60)
 
         institutions = self._load_institutions()
+        if only_university:
+            key = only_university.upper()
+            if key not in institutions:
+                raise ValueError(f"University '{key}' not found. Available: {', '.join(institutions.keys())}")
+            institutions = {key: institutions[key]}
+            print(f"Restricting collection to: {key}")
         csv_path = self.output_dir / "papers_to_review.csv"
         batch_date = datetime.now().strftime("%Y-%m-%d")
 
@@ -351,7 +414,7 @@ class OpenAlexCollector:
 
             inst_papers: list[dict] = []
 
-            for query in FOCUSED_QUERIES:
+            for query in self.queries:
                 if max_per_institution > 0 and len(inst_papers) >= max_per_institution:
                     break
 
@@ -387,10 +450,10 @@ class OpenAlexCollector:
                 )
                 affiliations = "; ".join(
                     {
-                        inst.get("display_name", "")
+                        inst.get("display_name") or ""
                         for auth in paper.get("authorships", [])
                         for inst in auth.get("institutions", [])
-                    }
+                    } - {""}
                 )
                 oa = paper.get("open_access", {})
                 pdf_url = oa.get("oa_url") or (paper.get("primary_location") or {}).get("pdf_url") or ""
@@ -416,12 +479,16 @@ class OpenAlexCollector:
                     }
                 )
 
-        # Write CSV (existing + new rows if continuing)
+            # Auto-save CSV after each university (crash recovery)
+            all_rows = existing_rows + rows
+            with open(csv_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
+                writer.writeheader()
+                writer.writerows(all_rows)
+            print(f"  CSV saved: {len(all_rows)} papers so far")
+
+        # Final CSV is already saved (last auto-save)
         all_rows = existing_rows + rows
-        with open(csv_path, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
-            writer.writeheader()
-            writer.writerows(all_rows)
 
         print(f"\n{'=' * 60}")
         if continue_from_csv:
@@ -455,17 +522,19 @@ class OpenAlexCollector:
         self.papers_dir.mkdir(parents=True, exist_ok=True)
         self.metadata_dir.mkdir(parents=True, exist_ok=True)
 
-        # Prepare download log
+        # Prepare download log (append to existing log if present)
         log_dir = self.output_dir / "log"
         log_dir.mkdir(parents=True, exist_ok=True)
-        log_path = log_dir / f"download_{datetime.now().strftime('%Y%m%d_%H%M%S')}.tsv"
+        log_path = log_dir / "download.tsv"
         log_columns = [
             "openalex_id", "university", "title", "keep",
-            "pdf_url", "status", "detail",
+            "pdf_url", "status", "detail", "timestamp",
         ]
-        log_file = open(log_path, "w", newline="", encoding="utf-8")
+        log_exists = log_path.exists() and log_path.stat().st_size > 0
+        log_file = open(log_path, "a", newline="", encoding="utf-8")
         log_writer = csv.DictWriter(log_file, fieldnames=log_columns, delimiter="\t")
-        log_writer.writeheader()
+        if not log_exists:
+            log_writer.writeheader()
 
         with open(csv_path, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
@@ -485,20 +554,49 @@ class OpenAlexCollector:
                     "pdf_url": row.get("pdf_url", ""),
                     "status": "SKIPPED",
                     "detail": "keep != yes",
+                    "timestamp": datetime.now().isoformat(),
                 })
 
+        # Load existing papers.json to resume from where we left off
+        papers_json_path = self.metadata_dir / "papers.json"
+        existing_paper_ids = set()  # Papers with metadata already fetched
+        papers_with_pdf_ids = set()  # Papers with PDF already downloaded
         collection = {
             "collection_date": datetime.now().isoformat(),
             "universities": {},
             "total_papers": 0,
             "papers_with_pdf": 0,
         }
+        if papers_json_path.exists():
+            try:
+                with open(papers_json_path, "r", encoding="utf-8") as f:
+                    prev = json.load(f)
+                for acronym, uni_data in prev.get("universities", {}).items():
+                    papers_list = uni_data.get("papers", [])
+                    collection["universities"][acronym] = {
+                        "name": uni_data.get("name", acronym),
+                        "papers_count": len(papers_list),
+                        "papers": papers_list,
+                    }
+                    collection["total_papers"] += len(papers_list)
+                    for p in papers_list:
+                        pid = p.get("id", "")
+                        existing_paper_ids.add(pid)
+                        if p.get("local_pdf_path"):
+                            papers_with_pdf_ids.add(pid)
+                            collection["papers_with_pdf"] += 1
+                without_pdf = len(existing_paper_ids) - len(papers_with_pdf_ids)
+                print(f"Resuming: {len(existing_paper_ids)} papers in papers.json "
+                      f"({len(papers_with_pdf_ids)} with PDF, {without_pdf} will retry PDF)")
+            except Exception as e:
+                print(f"Warning: Could not load existing papers.json: {e}")
 
+        skipped = 0
+        processed = 0
         for row in kept:
             acronym = row["university"]
             paper_id = row["openalex_id"]
             title = row["title"]
-            pdf_url_csv = row.get("pdf_url", "")
 
             if acronym not in collection["universities"]:
                 collection["universities"][acronym] = {
@@ -507,19 +605,46 @@ class OpenAlexCollector:
                     "papers": [],
                 }
 
-            print(f"\n[{acronym}] {title[:70]}...")
+            # Skip papers that already have metadata AND a PDF
+            if paper_id in papers_with_pdf_ids:
+                skipped += 1
+                continue
 
-            # Fetch full metadata from OpenAlex
-            full = self._api_request(f"works/{paper_id}")
-            if not full:
-                print("  Could not fetch metadata, using CSV data")
-                metadata = {k: row[k] for k in CSV_COLUMNS if k != "keep"}
-                metadata["local_pdf_path"] = None
+            # Paper has metadata but no PDF — retry PDF only
+            if paper_id in existing_paper_ids:
+                processed += 1
+                to_retry = len(existing_paper_ids) - len(papers_with_pdf_ids)
+                new_to_dl = len(kept) - len(existing_paper_ids)
+                print(f"\n[{processed}/{to_retry + new_to_dl}] [{acronym}] {title[:70]}... (retry PDF)")
+                # Use existing metadata, just retry PDF
+                metadata = None
+                for p in collection["universities"].get(acronym, {}).get("papers", []):
+                    if p.get("id") == paper_id:
+                        metadata = p
+                        break
+                if not metadata:
+                    metadata = {k: row[k] for k in CSV_COLUMNS if k != "keep"}
+                    metadata["local_pdf_path"] = None
+                pdf_url = row.get("pdf_url") or metadata.get("pdf_url") or ""
             else:
-                metadata = self._extract_paper_metadata(full)
+                # New paper — fetch metadata + PDF
+                processed += 1
+                to_retry = len(existing_paper_ids) - len(papers_with_pdf_ids)
+                new_to_dl = len(kept) - len(existing_paper_ids)
+                print(f"\n[{processed}/{to_retry + new_to_dl}] [{acronym}] {title[:70]}...")
 
-            # Download PDF
-            pdf_url = row.get("pdf_url") or metadata.get("pdf_url") or ""
+                # Fetch full metadata from OpenAlex
+                full = self._api_request(f"works/{paper_id}")
+                if not full:
+                    print("  Could not fetch metadata, using CSV data")
+                    metadata = {k: row[k] for k in CSV_COLUMNS if k != "keep"}
+                    metadata["local_pdf_path"] = None
+                else:
+                    metadata = self._extract_paper_metadata(full)
+
+                pdf_url = row.get("pdf_url") or metadata.get("pdf_url") or ""
+
+            # Common: download PDF
             if pdf_url:
                 pdf_path, dl_status, dl_detail = self._download_pdf(pdf_url, paper_id)
                 metadata["local_pdf_path"] = pdf_path
@@ -529,6 +654,7 @@ class OpenAlexCollector:
                 metadata["local_pdf_path"] = None
                 dl_status = "NO_URL"
                 dl_detail = "No PDF URL available in CSV or OpenAlex metadata"
+                print(f"  No PDF URL available")
 
             log_writer.writerow({
                 "openalex_id": paper_id,
@@ -538,21 +664,36 @@ class OpenAlexCollector:
                 "pdf_url": pdf_url,
                 "status": dl_status,
                 "detail": dl_detail,
+                "timestamp": datetime.now().isoformat(),
             })
 
-            collection["universities"][acronym]["papers"].append(metadata)
-            collection["universities"][acronym]["papers_count"] += 1
-            collection["total_papers"] += 1
+            # Add new paper or update existing (retry case)
+            if paper_id in existing_paper_ids:
+                # Update existing paper's pdf path in place
+                for p in collection["universities"][acronym]["papers"]:
+                    if p.get("id") == paper_id:
+                        p["local_pdf_path"] = metadata.get("local_pdf_path")
+                        break
+            else:
+                collection["universities"][acronym]["papers"].append(metadata)
+                collection["universities"][acronym]["papers_count"] += 1
+                collection["total_papers"] += 1
+
+            # Auto-save after each paper (crash recovery)
+            self._save_papers_json(collection)
+            with open(self.metadata_dir / "metadata.json", "w", encoding="utf-8") as f:
+                json.dump(collection, f, indent=2, ensure_ascii=False)
 
         log_file.close()
 
-        # Save per-university JSON files
-        for acronym, data in collection["universities"].items():
-            with open(self.metadata_dir / f"{acronym}_papers.json", "w", encoding="utf-8") as f:
-                json.dump(data["papers"], f, indent=2, ensure_ascii=False)
+        if skipped:
+            print(f"\nSkipped {skipped} papers already in papers.json")
 
-        # Save full collection
-        with open(self.metadata_dir / "full_collection.json", "w", encoding="utf-8") as f:
+        # Final save
+        self._save_papers_json(collection)
+
+        # Save full collection metadata (includes counts and PDF stats)
+        with open(self.metadata_dir / "metadata.json", "w", encoding="utf-8") as f:
             json.dump(collection, f, indent=2, ensure_ascii=False)
 
         # Summary
@@ -563,9 +704,23 @@ class OpenAlexCollector:
         print(f"Papers with PDF: {collection['papers_with_pdf']}")
         for acronym, data in collection["universities"].items():
             print(f"  {acronym}: {data['papers_count']} papers")
-        print(f"\nDownload log: {log_path}")
+        print(f"\nOutput files:")
+        print(f"  papers.json:   {self.metadata_dir / 'papers.json'}")
+        print(f"  metadata.json: {self.metadata_dir / 'metadata.json'}")
+        print(f"  Download log:  {log_path}")
 
         return collection
+
+    def _save_papers_json(self, collection: dict):
+        """Save consolidated papers.json (same structure as agent's data/papers.json)."""
+        papers_json = {"universities": {}}
+        for acronym, data in collection["universities"].items():
+            papers_json["universities"][acronym] = {
+                "name": data["name"],
+                "papers": data["papers"],
+            }
+        with open(self.metadata_dir / "papers.json", "w", encoding="utf-8") as f:
+            json.dump(papers_json, f, indent=2, ensure_ascii=False)
 
     # ------------------------------------------------------------------
     # Internal helpers used by download()
@@ -577,9 +732,17 @@ class OpenAlexCollector:
         affiliations = set()
         for authorship in paper.get("authorships", []):
             author = authorship.get("author", {})
-            authors.append({"name": author.get("display_name"), "orcid": author.get("orcid")})
-            for inst in authorship.get("institutions", []):
-                affiliations.add(inst.get("display_name"))
+            author_institutions = [
+                inst.get("display_name") for inst in authorship.get("institutions", [])
+                if inst.get("display_name")
+            ]
+            authors.append({
+                "name": author.get("display_name"),
+                "orcid": author.get("orcid"),
+                "institutions": author_institutions,
+            })
+            for inst_name in author_institutions:
+                affiliations.add(inst_name)
 
         oa_info = paper.get("open_access", {})
         pdf_url = oa_info.get("oa_url") or (paper.get("primary_location") or {}).get("pdf_url")
@@ -609,6 +772,20 @@ class OpenAlexCollector:
             "language": paper.get("language"),
         }
 
+    @staticmethod
+    def _resolve_pdf_url(url: str) -> str:
+        """Convert landing page URLs to direct PDF download URLs for known platforms."""
+        import re
+        # Zenodo landing page: /record/ID or /records/ID
+        m = re.match(r"https?://zenodo\.org/records?/(\d+)/?$", url)
+        if m:
+            return f"https://zenodo.org/api/records/{m.group(1)}"
+        # Zenodo DOI: https://doi.org/10.5281/zenodo.ID
+        m = re.match(r"https?://doi\.org/10\.5281/zenodo\.(\d+)/?$", url)
+        if m:
+            return f"https://zenodo.org/api/records/{m.group(1)}"
+        return url
+
     def _download_pdf(self, pdf_url: str, paper_id: str) -> tuple[Optional[str], str, str]:
         """Download PDF if available. Returns (path, status, detail)."""
         if not pdf_url:
@@ -621,10 +798,32 @@ class OpenAlexCollector:
             print(f"  PDF already exists: {filename}")
             return str(filepath), "EXISTS", f"Already downloaded: {filename}"
 
+        # Handle Zenodo: resolve landing page to actual PDF file
+        resolved_url = self._resolve_pdf_url(pdf_url)
+        if resolved_url != pdf_url and "zenodo.org/api/records" in resolved_url:
+            try:
+                resp = self.session.get(resolved_url, timeout=15)
+                if resp.status_code == 200:
+                    record = resp.json()
+                    for f in record.get("files", []):
+                        if f.get("key", "").lower().endswith(".pdf"):
+                            pdf_url = f.get("links", {}).get("self", "") or f"https://zenodo.org/records/{record['id']}/files/{f['key']}"
+                            print(f"  Zenodo resolved: {f['key']}")
+                            break
+            except Exception:
+                pass  # Fall through to normal download with original URL
+
         try:
-            response = self.session.get(pdf_url, timeout=30, allow_redirects=True)
+            # Use browser-like headers to avoid being blocked by publishers
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "application/pdf,*/*",
+            }
+            response = self.session.get(pdf_url, timeout=30, allow_redirects=True, headers=headers)
             content_type = response.headers.get("Content-Type", "")
-            if response.status_code == 200 and "application/pdf" in content_type:
+            # Accept if Content-Type says PDF or if the content starts with PDF magic bytes
+            is_pdf = "application/pdf" in content_type or response.content[:5] == b"%PDF-"
+            if response.status_code == 200 and is_pdf:
                 with open(filepath, "wb") as f:
                     f.write(response.content)
                 print(f"  Downloaded: {filename}")
@@ -656,12 +855,25 @@ def main():
     )
     p_collect.add_argument("--output", "-o", default=None, help="Output directory")
     p_collect.add_argument(
+        "--topics", "-t", required=True,
+        help="Path to a text file with search queries (one per line)",
+    )
+    p_collect.add_argument(
         "--max-papers", "-m", type=int, default=0,
         help="Max papers per institution (0 = unlimited, default)",
     )
     p_collect.add_argument(
         "--continue", dest="continue_csv", action="store_true",
         help="Continue from existing CSV: skip already-collected papers and append new ones",
+    )
+    p_collect.add_argument(
+        "--university", "-u", default=None,
+        help="Restrict collection to a single university by acronym (e.g. THUAS)",
+    )
+    p_collect.add_argument(
+        "--relevance", "-r", default=None,
+        help="Path to a relevance filter file with [ai_terms] and [domain_terms] sections. "
+             "If not provided, no relevance filtering is applied (all search results are kept).",
     )
 
     # --- download ---
@@ -678,12 +890,16 @@ def main():
     p_discover.add_argument("--output", "-o", default=None, help="Output directory")
 
     args = parser.parse_args()
-    collector = OpenAlexCollector(output_dir=args.output)
+
+    queries = load_queries(args.topics) if hasattr(args, "topics") and args.topics else []
+    relevance = load_relevance_filter(args.relevance) if hasattr(args, "relevance") and args.relevance else None
+    collector = OpenAlexCollector(output_dir=args.output, queries=queries, relevance_filter=relevance)
 
     if args.command == "collect":
         collector.collect(
             max_per_institution=args.max_papers,
             continue_from_csv=args.continue_csv,
+            only_university=args.university,
         )
     elif args.command == "download":
         csv_path = Path(args.csv) if args.csv else None

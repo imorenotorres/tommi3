@@ -509,6 +509,79 @@ function clearChat() {
 }
 
 /**
+ * Cache of available PDF paper IDs per agent.
+ */
+const pdfCache = {};
+
+async function loadPdfList(agentId) {
+    if (pdfCache[agentId]) return pdfCache[agentId];
+    try {
+        const resp = await fetch(`/api/agents/${agentId}/pdf-list`);
+        const data = await resp.json();
+        pdfCache[agentId] = new Set(data.pdfs || []);
+        return pdfCache[agentId];
+    } catch (e) {
+        return new Set();
+    }
+}
+
+/**
+ * Post-process rendered HTML to add PDF links next to paper IDs.
+ * Finds existing [PDF] links (from LLM) and fixes them,
+ * and also detects paper ID patterns (W followed by digits) to add new links.
+ */
+function addPdfLinks(container) {
+    if (!state.currentAgent) return;
+    const agentId = state.currentAgent.id;
+
+    // Fix any broken PDF links the LLM may have generated
+    container.querySelectorAll('a[href*="/pdf/"]').forEach(a => {
+        const match = a.href.match(/(W\d+\.pdf)/);
+        if (match) {
+            a.href = `/api/agents/${agentId}/pdf/${match[1]}`;
+        }
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener');
+    });
+
+    // Auto-add PDF links for paper IDs found in text
+    loadPdfList(agentId).then(pdfSet => {
+        if (pdfSet.size === 0) return;
+
+        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+
+        nodes.forEach(textNode => {
+            const text = textNode.textContent;
+            // Match paper IDs like W1234567890 that aren't already inside a link
+            if (!/W\d{7,}/.test(text)) return;
+            if (textNode.parentElement.closest('a')) return;
+
+            const parts = text.split(/(W\d{7,})/);
+            if (parts.length <= 1) return;
+
+            const frag = document.createDocumentFragment();
+            parts.forEach(part => {
+                const idMatch = part.match(/^(W\d{7,})$/);
+                if (idMatch && pdfSet.has(idMatch[1])) {
+                    const link = document.createElement('a');
+                    link.href = `/api/agents/${agentId}/pdf/${idMatch[1]}.pdf`;
+                    link.textContent = '📄 PDF';
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                    link.style.cssText = 'margin-left:4px;font-size:0.85em;';
+                    frag.appendChild(link);
+                } else {
+                    frag.appendChild(document.createTextNode(part));
+                }
+            });
+            textNode.parentNode.replaceChild(frag, textNode);
+        });
+    });
+}
+
+/**
  * Scan a container for topic-map links and replace them with inline Leaflet maps.
  * Works directly on DOM <a> elements — no regex on HTML strings needed.
  */
@@ -808,6 +881,8 @@ function addMessage(content, role, isStreaming = false) {
     if (role === 'agent') {
         // Renderizar markdown para mensajes del agente
         contentDiv.innerHTML = marked.parse(content);
+        // Add PDF links
+        addPdfLinks(contentDiv);
     } else {
         contentDiv.textContent = content;
     }
@@ -876,14 +951,27 @@ async function sendMessage(message) {
         });
 
         let streamDone = false;
+        let badgeHtml = '';
+
+        eventSource.addEventListener('badge', (event) => {
+            // Reliability badge — render once, not accumulated in responseText
+            badgeHtml = event.data.replace(/\\n/g, '\n');
+            responseDiv.innerHTML = badgeHtml;
+        });
 
         eventSource.onmessage = (event) => {
             if (streamDone) return;
             // Desescapar newlines
             const chunk = event.data.replace(/\\n/g, '\n');
             responseText += chunk;
-            responseDiv.innerHTML = marked.parse(responseText);
+            responseDiv.innerHTML = badgeHtml + marked.parse(responseText);
         };
+
+        eventSource.addEventListener('replace', (event) => {
+            // Server stripped map links — replace the full response text
+            responseText = event.data.replace(/\\n/g, '\n');
+            responseDiv.innerHTML = badgeHtml + marked.parse(responseText);
+        });
 
         eventSource.addEventListener('done', () => {
             streamDone = true;
@@ -893,7 +981,9 @@ async function sendMessage(message) {
             elements.messageInput.focus();
             // Final render — replace map markdown links with placeholders before parsing
             const processedText = replaceMapLinksWithPlaceholders(responseText);
-            responseDiv.innerHTML = marked.parse(processedText);
+            responseDiv.innerHTML = badgeHtml + marked.parse(processedText);
+            // Add PDF links and make them open in new tab
+            addPdfLinks(responseDiv);
             renderInlineMapPlaceholders(responseDiv);
             // Update query history after each message (if enabled)
             if (state.currentAgent && state.currentAgent.show_history !== false) {

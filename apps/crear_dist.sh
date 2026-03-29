@@ -141,7 +141,7 @@ done
 FILES_TO_INCLUDE=(
     "apps/"
     "howto.md"
-    "HOWTO.html"
+    "howto.html"
     "README_INSTALL.md"
     "README_INSTALL.html"
     "tommi_frontend.png"

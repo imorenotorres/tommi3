@@ -1,0 +1,44 @@
+# Relevance filter for Health and Social AI
+# Paper must match at least one ai_term AND one domain_term
+
+[ai_terms]
+artificial intelligence
+ ai
+machine learning
+deep learning
+neural network
+algorithm
+data science
+data analytics
+natural language processing
+computer vision
+
+[domain_terms]
+health
+medical
+clinical
+patient
+hospital
+disease
+therap
+diagnos
+treatment
+nursing
+elderly
+aging
+ageing
+rehabilitation
+telemedicine
+telehealth
+wearable
+wellbeing
+well-being
+mental health
+social care
+disabilit
+chronic
+ehealth
+mhealth
+digital health
+pharmac
+biomedic

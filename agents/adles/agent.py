@@ -27,18 +27,11 @@ class Agent:
     def __init__(self):
         self.client = LLMClient()
         self.model = os.getenv("OLLAMA_MODEL", "mistral-small-latest") if os.getenv("LLM_PROVIDER", "mistral") == "ollama" else "mistral-small-latest"
-        self.system_prompt = """You are Adles, a research assistant specialized in academic conference papers. You have access to a database of research papers presented at the conference.
-
-Your capabilities include:
-- Helping users explore and navigate the conference papers database
-- Providing detailed information about specific topics, presentations, and research areas
-- Finding non-obvious connections and relationships among different presentations
-- Identifying common themes, methodologies, or complementary research across papers
-
-Answer questions based on the context provided from the knowledge base. If you cannot find relevant information, say so clearly. When you identify interesting connections between papers, highlight them to the user."""
-
-        # Configuración de verificación desde .env (VERIFY_GROUNDING=true/false)
-        self.verify_grounding = os.getenv("VERIFY_GROUNDING", "false").lower() == "true"
+        self._config = self._load_config()
+        self.system_prompt = self._build_system_prompt()
+        # Reliability badge thresholds from config
+        self._reliability_green_max_llm = self._config.get("reliability_green_max_llm", 20)
+        self._reliability_red_min_llm = self._config.get("reliability_red_min_llm", 50)
 
         # Query history for the sidebar
         self._query_history = []
@@ -49,6 +42,141 @@ Answer questions based on the context provided from the knowledge base. If you c
         self.embedding_fn = None
         self._chromadb_error = None
         self._chromadb_initialized = False
+
+    def _load_config(self) -> dict:
+        """Load agent configuration from config.json."""
+        config_path = os.path.join(os.path.dirname(__file__), "config.json")
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                print(f"Agent config loaded: {config.get('agent_name', 'Unknown')}")
+                return config
+            except Exception as e:
+                print(f"Warning: Could not load config.json: {e}")
+        return {}
+
+    def _build_system_prompt(self) -> str:
+        """Build system prompt from config.json values."""
+        agent_name = self._config.get("agent_name", "ADLES Conference Papers")
+        description = self._config.get("description", "research assistant for conference papers")
+        extra = self._config.get("system_prompt_extra", "")
+        prompt = f"You are {agent_name}, a helpful {description}."
+        if extra:
+            prompt += f"\n\n{extra}"
+        return prompt
+
+    # ------------------------------------------------------------------
+    # Reliability badge system
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _extract_claims(response: str) -> list:
+        """Extract factual claims from a response."""
+        claims = []
+        quoted = re.findall(r'"([^"]{10,})"', response)
+        claims.extend(quoted)
+        bold = re.findall(r'\*\*([^*]{5,})\*\*', response)
+        non_bold = {"Note", "Summary", "Key findings", "Important", "References"}
+        claims.extend([b for b in bold if b not in non_bold])
+        author_matches = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b', response)
+        non_names = {"No papers", "No research", "No study", "High reliability",
+                     "Good reliability", "Poor reliability", "Partially reliable",
+                     "Source Database", "No verifiable"}
+        claims.extend([a for a in author_matches if a not in non_names])
+        years = re.findall(r'\b(20\d{2})\b', response)
+        claims.extend(years)
+        return claims
+
+    @classmethod
+    def _grounding_breakdown(cls, response: str, rag_ctx: str) -> dict:
+        """Check claims against RAG context."""
+        claims = cls._extract_claims(response)
+        if not claims:
+            return {"database_pct": 100, "llm_pct": 0, "total_claims": 0}
+        rag_lower = (rag_ctx or "").lower()
+        database_count = 0
+        llm_count = 0
+        for claim in claims:
+            claim_lower = claim.lower()
+            if rag_lower and claim_lower in rag_lower:
+                database_count += 1
+            else:
+                words = claim_lower.split()
+                fuzzy_matched = False
+                if len(words) >= 2:
+                    surname = words[-1]
+                    if len(surname) > 3 and rag_lower and surname in rag_lower:
+                        database_count += 1
+                        fuzzy_matched = True
+                if not fuzzy_matched:
+                    llm_count += 1
+        total = len(claims)
+        return {
+            "database_pct": round(database_count / total * 100),
+            "llm_pct": round(llm_count / total * 100),
+            "total_claims": total,
+        }
+
+    @staticmethod
+    def _source_badge(source_type: str, breakdown: dict = None) -> str:
+        """Return an HTML badge indicating the reliability of the response."""
+        if source_type is None:
+            return ""
+        if breakdown and breakdown.get("total_claims", 0) > 0:
+            parts = []
+            if breakdown.get("database_pct", 0) > 0:
+                parts.append(f"Database: {breakdown['database_pct']}%")
+            if breakdown.get("llm_pct", 0) > 0:
+                parts.append(f"LLM: {breakdown['llm_pct']}%")
+            pct_str = f" ({' | '.join(parts)})"
+            llm_pct = breakdown.get("llm_pct", 0)
+            if 0 < llm_pct < 100:
+                note = '<br><span style="font-weight:normal;font-size:0.8em;font-style:italic;">Factual claims are grounded in the document database (RAG). Suggestions and interpretations may come from the LLM.</span>'
+            else:
+                note = ""
+        else:
+            pct_str = ""
+            note = ""
+        if source_type == "Grounded":
+            return (f'<div style="margin-bottom:10px;"><span style="background-color:#d4edda;color:#155724;padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;">Reliability: High{pct_str}</span>{note}</div>\n\n')
+        elif source_type == "Partial":
+            return (f'<div style="margin-bottom:10px;"><span style="background-color:#fff3cd;color:#856404;padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;">Reliability: Good{pct_str}</span>{note}</div>\n\n')
+        else:
+            return (f'<div style="margin-bottom:10px;"><span style="background-color:#f8d7da;color:#721c24;padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;">Reliability: Poor{pct_str}</span>{note}</div>\n\n')
+
+    @staticmethod
+    def _is_followup_query(user_message: str) -> bool:
+        """Detect short follow-up queries."""
+        msg = user_message.strip().lower()
+        if len(msg) < 60:
+            patterns = [r'^(expand|elaborate|more|details|explain|continue|go on|yes|no|ok)', r'^\d+$',
+                        r'^(tell me )?more (about|on|details)', r'^what about', r'^(and|but) ',
+                        r'^can you (expand|elaborate|explain)']
+            return any(re.match(p, msg) for p in patterns)
+        return False
+
+    @staticmethod
+    def _is_not_found_response(text: str) -> bool:
+        """Detect if the LLM response is a 'not found' refusal."""
+        text_lower = text.lower()
+        phrases = ["could not find", "couldn't find", "not found", "no relevant",
+                   "no results", "no information", "no data", "don't have information",
+                   "cannot find"]
+        return any(phrase in text_lower for phrase in phrases)
+
+    def _compute_badge(self, llm_content: str, context: str) -> str:
+        """Compute reliability badge for a response."""
+        breakdown = self._grounding_breakdown(llm_content, context)
+        llm_pct = breakdown["llm_pct"]
+        if llm_pct == 100 and self._is_not_found_response(llm_content):
+            return self._source_badge("Grounded", breakdown)
+        elif llm_pct <= self._reliability_green_max_llm:
+            return self._source_badge("Grounded", breakdown)
+        elif llm_pct < self._reliability_red_min_llm:
+            return self._source_badge("Partial", breakdown)
+        else:
+            return self._source_badge("Ungrounded", breakdown)
 
     def _init_chromadb(self):
         """Inicializa ChromaDB de forma diferida (lazy initialization)."""
@@ -227,153 +355,47 @@ Answer questions based on the context provided from the knowledge base. If you c
 
         return "\n\n---\n\n".join(context_parts)
 
-    def _verify_grounding(self, response: str, user_question: str, context: str) -> dict:
-        """
-        Verifica si la respuesta está basada SOLO en el contexto recuperado.
-
-        Args:
-            response: Respuesta generada por el agente
-            user_question: Pregunta original del usuario
-            context: Contexto recuperado de ChromaDB
-
-        Returns:
-            dict con {"grounded": bool, "reason": str}
-        """
-        if not context:
-            return {"grounded": True, "reason": "No context to verify against"}
-
-        verify_prompt = f"""You are a strict verification assistant. Your job is to verify if a response contains ONLY information that is EXPLICITLY stated in the provided context.
-
-RETRIEVED CONTEXT:
-{context}
-
-USER QUESTION: {user_question}
-
-AGENT RESPONSE: {response}
-
-STRICT VERIFICATION RULES:
-1. The response is "grounded" ONLY if ALL factual claims are EXPLICITLY written in the CONTEXT
-2. It is NOT grounded if the response:
-   - Infers or deduces information not explicitly stated in the context
-   - Adds details, relationships, or facts not present in the context
-   - Makes assumptions or generalizations beyond the context
-   - Uses information that might be true but is not in the provided context
-3. General courtesies, greetings, or formatting are allowed
-4. If the response correctly states it cannot find information, it IS grounded
-5. BE VERY STRICT: if a claim cannot be found in the context, it is NOT grounded
-
-Respond ONLY with a valid JSON object (no markdown, no extra text):
-{{"grounded": true, "reason": "brief explanation"}}
-or
-{{"grounded": false, "reason": "specific claim that was not in the context"}}"""
-
-        result = self.client.chat.complete(
-            model=self.model,
-            messages=[{"role": "user", "content": verify_prompt}]
-        )
-
-        try:
-            content = result.choices[0].message.content.strip()
-            if content.startswith("```"):
-                content = re.sub(r"```(?:json)?\n?", "", content)
-                content = content.strip()
-            return json.loads(content)
-        except (json.JSONDecodeError, IndexError):
-            return {"grounded": True, "reason": "Verification parsing failed"}
-
-    def _get_fallback_response(self, user_question: str) -> str:
-        """Generates a response when verification fails."""
-        return (
-            "I'm sorry, I cannot find specific information about that in my knowledge base. "
-            "I can only provide information that is explicitly documented in the conference papers. "
-            "Could you ask something different or rephrase your question?"
-        )
-
-    def chat(self, user_message: str, history: list = None, verify: bool = None) -> str:
-        """
-        Envía un mensaje con contexto RAG y obtiene respuesta.
-
-        Args:
-            user_message: Mensaje del usuario
-            history: Lista de mensajes previos
-            verify: Si True, verifica que la respuesta esté basada en el contexto.
-                    Si None, usa el valor de VERIFY_GROUNDING del .env
-        """
-        # Usar configuración del .env si no se especifica
-        should_verify = verify if verify is not None else self.verify_grounding
-
-        # Inicializar ChromaDB si no está inicializado
+    def chat(self, user_message: str, history: list = None) -> str:
+        """Envía un mensaje con contexto RAG y obtiene respuesta."""
         if not self._chromadb_initialized:
             self._init_chromadb()
-
-        # Verificar si ChromaDB está disponible
         if self._chromadb_error:
             err = self._chromadb_error
             return f"**Error {err['error_code']}:** {err['error']}\n\n{err.get('instructions', '')}"
 
-        # Recuperar contexto relevante
+        is_followup = self._is_followup_query(user_message) and history
         context = self._retrieve_context(user_message)
 
-        # Construir prompt con contexto
         system_with_context = self.system_prompt
         if context:
             system_with_context += f"\n\nRelevant context from the knowledge base:\n{context}"
 
         messages = [{"role": "system", "content": system_with_context}]
-
         if history:
             messages.extend(history)
-
         messages.append({"role": "user", "content": user_message})
 
-        response = self.client.chat.complete(
-            model=self.model,
-            messages=messages
-        )
+        response = self.client.chat.complete(model=self.model, messages=messages)
+        llm_content = response.choices[0].message.content
+        badge = "" if is_followup else self._compute_badge(llm_content, context)
+        response_content = badge + llm_content
 
-        response_content = response.choices[0].message.content
-
-        if should_verify and context:
-            verification = self._verify_grounding(response_content, user_message, context)
-            if not verification.get("grounded", True):
-                print(f"[GROUNDING FAILED] Reason: {verification.get('reason', 'Unknown')}")
-                response_content = self._get_fallback_response(user_message)
-
-        # Track query in history
-        self._query_history.append({
-            'question': user_message,
-            'response_length': len(response_content)
-        })
-
+        self._query_history.append({'question': user_message, 'response_length': len(response_content)})
         return response_content
 
-    async def chat_stream(self, user_message: str, history: list = None, verify: bool = None):
-        """
-        Envía un mensaje con contexto RAG y obtiene respuesta en streaming.
-
-        Args:
-            user_message: Mensaje del usuario
-            history: Lista de mensajes previos
-            verify: Si True, verifica la respuesta al final del streaming.
-                    Si None, usa el valor de VERIFY_GROUNDING del .env
-        """
-        # Usar configuración del .env si no se especifica
-        should_verify = verify if verify is not None else self.verify_grounding
-
-        # Inicializar ChromaDB si no está inicializado
+    async def chat_stream(self, user_message: str, history: list = None):
+        """Envía un mensaje con contexto RAG y obtiene respuesta en streaming."""
         if not self._chromadb_initialized:
             yield ("status", "Creating ChromaDB for the agent...")
             self._init_chromadb()
-
-        # Mostrar "Thinking..." una vez la BD está lista
         yield ("status", "Thinking...")
 
-        # Verificar si ChromaDB está disponible
         if self._chromadb_error:
             err = self._chromadb_error
             yield f"**Error {err['error_code']}:** {err['error']}\n\n{err.get('instructions', '')}"
             return
 
+        is_followup = self._is_followup_query(user_message) and history
         context = self._retrieve_context(user_message)
 
         system_with_context = self.system_prompt
@@ -381,50 +403,22 @@ or
             system_with_context += f"\n\nRelevant context from the knowledge base:\n{context}"
 
         messages = [{"role": "system", "content": system_with_context}]
-
         if history:
             messages.extend(history)
-
         messages.append({"role": "user", "content": user_message})
 
-        if should_verify and context:
-            # Acumular respuesta completa para verificar
-            full_response = ""
-            async for chunk in await self.client.chat.stream_async(
-                model=self.model,
-                messages=messages
-            ):
-                if chunk.data.choices[0].delta.content:
-                    full_response += chunk.data.choices[0].delta.content
+        full_response = ""
+        async for chunk in await self.client.chat.stream_async(model=self.model, messages=messages):
+            if chunk.data.choices[0].delta.content:
+                full_response += chunk.data.choices[0].delta.content
+                yield chunk.data.choices[0].delta.content
 
-            # Verificar después de obtener la respuesta completa
-            verification = self._verify_grounding(full_response, user_message, context)
-            if not verification.get("grounded", True):
-                print(f"[GROUNDING FAILED] Reason: {verification.get('reason', 'Unknown')}")
-                full_response = self._get_fallback_response(user_message)
+        if not is_followup:
+            badge = self._compute_badge(full_response, context)
+            if badge:
+                yield ("badge", badge)
 
-            # Track query in history
-            self._query_history.append({
-                'question': user_message,
-                'response_length': len(full_response)
-            })
-            yield full_response
-        else:
-            # Sin verificación: streaming normal
-            full_response = ""
-            async for chunk in await self.client.chat.stream_async(
-                model=self.model,
-                messages=messages
-            ):
-                if chunk.data.choices[0].delta.content:
-                    full_response += chunk.data.choices[0].delta.content
-                    yield chunk.data.choices[0].delta.content
-
-            # Track query in history
-            self._query_history.append({
-                'question': user_message,
-                'response_length': len(full_response)
-            })
+        self._query_history.append({'question': user_message, 'response_length': len(full_response)})
 
     def get_history(self, session_id: str = None) -> list:
         """Returns query history for the sidebar."""

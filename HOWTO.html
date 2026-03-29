@@ -261,40 +261,56 @@ agents</h1>
 <h1 id="a-practical-guide-to-tommi-building-and-deploying-ai-agents">A
 practical guide to TOMMI:<br>building and deploying AI agents</h1>
 <p><strong>By: UNINOVIS-UMA IT TEAM</strong></p>
-<div class="preface">
-<p>TOMMI is an easy to use educational tool that serves to create and
-test AI agents. With TOMMI:</p>
+<h2 id="preface">Preface</h2>
+<p>AI agents are becoming increasingly available across industries,
+education, and public services. Their ability to retrieve information,
+answer questions, and automate tasks makes them attractive tools for a
+wide range of applications. However, the deployment and use of AI agents
+requires a good understanding of their risks and limitations.</p>
+<p>Most AI agent applications fail in two important aspects:</p>
 <ul>
-<li>IT staff will have rapid hands-on experience with different types of
-agents;</li>
-<li>academic and admin staff, ideally supported by IT experts, will be
-able to create agents for their professional context;</li>
-<li>end-users (students, researchers, admin staff) will be able to
-experience with this technology and explore its potential benefits, thus
-fostering digital literacy.</li>
+<li><strong>Technical transparency:</strong> Different models have
+different capabilities, biases, knowledge cutoffs, and cost profiles —
+yet this information is rarely disclosed.</li>
+<li><strong>Content transparency:</strong> When an agent provides an
+answer, users generally cannot tell whether the response comes from a
+curated database, a retrieved document, or the LLM’s own training data —
+which may include hallucinated or outdated content.</li>
 </ul>
-<p>TOMMI is built entirely on <strong>open source</strong> tools—Python,
-FastAPI, ChromaDB, and more—ensuring transparency and flexibility.</p>
-</div>
-<div class="caution">
-<p><strong>Caution:</strong> The use of TOMMI agents for other goals
-apart from training requires close supervision. IT experts should pay
-special attention to two main risks. First, no sensitive data should be
-added unless an IT expert confirms that the agent deployment is safe
-(e.g., only specific persons have access to the server). Second, adding
-new tools to TOMMI is feasible, but it may result in dangerous
-situations (e.g., a tool deleting your hard disk); modifications made on
-the agents’ templates are made at your own risk.</p>
-</div>
+<p>This lack of transparency makes it difficult for users to assess the
+reliability of the information they receive, and for developers to
+understand and communicate the limitations of the systems they
+build.</p>
+<p>The main motivation in developing TOMMI was to create an AI agent
+framework that, by being transparent, would help:</p>
+<ol type="1">
+<li><strong>Developers</strong> understand the key characteristics of AI
+agents and be able to responsibly develop new ones — knowing exactly
+which data sources are used, how retrieval works, and where the LLM
+contributes.</li>
+<li><strong>End-users</strong> evaluate the potential interest and/or
+risks of using AI agents as information sources — through visible
+reliability indicators that show the origin of each response.</li>
+</ol>
+<p>TOMMI addresses these goals through features such as open-source
+architecture, configurable LLM selection (with visible model badges),
+structured data pipelines, and a <strong>reliability badge
+system</strong> that transparently breaks down each response into the
+percentage sourced from human-checked content and LLMs whose reliability
+cannot be checked (see <a href="#reliability-badges">Section
+3.7</a>).</p>
 <hr />
 <h2 id="index">Index</h2>
+<ul>
+<li><a href="#preface">Preface</a></li>
+</ul>
 <ol type="1">
 <li><a href="#introduction-to-agents">Introduction to Agents</a>
 <ul>
 <li><a href="#oneshot-agents">1.1 Oneshot Agents</a></li>
 <li><a href="#rag-agents-retrieval-augmented-generation">1.2 RAG
 Agents</a></li>
-<li><a href="#consultabd_sql-agents">1.3 ConsultaBD_SQL Agents</a></li>
+<li><a href="#text2sql-agents">1.3 Text2SQL Agents</a></li>
 <li><a href="#ragmetadata-agents">1.4 RAG+Metadata Agents</a></li>
 <li><a href="#agent-types-comparison">1.5 Agent Types
 Comparison</a></li>
@@ -328,11 +344,22 @@ Collection</a>
 <li><a href="#ragmetadata-agents-documents-with-metadata">3.6.3
 RAG+Metadata Agents: Documents with Metadata</a></li>
 </ul></li>
-<li><a href="#consultabd_sql-agents-database-only">3.6.4 ConsultaBD_SQL
-Agents: Database Only</a></li>
+<li><a href="#text2sql-agents-database-only">3.6.4 Text2SQL Agents:
+Database Only</a></li>
 </ul></li>
-<li><a href="#grounding-verification-anti-hallucination">3.7 Grounding
-Verification (Anti-hallucination)</a></li>
+<li><a href="#reliability-badges">3.7 Reliability Badges</a>
+<ul>
+<li><a href="#why-reliability-matters">3.7.1 Why Reliability
+Matters</a></li>
+<li><a href="#how-reliability-is-measured-back-office">3.7.2 How
+Reliability Is Measured (Back-office)</a></li>
+<li><a href="#how-reliability-is-displayed-front-office">3.7.3 How
+Reliability Is Displayed (Front-office)</a></li>
+<li><a href="#configuring-reliability-thresholds">3.7.4 Configuring
+Reliability Thresholds</a></li>
+<li><a href="#similarity-tuning-with-similarity_testpy">3.7.5 Similarity
+Tuning with <code>similarity_test.py</code></a></li>
+</ul></li>
 </ul></li>
 <li><a href="#interacting-with-agents">Interacting with Agents</a>
 <ul>
@@ -377,8 +404,8 @@ Command Reference</a>
 <li><a href="#a4-rag-agent-operations">A.4 RAG Agent Operations</a></li>
 <li><a href="#a5-ragmetadata-agent-operations">A.5 RAG+Metadata Agent
 Operations</a></li>
-<li><a href="#a6-consultabd_sql-agent-operations">A.6 ConsultaBD_SQL
-Agent Operations</a></li>
+<li><a href="#a6-text2sql-agent-operations">A.6 Text2SQL Agent
+Operations</a></li>
 <li><a href="#a7-ollama-commands-local-llm">A.7 Ollama Commands (Local
 LLM)</a></li>
 <li><a href="#a8-api-testing-with-curl">A.8 API Testing with
@@ -504,7 +531,7 @@ verification</a> can be enabled to ensure responses are based only on
 retrieved documents.</p>
 <p><strong>Example:</strong> Academic proceedings Q&amp;A system that
 searches through hundreds of papers.</p>
-<h3 id="consultabd_sql-agents">1.3 ConsultaBD_SQL Agents</h3>
+<h3 id="text2sql-agents">1.3 Text2SQL Agents</h3>
 <p>Converts natural language questions directly to SQL queries against a
 database.</p>
 <p><strong>How it works:</strong> 1. User asks a question in natural
@@ -613,7 +640,7 @@ interactive maps.</p>
 <th style="text-align: center;">Oneshot</th>
 <th style="text-align: center;">RAG</th>
 <th style="text-align: center;">RAG+Metadata</th>
-<th style="text-align: center;">ConsultaBD_SQL</th>
+<th style="text-align: center;">Text2SQL</th>
 </tr>
 </thead>
 <tbody>
@@ -716,7 +743,7 @@ query.</p>
 </tr>
 <tr>
 <td>Database queries by non-technical users</td>
-<td><strong>ConsultaBD_SQL</strong></td>
+<td><strong>Text2SQL</strong></td>
 <td>Natural language to SQL conversion</td>
 </tr>
 <tr>
@@ -731,7 +758,7 @@ query.</p>
 </tr>
 <tr>
 <td>Privacy-sensitive data queries</td>
-<td><strong>ConsultaBD_SQL</strong></td>
+<td><strong>Text2SQL</strong></td>
 <td>Data stays local, only questions sent to LLM</td>
 </tr>
 </tbody>
@@ -767,7 +794,7 @@ query.</p>
 <td>Low (Medium with verification)</td>
 </tr>
 <tr>
-<td><strong>ConsultaBD_SQL</strong></td>
+<td><strong>Text2SQL</strong></td>
 <td>1</td>
 <td>Low</td>
 </tr>
@@ -809,7 +836,7 @@ query.</p>
 <li><strong>“I have many documents to search”</strong> →
 <strong>RAG</strong></li>
 <li><strong>“I want users to query a database naturally”</strong> →
-<strong>ConsultaBD_SQL</strong></li>
+<strong>Text2SQL</strong></li>
 <li><strong>“I have documents and need to filter by
 author/date/type”</strong> → <strong>RAG+Metadata</strong></li>
 </ol>
@@ -819,7 +846,7 @@ author/date/type”</strong> → <strong>RAG+Metadata</strong></li>
 Agents Service</h2>
 <h3 id="prerequisites">2.1 Prerequisites</h3>
 <ul>
-<li>Python 3.10+ (for Oneshot and ConsultaBD_SQL agents)</li>
+<li>Python 3.10+ (for Oneshot and Text2SQL agents)</li>
 <li>Python 3.11-3.13 (for RAG and RAG+Metadata agents - ChromaDB is
 <strong>not compatible</strong> with Python 3.14+)</li>
 <li>Mistral API key</li>
@@ -950,7 +977,7 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="
 <p>The script will prompt you for the same options as the web
 interface:</p>
 <ol type="1">
-<li><strong>Agent type</strong> (1=oneshot, 2=rag, 3=consultabd_sql,
+<li><strong>Agent type</strong> (1=oneshot, 2=rag, 3=text2sql,
 4=rag_metadata)</li>
 <li><strong>Agent ID</strong> - Unique identifier (lowercase,
 alphanumeric)</li>
@@ -1096,8 +1123,24 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href=
 <td>Display name in the UI and system prompt</td>
 </tr>
 <tr>
+<td><code>description</code></td>
+<td>Short description of the agent’s purpose</td>
+</tr>
+<tr>
 <td><code>research_topic</code></td>
-<td>Describes the research area for the LLM</td>
+<td>Describes the research area for the LLM’s system prompt</td>
+</tr>
+<tr>
+<td><code>welcome_message</code></td>
+<td>Greeting shown when the agent is selected</td>
+</tr>
+<tr>
+<td><code>show_history</code></td>
+<td>Whether to display query history in the sidebar</td>
+</tr>
+<tr>
+<td><code>example_queries</code></td>
+<td>Suggested questions shown to users in the UI</td>
 </tr>
 <tr>
 <td><code>alliance</code></td>
@@ -1105,15 +1148,26 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href=
 </tr>
 <tr>
 <td><code>universities</code></td>
-<td>List of institutions with coordinates for map visualization</td>
+<td>List of institutions with name, country, and coordinates for map
+visualization</td>
 </tr>
 <tr>
-<td><code>example_queries</code></td>
-<td>Suggested questions shown to users</td>
+<td><code>rag_domain_keywords</code></td>
+<td>Domain-specific keywords used by <code>similarity_test.py</code> for
+calibration</td>
 </tr>
 <tr>
-<td><code>welcome_message</code></td>
-<td>Greeting when the agent is selected</td>
+<td><code>rag_keyword_boost</code></td>
+<td>Similarity boost per keyword, used by
+<code>similarity_test.py</code></td>
+</tr>
+<tr>
+<td><code>reliability_green_max_llm</code></td>
+<td>Maximum LLM % for green badge (High reliability)</td>
+</tr>
+<tr>
+<td><code>reliability_red_min_llm</code></td>
+<td>Minimum LLM % for red badge (Poor reliability)</td>
 </tr>
 </tbody>
 </table>
@@ -1447,10 +1501,10 @@ concepts</li>
 Ethics &amp; AI?”): returns an inline interactive map</li>
 </ul>
 <hr />
-<h4 id="consultabd_sql-agents-database-only">3.6.4 ConsultaBD_SQL
-Agents: Database Only</h4>
-<p>ConsultaBD_SQL agents convert natural language questions to SQL
-queries, executing them against a SQLite database.</p>
+<h4 id="text2sql-agents-database-only">3.6.4 Text2SQL Agents: Database
+Only</h4>
+<p>Text2SQL agents convert natural language questions to SQL queries,
+executing them against a SQLite database.</p>
 <p><strong>Data location:</strong> <code>data/database.db</code></p>
 <p><strong>How to add data:</strong></p>
 <ol type="1">
@@ -1483,8 +1537,8 @@ class="sourceCode sql"><code class="sourceCode sql"><span id="cb22-1"><a href="#
 <span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">2</span>, <span class="st">&#39;Constitutional Law&#39;</span>, <span class="st">&#39;Law&#39;</span>, <span class="dv">2</span>, <span class="dv">6</span>);</span>
 <span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> courses <span class="kw">VALUES</span> (<span class="dv">3</span>, <span class="st">&#39;Programming I&#39;</span>, <span class="st">&#39;Computer Science&#39;</span>, <span class="dv">1</span>, <span class="dv">6</span>);</span></code></pre></div>
 <p><strong>How it works:</strong></p>
-<p>ConsultaBD_SQL agents use a single LLM call for SQL generation, and
-Python for fast result formatting:</p>
+<p>Text2SQL agents use a single LLM call for SQL generation, and Python
+for fast result formatting:</p>
 <ol type="1">
 <li>The LLM converts the natural language question to SQL</li>
 <li>The SQL is executed against the SQLite database</li>
@@ -1532,123 +1586,269 @@ blocked</li>
 schema at startup. Well-designed table and column names (e.g.,
 <code>student_name</code> instead of <code>sn</code>) help the LLM
 generate more accurate SQL queries.</p>
-<h3 id="grounding-verification-anti-hallucination">3.7 Grounding
-Verification (Anti-hallucination)</h3>
-<p>Oneshot, RAG, and RAG+Metadata agents can optionally verify that
-their responses are <strong>grounded</strong> in the provided data,
-preventing the LLM from hallucinating or inventing information not
-present in the knowledge base.</p>
-<p><strong>How it works:</strong></p>
+<h3 id="reliability-badges">3.7 Reliability Badges</h3>
+<p>RAG+Metadata agents include a <strong>reliability badge</strong>
+system that informs end users about how much of the response is grounded
+in the database versus generated by the LLM. This is essential for
+responsible AI: users should know whether they can trust a response as
+factual or whether it contains unverified content.</p>
+<h4 id="why-reliability-matters">3.7.1 Why Reliability Matters</h4>
+<p>When an AI agent answers a question, its response can draw from three
+distinct sources:</p>
 <ol type="1">
-<li>The agent generates a response based on the data (data.md for
-oneshot, retrieved chunks for RAG)</li>
-<li>A second LLM call verifies that ALL factual claims in the response
-are explicitly stated in the source data</li>
-<li>If verification fails, a fallback response is returned instead</li>
+<li><strong>Metadata (keyword search):</strong> Structured data from
+<code>papers.json</code> — paper titles, authors, years, university
+assignments, topic counts, and researcher indexes. This data is
+authoritative and factual.</li>
+<li><strong>Database (RAG):</strong> Text chunks retrieved from ChromaDB
+via semantic similarity search. The retrieved content is real, but the
+LLM interprets and synthesizes it, which can introduce errors.</li>
+<li><strong>LLM (ungrounded):</strong> Content generated by the language
+model from its own training data, not backed by any source in the
+agent’s database. This may include suggestions, interpretations, or
+hallucinations.</li>
 </ol>
-<p><strong>Architecture with verification:</strong></p>
-<pre><code>┌──────────────┐
-│   Question   │──────────────────────┐
-└──────────────┘                      │
-                                      ▼
-┌──────────────┐                ┌──────────┐    ┌──────────────┐
-│    Data      │───────────────▶│   LLM    │───▶│   Response   │
-│  (context)   │                │(generate)│    └──────┬───────┘
-└──────────────┘                └──────────┘           │
-       │                                               ▼
-       │                                        ┌──────────────┐
-       └───────────────────────────────────────▶│   LLM        │
-                                                │  (verify)    │
-                                                └──────┬───────┘
-                                                       │
-                                          ┌────────────┴────────────┐
-                                          │                         │
-                                          ▼                         ▼
-                                    ┌──────────┐             ┌──────────────┐
-                                    │ Grounded │             │ NOT Grounded │
-                                    │ (return) │             │  (fallback)  │
-                                    └──────────┘             └──────────────┘</code></pre>
-<p><strong>Enabling verification:</strong></p>
-<p>During agent creation, the script will ask:</p>
-<pre><code>Grounding verification (anti-hallucination):
-  - Verifies that responses are based ONLY on provided data
-  - NOTE: Doubles LLM calls (higher latency and cost)
-  Enable grounding verification? (y/n) [n]:</code></pre>
-<p>The setting is stored in the agent’s <code>.env</code> file:</p>
-<div class="sourceCode" id="cb26"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Grounding Verification (Anti-hallucination)</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="va">VERIFY_GROUNDING</span><span class="op">=</span>true   <span class="co"># Enable verification</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="va">VERIFY_GROUNDING</span><span class="op">=</span>false  <span class="co"># Disable verification (default)</span></span></code></pre></div>
-<p><strong>Per-request override:</strong></p>
-<p>You can also enable/disable verification per request via the API:</p>
-<div class="sourceCode" id="cb27"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Force verification for this request</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/chat <span class="dt">\</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;message&quot;: &quot;Your question&quot;, &quot;verify&quot;: true}&#39;</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Skip verification for this request</span></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/chat <span class="dt">\</span></span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;message&quot;: &quot;Your question&quot;, &quot;verify&quot;: false}&#39;</span></span></code></pre></div>
-<p><strong>Trade-offs:</strong></p>
+<p>Without reliability indicators, users have no way to distinguish a
+fact retrieved from the database from a plausible-sounding
+hallucination. The reliability badge system makes this distinction
+transparent.</p>
+<p><strong>Why is an LLM needed when the data comes from the
+database?</strong></p>
+<p>A common question is: if the agent can find the answer in structured
+metadata (papers.json, researchers.json), why involve an LLM at all? The
+agent could format the data directly — faster, cheaper, and with zero
+hallucination risk. However, the LLM adds value in three ways:</p>
+<ol type="1">
+<li><strong>Natural language formatting.</strong> The LLM turns raw
+structured data into readable, well-organized prose and adapts its
+response to the user’s language (English, Spanish, etc.).</li>
+<li><strong>Interpretation.</strong> Questions like <em>“Which
+university publishes the most?”</em> or <em>“Compare the research focus
+of THUAS and UMA”</em> require comparing, ranking, or summarizing data —
+tasks that go beyond simple formatting.</li>
+<li><strong>Flexibility.</strong> Users phrase questions in many
+different ways. The LLM handles this variety naturally, whereas
+template-based formatters would require explicit rules for each
+phrasing.</li>
+</ol>
+<p>Removing the LLM from metadata responses is technically feasible by
+building template-based formatters for each query type (paper lists,
+researcher lists, topic summaries, etc.), but it adds rigidity and
+maintenance cost. The current approach keeps the LLM in the loop for all
+responses, and the <strong>reliability badge</strong> transparently
+shows how much of the response comes from the database versus the LLM —
+so users always know what to trust.</p>
+<h4 id="how-reliability-is-measured-back-office">3.7.2 How Reliability
+Is Measured (Back-office)</h4>
+<p>The reliability system operates in two stages:</p>
+<p><strong>Stage 1 — Source Classification.</strong> When a user query
+arrives, the agent determines which data source to use:</p>
+<ul>
+<li><strong>Metadata path:</strong> The query triggers keyword-based
+search (<code>search_papers_by_topic</code>), researcher lookup,
+affiliation search, or university paper listing. The response is
+constrained to structured data.</li>
+<li><strong>RAG path:</strong> When no structured context matches, the
+query is embedded and compared against ChromaDB chunks via cosine
+similarity. The top-N most similar chunks are retrieved and passed to
+the LLM as context.</li>
+</ul>
+<p><strong>Stage 2 — Lightweight Grounding Check.</strong> After the LLM
+generates its response, the agent extracts <strong>verifiable
+claims</strong> from the response text:</p>
+<ul>
+<li>Quoted strings (paper titles)</li>
+<li>Bold markdown text (key terms, titles)</li>
+<li>Author names (capitalized multi-word patterns)</li>
+<li>Years (e.g., 2024)</li>
+<li>University acronyms (THUAS, UMA, etc.)</li>
+<li>Paper IDs (e.g., W4405602662)</li>
+</ul>
+<p>Each claim is checked against two context pools:</p>
+<ul>
+<li><strong>Metadata context:</strong> Structured data from keyword
+search, topic summaries, researcher indexes, and paper lists.</li>
+<li><strong>RAG context:</strong> Text chunks retrieved from
+ChromaDB.</li>
+</ul>
+<p>Claims found in either pool are <strong>grounded</strong>. Claims not
+found in any pool are attributed to the <strong>LLM</strong>. The result
+is a percentage breakdown:</p>
+<pre><code>Example: Metadata: 75% | Database: 10% | LLM: 15%</code></pre>
+<p>This means 75% of the verifiable claims in the response come from
+structured metadata, 10% from RAG-retrieved text chunks, and 15% were
+generated by the LLM without database backing.</p>
+<p><strong>Special cases:</strong></p>
 <table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 61%" />
+</colgroup>
 <thead>
 <tr>
-<th>Aspect</th>
-<th>Without Verification</th>
-<th>With Verification</th>
+<th>Scenario</th>
+<th>Badge behaviour</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>LLM Calls</strong></td>
-<td>1</td>
-<td>2</td>
+<td><strong>Figure/map requests</strong></td>
+<td>Always green (Metadata: 100%) — figures are rendered from structured
+data</td>
 </tr>
 <tr>
-<td><strong>Latency</strong></td>
-<td>Lower</td>
-<td>~2x higher</td>
+<td><strong>“Not found” responses</strong></td>
+<td>Green — the database confirmed the absence of results</td>
 </tr>
 <tr>
-<td><strong>Cost</strong></td>
-<td>Lower</td>
-<td>~2x higher</td>
+<td><strong>Follow-up queries</strong> (“expand on 1”, “more
+details”)</td>
+<td>No badge — relies on conversation history</td>
 </tr>
 <tr>
-<td><strong>Hallucination Risk</strong></td>
-<td>Possible</td>
-<td>Minimized</td>
-</tr>
-<tr>
-<td><strong>Best for</strong></td>
-<td>General Q&amp;A</td>
-<td>Critical/factual data</td>
+<td><strong>Gap analysis</strong> (“topics not studied”)</td>
+<td>Always red (LLM: 100%) — the LLM identifies gaps from its own
+knowledge</td>
 </tr>
 </tbody>
 </table>
-<p><strong>When to use verification:</strong></p>
+<h4 id="how-reliability-is-displayed-front-office">3.7.3 How Reliability
+Is Displayed (Front-office)</h4>
+<p>The badge appears at the top of each response in the web interface,
+using a traffic-light colour scheme:</p>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 20%" />
+<col style="width: 25%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr>
+<th>Colour</th>
+<th>Label</th>
+<th>Meaning</th>
+<th>Condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🟢 Green</td>
+<td><strong>Reliability: High</strong></td>
+<td>Response is grounded in the database</td>
+<td>LLM ≤ <code>reliability_green_max_llm</code> (default: 20%)</td>
+</tr>
+<tr>
+<td>🟡 Yellow</td>
+<td><strong>Reliability: Good</strong></td>
+<td>Response is mostly grounded with some LLM content</td>
+<td>LLM between green and red thresholds</td>
+</tr>
+<tr>
+<td>🔴 Red</td>
+<td><strong>Reliability: Poor</strong></td>
+<td>Response is mostly or entirely LLM-generated</td>
+<td>LLM ≥ <code>reliability_red_min_llm</code> (default: 50%)</td>
+</tr>
+</tbody>
+</table>
+<p>Each badge includes the source breakdown in parentheses. When there
+is a mix of sources, an explanatory note appears:</p>
+<pre><code>Reliability: High (Metadata: 85% | LLM: 15%)
+Factual claims are grounded in structured metadata (keyword search).
+Suggestions and interpretations may come from the LLM.</code></pre>
+<pre><code>Reliability: Good (Metadata: 40% | Database: 25% | LLM: 35%)
+Factual claims are grounded in structured metadata (keyword search)
+and document database (RAG). Suggestions and interpretations may
+come from the LLM.</code></pre>
+<pre><code>Reliability: Poor (LLM: 100%)</code></pre>
+<h4 id="configuring-reliability-thresholds">3.7.4 Configuring
+Reliability Thresholds</h4>
+<p>All reliability parameters are set in the agent’s
+<code>config.json</code>:</p>
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;reliability_green_max_llm&quot;</span><span class="fu">:</span> <span class="dv">20</span><span class="fu">,</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;reliability_red_min_llm&quot;</span><span class="fu">:</span> <span class="dv">50</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 27%" />
+<col style="width: 39%" />
+</colgroup>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reliability_green_max_llm</code></td>
+<td>20</td>
+<td>Maximum LLM percentage for the green badge (High reliability).</td>
+</tr>
+<tr>
+<td><code>reliability_red_min_llm</code></td>
+<td>50</td>
+<td>Minimum LLM percentage for the red badge (Poor reliability). Values
+between <code>green_max</code> and <code>red_min</code> produce a yellow
+badge (Good reliability).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tuning guidance:</strong></p>
 <ul>
-<li>✅ When accuracy is critical (legal, medical, academic data)</li>
-<li>✅ When the knowledge base contains specific facts that must not be
-mixed with general knowledge</li>
-<li>✅ When users might ask questions that could lead to
-plausible-sounding but incorrect answers</li>
-<li>❌ When latency is critical and some inaccuracy is acceptable</li>
-<li>❌ For general-purpose assistants where creative responses are
-welcome</li>
+<li><strong>Stricter reliability:</strong> Lower
+<code>reliability_green_max_llm</code> (e.g., 10) and/or lower
+<code>reliability_red_min_llm</code> (e.g., 40). More responses will
+show yellow or red.</li>
+<li><strong>More permissive:</strong> Raise
+<code>reliability_green_max_llm</code> (e.g., 30) and/or raise
+<code>reliability_red_min_llm</code> (e.g., 60). More responses will
+show green.</li>
 </ul>
-<p><strong>Strict verification rules:</strong></p>
-<p>The verification prompt is intentionally strict. A response is
-considered <strong>NOT grounded</strong> if it:</p>
-<ul>
-<li>Infers or deduces information not explicitly stated in the data</li>
-<li>Adds relationships between entities not documented in the data</li>
-<li>Makes assumptions or generalizations beyond the source content</li>
-<li>Uses information that might be true but is not in the provided
-context</li>
-</ul>
+<h4 id="similarity-tuning-with-similarity_test.py">3.7.5 Similarity
+Tuning with <code>similarity_test.py</code></h4>
+<p>The agent directory includes a utility script
+<code>similarity_test.py</code> for testing and calibrating the
+similarity threshold and keyword boost. It processes a list of queries
+and reports their similarity scores, allowing you to find the optimal
+threshold.</p>
+<p><strong>Usage:</strong></p>
+<div class="sourceCode" id="cb29"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> similarity_test.py queries.txt              <span class="co"># Print to stdout</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> similarity_test.py queries.txt <span class="at">-o</span> results.tsv  <span class="co"># Save to file</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> similarity_test.py queries.txt <span class="at">-t</span> 0.75       <span class="co"># Custom threshold</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> similarity_test.py queries.txt <span class="at">-n</span> 4          <span class="co"># Use 4 chunks (default: 3)</span></span></code></pre></div>
+<p><strong>Input file format</strong> (<code>queries.txt</code>): one
+query per line. Blank lines and lines starting with <code>#</code> are
+skipped.</p>
+<pre><code># Off-topic queries (should score Poor)
+What is the recipe for chocolate cake?
+How tall is the Eiffel Tower?
+
+# On-topic queries (should score Good)
+What ethical guidelines exist for AI development?
+Tell me about bias detection in machine learning</code></pre>
+<p><strong>Output:</strong> TSV with columns <code>similarity</code>,
+<code>status</code>, <code>query</code>.</p>
+<p><strong>Calibration workflow:</strong></p>
+<ol type="1">
+<li>Create a <code>queries.txt</code> with ~20 off-topic queries, ~20
+general tech queries, and ~20 on-topic queries.</li>
+<li>Run <code>similarity_test.py</code> and examine the scores.</li>
+<li>Find the threshold that best separates off-topic from on-topic. Look
+for a natural gap in scores.</li>
+<li>Add domain keywords to <code>rag_domain_keywords</code> for on-topic
+queries that score just below the threshold.</li>
+<li>Adjust <code>rag_keyword_boost</code> to control how much each
+keyword increases the score.</li>
+<li>Re-run to verify. Aim for a clean separation: all off-topic below
+threshold, all on-topic above.</li>
+</ol>
 <p><a href="#index" class="back-to-top">↑ Back to index</a></p>
 <hr />
 <h2 id="interacting-with-agents">4. Interacting with Agents</h2>
@@ -1694,8 +1894,8 @@ questions.</li>
 can ask follow-up questions without repeating context.</p>
 <h4 id="interactive-commands-for-text-to-sql-agents">4.1.3 Interactive
 Commands for Text-to-SQL Agents</h4>
-<p>Text-to-SQL agents (ConsultaBD_SQL) offer several interactive
-commands to explore and manipulate results after your initial query:</p>
+<p>Text-to-SQL agents (Text2SQL) offer several interactive commands to
+explore and manipulate results after your initial query:</p>
 <p><strong>Viewing more results:</strong></p>
 <table>
 <thead>
@@ -1858,19 +2058,19 @@ Agent: ✅ Found 12 agreements with English B2 requirement...</code></pre>
 starting a web server. This is useful for testing, automation, or quick
 queries.</p>
 <p><strong>Interactive CLI:</strong></p>
-<div class="sourceCode" id="cb29"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py</span></code></pre></div>
 <p>This will show available agents and let you select one. You can also
 specify the agent directly:</p>
-<div class="sourceCode" id="cb30"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py my_agent</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py my_agent</span></code></pre></div>
 <p>Once inside, type your questions and receive responses directly. Type
 <code>exit</code> or <code>salir</code> to quit.</p>
 <p><strong>List available agents:</strong></p>
-<div class="sourceCode" id="cb31"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py <span class="at">-l</span></span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> cli.py <span class="at">-l</span></span></code></pre></div>
 <p><a href="#index" class="back-to-top">↑ Back to index</a></p>
 <hr />
 <h2 id="developer-functionalities">5. Developer Functionalities</h2>
@@ -1884,9 +2084,9 @@ is useful for:</p>
 <li>Building a test suite for your agent</li>
 </ul>
 <p><strong>Usage:</strong></p>
-<div class="sourceCode" id="cb32"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">options</span><span class="pp">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">options</span><span class="pp">]</span></span></code></pre></div>
 <p><strong>Options:</strong></p>
 <table>
 <colgroup>
@@ -1931,8 +2131,8 @@ What types of agents are available?</code></pre>
 <ol start="2" type="1">
 <li>Run the test:</li>
 </ol>
-<div class="sourceCode" id="cb34"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> batch_test.py my_agent evals/my_questions.txt</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> batch_test.py my_agent evals/my_questions.txt</span></code></pre></div>
 <ol start="3" type="1">
 <li>Results are saved to <code>evals/my_questions_respuestas.json</code>
 with all questions, responses, and metadata.</li>
@@ -1948,26 +2148,26 @@ options:</p>
 <h4 id="option-a-change-the-default-for-all-agents">Option A: Change the
 default for ALL agents</h4>
 <p>Edit <code>web/.env</code> to use Ollama as the default:</p>
-<div class="sourceCode" id="cb35"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Local LLM (Ollama) ---</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Comment out the Mistral configuration</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="co"># LLM_PROVIDER=mistral</span></span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="co"># MISTRAL_API_KEY=your_api_key_here</span></span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Local LLM (Ollama) ---</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Comment out the Mistral configuration</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="co"># LLM_PROVIDER=mistral</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="co"># MISTRAL_API_KEY=your_api_key_here</span></span></code></pre></div>
 <h4 id="option-b-use-local-llm-for-specific-agents-only">Option B: Use
 local LLM for SPECIFIC agents only</h4>
 <p>Keep Mistral as the default in <code>web/.env</code>, and configure
 individual agents to use Ollama by adding <code>LLM_PROVIDER</code> to
 their <code>.env</code> file:</p>
-<div class="sourceCode" id="cb36"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># agents/my_local_agent/.env</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This agent OVERRIDES the default to use Ollama</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># agents/my_local_agent/.env</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co"># This agent OVERRIDES the default to use Ollama</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span></code></pre></div>
 <p><strong>Important:</strong> An agent’s <code>.env</code> only
 overrides the default if it contains <code>LLM_PROVIDER</code>. If
 <code>LLM_PROVIDER</code> is not defined (or is commented out), the
@@ -2154,12 +2354,12 @@ More capabilities + Usage costs</p>
 <h4 id="improving-local-model-quality">Improving local model
 quality</h4>
 <p>If you want better results from Ollama while staying local, try:</p>
-<div class="sourceCode" id="cb37"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Other high-quality models</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span></code></pre></div>
+<div class="sourceCode" id="cb40"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Other high-quality models</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span></code></pre></div>
 <p>Then update the agent’s <code>.env</code>:</p>
-<div class="sourceCode" id="cb38"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mixtral:8x7b</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mixtral:8x7b</span></code></pre></div>
 <p><strong>Table</strong>: European LLM models</p>
 <table>
 <colgroup>
@@ -2366,7 +2566,7 @@ ENABLE_LOGGING=false  # to disable</code></pre>
 <td><code>POST /api/agents/&lt;agent_id&gt;/reindex</code></td>
 </tr>
 <tr>
-<td>Get DB schema (ConsultaBD_SQL)</td>
+<td>Get DB schema (Text2SQL)</td>
 <td><code>GET /schema</code></td>
 </tr>
 </tbody>
@@ -2673,23 +2873,23 @@ endpoint</td>
 <code>ERROR 504. Port in use</code>, it means another process is using
 port 8000 (often a previous server instance that wasn’t closed
 properly). To fix it:</p>
-<div class="sourceCode" id="cb40"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./liberar-puerto.sh</span> 8000</span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./liberar-puerto.sh</span> 8000</span></code></pre></div>
 <p>Then start the server again. You can use this script with any port
 number.</p></li>
 <li><p><strong>Check the error code:</strong> Look for “Error XXX” in
 the message and find it in the tables above.</p></li>
 <li><p><strong>Check logs:</strong> Review the terminal output where the
 server is running:</p>
-<div class="sourceCode" id="cb41"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Logs show detailed error information</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span></span></code></pre></div></li>
+<div class="sourceCode" id="cb44"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Logs show detailed error information</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span></span></code></pre></div></li>
 <li><p><strong>Verify environment:</strong> Ensure the virtual
 environment is activated:</p>
-<div class="sourceCode" id="cb42"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate  <span class="co"># Linux/macOS</span></span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>     <span class="co"># Windows</span></span></code></pre></div></li>
+<div class="sourceCode" id="cb45"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate  <span class="co"># Linux/macOS</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>     <span class="co"># Windows</span></span></code></pre></div></li>
 <li><p><strong>Test components individually:</strong></p>
 <ul>
 <li>Test Ollama: <code>ollama list</code> and
@@ -2712,174 +2912,174 @@ Reference</h2>
 <p>Quick reference of useful terminal commands for working with TOMMI
 agents.</p>
 <h3 id="a.1-environment-setup">A.1 Environment Setup</h3>
-<div class="sourceCode" id="cb43"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Activate virtual environment</span></span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate          <span class="co"># Linux/macOS</span></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>             <span class="co"># Windows</span></span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Deactivate virtual environment</span></span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="ex">deactivate</span></span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Check Python version</span></span>
-<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">--version</span></span>
-<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Install dependencies</span></span>
-<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span></code></pre></div>
-<h3 id="a.2-agent-management">A.2 Agent Management</h3>
-<div class="sourceCode" id="cb44"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new agent</span></span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> apps/crear_agente.py</span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-l</span></span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Test a specific agent interactively</span></span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">python</span> cli.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span></span>
-<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Run batch tests</span></span>
-<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span></span>
-<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Run batch tests with session context</span></span>
-<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span> -s</span></code></pre></div>
-<h3 id="a.3-web-server">A.3 Web Server</h3>
-<div class="sourceCode" id="cb45"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start the web hub (recommended)</span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./web/run_html_server.sh</span>           <span class="co"># Linux/macOS</span></span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="ex">web\run_html_server.bat</span>            <span class="co"># Windows</span></span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Start server manually (with auto-reload)</span></span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span> <span class="at">--host</span> 0.0.0.0 <span class="at">--port</span> 8000</span>
-<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Free a port in use</span></span>
-<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a><span class="ex">./web/liberar-puerto.sh</span> 8000</span>
-<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Check which process is using a port</span></span>
-<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a><span class="ex">lsof</span> <span class="at">-i</span> :8000                      <span class="co"># Linux/macOS</span></span>
-<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a><span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="ex">findstr</span> :8000       <span class="co"># Windows</span></span></code></pre></div>
-<h3 id="a.4-rag-agent-operations">A.4 RAG Agent Operations</h3>
 <div class="sourceCode" id="cb46"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reindex documents (via API)</span></span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/reindex</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete ChromaDB to force full reindex</span></span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/chroma_db/</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Activate virtual environment</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate          <span class="co"># Linux/macOS</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>             <span class="co"># Windows</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Deactivate virtual environment</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="ex">deactivate</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Check Python version</span></span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">--version</span></span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Install dependencies</span></span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span></code></pre></div>
+<h3 id="a.2-agent-management">A.2 Agent Management</h3>
+<div class="sourceCode" id="cb47"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new agent</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> apps/crear_agente.py</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-l</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Test a specific agent interactively</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">python</span> cli.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Run batch tests</span></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span></span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Run batch tests with session context</span></span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span> <span class="op">&lt;</span>questions_file<span class="op">&gt;</span> -s</span></code></pre></div>
+<h3 id="a.3-web-server">A.3 Web Server</h3>
+<div class="sourceCode" id="cb48"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start the web hub (recommended)</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./web/run_html_server.sh</span>           <span class="co"># Linux/macOS</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="ex">web\run_html_server.bat</span>            <span class="co"># Windows</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Start server manually (with auto-reload)</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span> <span class="at">--host</span> 0.0.0.0 <span class="at">--port</span> 8000</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Free a port in use</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a><span class="ex">./web/liberar-puerto.sh</span> 8000</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Check which process is using a port</span></span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a><span class="ex">lsof</span> <span class="at">-i</span> :8000                      <span class="co"># Linux/macOS</span></span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a><span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="ex">findstr</span> :8000       <span class="co"># Windows</span></span></code></pre></div>
+<h3 id="a.4-rag-agent-operations">A.4 RAG Agent Operations</h3>
+<div class="sourceCode" id="cb49"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reindex documents (via API)</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/reindex</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete ChromaDB to force full reindex</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/chroma_db/</span></code></pre></div>
 <h3 id="a.5-ragmetadata-agent-operations">A.5 RAG+Metadata Agent
 Operations</h3>
-<div class="sourceCode" id="cb47"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reindex documents with metadata (via API)</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/reindex</span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Get metadata for all indexed documents</span></span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/metadata</span>
-<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Search papers by topic across universities</span></span>
-<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:8000/api/agents/&lt;agent_id&gt;/topic-search?topic=ethics&quot;</span></span>
-<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Get all papers grouped by university</span></span>
-<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/publications-search</span>
-<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete ChromaDB to force full reindex with metadata</span></span>
-<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/chroma_db/</span></code></pre></div>
+<div class="sourceCode" id="cb50"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reindex documents with metadata (via API)</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/reindex</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Get metadata for all indexed documents</span></span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/metadata</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Search papers by topic across universities</span></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="st">&quot;http://localhost:8000/api/agents/&lt;agent_id&gt;/topic-search?topic=ethics&quot;</span></span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Get all papers grouped by university</span></span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/publications-search</span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete ChromaDB to force full reindex with metadata</span></span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/chroma_db/</span></code></pre></div>
 <p><strong>Creating a new agent for a different research
 topic:</strong></p>
-<div class="sourceCode" id="cb48"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Copy an existing agent</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-r</span> agents/responsible_ai agents/my_new_topic</span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Edit config.json (agent name, topic, universities, etc.)</span></span>
-<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> agents/my_new_topic/config.json</span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Replace data files</span></span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> agents/my_new_topic/data/docs/<span class="pp">*</span>.pdf</span>
-<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> agents/my_new_topic/data/<span class="pp">*</span>_papers.json</span>
-<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a><span class="co"># ... add your own PDFs, papers.json files, and metadata.json</span></span>
-<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Delete old ChromaDB index</span></span>
-<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> agents/my_new_topic/data/chroma_db/</span>
-<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Restart the server — the new agent will be auto-detected</span></span></code></pre></div>
-<h3 id="a.6-consultabd_sql-agent-operations">A.6 ConsultaBD_SQL Agent
+<div class="sourceCode" id="cb51"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Copy an existing agent</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-r</span> agents/responsible_ai agents/my_new_topic</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Edit config.json (agent name, topic, universities, etc.)</span></span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> agents/my_new_topic/config.json</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Replace data files</span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> agents/my_new_topic/data/docs/<span class="pp">*</span>.pdf</span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> agents/my_new_topic/data/<span class="pp">*</span>_papers.json</span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a><span class="co"># ... add your own PDFs, papers.json files, and metadata.json</span></span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Delete old ChromaDB index</span></span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span> <span class="at">-rf</span> agents/my_new_topic/data/chroma_db/</span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Restart the server — the new agent will be auto-detected</span></span></code></pre></div>
+<h3 id="a.6-text2sql-agent-operations">A.6 Text2SQL Agent
 Operations</h3>
-<div class="sourceCode" id="cb49"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View database schema (via API)</span></span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/schema</span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new SQLite database</span></span>
-<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/database.db <span class="op">&lt;</span> schema.sql</span>
-<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Open database interactively</span></span>
-<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/database.db</span>
-<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Common SQLite commands</span></span>
-<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a><span class="ex">.tables</span>                            <span class="co"># List all tables</span></span>
-<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a><span class="ex">.schema</span> <span class="op">&lt;</span>table_name<span class="op">&gt;</span>               <span class="co"># Show table structure</span></span>
-<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a><span class="ex">.quit</span>                              <span class="co"># Exit SQLite</span></span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View database schema (via API)</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/schema</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a new SQLite database</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/database.db <span class="op">&lt;</span> schema.sql</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Open database interactively</span></span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a><span class="ex">sqlite3</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/data/database.db</span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Common SQLite commands</span></span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a><span class="ex">.tables</span>                            <span class="co"># List all tables</span></span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a><span class="ex">.schema</span> <span class="op">&lt;</span>table_name<span class="op">&gt;</span>               <span class="co"># Show table structure</span></span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a><span class="ex">.quit</span>                              <span class="co"># Exit SQLite</span></span></code></pre></div>
 <h3 id="a.7-ollama-commands-local-llm">A.7 Ollama Commands (Local
 LLM)</h3>
-<div class="sourceCode" id="cb50"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start Ollama server</span></span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> serve</span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a><span class="co"># List available models</span></span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> list</span>
-<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Download a model</span></span>
-<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mistral</span>
-<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span>
-<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Test a model</span></span>
-<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> run mistral <span class="st">&quot;Hello, world&quot;</span></span>
-<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete a model</span></span>
-<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> rm <span class="op">&lt;</span>model_name<span class="op">&gt;</span></span>
-<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Check Ollama status</span></span>
-<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:11434/api/tags</span></code></pre></div>
-<h3 id="a.8-api-testing-with-curl">A.8 API Testing with curl</h3>
-<div class="sourceCode" id="cb51"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List all agents</span></span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents</span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a chat message</span></span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
-<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;&lt;agent_id&gt;&quot;, &quot;message&quot;: &quot;Hello&quot;}&#39;</span></span>
-<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Send message with grounding verification</span></span>
-<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
-<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;&lt;agent_id&gt;&quot;, &quot;message&quot;: &quot;Your question&quot;, &quot;verify&quot;: true}&#39;</span></span>
-<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Check agent health</span></span>
-<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/health</span></code></pre></div>
-<h3 id="a.9-logs-and-debugging">A.9 Logs and Debugging</h3>
-<div class="sourceCode" id="cb52"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View conversation logs (if enabled)</span></span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-f</span> web/logs/conversations.log</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="co"># View last 50 lines of logs</span></span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-50</span> web/logs/conversations.log</span>
-<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Search logs for specific agent</span></span>
-<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="st">&quot;&lt;agent_id&gt;&quot;</span> web/logs/conversations.log</span>
-<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Clear logs</span></span>
-<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> web/logs/conversations.log</span></code></pre></div>
-<h3 id="a.10-distribution">A.10 Distribution</h3>
 <div class="sourceCode" id="cb53"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create distribution package</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./apps/crear_dist.sh</span>               <span class="co"># Linux/macOS</span></span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a><span class="ex">apps\crear_dist.bat</span>                <span class="co"># Windows</span></span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Start Ollama server</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> serve</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a><span class="co"># List available models</span></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> list</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Download a model</span></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mistral</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Test a model</span></span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> run mistral <span class="st">&quot;Hello, world&quot;</span></span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Delete a model</span></span>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> rm <span class="op">&lt;</span>model_name<span class="op">&gt;</span></span>
+<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Check Ollama status</span></span>
+<span id="cb53-18"><a href="#cb53-18" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:11434/api/tags</span></code></pre></div>
+<h3 id="a.8-api-testing-with-curl">A.8 API Testing with curl</h3>
+<div class="sourceCode" id="cb54"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List all agents</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a chat message</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;&lt;agent_id&gt;&quot;, &quot;message&quot;: &quot;Hello&quot;}&#39;</span></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Send message with grounding verification</span></span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;&lt;agent_id&gt;&quot;, &quot;message&quot;: &quot;Your question&quot;, &quot;verify&quot;: true}&#39;</span></span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Check agent health</span></span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/health</span></code></pre></div>
+<h3 id="a.9-logs-and-debugging">A.9 Logs and Debugging</h3>
+<div class="sourceCode" id="cb55"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View conversation logs (if enabled)</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-f</span> web/logs/conversations.log</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a><span class="co"># View last 50 lines of logs</span></span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-50</span> web/logs/conversations.log</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Search logs for specific agent</span></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="st">&quot;&lt;agent_id&gt;&quot;</span> web/logs/conversations.log</span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Clear logs</span></span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> web/logs/conversations.log</span></code></pre></div>
+<h3 id="a.10-distribution">A.10 Distribution</h3>
+<div class="sourceCode" id="cb56"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create distribution package</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./apps/crear_dist.sh</span>               <span class="co"># Linux/macOS</span></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a><span class="ex">apps\crear_dist.bat</span>                <span class="co"># Windows</span></span></code></pre></div>
 <h3 id="a.11-useful-environment-variables">A.11 Useful Environment
 Variables</h3>
-<div class="sourceCode" id="cb54"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check current LLM configuration</span></span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> web/.env <span class="kw">|</span> <span class="fu">grep</span> LLM</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/.env <span class="kw">|</span> <span class="fu">grep</span> LLM</span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Edit environment variables</span></span>
-<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> web/.env                      <span class="co"># Linux/macOS</span></span>
-<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a><span class="ex">notepad</span> web<span class="dt">\.</span>env                   <span class="co"># Windows</span></span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check current LLM configuration</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> web/.env <span class="kw">|</span> <span class="fu">grep</span> LLM</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/.env <span class="kw">|</span> <span class="fu">grep</span> LLM</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Edit environment variables</span></span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> web/.env                      <span class="co"># Linux/macOS</span></span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a><span class="ex">notepad</span> web<span class="dt">\.</span>env                   <span class="co"># Windows</span></span></code></pre></div>
 <p><a href="#index" class="back-to-top">↑ Back to index</a></p>
 <hr />
 <h2 id="annex-b-cli-quick-reference">Annex B: CLI Quick Reference</h2>
@@ -2888,63 +3088,63 @@ line.</p>
 <h3 id="b.1-interactive-cli">B.1 Interactive CLI</h3>
 <p>The interactive CLI (<code>web/cli.py</code>) allows direct
 conversation with agents without starting a web server.</p>
-<div class="sourceCode" id="cb55"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-l</span></span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">--list</span></span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Start interactive session with a specific agent</span></span>
-<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py conf26</span>
-<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py pisha2</span>
-<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Without arguments - interactive agent selection menu</span></span>
-<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py</span>
-<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Show help</span></span>
-<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-h</span></span>
-<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">--help</span></span></code></pre></div>
+<div class="sourceCode" id="cb58"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-l</span></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">--list</span></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Start interactive session with a specific agent</span></span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py conf26</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py pisha2</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Without arguments - interactive agent selection menu</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py</span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Show help</span></span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">-h</span></span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/cli.py <span class="at">--help</span></span></code></pre></div>
 <p><strong>Exiting the session:</strong> Type <code>exit</code>,
 <code>quit</code>, <code>q</code>, or <code>salir</code> to end the
 conversation.</p>
 <h3 id="b.2-batch-testing">B.2 Batch Testing</h3>
 <p>The batch testing tool (<code>web/batch_test.py</code>) runs multiple
 questions against an agent from a file.</p>
-<div class="sourceCode" id="cb56"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run questions from a file</span></span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt</span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Maintain session context between questions</span></span>
-<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">--session</span></span>
-<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Save results to a specific file</span></span>
-<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">-o</span> results.json</span>
-<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Display results in console only (no file output)</span></span>
-<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">--no-save</span></span>
-<span id="cb56-12"><a href="#cb56-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-13"><a href="#cb56-13" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
-<span id="cb56-14"><a href="#cb56-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="at">--list-agents</span></span></code></pre></div>
+<div class="sourceCode" id="cb59"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run questions from a file</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Maintain session context between questions</span></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">--session</span></span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Save results to a specific file</span></span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">-o</span> results.json</span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Display results in console only (no file output)</span></span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py conf26 questions.txt <span class="at">--no-save</span></span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a><span class="co"># List available agents</span></span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> web/batch_test.py <span class="at">--list-agents</span></span></code></pre></div>
 <p><strong>Question file format:</strong> One question per line. Lines
 starting with <code>#</code> are treated as comments and ignored.</p>
 <h3 id="b.3-http-api-with-curl">B.3 HTTP API with curl</h3>
 <p>When the web server is running, you can interact with agents via
 HTTP.</p>
-<div class="sourceCode" id="cb57"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a question (agent-specific endpoint)</span></span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/chat <span class="dt">\</span></span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;message&quot;: &quot;Your question here&quot;}&#39;</span></span>
-<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a question to a specific agent (central API)</span></span>
-<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
-<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;conf26&quot;, &quot;message&quot;: &quot;Your question&quot;}&#39;</span></span>
-<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a><span class="co"># List all available agents</span></span>
-<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents</span>
-<span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Check agent health</span></span>
-<span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/health</span></code></pre></div>
+<div class="sourceCode" id="cb60"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a question (agent-specific endpoint)</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/chat <span class="dt">\</span></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;message&quot;: &quot;Your question here&quot;}&#39;</span></span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Send a question to a specific agent (central API)</span></span>
+<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
+<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;conf26&quot;, &quot;message&quot;: &quot;Your question&quot;}&#39;</span></span>
+<span id="cb60-10"><a href="#cb60-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-11"><a href="#cb60-11" aria-hidden="true" tabindex="-1"></a><span class="co"># List all available agents</span></span>
+<span id="cb60-12"><a href="#cb60-12" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents</span>
+<span id="cb60-13"><a href="#cb60-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-14"><a href="#cb60-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Check agent health</span></span>
+<span id="cb60-15"><a href="#cb60-15" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents/<span class="op">&lt;</span>agent_id<span class="op">&gt;</span>/health</span></code></pre></div>
 <p><a href="#index" class="back-to-top">↑ Back to index</a></p>
 </body>
 </html>

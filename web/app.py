@@ -600,6 +600,15 @@ async def chat_stream(
                 if event_type == "status":
                     # Enviar evento de estado
                     yield f"event: status\ndata: {content}\n\n"
+                elif event_type == "badge":
+                    # Enviar badge de fiabilidad como evento separado (no se acumula en el texto)
+                    escaped = content.replace("\n", "\\n")
+                    yield f"event: badge\ndata: {escaped}\n\n"
+                elif event_type == "replace":
+                    # Replace full response (e.g. after stripping map links)
+                    full_response = content
+                    escaped = content.replace("\n", "\\n")
+                    yield f"event: replace\ndata: {escaped}\n\n"
                 else:
                     # Enviar contenido
                     full_response += content
@@ -723,6 +732,41 @@ async def agent_topic_map(agent_id: str, topic: str = Query(...)):
 
 
 # ============================================================================
+# PDF Document Endpoint
+# ============================================================================
+
+@app.get("/api/agents/{agent_id}/pdf-list")
+async def agent_pdf_list(agent_id: str):
+    """List available PDFs for an agent."""
+    agent_info = runner.get_agent(agent_id)
+    if not agent_info:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    docs_dir = Path(agent_info.path) / "data" / "docs"
+    if not docs_dir.exists():
+        return {"pdfs": []}
+    pdfs = [f.stem for f in docs_dir.glob("*.pdf")]
+    return {"pdfs": pdfs}
+
+
+@app.get("/api/agents/{agent_id}/pdf/{filename}")
+async def agent_pdf(agent_id: str, filename: str):
+    """Serve a PDF from an agent's data/docs/ directory."""
+    agent_info = runner.get_agent(agent_id)
+    if not agent_info:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    # Security: only allow .pdf files, no path traversal
+    if not filename.endswith(".pdf") or "/" in filename or "\\" in filename or ".." in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+
+    pdf_path = Path(agent_info.path) / "data" / "docs" / filename
+    if not pdf_path.exists():
+        raise HTTPException(status_code=404, detail="PDF not found")
+
+    return FileResponse(pdf_path, media_type="application/pdf", filename=filename)
+
+
+# ============================================================================
 # Agent Creation Endpoints
 # ============================================================================
 
@@ -786,6 +830,8 @@ async def create_agent(
     ollama_model: str = Form(""),
     verify_grounding: bool = Form(False),
     context_preserving: bool = Form(True),  # RAG chunking approach
+    reliability_green_max_llm: int = Form(20),
+    reliability_red_min_llm: int = Form(50),
     database_schema: str = Form(""),
     data_file: Optional[UploadFile] = File(None),
     schema_file: Optional[UploadFile] = File(None),
@@ -836,6 +882,8 @@ async def create_agent(
             "ollama_model": ollama_model if llm_provider == "ollama" else "",
             "verify_grounding": verify_grounding,
             "rag_approach": "context_preserving" if context_preserving else "basic",
+            "reliability_green_max_llm": reliability_green_max_llm,
+            "reliability_red_min_llm": reliability_red_min_llm,
         }
 
         # Create agent structure

@@ -1,0 +1,56 @@
+"artificial intelligence" AND health
+"artificial intelligence" AND wellbeing
+"artificial intelligence" AND well-being
+"artificial intelligence" AND healthcare
+"artificial intelligence" AND "public health"
+"artificial intelligence" AND "mental health"
+"artificial intelligence" AND "social care"
+"machine learning" AND health
+"machine learning" AND healthcare
+"machine learning" AND wellbeing
+"machine learning" AND "mental health"
+"deep learning" AND health
+"deep learning" AND healthcare
+"deep learning" AND "medical imaging"
+"data science" AND health
+"data science" AND healthcare
+"data science" AND wellbeing
+"data science" AND "public health"
+"health informatics"
+"digital health" AND "artificial intelligence"
+"digital health" AND "machine learning"
+"digital health" AND "data science"
+"AI" AND "clinical decision support"
+"AI" AND "precision medicine"
+"AI" AND "personalized medicine"
+"AI" AND "drug discovery"
+"AI" AND "disease prediction"
+"AI" AND "health monitoring"
+"AI" AND "wearable" AND health
+"AI" AND "telemedicine"
+"AI" AND "social welfare"
+"AI" AND "assistive technology"
+"predictive analytics" AND health
+"natural language processing" AND health
+"computer vision" AND "medical"
+"AI" AND "aging"
+"AI" AND "ageing"
+"AI" AND "elderly care"
+"AI" AND "cognitive decline"
+"AI" AND "cognitive impairment"
+"AI" AND "dementia"
+"AI" AND "Alzheimer"
+"AI" AND "mild cognitive impairment"
+"AI" AND "neurodegeneration"
+"AI" AND "neurodegenerative"
+"machine learning" AND "dementia"
+"machine learning" AND "cognitive decline"
+"deep learning" AND "Alzheimer"
+"AI" AND "psychological support"
+"AI" AND "psychotherapy"
+"AI" AND "mental health" AND "intervention"
+"AI" AND "chatbot" AND "mental health"
+"AI" AND "emotional support"
+"AI" AND "depression" AND detection
+"AI" AND "anxiety" AND detection
+"machine learning" AND "psychological"
