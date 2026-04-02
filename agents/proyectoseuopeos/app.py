@@ -18,11 +18,11 @@ from agent import Agent
 # Configuración del agente
 AGENT_CONFIG = {
     "id": "proyectoseuopeos",
-    "name": "Proyectos Euopeos",
+    "name": "European Projects",
     "type": "rag",
-    "description": "Proyectos europeos",
+    "description": "I am ",
     "welcome_message": "Hello! I'm Proyectos Euopeos. How can I help you?",
-    "example_queries": ["Any call addressed to Humanities", "Which calls on cybersecurity"]
+    "example_queries": ["Any call relevant for AI Agents application to Universities","Any call relevant for European University Alliances", "Which calls on cybersecurity"]
 }
 
 agent: Agent = None

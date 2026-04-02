@@ -22,9 +22,11 @@ AGENT_CONFIG = {
     "type": "rag",
     "description": "Regional, national and European information about joint programs in HE",
     "welcome_message": "Hello, I am Jopo, your AI Agent to help you develop Joint International Programmes",
-    "example_queries": 
-        ["Make a concept note for a Joint Bachelor in Applied data science degree proposal. The participants will the UMA (leader), THUAS and USPN, and it will be open to other UNINOVIS partners", 
-        "Which are the agreed Standards for Quality Assurance of Joint Programmes in the EHEA"]
+    "example_queries":
+        ["Make a concept note for a Joint Bachelor in Applied data science degree proposal. The participants will the UMA (leader), THUAS and USPN, and it will be open to other UNINOVIS partners",
+        "Which are the agreed Standards for Quality Assurance of Joint Programmes in the EHEA"],
+    "transparency_level": "crystal_box",
+    "prompt_level": "stringent"
 }
 
 agent: Agent = None

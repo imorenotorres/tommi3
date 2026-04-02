@@ -33,7 +33,9 @@ AGENT_CONFIG = {
                         "Which Dutch universities have agreements?",
                         "Are there any agreements with 'English B1' as language requirement?",
                         "Do we have agreements with the Netherlands?"
-                        ]
+                        ],
+    "transparency_level": "crystal_box",
+    "prompt_level": "stringent"
 }
 
 agent: Agent = None

@@ -114,15 +114,23 @@ class AgentResponse(BaseModel):
     description: str
     welcome_message: str
     example_queries: list[str]
-    verify_grounding: bool = False
     rag_approach: str = "context_preserving"
     show_history: bool = True
+    show_description: bool = False
+    transparency_level: str = "black_box"
+    prompt_level: str = "stringent"
 
 
 @app.get("/")
 async def root():
     """Sirve la página principal"""
     return FileResponse(SCRIPT_DIR / "static" / "index.html")
+
+
+@app.get("/favicon.ico")
+async def favicon():
+    """Serve favicon"""
+    return FileResponse(SCRIPT_DIR / "static" / "favicon.svg", media_type="image/svg+xml")
 
 
 @app.get("/api/config")
@@ -355,6 +363,27 @@ async def get_llm_status(agent_id: Optional[str] = Query(None, description="ID d
             }
         else:
             model_info = await get_ollama_model_info(base_url, model)
+            # Fetch all available Ollama models for cycling
+            ollama_models = []
+            try:
+                import httpx
+                async with httpx.AsyncClient(timeout=5.0) as hclient:
+                    resp = await hclient.get(f"{base_url}/api/tags")
+                    if resp.status_code == 200:
+                        for m in resp.json().get("models", []):
+                            name = m.get("name", "")
+                            size_bytes = m.get("size", 0)
+                            size_gb = round(size_bytes / (1024**3), 1)
+                            ollama_models.append({"name": name, "size_gb": size_gb})
+            except Exception:
+                pass
+            # Build sizes dict with both full name and base name (without tag)
+            model_sizes = {}
+            for m in ollama_models:
+                model_sizes[m["name"]] = m["size_gb"]
+                base_name = m["name"].split(":")[0]
+                if base_name not in model_sizes:
+                    model_sizes[base_name] = m["size_gb"]
             response = {
                 "provider": "ollama",
                 "is_local": True,
@@ -362,7 +391,9 @@ async def get_llm_status(agent_id: Optional[str] = Query(None, description="ID d
                 "display_name": f"Ollama: {model_info['full_name']}",
                 "base_url": base_url,
                 "model_details": model_info["details"],
-                "status": "ok"
+                "status": "ok",
+                "available_models": [m["name"] for m in ollama_models],
+                "model_sizes": model_sizes,
             }
     elif provider == "vllm":
         health = await check_vllm_health(base_url, model)
@@ -413,6 +444,13 @@ async def get_llm_status(agent_id: Optional[str] = Query(None, description="ID d
                 "status": "ok"
             }
 
+    # Add available models list (for model switching UI)
+    from dotenv import dotenv_values as _dv
+    _web_env = _dv(Path(__file__).parent / ".env")
+    available_raw = _web_env.get("AVAILABLE_MODELS", "")
+    if available_raw:
+        response["available_models"] = [m.strip() for m in available_raw.split(",") if m.strip()]
+
     return response
 
 
@@ -438,9 +476,11 @@ async def list_agents():
             description=a.description,
             welcome_message=a.welcome_message,
             example_queries=a.example_queries,
-            verify_grounding=a.verify_grounding,
             rag_approach=a.rag_approach,
-            show_history=a.show_history
+            show_history=a.show_history,
+            show_description=a.show_description,
+            transparency_level=a.transparency_level,
+            prompt_level=a.prompt_level
         )
         for a in agents
     ]
@@ -572,7 +612,10 @@ async def chat_stream(
     request: Request,
     agent_id: str = Query(..., description="ID del agente"),
     message: str = Query(..., description="Mensaje a enviar"),
-    session_id: Optional[str] = Query(None, description="ID de sesión (opcional, se crea automáticamente)")
+    session_id: Optional[str] = Query(None, description="ID de sesión (opcional, se crea automáticamente)"),
+    model: Optional[str] = Query(None, description="LLM model override (client preference)"),
+    transparency: Optional[str] = Query(None, description="Transparency level override (client preference)"),
+    prompt_level: Optional[str] = Query(None, description="Prompt level override (client preference)")
 ):
     """Envía un mensaje y hace streaming de la respuesta via SSE"""
     agent = runner.get_agent(agent_id)
@@ -590,7 +633,10 @@ async def chat_stream(
             async for event_type, content, returned_session_id in runner.run_query_stream(
                 agent_id=agent_id,
                 message=message,
-                session_id=session_id  # None en primera llamada
+                session_id=session_id,  # None en primera llamada
+                model_override=model,
+                transparency_override=transparency,
+                prompt_level_override=prompt_level
             ):
                 # Enviar session_id cuando lo recibimos (primera iteración)
                 if returned_session_id and not new_session_id:
@@ -604,6 +650,9 @@ async def chat_stream(
                     # Enviar badge de fiabilidad como evento separado (no se acumula en el texto)
                     escaped = content.replace("\n", "\\n")
                     yield f"event: badge\ndata: {escaped}\n\n"
+                elif event_type == "claim_highlights":
+                    # Send claim classification data for client-side highlighting
+                    yield f"event: claim_highlights\ndata: {content}\n\n"
                 elif event_type == "replace":
                     # Replace full response (e.g. after stripping map links)
                     full_response = content
@@ -828,7 +877,6 @@ async def create_agent(
     mistral_api_key: str = Form(""),
     ollama_url: str = Form("http://localhost:11434"),
     ollama_model: str = Form(""),
-    verify_grounding: bool = Form(False),
     context_preserving: bool = Form(True),  # RAG chunking approach
     reliability_green_max_llm: int = Form(20),
     reliability_red_min_llm: int = Form(50),
@@ -880,7 +928,6 @@ async def create_agent(
             "api_key": mistral_api_key if llm_provider == "mistral" else "",
             "ollama_url": ollama_url if llm_provider == "ollama" else "",
             "ollama_model": ollama_model if llm_provider == "ollama" else "",
-            "verify_grounding": verify_grounding,
             "rag_approach": "context_preserving" if context_preserving else "basic",
             "reliability_green_max_llm": reliability_green_max_llm,
             "reliability_red_min_llm": reliability_red_min_llm,

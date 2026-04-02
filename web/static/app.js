@@ -8,7 +8,9 @@ const state = {
     currentAgent: null,
     sessionId: null,
     isLoading: false,
-    warmupEventSource: null  // Para cancelar warmup al cambiar de agente
+    warmupEventSource: null,  // Para cancelar warmup al cambiar de agente
+    availableModels: [],
+    currentModel: null
 };
 
 // Elementos del DOM
@@ -16,7 +18,9 @@ const elements = {
     agentSelect: document.getElementById('agent-select'),
     agentDescription: document.getElementById('agent-description'),
     agentType: document.getElementById('agent-type'),
-    verifyStatus: document.getElementById('verify-status'),
+    agentOptions: document.getElementById('agent-options'),
+    transparencyLevel: document.getElementById('transparency-level'),
+    promptLevel: document.getElementById('prompt-level'),
     exampleQueries: document.getElementById('example-queries'),
     examplesContainer: document.getElementById('examples-container'),
     queryHistory: document.getElementById('query-history'),
@@ -134,18 +138,36 @@ async function loadLLMStatus(agentId = null) {
 
         if (elements.llmBadge) {
             elements.llmBadge.style.display = '';
-            elements.llmBadge.textContent = status.display_name;
             elements.llmBadge.classList.remove('loading', 'local', 'cloud', 'cloud-small', 'cloud-large', 'unknown', 'error');
 
             if (status.is_local) {
-                // Green for local LLMs
-                elements.llmBadge.classList.add('local');
-                elements.llmBadge.title = `Local LLM: ${status.model} at ${status.base_url}`;
+                // Local LLM — green house <20GB, yellow house >=20GB
+                const sizes = status.model_sizes || {};
+                const sizeGb = sizes[status.model] || 0;
+                const icon = sizeGb >= 20 ? '/static/icon_llm_local_large.svg' : '/static/icon_llm_local.svg';
+                elements.llmBadge.innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:middle;"> ${status.display_name}`;
+                elements.llmBadge.title = `Local LLM: ${status.model} (${sizeGb} GB) at ${status.base_url}`;
             } else {
-                // Cloud LLM - determine size by model name
-                const modelSize = getCloudModelSize(status.model);
-                elements.llmBadge.classList.add(modelSize);
+                // Cloud LLM — red cloud icon
+                elements.llmBadge.innerHTML = `<img src="/static/icon_llm_cloud.svg" style="width:16px;height:16px;vertical-align:middle;"> ${status.display_name}`;
                 elements.llmBadge.title = `Cloud LLM: ${status.provider} (${status.model})`;
+            }
+
+            // Store available models, sizes, and is_local for cycling
+            const available = status.available_models || [];
+            state.availableModels = available;
+            state.currentModel = status.model;
+            state.modelSizes = status.model_sizes || {};
+            state.isLocalLLM = status.is_local || false;
+
+            // Remove old listener
+            elements.llmBadge.removeEventListener('click', cycleLLMModel);
+            elements.llmBadge.style.cursor = '';
+
+            if (available.length > 1) {
+                elements.llmBadge.style.cursor = 'pointer';
+                elements.llmBadge.title += ' (click to switch model)';
+                elements.llmBadge.addEventListener('click', cycleLLMModel);
             }
         }
 
@@ -424,41 +446,32 @@ function showAgentInfo() {
         elements.agentType.classList.remove('oneshot', 'rag', 'toolcall', 'text2sql');
     }
 
-    // Show verification status for oneshot and RAG agents
-    if (elements.verifyStatus) {
-        const agentType = state.currentAgent.agent_type;
-        const supportsVerification = agentType === 'oneshot' || agentType === 'rag';
-        console.log('Verification check:', { agentType, supportsVerification, verify_grounding: state.currentAgent.verify_grounding });
-
-        if (supportsVerification) {
-            const verifyIcon = document.getElementById('verify-status-icon');
-            const verifyLabel = document.getElementById('verify-status-label');
-
-            if (state.currentAgent.verify_grounding) {
-                verifyIcon.textContent = '✓';
-                verifyLabel.textContent = 'Verification active';
-                elements.verifyStatus.classList.remove('hidden', 'inactive');
-                elements.verifyStatus.classList.add('active');
-            } else {
-                verifyIcon.textContent = '○';
-                verifyLabel.textContent = 'Verification inactive';
-                elements.verifyStatus.classList.remove('hidden', 'active');
-                elements.verifyStatus.classList.add('inactive');
-            }
-        } else {
-            elements.verifyStatus.classList.add('hidden');
-        }
-    } else {
-        console.warn('verifyStatus element not found');
-    }
-
-    // Mostrar descripción
-    if (state.currentAgent.description) {
+    // Mostrar descripción (only if show_description is true)
+    if (state.currentAgent.show_description && state.currentAgent.description) {
         elements.agentDescription.textContent = state.currentAgent.description;
         elements.agentDescription.classList.remove('hidden');
     } else {
         elements.agentDescription.classList.add('hidden');
     }
+
+    // Mostrar nivel de transparencia (clickable to cycle)
+    if (state.currentAgent.transparency_level) {
+        renderTransparencyBadge(state.currentAgent.transparency_level);
+        elements.transparencyLevel.classList.remove('hidden');
+    } else {
+        elements.transparencyLevel.classList.add('hidden');
+    }
+
+    // Mostrar prompt level (clickable to cycle)
+    if (state.currentAgent.prompt_level) {
+        renderPromptLevelBadge(state.currentAgent.prompt_level);
+        elements.promptLevel.classList.remove('hidden');
+    } else {
+        elements.promptLevel.classList.add('hidden');
+    }
+
+    // Show the options box
+    elements.agentOptions.classList.remove('hidden');
 
     // Mostrar ejemplos
     if (state.currentAgent.example_queries && state.currentAgent.example_queries.length > 0) {
@@ -483,11 +496,91 @@ function showAgentInfo() {
 // Ocultar información del agente
 function hideAgentInfo() {
     elements.agentType.classList.add('hidden');
-    if (elements.verifyStatus) {
-        elements.verifyStatus.classList.add('hidden');
-    }
     elements.agentDescription.classList.add('hidden');
+    elements.agentOptions.classList.add('hidden');
+    elements.transparencyLevel.classList.add('hidden');
+    elements.promptLevel.classList.add('hidden');
     elements.exampleQueries.classList.add('hidden');
+}
+
+// Transparency badge rendering and cycling
+const TRANSPARENCY_LEVELS = ['crystal_box', 'grey_box', 'black_box'];
+const TRANSPARENCY_STYLES = {
+    crystal_box: { label: 'Crystal box', icon: '/static/icon_crystal_box.svg', color: '#000000', bg: '#ffffff' },
+    grey_box:    { label: 'Grey box',    icon: '/static/icon_grey_box.svg',    color: '#000000', bg: '#ffffff' },
+    black_box:   { label: 'Black box',   icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
+};
+
+function renderTransparencyBadge(level) {
+    const s = TRANSPARENCY_STYLES[level] || TRANSPARENCY_STYLES.grey_box;
+    elements.transparencyLevel.innerHTML =
+        `<span class="transparency-badge" style="background-color:${s.bg};color:${s.color};padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" ` +
+        `title="Click to change transparency level">` +
+        `<img src="${s.icon}" style="width:16px;height:16px;vertical-align:middle;"> Transparency: ${s.label}</span>`;
+    elements.transparencyLevel.querySelector('.transparency-badge')
+        .addEventListener('click', cycleTransparency);
+}
+
+function cycleTransparency() {
+    if (!state.currentAgent || !state.currentAgent.transparency_level) return;
+    const current = state.currentAgent.transparency_level;
+    const idx = TRANSPARENCY_LEVELS.indexOf(current);
+    const next = TRANSPARENCY_LEVELS[(idx + 1) % TRANSPARENCY_LEVELS.length];
+    // Client-side only — sent as param with each request
+    state.currentAgent.transparency_level = next;
+    renderTransparencyBadge(next);
+}
+
+// Prompt level badge rendering and cycling
+const PROMPT_LEVELS = ['stringent', 'tolerant', 'lax'];
+const PROMPT_LEVEL_STYLES = {
+    stringent: { label: '\uD83D\uDEE1\uFE0F Prompt: Stringent', color: '#000000', bg: '#ffffff' },
+    tolerant:  { label: '\u2696\uFE0F Prompt: Tolerant',         color: '#000000', bg: '#ffffff' },
+    lax:       { label: '\u26A0\uFE0F Prompt: Lax',              color: '#000000', bg: '#ffffff' },
+};
+
+function renderPromptLevelBadge(level) {
+    const s = PROMPT_LEVEL_STYLES[level] || PROMPT_LEVEL_STYLES.stringent;
+    elements.promptLevel.innerHTML =
+        `<span class="prompt-level-badge" style="background-color:${s.bg};color:${s.color};padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;cursor:pointer;" ` +
+        `title="Click to change prompt level">` +
+        `${s.label}</span>`;
+    elements.promptLevel.querySelector('.prompt-level-badge')
+        .addEventListener('click', cyclePromptLevel);
+}
+
+function cyclePromptLevel() {
+    if (!state.currentAgent || !state.currentAgent.prompt_level) return;
+    const current = state.currentAgent.prompt_level;
+    const idx = PROMPT_LEVELS.indexOf(current);
+    const next = PROMPT_LEVELS[(idx + 1) % PROMPT_LEVELS.length];
+    // Client-side only — sent as param with each request
+    state.currentAgent.prompt_level = next;
+    renderPromptLevelBadge(next);
+}
+
+// LLM model cycling
+function cycleLLMModel() {
+    if (!state.currentAgent || !state.availableModels || state.availableModels.length < 2) return;
+    const current = state.currentModel;
+    const idx = state.availableModels.indexOf(current);
+    const next = state.availableModels[(idx + 1) % state.availableModels.length];
+
+    // Client-side only — sent as param with each request
+    state.currentModel = next;
+
+    // Update badge display to reflect new model
+    if (elements.llmBadge) {
+        if (state.isLocalLLM) {
+            const sizeGb = (state.modelSizes || {})[next] || 0;
+            const icon = sizeGb >= 20 ? '/static/icon_llm_local_large.svg' : '/static/icon_llm_local.svg';
+            elements.llmBadge.innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:middle;"> Ollama: ${next}`;
+            elements.llmBadge.title = `Local LLM: ${next} (${sizeGb} GB) (click to switch model)`;
+        } else {
+            elements.llmBadge.innerHTML = `<img src="/static/icon_llm_cloud.svg" style="width:16px;height:16px;vertical-align:middle;"> Mistral: ${next}`;
+            elements.llmBadge.title = `Cloud LLM: ${next} (click to switch model)`;
+        }
+    }
 }
 
 // Habilitar chat
@@ -530,6 +623,92 @@ async function loadPdfList(agentId) {
  * Finds existing [PDF] links (from LLM) and fixes them,
  * and also detects paper ID patterns (W followed by digits) to add new links.
  */
+/**
+ * Apply inline claim highlights to rendered HTML.
+ * Walks text nodes and wraps matching claims with styled spans.
+ * @param {HTMLElement} container - the rendered response div
+ * @param {Object} data - {grounded: [...], ungrounded: [...], grounded_style, ungrounded_style}
+ */
+function applyClaimHighlights(container, data) {
+    if (!data) return;
+
+    // Build list of (claim, style, tooltip) sorted longest-first to avoid partial matches.
+    // Supports both 2-tier (grounded/ungrounded) and 3-tier (metadata/database/llm) formats.
+    const items = [];
+    if (data.metadata || data.database || data.llm) {
+        // 3-tier format (RAG+Metadata agents)
+        const isGap = data.gap_analysis === true;
+        (data.metadata || []).forEach(c => items.push({
+            text: c, style: data.metadata_style,
+            tip: isGap ? 'Found in database (may already be studied)' : 'Source: structured metadata'
+        }));
+        (data.database || []).forEach(c => items.push({
+            text: c, style: data.database_style,
+            tip: isGap ? 'Found in database (may already be studied)' : 'Source: document database (RAG)'
+        }));
+        (data.llm || []).forEach(c => items.push({
+            text: c, style: data.llm_style,
+            tip: isGap ? 'Not found in database (likely a true gap)' : 'LLM refinement / interpretation'
+        }));
+    } else {
+        // 2-tier format (RAG agents)
+        (data.grounded || []).forEach(c => items.push({ text: c, style: data.grounded_style, tip: 'Grounded in documents' }));
+        (data.ungrounded || []).forEach(c => items.push({ text: c, style: data.ungrounded_style, tip: 'LLM interpretation' }));
+    }
+    items.sort((a, b) => b.text.length - a.text.length);
+
+    if (items.length === 0) return;
+
+    console.log('[claim_highlights] Applying highlights for', items.length, 'claims');
+
+    // Track which claims have already been highlighted (first occurrence only)
+    const highlighted = new Set();
+
+    // Process each claim: re-walk text nodes for every claim to handle DOM mutations
+    for (const item of items) {
+        if (highlighted.has(item.text)) continue;
+
+        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+        let node;
+        let found = false;
+
+        while ((node = walker.nextNode())) {
+            // Skip text inside the badge/legend area
+            if (node.parentElement && node.parentElement.closest('.claim-badge-area')) continue;
+
+            const text = node.nodeValue;
+            const idx = text.indexOf(item.text);
+            if (idx === -1) continue;
+
+            // Split text node and wrap the matched portion
+            const before = text.substring(0, idx);
+            const match = text.substring(idx, idx + item.text.length);
+            const after = text.substring(idx + item.text.length);
+
+            const span = document.createElement('span');
+            span.setAttribute('style', item.style);
+            span.setAttribute('title', item.tip);
+            span.textContent = match;
+
+            const frag = document.createDocumentFragment();
+            if (before) frag.appendChild(document.createTextNode(before));
+            frag.appendChild(span);
+            if (after) frag.appendChild(document.createTextNode(after));
+
+            node.parentNode.replaceChild(frag, node);
+            highlighted.add(item.text);
+            found = true;
+            break; // first occurrence only
+        }
+
+        if (!found) {
+            console.log('[claim_highlights] Claim not found in DOM:', JSON.stringify(item.text));
+        }
+    }
+
+    console.log('[claim_highlights] Highlighted', highlighted.size, 'of', items.length, 'claims');
+}
+
 function addPdfLinks(container) {
     if (!state.currentAgent) return;
     const agentId = state.currentAgent.id;
@@ -936,6 +1115,16 @@ async function sendMessage(message) {
         if (state.sessionId) {
             params.append('session_id', state.sessionId);
         }
+        // Send client-side preferences (model + transparency)
+        if (state.currentModel) {
+            params.append('model', state.currentModel);
+        }
+        if (state.currentAgent && state.currentAgent.transparency_level) {
+            params.append('transparency', state.currentAgent.transparency_level);
+        }
+        if (state.currentAgent && state.currentAgent.prompt_level) {
+            params.append('prompt_level', state.currentAgent.prompt_level);
+        }
 
         // Iniciar streaming via SSE
         const eventSource = new EventSource(`/api/chat/stream?${params}`);
@@ -967,6 +1156,18 @@ async function sendMessage(message) {
             responseDiv.innerHTML = badgeHtml + marked.parse(responseText);
         };
 
+        let claimHighlights = null;
+
+        eventSource.addEventListener('claim_highlights', (event) => {
+            // Store claim highlight data for post-render application
+            try {
+                claimHighlights = JSON.parse(event.data);
+                console.log('[claim_highlights] Received:', claimHighlights);
+            } catch (e) {
+                console.warn('[claim_highlights] Failed to parse:', e, event.data);
+            }
+        });
+
         eventSource.addEventListener('replace', (event) => {
             // Server stripped map links — replace the full response text
             responseText = event.data.replace(/\\n/g, '\n');
@@ -985,6 +1186,10 @@ async function sendMessage(message) {
             // Add PDF links and make them open in new tab
             addPdfLinks(responseDiv);
             renderInlineMapPlaceholders(responseDiv);
+            // Apply inline claim highlights after markdown rendering
+            if (claimHighlights) {
+                applyClaimHighlights(responseDiv, claimHighlights);
+            }
             // Update query history after each message (if enabled)
             if (state.currentAgent && state.currentAgent.show_history !== false) {
                 loadQueryHistory();

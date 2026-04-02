@@ -25,8 +25,8 @@ if os.path.exists(_config_path):
         _config = json.load(_f)
 
 AGENT_CONFIG = {
-    "id": _config.get("agent_id", "health_tech"),
-    "name": _config.get("agent_name", "Health and social technology"),
+    "id": _config.get("agent_id", os.path.basename(os.path.dirname(__file__))),
+    "name": _config.get("agent_name", "RAG+Metadata Agent"),
     "type": "rag_metadata",
     "description": _config.get("description", ""),
     "welcome_message": _config.get("welcome_message", ""),

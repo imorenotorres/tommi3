@@ -109,20 +109,22 @@ body {
 
 /* LLM Status Badge */
 .llm-status {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
 }
 
 .llm-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.35rem 0.6rem;
-    border-radius: 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: bold;
     cursor: help;
     transition: all 0.2s ease;
     white-space: nowrap;
+    background-color: #ffffff;
+    color: #000000;
 }
 
 .llm-badge.loading {
@@ -130,58 +132,14 @@ body {
     color: rgba(255, 255, 255, 0.7);
 }
 
-/* Local LLM (Ollama, vLLM) - Green */
-.llm-badge.local {
-    background-color: #22c55e;
-    color: #ffffff;
-}
-
-.llm-badge.local::before {
-    content: "\1F3E0";
-}
-
-/* Cloud small models (e.g., mistral-small, gpt-3.5) - Yellow/Orange */
-.llm-badge.cloud-small {
-    background-color: #f59e0b;
-    color: #ffffff;
-}
-
-.llm-badge.cloud-small::before {
-    content: "\2601\FE0F";
-}
-
-/* Cloud large models (e.g., mistral-large, gpt-4) - Red */
-.llm-badge.cloud-large {
-    background-color: #ef4444;
-    color: #ffffff;
-}
-
-.llm-badge.cloud-large::before {
-    content: "\2601\FE0F";
-}
-
-/* Fallback for generic cloud (backward compatibility) */
-.llm-badge.cloud {
-    background-color: #3b82f6;
-    color: #ffffff;
-}
-
-.llm-badge.cloud::before {
-    content: "\2601\FE0F";
-}
-
-.llm-badge.python {
-    background-color: #f59e0b;
-    color: #ffffff;
-}
-
-.llm-badge.python::before {
-    content: "\1F40D";
+.llm-badge.error {
+    background-color: #ffffff;
+    color: #000000;
 }
 
 .llm-badge.unknown {
-    background-color: rgba(255, 255, 255, 0.3);
-    color: rgba(255, 255, 255, 0.8);
+    background-color: #ffffff;
+    color: #000000;
 }
 
 .llm-badge:hover {
@@ -262,37 +220,6 @@ body {
     /* No filter - show icons in original colors */
 }
 
-/* Verification Status */
-.verify-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.6rem;
-    margin-top: 0.4rem;
-    border-radius: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #000000;
-}
-
-.verify-status.active {
-    background-color: #86efac;
-}
-
-.verify-status.active #verify-status-icon {
-    font-size: 0.9rem;
-    color: #166534;
-}
-
-.verify-status.inactive {
-    background-color: #e2e8f0;
-}
-
-.verify-status.inactive #verify-status-icon {
-    font-size: 0.9rem;
-    color: #64748b;
-}
-
 .agent-description {
     color: #ffffff;
     font-size: 0.9rem;
@@ -301,6 +228,29 @@ body {
     padding: 0.5rem;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 0.5rem;
+}
+
+.agent-options {
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.transparency-level {
+    margin-bottom: 0;
+}
+
+.prompt-level {
+    margin-bottom: 0;
+}
+
+.llm-status {
+    margin-bottom: 0;
 }
 
 .agent-info {

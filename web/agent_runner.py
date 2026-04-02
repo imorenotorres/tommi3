@@ -28,9 +28,11 @@ class AgentInfo:
     example_queries: list[str]
     path: str
     public: bool = True
-    verify_grounding: bool = False
     rag_approach: str = "context_preserving"  # basic, context_preserving, custom
     show_history: bool = True
+    show_description: bool = False
+    transparency_level: str = "black_box"
+    prompt_level: str = "stringent"
 
 
 @dataclass
@@ -72,7 +74,6 @@ class AgentRunner:
                     continue
 
                 # Check settings in agent's .env
-                verify_grounding = False
                 rag_approach = "context_preserving"
                 env_file = agent_dir / ".env"
                 if env_file.exists():
@@ -80,10 +81,7 @@ class AgentRunner:
                         env_content = env_file.read_text(encoding="utf-8")
                         for line in env_content.split('\n'):
                             line = line.strip()
-                            if line.startswith('VERIFY_GROUNDING'):
-                                value = line.split('=', 1)[1].strip().lower()
-                                verify_grounding = value == 'true'
-                            elif line.startswith('RAG_APPROACH'):
+                            if line.startswith('RAG_APPROACH'):
                                 rag_approach = line.split('=', 1)[1].strip().lower()
                     except Exception:
                         pass
@@ -97,9 +95,11 @@ class AgentRunner:
                     example_queries=config.get("example_queries", []),
                     path=str(agent_dir),
                     public=config.get("public", True),
-                    verify_grounding=verify_grounding,
                     rag_approach=rag_approach,
                     show_history=config.get("show_history", True),
+                    show_description=config.get("show_description", False),
+                    transparency_level=config.get("transparency_level", "black_box"),
+                    prompt_level=config.get("prompt_level", "stringent"),
                 )
 
                 if agent.public:
@@ -132,7 +132,10 @@ class AgentRunner:
                     "welcome_message": cfg.get("welcome_message", ""),
                     "example_queries": cfg.get("example_queries", []),
                     "show_history": cfg.get("show_history", True),
+                    "show_description": cfg.get("show_description", False),
                     "public": cfg.get("public", True),
+                    "transparency_level": cfg.get("transparency_level", "black_box"),
+                    "prompt_level": cfg.get("prompt_level", "stringent"),
                 }
                 # Preserve type from AGENT_CONFIG in app.py (not in config.json)
                 config["type"] = self._extract_agent_type(app_py) or "oneshot"
@@ -308,14 +311,29 @@ class AgentRunner:
         self,
         agent_id: str,
         message: str,
-        session_id: Optional[str] = None
+        session_id: Optional[str] = None,
+        model_override: Optional[str] = None,
+        transparency_override: Optional[str] = None,
+        prompt_level_override: Optional[str] = None
     ) -> AsyncGenerator[tuple[str, str, Optional[str]], None]:
         """
         Ejecuta una query y hace streaming de la respuesta.
         Yields tuplas de (tipo, contenido, session_id).
         tipo: "status" o "content"
+        model_override/transparency_override/prompt_level_override: per-request client preferences
         """
         agent_instance = self._load_agent_module(agent_id)
+
+        # Apply per-request overrides (save originals to restore after)
+        saved_model = getattr(agent_instance, 'model', None)
+        saved_transparency = getattr(agent_instance, '_transparency', None)
+        saved_prompt_level = getattr(agent_instance, '_prompt_level', None)
+        if model_override and hasattr(agent_instance, 'model'):
+            agent_instance.model = model_override
+        if transparency_override and hasattr(agent_instance, '_transparency'):
+            agent_instance._transparency = transparency_override
+        if prompt_level_override and hasattr(agent_instance, '_prompt_level'):
+            agent_instance._prompt_level = prompt_level_override
 
         # Generar session_id si no existe
         if not session_id:
@@ -355,6 +373,14 @@ class AgentRunner:
             err = format_error(SERVER_STREAMING_ERROR, details=str(e))
             yield ("content", f"[Error {err['error_code']}: {err['error']}]", session_id if first_chunk else None)
             return
+        finally:
+            # Restore original values so the shared instance isn't permanently changed
+            if saved_model is not None and hasattr(agent_instance, 'model'):
+                agent_instance.model = saved_model
+            if saved_transparency is not None and hasattr(agent_instance, '_transparency'):
+                agent_instance._transparency = saved_transparency
+            if saved_prompt_level is not None and hasattr(agent_instance, '_prompt_level'):
+                agent_instance._prompt_level = saved_prompt_level
 
         # Guardar en sesión
         self._save_to_session(session_id, message, full_response)

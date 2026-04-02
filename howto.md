@@ -39,7 +39,7 @@ The main motivation in developing TOMMI was to create an AI agent framework that
 1. **Developers** understand the key characteristics of AI agents and be able to responsibly develop new ones — knowing exactly which data sources are used, how retrieval works, and where the LLM contributes.
 2. **End-users** evaluate the potential interest and/or risks of using AI agents as information sources — through visible reliability indicators that show the origin of each response.
 
-TOMMI addresses these goals through features such as open-source architecture, configurable LLM selection (with visible model badges), structured data pipelines, and a **reliability badge system** that transparently breaks down each response into the percentage sourced from human-checked content and LLMs whose reliability cannot be checked (see [Section 3.7](#reliability-badges)).
+TOMMI addresses these goals through features such as open-source architecture, configurable LLM selection (with visible model badges), structured data pipelines, a **reliability badge system** that transparently breaks down each response into the percentage sourced from human-checked content and LLMs whose reliability cannot be checked (see [Section 3.7](#reliability-badges)), and a **Graduated Transparency framework** with claim-level provenance tracking, contextual explainability, and EU AI Act-compliant audit logging (see [Section 3.8](#graduated-transparency-with-claim-level-provenance)).
 
 ---
 
@@ -75,6 +75,12 @@ TOMMI addresses these goals through features such as open-source architecture, c
      - [3.7.3 How Reliability Is Displayed (Front-office)](#how-reliability-is-displayed-front-office)
      - [3.7.4 Configuring Reliability Thresholds](#configuring-reliability-thresholds)
      - [3.7.5 Similarity Tuning with `similarity_test.py`](#similarity-tuning-with-similarity_testpy)
+   - [3.8 Graduated Transparency with Claim-level Provenance](#graduated-transparency-with-claim-level-provenance)
+     - [3.8.1 Transparency Levels](#transparency-levels)
+     - [3.8.2 Claim-level Provenance (Inline Highlights)](#claim-level-provenance-inline-highlights)
+     - [3.8.3 Contextual Explainability (Gap Analysis)](#contextual-explainability-gap-analysis)
+     - [3.8.4 EU AI Act Audit Trail](#eu-ai-act-audit-trail)
+     - [3.8.5 Configuration Reference](#transparency-configuration-reference)
 4. [Interacting with Agents](#interacting-with-agents)
    - [4.1 Web Interface](#web-interface)
      - [4.1.1 Starting the Web Hub](#starting-the-web-hub)
@@ -355,7 +361,7 @@ An enhanced version of RAG agents designed for **multi-institution research pape
 │                          AGENT TYPES                             │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  ONESHOT         RAG       RAG+METADATA   CONSULTABD_SQL        │
+│  ONESHOT         RAG       RAG+METADATA   Text_2_SQL        │
 │  ───────         ───       ────────────   ──────────────        │
 │                                                                  │
 │  Question      Question     Question        Question             │
@@ -1107,6 +1113,236 @@ Tell me about bias detection in machine learning
 4. Add domain keywords to `rag_domain_keywords` for on-topic queries that score just below the threshold.
 5. Adjust `rag_keyword_boost` to control how much each keyword increases the score.
 6. Re-run to verify. Aim for a clean separation: all off-topic below threshold, all on-topic above.
+
+[↑ Back to index](#index){.back-to-top}
+
+### 3.8 Graduated Transparency with Claim-level Provenance
+
+All RAG and RAG+Metadata agents implement a **Graduated Transparency** framework that goes beyond the reliability badge. This approach aligns with the EU AI Act (Articles 13–14), the NIST AI Risk Management Framework, and the OECD AI Principles by providing layered disclosure adapted to the audience.
+
+The framework is available in two variants depending on the agent type:
+
+| Feature | RAG agents | RAG+Metadata agents |
+|---------|-----------|-------------------|
+| Source breakdown | Database % / LLM % | Metadata % / Database % / LLM % |
+| Inline highlight colours | 2 (green = grounded, red = LLM) | 3 (green = metadata, yellow = RAG, red = LLM) |
+| Contextual explainability (gap analysis) | — | ✅ |
+| Confidence score | ✅ | ✅ |
+| Transparency levels | ✅ (Debug / Basic / Opaque) | ✅ (Debug / Basic / Opaque) |
+| Audit log | ✅ | ✅ |
+
+The framework combines five standard techniques:
+
+| Technique | Standard reference | TOMMI implementation |
+|-----------|-------------------|---------------------|
+| **Trust Indicators** | ISO/IEC 42001 | Reliability badge (High / Good / Poor) |
+| **Provenance Tracking** | W3C PROV, EU AI Act Art. 13 | Source breakdown (Metadata % / Database % / LLM %) |
+| **Claim-level Attribution** | ACM FAccT | Inline highlights with per-claim source colour |
+| **Calibrated Confidence** | NIST AI RMF | Confidence score based on verified claims |
+| **Decision Logging** | EU AI Act Art. 12, ISO 42001 | Audit trail in `data/audit_log.jsonl` |
+
+#### 3.8.1 Transparency Levels
+
+The `transparency_level` parameter in `config.json` controls how much detail is shown to the user. Three levels are available:
+
+- **`development`** — full detail for developers and testers. All transparency features are active: reliability badge with source breakdown, confidence scores, source lines, colour legend, and inline claim highlights.
+- **`production`** — minimal for end users. Shows the reliability label (High / Good / Poor) and confidence percentage only. No inline highlights, no source breakdown, no legend.
+- **`opaque`** — no transparency shown to users. The response appears without any badge, confidence indicator, or highlights. This mode is useful for A/B testing or research: comparing user trust and behaviour with and without transparency tools. **The audit log remains active**, so all decision data is still recorded for compliance and analysis.
+
+| | `development` (high) | `production` (basic) | `opaque` |
+|---|---|---|---|
+| Reliability badge | ✅ with source % breakdown | ✅ label only (High / Good / Poor) | ❌ |
+| Confidence score | ✅ with claim count | ✅ percentage only | ❌ |
+| Source lines (🟢 🟡 🔴) | ✅ | ❌ | ❌ |
+| Colour legend | ✅ | ❌ | ❌ |
+| Inline claim highlights | ✅ | ❌ | ❌ |
+| Audit log | ✅ | ✅ | ✅ |
+
+The active transparency level is shown in the web interface above the example queries as a colour-coded badge:
+
+- **🔍 Transparency: Debug** — green badge
+- **🔍 Transparency: Basic** — yellow badge
+- **🔍 Transparency: Opaque** — red badge
+
+There are two ways to switch transparency levels:
+
+**1. Live switching (no restart).** Click the transparency badge in the web interface to cycle through levels: Debug → Basic → Opaque → Debug. The change takes effect immediately for the next query but resets to the `config.json` default when the server restarts.
+
+**2. Persistent default.** Change the `transparency_level` value in the agent's `config.json` and restart the server:
+
+```json
+{
+  "transparency_level": "development"
+}
+```
+
+**Use case — researching the impact of transparency.** By deploying two instances of the same agent — one with `"development"` and one with `"opaque"` — researchers can compare user behaviour, trust calibration, and decision quality. Both instances log identical audit data, enabling controlled comparison. The live switching feature also allows quick toggling during demos or user studies.
+
+#### 3.8.2 Claim-level Provenance (Inline Highlights)
+
+When `transparency_level` is set to `"development"`, the agent highlights individual claims in the response text using colour-coded backgrounds. Each highlighted claim indicates its provenance. The number of colours depends on the agent type:
+
+**RAG+Metadata agents** (3-tier):
+
+| Colour | Source | Meaning |
+|--------|--------|---------|
+| No colour | — | Text was not identified as a verifiable claim (e.g., connective phrases, formatting, or names that did not match the extraction patterns) |
+| 🟢 Green background | **Metadata** | Claim found in structured data (papers.json, researchers.json) |
+| 🟡 Yellow background | **Database (RAG)** | Claim found in document chunks retrieved from ChromaDB |
+| 🔴 Red background (italic) | **LLM** | Claim not found in any data source — presumably generated by the language model |
+
+**RAG agents** (2-tier):
+
+| Colour | Source | Meaning |
+|--------|--------|---------|
+| No colour | — | Text was not identified as a verifiable claim |
+| 🟢 Green background | **Grounded** | Claim found in document chunks retrieved from ChromaDB |
+| 🔴 Red background (italic) | **LLM** | Claim not found in any data source — presumably generated by the language model |
+
+Hovering over a highlighted claim shows a tooltip explaining its source. Text without any colour was simply not recognized as a verifiable claim by the extraction patterns — it does not imply that the text is correct or incorrect.
+
+**How claims are extracted.** The agent identifies verifiable claims using pattern matching:
+
+- Quoted strings (≥10 characters) — typically paper titles
+- Bold markdown text (≥5 characters) — key terms, titles
+- Author names — capitalized multi-word patterns, including accented characters (é, ñ, ü), hyphens (García-López), middle initials (F., J.), and lowercase particles (de, van, von)
+- Years — four-digit patterns (e.g., 2024)
+- University acronyms (RAG+Metadata only) — THUAS, UMA, TAMK, etc.
+- Paper IDs (RAG+Metadata only) — patterns like W4405602662
+
+**How claims are matched.** Each extracted claim is checked (case-insensitive) against the available context pools:
+
+- **RAG+Metadata agents:** (1) Metadata context — structured data from keyword search, topic summaries, researcher indexes. (2) RAG context — text chunks retrieved from ChromaDB.
+- **RAG agents:** (1) RAG context — text chunks retrieved from ChromaDB.
+
+For multi-word claims (author names), a fuzzy fallback checks all significant words (longer than 3 characters) — not just the surname — against each context pool. If any word matches, the entire claim is classified under that source. Claims not found in any pool are attributed to the LLM.
+
+A colour legend appears below the reliability badge explaining the highlight colours.
+
+#### 3.8.3 Contextual Explainability (Gap Analysis)
+
+For gap analysis queries (e.g., *"List topics related to responsible AI that have not been studied"*), the meaning of claim highlights is reversed:
+
+| Colour | Gap analysis meaning |
+|--------|---------------------|
+| 🟢 Green | Term **found** in the database — it may already be studied (suspicious as a "gap") |
+| 🔴 Red | Term **not found** in any data source — likely a true gap |
+
+The legend updates automatically to reflect this reversed interpretation, and tooltips explain the meaning on hover. This is an application of **contextual explainability**: the same data is presented differently depending on the query intent.
+
+#### 3.8.4 EU AI Act Audit Trail
+
+When `audit_log_enabled` is `true` in `config.json`, every query generates a decision event in `data/audit_log.jsonl`. This lightweight, append-only log is designed for EU AI Act compliance (Article 12: Record-keeping) and can be used for post-hoc audits.
+
+Each log entry is a single JSON line. The structure varies slightly between agent types:
+
+**RAG+Metadata agent example:**
+
+```json
+{
+  "timestamp": "2026-04-01T10:30:45.123456+00:00",
+  "agent_id": "responsible_ai",
+  "query": "List researchers that have interest in AI and Ethics",
+  "query_type": "normal",
+  "source_type": "Metadata",
+  "reliability_label": "High",
+  "confidence": 100,
+  "total_claims": 59,
+  "breakdown": {
+    "metadata_pct": 100,
+    "database_pct": 0,
+    "llm_pct": 0
+  },
+  "context_sources": ["researcher", "metadata"],
+  "transparency_level": "development"
+}
+```
+
+**RAG agent example:**
+
+```json
+{
+  "timestamp": "2026-04-01T11:15:22.789012+00:00",
+  "agent_id": "tommi_tutor_nube",
+  "query": "How do I create a RAG agent?",
+  "query_type": "normal",
+  "reliability_label": "High",
+  "confidence": 85,
+  "total_claims": 7,
+  "breakdown": {
+    "database_pct": 85,
+    "llm_pct": 15
+  },
+  "transparency_level": "development"
+}
+```
+
+**Fields:**
+
+| Field | Description | Agent types |
+|-------|-------------|-------------|
+| `timestamp` | UTC ISO 8601 timestamp | All |
+| `agent_id` | Agent identifier from `config.json` | All |
+| `query` | The user's original question | All |
+| `query_type` | `normal`, `figure`, `gap_analysis`, or `followup` | All |
+| `source_type` | `Metadata`, `RAG`, or `none` (follow-ups) | RAG+Metadata only |
+| `reliability_label` | `High`, `Good`, `Poor`, or `none` | All |
+| `confidence` | Percentage of claims verified against data sources | All |
+| `total_claims` | Number of verifiable claims extracted from the response | All |
+| `breakdown` | Per-source percentage. RAG+Metadata: metadata/database/LLM. RAG: database/LLM | All |
+| `context_sources` | Which context builders were used (affiliation, topic, researcher, rag, etc.) | RAG+Metadata only |
+| `transparency_level` | Active transparency level at the time of the query | All |
+
+The JSONL format is chosen for its simplicity: each line is independent, the file is append-only, and it can be processed with standard tools (`jq`, `grep`, pandas).
+
+**Log rotation.** The log file grows indefinitely. For production deployments, use standard log rotation tools (e.g., `logrotate` on Linux) or periodically archive and clear the file.
+
+#### 3.8.5 Configuration Reference
+
+All transparency parameters are set in the agent's `config.json`. The highlight style keys differ between agent types:
+
+**RAG+Metadata agents** (3-tier highlights):
+
+```json
+{
+  "transparency_level": "development",
+  "audit_log_enabled": true,
+  "inline_claim_highlights": {
+    "enabled": true,
+    "metadata_style": "background-color:#d4edda;padding:1px 3px;...",
+    "database_style": "background-color:#fff3cd;padding:1px 3px;...",
+    "llm_style": "background-color:#f8d7da;padding:1px 3px;...",
+    "show_legend": true
+  }
+}
+```
+
+**RAG agents** (2-tier highlights):
+
+```json
+{
+  "transparency_level": "development",
+  "audit_log_enabled": true,
+  "inline_claim_highlights": {
+    "enabled": true,
+    "grounded_style": "background-color:#d4edda;padding:1px 3px;...",
+    "ungrounded_style": "background-color:#f8d7da;padding:1px 3px;...",
+    "show_legend": true
+  }
+}
+```
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `transparency_level` | `"development"` | `"development"` (full detail), `"production"` (minimal), or `"opaque"` (no transparency shown, audit log still active). Can also be changed live by clicking the badge in the web interface. |
+| `audit_log_enabled` | `false` | Enable/disable the JSONL audit log in `data/audit_log.jsonl`. |
+| `inline_claim_highlights.enabled` | `false` | Enable/disable inline claim highlighting (only active in development). |
+| `inline_claim_highlights.metadata_style` | green | CSS style for metadata-grounded claims (RAG+Metadata agents). |
+| `inline_claim_highlights.database_style` | yellow | CSS style for RAG-grounded claims (RAG+Metadata agents). |
+| `inline_claim_highlights.llm_style` | red | CSS style for LLM-generated claims (RAG+Metadata agents). |
+| `inline_claim_highlights.grounded_style` | green | CSS style for grounded claims (RAG agents). |
+| `inline_claim_highlights.ungrounded_style` | red | CSS style for LLM-generated claims (RAG agents). |
+| `inline_claim_highlights.show_legend` | `true` | Show/hide the colour legend below the badge. |
 
 [↑ Back to index](#index){.back-to-top}
 

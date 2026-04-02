@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tommi Agents</title>
-    <link rel="stylesheet" href="/static/style.css?v=9">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/style.css?v=10">
     <!-- Leaflet.js for inline maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -28,18 +29,18 @@
                         <option value="">Loading agents...</option>
                     </select>
                 </div>
-                <div id="llm-status" class="llm-status">
-                    <span id="llm-badge" class="llm-badge loading">Loading...</span>
-                </div>
                 <div id="agent-type" class="agent-type hidden">
                     <img id="agent-type-icon" src="" alt="" class="agent-type-icon">
                     <span id="agent-type-label"></span>
                 </div>
-                <div id="verify-status" class="verify-status hidden">
-                    <span id="verify-status-icon"></span>
-                    <span id="verify-status-label"></span>
-                </div>
                 <p id="agent-description" class="agent-description hidden"></p>
+                <div id="agent-options" class="agent-options hidden">
+                    <div id="llm-status" class="llm-status">
+                        <span id="llm-badge" class="llm-badge loading">Loading...</span>
+                    </div>
+                    <div id="transparency-level" class="transparency-level hidden"></div>
+                    <div id="prompt-level" class="prompt-level hidden"></div>
+                </div>
                 <div id="example-queries" class="example-queries hidden">
                     <h4>Example queries:</h4>
                     <div id="examples-container"></div>
@@ -91,6 +92,6 @@
         </main>
     </div>
 
-    <script src="/static/app.js?v=12"></script>
+    <script src="/static/app.js?v=13"></script>
 </body>
 </html>
