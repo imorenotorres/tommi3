@@ -188,28 +188,25 @@ body {
     color: var(--text-muted);
 }
 
-.agent-type {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.35rem 0.6rem;
-    margin-top: 0.5rem;
-    margin-bottom: 0.25rem;
-    border-radius: 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background-color: #e5e7eb; /* light grey - same style as verification */
-    color: #000000; /* black text */
-    cursor: default;
+.agent-section-wrapper {
+    margin-bottom: 0.75rem;
 }
 
-/* All agent types use the same light grey background */
-.agent-type.oneshot,
-.agent-type.rag,
-.agent-type.toolcall,
-.agent-type.text2sql,
-.agent-type.consultabd_sql {
-    background-color: #e5e7eb;
+.agent-section-wrapper h4 {
+    font-size: 0.875rem;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.agent-info-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: bold;
+    background-color: #ffffff;
     color: #000000;
 }
 
@@ -230,12 +227,60 @@ body {
     border-radius: 0.5rem;
 }
 
-.agent-options {
-    background-color: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+
+.agent-options-help {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    vertical-align: middle;
+    margin-left: 0.3rem;
+}
+
+.agent-options-help:hover {
+    background-color: rgba(255, 255, 255, 0.45);
+}
+
+.agent-options-tooltip {
+    background-color: #ffffff;
+    color: #1e293b;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.4rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    margin-bottom: 0.5rem;
+}
+
+.tooltip-close-btn {
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.tooltip-close-btn:hover {
+    background-color: #1d4ed8;
+}
+
+.agent-options-box {
+    background-color: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 0.5rem;
     padding: 0.5rem 0.6rem;
-    margin-bottom: 0.75rem;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
@@ -277,22 +322,32 @@ body {
 .example-queries h4 {
     font-size: 0.875rem;
     color: #ffffff;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+#examples-container {
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    overflow: hidden;
 }
 
 .example-button {
     display: block;
     width: 100%;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0;
     background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
     color: #000000;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     text-align: left;
     cursor: pointer;
     transition: background-color 0.2s;
+}
+
+.example-button:last-child {
+    border-bottom: none;
 }
 
 .example-button:hover {

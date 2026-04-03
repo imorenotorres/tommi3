@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Using TOMMI Agents — End-User Guide</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Using TOMMI Agents — End-User Guide</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#using-tommi-agents-end-user-guide"
+id="toc-using-tommi-agents-end-user-guide">Using TOMMI Agents – End-User
+Guide</a>
+<ul>
+<li><a href="#getting-started" id="toc-getting-started">1. Getting
+Started</a></li>
+<li><a href="#choosing-an-agent" id="toc-choosing-an-agent">2. Choosing
+an Agent</a></li>
+<li><a href="#asking-questions" id="toc-asking-questions">3. Asking
+Questions</a></li>
+<li><a href="#understanding-responses"
+id="toc-understanding-responses">4. Understanding Responses</a>
+<ul>
+<li><a href="#the-reliability-badge" id="toc-the-reliability-badge">4.1
+The Reliability Badge</a></li>
+<li><a href="#confidence-and-claim-count"
+id="toc-confidence-and-claim-count">4.2 Confidence and Claim
+Count</a></li>
+<li><a href="#source-breakdown" id="toc-source-breakdown">4.3 Source
+Breakdown</a></li>
+<li><a href="#inline-highlights-crystal-box-mode-only"
+id="toc-inline-highlights-crystal-box-mode-only">4.4 Inline Highlights
+(Crystal Box Mode Only)</a></li>
+</ul></li>
+<li><a href="#agent-tuning-options" id="toc-agent-tuning-options">5.
+Agent Tuning Options</a>
+<ul>
+<li><a href="#llm-language-model" id="toc-llm-language-model">5.1 LLM
+(Language Model)</a></li>
+<li><a href="#transparency" id="toc-transparency">5.2
+Transparency</a></li>
+<li><a href="#prompt" id="toc-prompt">5.3 Prompt</a></li>
+</ul></li>
+<li><a href="#interactive-features" id="toc-interactive-features">6.
+Interactive Features</a>
+<ul>
+<li><a href="#maps-and-figures" id="toc-maps-and-figures">6.1 Maps and
+Figures</a></li>
+<li><a href="#query-history" id="toc-query-history">6.2 Query
+History</a></li>
+</ul></li>
+<li><a href="#frequently-asked-questions"
+id="toc-frequently-asked-questions">7. Frequently Asked
+Questions</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="using-tommi-agents-end-user-guide">Using TOMMI Agents – End-User
+Guide</h1>
+<p>This guide explains how to use TOMMI agents from the web interface.
+No technical knowledge is required.</p>
+<hr />
+<h2 id="getting-started">1. Getting Started</h2>
+<ul>
+<li>Open your browser (Chrome, Firefox, Safari, Edge – any modern
+browser works).</li>
+<li>Go to the TOMMI web interface. Your administrator will give you the
+URL.</li>
+<li>You will see a <strong>left sidebar</strong> with a dropdown menu
+and a <strong>chat area</strong> on the right.</li>
+</ul>
+<hr />
+<h2 id="choosing-an-agent">2. Choosing an Agent</h2>
+<p>Use the dropdown menu at the top of the sidebar to pick an agent.
+Each agent is specialized for a different topic or task – for example,
+one might answer questions about European research projects, another
+about responsible AI, and so on.</p>
+<p>Once you select an agent, the sidebar will show:</p>
+<ul>
+<li><p><strong>Agent type and LLM provider</strong> – tells you what
+kind of agent this is and what language model powers it. There are four
+types:</p>
+<ul>
+<li><strong>RAG</strong> – searches a collection of documents and
+answers from what it finds.</li>
+<li><strong>Metadata+RAG</strong> – like RAG, but also knows structured
+information (authors, universities, topics) and can produce maps and
+figures.</li>
+<li><strong>Text2SQL</strong> – translates your question into a database
+query.</li>
+<li><strong>Oneshot</strong> – a simple question-answer agent without a
+document collection.</li>
+</ul>
+<p>Click the <strong>?</strong> icon next to this section for more
+details.</p></li>
+<li><p><strong>Agent tuning</strong> – three clickable badges that let
+you adjust how the agent behaves (see Section 5 below).</p></li>
+<li><p><strong>Example queries</strong> – ready-made questions you can
+click to send immediately. These are a great way to explore what the
+agent can do.</p></li>
+<li><p><strong>A short description</strong> of what the agent
+covers.</p></li>
+</ul>
+<hr />
+<h2 id="asking-questions">3. Asking Questions</h2>
+<p>Type your question in the text box at the bottom of the screen and
+click <strong>Send</strong> (or press Enter).</p>
+<p><strong>Tips for better results:</strong></p>
+<ul>
+<li><strong>Be specific.</strong> “Papers on AI ethics by UMA in 2024”
+will give you a much better answer than “show me stuff.”</li>
+<li><strong>Use follow-up questions.</strong> The agent remembers your
+conversation, so you can say things like “tell me more about the third
+one” or “now show only results from 2023.”</li>
+<li><strong>Look at the example queries</strong> in the sidebar for
+inspiration – they show the kinds of questions the agent handles
+well.</li>
+<li><strong>For maps or figures</strong> (Metadata+RAG agents only),
+include the word “figure” or “map” in your question – for example, “Show
+me a figure of papers by country.”</li>
+<li><strong>For database agents (Text2SQL)</strong>, you can use
+commands like “show me more,” “sort by country,” “only France,” or
+“expand #3” to navigate and refine results.</li>
+</ul>
+<hr />
+<h2 id="understanding-responses">4. Understanding Responses</h2>
+<p>The agent’s answer appears in the chat area. Depending on the
+transparency setting (see Section 5), you may see reliability
+information above the answer. This information helps you judge how much
+to trust the response.</p>
+<h3 id="the-reliability-badge">4.1 The Reliability Badge</h3>
+<p>A coloured badge appears at the top of each response:</p>
+<ul>
+<li><strong>Reliability: High</strong> (green) – Most of the answer
+comes from verified documents or structured data. You can treat this
+information with high confidence.</li>
+<li><strong>Reliability: Good</strong> (yellow) – The answer is a mix of
+information from documents and interpretation by the language model.
+Generally trustworthy, but double-check important details.</li>
+<li><strong>Reliability: Poor</strong> (red) – The language model
+contributed most of the answer from its own knowledge, not from the
+agent’s documents. Treat with caution and verify independently.</li>
+</ul>
+<h3 id="confidence-and-claim-count">4.2 Confidence and Claim Count</h3>
+<p>Below the badge you may see something like: <strong>Confidence: 85%
+(17 claims verified)</strong></p>
+<ul>
+<li>The <strong>confidence percentage</strong> tells you what proportion
+of the factual claims in the answer could be traced back to the agent’s
+data sources.</li>
+<li>The <strong>claim count</strong> is the number of individual facts
+(names, dates, titles, etc.) that the system checked.</li>
+</ul>
+<h3 id="source-breakdown">4.3 Source Breakdown</h3>
+<p>In detailed mode, the badge includes a breakdown like:
+<strong>Metadata: 75% | Database: 10% | LLM: 15%</strong></p>
+<ul>
+<li><strong>Metadata</strong> – the claim was found in structured,
+curated data (for example, a list of papers or researchers). This is the
+most reliable source.</li>
+<li><strong>Database</strong> – the claim was found in document text
+retrieved by the agent. Reliable, but the language model may have
+rephrased or summarized it.</li>
+<li><strong>LLM</strong> – the claim was generated by the language model
+from its own training data, not from the agent’s documents. This is the
+least reliable source.</li>
+</ul>
+<p>A higher LLM percentage means more of the answer is unverified. When
+you see a red badge, it is especially important to verify the
+information through other channels.</p>
+<h3 id="inline-highlights-crystal-box-mode-only">4.4 Inline Highlights
+(Crystal Box Mode Only)</h3>
+<p>When transparency is set to “Crystal box” (see Section 5), you will
+see coloured highlights on individual words and phrases within the
+answer:</p>
+<ul>
+<li><strong>Green highlight</strong> – this fact comes from structured
+metadata or verified documents.</li>
+<li><strong>Yellow highlight</strong> – this fact comes from document
+text retrieved by the agent.</li>
+<li><strong>Red highlight (italic)</strong> – this fact was generated by
+the language model and could not be verified against the agent’s
+data.</li>
+<li><strong>No highlight</strong> – the text is a connecting phrase,
+formatting, or something the system did not classify as a verifiable
+claim.</li>
+</ul>
+<p>You can hover over any highlighted text to see a tooltip explaining
+its source.</p>
+<p>A colour legend at the bottom of the reliability section explains
+what each colour means.</p>
+<hr />
+<h2 id="agent-tuning-options">5. Agent Tuning Options</h2>
+<p>The <strong>Agent tuning</strong> section in the sidebar contains
+three clickable badges. Click any badge to cycle through its options.
+Changes take effect on your next question.</p>
+<h3 id="llm-language-model">5.1 LLM (Language Model)</h3>
+<p>Click this badge to switch between the available language models.
+Different models may produce different quality or speed of responses.
+The badge shows the name of the currently active model.</p>
+<h3 id="transparency">5.2 Transparency</h3>
+<p>Click to cycle between three levels of detail in the reliability
+information:</p>
+<ul>
+<li><strong>Crystal box</strong> – full detail. You see the reliability
+badge with source percentages, confidence score, claim count, source
+lines, colour legend, and inline highlights on the response text. Best
+for users who want maximum visibility into how the answer was
+constructed.</li>
+<li><strong>Grey box</strong> – minimal detail. You see only the
+reliability level (High / Good / Poor) and the confidence percentage.
+Good for everyday use when you want a quick trust indicator without
+visual clutter.</li>
+<li><strong>Black box</strong> – no reliability information shown at
+all. The answer appears without any badges or highlights. This mode is
+sometimes used for research or testing purposes.</li>
+</ul>
+<h3 id="prompt">5.3 Prompt</h3>
+<p>Click to cycle between three levels of constraint on how the agent
+answers:</p>
+<ul>
+<li><strong>Stringent</strong> – all rules are enforced and the agent
+gives the most constrained, cautious answers. Best when accuracy matters
+more than creativity.</li>
+<li><strong>Tolerant</strong> – standard rules apply with some
+flexibility. A good default for most uses.</li>
+<li><strong>Lax</strong> – minimal constraints, allowing the most
+creative and flexible answers. Use with caution – the agent may go
+beyond its document base more freely.</li>
+</ul>
+<hr />
+<h2 id="interactive-features">6. Interactive Features</h2>
+<h3 id="maps-and-figures">6.1 Maps and Figures</h3>
+<p>If you are using a Metadata+RAG agent, you can ask for visual
+outputs:</p>
+<ul>
+<li>“Show me a map of universities in the network”</li>
+<li>“Create a figure of papers by topic”</li>
+<li>“Generate a chart of publications per year”</li>
+</ul>
+<p>Include words like “figure,” “map,” or “chart” in your question so
+the agent knows you want a visual response.</p>
+<h3 id="query-history">6.2 Query History</h3>
+<p>The sidebar includes a <strong>Query history</strong> panel that
+lists your previous questions in the current session. Click on any past
+query to see its response again.</p>
+<hr />
+<h2 id="frequently-asked-questions">7. Frequently Asked Questions</h2>
+<p><strong>Can the agent be wrong?</strong> Yes. Like all AI systems,
+TOMMI agents can make mistakes. The reliability badges help you assess
+how much of the answer is grounded in real data. Always verify important
+information through official sources, especially when the badge is
+red.</p>
+<p><strong>What is the difference between ChatGPT and TOMMI
+agents?</strong> There are two important differences. First, ChatGPT is
+a general-purpose system trained to answer questions of almost any
+topic; TOMMI agents are designed to answer questions based on a curated
+collection of documents and, in some cases, also based on metadata
+associated to the documents. Second, ChatGPT is not transparent
+(i.e. you do not know the source of its answers); TOMMI agents, in
+contrast, show you exactly how much of each answer comes from the
+metadata, the curated documents or from a general-purpose language
+model.</p>
+<p><strong>Is my data private?</strong> Your questions are processed by
+the language model configured for the agent. This could be a cloud
+service (like Mistral) or a local model running on your institution’s
+servers. Check with your administrator to understand which setup is in
+use and what data policies apply.</p>
+<p><strong>Why does the agent say it cannot find information?</strong>
+The agent only answers from its own document database, not from general
+knowledge. If your question is outside the scope of the documents it was
+given, it will tell you it cannot find relevant information. This is
+actually a good sign – it means the agent is not making things up.</p>
+<p><strong>What do I do if I think the agent gave a wrong
+answer?</strong> Look at the reliability badge first. If it is red or
+yellow, the answer may contain unverified content. You can report errors
+through the feedback link shown at the top of the chat area. Your
+reports help improve the agent.</p>
+<p><strong>Can I use this on my phone?</strong> Yes. The web interface
+works on mobile browsers, though the experience is better on a larger
+screen.</p>
+<hr />
+<p><em>This guide covers TOMMI version 3. If something looks different
+from what is described here, your administrator may have customized the
+interface or you may be using a different version.</em></p>
+</body>
+</html>

@@ -18,6 +18,9 @@ const elements = {
     agentSelect: document.getElementById('agent-select'),
     agentDescription: document.getElementById('agent-description'),
     agentType: document.getElementById('agent-type'),
+    agentInfoSection: document.getElementById('agent-info-section'),
+    llmProviderIcon: document.getElementById('llm-provider-icon'),
+    llmProviderLabel: document.getElementById('llm-provider-label'),
     agentOptions: document.getElementById('agent-options'),
     transparencyLevel: document.getElementById('transparency-level'),
     promptLevel: document.getElementById('prompt-level'),
@@ -140,17 +143,32 @@ async function loadLLMStatus(agentId = null) {
             elements.llmBadge.style.display = '';
             elements.llmBadge.classList.remove('loading', 'local', 'cloud', 'cloud-small', 'cloud-large', 'unknown', 'error');
 
+            // Strip provider prefix from display_name (e.g. "Ollama: mistral 7B" -> "mistral 7B")
+            const modelOnly = (status.display_name || status.model || '').replace(/^[^:]+:\s*/, '');
+
             if (status.is_local) {
                 // Local LLM — green house <20GB, yellow house >=20GB
                 const sizes = status.model_sizes || {};
                 const sizeGb = sizes[status.model] || 0;
                 const icon = sizeGb >= 20 ? '/static/icon_llm_local_large.svg' : '/static/icon_llm_local.svg';
-                elements.llmBadge.innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:middle;"> ${status.display_name}`;
+                elements.llmBadge.innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:middle;"> LLM: ${modelOnly}`;
                 elements.llmBadge.title = `Local LLM: ${status.model} (${sizeGb} GB) at ${status.base_url}`;
             } else {
                 // Cloud LLM — red cloud icon
-                elements.llmBadge.innerHTML = `<img src="/static/icon_llm_cloud.svg" style="width:16px;height:16px;vertical-align:middle;"> ${status.display_name}`;
+                elements.llmBadge.innerHTML = `<img src="/static/icon_llm_cloud.svg" style="width:16px;height:16px;vertical-align:middle;"> LLM: ${modelOnly}`;
                 elements.llmBadge.title = `Cloud LLM: ${status.provider} (${status.model})`;
+            }
+
+            // Update LLM provider badge in the info section
+            if (elements.llmProviderIcon && elements.llmProviderLabel) {
+                if (status.is_local) {
+                    elements.llmProviderIcon.src = '/static/icon_llm_local.svg';
+                    elements.llmProviderLabel.textContent = 'LLM provider: Ollama';
+                } else {
+                    elements.llmProviderIcon.src = '/static/icon_llm_cloud.svg';
+                    const providerName = (status.provider || 'mistral').charAt(0).toUpperCase() + (status.provider || 'mistral').slice(1);
+                    elements.llmProviderLabel.textContent = `LLM provider: ${providerName}`;
+                }
             }
 
             // Store available models, sizes, and is_local for cycling
@@ -236,6 +254,34 @@ function renderAgentSelector() {
 function setupEventListeners() {
     elements.agentSelect.addEventListener('change', onAgentChange);
     elements.chatForm.addEventListener('submit', onSubmitMessage);
+
+    // Tooltip close buttons (event delegation)
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('tooltip-close-btn')) {
+            const tooltipId = e.target.getAttribute('data-tooltip');
+            if (tooltipId) {
+                document.getElementById(tooltipId).classList.add('hidden');
+            }
+        }
+    });
+
+    // Agent type & LLM provider help toggle
+    const infoHelpBtn = document.getElementById('agent-info-help');
+    const infoTooltip = document.getElementById('agent-info-tooltip');
+    if (infoHelpBtn && infoTooltip) {
+        infoHelpBtn.addEventListener('click', () => {
+            infoTooltip.classList.toggle('hidden');
+        });
+    }
+
+    // Agent tuning help toggle
+    const helpBtn = document.getElementById('agent-options-help');
+    const tooltip = document.getElementById('agent-options-tooltip');
+    if (helpBtn && tooltip) {
+        helpBtn.addEventListener('click', () => {
+            tooltip.classList.toggle('hidden');
+        });
+    }
 
     // Event delegation for clickable suggestions in chat messages
     elements.chatMessages.addEventListener('click', (e) => {
@@ -411,6 +457,7 @@ function showAgentInfo() {
         const typeLabels = {
             'oneshot': 'Oneshot',
             'rag': 'RAG',
+            'rag_metadata': 'Metadata+RAG',
             'toolcall': 'Toolcall',
             'text2sql': 'Text2SQL'
         };
@@ -435,15 +482,12 @@ function showAgentInfo() {
         const labelEl = document.getElementById('agent-type-label');
         iconEl.src = `/img/${agentType}.png`;
         iconEl.alt = typeLabel;
-        iconEl.className = `agent-type-icon agent-type-icon-${agentType}`;
-        labelEl.textContent = `${typeLabel} agent`;
+        iconEl.className = `agent-type-icon`;
+        labelEl.textContent = typeLabel;
 
-        // Apply color class based on agent type
-        elements.agentType.classList.remove('hidden', 'oneshot', 'rag', 'toolcall', 'text2sql');
-        elements.agentType.classList.add(agentType);
+        elements.agentInfoSection.classList.remove('hidden');
     } else {
-        elements.agentType.classList.add('hidden');
-        elements.agentType.classList.remove('oneshot', 'rag', 'toolcall', 'text2sql');
+        elements.agentInfoSection.classList.add('hidden');
     }
 
     // Mostrar descripción (only if show_description is true)
@@ -495,7 +539,7 @@ function showAgentInfo() {
 
 // Ocultar información del agente
 function hideAgentInfo() {
-    elements.agentType.classList.add('hidden');
+    elements.agentInfoSection.classList.add('hidden');
     elements.agentDescription.classList.add('hidden');
     elements.agentOptions.classList.add('hidden');
     elements.transparencyLevel.classList.add('hidden');
@@ -557,6 +601,10 @@ function cyclePromptLevel() {
     // Client-side only — sent as param with each request
     state.currentAgent.prompt_level = next;
     renderPromptLevelBadge(next);
+    // Reset session so previous conversation history (from a different
+    // prompt level) does not contaminate the new prompt behaviour.
+    state.sessionId = null;
+    clearChat();
 }
 
 // LLM model cycling
@@ -574,10 +622,10 @@ function cycleLLMModel() {
         if (state.isLocalLLM) {
             const sizeGb = (state.modelSizes || {})[next] || 0;
             const icon = sizeGb >= 20 ? '/static/icon_llm_local_large.svg' : '/static/icon_llm_local.svg';
-            elements.llmBadge.innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:middle;"> Ollama: ${next}`;
+            elements.llmBadge.innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:middle;"> LLM: ${next}`;
             elements.llmBadge.title = `Local LLM: ${next} (${sizeGb} GB) (click to switch model)`;
         } else {
-            elements.llmBadge.innerHTML = `<img src="/static/icon_llm_cloud.svg" style="width:16px;height:16px;vertical-align:middle;"> Mistral: ${next}`;
+            elements.llmBadge.innerHTML = `<img src="/static/icon_llm_cloud.svg" style="width:16px;height:16px;vertical-align:middle;"> LLM: ${next}`;
             elements.llmBadge.title = `Cloud LLM: ${next} (click to switch model)`;
         }
     }
@@ -677,13 +725,20 @@ function applyClaimHighlights(container, data) {
             if (node.parentElement && node.parentElement.closest('.claim-badge-area')) continue;
 
             const text = node.nodeValue;
-            const idx = text.indexOf(item.text);
+            // Try exact match first, then HTML-entity variant (& → &amp; in DOM)
+            let idx = text.indexOf(item.text);
+            let matchLen = item.text.length;
+            if (idx === -1 && item.text.includes('&')) {
+                const entityText = item.text.replace(/&/g, '&amp;');
+                idx = text.indexOf(entityText);
+                matchLen = entityText.length;
+            }
             if (idx === -1) continue;
 
             // Split text node and wrap the matched portion
             const before = text.substring(0, idx);
-            const match = text.substring(idx, idx + item.text.length);
-            const after = text.substring(idx + item.text.length);
+            const match = text.substring(idx, idx + matchLen);
+            const after = text.substring(idx + matchLen);
 
             const span = document.createElement('span');
             span.setAttribute('style', item.style);
@@ -715,9 +770,9 @@ function addPdfLinks(container) {
 
     // Fix any broken PDF links the LLM may have generated
     container.querySelectorAll('a[href*="/pdf/"]').forEach(a => {
-        const match = a.href.match(/(W\d+\.pdf)/);
+        const match = a.href.match(/(W\d{7,})(?:[^0-9]|$)/);
         if (match) {
-            a.href = `/api/agents/${agentId}/pdf/${match[1]}`;
+            a.href = `/api/agents/${agentId}/pdf/${match[1]}.pdf`;
         }
         a.setAttribute('target', '_blank');
         a.setAttribute('rel', 'noopener');
@@ -816,8 +871,29 @@ function replaceMapLinksWithPlaceholders(text) {
         } else {
             dataUrl = href.replace('topic-map', 'topic-search');
         }
+        // Fix URL encoding: the LLM may generate "topic=AI & Ethics" where
+        // & is a literal ampersand in the topic value, not a URL param separator.
+        // Strategy: extract everything after "topic=" up to the end or the next
+        // real parameter (key=value), treat it as the full topic, and re-encode.
+        const topicMatch = dataUrl.match(/([?&]topic=)(.+)/);
+        if (topicMatch) {
+            const prefix = dataUrl.substring(0, topicMatch.index) + topicMatch[1];
+            let rawTopic = topicMatch[2];
+            let suffix = '';
+            // Check for real parameters after the topic (e.g., &year=2025)
+            const nextParam = rawTopic.match(/&([a-z_]+=)/i);
+            if (nextParam) {
+                suffix = rawTopic.substring(nextParam.index);
+                rawTopic = rawTopic.substring(0, nextParam.index);
+            }
+            // Decode any existing encoding, then re-encode properly
+            try { rawTopic = decodeURIComponent(rawTopic); } catch(e) {}
+            dataUrl = prefix + encodeURIComponent(rawTopic.trim()) + suffix;
+        }
         // Return raw HTML that marked will pass through
-        return `<div class="inline-map-container"><div class="inline-map-header">${linkText}</div><div id="${mapId}" class="inline-map" data-map-url="${dataUrl}" data-map-type="${mapType}"><span class="loading" style="padding:12px;display:block;">Loading map...</span></div></div>`;
+        // HTML-encode the URL for safe embedding in attribute
+        const safeUrl = dataUrl.replace(/&/g, '&amp;');
+        return `<div class="inline-map-container"><div class="inline-map-header">${linkText}</div><div id="${mapId}" class="inline-map" data-map-url="${safeUrl}" data-map-type="${mapType}"><span class="loading" style="padding:12px;display:block;">Loading map...</span></div></div>`;
     });
 }
 

@@ -21,6 +21,12 @@ class ReliabilityBadge:
         "lax":       "\u26A0\uFE0F Lax",
     }
 
+    TRANSPARENCY_LABELS = {
+        "crystal_box": "Crystal box",
+        "grey_box": "Grey box",
+        "black_box": "Black box",
+    }
+
     @staticmethod
     def source_badge(
         source_type: str,
@@ -29,6 +35,8 @@ class ReliabilityBadge:
         highlight_config: dict = None,
         gap_analysis: bool = False,
         prompt_level: str = None,
+        model_name: str = None,
+        is_local_llm: bool = False,
     ) -> str:
         """Return an HTML badge indicating the reliability of the response.
 
@@ -267,15 +275,40 @@ class ReliabilityBadge:
                         '</div>'
                     )
 
-        # Prompt level indicator (development only)
-        prompt_html = ""
-        if is_dev and prompt_level:
-            pl_label = ReliabilityBadge.PROMPT_LEVEL_LABELS.get(
-                prompt_level, prompt_level.capitalize()
+        # Coverage warning (when few claims relative to response length)
+        coverage_html = ""
+        if breakdown and is_dev:
+            coverage_pct = breakdown.get("coverage_pct", 100)
+            if coverage_pct == 0:
+                coverage_html = (
+                    '<br><span style="font-weight:normal;font-size:0.8em;color:#b91c1c;">'
+                    '\u26A0\uFE0F No verifiable claims found — this response could not be checked</span>'
+                )
+            elif coverage_pct < 15:
+                coverage_html = (
+                    f'<br><span style="font-weight:normal;font-size:0.8em;color:#b45309;">'
+                    f'\u26A0\uFE0F Low verifiability: only {coverage_pct}% of the response could be checked</span>'
+                )
+
+        # Agent settings info (crystal_box = full, grey_box = minimal)
+        settings_html = ""
+        if transparency != "black_box":
+            lines = []
+            if model_name:
+                llm_location = 'On-premise' if is_local_llm else 'Cloud'
+                lines.append(f'LLM: {model_name} ({llm_location})')
+            tr_label = ReliabilityBadge.TRANSPARENCY_LABELS.get(
+                transparency, transparency
             )
-            prompt_html = (
-                f'<br><span style="font-weight:normal;font-size:0.8em;">'
-                f'Prompt: {pl_label}</span>'
+            lines.append(f'Transparency: {tr_label}')
+            if prompt_level:
+                pl_label = ReliabilityBadge.PROMPT_LEVEL_LABELS.get(
+                    prompt_level, prompt_level.capitalize()
+                )
+                lines.append(f'Prompt: {pl_label}')
+            settings_html = '<br>' + '<br>'.join(
+                f'<span style="font-weight:normal;font-size:0.8em;">{l}</span>'
+                for l in lines
             )
 
         # Map source_type to reliability label and colour scheme
@@ -285,7 +318,7 @@ class ReliabilityBadge:
                 f'<span style="background-color:#d4edda;color:#155724;'
                 f'padding:2px 8px;border-radius:4px;font-size:0.85em;'
                 f'font-weight:bold;">Reliability: High{pct_str}</span>'
-                f'{note}{prompt_html}{legend}</div>\n\n'
+                f'{note}{coverage_html}{settings_html}{legend}</div>\n\n'
             )
         elif source_type == "Partial":
             return (
@@ -293,7 +326,7 @@ class ReliabilityBadge:
                 f'<span style="background-color:#fff3cd;color:#856404;'
                 f'padding:2px 8px;border-radius:4px;font-size:0.85em;'
                 f'font-weight:bold;">Reliability: Good{pct_str}</span>'
-                f'{note}{prompt_html}{legend}</div>\n\n'
+                f'{note}{coverage_html}{settings_html}{legend}</div>\n\n'
             )
         else:  # Ungrounded
             return (
@@ -301,7 +334,7 @@ class ReliabilityBadge:
                 f'<span style="background-color:#f8d7da;color:#721c24;'
                 f'padding:2px 8px;border-radius:4px;font-size:0.85em;'
                 f'font-weight:bold;">Reliability: Poor{pct_str}</span>'
-                f'{note}{prompt_html}{legend}</div>\n\n'
+                f'{note}{coverage_html}{settings_html}{legend}</div>\n\n'
             )
 
     @staticmethod
@@ -317,6 +350,8 @@ class ReliabilityBadge:
         is_gap_analysis: bool = False,
         is_not_found: bool = False,
         prompt_level: str = None,
+        model_name: str = None,
+        is_local_llm: bool = False,
     ) -> tuple:
         """Compute reliability badge and per-claim breakdown for a response.
 
@@ -379,6 +414,8 @@ class ReliabilityBadge:
             highlight_config=highlight_config,
             gap_analysis=is_gap_analysis,
             prompt_level=prompt_level,
+            model_name=model_name,
+            is_local_llm=is_local_llm,
         )
 
         return badge, breakdown, label
@@ -400,6 +437,8 @@ class AuditLogger:
         prompt_level: str,
         source_type: str = None,
         context_sources: list = None,
+        model_name: str = None,
+        is_local_llm: bool = False,
     ) -> None:
         """Append a decision event to the JSONL audit log.
 
@@ -448,10 +487,13 @@ class AuditLogger:
             "query_type": query_type,
             "reliability_label": reliability_label,
             "confidence": breakdown.get("confidence", None),
+            "coverage_pct": breakdown.get("coverage_pct", None),
             "total_claims": breakdown.get("total_claims", 0),
             "breakdown": breakdown_entry,
             "transparency_level": transparency,
             "prompt_level": prompt_level,
+            "model": model_name,
+            "is_local_llm": is_local_llm,
         }
 
         if source_type is not None:

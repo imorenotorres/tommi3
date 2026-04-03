@@ -42,6 +42,8 @@ class SimpleRAGMixin:
             highlight_config=self._config.get("inline_claim_highlights"),
             is_not_found=self._is_not_found_response(llm_content),
             prompt_level=self._prompt_level,
+            model_name=self.model_display_name,
+            is_local_llm=self._is_local_llm,
         )
         response_content = badge + llm_content
 
@@ -57,6 +59,8 @@ class SimpleRAGMixin:
             reliability_label=reliability_label,
             transparency=self._transparency,
             prompt_level=self._prompt_level,
+            model_name=self.model_display_name,
+            is_local_llm=self._is_local_llm,
         )
 
         self._query_history.append({
@@ -110,6 +114,8 @@ class SimpleRAGMixin:
             highlight_config=self._config.get("inline_claim_highlights"),
             is_not_found=self._is_not_found_response(full_response),
             prompt_level=self._prompt_level,
+            model_name=self.model_display_name,
+            is_local_llm=self._is_local_llm,
         )
         if badge:
             yield ("badge", badge)
@@ -138,6 +144,8 @@ class SimpleRAGMixin:
             reliability_label=reliability_label,
             transparency=self._transparency,
             prompt_level=self._prompt_level,
+            model_name=self.model_display_name,
+            is_local_llm=self._is_local_llm,
         )
 
         self._query_history.append({

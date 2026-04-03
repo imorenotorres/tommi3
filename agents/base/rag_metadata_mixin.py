@@ -1663,6 +1663,224 @@ class MetadataRAGMixin:
             '', text
         ).rstrip()
 
+    def _verify_paper_references(self, text: str, context: str, transparency: str = None) -> str:
+        """Verify paper references in the response against the papers cache.
+
+        Skipped entirely in black_box transparency mode.
+
+        Two verification passes:
+        1. **Title verification** — every quoted title (in bold or quotes) is
+           checked against the full title list. Unrecognised titles are flagged.
+        2. **ID verification** — every paper ID is cross-checked against the
+           surrounding text to detect ID-title mismatches.
+        """
+        # No verification in black_box mode
+        if (transparency or self._transparency) == "black_box":
+            return text
+
+        # Build lookups
+        paper_by_id = {}       # pid → paper info
+        known_titles = set()   # lowercased titles for fast lookup
+        title_to_info = {}     # lowercased title → paper info (first match)
+
+        for uni_acro, uni_papers in self._all_uni_papers.items():
+            for paper in uni_papers:
+                pid = paper.get("id", "")
+                title = paper.get("title", "")
+                author_names = [a.get("name", "") for a in paper.get("authors", [])]
+                has_pdf = bool(paper.get("pdf_url") or paper.get("local_pdf_path"))
+                info = {
+                    "id": pid,
+                    "title": title,
+                    "authors": author_names,
+                    "university": uni_acro,
+                    "year": paper.get("publication_year", ""),
+                    "has_pdf": has_pdf,
+                }
+                if pid:
+                    paper_by_id[pid] = info
+                if title:
+                    t_lower = title.lower()
+                    known_titles.add(t_lower)
+                    if t_lower not in title_to_info:
+                        title_to_info[t_lower] = info
+
+        # --- Pass 1: Title verification ---
+        # Extract paper titles from the response.  Paper titles appear in
+        # specific patterns: quoted text in list items, typically followed
+        # by "Authors:", "Year:", "PDF", or similar metadata lines.
+        # We use a context-aware regex to avoid matching descriptive phrases.
+        #
+        # Pattern: a quoted string (≥20 chars) that appears after a list
+        # marker (number, bullet, or newline) and is followed within 200
+        # chars by author/year keywords.
+        paper_title_pattern = re.compile(
+            r'(?:^|\n)\s*(?:\d+\.?\s*|[-*•]\s*)?'   # optional list marker
+            r'[*"]*"([^"]{20,})"[*"]*'               # quoted title (≥20 chars)
+            r'(?=.{0,200}(?:Author|Year|PDF|University|\d{4}))',  # followed by metadata
+            re.IGNORECASE | re.DOTALL
+        )
+        cited_titles = list(dict.fromkeys(paper_title_pattern.findall(text)))
+
+        unrecognised_titles = []
+        for title in cited_titles:
+            t_lower = title.lower().strip().rstrip('.')
+            # Skip very short or obviously non-title strings
+            if len(t_lower.split()) < 3:
+                continue
+            # Check exact match
+            if t_lower in known_titles:
+                continue
+            # Check 4-word sliding window match against all known titles
+            found = False
+            t_words = t_lower.split()
+            if len(t_words) >= 4:
+                for known_t in known_titles:
+                    for i in range(len(t_words) - 3):
+                        fragment = " ".join(t_words[i:i + 4])
+                        if fragment in known_t:
+                            found = True
+                            break
+                    if found:
+                        break
+            if not found:
+                unrecognised_titles.append(title)
+
+        # Annotate unrecognised titles inline
+        for title in unrecognised_titles:
+            marker = ' **⚠️ [not found in database]**'
+            for pattern in [f'"{title}"', f'**"{title}"**', f'**{title}**']:
+                if pattern in text:
+                    text = text.replace(pattern, pattern + marker, 1)
+                    break
+
+        # --- Pass 1b: Remove fake PDF IDs for papers that have no PDF ---
+        # For recognised titles whose real paper has no PDF, check if the
+        # LLM fabricated a PDF reference nearby and remove it.
+        fake_pdf_ids = set()
+        for title in cited_titles:
+            t_lower = title.lower().strip().rstrip('.')
+            real_info = title_to_info.get(t_lower)
+            if not real_info:
+                # Try 4-word match
+                for known_t, info in title_to_info.items():
+                    t_words = t_lower.split()
+                    if len(t_words) >= 4:
+                        for i in range(len(t_words) - 3):
+                            if " ".join(t_words[i:i + 4]) in known_t:
+                                real_info = info
+                                break
+                    if real_info:
+                        break
+            if not real_info or real_info.get("has_pdf"):
+                continue
+            # This paper has no PDF — check for a fabricated PDF ID nearby
+            title_pos = text.lower().find(t_lower)
+            if title_pos == -1:
+                continue
+            # Search for a paper ID in the 300 chars after the title
+            after_title = text[title_pos:title_pos + 300]
+            fake_match = re.search(r'(?:PDF|pdf)[:\s]*(W\d{7,})', after_title)
+            if fake_match:
+                fake_id = fake_match.group(1)
+                # Replace the "PDF: W..." line with a note
+                text = text.replace(
+                    fake_match.group(0),
+                    'PDF: not available for this paper',
+                    1
+                )
+                fake_pdf_ids.add(fake_id)
+
+        # --- Pass 2: ID verification ---
+        seen_ids = set(fake_pdf_ids)  # skip IDs already handled in Pass 1b
+        cited_ids = []
+        for pid in re.findall(r'\b(W\d{7,})\b', text):
+            if pid not in seen_ids:
+                seen_ids.add(pid)
+                cited_ids.append(pid)
+
+        unknown_ids = []
+        mismatched_ids = []
+
+        for pid in cited_ids:
+            if pid not in paper_by_id:
+                unknown_ids.append(pid)
+                continue
+
+            real = paper_by_id[pid]
+            real_title_lower = real["title"].lower()
+
+            # Check surrounding text (500 chars before ID)
+            pid_pos = text.find(pid)
+            if pid_pos == -1:
+                continue
+            nearby = text[max(0, pid_pos - 500):pid_pos].lower()
+
+            # Title match: 3-word window
+            title_matched = False
+            title_words = real_title_lower.split()
+            if len(title_words) >= 3:
+                for i in range(len(title_words) - 2):
+                    if " ".join(title_words[i:i + 3]) in nearby:
+                        title_matched = True
+                        break
+            elif real_title_lower and real_title_lower in nearby:
+                title_matched = True
+
+            # Author match: at least one surname
+            author_matched = False
+            for name in real["authors"]:
+                parts = name.split()
+                if parts:
+                    surname = parts[-1].lower()
+                    if len(surname) > 2 and surname in nearby:
+                        author_matched = True
+                        break
+
+            if not title_matched and not author_matched:
+                mismatched_ids.append((pid, real))
+
+        # Annotate mismatched IDs inline with a simple warning
+        for pid, real in mismatched_ids:
+            annotation = (
+                f'{pid}\n'
+                f'  **⚠️ Warning:** the PDF link is not correct '
+                f'(it is most possibly a hallucination from the LLM)'
+            )
+            text = text.replace(pid, annotation, 1)
+
+        for pid in unknown_ids:
+            text = text.replace(pid, f'{pid} **(not in database)**', 1)
+
+        # Summary note
+        note_lines = []
+        if fake_pdf_ids:
+            note_lines.append(
+                f"**{len(fake_pdf_ids)} fake PDF link(s) removed** — "
+                f"the paper(s) have no PDF available in the database."
+            )
+        if unrecognised_titles:
+            note_lines.append(
+                f"**{len(unrecognised_titles)} paper title(s) not found in the "
+                f"database — may be hallucinated:**"
+            )
+            for t in unrecognised_titles:
+                note_lines.append(f'- "{t}"')
+        if mismatched_ids:
+            note_lines.append(
+                f"**{len(mismatched_ids)} PDF link(s) may be incorrect** "
+                f"(possible LLM hallucination)."
+            )
+        if unknown_ids:
+            note_lines.append(
+                f"**{len(unknown_ids)} paper ID(s) not found in the database:** "
+                + ", ".join(f"`{pid}`" for pid in unknown_ids)
+            )
+        if note_lines:
+            text += "\n\n---\n⚠️ **Verification note:**\n" + "\n".join(note_lines)
+
+        return text
+
     # ------------------------------------------------------------------
     # Chat methods (override SimpleRAGMixin or BaseRAGAgent)
     # ------------------------------------------------------------------
@@ -1742,6 +1960,13 @@ class MetadataRAGMixin:
         if not is_figure_request:
             llm_content = self._strip_map_links(llm_content)
 
+        # Verify paper references against the database
+        combined_ctx = " ".join(filter(None, [
+            affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
+            metadata_ctx, context
+        ]))
+        llm_content = self._verify_paper_references(llm_content, combined_ctx, self._transparency)
+
         # Compute grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
             affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx
@@ -1759,6 +1984,8 @@ class MetadataRAGMixin:
                 transparency=self._transparency,
                 highlight_config=highlight_cfg,
                 prompt_level=self._prompt_level,
+                model_name=self.model_display_name,
+                is_local_llm=self._is_local_llm,
             )
             breakdown = figure_breakdown
         else:
@@ -1773,6 +2000,8 @@ class MetadataRAGMixin:
                 is_gap_analysis=is_gap_analysis,
                 is_not_found=self._is_not_found_response(llm_content),
                 prompt_level=self._prompt_level,
+                model_name=self.model_display_name,
+                is_local_llm=self._is_local_llm,
             )
 
         response_content = badge + llm_content
@@ -1900,7 +2129,18 @@ class MetadataRAGMixin:
         if not is_figure_request:
             cleaned = self._strip_map_links(full_response)
             if cleaned != full_response:
+                full_response = cleaned
                 yield ("replace", cleaned)
+
+        # Verify paper references against the database
+        combined_ctx = " ".join(filter(None, [
+            affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
+            metadata_ctx, context
+        ]))
+        verified = self._verify_paper_references(full_response, combined_ctx, self._transparency)
+        if verified != full_response:
+            full_response = verified
+            yield ("replace", verified)
 
         # Deferred grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
@@ -1919,6 +2159,8 @@ class MetadataRAGMixin:
                 transparency=self._transparency,
                 highlight_config=highlight_cfg,
                 prompt_level=self._prompt_level,
+                model_name=self.model_display_name,
+                is_local_llm=self._is_local_llm,
             ))
             breakdown = figure_breakdown
         else:
@@ -1933,6 +2175,8 @@ class MetadataRAGMixin:
                 is_gap_analysis=is_gap_analysis,
                 is_not_found=self._is_not_found_response(full_response),
                 prompt_level=self._prompt_level,
+                model_name=self.model_display_name,
+                is_local_llm=self._is_local_llm,
             )
             if badge:
                 yield ("badge", badge)

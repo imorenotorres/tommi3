@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tommi Agents</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-    <link rel="stylesheet" href="/static/style.css?v=10">
+    <link rel="stylesheet" href="/static/style.css?v=17">
     <!-- Leaflet.js for inline maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -29,17 +29,45 @@
                         <option value="">Loading agents...</option>
                     </select>
                 </div>
-                <div id="agent-type" class="agent-type hidden">
-                    <img id="agent-type-icon" src="" alt="" class="agent-type-icon">
-                    <span id="agent-type-label"></span>
+                <div id="agent-info-section" class="agent-section-wrapper hidden">
+                    <h4>Agent type & LLM provider: <span id="agent-info-help" class="agent-options-help" title="Help">?</span></h4>
+                    <div id="agent-info-tooltip" class="agent-options-tooltip hidden">
+                        <span style="font-weight:bold;color:#2563eb;border-bottom:2px solid #2563eb;">Agent type</span> — The architecture used by this agent:<br>
+                        &bull; <b>RAG</b> — Searches a document database and answers from retrieved context.<br>
+                        &bull; <b>Metadata+RAG</b> — Like RAG plus structured metadata (authors, universities, topics), maps and figures.<br>
+                        &bull; <b>Text2SQL</b> — Converts questions into SQL queries against a relational database.<br>
+                        &bull; <b>Oneshot</b> — Single LLM call with no document retrieval.<br>
+                        The agent type is set when the agent is created and cannot be changed afterwards.<br><br>
+                        <span style="font-weight:bold;color:#2563eb;border-bottom:2px solid #2563eb;">LLM provider</span> — The language model service. Can be changed in the <code>.env</code> file (LLM_PROVIDER = ollama or mistral).
+                        <div style="text-align:right;margin-top:0.5rem;"><button class="tooltip-close-btn" data-tooltip="agent-info-tooltip">Close</button></div>
+                    </div>
+                    <div class="agent-options-box">
+                        <div id="agent-type" class="agent-info-item">
+                            <img id="agent-type-icon" src="" alt="" class="agent-type-icon">
+                            <span id="agent-type-label"></span>
+                        </div>
+                        <div id="llm-provider" class="agent-info-item">
+                            <img id="llm-provider-icon" src="" alt="" class="agent-type-icon">
+                            <span id="llm-provider-label"></span>
+                        </div>
+                    </div>
                 </div>
                 <p id="agent-description" class="agent-description hidden"></p>
-                <div id="agent-options" class="agent-options hidden">
-                    <div id="llm-status" class="llm-status">
-                        <span id="llm-badge" class="llm-badge loading">Loading...</span>
+                <div id="agent-options" class="agent-section-wrapper hidden">
+                    <h4>Agent tuning: <span id="agent-options-help" class="agent-options-help" title="Help">?</span></h4>
+                    <div id="agent-options-tooltip" class="agent-options-tooltip hidden">
+                        <b>LLM</b> — Select the language model. Click to cycle through available models.<br>
+                        <b>Transparency</b> — Controls how much detail is shown about response reliability. Crystal box = full detail, Grey box = minimal, Black box = none.<br>
+                        <b>Prompt</b> — Controls how strictly the system prompt constrains the LLM. Stringent = all rules enforced, Tolerant = standard rules only, Lax = identity only.
+                        <div style="text-align:right;margin-top:0.5rem;"><button class="tooltip-close-btn" data-tooltip="agent-options-tooltip">Close</button></div>
                     </div>
-                    <div id="transparency-level" class="transparency-level hidden"></div>
-                    <div id="prompt-level" class="prompt-level hidden"></div>
+                    <div class="agent-options-box">
+                        <div id="llm-status" class="llm-status">
+                            <span id="llm-badge" class="llm-badge loading">Loading...</span>
+                        </div>
+                        <div id="transparency-level" class="transparency-level hidden"></div>
+                        <div id="prompt-level" class="prompt-level hidden"></div>
+                    </div>
                 </div>
                 <div id="example-queries" class="example-queries hidden">
                     <h4>Example queries:</h4>
@@ -92,6 +120,6 @@
         </main>
     </div>
 
-    <script src="/static/app.js?v=13"></script>
+    <script src="/static/app.js?v=22"></script>
 </body>
 </html>

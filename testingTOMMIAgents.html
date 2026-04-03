@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Testing TOMMI Agents — Tester Guide</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Testing TOMMI Agents — Tester Guide</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#testing-tommi-agents-tester-guide"
+id="toc-testing-tommi-agents-tester-guide">Testing TOMMI Agents – Tester
+Guide</a>
+<ul>
+<li><a href="#introduction" id="toc-introduction">1.
+Introduction</a></li>
+<li><a href="#agent-tuning-options" id="toc-agent-tuning-options">2.
+Agent Tuning Options</a>
+<ul>
+<li><a href="#llm-selection" id="toc-llm-selection">2.1 LLM
+Selection</a></li>
+<li><a href="#transparency-levels" id="toc-transparency-levels">2.2
+Transparency Levels</a></li>
+<li><a href="#prompt-levels" id="toc-prompt-levels">2.3 Prompt
+Levels</a></li>
+</ul></li>
+<li><a href="#the-transparency-pipeline"
+id="toc-the-transparency-pipeline">3. The Transparency Pipeline</a>
+<ul>
+<li><a href="#step-1-claim-identification"
+id="toc-step-1-claim-identification">3.1 Step 1 — Claim
+Identification</a></li>
+<li><a href="#step-2-claim-categorization"
+id="toc-step-2-claim-categorization">3.2 Step 2 — Claim
+Categorization</a></li>
+<li><a href="#step-3-confidence-computation"
+id="toc-step-3-confidence-computation">3.3 Step 3 — Confidence
+Computation</a></li>
+<li><a href="#known-limitations-and-common-issues"
+id="toc-known-limitations-and-common-issues">3.4 Known Limitations and
+Common Issues</a></li>
+<li><a href="#post-response-verification-metadatarag-agents"
+id="toc-post-response-verification-metadatarag-agents">3.5 Post-Response
+Verification (Metadata+RAG Agents)</a></li>
+</ul></li>
+<li><a href="#testing-checklist" id="toc-testing-checklist">4. Testing
+Checklist</a></li>
+<li><a href="#interpreting-the-audit-log"
+id="toc-interpreting-the-audit-log">5. Interpreting the Audit
+Log</a></li>
+<li><a href="#model-quality-comparison"
+id="toc-model-quality-comparison">6. Model Quality Comparison</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="testing-tommi-agents-tester-guide">Testing TOMMI Agents – Tester
+Guide</h1>
+<h2 id="introduction">1. Introduction</h2>
+<p>This guide is intended for <strong>testers, QA staff, and project
+managers</strong> who need to evaluate TOMMI agents before deployment.
+It covers the practical aspects of verifying agent quality, tuning
+runtime parameters, interpreting reliability data, and checking claim
+accuracy.</p>
+<p><strong>Role of testers:</strong> Your job is to verify that an agent
+produces accurate, well-grounded responses; that the transparency
+features work correctly at every level; and that the tuning controls
+behave as documented. Testing should be performed before any agent is
+made available to end users.</p>
+<p><strong>Testing should cover:</strong></p>
+<ul>
+<li>Response quality and factual accuracy</li>
+<li>Reliability badge correctness (does the badge reflect what the
+response actually contains?)</li>
+<li>Transparency levels (does each level show the right amount of
+detail?)</li>
+<li>Prompt level behaviour (does constraining the prompt actually change
+the agent’s responses?)</li>
+<li>LLM selection (do different models produce acceptable quality?)</li>
+</ul>
+<hr />
+<h2 id="agent-tuning-options">2. Agent Tuning Options</h2>
+<p>TOMMI agents expose three runtime controls that affect response
+quality, detail, and behaviour. All three can be changed live from the
+web interface without restarting the server.</p>
+<h3 id="llm-selection">2.1 LLM Selection</h3>
+<p>Click the <strong>LLM badge</strong> in the sidebar to cycle through
+available models. The badge is colour-coded:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>Colour</th>
+<th>Badge</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Green</td>
+<td>Local</td>
+<td>Using a local LLM (Ollama or vLLM). Data stays on your machine.</td>
+</tr>
+<tr>
+<td>Yellow/Orange</td>
+<td>Cloud (small)</td>
+<td>Using a small cloud model (e.g., mistral-small). Lower cost.</td>
+</tr>
+<tr>
+<td>Red</td>
+<td>Cloud (large)</td>
+<td>Using a large cloud model (e.g., mistral-large). Higher cost and
+quality.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Local (Ollama) vs Cloud (Mistral) differences:</strong></p>
+<table>
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 41%" />
+<col style="width: 39%" />
+</colgroup>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Cloud (Mistral)</th>
+<th>Local (Ollama)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model size</td>
+<td>Full model, uncompressed</td>
+<td>Quantized (compressed) for local hardware</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>16-bit floating point</td>
+<td>4-bit or 8-bit quantization</td>
+</tr>
+<tr>
+<td>Reasoning</td>
+<td>Better coherence and accuracy</td>
+<td>May struggle with complex tasks</td>
+</tr>
+<tr>
+<td>Privacy</td>
+<td>Data sent to external API</td>
+<td>Data never leaves your machine</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>Per-query API charges</td>
+<td>No API costs</td>
+</tr>
+<tr>
+<td>Latency</td>
+<td>Network round-trip</td>
+<td>Local inference (faster for small models)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Model size impact:</strong> Smaller models (7B parameters)
+are faster and require less hardware, but hallucinate more and produce
+less coherent answers. Larger models (70B+) are slower and need
+significant GPU resources, but are more accurate and better at following
+instructions.</p>
+<p><strong>How to evaluate:</strong> Ask the same question with each
+available model and compare the responses side by side. Pay attention
+to:</p>
+<ul>
+<li>Does the response answer the question correctly?</li>
+<li>Are paper titles, author names, and years accurate?</li>
+<li>Does the reliability badge change significantly between models?</li>
+<li>Does the response follow the agent’s prompt constraints?</li>
+</ul>
+<h3 id="transparency-levels">2.2 Transparency Levels</h3>
+<p>Click the <strong>transparency badge</strong> (above the example
+queries) to cycle through levels: Crystal box, Grey box, Black box. The
+change takes effect immediately for the next query.</p>
+<ul>
+<li><strong>Crystal box</strong> – full detail for developers and
+testers. All transparency features are active:
+<ul>
+<li>Reliability badge with source breakdown percentages (e.g.,
+<code>Metadata: 75% | Database: 10% | LLM: 15%</code>)</li>
+<li>Confidence score with claim count</li>
+<li>Source lines (coloured indicators)</li>
+<li>Inline claim highlights (colour-coded text showing the provenance of
+each claim)</li>
+<li>Colour legend explaining the highlight meanings</li>
+<li>Agent settings info (model name, LLM location, transparency level,
+prompt level)</li>
+</ul></li>
+<li><strong>Grey box</strong> – minimal for end users:
+<ul>
+<li>Reliability label only (High / Good / Poor)</li>
+<li>Confidence percentage only</li>
+<li>No source breakdown, no inline highlights, no legend</li>
+</ul></li>
+<li><strong>Black box</strong> – nothing shown:
+<ul>
+<li>The response appears without any badge, confidence indicator, or
+highlights</li>
+<li>The <strong>audit log still records everything</strong> – all
+decision data is logged for compliance and analysis</li>
+<li>Useful for A/B testing or researching user trust behaviour with
+vs. without transparency</li>
+</ul></li>
+</ul>
+<p><strong>Testing tip:</strong> Always use Crystal box during testing
+so you can see the full detail. Then verify that Grey box and Black box
+correctly hide the expected elements. After testing, decide which level
+is appropriate for end users.</p>
+<h3 id="prompt-levels">2.3 Prompt Levels</h3>
+<p>Click the <strong>prompt badge</strong> to cycle through levels. The
+prompt level controls how much of the system prompt is active:</p>
+<ul>
+<li><p><strong>Stringent</strong> – all 3 prompt sections active:
+identity + standard rules + strict restrictions. This is the most
+constrained behaviour. The agent follows all configured rules, including
+partner recognition, gap analysis constraints, and domain
+restrictions.</p></li>
+<li><p><strong>Tolerant</strong> – sections 1 and 2 only: identity +
+standard rules. The strict restrictions (section 3) are removed. The
+agent still follows the general rules but is not subject to the most
+restrictive constraints.</p></li>
+<li><p><strong>Lax</strong> – section 1 only: just the agent’s identity.
+The LLM answers freely with minimal constraints. Use with caution – the
+agent may go off-topic, hallucinate more freely, or ignore domain
+boundaries.</p></li>
+</ul>
+<p><strong>How the prompt sections work:</strong></p>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 31%" />
+<col style="width: 28%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr>
+<th>Level</th>
+<th style="text-align: center;">Section 1 (Identity)</th>
+<th style="text-align: center;">Section 2 (Rules)</th>
+<th style="text-align: center;">Section 3 (Strict)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stringent</td>
+<td style="text-align: center;">Active</td>
+<td style="text-align: center;">Active</td>
+<td style="text-align: center;">Active</td>
+</tr>
+<tr>
+<td>Tolerant</td>
+<td style="text-align: center;">Active</td>
+<td style="text-align: center;">Active</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr>
+<td>Lax</td>
+<td style="text-align: center;">Active</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Testing tip:</strong> Ask the same question at all three
+levels and verify the differences:</p>
+<ol type="1">
+<li>With <strong>Stringent</strong>, the agent should refuse or redirect
+off-topic questions and strictly follow domain rules.</li>
+<li>With <strong>Tolerant</strong>, the agent should be somewhat
+flexible but still follow general rules.</li>
+<li>With <strong>Lax</strong>, the agent should answer more freely. If
+it still refuses off-topic questions at Lax, something may be wrong with
+the prompt structure.</li>
+</ol>
+<p><strong>Example test:</strong> Ask an off-topic question like “What
+is the recipe for chocolate cake?” at each level. With Stringent, the
+agent should refuse. With Lax, it may attempt an answer (which confirms
+the prompt constraints are working at each level).</p>
+<hr />
+<h2 id="the-transparency-pipeline">3. The Transparency Pipeline</h2>
+<p>The transparency system works as a three-step pipeline. Each step can
+succeed or fail independently, and testers should evaluate each one
+separately.</p>
+<pre><code>Response text
+     │
+     ▼
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│ Step 1:         │     │ Step 2:         │     │ Step 3:         │
+│ Claim           │────▶│ Claim           │────▶│ Confidence      │
+│ Identification  │     │ Categorization  │     │ Computation     │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+  &quot;What are the           &quot;Where does each       &quot;How reliable is
+   verifiable facts?&quot;      claim come from?&quot;       the response?&quot;</code></pre>
+<h3 id="step-1-claim-identification">3.1 Step 1 — Claim
+Identification</h3>
+<p><strong>Goal:</strong> Extract verifiable factual claims from the LLM
+response.</p>
+<p>Claim identification uses a <strong>bidirectional approach</strong>
+that combines two complementary techniques:</p>
+<h4 id="phase-a-response-driven-extraction-regex-patterns">Phase A —
+Response-driven extraction (regex patterns)</h4>
+<p>The system scans the response text using pattern matching to identify
+fragments that look like verifiable facts. The following patterns are
+recognized, in order:</p>
+<table>
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 24%" />
+<col style="width: 24%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Pattern</th>
+<th>Example</th>
+<th>Minimum length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Quoted strings</td>
+<td>“Explainable AI in Healthcare”</td>
+<td>10 characters</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Bold markdown text</td>
+<td><strong>AI Ethics</strong></td>
+<td>5 characters</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Author / proper-noun names</td>
+<td>García-López, Van der Berg</td>
+<td>2 words</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Years</td>
+<td>2024</td>
+<td>exact 4 digits</td>
+</tr>
+<tr>
+<td>5</td>
+<td>University acronyms (Metadata+RAG only)</td>
+<td>UMA, THUAS, TAMK</td>
+<td>from config</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Paper IDs (Metadata+RAG only)</td>
+<td>W4405602662</td>
+<td>7+ digits</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Technical terms (ALL_CAPS 3+ chars, compound)</td>
+<td>RAG, RAG+Metadata, Text2SQL</td>
+<td>3 characters</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Filters applied</strong> — the following are excluded even if
+they match a pattern above:</p>
+<ul>
+<li>Bold text that starts with an instruction verb (e.g., “Modify the…”,
+“Use the…”, “If you…”)</li>
+<li>Bold text that is a question (ends with “?”)</li>
+<li>Bold text longer than 8 words (likely a heading or sentence, not a
+factual claim)</li>
+<li>Author-like matches starting with common English words (e.g., “If
+you”, “The system”, “However…”)</li>
+<li>Claims shorter than 2 characters</li>
+<li>Duplicates (only the first occurrence is kept)</li>
+</ul>
+<p><strong>Limitation:</strong> This phase only catches claims that fit
+predefined regex patterns. Domain-specific terms that are not in bold,
+not quoted, and not ALL_CAPS will be missed. For example, in a
+Responsible AI agent, terms like “transparency”, “fairness”, or
+“AI-generated content” in plain text would not be identified by regex
+alone.</p>
+<h4 id="phase-b-context-driven-extraction-bidirectional">Phase B —
+Context-driven extraction (bidirectional)</h4>
+<p>To address the limitation above, the system also works in reverse: it
+extracts significant terms from the <strong>context</strong> (metadata
+and RAG documents) and checks whether those terms appear in the
+response.</p>
+<p>How it works:</p>
+<ol type="1">
+<li><strong>Context tokenization:</strong> The metadata and RAG context
+text is split into tokens. Stop words and very short words (&lt; 4
+characters) are removed.</li>
+<li><strong>N-gram generation:</strong> Single words and 2–3 word
+phrases (n-grams) are generated from the context tokens. These represent
+the agent’s domain vocabulary.</li>
+<li><strong>Response scanning:</strong> Each context-derived term is
+searched for in the response text. Only terms that were NOT already
+identified in Phase A are added.</li>
+<li><strong>Overlap prevention:</strong> Longer phrases are matched
+first. If “AI-generated content” is matched, the shorter “AI-generated”
+inside it is not double-counted.</li>
+</ol>
+<p><strong>Example:</strong> If the metadata context contains “AI
+ethics, explainable AI, transparency, accountability, responsible AI”
+and the response mentions “transparency of AI-generated content”, Phase
+B identifies “transparency”, “AI-generated content”, and “responsible
+AI” as claims — even though they are in plain text without any special
+formatting.</p>
+<p><strong>Key property:</strong> Claims found via Phase B are
+automatically grounded, because they were extracted <em>from</em> the
+context. This means they are classified as metadata or database claims
+in Step 2 without further matching.</p>
+<h4 id="combined-result">Combined result</h4>
+<p>The final claim set is the union of Phase A (regex) and Phase B
+(context-driven) claims, deduplicated. This bidirectional approach
+significantly improves coverage for domain-specific content.</p>
+<p><strong>What testers should check:</strong></p>
+<ul>
+<li>Are the right things being identified as claims? Look at the inline
+highlights in Crystal box mode.</li>
+<li>Are important factual statements being missed? If a key fact is not
+highlighted, it was not recognized as a claim by either phase.</li>
+<li>Are non-factual fragments (headings, instructions, suggestions)
+incorrectly marked as claims?</li>
+<li>For Phase B: are trivial or very generic terms from the context
+being over-matched in the response? (The minimum length and stop-word
+filters should prevent this, but edge cases may occur.)</li>
+</ul>
+<h3 id="step-2-claim-categorization">3.2 Step 2 — Claim
+Categorization</h3>
+<p><strong>Goal:</strong> Determine where each identified claim comes
+from — the agent’s data or the LLM’s own knowledge.</p>
+<p>Claims from <strong>Phase A</strong> (regex-extracted) need to be
+matched against context to determine their source. Claims from
+<strong>Phase B</strong> (context-derived) are already categorized,
+since they were found <em>in</em> the context.</p>
+<h4 id="categorization-of-phase-a-claims">Categorization of Phase A
+claims</h4>
+<p>Each regex-extracted claim is checked (case-insensitive) against the
+context pools that were provided to the LLM:</p>
+<p><strong>Context pools (in priority order):</strong></p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 44%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr>
+<th>Pool</th>
+<th>Available in</th>
+<th>Contains</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Metadata context</td>
+<td>Metadata+RAG agents</td>
+<td>Structured data: topic summaries, researcher indexes, paper lists,
+collaboration data</td>
+</tr>
+<tr>
+<td>RAG context</td>
+<td>All RAG agents</td>
+<td>Text chunks retrieved from ChromaDB via semantic similarity
+search</td>
+</tr>
+<tr>
+<td>(no match)</td>
+<td>—</td>
+<td>Claim is categorized as LLM-generated</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Matching logic:</strong></p>
+<ol type="1">
+<li><strong>Exact substring match</strong> — the full claim text
+(lowercased) is searched within the context. If found, the claim is
+categorized under that pool.</li>
+<li><strong>Fuzzy match</strong> (for multi-word claims only) — if the
+exact match fails, the system extracts significant words (longer than 3
+characters) and checks whether a <strong>majority</strong> (more than
+50%) of them appear in the context. This handles minor variations in
+phrasing.</li>
+</ol>
+<p><strong>Categorization priority:</strong> Metadata is checked first,
+then RAG. A claim found in metadata is always categorized as “metadata”
+even if it also appears in the RAG context. Claims not found in any pool
+are categorized as “LLM.”</p>
+<h4 id="categorization-of-phase-b-claims">Categorization of Phase B
+claims</h4>
+<p>Claims identified via the context-driven approach (Phase B) are
+<strong>pre-categorized</strong> — no additional matching is needed:</p>
+<ul>
+<li>Terms found in the <strong>metadata context</strong> → categorized
+as <strong>Metadata</strong></li>
+<li>Terms found in the <strong>RAG context</strong> (and not in
+metadata) → categorized as <strong>Database</strong></li>
+</ul>
+<p>This is because Phase B extracts terms directly from the context, so
+by definition they are grounded.</p>
+<h4 id="result">Result</h4>
+<p>Each claim (from either phase) is assigned to one of three
+categories:</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 52%" />
+<col style="width: 22%" />
+</colgroup>
+<thead>
+<tr>
+<th>Category</th>
+<th>Colour (Crystal box)</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Metadata</td>
+<td>Green</td>
+<td>Claim found in structured metadata — highest confidence</td>
+</tr>
+<tr>
+<td>Database (RAG)</td>
+<td>Yellow</td>
+<td>Claim found in retrieved document chunks</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Red (italic)</td>
+<td>Claim not found in any data source — generated by the LLM</td>
+</tr>
+</tbody>
+</table>
+<p>For simple RAG agents (without metadata), only two categories exist:
+Database and LLM.</p>
+<p><strong>What testers should check:</strong></p>
+<ul>
+<li>Are claims categorized correctly? A claim from the database should
+not appear as LLM (red).</li>
+<li>Are there false positives? A generic word like “system” matching in
+the context can cause incorrect grounding. Phase B mitigates this with
+stop-word filtering and minimum length requirements, but edge cases may
+occur.</li>
+<li>Are there false negatives? A correct claim may be marked as LLM
+because the exact phrasing differs (e.g., hyphenation, accent marks,
+abbreviations). Phase B helps here by matching domain terms that regex
+would miss.</li>
+</ul>
+<h3 id="step-3-confidence-computation">3.3 Step 3 — Confidence
+Computation</h3>
+<p><strong>Goal:</strong> Aggregate the per-claim categorizations into
+an overall reliability score.</p>
+<p><strong>Computation:</strong></p>
+<ul>
+<li><strong>Confidence %</strong> = percentage of claims classified as
+metadata or database (i.e., not LLM)</li>
+<li><strong>LLM %</strong> = percentage of claims classified as
+LLM-generated</li>
+<li>The reliability label is determined by comparing LLM % against
+configurable thresholds:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Reliability label</th>
+<th>Badge colour</th>
+<th>Default condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>High</strong></td>
+<td>Green</td>
+<td>LLM % ≤ 20%</td>
+</tr>
+<tr>
+<td><strong>Good</strong></td>
+<td>Yellow</td>
+<td>20% &lt; LLM % &lt; 50%</td>
+</tr>
+<tr>
+<td><strong>Poor</strong></td>
+<td>Red</td>
+<td>LLM % ≥ 50%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Source breakdown display:</strong></p>
+<ul>
+<li><strong>Metadata+RAG agents (3-way):</strong>
+<code>Metadata: X% | Database: Y% | LLM: Z%</code></li>
+<li><strong>RAG agents (2-way):</strong>
+<code>Database: X% | LLM: Y%</code></li>
+</ul>
+<p><strong>Small claim count rule:</strong> When total claims &lt; 3,
+absolute counts are shown instead of percentages (e.g.,
+<code>Metadata: 2/2 | LLM: 0/2</code>) because percentages from 1–2 data
+points are misleading.</p>
+<p><strong>Coverage metric:</strong> In addition to confidence, the
+system computes a <strong>coverage percentage</strong> — the fraction of
+response words that are part of identified claims. This answers: “how
+much of this response was actually checked?”</p>
+<ul>
+<li><strong>Coverage ≥ 15%:</strong> Normal — a meaningful portion of
+the response has been verified. The confidence score is
+trustworthy.</li>
+<li><strong>Coverage &lt; 15%:</strong> A warning is shown: <em>“⚠️ Low
+verifiability: only X% of the response could be checked.”</em> The
+confidence score may be technically correct for the claims found, but
+most of the response remains unverified.</li>
+<li><strong>Coverage = 0% (no claims):</strong> A stronger warning is
+shown: <em>“⚠️ No verifiable claims found — this response could not be
+checked.”</em> This typically happens when the response is completely
+off-topic (e.g., a recipe from a research agent) or when the LLM
+produces content that doesn’t match any extraction pattern.</li>
+</ul>
+<p><strong>What testers should check:</strong></p>
+<ul>
+<li>Does the reliability label make sense? A response that is clearly
+well-grounded should not show “Poor.”</li>
+<li>Is the confidence percentage consistent with what you see in the
+inline highlights?</li>
+<li>Is the coverage adequate? A response with “High” reliability but
+only 5% coverage is not truly verified.</li>
+<li>Are the thresholds appropriate for this agent’s domain? Agents
+covering broad topics may need different thresholds than narrow-domain
+agents.</li>
+</ul>
+<p><strong>What the badge shows at each transparency level:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Crystal box</th>
+<th>Grey box</th>
+<th>Black box</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reliability label</td>
+<td>✓</td>
+<td>✓</td>
+<td>Hidden</td>
+</tr>
+<tr>
+<td>Source breakdown (%)</td>
+<td>✓</td>
+<td>Hidden</td>
+<td>Hidden</td>
+</tr>
+<tr>
+<td>Confidence + claim count</td>
+<td>✓</td>
+<td>Confidence only</td>
+<td>Hidden</td>
+</tr>
+<tr>
+<td>Coverage warning (when low)</td>
+<td>✓</td>
+<td>Hidden</td>
+<td>Hidden</td>
+</tr>
+<tr>
+<td>LLM model name &amp; provider</td>
+<td>✓</td>
+<td>✓</td>
+<td>Hidden</td>
+</tr>
+<tr>
+<td>Prompt level</td>
+<td>✓</td>
+<td>Hidden</td>
+<td>Hidden</td>
+</tr>
+<tr>
+<td>Inline highlights</td>
+<td>✓</td>
+<td>Hidden</td>
+<td>Hidden</td>
+</tr>
+<tr>
+<td>Colour legend</td>
+<td>✓</td>
+<td>Hidden</td>
+<td>Hidden</td>
+</tr>
+</tbody>
+</table>
+<h3 id="known-limitations-and-common-issues">3.4 Known Limitations and
+Common Issues</h3>
+<p><strong>In Step 1 (Claim Identification):</strong></p>
+<ul>
+<li><em>Phase A:</em> Short or unusual proper nouns may not be detected
+(e.g., single-word technical terms that are not ALL_CAPS). Very long
+responses produce many claims, most of which are correctly identified,
+but occasional false extractions (e.g., a heading mistaken for a claim)
+may occur.</li>
+<li><em>Phase B:</em> The context-driven approach compensates for most
+Phase A gaps by matching domain-specific terms directly. However, it
+depends on the richness of the context — if the metadata or RAG context
+is sparse, fewer terms will be found.</li>
+<li><em>Both phases:</em> When the response is completely off-topic
+(e.g., a chocolate cake recipe from a Responsible AI agent in Lax mode),
+neither phase may identify any claims. The badge will show “0 claims
+verified” — testers should treat this as a signal that the response
+could not be verified at all.</li>
+</ul>
+<p><strong>In Step 2 (Claim Categorization):</strong></p>
+<ul>
+<li><strong>False positives:</strong> A common word in a Phase A claim
+happens to appear in the context, causing incorrect grounding. Example:
+“Machine Learning” matches because “Learning” appears in an unrelated
+chunk. Phase B claims are less prone to this because of stop-word
+filtering.</li>
+<li><strong>False negatives:</strong> The exact phrase or a majority of
+significant words do not appear in the context, even though the
+information is correct. Example: “García-López” in the response
+vs. “Garcia Lopez” (without accents or hyphen) in the database.</li>
+</ul>
+<p><strong>In Step 3 (Confidence Computation):</strong></p>
+<ul>
+<li>Very few claims (1–2) make percentages unreliable. The absolute
+count display mitigates this but does not eliminate the problem.</li>
+<li>Zero claims is a special case: the badge defaults to “100% metadata”
+which may be misleading. Testers should note the “(0 claims verified)”
+indicator — a response with 0 verifiable claims is not necessarily
+reliable.</li>
+<li>The thresholds (20% / 50%) are defaults. They may need adjustment
+for agents where the LLM is expected to contribute more (e.g.,
+summarization tasks) or less (e.g., strict factual lookup).</li>
+</ul>
+<p><strong>Special case — Gap analysis queries:</strong> Gap analysis
+(“list topics NOT studied”) uses the LLM to reason about what is absent
+from the data. The badge reflects the actual claim breakdown, which will
+typically show high LLM content — this is expected and correct for this
+type of query.</p>
+<h3 id="post-response-verification-metadatarag-agents">3.5 Post-Response
+Verification (Metadata+RAG Agents)</h3>
+<p>In addition to the three-step transparency pipeline (which analyses
+claims in any response), Metadata+RAG agents have a
+<strong>post-response verification system</strong> that specifically
+targets LLM hallucinations in paper references. This runs automatically
+after every response and performs three checks:</p>
+<h4 id="pass-1a-title-verification">Pass 1a — Title verification</h4>
+<p>Every paper title in the response (extracted from quoted or bold text
+that is followed by author/year metadata) is checked against the full
+database of known papers.</p>
+<ul>
+<li><strong>If a title is not found</strong> in any university’s paper
+list, it is flagged inline:
+<code>"Fake Paper Title" **⚠️ [not found in database]**</code></li>
+<li>Matching uses a 4-word sliding window, so minor variations in
+phrasing are tolerated.</li>
+<li>Non-title quoted text (e.g., “12 papers on AI &amp; Ethics from
+UMA”) is automatically excluded — only text that appears in a
+paper-listing format (followed by Authors/Year/PDF) is checked.</li>
+</ul>
+<h4 id="pass-1b-fake-pdf-removal">Pass 1b — Fake PDF removal</h4>
+<p>For papers that exist in the database but have <strong>no PDF
+available</strong>, the LLM sometimes fabricates a PDF link using a real
+paper ID from a completely different paper. This pass detects and
+removes these fake references.</p>
+<ul>
+<li>If a paper title is recognised but the real paper has no PDF
+(<code>pdf_url</code> and <code>local_pdf_path</code> are both empty),
+any <code>PDF: W...</code> reference near the title is replaced with:
+<code>PDF: not available for this paper</code></li>
+<li>This prevents users from clicking a PDF link that leads to an
+unrelated paper.</li>
+</ul>
+<h4 id="pass-2-id-title-mismatch-detection">Pass 2 — ID-title mismatch
+detection</h4>
+<p>Every paper ID (<code>W</code> followed by 7+ digits) in the response
+is cross-checked against the surrounding text (500 characters before the
+ID) to verify that the title and authors match the actual paper.</p>
+<ul>
+<li><strong>If the ID exists but the title/authors don’t match</strong>,
+a correction is shown inline:
+<code>⚠️ Correction — actual paper for W1234567890: "Real Title" by Real Author (Year, University)</code></li>
+<li><strong>If the ID doesn’t exist</strong> in any university’s paper
+list, it is marked: <code>W9999999999 **(not in database)**</code></li>
+</ul>
+<h4 id="verification-summary-note">Verification summary note</h4>
+<p>When any issues are detected, a summary note appears at the end of
+the response:</p>
+<blockquote>
+<p>⚠️ <strong>Verification note:</strong> <strong>1 fake PDF link(s)
+removed</strong> — the paper(s) have no PDF available in the database.
+<strong>1 paper title(s) not found in the database — may be
+hallucinated:</strong> - “Fake Paper Title Here” <strong>1 paper ID(s)
+had incorrect titles/authors</strong> — corrections shown inline
+above.</p>
+</blockquote>
+<p><strong>What testers should check:</strong></p>
+<ul>
+<li>After asking for a paper listing, verify that all flagged titles are
+genuinely not in the database (not false positives from title
+matching).</li>
+<li>After asking to “expand” a specific paper, verify that the PDF link
+(if any) points to the correct paper.</li>
+<li>For papers without PDFs, verify the “not available” message appears
+instead of a fake link.</li>
+</ul>
+<hr />
+<h2 id="testing-checklist">4. Testing Checklist</h2>
+<p>Before deploying an agent, verify each item:</p>
+<ul class="task-list">
+<li><label><input type="checkbox" /><strong>Representative
+queries:</strong> Test with at least 10 representative queries covering
+the agent’s domain. Include simple factual questions, comparison
+questions, and topic summaries.</label></li>
+<li><label><input type="checkbox" /><strong>Reliability badge
+sanity:</strong> Verify that badges are not always High or always Poor.
+A healthy agent should produce a mix depending on the query type.
+Metadata queries should tend toward High; open-ended questions may show
+Good or Poor.</label></li>
+<li><label><input type="checkbox" /><strong>Crystal box detail:</strong>
+In Crystal box mode, verify the full badge appears with source breakdown
+percentages, confidence score, claim count, inline highlights, and
+colour legend.</label></li>
+<li><label><input type="checkbox" /><strong>Grey box minimal:</strong>
+In Grey box mode, verify only the reliability label and confidence
+percentage appear. No breakdown, no highlights, no legend.</label></li>
+<li><label><input type="checkbox" /><strong>Black box
+suppression:</strong> In Black box mode, verify no reliability
+information is shown at all. The response should appear clean, with no
+badge or indicators.</label></li>
+<li><label><input type="checkbox" /><strong>Stringent prompt:</strong>
+Ask an off-topic question (e.g., “What is the weather today?”). The
+agent should refuse or redirect.</label></li>
+<li><label><input type="checkbox" /><strong>Lax prompt:</strong> Ask the
+same off-topic question. The agent should answer more freely, confirming
+that prompt constraints are actually effective at the Stringent
+level.</label></li>
+<li><label><input type="checkbox" /><strong>Tolerant prompt:</strong>
+Verify behaviour falls between Stringent and Lax.</label></li>
+<li><label><input type="checkbox" /><strong>LLM switching:</strong>
+Switch between available LLMs and compare response quality. Verify the
+LLM badge updates correctly (colour and label).</label></li>
+<li><label><input type="checkbox" /><strong>Coverage warnings:</strong>
+Ask an off-topic question in Lax mode (e.g., “recipe for chocolate cake”
+to a research agent). Verify the badge shows “No verifiable claims
+found” or “Low verifiability.” Then ask an on-topic question and confirm
+the coverage warning disappears.</label></li>
+<li><label><input type="checkbox" /><strong>Gap analysis (RAG+Metadata
+only):</strong> Ask a gap analysis question (e.g., “What topics have not
+been studied?”). Verify the badge shows Poor/LLM: 100% and the inline
+highlights use the reversed colour interpretation (green = found in DB,
+red = true gap).</label></li>
+<li><label><input type="checkbox" /><strong>Follow-up queries:</strong>
+After a normal query, send a follow-up (“expand on point 1”). Verify the
+agent responds using conversation history and that a reliability badge
+still appears.</label></li>
+<li><label><input type="checkbox" /><strong>Audit log:</strong> Check
+<code>agents/{agent_id}/data/audit_log.jsonl</code> after several
+queries. Verify entries are being recorded with correct
+fields.</label></li>
+<li><label><input type="checkbox" /><strong>Paper title verification
+(Metadata+RAG only):</strong> Ask for a paper listing (e.g., “List
+papers on AI ethics from UMA”). Check if any titles are flagged as “not
+found in database.” Verify the flagged titles are genuinely not in the
+papers.json data.</label></li>
+<li><label><input type="checkbox" /><strong>Paper ID mismatch
+(Metadata+RAG only):</strong> Ask to expand a specific paper. Verify the
+PDF link points to the correct paper (not an unrelated one). If the
+paper has no PDF, verify “not available” appears instead of a fake
+link.</label></li>
+<li><label><input type="checkbox" /><strong>Out-of-domain
+questions:</strong> Test with questions outside the agent’s domain.
+Verify the agent refuses gracefully (at Stringent level) rather than
+hallucinating an answer.</label></li>
+<li><label><input type="checkbox" /><strong>Edge cases:</strong> Test
+with empty queries, very long queries, and queries in different
+languages (if the agent is multilingual).</label></li>
+</ul>
+<hr />
+<h2 id="interpreting-the-audit-log">5. Interpreting the Audit Log</h2>
+<p><strong>Location:</strong>
+<code>agents/{agent_id}/data/audit_log.jsonl</code></p>
+<p>Each line is an independent JSON object. The log is append-only and
+grows indefinitely.</p>
+<p><strong>Key fields:</strong></p>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 65%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>timestamp</code></td>
+<td>UTC ISO 8601 timestamp of the query</td>
+</tr>
+<tr>
+<td><code>agent_id</code></td>
+<td>Agent identifier</td>
+</tr>
+<tr>
+<td><code>query</code></td>
+<td>The user’s original question</td>
+</tr>
+<tr>
+<td><code>query_type</code></td>
+<td><code>normal</code>, <code>figure</code>, <code>gap_analysis</code>,
+or <code>followup</code></td>
+</tr>
+<tr>
+<td><code>source_type</code></td>
+<td><code>Metadata</code>, <code>RAG</code>, or <code>none</code>
+(RAG+Metadata agents only)</td>
+</tr>
+<tr>
+<td><code>reliability_label</code></td>
+<td><code>High</code>, <code>Good</code>, <code>Poor</code>, or
+<code>none</code></td>
+</tr>
+<tr>
+<td><code>confidence</code></td>
+<td>Percentage of claims verified against data sources</td>
+</tr>
+<tr>
+<td><code>coverage_pct</code></td>
+<td>Percentage of response words covered by identified claims (0–100).
+Low values indicate most of the response could not be verified</td>
+</tr>
+<tr>
+<td><code>total_claims</code></td>
+<td>Number of verifiable claims extracted from the response</td>
+</tr>
+<tr>
+<td><code>breakdown</code></td>
+<td>Per-source percentages. RAG+Metadata: <code>metadata_pct</code>,
+<code>database_pct</code>, <code>llm_pct</code>. RAG:
+<code>database_pct</code>, <code>llm_pct</code></td>
+</tr>
+<tr>
+<td><code>context_sources</code></td>
+<td>Which context builders were used (RAG+Metadata only)</td>
+</tr>
+<tr>
+<td><code>transparency_level</code></td>
+<td>Active transparency level at the time of the query</td>
+</tr>
+<tr>
+<td><code>prompt_level</code></td>
+<td>Active prompt level (<code>stringent</code>, <code>tolerant</code>,
+or <code>lax</code>)</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>LLM model name used for this query</td>
+</tr>
+<tr>
+<td><code>is_local_llm</code></td>
+<td>Whether a local model was used
+(<code>true</code>/<code>false</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Practical uses for testers:</strong></p>
+<ul>
+<li><strong>Tracking badge distribution:</strong> After running a batch
+of test queries, count how many produced High/Good/Poor labels. If all
+queries produce the same label, the reliability thresholds may need
+adjustment.</li>
+<li><strong>Debugging unexpected responses:</strong> If a response seems
+wrong, check the audit log for the <code>source_type</code> and
+<code>breakdown</code> to understand where the content came from.</li>
+<li><strong>Comparing models:</strong> Run the same test queries with
+different LLMs and compare the <code>confidence</code> and
+<code>breakdown</code> values across log entries.</li>
+<li><strong>Compliance verification:</strong> The audit log provides the
+record-keeping required by the EU AI Act (Article 12). Verify it is
+enabled (<code>audit_log_enabled: true</code> in
+<code>config.json</code>) before deployment.</li>
+</ul>
+<p><strong>Processing the log:</strong> The JSONL format works with
+standard tools:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count entries by reliability label</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.reliability_label&#39;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">uniq</span> <span class="at">-c</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter queries with low confidence</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;select(.confidence &lt; 50)&#39;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract all queries and their labels as a table</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;[.query, .reliability_label, .confidence] | @tsv&#39;</span></span></code></pre></div>
+<hr />
+<h2 id="model-quality-comparison">6. Model Quality Comparison</h2>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 17%" />
+<col style="width: 21%" />
+<col style="width: 21%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th>Category</th>
+<th>Speed</th>
+<th>Privacy</th>
+<th>Quality</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Local small (7B)</strong></td>
+<td>Fast</td>
+<td>Full privacy</td>
+<td>Lower – may hallucinate more, struggles with complex reasoning</td>
+<td>Free</td>
+</tr>
+<tr>
+<td><strong>Local large (70B+)</strong></td>
+<td>Slow</td>
+<td>Full privacy</td>
+<td>Good – better coherence, requires significant GPU/RAM</td>
+<td>Free (hardware cost)</td>
+</tr>
+<tr>
+<td><strong>Cloud small</strong> (e.g., mistral-small)</td>
+<td>Medium</td>
+<td>Data sent externally</td>
+<td>Good</td>
+<td>Low per-query cost</td>
+</tr>
+<tr>
+<td><strong>Cloud large</strong> (e.g., mistral-large)</td>
+<td>Medium</td>
+<td>Data sent externally</td>
+<td>Best – most accurate and coherent</td>
+<td>Higher per-query cost</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommended testing workflow:</strong></p>
+<ol type="1">
+<li><strong>Establish a baseline with the cloud model.</strong> Run your
+full test suite with the cloud (large) model. Record the reliability
+badges, confidence scores, and response quality. This is your quality
+ceiling.</li>
+<li><strong>Compare with local models.</strong> Run the same test suite
+with each available local model. Note where quality drops: which
+questions produce worse answers, lower confidence, or incorrect
+claims.</li>
+<li><strong>Identify the minimum viable model.</strong> Find the
+smallest/cheapest model that still meets your quality requirements for
+the agent’s use case. Not every agent needs the best model.</li>
+<li><strong>Document the results.</strong> Record which model you
+recommend for production and any known limitations (e.g., “7B model
+struggles with comparison questions but handles simple lookups
+well”).</li>
+</ol>
+<p><strong>Hardware reference for local models:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Parameters</th>
+<th style="text-align: right;">Minimum RAM (4-bit)</th>
+<th style="text-align: center;">GPU needed?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mistral-7B</td>
+<td>7B</td>
+<td style="text-align: right;">4-6 GB</td>
+<td style="text-align: center;">Recommended</td>
+</tr>
+<tr>
+<td>Mixtral-8x7B</td>
+<td>47B (MoE)</td>
+<td style="text-align: right;">10-12 GB</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td>Mistral-large</td>
+<td>~120B</td>
+<td style="text-align: right;">30-40 GB</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> Apple M1 Max with 32 GB RAM can only run
+models up to 7B with 4-bit quantization. Larger models require dedicated
+GPU hardware (NVIDIA A100, RTX 4090, or similar).</p>
+</body>
+</html>

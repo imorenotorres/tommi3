@@ -445,11 +445,14 @@ async def get_llm_status(agent_id: Optional[str] = Query(None, description="ID d
             }
 
     # Add available models list (for model switching UI)
-    from dotenv import dotenv_values as _dv
-    _web_env = _dv(Path(__file__).parent / ".env")
-    available_raw = _web_env.get("AVAILABLE_MODELS", "")
-    if available_raw:
-        response["available_models"] = [m.strip() for m in available_raw.split(",") if m.strip()]
+    # Only apply AVAILABLE_MODELS from .env for cloud providers;
+    # local (Ollama/vLLM) already have their own list from the API.
+    if not response.get("is_local"):
+        from dotenv import dotenv_values as _dv
+        _web_env = _dv(Path(__file__).parent / ".env")
+        available_raw = _web_env.get("AVAILABLE_MODELS", "")
+        if available_raw:
+            response["available_models"] = [m.strip() for m in available_raw.split(",") if m.strip()]
 
     return response
 

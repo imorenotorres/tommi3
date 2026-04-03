@@ -39,6 +39,8 @@ class BaseRAGAgent:
         self.__agent_dir = self._resolve_agent_dir()
         self.client = LLMClient()
         self.model = self._get_model()
+        self._is_local_llm = os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm")
+        self.model_display_name = self._resolve_model_display_name()
         self._config = self._load_config()
         self._prompt_level = self._config.get("prompt_level", "stringent")
         self.system_prompt = self._build_system_prompt()
@@ -105,6 +107,30 @@ class BaseRAGAgent:
         if provider == "ollama":
             return os.getenv("OLLAMA_MODEL", "")
         return os.getenv("MISTRAL_MODEL", "")
+
+    def _resolve_model_display_name(self) -> str:
+        """Build a descriptive model name (e.g., 'mistral 7B Q4_0').
+
+        For Ollama models, queries the local API for parameter size
+        and quantization level.  For cloud models, returns the model id.
+        """
+        if not self._is_local_llm or not self.model:
+            return self.model
+        try:
+            import httpx
+            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            resp = httpx.post(f"{base_url}/api/show", json={"name": self.model}, timeout=5.0)
+            if resp.status_code == 200:
+                details = resp.json().get("details", {})
+                parts = [self.model]
+                if details.get("parameter_size"):
+                    parts.append(details["parameter_size"])
+                if details.get("quantization_level"):
+                    parts.append(details["quantization_level"])
+                return " ".join(parts)
+        except Exception:
+            pass
+        return self.model
 
     def _load_config(self) -> dict:
         """Load agent configuration from config.json."""
