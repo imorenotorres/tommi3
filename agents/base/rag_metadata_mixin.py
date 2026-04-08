@@ -35,14 +35,13 @@ class MetadataRAGMixin:
     # false matches (e.g. "Universitaetsklinikum Wuerzburg" is NOT THWS).
     # ------------------------------------------------------------------
     UNINOVIS_AFFILIATION_KEYWORDS = {
-        "USPN":  ["sorbonne paris nord", "paris 13", "universite paris nord"],
+        "USPN":  ["sorbonne paris nord", "paris 13", "universite sorbonne paris nord"],
         "UDCLV": ["vanvitelli", "university of campania"],
-        "UMA":   ["malaga", "malaga"],
+        "UMA":   ["universidad de malaga", "malaga university", "malaga"],
         "KK":    ["kauno kolegija", "kaunas kolegija"],
         "UT":    ["universiteti i tiranes", "universiteti i tiranes",
                   "=university of tirana"],
         "THWS":  ["technical university of applied sciences wurzburg",
-                  "technical university of applied sciences wurzburg",
                   "hochschule fur angewandte wissenschaften wurzburg",
                   "thws", "fhws"],
         "TAMK":  ["tampere university of applied sciences", "tampereen ammattikorkeakoulu"],
@@ -836,15 +835,19 @@ class MetadataRAGMixin:
         return topic
 
     def _pdf_link(self, paper_id: str) -> str:
-        """Return a markdown PDF link if the paper's PDF exists locally, else empty string."""
+        """Return the paper ID and a PDF link (if the PDF exists locally).
+
+        Always includes the paper ID so the LLM can cite it.
+        Only adds a clickable PDF link when the file actually exists.
+        """
         if not paper_id:
             return ""
         filename = f"{paper_id}.pdf"
         docs_path = os.path.join(self._agent_dir, "data", "docs", filename)
         if os.path.exists(docs_path):
             agent_id = self._config.get("agent_id", "responsible_ai")
-            return f" [PDF](/api/agents/{agent_id}/pdf/{filename})"
-        return ""
+            return f" (ID: {paper_id}) [PDF](/api/agents/{agent_id}/pdf/{filename})"
+        return f" (ID: {paper_id})"
 
     # ------------------------------------------------------------------
     # Paper search / map data methods
@@ -932,13 +935,27 @@ class MetadataRAGMixin:
 
     @staticmethod
     def _match_paper_strict(paper, topic_lower, min_score=0.3):
-        """Match by full phrase in concepts, title, or abstract."""
+        """Match by full phrase in concepts, title, or abstract.
+
+        For concept matching, require that the concept covers at least half
+        of the topic words (not just a single word) to avoid overly broad
+        matches like "robotics" matching all papers when the topic is
+        "Lego robotics".
+        """
+        topic_words = set(topic_lower.split())
         for concept in paper.get("concepts", []):
             concept_name = concept.get("name", "").lower()
             if concept.get("score", 0) < min_score:
                 continue
-            if topic_lower in concept_name or concept_name in topic_lower:
+            # Full topic appears inside concept name
+            if topic_lower in concept_name:
                 return True
+            # Concept name appears inside topic — but only if the concept
+            # covers a significant portion of the topic (>= 50% of words)
+            if concept_name in topic_lower:
+                concept_words = set(concept_name.split())
+                if len(concept_words) > len(topic_words) / 2:
+                    return True
         title = paper.get("title", "").lower()
         abstract = (paper.get("abstract") or "").lower()
         text = title + " " + abstract
@@ -1663,7 +1680,7 @@ class MetadataRAGMixin:
             '', text
         ).rstrip()
 
-    def _verify_paper_references(self, text: str, context: str, transparency: str = None) -> str:
+    def _verify_paper_references(self, text: str, context: str, transparency: str = None) -> tuple:
         """Verify paper references in the response against the papers cache.
 
         Skipped entirely in black_box transparency mode.
@@ -1676,7 +1693,7 @@ class MetadataRAGMixin:
         """
         # No verification in black_box mode
         if (transparency or self._transparency) == "black_box":
-            return text
+            return text, 0
 
         # Build lookups
         paper_by_id = {}       # pid → paper info
@@ -1699,6 +1716,37 @@ class MetadataRAGMixin:
                 }
                 if pid:
                     paper_by_id[pid] = info
+                if title:
+                    t_lower = title.lower()
+                    known_titles.add(t_lower)
+                    if t_lower not in title_to_info:
+                        title_to_info[t_lower] = info
+
+        # Also register indexed documents (PDFs on disk) that aren't in
+        # papers.json — ChromaDB indexes them and the LLM may cite them.
+        docs_path = os.path.join(self._agent_dir, "data", "docs")
+        if os.path.exists(docs_path):
+            for fname in os.listdir(docs_path):
+                if not fname.endswith('.pdf'):
+                    continue
+                pid = fname.replace('.pdf', '')
+                if pid in paper_by_id:
+                    # Already known from papers.json — just ensure has_pdf is set
+                    paper_by_id[pid]["has_pdf"] = True
+                    continue
+                # Orphan PDF: on disk but not in papers.json.
+                # Use ChromaDB metadata if available.
+                doc_meta = self._documents_metadata.get(fname, {})
+                title = doc_meta.get("title", "")
+                info = {
+                    "id": pid,
+                    "title": title,
+                    "authors": [a.strip() for a in doc_meta.get("author", "").split(",") if a.strip()],
+                    "university": doc_meta.get("university_acronym", ""),
+                    "year": doc_meta.get("date", "")[:4] if doc_meta.get("date") else "",
+                    "has_pdf": True,
+                }
+                paper_by_id[pid] = info
                 if title:
                     t_lower = title.lower()
                     known_titles.add(t_lower)
@@ -1810,11 +1858,13 @@ class MetadataRAGMixin:
             real = paper_by_id[pid]
             real_title_lower = real["title"].lower()
 
-            # Check surrounding text (500 chars before ID)
+            # Check surrounding text (500 chars before AND after ID)
             pid_pos = text.find(pid)
             if pid_pos == -1:
                 continue
-            nearby = text[max(0, pid_pos - 500):pid_pos].lower()
+            before = text[max(0, pid_pos - 500):pid_pos].lower()
+            after = text[pid_pos + len(pid):pid_pos + len(pid) + 500].lower()
+            nearby = before + " " + after
 
             # Title match: 3-word window
             title_matched = False
@@ -1839,6 +1889,15 @@ class MetadataRAGMixin:
 
             if not title_matched and not author_matched:
                 mismatched_ids.append((pid, real))
+
+        # Remove markdown/HTML links containing paper IDs before annotating,
+        # so that inline replacement doesn't break link syntax.
+        for pid, _real in mismatched_ids + [(p, None) for p in unknown_ids]:
+            # Strip markdown links like [PDF](/api/.../W1234.pdf) or [text](url/W1234...)
+            text = re.sub(
+                r'\[([^\]]*)\]\([^)]*' + re.escape(pid) + r'[^)]*\)',
+                pid, text
+            )
 
         # Annotate mismatched IDs inline with a simple warning
         for pid, real in mismatched_ids:
@@ -1879,7 +1938,8 @@ class MetadataRAGMixin:
         if note_lines:
             text += "\n\n---\n⚠️ **Verification note:**\n" + "\n".join(note_lines)
 
-        return text
+        total_hallucinations = len(unrecognised_titles) + len(mismatched_ids) + len(unknown_ids) + len(fake_pdf_ids)
+        return text, total_hallucinations
 
     # ------------------------------------------------------------------
     # Chat methods (override SimpleRAGMixin or BaseRAGAgent)
@@ -1965,7 +2025,7 @@ class MetadataRAGMixin:
             affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
             metadata_ctx, context
         ]))
-        llm_content = self._verify_paper_references(llm_content, combined_ctx, self._transparency)
+        llm_content, hallucination_count = self._verify_paper_references(llm_content, combined_ctx, self._transparency)
 
         # Compute grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
@@ -2002,6 +2062,7 @@ class MetadataRAGMixin:
                 prompt_level=self._prompt_level,
                 model_name=self.model_display_name,
                 is_local_llm=self._is_local_llm,
+                hallucination_count=hallucination_count,
             )
 
         response_content = badge + llm_content
@@ -2137,7 +2198,7 @@ class MetadataRAGMixin:
             affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
             metadata_ctx, context
         ]))
-        verified = self._verify_paper_references(full_response, combined_ctx, self._transparency)
+        verified, hallucination_count = self._verify_paper_references(full_response, combined_ctx, self._transparency)
         if verified != full_response:
             full_response = verified
             yield ("replace", verified)
@@ -2177,6 +2238,7 @@ class MetadataRAGMixin:
                 prompt_level=self._prompt_level,
                 model_name=self.model_display_name,
                 is_local_llm=self._is_local_llm,
+                hallucination_count=hallucination_count,
             )
             if badge:
                 yield ("badge", badge)

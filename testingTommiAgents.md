@@ -342,6 +342,150 @@ When any issues are detected, a summary note appears at the end of the response:
 - After asking to "expand" a specific paper, verify that the PDF link (if any) points to the correct paper.
 - For papers without PDFs, verify the "not available" message appears instead of a fake link.
 
+### 3.6 Decision Flow for Metadata+RAG (EH) Agents
+
+Metadata+RAG agents (Responsible AI, AI & Robotics, Health & Social AI) follow a multi-stage decision flow for every query. Understanding this flow is essential for testers, as each stage determines what data the LLM receives and how the response is evaluated.
+
+#### Stage 1 — Query Classification
+
+The system analyses the user's query to determine its type. Each type triggers a different data pathway:
+
+```
+User query
+    │
+    ├── Affiliation query? ──────────── "List researchers from UMA"
+    │   (mentions university + researchers/authors)
+    │
+    ├── University paper listing? ───── "Papers from TAMK"
+    │   (mentions university + papers, no specific topic)
+    │
+    ├── Topic query? ────────────────── "Papers on AI ethics"
+    │   (mentions a research topic/keyword)
+    │
+    ├── Researcher query? ───────────── "Papers by García López"
+    │   (mentions a specific author name)
+    │
+    ├── Figure/map request? ─────────── "Show a figure of collaborations"
+    │   (contains "figure" or "map")
+    │
+    ├── Gap analysis? ───────────────── "What topics have not been studied?"
+    │   (asks about missing/unstudied topics)
+    │
+    ├── Follow-up? ──────────────────── "Tell me more", "Expand on #3"
+    │   (short continuation of previous conversation)
+    │
+    └── General/content query ───────── "What does this paper say about XAI?"
+        (everything else)
+```
+
+These checks are applied in priority order — the first match wins. For example, "List researchers from UMA working on AI ethics" matches **affiliation query** (first check), not topic query.
+
+#### Stage 2 — Context Selection
+
+Based on the query type, the system selects which data sources to include in the LLM's context:
+
+| Query type | Metadata context | RAG context | Source type |
+|---|---|---|---|
+| **Affiliation** | ✓ Researcher list from researchers.json | — | Metadata |
+| **University papers** | ✓ Paper list from papers.json | — | Metadata |
+| **Topic** | ✓ Topic-specific papers from papers.json | — | Metadata |
+| **Researcher** | ✓ Researcher publications | — | Metadata |
+| **Figure/map** | — (map generated from structured data) | — | Metadata |
+| **Gap analysis** | ✓ Top research topics list | — | Metadata |
+| **Follow-up** | — (uses conversation history) | — | RAG |
+| **General/content** | — | ✓ ChromaDB semantic search | RAG |
+
+**Key principle:** When structured metadata is available (affiliation, papers, topics, researchers), it is used **instead of** RAG. RAG is only used as a fallback for general content queries where no structured data matches.
+
+**Always included:** The system always adds `_build_metadata_context()` (aggregate statistics: total papers, top topics, cross-university collaborations) to the system prompt, regardless of query type.
+
+#### Stage 3 — System Prompt Assembly
+
+The system prompt is built from three layers:
+
+1. **Prompt sections** (from `prompts.json`) — identity + rules + strict restrictions, filtered by the current prompt level (stringent/tolerant/lax)
+2. **Metadata context** — aggregate statistics always included
+3. **Query-specific context** — the data selected in Stage 2
+
+```
+System prompt = prompts.json sections (filtered by prompt level)
+              + Metadata context (always)
+              + Affiliation / Papers / Topic / Researcher context (if applicable)
+              + RAG context (if no structured data matched)
+```
+
+#### Stage 4 — LLM Call
+
+The assembled system prompt + conversation history + user query are sent to the LLM (cloud or local, as configured). The LLM generates a response.
+
+#### Stage 5 — Post-Processing
+
+After the LLM responds, several post-processing steps are applied:
+
+```
+LLM response
+    │
+    ├── 1. Strip map links (if not a figure request)
+    │      Removes markdown map links the LLM may have added
+    │      despite the "figure/map only" instruction
+    │
+    ├── 2. Verify paper references (Crystal box / Grey box only)
+    │      ├── Pass 1a: Title verification (flag unknown titles)
+    │      ├── Pass 1b: Fake PDF removal (papers without PDFs)
+    │      └── Pass 2:  ID-title mismatch detection
+    │
+    ├── 3. Claim extraction (bidirectional)
+    │      ├── Phase A: Regex patterns (bold, names, acronyms, etc.)
+    │      └── Phase B: Context-derived terms (domain vocabulary)
+    │
+    ├── 4. Claim categorization
+    │      ├── Metadata match → green
+    │      ├── Database match → yellow
+    │      └── No match → red (LLM)
+    │
+    ├── 5. Confidence computation
+    │      ├── Raw confidence = grounded claims / total claims
+    │      └── Penalized confidence = raw - (hallucinations × 20%)
+    │
+    └── 6. Badge rendering
+           ├── Agent tuning line
+           ├── Sources line (with verification stats)
+           └── Reliability score (based on penalized confidence)
+```
+
+#### Stage 6 — Response Delivery
+
+The final response is composed of:
+1. **Badge** (HTML above the response text) — Crystal box: 3 lines; Grey box: 3 lines without inline highlights; Black box: nothing
+2. **Response text** (with inline claim highlights in Crystal box mode)
+3. **Verification notes** (if hallucinations were detected)
+4. **Claim highlight data** (sent as a separate SSE event for frontend rendering)
+
+#### Decision Flow Summary
+
+```
+Query → Classify → Select context → Build prompt → LLM → Post-process → Badge + Response
+         │                │              │                    │
+         │                │              │                    ├── Verify papers
+         │                │              │                    ├── Extract claims
+         │                │              │                    ├── Categorize claims
+         │                │              │                    └── Compute confidence
+         │                │              │
+         │                │              └── prompt level (stringent/tolerant/lax)
+         │                │
+         │                └── Metadata vs RAG (based on query type)
+         │
+         └── affiliation / papers / topic / researcher / figure / gap / followup / general
+```
+
+**What testers should check at each stage:**
+
+- **Stage 1:** Ask the same question phrased differently and verify it's classified the same way. For example, "researchers at UMA" and "UMA researchers" should both trigger the affiliation path.
+- **Stage 2:** Verify that metadata queries don't fall through to RAG (they should show "Metadata" as source type, not "RAG").
+- **Stage 3:** Test with all three prompt levels to verify the prompt sections are correctly included/excluded.
+- **Stage 5:** Check that hallucinated papers are flagged, fake PDFs are removed, and claims are correctly categorized.
+- **Stage 6:** Verify the badge displays correctly at all three transparency levels.
+
 ---
 
 ## 4. Testing Checklist
@@ -434,10 +578,31 @@ cat data/audit_log.jsonl | jq -r '[.query, .reliability_label, .confidence] | @t
 
 **Hardware reference for local models:**
 
-| Model | Parameters | Minimum RAM (4-bit) | GPU needed? |
-|-------|-----------|--------------------:|:-----------:|
-| Mistral-7B | 7B | 4-6 GB | Recommended |
-| Mixtral-8x7B | 47B (MoE) | 10-12 GB | Yes |
-| Mistral-large | ~120B | 30-40 GB | Yes |
+| Model | Parameters | Minimum RAM (4-bit) | GPU VRAM needed |
+|-------|-----------|--------------------:|:----------------|
+| Mistral-7B | 7B | 4–6 GB | Optional (runs on CPU, faster with GPU) |
+| Qwen-14B | 14B | 8–10 GB | Recommended (6+ GB VRAM) |
+| Mixtral-8x7B | 47B (MoE) | 10–12 GB | Yes (12+ GB VRAM) |
+| Mistral-large | ~120B | 30–40 GB | Yes (24+ GB VRAM or multi-GPU) |
 
-**Note:** Apple M1 Max with 32 GB RAM can only run models up to 7B with 4-bit quantization. Larger models require dedicated GPU hardware (NVIDIA A100, RTX 4090, or similar).
+**Common hardware and what they can run:**
+
+| Hardware | RAM / VRAM | Max model (4-bit) | Notes |
+|----------|-----------|-------------------|-------|
+| **Apple M1/M2 (8 GB)** | 8 GB shared | 7B | Runs 7B models slowly via CPU. Suitable for testing only. |
+| **Apple M1/M2 Pro (16 GB)** | 16 GB shared | 7B comfortably, 14B tight | Apple Silicon uses unified memory — Ollama leverages the GPU cores automatically. |
+| **Apple M1/M2 Max (32 GB)** | 32 GB shared | 14B comfortably, 30B tight | Good for most mid-size models. Response times: ~5–10 tokens/sec for 14B. |
+| **Apple M1/M2 Ultra (64+ GB)** | 64–192 GB shared | 70B+ | Can run large models like Mixtral-8x7B and even Mistral-large (with 128 GB+). |
+| **Intel Core i7/i9 (32 GB, no GPU)** | 32 GB RAM, no VRAM | 7B (CPU only) | Very slow inference (~1–3 tokens/sec). Not recommended for production use. |
+| **Intel Core i9 + RTX 3060 (12 GB)** | 32 GB RAM + 12 GB VRAM | 7B on GPU, 14B offloaded | The 12 GB VRAM handles 7B models well. 14B requires partial CPU offloading (slower). |
+| **Intel Core i9 + RTX 4070 Ti (16 GB)** | 32 GB RAM + 16 GB VRAM | 14B on GPU | Good mid-range setup. 14B models run at ~10–15 tokens/sec. |
+| **Intel Core i9 + RTX 4090 (24 GB)** | 32 GB RAM + 24 GB VRAM | 30B on GPU, 47B offloaded | Best consumer GPU. Runs Mixtral-8x7B (47B MoE) with partial offloading. ~15–20 tokens/sec for 14B. |
+| **Workstation with 2× RTX 4090** | 64 GB RAM + 48 GB VRAM | 70B+ | Can run Mistral-large with model parallelism across GPUs. |
+| **Cloud (NVIDIA A100 80 GB)** | 80 GB VRAM | 120B+ | Full Mistral-large at high speed. Typical for research/production deployments. |
+
+**Key takeaways:**
+
+- **For testing:** Any machine with 16+ GB RAM can run 7B models via Ollama (CPU mode). Response quality is lower than larger models but sufficient for functional testing.
+- **For production (on-premise):** An RTX 4090 (24 GB) is the best consumer option — it handles 14B models at good speed and can run 30B models acceptably. For 70B+ models, server-grade GPUs or Apple Ultra are needed.
+- **Without a GPU:** Intel/AMD CPUs can run 7B models but inference is very slow. This is only suitable for development/debugging, not user-facing deployments.
+- **Apple Silicon advantage:** Unified memory means the full RAM is available for model loading (no separate VRAM limit). An M2 Max with 32 GB outperforms an Intel + RTX 3060 for 14B models.

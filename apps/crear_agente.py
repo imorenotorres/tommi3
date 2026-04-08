@@ -121,6 +121,7 @@ httpx>=0.27.0
 chromadb>=0.4.0
 sentence-transformers>=2.2.0
 pypdf>=4.0.0
+cryptography>=3.1
 """
 
 REQUIREMENTS_TEXT2SQL = """fastapi>=0.115.0
@@ -4967,15 +4968,19 @@ Puedes personalizar los campos de metadatos creando `data/metadata.json`:
 
 ```
 {agent_id}/
-├── .env                # API key (no subir a git)
-├── requirements.txt    # Dependencias
-├── agent.py           # Lógica del agente con RAG+Metadata
-├── app.py             # Servidor FastAPI
-├── run.sh             # Script de ejecución
+├── .env                    # API key (no subir a git)
+├── requirements.txt        # Dependencias
+├── agent.py               # Lógica del agente con RAG+Metadata
+├── app.py                 # Servidor FastAPI
+├── config.json            # Configuración del agente
+├── prompts.json           # Plantillas de prompts del sistema
+├── run.sh                 # Script de ejecución
 └── data/
-    ├── docs/          # Documentos a indexar (.txt, .md, .pdf)
-    ├── metadata.json  # (Opcional) Configuración de campos de metadatos
-    └── chroma_db/     # Base de datos vectorial (se genera automáticamente)
+    ├── docs/              # Documentos a indexar (.txt, .md, .pdf)
+    ├── metadata.json      # Metadatos de documentos
+    ├── researchers.json   # Perfiles de investigadores
+    ├── institution_ids.json # IDs de universidades (OpenAlex)
+    └── chroma_db/         # Base de datos vectorial (se genera automáticamente)
 ```
 
 ## Cómo funciona
@@ -5858,11 +5863,37 @@ def create_agent_structure(config: dict) -> str:
                 "description": config.get('alliance_description', 'European university alliance.')
             },
             "universities": config.get('universities', {}),
+            "gap_analysis_examples": config.get('gap_analysis_examples', ''),
+            "prompt_level": config.get('prompt_level', 'stringent'),
+            "transparency_level": config.get('transparency_level', 'crystal_box'),
+            "audit_log_enabled": config.get('audit_log_enabled', True),
             "reliability_green_max_llm": reliability_green,
-            "reliability_red_min_llm": reliability_red
+            "reliability_red_min_llm": reliability_red,
+            "inline_claim_highlights": config.get('inline_claim_highlights', {
+                "enabled": True,
+                "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
+                "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
+                "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
+                "show_legend": True
+            })
         }
         with open(os.path.join(output_dir, "config.json"), "w", encoding="utf-8") as f:
             json.dump(agent_config, f, indent=2, ensure_ascii=False)
+
+        # Generate prompts.json for RAG+Metadata agents
+        prompts_src = os.path.join(os.path.dirname(__file__), "..", "agents", "responsible_ai", "prompts.json")
+        if os.path.exists(prompts_src):
+            import shutil as _shutil
+            _shutil.copy2(prompts_src, os.path.join(output_dir, "prompts.json"))
+        else:
+            # Minimal prompts.json scaffold
+            prompts_scaffold = {
+                "identity": "You are {agent_name}, a research assistant specialized in {research_topic} papers from the {alliance_name} European university alliance.\n\n{alliance_name_upper} ALLIANCE CONTEXT:\n{alliance_desc} It consists of {num_universities} universities from {num_universities} countries:\n{uni_list}\n\nYour document database contains research papers on {research_topic} topics from {alliance_name} partner universities. Each paper has metadata including the university it belongs to.\n\nIMPORTANT: When users refer to university acronyms ({acronym_list}), use the mapping above.",
+                "rules": "IMPORTANT RULES:\n1. Answer questions based ONLY on the context retrieved from your document database\n2. If the retrieved context doesn't contain relevant information, clearly state that\n3. NEVER invent, fabricate, or hallucinate paper titles, author names, or paper IDs.",
+                "strict": ""
+            }
+            with open(os.path.join(output_dir, "prompts.json"), "w", encoding="utf-8") as f:
+                json.dump(prompts_scaffold, f, indent=2, ensure_ascii=False)
     else:
         agent_templates = {
             "oneshot": AGENT_PY_TEMPLATE,
@@ -5901,7 +5932,7 @@ def create_agent_structure(config: dict) -> str:
         example_doc = f"# Example document for {agent_name}\n\nAdd your content here.\n\nThis file will be automatically indexed when the agent starts.\n"
         with open(os.path.join(docs_dir, "example.md"), "w", encoding="utf-8") as f:
             f.write(example_doc)
-        # Create sample metadata.json for rag_metadata agents
+        # Create sample data files for rag_metadata agents
         if agent_type == "rag_metadata":
             sample_metadata = json.dumps({
                 "fields": ["title", "author", "date", "file_type", "file_size", "page_count"],
@@ -5915,6 +5946,12 @@ def create_agent_structure(config: dict) -> str:
             }, indent=2, ensure_ascii=False)
             with open(os.path.join(data_dir, "metadata.json"), "w", encoding="utf-8") as f:
                 f.write(sample_metadata)
+            # Empty researchers.json (populated by openalex_collector or researchers_tsv.py)
+            with open(os.path.join(data_dir, "researchers.json"), "w", encoding="utf-8") as f:
+                json.dump({}, f, indent=2)
+            # Empty institution_ids.json (populated by openalex_collector)
+            with open(os.path.join(data_dir, "institution_ids.json"), "w", encoding="utf-8") as f:
+                json.dump({}, f, indent=2)
     elif agent_type == "text2sql":
         db_readme = f"""# Database for {agent_name}
 
@@ -6299,20 +6336,79 @@ def main():
     print(f"  ✓ {output_dir}/.gitignore")
 
     # agent.py según tipo
-    agent_templates = {
-        "oneshot": AGENT_PY_TEMPLATE,
-        "rag": AGENT_RAG_TEMPLATE,
-        "rag_metadata": AGENT_RAG_METADATA_TEMPLATE,
-        "text2sql": AGENT_TEXT2SQL_TEMPLATE
-    }
-    agent_content = agent_templates[agent_type].format(
-        agent_id=agent_id,
-        agent_name=agent_name,
-        model=model,
-        system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
-    )
-    with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
-        f.write(agent_content)
+    if agent_type == "rag_metadata":
+        # RAG+Metadata agents use a reference agent.py (config-driven, no template needed)
+        import shutil as _shutil2
+        reference_agent = os.path.join(os.path.dirname(__file__), "..", "agents", "responsible_ai", "agent.py")
+        if os.path.exists(reference_agent):
+            _shutil2.copy2(reference_agent, os.path.join(output_dir, "agent.py"))
+        else:
+            agent_content = AGENT_RAG_METADATA_TEMPLATE.format(
+                agent_id=agent_id, agent_name=agent_name, model=model,
+                system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
+            )
+            with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
+                f.write(agent_content)
+
+        # Generate config.json for RAG+Metadata agents
+        agent_config = {
+            "agent_id": agent_id,
+            "agent_name": agent_name,
+            "description": description,
+            "welcome_message": welcome,
+            "research_topic": description,
+            "show_history": False,
+            "example_queries": examples,
+            "alliance": {
+                "name": "UNINOVIS",
+                "description": "UNINOVIS is a European university alliance focused on enhancing education, research, and innovation in applied data science."
+            },
+            "universities": {},
+            "gap_analysis_examples": "",
+            "prompt_level": "stringent",
+            "transparency_level": "crystal_box",
+            "audit_log_enabled": True,
+            "reliability_green_max_llm": 20,
+            "reliability_red_min_llm": 50,
+            "inline_claim_highlights": {
+                "enabled": True,
+                "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
+                "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
+                "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
+                "show_legend": True
+            }
+        }
+        with open(os.path.join(output_dir, "config.json"), "w", encoding="utf-8") as f:
+            json.dump(agent_config, f, indent=2, ensure_ascii=False)
+        print(f"  ✓ {output_dir}/config.json")
+
+        # Generate prompts.json for RAG+Metadata agents
+        prompts_src = os.path.join(os.path.dirname(__file__), "..", "agents", "responsible_ai", "prompts.json")
+        if os.path.exists(prompts_src):
+            _shutil2.copy2(prompts_src, os.path.join(output_dir, "prompts.json"))
+        else:
+            prompts_scaffold = {
+                "identity": "You are {agent_name}, a research assistant specialized in {research_topic} papers from the {alliance_name} European university alliance.\n\n{alliance_name_upper} ALLIANCE CONTEXT:\n{alliance_desc} It consists of {num_universities} universities from {num_universities} countries:\n{uni_list}\n\nYour document database contains research papers on {research_topic} topics from {alliance_name} partner universities. Each paper has metadata including the university it belongs to.\n\nIMPORTANT: When users refer to university acronyms ({acronym_list}), use the mapping above.",
+                "rules": "IMPORTANT RULES:\n1. Answer questions based ONLY on the context retrieved from your document database\n2. If the retrieved context doesn't contain relevant information, clearly state that\n3. NEVER invent, fabricate, or hallucinate paper titles, author names, or paper IDs.",
+                "strict": ""
+            }
+            with open(os.path.join(output_dir, "prompts.json"), "w", encoding="utf-8") as f:
+                json.dump(prompts_scaffold, f, indent=2, ensure_ascii=False)
+        print(f"  ✓ {output_dir}/prompts.json")
+    else:
+        agent_templates = {
+            "oneshot": AGENT_PY_TEMPLATE,
+            "rag": AGENT_RAG_TEMPLATE,
+            "text2sql": AGENT_TEXT2SQL_TEMPLATE
+        }
+        agent_content = agent_templates[agent_type].format(
+            agent_id=agent_id,
+            agent_name=agent_name,
+            model=model,
+            system_prompt=system_prompt.replace('"', '\\"').replace("'", "\\'")
+        )
+        with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
+            f.write(agent_content)
     print(f"  ✓ {output_dir}/agent.py")
 
     # app.py según tipo
@@ -6355,6 +6451,14 @@ def main():
             with open(os.path.join(data_dir, "metadata.json"), "w", encoding="utf-8") as f:
                 f.write(sample_metadata)
             print(f"  ✓ {data_dir}/metadata.json")
+            # Empty researchers.json (populated by openalex_collector or researchers_tsv.py)
+            with open(os.path.join(data_dir, "researchers.json"), "w", encoding="utf-8") as f:
+                json.dump({}, f, indent=2)
+            print(f"  ✓ {data_dir}/researchers.json")
+            # Empty institution_ids.json (populated by openalex_collector)
+            with open(os.path.join(data_dir, "institution_ids.json"), "w", encoding="utf-8") as f:
+                json.dump({}, f, indent=2)
+            print(f"  ✓ {data_dir}/institution_ids.json")
     elif agent_type == "text2sql":
         # For text2sql, create a README explaining how to create the DB
         db_readme = f"""# Database for {agent_name}
@@ -6451,8 +6555,16 @@ Once the DB is created, the agent will be able to answer questions in natural la
     if agent_type == "text2sql":
         print(f"  ├── benchmark.py      # Performance test script")
         print(f"  ├── logs/             # Benchmark results")
+    if agent_type == "rag_metadata":
+        print(f"  ├── config.json       # Agent configuration")
+        print(f"  ├── prompts.json      # System prompt templates")
     print(f"  └── data/")
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type == "rag_metadata":
+        print(f"      ├── docs/              # Documents to index")
+        print(f"      ├── metadata.json      # Document metadata")
+        print(f"      ├── researchers.json   # Researcher profiles")
+        print(f"      └── institution_ids.json # University IDs")
+    elif agent_type == "rag":
         print(f"      └── docs/         # Documents to index")
     elif agent_type == "text2sql":
         print(f"      └── database.db   # SQLite database (you must create it)")

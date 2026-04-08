@@ -712,7 +712,50 @@ function applyClaimHighlights(container, data) {
     // Track which claims have already been highlighted (first occurrence only)
     const highlighted = new Set();
 
-    // Process each claim: re-walk text nodes for every claim to handle DOM mutations
+    // Pass 1: innerHTML replacement for claims containing & (must run FIRST).
+    // These can't be matched via DOM text nodes because markdown renders & as &amp;.
+    // If done after the text-node pass, shorter claims like "AI" would split
+    // the text node and make "AI & Responsibility" unfindable.
+    for (const item of items) {
+        if (!item.text.includes('&')) continue;
+        if (highlighted.has(item.text)) continue;
+
+        const searchText = item.text.replace(/&/g, '&amp;');
+        const escapedStyle = item.style.replace(/"/g, '&quot;');
+        const escapedTip = (item.tip || '').replace(/"/g, '&quot;');
+        const spanHtml = `<span style="${escapedStyle}" title="${escapedTip}">${searchText}</span>`;
+
+        // Search all elements that could contain response text.
+        // Also search strong/em elements directly for bold/italic text.
+        const candidates = container.querySelectorAll('p, li, td, dd, blockquote, strong, em, span:not([style])');
+        let found = false;
+        for (const el of candidates) {
+            if (el.closest('.claim-badge-area')) continue;
+            // Only replace in leaf-level elements (avoid double replacement in parent+child)
+            if (el.querySelector('p, li, td')) continue;
+            if (el.innerHTML.includes(searchText)) {
+                el.innerHTML = el.innerHTML.replace(searchText, spanHtml);
+                highlighted.add(item.text);
+                found = true;
+                break;
+            }
+        }
+        // Ultimate fallback: search the entire container (minus badge)
+        if (!found) {
+            const badgeEl = container.querySelector('.claim-badge-area');
+            const badgeHtml = badgeEl ? badgeEl.outerHTML : '';
+            let html = container.innerHTML;
+            if (badgeEl) html = html.replace(badgeHtml, '<!--BADGE-->');
+            if (html.includes(searchText)) {
+                html = html.replace(searchText, spanHtml);
+                if (badgeEl) html = html.replace('<!--BADGE-->', badgeHtml);
+                container.innerHTML = html;
+                highlighted.add(item.text);
+            }
+        }
+    }
+
+    // Pass 2: DOM text-node walking for all remaining claims
     for (const item of items) {
         if (highlighted.has(item.text)) continue;
 
@@ -721,21 +764,13 @@ function applyClaimHighlights(container, data) {
         let found = false;
 
         while ((node = walker.nextNode())) {
-            // Skip text inside the badge/legend area
             if (node.parentElement && node.parentElement.closest('.claim-badge-area')) continue;
 
             const text = node.nodeValue;
-            // Try exact match first, then HTML-entity variant (& → &amp; in DOM)
-            let idx = text.indexOf(item.text);
-            let matchLen = item.text.length;
-            if (idx === -1 && item.text.includes('&')) {
-                const entityText = item.text.replace(/&/g, '&amp;');
-                idx = text.indexOf(entityText);
-                matchLen = entityText.length;
-            }
+            const idx = text.indexOf(item.text);
             if (idx === -1) continue;
 
-            // Split text node and wrap the matched portion
+            const matchLen = item.text.length;
             const before = text.substring(0, idx);
             const match = text.substring(idx, idx + matchLen);
             const after = text.substring(idx + matchLen);
@@ -753,15 +788,53 @@ function applyClaimHighlights(container, data) {
             node.parentNode.replaceChild(frag, node);
             highlighted.add(item.text);
             found = true;
-            break; // first occurrence only
+            break;
         }
 
         if (!found) {
-            console.log('[claim_highlights] Claim not found in DOM:', JSON.stringify(item.text));
+            // Fallback: try innerHTML replacement for any remaining unhighlighted claims
+            const searchText = item.text.replace(/&/g, '&amp;');
+            const escapedStyle = item.style.replace(/"/g, '&quot;');
+            const escapedTip = (item.tip || '').replace(/"/g, '&quot;');
+            const spanHtml = `<span style="${escapedStyle}" title="${escapedTip}">${searchText}</span>`;
+
+            const candidates = container.querySelectorAll('p, li, td, dd, blockquote, strong, em, span:not([style])');
+            for (const el of candidates) {
+                if (el.closest('.claim-badge-area')) continue;
+                if (el.querySelector('p, li, td')) continue;
+                if (el.innerHTML.includes(searchText)) {
+                    el.innerHTML = el.innerHTML.replace(searchText, spanHtml);
+                    highlighted.add(item.text);
+                    break;
+                }
+            }
         }
     }
 
     console.log('[claim_highlights] Highlighted', highlighted.size, 'of', items.length, 'claims');
+}
+
+/**
+ * Clean up malformed PDF links generated by the LLM before markdown parsing.
+ * Replaces broken markdown/HTML link patterns containing /pdf/W... with just the paper ID.
+ */
+function cleanPdfLinks(text) {
+    // Remove markdown links like [PDF](api/agents/.../pdf/W1234567.pdf) or with extra HTML attrs
+    text = text.replace(
+        /\[([^\]]*)\]\([^)]*\/pdf\/(W\d{7,})\.pdf[^)]*\)/g,
+        '$2'
+    );
+    // Remove raw HTML <a> tags pointing to PDF endpoints (LLM sometimes generates these)
+    text = text.replace(
+        /<a\s[^>]*\/pdf\/(W\d{7,})\.pdf[^>]*>[^<]*<\/a>/gi,
+        '$1'
+    );
+    // Remove partially-rendered HTML link remnants: "api/agents/.../pdf/W1234.pdf" target=...>text
+    text = text.replace(
+        /api\/agents\/[^/]+\/pdf\/(W\d{7,})\.pdf"[^>]*>[^\n]*/g,
+        '$1'
+    );
+    return text;
 }
 
 function addPdfLinks(container) {
@@ -769,13 +842,20 @@ function addPdfLinks(container) {
     const agentId = state.currentAgent.id;
 
     // Fix any broken PDF links the LLM may have generated
-    container.querySelectorAll('a[href*="/pdf/"]').forEach(a => {
-        const match = a.href.match(/(W\d{7,})(?:[^0-9]|$)/);
-        if (match) {
-            a.href = `/api/agents/${agentId}/pdf/${match[1]}.pdf`;
-        }
-        a.setAttribute('target', '_blank');
-        a.setAttribute('rel', 'noopener');
+    loadPdfList(agentId).then(pdfSet => {
+        container.querySelectorAll('a[href*="/pdf/"]').forEach(a => {
+            const match = a.href.match(/(W\d{7,})(?:[^0-9]|$)/);
+            if (match) {
+                if (pdfSet.size > 0 && !pdfSet.has(match[1])) {
+                    // PDF doesn't exist — remove the broken link
+                    a.replaceWith(document.createTextNode(a.textContent));
+                    return;
+                }
+                a.href = `/api/agents/${agentId}/pdf/${match[1]}.pdf`;
+            }
+            a.setAttribute('target', '_blank');
+            a.setAttribute('rel', 'noopener');
+        });
     });
 
     // Auto-add PDF links for paper IDs found in text
@@ -792,6 +872,11 @@ function addPdfLinks(container) {
             if (!/W\d{7,}/.test(text)) return;
             if (textNode.parentElement.closest('a')) return;
 
+            // Check surrounding rendered HTML for warning markers
+            // (after markdown, **(not in database)** becomes <strong> elements)
+            const parentHtml = textNode.parentElement.innerHTML;
+            const parentText = textNode.parentElement.textContent;
+
             const parts = text.split(/(W\d{7,})/);
             if (parts.length <= 1) return;
 
@@ -799,13 +884,22 @@ function addPdfLinks(container) {
             parts.forEach(part => {
                 const idMatch = part.match(/^(W\d{7,})$/);
                 if (idMatch && pdfSet.has(idMatch[1])) {
-                    const link = document.createElement('a');
-                    link.href = `/api/agents/${agentId}/pdf/${idMatch[1]}.pdf`;
-                    link.textContent = '📄 PDF';
-                    link.target = '_blank';
-                    link.rel = 'noopener';
-                    link.style.cssText = 'margin-left:4px;font-size:0.85em;';
-                    frag.appendChild(link);
+                    // Check if the surrounding context flags this ID as bad
+                    const idPos = parentText.indexOf(idMatch[1]);
+                    const nearby = idPos >= 0 ? parentText.substring(idPos, idPos + 200) : '';
+                    const isMarkedBad = /not in database|hallucination|⚠️ Warning|not correct/i.test(nearby);
+                    // Keep the paper ID text
+                    frag.appendChild(document.createTextNode(part));
+                    // Only add PDF link if the paper is not flagged
+                    if (!isMarkedBad) {
+                        const link = document.createElement('a');
+                        link.href = `/api/agents/${agentId}/pdf/${idMatch[1]}.pdf`;
+                        link.textContent = '📄 PDF';
+                        link.target = '_blank';
+                        link.rel = 'noopener';
+                        link.style.cssText = 'margin-left:4px;font-size:0.85em;';
+                        frag.appendChild(link);
+                    }
                 } else {
                     frag.appendChild(document.createTextNode(part));
                 }
@@ -1135,7 +1229,7 @@ function addMessage(content, role, isStreaming = false) {
 
     if (role === 'agent') {
         // Renderizar markdown para mensajes del agente
-        contentDiv.innerHTML = marked.parse(content);
+        contentDiv.innerHTML = marked.parse(cleanPdfLinks(content));
         // Add PDF links
         addPdfLinks(contentDiv);
     } else {
@@ -1229,7 +1323,7 @@ async function sendMessage(message) {
             // Desescapar newlines
             const chunk = event.data.replace(/\\n/g, '\n');
             responseText += chunk;
-            responseDiv.innerHTML = badgeHtml + marked.parse(responseText);
+            responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText));
         };
 
         let claimHighlights = null;
@@ -1247,7 +1341,7 @@ async function sendMessage(message) {
         eventSource.addEventListener('replace', (event) => {
             // Server stripped map links — replace the full response text
             responseText = event.data.replace(/\\n/g, '\n');
-            responseDiv.innerHTML = badgeHtml + marked.parse(responseText);
+            responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText));
         });
 
         eventSource.addEventListener('done', () => {
@@ -1256,8 +1350,8 @@ async function sendMessage(message) {
             state.isLoading = false;
             elements.sendButton.disabled = false;
             elements.messageInput.focus();
-            // Final render — replace map markdown links with placeholders before parsing
-            const processedText = replaceMapLinksWithPlaceholders(responseText);
+            // Final render — clean PDF links and replace map markdown links before parsing
+            const processedText = replaceMapLinksWithPlaceholders(cleanPdfLinks(responseText));
             responseDiv.innerHTML = badgeHtml + marked.parse(processedText);
             // Add PDF links and make them open in new tab
             addPdfLinks(responseDiv);
@@ -1390,8 +1484,10 @@ function renderQueryHistory(history) {
         elements.historyContainer.appendChild(historyItem);
     });
 
-    // Hide example queries when there's history
-    elements.exampleQueries.classList.add('hidden');
+    // Hide example queries after 3 queries; keep them visible for the first few
+    if (history.length >= 3) {
+        elements.exampleQueries.classList.add('hidden');
+    }
     elements.queryHistory.classList.remove('hidden');
 }
 

@@ -140,6 +140,9 @@ done
 # -----------------------------------------------------------------------------
 FILES_TO_INCLUDE=(
     "apps/"
+    "prompts/"
+    "scripts/"
+    "agents/base/"
     "howto.md"
     "howto.html"
     "README_INSTALL.md"
@@ -188,6 +191,9 @@ if tar -czvf "${DIST_DIR}/${TAR_FILE}" \
     --exclude 'venv' \
     --exclude '*.pyc' \
     --exclude 'logs' \
+    --exclude 'chroma_db' \
+    --exclude 'audit_log.jsonl' \
+    --exclude 'authorships_cache.json' \
     "${FILES_TO_INCLUDE[@]}"; then
     echo -e "${GREEN}  ✓ ${TAR_FILE} created${NC}"
 else
@@ -216,7 +222,10 @@ if zip -r "${DIST_DIR}/${ZIP_FILE}" \
     -x "*/.DS_Store" \
     -x "*/venv/*" \
     -x "*.pyc" \
-    -x "*/logs/*"; then
+    -x "*/logs/*" \
+    -x "*/chroma_db/*" \
+    -x "*/audit_log.jsonl" \
+    -x "*/authorships_cache.json"; then
     echo -e "${GREEN}  ✓ ${ZIP_FILE} created${NC}"
 else
     echo -e "${RED}  ✗ Error creating ${ZIP_FILE}${NC}"

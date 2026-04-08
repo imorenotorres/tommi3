@@ -2,6 +2,33 @@ You are {agent_name}, a helpful assistant with access to a document knowledge ba
 
 You can search documents by their content AND filter by metadata such as author, date, title, type, and other attributes.
 
+NOTE: RAG+Metadata agents use a three-level prompt system defined in prompts.json,
+controlled by the "prompt_level" setting in config.json:
+
+  - "lax"       → Only the IDENTITY section is used (minimal constraints)
+  - "tolerant"  → IDENTITY + RULES sections (standard grounding rules)
+  - "stringent" → IDENTITY + RULES + STRICT sections (full anti-hallucination)
+
+The prompts.json file has three sections:
+
+  "identity": Agent identity, alliance context, university list.
+              Always included regardless of prompt level.
+
+  "rules":    Grounding rules, response format, citation guidelines,
+              paper numbering, and listing behavior.
+              Included at tolerant and stringent levels.
+
+  "strict":   Partner recognition rules, gap analysis instructions,
+              interactive map rules, and figure link formats.
+              Only included at stringent level.
+
+Each section supports placeholders like {agent_name}, {research_topic},
+{alliance_name}, {num_universities}, {uni_list}, {acronym_list},
+{agent_id}, and {gap_examples}, which are filled from config.json.
+
+A reference prompts.json will be copied from an existing agent when you
+create the agent. You can then customize each section independently.
+
 IMPORTANT RULES:
 1. Answer questions based ONLY on the context retrieved from your document database
 2. If the retrieved context doesn't contain relevant information, clearly state that
@@ -16,3 +43,4 @@ RESPONSE FORMAT:
 - Reference the source document and its metadata when relevant
 - If filtering by metadata, mention which filters were applied
 - If no relevant information is found, explain this clearly
+- When listing papers with details, number them sequentially (1, 2, 3, ...) so users can refer to them by number

@@ -48,6 +48,10 @@ class ClaimExtractor:
         "next", "finally", "here", "another", "many", "several",
         "still", "just", "only", "even", "since", "because",
         "while", "although", "therefore", "thus", "hence",
+        # Institutional words (university names are not author claims)
+        "universidad", "université", "university", "universität",
+        "technical", "institute", "institution", "college",
+        "school", "faculty", "department", "centre", "center",
     }
 
     # Common English words used to detect non-proper-noun multi-word matches.
@@ -94,6 +98,12 @@ class ClaimExtractor:
         "sugar", "super", "sweet", "thick", "tough", "upper", "urban",
         "usual", "valid", "vital", "water", "white", "whole", "wild",
         "young",
+        # Common gerunds / participles that appear capitalized in lists
+        "mining", "production", "higher", "building", "growing",
+        "learning", "training", "testing", "working", "making",
+        "leading", "reading", "looking", "setting", "getting",
+        "version", "organic", "economy", "principles",
+        "generated", "practice", "step", "process",
     }
 
     # ALL-CAPS tokens that are English filler, not technical acronyms
@@ -126,6 +136,21 @@ class ClaimExtractor:
         # 2. Bold text — only factual claims, not headings/instructions
         bold = re.findall(r'\*\*([^*]{5,})\*\*', response)
         for b in bold:
+            # Strip trailing punctuation (colons, periods, commas)
+            b = b.rstrip(':.,;')
+            # If bold text is a comma-separated list, split into individual claims
+            # e.g., "transparency, fairness, and sustainability" → 3 claims
+            if ',' in b:
+                parts = re.split(r',\s*(?:and\s+)?', b)
+                parts = [p.strip().rstrip('.') for p in parts if p.strip()]
+                # Also handle trailing "and X" without comma
+                if parts and ' and ' in parts[-1]:
+                    last = parts.pop()
+                    parts.extend(p.strip() for p in last.split(' and ') if p.strip())
+                for part in parts:
+                    if len(part) >= 3 and part not in ClaimExtractor.NON_BOLD:
+                        claims.append(part)
+                continue
             if b in ClaimExtractor.NON_BOLD:
                 continue
             b_lower = b.lower().strip()
@@ -145,6 +170,15 @@ class ClaimExtractor:
             r'(?<!\w)([A-ZÀ-ÖØ-Þ][a-zà-öø-ÿ]+(?:[ \t\u2010-](?:(?:de|van|von|del|la|di|el|al|ben) )?(?:[A-ZÀ-ÖØ-Þ]\.[ \t])?[A-ZÀ-ÖØ-Þ][a-zà-öø-ÿ]+){1,3})(?!\w)',
             response,
         )
+        # Institutional words: if ANY word is an institutional term, the match
+        # is a university/organization name, not an author name.
+        _INSTITUTIONAL = {
+            "university", "universidad", "université", "universität",
+            "institute", "institution", "college", "school", "faculty",
+            "department", "centre", "center", "sciences", "applied",
+            "technical", "technology", "polytechnic", "academy",
+            "education", "higher", "kolegija", "hochschule",
+        }
         for a in author_matches:
             if a in ClaimExtractor.NON_NAMES:
                 continue
@@ -152,9 +186,10 @@ class ClaimExtractor:
             # Skip if the first word is a common sentence starter
             if words_lower[0] in ClaimExtractor.NON_NAME_STARTS:
                 continue
+            # Skip if any word is an institutional term (university names)
+            if any(w in _INSTITUTIONAL for w in words_lower):
+                continue
             # Skip if ALL words are common English words (no proper noun detected).
-            # E.g., "Prep time", "Cook time", "Total cost" are all-common.
-            # Real names like "García López" have at least one non-common word.
             if all(w in ClaimExtractor._COMMON_WORDS for w in words_lower):
                 continue
             claims.append(a)
@@ -198,6 +233,7 @@ class ClaimExtractor:
             if c not in seen:
                 seen.add(c)
                 unique_claims.append(c)
+
         return unique_claims
 
     # -----------------------------------------------------------------
@@ -225,7 +261,7 @@ class ClaimExtractor:
         "need", "needs", "want", "know", "known", "think", "like",
         "explore", "review", "specific", "specifically",
         # Generic academic/document words (too common to be meaningful claims)
-        "data", "results", "study", "paper", "research", "analysis",
+        "data", "results", "study", "paper", "papers", "research", "analysis",
         "topic", "topics", "approach", "method", "methods", "system",
         "systems", "model", "models", "process", "processing",
         "case", "cases", "type", "types", "form", "level", "levels",
@@ -259,6 +295,44 @@ class ClaimExtractor:
         "feature", "features", "context", "design", "response", "support",
         "impact", "access", "target", "input", "output", "stage",
         "side", "face", "hand", "body", "head", "mind", "able",
+        "mining", "production", "higher", "building", "growing",
+        "learning", "training", "testing", "working", "making",
+        "leading", "reading", "looking", "setting", "getting",
+        "running", "coming", "going", "having", "being", "doing",
+        "saying", "telling", "asking", "given", "taken", "shown",
+        "known", "called", "named", "based", "needed", "expected",
+        "proposed", "applied", "related", "involved", "concerned",
+        "limited", "required", "suggested", "reported", "observed",
+        "obtained", "published", "presented", "discussed", "compared",
+        "version", "organic", "economy", "principles",
+        "generated", "practice", "practices", "standard", "standards",
+        "concept", "concepts", "strategy", "solution", "solutions",
+        "framework", "challenge", "challenges", "benefit", "benefits",
+        "quality", "measure", "measures", "step", "steps",
+        "evidence", "theory", "structure", "resource", "resources",
+        "service", "services", "sector", "market", "policy", "policies",
+        "performance", "criteria", "purpose", "progress", "list",
+        "university", "universities", "partner", "partners",
+        "document", "documents", "database", "collection",
+        "question", "questions", "answer", "answers",
+        "summary", "overview", "introduction", "conclusion",
+        "figure", "table", "section", "page", "pages",
+        "total", "count", "number", "amount",
+        # Countries and regions (too generic to be meaningful claims)
+        "france", "italy", "spain", "germany", "finland", "netherlands",
+        "lithuania", "albania", "greece", "portugal", "belgium", "austria",
+        "sweden", "denmark", "norway", "poland", "ireland", "switzerland",
+        "europe", "european", "country", "countries", "nation", "national",
+        "improvement", "monitoring", "explain", "reasoning",
+        "implementation", "evaluation", "assessment", "regulation",
+        "recommendation", "integration", "adoption", "deployment",
+        "definition", "classification", "detection", "prediction",
+        "generation", "optimization", "automation", "verification",
+        # Additional generic words and phrases to omit as claims
+        "agency", "comprehensive", "ensuring", "account",
+        "contexts", "exaggerated", "must", "solely", "enhance",
+        "future", "offers", "offer", "developing", "creating",
+        "science", "approaches", "already", "shaping",
     }
 
     @staticmethod
@@ -536,7 +610,29 @@ class GroundingAnalyzer:
             database_count += 1
             database_claims.append(c)
 
-        total = len(claims) + len(ctx_meta_claims) + len(ctx_rag_claims)
+        # Remove sub-claims that are part of a connector phrase (with &/+).
+        # E.g., if "AI & Responsibility" is a claim, remove standalone "AI"
+        # and "Responsibility" to prevent overlapping highlights.
+        all_claim_lists = [metadata_claims, database_claims, llm_claims]
+        all_texts = metadata_claims + database_claims + llm_claims
+        connector_claims = {c.lower() for c in all_texts if '&' in c or '+' in c}
+        if connector_claims:
+            for claim_list in all_claim_lists:
+                to_remove = []
+                for c in claim_list:
+                    if '&' in c or '+' in c:
+                        continue
+                    c_lower = c.lower()
+                    if any(c_lower in cc for cc in connector_claims if len(cc) > len(c_lower)):
+                        to_remove.append(c)
+                for c in to_remove:
+                    claim_list.remove(c)
+            # Recount
+            metadata_count = len(metadata_claims)
+            database_count = len(database_claims)
+            llm_count = len(llm_claims)
+
+        total = metadata_count + database_count + llm_count
         grounded_total = metadata_count + database_count
         confidence = round(grounded_total / total * 100) if total > 0 else 100
 

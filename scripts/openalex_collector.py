@@ -838,6 +838,282 @@ class OpenAlexCollector:
 
 
 # ======================================================================
+# Project collection — funded research grouped by grant/project
+# ======================================================================
+
+PROJECT_CSV_COLUMNS = [
+    "keep",
+    "project_key",
+    "funder",
+    "funder_id",
+    "award_id",
+    "paper_count",
+    "universities",
+    "paper_ids",
+    "paper_titles",
+    "first_year",
+    "last_year",
+    "topics",
+    "collected_on",
+]
+
+
+class ProjectCollector:
+    """Extends OpenAlexCollector to find funded research and group by project."""
+
+    def __init__(self, base_collector: OpenAlexCollector):
+        self.base = base_collector
+
+    def collect_projects(self, max_per_institution: int = 0,
+                         funder_filter: str = None,
+                         only_university: str = None) -> Path:
+        """Search for funded papers, group by grant, and write projects CSV.
+
+        Args:
+            max_per_institution: Max papers per institution (0 = unlimited).
+            funder_filter: Only include grants from funders matching this
+                           substring (case-insensitive), e.g. "European".
+            only_university: Restrict to a single university acronym.
+        """
+        print("=" * 60)
+        print("COLLECT PROJECTS — Funded research grouped by grant")
+        print("=" * 60)
+
+        institutions = self.base._load_institutions()
+        if only_university:
+            key = only_university.upper()
+            if key not in institutions:
+                raise ValueError(f"University '{key}' not found. Available: {', '.join(institutions.keys())}")
+            institutions = {key: institutions[key]}
+            print(f"Restricting collection to: {key}")
+
+        if funder_filter:
+            print(f"Funder filter: '{funder_filter}'")
+
+        # Collect all funded papers
+        all_funded_papers = []  # (acronym, paper_dict)
+        seen_ids = set()
+
+        for acronym, inst_info in institutions.items():
+            if not inst_info or not inst_info.get("openalex_id"):
+                continue
+
+            inst_id = inst_info["openalex_id"]
+            inst_name = inst_info["display_name"]
+            print(f"\n--- {inst_name} ({acronym}) ---")
+
+            inst_papers = []
+            for query in self.base.queries:
+                if max_per_institution > 0 and len(inst_papers) >= max_per_institution:
+                    break
+
+                print(f"  Query: {query}")
+
+                # Search for papers — filter for funded ones client-side
+                # (OpenAlex has no boolean has_award filter; we use
+                #  awards.funder_display_name.search when a funder is specified,
+                #  otherwise we fetch all and filter for papers with awards)
+                cursor = "*"
+                while cursor:
+                    base_filter = f"authorships.institutions.id:{inst_id}"
+                    if funder_filter:
+                        base_filter += f",awards.funder_display_name.search:{funder_filter}"
+                    params = {
+                        "filter": base_filter,
+                        "search": query,
+                        "per_page": 50,
+                        "sort": "cited_by_count:desc",
+                        "cursor": cursor,
+                    }
+                    result = self.base._api_request("works", params)
+                    if not result or "results" not in result:
+                        break
+                    results = result["results"]
+                    if not results:
+                        break
+
+                    # Diagnostic: on first batch, detect the funding field name
+                    if results and cursor == "*":
+                        sample = results[0]
+                        has_awards = any(bool(p.get("awards")) for p in results[:10])
+                        has_grants = any(bool(p.get("grants")) for p in results[:10])
+                        total_results = result.get("meta", {}).get("count", "?")
+                        print(f"    API returned {len(results)} results (total: {total_results}), "
+                              f"awards field: {has_awards}, grants field: {has_grants}")
+
+                    for paper in results:
+                        if max_per_institution > 0 and len(inst_papers) >= max_per_institution:
+                            break
+                        pid = paper.get("id", "")
+                        if pid in seen_ids:
+                            continue
+                        if not self.base._has_uninovis_affiliation(paper, inst_id):
+                            continue
+                        if not self.base._is_relevant(paper):
+                            continue
+
+                        # Must have awards (OpenAlex may use "awards" or "grants")
+                        awards = paper.get("awards") or paper.get("grants") or []
+                        if not awards:
+                            continue
+
+                        # Apply funder filter (client-side double-check)
+                        if funder_filter:
+                            fl = funder_filter.lower()
+                            awards = [a for a in awards
+                                      if fl in (a.get("funder_display_name") or "").lower()
+                                      or fl in (a.get("funder_id") or "").lower()]
+                            if not awards:
+                                continue
+
+                        seen_ids.add(pid)
+                        inst_papers.append(paper)
+
+                    cursor = result.get("meta", {}).get("next_cursor")
+
+            print(f"  {len(inst_papers)} funded papers after filtering")
+
+            for paper in inst_papers:
+                all_funded_papers.append((acronym, paper))
+
+        # Group by project (funder + award_id)
+        projects = {}  # project_key → {funder, funder_id, award_id, papers: [(acronym, paper)], ...}
+        papers_without_award = []
+
+        for acronym, paper in all_funded_papers:
+            awards = paper.get("awards") or paper.get("grants") or []
+            if funder_filter:
+                fl = funder_filter.lower()
+                awards = [a for a in awards
+                          if fl in (a.get("funder_display_name") or "").lower()
+                          or fl in (a.get("funder_id") or a.get("funder") or "").lower()]
+
+            for award in awards:
+                funder_name = award.get("funder_display_name", "Unknown")
+                funder_id = (award.get("funder_id") or award.get("funder") or "").replace("https://openalex.org/", "")
+                award_id = award.get("funder_award_id") or award.get("award_id") or ""
+
+                if not award_id:
+                    papers_without_award.append((acronym, paper, funder_name))
+                    continue
+
+                project_key = f"{funder_id}:{award_id}"
+                if project_key not in projects:
+                    projects[project_key] = {
+                        "funder": funder_name,
+                        "funder_id": funder_id,
+                        "award_id": award_id,
+                        "papers": [],
+                    }
+                projects[project_key]["papers"].append((acronym, paper))
+
+        # Write projects CSV
+        batch_date = datetime.now().strftime("%Y-%m-%d")
+        csv_path = self.base.output_dir / "projects_to_review.csv"
+        rows = []
+
+        for project_key, proj in sorted(projects.items(), key=lambda x: len(x[1]["papers"]), reverse=True):
+            unis = sorted({a for a, _ in proj["papers"]})
+            years = [p.get("publication_year") for _, p in proj["papers"] if p.get("publication_year")]
+            paper_ids = [p.get("id", "").replace("https://openalex.org/", "") for _, p in proj["papers"]]
+            paper_titles = [p.get("title", "") for _, p in proj["papers"]]
+
+            # Collect top concepts across all papers in this project
+            concept_counts = {}
+            for _, paper in proj["papers"]:
+                for c in paper.get("concepts", []):
+                    name = c.get("display_name", "")
+                    score = c.get("score", 0)
+                    if name and score > 0.3:
+                        concept_counts[name] = concept_counts.get(name, 0) + 1
+            top_topics = sorted(concept_counts.keys(), key=lambda x: concept_counts[x], reverse=True)[:10]
+
+            rows.append({
+                "keep": "yes",
+                "project_key": project_key,
+                "funder": proj["funder"],
+                "funder_id": proj["funder_id"],
+                "award_id": proj["award_id"],
+                "paper_count": len(proj["papers"]),
+                "universities": "; ".join(unis),
+                "paper_ids": "; ".join(paper_ids),
+                "paper_titles": "; ".join(paper_titles),
+                "first_year": min(years) if years else "",
+                "last_year": max(years) if years else "",
+                "topics": "; ".join(top_topics),
+                "collected_on": batch_date,
+            })
+
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=PROJECT_CSV_COLUMNS)
+            writer.writeheader()
+            writer.writerows(rows)
+
+        # Also write the individual papers CSV for reference
+        papers_csv_path = self.base.output_dir / "project_papers.csv"
+        paper_rows = []
+        for acronym, paper in all_funded_papers:
+            awards = paper.get("awards") or paper.get("grants") or []
+            grant_strs = [
+                f"{a.get('funder_display_name', '?')}:{a.get('funder_award_id') or a.get('award_id') or '?'}"
+                for a in awards
+            ]
+            authors = "; ".join(
+                a.get("author", {}).get("display_name", "")
+                for a in paper.get("authorships", [])
+            )
+            oa = paper.get("open_access", {})
+            abstract = self.base._reconstruct_abstract(paper.get("abstract_inverted_index"))
+
+            paper_rows.append({
+                "keep": "yes",
+                "university": acronym,
+                "openalex_id": paper.get("id", "").replace("https://openalex.org/", ""),
+                "doi": paper.get("doi") or "",
+                "title": paper.get("title") or "",
+                "authors": authors,
+                "publication_year": paper.get("publication_year") or "",
+                "cited_by_count": paper.get("cited_by_count", 0),
+                "grants": "; ".join(grant_strs),
+                "is_open_access": oa.get("is_oa", False),
+                "pdf_url": oa.get("oa_url") or (paper.get("primary_location") or {}).get("pdf_url") or "",
+                "abstract": abstract,
+                "collected_on": batch_date,
+            })
+
+        paper_csv_cols = [
+            "keep", "university", "openalex_id", "doi", "title", "authors",
+            "publication_year", "cited_by_count", "grants", "is_open_access",
+            "pdf_url", "abstract", "collected_on",
+        ]
+        with open(papers_csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=paper_csv_cols)
+            writer.writeheader()
+            writer.writerows(paper_rows)
+
+        # Summary
+        print(f"\n{'=' * 60}")
+        print("PROJECT COLLECTION SUMMARY")
+        print("=" * 60)
+        print(f"Funded papers found: {len(all_funded_papers)}")
+        print(f"Projects identified: {len(projects)}")
+        print(f"Papers without award ID: {len(papers_without_award)}")
+        print(f"\nTop funders:")
+        funder_counts = {}
+        for proj in projects.values():
+            funder_counts[proj["funder"]] = funder_counts.get(proj["funder"], 0) + 1
+        for funder, count in sorted(funder_counts.items(), key=lambda x: x[1], reverse=True)[:10]:
+            print(f"  {funder}: {count} projects")
+        print(f"\nOutput files:")
+        print(f"  {csv_path}         — projects grouped by grant (review & set keep=yes/no)")
+        print(f"  {papers_csv_path}  — individual papers with grant info")
+        print(f"\nReview the CSVs, then use 'download --csv {papers_csv_path}' to download PDFs.")
+        print("=" * 60)
+
+        return csv_path
+
+
+# ======================================================================
 # CLI
 # ======================================================================
 
@@ -876,6 +1152,34 @@ def main():
              "If not provided, no relevance filtering is applied (all search results are kept).",
     )
 
+    # --- collect-projects ---
+    p_projects = subparsers.add_parser(
+        "collect-projects",
+        help="Collect funded papers and group by research project/grant",
+    )
+    p_projects.add_argument("--output", "-o", default=None, help="Output directory")
+    p_projects.add_argument(
+        "--topics", "-t", required=True,
+        help="Path to a text file with search queries (one per line)",
+    )
+    p_projects.add_argument(
+        "--max-papers", "-m", type=int, default=0,
+        help="Max papers per institution (0 = unlimited, default)",
+    )
+    p_projects.add_argument(
+        "--funder", "-f", default=None,
+        help="Only include grants from funders matching this substring "
+             '(case-insensitive), e.g. "European" for EU-funded projects',
+    )
+    p_projects.add_argument(
+        "--university", "-u", default=None,
+        help="Restrict collection to a single university by acronym",
+    )
+    p_projects.add_argument(
+        "--relevance", "-r", default=None,
+        help="Path to a relevance filter file",
+    )
+
     # --- download ---
     p_download = subparsers.add_parser(
         "download", help="Step 2: download PDFs for papers kept in the CSV"
@@ -899,6 +1203,13 @@ def main():
         collector.collect(
             max_per_institution=args.max_papers,
             continue_from_csv=args.continue_csv,
+            only_university=args.university,
+        )
+    elif args.command == "collect-projects":
+        pc = ProjectCollector(collector)
+        pc.collect_projects(
+            max_per_institution=args.max_papers,
+            funder_filter=args.funder,
             only_university=args.university,
         )
     elif args.command == "download":

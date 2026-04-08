@@ -37,6 +37,7 @@ class ReliabilityBadge:
         prompt_level: str = None,
         model_name: str = None,
         is_local_llm: bool = False,
+        hallucination_count: int = 0,
     ) -> str:
         """Return an HTML badge indicating the reliability of the response.
 
@@ -66,276 +67,159 @@ class ReliabilityBadge:
             return ""
 
         is_dev = transparency == "crystal_box"
-        confidence = breakdown.get("confidence", 100) if breakdown else 100
-
-        # Detect 3-way vs 2-way mode from breakdown keys
         three_way = breakdown is not None and "metadata_pct" in breakdown
+        total_claims = breakdown.get("total_claims", 0) if breakdown else 0
+        confidence = breakdown.get("confidence", 100) if breakdown else 100
+        hallucinations = hallucination_count or 0
 
-        if breakdown and breakdown.get("total_claims", 0) > 0:
-            total_claims = breakdown["total_claims"]
-            use_absolute = total_claims < 3  # Too few claims for meaningful %
+        # Apply hallucination penalty to confidence (20% per hallucination).
+        # This ensures that any hallucination caps reliability at Good at best.
+        if hallucinations > 0 and confidence > 0:
+            penalty = hallucinations * 20
+            confidence = max(0, confidence - penalty)
+
+        # ====== Build compact format ======
+        s = 'font-size:0.8em;'  # base style for all lines
+        b = 'font-weight:bold;'  # bold for labels
+        conf_color = _conf_color(confidence)
+
+        # --- Line 1: Agent tuning ---
+        tuning_parts = []
+        if model_name:
+            llm_location = 'On-premise' if is_local_llm else 'Cloud'
+            llm_icon = '/static/icon_llm_local.svg' if is_local_llm else '/static/icon_llm_cloud.svg'
+            tuning_parts.append(
+                f'<img src="{llm_icon}" style="width:14px;height:14px;vertical-align:middle;"> '
+                f'{model_name} ({llm_location})'
+            )
+        tr_label = ReliabilityBadge.TRANSPARENCY_LABELS.get(transparency, transparency)
+        tr_icon = {
+            'crystal_box': '/static/icon_crystal_box.svg',
+            'grey_box': '/static/icon_grey_box.svg',
+            'black_box': '/static/icon_black_box.svg',
+        }.get(transparency, '')
+        if tr_icon:
+            tuning_parts.append(
+                f'<img src="{tr_icon}" style="width:14px;height:14px;vertical-align:middle;"> '
+                f'{tr_label}'
+            )
+        else:
+            tuning_parts.append(tr_label)
+        if prompt_level:
+            pl_label = ReliabilityBadge.PROMPT_LEVEL_LABELS.get(
+                prompt_level, prompt_level.capitalize()
+            )
+            tuning_parts.append(pl_label)
+        tuning_line = (
+            f'<span style="{s}"><span style="{b}">Agent tuning:</span> '
+            f'{" / ".join(tuning_parts)}</span>'
+        )
+
+        # --- Line 2: Sources (Crystal box and Grey box) ---
+        source_line = ""
+        if transparency != "black_box" and breakdown and total_claims > 0:
+            use_absolute = total_claims < 3
+            src_parts = []
 
             if three_way:
-                # --- 3-way mode: Metadata / Database / LLM ---
                 metadata_n = len(breakdown.get("metadata_claims", []))
                 database_n = len(breakdown.get("database_claims", []))
                 ungrounded_n = len(breakdown.get("llm_claims", []))
-
-                # percentage string (development only)
-                if is_dev:
-                    parts = []
-                    if breakdown["metadata_pct"] > 0 or (use_absolute and metadata_n > 0):
-                        if use_absolute:
-                            parts.append(f"Metadata: {metadata_n}/{total_claims}")
-                        else:
-                            parts.append(f"Metadata: {breakdown['metadata_pct']}%")
-                    if breakdown["database_pct"] > 0 or (use_absolute and database_n > 0):
-                        if use_absolute:
-                            parts.append(f"Database: {database_n}/{total_claims}")
-                        else:
-                            parts.append(f"Database: {breakdown['database_pct']}%")
-                    if breakdown["llm_pct"] > 0 or (use_absolute and ungrounded_n > 0):
-                        if use_absolute:
-                            parts.append(f"LLM: {ungrounded_n}/{total_claims}")
-                        else:
-                            parts.append(f"LLM: {breakdown['llm_pct']}%")
-                    pct_str = f" ({' | '.join(parts)})"
-                else:
-                    pct_str = ""
-
-                # confidence indicator
-                conf_color = _conf_color(confidence)
-
-                if is_dev:
-                    conf_str = (
-                        f'<br><span style="font-weight:normal;font-size:0.85em;">'
-                        f'\U0001F4CA Confidence: <strong style="color:{conf_color};">{confidence}%</strong>'
-                        f' ({total_claims} claims verified)</span>'
-                    )
-                else:
-                    conf_str = (
-                        f'<br><span style="font-weight:normal;font-size:0.85em;">'
-                        f'\U0001F4CA Confidence: <strong style="color:{conf_color};">{confidence}%</strong></span>'
-                    )
-
-                # source explanation (development only)
-                source_html = ""
-                if is_dev:
-                    llm_pct = breakdown.get("llm_pct", 0)
-                    source_lines = []
-                    if breakdown.get("metadata_pct", 0) > 0 or (use_absolute and metadata_n > 0):
-                        if use_absolute:
-                            source_lines.append(
-                                f'\U0001F7E2 Sources: {metadata_n} of {total_claims} from structured metadata'
-                            )
-                        else:
-                            source_lines.append(
-                                f'\U0001F7E2 Sources: {breakdown["metadata_pct"]}% from structured metadata'
-                            )
-                    if breakdown.get("database_pct", 0) > 0 or (use_absolute and database_n > 0):
-                        if use_absolute:
-                            source_lines.append(
-                                f'\U0001F7E1 Database: {database_n} of {total_claims} from document database (RAG)'
-                            )
-                        else:
-                            source_lines.append(
-                                f'\U0001F7E1 Database: {breakdown["database_pct"]}% from document database (RAG)'
-                            )
-                    if llm_pct > 0 or (use_absolute and ungrounded_n > 0):
-                        if use_absolute:
-                            source_lines.append(
-                                f'\U0001F534 LLM Refinement: {ungrounded_n} of {total_claims} combined/summarized for readability'
-                            )
-                        else:
-                            source_lines.append(
-                                f'\U0001F534 LLM Refinement: {llm_pct}% combined/summarized for readability'
-                            )
-                    source_html = '<br>'.join(
-                        f'<span style="font-weight:normal;font-size:0.8em;">{line}</span>'
-                        for line in source_lines
-                    )
-                    if source_html:
-                        source_html = '<br>' + source_html
-
-                note = conf_str + source_html
-
+                if breakdown.get("metadata_pct", 0) > 0 or (use_absolute and metadata_n > 0):
+                    val = f'{metadata_n}/{total_claims}' if use_absolute else f'{breakdown["metadata_pct"]}%'
+                    src_parts.append(f'\U0001F7E2 Metadata: {val}')
+                if breakdown.get("database_pct", 0) > 0 or (use_absolute and database_n > 0):
+                    val = f'{database_n}/{total_claims}' if use_absolute else f'{breakdown["database_pct"]}%'
+                    src_parts.append(f'\U0001F7E1 Documents: {val}')
+                if breakdown.get("llm_pct", 0) > 0 or (use_absolute and ungrounded_n > 0):
+                    val = f'{ungrounded_n}/{total_claims}' if use_absolute else f'{breakdown["llm_pct"]}%'
+                    src_parts.append(f'\U0001F534 LLM: {val}')
             else:
-                # --- 2-way mode: Database / LLM ---
                 grounded_n = len(breakdown.get("grounded_claims", []))
                 ungrounded_n = len(breakdown.get("ungrounded_claims", []))
+                if grounded_n > 0:
+                    val = f'{grounded_n}/{total_claims}' if use_absolute else f'{breakdown.get("database_pct", 0)}%'
+                    src_parts.append(f'\U0001F7E2 Documents: {val}')
+                if ungrounded_n > 0:
+                    val = f'{ungrounded_n}/{total_claims}' if use_absolute else f'{breakdown.get("llm_pct", 0)}%'
+                    src_parts.append(f'\U0001F534 LLM: {val}')
 
-                # percentage string (development only)
-                if is_dev:
-                    parts = []
-                    if use_absolute:
-                        if grounded_n > 0:
-                            parts.append(f"Database: {grounded_n}/{total_claims}")
-                        if ungrounded_n > 0:
-                            parts.append(f"LLM: {ungrounded_n}/{total_claims}")
-                    else:
-                        if breakdown.get("database_pct", 0) > 0:
-                            parts.append(f"Database: {breakdown['database_pct']}%")
-                        if breakdown.get("llm_pct", 0) > 0:
-                            parts.append(f"LLM: {breakdown['llm_pct']}%")
-                    pct_str = f" ({' | '.join(parts)})"
-                else:
-                    pct_str = ""
+            # Verification info (inline after sources)
+            grounded = total_claims - len(breakdown.get("llm_claims", breakdown.get("ungrounded_claims", [])))
+            ver_str = f'(Verified claims: {grounded}/{total_claims})'
+            if hallucinations > 0:
+                ver_str = f'(\u26A0\uFE0F Hallucinations: {hallucinations} | Verified claims: {grounded}/{total_claims})'
 
-                # confidence indicator
-                conf_color = _conf_color(confidence)
-
-                if is_dev:
-                    conf_str = (
-                        f'<br><span style="font-weight:normal;font-size:0.85em;">'
-                        f'\U0001F4CA Confidence: <strong style="color:{conf_color};">{confidence}%</strong>'
-                        f' ({total_claims} claims verified)</span>'
-                    )
-                    # source lines
-                    llm_pct = breakdown.get("llm_pct", 0)
-                    source_lines = []
-                    if grounded_n > 0:
-                        if use_absolute:
-                            source_lines.append(
-                                f'\U0001F7E2 Sources: {grounded_n} of {total_claims} from document database (RAG)'
-                            )
-                        else:
-                            source_lines.append(
-                                f'\U0001F7E2 Sources: {breakdown["database_pct"]}% from document database (RAG)'
-                            )
-                    if ungrounded_n > 0:
-                        if use_absolute:
-                            source_lines.append(
-                                f'\U0001F534 LLM Refinement: {ungrounded_n} of {total_claims} combined/summarized for readability'
-                            )
-                        else:
-                            source_lines.append(
-                                f'\U0001F534 LLM Refinement: {llm_pct}% combined/summarized for readability'
-                            )
-                    source_html = '<br>'.join(
-                        f'<span style="font-weight:normal;font-size:0.8em;">{line}</span>'
-                        for line in source_lines
-                    )
-                    note = conf_str + ('<br>' + source_html if source_html else '')
-                else:
-                    note = (
-                        f'<br><span style="font-weight:normal;font-size:0.85em;">'
-                        f'\U0001F4CA Confidence: <strong style="color:{conf_color};">{confidence}%</strong></span>'
-                    )
-        else:
-            # No claims in breakdown (or no breakdown at all)
-            if source_type == "Metadata":
-                pct_str = " (Metadata: 100%)" if is_dev else ""
-                if is_dev:
-                    note = (
-                        '<br><span style="font-weight:normal;font-size:0.85em;">'
-                        '\U0001F4CA Confidence: <strong style="color:#155724;">100%</strong></span>'
-                        '<br><span style="font-weight:normal;font-size:0.8em;">'
-                        '\U0001F7E2 Sources: 100% from structured metadata</span>'
-                    )
-                else:
-                    note = (
-                        '<br><span style="font-weight:normal;font-size:0.85em;">'
-                        '\U0001F4CA Confidence: <strong style="color:#155724;">100%</strong></span>'
-                    )
-            else:
-                pct_str = ""
-                note = ""
-
-        # Legend for inline highlights (development only)
-        legend = ""
-        if is_dev:
-            highlight_cfg = highlight_config or {}
-            if highlight_cfg.get("enabled", False) and highlight_cfg.get("show_legend", True):
-                if three_way:
-                    meta_style = highlight_cfg.get("metadata_style", "")
-                    db_style = highlight_cfg.get("database_style", "")
-                    llm_style = highlight_cfg.get("llm_style", "")
-                    if gap_analysis:
-                        legend = (
-                            '<div style="margin-top:6px;font-size:0.8em;color:#555;">'
-                            f'<span style="{meta_style}">found in data</span> = term exists in database (may already be studied) &nbsp; '
-                            f'<span style="{llm_style}">not in data</span> = not found in database (likely a true gap)'
-                            '</div>'
-                        )
-                    else:
-                        legend = (
-                            '<div style="margin-top:6px;font-size:0.8em;color:#555;">'
-                            f'<span style="{meta_style}">metadata</span> = structured data &nbsp; '
-                            f'<span style="{db_style}">database</span> = RAG documents &nbsp; '
-                            f'<span style="{llm_style}">llm</span> = LLM interpretation'
-                            '</div>'
-                        )
-                else:
-                    grounded_style = highlight_cfg.get("grounded_style", "")
-                    ungrounded_style = highlight_cfg.get("ungrounded_style", "")
-                    legend = (
-                        '<div style="margin-top:6px;font-size:0.8em;color:#555;">'
-                        f'<span style="{grounded_style}">grounded</span> = from document database &nbsp; '
-                        f'<span style="{ungrounded_style}">ungrounded</span> = LLM interpretation'
-                        '</div>'
-                    )
-
-        # Coverage warning (when few claims relative to response length)
-        coverage_html = ""
-        if breakdown and is_dev:
+            source_line = (
+                f'<span style="{s}"><span style="{b}">Sources:</span> '
+                f'{" / ".join(src_parts)} {ver_str}</span>'
+            )
+        elif transparency != "black_box" and breakdown:
+            # No claims — show coverage warning
             coverage_pct = breakdown.get("coverage_pct", 100)
             if coverage_pct == 0:
-                coverage_html = (
-                    '<br><span style="font-weight:normal;font-size:0.8em;color:#b91c1c;">'
-                    '\u26A0\uFE0F No verifiable claims found — this response could not be checked</span>'
+                source_line = (
+                    f'<span style="{s}"><span style="{b}">Sources:</span> '
+                    f'\u26A0\uFE0F No verifiable claims found</span>'
                 )
             elif coverage_pct < 15:
-                coverage_html = (
-                    f'<br><span style="font-weight:normal;font-size:0.8em;color:#b45309;">'
-                    f'\u26A0\uFE0F Low verifiability: only {coverage_pct}% of the response could be checked</span>'
+                source_line = (
+                    f'<span style="{s}"><span style="{b}">Sources:</span> '
+                    f'\u26A0\uFE0F Low verifiability ({coverage_pct}% checked)</span>'
                 )
 
-        # Agent settings info (crystal_box = full, grey_box = minimal)
-        settings_html = ""
-        if transparency != "black_box":
-            lines = []
-            if model_name:
-                llm_location = 'On-premise' if is_local_llm else 'Cloud'
-                lines.append(f'LLM: {model_name} ({llm_location})')
-            tr_label = ReliabilityBadge.TRANSPARENCY_LABELS.get(
-                transparency, transparency
-            )
-            lines.append(f'Transparency: {tr_label}')
-            if prompt_level:
-                pl_label = ReliabilityBadge.PROMPT_LEVEL_LABELS.get(
-                    prompt_level, prompt_level.capitalize()
-                )
-                lines.append(f'Prompt: {pl_label}')
-            settings_html = '<br>' + '<br>'.join(
-                f'<span style="font-weight:normal;font-size:0.8em;">{l}</span>'
-                for l in lines
-            )
+        # --- Line 3: Reliability score (based on penalized confidence) ---
+        high_thr = 100 - 20  # 80% — matches compute_badge_and_breakdown thresholds
+        good_thr = 100 - 50  # 50%
+        if confidence > high_thr:
+            rel_dot = '\U0001F7E2'
+            rel_label = 'High'
+            rel_bg = '#d4edda'
+            rel_fg = '#155724'
+        elif confidence >= good_thr:
+            rel_dot = '\U0001F7E1'
+            rel_label = 'Good'
+            rel_bg = '#fff3cd'
+            rel_fg = '#856404'
+        else:
+            rel_dot = '\U0001F534'
+            rel_label = 'Poor'
+            rel_bg = '#f8d7da'
+            rel_fg = '#721c24'
 
-        # Map source_type to reliability label and colour scheme
-        if source_type in ("Metadata", "Grounded"):
-            return (
-                f'<div class="claim-badge-area" style="margin-bottom:10px;">'
-                f'<span style="background-color:#d4edda;color:#155724;'
-                f'padding:2px 8px;border-radius:4px;font-size:0.85em;'
-                f'font-weight:bold;">Reliability: High{pct_str}</span>'
-                f'{note}{coverage_html}{settings_html}{legend}</div>\n\n'
-            )
-        elif source_type == "Partial":
-            return (
-                f'<div class="claim-badge-area" style="margin-bottom:10px;">'
-                f'<span style="background-color:#fff3cd;color:#856404;'
-                f'padding:2px 8px;border-radius:4px;font-size:0.85em;'
-                f'font-weight:bold;">Reliability: Good{pct_str}</span>'
-                f'{note}{coverage_html}{settings_html}{legend}</div>\n\n'
-            )
-        else:  # Ungrounded
-            return (
-                f'<div class="claim-badge-area" style="margin-bottom:10px;">'
-                f'<span style="background-color:#f8d7da;color:#721c24;'
-                f'padding:2px 8px;border-radius:4px;font-size:0.85em;'
-                f'font-weight:bold;">Reliability: Poor{pct_str}</span>'
-                f'{note}{coverage_html}{settings_html}{legend}</div>\n\n'
-            )
+        conf_str = f' ({confidence}%)' if is_dev and total_claims > 0 else ''
+
+        # Formula breakdown (Crystal box only, when there are claims)
+        formula_str = ''
+        if is_dev and total_claims > 0:
+            raw = breakdown.get("confidence", 100) if breakdown else 100
+            if hallucinations > 0:
+                formula_str = (
+                    f' = ({raw}% − {hallucinations}×20%)'
+                )
+            else:
+                formula_str = f' = (100% − {breakdown.get("llm_pct", 0)}% LLM)'
+
+        reliability_line = (
+            f'<span style="{s}"><span style="{b}">Reliability score:</span> '
+            f'<span style="background-color:{rel_bg};color:{rel_fg};'
+            f'padding:1px 6px;border-radius:3px;font-weight:bold;">'
+            f'{rel_dot} {rel_label}{conf_str}</span>'
+            f'<span style="font-size:0.75em;color:#666;">{formula_str}</span></span>'
+        )
+
+        # ====== Assemble ======
+        lines = [tuning_line]
+        if source_line:
+            lines.append(source_line)
+        lines.append(reliability_line)
+        body = '<br>'.join(lines)
+
+        # Grey box: tuning + reliability only (no sources breakdown)
+        if not is_dev:
+            body = '<br>'.join([tuning_line, reliability_line])
+
+        return f'<div class="claim-badge-area" style="margin-bottom:10px;">{body}</div>\n\n'
 
     @staticmethod
     def compute_badge_and_breakdown(
@@ -352,6 +236,7 @@ class ReliabilityBadge:
         prompt_level: str = None,
         model_name: str = None,
         is_local_llm: bool = False,
+        hallucination_count: int = 0,
     ) -> tuple:
         """Compute reliability badge and per-claim breakdown for a response.
 
@@ -392,15 +277,28 @@ class ReliabilityBadge:
             rag_ctx=context,
             university_acronyms=university_acronyms,
         )
-        llm_pct = breakdown["llm_pct"]
 
-        if llm_pct == 100 and is_not_found:
+        # Compute penalized confidence (hallucinations reduce it by 10% each)
+        raw_confidence = breakdown.get("confidence", 100)
+        if hallucination_count > 0:
+            penalty = hallucination_count * 10
+            penalized = max(0, raw_confidence - penalty)
+        else:
+            penalized = raw_confidence
+
+        # Determine reliability label from penalized confidence
+        # (not from raw llm_pct — hallucinations must affect the label)
+        high_threshold = 100 - green_max   # default: 80%
+        good_threshold = 100 - red_min     # default: 50%
+
+        # Special case: agent correctly says "not found" — treat as reliable refusal
+        if is_not_found and breakdown.get("llm_pct", 0) == 100:
             label = "High"
             source = "Metadata" if "metadata_pct" in breakdown else "Grounded"
-        elif llm_pct <= green_max:
+        elif penalized > high_threshold:
             label = "High"
             source = "Metadata" if "metadata_pct" in breakdown else "Grounded"
-        elif llm_pct < red_min:
+        elif penalized >= good_threshold:
             label = "Good"
             source = "Grounded" if "metadata_pct" in breakdown else "Partial"
         else:
@@ -416,6 +314,7 @@ class ReliabilityBadge:
             prompt_level=prompt_level,
             model_name=model_name,
             is_local_llm=is_local_llm,
+            hallucination_count=hallucination_count,
         )
 
         return badge, breakdown, label

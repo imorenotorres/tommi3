@@ -132,6 +132,9 @@ Common Issues</a></li>
 <li><a href="#post-response-verification-metadatarag-agents"
 id="toc-post-response-verification-metadatarag-agents">3.5 Post-Response
 Verification (Metadata+RAG Agents)</a></li>
+<li><a href="#decision-flow-for-metadatarag-eh-agents"
+id="toc-decision-flow-for-metadatarag-eh-agents">3.6 Decision Flow for
+Metadata+RAG (EH) Agents</a></li>
 </ul></li>
 <li><a href="#testing-checklist" id="toc-testing-checklist">4. Testing
 Checklist</a></li>
@@ -906,6 +909,211 @@ matching).</li>
 <li>For papers without PDFs, verify the “not available” message appears
 instead of a fake link.</li>
 </ul>
+<h3 id="decision-flow-for-metadatarag-eh-agents">3.6 Decision Flow for
+Metadata+RAG (EH) Agents</h3>
+<p>Metadata+RAG agents (Responsible AI, AI &amp; Robotics, Health &amp;
+Social AI) follow a multi-stage decision flow for every query.
+Understanding this flow is essential for testers, as each stage
+determines what data the LLM receives and how the response is
+evaluated.</p>
+<h4 id="stage-1-query-classification">Stage 1 — Query
+Classification</h4>
+<p>The system analyses the user’s query to determine its type. Each type
+triggers a different data pathway:</p>
+<pre><code>User query
+    │
+    ├── Affiliation query? ──────────── &quot;List researchers from UMA&quot;
+    │   (mentions university + researchers/authors)
+    │
+    ├── University paper listing? ───── &quot;Papers from TAMK&quot;
+    │   (mentions university + papers, no specific topic)
+    │
+    ├── Topic query? ────────────────── &quot;Papers on AI ethics&quot;
+    │   (mentions a research topic/keyword)
+    │
+    ├── Researcher query? ───────────── &quot;Papers by García López&quot;
+    │   (mentions a specific author name)
+    │
+    ├── Figure/map request? ─────────── &quot;Show a figure of collaborations&quot;
+    │   (contains &quot;figure&quot; or &quot;map&quot;)
+    │
+    ├── Gap analysis? ───────────────── &quot;What topics have not been studied?&quot;
+    │   (asks about missing/unstudied topics)
+    │
+    ├── Follow-up? ──────────────────── &quot;Tell me more&quot;, &quot;Expand on #3&quot;
+    │   (short continuation of previous conversation)
+    │
+    └── General/content query ───────── &quot;What does this paper say about XAI?&quot;
+        (everything else)</code></pre>
+<p>These checks are applied in priority order — the first match wins.
+For example, “List researchers from UMA working on AI ethics” matches
+<strong>affiliation query</strong> (first check), not topic query.</p>
+<h4 id="stage-2-context-selection">Stage 2 — Context Selection</h4>
+<p>Based on the query type, the system selects which data sources to
+include in the LLM’s context:</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Query type</th>
+<th>Metadata context</th>
+<th>RAG context</th>
+<th>Source type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Affiliation</strong></td>
+<td>✓ Researcher list from researchers.json</td>
+<td>—</td>
+<td>Metadata</td>
+</tr>
+<tr>
+<td><strong>University papers</strong></td>
+<td>✓ Paper list from papers.json</td>
+<td>—</td>
+<td>Metadata</td>
+</tr>
+<tr>
+<td><strong>Topic</strong></td>
+<td>✓ Topic-specific papers from papers.json</td>
+<td>—</td>
+<td>Metadata</td>
+</tr>
+<tr>
+<td><strong>Researcher</strong></td>
+<td>✓ Researcher publications</td>
+<td>—</td>
+<td>Metadata</td>
+</tr>
+<tr>
+<td><strong>Figure/map</strong></td>
+<td>— (map generated from structured data)</td>
+<td>—</td>
+<td>Metadata</td>
+</tr>
+<tr>
+<td><strong>Gap analysis</strong></td>
+<td>✓ Top research topics list</td>
+<td>—</td>
+<td>Metadata</td>
+</tr>
+<tr>
+<td><strong>Follow-up</strong></td>
+<td>— (uses conversation history)</td>
+<td>—</td>
+<td>RAG</td>
+</tr>
+<tr>
+<td><strong>General/content</strong></td>
+<td>—</td>
+<td>✓ ChromaDB semantic search</td>
+<td>RAG</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key principle:</strong> When structured metadata is available
+(affiliation, papers, topics, researchers), it is used <strong>instead
+of</strong> RAG. RAG is only used as a fallback for general content
+queries where no structured data matches.</p>
+<p><strong>Always included:</strong> The system always adds
+<code>_build_metadata_context()</code> (aggregate statistics: total
+papers, top topics, cross-university collaborations) to the system
+prompt, regardless of query type.</p>
+<h4 id="stage-3-system-prompt-assembly">Stage 3 — System Prompt
+Assembly</h4>
+<p>The system prompt is built from three layers:</p>
+<ol type="1">
+<li><strong>Prompt sections</strong> (from <code>prompts.json</code>) —
+identity + rules + strict restrictions, filtered by the current prompt
+level (stringent/tolerant/lax)</li>
+<li><strong>Metadata context</strong> — aggregate statistics always
+included</li>
+<li><strong>Query-specific context</strong> — the data selected in Stage
+2</li>
+</ol>
+<pre><code>System prompt = prompts.json sections (filtered by prompt level)
+              + Metadata context (always)
+              + Affiliation / Papers / Topic / Researcher context (if applicable)
+              + RAG context (if no structured data matched)</code></pre>
+<h4 id="stage-4-llm-call">Stage 4 — LLM Call</h4>
+<p>The assembled system prompt + conversation history + user query are
+sent to the LLM (cloud or local, as configured). The LLM generates a
+response.</p>
+<h4 id="stage-5-post-processing">Stage 5 — Post-Processing</h4>
+<p>After the LLM responds, several post-processing steps are
+applied:</p>
+<pre><code>LLM response
+    │
+    ├── 1. Strip map links (if not a figure request)
+    │      Removes markdown map links the LLM may have added
+    │      despite the &quot;figure/map only&quot; instruction
+    │
+    ├── 2. Verify paper references (Crystal box / Grey box only)
+    │      ├── Pass 1a: Title verification (flag unknown titles)
+    │      ├── Pass 1b: Fake PDF removal (papers without PDFs)
+    │      └── Pass 2:  ID-title mismatch detection
+    │
+    ├── 3. Claim extraction (bidirectional)
+    │      ├── Phase A: Regex patterns (bold, names, acronyms, etc.)
+    │      └── Phase B: Context-derived terms (domain vocabulary)
+    │
+    ├── 4. Claim categorization
+    │      ├── Metadata match → green
+    │      ├── Database match → yellow
+    │      └── No match → red (LLM)
+    │
+    ├── 5. Confidence computation
+    │      ├── Raw confidence = grounded claims / total claims
+    │      └── Penalized confidence = raw - (hallucinations × 20%)
+    │
+    └── 6. Badge rendering
+           ├── Agent tuning line
+           ├── Sources line (with verification stats)
+           └── Reliability score (based on penalized confidence)</code></pre>
+<h4 id="stage-6-response-delivery">Stage 6 — Response Delivery</h4>
+<p>The final response is composed of: 1. <strong>Badge</strong> (HTML
+above the response text) — Crystal box: 3 lines; Grey box: 3 lines
+without inline highlights; Black box: nothing 2. <strong>Response
+text</strong> (with inline claim highlights in Crystal box mode) 3.
+<strong>Verification notes</strong> (if hallucinations were detected) 4.
+<strong>Claim highlight data</strong> (sent as a separate SSE event for
+frontend rendering)</p>
+<h4 id="decision-flow-summary">Decision Flow Summary</h4>
+<pre><code>Query → Classify → Select context → Build prompt → LLM → Post-process → Badge + Response
+         │                │              │                    │
+         │                │              │                    ├── Verify papers
+         │                │              │                    ├── Extract claims
+         │                │              │                    ├── Categorize claims
+         │                │              │                    └── Compute confidence
+         │                │              │
+         │                │              └── prompt level (stringent/tolerant/lax)
+         │                │
+         │                └── Metadata vs RAG (based on query type)
+         │
+         └── affiliation / papers / topic / researcher / figure / gap / followup / general</code></pre>
+<p><strong>What testers should check at each stage:</strong></p>
+<ul>
+<li><strong>Stage 1:</strong> Ask the same question phrased differently
+and verify it’s classified the same way. For example, “researchers at
+UMA” and “UMA researchers” should both trigger the affiliation
+path.</li>
+<li><strong>Stage 2:</strong> Verify that metadata queries don’t fall
+through to RAG (they should show “Metadata” as source type, not
+“RAG”).</li>
+<li><strong>Stage 3:</strong> Test with all three prompt levels to
+verify the prompt sections are correctly included/excluded.</li>
+<li><strong>Stage 5:</strong> Check that hallucinated papers are
+flagged, fake PDFs are removed, and claims are correctly
+categorized.</li>
+<li><strong>Stage 6:</strong> Verify the badge displays correctly at all
+three transparency levels.</li>
+</ul>
 <hr />
 <h2 id="testing-checklist">4. Testing Checklist</h2>
 <p>Before deploying an agent, verify each item:</p>
@@ -1086,15 +1294,15 @@ enabled (<code>audit_log_enabled: true</code> in
 </ul>
 <p><strong>Processing the log:</strong> The JSONL format works with
 standard tools:</p>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count entries by reliability label</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.reliability_label&#39;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">uniq</span> <span class="at">-c</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter queries with low confidence</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;select(.confidence &lt; 50)&#39;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract all queries and their labels as a table</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;[.query, .reliability_label, .confidence] | @tsv&#39;</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count entries by reliability label</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.reliability_label&#39;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">uniq</span> <span class="at">-c</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter queries with low confidence</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;select(.confidence &lt; 50)&#39;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract all queries and their labels as a table</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;[.query, .reliability_label, .confidence] | @tsv&#39;</span></span></code></pre></div>
 <hr />
 <h2 id="model-quality-comparison">6. Model Quality Comparison</h2>
 <table>
@@ -1170,32 +1378,138 @@ well”).</li>
 <th>Model</th>
 <th>Parameters</th>
 <th style="text-align: right;">Minimum RAM (4-bit)</th>
-<th style="text-align: center;">GPU needed?</th>
+<th style="text-align: left;">GPU VRAM needed</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Mistral-7B</td>
 <td>7B</td>
-<td style="text-align: right;">4-6 GB</td>
-<td style="text-align: center;">Recommended</td>
+<td style="text-align: right;">4–6 GB</td>
+<td style="text-align: left;">Optional (runs on CPU, faster with
+GPU)</td>
+</tr>
+<tr>
+<td>Qwen-14B</td>
+<td>14B</td>
+<td style="text-align: right;">8–10 GB</td>
+<td style="text-align: left;">Recommended (6+ GB VRAM)</td>
 </tr>
 <tr>
 <td>Mixtral-8x7B</td>
 <td>47B (MoE)</td>
-<td style="text-align: right;">10-12 GB</td>
-<td style="text-align: center;">Yes</td>
+<td style="text-align: right;">10–12 GB</td>
+<td style="text-align: left;">Yes (12+ GB VRAM)</td>
 </tr>
 <tr>
 <td>Mistral-large</td>
 <td>~120B</td>
-<td style="text-align: right;">30-40 GB</td>
-<td style="text-align: center;">Yes</td>
+<td style="text-align: right;">30–40 GB</td>
+<td style="text-align: left;">Yes (24+ GB VRAM or multi-GPU)</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Apple M1 Max with 32 GB RAM can only run
-models up to 7B with 4-bit quantization. Larger models require dedicated
-GPU hardware (NVIDIA A100, RTX 4090, or similar).</p>
+<p><strong>Common hardware and what they can run:</strong></p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 23%" />
+<col style="width: 40%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th>Hardware</th>
+<th>RAM / VRAM</th>
+<th>Max model (4-bit)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Apple M1/M2 (8 GB)</strong></td>
+<td>8 GB shared</td>
+<td>7B</td>
+<td>Runs 7B models slowly via CPU. Suitable for testing only.</td>
+</tr>
+<tr>
+<td><strong>Apple M1/M2 Pro (16 GB)</strong></td>
+<td>16 GB shared</td>
+<td>7B comfortably, 14B tight</td>
+<td>Apple Silicon uses unified memory — Ollama leverages the GPU cores
+automatically.</td>
+</tr>
+<tr>
+<td><strong>Apple M1/M2 Max (32 GB)</strong></td>
+<td>32 GB shared</td>
+<td>14B comfortably, 30B tight</td>
+<td>Good for most mid-size models. Response times: ~5–10 tokens/sec for
+14B.</td>
+</tr>
+<tr>
+<td><strong>Apple M1/M2 Ultra (64+ GB)</strong></td>
+<td>64–192 GB shared</td>
+<td>70B+</td>
+<td>Can run large models like Mixtral-8x7B and even Mistral-large (with
+128 GB+).</td>
+</tr>
+<tr>
+<td><strong>Intel Core i7/i9 (32 GB, no GPU)</strong></td>
+<td>32 GB RAM, no VRAM</td>
+<td>7B (CPU only)</td>
+<td>Very slow inference (~1–3 tokens/sec). Not recommended for
+production use.</td>
+</tr>
+<tr>
+<td><strong>Intel Core i9 + RTX 3060 (12 GB)</strong></td>
+<td>32 GB RAM + 12 GB VRAM</td>
+<td>7B on GPU, 14B offloaded</td>
+<td>The 12 GB VRAM handles 7B models well. 14B requires partial CPU
+offloading (slower).</td>
+</tr>
+<tr>
+<td><strong>Intel Core i9 + RTX 4070 Ti (16 GB)</strong></td>
+<td>32 GB RAM + 16 GB VRAM</td>
+<td>14B on GPU</td>
+<td>Good mid-range setup. 14B models run at ~10–15 tokens/sec.</td>
+</tr>
+<tr>
+<td><strong>Intel Core i9 + RTX 4090 (24 GB)</strong></td>
+<td>32 GB RAM + 24 GB VRAM</td>
+<td>30B on GPU, 47B offloaded</td>
+<td>Best consumer GPU. Runs Mixtral-8x7B (47B MoE) with partial
+offloading. ~15–20 tokens/sec for 14B.</td>
+</tr>
+<tr>
+<td><strong>Workstation with 2× RTX 4090</strong></td>
+<td>64 GB RAM + 48 GB VRAM</td>
+<td>70B+</td>
+<td>Can run Mistral-large with model parallelism across GPUs.</td>
+</tr>
+<tr>
+<td><strong>Cloud (NVIDIA A100 80 GB)</strong></td>
+<td>80 GB VRAM</td>
+<td>120B+</td>
+<td>Full Mistral-large at high speed. Typical for research/production
+deployments.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key takeaways:</strong></p>
+<ul>
+<li><strong>For testing:</strong> Any machine with 16+ GB RAM can run 7B
+models via Ollama (CPU mode). Response quality is lower than larger
+models but sufficient for functional testing.</li>
+<li><strong>For production (on-premise):</strong> An RTX 4090 (24 GB) is
+the best consumer option — it handles 14B models at good speed and can
+run 30B models acceptably. For 70B+ models, server-grade GPUs or Apple
+Ultra are needed.</li>
+<li><strong>Without a GPU:</strong> Intel/AMD CPUs can run 7B models but
+inference is very slow. This is only suitable for development/debugging,
+not user-facing deployments.</li>
+<li><strong>Apple Silicon advantage:</strong> Unified memory means the
+full RAM is available for model loading (no separate VRAM limit). An M2
+Max with 32 GB outperforms an Intel + RTX 3060 for 14B models.</li>
+</ul>
 </body>
 </html>

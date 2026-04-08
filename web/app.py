@@ -377,6 +377,11 @@ async def get_llm_status(agent_id: Optional[str] = Query(None, description="ID d
                             ollama_models.append({"name": name, "size_gb": size_gb})
             except Exception:
                 pass
+            # Filter out models larger than the cycling threshold (default 20 GB).
+            # This prevents users from cycling to very large models that would
+            # cause memory pressure and slow model-swapping on shared instances.
+            max_cycling_gb = float(os.getenv("OLLAMA_MAX_CYCLING_GB", "20"))
+            cycling_models = [m for m in ollama_models if m["size_gb"] <= max_cycling_gb]
             # Build sizes dict with both full name and base name (without tag)
             model_sizes = {}
             for m in ollama_models:
@@ -392,7 +397,7 @@ async def get_llm_status(agent_id: Optional[str] = Query(None, description="ID d
                 "base_url": base_url,
                 "model_details": model_info["details"],
                 "status": "ok",
-                "available_models": [m["name"] for m in ollama_models],
+                "available_models": [m["name"] for m in cycling_models],
                 "model_sizes": model_sizes,
             }
     elif provider == "vllm":
