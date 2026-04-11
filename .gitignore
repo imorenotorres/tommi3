@@ -10,7 +10,7 @@ agents/*/data/*.md
 agents/*/data/*.pdf
 agents/*/data/*.db
 agents/*data/*.sql
-agents/*/data/chroma_db/*.sqlite3
+agents/*/data/chroma_db/
 
 
 
