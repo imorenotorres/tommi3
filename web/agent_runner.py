@@ -401,7 +401,7 @@ class AgentRunner:
     def init_agent(self, agent_id: str) -> dict:
         """
         Initializes an agent, forcing reload if needed.
-        For RAG agents, this triggers ChromaDB indexing.
+        For RAG agents, this triggers ChromaDB initialization and sync.
         Returns status dict with 'success' and optional 'indexed_chunks'.
         """
         # Remove from cache to force reload
@@ -412,18 +412,15 @@ class AgentRunner:
             agent_instance = self._load_agent_module(agent_id)
             result = {"success": True, "agent_id": agent_id}
 
-            # If it's a RAG agent, check if reindex is needed
+            # Force ChromaDB initialization if lazy (collection is None).
+            if hasattr(agent_instance, '_init_chromadb') and (
+                not hasattr(agent_instance, 'collection') or agent_instance.collection is None
+            ):
+                agent_instance._init_chromadb()
+
             if hasattr(agent_instance, 'collection') and agent_instance.collection is not None:
-                if agent_instance.collection.count() == 0:
-                    # Force reindex
-                    if hasattr(agent_instance, 'reindex'):
-                        count = agent_instance.reindex()
-                        result["indexed_chunks"] = count
-                    elif hasattr(agent_instance, '_index_documents'):
-                        agent_instance._index_documents()
-                        result["indexed_chunks"] = agent_instance.collection.count()
-                else:
-                    result["indexed_chunks"] = agent_instance.collection.count()
+                result["indexed_chunks"] = agent_instance.collection.count()
+                result["newly_indexed_chunks"] = getattr(agent_instance, '_newly_indexed_chunks', 0)
 
             return result
         except Exception as e:
@@ -438,16 +435,17 @@ class AgentRunner:
             agent_instance = self._load_agent_module(agent_id, progress_callback=progress_callback)
             result = {"success": True, "agent_id": agent_id}
 
+            # Force ChromaDB initialization if lazy (collection is None).
+            # _init_chromadb calls _sync_documents which detects and indexes
+            # new files (with progress_callback) and removes deleted ones.
+            if hasattr(agent_instance, '_init_chromadb') and (
+                not hasattr(agent_instance, 'collection') or agent_instance.collection is None
+            ):
+                agent_instance._init_chromadb()
+
             if hasattr(agent_instance, 'collection') and agent_instance.collection is not None:
-                if agent_instance.collection.count() == 0:
-                    if hasattr(agent_instance, 'reindex'):
-                        count = agent_instance.reindex()
-                        result["indexed_chunks"] = count
-                    elif hasattr(agent_instance, '_index_documents'):
-                        agent_instance._index_documents()
-                        result["indexed_chunks"] = agent_instance.collection.count()
-                else:
-                    result["indexed_chunks"] = agent_instance.collection.count()
+                result["indexed_chunks"] = agent_instance.collection.count()
+                result["newly_indexed_chunks"] = getattr(agent_instance, '_newly_indexed_chunks', 0)
 
             return result
         except Exception as e:

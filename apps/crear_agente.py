@@ -5874,7 +5874,9 @@ def create_agent_structure(config: dict) -> str:
                 "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
                 "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
                 "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
-                "show_legend": True
+                "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
+                "show_legend": True,
+                "_style_comment": "Green = metadata, Yellow = database (RAG), Blue = web search, Red = LLM interpretation"
             })
         }
         with open(os.path.join(output_dir, "config.json"), "w", encoding="utf-8") as f:
@@ -5908,6 +5910,33 @@ def create_agent_structure(config: dict) -> str:
         )
         with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
             f.write(agent_content)
+
+        # Generate config.json for non-rag_metadata agents (oneshot, rag, text2sql)
+        basic_config = {
+            "agent_id": agent_id,
+            "agent_name": agent_name,
+            "type": agent_type,
+            "description": description,
+            "welcome_message": welcome,
+            "example_queries": examples,
+            "transparency_level": config.get('transparency_level', 'crystal_box'),
+            "prompt_level": config.get('prompt_level', 'stringent'),
+        }
+        if agent_type == "rag":
+            basic_config["audit_log_enabled"] = True
+            basic_config["reliability_green_max_llm"] = config.get('reliability_green_max_llm', 20)
+            basic_config["reliability_red_min_llm"] = config.get('reliability_red_min_llm', 50)
+            basic_config["inline_claim_highlights"] = {
+                "enabled": True,
+                "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
+                "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
+                "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
+                "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
+                "show_legend": True,
+                "_style_comment": "Green = metadata, Yellow = database (RAG), Blue = web search, Red = LLM interpretation"
+            }
+        with open(os.path.join(output_dir, "config.json"), "w", encoding="utf-8") as f:
+            json.dump(basic_config, f, indent=2, ensure_ascii=False)
 
     # app.py by type
     app_templates = {
@@ -6375,7 +6404,9 @@ def main():
                 "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
                 "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
                 "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
-                "show_legend": True
+                "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
+                "show_legend": True,
+                "_style_comment": "Green = metadata, Yellow = database (RAG), Blue = web search, Red = LLM interpretation"
             }
         }
         with open(os.path.join(output_dir, "config.json"), "w", encoding="utf-8") as f:
@@ -6409,6 +6440,34 @@ def main():
         )
         with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
             f.write(agent_content)
+
+        # Generate config.json for non-rag_metadata agents (oneshot, rag, text2sql)
+        basic_config = {
+            "agent_id": agent_id,
+            "agent_name": agent_name,
+            "type": agent_type,
+            "description": description,
+            "welcome_message": welcome,
+            "example_queries": examples,
+            "transparency_level": "crystal_box",
+            "prompt_level": "stringent",
+        }
+        if agent_type == "rag":
+            basic_config["audit_log_enabled"] = True
+            basic_config["reliability_green_max_llm"] = 20
+            basic_config["reliability_red_min_llm"] = 50
+            basic_config["inline_claim_highlights"] = {
+                "enabled": True,
+                "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
+                "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
+                "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
+                "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
+                "show_legend": True,
+                "_style_comment": "Green = metadata, Yellow = database (RAG), Blue = web search, Red = LLM interpretation"
+            }
+        with open(os.path.join(output_dir, "config.json"), "w", encoding="utf-8") as f:
+            json.dump(basic_config, f, indent=2, ensure_ascii=False)
+        print(f"  ✓ {output_dir}/config.json")
     print(f"  ✓ {output_dir}/agent.py")
 
     # app.py según tipo

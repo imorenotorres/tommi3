@@ -1,0 +1,27 @@
+/* TOMMI Claim Checker — Injected highlight styles (scoped via class names) */
+
+.tommi-claim-grounded {
+  background-color: rgba(40, 167, 69, 0.2);
+  border-bottom: 2px solid #28a745;
+  padding: 1px 2px;
+  border-radius: 2px;
+  cursor: help;
+  transition: background-color 0.15s;
+}
+
+.tommi-claim-grounded:hover {
+  background-color: rgba(40, 167, 69, 0.35);
+}
+
+.tommi-claim-ungrounded {
+  background-color: rgba(220, 53, 69, 0.2);
+  border-bottom: 2px solid #dc3545;
+  padding: 1px 2px;
+  border-radius: 2px;
+  cursor: help;
+  transition: background-color 0.15s;
+}
+
+.tommi-claim-ungrounded:hover {
+  background-color: rgba(220, 53, 69, 0.35);
+}

@@ -326,13 +326,19 @@ async function onAgentChange(event) {
 
     // For RAG agents, initialize/index the database with progress streaming
     if (state.currentAgent.agent_type === 'rag' || state.currentAgent.agent_type === 'rag_metadata') {
-        if (elements.llmBadge) {
-            elements.llmBadge.textContent = 'Indexing database...';
-        }
-        // Show indexing message in chat area
+        // Show indexing message with progress bar in the response area
         const indexingMsg = document.createElement('div');
         indexingMsg.className = 'message agent indexing-notice';
-        indexingMsg.innerHTML = '<div class="message-content"><strong>Indexing database...</strong><br>Preparing documents. Please wait.</div>';
+        indexingMsg.innerHTML = `<div class="message-content">
+            <strong>Preparing database...</strong>
+            <div style="margin:8px 0;">
+                <div style="background:#e9ecef;border-radius:6px;height:20px;overflow:hidden;position:relative;">
+                    <div id="indexing-bar" style="background:linear-gradient(90deg,#28a745,#20c997);height:100%;width:0%;transition:width 0.3s ease;border-radius:6px;"></div>
+                    <span id="indexing-pct" style="position:absolute;top:0;left:0;right:0;text-align:center;line-height:20px;font-size:0.8em;font-weight:bold;color:#333;">0%</span>
+                </div>
+            </div>
+            <span id="indexing-detail" style="font-size:0.85em;color:#666;">Connecting...</span>
+        </div>`;
         elements.chatMessages.appendChild(indexingMsg);
         elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
 
@@ -340,6 +346,9 @@ async function onAgentChange(event) {
             await new Promise((resolve, reject) => {
                 const eventSource = new EventSource(`/api/agents/${agentId}/init-stream`);
                 const startTime = Date.now();
+                const bar = indexingMsg.querySelector('#indexing-bar');
+                const pctLabel = indexingMsg.querySelector('#indexing-pct');
+                const detail = indexingMsg.querySelector('#indexing-detail');
 
                 eventSource.addEventListener('progress', (event) => {
                     const data = JSON.parse(event.data);
@@ -348,10 +357,9 @@ async function onAgentChange(event) {
                     const remaining = Math.max(1, Math.ceil(avgPerFile * (data.total - data.current)));
                     const pct = Math.round((data.current / data.total) * 100);
 
-                    if (elements.llmBadge) {
-                        elements.llmBadge.textContent = `Indexing ${pct}%...`;
-                    }
-                    indexingMsg.innerHTML = `<div class="message-content"><strong>Indexing database... ${pct}%</strong><br>Processing file ${data.current} of ${data.total}<br>Estimated time remaining: ${remaining}s</div>`;
+                    bar.style.width = pct + '%';
+                    pctLabel.textContent = pct + '%';
+                    detail.textContent = `Processing file ${data.current} of ${data.total} — ~${remaining}s remaining`;
                     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
                 });
 
@@ -360,11 +368,17 @@ async function onAgentChange(event) {
                     const result = JSON.parse(event.data);
                     if (result.success) {
                         const chunks = result.indexed_chunks || 0;
+                        const newChunks = result.newly_indexed_chunks || 0;
                         const totalTime = Math.round((Date.now() - startTime) / 1000);
-                        indexingMsg.innerHTML = `<div class="message-content">Database ready (${chunks} chunks indexed in ${totalTime}s).</div>`;
+                        bar.style.width = '100%';
+                        pctLabel.textContent = '100%';
+                        const newMsg = newChunks > 0 ? `${newChunks} new chunks indexed in ${totalTime}s` : `No new documents to index`;
+                        indexingMsg.innerHTML = `<div class="message-content" style="color:#28a745;">
+                            Database ready — ${newMsg} (Total: ${chunks} chunks).
+                        </div>`;
                         console.log('RAG agent initialized:', result);
                     } else {
-                        indexingMsg.innerHTML = '<div class="message-content"><strong>Error indexing database.</strong> Please try selecting the agent again.</div>';
+                        indexingMsg.innerHTML = '<div class="message-content" style="color:#dc3545;"><strong>Error indexing database.</strong> Please try selecting the agent again.</div>';
                         console.error('Error initializing RAG agent:', result);
                     }
                     resolve(result);
@@ -372,7 +386,7 @@ async function onAgentChange(event) {
 
                 eventSource.onerror = () => {
                     eventSource.close();
-                    indexingMsg.innerHTML = '<div class="message-content"><strong>Error indexing database.</strong> Please try selecting the agent again.</div>';
+                    indexingMsg.innerHTML = '<div class="message-content" style="color:#dc3545;"><strong>Error indexing database.</strong> Please try selecting the agent again.</div>';
                     reject(new Error('Connection to init-stream failed'));
                 };
             });
@@ -684,7 +698,7 @@ function applyClaimHighlights(container, data) {
     // Supports both 2-tier (grounded/ungrounded) and 3-tier (metadata/database/llm) formats.
     const items = [];
     if (data.metadata || data.database || data.llm) {
-        // 3-tier format (RAG+Metadata agents)
+        // 3/4-tier format (RAG+Metadata agents, optionally with web tier)
         const isGap = data.gap_analysis === true;
         (data.metadata || []).forEach(c => items.push({
             text: c, style: data.metadata_style,
@@ -693,6 +707,10 @@ function applyClaimHighlights(container, data) {
         (data.database || []).forEach(c => items.push({
             text: c, style: data.database_style,
             tip: isGap ? 'Found in database (may already be studied)' : 'Source: document database (RAG)'
+        }));
+        (data.web || []).forEach(c => items.push({
+            text: c, style: data.web_style || 'background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;',
+            tip: 'Source: web search (external)'
         }));
         (data.llm || []).forEach(c => items.push({
             text: c, style: data.llm_style,
@@ -731,26 +749,36 @@ function applyClaimHighlights(container, data) {
         let found = false;
         for (const el of candidates) {
             if (el.closest('.claim-badge-area')) continue;
+            if (el.closest('a')) continue;
             // Only replace in leaf-level elements (avoid double replacement in parent+child)
             if (el.querySelector('p, li, td')) continue;
-            if (el.innerHTML.includes(searchText)) {
+            // Skip if the claim appears inside an href or src attribute
+            if (el.innerHTML.includes(searchText) && !el.innerHTML.match(new RegExp('(?:href|src)="[^"]*' + searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))) {
                 el.innerHTML = el.innerHTML.replace(searchText, spanHtml);
                 highlighted.add(item.text);
                 found = true;
                 break;
             }
         }
-        // Ultimate fallback: search the entire container (minus badge)
+        // Ultimate fallback: search the entire container (minus badge).
+        // Only replace if the match is NOT inside an HTML attribute (href, src, etc.)
         if (!found) {
             const badgeEl = container.querySelector('.claim-badge-area');
             const badgeHtml = badgeEl ? badgeEl.outerHTML : '';
             let html = container.innerHTML;
             if (badgeEl) html = html.replace(badgeHtml, '<!--BADGE-->');
-            if (html.includes(searchText)) {
-                html = html.replace(searchText, spanHtml);
-                if (badgeEl) html = html.replace('<!--BADGE-->', badgeHtml);
-                container.innerHTML = html;
-                highlighted.add(item.text);
+            const idx = html.indexOf(searchText);
+            if (idx !== -1) {
+                // Check that the match is not inside an HTML tag attribute
+                // by verifying we're not between < and > at the match position
+                const beforeMatch = html.substring(Math.max(0, idx - 200), idx);
+                const insideTag = (beforeMatch.lastIndexOf('<') > beforeMatch.lastIndexOf('>'));
+                if (!insideTag) {
+                    html = html.substring(0, idx) + spanHtml + html.substring(idx + searchText.length);
+                    if (badgeEl) html = html.replace('<!--BADGE-->', badgeHtml);
+                    container.innerHTML = html;
+                    highlighted.add(item.text);
+                }
             }
         }
     }
@@ -765,6 +793,8 @@ function applyClaimHighlights(container, data) {
 
         while ((node = walker.nextNode())) {
             if (node.parentElement && node.parentElement.closest('.claim-badge-area')) continue;
+            // Skip text inside links to avoid breaking URLs
+            if (node.parentElement && node.parentElement.closest('a')) continue;
 
             const text = node.nodeValue;
             const idx = text.indexOf(item.text);
@@ -792,7 +822,8 @@ function applyClaimHighlights(container, data) {
         }
 
         if (!found) {
-            // Fallback: try innerHTML replacement for any remaining unhighlighted claims
+            // Fallback: try innerHTML replacement for any remaining unhighlighted claims.
+            // Skip if the claim text appears inside an href attribute to avoid breaking links.
             const searchText = item.text.replace(/&/g, '&amp;');
             const escapedStyle = item.style.replace(/"/g, '&quot;');
             const escapedTip = (item.tip || '').replace(/"/g, '&quot;');
@@ -801,8 +832,10 @@ function applyClaimHighlights(container, data) {
             const candidates = container.querySelectorAll('p, li, td, dd, blockquote, strong, em, span:not([style])');
             for (const el of candidates) {
                 if (el.closest('.claim-badge-area')) continue;
+                if (el.closest('a')) continue;
                 if (el.querySelector('p, li, td')) continue;
-                if (el.innerHTML.includes(searchText)) {
+                // Skip if the claim appears inside an href or src attribute
+                if (el.innerHTML.includes(searchText) && !el.innerHTML.match(new RegExp('(?:href|src)="[^"]*' + searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))) {
                     el.innerHTML = el.innerHTML.replace(searchText, spanHtml);
                     highlighted.add(item.text);
                     break;
@@ -906,6 +939,61 @@ function addPdfLinks(container) {
             });
             textNode.parentNode.replaceChild(frag, textNode);
         });
+
+        // Pass 2: Match PDF filenames (e.g., "wp-6-civil-security-for-society_horizon-2026-2027_en.pdf")
+        // This covers agents that reference documents by filename rather than paper IDs.
+        if (pdfSet.size > 0) {
+            // Build a Set of known PDF filenames (stem + .pdf)
+            const pdfFilenames = new Set();
+            pdfSet.forEach(stem => pdfFilenames.add(stem + '.pdf'));
+
+            const walker2 = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+            const textNodes2 = [];
+            while (walker2.nextNode()) textNodes2.push(walker2.currentNode);
+
+            textNodes2.forEach(textNode => {
+                const text = textNode.textContent;
+                if (!text.includes('.pdf')) return;
+                if (textNode.parentElement.closest('a')) return;
+
+                // Find all .pdf filename references in the text
+                const pdfPattern = /([\w\-]+(?:_[\w\-]+)*\.pdf)/g;
+                let match;
+                const matches = [];
+                while ((match = pdfPattern.exec(text)) !== null) {
+                    const filename = match[1];
+                    const stem = filename.replace(/\.pdf$/, '');
+                    if (pdfSet.has(stem)) {
+                        matches.push({ filename, stem, index: match.index });
+                    }
+                }
+                if (matches.length === 0) return;
+
+                const frag = document.createDocumentFragment();
+                let lastIdx = 0;
+                for (const m of matches) {
+                    // Text before the match
+                    if (m.index > lastIdx) {
+                        frag.appendChild(document.createTextNode(text.substring(lastIdx, m.index)));
+                    }
+                    // The filename as a clickable link
+                    const link = document.createElement('a');
+                    link.href = `/api/agents/${agentId}/pdf/${m.filename}`;
+                    link.textContent = m.filename;
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                    link.style.cssText = 'color:#0066cc;text-decoration:underline;';
+                    link.title = 'Open PDF document';
+                    frag.appendChild(link);
+                    lastIdx = m.index + m.filename.length;
+                }
+                // Remaining text
+                if (lastIdx < text.length) {
+                    frag.appendChild(document.createTextNode(text.substring(lastIdx)));
+                }
+                textNode.parentNode.replaceChild(frag, textNode);
+            });
+        }
     });
 }
 
@@ -939,8 +1027,35 @@ h1{font-size:22px;margin-bottom:4px;}
 </body></html>`);
     w.document.close();
 }
+/**
+ * Open a projects list in a new browser window.
+ */
+function openProjectsWindow(dataKey) {
+    const data = window[dataKey];
+    if (!data) return;
+    const { acronym, uni, projectsListHtml } = data;
+    const w = window.open('', '_blank', 'width=750,height=650,scrollbars=yes');
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${acronym} — ${uni.name} — Projects</title>
+<style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;margin:0;padding:24px;color:#1e293b;background:#f8fafc;}
+h1{font-size:22px;margin-bottom:4px;}
+.country{color:#64748b;font-size:15px;margin-bottom:12px;}
+.count{font-size:20px;font-weight:700;color:#059669;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #e2e8f0;}
+.projects{font-size:15px;line-height:1.6;}
+.projects b{color:#1e293b;}
+.projects a{color:#059669;text-decoration:none;}
+.projects a:hover{text-decoration:underline;}
+</style></head><body>
+<h1>${acronym} — ${uni.name}</h1>
+<div class="country">${uni.country}</div>
+<div class="count">${uni.count} project(s)</div>
+<div class="projects">${projectsListHtml || '<p style="color:#94a3b8;">No projects found.</p>'}</div>
+</body></html>`);
+    w.document.close();
+}
 // Expose globally for popup onclick
 window.openPapersWindow = openPapersWindow;
+window.openProjectsWindow = openProjectsWindow;
 
 /**
  * Pre-process markdown text: replace map link patterns with HTML placeholders
@@ -952,13 +1067,21 @@ function replaceMapLinksWithPlaceholders(text) {
     console.log('[MAP DEBUG] text contains "publications-map":', text.includes('publications-map'));
     console.log('[MAP DEBUG] text contains "topic-map":', text.includes('topic-map'));
     console.log('[MAP DEBUG] text contains "collaboration-map":', text.includes('collaboration-map'));
-    return text.replace(/\[([^\]]+)\]\(([^)]*(?:topic-map|publications-map|collaboration-map)[^)]*)\)/g, (match, linkText, href) => {
+    console.log('[MAP DEBUG] text contains "projects-map":', text.includes('projects-map'));
+    console.log('[MAP DEBUG] text contains "project-topic-map":', text.includes('project-topic-map'));
+    return text.replace(/\[([^\]]+)\]\(([^)]*(?:project-topic-map|projects-map|topic-map|publications-map|collaboration-map)[^)]*)\)/g, (match, linkText, href) => {
         console.log('[MAP DEBUG] Matched link:', match, '-> href:', href);
         const mapId = 'topic-map-' + (++state.mapCounter);
         let dataUrl;
-        const mapType = href.includes('collaboration-map') ? 'collaboration' :
+        const mapType = href.includes('project-topic-map') ? 'project-topic' :
+                         href.includes('projects-map') ? 'projects' :
+                         href.includes('collaboration-map') ? 'collaboration' :
                          href.includes('publications-map') ? 'publications' : 'topic';
-        if (mapType === 'collaboration') {
+        if (mapType === 'project-topic') {
+            dataUrl = href.replace('project-topic-map', 'project-topic-search');
+        } else if (mapType === 'projects') {
+            dataUrl = href.replace('projects-map', 'projects-search');
+        } else if (mapType === 'collaboration') {
             dataUrl = href.replace('collaboration-map', 'collaboration-search');
         } else if (mapType === 'publications') {
             dataUrl = href.replace('publications-map', 'publications-search');
@@ -1139,6 +1262,82 @@ function renderInlineMapPlaceholders(container) {
                     });
                     const marker = L.marker([uni.lat, uni.lon], { icon: icon }).addTo(map);
                     marker.on('click', () => showCollabPanel(mapDiv, `${acronym} — ${uni.name}`, uni.country, `${uni.collab_count || 0} collaboration paper(s)`, '', uni.lon));
+                });
+
+            } else if (mapType === 'projects' || mapType === 'project-topic') {
+                // --- Projects map: green circle markers ---
+                const data = result.universities || {};
+                const maxCount = Math.max(...Object.values(data).map(u => u.count), 1);
+
+                Object.entries(data).forEach(([acronym, uni]) => {
+                    if (!uni.lat || !uni.lon) return;
+
+                    const size = uni.count > 0 ? Math.max(36, Math.min(56, 36 + (uni.count / maxCount) * 20)) : 24;
+                    const color = uni.count > 0 ? '#059669' : '#cbd5e1';
+                    const borderColor = uni.count > 0 ? '#047857' : '#94a3b8';
+                    const fontSize = size > 44 ? 15 : 13;
+
+                    const icon = L.divIcon({
+                        className: 'inline-map-label',
+                        html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid ${borderColor};opacity:${uni.count > 0 ? 0.9 : 0.6};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:${fontSize}px;text-shadow:0 1px 3px rgba(0,0,0,0.5);">${uni.count}</div>`,
+                        iconSize: [size, size],
+                        iconAnchor: [size / 2, size / 2]
+                    });
+                    const marker = L.marker([uni.lat, uni.lon], { icon: icon }).addTo(map);
+
+                    let projectsListHtml = '';
+                    if (uni.projects && uni.projects.length > 0) {
+                        uni.projects.forEach(p => {
+                            const keywords = p.keywords ? p.keywords.join(', ') : '';
+                            const participants = p.participants ? p.participants.join(', ') : '';
+                            const researchers = p.uninovis_researchers ? p.uninovis_researchers.map(r => r.name).join(', ') : '';
+                            projectsListHtml += `<div style="padding:8px 0;border-bottom:1px solid #e2e8f0;">`;
+                            projectsListHtml += `<b>${p.title || 'Untitled'}</b>`;
+                            if (p.website) projectsListHtml += ` <a href="${p.website}" target="_blank" style="color:#059669;font-size:0.85em;">🌐 Website</a>`;
+                            projectsListHtml += `<br><span style="color:#64748b;">Grant: ${p.grant_id || '—'}`;
+                            if (p.funder) projectsListHtml += ` — ${p.funder}`;
+                            if (p.period) projectsListHtml += ` — ${p.period}`;
+                            if (p.status) projectsListHtml += ` (${p.status})`;
+                            projectsListHtml += `</span>`;
+                            if (p.total_cost) projectsListHtml += `<br><span style="color:#64748b;">Budget: ${p.total_cost}</span>`;
+                            if (researchers) projectsListHtml += `<br><span style="color:#059669;font-size:0.9em;"><b>UNINOVIS researchers:</b> ${researchers}</span>`;
+                            if (participants) projectsListHtml += `<br><span style="color:#475569;font-size:0.9em;"><b>Participants:</b> ${participants}</span>`;
+                            if (keywords) projectsListHtml += `<br><span style="color:#64748b;font-size:0.85em;">Keywords: ${keywords}</span>`;
+                            projectsListHtml += `</div>`;
+                        });
+                    }
+
+                    const uniDataKey = 'uni_proj_popup_' + acronym + '_' + state.mapCounter;
+                    window[uniDataKey] = { acronym, uni, projectsListHtml };
+
+                    const isWest = uni.lon < 10;
+
+                    marker.on('click', function () {
+                        const container = mapDiv.closest('.inline-map-container');
+                        const existing = container.querySelector('.inline-map-panel');
+                        if (existing) existing.remove();
+
+                        const panel = document.createElement('div');
+                        panel.className = 'inline-map-panel ' + (isWest ? 'panel-left' : 'panel-right');
+
+                        let panelHtml = `<button class="panel-close">&times;</button>`;
+                        panelHtml += `<div class="panel-title">${acronym} — ${uni.name}</div>`;
+                        panelHtml += `<div class="panel-country">${uni.country}</div>`;
+                        panelHtml += `<button class="panel-open-btn" onclick="openProjectsWindow('${uniDataKey}')" style="margin-bottom:10px;">Open in new window</button>`;
+                        panelHtml += `<div class="panel-count" style="color:#059669;">${uni.count} project(s)</div>`;
+                        if (projectsListHtml) {
+                            panelHtml += `<div class="panel-papers">${projectsListHtml}</div>`;
+                        }
+                        panelHtml += `<button class="panel-open-btn" onclick="openProjectsWindow('${uniDataKey}')">Open in new window</button>`;
+
+                        panel.innerHTML = panelHtml;
+                        container.appendChild(panel);
+
+                        panel.querySelector('.panel-close').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            panel.remove();
+                        });
+                    });
                 });
 
             } else {

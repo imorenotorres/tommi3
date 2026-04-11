@@ -788,6 +788,79 @@ async def agent_topic_map(agent_id: str, topic: str = Query(...)):
     return HTMLResponse(content=f"<html><body><h1>Topic map for {topic_escaped}</h1><pre>{results_json}</pre></body></html>")
 
 
+@app.get("/api/agents/{agent_id}/projects-search")
+async def agent_projects_search(agent_id: str, year: Optional[int] = Query(None)):
+    """Return all projects grouped by university as JSON data, optionally filtered by year."""
+    agent_instance = runner.get_agent_instance(agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not loaded")
+    if not hasattr(agent_instance, "get_all_projects_by_university"):
+        raise HTTPException(status_code=400, detail="Agent does not support projects search")
+    results = agent_instance.get_all_projects_by_university(year=year)
+    return {"topic": "All Projects", "universities": results}
+
+
+@app.get("/api/agents/{agent_id}/project-topic-search")
+async def agent_project_topic_search(agent_id: str, topic: str = Query(...),
+                                     year: Optional[int] = Query(None)):
+    """Search projects by topic across universities, optionally filtered by year. Returns JSON data."""
+    agent_instance = runner.get_agent_instance(agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not loaded")
+    if not hasattr(agent_instance, "search_projects_by_topic"):
+        raise HTTPException(status_code=400, detail="Agent does not support project topic search")
+    results = agent_instance.search_projects_by_topic(topic, year=year)
+    return {"topic": topic, "universities": results}
+
+
+@app.get("/api/agents/{agent_id}/projects-map")
+async def agent_projects_map(agent_id: str, year: Optional[int] = Query(None)):
+    """Returns an interactive Leaflet map showing projects per university, optionally filtered by year."""
+    from fastapi.responses import HTMLResponse
+    import json as json_module
+
+    agent_instance = runner.get_agent_instance(agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not loaded")
+    if not hasattr(agent_instance, "get_all_projects_by_university"):
+        raise HTTPException(status_code=400, detail="Agent does not support projects search")
+
+    results = agent_instance.get_all_projects_by_university(year=year)
+    results_json = json_module.dumps(results)
+    title = f"Projects ({year})" if year else "All Projects"
+
+    if hasattr(agent_instance, "build_project_map_html"):
+        html = agent_instance.build_project_map_html(results_json, title)
+        return HTMLResponse(content=html)
+
+    return HTMLResponse(content=f"<html><body><h1>{title}</h1><pre>{results_json}</pre></body></html>")
+
+
+@app.get("/api/agents/{agent_id}/project-topic-map")
+async def agent_project_topic_map(agent_id: str, topic: str = Query(...),
+                                  year: Optional[int] = Query(None)):
+    """Returns an interactive Leaflet map for projects on a topic, optionally filtered by year."""
+    from fastapi.responses import HTMLResponse
+    import json as json_module
+
+    agent_instance = runner.get_agent_instance(agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not loaded")
+    if not hasattr(agent_instance, "search_projects_by_topic"):
+        raise HTTPException(status_code=400, detail="Agent does not support project topic search")
+
+    results = agent_instance.search_projects_by_topic(topic, year=year)
+    results_json = json_module.dumps(results)
+    topic_escaped = topic.replace("&", "&amp;").replace("<", "&lt;").replace('"', "&quot;")
+    title = f"{topic_escaped} ({year})" if year else topic_escaped
+
+    if hasattr(agent_instance, "build_project_map_html"):
+        html = agent_instance.build_project_map_html(results_json, title)
+        return HTMLResponse(content=html)
+
+    return HTMLResponse(content=f"<html><body><h1>Projects on {title}</h1><pre>{results_json}</pre></body></html>")
+
+
 # ============================================================================
 # PDF Document Endpoint
 # ============================================================================

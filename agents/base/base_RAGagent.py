@@ -332,17 +332,24 @@ class BaseRAGAgent:
                 sources.add(meta["source"])
         return sources
 
-    def _get_docs_files(self) -> set:
-        """Obtiene el conjunto de archivos en data/docs/."""
-        docs_path = os.path.join(self._agent_dir, "data", "docs")
-        if not os.path.exists(docs_path):
-            return set()
+    def _get_all_docs_dirs(self) -> list:
+        """Return list of document directories to index.
+        Always includes data/docs/, plus any extra_docs_dirs from config."""
+        dirs = [os.path.join(self._agent_dir, "data", "docs")]
+        for extra in self._config.get("extra_docs_dirs", []):
+            dirs.append(os.path.join(self._agent_dir, "data", extra))
+        return dirs
 
+    def _get_docs_files(self) -> set:
+        """Obtiene el conjunto de archivos en all document directories."""
         files = set()
-        for filename in os.listdir(docs_path):
-            filepath = os.path.join(docs_path, filename)
-            if os.path.isfile(filepath) and filename.endswith(('.txt', '.md', '.pdf')):
-                files.add(filename)
+        for docs_path in self._get_all_docs_dirs():
+            if not os.path.exists(docs_path):
+                continue
+            for filename in os.listdir(docs_path):
+                filepath = os.path.join(docs_path, filename)
+                if os.path.isfile(filepath) and filename.endswith(('.txt', '.md', '.pdf')):
+                    files.add(filename)
         return files
 
     def _sync_documents(self):
@@ -357,6 +364,7 @@ class BaseRAGAgent:
 
         if not new_docs and not removed_docs:
             print(f"Documents in sync ({len(indexed)} indexed)")
+            self._newly_indexed_chunks = 0
             return
 
         # Eliminar documentos huerfanos de ChromaDB
@@ -370,10 +378,12 @@ class BaseRAGAgent:
             print(f"Removed: {', '.join(removed_docs)}")
 
         # Indexar documentos nuevos
+        chunks_before = self.collection.count()
         if new_docs:
             print(f"Indexing {len(new_docs)} new documents...")
             self._index_documents(only_files=new_docs)
             print(f"Added: {', '.join(new_docs)}")
+        self._newly_indexed_chunks = self.collection.count() - chunks_before
 
     def _index_documents(self, only_files: set = None):
         """Indexa los documentos del directorio data/docs/

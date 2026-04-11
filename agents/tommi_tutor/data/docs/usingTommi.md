@@ -1,5 +1,12 @@
 # Using TOMMI Agents -- End-User Guide
 
+> **Who is this document for?**
+>
+> This guide is for **end users** — researchers, academic staff, students, and administrators who interact with TOMMI agents through the web interface. A basic understanding of AI concepts (LLM, prompts, hallucinations) is helpful but not strictly required.
+>
+> - **Using a public server:** If your institution provides a TOMMI server URL, using the agents is straightforward — just open the browser and start asking questions. No installation or technical setup is needed.
+> - **Using a local server:** If no public server is available and you need to run TOMMI on your own machine, some technical knowledge is required to set up the environment (Python, dependencies, configuration). See the *Deploying with TOMMI* guide for setup instructions.
+
 This guide explains how to use TOMMI agents from the web interface. No technical knowledge is required.
 
 ---

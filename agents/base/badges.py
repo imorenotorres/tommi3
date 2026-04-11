@@ -124,6 +124,7 @@ class ReliabilityBadge:
             if three_way:
                 metadata_n = len(breakdown.get("metadata_claims", []))
                 database_n = len(breakdown.get("database_claims", []))
+                web_n = len(breakdown.get("web_claims", []))
                 ungrounded_n = len(breakdown.get("llm_claims", []))
                 if breakdown.get("metadata_pct", 0) > 0 or (use_absolute and metadata_n > 0):
                     val = f'{metadata_n}/{total_claims}' if use_absolute else f'{breakdown["metadata_pct"]}%'
@@ -131,6 +132,9 @@ class ReliabilityBadge:
                 if breakdown.get("database_pct", 0) > 0 or (use_absolute and database_n > 0):
                     val = f'{database_n}/{total_claims}' if use_absolute else f'{breakdown["database_pct"]}%'
                     src_parts.append(f'\U0001F7E1 Documents: {val}')
+                if breakdown.get("web_pct", 0) > 0 or (use_absolute and web_n > 0):
+                    val = f'{web_n}/{total_claims}' if use_absolute else f'{breakdown["web_pct"]}%'
+                    src_parts.append(f'\U0001F535 Web: {val}')
                 if breakdown.get("llm_pct", 0) > 0 or (use_absolute and ungrounded_n > 0):
                     val = f'{ungrounded_n}/{total_claims}' if use_absolute else f'{breakdown["llm_pct"]}%'
                     src_parts.append(f'\U0001F534 LLM: {val}')
@@ -226,6 +230,7 @@ class ReliabilityBadge:
         llm_content: str,
         context: str,
         metadata_ctx: str = "",
+        web_ctx: str = "",
         transparency: str = "crystal_box",
         green_max: int = 20,
         red_min: int = 50,
@@ -250,6 +255,8 @@ class ReliabilityBadge:
             Structured metadata context.  When non-empty, the 3-way
             ``GroundingAnalyzer.grounding_breakdown`` is used; otherwise
             the simpler 2-way variant is used.
+        web_ctx : str
+            Text from web search results.
         transparency : str
             Passed through to ``source_badge``.
         green_max : int
@@ -275,6 +282,7 @@ class ReliabilityBadge:
             llm_content,
             metadata_ctx=metadata_ctx,
             rag_ctx=context,
+            web_ctx=web_ctx,
             university_acronyms=university_acronyms,
         )
 
@@ -378,6 +386,8 @@ class AuditLogger:
         }
         if "metadata_pct" in breakdown:
             breakdown_entry["metadata_pct"] = breakdown.get("metadata_pct", 0)
+        if breakdown.get("web_pct", 0) > 0:
+            breakdown_entry["web_pct"] = breakdown.get("web_pct", 0)
 
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),

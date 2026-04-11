@@ -487,13 +487,14 @@ class ClaimExtractor:
 
 
 class GroundingAnalyzer:
-    """Three-way claim classification: metadata / database (RAG) / LLM."""
+    """Four-way claim classification: metadata / database (RAG) / web / LLM."""
 
     @staticmethod
     def grounding_breakdown(
         response: str,
         metadata_ctx: str = "",
         rag_ctx: str = "",
+        web_ctx: str = "",
         university_acronyms: list = None,
     ) -> dict:
         """Classify every claim extracted from *response*.
@@ -506,15 +507,17 @@ class GroundingAnalyzer:
             Text built from document metadata (keyword context).
         rag_ctx : str
             Text retrieved from the vector / document database.
+        web_ctx : str
+            Text retrieved from web search results.
         university_acronyms : list, optional
             Forwarded to ``ClaimExtractor.extract_claims``.
 
         Returns
         -------
         dict
-            metadata_pct, database_pct, llm_pct, total_claims, confidence,
-            metadata_claims, database_claims, llm_claims,
-            grounded_claims (= metadata + database),
+            metadata_pct, database_pct, web_pct, llm_pct, total_claims,
+            confidence, metadata_claims, database_claims, web_claims,
+            llm_claims, grounded_claims (= metadata + database + web),
             ungrounded_claims (= llm).
         """
         # --- Phase A: regex-based claim extraction (response-driven) ---
@@ -525,6 +528,7 @@ class GroundingAnalyzer:
         # These are automatically grounded (they come FROM the context).
         metadata_terms = ClaimExtractor.extract_context_terms(metadata_ctx)
         rag_terms = ClaimExtractor.extract_context_terms(rag_ctx)
+        web_terms = ClaimExtractor.extract_context_terms(web_ctx)
 
         # Find context terms in response that regex missed
         ctx_meta_claims = ClaimExtractor.find_context_terms_in_response(
@@ -534,17 +538,23 @@ class GroundingAnalyzer:
             response, rag_terms - metadata_terms,  # exclude already-found metadata terms
             claims + ctx_meta_claims
         )
+        ctx_web_claims = ClaimExtractor.find_context_terms_in_response(
+            response, web_terms - metadata_terms - rag_terms,
+            claims + ctx_meta_claims + ctx_rag_claims
+        )
 
-        if not claims and not ctx_meta_claims and not ctx_rag_claims:
+        if not claims and not ctx_meta_claims and not ctx_rag_claims and not ctx_web_claims:
             return {
                 "metadata_pct": 0,
                 "database_pct": 0,
+                "web_pct": 0,
                 "llm_pct": 0,
                 "total_claims": 0,
                 "confidence": 0,
                 "coverage_pct": 0,
                 "metadata_claims": [],
                 "database_claims": [],
+                "web_claims": [],
                 "llm_claims": [],
                 "grounded_claims": [],
                 "ungrounded_claims": [],
@@ -552,12 +562,15 @@ class GroundingAnalyzer:
 
         metadata_lower = (metadata_ctx or "").lower()
         rag_lower = (rag_ctx or "").lower()
+        web_lower = (web_ctx or "").lower()
 
         metadata_count = 0
         database_count = 0
+        web_count = 0
         llm_count = 0
         metadata_claims = []
         database_claims = []
+        web_claims = []
         llm_claims = []
 
         for claim in claims:
@@ -573,6 +586,12 @@ class GroundingAnalyzer:
             if rag_lower and claim_lower in rag_lower:
                 database_count += 1
                 database_claims.append(claim)
+                continue
+
+            # Exact substring match against web context
+            if web_lower and claim_lower in web_lower:
+                web_count += 1
+                web_claims.append(claim)
                 continue
 
             # Fuzzy match: for multi-word claims (e.g. author names), try
@@ -598,6 +617,13 @@ class GroundingAnalyzer:
                         database_claims.append(claim)
                         fuzzy_matched = True
 
+                if not fuzzy_matched and significant and web_lower:
+                    matched = sum(1 for w in significant if w in web_lower)
+                    if matched > len(significant) / 2:
+                        web_count += 1
+                        web_claims.append(claim)
+                        fuzzy_matched = True
+
             if not fuzzy_matched:
                 llm_count += 1
                 llm_claims.append(claim)
@@ -609,12 +635,15 @@ class GroundingAnalyzer:
         for c in ctx_rag_claims:
             database_count += 1
             database_claims.append(c)
+        for c in ctx_web_claims:
+            web_count += 1
+            web_claims.append(c)
 
         # Remove sub-claims that are part of a connector phrase (with &/+).
         # E.g., if "AI & Responsibility" is a claim, remove standalone "AI"
         # and "Responsibility" to prevent overlapping highlights.
-        all_claim_lists = [metadata_claims, database_claims, llm_claims]
-        all_texts = metadata_claims + database_claims + llm_claims
+        all_claim_lists = [metadata_claims, database_claims, web_claims, llm_claims]
+        all_texts = metadata_claims + database_claims + web_claims + llm_claims
         connector_claims = {c.lower() for c in all_texts if '&' in c or '+' in c}
         if connector_claims:
             for claim_list in all_claim_lists:
@@ -630,31 +659,35 @@ class GroundingAnalyzer:
             # Recount
             metadata_count = len(metadata_claims)
             database_count = len(database_claims)
+            web_count = len(web_claims)
             llm_count = len(llm_claims)
 
-        total = metadata_count + database_count + llm_count
-        grounded_total = metadata_count + database_count
+        total = metadata_count + database_count + web_count + llm_count
+        # Web claims count as partially grounded (70% weight) — less trusted than local data
+        grounded_total = metadata_count + database_count + (web_count * 0.7)
         confidence = round(grounded_total / total * 100) if total > 0 else 100
 
         # Coverage: what fraction of the response text is covered by claims?
         # Strip markdown formatting for a cleaner word count.
         response_clean = re.sub(r'[*#\[\]()_`>|]', ' ', response)
         response_words = len(response_clean.split())
-        all_claims = (metadata_claims + database_claims + llm_claims
-                      + ctx_meta_claims + ctx_rag_claims)
+        all_claims = (metadata_claims + database_claims + web_claims + llm_claims
+                      + ctx_meta_claims + ctx_rag_claims + ctx_web_claims)
         claim_words = sum(len(c.split()) for c in all_claims)
         coverage_pct = min(100, round(claim_words / response_words * 100)) if response_words > 0 else 0
 
         return {
             "metadata_pct": round(metadata_count / total * 100) if total else 0,
             "database_pct": round(database_count / total * 100) if total else 0,
+            "web_pct": round(web_count / total * 100) if total else 0,
             "llm_pct": round(llm_count / total * 100) if total else 0,
             "total_claims": total,
             "confidence": confidence,
             "coverage_pct": coverage_pct,
             "metadata_claims": metadata_claims,
             "database_claims": database_claims,
+            "web_claims": web_claims,
             "llm_claims": llm_claims,
-            "grounded_claims": metadata_claims + database_claims,
+            "grounded_claims": metadata_claims + database_claims + web_claims,
             "ungrounded_claims": llm_claims,
         }

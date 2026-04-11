@@ -1,5 +1,11 @@
 # Deploying with TOMMI -- Developer Guide
 
+> **Who is this document for?**
+>
+> This guide is **exclusively for IT professionals** — system administrators, DevOps engineers, and software developers responsible for installing, configuring, and maintaining TOMMI in production environments. It requires solid expertise in Python, server administration, environment configuration, Docker/process management, and familiarity with LLM APIs (Mistral, Ollama) and vector databases (ChromaDB).
+>
+> If you are an end user, see *Using TOMMI Agents*. If you are a tester, see *Testing TOMMI Agents*.
+
 **Target audience:** Software developers and IT staff deploying TOMMI agents.
 
 ---
@@ -355,21 +361,22 @@ async def metadata():
     return {"documents": agent.get_metadata_summary()}
 ```
 
-For simpler agent types (Oneshot, RAG, Text2SQL), `AGENT_CONFIG` is defined inline in `app.py` instead of reading from `config.json`:
+All agent types (Oneshot, RAG, Text2SQL, RAG+Metadata) now use a `config.json` file for configuration. The agent creation tools (`crear_agente.py` and the web UI) automatically generate this file. For simpler agents (Oneshot, Text2SQL), the `config.json` contains basic settings:
 
-```python
-AGENT_CONFIG = {
-    "id": "my_agent",
-    "name": "My Agent",
-    "type": "rag",  # or "oneshot", "text2sql"
-    "description": "Helps with specific tasks",
-    "welcome_message": "Hello! How can I help you?",
-    "example_queries": [
-        "What can you do?",
-        "Tell me about X"
-    ]
+```json
+{
+  "agent_id": "my_agent",
+  "agent_name": "My Agent",
+  "type": "rag",
+  "description": "Helps with specific tasks",
+  "welcome_message": "Hello! How can I help you?",
+  "example_queries": ["What can you do?", "Tell me about X"],
+  "transparency_level": "crystal_box",
+  "prompt_level": "stringent"
 }
 ```
+
+For RAG and RAG+Metadata agents, `config.json` additionally includes `inline_claim_highlights`, `reliability_green_max_llm`, `reliability_red_min_llm`, `audit_log_enabled`, and (optionally) `web_search` settings. See [Section 6.1](#61-configjson) for the full reference.
 
 **Step 6 -- Add documents to `data/docs/`:**
 
@@ -432,6 +439,7 @@ The `config.json` file drives all agent behavior. Below is a complete reference 
 | `reliability_green_max_llm` | integer | No | Maximum LLM % for green badge (High reliability). Default: `20`. |
 | `reliability_red_min_llm` | integer | No | Minimum LLM % for red badge (Poor reliability). Default: `50`. |
 | `inline_claim_highlights` | object | No | Claim highlighting config (see [Section 8](#8-transparency-and-reliability-configuration)). |
+| `web_search` | object | No | Web search expansion config. When configured, the agent offers to search the web when local results are insufficient. |
 | `show_history` | boolean | No | Display query history in the sidebar. Default: `true`. |
 | `show_description` | boolean | No | Show the agent description in the UI. Default: `true`. |
 | `rag_domain_keywords` | array | No | Domain-specific keywords for `similarity_test.py` calibration. |
@@ -471,10 +479,20 @@ The `config.json` file drives all agent behavior. Below is a complete reference 
     "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
     "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
     "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
-    "show_legend": true
+    "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
+    "show_legend": true,
+    "_style_comment": "Green = metadata, Yellow = database (RAG), Blue = web search, Red = LLM interpretation"
+  },
+  "web_search": {
+    "google_api_key": "YOUR_API_KEY",
+    "google_cx": "YOUR_SEARCH_ENGINE_ID",
+    "num_results": 5,
+    "_comment": "Leave empty to disable. Get API key at https://console.cloud.google.com/ (Custom Search API) and CX at https://programmablesearchengine.google.com/"
   }
 }
 ```
+
+**Web search expansion:** When `web_search` is configured with valid Google API credentials, the agent will offer to expand searches to the web when local results are insufficient. Web-sourced claims are shown with blue highlights and count as partially grounded (70% weight) in the reliability score. The four claim tiers are: Metadata (green), Database/RAG (yellow), Web (blue), LLM (red).
 
 ### 6.2 prompts.json
 

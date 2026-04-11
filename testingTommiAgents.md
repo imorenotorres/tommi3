@@ -1,5 +1,12 @@
 # Testing TOMMI Agents -- Tester Guide
 
+> **Who is this document for?**
+>
+> This guide is for **testers, QA staff, and project managers** who evaluate TOMMI agents before deployment. An excellent understanding of prompts, claim extraction, and grounding analysis is essential — you need to assess whether the agent's responses are factually correct and properly sourced, not just whether they "look right."
+>
+> - **Testing on a public server:** Similar to end-user access — you can test through the web interface. However, you will need to understand how to interpret reliability badges, claim highlights, transparency levels, and prompt level effects.
+> - **Testing on a local server:** Gives you full control over agent configuration (transparency levels, prompt levels, LLM model selection) and accelerates the update-test cycle — you can modify prompts, reindex documents, and see results immediately. This requires increased technical knowledge (Python environment, configuration files, ChromaDB). Local testing is strongly recommended for thorough evaluation.
+
 ## 1. Introduction
 
 This guide is intended for **testers, QA staff, and project managers** who need to evaluate TOMMI agents before deployment. It covers the practical aspects of verifying agent quality, tuning runtime parameters, interpreting reliability data, and checking claim accuracy.

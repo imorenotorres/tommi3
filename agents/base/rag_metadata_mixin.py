@@ -16,8 +16,68 @@ import sys
 import json
 import re
 import glob
+import urllib.request
+import urllib.error
+import urllib.parse
 
 from .claims import ClaimExtractor, GroundingAnalyzer
+
+
+# ---------------------------------------------------------------------------
+# Web search helper (Google Custom Search API)
+# ---------------------------------------------------------------------------
+
+def _web_search(query: str, api_key: str, cx: str, num_results: int = 5) -> str:
+    """Search the web via Google Custom Search API and return concatenated snippets.
+
+    Parameters
+    ----------
+    query : str
+        Search query string.
+    api_key : str
+        Google API key.
+    cx : str
+        Google Custom Search Engine ID.
+    num_results : int
+        Number of results to request (max 10).
+
+    Returns
+    -------
+    str
+        Concatenated snippets from search results, each prefixed with
+        source URL and title. Empty string on error or no results.
+    """
+    if not api_key or not cx:
+        return ""
+
+    params = urllib.parse.urlencode({
+        "key": api_key,
+        "cx": cx,
+        "q": query,
+        "num": min(num_results, 10),
+    })
+    url = f"https://www.googleapis.com/customsearch/v1?{params}"
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "TOMMI-Agent/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, OSError) as e:
+        print(f"[web_search] Error: {e}")
+        return ""
+
+    items = data.get("items", [])
+    if not items:
+        return ""
+
+    parts = []
+    for item in items:
+        title = item.get("title", "")
+        snippet = item.get("snippet", "")
+        link = item.get("link", "")
+        parts.append(f"[Web source: {link} | {title}]\n{snippet}")
+
+    return "\n\n---\n\n".join(parts)
 from .badges import ReliabilityBadge, AuditLogger
 
 
@@ -88,6 +148,10 @@ class MetadataRAGMixin:
             except Exception as e:
                 print(f"Warning: Could not load papers.json: {e}")
 
+        # Cache projects data from project_docs/ markdown files
+        self._all_uni_projects = {}
+        self._load_project_docs()
+
         # Load researchers index
         self._researchers_by_uni = {}
         researchers_path = os.path.join(self._agent_dir, "data", "researchers.json")
@@ -99,6 +163,125 @@ class MetadataRAGMixin:
                 print(f"Researchers index loaded: {total_r} researchers across {len(self._researchers_by_uni)} universities")
             except Exception as e:
                 print(f"Warning: Could not load researchers.json: {e}")
+
+    # ------------------------------------------------------------------
+    # Project document parsing
+    # ------------------------------------------------------------------
+
+    def _load_project_docs(self):
+        """Parse project markdown files from data/project_docs/ into structured data.
+
+        Each .md file has a consistent structure with grant ID, funder, programme,
+        period, status, total cost, summary, keywords, participants, and UNINOVIS partners.
+        Projects are grouped by UNINOVIS partner university acronym.
+        """
+        project_docs_dir = os.path.join(self._agent_dir, "data", "project_docs")
+        if not os.path.isdir(project_docs_dir):
+            return
+
+        projects_by_uni = {}
+        for md_path in sorted(glob.glob(os.path.join(project_docs_dir, "*.md"))):
+            try:
+                with open(md_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+
+                project = self._parse_project_md(content, os.path.basename(md_path))
+                if not project:
+                    continue
+
+                for acronym in project.get("uninovis_partners", []):
+                    projects_by_uni.setdefault(acronym, []).append(project)
+            except Exception as e:
+                print(f"Warning: Could not parse project file {md_path}: {e}")
+
+        self._all_uni_projects = projects_by_uni
+        total = sum(len(v) for v in projects_by_uni.values())
+        if total:
+            print(f"Projects cache loaded: {total} projects across {len(projects_by_uni)} universities")
+
+    @staticmethod
+    def _parse_project_md(content: str, filename: str) -> dict:
+        """Parse a single project markdown file into a structured dict."""
+        project = {"filename": filename}
+
+        # Title: first markdown heading
+        title_match = re.search(r'^#\s+(.+)', content, re.MULTILINE)
+        if title_match:
+            project["title"] = title_match.group(1).strip()
+        else:
+            project["title"] = filename.replace(".md", "")
+
+        # Structured fields
+        field_patterns = {
+            "grant_id": r'\*\*Grant ID:\*\*\s*(.+)',
+            "funder": r'\*\*Funder:\*\*\s*(.+)',
+            "programme": r'\*\*Programme:\*\*\s*(.+)',
+            "period": r'\*\*Period:\*\*\s*(.+)',
+            "status": r'\*\*Status:\*\*\s*(.+)',
+            "total_cost": r'\*\*Total cost:\*\*\s*(.+)',
+        }
+        for field, pattern in field_patterns.items():
+            match = re.search(pattern, content)
+            project[field] = match.group(1).strip() if match else ""
+
+        # Extract start/end years from period (e.g. "2021-03-01 — 2023-02-28")
+        period = project.get("period", "")
+        year_matches = re.findall(r'(\d{4})', period)
+        project["start_year"] = int(year_matches[0]) if len(year_matches) >= 1 else None
+        project["end_year"] = int(year_matches[-1]) if len(year_matches) >= 2 else project.get("start_year")
+
+        # Summary: text between ## Summary and the next ## or **Keywords
+        summary_match = re.search(r'## Summary\s*\n(.*?)(?=\n##|\n\*\*Keywords)', content, re.DOTALL)
+        project["summary"] = summary_match.group(1).strip() if summary_match else ""
+
+        # Keywords
+        kw_match = re.search(r'\*\*Keywords:\*\*\s*(.+)', content)
+        if kw_match:
+            project["keywords"] = [k.strip() for k in kw_match.group(1).split(",")]
+        else:
+            project["keywords"] = []
+
+        # Participants
+        participants = []
+        in_participants = False
+        for line in content.split("\n"):
+            if line.strip() == "## Participants":
+                in_participants = True
+                continue
+            if in_participants:
+                if line.startswith("**UNINOVIS"):
+                    break
+                if line.strip().startswith("- "):
+                    participants.append(line.strip()[2:].strip())
+        project["participants"] = participants
+
+        # Website URL
+        website_match = re.search(r'\*\*Website:\*\*\s*(\S+)', content)
+        project["website"] = website_match.group(1).strip() if website_match else ""
+
+        # UNINOVIS researchers (added by enrich_projects.py)
+        researchers_section = re.search(r'## UNINOVIS Researchers\s*\n(.*?)(?=\n## |\n\*\*UNINOVIS partners|\Z)', content, re.DOTALL)
+        uninovis_researchers = []
+        if researchers_section:
+            for line in researchers_section.group(1).strip().split("\n"):
+                # Format: **UMA:** Name1, Name2, Name3
+                m = re.match(r'\*\*(\w+):\*\*\s*(.+)', line)
+                if m:
+                    acronym = m.group(1)
+                    names = [n.strip() for n in m.group(2).split(",")]
+                    for name in names:
+                        if name:
+                            uninovis_researchers.append({"name": name, "university": acronym})
+        project["uninovis_researchers"] = uninovis_researchers
+
+        # UNINOVIS partners
+        partners_match = re.search(r'\*\*UNINOVIS partners:\*\*\s*(.+)', content)
+        if partners_match:
+            project["uninovis_partners"] = [p.strip() for p in partners_match.group(1).split(",")]
+        else:
+            project["uninovis_partners"] = []
+
+        return project
 
     # ------------------------------------------------------------------
     # Metadata / Document methods
@@ -204,38 +387,39 @@ class MetadataRAGMixin:
         return metadata
 
     def _refresh_metadata_cache(self):
-        """Refresh the metadata cache from indexed documents."""
-        docs_path = os.path.join(self._agent_dir, "data", "docs")
-        if not os.path.exists(docs_path):
-            return
-
+        """Refresh the metadata cache from all document directories."""
         self._documents_metadata = {}
-        for filename in os.listdir(docs_path):
-            filepath = os.path.join(docs_path, filename)
-            if os.path.isfile(filepath) and filename.endswith(('.txt', '.md', '.pdf')):
-                self._documents_metadata[filename] = self._extract_metadata(filepath)
+        for docs_path in self._get_all_docs_dirs():
+            if not os.path.exists(docs_path):
+                continue
+            for filename in os.listdir(docs_path):
+                filepath = os.path.join(docs_path, filename)
+                if os.path.isfile(filepath) and filename.endswith(('.txt', '.md', '.pdf')):
+                    self._documents_metadata[filename] = self._extract_metadata(filepath)
 
     def _index_documents(self, only_files: set = None):
-        """Index documents from data/docs/ with enriched metadata."""
-        docs_path = os.path.join(self._agent_dir, "data", "docs")
-        if not os.path.exists(docs_path):
-            os.makedirs(docs_path)
-            return
-
+        """Index documents from data/docs/ and any extra_docs_dirs with enriched metadata."""
         documents = []
         metadatas = []
         ids = []
 
-        # Build file list first to know total count for progress reporting
-        all_files = [
-            f for f in os.listdir(docs_path)
-            if os.path.isfile(os.path.join(docs_path, f))
-            and (only_files is None or f in only_files)
-        ]
+        # Collect files from all document directories
+        all_files = []  # list of (filename, filepath)
+        for docs_path in self._get_all_docs_dirs():
+            if not os.path.exists(docs_path):
+                os.makedirs(docs_path, exist_ok=True)
+                continue
+            for f in os.listdir(docs_path):
+                fp = os.path.join(docs_path, f)
+                if os.path.isfile(fp) and (only_files is None or f in only_files):
+                    all_files.append((f, fp))
+
+        if not all_files:
+            return
+
         total_files = len(all_files)
 
-        for i, filename in enumerate(all_files):
-            filepath = os.path.join(docs_path, filename)
+        for i, (filename, filepath) in enumerate(all_files):
 
             if self._progress_callback:
                 self._progress_callback(i + 1, total_files, filename)
@@ -574,6 +758,102 @@ class MetadataRAGMixin:
 
         return "\n".join(lines)
 
+    @staticmethod
+    def _is_project_query(user_message: str) -> bool:
+        """Detect if the user is asking about research projects (not papers)."""
+        msg_lower = user_message.lower()
+        project_phrases = [
+            "project", "projects", "grant", "grants", "funding",
+            "funded", "funder", "consortium", "consortia",
+        ]
+        return any(phrase in msg_lower for phrase in project_phrases)
+
+    def _find_project_by_name(self, user_message: str) -> list:
+        """Find projects whose acronym or title appears in the user message.
+        Returns list of (project_dict, university_acronym) tuples."""
+        msg_lower = user_message.lower()
+        matches = []
+        seen_grants = set()
+        for acronym, projects in self._all_uni_projects.items():
+            for proj in projects:
+                grant_id = proj.get("grant_id", "")
+                if grant_id in seen_grants:
+                    continue
+                # Match project title keywords (the part before the colon, i.e. the acronym)
+                title = proj.get("title", "")
+                # Extract acronym from title like "InnoGuard: Hybrid and Generative..."
+                proj_acronym = title.split(":")[0].strip() if ":" in title else ""
+                if proj_acronym and len(proj_acronym) >= 3 and proj_acronym.lower() in msg_lower:
+                    matches.append((proj, acronym))
+                    seen_grants.add(grant_id)
+                elif grant_id and grant_id in user_message:
+                    matches.append((proj, acronym))
+                    seen_grants.add(grant_id)
+        return matches
+
+    def _build_project_context(self, user_message: str) -> str:
+        """Extract topic from user message and return structured project data.
+        Only triggered when the query is about projects (not papers)."""
+        if not self._all_uni_projects:
+            return ""
+        if not self._is_project_query(user_message):
+            return ""
+
+        # First try to find a specific project by name/acronym
+        named_matches = self._find_project_by_name(user_message)
+        if named_matches:
+            lines = [f"PROJECT SEARCH RESULTS ({len(named_matches)} project(s) matching query):"]
+            lines.append("This data is authoritative -- use it as-is. These are PROJECTS (funded research), NOT papers/publications.")
+            for proj, uni_acronym in named_matches:
+                lines.append(self._format_project_detail(self._format_project(proj), uni_acronym))
+            return "\n".join(lines)
+
+        topic = self._extract_topic(user_message)
+
+        if topic:
+            results = self.search_projects_by_topic(topic)
+        else:
+            results = self.get_all_projects_by_university()
+
+        total = sum(uni["count"] for uni in results.values())
+        label = f' on "{topic}"' if topic else ""
+
+        if total == 0:
+            return f'PROJECT SEARCH RESULTS{label}: 0 projects found.'
+
+        lines = [f"PROJECT SEARCH RESULTS{label} ({total} projects total):"]
+        lines.append("This data is authoritative -- use it as-is. These are PROJECTS (funded research), NOT papers/publications.")
+        for acronym, uni in sorted(results.items(), key=lambda x: x[1]["count"], reverse=True):
+            if uni["count"] == 0:
+                continue
+            lines.append(f"\n{acronym} ({uni['name']}): {uni['count']} projects")
+            for p in uni["projects"]:
+                lines.append(self._format_project_detail(p, acronym))
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def _format_project_detail(p: dict, uni_acronym: str) -> str:
+        """Format a single project dict into a detailed text line for LLM context."""
+        detail = f"  - \"{p['title']}\" (Grant: {p['grant_id']}, University: {uni_acronym})"
+        if p.get("funder"):
+            detail += f" — Funder: {p['funder']}"
+        if p.get("period"):
+            detail += f" — {p['period']}"
+        if p.get("status"):
+            detail += f" ({p['status']})"
+        if p.get("total_cost"):
+            detail += f" — Budget: {p['total_cost']}"
+        if p.get("website"):
+            detail += f"\n    Website: {p['website']}"
+        researchers = p.get("uninovis_researchers", [])
+        if researchers:
+            names = ", ".join(r["name"] for r in researchers)
+            detail += f"\n    UNINOVIS researchers: {names}"
+        if p.get("participants"):
+            detail += f"\n    Participants: {', '.join(p['participants'])}"
+        return detail
+
     def _build_university_papers_context(self, user_message: str) -> str:
         """When a university is mentioned but no research topic is detected,
         return the authoritative paper list from *_papers.json instead of RAG.
@@ -780,9 +1060,12 @@ class MetadataRAGMixin:
         topic_phrases = [
             "papers on", "papers about", "publications on", "publications about",
             "researchers on", "researchers in", "research on", "research about",
+            "projects on", "projects about", "projects related to",
+            "grants on", "grants about", "funding on", "funding for",
             "working on", "interested in", "interest in", "interest on",
             "figure of", "figure about", "figure with",
             "list of papers", "list of researchers", "list of publications",
+            "list of projects", "list of grants",
             "studies on", "studies about", "studies per",
             "related with", "related to", "topics on", "topics about",
             "number of", "focused on",
@@ -823,7 +1106,7 @@ class MetadataRAGMixin:
             r'\b(all|the|some|any|every)\b',
             r'\b(among|between|across|within|per)\b',
             r'\b(partners?|universities?|institutions?)\b',
-            r'\b(publications?|papers?|articles?|studies|collaborations?)\b',
+            r'\b(publications?|papers?|articles?|studies|collaborations?|projects?|grants?|research)\b',
         ]
         check = topic_for_check.lower()
         for pattern in structural_words:
@@ -983,6 +1266,297 @@ class MetadataRAGMixin:
         if all(w in text for w in topic_words):
             return True
         return False
+
+    # ------------------------------------------------------------------
+    # Project search / map data methods
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _project_active_in_year(proj: dict, year: int) -> bool:
+        """Check if a project was active during a given year."""
+        start = proj.get("start_year")
+        end = proj.get("end_year")
+        if start is None:
+            return False
+        if end is None:
+            end = start
+        return start <= year <= end
+
+    @staticmethod
+    def _format_project(proj: dict) -> dict:
+        """Format a project dict for API output."""
+        return {
+            "title": proj.get("title", ""),
+            "grant_id": proj.get("grant_id", ""),
+            "funder": proj.get("funder", ""),
+            "programme": proj.get("programme", ""),
+            "period": proj.get("period", ""),
+            "status": proj.get("status", ""),
+            "total_cost": proj.get("total_cost", ""),
+            "keywords": proj.get("keywords", []),
+            "participants": proj.get("participants", []),
+            "website": proj.get("website", ""),
+            "uninovis_researchers": proj.get("uninovis_researchers", []),
+        }
+
+    def _empty_project_results(self) -> dict:
+        """Return an empty results dict with all universities initialized."""
+        results = {}
+        for acronym in self._config.get("universities", {}).keys():
+            coords = self.UNIVERSITY_COORDS.get(acronym, {})
+            results[acronym] = {
+                "name": coords.get("name", acronym),
+                "country": coords.get("country", ""),
+                "lat": coords.get("lat", 0),
+                "lon": coords.get("lon", 0),
+                "count": 0,
+                "projects": [],
+            }
+        return results
+
+    def get_all_projects_by_university(self, year: int = None) -> dict:
+        """Return all projects grouped by university, optionally filtered by year.
+
+        Args:
+            year: If provided, only include projects active during this year.
+
+        Returns a dict: {acronym: {"name": ..., "country": ..., "lat": ..., "lon": ..., "count": N, "projects": [...]}}
+        """
+        results = self._empty_project_results()
+
+        for acronym, projects_list in self._all_uni_projects.items():
+            if acronym not in results:
+                coords = self.UNIVERSITY_COORDS.get(acronym, {})
+                results[acronym] = {
+                    "name": coords.get("name", acronym),
+                    "country": coords.get("country", ""),
+                    "lat": coords.get("lat", 0),
+                    "lon": coords.get("lon", 0),
+                    "count": 0,
+                    "projects": [],
+                }
+            formatted = []
+            for proj in projects_list:
+                if year is not None and not self._project_active_in_year(proj, year):
+                    continue
+                formatted.append(self._format_project(proj))
+            results[acronym]["projects"] = formatted
+            results[acronym]["count"] = len(formatted)
+
+        return results
+
+    def search_projects_by_topic(self, topic: str, year: int = None) -> dict:
+        """Search all projects for those matching a topic, optionally filtered by year.
+
+        Matching: checks if the topic (or all topic keywords) appear in
+        the project title, summary, keywords, or programme.
+
+        Args:
+            topic: Search topic.
+            year: If provided, only include projects active during this year.
+
+        Returns a dict: {acronym: {"name": ..., "country": ..., "lat": ..., "lon": ..., "count": N, "projects": [...]}}
+        """
+        topic_lower = topic.lower()
+        stop_words = {"the", "a", "an", "in", "on", "of", "and", "or", "for", "to", "is", "are", "was", "were", "by", "with", "from", "at", "as"}
+        topic_words = [w for w in re.split(r'\W+', topic_lower) if w and w not in stop_words and len(w) > 2]
+
+        results = self._empty_project_results()
+
+        for acronym, projects_list in self._all_uni_projects.items():
+            if acronym not in results:
+                coords = self.UNIVERSITY_COORDS.get(acronym, {})
+                results[acronym] = {
+                    "name": coords.get("name", acronym),
+                    "country": coords.get("country", ""),
+                    "lat": coords.get("lat", 0),
+                    "lon": coords.get("lon", 0),
+                    "count": 0,
+                    "projects": [],
+                }
+            matching = []
+            for proj in projects_list:
+                if year is not None and not self._project_active_in_year(proj, year):
+                    continue
+                searchable = " ".join([
+                    proj.get("title", ""),
+                    proj.get("summary", ""),
+                    " ".join(proj.get("keywords", [])),
+                    proj.get("programme", ""),
+                ]).lower()
+
+                # Full phrase match first
+                if topic_lower in searchable:
+                    matching.append(proj)
+                    continue
+                # Keyword fallback: all topic keywords must appear
+                if topic_words and all(w in searchable for w in topic_words):
+                    matching.append(proj)
+
+            formatted = [self._format_project(p) for p in matching]
+            results[acronym]["projects"] = formatted
+            results[acronym]["count"] = len(formatted)
+
+        return results
+
+    @staticmethod
+    def build_project_map_html(results_json: str, topic_escaped: str) -> str:
+        """Build the HTML for the interactive project map (similar to topic map but for projects)."""
+        return ("""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS Projects Map: __TOPIC__</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f8fafc; color: #1e293b; }
+        .header { background: #1e293b; padding: 16px 24px; border-bottom: 3px solid #059669; display: flex; align-items: center; justify-content: space-between; }
+        .header h1 { font-size: 1.3em; color: #ffffff; font-weight: 600; }
+        .header h1 span { color: #6ee7b7; }
+        .header p { font-size: 0.9em; color: #94a3b8; margin-top: 2px; }
+        .header-left { flex: 1; }
+        .header-badge { background: #059669; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 0.8em; font-weight: 600; letter-spacing: 0.5px; }
+        #map { height: calc(100vh - 72px); width: 100%; }
+        .uni-popup { min-width: 300px; }
+        .uni-popup h3 { color: #1e293b; margin-bottom: 4px; font-size: 1.1em; font-weight: 600; }
+        .uni-popup .country { color: #64748b; font-size: 0.85em; margin-bottom: 10px; }
+        .uni-popup .count { font-size: 1.3em; font-weight: 700; color: #059669; margin-bottom: 10px; padding: 6px 0; border-bottom: 2px solid #e2e8f0; }
+        .uni-popup .projects-list { max-height: 280px; overflow-y: auto; font-size: 0.82em; }
+        .uni-popup .project-item { padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
+        .uni-popup .project-item:last-child { border-bottom: none; }
+        .uni-popup .project-title { font-weight: 500; color: #1e293b; }
+        .uni-popup .project-meta { color: #64748b; font-size: 0.9em; margin-top: 2px; }
+        .uni-popup a { color: #059669; text-decoration: none; }
+        .uni-popup a:hover { text-decoration: underline; }
+        .legend { background: #ffffff; padding: 14px 18px; border-radius: 10px; color: #1e293b; font-size: 0.85em; line-height: 1.7; box-shadow: 0 2px 8px rgba(0,0,0,0.12); border: 1px solid #e2e8f0; }
+        .legend h4 { margin-bottom: 6px; color: #1e293b; font-weight: 600; font-size: 0.95em; }
+        .legend .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+        .legend .dot-has { background: #059669; }
+        .legend .dot-none { background: #cbd5e1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <h1>UNINOVIS Projects Map: <span>"__TOPIC__"</span></h1>
+            <p id="summary"></p>
+        </div>
+        <div class="header-badge">UNINOVIS</div>
+    </div>
+    <div id="map"></div>
+    <script>
+        const data = __DATA__;
+        const topic = "__TOPIC__";
+
+        // Summary
+        let totalProjects = 0;
+        let uniWithProjects = 0;
+        Object.values(data).forEach(u => {
+            totalProjects += u.count;
+            if (u.count > 0) uniWithProjects++;
+        });
+        document.getElementById('summary').textContent =
+            totalProjects + ' project(s) found across ' + uniWithProjects + ' of ' + Object.keys(data).length + ' UNINOVIS universities';
+
+        // Map focused tightly on UNINOVIS universities
+        const uniBounds = L.latLngBounds(
+            L.latLng(35, -6),
+            L.latLng(63, 26)
+        );
+        const map = L.map('map', {
+            maxBounds: uniBounds.pad(0.15),
+            maxBoundsViscosity: 1.0,
+            minZoom: 4,
+            maxZoom: 18
+        }).fitBounds(uniBounds, { padding: [30, 30] });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            maxZoom: 18
+        }).addTo(map);
+
+        // Markers
+        const maxCount = Math.max(...Object.values(data).map(u => u.count), 1);
+
+        Object.entries(data).forEach(([acronym, uni]) => {
+            if (!uni.lat || !uni.lon) return;
+
+            const radius = uni.count > 0 ? Math.max(18, Math.min(42, 18 + (uni.count / maxCount) * 24)) : 12;
+            const color = uni.count > 0 ? '#059669' : '#cbd5e1';
+            const borderColor = uni.count > 0 ? '#047857' : '#94a3b8';
+            const fillOpacity = uni.count > 0 ? 0.8 : 0.5;
+
+            const marker = L.circleMarker([uni.lat, uni.lon], {
+                radius: radius,
+                fillColor: color,
+                color: borderColor,
+                weight: 2,
+                opacity: 1,
+                fillOpacity: fillOpacity
+            }).addTo(map);
+
+            // Number label
+            const icon = L.divIcon({
+                className: 'count-label',
+                html: '<div style="color:#fff;font-weight:bold;font-size:' + (radius > 22 ? '14' : '12') + 'px;text-align:center;line-height:' + (radius*2) + 'px;text-shadow:0 1px 2px rgba(0,0,0,0.3);">' + uni.count + '</div>',
+                iconSize: [radius*2, radius*2],
+                iconAnchor: [radius, radius]
+            });
+            L.marker([uni.lat, uni.lon], {icon: icon, interactive: false}).addTo(map);
+
+            // Popup
+            let projectsHtml = '';
+            if (uni.projects && uni.projects.length > 0) {
+                projectsHtml = '<div class="projects-list">';
+                uni.projects.forEach(p => {
+                    const keywords = p.keywords ? p.keywords.join(', ') : '';
+                    projectsHtml += '<div class="project-item">'
+                        + '<div class="project-title">' + (p.title || 'Untitled') + '</div>'
+                        + '<div class="project-meta">'
+                        + (p.grant_id ? 'Grant: ' + p.grant_id : '')
+                        + (p.funder ? ' &mdash; ' + p.funder : '')
+                        + (p.period ? ' &mdash; ' + p.period : '')
+                        + (p.status ? ' (' + p.status + ')' : '')
+                        + '</div>'
+                        + (p.total_cost ? '<div class="project-meta">Budget: ' + p.total_cost + '</div>' : '')
+                        + (keywords ? '<div class="project-meta">Keywords: ' + keywords + '</div>' : '')
+                        + '</div>';
+                });
+                projectsHtml += '</div>';
+            } else {
+                projectsHtml = '<p style="color:#94a3b8;font-style:italic;">No projects found for this topic.</p>';
+            }
+
+            marker.bindPopup(
+                '<div class="uni-popup">'
+                + '<h3>' + acronym + ' &mdash; ' + uni.name + '</h3>'
+                + '<div class="country">' + uni.country + '</div>'
+                + '<div class="count">' + uni.count + ' project(s) on "' + topic + '"</div>'
+                + projectsHtml
+                + '</div>',
+                { maxWidth: 400 }
+            );
+        });
+
+        // Legend
+        const legend = L.control({position: 'bottomright'});
+        legend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'legend');
+            div.innerHTML = '<h4>UNINOVIS Projects Map</h4>'
+                + '<div><span class="dot dot-has"></span> Has projects (size = count)</div>'
+                + '<div><span class="dot dot-none"></span> No projects found</div>';
+            return div;
+        };
+        legend.addTo(map);
+    </script>
+</body>
+</html>"""
+            .replace("__DATA__", results_json)
+            .replace("__TOPIC__", topic_escaped)
+        )
 
     def get_top_topics(self, min_score: float = 0.3, top_n: int = 30) -> list:
         """Aggregate concepts/topics across all university papers.
@@ -1660,6 +2234,8 @@ class MetadataRAGMixin:
         """Detect short follow-up queries that refer to previous conversation context
         (e.g. 'expand on 1', 'tell me more about 3', 'more details', 'yes', 'go on')."""
         msg = user_message.strip().lower()
+        if MetadataRAGMixin._is_web_expand_request(msg):
+            return False  # web expand requests are not follow-ups
         if len(msg) < 60:
             followup_patterns = [
                 r'^(expand|elaborate|more|details|explain|continue|go on|yes|no|ok)',
@@ -1673,10 +2249,64 @@ class MetadataRAGMixin:
         return False
 
     @staticmethod
+    def _is_web_expand_request(user_message: str) -> bool:
+        """Detect when the user accepts the web search expansion offer."""
+        msg = user_message.strip().lower()
+        if len(msg) > 80:
+            return False
+        expand_patterns = [
+            r'^(yes,?\s*)?(expand|search)\s*(the\s+)?web',
+            r'^(yes,?\s*)?web\s*search',
+            r'^(yes,?\s*)?(expand|broaden|widen)\s*(the\s+)?search',
+            r'^(yes,?\s*)?search\s*(the\s+)?(internet|web|online)',
+            r'^yes,?\s*please\s*(expand|search|look)',
+            r'^(yes|si|sí|ok|okay|sure|please|go ahead)',
+        ]
+        return any(re.match(p, msg) for p in expand_patterns)
+
+    def _should_offer_web_search(self, breakdown: dict, topic_ctx: str, context: str) -> bool:
+        """Decide whether to offer web search expansion based on result quality.
+
+        Offers web search when:
+        - Topic search found 0 papers, OR
+        - RAG retrieved very little context, OR
+        - Confidence is below 50% (mostly LLM-generated claims)
+        AND web search is configured (API key present).
+        """
+        web_cfg = self._config.get("web_search", {})
+        if not web_cfg.get("google_api_key") or not web_cfg.get("google_cx"):
+            return False
+
+        # Already used web search in this response
+        if breakdown.get("web_pct", 0) > 0:
+            return False
+
+        # Topic search found 0 papers
+        if topic_ctx and "0 papers found" in topic_ctx:
+            return True
+
+        # Very little RAG context
+        if not context or len(context) < 100:
+            if not topic_ctx:
+                return True
+
+        # Low confidence — mostly LLM claims
+        if breakdown.get("confidence", 100) < 50:
+            return True
+
+        return False
+
+    def _get_last_query(self) -> str:
+        """Get the last query from history for web search expansion."""
+        if self._query_history:
+            return self._query_history[-1].get("question", "")
+        return ""
+
+    @staticmethod
     def _strip_map_links(text: str) -> str:
         """Remove markdown map links from text when the LLM adds them despite instructions."""
         return re.sub(
-            r'\[([^\]]*)\]\([^)]*(?:topic-map|publications-map|collaboration-map)[^)]*\)\s*',
+            r'\[([^\]]*)\]\([^)]*(?:topic-map|publications-map|collaboration-map|projects-map|project-topic-map)[^)]*\)\s*',
             '', text
         ).rstrip()
 
@@ -1945,7 +2575,7 @@ class MetadataRAGMixin:
     # Chat methods (override SimpleRAGMixin or BaseRAGAgent)
     # ------------------------------------------------------------------
 
-    def chat(self, user_message: str, history: list = None) -> str:
+    def chat(self, user_message: str, history: list = None, **kwargs) -> str:
         """Send a message with RAG+Metadata context and return the response."""
         # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
@@ -1957,30 +2587,52 @@ class MetadataRAGMixin:
 
         university_acronyms = list(self._config.get("universities", {}).keys())
 
-        # Check for affiliation-based researcher queries first
-        affiliation_ctx = self._build_affiliation_context(user_message)
+        # --- Web search expansion: user accepted the offer ---
+        is_web_expand = self._is_web_expand_request(user_message) and history
+        web_ctx = ""
+        if is_web_expand:
+            original_query = self._get_last_query()
+            if original_query:
+                web_cfg = self._config.get("web_search", {})
+                web_ctx = _web_search(
+                    original_query,
+                    api_key=web_cfg.get("google_api_key", ""),
+                    cx=web_cfg.get("google_cx", ""),
+                    num_results=web_cfg.get("num_results", 5),
+                )
+
+        # Check for project-specific queries first (before paper queries)
+        project_ctx = "" if is_web_expand else self._build_project_context(user_message)
+        # Check for affiliation-based researcher queries
+        affiliation_ctx = "" if (project_ctx or is_web_expand) else self._build_affiliation_context(user_message)
         # University paper listing (no topic) -- uses authoritative *_papers.json
-        uni_papers_ctx = "" if affiliation_ctx else self._build_university_papers_context(user_message)
+        uni_papers_ctx = "" if (affiliation_ctx or project_ctx or is_web_expand) else self._build_university_papers_context(user_message)
         # Add topic-specific structured data (same source as figures)
-        topic_ctx = "" if (affiliation_ctx or uni_papers_ctx) else self._build_topic_context(user_message)
+        topic_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand) else self._build_topic_context(user_message)
         # Look up specific researchers mentioned in the query
-        researcher_ctx = "" if (affiliation_ctx or uni_papers_ctx) else self._build_researcher_context(user_message)
+        researcher_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand) else self._build_researcher_context(user_message)
 
         # Figure/map requests: the LLM generates the map link from system prompt
         # instructions alone -- no data context needed, maps use structured data
-        is_figure_request = self._is_figure_request(user_message)
+        is_figure_request = False if is_web_expand else self._is_figure_request(user_message)
 
         # Follow-up queries rely on conversation history, not RAG
-        is_followup = self._is_followup_query(user_message) and history
+        is_followup = (not is_web_expand) and self._is_followup_query(user_message) and history
 
         # Gap analysis queries use metadata + LLM reasoning, not RAG
-        is_gap_analysis = self._is_gap_analysis_query(user_message)
+        is_gap_analysis = False if is_web_expand else self._is_gap_analysis_query(user_message)
 
         # When structured context is available, use it instead of RAG
-        if is_followup:
+        if is_web_expand:
+            # For web expansion, also retrieve local RAG context to combine
+            original_query = self._get_last_query() or user_message
+            uni_filter = self._detect_university_filter(original_query)
+            context = self._retrieve_context(original_query, metadata_filter=uni_filter)
+            source_type = "Web+RAG"
+        elif is_followup:
             context = ""
             source_type = "RAG"
-        elif is_gap_analysis or affiliation_ctx or uni_papers_ctx or topic_ctx or researcher_ctx or is_figure_request:
+        elif is_gap_analysis or affiliation_ctx or uni_papers_ctx or topic_ctx or researcher_ctx or project_ctx or is_figure_request:
             context = ""
             source_type = "Metadata"
         else:
@@ -1992,6 +2644,8 @@ class MetadataRAGMixin:
         metadata_ctx = self._build_metadata_context()
         if metadata_ctx:
             system_with_context += f"\n\n{metadata_ctx}"
+        if project_ctx:
+            system_with_context += f"\n\n{project_ctx}"
         if affiliation_ctx:
             system_with_context += f"\n\n{affiliation_ctx}"
         if uni_papers_ctx:
@@ -2002,13 +2656,27 @@ class MetadataRAGMixin:
             system_with_context += f"\n\n{researcher_ctx}"
         if context:
             system_with_context += f"\n\nRelevant context from the knowledge base:\n{context}"
+        if web_ctx:
+            system_with_context += (
+                f"\n\nAdditional context from web search (external sources — clearly indicate "
+                f"when information comes from web sources vs. the UNINOVIS database):\n{web_ctx}"
+            )
+
+        # For web expand, rephrase the user message to re-ask the original query
+        effective_message = user_message
+        if is_web_expand and self._get_last_query():
+            effective_message = (
+                f"The user asked to expand the search to the web for their previous question. "
+                f"Please answer this question using both the local database and the web search results: "
+                f"{self._get_last_query()}"
+            )
 
         messages = [{"role": "system", "content": system_with_context}]
 
         if history:
             messages.extend(history)
 
-        messages.append({"role": "user", "content": user_message})
+        messages.append({"role": "user", "content": effective_message})
 
         response = self.client.chat.complete(
             model=self.model,
@@ -2022,23 +2690,23 @@ class MetadataRAGMixin:
 
         # Verify paper references against the database
         combined_ctx = " ".join(filter(None, [
-            affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
-            metadata_ctx, context
+            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
+            metadata_ctx, context, web_ctx
         ]))
         llm_content, hallucination_count = self._verify_paper_references(llm_content, combined_ctx, self._transparency)
 
         # Compute grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
-            affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx
+            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx
         ]))
 
         highlight_cfg = self._config.get("inline_claim_highlights")
 
         if is_figure_request:
             reliability_label = "High"
-            figure_breakdown = {"metadata_pct": 100, "database_pct": 0, "llm_pct": 0,
+            figure_breakdown = {"metadata_pct": 100, "database_pct": 0, "web_pct": 0, "llm_pct": 0,
                                 "total_claims": 0, "confidence": 100,
-                                "metadata_claims": [], "database_claims": [], "llm_claims": []}
+                                "metadata_claims": [], "database_claims": [], "web_claims": [], "llm_claims": []}
             badge = ReliabilityBadge.source_badge(
                 "Metadata", figure_breakdown,
                 transparency=self._transparency,
@@ -2052,6 +2720,7 @@ class MetadataRAGMixin:
             badge, breakdown, reliability_label = ReliabilityBadge.compute_badge_and_breakdown(
                 llm_content, context,
                 metadata_ctx=structured_ctx,
+                web_ctx=web_ctx,
                 transparency=self._transparency,
                 green_max=self._reliability_green_max_llm,
                 red_min=self._reliability_red_min_llm,
@@ -2067,8 +2736,20 @@ class MetadataRAGMixin:
 
         response_content = badge + llm_content
 
+        # Offer web search expansion if results were insufficient
+        if (not is_web_expand and not is_figure_request and not is_followup
+                and self._should_offer_web_search(breakdown, topic_ctx, context)):
+            response_content += (
+                "\n\n---\n\n"
+                "\U0001F310 *I found limited information in the UNINOVIS database on this topic. "
+                "Would you like me to expand this search to the web? "
+                "Reply **\"expand search\"** to search external sources.*"
+            )
+
         # Audit log
-        if is_followup:
+        if is_web_expand:
+            query_type = "web_expand"
+        elif is_followup:
             query_type = "followup"
         elif is_figure_request:
             query_type = "figure"
@@ -2084,6 +2765,7 @@ class MetadataRAGMixin:
         if researcher_ctx:  ctx_sources.append("researcher")
         if metadata_ctx:    ctx_sources.append("metadata")
         if context:         ctx_sources.append("rag")
+        if web_ctx:         ctx_sources.append("web")
 
         AuditLogger.log(
             audit_path=self._audit_path,
@@ -2100,7 +2782,7 @@ class MetadataRAGMixin:
         )
 
         self._query_history.append({
-            'question': user_message,
+            'question': self._get_last_query() if is_web_expand else user_message,
             'response_length': len(response_content)
         })
 
@@ -2122,30 +2804,52 @@ class MetadataRAGMixin:
 
         university_acronyms = list(self._config.get("universities", {}).keys())
 
-        # Check for affiliation-based researcher queries first
-        affiliation_ctx = self._build_affiliation_context(user_message)
+        # --- Web search expansion: user accepted the offer ---
+        is_web_expand = self._is_web_expand_request(user_message) and history
+        web_ctx = ""
+        if is_web_expand:
+            yield ("status", "Searching the web...")
+            original_query = self._get_last_query()
+            if original_query:
+                web_cfg = self._config.get("web_search", {})
+                web_ctx = _web_search(
+                    original_query,
+                    api_key=web_cfg.get("google_api_key", ""),
+                    cx=web_cfg.get("google_cx", ""),
+                    num_results=web_cfg.get("num_results", 5),
+                )
+
+        # Check for project-specific queries first (before paper queries)
+        project_ctx = "" if is_web_expand else self._build_project_context(user_message)
+        # Check for affiliation-based researcher queries
+        affiliation_ctx = "" if (project_ctx or is_web_expand) else self._build_affiliation_context(user_message)
         # University paper listing (no topic) -- uses authoritative *_papers.json
-        uni_papers_ctx = "" if affiliation_ctx else self._build_university_papers_context(user_message)
+        uni_papers_ctx = "" if (affiliation_ctx or project_ctx or is_web_expand) else self._build_university_papers_context(user_message)
         # Add topic-specific structured data (same source as figures)
-        topic_ctx = "" if (affiliation_ctx or uni_papers_ctx) else self._build_topic_context(user_message)
+        topic_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand) else self._build_topic_context(user_message)
         # Look up specific researchers mentioned in the query
-        researcher_ctx = "" if (affiliation_ctx or uni_papers_ctx) else self._build_researcher_context(user_message)
+        researcher_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand) else self._build_researcher_context(user_message)
 
         # Figure/map requests: the LLM generates the map link from system prompt
         # instructions alone -- no data context needed, maps use structured data
-        is_figure_request = self._is_figure_request(user_message)
+        is_figure_request = False if is_web_expand else self._is_figure_request(user_message)
 
         # Follow-up queries rely on conversation history, not RAG
-        is_followup = self._is_followup_query(user_message) and history
+        is_followup = (not is_web_expand) and self._is_followup_query(user_message) and history
 
         # Gap analysis queries use metadata + LLM reasoning, not RAG
-        is_gap_analysis = self._is_gap_analysis_query(user_message)
+        is_gap_analysis = False if is_web_expand else self._is_gap_analysis_query(user_message)
 
         # When structured context is available, use it instead of RAG
-        if is_followup:
+        if is_web_expand:
+            original_query = self._get_last_query() or user_message
+            uni_filter = self._detect_university_filter(original_query)
+            context = self._retrieve_context(original_query, metadata_filter=uni_filter)
+            source_type = "Web+RAG"
+        elif is_followup:
             context = ""
             source_type = "RAG"
-        elif is_gap_analysis or affiliation_ctx or uni_papers_ctx or topic_ctx or researcher_ctx or is_figure_request:
+        elif is_gap_analysis or affiliation_ctx or uni_papers_ctx or topic_ctx or researcher_ctx or project_ctx or is_figure_request:
             context = ""
             source_type = "Metadata"
         else:
@@ -2157,6 +2861,8 @@ class MetadataRAGMixin:
         metadata_ctx = self._build_metadata_context()
         if metadata_ctx:
             system_with_context += f"\n\n{metadata_ctx}"
+        if project_ctx:
+            system_with_context += f"\n\n{project_ctx}"
         if affiliation_ctx:
             system_with_context += f"\n\n{affiliation_ctx}"
         if uni_papers_ctx:
@@ -2167,13 +2873,27 @@ class MetadataRAGMixin:
             system_with_context += f"\n\n{researcher_ctx}"
         if context:
             system_with_context += f"\n\nRelevant context from the knowledge base:\n{context}"
+        if web_ctx:
+            system_with_context += (
+                f"\n\nAdditional context from web search (external sources — clearly indicate "
+                f"when information comes from web sources vs. the UNINOVIS database):\n{web_ctx}"
+            )
+
+        # For web expand, rephrase the user message to re-ask the original query
+        effective_message = user_message
+        if is_web_expand and self._get_last_query():
+            effective_message = (
+                f"The user asked to expand the search to the web for their previous question. "
+                f"Please answer this question using both the local database and the web search results: "
+                f"{self._get_last_query()}"
+            )
 
         messages = [{"role": "system", "content": system_with_context}]
 
         if history:
             messages.extend(history)
 
-        messages.append({"role": "user", "content": user_message})
+        messages.append({"role": "user", "content": effective_message})
 
         # Stream response -- badges deferred until full response is collected
         full_response = ""
@@ -2195,8 +2915,8 @@ class MetadataRAGMixin:
 
         # Verify paper references against the database
         combined_ctx = " ".join(filter(None, [
-            affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
-            metadata_ctx, context
+            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
+            metadata_ctx, context, web_ctx
         ]))
         verified, hallucination_count = self._verify_paper_references(full_response, combined_ctx, self._transparency)
         if verified != full_response:
@@ -2205,16 +2925,16 @@ class MetadataRAGMixin:
 
         # Deferred grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
-            affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx
+            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx
         ]))
 
         highlight_cfg = self._config.get("inline_claim_highlights")
 
         if is_figure_request:
             reliability_label = "High"
-            figure_breakdown = {"metadata_pct": 100, "database_pct": 0, "llm_pct": 0,
+            figure_breakdown = {"metadata_pct": 100, "database_pct": 0, "web_pct": 0, "llm_pct": 0,
                                 "total_claims": 0, "confidence": 100,
-                                "metadata_claims": [], "database_claims": [], "llm_claims": []}
+                                "metadata_claims": [], "database_claims": [], "web_claims": [], "llm_claims": []}
             yield ("badge", ReliabilityBadge.source_badge(
                 "Metadata", figure_breakdown,
                 transparency=self._transparency,
@@ -2228,6 +2948,7 @@ class MetadataRAGMixin:
             badge, breakdown, reliability_label = ReliabilityBadge.compute_badge_and_breakdown(
                 full_response, context,
                 metadata_ctx=structured_ctx,
+                web_ctx=web_ctx,
                 transparency=self._transparency,
                 green_max=self._reliability_green_max_llm,
                 red_min=self._reliability_red_min_llm,
@@ -2243,6 +2964,18 @@ class MetadataRAGMixin:
             if badge:
                 yield ("badge", badge)
 
+        # Offer web search expansion if results were insufficient
+        if (not is_web_expand and not is_figure_request and not is_followup
+                and self._should_offer_web_search(breakdown, topic_ctx, context)):
+            offer_text = (
+                "\n\n---\n\n"
+                "\U0001F310 *I found limited information in the UNINOVIS database on this topic. "
+                "Would you like me to expand this search to the web? "
+                "Reply **\"expand search\"** to search external sources.*"
+            )
+            full_response += offer_text
+            yield offer_text
+
         # Send claim highlights (development only)
         if self._transparency == "crystal_box":
             highlight_cfg_obj = self._config.get("inline_claim_highlights", {})
@@ -2251,15 +2984,19 @@ class MetadataRAGMixin:
                 yield ("claim_highlights", json.dumps({
                     "metadata": breakdown.get("metadata_claims", []),
                     "database": breakdown.get("database_claims", []),
+                    "web": breakdown.get("web_claims", []),
                     "llm": breakdown.get("llm_claims", []),
                     "metadata_style": highlight_cfg_obj.get("metadata_style", ""),
                     "database_style": highlight_cfg_obj.get("database_style", ""),
+                    "web_style": highlight_cfg_obj.get("web_style", "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;"),
                     "llm_style": highlight_cfg_obj.get("llm_style", ""),
                     "gap_analysis": is_gap_analysis,
                 }))
 
         # Determine query type and context sources for audit
-        if is_followup:
+        if is_web_expand:
+            query_type = "web_expand"
+        elif is_followup:
             query_type = "followup"
         elif is_figure_request:
             query_type = "figure"
@@ -2275,6 +3012,7 @@ class MetadataRAGMixin:
         if researcher_ctx:  ctx_sources.append("researcher")
         if metadata_ctx:    ctx_sources.append("metadata")
         if context:         ctx_sources.append("rag")
+        if web_ctx:         ctx_sources.append("web")
 
         # Write audit log
         AuditLogger.log(
@@ -2292,7 +3030,7 @@ class MetadataRAGMixin:
         )
 
         self._query_history.append({
-            'question': user_message,
+            'question': self._get_last_query() if is_web_expand else user_message,
             'response_length': len(full_response)
         })
 
