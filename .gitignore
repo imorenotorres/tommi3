@@ -9,6 +9,11 @@ venv/
 agents/*/data/*.md
 agents/*/data/*.pdf
 agents/*/data/*.db
+agents/*data/*.sql
+agents/*/data/chroma_db/*.sqlite3
+
+
+
 
 # macOS hidden files
 .DS_Store
