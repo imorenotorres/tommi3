@@ -152,6 +152,20 @@ The `agents/base/` directory provides the building blocks:
 
 ## 5. Creating a New Agent
 
+### Technical Expertise Required to Create AI Agents
+
+**It depends on what you want to build.** TOMMI provides several agent templates (Oneshot, RAG, RAG+Metadata, Text2SQL) that cover the most common use cases. The level of expertise required varies significantly:
+
+1. **Using built-in templates (low expertise):** If your needs match one of the standard TOMMI templates, creating an agent requires no programming skills. You can use the web interface or the CLI tool (`crear_agente.py`) to fill in a form — agent name, description, documents, LLM settings — and the system generates all necessary files automatically. This is accessible to researchers, project managers, and academic staff with a basic understanding of AI concepts (what an LLM is, what prompts do).
+
+2. **Customizing templates (moderate expertise):** If the template does not fully match your requirements, you may need to modify configuration files (`config.json`, `prompts.json`, `.env`) or adjust the system prompt. This requires a good understanding of how the agent works (retrieval, grounding, transparency levels, prompt levels) but not necessarily deep programming expertise.
+
+3. **Building specialized agents (higher expertise):** This is particularly the case for **RAG+Metadata agents**, which have been customized for a specific context in UNINOVIS: the Excellence Hubs. These agents include features like university-level metadata, researcher profiles, cross-university collaboration detection, and publication maps. Replicating or adapting these features for a different institutional context requires understanding the data pipeline and the Python codebase.
+
+4. **Adapting TOMMI with AI coding tools:** An important point is that TOMMI can be extended and customized using advanced AI coding assistants such as **Claude Code, Cursor, or Gemini**. This means that **a good understanding of the AI agents' architecture and behavior — rather than deep coding expertise — is the key requirement** for making significant modifications. A user who understands what the agent should do can use AI coding tools to implement the necessary changes, even without being a professional developer.
+
+In summary: creating a standard agent from a template requires no coding skills; customizing behavior requires understanding the framework; and building entirely new agent types benefits from AI coding tools that lower the traditional programming barrier.
+
 ### 5.1 Using the Web Interface
 
 1. Start the web server: `./web/run_html_server.sh` (or `web\run_html_server.bat` on Windows).

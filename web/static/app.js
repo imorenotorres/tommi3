@@ -1563,6 +1563,11 @@ async function sendMessage(message) {
             if (state.currentAgent && state.currentAgent.show_history !== false) {
                 loadQueryHistory();
             }
+            // Add feedback widget below the response
+            const parentMsg = responseDiv.closest('.message') || responseDiv.parentElement;
+            if (parentMsg) {
+                createFeedbackWidget(parentMsg, message, responseText);
+            }
         });
 
         eventSource.addEventListener('error', (event) => {
@@ -1599,6 +1604,68 @@ async function sendMessage(message) {
         state.isLoading = false;
         elements.sendButton.disabled = false;
     }
+}
+
+// ── Feedback widget ──────────────────────────────────────────────
+
+function createFeedbackWidget(parentMessageDiv, userQuestion, responseText) {
+    const widget = document.createElement('div');
+    widget.className = 'feedback-widget';
+
+    // Thumbs-up
+    const btnUp = document.createElement('button');
+    btnUp.className = 'feedback-btn feedback-up';
+    btnUp.innerHTML = '&#x1F44D;';
+    btnUp.title = 'Good response';
+    btnUp.addEventListener('click', () =>
+        submitFeedback(widget, 'up', null, userQuestion, responseText));
+
+    // Thumbs-down
+    const btnDown = document.createElement('button');
+    btnDown.className = 'feedback-btn feedback-down';
+    btnDown.innerHTML = '&#x1F44E;';
+    btnDown.title = 'Bad response';
+
+    // Category buttons (hidden until thumbs-down is clicked)
+    const cats = document.createElement('div');
+    cats.className = 'feedback-categories hidden';
+    ['Incomplete', 'Wrong', 'Irrelevant'].forEach(label => {
+        const b = document.createElement('button');
+        b.className = 'feedback-cat-btn';
+        b.textContent = label;
+        b.addEventListener('click', () =>
+            submitFeedback(widget, 'down', label.toLowerCase(), userQuestion, responseText));
+        cats.appendChild(b);
+    });
+
+    btnDown.addEventListener('click', () => cats.classList.toggle('hidden'));
+
+    widget.appendChild(btnUp);
+    widget.appendChild(btnDown);
+    widget.appendChild(cats);
+    parentMessageDiv.appendChild(widget);
+}
+
+async function submitFeedback(widget, rating, category, userQuestion, responseText) {
+    const msgIndex = document.querySelectorAll('.message.agent').length;
+    try {
+        await fetch('/api/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                agent_id: state.currentAgent ? state.currentAgent.id : '',
+                session_id: state.sessionId || '',
+                message_index: msgIndex,
+                rating,
+                category,
+                user_question: userQuestion || '',
+                response_snippet: (responseText || '').substring(0, 500),
+            })
+        });
+    } catch (e) {
+        console.error('Feedback error:', e);
+    }
+    widget.innerHTML = '<span class="feedback-thanks">Thanks for your feedback</span>';
 }
 
 // Load query history from API

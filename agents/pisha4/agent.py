@@ -3105,30 +3105,44 @@ sqlite3 data/database.db < your_schema.sql
         state['last_user_question'] = user_message
         state['shown_fields'] = set()  # Reset shown fields for new query
 
-        # Mostrar la SQL generada
-        sql_display = f"```sql\n{sql_query}\n```\n\n"
+        # Mostrar la SQL generada (solo crystal_box y grey_box)
+        show_sql = self._transparency in ("crystal_box", "grey_box")
+        sql_display = f"```sql\n{sql_query}\n```\n\n" if show_sql else ""
 
         # ⏱️ Fase 2b: Pre-execution verification (prompt level enforcement)
         if self._prompt_level in ("stringent", "tolerant"):
             pre_check = self._sql_verifier.verify(sql_query)
 
-            if self._prompt_level == "stringent" and pre_check["issues"]:
-                # STRINGENT: reject SQL with unknown tables/columns
-                issues_text = "\n".join(f"- {i}" for i in pre_check["issues"])
-                badge = SQLReliabilityBadge.source_badge(
-                    pre_check, transparency=self._transparency,
-                    prompt_level=self._prompt_level,
-                    model_name=self.model or "unknown",
-                    is_local_llm=os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm"),
-                )
-                self._write_audit_log(user_message, sql_query, pre_check, 0)
-                self._log_timing_summary(timings)
-                return (
-                    f"{badge}**Generated SQL query:**\n{sql_display}"
-                    f"**SQL verification failed (stringent mode):**\n{issues_text}\n\n"
-                    f"The query was **not executed** because it references unknown schema elements. "
-                    f"Please rephrase your question or check the available columns."
-                )
+            # Semantic alignment check: does the SQL match the user's question?
+            semantic = self._sql_verifier.verify_semantic(user_message, sql_query)
+            if semantic["issues"]:
+                pre_check["issues"].extend(semantic["issues"])
+                pre_check["confidence"] = max(0, pre_check["confidence"] - semantic["penalty"])
+                logger.warning(f"⚠️ Semantic check: {semantic['issues']}")
+
+            if self._prompt_level == "stringent":
+                # STRINGENT: reject on hard errors (unknown tables/columns, unsafe code, semantic mismatch)
+                hard_errors = [i for i in pre_check["issues"]
+                               if i.startswith("Unknown table:") or i.startswith("Unknown column:")
+                               or i.startswith("Dangerous keyword")
+                               or i.startswith("Semantic mismatch:")]
+                if hard_errors:
+                    issues_text = "\n".join(f"- {i}" for i in hard_errors)
+                    badge = SQLReliabilityBadge.source_badge(
+                        pre_check, transparency=self._transparency,
+                        prompt_level=self._prompt_level,
+                        model_name=self.model or "unknown",
+                        is_local_llm=os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm"),
+                    )
+                    self._write_audit_log(user_message, sql_query, pre_check, 0)
+                    self._log_timing_summary(timings)
+                    sql_section = f"**Generated SQL query:**\n{sql_display}" if show_sql else ""
+                    return (
+                        f"{badge}{sql_section}"
+                        f"**SQL verification failed (stringent mode):**\n{issues_text}\n\n"
+                        f"The query was **not executed** because it does not match your question. "
+                        f"Please try rephrasing your question."
+                    )
 
             if self._prompt_level == "tolerant" and pre_check["issues"]:
                 # TOLERANT: warn but continue execution
@@ -3179,6 +3193,22 @@ sqlite3 data/database.db < your_schema.sql
         t_fase4_start = time.perf_counter()
         success, results = self._execute_sql(sql_query)
 
+        # Auto-correct: if 0 results, try fixing misspelled LIKE terms
+        autocorrect_note = ""
+        if success and (not results or len(results) == 0):
+            corrected_sql, corrections = self._sql_verifier.autocorrect_sql(sql_query)
+            if corrected_sql and corrected_sql != sql_query:
+                logger.info(f"🔄 Auto-correcting SQL: {corrections}")
+                success2, results2 = self._execute_sql(corrected_sql)
+                if success2 and results2:
+                    # Use corrected results
+                    success, results = success2, results2
+                    sql_query = corrected_sql
+                    state['last_sql_query'] = corrected_sql
+                    autocorrect_note = "\n\n".join(f"🔄 {c}" for c in corrections) + "\n\n"
+                    if show_sql:
+                        sql_display = f"```sql\n{sql_query}\n```\n\n"
+
         # Guardar resultados para paginación
         if success and results:
             state['last_results'] = results
@@ -3191,6 +3221,13 @@ sqlite3 data/database.db < your_schema.sql
         # ⏱️ Fase 5: SQL verification and reliability badge
         result_count = len(results) if isinstance(results, list) else 0
         verification = self._sql_verifier.verify_with_execution(sql_query, success, result_count)
+
+        # Post-execution semantic check (also applies to tolerant mode)
+        semantic_post = self._sql_verifier.verify_semantic(user_message, sql_query)
+        if semantic_post["issues"]:
+            verification["issues"].extend(semantic_post["issues"])
+            verification["confidence"] = max(0, verification["confidence"] - semantic_post["penalty"])
+
         logger.info(f"🔍 SQL verification: confidence={verification['confidence']}%, "
                      f"tables={len(verification['verified_tables'])}/{len(verification['verified_tables'])+len(verification['unknown_tables'])}, "
                      f"columns={len(verification['verified_columns'])}/{len(verification['verified_columns'])+len(verification['unknown_columns'])}")
@@ -3215,8 +3252,14 @@ sqlite3 data/database.db < your_schema.sql
         # Mostrar resumen de tiempos
         self._log_timing_summary(timings)
 
-        # Paso 5: Combinar badge + SQL + explicación
-        return f"{badge}**Generated SQL query:**\n{sql_display}{formatted}"
+        # Paso 5: Combinar badge + SQL + explicación + suggestions
+        sql_section = f"**Generated SQL query:**\n{sql_display}" if show_sql else ""
+        suggestion_section = ""
+        if verification.get("suggestions"):
+            suggestion_section = "\n\n" + "\n".join(
+                f"💡 {s}" for s in verification["suggestions"]
+            ) + "\n"
+        return f"{badge}{autocorrect_note}{sql_section}{formatted}{suggestion_section}"
 
     async def chat_stream(self, user_message: str, history: list = None, session_id: str = None):
         """
@@ -3314,31 +3357,45 @@ sqlite3 data/database.db < your_schema.sql
         state['last_user_question'] = user_message
         state['shown_fields'] = set()  # Reset shown fields for new query
 
-        # Mostrar la SQL generada inmediatamente
-        yield ("content", f"**Generated SQL query:**\n```sql\n{sql_query}\n```\n\n")
+        # Mostrar la SQL generada inmediatamente (solo crystal_box y grey_box)
+        show_sql = self._transparency in ("crystal_box", "grey_box")
+        if show_sql:
+            yield ("content", f"**Generated SQL query:**\n```sql\n{sql_query}\n```\n\n")
 
         # ⏱️ Fase 2b: Pre-execution verification (prompt level enforcement)
         if self._prompt_level in ("stringent", "tolerant"):
             pre_check = self._sql_verifier.verify(sql_query)
 
-            if self._prompt_level == "stringent" and pre_check["issues"]:
-                issues_text = "\n".join(f"- {i}" for i in pre_check["issues"])
-                badge = SQLReliabilityBadge.source_badge(
-                    pre_check, transparency=self._transparency,
-                    prompt_level=self._prompt_level,
-                    model_name=self.model or "unknown",
-                    is_local_llm=os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm"),
-                )
-                if badge:
-                    yield ("badge", badge)
-                self._write_audit_log(user_message, sql_query, pre_check, 0)
-                self._log_timing_summary(timings)
-                yield ("content",
-                    f"**SQL verification failed (stringent mode):**\n{issues_text}\n\n"
-                    f"The query was **not executed** because it references unknown schema elements. "
-                    f"Please rephrase your question or check the available columns."
-                )
-                return
+            # Semantic alignment check
+            semantic = self._sql_verifier.verify_semantic(user_message, sql_query)
+            if semantic["issues"]:
+                pre_check["issues"].extend(semantic["issues"])
+                pre_check["confidence"] = max(0, pre_check["confidence"] - semantic["penalty"])
+                logger.warning(f"⚠️ Semantic check: {semantic['issues']}")
+
+            if self._prompt_level == "stringent":
+                hard_errors = [i for i in pre_check["issues"]
+                               if i.startswith("Unknown table:") or i.startswith("Unknown column:")
+                               or i.startswith("Dangerous keyword")
+                               or i.startswith("Semantic mismatch:")]
+                if hard_errors:
+                    issues_text = "\n".join(f"- {i}" for i in hard_errors)
+                    badge = SQLReliabilityBadge.source_badge(
+                        pre_check, transparency=self._transparency,
+                        prompt_level=self._prompt_level,
+                        model_name=self.model or "unknown",
+                        is_local_llm=os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm"),
+                    )
+                    if badge:
+                        yield ("badge", badge)
+                    self._write_audit_log(user_message, sql_query, pre_check, 0)
+                    self._log_timing_summary(timings)
+                    yield ("content",
+                        f"**SQL verification failed (stringent mode):**\n{issues_text}\n\n"
+                        f"The query was **not executed** because it does not match your question. "
+                        f"Please try rephrasing your question."
+                    )
+                    return
 
             if self._prompt_level == "tolerant" and pre_check["issues"]:
                 issues_text = ", ".join(pre_check["issues"])
@@ -3396,6 +3453,21 @@ sqlite3 data/database.db < your_schema.sql
         yield ("status", "Formateando explicación...")
         success, results = self._execute_sql(sql_query)
 
+        # Auto-correct: if 0 results, try fixing misspelled LIKE terms
+        if success and (not results or len(results) == 0):
+            corrected_sql, corrections = self._sql_verifier.autocorrect_sql(sql_query)
+            if corrected_sql and corrected_sql != sql_query:
+                logger.info(f"🔄 Auto-correcting SQL: {corrections}")
+                success2, results2 = self._execute_sql(corrected_sql)
+                if success2 and results2:
+                    success, results = success2, results2
+                    sql_query = corrected_sql
+                    state['last_sql_query'] = corrected_sql
+                    correction_text = "\n\n".join(f"🔄 {c}" for c in corrections)
+                    yield ("content", f"{correction_text}\n\n")
+                    if show_sql:
+                        yield ("content", f"**Corrected SQL query:**\n```sql\n{sql_query}\n```\n\n")
+
         # Guardar resultados para paginación y detalles
         if success and results:
             state['last_results'] = results
@@ -3430,6 +3502,11 @@ sqlite3 data/database.db < your_schema.sql
 
         # Enviar solo la explicación formateada (sin tabla HTML redundante)
         yield ("content", formatted)
+
+        # Show suggestions if any (e.g. "Did you mean: KAUNO KOLEGIJA?")
+        if verification.get("suggestions"):
+            suggestion_text = "\n".join(f"💡 {s}" for s in verification["suggestions"])
+            yield ("content", f"\n\n{suggestion_text}\n")
 
     def _write_audit_log(self, query: str, sql: str, verification: dict, result_count: int):
         """Write an audit log entry for EU AI Act compliance."""

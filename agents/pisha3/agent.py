@@ -21,6 +21,15 @@ CONSULTAR_SQL_PATH = os.path.join(APPS_DIR, "consultar_sql.py")
 from llm_client import LLMClient
 from normalize import normalize_text_for_search
 
+# Load config.json
+import json as _json
+_config_path = os.path.join(os.path.dirname(__file__), "config.json")
+try:
+    with open(_config_path, "r", encoding="utf-8") as _f:
+        _agent_config = _json.load(_f)
+except FileNotFoundError:
+    _agent_config = {}
+
 # Configurar logging
 logging.basicConfig(
     level=logging.DEBUG,
@@ -48,6 +57,9 @@ class Agent:
         self.db_path = os.path.join(os.path.dirname(__file__), "data", "database.db")
         self.schema_path = os.path.join(os.path.dirname(__file__), "data", "database_schema.md")
         self._cached_schema = None  # Cache del esquema
+        # Transparency level from config
+        self._config = _agent_config
+        self._transparency = self._config.get("transparency_level", "crystal_box")
         self.system_prompt = """You are Pisha3, a database assistant specialized in converting natural language questions to SQL queries.
 
 IMPORTANT RULES:
@@ -3146,8 +3158,12 @@ sqlite3 data/database.db < your_schema.sql
         # Mostrar resumen de tiempos
         self._log_timing_summary(timings)
 
-        # Paso 5: Combinar SQL + explicación (sin tabla HTML redundante)
-        return f"**Generated SQL query:**\n{sql_display}{formatted}"
+        # Paso 5: Combinar SQL + explicación (solo crystal_box y grey_box muestran SQL)
+        show_sql = self._transparency in ("crystal_box", "grey_box")
+        if show_sql:
+            return f"**Generated SQL query:**\n{sql_display}{formatted}"
+        else:
+            return formatted
 
     async def chat_stream(self, user_message: str, history: list = None, session_id: str = None):
         """
@@ -3245,8 +3261,9 @@ sqlite3 data/database.db < your_schema.sql
         state['last_user_question'] = user_message
         state['shown_fields'] = set()  # Reset shown fields for new query
 
-        # Mostrar la SQL generada inmediatamente
-        yield ("content", f"**Generated SQL query:**\n```sql\n{sql_query}\n```\n\n")
+        # Mostrar la SQL generada inmediatamente (solo crystal_box y grey_box)
+        if self._transparency in ("crystal_box", "grey_box"):
+            yield ("content", f"**Generated SQL query:**\n```sql\n{sql_query}\n```\n\n")
 
         # ⏱️ Fase 3: Ejecutar SQL
         t_fase3_start = time.perf_counter()

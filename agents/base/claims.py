@@ -224,6 +224,87 @@ class ClaimExtractor:
         # Mixed alphanumeric identifiers (e.g. Text2SQL, Gpt4)
         claims.extend(re.findall(r'\b([A-Z][a-z]+\d+[A-Za-z]*)\b', response))
 
+        # 8. Numeric claims: percentages, counts with units, currency amounts
+        #    e.g. "95% accuracy", "300 participants", "€2.5 million", "$1.2B"
+        #    Captures the number + immediate context word(s) for verifiability.
+        numeric_patterns = [
+            # Percentages with context: "95% accuracy", "87.5% of respondents"
+            r'(\d+(?:\.\d+)?%\s+[a-zA-Z]+(?:\s+[a-zA-Z]+)?)',
+            # Number + unit/context: "300 participants", "12 universities", "5 papers"
+            r'(\b\d{1,6}(?:,\d{3})*\s+(?:participants?|papers?|universities|researchers?|'
+            r'students?|projects?|countries|partners?|institutions?|publications?|'
+            r'articles?|documents?|agreements?|citations?|authors?|results?|'
+            r'members?|courses?|modules?|credits?))\b',
+            # Currency: "€2.5 million", "$1.2 billion", "EUR 56.2 million"
+            r'([€$£]\s?\d+(?:[.,]\d+)?(?:\s?(?:million|billion|M|B|k))?)',
+            r'(EUR\s+\d+(?:[.,]\d+)?(?:\s?(?:million|billion))?)',
+        ]
+        for pat in numeric_patterns:
+            for m in re.finditer(pat, response, re.IGNORECASE):
+                claim = m.group(1).strip()
+                if len(claim) >= 4:
+                    claims.append(claim)
+
+        # 9. Full dates: "March 2024", "15 January 2025", "3 March 2026"
+        #    More specific than bare years — captures month context.
+        _MONTHS = (
+            r'(?:January|February|March|April|May|June|July|August|'
+            r'September|October|November|December|'
+            r'enero|febrero|marzo|abril|mayo|junio|julio|agosto|'
+            r'septiembre|octubre|noviembre|diciembre)'
+        )
+        # "March 2024", "September 2025"
+        month_year = re.findall(
+            rf'\b({_MONTHS}\s+20\d{{2}})\b', response, re.IGNORECASE
+        )
+        claims.extend(month_year)
+        # "15 January 2025", "3 March 2026"
+        day_month_year = re.findall(
+            rf'\b(\d{{1,2}}\s+{_MONTHS}\s+20\d{{2}})\b', response, re.IGNORECASE
+        )
+        claims.extend(day_month_year)
+
+        # 10. Regulation/document references: "Article 13", "Regulation 2024/1689",
+        #     "Directive 2022/2555", "ISO 42001", "IEEE 7000"
+        regulation_patterns = [
+            # EU regulations: "Regulation 2024/1689", "Directive 2022/2555"
+            r'((?:Regulation|Directive|Decision)\s+(?:\(EU\)\s+)?\d{4}/\d+)',
+            # Article references: "Article 13", "Articles 12-15"
+            r'(Articles?\s+\d+(?:\s*[-–]\s*\d+)?)',
+            # Standards: "ISO 42001", "ISO/IEC 23894", "IEEE 7000"
+            r'((?:ISO|IEEE|CEN|IEC)(?:/[A-Z]+)?\s+\d+(?:[-:]\d+)?)',
+        ]
+        for pat in regulation_patterns:
+            for m in re.finditer(pat, response):
+                claims.append(m.group(1))
+
+        # 11. Geographic proper nouns: country and major city names
+        #     Only extract when they appear as specific factual references,
+        #     not as generic adjectives (handled by _COMMON_WORDS filter).
+        _COUNTRIES = {
+            "Afghanistan", "Albania", "Algeria", "Argentina", "Australia",
+            "Austria", "Bangladesh", "Belgium", "Brazil", "Bulgaria",
+            "Canada", "Chile", "China", "Colombia", "Croatia", "Cyprus",
+            "Czech Republic", "Denmark", "Ecuador", "Egypt", "Estonia",
+            "Ethiopia", "Finland", "France", "Georgia", "Germany",
+            "Greece", "Hungary", "Iceland", "India", "Indonesia",
+            "Iran", "Iraq", "Ireland", "Israel", "Italy", "Japan",
+            "Jordan", "Kazakhstan", "Kenya", "Kosovo", "Latvia",
+            "Lebanon", "Lithuania", "Luxembourg", "Malaysia", "Malta",
+            "Mexico", "Moldova", "Montenegro", "Morocco", "Nepal",
+            "Netherlands", "New Zealand", "Nigeria", "North Macedonia",
+            "Norway", "Pakistan", "Palestine", "Peru", "Philippines",
+            "Poland", "Portugal", "Romania", "Russia", "Saudi Arabia",
+            "Senegal", "Serbia", "Singapore", "Slovakia", "Slovenia",
+            "South Africa", "South Korea", "Spain", "Sweden",
+            "Switzerland", "Taiwan", "Thailand", "Tunisia", "Turkey",
+            "Ukraine", "United Arab Emirates", "United Kingdom",
+            "United States", "Uruguay", "Vietnam",
+        }
+        for country in _COUNTRIES:
+            if country in response:
+                claims.append(country)
+
         # Deduplicate while preserving order; skip trivially short claims
         seen = set()
         unique_claims = []
@@ -596,8 +677,10 @@ class GroundingAnalyzer:
 
             # Fuzzy match: for multi-word claims (e.g. author names), try
             # matching significant words (length > 3) against contexts.
-            # Require a strict majority (> 50 %) of significant words.
-            words = claim_lower.split()
+            # Also split hyphenated words (e.g. "ai-powered" → "ai", "powered")
+            # so compound terms match individual components in context.
+            # Require >= 50 % of significant words to match.
+            words = re.split(r'[\s\-]+', claim_lower)
             fuzzy_matched = False
 
             if len(words) >= 2:
@@ -605,21 +688,21 @@ class GroundingAnalyzer:
 
                 if significant and metadata_lower:
                     matched = sum(1 for w in significant if w in metadata_lower)
-                    if matched > len(significant) / 2:
+                    if matched >= len(significant) / 2:
                         metadata_count += 1
                         metadata_claims.append(claim)
                         fuzzy_matched = True
 
                 if not fuzzy_matched and significant and rag_lower:
                     matched = sum(1 for w in significant if w in rag_lower)
-                    if matched > len(significant) / 2:
+                    if matched >= len(significant) / 2:
                         database_count += 1
                         database_claims.append(claim)
                         fuzzy_matched = True
 
                 if not fuzzy_matched and significant and web_lower:
                     matched = sum(1 for w in significant if w in web_lower)
-                    if matched > len(significant) / 2:
+                    if matched >= len(significant) / 2:
                         web_count += 1
                         web_claims.append(claim)
                         fuzzy_matched = True

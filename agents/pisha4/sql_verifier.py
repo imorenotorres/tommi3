@@ -145,6 +145,31 @@ class SQLVerifier:
         if issues and any("Dangerous" in i for i in issues):
             confidence = 0
 
+        # 4. Country name in wrong column: searching a country name in
+        #    host_institution or other non-country columns
+        country_like_values = re.findall(
+            r"(\w+)\s+LIKE\s+['\"]%([^%'\"]+)%['\"]", sql_clean, re.IGNORECASE
+        )
+        _COMMON_COUNTRIES = {
+            "países bajos", "netherlands", "holanda", "france", "francia",
+            "germany", "alemania", "italy", "italia", "spain", "españa",
+            "finland", "finlandia", "lithuania", "lituania", "albania",
+            "portugal", "greece", "grecia", "sweden", "suecia",
+            "norway", "noruega", "denmark", "dinamarca", "belgium", "bélgica",
+            "austria", "switzerland", "suiza", "poland", "polonia",
+            "czech republic", "república checa", "croatia", "croacia",
+            "ireland", "irlanda", "romania", "rumanía", "hungary", "hungría",
+            "united kingdom", "reino unido", "japan", "japón",
+            "china", "brazil", "brasil", "mexico", "méxico",
+            "turkey", "turquía", "morocco", "marruecos",
+        }
+        for col, value in country_like_values:
+            if value.lower() in _COMMON_COUNTRIES and col.lower() != "destination_country":
+                issues.append(
+                    f"Country name '{value}' searched in '{col}' instead of 'destination_country'"
+                )
+                semantic_penalty += 20
+
         # Apply semantic penalty
         confidence = max(0, confidence - semantic_penalty)
 
@@ -175,11 +200,347 @@ class SQLVerifier:
                 self._row_counts[table.lower()] = 0
         return self._row_counts.get(table.lower(), 0)
 
+    # ------------------------------------------------------------------
+    # Semantic alignment: does the SQL match the user's question?
+    # ------------------------------------------------------------------
+
+    # Words to ignore when extracting key terms from the user question
+    _QUESTION_STOP_WORDS = {
+        # English
+        "show", "list", "find", "get", "give", "tell", "what", "which",
+        "where", "how", "many", "much", "are", "there", "is", "the",
+        "all", "any", "with", "from", "for", "and", "that", "have",
+        "has", "been", "can", "does", "about", "this", "those", "these",
+        "their", "they", "them", "some", "more", "most", "between",
+        "than", "also", "other", "only", "each", "every", "both",
+        "such", "into", "over", "after", "before", "during", "without",
+        "not", "but", "yes", "no", "do", "did", "will", "would",
+        "could", "should", "may", "might", "must", "shall", "our",
+        "your", "its", "his", "her", "who", "whom", "whose", "when",
+        "why", "me", "my", "you", "we", "us", "it", "to", "of", "in",
+        "on", "at", "by", "up", "an", "or", "if", "so", "be", "as",
+        "a", "i",
+        # Spanish
+        "muestra", "mostrar", "buscar", "busca", "listar", "lista",
+        "dame", "dime", "cuáles", "cuales", "cuántos", "cuantos",
+        "qué", "que", "cómo", "como", "dónde", "donde", "quién",
+        "quien", "hay", "tiene", "tienen", "son", "está", "están",
+        "los", "las", "les", "del", "por", "para", "con", "sin",
+        "sobre", "entre", "desde", "hasta", "más", "menos", "todo",
+        "todos", "todas", "toda", "cada", "otro", "otra", "otros",
+        "otras", "ese", "esa", "esos", "esas", "este", "esta",
+        "estos", "estas", "aquel", "aquella", "uno", "una", "unos",
+        "unas", "ser", "haber", "tener", "hacer", "poder", "poner",
+        "ver", "dar", "saber", "querer", "llegar", "pasar",
+        "el", "la", "lo", "en", "de", "un", "no", "se", "si",
+        "ya", "muy", "al", "le", "su", "me", "te", "nos", "mi",
+        "tu", "yo", "él", "ella", "ellos", "ellas",
+        # Common query words
+        "agreements", "agreement", "acuerdos", "acuerdo",
+        "universities", "university", "universidad", "universidades",
+        "destinations", "destination", "destino", "destinos",
+    }
+
+    # Cross-language equivalences: term in question → might appear as this in SQL
+    _EQUIVALENCES = {
+        "english": {"inglés", "ingles", "english"},
+        "inglés": {"english", "inglés", "ingles"},
+        "french": {"francés", "frances", "french", "français"},
+        "francés": {"french", "francés", "frances", "français"},
+        "german": {"alemán", "aleman", "german", "deutsch"},
+        "alemán": {"german", "alemán", "aleman", "deutsch"},
+        "italian": {"italiano", "italian", "italiana"},
+        "italiano": {"italian", "italiano", "italiana"},
+        "portuguese": {"portugués", "portugues", "portuguese"},
+        "portugués": {"portuguese", "portugués", "portugues"},
+        "erasmus": {"erasmus", "ka131", "ka171", "erasmus+"},
+        "finland": {"finlandia", "finland", "finnish"},
+        "finlandia": {"finland", "finlandia"},
+        "germany": {"alemania", "germany"},
+        "alemania": {"germany", "alemania"},
+        "france": {"francia", "france"},
+        "francia": {"france", "francia"},
+        "italy": {"italia", "italy"},
+        "italia": {"italy", "italia"},
+        "spain": {"españa", "spain"},
+        "españa": {"spain", "españa"},
+        "netherlands": {"países bajos", "holanda", "netherlands"},
+        "holanda": {"netherlands", "países bajos", "holanda"},
+        "lithuania": {"lituania", "lithuania"},
+        "lituania": {"lithuania", "lituania"},
+        "albania": {"albania"},
+        "libya": {"libia", "libya"},
+        "libia": {"libya", "libia"},
+        "morocco": {"marruecos", "morocco"},
+        "marruecos": {"morocco", "marruecos"},
+        "turkey": {"turquía", "turquia", "turkey"},
+        "turquía": {"turkey", "turquía", "turquia"},
+    }
+
+    # Words that express query intent but won't appear in SQL literally
+    _INTENT_WORDS = {
+        "requiring", "required", "need", "needs", "needed",
+        "level", "minimum", "maximum", "above", "below",
+        "available", "active", "current", "valid", "open",
+        "undergraduate", "master", "phd", "doctoral",
+        "grado", "máster", "doctorado",
+        "requiere", "requieren", "necesita", "necesitan",
+        "disponible", "disponibles", "activo", "activos",
+        "vigente", "vigentes", "abierto", "abiertos",
+        "nivel", "mínimo", "máximo",
+    }
+
+    def verify_semantic(self, user_question: str, sql: str) -> dict:
+        """Check if the SQL query is semantically aligned with the user question.
+
+        Extracts key terms from the question and checks whether any appear
+        in the SQL's string literals or column/table references.
+        Cross-language equivalences (e.g. english↔inglés) are handled.
+
+        Returns
+        -------
+        dict
+            aligned: bool, question_terms: list, sql_values: list,
+            missing_terms: list, issues: list, penalty: int
+        """
+        # 1. Extract key terms from the user question
+        q_lower = user_question.lower()
+        raw_words = re.split(r'[\s,;:!?¿¡()\[\]{}\"\']+', q_lower)
+        question_terms = [
+            w for w in raw_words
+            if len(w) >= 3
+            and w not in self._QUESTION_STOP_WORDS
+            and w not in self._INTENT_WORDS
+        ]
+
+        if not question_terms:
+            return {"aligned": True, "question_terms": [], "sql_values": [],
+                    "missing_terms": [], "issues": [], "penalty": 0}
+
+        # 2. Extract string literals from the SQL (LIKE '%X%', = 'X', IN ('X','Y'))
+        sql_literals = re.findall(r"['\"]%?([^'\"]+?)%?['\"]", sql)
+        sql_values_lower = " ".join(v.lower() for v in sql_literals)
+        sql_full_lower = sql.lower()
+
+        # 3. Check which question terms appear in SQL (with equivalences)
+        found = []
+        missing = []
+        for term in question_terms:
+            # Direct match in SQL values or full SQL text
+            if term in sql_values_lower or term in sql_full_lower:
+                found.append(term)
+                continue
+            # Check cross-language equivalences
+            equivalents = self._EQUIVALENCES.get(term, set())
+            if any(eq in sql_values_lower or eq in sql_full_lower for eq in equivalents):
+                found.append(term)
+                continue
+            missing.append(term)
+
+        # 4. Determine alignment
+        # Only flag as mismatch if NO question terms match at all
+        issues = []
+        penalty = 0
+
+        if len(question_terms) > 0 and len(found) == 0:
+            issues.append(
+                f"Semantic mismatch: question mentions '{', '.join(question_terms)}' "
+                f"but SQL filters on '{', '.join(sql_literals[:3])}'"
+            )
+            penalty = 40
+
+        return {
+            "aligned": penalty == 0,
+            "question_terms": question_terms,
+            "sql_values": sql_literals,
+            "missing_terms": missing,
+            "issues": issues,
+            "penalty": penalty,
+        }
+
+    def _suggest_similar_values(self, sql: str) -> list:
+        """When a LIKE query returns 0 results, check if similar values exist.
+
+        Extracts the column and search term from LIKE clauses, then queries
+        the database for actual values that are similar (using substring or
+        character overlap).  Returns a list of suggestion strings.
+        """
+        suggestions = []
+        like_clauses = re.findall(
+            r"(\w+)\s+LIKE\s+['\"]%([^%'\"]+)%['\"]", sql, re.IGNORECASE
+        )
+        if not like_clauses:
+            return suggestions
+
+        try:
+            conn = sqlite3.connect(self._db_path)
+            cursor = conn.cursor()
+            for col, search_term in like_clauses:
+                # Find the table containing this column
+                table = None
+                for t, cols in self._schema.items():
+                    if col.lower() in cols:
+                        table = t
+                        break
+                if not table:
+                    continue
+
+                # Get distinct values for this column
+                try:
+                    cursor.execute(
+                        f"SELECT DISTINCT {col} FROM {table} WHERE {col} IS NOT NULL"
+                    )
+                    db_values = [row[0] for row in cursor.fetchall() if row[0]]
+                except sqlite3.Error:
+                    continue
+
+                # Find similar values: require that the search term and
+                # the candidate share a long common substring, or that
+                # every word of the search term has a close match in the value.
+                search_lower = search_term.lower()
+                search_words = search_lower.split()
+                candidates = []
+                for val in db_values:
+                    val_lower = val.lower()
+                    # Strategy 1: long prefix match (e.g. "Kolegia" vs "Kolegija")
+                    # Find longest common prefix between search and value words
+                    val_words = val_lower.split()
+                    word_matches = 0
+                    for sw in search_words:
+                        for vw in val_words:
+                            # Words share a prefix of >= 70% of the shorter word
+                            min_len = min(len(sw), len(vw))
+                            if min_len < 3:
+                                continue
+                            prefix_len = 0
+                            for a, b in zip(sw, vw):
+                                if a == b:
+                                    prefix_len += 1
+                                else:
+                                    break
+                            if prefix_len >= min_len * 0.7:
+                                word_matches += 1
+                                break
+                    # Require ALL search words to have a close match
+                    if len(search_words) >= 1 and word_matches == len(search_words):
+                        candidates.append(val)
+
+                if candidates:
+                    # Show up to 3 suggestions
+                    shown = candidates[:3]
+                    suggestions.append(
+                        f"Did you mean: {', '.join(shown)}? "
+                        f"(searched '{search_term}' in {col})"
+                    )
+            conn.close()
+        except sqlite3.Error:
+            pass
+
+        return suggestions
+
+    def autocorrect_sql(self, sql: str) -> tuple:
+        """Try to fix a LIKE query that returned 0 results by replacing
+        misspelled search terms with the best matching value from the database.
+
+        Returns
+        -------
+        tuple
+            (corrected_sql: str or None, corrections: list of str)
+            corrected_sql is None if no corrections were possible.
+        """
+        like_clauses = re.findall(
+            r"(\w+)\s+LIKE\s+(['\"])(%[^%'\"]+%)\2", sql, re.IGNORECASE
+        )
+        if not like_clauses:
+            return None, []
+
+        corrected_sql = sql
+        corrections = []
+
+        try:
+            conn = sqlite3.connect(self._db_path)
+            cursor = conn.cursor()
+
+            for col, _quote, like_pattern in like_clauses:
+                # Extract the search term from %term%
+                search_term = like_pattern.strip('%')
+                search_words = search_term.lower().split()
+
+                # Find the table
+                table = None
+                for t, cols in self._schema.items():
+                    if col.lower() in cols:
+                        table = t
+                        break
+                if not table:
+                    continue
+
+                # Check if the original query would return results
+                try:
+                    cursor.execute(
+                        f"SELECT COUNT(*) FROM {table} WHERE {col} LIKE ?",
+                        [f"%{search_term}%"]
+                    )
+                    if cursor.fetchone()[0] > 0:
+                        continue  # Original term works, no correction needed
+                except sqlite3.Error:
+                    continue
+
+                # Get distinct values and find the best match
+                try:
+                    cursor.execute(
+                        f"SELECT DISTINCT {col} FROM {table} WHERE {col} IS NOT NULL"
+                    )
+                    db_values = [row[0] for row in cursor.fetchall() if row[0]]
+                except sqlite3.Error:
+                    continue
+
+                best_match = None
+                best_score = 0
+                for val in db_values:
+                    val_words = val.lower().split()
+                    word_matches = 0
+                    for sw in search_words:
+                        for vw in val_words:
+                            min_len = min(len(sw), len(vw))
+                            if min_len < 3:
+                                continue
+                            prefix_len = 0
+                            for a, b in zip(sw, vw):
+                                if a == b:
+                                    prefix_len += 1
+                                else:
+                                    break
+                            if prefix_len >= min_len * 0.7:
+                                word_matches += 1
+                                break
+                    if word_matches == len(search_words) and word_matches > best_score:
+                        best_score = word_matches
+                        best_match = val
+
+                if best_match:
+                    # Replace the LIKE value in the SQL
+                    old_like = f"%{search_term}%"
+                    new_like = f"%{best_match}%"
+                    corrected_sql = corrected_sql.replace(old_like, new_like)
+                    corrections.append(
+                        f"Auto-corrected '{search_term}' → '{best_match}'"
+                    )
+
+            conn.close()
+        except sqlite3.Error:
+            return None, []
+
+        if corrections:
+            return corrected_sql, corrections
+        return None, []
+
     def verify_with_execution(self, sql: str, success: bool, result_count: int) -> dict:
         """Verify SQL and include execution results."""
         result = self.verify(sql)
         result["executed_ok"] = success
         result["result_count"] = result_count
+        result["suggestions"] = []
 
         # Adjust confidence based on execution
         if not success:
@@ -187,6 +548,12 @@ class SQLVerifier:
             result["issues"].append("SQL execution failed")
         elif result_count == 0:
             result["issues"].append("Query returned no results")
+            # Try to find similar values that might match
+            suggestions = self._suggest_similar_values(sql)
+            if suggestions:
+                result["suggestions"] = suggestions
+                for s in suggestions:
+                    result["issues"].append(s)
 
         # 4. Result ratio check: if query returns >70% of all rows, it's too broad
         if success and result_count > 0 and result["verified_tables"]:

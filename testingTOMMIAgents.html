@@ -9,6 +9,151 @@
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
     */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -90,72 +235,35 @@
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css" />
 </head>
 <body>
 <header id="title-block-header">
 <h1 class="title">Testing TOMMI Agents — Tester Guide</h1>
 </header>
-<blockquote style="background-color:#fff8e1;border-left:4px solid #ff9800;padding:12px 16px;margin:16px 0;border-radius:4px;">
-<p><strong>Who is this document for?</strong></p>
-<p>This guide is for <strong>testers, QA staff, and project managers</strong> who evaluate TOMMI agents before deployment. An excellent understanding of prompts, claim extraction, and grounding analysis is essential — you need to assess whether the agent's responses are factually correct and properly sourced, not just whether they "look right."</p>
-<ul>
-<li><strong>Testing on a public server:</strong> Similar to end-user access — you can test through the web interface. However, you will need to understand how to interpret reliability badges, claim highlights, transparency levels, and prompt level effects.</li>
-<li><strong>Testing on a local server:</strong> Gives you full control over agent configuration (transparency levels, prompt levels, LLM model selection) and accelerates the update-test cycle — you can modify prompts, reindex documents, and see results immediately. This requires increased technical knowledge (Python environment, configuration files, ChromaDB). Local testing is strongly recommended for thorough evaluation.</li>
-</ul>
-</blockquote>
-<nav id="TOC" role="doc-toc">
-<ul>
-<li><a href="#testing-tommi-agents-tester-guide"
-id="toc-testing-tommi-agents-tester-guide">Testing TOMMI Agents – Tester
-Guide</a>
-<ul>
-<li><a href="#introduction" id="toc-introduction">1.
-Introduction</a></li>
-<li><a href="#agent-tuning-options" id="toc-agent-tuning-options">2.
-Agent Tuning Options</a>
-<ul>
-<li><a href="#llm-selection" id="toc-llm-selection">2.1 LLM
-Selection</a></li>
-<li><a href="#transparency-levels" id="toc-transparency-levels">2.2
-Transparency Levels</a></li>
-<li><a href="#prompt-levels" id="toc-prompt-levels">2.3 Prompt
-Levels</a></li>
-</ul></li>
-<li><a href="#the-transparency-pipeline"
-id="toc-the-transparency-pipeline">3. The Transparency Pipeline</a>
-<ul>
-<li><a href="#step-1-claim-identification"
-id="toc-step-1-claim-identification">3.1 Step 1 — Claim
-Identification</a></li>
-<li><a href="#step-2-claim-categorization"
-id="toc-step-2-claim-categorization">3.2 Step 2 — Claim
-Categorization</a></li>
-<li><a href="#step-3-confidence-computation"
-id="toc-step-3-confidence-computation">3.3 Step 3 — Confidence
-Computation</a></li>
-<li><a href="#known-limitations-and-common-issues"
-id="toc-known-limitations-and-common-issues">3.4 Known Limitations and
-Common Issues</a></li>
-<li><a href="#post-response-verification-metadatarag-agents"
-id="toc-post-response-verification-metadatarag-agents">3.5 Post-Response
-Verification (Metadata+RAG Agents)</a></li>
-<li><a href="#decision-flow-for-metadatarag-eh-agents"
-id="toc-decision-flow-for-metadatarag-eh-agents">3.6 Decision Flow for
-Metadata+RAG (EH) Agents</a></li>
-</ul></li>
-<li><a href="#testing-checklist" id="toc-testing-checklist">4. Testing
-Checklist</a></li>
-<li><a href="#interpreting-the-audit-log"
-id="toc-interpreting-the-audit-log">5. Interpreting the Audit
-Log</a></li>
-<li><a href="#model-quality-comparison"
-id="toc-model-quality-comparison">6. Model Quality Comparison</a></li>
-</ul></li>
-</ul>
-</nav>
 <h1 id="testing-tommi-agents-tester-guide">Testing TOMMI Agents – Tester
 Guide</h1>
+<blockquote>
+<p><strong>Who is this document for?</strong></p>
+<p>This guide is for <strong>testers, QA staff, and project
+managers</strong> who evaluate TOMMI agents before deployment. An
+excellent understanding of prompts, claim extraction, and grounding
+analysis is essential — you need to assess whether the agent’s responses
+are factually correct and properly sourced, not just whether they “look
+right.”</p>
+<ul>
+<li><strong>Testing on a public server:</strong> Similar to end-user
+access — you can test through the web interface. However, you will need
+to understand how to interpret reliability badges, claim highlights,
+transparency levels, and prompt level effects.</li>
+<li><strong>Testing on a local server:</strong> Gives you full control
+over agent configuration (transparency levels, prompt levels, LLM model
+selection) and accelerates the update-test cycle — you can modify
+prompts, reindex documents, and see results immediately. This requires
+increased technical knowledge (Python environment, configuration files,
+ChromaDB). Local testing is strongly recommended for thorough
+evaluation.</li>
+</ul>
+</blockquote>
 <h2 id="introduction">1. Introduction</h2>
 <p>This guide is intended for <strong>testers, QA staff, and project
 managers</strong> who need to evaluate TOMMI agents before deployment.
@@ -1193,6 +1301,35 @@ hallucinating an answer.</label></li>
 <li><label><input type="checkbox" /><strong>Edge cases:</strong> Test
 with empty queries, very long queries, and queries in different
 languages (if the agent is multilingual).</label></li>
+</ul>
+<h3 id="text2sql-specific-verification-tests">Text2SQL-specific
+verification tests</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" /><strong>Schema
+verification:</strong> Ask a question that should produce a valid query.
+In crystal_box mode, verify the reliability badge shows high confidence
+and no unknown tables/columns.</label></li>
+<li><label><input type="checkbox" /><strong>Semantic mismatch
+detection:</strong> Ask about a specific topic (e.g. “Show agreements
+with Libya”) and check if the generated SQL actually references that
+topic. If the LLM hallucinates a different query, verify the system
+blocks it in stringent mode with a “Semantic mismatch”
+message.</label></li>
+<li><label><input type="checkbox" /><strong>Cross-language
+equivalences:</strong> Ask in English about a concept stored in Spanish
+(e.g. “agreements requiring English” when the database uses “INGLÉS”).
+Verify the semantic check does not flag this as a mismatch.</label></li>
+<li><label><input type="checkbox" /><strong>Broad query
+detection:</strong> Ask a very generic question (e.g. “Show
+everything”). Verify the badge flags the query as overly broad if it
+returns &gt;70% of all rows.</label></li>
+<li><label><input type="checkbox" /><strong>Transparency
+levels:</strong> Test that SQL is shown in crystal_box and grey_box
+modes, but hidden in black_box mode.</label></li>
+<li><label><input type="checkbox" /><strong>Tolerant vs
+stringent:</strong> In tolerant mode, verify that semantic warnings
+appear but the query still executes. In stringent mode, verify
+mismatched queries are blocked.</label></li>
 </ul>
 <hr />
 <h2 id="interpreting-the-audit-log">5. Interpreting the Audit Log</h2>

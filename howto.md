@@ -217,9 +217,11 @@ Converts natural language questions directly to SQL queries against a database.
 **How it works:**
 1. User asks a question in natural language
 2. Agent uses the configured LLM (Mistral or Ollama) to convert the question to SQL
-3. Executes the SQL query against a SQLite database (only SELECT queries allowed)
-4. Formats results using Python (fast, no additional LLM call)
-5. Displays results in an interactive HTML table
+3. **SQL Verification** (pre-execution): validates the generated SQL against the database schema and checks semantic alignment with the user's question
+4. Executes the SQL query against a SQLite database (only SELECT queries allowed)
+5. **Reliability badge** (post-execution): assesses confidence based on schema verification, semantic alignment, and execution results
+6. Formats results using Python (fast, no additional LLM call)
+7. Displays results in an interactive HTML table
 
 **Architecture:**
 ```
@@ -255,6 +257,9 @@ Converts natural language questions directly to SQL queries against a database.
 - **Single LLM call:** Uses one LLM for SQL generation; formatting is done with Python for speed
 - **Security:** Only SELECT queries are allowed; INSERT, UPDATE, DELETE, and other modifying operations are blocked
 - **Schema awareness:** Automatically reads and understands the database structure
+- **SQL verification:** Every generated query is verified against the database schema before execution — unknown tables, columns, and dangerous keywords are detected and blocked
+- **Semantic alignment check:** Detects when the LLM generates SQL that doesn't match the user's question (e.g. user asks about "Libya" but SQL searches for "English B1"). Supports cross-language equivalences (english↔inglés, finland↔finlandia, etc.)
+- **Reliability badges:** Post-execution confidence assessment displayed as a badge (similar to RAG agent grounding badges)
 - **Interactive results:** Displays query results in formatted HTML tables
 
 **Example:** A university department needs to query a database of courses and professors. Users can ask "How many courses are in the Law department?" and get instant results without knowing SQL.
@@ -328,7 +333,7 @@ An enhanced version of RAG agents designed for **multi-institution research pape
 | **Document Search** | - | ✓ | ✓ | - |
 | **Metadata Filtering** | - | - | ✓ | - |
 | **Dynamic Knowledge** | - | ✓ | ✓ | ✓ |
-| **Grounding Verification** | ✓ | ✓ | ✓ | - |
+| **Grounding Verification** | ✓ | ✓ | ✓ | ✓ (SQL schema + semantic) |
 | **Python Version** | Any | 3.11-3.13 | 3.11-3.13 | Any |
 
 \* With grounding verification enabled, requires 2 LLM calls per query.
@@ -352,7 +357,7 @@ An enhanced version of RAG agents designed for **multi-institution research pape
 | **Oneshot** | 1 (2 with verification) | Low (Medium with verification) |
 | **RAG** | 1 (2 with verification) | Low (Medium with verification) |
 | **RAG+Metadata** | 1 (2 with verification) | Low (Medium with verification) |
-| **Text2SQL** | 1 | Low |
+| **Text2SQL** | 1 (+ local verification) | Low |
 
 #### Architecture Summary
 
@@ -930,11 +935,15 @@ INSERT INTO courses VALUES (3, 'Programming I', 'Computer Science', 1, 6);
 
 **How it works:**
 
-Text2SQL agents use a single LLM call for SQL generation, and Python for fast result formatting:
+Text2SQL agents use a single LLM call for SQL generation, followed by multi-layer verification and Python for fast result formatting:
 
 1. The LLM converts the natural language question to SQL
-2. The SQL is executed against the SQLite database
-3. Results are formatted as an HTML table using Python (no additional LLM call)
+2. **Schema verification:** Table and column names are validated against the actual database schema
+3. **Semantic alignment check:** Key terms from the user's question are compared against the SQL's WHERE clauses to detect mismatches (supports cross-language equivalences like english↔inglés)
+4. If verification passes, the SQL is executed against the SQLite database
+5. **Post-execution check:** Result ratio is assessed (queries returning >70% of all rows are flagged as too broad)
+6. Results are formatted as an HTML table using Python (no additional LLM call)
+7. A reliability badge is generated showing confidence level and any issues
 
 **Configuration in `.env`:**
 ```bash
@@ -949,11 +958,15 @@ MISTRAL_MODEL=mistral-large-latest
 # OLLAMA_MODEL=mistral
 ```
 
-**Security features:**
+**Security and verification features:**
 
 - Only SELECT queries are allowed
 - INSERT, UPDATE, DELETE, DROP, and other modifying operations are blocked
 - SQL injection attempts are rejected
+- Schema verification blocks queries referencing non-existent tables or columns
+- Semantic alignment blocks SQL that doesn't match the user's intent (e.g. asking about "Libya" but SQL searches for "English B1")
+- Cross-language equivalence support prevents false positives (english↔inglés, erasmus↔KA131, etc.)
+- `prompt_level: "stringent"` blocks mismatched queries; `"tolerant"` logs warnings but executes
 
 **API endpoints:**
 

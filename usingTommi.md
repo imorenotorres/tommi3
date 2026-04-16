@@ -11,6 +11,18 @@ This guide explains how to use TOMMI agents from the web interface. No technical
 
 ---
 
+## Do I Need Technical Expertise to Create AI Agents?
+
+**It depends.** If you want to create an agent based on the templates provided by TOMMI (Oneshot, RAG, RAG+Metadata, Text2SQL), no special programming expertise is required — you can use the web interface or CLI to fill in a form and the system generates everything automatically. A basic understanding of AI concepts (LLM, prompts, hallucinations) is sufficient.
+
+However, if the template does not match your requirements, you will need to make changes that may require increased expertise. This is particularly the case for **RAG+Metadata agents**, which have been customized for a specific context in UNINOVIS: the Excellence Hubs. These include features like researcher profiles, university metadata, collaboration detection, and publication maps that are tailored to the UNINOVIS alliance.
+
+**An important point:** TOMMI can be adapted and extended using advanced AI coding tools such as **Claude Code, Cursor, or Gemini**. This means that **a good understanding of the AI agents' architecture and behavior — rather than deep coding expertise — is the key requirement** for making significant modifications. A user who understands what the agent should do can use AI coding tools to implement the necessary changes.
+
+For details on creating agents, see the *Deploying with TOMMI* guide, Section 5.
+
+---
+
 ## 1. Getting Started
 
 - Open your browser (Chrome, Firefox, Safari, Edge -- any modern browser works).
@@ -28,7 +40,7 @@ Once you select an agent, the sidebar will show:
 - **Agent type and LLM provider** -- tells you what kind of agent this is and what language model powers it. There are four types:
   - **RAG** -- searches a collection of documents and answers from what it finds.
   - **Metadata+RAG** -- like RAG, but also knows structured information (authors, universities, topics) and can produce maps and figures.
-  - **Text2SQL** -- translates your question into a database query.
+  - **Text2SQL** -- translates your question into a database query. Includes automatic verification that the generated SQL matches your question and the database structure.
   - **Oneshot** -- a simple question-answer agent without a document collection.
 
   Click the **?** icon next to this section for more details.
@@ -51,7 +63,7 @@ Type your question in the text box at the bottom of the screen and click **Send*
 - **Use follow-up questions.** The agent remembers your conversation, so you can say things like "tell me more about the third one" or "now show only results from 2023."
 - **Look at the example queries** in the sidebar for inspiration -- they show the kinds of questions the agent handles well.
 - **For maps or figures** (Metadata+RAG agents only), include the word "figure" or "map" in your question -- for example, "Show me a figure of papers by country."
-- **For database agents (Text2SQL)**, you can use commands like "show me more," "sort by country," "only France," or "expand #3" to navigate and refine results.
+- **For database agents (Text2SQL)**, you can use commands like "show me more," "sort by country," "only France," or "expand #3" to navigate and refine results. If the system detects that the generated SQL doesn't match your question, it will block the query and ask you to rephrase — this prevents the AI from returning unrelated results.
 
 ---
 

@@ -517,6 +517,15 @@ Before deploying an agent, verify each item:
 - [ ] **Out-of-domain questions:** Test with questions outside the agent's domain. Verify the agent refuses gracefully (at Stringent level) rather than hallucinating an answer.
 - [ ] **Edge cases:** Test with empty queries, very long queries, and queries in different languages (if the agent is multilingual).
 
+### Text2SQL-specific verification tests
+
+- [ ] **Schema verification:** Ask a question that should produce a valid query. In crystal_box mode, verify the reliability badge shows high confidence and no unknown tables/columns.
+- [ ] **Semantic mismatch detection:** Ask about a specific topic (e.g. "Show agreements with Libya") and check if the generated SQL actually references that topic. If the LLM hallucinates a different query, verify the system blocks it in stringent mode with a "Semantic mismatch" message.
+- [ ] **Cross-language equivalences:** Ask in English about a concept stored in Spanish (e.g. "agreements requiring English" when the database uses "INGLÉS"). Verify the semantic check does not flag this as a mismatch.
+- [ ] **Broad query detection:** Ask a very generic question (e.g. "Show everything"). Verify the badge flags the query as overly broad if it returns >70% of all rows.
+- [ ] **Transparency levels:** Test that SQL is shown in crystal_box and grey_box modes, but hidden in black_box mode.
+- [ ] **Tolerant vs stringent:** In tolerant mode, verify that semantic warnings appear but the query still executes. In stringent mode, verify mismatched queries are blocked.
+
 ---
 
 ## 5. Interpreting the Audit Log

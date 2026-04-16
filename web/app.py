@@ -41,6 +41,9 @@ ENABLE_LOGGING = os.getenv("ENABLE_LOGGING", "false").lower() in ("true", "1", "
 
 # Configurar logging de conversaciones solo si está habilitado
 LOGS_DIR = Path(__file__).parent / "logs"
+FEEDBACK_DIR = Path(__file__).parent / "data"
+FEEDBACK_DIR.mkdir(exist_ok=True)
+FEEDBACK_FILE = FEEDBACK_DIR / "feedback_log.jsonl"
 if ENABLE_LOGGING:
     LOGS_DIR.mkdir(exist_ok=True)
     conversation_logger = logging.getLogger("conversations")
@@ -1103,6 +1106,36 @@ async def create_agent(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── User feedback on agent responses ──────────────────────────────
+
+class FeedbackRequest(BaseModel):
+    agent_id: str
+    session_id: str = ""
+    message_index: int = 0
+    rating: str                    # "up" or "down"
+    category: Optional[str] = None # "incomplete", "wrong", "irrelevant"
+    user_question: str = ""
+    response_snippet: str = ""
+
+
+@app.post("/api/feedback")
+async def submit_feedback(fb: FeedbackRequest):
+    """Log user feedback on an agent response."""
+    entry = {
+        "timestamp": datetime.now().isoformat(),
+        "agent_id": fb.agent_id,
+        "session_id": fb.session_id,
+        "message_index": fb.message_index,
+        "rating": fb.rating,
+        "category": fb.category,
+        "user_question": fb.user_question,
+        "response_snippet": fb.response_snippet[:500],
+    }
+    with open(FEEDBACK_FILE, "a", encoding="utf-8") as f:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    return {"status": "ok"}
 
 
 if __name__ == "__main__":
