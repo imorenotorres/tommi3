@@ -10,7 +10,8 @@ const state = {
     isLoading: false,
     warmupEventSource: null,  // Para cancelar warmup al cambiar de agente
     availableModels: [],
-    currentModel: null
+    currentModel: null,
+    mode: 'user'
 };
 
 // Elementos del DOM
@@ -77,6 +78,11 @@ function getCloudModelSize(modelName) {
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
+    // Detect tester mode from <body data-mode="tester">
+    if (document.body && document.body.dataset.mode === 'tester') {
+        state.mode = 'tester';
+    }
+
     // Configure marked to allow HTML passthrough
     marked.setOptions({
         breaks: true,
@@ -254,6 +260,7 @@ function renderAgentSelector() {
 function setupEventListeners() {
     elements.agentSelect.addEventListener('change', onAgentChange);
     elements.chatForm.addEventListener('submit', onSubmitMessage);
+
 
     // Tooltip close buttons (event delegation)
     document.addEventListener('click', (e) => {
@@ -1608,45 +1615,173 @@ async function sendMessage(message) {
 
 // ── Feedback widget ──────────────────────────────────────────────
 
+const ERROR_TYPES = {
+    '1. Transparency': {
+        '1.1': 'Claim not identified',
+        '1.2.1': 'Claim: false positive (red but correct)',
+        '1.2.2': 'Claim: false negative (green but wrong)',
+        '1.3.1': 'Hallucination not detected',
+        '1.3.2': 'Hallucination false alarm',
+        '1.4': 'Wrong confidence score',
+    },
+    '2. Text2SQL AI Agent': {
+        '2.1': 'Wrong SQL undetected',
+        '2.2': 'Wrong answer',
+        '2.3': 'Insufficient information',
+    },
+    '3. Content': {
+        '3.1': 'Missing information',
+        '3.2': 'Wrong information',
+        '3.3': 'Irrelevant response',
+        '3.4': 'Misleading presentation',
+    },
+    '4. Other': {
+        '4.1': 'System error',
+        '4.2': 'Usability issue',
+        '4.3': 'Other',
+    },
+};
+
 function createFeedbackWidget(parentMessageDiv, userQuestion, responseText) {
     const widget = document.createElement('div');
     widget.className = 'feedback-widget';
 
-    // Thumbs-up
+    // Thumbs-up (both modes)
     const btnUp = document.createElement('button');
     btnUp.className = 'feedback-btn feedback-up';
     btnUp.innerHTML = '&#x1F44D;';
     btnUp.title = 'Good response';
     btnUp.addEventListener('click', () =>
-        submitFeedback(widget, 'up', null, userQuestion, responseText));
+        submitFeedback(widget, 'up', null, null, null, userQuestion, responseText));
 
     // Thumbs-down
     const btnDown = document.createElement('button');
     btnDown.className = 'feedback-btn feedback-down';
     btnDown.innerHTML = '&#x1F44E;';
-    btnDown.title = 'Bad response';
+    btnDown.title = 'Report an issue';
 
-    // Category buttons (hidden until thumbs-down is clicked)
-    const cats = document.createElement('div');
-    cats.className = 'feedback-categories hidden';
-    ['Incomplete', 'Wrong', 'Irrelevant'].forEach(label => {
-        const b = document.createElement('button');
-        b.className = 'feedback-cat-btn';
-        b.textContent = label;
-        b.addEventListener('click', () =>
-            submitFeedback(widget, 'down', label.toLowerCase(), userQuestion, responseText));
-        cats.appendChild(b);
+    // The panel that opens on thumbs-down depends on current mode
+    const panel = document.createElement('div');
+    panel.className = 'feedback-report-panel hidden';
+
+    btnDown.addEventListener('click', () => {
+        // Build panel content based on current mode (checked at click time)
+        if (!panel.dataset.built || panel.dataset.builtMode !== state.mode) {
+            panel.innerHTML = '';
+            if (state.mode === 'tester') {
+                buildTesterPanel(panel, widget, userQuestion, responseText);
+            } else {
+                buildUserPanel(panel, widget, userQuestion, responseText);
+            }
+            panel.dataset.built = 'true';
+            panel.dataset.builtMode = state.mode;
+        }
+        panel.classList.toggle('hidden');
     });
-
-    btnDown.addEventListener('click', () => cats.classList.toggle('hidden'));
 
     widget.appendChild(btnUp);
     widget.appendChild(btnDown);
-    widget.appendChild(cats);
+    widget.appendChild(panel);
     parentMessageDiv.appendChild(widget);
 }
 
-async function submitFeedback(widget, rating, category, userQuestion, responseText) {
+function buildUserPanel(panel, widget, userQuestion, responseText) {
+    // Simple: just a comment field + submit
+    const notes = document.createElement('textarea');
+    notes.className = 'feedback-notes';
+    notes.placeholder = 'What was wrong? (optional)';
+    notes.rows = 2;
+
+    const submitBtn = document.createElement('button');
+    submitBtn.className = 'feedback-submit-btn';
+    submitBtn.textContent = 'Send';
+    submitBtn.addEventListener('click', () => {
+        submitFeedback(widget, 'down', null, null, notes.value, userQuestion, responseText);
+    });
+
+    panel.appendChild(notes);
+    panel.appendChild(submitBtn);
+}
+
+function buildTesterPanel(panel, widget, userQuestion, responseText) {
+    // Full error classification panel
+
+    // Error type selector
+    const selectLabel = document.createElement('label');
+    selectLabel.textContent = 'Error type:';
+    selectLabel.className = 'feedback-label';
+    const select = document.createElement('select');
+    select.className = 'feedback-select';
+    select.innerHTML = '<option value="">-- Select --</option>';
+    for (const [group, codes] of Object.entries(ERROR_TYPES)) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = group;
+        for (const [code, desc] of Object.entries(codes)) {
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = `${code} — ${desc}`;
+            optgroup.appendChild(opt);
+        }
+        select.appendChild(optgroup);
+    }
+
+    // Severity selector
+    const sevLabel = document.createElement('label');
+    sevLabel.textContent = 'Severity:';
+    sevLabel.className = 'feedback-label';
+    const sevSelect = document.createElement('select');
+    sevSelect.className = 'feedback-select';
+    ['Minor', 'Major', 'Critical'].forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.toLowerCase();
+        opt.textContent = s;
+        sevSelect.appendChild(opt);
+    });
+
+    // Notes field
+    const notesLabel = document.createElement('label');
+    notesLabel.textContent = 'Expected / notes:';
+    notesLabel.className = 'feedback-label';
+    const notes = document.createElement('textarea');
+    notes.className = 'feedback-notes';
+    notes.placeholder = 'Add any useful details to help in correcting this error';
+    notes.rows = 5;
+
+    // Submit button
+    const submitBtn = document.createElement('button');
+    submitBtn.className = 'feedback-submit-btn';
+    submitBtn.textContent = 'Submit report';
+    submitBtn.addEventListener('click', () => {
+        const errorCode = select.value;
+        if (!errorCode) { select.focus(); return; }
+        submitFeedback(widget, 'down', errorCode,
+            sevSelect.value, notes.value, userQuestion, responseText);
+    });
+
+    // Top row: Error type + Severity side by side
+    const topRow = document.createElement('div');
+    topRow.className = 'feedback-top-row';
+
+    const errorCol = document.createElement('div');
+    errorCol.className = 'feedback-col feedback-col-grow';
+    errorCol.appendChild(selectLabel);
+    errorCol.appendChild(select);
+
+    const sevCol = document.createElement('div');
+    sevCol.className = 'feedback-col';
+    sevCol.appendChild(sevLabel);
+    sevCol.appendChild(sevSelect);
+
+    topRow.appendChild(errorCol);
+    topRow.appendChild(sevCol);
+
+    panel.appendChild(topRow);
+    panel.appendChild(notesLabel);
+    panel.appendChild(notes);
+    panel.appendChild(submitBtn);
+}
+
+async function submitFeedback(widget, rating, errorCode, severity, notes, userQuestion, responseText) {
     const msgIndex = document.querySelectorAll('.message.agent').length;
     try {
         await fetch('/api/feedback', {
@@ -1656,10 +1791,13 @@ async function submitFeedback(widget, rating, category, userQuestion, responseTe
                 agent_id: state.currentAgent ? state.currentAgent.id : '',
                 session_id: state.sessionId || '',
                 message_index: msgIndex,
+                mode: state.mode,
                 rating,
-                category,
+                error_code: errorCode,
+                severity: severity,
+                notes: notes || '',
                 user_question: userQuestion || '',
-                response_snippet: (responseText || '').substring(0, 500),
+                full_response: responseText || '',
             })
         });
     } catch (e) {

@@ -938,7 +938,7 @@ body {
 /* ── Feedback widget ─────────────────────────────────────────── */
 .feedback-widget {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 6px;
     margin-top: 8px;
     padding: 4px 0;
@@ -961,35 +961,102 @@ body {
     transform: scale(1.15);
 }
 
-.feedback-categories {
+.feedback-report-panel {
     display: flex;
-    gap: 4px;
-    margin-left: 4px;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+    background: var(--agent-msg-bg, #f8f9fa);
+    width: 100%;
+    max-width: 600px;
+    margin-top: 4px;
 }
 
-.feedback-categories.hidden {
+.feedback-top-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.feedback-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.feedback-col-grow {
+    flex: 1;
+}
+
+.feedback-report-panel.hidden {
     display: none;
 }
 
-.feedback-cat-btn {
-    background: none;
-    border: 1px solid var(--border-color, #ddd);
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 2px 10px;
+.feedback-label {
     font-size: 0.72rem;
-    color: var(--text-muted, #888);
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    font-weight: 600;
+    color: var(--text-muted, #666);
+    margin-top: 2px;
 }
 
-.feedback-cat-btn:hover {
-    background: #fee2e2;
-    border-color: #fca5a5;
-    color: #dc2626;
+.feedback-select {
+    font-size: 0.78rem;
+    padding: 3px 6px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 4px;
+    background: white;
+    width: 100%;
+}
+
+.feedback-notes {
+    font-size: 0.78rem;
+    padding: 4px 6px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.feedback-submit-btn {
+    align-self: flex-end;
+    font-size: 0.72rem;
+    padding: 4px 14px;
+    border: 1px solid #c0392b;
+    border-radius: 4px;
+    background: #c0392b;
+    color: white;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 2px;
+}
+
+.feedback-submit-btn:hover {
+    background: #a93226;
 }
 
 .feedback-thanks {
     font-size: 0.75rem;
     color: var(--text-muted, #888);
     font-style: italic;
+}
+
+/* ── User/Tester mode toggle ─────────────────────────────────── */
+.tester-interface-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    white-space: nowrap;
+    background-color: #ffffff;
+    color: #e67e22;
+    border: 1px solid #e67e22;
+}
+
+.tester-badge-section {
+    margin-bottom: 2px;
 }

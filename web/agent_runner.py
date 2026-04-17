@@ -137,8 +137,8 @@ class AgentRunner:
                     "transparency_level": cfg.get("transparency_level", "black_box"),
                     "prompt_level": cfg.get("prompt_level", "stringent"),
                 }
-                # Preserve type from AGENT_CONFIG in app.py (not in config.json)
-                config["type"] = self._extract_agent_type(app_py) or "oneshot"
+                # Use type from config.json if present, otherwise try app.py
+                config["type"] = cfg.get("type") or self._extract_agent_type(app_py) or "oneshot"
                 return config
             except Exception as e:
                 print(f"Warning: Could not load {config_json}: {e}")

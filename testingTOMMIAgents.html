@@ -245,35 +245,35 @@ Guide</h1>
 <blockquote>
 <p><strong>Who is this document for?</strong></p>
 <p>This guide is for <strong>testers, QA staff, and project
-managers</strong> who evaluate TOMMI agents before deployment. An
-excellent understanding of prompts, claim extraction, and grounding
-analysis is essential — you need to assess whether the agent’s responses
-are factually correct and properly sourced, not just whether they “look
-right.”</p>
-<ul>
-<li><strong>Testing on a public server:</strong> Similar to end-user
-access — you can test through the web interface. However, you will need
-to understand how to interpret reliability badges, claim highlights,
-transparency levels, and prompt level effects.</li>
-<li><strong>Testing on a local server:</strong> Gives you full control
-over agent configuration (transparency levels, prompt levels, LLM model
-selection) and accelerates the update-test cycle — you can modify
-prompts, reindex documents, and see results immediately. This requires
-increased technical knowledge (Python environment, configuration files,
-ChromaDB). Local testing is strongly recommended for thorough
-evaluation.</li>
-</ul>
+managers</strong> who evaluate TOMMI agents before deployment. You
+should be an <strong>expert on the topic</strong> the agent covers — you
+need to assess whether the agent’s responses are factually correct,
+complete, and properly sourced, not just whether they “look right.”</p>
+<p><strong>The role of the tester</strong> is to identify failures,
+flaws, and limitations of the AI Agent and report them to the developer
+following the error reporting procedure described in this guide (see <a
+href="#error-reporting-procedure">Section 7</a>).</p>
 </blockquote>
 <h2 id="introduction">1. Introduction</h2>
 <p>This guide is intended for <strong>testers, QA staff, and project
 managers</strong> who need to evaluate TOMMI agents before deployment.
 It covers the practical aspects of verifying agent quality, tuning
-runtime parameters, interpreting reliability data, and checking claim
-accuracy.</p>
-<p><strong>Role of testers:</strong> Your job is to verify that an agent
-produces accurate, well-grounded responses; that the transparency
-features work correctly at every level; and that the tuning controls
-behave as documented. Testing should be performed before any agent is
+runtime parameters, interpreting reliability data, checking claim
+accuracy, and <strong>reporting errors to the developer</strong>.</p>
+<p><strong>Role of testers:</strong> Your job is to identify failures,
+flaws, and limitations — not to fix them. Specifically:</p>
+<ol type="1">
+<li><strong>Detect</strong> — find cases where the agent gives wrong,
+incomplete, or misleading answers</li>
+<li><strong>Classify</strong> — categorise the error by type:
+transparency (1.x), prompt enforcement (2.x), content (3.x), or other
+(4.x) — see <a href="#error-reporting-procedure">Section 7</a></li>
+<li><strong>Document</strong> — record the exact query, agent response,
+and expected behaviour</li>
+<li><strong>Report</strong> — submit a structured error report to the
+developer</li>
+</ol>
+<p>Testing should be performed on a local server before any agent is
 made available to end users.</p>
 <p><strong>Testing should cover:</strong></p>
 <ul>
@@ -285,6 +285,7 @@ detail?)</li>
 <li>Prompt level behaviour (does constraining the prompt actually change
 the agent’s responses?)</li>
 <li>LLM selection (do different models produce acceptable quality?)</li>
+<li>Error reporting (can every failure be classified and reported?)</li>
 </ul>
 <hr />
 <h2 id="agent-tuning-options">2. Agent Tuning Options</h2>
@@ -1656,5 +1657,362 @@ not user-facing deployments.</li>
 full RAM is available for model loading (no separate VRAM limit). An M2
 Max with 32 GB outperforms an Intel + RTX 3060 for 14B models.</li>
 </ul>
+<hr />
+<h2 id="error-reporting-procedure">7. Error Reporting Procedure</h2>
+<p>When a tester identifies a failure, flaw, or limitation, it must be
+documented and reported to the developer in a structured way. This
+section defines the error types and the reporting format.</p>
+<h3 id="error-types">7.1 Error Types</h3>
+<p>Every issue found during testing should be classified using the
+structured codes below. These codes map directly to specific components
+of the system, so that each report tells the developer <strong>exactly
+where the fix is needed</strong>.</p>
+<h3 id="transparency-errors">1. Transparency errors</h3>
+<p>Errors in how the system identifies, classifies, and presents claims
+and reliability information.</p>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 28%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1.1</strong></td>
+<td><strong>Claim identification</strong></td>
+<td>A factual claim in the response was not detected by the claim
+extraction system</td>
+<td>Agent says “published in Nature in 2023” but this is not highlighted
+as a claim</td>
+</tr>
+<tr>
+<td><strong>1.2.1</strong></td>
+<td><strong>Claim classification: false positive</strong></td>
+<td>A claim is marked as ungrounded (red) but it IS in the data</td>
+<td>“Retrieval-Augmented Generation” marked red when the term exists in
+papers.json</td>
+</tr>
+<tr>
+<td><strong>1.2.2</strong></td>
+<td><strong>Claim classification: false negative</strong></td>
+<td>A claim is marked as grounded (green) but it is NOT in the data</td>
+<td>Agent invents a paper title, but it’s highlighted green because a
+partial word match was found</td>
+</tr>
+<tr>
+<td><strong>1.3.1</strong></td>
+<td><strong>Hallucination detection: false negative</strong></td>
+<td>The agent states something false and the system does NOT flag
+it</td>
+<td>Agent says “UMA has 15 agreements with TAMK” (wrong number) but no
+warning appears</td>
+</tr>
+<tr>
+<td><strong>1.3.2</strong></td>
+<td><strong>Hallucination detection: false positive</strong></td>
+<td>The system flags correct information as a hallucination</td>
+<td>A real paper title is flagged as “not found in database” due to a
+minor formatting difference</td>
+</tr>
+<tr>
+<td><strong>1.4</strong></td>
+<td><strong>Confidence computation</strong></td>
+<td>The reliability badge score does not reflect the actual quality of
+the response</td>
+<td>Badge shows 95% confidence but half the claims are wrong; or badge
+shows 20% when all claims are correct</td>
+</tr>
+</tbody>
+</table>
+<h3 id="text2sql-ai-agent-errors">2. Text2SQL AI Agent errors</h3>
+<p>Errors specific to Text2SQL agents (database query agents).</p>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 28%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>2.1</strong></td>
+<td><strong>Wrong SQL undetected</strong></td>
+<td>The agent generates incorrect SQL and the verification system fails
+to catch it</td>
+<td>User asks about Libya but SQL searches for English B1 — and the
+system doesn’t block it</td>
+</tr>
+<tr>
+<td><strong>2.2</strong></td>
+<td><strong>Wrong answer</strong></td>
+<td>The SQL is correct but the agent’s interpretation or presentation of
+the results is wrong</td>
+<td>Query returns 8 rows but agent says “Found 3 agreements”</td>
+</tr>
+<tr>
+<td><strong>2.3</strong></td>
+<td><strong>Insufficient information</strong></td>
+<td>The SQL is too narrow or the results are incomplete compared to what
+the database contains</td>
+<td>Agent only searches one column when the answer requires joining or
+searching multiple columns</td>
+</tr>
+</tbody>
+</table>
+<h3 id="content-errors">3. Content errors</h3>
+<p>Errors in the factual content of the response, regardless of
+transparency features.</p>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 28%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>3.1</strong></td>
+<td><strong>Missing information</strong></td>
+<td>The response is correct but omits important information that exists
+in the data</td>
+<td>Agent lists 3 of 8 agreements with a partner; agent omits key
+authors from a paper</td>
+</tr>
+<tr>
+<td><strong>3.2</strong></td>
+<td><strong>Wrong information</strong></td>
+<td>The response contains factually incorrect statements</td>
+<td>Agent says a paper was published in 2024 when the database says
+2023</td>
+</tr>
+<tr>
+<td><strong>3.3</strong></td>
+<td><strong>Irrelevant response</strong></td>
+<td>The response doesn’t match the user’s question</td>
+<td>User asks about Libya, agent returns results about English B1
+requirements</td>
+</tr>
+<tr>
+<td><strong>3.4</strong></td>
+<td><strong>Misleading presentation</strong></td>
+<td>Information is not technically false but could lead to wrong
+conclusions</td>
+<td>Agent implies all UNINOVIS partners use the same tool when they
+don’t</td>
+</tr>
+</tbody>
+</table>
+<h3 id="other">4. Other</h3>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 28%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>4.1</strong></td>
+<td><strong>System error</strong></td>
+<td>Agent crashes, times out, or returns a technical error</td>
+<td>Connection error, SQL execution failure, 500 error</td>
+</tr>
+<tr>
+<td><strong>4.2</strong></td>
+<td><strong>Usability issue</strong></td>
+<td>Response is correct but poorly formatted or confusing</td>
+<td>Results in random order, excessive jargon, unreadable table</td>
+</tr>
+<tr>
+<td><strong>4.3</strong></td>
+<td><strong>Other</strong></td>
+<td>Any issue not covered above</td>
+<td>Describe in the Notes field</td>
+</tr>
+</tbody>
+</table>
+<h3 id="error-report-format">7.2 Error Report Format</h3>
+<p>Each error report should include the following fields:</p>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 33%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Date</strong></td>
+<td>Yes</td>
+<td>Date of the test</td>
+</tr>
+<tr>
+<td><strong>Agent</strong></td>
+<td>Yes</td>
+<td>Agent ID and name
+(e.g. <code>responsible_ai2 — EH: Responsible AI</code>)</td>
+</tr>
+<tr>
+<td><strong>Error type</strong></td>
+<td>Yes</td>
+<td>Code from the table above (e.g. 1.2.1, 2.1, 3.1, 4.3)</td>
+</tr>
+<tr>
+<td><strong>Severity</strong></td>
+<td>Yes</td>
+<td><strong>Critical</strong> (agent unusable), <strong>Major</strong>
+(wrong results), <strong>Minor</strong> (cosmetic/usability)</td>
+</tr>
+<tr>
+<td><strong>Query</strong></td>
+<td>Yes</td>
+<td>The exact question typed by the tester</td>
+</tr>
+<tr>
+<td><strong>Agent response</strong></td>
+<td>Yes</td>
+<td>The full response (or a screenshot)</td>
+</tr>
+<tr>
+<td><strong>Expected behaviour</strong></td>
+<td>Yes</td>
+<td>What the correct response should have been</td>
+</tr>
+<tr>
+<td><strong>Agent tuning</strong></td>
+<td>Yes</td>
+<td>LLM model, transparency level, prompt level at the time of the
+test</td>
+</tr>
+<tr>
+<td><strong>Steps to reproduce</strong></td>
+<td>If applicable</td>
+<td>Any specific sequence of actions needed to trigger the issue</td>
+</tr>
+<tr>
+<td><strong>Notes</strong></td>
+<td>Optional</td>
+<td>Additional context, related issues, or suggested fix</td>
+</tr>
+</tbody>
+</table>
+<h3 id="report-template">7.3 Report Template</h3>
+<pre><code>DATE:               2026-04-17
+AGENT:              pisha4 — Algoria DB Assistant+ (verified)
+ERROR TYPE:         3.3 (Irrelevant response)
+SEVERITY:           Major
+QUERY:              &quot;Show all agreements with Libia&quot;
+AGENT RESPONSE:     Returned results for English B1 language requirements
+EXPECTED:           List of agreements with Libya (destination_country = &#39;Libia&#39;)
+TUNING:             mistral-small-latest (Cloud) / Stringent / Crystal box
+STEPS TO REPRODUCE: Type the query as first message in a new session
+NOTES:              The LLM generated SQL that searched lang_1_name
+                    instead of destination_country</code></pre>
+<h3 id="reporting-workflow">7.4 Reporting Workflow</h3>
+<pre><code>Tester finds issue
+      │
+      ▼
+Classify error type (1.x / 2.x / 3.x / 4.x)
+      │
+      ▼
+Assess severity (Critical / Major / Minor)
+      │
+      ▼
+Fill in error report template
+      │
+      ▼
+Submit report to developer
+      │
+      ▼
+Developer acknowledges and assigns priority
+      │
+      ▼
+Developer fixes and notifies tester
+      │
+      ▼
+Tester re-tests and closes the issue</code></pre>
+<h3 id="user-feedback-integration">7.5 User Feedback Integration</h3>
+<p>In addition to structured tester reports, end-users can provide
+feedback on agent responses using the <strong>feedback widget</strong>
+that appears after every response (thumbs up / thumbs down + optional
+category: Incomplete, Wrong, Irrelevant). This feedback is logged to
+<code>web/data/feedback_log.jsonl</code> and can be reviewed by testers
+and developers to identify recurring issues.</p>
+<p>To analyse user feedback:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count feedback by rating</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> web/data/feedback_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.rating&#39;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">uniq</span> <span class="at">-c</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Show all negative feedback with categories</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> web/data/feedback_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;select(.rating == &quot;down&quot;)&#39;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter by agent</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> web/data/feedback_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;select(.agent_id == &quot;responsible_ai2&quot;)&#39;</span></span></code></pre></div>
+<p>User feedback categories map to error types as follows:</p>
+<table>
+<colgroup>
+<col style="width: 44%" />
+<col style="width: 55%" />
+</colgroup>
+<thead>
+<tr>
+<th>User feedback</th>
+<th>Likely error type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>👎 <strong>Wrong</strong></td>
+<td>3.2 (Wrong information) or 1.3.1 (Hallucination undetected)</td>
+</tr>
+<tr>
+<td>👎 <strong>Incomplete</strong></td>
+<td>3.1 (Missing information)</td>
+</tr>
+<tr>
+<td>👎 <strong>Irrelevant</strong></td>
+<td>3.3 (Irrelevant response) or 2.3 (SQL mismatch)</td>
+</tr>
+</tbody>
+</table>
 </body>
 </html>

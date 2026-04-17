@@ -264,8 +264,10 @@ class SQLVerifier:
         "italia": {"italy", "italia"},
         "spain": {"españa", "spain"},
         "españa": {"spain", "españa"},
-        "netherlands": {"países bajos", "holanda", "netherlands"},
-        "holanda": {"netherlands", "países bajos", "holanda"},
+        "dutch": {"países bajos", "holanda", "netherlands", "dutch"},
+        "netherlands": {"países bajos", "holanda", "netherlands", "dutch"},
+        "holanda": {"netherlands", "países bajos", "holanda", "dutch"},
+        "países": {"países bajos", "netherlands", "holanda", "dutch"},
         "lithuania": {"lituania", "lithuania"},
         "lituania": {"lithuania", "lituania"},
         "albania": {"albania"},
@@ -606,6 +608,11 @@ class SQLVerifier:
     @staticmethod
     def _extract_columns(sql: str) -> list:
         """Extract column names from SELECT, WHERE, ORDER BY, GROUP BY, etc."""
+        # First, remove string literals so their contents are not parsed as columns
+        # e.g. LIKE '%Países Bajos%' → LIKE ''
+        sql_no_strings = re.sub(r"'[^']*'", "''", sql)
+        sql_no_strings = re.sub(r'"[^"]*"', '""', sql_no_strings)
+
         columns = []
         seen = set()
 
@@ -625,9 +632,9 @@ class SQLVerifier:
             "dense_rank", "glob", "regexp", "escape",
         }
 
-        # Match identifiers (word or table.word) — exclude string literals and numbers
+        # Match identifiers (word or table.word) from the string-stripped SQL
         # SELECT columns
-        select_match = re.search(r'\bSELECT\s+(.*?)\bFROM\b', sql, re.IGNORECASE | re.DOTALL)
+        select_match = re.search(r'\bSELECT\s+(.*?)\bFROM\b', sql_no_strings, re.IGNORECASE | re.DOTALL)
         if select_match:
             select_part = select_match.group(1)
             for m in re.finditer(r'(\w+(?:\.\w+)?)', select_part):
@@ -638,7 +645,7 @@ class SQLVerifier:
                         seen.add(ident.lower())
 
         # WHERE, ORDER BY, GROUP BY columns
-        for clause in re.finditer(r'\b(?:WHERE|ORDER\s+BY|GROUP\s+BY|HAVING|ON)\b\s+(.*?)(?=\b(?:ORDER|GROUP|HAVING|LIMIT|$))', sql, re.IGNORECASE | re.DOTALL):
+        for clause in re.finditer(r'\b(?:WHERE|ORDER\s+BY|GROUP\s+BY|HAVING|ON)\b\s+(.*?)(?=\b(?:ORDER|GROUP|HAVING|LIMIT|$))', sql_no_strings, re.IGNORECASE | re.DOTALL):
             clause_text = clause.group(1)
             for m in re.finditer(r'(\w+(?:\.\w+)?)', clause_text):
                 ident = m.group(1)

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tommi Agents</title>
+    <title>Tommi Agents — Tester Interface</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/style.css?v=18">
     <!-- Leaflet.js for inline maps -->
@@ -12,7 +12,7 @@
     <!-- Marked.js for rendering markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-<body>
+<body data-mode="tester">
     <div class="container">
         <!-- Sidebar with agent selector -->
         <aside class="sidebar">
@@ -93,8 +93,8 @@
             <!-- Top section with same background as sidebar -->
             <div class="chat-area-top" style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div class="disclaimer" style="flex: 1;">
-                    <p class="disclaimer-title">We are testing this AI Agent</p>
-                    <p>Please report any error <a href="https://docs.google.com/forms/d/e/1FAIpQLSdnQgB9WFjhMF-h4owQ-AENAUieZsOlECJv1UdY5zDyYZ0Itg/viewform?usp=sharing&ouid=117695939620969849210" target="_blank" style="color: #ffffff; font-weight: bold; text-decoration: underline; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">here</a></p>
+                    <p class="disclaimer-title">Tester-developer interface</p>
+                    <p>Use the structured error report (👎) to classify and document issues.</p>
                     <p id="logging-notice" style="display: none;">All conversations will be saved to a log file.</p>
                 </div>
             </div>
@@ -102,7 +102,7 @@
             <div class="chat-area-bottom">
                 <div id="chat-messages" class="chat-messages">
                     <div class="welcome-message">
-                        <p>Select an agent to start chatting.</p>
+                        <p>Select an agent to start testing.</p>
                     </div>
                 </div>
 

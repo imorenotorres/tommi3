@@ -1494,6 +1494,23 @@ RESPONSE FORMAT:
         except sqlite3.Error as e:
             return f"Error leyendo esquema: {str(e)}"
 
+    @staticmethod
+    def _ensure_default_order(sql: str) -> str:
+        """Append ORDER BY host_institution when a SELECT on 'destinations'
+        has no ORDER BY clause.  This ensures results are grouped by
+        university by default."""
+        import re as _re
+        sql_upper = sql.strip().upper()
+        if not sql_upper.startswith("SELECT"):
+            return sql
+        if "ORDER BY" in sql_upper:
+            return sql  # already has an ORDER BY
+        if "DESTINATIONS" not in sql_upper:
+            return sql  # not querying destinations table
+        # Append ORDER BY before any trailing semicolon
+        sql_stripped = sql.rstrip().rstrip(";")
+        return sql_stripped + " ORDER BY host_institution"
+
     def _text_to_sql(self, user_question: str, schema: str, previous_sql: str = None) -> str:
         """Usa Ollama con qwen2.5-coder para convertir preguntas a SQL."""
         # Normalizar países y otros términos antes de procesar
@@ -3105,6 +3122,10 @@ sqlite3 data/database.db < your_schema.sql
         state['last_user_question'] = user_message
         state['shown_fields'] = set()  # Reset shown fields for new query
 
+        # Inject default ORDER BY host_institution when missing
+        sql_query = self._ensure_default_order(sql_query)
+        state['last_sql_query'] = sql_query
+
         # Mostrar la SQL generada (solo crystal_box y grey_box)
         show_sql = self._transparency in ("crystal_box", "grey_box")
         sql_display = f"```sql\n{sql_query}\n```\n\n" if show_sql else ""
@@ -3356,6 +3377,10 @@ sqlite3 data/database.db < your_schema.sql
         state['last_sql_query'] = sql_query
         state['last_user_question'] = user_message
         state['shown_fields'] = set()  # Reset shown fields for new query
+
+        # Inject default ORDER BY host_institution when missing
+        sql_query = self._ensure_default_order(sql_query)
+        state['last_sql_query'] = sql_query
 
         # Mostrar la SQL generada inmediatamente (solo crystal_box y grey_box)
         show_sql = self._transparency in ("crystal_box", "grey_box")

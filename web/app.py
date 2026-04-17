@@ -39,15 +39,14 @@ from error_codes import (
 # Configuración de logging (activable/desactivable via ENABLE_LOGGING)
 ENABLE_LOGGING = os.getenv("ENABLE_LOGGING", "false").lower() in ("true", "1", "yes")
 
-# Configurar logging de conversaciones solo si está habilitado
+# All logs (conversations + feedback) stored in /logs, one file per agent
 LOGS_DIR = Path(__file__).parent / "logs"
-FEEDBACK_DIR = Path(__file__).parent / "data"
-FEEDBACK_DIR.mkdir(exist_ok=True)
-FEEDBACK_FILE = FEEDBACK_DIR / "feedback_log.jsonl"
+LOGS_DIR.mkdir(exist_ok=True)
+
 if ENABLE_LOGGING:
-    LOGS_DIR.mkdir(exist_ok=True)
     conversation_logger = logging.getLogger("conversations")
     conversation_logger.setLevel(logging.INFO)
+    # Legacy shared log (kept for backwards compatibility)
     handler = logging.FileHandler(LOGS_DIR / "conversations.log", encoding="utf-8")
     handler.setFormatter(logging.Formatter("%(message)s"))
     conversation_logger.addHandler(handler)
@@ -63,7 +62,8 @@ def log_conversation(
     response: str,
     session_id: str = ""
 ):
-    """Registra una conversación en el log (si está habilitado)"""
+    """Registra una conversación en el log (si está habilitado).
+    Writes to both the shared log and a per-agent JSONL file."""
     if not ENABLE_LOGGING or conversation_logger is None:
         return
     entry = {
@@ -76,6 +76,13 @@ def log_conversation(
         "response": response[:500] + "..." if len(response) > 500 else response
     }
     conversation_logger.info(json.dumps(entry, ensure_ascii=False, indent=2) + "\n")
+    # Per-agent conversation log
+    try:
+        agent_log = LOGS_DIR / f"{agent_id}_conversations.jsonl"
+        with open(agent_log, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
 
 # Configuración
 SCRIPT_DIR = Path(__file__).parent
@@ -128,6 +135,12 @@ class AgentResponse(BaseModel):
 async def root():
     """Sirve la página principal"""
     return FileResponse(SCRIPT_DIR / "static" / "index.html")
+
+
+@app.get("/testing")
+async def testing():
+    """Sirve la interfaz de tester-developer"""
+    return FileResponse(SCRIPT_DIR / "static" / "testing.html")
 
 
 @app.get("/favicon.ico")
@@ -1114,26 +1127,40 @@ class FeedbackRequest(BaseModel):
     agent_id: str
     session_id: str = ""
     message_index: int = 0
-    rating: str                    # "up" or "down"
-    category: Optional[str] = None # "incomplete", "wrong", "irrelevant"
+    mode: str = "user"               # "user" or "tester"
+    rating: str                      # "up" or "down"
+    error_code: Optional[str] = None # "1.1", "1.2.1", "2.1", "3.1", etc. (tester mode)
+    severity: Optional[str] = None   # "minor", "major", "critical" (tester mode)
+    notes: Optional[str] = None      # comments (both modes)
     user_question: str = ""
-    response_snippet: str = ""
+    full_response: str = ""
 
 
 @app.post("/api/feedback")
 async def submit_feedback(fb: FeedbackRequest):
-    """Log user feedback on an agent response."""
+    """Log user feedback on an agent response.
+    User and tester feedback are stored in separate per-agent files."""
     entry = {
         "timestamp": datetime.now().isoformat(),
         "agent_id": fb.agent_id,
         "session_id": fb.session_id,
         "message_index": fb.message_index,
         "rating": fb.rating,
-        "category": fb.category,
         "user_question": fb.user_question,
-        "response_snippet": fb.response_snippet[:500],
+        "full_response": fb.full_response,
     }
-    with open(FEEDBACK_FILE, "a", encoding="utf-8") as f:
+    if fb.mode == "tester":
+        # Tester: structured error report with full response
+        entry["error_code"] = fb.error_code
+        entry["severity"] = fb.severity
+        entry["notes"] = (fb.notes or "")[:1000]
+        log_file = LOGS_DIR / f"{fb.agent_id}_feedback_tester.jsonl"
+    else:
+        # User: simple comment
+        entry["notes"] = (fb.notes or "")[:1000]
+        log_file = LOGS_DIR / f"{fb.agent_id}_feedback_user.jsonl"
+
+    with open(log_file, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     return {"status": "ok"}
 

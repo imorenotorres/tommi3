@@ -2,16 +2,22 @@
 
 > **Who is this document for?**
 >
-> This guide is for **testers, QA staff, and project managers** who evaluate TOMMI agents before deployment. An excellent understanding of prompts, claim extraction, and grounding analysis is essential — you need to assess whether the agent's responses are factually correct and properly sourced, not just whether they "look right."
+> This guide is for **testers, QA staff, and project managers** who evaluate TOMMI agents before deployment. You should be an **expert on the topic** the agent covers — you need to assess whether the agent's responses are factually correct, complete, and properly sourced, not just whether they "look right."
 >
-> - **Testing on a public server:** Similar to end-user access — you can test through the web interface. However, you will need to understand how to interpret reliability badges, claim highlights, transparency levels, and prompt level effects.
-> - **Testing on a local server:** Gives you full control over agent configuration (transparency levels, prompt levels, LLM model selection) and accelerates the update-test cycle — you can modify prompts, reindex documents, and see results immediately. This requires increased technical knowledge (Python environment, configuration files, ChromaDB). Local testing is strongly recommended for thorough evaluation.
+> **The role of the tester** is to identify failures, flaws, and limitations of the AI Agent and report them to the developer following the error reporting procedure described in this guide (see [Section 7](#error-reporting-procedure)).
 
 ## 1. Introduction
 
-This guide is intended for **testers, QA staff, and project managers** who need to evaluate TOMMI agents before deployment. It covers the practical aspects of verifying agent quality, tuning runtime parameters, interpreting reliability data, and checking claim accuracy.
+This guide is intended for **testers, QA staff, and project managers** who need to evaluate TOMMI agents before deployment. It covers the practical aspects of verifying agent quality, tuning runtime parameters, interpreting reliability data, checking claim accuracy, and **reporting errors to the developer**.
 
-**Role of testers:** Your job is to verify that an agent produces accurate, well-grounded responses; that the transparency features work correctly at every level; and that the tuning controls behave as documented. Testing should be performed before any agent is made available to end users.
+**Role of testers:** Your job is to identify failures, flaws, and limitations — not to fix them. Specifically:
+
+1. **Detect** — find cases where the agent gives wrong, incomplete, or misleading answers
+2. **Classify** — categorise the error by type: transparency (1.x), prompt enforcement (2.x), content (3.x), or other (4.x) — see [Section 7](#error-reporting-procedure)
+3. **Document** — record the exact query, agent response, and expected behaviour
+4. **Report** — submit a structured error report to the developer
+
+Testing should be performed on a local server before any agent is made available to end users.
 
 **Testing should cover:**
 
@@ -20,6 +26,7 @@ This guide is intended for **testers, QA staff, and project managers** who need 
 - Transparency levels (does each level show the right amount of detail?)
 - Prompt level behaviour (does constraining the prompt actually change the agent's responses?)
 - LLM selection (do different models produce acceptable quality?)
+- Error reporting (can every failure be classified and reported?)
 
 ---
 
@@ -622,3 +629,140 @@ cat data/audit_log.jsonl | jq -r '[.query, .reliability_label, .confidence] | @t
 - **For production (on-premise):** An RTX 4090 (24 GB) is the best consumer option — it handles 14B models at good speed and can run 30B models acceptably. For 70B+ models, server-grade GPUs or Apple Ultra are needed.
 - **Without a GPU:** Intel/AMD CPUs can run 7B models but inference is very slow. This is only suitable for development/debugging, not user-facing deployments.
 - **Apple Silicon advantage:** Unified memory means the full RAM is available for model loading (no separate VRAM limit). An M2 Max with 32 GB outperforms an Intel + RTX 3060 for 14B models.
+
+---
+
+## 7. Error Reporting Procedure
+
+When a tester identifies a failure, flaw, or limitation, it must be documented and reported to the developer in a structured way. This section defines the error types and the reporting format.
+
+### 7.1 Error Types
+
+Every issue found during testing should be classified using the structured codes below. These codes map directly to specific components of the system, so that each report tells the developer **exactly where the fix is needed**.
+
+### 1. Transparency errors
+
+Errors in how the system identifies, classifies, and presents claims and reliability information.
+
+| Code | Error Type | Description | Example |
+|------|-----------|-------------|---------|
+| **1.1** | **Claim identification** | A factual claim in the response was not detected by the claim extraction system | Agent says "published in Nature in 2023" but this is not highlighted as a claim |
+| **1.2.1** | **Claim classification: false positive** | A claim is marked as ungrounded (red) but it IS in the data | "Retrieval-Augmented Generation" marked red when the term exists in papers.json |
+| **1.2.2** | **Claim classification: false negative** | A claim is marked as grounded (green) but it is NOT in the data | Agent invents a paper title, but it's highlighted green because a partial word match was found |
+| **1.3.1** | **Hallucination detection: false negative** | The agent states something false and the system does NOT flag it | Agent says "UMA has 15 agreements with TAMK" (wrong number) but no warning appears |
+| **1.3.2** | **Hallucination detection: false positive** | The system flags correct information as a hallucination | A real paper title is flagged as "not found in database" due to a minor formatting difference |
+| **1.4** | **Confidence computation** | The reliability badge score does not reflect the actual quality of the response | Badge shows 95% confidence but half the claims are wrong; or badge shows 20% when all claims are correct |
+
+### 2. Text2SQL AI Agent errors
+
+Errors specific to Text2SQL agents (database query agents).
+
+| Code | Error Type | Description | Example |
+|------|-----------|-------------|---------|
+| **2.1** | **Wrong SQL undetected** | The agent generates incorrect SQL and the verification system fails to catch it | User asks about Libya but SQL searches for English B1 — and the system doesn't block it |
+| **2.2** | **Wrong answer** | The SQL is correct but the agent's interpretation or presentation of the results is wrong | Query returns 8 rows but agent says "Found 3 agreements" |
+| **2.3** | **Insufficient information** | The SQL is too narrow or the results are incomplete compared to what the database contains | Agent only searches one column when the answer requires joining or searching multiple columns |
+
+### 3. Content errors
+
+Errors in the factual content of the response, regardless of transparency features.
+
+| Code | Error Type | Description | Example |
+|------|-----------|-------------|---------|
+| **3.1** | **Missing information** | The response is correct but omits important information that exists in the data | Agent lists 3 of 8 agreements with a partner; agent omits key authors from a paper |
+| **3.2** | **Wrong information** | The response contains factually incorrect statements | Agent says a paper was published in 2024 when the database says 2023 |
+| **3.3** | **Irrelevant response** | The response doesn't match the user's question | User asks about Libya, agent returns results about English B1 requirements |
+| **3.4** | **Misleading presentation** | Information is not technically false but could lead to wrong conclusions | Agent implies all UNINOVIS partners use the same tool when they don't |
+
+### 4. Other
+
+| Code | Error Type | Description | Example |
+|------|-----------|-------------|---------|
+| **4.1** | **System error** | Agent crashes, times out, or returns a technical error | Connection error, SQL execution failure, 500 error |
+| **4.2** | **Usability issue** | Response is correct but poorly formatted or confusing | Results in random order, excessive jargon, unreadable table |
+| **4.3** | **Other** | Any issue not covered above | Describe in the Notes field |
+
+### 7.2 Error Report Format
+
+Each error report should include the following fields:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| **Date** | Yes | Date of the test |
+| **Agent** | Yes | Agent ID and name (e.g. `responsible_ai2 — EH: Responsible AI`) |
+| **Error type** | Yes | Code from the table above (e.g. 1.2.1, 2.1, 3.1, 4.3) |
+| **Severity** | Yes | **Critical** (agent unusable), **Major** (wrong results), **Minor** (cosmetic/usability) |
+| **Query** | Yes | The exact question typed by the tester |
+| **Agent response** | Yes | The full response (or a screenshot) |
+| **Expected behaviour** | Yes | What the correct response should have been |
+| **Agent tuning** | Yes | LLM model, transparency level, prompt level at the time of the test |
+| **Steps to reproduce** | If applicable | Any specific sequence of actions needed to trigger the issue |
+| **Notes** | Optional | Additional context, related issues, or suggested fix |
+
+### 7.3 Report Template
+
+```
+DATE:               2026-04-17
+AGENT:              pisha4 — Algoria DB Assistant+ (verified)
+ERROR TYPE:         3.3 (Irrelevant response)
+SEVERITY:           Major
+QUERY:              "Show all agreements with Libia"
+AGENT RESPONSE:     Returned results for English B1 language requirements
+EXPECTED:           List of agreements with Libya (destination_country = 'Libia')
+TUNING:             mistral-small-latest (Cloud) / Stringent / Crystal box
+STEPS TO REPRODUCE: Type the query as first message in a new session
+NOTES:              The LLM generated SQL that searched lang_1_name
+                    instead of destination_country
+```
+
+### 7.4 Reporting Workflow
+
+```
+Tester finds issue
+      │
+      ▼
+Classify error type (1.x / 2.x / 3.x / 4.x)
+      │
+      ▼
+Assess severity (Critical / Major / Minor)
+      │
+      ▼
+Fill in error report template
+      │
+      ▼
+Submit report to developer
+      │
+      ▼
+Developer acknowledges and assigns priority
+      │
+      ▼
+Developer fixes and notifies tester
+      │
+      ▼
+Tester re-tests and closes the issue
+```
+
+### 7.5 User Feedback Integration
+
+In addition to structured tester reports, end-users can provide feedback on agent responses using the **feedback widget** that appears after every response (thumbs up / thumbs down + optional category: Incomplete, Wrong, Irrelevant). This feedback is logged to `web/data/feedback_log.jsonl` and can be reviewed by testers and developers to identify recurring issues.
+
+To analyse user feedback:
+
+```bash
+# Count feedback by rating
+cat web/data/feedback_log.jsonl | jq -r '.rating' | sort | uniq -c
+
+# Show all negative feedback with categories
+cat web/data/feedback_log.jsonl | jq 'select(.rating == "down")'
+
+# Filter by agent
+cat web/data/feedback_log.jsonl | jq 'select(.agent_id == "responsible_ai2")'
+```
+
+User feedback categories map to error types as follows:
+
+| User feedback | Likely error type |
+|---------------|-------------------|
+| 👎 **Wrong** | 3.2 (Wrong information) or 1.3.1 (Hallucination undetected) |
+| 👎 **Incomplete** | 3.1 (Missing information) |
+| 👎 **Irrelevant** | 3.3 (Irrelevant response) or 2.3 (SQL mismatch) |
