@@ -18,7 +18,7 @@ cd /d "%~dp0.."
 :: -----------------------------------------------------------------------------
 :: 1. Detect compatible Python version
 :: -----------------------------------------------------------------------------
-echo [1/7] Detecting compatible Python version...
+echo [1/8] Detecting compatible Python version...
 
 :: Detect if there are RAG agents (require Python 3.11-3.13)
 set "HAS_RAG_AGENTS=false"
@@ -59,7 +59,7 @@ if "!HAS_RAG_AGENTS!"=="true" (
 :: -----------------------------------------------------------------------------
 :: 2. Create virtual environment
 :: -----------------------------------------------------------------------------
-echo [2/7] Creating virtual environment .venv...
+echo [2/8] Creating virtual environment .venv...
 
 if exist "web\.venv" (
     echo   - Virtual environment already exists in web\.venv
@@ -77,14 +77,14 @@ if exist "web\.venv" (
 :: -----------------------------------------------------------------------------
 :: 3. Activate virtual environment
 :: -----------------------------------------------------------------------------
-echo [3/7] Activating virtual environment...
+echo [3/8] Activating virtual environment...
 call web\.venv\Scripts\activate.bat
 echo   - Environment activated
 
 :: -----------------------------------------------------------------------------
 :: 4. Install dependencies
 :: -----------------------------------------------------------------------------
-echo [4/7] Installing dependencies...
+echo [4/8] Installing dependencies...
 
 :: Update pip
 python -m pip install --upgrade pip -q
@@ -99,7 +99,7 @@ if exist "web\requirements.txt" (
 :: -----------------------------------------------------------------------------
 :: 5. Configure conversation logging
 :: -----------------------------------------------------------------------------
-echo [5/7] Configuring conversation logging...
+echo [5/8] Configuring conversation logging...
 echo.
 echo   Do you want to enable conversation logging?
 echo   (Useful for testing. Logs are saved to web/logs/conversations.log)
@@ -118,7 +118,7 @@ if /i "!ENABLE_LOG!"=="y" (
 :: -----------------------------------------------------------------------------
 :: 6. Configure API key for agents
 :: -----------------------------------------------------------------------------
-echo [6/7] Configuring Mistral API key...
+echo [6/8] Configuring Mistral API key...
 echo.
 
 :: Detect agent folders in agents/
@@ -160,7 +160,7 @@ if "!AGENTS!"=="" (
 :: -----------------------------------------------------------------------------
 :: 7. Create web/.env configuration file
 :: -----------------------------------------------------------------------------
-echo [7/7] Creating web\.env configuration file...
+echo [7/8] Creating web\.env configuration file...
 
 (
 echo ENABLE_LOGGING=!LOGGING_VALUE!
@@ -183,6 +183,36 @@ echo # OLLAMA_MODEL=mistral
 ) > "web\.env"
 
 echo   - web\.env file created
+
+:: -----------------------------------------------------------------------------
+:: 8. Create superuser account
+:: -----------------------------------------------------------------------------
+echo [8/8] Creating superuser account...
+echo.
+
+:: Check if superuser already exists
+python -c "import json; users=json.load(open('web/data/users.json')); exit(0 if any(u.get('role')=='superuser' for u in users.values()) else 1)" 2>nul
+if not errorlevel 1 (
+    echo   - Superuser already exists
+) else (
+    echo   Set up the administrator account for Tommi.
+    echo.
+    set /p ADMIN_USER="  Admin username [admin]: "
+    if "!ADMIN_USER!"=="" set "ADMIN_USER=admin"
+    set /p ADMIN_PASS="  Admin password: "
+    if "!ADMIN_PASS!"=="" (
+        echo   - Password cannot be empty
+        goto :skip_superuser
+    )
+
+    python -c "import sys; sys.path.insert(0,'web'); from auth import create_user; create_user('!ADMIN_USER!','!ADMIN_PASS!','superuser',provisional=False); print('OK')"
+    if not errorlevel 1 (
+        echo   - Superuser '!ADMIN_USER!' created
+    ) else (
+        echo   ERROR: Could not create superuser
+    )
+)
+:skip_superuser
 
 :: -----------------------------------------------------------------------------
 :: Final summary

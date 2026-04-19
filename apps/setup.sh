@@ -89,7 +89,7 @@ echo -e "  Detected system: ${GREEN}$OS_TYPE${NC}"
 # -----------------------------------------------------------------------------
 # 0. Verify system dependencies
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}[0/7] Verifying system dependencies...${NC}"
+echo -e "${YELLOW}[0/8] Verifying system dependencies...${NC}"
 
 # Verify that Python3 exists
 if ! command -v python3 &> /dev/null; then
@@ -136,7 +136,7 @@ echo -e "${GREEN}  ✓ System dependencies verified${NC}"
 # -----------------------------------------------------------------------------
 # 1. Detect compatible Python version
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}[1/7] Detecting compatible Python version...${NC}"
+echo -e "${YELLOW}[1/8] Detecting compatible Python version...${NC}"
 
 # Detect if there are RAG agents (require Python 3.11-3.13)
 HAS_RAG_AGENTS=false
@@ -196,7 +196,7 @@ echo -e "${GREEN}  → Using: $PYTHON_CMD ($(${PYTHON_CMD} --version 2>&1))${NC}
 # -----------------------------------------------------------------------------
 # 2. Create virtual environment
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}[2/7] Creating virtual environment .venv...${NC}"
+echo -e "${YELLOW}[2/8] Creating virtual environment .venv...${NC}"
 
 if [ -d ".venv" ]; then
     echo -e "${GREEN}  → Virtual environment already exists in .venv/${NC}"
@@ -222,7 +222,7 @@ fi
 # -----------------------------------------------------------------------------
 # 3. Activate virtual environment
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}[3/7] Activating virtual environment...${NC}"
+echo -e "${YELLOW}[3/8] Activating virtual environment...${NC}"
 
 if [ ! -f ".venv/bin/activate" ]; then
     echo -e "${RED}  ✗ .venv/bin/activate not found${NC}"
@@ -236,7 +236,7 @@ echo -e "${GREEN}  → Environment activated: $(which python)${NC}"
 # -----------------------------------------------------------------------------
 # 4. Install dependencies
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}[4/7] Installing dependencies...${NC}"
+echo -e "${YELLOW}[4/8] Installing dependencies...${NC}"
 
 # Update pip (use python from venv, not system python3)
 echo "  → Updating pip..."
@@ -271,7 +271,7 @@ fi
 # -----------------------------------------------------------------------------
 # 5. Configure conversation logging
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}[5/7] Configuring conversation logging...${NC}"
+echo -e "${YELLOW}[5/8] Configuring conversation logging...${NC}"
 echo ""
 echo -e "  ${BLUE}Do you want to enable conversation logging?${NC}"
 echo -e "  (Useful for testing. Logs are saved to web/logs/conversations.log)"
@@ -290,7 +290,7 @@ fi
 # -----------------------------------------------------------------------------
 # 6. Configure Mistral API key (saved only in web/.env)
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}[6/7] Configuring Mistral API key...${NC}"
+echo -e "${YELLOW}[6/8] Configuring Mistral API key...${NC}"
 echo ""
 
 # Detect agent folders to show information
@@ -331,7 +331,7 @@ fi
 # -----------------------------------------------------------------------------
 # 7. Create web/.env configuration file
 # -----------------------------------------------------------------------------
-echo -e "${YELLOW}[7/7] Creating web/.env configuration file...${NC}"
+echo -e "${YELLOW}[7/8] Creating web/.env configuration file...${NC}"
 
 cat > web/.env << EOF
 ENABLE_LOGGING=$LOGGING_VALUE
@@ -351,9 +351,66 @@ MISTRAL_MODEL=mistral-large-latest
 # LLM_PROVIDER=ollama
 # OLLAMA_BASE_URL=http://localhost:11434
 # OLLAMA_MODEL=mistral
+
+# --- Optional: restrict which models appear in the UI selector ---
+# AVAILABLE_MODELS=mistral-large-latest,mistral-small-latest
 EOF
 
 echo -e "${GREEN}  → web/.env file created${NC}"
+
+# -----------------------------------------------------------------------------
+# 8. Create superuser account
+# -----------------------------------------------------------------------------
+echo -e "${YELLOW}[8/8] Creating superuser account...${NC}"
+echo ""
+
+# Check if users.json already exists with a superuser
+if [ -f "web/data/users.json" ] && python -c "
+import json
+with open('web/data/users.json') as f:
+    users = json.load(f)
+if any(u.get('role') == 'superuser' for u in users.values()):
+    exit(0)
+else:
+    exit(1)
+" 2>/dev/null; then
+    echo -e "${GREEN}  → Superuser already exists${NC}"
+else
+    echo -e "${BLUE}  Set up the administrator account for Tommi.${NC}"
+    echo ""
+    read -p "  Admin username [admin]: " ADMIN_USER
+    ADMIN_USER="${ADMIN_USER:-admin}"
+
+    while true; do
+        read -s -p "  Admin password: " ADMIN_PASS
+        echo ""
+        if [ -z "$ADMIN_PASS" ]; then
+            echo -e "${YELLOW}  → Password cannot be empty${NC}"
+            continue
+        fi
+        if [ ${#ADMIN_PASS} -lt 4 ]; then
+            echo -e "${YELLOW}  → Password must be at least 4 characters${NC}"
+            continue
+        fi
+        read -s -p "  Confirm password: " ADMIN_PASS2
+        echo ""
+        if [ "$ADMIN_PASS" != "$ADMIN_PASS2" ]; then
+            echo -e "${YELLOW}  → Passwords do not match${NC}"
+            continue
+        fi
+        break
+    done
+
+    # Create superuser via Python
+    python -c "
+import sys
+sys.path.insert(0, 'web')
+from auth import create_user
+create_user('$ADMIN_USER', '$ADMIN_PASS', 'superuser', provisional=False)
+print('OK')
+" && echo -e "${GREEN}  → Superuser '${ADMIN_USER}' created${NC}" \
+  || echo -e "${RED}  ✗ Error creating superuser${NC}"
+fi
 
 # -----------------------------------------------------------------------------
 # Final summary

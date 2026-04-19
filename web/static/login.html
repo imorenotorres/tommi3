@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tommi - Login</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-muted: #64748b;
+            --error-color: #dc2626;
+            --success-color: #16a34a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: url('/static/fondo.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .login-card .logo {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .login-card .logo img {
+            max-width: 320px;
+        }
+
+        .login-card .platform-name {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.02em;
+        }
+
+        .login-card h2 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .login-card .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.35rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.65rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.15s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-primary:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .message.error {
+            background-color: #fef2f2;
+            color: var(--error-color);
+            border: 1px solid #fecaca;
+            display: block;
+        }
+
+        .message.success {
+            background-color: #f0fdf4;
+            color: var(--success-color);
+            border: 1px solid #bbf7d0;
+            display: block;
+        }
+
+        .message.info {
+            background-color: #eff6ff;
+            color: var(--primary-color);
+            border: 1px solid #bfdbfe;
+            display: block;
+        }
+
+        /* Two-column layout for request form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1.5rem;
+        }
+        .form-grid .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Change password form (shown when provisional) */
+        #change-password-section {
+            display: none;
+        }
+
+        .password-requirements {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">
+            <img src="/static/logo_uninovis.png" alt="UNINOVIS Alliance">
+        </div>
+        <p class="platform-name"><span style="font-weight:normal;">Welcome to</span><br>UNINOVIS TOMMI Transparent Agents Platform</p>
+
+        <!-- Login form -->
+        <div id="login-section">
+            <div style="margin-bottom:1.5rem;"></div>
+            <div id="login-message" class="message"></div>
+            <form id="login-form">
+              <div class="form-grid">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" autocomplete="current-password" required>
+                </div>
+              </div>
+                <div class="gdpr-notice" style="margin-top:1rem; padding:0.75rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; font-size:0.75rem; color:#64748b; line-height:1.5;">
+                    <p style="font-size:0.95rem; font-weight:600; color:#1e293b; margin-bottom:0.5rem;">Data Protection &amp; AI Transparency Notice</p>
+                    This service uses AI-powered agents that provide information only and do not make autonomous decisions. By signing in, you acknowledge that you are interacting with an AI system, in accordance with <b>Article 50</b> (transparency obligations) and <b>Article 4</b> (AI literacy) of the <b>EU Artificial Intelligence Act</b> (Regulation (EU) 2024/1689). Your personal data (username, IP address, and conversation logs) is processed for the purpose of operating this service, ensuring quality, and fulfilling the accountability principle established in <b>Article 5(2) of the GDPR</b>. All data is processed exclusively on infrastructure operated by the Universidad de M&aacute;laga and is not transferred to third parties. You may exercise your rights of access, rectification, erasure, and portability by contacting the Data Protection Officer at <a href="mailto:dpo@uma.es" style="color:#2563eb;">dpo@uma.es</a>.
+                </div>
+                <button type="submit" class="btn btn-primary" id="login-btn">Sign in</button>
+            </form>
+            <p style="text-align:center; margin-top:1rem; font-size:0.85rem; color:var(--text-muted);">
+                Don't have an account? <a href="#" id="show-request-form" style="color:var(--primary-color);">Request access</a>
+            </p>
+        </div>
+
+        <!-- Request access form -->
+        <div id="request-section" style="display:none;">
+            <h2>Request access</h2>
+            <p class="subtitle">Submit a request using your UNINOVIS institutional email</p>
+            <div id="request-message" class="message"></div>
+            <form id="request-form">
+              <div class="form-grid">
+                <div class="form-group">
+                    <label for="req-email">Institutional email</label>
+                    <input type="email" id="req-email" required placeholder="name@university.edu">
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Must be from a UNINOVIS partner institution</p>
+                </div>
+                <div class="form-group">
+                    <label for="req-name">Full name</label>
+                    <input type="text" id="req-name" required placeholder="First Last">
+                </div>
+                <div class="form-group">
+                    <label for="req-institution">Institution</label>
+                    <select id="req-institution" style="width:100%; padding:0.6rem 0.75rem; border:1px solid var(--border-color); border-radius:6px; font-size:0.95rem;">
+                        <option value="">-- Select your institution --</option>
+                        <option value="UMA">Universidad de Malaga (Spain)</option>
+                        <option value="THWS">TH Wurzburg-Schweinfurt (Germany)</option>
+                        <option value="THUAS">The Hague University of Applied Sciences (Netherlands)</option>
+                        <option value="USPN">Universite Sorbonne Paris Nord (France)</option>
+                        <option value="UDCLV">University of Campania "Luigi Vanvitelli" (Italy)</option>
+                        <option value="KK">Kauno Kolegija (Lithuania)</option>
+                        <option value="UT">University of Tirana (Albania)</option>
+                        <option value="TAMK">Tampere University of Applied Sciences (Finland)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="req-department">Department</label>
+                    <input type="text" id="req-department" required placeholder="e.g. Computer Science, Applied Mathematics">
+                </div>
+                <div class="form-group full-width">
+                    <label for="req-profile">Public profile URL <span style="color:var(--text-muted); font-weight:normal;">(optional)</span></label>
+                    <input type="url" id="req-profile" placeholder="e.g. https://www.uma.es/departments/staff/yourname">
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Institutional page, ORCID, or academic profile where your identity can be verified</p>
+                </div>
+                <div class="form-group full-width">
+                    <label for="req-reason">Reason for access</label>
+                    <textarea id="req-reason" rows="2" required style="width:100%; padding:0.6rem 0.75rem; border:1px solid var(--border-color); border-radius:6px; font-size:0.95rem; font-family:inherit; resize:vertical;" placeholder="Brief description of your intended use"></textarea>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" id="request-btn">Submit request</button>
+            </form>
+            <p style="text-align:center; margin-top:1rem; font-size:0.85rem; color:var(--text-muted);">
+                Already have an account? <a href="#" id="show-login-form" style="color:var(--primary-color);">Sign in</a>
+            </p>
+        </div>
+
+        <!-- Change password form (provisional) -->
+        <div id="change-password-section">
+            <h2>Change your password</h2>
+            <p class="subtitle">You must change your provisional password before continuing</p>
+            <div id="change-message" class="message"></div>
+            <form id="change-password-form">
+                <div class="form-group">
+                    <label for="current-password">Current password</label>
+                    <input type="password" id="current-password" name="current-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-password">New password</label>
+                    <input type="password" id="new-password" name="new-password" required minlength="8">
+                    <p class="password-requirements">Min. 8 chars, uppercase, lowercase, digit, and special character</p>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm new password</label>
+                    <input type="password" id="confirm-password" name="confirm-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="change-btn">Change password</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        const token = localStorage.getItem('tommi_token');
+        if (token) {
+            fetch('/api/auth/me', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            }).then(r => {
+                if (r.ok) return r.json();
+                throw new Error('invalid');
+            }).then(data => {
+                if (data.provisional_password) {
+                    showChangePassword(data.username);
+                } else {
+                    redirectByRole(data.role);
+                }
+            }).catch(() => {
+                localStorage.removeItem('tommi_token');
+            });
+        }
+
+        let _currentUsername = '';
+
+        function checkPasswordComplexity(pwd) {
+            if (pwd.length < 8) return 'Password must be at least 8 characters';
+            if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter';
+            if (!/[a-z]/.test(pwd)) return 'Password must contain at least one lowercase letter';
+            if (!/[0-9]/.test(pwd)) return 'Password must contain at least one digit';
+            if (!/[^A-Za-z0-9]/.test(pwd)) return 'Password must contain at least one special character (!@#$%...)';
+            return null;
+        }
+
+        function showMessage(elementId, text, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = text;
+            el.className = 'message ' + type;
+        }
+
+        function redirectByRole(role) {
+            if (role === 'tester' || role === 'superuser') {
+                window.location.href = '/testing';
+            } else {
+                window.location.href = '/';
+            }
+        }
+
+        function showChangePassword(username) {
+            _currentUsername = username;
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('change-password-section').style.display = 'block';
+        }
+
+        // Login form
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showMessage('login-message', data.detail || 'Login failed', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Sign in';
+                    return;
+                }
+
+                localStorage.setItem('tommi_token', data.token);
+                localStorage.setItem('tommi_username', data.username);
+                localStorage.setItem('tommi_role', data.role);
+
+                if (data.provisional_password) {
+                    showChangePassword(data.username);
+                } else {
+                    redirectByRole(data.role);
+                }
+            } catch (err) {
+                showMessage('login-message', 'Connection error', 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Sign in';
+        });
+
+        // Change password form
+        document.getElementById('change-password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('change-btn');
+
+            const oldPwd = document.getElementById('current-password').value;
+            const newPwd = document.getElementById('new-password').value;
+            const confirmPwd = document.getElementById('confirm-password').value;
+
+            if (newPwd !== confirmPwd) {
+                showMessage('change-message', 'Passwords do not match', 'error');
+                return;
+            }
+
+            const pwdErr = checkPasswordComplexity(newPwd);
+            if (pwdErr) {
+                showMessage('change-message', pwdErr, 'error');
+                return;
+            }
+
+            if (newPwd === oldPwd) {
+                showMessage('change-message', 'New password must be different from current password', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Changing...';
+
+            try {
+                const token = localStorage.getItem('tommi_token');
+                const res = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        old_password: oldPwd,
+                        new_password: newPwd
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showMessage('change-message', data.detail || 'Failed to change password', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Change password';
+                    return;
+                }
+
+                showMessage('change-message', 'Password changed successfully. Redirecting...', 'success');
+                const role = localStorage.getItem('tommi_role');
+                setTimeout(() => redirectByRole(role), 1000);
+            } catch (err) {
+                showMessage('change-message', 'Connection error', 'error');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Change password';
+        });
+
+        // Toggle between login and request forms
+        document.getElementById('show-request-form').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('request-section').style.display = 'block';
+        });
+        document.getElementById('show-login-form').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('request-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+        });
+
+        // Request access form
+        document.getElementById('request-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('request-btn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            const email = document.getElementById('req-email').value.trim();
+            const fullName = document.getElementById('req-name').value.trim();
+            const institution = document.getElementById('req-institution').value;
+            const department = document.getElementById('req-department').value.trim();
+            const profileUrl = document.getElementById('req-profile').value.trim();
+            const reason = document.getElementById('req-reason').value.trim();
+
+            if (!institution) {
+                showMessage('request-message', 'Please select your institution', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Submit request';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/request-access', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, full_name: fullName, institution, department, profile_url: profileUrl, reason })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showMessage('request-message', data.detail || 'Request failed', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Submit request';
+                    return;
+                }
+
+                showMessage('request-message', data.message || 'Request submitted successfully', 'success');
+                document.getElementById('request-form').reset();
+            } catch (err) {
+                showMessage('request-message', 'Connection error', 'error');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Submit request';
+        });
+    </script>
+</body>
+</html>

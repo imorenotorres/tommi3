@@ -163,12 +163,22 @@ class SQLVerifier:
             "china", "brazil", "brasil", "mexico", "méxico",
             "turkey", "turquía", "morocco", "marruecos",
         }
+        # Build set of country values already searched in destination_country
+        _countries_in_correct_col = {
+            v.lower() for c, v in country_like_values if c.lower() == "destination_country"
+        }
         for col, value in country_like_values:
             if value.lower() in _COMMON_COUNTRIES and col.lower() != "destination_country":
-                issues.append(
-                    f"Country name '{value}' searched in '{col}' instead of 'destination_country'"
-                )
-                semantic_penalty += 20
+                # Only penalize if the same value is NOT also searched in destination_country
+                if value.lower() in _countries_in_correct_col:
+                    issues.append(
+                        f"Country name '{value}' also searched in '{col}' (redundant but acceptable)"
+                    )
+                else:
+                    issues.append(
+                        f"Country name '{value}' searched in '{col}' instead of 'destination_country'"
+                    )
+                    semantic_penalty += 20
 
         # Apply semantic penalty
         confidence = max(0, confidence - semantic_penalty)

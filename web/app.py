@@ -17,9 +17,9 @@ from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Depends, UploadFile
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, RedirectResponse
 from pydantic import BaseModel
 
 # Cargar .env de web/ con override para asegurar que se usa la configuración correcta
@@ -27,6 +27,14 @@ _web_env = Path(__file__).parent / ".env"
 load_dotenv(_web_env, override=True)
 
 from agent_runner import AgentRunner
+from auth import (
+    authenticate, approve_access_request, change_password, create_access_request,
+    create_user, create_user_pending, create_invite_token, delete_user,
+    ensure_superuser, get_session, has_role, list_access_requests, list_users,
+    logout, reject_access_request, send_invite_email, set_password_from_invite,
+    update_user_role, validate_invite_token, validate_password,
+    validate_uninovis_email, ROLES, UNINOVIS_DOMAINS,
+)
 from error_codes import (
     format_error,
     LLM_OLLAMA_NOT_RUNNING, LLM_MODEL_NOT_FOUND, LLM_OLLAMA_ERROR,
@@ -98,9 +106,503 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Ensure a superuser exists on startup
+_su = ensure_superuser()
+logger = logging.getLogger("tommi")
+logger.info(f"Superuser ready: {_su}")
+
+# Auth middleware — protects /api/* routes (except /api/auth/login)
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    # Routes that don't require authentication
+    PUBLIC_PATHS = {"/api/auth/login", "/api/auth/invite/validate", "/api/auth/invite/set-password", "/api/auth/request-access"}
+
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        # Only protect /api/ routes (not static files, HTML pages, etc.)
+        if path.startswith("/api/") and path not in self.PUBLIC_PATHS:
+            token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+            if not token:
+                token = request.query_params.get("token", "")
+            if not token or not get_session(token):
+                return JSONResponse(status_code=401, content={"detail": "Authentication required"})
+        return await call_next(request)
+
+
+app.add_middleware(AuthMiddleware)
+
 # Servir archivos estáticos
 app.mount("/static", StaticFiles(directory=SCRIPT_DIR / "static"), name="static")
 app.mount("/img", StaticFiles(directory=SCRIPT_DIR / "img"), name="img")
+
+
+# ---------------------------------------------------------------------------
+# Auth helpers
+# ---------------------------------------------------------------------------
+
+def _get_token(request: Request) -> str | None:
+    """Extract bearer token from Authorization header or query param."""
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        return auth[7:]
+    return request.query_params.get("token")
+
+
+def require_auth(request: Request) -> dict:
+    """Dependency: require a valid session. Returns session dict."""
+    token = _get_token(request)
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    session = get_session(token)
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+    return session
+
+
+def require_role(minimum_role: str):
+    """Dependency factory: require at least the given role."""
+    def _check(session: dict = Depends(require_auth)):
+        user_level = ROLES.get(session["role"], 0)
+        required_level = ROLES.get(minimum_role, 99)
+        if user_level < required_level:
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        return session
+    return _check
+
+
+# ---------------------------------------------------------------------------
+# Auth API routes
+# ---------------------------------------------------------------------------
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
+class CreateUserRequest(BaseModel):
+    username: str
+    password: str
+    role: str  # superuser | tester | user
+
+
+class UpdateRoleRequest(BaseModel):
+    role: str
+
+
+@app.post("/api/auth/login")
+async def api_login(req: LoginRequest):
+    result = authenticate(req.username, req.password)
+    if not result:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    return result
+
+
+@app.post("/api/auth/logout")
+async def api_logout(request: Request):
+    token = _get_token(request)
+    if token:
+        logout(token)
+    return {"ok": True}
+
+
+@app.get("/api/auth/me")
+async def api_me(session: dict = Depends(require_auth)):
+    from auth import _load_users
+    users = _load_users()
+    user = users.get(session["username"], {})
+    return {
+        "username": session["username"],
+        "role": session["role"],
+        "provisional_password": user.get("provisional_password", False),
+    }
+
+
+@app.post("/api/auth/change-password")
+async def api_change_password(req: ChangePasswordRequest, session: dict = Depends(require_auth)):
+    pwd_error = validate_password(req.new_password)
+    if pwd_error:
+        raise HTTPException(status_code=400, detail=pwd_error)
+    ok = change_password(session["username"], req.old_password, req.new_password)
+    if not ok:
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    return {"ok": True}
+
+
+@app.get("/api/auth/users")
+async def api_list_users(session: dict = Depends(require_role("superuser"))):
+    return list_users()
+
+
+@app.post("/api/auth/users")
+async def api_create_user(req: CreateUserRequest, session: dict = Depends(require_role("superuser"))):
+    if req.role not in ROLES:
+        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {list(ROLES.keys())}")
+    pwd_error = validate_password(req.password)
+    if pwd_error:
+        raise HTTPException(status_code=400, detail=pwd_error)
+    ok = create_user(req.username, req.password, req.role, provisional=True)
+    if not ok:
+        raise HTTPException(status_code=409, detail="Username already exists")
+    return {"ok": True, "username": req.username, "role": req.role}
+
+
+@app.post("/api/auth/users/bulk")
+async def api_bulk_create_users(
+    file: UploadFile,
+    session: dict = Depends(require_role("superuser")),
+):
+    """
+    Bulk-create users from a TSV or Excel (.xlsx) file.
+    Expected columns: username, password, role
+    Header row is optional (auto-detected).
+    All users are created with provisional_password=True.
+    """
+    filename = (file.filename or "").lower()
+    content = await file.read()
+
+    rows: list[list[str]] = []
+
+    if filename.endswith((".xlsx", ".xls")):
+        import io
+        try:
+            from openpyxl import load_workbook
+            wb = load_workbook(io.BytesIO(content), read_only=True, data_only=True)
+            ws = wb.active
+            for row in ws.iter_rows(values_only=True):
+                cells = [str(c).strip() if c is not None else "" for c in row]
+                if any(cells):
+                    rows.append(cells)
+            wb.close()
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error reading Excel file: {e}")
+    elif filename.endswith((".tsv", ".txt", ".csv")):
+        import csv, io
+        text = content.decode("utf-8-sig")
+        # Auto-detect delimiter
+        dialect = csv.Sniffer().sniff(text[:2048], delimiters="\t,;")
+        reader = csv.reader(io.StringIO(text), dialect)
+        for row in reader:
+            cells = [c.strip() for c in row]
+            if any(cells):
+                rows.append(cells)
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported file format. Use .xlsx, .tsv, .csv, or .txt",
+        )
+
+    if not rows:
+        raise HTTPException(status_code=400, detail="File is empty")
+
+    # Auto-detect header: if first row looks like a header, skip it
+    first = [c.lower() for c in rows[0]]
+    if "username" in first or "user" in first or "nombre" in first:
+        rows = rows[1:]
+
+    if not rows:
+        raise HTTPException(status_code=400, detail="No data rows found after header")
+
+    valid_roles = set(ROLES.keys())
+    created = []
+    skipped = []
+    errors = []
+
+    for i, row in enumerate(rows, start=1):
+        if len(row) < 2:
+            errors.append(f"Row {i}: not enough columns (need at least username and password)")
+            continue
+
+        username = row[0].strip()
+        password = row[1].strip()
+        role = row[2].strip().lower() if len(row) > 2 and row[2].strip() else "user"
+
+        if not username:
+            errors.append(f"Row {i}: empty username")
+            continue
+        pwd_err = validate_password(password)
+        if pwd_err:
+            errors.append(f"Row {i} ({username}): {pwd_err}")
+            continue
+        if role not in valid_roles:
+            errors.append(f"Row {i} ({username}): invalid role '{role}' (must be {', '.join(valid_roles)})")
+            continue
+
+        ok = create_user(username, password, role, provisional=True)
+        if ok:
+            created.append({"username": username, "role": role})
+        else:
+            skipped.append(f"{username} (already exists)")
+
+    return {
+        "created": created,
+        "skipped": skipped,
+        "errors": errors,
+        "total_created": len(created),
+        "total_skipped": len(skipped),
+        "total_errors": len(errors),
+    }
+
+
+@app.delete("/api/auth/users/{username}")
+async def api_delete_user(username: str, session: dict = Depends(require_role("superuser"))):
+    if username == session["username"]:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    ok = delete_user(username)
+    if not ok:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"ok": True}
+
+
+@app.put("/api/auth/users/{username}/role")
+async def api_update_role(username: str, req: UpdateRoleRequest, session: dict = Depends(require_role("superuser"))):
+    if req.role not in ROLES:
+        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {list(ROLES.keys())}")
+    if username == session["username"]:
+        raise HTTPException(status_code=400, detail="Cannot change your own role")
+    ok = update_user_role(username, req.role)
+    if not ok:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Invitation / email routes
+# ---------------------------------------------------------------------------
+
+# SMTP config — re-read from .env on each call so changes don't require restart
+def _get_smtp_config() -> dict:
+    """Read SMTP settings from .env file each time (not cached)."""
+    from dotenv import dotenv_values
+    env = dotenv_values(_web_env)
+    host = env.get("SMTP_HOST", "")
+    user = env.get("SMTP_USER", "")
+    password = env.get("SMTP_PASSWORD", "")
+    return {
+        "host": host,
+        "port": int(env.get("SMTP_PORT", "587")),
+        "user": user,
+        "password": password,
+        "from_addr": env.get("SMTP_FROM", "") or user,
+        "use_tls": env.get("SMTP_USE_TLS", "true").lower() in ("true", "1", "yes"),
+        "configured": bool(host and user and password),
+    }
+
+
+class InviteUserRequest(BaseModel):
+    username: str  # email address
+    role: str
+
+
+class SetPasswordRequest(BaseModel):
+    token: str
+    password: str
+
+
+@app.get("/api/auth/smtp-status")
+async def api_smtp_status(session: dict = Depends(require_role("superuser"))):
+    """Check if SMTP is configured."""
+    smtp = _get_smtp_config()
+    return {"configured": smtp["configured"]}
+
+
+@app.post("/api/auth/invite")
+async def api_invite_user(req: InviteUserRequest, request: Request, session: dict = Depends(require_role("superuser"))):
+    """Create a user and send an invitation email to set their password."""
+    if req.role not in ROLES:
+        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {list(ROLES.keys())}")
+    smtp = _get_smtp_config()
+    if not smtp["configured"]:
+        raise HTTPException(status_code=503, detail="SMTP is not configured. Add SMTP_HOST, SMTP_USER, and SMTP_PASSWORD to web/.env")
+
+    # Create user without password (pending invite)
+    from auth import user_exists
+    if user_exists(req.username):
+        raise HTTPException(status_code=409, detail="Username already exists")
+    create_user_pending(req.username, req.role)
+
+    # Generate invitation token
+    invite_token = create_invite_token(req.username)
+    if not invite_token:
+        raise HTTPException(status_code=500, detail="Failed to create invitation token")
+
+    # Build invitation URL
+    base_url = str(request.base_url).rstrip("/")
+    invite_url = f"{base_url}/set-password?token={invite_token}"
+
+    # Send email
+    ok = send_invite_email(
+        username=req.username,
+        invite_url=invite_url,
+        smtp_host=smtp["host"],
+        smtp_port=smtp["port"],
+        smtp_user=smtp["user"],
+        smtp_password=smtp["password"],
+        smtp_from=smtp["from_addr"],
+        smtp_use_tls=smtp["use_tls"],
+    )
+
+    if not ok:
+        return {"ok": True, "email_sent": False, "warning": "User created but email could not be sent. Check SMTP configuration."}
+
+    return {"ok": True, "email_sent": True, "username": req.username}
+
+
+@app.post("/api/auth/invite/resend/{username}")
+async def api_resend_invite(username: str, request: Request, session: dict = Depends(require_role("superuser"))):
+    """Resend invitation email to an existing user."""
+    smtp = _get_smtp_config()
+    if not smtp["configured"]:
+        raise HTTPException(status_code=503, detail="SMTP is not configured")
+
+    from auth import user_exists
+    if not user_exists(username):
+        raise HTTPException(status_code=404, detail="User not found")
+
+    invite_token = create_invite_token(username)
+    if not invite_token:
+        raise HTTPException(status_code=500, detail="Failed to create invitation token")
+
+    base_url = str(request.base_url).rstrip("/")
+    invite_url = f"{base_url}/set-password?token={invite_token}"
+
+    ok = send_invite_email(
+        username=username,
+        invite_url=invite_url,
+        smtp_host=smtp["host"],
+        smtp_port=smtp["port"],
+        smtp_user=smtp["user"],
+        smtp_password=smtp["password"],
+        smtp_from=smtp["from_addr"],
+        smtp_use_tls=smtp["use_tls"],
+    )
+
+    if not ok:
+        raise HTTPException(status_code=500, detail="Failed to send email. Check SMTP configuration.")
+    return {"ok": True, "email_sent": True}
+
+
+@app.get("/api/auth/invite/validate")
+async def api_validate_invite(token: str = Query(...)):
+    """Validate an invitation token (public endpoint)."""
+    username = validate_invite_token(token)
+    if not username:
+        return {"valid": False}
+    return {"valid": True, "username": username}
+
+
+@app.post("/api/auth/invite/set-password")
+async def api_set_password_from_invite(req: SetPasswordRequest):
+    """Set password using an invitation token (public endpoint)."""
+    pwd_error = validate_password(req.password)
+    if pwd_error:
+        raise HTTPException(status_code=400, detail=pwd_error)
+    username = set_password_from_invite(req.token, req.password)
+    if not username:
+        raise HTTPException(status_code=400, detail="Invalid or expired invitation link")
+    return {"ok": True, "username": username}
+
+
+@app.get("/set-password")
+async def set_password_page():
+    """Serve the set-password page."""
+    return FileResponse(SCRIPT_DIR / "static" / "set_password.html")
+
+
+# ---------------------------------------------------------------------------
+# Access request routes (self-registration)
+# ---------------------------------------------------------------------------
+
+class AccessRequestBody(BaseModel):
+    email: str
+    full_name: str
+    institution: str
+    department: str = ""
+    profile_url: str = ""
+    reason: str = ""
+
+
+@app.post("/api/auth/request-access")
+async def api_request_access(req: AccessRequestBody):
+    """Public endpoint: submit an access request (must be UNINOVIS email)."""
+    email = req.email.strip().lower()
+    # Validate email domain
+    domain_err = validate_uninovis_email(email)
+    if domain_err:
+        raise HTTPException(status_code=400, detail=domain_err)
+    if not req.full_name.strip():
+        raise HTTPException(status_code=400, detail="Full name is required")
+    if not req.reason.strip():
+        raise HTTPException(status_code=400, detail="Reason for access is required")
+    ok = create_access_request(
+        email, req.full_name.strip(), req.institution.strip(),
+        department=req.department.strip(), profile_url=req.profile_url.strip(),
+        reason=req.reason.strip(),
+    )
+    if not ok:
+        raise HTTPException(status_code=409, detail="A request or account with this email already exists")
+    return {"ok": True, "message": "Access request submitted. You will receive an email when your request is approved."}
+
+
+@app.get("/api/auth/access-requests")
+async def api_list_requests(
+    status: Optional[str] = Query(None),
+    session: dict = Depends(require_role("superuser")),
+):
+    """List access requests (superuser only)."""
+    return list_access_requests(status)
+
+
+@app.post("/api/auth/access-requests/{email}/approve")
+async def api_approve_request(
+    email: str,
+    request: Request,
+    role: str = Query("user"),
+    session: dict = Depends(require_role("superuser")),
+):
+    """Approve an access request and optionally send invitation email."""
+    if role not in ROLES:
+        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {list(ROLES.keys())}")
+    ok = approve_access_request(email, role)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Pending request not found")
+
+    # Try to send invitation email
+    email_sent = False
+    smtp = _get_smtp_config()
+    if smtp["configured"]:
+        invite_token = create_invite_token(email)
+        if invite_token:
+            base_url = str(request.base_url).rstrip("/")
+            invite_url = f"{base_url}/set-password?token={invite_token}"
+            email_sent = send_invite_email(
+                username=email,
+                invite_url=invite_url,
+                smtp_host=smtp["host"],
+                smtp_port=smtp["port"],
+                smtp_user=smtp["user"],
+                smtp_password=smtp["password"],
+                smtp_from=smtp["from_addr"],
+                smtp_use_tls=smtp["use_tls"],
+            )
+
+    return {"ok": True, "email_sent": email_sent}
+
+
+@app.post("/api/auth/access-requests/{email}/reject")
+async def api_reject_request(email: str, session: dict = Depends(require_role("superuser"))):
+    """Reject an access request."""
+    ok = reject_access_request(email)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Pending request not found")
+    return {"ok": True}
 
 
 class ChatRequest(BaseModel):
@@ -131,9 +633,15 @@ class AgentResponse(BaseModel):
     prompt_level: str = "stringent"
 
 
+@app.get("/login")
+async def login_page():
+    """Sirve la página de login"""
+    return FileResponse(SCRIPT_DIR / "static" / "login.html")
+
+
 @app.get("/")
 async def root():
-    """Sirve la página principal"""
+    """Sirve la página principal (auth checked client-side via JS)"""
     return FileResponse(SCRIPT_DIR / "static" / "index.html")
 
 
@@ -307,6 +815,57 @@ async def check_vllm_health(base_url: str, model: str) -> dict:
         result.update(format_error(LLM_UNKNOWN_ERROR, details=str(e)))
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# LLM provider helpers & agent visibility
+# ---------------------------------------------------------------------------
+
+LOCAL_PROVIDERS = {"ollama", "vllm"}
+
+# Agent visibility: {agent_id: True/False}. Stored in data/agent_visibility.json
+_VISIBILITY_FILE = Path(__file__).parent / "data" / "agent_visibility.json"
+
+
+def _load_visibility() -> dict:
+    if not _VISIBILITY_FILE.exists():
+        return {}
+    with open(_VISIBILITY_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _save_visibility(data: dict) -> None:
+    with open(_VISIBILITY_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def _is_agent_visible(agent_id: str) -> bool:
+    """Check if an agent is visible. Default is True (visible) if not set."""
+    vis = _load_visibility()
+    return vis.get(agent_id, True)
+
+
+def _get_agent_provider(agent_id: str) -> str:
+    """Determine the LLM provider for a given agent. Returns provider name (lowercase)."""
+    from dotenv import dotenv_values
+
+    # Check agent-specific .env
+    agent_info = runner.get_agent(agent_id)
+    if agent_info:
+        agent_env_path = Path(agent_info.path) / ".env"
+        if agent_env_path.exists():
+            agent_env = dotenv_values(agent_env_path)
+            if agent_env.get("LLM_PROVIDER"):
+                return agent_env["LLM_PROVIDER"].lower()
+
+    # Fallback to global web/.env
+    web_env = dotenv_values(Path(__file__).parent / ".env")
+    return web_env.get("LLM_PROVIDER", "mistral").lower()
+
+
+def _is_local_provider(agent_id: str) -> bool:
+    """Check if an agent uses a local (on-premise) LLM provider."""
+    return _get_agent_provider(agent_id) in LOCAL_PROVIDERS
 
 
 @app.get("/api/llm-status")
@@ -489,9 +1048,27 @@ async def get_history(
 
 
 @app.get("/api/agents", response_model=list[AgentResponse])
-async def list_agents():
-    """Lista todos los agentes disponibles"""
+async def list_agents(request: Request, mode: Optional[str] = Query(None)):
+    """Lista todos los agentes disponibles (filtered by visibility, mode, and role)"""
     agents = runner.discover_agents()
+
+    # Determine user role from session
+    token = _get_token(request)
+    session = get_session(token) if token else None
+    user_role = session["role"] if session else "user"
+
+    # Superusers see all agents regardless of visibility or provider
+    if user_role == "superuser":
+        pass  # no filtering
+    elif user_role == "tester":
+        # Testers see visible agents only; in user mode, further restrict to local providers
+        agents = [a for a in agents if _is_agent_visible(a.id)]
+        if mode == "user":
+            agents = [a for a in agents if _is_local_provider(a.id)]
+    else:
+        # Users: only visible agents with local providers
+        agents = [a for a in agents if _is_agent_visible(a.id) and _is_local_provider(a.id)]
+
     return [
         AgentResponse(
             id=a.id,
@@ -508,6 +1085,485 @@ async def list_agents():
         )
         for a in agents
     ]
+
+
+@app.get("/api/agents/visibility")
+async def get_agents_visibility(session: dict = Depends(require_role("superuser"))):
+    """Get visibility status of all agents (superuser only)."""
+    all_agents = runner.discover_agents()
+    vis = _load_visibility()
+    return [
+        {
+            "id": a.id,
+            "name": a.name,
+            "visible": vis.get(a.id, True),
+            "provider": _get_agent_provider(a.id),
+            "is_local": _is_local_provider(a.id),
+        }
+        for a in all_agents
+    ]
+
+
+@app.put("/api/agents/{agent_id}/visibility")
+async def set_agent_visibility(
+    agent_id: str,
+    visible: bool = Query(...),
+    session: dict = Depends(require_role("superuser")),
+):
+    """Set visibility of an agent (superuser only)."""
+    agent = runner.get_agent(agent_id)
+    if not agent:
+        # Check if it's a discovered but not-yet-loaded agent
+        all_agents = runner.discover_agents()
+        if not any(a.id == agent_id for a in all_agents):
+            raise HTTPException(status_code=404, detail="Agent not found")
+    vis = _load_visibility()
+    vis[agent_id] = visible
+    _save_visibility(vis)
+    return {"ok": True, "agent_id": agent_id, "visible": visible}
+
+
+# ---------------------------------------------------------------------------
+# Data export & review endpoints (for tester verification)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/agents/{agent_id}/export/researchers")
+async def export_researchers(
+    agent_id: str,
+    university: Optional[str] = Query(None),
+    session: dict = Depends(require_role("tester")),
+):
+    """Export researchers as Excel with a Review column for tester annotations."""
+    import io
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+    agent_info = runner.get_agent(agent_id)
+    if not agent_info:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    researchers_path = Path(agent_info.path) / "data" / "researchers.json"
+    if not researchers_path.exists():
+        raise HTTPException(status_code=404, detail="No researchers data found for this agent")
+
+    with open(researchers_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Researchers"
+
+    # Styles
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+    review_fill = PatternFill(start_color="FFF3CD", end_color="FFF3CD", fill_type="solid")
+    thin_border = Border(
+        left=Side(style="thin"), right=Side(style="thin"),
+        top=Side(style="thin"), bottom=Side(style="thin"),
+    )
+
+    # Headers
+    headers = ["University", "Researcher", "Paper count", "Topics", "Papers", "Review: Correct? (Yes/No)", "Review: Comments"]
+    for c, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=c, value=h)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = thin_border
+        cell.alignment = Alignment(horizontal="center", wrap_text=True)
+
+    # Data
+    row = 2
+    unis = [university.upper()] if university else sorted(data.keys())
+    for uni in unis:
+        if uni not in data:
+            continue
+        for researcher in data[uni]:
+            papers_str = "; ".join([f"{p.get('title', '')} ({p.get('year', '')})" for p in researcher.get("papers", [])])
+            topics_str = ", ".join(researcher.get("topics", []))
+
+            ws.cell(row=row, column=1, value=uni).border = thin_border
+            ws.cell(row=row, column=2, value=researcher.get("name", "")).border = thin_border
+            ws.cell(row=row, column=3, value=researcher.get("paper_count", 0)).border = thin_border
+            ws.cell(row=row, column=4, value=topics_str).border = thin_border
+            ws.cell(row=row, column=4).alignment = Alignment(wrap_text=True)
+            ws.cell(row=row, column=5, value=papers_str).border = thin_border
+            ws.cell(row=row, column=5).alignment = Alignment(wrap_text=True)
+            # Review columns (yellow background)
+            for col in [6, 7]:
+                cell = ws.cell(row=row, column=col, value="")
+                cell.fill = review_fill
+                cell.border = thin_border
+            row += 1
+
+    # Column widths
+    ws.column_dimensions["A"].width = 12
+    ws.column_dimensions["B"].width = 25
+    ws.column_dimensions["C"].width = 12
+    ws.column_dimensions["D"].width = 35
+    ws.column_dimensions["E"].width = 50
+    ws.column_dimensions["F"].width = 20
+    ws.column_dimensions["G"].width = 35
+
+    # Instructions sheet
+    ws_inst = wb.create_sheet("Instructions")
+    instructions = [
+        "RESEARCHER DATA REVIEW",
+        "",
+        "Please review the researcher data for your university:",
+        "",
+        "1. Check each researcher in the list.",
+        "2. In the 'Review: Correct?' column, write 'Yes' if the data is correct, or 'No' if there is an error.",
+        "3. In the 'Review: Comments' column, describe any issues found:",
+        "   - Researcher should not be listed (not affiliated with this university)",
+        "   - Wrong topics assigned",
+        "   - Missing papers",
+        "   - Wrong paper attribution",
+        "",
+        "4. If researchers are MISSING from the list, add them at the bottom with:",
+        "   - University code, Name, and in Comments write 'MISSING - should be included'",
+        "",
+        "5. Save the file and send it back to the TOMMI team.",
+        "",
+        f"Data source: OpenAlex (https://openalex.org/)",
+        f"Agent: {agent_id}",
+        f"Export date: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+    ]
+    for i, line in enumerate(instructions, 1):
+        cell = ws_inst.cell(row=i, column=1, value=line)
+        if i == 1:
+            cell.font = Font(bold=True, size=14)
+    ws_inst.column_dimensions["A"].width = 80
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    uni_suffix = f"_{university.upper()}" if university else ""
+    filename = f"{agent_id}_researchers{uni_suffix}_review.xlsx"
+
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.get("/api/agents/{agent_id}/export/papers")
+async def export_papers(
+    agent_id: str,
+    university: Optional[str] = Query(None),
+    session: dict = Depends(require_role("tester")),
+):
+    """Export publications as Excel with a Review column for tester annotations."""
+    import io
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+    agent_info = runner.get_agent(agent_id)
+    if not agent_info:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    papers_path = Path(agent_info.path) / "data" / "papers.json"
+    if not papers_path.exists():
+        raise HTTPException(status_code=404, detail="No papers data found for this agent")
+
+    with open(papers_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    universities = data.get("universities", data)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Publications"
+
+    # Styles
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+    review_fill = PatternFill(start_color="FFF3CD", end_color="FFF3CD", fill_type="solid")
+    thin_border = Border(
+        left=Side(style="thin"), right=Side(style="thin"),
+        top=Side(style="thin"), bottom=Side(style="thin"),
+    )
+
+    headers = ["University", "ID", "Title", "Authors", "Year", "DOI", "Type", "Cited by", "Review: Correct? (Yes/No)", "Review: Comments"]
+    for c, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=c, value=h)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = thin_border
+        cell.alignment = Alignment(horizontal="center", wrap_text=True)
+
+    row = 2
+    unis = [university.upper()] if university else sorted(universities.keys())
+    for uni in unis:
+        uni_data = universities.get(uni, {})
+        papers = uni_data.get("papers", []) if isinstance(uni_data, dict) else uni_data
+        for paper in papers:
+            authors_str = ", ".join([a.get("name", "") for a in paper.get("authors", [])])
+            doi = paper.get("doi", "") or ""
+
+            ws.cell(row=row, column=1, value=uni).border = thin_border
+            ws.cell(row=row, column=2, value=paper.get("id", "")).border = thin_border
+            ws.cell(row=row, column=3, value=paper.get("title", "")).border = thin_border
+            ws.cell(row=row, column=3).alignment = Alignment(wrap_text=True)
+            ws.cell(row=row, column=4, value=authors_str).border = thin_border
+            ws.cell(row=row, column=4).alignment = Alignment(wrap_text=True)
+            ws.cell(row=row, column=5, value=paper.get("publication_year", "")).border = thin_border
+            ws.cell(row=row, column=6, value=doi).border = thin_border
+            ws.cell(row=row, column=7, value=paper.get("type", "")).border = thin_border
+            ws.cell(row=row, column=8, value=paper.get("cited_by_count", 0)).border = thin_border
+            for col in [9, 10]:
+                cell = ws.cell(row=row, column=col, value="")
+                cell.fill = review_fill
+                cell.border = thin_border
+            row += 1
+
+    ws.column_dimensions["A"].width = 12
+    ws.column_dimensions["B"].width = 16
+    ws.column_dimensions["C"].width = 50
+    ws.column_dimensions["D"].width = 35
+    ws.column_dimensions["E"].width = 8
+    ws.column_dimensions["F"].width = 35
+    ws.column_dimensions["G"].width = 12
+    ws.column_dimensions["H"].width = 10
+    ws.column_dimensions["I"].width = 20
+    ws.column_dimensions["J"].width = 35
+
+    # Instructions sheet
+    ws_inst = wb.create_sheet("Instructions")
+    instructions = [
+        "PUBLICATION DATA REVIEW",
+        "",
+        "Please review the publications for your university:",
+        "",
+        "1. Check each publication in the list.",
+        "2. In the 'Review: Correct?' column, write 'Yes' if correct, or 'No' if there is an error.",
+        "3. In the 'Review: Comments' column, describe any issues:",
+        "   - Paper should not be attributed to this university",
+        "   - Wrong authors listed",
+        "   - Wrong year or title",
+        "   - Paper is a duplicate",
+        "",
+        "4. If publications are MISSING from the list, add them at the bottom with:",
+        "   - University code, Title, Authors, Year, and in Comments write 'MISSING'",
+        "",
+        "5. Save the file and send it back to the TOMMI team.",
+        "",
+        f"Data source: OpenAlex (https://openalex.org/)",
+        f"Agent: {agent_id}",
+        f"Export date: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+    ]
+    for i, line in enumerate(instructions, 1):
+        cell = ws_inst.cell(row=i, column=1, value=line)
+        if i == 1:
+            cell.font = Font(bold=True, size=14)
+    ws_inst.column_dimensions["A"].width = 80
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    uni_suffix = f"_{university.upper()}" if university else ""
+    filename = f"{agent_id}_papers{uni_suffix}_review.xlsx"
+
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.get("/api/agents/{agent_id}/export/projects")
+async def export_projects(
+    agent_id: str,
+    university: Optional[str] = Query(None),
+    session: dict = Depends(require_role("tester")),
+):
+    """Export projects as Excel with a Review column for tester annotations."""
+    import io, re
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+    agent_info = runner.get_agent(agent_id)
+    if not agent_info:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    project_dir = Path(agent_info.path) / "data" / "project_docs"
+    if not project_dir.exists():
+        raise HTTPException(status_code=404, detail="No project data found for this agent")
+
+    # Parse project markdown files
+    projects = []
+    for md_file in sorted(project_dir.glob("*.md")):
+        content = md_file.read_text(encoding="utf-8")
+        title_match = re.search(r"^# (.+)", content, re.MULTILINE)
+        grant_match = re.search(r"\*\*Grant ID:\*\*\s*(\S+)", content)
+        programme_match = re.search(r"\*\*Programme:\*\*\s*(.+)", content)
+        period_match = re.search(r"\*\*Period:\*\*\s*(.+)", content)
+        status_match = re.search(r"\*\*Status:\*\*\s*(\S+)", content)
+        keywords_match = re.search(r"\*\*Keywords:\*\*\s*(.+)", content)
+
+        # Extract participants
+        participants = []
+        in_participants = False
+        for line in content.split("\n"):
+            if line.strip().startswith("## Participants"):
+                in_participants = True
+                continue
+            if in_participants:
+                if line.strip().startswith("## ") or line.strip().startswith("# "):
+                    break
+                if line.strip().startswith("- "):
+                    participants.append(line.strip()[2:])
+
+        project = {
+            "file": md_file.name,
+            "title": title_match.group(1).split(":")[1].strip() if title_match and ":" in title_match.group(1) else (title_match.group(1) if title_match else md_file.stem),
+            "grant_id": grant_match.group(1) if grant_match else "",
+            "programme": programme_match.group(1).strip() if programme_match else "",
+            "period": period_match.group(1).strip() if period_match else "",
+            "status": status_match.group(1).strip() if status_match else "",
+            "keywords": keywords_match.group(1).strip() if keywords_match else "",
+            "participants": participants,
+        }
+
+        # Filter by university if specified
+        if university:
+            # Check config for university full names
+            config_path = Path(agent_info.path) / "config.json"
+            uni_names = {}
+            if config_path.exists():
+                with open(config_path) as f:
+                    cfg = json.load(f)
+                uni_names = {k: v.get("name", "") for k, v in cfg.get("universities", {}).items()}
+            uni_full = uni_names.get(university.upper(), university)
+            if not any(uni_full.lower() in p.lower() or university.upper() in p.upper() for p in participants):
+                continue
+
+        projects.append(project)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Projects"
+
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+    review_fill = PatternFill(start_color="FFF3CD", end_color="FFF3CD", fill_type="solid")
+    thin_border = Border(
+        left=Side(style="thin"), right=Side(style="thin"),
+        top=Side(style="thin"), bottom=Side(style="thin"),
+    )
+
+    headers = ["Grant ID", "Title", "Programme", "Period", "Status", "Keywords", "Participants", "Review: Correct? (Yes/No)", "Review: Comments"]
+    for c, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=c, value=h)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = thin_border
+        cell.alignment = Alignment(horizontal="center", wrap_text=True)
+
+    for r, proj in enumerate(projects, 2):
+        ws.cell(row=r, column=1, value=proj["grant_id"]).border = thin_border
+        ws.cell(row=r, column=2, value=proj["title"]).border = thin_border
+        ws.cell(row=r, column=2).alignment = Alignment(wrap_text=True)
+        ws.cell(row=r, column=3, value=proj["programme"]).border = thin_border
+        ws.cell(row=r, column=3).alignment = Alignment(wrap_text=True)
+        ws.cell(row=r, column=4, value=proj["period"]).border = thin_border
+        ws.cell(row=r, column=5, value=proj["status"]).border = thin_border
+        ws.cell(row=r, column=6, value=proj["keywords"]).border = thin_border
+        ws.cell(row=r, column=6).alignment = Alignment(wrap_text=True)
+        ws.cell(row=r, column=7, value="\n".join(proj["participants"])).border = thin_border
+        ws.cell(row=r, column=7).alignment = Alignment(wrap_text=True)
+        for col in [8, 9]:
+            cell = ws.cell(row=r, column=col, value="")
+            cell.fill = review_fill
+            cell.border = thin_border
+
+    ws.column_dimensions["A"].width = 14
+    ws.column_dimensions["B"].width = 40
+    ws.column_dimensions["C"].width = 30
+    ws.column_dimensions["D"].width = 22
+    ws.column_dimensions["E"].width = 10
+    ws.column_dimensions["F"].width = 30
+    ws.column_dimensions["G"].width = 40
+    ws.column_dimensions["H"].width = 20
+    ws.column_dimensions["I"].width = 35
+
+    ws_inst = wb.create_sheet("Instructions")
+    instructions = [
+        "PROJECT DATA REVIEW",
+        "",
+        "Please review the project data:",
+        "",
+        "1. Check each project in the list.",
+        "2. In the 'Review: Correct?' column, write 'Yes' if correct, or 'No' if there is an error.",
+        "3. In the 'Review: Comments' column, describe any issues:",
+        "   - Your university is not actually a participant",
+        "   - Wrong project details (title, period, programme)",
+        "   - Missing participants",
+        "",
+        "4. If projects are MISSING from the list, add them at the bottom with:",
+        "   - Grant ID, Title, and in Comments write 'MISSING'",
+        "",
+        "5. Save the file and send it back to the TOMMI team.",
+        "",
+        f"Data source: CORDIS (https://cordis.europa.eu/)",
+        f"Agent: {agent_id}",
+        f"Export date: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+    ]
+    for i, line in enumerate(instructions, 1):
+        cell = ws_inst.cell(row=i, column=1, value=line)
+        if i == 1:
+            cell.font = Font(bold=True, size=14)
+    ws_inst.column_dimensions["A"].width = 80
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    uni_suffix = f"_{university.upper()}" if university else ""
+    filename = f"{agent_id}_projects{uni_suffix}_review.xlsx"
+
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.post("/api/agents/{agent_id}/reset-logs")
+async def reset_agent_logs(agent_id: str, session: dict = Depends(require_role("superuser"))):
+    """
+    Archive and reset all logs for an agent (superuser only).
+    Feedback logs and audit logs are renamed with a timestamp suffix.
+    """
+    from datetime import datetime as dt
+    timestamp = dt.now().strftime("%Y%m%d_%H%M%S")
+    archived = []
+
+    # Feedback logs in web/logs/
+    for suffix in ["_feedback_tester.jsonl", "_feedback_user.jsonl", "_conversations.jsonl"]:
+        log_path = LOGS_DIR / f"{agent_id}{suffix}"
+        if log_path.exists() and log_path.stat().st_size > 0:
+            archive_name = f"{agent_id}{suffix.replace('.jsonl', '')}_{timestamp}.jsonl"
+            archive_path = LOGS_DIR / archive_name
+            log_path.rename(archive_path)
+            archived.append(archive_name)
+
+    # Audit log in agents/{agent_id}/data/
+    agent_info = runner.get_agent(agent_id)
+    if agent_info:
+        audit_path = Path(agent_info.path) / "data" / "audit_log.jsonl"
+        if audit_path.exists() and audit_path.stat().st_size > 0:
+            archive_name = f"audit_log_{timestamp}.jsonl"
+            archive_path = audit_path.parent / archive_name
+            audit_path.rename(archive_path)
+            archived.append(f"agents/{agent_id}/data/{archive_name}")
+
+    if not archived:
+        return {"ok": True, "message": "No logs to reset", "archived": []}
+
+    return {"ok": True, "message": f"Archived {len(archived)} log file(s)", "archived": archived}
 
 
 @app.post("/api/agents/{agent_id}/init")
@@ -615,9 +1671,42 @@ async def reset_token_usage(agent_id: str):
     return {"success": True, "message": "Token usage counters reset"}
 
 
+def _disable_web_search_for_user(agent_id: str, session: dict | None) -> tuple:
+    """
+    If the user has role 'user', temporarily disable web search on the agent
+    to prevent data from leaving UMA infrastructure.
+    Returns (agent_instance, original_web_search_config) for later restoration.
+    """
+    if not session or session["role"] != "user":
+        return None, None
+    agent_instance = runner._load_agent_module(agent_id)
+    if not agent_instance:
+        return None, None
+    config = getattr(agent_instance, '_config', None)
+    if not config or "web_search" not in config:
+        return None, None
+    original = config["web_search"].copy()
+    config["web_search"]["google_api_key"] = ""
+    config["web_search"]["google_cx"] = ""
+    return agent_instance, original
+
+
+def _restore_web_search(agent_instance, original_config):
+    """Restore web search config after request."""
+    if agent_instance and original_config:
+        agent_instance._config["web_search"] = original_config
+
+
 @app.post("/api/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, http_request: Request):
     """Envía un mensaje a un agente y obtiene respuesta completa"""
+    # Block users from accessing cloud-provider agents
+    token = _get_token(http_request)
+    session = get_session(token) if token else None
+    if session and session["role"] == "user" and not _is_local_provider(request.agent_id):
+        raise HTTPException(status_code=403, detail="Access restricted: this agent uses a cloud LLM provider")
+    # Disable web search for end users (data sovereignty)
+    agent_inst, orig_ws = _disable_web_search_for_user(request.agent_id, session)
     try:
         result = await runner.run_query(
             agent_id=request.agent_id,
@@ -629,6 +1718,8 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=404, detail=str(e))
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        _restore_web_search(agent_inst, orig_ws)
 
 
 @app.get("/api/chat/stream")
@@ -642,6 +1733,14 @@ async def chat_stream(
     prompt_level: Optional[str] = Query(None, description="Prompt level override (client preference)")
 ):
     """Envía un mensaje y hace streaming de la respuesta via SSE"""
+    # Block users from accessing cloud-provider agents
+    token = _get_token(request)
+    session = get_session(token) if token else None
+    if session and session["role"] == "user" and not _is_local_provider(agent_id):
+        raise HTTPException(status_code=403, detail="Access restricted: this agent uses a cloud LLM provider")
+    # Disable web search for end users (data sovereignty)
+    agent_inst, orig_ws = _disable_web_search_for_user(agent_id, session)
+
     agent = runner.get_agent(agent_id)
     if not agent:
         err = format_error(AGENT_NOT_FOUND, agent_id=agent_id)
@@ -703,6 +1802,8 @@ async def chat_stream(
             err = format_error(SERVER_STREAMING_ERROR, details=str(e))
             import json
             yield f"event: error\ndata: {json.dumps(err)}\n\n"
+        finally:
+            _restore_web_search(agent_inst, orig_ws)
 
     return StreamingResponse(
         event_generator(),
@@ -1140,8 +2241,10 @@ class FeedbackRequest(BaseModel):
 async def submit_feedback(fb: FeedbackRequest):
     """Log user feedback on an agent response.
     User and tester feedback are stored in separate per-agent files."""
+    is_positive = fb.rating == "up"
     entry = {
         "timestamp": datetime.now().isoformat(),
+        "feedback_type": "positive" if is_positive else "negative",
         "agent_id": fb.agent_id,
         "session_id": fb.session_id,
         "message_index": fb.message_index,
@@ -1149,15 +2252,16 @@ async def submit_feedback(fb: FeedbackRequest):
         "user_question": fb.user_question,
         "full_response": fb.full_response,
     }
-    if fb.mode == "tester":
-        # Tester: structured error report with full response
-        entry["error_code"] = fb.error_code
-        entry["severity"] = fb.severity
+    if not is_positive:
+        if fb.mode == "tester":
+            # Tester: structured error report with full response
+            entry["error_code"] = fb.error_code
+            entry["severity"] = fb.severity
         entry["notes"] = (fb.notes or "")[:1000]
+
+    if fb.mode == "tester":
         log_file = LOGS_DIR / f"{fb.agent_id}_feedback_tester.jsonl"
     else:
-        # User: simple comment
-        entry["notes"] = (fb.notes or "")[:1000]
         log_file = LOGS_DIR / f"{fb.agent_id}_feedback_user.jsonl"
 
     with open(log_file, "a", encoding="utf-8") as f:

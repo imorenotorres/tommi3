@@ -2,6 +2,21 @@
  * Tommi Debate Interface - Frontend JavaScript
  */
 
+// Auth helpers (reuse from main app.js if loaded, otherwise define here)
+function _debateToken() { return localStorage.getItem('tommi_token') || ''; }
+function _debateAuthFetch(url, opts = {}) {
+    const token = _debateToken();
+    if (!token) { window.location.href = '/login'; return Promise.reject('No token'); }
+    opts.headers = opts.headers || {};
+    opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(url, opts);
+}
+function _debateAuthUrl(url) {
+    const token = _debateToken();
+    if (!token) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+}
+
 // Estado de la aplicacion
 const state = {
     agents: [],
@@ -34,7 +49,7 @@ async function init() {
 // Cargar lista de agentes
 async function loadAgents() {
     try {
-        const response = await fetch('/api/agents');
+        const response = await _debateAuthFetch('/api/agents');
         state.agents = await response.json();
         renderAgentSelectors();
     } catch (error) {
@@ -138,7 +153,7 @@ async function runDebate(config) {
     });
 
     return new Promise((resolve, reject) => {
-        const eventSource = new EventSource(`/api/debate/stream?${params}`);
+        const eventSource = new EventSource(_debateAuthUrl(`/api/debate/stream?${params}`));
         let currentContentDiv = null;
         let currentText = '';
 

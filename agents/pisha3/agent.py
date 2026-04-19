@@ -1082,6 +1082,100 @@ RESPONSE FORMAT:
 
         return sql_modificado
 
+    def _fix_sql_operator_precedence(self, sql: str) -> str:
+        """
+        Fix SQL operator precedence when AND and OR are mixed without proper
+        parentheses. Wraps the OR group in parentheses to prevent ambiguous
+        queries like: WHERE (A AND B) OR (C AND D) AND E
+        """
+        import re
+
+        where_match = re.search(r'\bWHERE\s+(.*?)(?:\s+ORDER\s+|\s+GROUP\s+|\s+LIMIT\s+|\s*$)', sql, re.IGNORECASE | re.DOTALL)
+        if not where_match:
+            return sql
+
+        where_clause = where_match.group(1).strip()
+
+        depth = 0
+        top_and_positions = []
+        top_or_positions = []
+        for i, ch in enumerate(where_clause):
+            if ch == '(':
+                depth += 1
+            elif ch == ')':
+                depth -= 1
+            elif depth == 0:
+                rest = where_clause[i:].upper()
+                if rest.startswith('AND '):
+                    top_and_positions.append(i)
+                elif rest.startswith('OR '):
+                    top_or_positions.append(i)
+
+        if not top_and_positions or not top_or_positions:
+            return sql
+
+        first_or = min(top_or_positions)
+        last_or = max(top_or_positions)
+
+        or_group_start = 0
+        for pos in sorted(top_and_positions):
+            if pos < first_or:
+                or_group_start = pos + 4
+                while or_group_start < len(where_clause) and where_clause[or_group_start] == ' ':
+                    or_group_start += 1
+            else:
+                break
+
+        or_group_end = len(where_clause)
+        for pos in sorted(top_and_positions):
+            if pos > last_or:
+                or_group_end = pos
+                while or_group_end > 0 and where_clause[or_group_end - 1] == ' ':
+                    or_group_end -= 1
+                break
+
+        or_group = where_clause[or_group_start:or_group_end].strip()
+
+        if or_group.startswith('(') and or_group.endswith(')'):
+            d = 0
+            covers_all = True
+            for k, c in enumerate(or_group):
+                if c == '(':
+                    d += 1
+                elif c == ')':
+                    d -= 1
+                if d == 0 and k < len(or_group) - 1:
+                    covers_all = False
+                    break
+            if covers_all:
+                return sql
+
+        before = where_clause[:or_group_start].strip()
+        after = where_clause[or_group_end:].strip()
+
+        parts = []
+        if before:
+            if before.upper().endswith(' AND'):
+                before = before[:-4].strip()
+            elif before.upper().endswith('AND'):
+                before = before[:-3].strip()
+            if before:
+                parts.append(before)
+        parts.append(f'({or_group})')
+        if after:
+            if after.upper().startswith('AND '):
+                after = after[4:].strip()
+            if after:
+                parts.append(after)
+
+        new_where = ' AND '.join(parts)
+
+        if new_where != where_clause:
+            sql = sql[:where_match.start(1)] + new_where + sql[where_match.end(1):]
+            logger.info(f"🔧 Fixed operator precedence: wrapped OR group in parentheses")
+
+        return sql
+
     def _postprocess_level_substitution(self, question: str, generated_sql: str, previous_sql: str) -> str:
         """
         Post-procesa el SQL generado para forzar la sustitución de niveles de idioma.
@@ -1667,6 +1761,20 @@ EJEMPLOS CORRECTOS:
   Usuario: "solo primer cuatrimestre" → AÑADIR cuatrimestre:
   WHERE destination_country LIKE '%Alemania%' AND lang_1_name LIKE '%INGLÉS%' AND student_vacancies LIKE '%1er CUATRIMESTRE%'
 
+🔴 CASO CRÍTICO - AÑADIR PAÍS A CONDICIONES DE IDIOMA CON OR:
+- Anterior: "WHERE (lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B1')"
+  Usuario: "los de Chile" → AÑADIR país, CONSERVAR condiciones de idioma:
+  WHERE destination_country LIKE '%Chile%' AND ((lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B1'))
+  ❌ INCORRECTO: WHERE (lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B1') AND destination_country LIKE '%Chile%'
+  ⚠️ SIN PARÉNTESIS el AND solo aplica al segundo OR, devolviendo resultados incorrectos
+
+⚠️ REGLA DE PRECEDENCIA DE OPERADORES:
+- AND tiene mayor precedencia que OR en SQL
+- Cuando mezcles AND con OR, SIEMPRE usa paréntesis para claridad
+- Envuelve los grupos OR en paréntesis antes de combinarlos con AND
+- Ejemplo: WHERE country = 'Chile' AND (lang_1 = 'EN' OR lang_2 = 'EN')
+- NUNCA: WHERE country = 'Chile' AND lang_1 = 'EN' OR lang_2 = 'EN' (ambiguo!)
+
 🔴 MÁS EJEMPLOS DE AÑADIR (NUNCA PERDER CONDICIONES):
 - Anterior: "WHERE destination_country LIKE '%Italia%'"
   Usuario: "que requieran francés" → AÑADIR idioma:
@@ -1740,6 +1848,9 @@ EJEMPLOS CORRECTOS:
 
         # Añadir campos de contexto si el SELECT tiene pocos campos
         sql = self._add_context_fields_to_sql(sql)
+
+        # Corregir precedencia de operadores AND/OR
+        sql = self._fix_sql_operator_precedence(sql)
 
         # Post-procesar sustituciones si es un refinamiento
         if is_refinement and original_previous_sql:

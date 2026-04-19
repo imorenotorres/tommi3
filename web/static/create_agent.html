@@ -534,6 +534,23 @@
     </div>
 
     <script>
+        // Auth check — only superuser can create agents
+        (function() {
+            const token = localStorage.getItem('tommi_token');
+            const role = localStorage.getItem('tommi_role');
+            if (!token || role !== 'superuser') {
+                window.location.href = '/login';
+                return;
+            }
+        })();
+
+        function _caToken() { return localStorage.getItem('tommi_token') || ''; }
+        function _caAuthFetch(url, opts = {}) {
+            opts.headers = opts.headers || {};
+            opts.headers['Authorization'] = 'Bearer ' + _caToken();
+            return fetch(url, opts);
+        }
+
         // Form handling
         const form = document.getElementById('create-agent-form');
         const statusMessage = document.getElementById('status-message');
@@ -634,7 +651,7 @@
         // Load prompt templates
         async function loadPromptTemplates(agentType) {
             try {
-                const response = await fetch(`/api/prompt-templates?agent_type=${agentType}`);
+                const response = await _caAuthFetch(`/api/prompt-templates?agent_type=${agentType}`);
                 const templates = await response.json();
 
                 const select = document.getElementById('prompt_template');
@@ -658,7 +675,7 @@
             if (!select.value) return;
 
             try {
-                const response = await fetch(`/api/prompt-template?path=${encodeURIComponent(select.value)}`);
+                const response = await _caAuthFetch(`/api/prompt-template?path=${encodeURIComponent(select.value)}`);
                 const data = await response.json();
                 textarea.value = data.content;
             } catch (error) {
@@ -687,7 +704,7 @@
                 formData.delete('examples[]');
                 formData.append('examples', JSON.stringify(examples));
 
-                const response = await fetch('/api/create-agent', {
+                const response = await _caAuthFetch('/api/create-agent', {
                     method: 'POST',
                     body: formData
                 });

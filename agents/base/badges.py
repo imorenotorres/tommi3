@@ -191,7 +191,7 @@ class ReliabilityBadge:
             rel_bg = '#f8d7da'
             rel_fg = '#721c24'
 
-        conf_str = f' ({confidence}%)' if is_dev and total_claims > 0 else ''
+        conf_str = f' ({confidence}%)' if transparency != "black_box" and total_claims > 0 else ''
 
         # Formula breakdown (Crystal box only, when there are claims)
         formula_str = ''

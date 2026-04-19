@@ -121,14 +121,14 @@ REM ----------------------------------------------------------------------------
 echo Verifying files...
 set MISSING=0
 
-for %%f in (howto.md HOWTO.html README_INSTALL.md README_INSTALL.html tommi_frontend.png .dockerignore) do (
+for %%f in (howto.md howto.html README_INSTALL.md README_INSTALL.html deployWithTommi.md deployWithTommi.html testingTommiAgents.md testingTOMMIAgents.html usingTommi.md usingTommi.html tommi_frontend.png tommi_cloud_llm.png tommi_local_llm.png .dockerignore) do (
     if not exist "%%f" (
         echo   MISSING: %%f
         set MISSING=1
     )
 )
 
-for %%d in (apps web .github prompts scripts agents\base) do (
+for %%d in (apps web .github prompts scripts agents\base claim_checker data) do (
     if not exist "%%d\" (
         echo   MISSING directory: %%d
         set MISSING=1
@@ -160,13 +160,13 @@ REM Remove previous zip if exists
 if exist "%DIST_DIR%\%ZIP_FILE%" del "%DIST_DIR%\%ZIP_FILE%"
 
 REM Build directory list for PowerShell
-set PS_DIRS='apps', 'prompts', 'scripts', 'agents\base', 'web', '.github'
+set PS_DIRS='apps', 'prompts', 'scripts', 'agents\base', 'web', 'claim_checker', 'data', '.github'
 for %%a in (%AGENTS_TO_INCLUDE%) do (
     set PS_DIRS=!PS_DIRS!, '%%a'
 )
 
 REM Use PowerShell to create the zip
-powershell -Command "& { $files = @('howto.md', 'HOWTO.html', 'README_INSTALL.md', 'README_INSTALL.html', 'tommi_frontend.png', '.dockerignore'); $dirs = @(%PS_DIRS%); $tempDir = 'dist\_temp_tommi'; if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force }; New-Item -ItemType Directory -Path $tempDir | Out-Null; foreach ($f in $files) { Copy-Item $f $tempDir -Force }; foreach ($d in $dirs) { if (Test-Path $d) { Copy-Item $d $tempDir -Recurse -Force } }; Get-ChildItem $tempDir -Recurse -Include '.venv','.env','__pycache__','.claude','venv','*.pyc','logs','chroma_db','audit_log.jsonl','authorships_cache.json' | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue; Compress-Archive -Path \"$tempDir\*\" -DestinationPath 'dist\%ZIP_FILE%' -Force; Remove-Item $tempDir -Recurse -Force }"
+powershell -Command "& { $files = @('howto.md', 'howto.html', 'README_INSTALL.md', 'README_INSTALL.html', 'deployWithTommi.md', 'deployWithTommi.html', 'testingTommiAgents.md', 'testingTOMMIAgents.html', 'usingTommi.md', 'usingTommi.html', 'tommi_frontend.png', 'tommi_cloud_llm.png', 'tommi_local_llm.png', '.dockerignore'); $dirs = @(%PS_DIRS%); $tempDir = 'dist\_temp_tommi'; if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force }; New-Item -ItemType Directory -Path $tempDir | Out-Null; foreach ($f in $files) { Copy-Item $f $tempDir -Force }; foreach ($d in $dirs) { if (Test-Path $d) { Copy-Item $d $tempDir -Recurse -Force } }; Get-ChildItem $tempDir -Recurse -Include '.venv','.env','__pycache__','.claude','venv','*.pyc','logs','chroma_db','audit_log.jsonl','authorships_cache.json' | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue; Compress-Archive -Path \"$tempDir\*\" -DestinationPath 'dist\%ZIP_FILE%' -Force; Remove-Item $tempDir -Recurse -Force }"
 
 if exist "%DIST_DIR%\%ZIP_FILE%" (
     echo   OK - %ZIP_FILE% created
