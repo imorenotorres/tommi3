@@ -8,7 +8,7 @@
 #    Recommended: y (needed for accountability under GDPR Art. 5(2))
 ENABLE_LOGGING=y
 
-# 2. LLM provider API key (leave empty if using only Ollama/vLLM)
+# 2. LLM provider API key (leave empty if using only Ollama)
 #    Get it at: https://console.mistral.ai/api-keys
 MISTRAL_API_KEY=
 
