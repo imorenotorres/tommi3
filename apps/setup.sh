@@ -21,6 +21,39 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
 
 # =============================================================================
+# Configuration file support
+# =============================================================================
+# Usage: ./setup.sh [config_file]
+# If a config file is provided, values are read from it instead of prompting.
+# Example: ./setup.sh ../tommi_setup_server.txt
+#
+# Expected variables in config file:
+#   ENABLE_LOGGING=y          (y/n)
+#   MISTRAL_API_KEY=...       (API key or empty)
+#   ADMIN_USER=admin          (superuser username)
+#   ADMIN_PASSWORD=...        (superuser password)
+#   SMTP_HOST=...             (optional)
+#   SMTP_PORT=587             (optional)
+#   SMTP_USER=...             (optional)
+#   SMTP_PASSWORD=...         (optional)
+#   SMTP_FROM=...             (optional)
+#   SMTP_USE_TLS=true         (optional)
+# =============================================================================
+
+CONFIG_FILE="${1:-}"
+UNATTENDED=false
+
+if [ -n "$CONFIG_FILE" ]; then
+    if [ ! -f "$CONFIG_FILE" ]; then
+        echo -e "${RED}Configuration file not found: $CONFIG_FILE${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}Reading configuration from: $CONFIG_FILE${NC}"
+    source "$CONFIG_FILE"
+    UNATTENDED=true
+fi
+
+# =============================================================================
 # Auto-fix for files that passed through Windows
 # =============================================================================
 fix_line_endings_and_permissions() {
@@ -180,7 +213,12 @@ if [ "$HAS_RAG_AGENTS" = true ]; then
                 ;;
         esac
         echo ""
-        read -p "  Continue with python3 anyway? [y/N]: " CONTINUE
+        if [ "$UNATTENDED" = true ]; then
+            echo -e "${YELLOW}  → Unattended mode: continuing with python3${NC}"
+            CONTINUE="y"
+        else
+            read -p "  Continue with python3 anyway? [y/N]: " CONTINUE
+        fi
         if [[ ! "$CONTINUE" =~ ^[Yy]$ ]]; then
             echo "Cancelled."
             exit 1
@@ -272,11 +310,16 @@ fi
 # 5. Configure conversation logging
 # -----------------------------------------------------------------------------
 echo -e "${YELLOW}[5/8] Configuring conversation logging...${NC}"
-echo ""
-echo -e "  ${BLUE}Do you want to enable conversation logging?${NC}"
-echo -e "  (Useful for testing. Logs are saved to web/logs/conversations.log)"
-echo ""
-read -p "  Enable logging [y/N]: " ENABLE_LOG
+
+if [ "$UNATTENDED" = true ]; then
+    ENABLE_LOG="${ENABLE_LOGGING:-n}"
+else
+    echo ""
+    echo -e "  ${BLUE}Do you want to enable conversation logging?${NC}"
+    echo -e "  (Useful for testing. Logs are saved to web/logs/conversations.log)"
+    echo ""
+    read -p "  Enable logging [y/N]: " ENABLE_LOG
+fi
 
 # Save logging preference to write at the end
 if [[ "$ENABLE_LOG" =~ ^[Yy]$ ]]; then
@@ -310,13 +353,17 @@ if [ ${#AGENT_DIRS[@]} -eq 0 ]; then
     echo -e "${YELLOW}  → No agent folders found${NC}"
 else
     echo "  Agents detected: ${#AGENT_DIRS[@]}"
-    echo ""
 
-    # Ask for API key
-    echo -e "${BLUE}  Enter your Mistral API key:${NC}"
-    echo -e "  (You can get it at https://console.mistral.ai/api-keys)"
-    echo ""
-    read -p "  MISTRAL_API_KEY: " API_KEY
+    if [ "$UNATTENDED" = true ]; then
+        API_KEY="${MISTRAL_API_KEY:-}"
+    else
+        echo ""
+        # Ask for API key
+        echo -e "${BLUE}  Enter your Mistral API key:${NC}"
+        echo -e "  (You can get it at https://console.mistral.ai/api-keys)"
+        echo ""
+        read -p "  MISTRAL_API_KEY: " API_KEY
+    fi
 
     if [ -z "$API_KEY" ]; then
         echo -e "${YELLOW}  → No API key provided. You can configure it manually in web/.env${NC}"
@@ -356,6 +403,23 @@ MISTRAL_MODEL=mistral-large-latest
 # AVAILABLE_MODELS=mistral-large-latest,mistral-small-latest
 EOF
 
+# Append SMTP configuration if provided (from config file or environment)
+if [ -n "${SMTP_HOST:-}" ]; then
+    cat >> web/.env << EOF
+
+# ============================================
+# SMTP Configuration (for user invitations)
+# ============================================
+SMTP_HOST=$SMTP_HOST
+SMTP_PORT=${SMTP_PORT:-587}
+SMTP_USER=${SMTP_USER:-}
+SMTP_PASSWORD=${SMTP_PASSWORD:-}
+SMTP_FROM=${SMTP_FROM:-$SMTP_USER}
+SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+EOF
+    echo -e "${GREEN}  → SMTP configuration added to web/.env${NC}"
+fi
+
 echo -e "${GREEN}  → web/.env file created${NC}"
 
 # -----------------------------------------------------------------------------
@@ -376,30 +440,65 @@ else:
 " 2>/dev/null; then
     echo -e "${GREEN}  → Superuser already exists${NC}"
 else
-    echo -e "${BLUE}  Set up the administrator account for Tommi.${NC}"
-    echo ""
-    read -p "  Admin username [admin]: " ADMIN_USER
-    ADMIN_USER="${ADMIN_USER:-admin}"
+    # Password validation function
+    validate_password() {
+        local pwd="$1"
+        if [ ${#pwd} -lt 8 ]; then
+            echo "Password must be at least 8 characters"; return 1
+        fi
+        if ! echo "$pwd" | grep -q '[A-Z]'; then
+            echo "Password must contain at least one uppercase letter"; return 1
+        fi
+        if ! echo "$pwd" | grep -q '[a-z]'; then
+            echo "Password must contain at least one lowercase letter"; return 1
+        fi
+        if ! echo "$pwd" | grep -q '[0-9]'; then
+            echo "Password must contain at least one digit"; return 1
+        fi
+        if ! echo "$pwd" | grep -q '[^A-Za-z0-9]'; then
+            echo "Password must contain at least one special character"; return 1
+        fi
+        return 0
+    }
 
-    while true; do
-        read -s -p "  Admin password: " ADMIN_PASS
-        echo ""
+    if [ "$UNATTENDED" = true ]; then
+        # Read from config file
+        ADMIN_USER="${ADMIN_USER:-admin}"
+        ADMIN_PASS="${ADMIN_PASSWORD:-}"
+
         if [ -z "$ADMIN_PASS" ]; then
-            echo -e "${YELLOW}  → Password cannot be empty${NC}"
-            continue
+            echo -e "${RED}  ✗ ADMIN_PASSWORD not set in config file${NC}"
+            exit 1
         fi
-        if [ ${#ADMIN_PASS} -lt 4 ]; then
-            echo -e "${YELLOW}  → Password must be at least 4 characters${NC}"
-            continue
+        PWD_ERROR=$(validate_password "$ADMIN_PASS")
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}  ✗ $PWD_ERROR${NC}"
+            exit 1
         fi
-        read -s -p "  Confirm password: " ADMIN_PASS2
+    else
+        echo -e "${BLUE}  Set up the administrator account for Tommi.${NC}"
+        echo -e "  Password requirements: min. 8 chars, uppercase, lowercase, digit, special character"
         echo ""
-        if [ "$ADMIN_PASS" != "$ADMIN_PASS2" ]; then
-            echo -e "${YELLOW}  → Passwords do not match${NC}"
-            continue
-        fi
-        break
-    done
+        read -p "  Admin username [admin]: " ADMIN_USER
+        ADMIN_USER="${ADMIN_USER:-admin}"
+
+        while true; do
+            read -s -p "  Admin password: " ADMIN_PASS
+            echo ""
+            PWD_ERROR=$(validate_password "$ADMIN_PASS")
+            if [ $? -ne 0 ]; then
+                echo -e "${YELLOW}  → $PWD_ERROR${NC}"
+                continue
+            fi
+            read -s -p "  Confirm password: " ADMIN_PASS2
+            echo ""
+            if [ "$ADMIN_PASS" != "$ADMIN_PASS2" ]; then
+                echo -e "${YELLOW}  → Passwords do not match${NC}"
+                continue
+            fi
+            break
+        done
+    fi
 
     # Create superuser via Python
     python -c "

@@ -48,8 +48,8 @@
     "_style_comment": "Green = metadata (structured data), Yellow = database (RAG documents), Blue = web search (external), Red = LLM interpretation"
   },
   "web_search": {
-    "google_api_key": "AIzaSyAFQDeoeNtj4OSsiRQp3KJseAWcALxn7Iw",
-    "google_cx": "33a02aa45f22c41ed",
+    "google_api_key": "",
+    "google_cx": "",
     "num_results": 10,
     "_comment": "Google Custom Search API credentials. Leave empty to disable web search expansion."
   }

@@ -58,6 +58,10 @@ scripts/data/
 # Old agents
 OldAgents/
 
+# Archives
+*.zip
+*.tar.gz
+
 # Distribution / packaging
 dist/
 build/
