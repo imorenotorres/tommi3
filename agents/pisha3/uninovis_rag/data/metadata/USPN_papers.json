@@ -1,0 +1,1127 @@
+[
+  {
+    "id": "W3164311865",
+    "doi": "https://doi.org/10.1186/s12911-021-01518-6",
+    "title": "Investigating ADR mechanisms with Explainable AI: a feasibility study with knowledge graph mining",
+    "abstract": null,
+    "publication_date": "2021-05-26",
+    "publication_year": 2021,
+    "type": "article",
+    "cited_by_count": 17,
+    "authors": [
+      {
+        "name": "Emmanuel Bresso",
+        "orcid": "https://orcid.org/0000-0002-5650-3155"
+      },
+      {
+        "name": "Pierre Monnin",
+        "orcid": "https://orcid.org/0000-0002-2017-8426"
+      },
+      {
+        "name": "Cédric Bousquet",
+        "orcid": "https://orcid.org/0000-0001-9775-2476"
+      },
+      {
+        "name": "François-Élie Calvier",
+        "orcid": null
+      },
+      {
+        "name": "Ndeye Coumba Ndiaye",
+        "orcid": null
+      },
+      {
+        "name": "Nadine Petitpain",
+        "orcid": "https://orcid.org/0000-0003-0225-3178"
+      },
+      {
+        "name": "Malika Smaïl‐Tabbone",
+        "orcid": "https://orcid.org/0000-0002-8119-2117"
+      },
+      {
+        "name": "Adrien Coulet",
+        "orcid": "https://orcid.org/0000-0002-1466-062X"
+      }
+    ],
+    "affiliations": [
+      "Université Paris Cité",
+      "Université Sorbonne Paris Nord",
+      "Laboratoire Lorrain de Recherche en Informatique et ses Applications",
+      "Université de Lorraine",
+      "Orange (France)",
+      "Nutrition-Génétique et Exposition aux Risques Environnementaux",
+      "Inserm",
+      "Laboratoire d'Informatique Médicale et d'Ingénierie des Connaissances en e-Santé",
+      "Sorbonne Université",
+      "Centre National de la Recherche Scientifique"
+    ],
+    "concepts": [
+      {
+        "name": "Pharmacovigilance",
+        "score": 0.7005389928817749
+      },
+      {
+        "name": "Drug reaction",
+        "score": 0.6060879826545715
+      },
+      {
+        "name": "Computer science",
+        "score": 0.6025493144989014
+      },
+      {
+        "name": "Drug",
+        "score": 0.492933988571167
+      },
+      {
+        "name": "Graph",
+        "score": 0.461118221282959
+      },
+      {
+        "name": "Ontology",
+        "score": 0.45045074820518494
+      },
+      {
+        "name": "Clinical trial",
+        "score": 0.4169737696647644
+      },
+      {
+        "name": "Machine learning",
+        "score": 0.4019619822502136
+      },
+      {
+        "name": "Medicine",
+        "score": 0.3943255543708801
+      },
+      {
+        "name": "Data mining",
+        "score": 0.38391217589378357
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://bmcmedinformdecismak.biomedcentral.com/counter/pdf/10.1186/s12911-021-01518-6",
+    "source": "BMC Medical Informatics and Decision Making",
+    "language": "en"
+  },
+  {
+    "id": "W4409459278",
+    "doi": "https://doi.org/10.1007/s43681-025-00710-y",
+    "title": "Implementing ethical principles in AI: an initial discussion",
+    "abstract": "Abstract In recent years, there has been a lot of discussion around ethics in IT and AI. Many researchers and organisations have proposed guidelines to address privacy, fairness, and explainability challenges for creating trustworthy AI. In this paper, we discuss ethical principles in the context of AI and their significance in developing trustworthy AI solutions. We consider the problem of the categorisation of ethical principles in IT. We concentrate our discussion on privacy, fairness, and explainability. These principles, we believe, meaningfully contribute to the trust of AI systems. We overview the available privacy regulations in the EU and US. We also look at how to achieve compliance with them, including private data detection, data anonymisation techniques and toolkits. From a practical perspective, we analyse fairness and bias problems. We discuss the issue of fairness assessment and metrics. To improve the fairness of AI solutions, an enormous number of techniques have been developed. We also focus on fairness improvement techniques and a few popular toolkits in which these techniques are implemented. Explainability is another ethical principle discussed. It is one of many socially important properties, as it ensures understanding of AI system decision-making and transparency in inspection. Ensuring explainability is important for high-risk applications in healthcare, finance and criminal justice. Finally, we outline approaches that help in the level of explainability. With this review and analysis, we contribute to the knowledge of available techniques and toolkits that can be used by AI practitioners as an initial step in implementing ethical principles into AI solutions.",
+    "publication_date": "2025-04-15",
+    "publication_year": 2025,
+    "type": "article",
+    "cited_by_count": 3,
+    "authors": [
+      {
+        "name": "Mykhailo Danilevskyi",
+        "orcid": null
+      },
+      {
+        "name": "Fernando Pérez-Téllez",
+        "orcid": "https://orcid.org/0000-0003-4978-2843"
+      },
+      {
+        "name": "Davide Buscaldi",
+        "orcid": null
+      }
+    ],
+    "affiliations": [
+      "Université Sorbonne Paris Nord",
+      "Technological University Dublin",
+      "Sorbonne Université"
+    ],
+    "concepts": [
+      {
+        "name": "Engineering ethics",
+        "score": 0.44400322437286377
+      },
+      {
+        "name": "Psychology",
+        "score": 0.40770643949508667
+      },
+      {
+        "name": "Political science",
+        "score": 0.32124394178390503
+      },
+      {
+        "name": "Engineering",
+        "score": 0.16983211040496826
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://link.springer.com/content/pdf/10.1007/s43681-025-00710-y.pdf",
+    "source": "AI and Ethics",
+    "language": "en"
+  },
+  {
+    "id": "W4283716294",
+    "doi": "https://doi.org/10.3233/shti220709",
+    "title": "Ethical Issues in the Utilization of Black Boxes for Artificial Intelligence in Medicine",
+    "abstract": "Artificial Intelligence (AI) has made major progress in recent years in many fields. With regard of medicine however, the utilization of AI raises numerous ethical questions, especially since newer and much more accurate algorithms function as black boxes. A trade-off must then be made between having algorithms being very accurate and effective, and algorithms that are explainable but less proficient. In this paper we address the ethical implications of utilizing black box algorithms in medicine.",
+    "publication_date": "2022-06-29",
+    "publication_year": 2022,
+    "type": "article",
+    "cited_by_count": 10,
+    "authors": [
+      {
+        "name": "Divà Beltramin",
+        "orcid": "https://orcid.org/0000-0001-8498-6150"
+      },
+      {
+        "name": "Eugénia Lamas",
+        "orcid": null
+      },
+      {
+        "name": "Cédric Bousquet",
+        "orcid": "https://orcid.org/0000-0001-9775-2476"
+      }
+    ],
+    "affiliations": [
+      "Santé Publique France",
+      "Université Sorbonne Paris Nord",
+      "Laboratoire d'Informatique Médicale et d'Ingénierie des Connaissances en e-Santé",
+      "Inserm",
+      "Centre Hospitalier Universitaire de Saint-Étienne",
+      "Sorbonne Université"
+    ],
+    "concepts": [
+      {
+        "name": "Black box",
+        "score": 0.5472237467765808
+      },
+      {
+        "name": "Ethical issues",
+        "score": 0.530432939529419
+      },
+      {
+        "name": "Computer science",
+        "score": 0.4583103358745575
+      },
+      {
+        "name": "Function (biology)",
+        "score": 0.44281014800071716
+      },
+      {
+        "name": "Artificial intelligence",
+        "score": 0.4163759648799896
+      },
+      {
+        "name": "Data science",
+        "score": 0.3234446048736572
+      },
+      {
+        "name": "Engineering ethics",
+        "score": 0.2969026565551758
+      },
+      {
+        "name": "Engineering",
+        "score": 0.19429552555084229
+      },
+      {
+        "name": "Biology",
+        "score": 0.09225517511367798
+      },
+      {
+        "name": "Evolutionary biology",
+        "score": 0.0
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://ebooks.iospress.nl/pdf/doi/10.3233/SHTI220709",
+    "source": "Studies in health technology and informatics",
+    "language": "en"
+  },
+  {
+    "id": "W2910890213",
+    "doi": "https://doi.org/10.1016/j.artmed.2019.01.001",
+    "title": "Explainable artificial intelligence for breast cancer: A visual case-based reasoning approach",
+    "abstract": "Case-Based Reasoning (CBR) is a form of analogical reasoning in which the solution for a (new) query case is determined using a database of previous known cases with their solutions. Cases similar to the query are retrieved from the database, and then their solutions are adapted to the query. In medicine, a case usually corresponds to a patient and the problem consists of classifying the patient in a class of diagnostic or therapy. Compared to \"black box\" algorithms such as deep learning, the responses of CBR systems can be justified easily using the similar cases as examples. However, this possibility is often under-exploited and the explanations provided by most CBR systems are limited to the display of the similar cases. In this paper, we propose a CBR method that can be both executed automatically as an algorithm and presented visually in a user interface for providing visual explanations or for visual reasoning. After retrieving similar cases, a visual interface displays quantitative and qualitative similarities between the query and the similar cases, so as one can easily classify the query through visual reasoning, in a fully explainable manner. It combines a quantitative approach (visualized by a scatter plot based on Multidimensional Scaling in polar coordinates, preserving distances involving the query) and a qualitative approach (set visualization using rainbow boxes). We applied this method to breast cancer management. We showed on three public datasets that our qualitative method has a classification accuracy comparable to k-Nearest Neighbors algorithms, but is better explainable. We also tested the proposed interface during a small user study. Finally, we apply the proposed approach to a real dataset in breast cancer. Medical experts found the visual approach interesting as it explains why cases are similar through the visualization of shared patient characteristics.",
+    "publication_date": "2019-01-14",
+    "publication_year": 2019,
+    "type": "article",
+    "cited_by_count": 291,
+    "authors": [
+      {
+        "name": "Jean-Baptiste Lamy",
+        "orcid": "https://orcid.org/0000-0002-5477-180X"
+      },
+      {
+        "name": "Boomadevi Sekar",
+        "orcid": null
+      },
+      {
+        "name": "Gilles Guézennec",
+        "orcid": null
+      },
+      {
+        "name": "Jacques Bouaud",
+        "orcid": null
+      },
+      {
+        "name": "Brigitte Séroussi",
+        "orcid": "https://orcid.org/0000-0002-7676-2832"
+      }
+    ],
+    "affiliations": [
+      "University of Ulster",
+      "Université Paris Cité",
+      "Assistance Publique – Hôpitaux de Paris",
+      "Université Sorbonne Paris Nord",
+      "Hôpital Tenon",
+      "Inserm",
+      "Laboratoire d'Informatique Médicale et d'Ingénierie des Connaissances en e-Santé",
+      "Sorbonne Université"
+    ],
+    "concepts": [
+      {
+        "name": "Computer science",
+        "score": 0.8299002051353455
+      },
+      {
+        "name": "Visualization",
+        "score": 0.5829360485076904
+      },
+      {
+        "name": "Artificial intelligence",
+        "score": 0.5658212900161743
+      },
+      {
+        "name": "Visual reasoning",
+        "score": 0.5445823669433594
+      },
+      {
+        "name": "Case-based reasoning",
+        "score": 0.5218031406402588
+      },
+      {
+        "name": "Set (abstract data type)",
+        "score": 0.5192227959632874
+      },
+      {
+        "name": "Class (philosophy)",
+        "score": 0.49135318398475647
+      },
+      {
+        "name": "Machine learning",
+        "score": 0.4536549150943756
+      },
+      {
+        "name": "Information retrieval",
+        "score": 0.4114410877227783
+      },
+      {
+        "name": "Data mining",
+        "score": 0.40089619159698486
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://www.sciencedirect.com/science/article/am/pii/S0933365718304846?via%3Dihub",
+    "source": "Artificial Intelligence in Medicine",
+    "language": "en"
+  },
+  {
+    "id": "W3213913630",
+    "doi": "https://doi.org/10.1007/978-3-030-88259-4_6",
+    "title": "Gaia-AgStream: An Explainable AI Platform for Mining Complex Data Streams in Agriculture",
+    "abstract": null,
+    "publication_date": "2021-01-01",
+    "publication_year": 2021,
+    "type": "book-chapter",
+    "cited_by_count": 10,
+    "authors": [
+      {
+        "name": "Jan Schoenke",
+        "orcid": null
+      },
+      {
+        "name": "Nils Aschenbruck",
+        "orcid": "https://orcid.org/0000-0002-5861-8896"
+      },
+      {
+        "name": "Roberto Interdonato",
+        "orcid": "https://orcid.org/0000-0002-0536-6277"
+      },
+      {
+        "name": "Rushed Kanawati",
+        "orcid": "https://orcid.org/0000-0002-0149-6197"
+      },
+      {
+        "name": "Ann-Christin Meisener",
+        "orcid": null
+      },
+      {
+        "name": "Francois Thierart",
+        "orcid": null
+      },
+      {
+        "name": "Guillaume Vial",
+        "orcid": null
+      },
+      {
+        "name": "Martin Atzmueller",
+        "orcid": "https://orcid.org/0000-0002-2480-6901"
+      }
+    ],
+    "affiliations": [
+      "Osnabrück University",
+      "Université Sorbonne Paris Nord",
+      "Centre de Coopération Internationale en Recherche Agronomique pour le Développement",
+      "Territoires, Environnement, Télédétection et Information Spatiale"
+    ],
+    "concepts": [
+      {
+        "name": "Interoperability",
+        "score": 0.631281852722168
+      },
+      {
+        "name": "Computer science",
+        "score": 0.5998413562774658
+      },
+      {
+        "name": "Data stream mining",
+        "score": 0.5581077933311462
+      },
+      {
+        "name": "Data science",
+        "score": 0.4440740644931793
+      },
+      {
+        "name": "Knowledge management",
+        "score": 0.37053030729293823
+      },
+      {
+        "name": "World Wide Web",
+        "score": 0.2947425842285156
+      },
+      {
+        "name": "Data mining",
+        "score": 0.11111986637115479
+      }
+    ],
+    "is_open_access": false,
+    "pdf_url": null,
+    "source": "Communications in computer and information science",
+    "language": "en"
+  },
+  {
+    "id": "W4386815402",
+    "doi": "https://doi.org/10.14428/esann/2023.es2023-37",
+    "title": "TabSRA: An Attention based Self-Explainable Model for Tabular Learning",
+    "abstract": "International audience",
+    "publication_date": "2023-01-01",
+    "publication_year": 2023,
+    "type": "article",
+    "cited_by_count": 2,
+    "authors": [
+      {
+        "name": "Kodjo Mawuena Amekoe",
+        "orcid": "https://orcid.org/0009-0008-5448-1168"
+      },
+      {
+        "name": "Mohamed Djallel Dilmi",
+        "orcid": null
+      },
+      {
+        "name": "Hanane Azzag",
+        "orcid": "https://orcid.org/0000-0001-6876-0688"
+      },
+      {
+        "name": "Zaineb Chelly Dagdia",
+        "orcid": "https://orcid.org/0000-0002-2551-6586"
+      },
+      {
+        "name": "Mustapha Lebbah",
+        "orcid": "https://orcid.org/0000-0001-7245-6371"
+      },
+      {
+        "name": "Grégoire Jaffre",
+        "orcid": null
+      }
+    ],
+    "affiliations": [
+      "Données et algorithmes pour une ville intelligente et durable",
+      "Université Sorbonne Paris Nord",
+      "Groupe SEB"
+    ],
+    "concepts": [
+      {
+        "name": "Computer science",
+        "score": 0.75458824634552
+      },
+      {
+        "name": "Artificial intelligence",
+        "score": 0.3996933400630951
+      },
+      {
+        "name": "Human–computer interaction",
+        "score": 0.3557974100112915
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://doi.org/10.14428/esann/2023.es2023-37",
+    "source": null,
+    "language": "en"
+  },
+  {
+    "id": "W4401822498",
+    "doi": "https://doi.org/10.3233/shti240544",
+    "title": "Exploring Explainable AI Techniques for Text Classification in Healthcare: A Scoping Review",
+    "abstract": "Text classification plays an essential role in the medical domain by organizing and categorizing vast amounts of textual data through machine learning (ML) and deep learning (DL). The adoption of Artificial Intelligence (AI) technologies in healthcare has raised concerns about the interpretability of AI models, often perceived as \"black boxes.\" Explainable AI (XAI) techniques aim to mitigate this issue by elucidating AI model decision-making process. In this paper, we present a scoping review exploring the application of different XAI techniques in medical text classification, identifying two main types: model-specific and model-agnostic methods. Despite some positive feedback from developers, formal evaluations with medical end users of these techniques remain limited. The review highlights the necessity for further research in XAI to enhance trust and transparency in AI-driven decision-making processes in healthcare.",
+    "publication_date": "2024-08-22",
+    "publication_year": 2024,
+    "type": "review",
+    "cited_by_count": 2,
+    "authors": [
+      {
+        "name": "Ibrahim Alaa eddine Madi",
+        "orcid": "https://orcid.org/0009-0000-4814-9726"
+      },
+      {
+        "name": "Akram Redjdal",
+        "orcid": "https://orcid.org/0000-0003-3141-5463"
+      },
+      {
+        "name": "Jacques Bouaud",
+        "orcid": null
+      },
+      {
+        "name": "Brigitte Séroussi",
+        "orcid": "https://orcid.org/0000-0002-7676-2832"
+      }
+    ],
+    "affiliations": [
+      "Agence Parisienne du Climat",
+      "Assistance Publique – Hôpitaux de Paris",
+      "Université Sorbonne Paris Nord",
+      "Hôpital Tenon",
+      "Inserm",
+      "Laboratoire d'Informatique Médicale et d'Ingénierie des Connaissances en e-Santé",
+      "Sorbonne Université"
+    ],
+    "concepts": [
+      {
+        "name": "Interpretability",
+        "score": 0.9125484228134155
+      },
+      {
+        "name": "Computer science",
+        "score": 0.6774473190307617
+      },
+      {
+        "name": "Transparency (behavior)",
+        "score": 0.6750053763389587
+      },
+      {
+        "name": "Artificial intelligence",
+        "score": 0.5898190140724182
+      },
+      {
+        "name": "Health care",
+        "score": 0.5550205111503601
+      },
+      {
+        "name": "Domain (mathematical analysis)",
+        "score": 0.5079334378242493
+      },
+      {
+        "name": "Process (computing)",
+        "score": 0.49535027146339417
+      },
+      {
+        "name": "Data science",
+        "score": 0.41869157552719116
+      },
+      {
+        "name": "Knowledge management",
+        "score": 0.3919319808483124
+      },
+      {
+        "name": "Political science",
+        "score": 0.06582164764404297
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://ebooks.iospress.nl/pdf/doi/10.3233/SHTI240544",
+    "source": "Studies in health technology and informatics",
+    "language": "en"
+  },
+  {
+    "id": "W7135090175",
+    "doi": "https://doi.org/10.5220/0014252000004052",
+    "title": "XDeepNN: An Explainable AI Framework for Identifying Adversarial Attacks",
+    "abstract": null,
+    "publication_date": "2026-01-01",
+    "publication_year": 2026,
+    "type": "article",
+    "cited_by_count": 0,
+    "authors": [
+      {
+        "name": "Negar Zarei",
+        "orcid": null
+      },
+      {
+        "name": "Juba Agoun",
+        "orcid": "https://orcid.org/0000-0003-4911-0617"
+      },
+      {
+        "name": "Louenas Bounia",
+        "orcid": null
+      }
+    ],
+    "affiliations": [
+      "University of Arizona",
+      "Laboratoire d'Informatique de Paris-Nord",
+      "Université Claude Bernard Lyon 1",
+      "Université Sorbonne Paris Nord",
+      "Université Lumière Lyon 2",
+      "Sorbonne Université",
+      "Centre National de la Recherche Scientifique"
+    ],
+    "concepts": [
+      {
+        "name": "Adversarial system",
+        "score": 0.5989000201225281
+      },
+      {
+        "name": "Computer science",
+        "score": 0.5896999835968018
+      },
+      {
+        "name": "Artificial intelligence",
+        "score": 0.39809998869895935
+      },
+      {
+        "name": "Identification (biology)",
+        "score": 0.3919999897480011
+      },
+      {
+        "name": "Computer security",
+        "score": 0.38019999861717224
+      },
+      {
+        "name": "Key (lock)",
+        "score": 0.34150001406669617
+      },
+      {
+        "name": "Feature (linguistics)",
+        "score": 0.2671000063419342
+      },
+      {
+        "name": "Context (archaeology)",
+        "score": 0.24650000035762787
+      },
+      {
+        "name": "Perspective (graphical)",
+        "score": 0.23579999804496765
+      },
+      {
+        "name": "Term (time)",
+        "score": 0.2354000061750412
+      }
+    ],
+    "is_open_access": false,
+    "pdf_url": null,
+    "source": null,
+    "language": null
+  },
+  {
+    "id": "W4286774193",
+    "doi": null,
+    "title": "Gaia-AgStream: An Explainable AI Platform for Mining Complex Data Streams in Agriculture",
+    "abstract": "International audience",
+    "publication_date": "2021-06-21",
+    "publication_year": 2021,
+    "type": "article",
+    "cited_by_count": 0,
+    "authors": [
+      {
+        "name": "Jan Schoenke",
+        "orcid": null
+      },
+      {
+        "name": "Nils Aschenbruck",
+        "orcid": "https://orcid.org/0000-0002-5861-8896"
+      },
+      {
+        "name": "Roberto Interdonato",
+        "orcid": "https://orcid.org/0000-0002-0536-6277"
+      },
+      {
+        "name": "Rushed Kanawati",
+        "orcid": "https://orcid.org/0000-0002-0149-6197"
+      },
+      {
+        "name": "Ann-Christin Meisener",
+        "orcid": null
+      },
+      {
+        "name": "Francois Thierart",
+        "orcid": null
+      },
+      {
+        "name": "Guillaume Vial",
+        "orcid": "https://orcid.org/0000-0003-2437-2370"
+      },
+      {
+        "name": "Martin Atzmueller",
+        "orcid": "https://orcid.org/0000-0002-2480-6901"
+      }
+    ],
+    "affiliations": [
+      "Osnabrück University",
+      "Université Sorbonne Paris Nord",
+      "Sorbonne Université",
+      "Territoires, Environnement, Télédétection et Information Spatiale",
+      "Laboratory of Fundamental and Applied Bioenergetics"
+    ],
+    "concepts": [
+      {
+        "name": "STREAMS",
+        "score": 0.7760506868362427
+      },
+      {
+        "name": "Data stream mining",
+        "score": 0.752224862575531
+      },
+      {
+        "name": "Computer science",
+        "score": 0.7087056040763855
+      },
+      {
+        "name": "Agriculture",
+        "score": 0.4763750731945038
+      },
+      {
+        "name": "Data mining",
+        "score": 0.3984549045562744
+      },
+      {
+        "name": "Data science",
+        "score": 0.38829880952835083
+      },
+      {
+        "name": "Operating system",
+        "score": 0.11122292280197144
+      },
+      {
+        "name": "Geography",
+        "score": 0.09031161665916443
+      },
+      {
+        "name": "Archaeology",
+        "score": 0.08836424350738525
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://hal.science/hal-03636208",
+    "source": "HAL (Le Centre pour la Communication Scientifique Directe)",
+    "language": "en"
+  },
+  {
+    "id": "W3011778563",
+    "doi": "https://doi.org/10.1016/j.jbi.2020.103407",
+    "title": "Explainable decision support through the learning and visualization of preferences from a formal ontology of antibiotic treatments",
+    "abstract": null,
+    "publication_date": "2020-03-08",
+    "publication_year": 2020,
+    "type": "article",
+    "cited_by_count": 26,
+    "authors": [
+      {
+        "name": "Jean-Baptiste Lamy",
+        "orcid": "https://orcid.org/0000-0002-5477-180X"
+      },
+      {
+        "name": "Karima Sedki",
+        "orcid": "https://orcid.org/0000-0002-2712-5431"
+      },
+      {
+        "name": "Rosy Tsopra",
+        "orcid": "https://orcid.org/0000-0002-9406-5547"
+      }
+    ],
+    "affiliations": [
+      "Laboratoire Traitement du Signal et de l'Image",
+      "Hôpital Européen Georges-Pompidou",
+      "Université Paris Cité",
+      "Assistance Publique – Hôpitaux de Paris",
+      "Université Sorbonne Paris Nord",
+      "Inserm",
+      "Laboratoire d'Informatique Médicale et d'Ingénierie des Connaissances en e-Santé",
+      "Sorbonne Université",
+      "Centre de Recherche des Cordeliers"
+    ],
+    "concepts": [
+      {
+        "name": "Computer science",
+        "score": 0.7197656035423279
+      },
+      {
+        "name": "Ontology",
+        "score": 0.7149674892425537
+      },
+      {
+        "name": "Visualization",
+        "score": 0.5790733695030212
+      },
+      {
+        "name": "Decision support system",
+        "score": 0.5386422276496887
+      },
+      {
+        "name": "Preference",
+        "score": 0.5203551650047302
+      },
+      {
+        "name": "Artificial intelligence",
+        "score": 0.5030929446220398
+      },
+      {
+        "name": "Clinical decision support system",
+        "score": 0.482523649930954
+      },
+      {
+        "name": "Machine learning",
+        "score": 0.479467511177063
+      },
+      {
+        "name": "Set (abstract data type)",
+        "score": 0.4692426025867462
+      },
+      {
+        "name": "Data mining",
+        "score": 0.3282894492149353
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://www.sciencedirect.com/science/article/am/pii/S1532046420300356?via%3Dihub",
+    "source": "Journal of Biomedical Informatics",
+    "language": "en"
+  },
+  {
+    "id": "W4281486759",
+    "doi": "https://doi.org/10.3233/shti220407",
+    "title": "Machine Learning in Medicine: To Explain, or Not to Explain, That Is the Question",
+    "abstract": "In 2022, the Medical Informatics Europe conference created a special topic called \"Challenges of trustable AI and added-value on health\" which was centered around the theme of eXplainable Artificial Intelligence. Unfortunately, two opposite views remain for biomedical applications of machine learning: accepting to use reliable but opaque models, vs. enforce models to be explainable. In this contribution we discuss these two opposite approaches and illustrate with examples the differences between them.",
+    "publication_date": "2022-05-25",
+    "publication_year": 2022,
+    "type": "article",
+    "cited_by_count": 1,
+    "authors": [
+      {
+        "name": "Cédric Bousquet",
+        "orcid": "https://orcid.org/0000-0001-9775-2476"
+      },
+      {
+        "name": "Divà Beltramin",
+        "orcid": "https://orcid.org/0000-0001-8498-6150"
+      }
+    ],
+    "affiliations": [
+      "Santé Publique France",
+      "Université Sorbonne Paris Nord",
+      "Inserm",
+      "Laboratoire d'Informatique Médicale et d'Ingénierie des Connaissances en e-Santé",
+      "Sorbonne Université"
+    ],
+    "concepts": [
+      {
+        "name": "Theme (computing)",
+        "score": 0.6790862083435059
+      },
+      {
+        "name": "Computer science",
+        "score": 0.6114030480384827
+      },
+      {
+        "name": "Health informatics",
+        "score": 0.5910221934318542
+      },
+      {
+        "name": "Artificial intelligence",
+        "score": 0.5449635982513428
+      },
+      {
+        "name": "Value (mathematics)",
+        "score": 0.5424273014068604
+      },
+      {
+        "name": "Informatics",
+        "score": 0.5411883592605591
+      },
+      {
+        "name": "Data science",
+        "score": 0.5003540515899658
+      },
+      {
+        "name": "Machine learning",
+        "score": 0.26564955711364746
+      },
+      {
+        "name": "Medicine",
+        "score": 0.17075636982917786
+      },
+      {
+        "name": "Engineering",
+        "score": 0.12077188491821289
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://ebooks.iospress.nl/pdf/doi/10.3233/SHTI220407",
+    "source": "Studies in health technology and informatics",
+    "language": "en"
+  },
+  {
+    "id": "W7134911876",
+    "doi": "https://doi.org/10.1109/icdmw69685.2025.00275",
+    "title": "Explainable Profiling of Sleep Disorders to Support Trustworthy Clinical Interventions",
+    "abstract": "Sleep disorders present significant diagnostic challenges due to symptom heterogeneity, profoundly impacting public health. To address this, we leverage real-world data from the KANOPEE mobile application-a validated digital tool for managing sleep complaints-to develop a trustworthy model for disorder detection and patient profiling using explainable artificial intelligence (XAI). Guided by clinical expertise, our analysis focuses on key variables including demographic characteristics, clinical assessment scores (e.g., Insomnia Severity Index, anxiety, and depression scores), and physiological metrics. Our dataset comprises approximately <tex xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">$1 k$</tex> complete patient records. Our dual methodological approach involves: (1) regression models to predict treatment success metrics, enabling the identification of modifiable behavioral factors influencing mental health and sleep outcomes; and (2) k-means clustering to segment patients into three or more distinct profiles, differentiating subtypes of sleepers (e.g., young professionals with mild insomnia and anxiety, older individuals with regular sleep and low depression, and middle-aged patients with high daytime sleepiness and irregular sleep patterns). XAI techniques, including SHAP and formal explanations, elucidate key drivers like sleep regularity and anxiety, validated against clinical thresholds and expert feedback from sleep specialists. This framework aligns algorithmic insights with medical reasoning, enhancing interpretability and supporting personalized interventions in digital sleep medicine. Future extensions will incorporate application completion rates for broader efficacy assessment.",
+    "publication_date": "2025-11-12",
+    "publication_year": 2025,
+    "type": "article",
+    "cited_by_count": 0,
+    "authors": [
+      {
+        "name": "Sifeddine Sellami",
+        "orcid": null
+      },
+      {
+        "name": "Juba Agoun",
+        "orcid": "https://orcid.org/0000-0003-4911-0617"
+      },
+      {
+        "name": "Lamia Yessad",
+        "orcid": null
+      },
+      {
+        "name": "Auday Berro",
+        "orcid": "https://orcid.org/0000-0003-2411-5761"
+      },
+      {
+        "name": "Louenas Bounia",
+        "orcid": null
+      }
+    ],
+    "affiliations": [
+      "Laboratoire d'Informatique de Paris-Nord",
+      "Université Claude Bernard Lyon 1",
+      "Université Lumière Lyon 2",
+      "Université Sorbonne Paris Nord",
+      "École Nationale Supérieure d'Informatique",
+      "Laboratoire d'Informatique en Images et Systèmes d'Information",
+      "Sorbonne Paris Cité",
+      "Centre National de la Recherche Scientifique"
+    ],
+    "concepts": [
+      {
+        "name": "Profiling (computer programming)",
+        "score": 0.7450000047683716
+      },
+      {
+        "name": "Trustworthiness",
+        "score": 0.566100001335144
+      },
+      {
+        "name": "Medicine",
+        "score": 0.5284000039100647
+      },
+      {
+        "name": "Psychological intervention",
+        "score": 0.5203999876976013
+      },
+      {
+        "name": "Sleep (system call)",
+        "score": 0.39980000257492065
+      },
+      {
+        "name": "Psychology",
+        "score": 0.3075999915599823
+      },
+      {
+        "name": "Psychiatry",
+        "score": 0.2867000102996826
+      },
+      {
+        "name": "Physical medicine and rehabilitation",
+        "score": 0.26989999413490295
+      },
+      {
+        "name": "MEDLINE",
+        "score": 0.26980000734329224
+      },
+      {
+        "name": "Computer science",
+        "score": 0.2556000053882599
+      }
+    ],
+    "is_open_access": false,
+    "pdf_url": null,
+    "source": null,
+    "language": null
+  },
+  {
+    "id": "W4415143672",
+    "doi": null,
+    "title": "Explainable Analysis of Patient Profiles with Sleep Disorders: Clustering Approach and Identification of Key Factors",
+    "abstract": "Sleep disorders have a major impact on patients, but their diagnosis remains complex due to the diversity of symptoms. Today, technological advances and the analysis of medical data offer new perspectives for better understanding them. In this work, we use real data from the KANOPEE application to analyze these disorders. Our objective is to better understand sleep disorders using artificial intelligence. In particular, eXplainable Artificial Intelligence (XAI), which aims to make AI decisions understandable and interpretable by users. We propose two methods: (1) a regression method to predict the average sleep duration, and (2) a method based on clustering to classify patients according to different disorder profiles. In both cases, an XAI approach is used to identify the key features influencing the target variable. A concrete application on anonymized real-world data demonstrates the relevance of our methods.",
+    "publication_date": "2025-08-11",
+    "publication_year": 2025,
+    "type": "preprint",
+    "cited_by_count": 0,
+    "authors": [
+      {
+        "name": "Sifeddine Sellami",
+        "orcid": null
+      },
+      {
+        "name": "Juba Agoun",
+        "orcid": "https://orcid.org/0000-0003-4911-0617"
+      },
+      {
+        "name": "Lamia Yessad",
+        "orcid": "https://orcid.org/0000-0001-5457-6425"
+      },
+      {
+        "name": "Auday Berro",
+        "orcid": "https://orcid.org/0000-0003-2411-5761"
+      },
+      {
+        "name": "Louenas Bounia",
+        "orcid": null
+      }
+    ],
+    "affiliations": [
+      "Laboratoire d'Informatique de Paris-Nord",
+      "Université Lumière Lyon 2",
+      "Université Sorbonne Paris Nord",
+      "École Nationale Supérieure d'Informatique",
+      "Laboratoire d'Informatique en Images et Systèmes d'Information",
+      "Sorbonne Université"
+    ],
+    "concepts": [
+      {
+        "name": "Cluster analysis",
+        "score": 0.7164999842643738
+      },
+      {
+        "name": "Identification (biology)",
+        "score": 0.654699981212616
+      },
+      {
+        "name": "Artificial intelligence",
+        "score": 0.6499999761581421
+      },
+      {
+        "name": "Computer science",
+        "score": 0.6263999938964844
+      },
+      {
+        "name": "Key (lock)",
+        "score": 0.6148999929428101
+      },
+      {
+        "name": "Relevance (law)",
+        "score": 0.5669999718666077
+      },
+      {
+        "name": "Machine learning",
+        "score": 0.5264999866485596
+      },
+      {
+        "name": "Sleep (system call)",
+        "score": 0.47110000252723694
+      },
+      {
+        "name": "Data mining",
+        "score": 0.4032999873161316
+      },
+      {
+        "name": "Sleep Stages",
+        "score": 0.32910001277923584
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://hal.science/hal-05177129",
+    "source": "SPIRE - Sciences Po Institutional REpository",
+    "language": "en"
+  },
+  {
+    "id": "W2517956294",
+    "doi": "https://doi.org/10.1016/j.artint.2016.09.005",
+    "title": "Distributed fair allocation of indivisible goods",
+    "abstract": null,
+    "publication_date": "2016-10-05",
+    "publication_year": 2016,
+    "type": "article",
+    "cited_by_count": 50,
+    "authors": [
+      {
+        "name": "Yann Chevaleyre",
+        "orcid": "https://orcid.org/0000-0002-6609-5562"
+      },
+      {
+        "name": "Ulle Endriss",
+        "orcid": "https://orcid.org/0000-0003-3709-4701"
+      },
+      {
+        "name": "Nicolas Maudet",
+        "orcid": "https://orcid.org/0000-0002-4232-069X"
+      }
+    ],
+    "affiliations": [
+      "Laboratoire d'Informatique de Paris-Nord",
+      "Laboratoire Jacques-Louis Lions",
+      "Université Paris Cité",
+      "Université Sorbonne Paris Nord",
+      "University of Amsterdam",
+      "Sorbonne Paris Cité",
+      "Sorbonne Université",
+      "Centre National de la Recherche Scientifique"
+    ],
+    "concepts": [
+      {
+        "name": "Fair division",
+        "score": 0.8380211591720581
+      },
+      {
+        "name": "Convergence (economics)",
+        "score": 0.6537244915962219
+      },
+      {
+        "name": "Computer science",
+        "score": 0.6414653062820435
+      },
+      {
+        "name": "Possession (linguistics)",
+        "score": 0.5877617001533508
+      },
+      {
+        "name": "Extension (predicate logic)",
+        "score": 0.5293161273002625
+      },
+      {
+        "name": "Context (archaeology)",
+        "score": 0.5116003155708313
+      },
+      {
+        "name": "Sequence (biology)",
+        "score": 0.4778035283088684
+      },
+      {
+        "name": "Mathematical economics",
+        "score": 0.47708114981651306
+      },
+      {
+        "name": "Graph",
+        "score": 0.44711747765541077
+      },
+      {
+        "name": "Degree (music)",
+        "score": 0.41971486806869507
+      }
+    ],
+    "is_open_access": true,
+    "pdf_url": "https://handle.uba.uva.nl/personal/pure/en/publications/distributed-fair-allocation-of-indivisible-goods(9ea54366-c101-46b8-9fb5-b3eb84aedbbd).html",
+    "source": "Artificial Intelligence",
+    "language": "en"
+  }
+]

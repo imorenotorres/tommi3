@@ -1,0 +1,27 @@
+{
+  "agent_id": "joint_degrees",
+  "agent_name": "Joint Programs",
+  "type": "rag",
+  "description": "Regional, national and European information about joint programs in HE",
+  "welcome_message": "Hello, I am Jopo, your AI Agent to help you develop Joint International Programmes",
+  "example_queries": [
+    "Make a concept note for a Joint Bachelor in Applied data science degree proposal. The participants will the UMA (leader), THUAS and USPN, and it will be open to other UNINOVIS partners",
+    "Which are the agreed Standards for Quality Assurance of Joint Programmes in the EHEA"
+  ],
+  "transparency_level": "crystal_box",
+  "prompt_level": "stringent",
+  "audit_log_enabled": true,
+  "_audit_log_comment": "Logs decision events to data/audit_log.jsonl for EU AI Act compliance.",
+  "reliability_green_max_llm": 20,
+  "reliability_red_min_llm": 50,
+  "_reliability_thresholds_comment": "LLM % thresholds for reliability badge colors. Green (High): LLM <= green_max_llm. Yellow (Good): LLM between green_max_llm and red_min_llm. Red (Poor): LLM >= red_min_llm.",
+  "inline_claim_highlights": {
+    "enabled": true,
+    "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
+    "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
+    "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
+    "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
+    "show_legend": true,
+    "_style_comment": "Green = metadata (structured data), Yellow = database (RAG documents), Blue = web search (external), Red = LLM interpretation"
+  }
+}

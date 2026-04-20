@@ -1,19 +1,37 @@
 # Virtual environment
 venv/
+.venv/
 
-# Environment variables
+# Environment variables (contain secrets)
 .env
 .env.*
 
-# Data files in agent folders (md, pdf, db)
-agents/*/data/*.md
+# Agent data files (large, generated, or sensitive)
 agents/*/data/*.pdf
 agents/*/data/*.db
-agents/*data/*.sql
+agents/*/data/*.sql
 agents/*/data/chroma_db/
+agents/*/data/audit_log*.jsonl
+agents/*/data/authorships_cache.json
+agents/*/data/docs/
 
+# Agent data JSON (large data files, NOT config)
+agents/*/data/papers.json
+agents/*/data/researchers.json
+agents/*/data/metadata.json
+agents/*/data/institution_ids.json
 
+# Agent logs
+agents/*/logs/
 
+# Web user data (contains credentials and personal data)
+web/data/users.json
+web/data/invites.json
+web/data/access_requests.json
+web/data/agent_visibility.json
+
+# Web logs
+web/logs/
 
 # macOS hidden files
 .DS_Store
@@ -33,6 +51,13 @@ __pycache__/
 *$py.class
 *.pyo
 
+# Scripts data (large compiled datasets)
+scripts/EH_Data_Compiled_wAI/
+scripts/data/
+
+# Old agents
+OldAgents/
+
 # Distribution / packaging
 dist/
 build/
@@ -43,11 +68,6 @@ build/
 
 # Log files
 *.log
-*.json
-agents/*/logs/
-
-# Web logs
-web/logs/
 
 # Database files (anywhere)
 *.db

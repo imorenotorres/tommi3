@@ -1,0 +1,15 @@
+{
+  "agent_id": "pisha3",
+  "agent_name": "Agoria DB assistant+",
+  "type": "text2sql",
+  "description": "Database assistant for university agreements",
+  "welcome_message": "Hi! I'm the Agoria DB assistant. How can I help you?",
+  "example_queries": [
+    "What agreements are there with The Hague University of Applied Sciences?",
+    "Which Dutch universities have agreements?",
+    "Are there any agreements with 'English B1' as language requirement?",
+    "Do we have agreements with the Netherlands?"
+  ],
+  "transparency_level": "crystal_box",
+  "prompt_level": "stringent"
+}
