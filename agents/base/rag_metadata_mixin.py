@@ -2654,8 +2654,53 @@ class MetadataRAGMixin:
                 pid, text
             )
 
-        # Annotate mismatched IDs inline with a simple warning
+        # Helper: find the best matching paper for nearby text, scored by
+        # number of 3-word title fragments + author surname matches.
+        def _best_match(nearby: str, exclude_pid: str = None):
+            best_id = None
+            best_score = 0
+            for cand_id, cand_info in paper_by_id.items():
+                if cand_id == exclude_pid:
+                    continue
+                score = 0
+                cand_title_lower = cand_info["title"].lower()
+                title_words = cand_title_lower.split()
+                if len(title_words) >= 3:
+                    for i in range(len(title_words) - 2):
+                        if " ".join(title_words[i:i + 3]) in nearby:
+                            score += 2  # each 3-word fragment match
+                elif cand_title_lower and cand_title_lower in nearby:
+                    score += 2
+                for name in cand_info["authors"]:
+                    parts = name.split()
+                    if parts:
+                        surname = parts[-1].lower()
+                        if len(surname) > 2 and surname in nearby:
+                            score += 1  # each author surname match
+                if score > best_score:
+                    best_score = score
+                    best_id = cand_id
+            return best_id if best_score > 0 else None
+
+        # Auto-correct mismatched IDs by finding the best paper from nearby text
+        still_mismatched = []
         for pid, real in mismatched_ids:
+            pid_pos = text.find(pid)
+            if pid_pos == -1:
+                still_mismatched.append((pid, real))
+                continue
+            before = text[max(0, pid_pos - 500):pid_pos].lower()
+            after = text[pid_pos + len(pid):pid_pos + len(pid) + 500].lower()
+            nearby = before + " " + after
+
+            corrected_id = _best_match(nearby, exclude_pid=pid)
+
+            if corrected_id:
+                text = text.replace(pid, corrected_id)
+            else:
+                still_mismatched.append((pid, real))
+
+        for pid, real in still_mismatched:
             annotation = (
                 f'{pid}\n'
                 f'  **⚠️ Warning:** the PDF link is not correct '
@@ -2663,7 +2708,25 @@ class MetadataRAGMixin:
             )
             text = text.replace(pid, annotation, 1)
 
+        # Try to auto-correct unknown IDs by matching nearby title/author text
+        still_unknown = []
         for pid in unknown_ids:
+            pid_pos = text.find(pid)
+            if pid_pos == -1:
+                still_unknown.append(pid)
+                continue
+            before = text[max(0, pid_pos - 500):pid_pos].lower()
+            after = text[pid_pos + len(pid):pid_pos + len(pid) + 500].lower()
+            nearby = before + " " + after
+
+            corrected = _best_match(nearby)
+
+            if corrected:
+                text = text.replace(pid, corrected)
+            else:
+                still_unknown.append(pid)
+
+        for pid in still_unknown:
             text = text.replace(pid, f'{pid} **(not in database)**', 1)
 
         # Summary note
@@ -2680,20 +2743,20 @@ class MetadataRAGMixin:
             )
             for t in unrecognised_titles:
                 note_lines.append(f'- "{t}"')
-        if mismatched_ids:
+        if still_mismatched:
             note_lines.append(
-                f"**{len(mismatched_ids)} PDF link(s) may be incorrect** "
+                f"**{len(still_mismatched)} PDF link(s) may be incorrect** "
                 f"(possible LLM hallucination)."
             )
-        if unknown_ids:
+        if still_unknown:
             note_lines.append(
-                f"**{len(unknown_ids)} paper ID(s) not found in the database:** "
-                + ", ".join(f"`{pid}`" for pid in unknown_ids)
+                f"**{len(still_unknown)} paper ID(s) not found in the database:** "
+                + ", ".join(f"`{pid}`" for pid in still_unknown)
             )
         if note_lines:
             text += "\n\n---\n⚠️ **Verification note:**\n" + "\n".join(note_lines)
 
-        total_hallucinations = len(unrecognised_titles) + len(mismatched_ids) + len(unknown_ids) + len(fake_pdf_ids)
+        total_hallucinations = len(unrecognised_titles) + len(still_mismatched) + len(still_unknown) + len(fake_pdf_ids)
         return text, total_hallucinations
 
     # ------------------------------------------------------------------
