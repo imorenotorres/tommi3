@@ -1035,8 +1035,40 @@ class MetadataRAGMixin:
         if not matches:
             return ""
 
+        # Build project lookup: search project_docs for researcher names
+        project_docs_dir = os.path.join(self._agent_dir, "data", "project_docs")
+        researcher_projects = {}  # name_lower -> list of project info dicts
+        if os.path.exists(project_docs_dir):
+            for fname in os.listdir(project_docs_dir):
+                if not fname.endswith('.md'):
+                    continue
+                fpath = os.path.join(project_docs_dir, fname)
+                try:
+                    with open(fpath, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    content_lower = content.lower()
+                    # Extract project title and grant ID
+                    title_match = re.search(r'^# (.+)', content)
+                    grant_match = re.search(r'\*\*Grant ID:\*\*\s*(\S+)', content)
+                    proj_title = title_match.group(1).strip() if title_match else fname
+                    grant_id = grant_match.group(1) if grant_match else ""
+                    # Check if any matched researcher appears in the project
+                    for m in matches:
+                        name_lower = m["name"].lower()
+                        # Match full name or surname in project participants
+                        surname = m["name"].split()[-1].lower() if m["name"].split() else ""
+                        if name_lower in content_lower or (len(surname) > 3 and surname in content_lower):
+                            if name_lower not in researcher_projects:
+                                researcher_projects[name_lower] = []
+                            researcher_projects[name_lower].append({
+                                "title": proj_title,
+                                "grant_id": grant_id,
+                            })
+                except Exception:
+                    pass
+
         lines = [f"RESEARCHER LOOKUP RESULTS ({len(matches)} match(es)):"]
-        lines.append("This data is authoritative. Use ONLY this information when answering about these researchers. Do NOT invent or reassign papers.")
+        lines.append("This data is authoritative. Use ONLY this information when answering about these researchers. Do NOT invent or reassign papers or projects.")
         for m in matches:
             status_tag = " [unconfirmed affiliation]" if m.get("affiliation_status") == "unconfirmed" else ""
             lines.append(f"\n{m['name']} -- {m['acronym']} ({m['university']}){status_tag}")
@@ -1045,6 +1077,14 @@ class MetadataRAGMixin:
                 year_str = f" ({p['year']})" if p.get("year") else ""
                 pdf = self._pdf_link(p.get("id", ""))
                 lines.append(f"    - \"{p['title']}\"{year_str}{pdf}")
+            # Add projects
+            name_lower = m["name"].lower()
+            projs = researcher_projects.get(name_lower, [])
+            if projs:
+                lines.append(f"  Research projects ({len(projs)}):")
+                for proj in projs:
+                    grant_str = f" (Grant: {proj['grant_id']})" if proj["grant_id"] else ""
+                    lines.append(f"    - \"{proj['title']}\"{grant_str}")
             if m["affiliations"]:
                 lines.append(f"  Affiliations: {', '.join(m['affiliations'][:5])}")
             if m["topics"]:
@@ -1154,6 +1194,8 @@ class MetadataRAGMixin:
         """Search all university paper JSON files for papers matching a topic.
 
         Matching strategy (in order of priority):
+        0. If the topic matches the agent's research_topic (the umbrella topic
+           covering all papers in the database), return ALL papers without filtering.
         1. Concept tag match: the full topic phrase appears in a concept name
            or the concept name appears in the topic (score >= min_score).
         2. Title/abstract match: the full topic phrase appears in the title or abstract.
@@ -1163,6 +1205,67 @@ class MetadataRAGMixin:
         Returns a dict: {acronym: {"name": ..., "country": ..., "lat": ..., "lon": ..., "count": N, "papers": [...]}}
         """
         topic_lower = topic.lower()
+
+        # If the topic matches the agent's umbrella research_topic, return all papers
+        # (all papers in the database are already on this topic by construction)
+        research_topic_raw = self._config.get("research_topic", "")
+        if research_topic_raw:
+            # Extract the core topic (before any parenthetical subtopic examples)
+            rt_full = research_topic_raw.lower()
+            rt_core = re.split(r'\(', rt_full)[0].strip().rstrip(',').strip()
+            # Build set of umbrella phrases from the CORE topic only
+            # e.g. "ai & responsibility" → "responsible ai", "ai responsibility", etc.
+            umbrella_phrases = {rt_core}
+            # Extract significant words from core (not "ai", "and", "&")
+            core_words = [w for w in re.split(r'\W+', rt_core) if w and len(w) > 3]
+            # Generate adjective/noun variants for each significant word
+            for w in core_words:
+                variants = {w}
+                if w.endswith("bility"):
+                    variants.add(w[:-6] + "ble")         # responsibility → responsible
+                elif w.endswith("ity"):
+                    variants.add(w[:-3] + "e")           # e.g. creativity → creative
+                elif w.endswith("ble"):
+                    variants.add(w[:-3] + "bility")      # responsible → responsibility
+                elif w.endswith("ness"):
+                    variants.add(w[:-4])                  # fairness → fair
+                elif w.endswith("tion"):
+                    variants.add(w[:-4] + "te")           # automation → automate
+                for v in list(variants):
+                    umbrella_phrases.add(f"ai {v}")
+                    umbrella_phrases.add(f"{v} ai")
+                    umbrella_phrases.add(f"ai & {v}")
+                    umbrella_phrases.add(f"ai and {v}")
+
+            is_umbrella = topic_lower in umbrella_phrases or any(
+                topic_lower == p or topic_lower in p or p in topic_lower
+                for p in umbrella_phrases if len(p) > 5
+            )
+            if is_umbrella:
+                # Return all papers — no filtering needed
+                output = {}
+                for acronym, papers in self._all_uni_papers.items():
+                    formatted_papers = []
+                    for paper in papers:
+                        formatted_papers.append({
+                            "id": paper.get("id", ""),
+                            "title": paper.get("title", ""),
+                            "authors": [a.get("name", "") for a in paper.get("authors", [])],
+                            "year": paper.get("publication_year"),
+                            "doi": paper.get("doi", ""),
+                            "cited_by_count": paper.get("cited_by_count", 0),
+                        })
+                    coords = self.UNIVERSITY_COORDS.get(acronym, {})
+                    output[acronym] = {
+                        "name": coords.get("name", acronym),
+                        "country": coords.get("country", ""),
+                        "lat": coords.get("lat", 0),
+                        "lon": coords.get("lon", 0),
+                        "count": len(formatted_papers),
+                        "papers": formatted_papers,
+                    }
+                return output
+
         stop_words = {"the", "a", "an", "in", "on", "of", "and", "or", "for", "to", "is", "are", "was", "were", "by", "with", "from", "at", "as"}
         topic_words = [w for w in re.split(r'\W+', topic_lower) if w and w not in stop_words and len(w) > 2]
 
@@ -2382,6 +2485,28 @@ class MetadataRAGMixin:
                     known_titles.add(t_lower)
                     if t_lower not in title_to_info:
                         title_to_info[t_lower] = info
+
+        # Also register project titles from project_docs/ directory
+        project_docs_dir = os.path.join(self._agent_dir, "data", "project_docs")
+        if os.path.exists(project_docs_dir):
+            for fname in os.listdir(project_docs_dir):
+                if not fname.endswith('.md'):
+                    continue
+                fpath = os.path.join(project_docs_dir, fname)
+                try:
+                    with open(fpath, 'r', encoding='utf-8') as f:
+                        first_line = f.readline().strip()
+                    # Title format: "# ShortName: Full Project Title"
+                    if first_line.startswith('# '):
+                        project_title = first_line[2:].strip()
+                        known_titles.add(project_title.lower())
+                        # Also add the part after the colon (the descriptive title)
+                        if ':' in project_title:
+                            desc_title = project_title.split(':', 1)[1].strip()
+                            if len(desc_title) > 10:
+                                known_titles.add(desc_title.lower())
+                except Exception:
+                    pass
 
         # --- Pass 1: Title verification ---
         # Extract paper titles from the response.  Paper titles appear in

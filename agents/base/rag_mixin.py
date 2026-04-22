@@ -33,6 +33,10 @@ class SimpleRAGMixin:
 
         llm_content = response.choices[0].message.content
 
+        # Post-process: convert PDF filename mentions into clickable links
+        if hasattr(self, '_linkify_pdf_sources'):
+            llm_content = self._linkify_pdf_sources(llm_content)
+
         # Compute reliability badge
         badge, breakdown, reliability_label = ReliabilityBadge.compute_badge_and_breakdown(
             llm_content, context,
@@ -104,6 +108,13 @@ class SimpleRAGMixin:
             if chunk.data.choices[0].delta.content:
                 full_response += chunk.data.choices[0].delta.content
                 yield chunk.data.choices[0].delta.content
+
+        # Post-process: convert PDF filename mentions into clickable links
+        if hasattr(self, '_linkify_pdf_sources'):
+            linkified = self._linkify_pdf_sources(full_response)
+            if linkified != full_response:
+                full_response = linkified
+                yield ("replace", full_response)
 
         # Deferred reliability badge + inline highlights
         badge, breakdown, reliability_label = ReliabilityBadge.compute_badge_and_breakdown(

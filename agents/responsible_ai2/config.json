@@ -34,7 +34,7 @@
   },
   "gap_analysis_examples": "algorithmic auditing, AI safety, data sovereignty, human-AI interaction, AI and disability, AI and environmental impact, AI red-teaming, adversarial robustness, AI supply chain ethics",
   "prompt_level": "stringent",
-  "transparency_level": "crystal_box",
+  "transparency_level": "grey_box",
   "_transparency_level_comment": "crystal_box = full detail (badge, breakdown, confidence, sources, legend, inline highlights). grey_box = minimal (badge level + confidence only, no inline highlights). black_box = no transparency shown to users (audit log still active).",
   "audit_log_enabled": true,
   "_audit_log_comment": "Logs decision events to data/audit_log.jsonl for EU AI Act compliance. Each query records: timestamp, query, source type, breakdown, confidence, query type, context sources used.",

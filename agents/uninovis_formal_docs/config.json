@@ -1,0 +1,26 @@
+{
+  "agent_id": "uninovis_formal_docs",
+  "agent_name": "Uninovis Formal Docs",
+  "type": "rag",
+  "description": "This agent can provide information about UNINIOVIS governance documents",
+  "welcome_message": "Hello! I'm Uninovis Formal Docs. How can I help you?",
+  "example_queries": [
+    "Describe the Governance bodies of UNINOVIS",
+    "Who owns the results in UNINOVIS?",
+    "How is the chair of the Board of Presidents decided?"
+  ],
+  "transparency_level": "crystal_box",
+  "prompt_level": "stringent",
+  "audit_log_enabled": true,
+  "reliability_green_max_llm": 20,
+  "reliability_red_min_llm": 50,
+  "inline_claim_highlights": {
+    "enabled": true,
+    "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
+    "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
+    "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
+    "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
+    "show_legend": true,
+    "_style_comment": "Green = metadata, Yellow = database (RAG), Blue = web search, Red = LLM interpretation"
+  }
+}

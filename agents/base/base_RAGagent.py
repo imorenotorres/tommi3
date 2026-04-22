@@ -480,6 +480,40 @@ class BaseRAGAgent:
 
         return "\n\n---\n\n".join(context_parts)
 
+    def _linkify_pdf_sources(self, text: str) -> str:
+        """Post-process LLM response to convert PDF filename mentions into
+        clickable download links.
+
+        Detects patterns like 'source: filename.pdf' or 'filename.pdf, pp. X'
+        and converts the filename into a Markdown link to the PDF endpoint.
+        Only links filenames that actually exist in data/docs/.
+        """
+        agent_id = self._config.get("agent_id", "")
+        if not agent_id:
+            return text
+
+        docs_path = os.path.join(self._agent_dir, "data", "docs")
+        if not os.path.exists(docs_path):
+            return text
+
+        # Build set of actual PDF filenames
+        pdf_files = {f for f in os.listdir(docs_path) if f.endswith('.pdf')}
+        if not pdf_files:
+            return text
+
+        # Replace each mention of a known PDF filename with a clickable link
+        # Skip if already inside a markdown link
+        for filename in pdf_files:
+            if filename not in text:
+                continue
+            # Skip if this filename is already part of a markdown link
+            if f"/pdf/{filename})" in text or f"[{filename}](" in text:
+                continue
+            link = f"[{filename}](/api/agents/{agent_id}/pdf/{filename})"
+            text = text.replace(filename, link)
+
+        return text
+
     # ------------------------------------------------------------------
     # Query helpers
     # ------------------------------------------------------------------

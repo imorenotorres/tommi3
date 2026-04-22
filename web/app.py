@@ -123,7 +123,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
         # Only protect /api/ routes (not static files, HTML pages, etc.)
-        if path.startswith("/api/") and path not in self.PUBLIC_PATHS:
+        # PDF endpoints are public (academic documents, not personal data)
+        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
                 token = request.query_params.get("token", "")

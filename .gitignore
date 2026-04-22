@@ -16,10 +16,10 @@ agents/*/data/authorships_cache.json
 agents/*/data/docs/
 
 # Agent data JSON (large data files, NOT config)
-agents/*/data/papers.json
-agents/*/data/researchers.json
-agents/*/data/metadata.json
-agents/*/data/institution_ids.json
+#agents/*/data/papers.json
+#agents/*/data/researchers.json
+#agents/*/data/metadata.json
+#agents/*/data/institution_ids.json
 
 # Agent logs
 agents/*/logs/

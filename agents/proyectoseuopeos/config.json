@@ -12,7 +12,7 @@
     "List calls targetting European University Alliances in 2026"
   ],
   "prompt_level": "stringent",
-  "transparency_level": "crystal_box",
+  "transparency_level": "grey_box",
   "audit_log_enabled": true,
   "reliability_green_max_llm": 20,
   "reliability_red_min_llm": 50,
