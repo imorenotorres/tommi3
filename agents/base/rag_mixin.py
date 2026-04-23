@@ -5,8 +5,13 @@ from .badges import ReliabilityBadge, AuditLogger
 class SimpleRAGMixin:
     """Mixin providing chat() and chat_stream() for simple RAG agents."""
 
-    def chat(self, user_message: str, history: list = None) -> str:
+    def chat(self, user_message: str, history: list = None, **kwargs) -> str:
         """Send a message with RAG context and return the response."""
+        # Use per-request overrides or fall back to instance defaults
+        transparency = kwargs.get('transparency_override') or self._transparency
+        model = kwargs.get('model_override') or self.model
+        prompt_level = kwargs.get('prompt_level_override') or self._prompt_level
+
         # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
             self._init_chromadb()
@@ -27,7 +32,7 @@ class SimpleRAGMixin:
         messages.append({"role": "user", "content": user_message})
 
         response = self.client.chat.complete(
-            model=self.model,
+            model=model,
             messages=messages
         )
 
@@ -40,12 +45,12 @@ class SimpleRAGMixin:
         # Compute reliability badge
         badge, breakdown, reliability_label = ReliabilityBadge.compute_badge_and_breakdown(
             llm_content, context,
-            transparency=self._transparency,
+            transparency=transparency,
             green_max=self._reliability_green_max_llm,
             red_min=self._reliability_red_min_llm,
             highlight_config=self._config.get("inline_claim_highlights"),
             is_not_found=self._is_not_found_response(llm_content),
-            prompt_level=self._prompt_level,
+            prompt_level=prompt_level,
             model_name=self.model_display_name,
             is_local_llm=self._is_local_llm,
         )
@@ -61,8 +66,8 @@ class SimpleRAGMixin:
             query_type="followup" if is_followup else "normal",
             breakdown=breakdown,
             reliability_label=reliability_label,
-            transparency=self._transparency,
-            prompt_level=self._prompt_level,
+            transparency=transparency,
+            prompt_level=prompt_level,
             model_name=self.model_display_name,
             is_local_llm=self._is_local_llm,
         )
@@ -76,6 +81,11 @@ class SimpleRAGMixin:
 
     async def chat_stream(self, user_message: str, history: list = None, **kwargs):
         """Send a message with RAG context and stream the response."""
+        # Use per-request overrides or fall back to instance defaults
+        transparency = kwargs.get('transparency_override') or self._transparency
+        model = kwargs.get('model_override') or self.model
+        prompt_level = kwargs.get('prompt_level_override') or self._prompt_level
+
         # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
             yield ("status", "Creating ChromaDB for the agent...")
@@ -102,7 +112,7 @@ class SimpleRAGMixin:
         # Stream response
         full_response = ""
         async for chunk in await self.client.chat.stream_async(
-            model=self.model,
+            model=model,
             messages=messages
         ):
             if chunk.data.choices[0].delta.content:
@@ -119,12 +129,12 @@ class SimpleRAGMixin:
         # Deferred reliability badge + inline highlights
         badge, breakdown, reliability_label = ReliabilityBadge.compute_badge_and_breakdown(
             full_response, context,
-            transparency=self._transparency,
+            transparency=transparency,
             green_max=self._reliability_green_max_llm,
             red_min=self._reliability_red_min_llm,
             highlight_config=self._config.get("inline_claim_highlights"),
             is_not_found=self._is_not_found_response(full_response),
-            prompt_level=self._prompt_level,
+            prompt_level=prompt_level,
             model_name=self.model_display_name,
             is_local_llm=self._is_local_llm,
         )
@@ -132,7 +142,7 @@ class SimpleRAGMixin:
             yield ("badge", badge)
 
         # Send claim highlights (development only)
-        if self._transparency == "crystal_box":
+        if transparency == "crystal_box":
             import json
             highlight_cfg = self._config.get("inline_claim_highlights", {})
             if highlight_cfg.get("enabled", False) and breakdown.get("total_claims", 0) > 0:
@@ -153,8 +163,8 @@ class SimpleRAGMixin:
             query_type="followup" if is_followup else "normal",
             breakdown=breakdown,
             reliability_label=reliability_label,
-            transparency=self._transparency,
-            prompt_level=self._prompt_level,
+            transparency=transparency,
+            prompt_level=prompt_level,
             model_name=self.model_display_name,
             is_local_llm=self._is_local_llm,
         )

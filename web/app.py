@@ -51,15 +51,23 @@ ENABLE_LOGGING = os.getenv("ENABLE_LOGGING", "true").lower() in ("true", "1", "y
 LOGS_DIR = Path(__file__).parent / "logs"
 LOGS_DIR.mkdir(exist_ok=True)
 
-if ENABLE_LOGGING:
-    conversation_logger = logging.getLogger("conversations")
-    conversation_logger.setLevel(logging.INFO)
-    # Legacy shared log (kept for backwards compatibility)
-    handler = logging.FileHandler(LOGS_DIR / "conversations.log", encoding="utf-8")
-    handler.setFormatter(logging.Formatter("%(message)s"))
-    conversation_logger.addHandler(handler)
-else:
-    conversation_logger = None
+# Per-agent conversation loggers (one .log file per agent, created on demand)
+_agent_loggers: dict = {}
+
+
+def _get_agent_logger(agent_id: str) -> logging.Logger:
+    """Return (or create) a per-agent conversation logger."""
+    if agent_id not in _agent_loggers:
+        logger = logging.getLogger(f"conversations.{agent_id}")
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+        handler = logging.FileHandler(
+            LOGS_DIR / f"{agent_id}_conversations.log", encoding="utf-8"
+        )
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logger.addHandler(handler)
+        _agent_loggers[agent_id] = logger
+    return _agent_loggers[agent_id]
 
 
 def log_conversation(
@@ -73,8 +81,8 @@ def log_conversation(
     username: str = None,
 ):
     """Registra una conversación en el log (si está habilitado).
-    Writes to both the shared log and a per-agent JSONL file."""
-    if not ENABLE_LOGGING or conversation_logger is None:
+    Writes a per-agent .log file and a per-agent .jsonl file."""
+    if not ENABLE_LOGGING:
         return
 
     # Pseudonymize username for privacy (same method as AuditLogger)
@@ -100,8 +108,15 @@ def log_conversation(
         "question": question,
         "response": response[:500] + "..." if len(response) > 500 else response
     }
-    conversation_logger.info(json.dumps(entry, ensure_ascii=False, indent=2) + "\n")
-    # Per-agent conversation log
+
+    # Per-agent .log (human-readable, pretty-printed)
+    try:
+        _get_agent_logger(agent_id).info(
+            json.dumps(entry, ensure_ascii=False, indent=2) + "\n"
+        )
+    except Exception:
+        pass
+    # Per-agent .jsonl (machine-readable, one line per entry)
     try:
         agent_log = LOGS_DIR / f"{agent_id}_conversations.jsonl"
         with open(agent_log, "a", encoding="utf-8") as f:
@@ -1732,13 +1747,21 @@ async def reset_agent_logs(agent_id: str, session: dict = Depends(require_role("
     archived = []
 
     # Feedback logs in web/logs/
-    for suffix in ["_feedback_tester.jsonl", "_feedback_user.jsonl", "_conversations.jsonl"]:
+    for suffix in ["_feedback_tester.jsonl", "_feedback_user.jsonl", "_conversations.jsonl", "_conversations.log"]:
         log_path = LOGS_DIR / f"{agent_id}{suffix}"
         if log_path.exists() and log_path.stat().st_size > 0:
-            archive_name = f"{agent_id}{suffix.replace('.jsonl', '')}_{timestamp}.jsonl"
+            ext = suffix.rsplit('.', 1)[-1]
+            archive_name = f"{agent_id}{suffix.rsplit('.', 1)[0]}_{timestamp}.{ext}"
             archive_path = LOGS_DIR / archive_name
             log_path.rename(archive_path)
             archived.append(archive_name)
+
+    # Reset cached logger so a new file handler is created for the fresh log
+    if agent_id in _agent_loggers:
+        logger = _agent_loggers.pop(agent_id)
+        for h in logger.handlers[:]:
+            h.close()
+            logger.removeHandler(h)
 
     # Audit log in agents/{agent_id}/data/
     agent_info = runner.get_agent(agent_id)

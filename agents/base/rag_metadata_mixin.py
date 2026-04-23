@@ -1394,7 +1394,7 @@ class MetadataRAGMixin:
         """Check if a keyword appears in text, also trying abbreviation expansions."""
         if word in text:
             return True
-        expansion = RAGMetadataMixin._KEYWORD_EXPANSIONS.get(word)
+        expansion = MetadataRAGMixin._KEYWORD_EXPANSIONS.get(word)
         if expansion and expansion in text:
             return True
         return False
@@ -1402,7 +1402,7 @@ class MetadataRAGMixin:
     @staticmethod
     def _all_keywords_in_text(topic_words, text):
         """Check if ALL keywords appear in text (with abbreviation expansion)."""
-        return all(RAGMetadataMixin._keyword_in_text(w, text) for w in topic_words)
+        return all(MetadataRAGMixin._keyword_in_text(w, text) for w in topic_words)
 
     @staticmethod
     def _match_paper_keywords(paper, topic_lower, min_score=0.3, topic_words=None):
@@ -1420,7 +1420,7 @@ class MetadataRAGMixin:
         if not topic_words:
             return False
 
-        _kw = RAGMetadataMixin._all_keywords_in_text
+        _kw = MetadataRAGMixin._all_keywords_in_text
 
         # 1. All keywords in a single concept → strong match
         for concept in paper.get("concepts", []):
@@ -1445,11 +1445,21 @@ class MetadataRAGMixin:
         if _kw(topic_words, combined):
             return True
 
-        # 4. Keywords in title + abstract (weaker match — paper is included
-        #    but flagged as not a strong topic match for researcher filtering)
-        abstract = (paper.get("abstract") or "").lower()
-        if _kw(topic_words, title + " " + abstract):
-            return True
+        # 4. Keywords in title/concepts + abstract (weaker match — paper is
+        #    included but flagged as not a strong topic match for researcher
+        #    filtering).  Only for topics with 3+ keywords, and only when
+        #    at least half the keywords already appear in title/concepts.
+        #    Disabled for short topics (≤2 keywords) because common words
+        #    like "AI" trivially anchor, causing false positives from
+        #    incidental abstract mentions (e.g. "ethics committee approval"
+        #    matching an "AI ethics" query).
+        if len(topic_words) >= 3:
+            anchor_text = title + " " + concept_text
+            anchor_hits = sum(1 for w in topic_words if MetadataRAGMixin._keyword_in_text(w, anchor_text))
+            if anchor_hits >= len(topic_words) / 2 and anchor_hits < len(topic_words):
+                abstract = (paper.get("abstract") or "").lower()
+                if _kw(topic_words, anchor_text + " " + abstract):
+                    return True
 
         return False
 
@@ -2848,6 +2858,11 @@ class MetadataRAGMixin:
 
     def chat(self, user_message: str, history: list = None, username: str = None, **kwargs) -> str:
         """Send a message with RAG+Metadata context and return the response."""
+        # Use per-request overrides or fall back to instance defaults
+        transparency = kwargs.get('transparency_override') or self._transparency
+        model = kwargs.get('model_override') or self.model
+        prompt_level = kwargs.get('prompt_level_override') or self._prompt_level
+
         # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
             self._init_chromadb()
@@ -2950,7 +2965,7 @@ class MetadataRAGMixin:
         messages.append({"role": "user", "content": effective_message})
 
         response = self.client.chat.complete(
-            model=self.model,
+            model=model,
             messages=messages,
             max_tokens=16384,
         )
@@ -2964,7 +2979,7 @@ class MetadataRAGMixin:
             project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
             metadata_ctx, context, web_ctx
         ]))
-        llm_content, hallucination_count = self._verify_paper_references(llm_content, combined_ctx, self._transparency)
+        llm_content, hallucination_count = self._verify_paper_references(llm_content, combined_ctx, transparency)
 
         # Compute grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
@@ -2980,9 +2995,9 @@ class MetadataRAGMixin:
                                 "metadata_claims": [], "database_claims": [], "web_claims": [], "llm_claims": []}
             badge = ReliabilityBadge.source_badge(
                 "Metadata", figure_breakdown,
-                transparency=self._transparency,
+                transparency=transparency,
                 highlight_config=highlight_cfg,
-                prompt_level=self._prompt_level,
+                prompt_level=prompt_level,
                 model_name=self.model_display_name,
                 is_local_llm=self._is_local_llm,
             )
@@ -2992,14 +3007,14 @@ class MetadataRAGMixin:
                 llm_content, context,
                 metadata_ctx=structured_ctx,
                 web_ctx=web_ctx,
-                transparency=self._transparency,
+                transparency=transparency,
                 green_max=self._reliability_green_max_llm,
                 red_min=self._reliability_red_min_llm,
                 highlight_config=highlight_cfg,
                 university_acronyms=university_acronyms,
                 is_gap_analysis=is_gap_analysis,
                 is_not_found=self._is_not_found_response(llm_content),
-                prompt_level=self._prompt_level,
+                prompt_level=prompt_level,
                 model_name=self.model_display_name,
                 is_local_llm=self._is_local_llm,
                 hallucination_count=hallucination_count,
@@ -3046,8 +3061,8 @@ class MetadataRAGMixin:
             query_type=query_type,
             breakdown=breakdown,
             reliability_label=reliability_label or "none",
-            transparency=self._transparency,
-            prompt_level=self._prompt_level,
+            transparency=transparency,
+            prompt_level=prompt_level,
             source_type=source_type or "none",
             context_sources=ctx_sources,
             username=username,
@@ -3062,6 +3077,11 @@ class MetadataRAGMixin:
 
     async def chat_stream(self, user_message: str, history: list = None, username: str = None, study_info: dict = None, **kwargs):
         """Send a message with RAG+Metadata context and stream the response."""
+        # Use per-request overrides or fall back to instance defaults
+        transparency = kwargs.get('transparency_override') or self._transparency
+        model = kwargs.get('model_override') or self.model
+        prompt_level = kwargs.get('prompt_level_override') or self._prompt_level
+
         # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
             yield ("status", "Creating ChromaDB for the agent...")
@@ -3170,7 +3190,7 @@ class MetadataRAGMixin:
         # Stream response -- badges deferred until full response is collected
         full_response = ""
         async for chunk in await self.client.chat.stream_async(
-            model=self.model,
+            model=model,
             messages=messages,
             max_tokens=16384,
         ):
@@ -3190,7 +3210,7 @@ class MetadataRAGMixin:
             project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
             metadata_ctx, context, web_ctx
         ]))
-        verified, hallucination_count = self._verify_paper_references(full_response, combined_ctx, self._transparency)
+        verified, hallucination_count = self._verify_paper_references(full_response, combined_ctx, transparency)
         if verified != full_response:
             full_response = verified
             yield ("replace", verified)
@@ -3209,9 +3229,9 @@ class MetadataRAGMixin:
                                 "metadata_claims": [], "database_claims": [], "web_claims": [], "llm_claims": []}
             yield ("badge", ReliabilityBadge.source_badge(
                 "Metadata", figure_breakdown,
-                transparency=self._transparency,
+                transparency=transparency,
                 highlight_config=highlight_cfg,
-                prompt_level=self._prompt_level,
+                prompt_level=prompt_level,
                 model_name=self.model_display_name,
                 is_local_llm=self._is_local_llm,
             ))
@@ -3221,14 +3241,14 @@ class MetadataRAGMixin:
                 full_response, context,
                 metadata_ctx=structured_ctx,
                 web_ctx=web_ctx,
-                transparency=self._transparency,
+                transparency=transparency,
                 green_max=self._reliability_green_max_llm,
                 red_min=self._reliability_red_min_llm,
                 highlight_config=highlight_cfg,
                 university_acronyms=university_acronyms,
                 is_gap_analysis=is_gap_analysis,
                 is_not_found=self._is_not_found_response(full_response),
-                prompt_level=self._prompt_level,
+                prompt_level=prompt_level,
                 model_name=self.model_display_name,
                 is_local_llm=self._is_local_llm,
                 hallucination_count=hallucination_count,
@@ -3249,7 +3269,7 @@ class MetadataRAGMixin:
             yield offer_text
 
         # Send claim highlights (development only)
-        if self._transparency == "crystal_box":
+        if transparency == "crystal_box":
             highlight_cfg_obj = self._config.get("inline_claim_highlights", {})
             if (highlight_cfg_obj.get("enabled", False)
                     and breakdown.get("total_claims", 0) > 0):
@@ -3295,8 +3315,8 @@ class MetadataRAGMixin:
             query_type=query_type,
             breakdown=breakdown,
             reliability_label=reliability_label or "none",
-            transparency=self._transparency,
-            prompt_level=self._prompt_level,
+            transparency=transparency,
+            prompt_level=prompt_level,
             source_type=source_type or "none",
             context_sources=ctx_sources,
             username=username,
@@ -3312,7 +3332,7 @@ class MetadataRAGMixin:
                 study_condition=study_info.get("study_condition", ""),
                 query_number=study_info.get("query_number", 0),
                 query_text=user_message,
-                transparency_level=self._transparency,
+                transparency_level=transparency,
                 confidence=breakdown.get("confidence") if breakdown else None,
                 reliability_label=reliability_label,
                 breakdown=breakdown,
