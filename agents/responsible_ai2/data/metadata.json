@@ -18003,7 +18003,7 @@
           "title": "Probabilistic Combination of Non-Linear Eigenprojections For Ensemble Classification",
           "abstract": "The emergence of new technologies has changed the way clinicians perform diagnosis. Medical imaging play a crucial role in this process, given the amount of information that they usually provide as non-invasive techniques. Despite the high quality offered by these images and the expertise of clinicians, the diagnostic process is not a straightforward task since different pathologies can have similar signs and symptoms. For this reason, it is extremely useful to assist this process with the inclusion of an automatic tool that reduces the bias when analyzing this kind of images. In this work, we propose an ensemble classifier based on probabilistic Support Vector Machine (SVM) in order to identify relevant patterns while providing information about the reliability of the classification. Specifically, each image is divided into patches and features contained in each one of them are extracted by applying kernel principal component analysis (PCA). The use of base classifiers within an ensemble allows our system to identify the informative patterns regardless of their size or location. Decisions of each individual patch are then combined according to the reliability of each individual classification: the lower the uncertainty, the higher the contribution. Performance is evaluated in a real scenario where distinguishing between pneumonia patients and controls from chest Computed Tomography (CCT) images, yielding an accuracy of 97.86%. The large performance obtained and the simplicity of the system (use of deep learning in CCT images would highly increase the computational cost) evidence the applicability of our proposal in a real-world environment.",
           "publication_date": "2022-10-10",
-          "publication_year": 2022,
+          "publication_year": 2023,
           "type": "article",
           "cited_by_count": 5,
           "authors": [
@@ -20587,7 +20587,7 @@
           "title": "Using Explainable Artificial Intelligence in the Clock Drawing Test to Reveal the Cognitive Impairment Pattern",
           "abstract": "",
           "publication_date": "2023-01-06",
-          "publication_year": 2023,
+          "publication_year": 2021,
           "type": "article",
           "cited_by_count": 28,
           "authors": [
@@ -20775,97 +20775,6 @@
             }
           ],
           "pdf_url": "https://digibug.ugr.es/bitstream/10481/85836/1/preprint.pdf"
-        },
-        {
-          "id": "W4319265436",
-          "doi": "https://doi.org/10.1016/j.compbiomed.2023.106613",
-          "title": "Ensemble-based genetic algorithm explainer with automized image segmentation: A case study on melanoma detection dataset",
-          "abstract": "",
-          "publication_date": "2023-02-05",
-          "publication_year": 2023,
-          "type": "article",
-          "cited_by_count": 29,
-          "authors": [
-            {
-              "name": "Hossein Nematzadeh",
-              "orcid": "https://orcid.org/0000-0002-6161-0430",
-              "institutions": [
-                "Universidad de Málaga",
-                "Software (Spain)"
-              ]
-            },
-            {
-              "name": "José García-Nieto",
-              "orcid": "https://orcid.org/0000-0003-2985-3480",
-              "institutions": [
-                "Instituto de Investigación Biomédica de Málaga",
-                "Universidad de Málaga",
-                "Software (Spain)"
-              ]
-            },
-            {
-              "name": "Ismael Navas‐Delgado",
-              "orcid": "https://orcid.org/0000-0001-7819-5416",
-              "institutions": [
-                "Instituto de Investigación Biomédica de Málaga",
-                "Universidad de Málaga",
-                "Software (Spain)"
-              ]
-            },
-            {
-              "name": "José F. Aldana‐Montes",
-              "orcid": "https://orcid.org/0000-0002-2673-9474",
-              "institutions": [
-                "Instituto de Investigación Biomédica de Málaga",
-                "Universidad de Málaga",
-                "Software (Spain)"
-              ]
-            }
-          ],
-          "affiliations": [
-            "Universidad de Málaga",
-            "Software (Spain)",
-            "Instituto de Investigación Biomédica de Málaga"
-          ],
-          "concepts": [
-            {
-              "name": "Computer science",
-              "score": 0.7611732482910156
-            },
-            {
-              "name": "Artificial intelligence",
-              "score": 0.656568169593811
-            },
-            {
-              "name": "Segmentation",
-              "score": 0.6314749121665955
-            },
-            {
-              "name": "Python (programming language)",
-              "score": 0.5609872341156006
-            },
-            {
-              "name": "Image (mathematics)",
-              "score": 0.48624932765960693
-            },
-            {
-              "name": "Pattern recognition (psychology)",
-              "score": 0.46475139260292053
-            },
-            {
-              "name": "Genetic algorithm",
-              "score": 0.4353474974632263
-            },
-            {
-              "name": "Machine learning",
-              "score": 0.2856990098953247
-            },
-            {
-              "name": "Operating system",
-              "score": 0.0
-            }
-          ],
-          "pdf_url": "https://ars.els-cdn.com/content/image/1-s2.0-S0010482523000781-ga1_lrg.jpg"
         },
         {
           "id": "W4385383529",

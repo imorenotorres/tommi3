@@ -92,8 +92,7 @@ PREGUNTAS_BENCHMARK = [
     "¿Qué destinos tienen plazas disponibles?",
     "¿Cuántas plazas hay para el primer cuatrimestre en universidades de Finlandia?",
 
-
-    # --- Consultas complejas ---
+    # --- Consultas complejas (una sola tabla) ---
     "¿Cuántas plazas en universidades de Finlandia en las que el nivel de inglés sea B1?",
     "¿Qué universidades de Europa tienen convenio con la Facultad de Ciencias en los que el nivel de inglés es B1?",
     "¿Hay algún convenio en alemania que pida nivel de alemán B2 para la Facultad de Filosofía y Letras?",
@@ -103,10 +102,52 @@ PREGUNTAS_BENCHMARK = [
     "¿Qué acuerdos hay con The Hague University of Applied Sciences?",
     "¿Hay convenios con universidades de Rumanía?",
 
-    # --- Consultas nuevas (combinación de criterios avanzados) ---
+    # --- Consultas con combinación de criterios avanzados ---
     "¿Qué destinos hay disponibles en Italia para grado de enfermería que no requieran título de idioma?",
     "¿Qué nivel de idioma se necesita para estudiar arquitectura en la universidad de La Sapienza?",
     "¿Hace falta una nota media mínima para poder estudiar en la universidad de Berlín?",
+
+    # --- Consultas sobre estudiantes ---
+    "¿Cuántos estudiantes hay matriculados?",
+    "Busca al estudiante Russell Ryan",
+    "¿Qué estudiantes tienen email que termine en @uma.es?",
+
+    # --- Consultas sobre titulaciones ---
+    "¿Cuántas titulaciones hay en la UMA?",
+    "¿Qué titulaciones hay?",
+    "¿Existe el grado en Informática?",
+
+    # --- Consultas sobre asignaturas ---
+    "¿Cuántas asignaturas hay en total?",
+    "¿Qué asignaturas tiene el grado en Derecho?",
+    "¿Qué asignaturas de tercer curso tiene el grado en Medicina?",
+    "¿Cuántas asignaturas optativas tiene Informática?",
+
+    # --- Consultas cross-table (asignaturas + titulaciones) ---
+    "¿Cuántas asignaturas tiene cada titulación?",
+    "¿Qué asignaturas de primer curso tiene Arquitectura?",
+
+    # --- Consultas multi-tabla (destinos + titulaciones/asignaturas/estudiantes) ---
+    # Estudiante real + destinos para su titulación en un país
+    "Soy Russell Ryan, estudiante de Arquitectura. ¿A qué universidades de Italia puedo ir de Erasmus?",
+    # Asignaturas de una titulación + destinos disponibles
+    "¿Cuántas asignaturas tiene el grado en Arquitectura y cuántos destinos hay en Italia para esa titulación?",
+    # Verificar existencia de estudiante + destinos para titulación
+    "¿Existe el estudiante Charles Williams? Si es así, dime qué destinos hay en Alemania para Ingeniería Informática.",
+    # Destinos + info de asignaturas de la titulación
+    "¿Qué destinos Erasmus hay para Medicina en Chile y cuántas asignaturas de tercer curso tiene esa titulación?",
+    # Titulaciones con destinos en un país + número de asignaturas
+    "¿Qué titulaciones de la UMA tienen convenios con universidades de Corea del Sur?",
+    # Estudiante + idioma requerido en destino
+    "Soy Stephanie Smith, estudio Enfermería. ¿Qué nivel de inglés necesito para ir a Finlandia?",
+    # Asignaturas optativas + destinos internacionales
+    "¿Cuántas asignaturas optativas tiene Derecho y qué destinos hay en Francia para esa titulación?",
+    # Número de estudiantes + número de destinos por programa
+    "¿Cuántos estudiantes hay matriculados y cuántos destinos Erasmus+ KA131 tiene la UMA?",
+    # Buscar estudiante + verificar si destino admite grado
+    "Busca al estudiante Andrew Schwartz. Si estudiara Arquitectura, ¿podría ir a la Sapienza University of Rome?",
+    # Asignaturas de primer curso + destinos para esa titulación sin requisito de idioma
+    "¿Qué asignaturas de primer curso tiene Ingeniería Informática y qué destinos hay sin requisito de idioma para esa titulación?",
 
     # --- Consultas con múltiples criterios (análisis de causas) ---
     # 2 criterios - combinación que no existe
@@ -128,6 +169,9 @@ PREGUNTAS_QUICK = [
     "¿Hay destinos sin requisito de idioma?",
     "¿Qué universidades tienen plazas Erasmus?",
     "¿Qué opciones hay para Derecho?",
+    "¿Cuántos estudiantes hay?",
+    "¿Qué asignaturas tiene Informática?",
+    "¿Cuántas titulaciones hay?",
 ]
 
 # Preguntas específicas de idiomas (para benchmark --idiomas)
@@ -207,10 +251,34 @@ PREGUNTAS_EXTRACOMPLEJAS = [
      "¿Qué nivel de idioma se necesita para estudiar arquitectura en la universidad de La Sapienza?",
     # 24.
     "¿Hace falta una nota media mínima para poder estudiar en la universidad de Berlín?",
-    # 25.  
+    # 25.
     "¿Hay convenios en Japón que requieran coreano B2?",
-    # 26. 
+    # 26.
     "¿Por qué no hay plazas con alemán B1 en Corea del Sur?",
+
+    # --- Preguntas sobre estudiantes (con errores/estilo informal) ---
+    # 27. Búsqueda informal de estudiante
+    "busca a un estudiante que se llame Smith",
+    # 28. Consulta coloquial sobre asignaturas
+    "q asignaturas tiene informatica de segundo?",
+    # 29. Cross-table con errores
+    "cuantas optativas tiene el grado de biologia?",
+    # 30. Pregunta en inglés sobre estudiantes
+    "How many students are enrolled?",
+    # 31. Búsqueda cruzada destinos + titulaciones
+    "¿Qué destinos Erasmus hay para estudiantes de Administración y Dirección de Empresas?",
+
+    # --- Preguntas multi-tabla con errores/estilo informal ---
+    # 32. Multi-tabla informal: estudiante + destinos
+    "oye busca a Brady Brown, estudia arquitectura en la UMA y quiere irse de erasmus a italia, que opciones tiene?",
+    # 33. Multi-tabla con errores: asignaturas + destinos
+    "cuantas asignaturas tiene medicina y cuantos destinos hay en chile pa esa carrera?",
+    # 34. Multi-tabla en inglés
+    "Find student Michele Graham and show me destinations in Korea for Architecture",
+    # 35. Multi-tabla SMS style
+    "q destinos hay en alemania pa informatica y cuantas asignaturas optativas tiene?",
+    # 36. Multi-tabla coloquial: nota media + destino
+    "necesito nota media pa ir a la universidad de filipinas si estudio arquitectura?",
 ]
 
 # ============================================================================
@@ -253,6 +321,38 @@ RESPUESTAS_REFERENCIA = {
     "¿Hay convenios en Alemania para Derecho que pidan francés B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_faculties LIKE '%Derecho%' AND ((lang_1_name LIKE '%Francés%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Francés%' AND lang_2_level = 'B2'))",
     "¿Hay plazas disponibles en Italia para la Facultad de Ciencias con inglés B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_faculties LIKE '%Ciencias%' AND ((lang_1_name LIKE '%Inglés%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Inglés%' AND lang_2_level = 'B2')) AND student_vacancies NOT LIKE '%Plazas: 0%'",
 
+    # --- RESPUESTAS ESTUDIANTES ---
+    "¿Cuántos estudiantes hay matriculados?": "SELECT COUNT(*) FROM students",
+    "Busca al estudiante Russell Ryan": "SELECT * FROM students WHERE name LIKE '%Russell Ryan%'",
+    "¿Qué estudiantes tienen email que termine en @uma.es?": "SELECT * FROM students WHERE email LIKE '%@uma.es'",
+
+    # --- RESPUESTAS TITULACIONES ---
+    "¿Cuántas titulaciones hay en la UMA?": "SELECT COUNT(*) FROM degree",
+    "¿Qué titulaciones hay?": "SELECT * FROM degree",
+    "¿Existe el grado en Informática?": "SELECT * FROM degree WHERE name LIKE '%Informática%'",
+
+    # --- RESPUESTAS ASIGNATURAS ---
+    "¿Cuántas asignaturas hay en total?": "SELECT COUNT(*) FROM subjects",
+    "¿Qué asignaturas tiene el grado en Derecho?": "SELECT s.* FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Derecho%'",
+    "¿Qué asignaturas de tercer curso tiene el grado en Medicina?": "SELECT s.* FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Medicina%' AND s.subject_code LIKE '3%'",
+    "¿Cuántas asignaturas optativas tiene Informática?": "SELECT COUNT(*) FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Informática%' AND (s.subject_code LIKE '8%' OR s.subject_code LIKE '9%')",
+
+    # --- RESPUESTAS CROSS-TABLE ---
+    "¿Cuántas asignaturas tiene cada titulación?": "SELECT d.name, COUNT(*) FROM subjects s JOIN degree d ON s.degree_id = d.id GROUP BY d.name",
+    "¿Qué asignaturas de primer curso tiene Arquitectura?": "SELECT s.* FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Arquitectura%' AND s.subject_code LIKE '1%'",
+
+    # --- RESPUESTAS MULTI-TABLA (destinos + titulaciones/asignaturas/estudiantes) ---
+    "Soy Russell Ryan, estudiante de Arquitectura. ¿A qué universidades de Italia puedo ir de Erasmus?": "SELECT * FROM students WHERE name LIKE '%Russell Ryan%'; SELECT host_institution, destination_country, uma_degrees, lang_1_name, lang_1_level, student_vacancies FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%Arquitectura%'",
+    "¿Cuántas asignaturas tiene el grado en Arquitectura y cuántos destinos hay en Italia para esa titulación?": "SELECT COUNT(*) FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Arquitectura%'; SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%Arquitectura%'",
+    "¿Existe el estudiante Charles Williams? Si es así, dime qué destinos hay en Alemania para Ingeniería Informática.": "SELECT * FROM students WHERE name LIKE '%Charles Williams%'; SELECT host_institution, destination_country, lang_1_name, lang_1_level FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_degrees LIKE '%Informática%'",
+    "¿Qué destinos Erasmus hay para Medicina en Chile y cuántas asignaturas de tercer curso tiene esa titulación?": "SELECT * FROM destinations WHERE destination_country LIKE '%Chile%' AND uma_faculties LIKE '%Medicina%' AND mobility_program LIKE '%ERASMUS%'; SELECT COUNT(*) FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Medicina%' AND s.subject_code LIKE '3%'",
+    "¿Qué titulaciones de la UMA tienen convenios con universidades de Corea del Sur?": "SELECT DISTINCT uma_degrees FROM destinations WHERE destination_country LIKE '%Corea del Sur%'",
+    "Soy Stephanie Smith, estudio Enfermería. ¿Qué nivel de inglés necesito para ir a Finlandia?": "SELECT * FROM students WHERE name LIKE '%Stephanie Smith%'; SELECT host_institution, lang_1_name, lang_1_level FROM destinations WHERE destination_country LIKE '%Finlandia%' AND uma_degrees LIKE '%Enfermería%' AND lang_1_name LIKE '%Inglés%'",
+    "¿Cuántas asignaturas optativas tiene Derecho y qué destinos hay en Francia para esa titulación?": "SELECT COUNT(*) FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Derecho%' AND (s.subject_code LIKE '8%' OR s.subject_code LIKE '9%'); SELECT host_institution, destination_country, lang_1_name, lang_1_level FROM destinations WHERE destination_country LIKE '%Francia%' AND uma_degrees LIKE '%Derecho%'",
+    "¿Cuántos estudiantes hay matriculados y cuántos destinos Erasmus+ KA131 tiene la UMA?": "SELECT COUNT(*) FROM students; SELECT COUNT(*) FROM destinations WHERE mobility_program LIKE '%ERASMUS+ KA131%'",
+    "Busca al estudiante Andrew Schwartz. Si estudiara Arquitectura, ¿podría ir a la Sapienza University of Rome?": "SELECT * FROM students WHERE name LIKE '%Andrew Schwartz%'; SELECT * FROM destinations WHERE host_institution LIKE '%Sapienza%' AND uma_degrees LIKE '%Arquitectura%'",
+    "¿Qué asignaturas de primer curso tiene Ingeniería Informática y qué destinos hay sin requisito de idioma para esa titulación?": "SELECT s.name, s.subject_code FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Ingeniería Informática%' AND s.subject_code LIKE '1%'; SELECT host_institution, destination_country FROM destinations WHERE uma_degrees LIKE '%Informática%' AND lang_1_name IS NULL",
+
     # --- RESPUESTAS EXTRACOMPLEJAS ---
     # Con errores ortográficos/gramaticales (el SQL debe ser correcto aunque la pregunta tenga errores)
     "que universidades hay en belgica para erasmus?": "SELECT host_institution FROM destinations WHERE destination_country LIKE '%Bélgica%' AND mobility_program LIKE '%ERASMUS%'",
@@ -285,7 +385,21 @@ RESPUESTAS_REFERENCIA = {
     "¿Qué nivel de idioma se necesita para estudiar arquitectura en la universidad de La Sapienza?": "SELECT lang_1_name, lang_1_level, lang_2_name, lang_2_level FROM destinations WHERE host_institution LIKE '%La Sapienza%' AND uma_degrees LIKE '%Arquitectura%'",
     "¿Hace falta una nota media mínima para poder estudiar en la universidad de Berlín?": "SELECT host_institution, minimum_gpa FROM destinations WHERE host_institution LIKE '%Berlín%' OR host_institution LIKE '%Berlin%'",
     "¿Hay convenios en Japón que requieran coreano B2?": "SELECT * FROM destinations WHERE destination_country LIKE '%Japón%' AND ((lang_1_name LIKE '%Coreano%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%Coreano%' AND lang_2_level = 'B2'))",
-    "¿Por qué no hay plazas con alemán B1 en Corea del Sur?": "SELECT * FROM destinations WHERE destination_country LIKE '%Corea del Sur%' AND ((lang_1_name LIKE '%Alemán%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%Alemán%' AND lang_2_level = 'B1')) AND student_vacancies NOT LIKE '%Plazas: 0%'"
+    "¿Por qué no hay plazas con alemán B1 en Corea del Sur?": "SELECT * FROM destinations WHERE destination_country LIKE '%Corea del Sur%' AND ((lang_1_name LIKE '%Alemán%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%Alemán%' AND lang_2_level = 'B1')) AND student_vacancies NOT LIKE '%Plazas: 0%'",
+
+    # --- RESPUESTAS EXTRACOMPLEJAS - ESTUDIANTES/ASIGNATURAS ---
+    "busca a un estudiante que se llame Smith": "SELECT * FROM students WHERE name LIKE '%Smith%'",
+    "q asignaturas tiene informatica de segundo?": "SELECT s.* FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Informática%' AND s.subject_code LIKE '2%'",
+    "cuantas optativas tiene el grado de biologia?": "SELECT COUNT(*) FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Biología%' AND (s.subject_code LIKE '8%' OR s.subject_code LIKE '9%')",
+    "How many students are enrolled?": "SELECT COUNT(*) FROM students",
+    "¿Qué destinos Erasmus hay para estudiantes de Administración y Dirección de Empresas?": "SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS%' AND uma_degrees LIKE '%Administración y Dirección de Empresas%'",
+
+    # --- RESPUESTAS EXTRACOMPLEJAS - MULTI-TABLA ---
+    "oye busca a Brady Brown, estudia arquitectura en la UMA y quiere irse de erasmus a italia, que opciones tiene?": "SELECT * FROM students WHERE name LIKE '%Brady Brown%'; SELECT host_institution, destination_country FROM destinations WHERE destination_country LIKE '%Italia%' AND uma_degrees LIKE '%Arquitectura%' AND mobility_program LIKE '%ERASMUS%'",
+    "cuantas asignaturas tiene medicina y cuantos destinos hay en chile pa esa carrera?": "SELECT COUNT(*) FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Medicina%'; SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Chile%' AND uma_faculties LIKE '%Medicina%'",
+    "Find student Michele Graham and show me destinations in Korea for Architecture": "SELECT * FROM students WHERE name LIKE '%Michele Graham%'; SELECT host_institution, destination_country FROM destinations WHERE destination_country LIKE '%Corea%' AND uma_degrees LIKE '%Arquitectura%'",
+    "q destinos hay en alemania pa informatica y cuantas asignaturas optativas tiene?": "SELECT host_institution FROM destinations WHERE destination_country LIKE '%Alemania%' AND uma_degrees LIKE '%Informática%'; SELECT COUNT(*) FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Informática%' AND (s.subject_code LIKE '8%' OR s.subject_code LIKE '9%')",
+    "necesito nota media pa ir a la universidad de filipinas si estudio arquitectura?": "SELECT host_institution, min_gpa_requirement FROM destinations WHERE destination_country LIKE '%Filipinas%' AND uma_degrees LIKE '%Arquitectura%'",
 }
 
 
@@ -805,7 +919,7 @@ def run_scenario_benchmark(scenarios: list, output_prefix: str = "scenarios") ->
         dict con resultados del benchmark de escenarios
     """
     print("=" * 70)
-    print("BENCHMARK PISHA3 - Escenarios de Conversación")
+    print("BENCHMARK PISHA4 - Escenarios de Conversación")
     print("=" * 70)
     print(f"Escenarios a ejecutar: {len(scenarios)}")
     print(f"Inicio: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -993,7 +1107,7 @@ def run_benchmark(questions: list, output_prefix: str = "benchmark") -> dict:
         dict con resultados del benchmark
     """
     print("=" * 70)
-    print("BENCHMARK PISHA3 - Prueba de Rendimiento")
+    print("BENCHMARK PISHA4 - Prueba de Rendimiento")
     print("=" * 70)
     print(f"Preguntas a ejecutar: {len(questions)}")
     print(f"Inicio: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -1214,7 +1328,7 @@ def run_benchmark(questions: list, output_prefix: str = "benchmark") -> dict:
 
     with open(log_path, "w", encoding="utf-8") as f:
         f.write("=" * 80 + "\n")
-        f.write(f"BENCHMARK PISHA3 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"BENCHMARK PISHA4 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write("=" * 80 + "\n\n")
 
         f.write(f"Modelo: {agent.sql_model}\n")

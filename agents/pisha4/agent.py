@@ -70,7 +70,7 @@ class Agent:
         self.system_prompt = """You are Pisha4, a database assistant specialized in converting natural language questions to SQL queries.
 
 IMPORTANT RULES:
-1. You help users query a SQLite database by understanding their questions in natural language
+1. You help users query a SQLite database containing mobility agreements, students, degrees and subjects from Universidad de Málaga (UMA)
 2. When the user asks about data, you will receive the database schema and query results
 3. Explain the results clearly and concisely in the user\'s language
 4. If you cannot answer a question with the available data, explain why
@@ -1579,8 +1579,44 @@ RESPONSE FORMAT:
                 return "The database is empty (no tables found)."
 
             schema_parts = ["ESQUEMA DE LA BASE DE DATOS:"]
-            schema_parts.append("Base de datos de acuerdos de movilidad para estudiantes de la Universidad de Málaga.")
+            schema_parts.append("Base de datos de la Universidad de Málaga (UMA): acuerdos de movilidad, estudiantes, titulaciones y asignaturas.")
             schema_parts.append("")
+
+            # Column descriptions per table
+            table_descriptions = {
+                "destinations": [
+                    "Columnas importantes:",
+                    "- host_institution: nombre de la universidad de destino",
+                    "- destination_country: país del destino",
+                    "- mobility_program: programa completo (ej: 'ERASMUS+ KA131', 'ERASMUS+ KA171', 'MOVILIDAD INTERNACIONAL UMA')",
+                    "- uma_faculties: facultades UMA que pueden aplicar",
+                    "- uma_degrees: titulaciones UMA permitidas",
+                    "- lang_1_name, lang_1_level: primer idioma y nivel requerido",
+                    "- lang_2_name, lang_2_level: segundo idioma y nivel (si aplica)",
+                    "- allows_undergraduate, allows_master, allows_phd: niveles académicos permitidos",
+                    "- min_gpa_requirement: nota media mínima requerida",
+                    "- student_vacancies: plazas disponibles",
+                ],
+                "students": [
+                    "Columnas importantes:",
+                    "- student_id: identificador oficial (DNI, NIF, pasaporte)",
+                    "- name: nombre completo del estudiante",
+                    "- email: correo electrónico del estudiante",
+                    "- username: nombre de usuario para login",
+                    "- test: variable de prueba (siempre contiene 'TEST')",
+                ],
+                "degree": [
+                    "Columnas importantes:",
+                    "- name: nombre de la titulación (ej: 'Graduado/a en Informática')",
+                ],
+                "subjects": [
+                    "Columnas importantes:",
+                    "- name: nombre de la asignatura",
+                    "- subject_code: código PROA de la asignatura. La primera cifra indica el curso (ej: 301 = 3er curso, 8xx/9xx = optativa)",
+                    "- degree_id: FK → degree.id (vincula asignatura con titulación)",
+                    "- degree_code: código de la titulación (informativo)",
+                ],
+            }
 
             for (table_name,) in tables:
                 cursor.execute(f"PRAGMA table_info({table_name});")
@@ -1589,19 +1625,8 @@ RESPONSE FORMAT:
                 schema_parts.append(f"Columnas: {', '.join(columns)}")
                 schema_parts.append("")
 
-                # Añadir descripciones clave para columnas importantes
-                if table_name == "destinations":
-                    schema_parts.append("Columnas importantes:")
-                    schema_parts.append("- host_institution: nombre de la universidad de destino")
-                    schema_parts.append("- destination_country: país del destino")
-                    schema_parts.append("- mobility_program: programa completo (ej: 'ERASMUS+ KA131', 'ERASMUS+ KA171', 'MOVILIDAD INTERNACIONAL UMA')")
-                    schema_parts.append("- uma_faculties: facultades UMA que pueden aplicar")
-                    schema_parts.append("- uma_degrees: titulaciones UMA permitidas")
-                    schema_parts.append("- lang_1_name, lang_1_level: primer idioma y nivel requerido")
-                    schema_parts.append("- lang_2_name, lang_2_level: segundo idioma y nivel (si aplica)")
-                    schema_parts.append("- allows_undergraduate, allows_master, allows_phd: niveles académicos permitidos")
-                    schema_parts.append("- min_gpa_requirement: nota media mínima requerida")
-                    schema_parts.append("- student_vacancies: plazas disponibles")
+                if table_name in table_descriptions:
+                    schema_parts.extend(table_descriptions[table_name])
 
             conn.close()
             self._cached_schema = "\n".join(schema_parts)
@@ -1648,9 +1673,10 @@ RESPONSE FORMAT:
         # Prompt simplificado - pide solo el SQL en bloque markdown
         conversion_prompt = f"""Eres un experto en SQL. Convierte la siguiente pregunta a una consulta SQL para SQLite.
 
-BASE DE DATOS (convenios de movilidad universitaria):
-- Tabla: destinations
-- Columnas:
+BASE DE DATOS (Universidad de Málaga - acuerdos de movilidad, estudiantes, titulaciones y asignaturas):
+
+TABLA 1: destinations (acuerdos de movilidad)
+Columnas:
   * host_institution: nombre de la UNIVERSIDAD DE DESTINO (ej: "The Hague University", "Sorbonne")
   * destination_country: PAÍS de destino (ej: "Francia", "Alemania")
   * mobility_program: nombre COMPLETO del programa (ej: "ERASMUS+ KA131", "ERASMUS+ KA171", "MOVILIDAD INTERNACIONAL UMA", "ISEP")
@@ -1664,13 +1690,40 @@ BASE DE DATOS (convenios de movilidad universitaria):
   * allows_master: "Sí" o "No" - si permite estudiantes de Máster
   * allows_phd: "Sí" o "No" - si permite estudiantes de Doctorado
   * min_gpa_requirement: nota media mínima requerida (REAL). NULL si no hay requisito
-  * student_vacancies: plazas disponibles
+  * student_vacancies: plazas disponibles (TEXTO, ej: "[Grado] Plazas: 4, Periodos permitidos: 1er CUATRIMESTRE")
 
-REGLAS:
+TABLA 2: students (estudiantes matriculados)
+Columnas:
+  * student_id: identificador oficial del estudiante (DNI, NIF, pasaporte)
+  * name: nombre completo del estudiante
+  * email: correo electrónico
+  * username: nombre de usuario para login
+  * test: variable de prueba (siempre contiene 'TEST')
+
+TABLA 3: degree (titulaciones de la UMA)
+Columnas:
+  * id: identificador único de la titulación
+  * name: nombre de la titulación (ej: "Graduado/a en Informática")
+
+TABLA 4: subjects (asignaturas de la UMA, curso 2025/26)
+Columnas:
+  * name: nombre de la asignatura
+  * subject_code: código PROA. La primera cifra indica el curso (ej: 301 = 3er curso; 8xx/9xx = optativa)
+  * degree_id: FK → degree.id (vincula asignatura con titulación)
+  * degree_code: código de la titulación (informativo)
+
+RELACIONES:
+- subjects.degree_id → degree.id (cada asignatura pertenece a una titulación)
+- destinations.uma_degrees contiene nombres de titulaciones (texto libre, usar LIKE para buscar)
+
+REGLAS GENERALES:
 - Usa LIKE '%texto%' para búsquedas de texto (no =)
 - Solo genera SELECT (nunca INSERT, UPDATE, DELETE)
+- Para JOINs entre subjects y degree: JOIN degree ON subjects.degree_id = degree.id
+
+REGLAS PARA TABLA destinations:
 - COUNT(*) solo para contar CONVENIOS/ACUERDOS ("cuántos convenios", "número de acuerdos")
-- PLAZAS y CUATRIMESTRES: student_vacancies es TEXTO con formato "[Grado] Plazas: 4, Periodos permitidos: 1er CUATRIMESTRE"
+- PLAZAS y CUATRIMESTRES: student_vacancies es TEXTO
   * Para filtrar por cuatrimestre: WHERE student_vacancies LIKE '%1er CUATRIMESTRE%' o '%2do CUATRIMESTRE%' o '%ANUAL%'
   * NO uses SUM() con student_vacancies (es texto). Usa COUNT(*) para contar destinos o SELECT student_vacancies para ver detalles
 - REQUISITOS DE IDIOMA: Usa los campos lang_1_name, lang_1_level, lang_2_name, lang_2_level
@@ -1687,7 +1740,7 @@ REGLAS:
   * Nota específica: WHERE min_gpa_requirement >= 7.0
 - Si pregunta "qué...", "cuáles...", "muéstrame...", "hay...", "universidades...", "facultades..." → usa SELECT * (NO COUNT, NO columnas específicas)
 - SIEMPRE usa SELECT * excepto para:
-  * COUNT(*) para contar convenios/acuerdos
+  * COUNT(*) para contar convenios/acuerdos/estudiantes/asignaturas
   * SELECT DISTINCT columna SOLO cuando pide LISTAR valores únicos de UNA columna (ej: "¿Qué países hay?", "¿Qué programas existen?")
   * SELECT columna_específica SOLO para preguntas MUY concretas como "qué idioma necesito para X"
 - IMPORTANTE: "¿Qué facultades tienen convenios con X?" → SELECT * (NO SELECT DISTINCT, necesitamos TODOS los datos incluyendo plazas e idiomas)
@@ -1701,31 +1754,33 @@ REGLAS:
   * "plazas disponibles" o "destinos con plazas" → EXCLUIR plazas vacías: WHERE student_vacancies NOT LIKE '%Plazas: 0%'
   * "¿Con qué PAÍSES tiene convenios X?" → usar SELECT DISTINCT destination_country para evitar duplicados
 
-EJEMPLOS:
+EJEMPLOS DESTINATIONS:
 - "¿Qué acuerdos hay con The Hague University of Applied Sciences?" → SELECT * FROM destinations WHERE host_institution LIKE '%The Hague%'
 - "¿Cuántos acuerdos hay con Alemania?" → SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Alemania%'
 - "¿Hay convenios con Italia?" → SELECT * FROM destinations WHERE destination_country LIKE '%Italia%'
 - "¿Qué nivel de inglés necesito para ir a Alemania?" → SELECT lang_1_name, lang_1_level, lang_2_name, lang_2_level FROM destinations WHERE destination_country LIKE '%Alemania%' AND (lang_1_name LIKE '%INGLÉS%' OR lang_2_name LIKE '%INGLÉS%')
-- "¿Qué universidades hay en Francia?" → SELECT * FROM destinations WHERE destination_country LIKE '%Francia%'
 - "¿Qué destinos hay con ERASMUS+ KA131?" → SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS+ KA131%'
 - "¿Qué programas de movilidad hay?" → SELECT DISTINCT mobility_program FROM destinations
-- "¿Cuántas plazas hay para el primer cuatrimestre?" → SELECT COUNT(*) FROM destinations WHERE student_vacancies LIKE '%1er CUATRIMESTRE%'
-- "¿Qué destinos hay para el segundo cuatrimestre?" → SELECT * FROM destinations WHERE student_vacancies LIKE '%2do CUATRIMESTRE%'
-- "¿Qué plazas hay en Italia?" → SELECT * FROM destinations WHERE destination_country LIKE '%Italia%'
 - "¿Qué destinos no requieren idioma?" → SELECT * FROM destinations WHERE lang_1_name IS NULL
 - "¿Qué destinos requieren inglés B2?" → SELECT * FROM destinations WHERE (lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B2')
-- "¿Hay convenios con requisito de Inglés B1?" → SELECT * FROM destinations WHERE (lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B1')
-- "¿Cuántos destinos hay en América Latina?" → SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%América Latina%'
-- "¿Qué universidades hay en Europa?" → SELECT * FROM destinations WHERE destination_country LIKE '%Europa%'
-- "¿Cuántos convenios hay en Asia?" → SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Asia%'
-- "¿Qué destinos tienen plazas disponibles?" → SELECT * FROM destinations WHERE student_vacancies NOT LIKE '%Plazas: 0%'
-- "¿Con qué países tiene convenios la Facultad de Medicina?" → SELECT DISTINCT destination_country FROM destinations WHERE uma_faculties LIKE '%Medicina%'
-- "¿Qué facultades tienen convenios con universidades de Africa?" → SELECT * FROM destinations WHERE destination_country LIKE '%Africa%'
-- "¿Qué facultades tienen acuerdos con Alemania?" → SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%'
 - "¿Hay convenios con universidades UNINOVIS?" → SELECT * FROM destinations WHERE host_institution LIKE '%UNINOVIS%'
-- "What agreements do we have with UNINOVIS members?" → SELECT * FROM destinations WHERE host_institution LIKE '%UNINOVIS%'
 - "¿Hay destinos para estudiantes de Máster?" → SELECT * FROM destinations WHERE allows_master = 'Sí'
-- "¿Qué destinos exigen nota media mínima?" → SELECT * FROM destinations WHERE min_gpa_requirement IS NOT NULL
+
+EJEMPLOS STUDENTS:
+- "¿Cuántos estudiantes hay?" → SELECT COUNT(*) FROM students
+- "Busca al estudiante Juan García" → SELECT * FROM students WHERE name LIKE '%Juan García%'
+- "¿Qué estudiantes tienen email de UMA?" → SELECT * FROM students WHERE email LIKE '%@uma.es%'
+
+EJEMPLOS SUBJECTS/DEGREE:
+- "¿Qué asignaturas tiene el grado en Informática?" → SELECT s.* FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Informática%'
+- "¿Cuántas asignaturas hay?" → SELECT COUNT(*) FROM subjects
+- "¿Qué titulaciones hay?" → SELECT * FROM degree
+- "¿Cuántas titulaciones hay?" → SELECT COUNT(*) FROM degree
+- "¿Qué asignaturas de tercer curso tiene Derecho?" → SELECT s.* FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Derecho%' AND s.subject_code LIKE '3%'
+- "¿Qué asignaturas optativas tiene Medicina?" → SELECT s.* FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Medicina%' AND (s.subject_code LIKE '8%' OR s.subject_code LIKE '9%')
+
+EJEMPLOS CROSS-TABLE:
+- "¿Qué destinos hay para estudiantes de Informática?" → SELECT * FROM destinations WHERE uma_degrees LIKE '%Informática%'
 
 PREGUNTA: {normalized_question}
 

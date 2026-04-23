@@ -118,6 +118,98 @@ LANGUAGE_SYNONYMS = {
     "romanian": "RUMANO",
 }
 
+# Mapeo de sinónimos de facultades (inglés/variantes → nombre en la BD)
+# Solo se necesita el término clave que aparece dentro del nombre completo
+# porque la BD usa LIKE '%término%' para buscar
+FACULTY_SYNONYMS = {
+    # Architecture
+    "architecture": "Arquitectura",
+    "architectural": "Arquitectura",
+
+    # Computer Science / IT
+    "computer science": "Informática",
+    "computer engineering": "Informática",
+    "computing": "Informática",
+    "informatics": "Informática",
+    "it": "Informática",
+
+    # Telecommunications
+    "telecommunications": "Telecomunicación",
+    "telecom": "Telecomunicación",
+
+    # Industrial Engineering
+    "industrial engineering": "Ingenierías Industriales",
+    "industrial": "Ingenierías Industriales",
+
+    # Fine Arts
+    "fine arts": "Bellas Artes",
+    "arts": "Bellas Artes",
+
+    # Sciences
+    "sciences": "Ciencias",
+    "science": "Ciencias",
+
+    # Communication
+    "communication": "Comunicación",
+    "media": "Comunicación",
+    "journalism": "Comunicación",
+
+    # Education
+    "education": "Educación",
+    "teaching": "Educación",
+    "pedagogy": "Educación",
+
+    # Health Sciences
+    "health sciences": "Ciencias de la Salud",
+    "health": "Ciencias de la Salud",
+    "nursing": "Ciencias de la Salud",
+
+    # Economics / Business
+    "economics": "Económicas",
+    "business": "Económicas",
+    "economics and business": "Económicas y Empresariales",
+
+    # Law
+    "law": "Derecho",
+    "legal": "Derecho",
+
+    # Social Studies / Labour
+    "social studies": "Estudios Sociales",
+    "social work": "Estudios Sociales",
+    "labour": "Estudios Sociales y del Trabajo",
+    "labor": "Estudios Sociales y del Trabajo",
+
+    # Philosophy / Humanities
+    "philosophy": "Filosofía",
+    "humanities": "Filosofía y Letras",
+    "liberal arts": "Filosofía y Letras",
+
+    # Marketing / Management
+    "marketing": "Marketing",
+    "management": "Marketing y Gestión",
+
+    # Medicine
+    "medicine": "Medicina",
+    "medical": "Medicina",
+
+    # Psychology
+    "psychology": "Psicología",
+    "speech therapy": "Logopedia",
+    "logopedics": "Logopedia",
+
+    # Tourism
+    "tourism": "Turismo",
+    "hospitality": "Turismo",
+
+    # Doctorate / PhD
+    "doctorate": "Doctorado",
+    "phd": "Doctorado",
+    "doctoral": "Doctorado",
+
+    # Engineering (generic)
+    "engineering": "Ingeniería",
+}
+
 # Mapeo de sinónimos de países al nombre oficial en la BD
 COUNTRY_SYNONYMS = {
     # Países Bajos / Holanda
@@ -323,6 +415,60 @@ COUNTRY_SYNONYMS = {
     "turkey": "Turquía",
     "turquia": "Turquía",
     "turquía": "Turquía",
+
+    # Lituania
+    "lithuania": "Lituania",
+    "lituania": "Lituania",
+    "lituana": "de Lituania",
+    "lituanos": "de Lituania",
+    "lituanas": "de Lituania",
+    "lithuanian": "de Lituania",
+
+    # Albania
+    "albania": "Albania",
+    "albanian": "de Albania",
+    "albanés": "de Albania",
+    "albanes": "de Albania",
+    "albanesa": "de Albania",
+
+    # Croacia
+    "croatia": "Croacia",
+    "croacia": "Croacia",
+    "croatian": "de Croacia",
+
+    # Eslovaquia
+    "slovakia": "Eslovaquia",
+    "eslovaquia": "Eslovaquia",
+    "slovak": "de Eslovaquia",
+
+    # Eslovenia
+    "slovenia": "Eslovenia",
+    "eslovenia": "Eslovenia",
+
+    # Estonia
+    "estonia": "Estonia",
+
+    # Letonia
+    "latvia": "Letonia",
+    "letonia": "Letonia",
+
+    # Bulgaria
+    "bulgaria": "Bulgaria",
+
+    # Chipre
+    "cyprus": "Chipre",
+    "chipre": "Chipre",
+
+    # Malta
+    "malta": "Malta",
+
+    # Luxemburgo
+    "luxembourg": "Luxemburgo",
+    "luxemburgo": "Luxemburgo",
+
+    # Islandia
+    "iceland": "Islandia",
+    "islandia": "Islandia",
 }
 
 
@@ -372,6 +518,29 @@ def normalize_language(text: str) -> str:
     return LANGUAGE_SYNONYMS.get(key, text)
 
 
+def normalize_faculty(text: str) -> str:
+    """
+    Normaliza el nombre de una facultad (inglés/variantes) a su término en español en la BD.
+
+    Args:
+        text: Nombre de la facultad en inglés u otra variante
+
+    Returns:
+        Término clave en español si se encuentra, o el texto original
+
+    Ejemplo:
+        >>> normalize_faculty("Architecture")
+        'Arquitectura'
+        >>> normalize_faculty("Law")
+        'Derecho'
+    """
+    if not text:
+        return text
+
+    key = text.lower().strip()
+    return FACULTY_SYNONYMS.get(key, text)
+
+
 def normalize_text_for_search(text: str) -> str:
     """
     Normaliza un texto para búsqueda, normalizando idiomas y países.
@@ -397,7 +566,15 @@ def normalize_text_for_search(text: str) -> str:
         if pattern.search(result):
             result = pattern.sub(LANGUAGE_SYNONYMS[synonym], result)
 
-    # DESPUÉS: Buscar y reemplazar sinónimos de países (ordenados por longitud descendente)
+    # SEGUNDO: Buscar y reemplazar sinónimos de facultades (ordenados por longitud descendente)
+    # Así "Architecture" → "Arquitectura", "Law" → "Derecho"
+    sorted_faculties = sorted(FACULTY_SYNONYMS.keys(), key=len, reverse=True)
+    for synonym in sorted_faculties:
+        pattern = re.compile(r'\b' + re.escape(synonym) + r'\b', re.IGNORECASE)
+        if pattern.search(result):
+            result = pattern.sub(FACULTY_SYNONYMS[synonym], result)
+
+    # TERCERO: Buscar y reemplazar sinónimos de países (ordenados por longitud descendente)
     # Así "universidades francesas" → "de Francia" (porque "francesas" no es idioma)
     sorted_countries = sorted(COUNTRY_SYNONYMS.keys(), key=len, reverse=True)
     for synonym in sorted_countries:

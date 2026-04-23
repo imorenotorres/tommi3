@@ -62,6 +62,19 @@ class SQLVerifier:
         tables_used = self._extract_tables(sql_clean)
         columns_used = self._extract_columns(sql_clean)
 
+        # Build alias → table mapping (e.g. "s" → "subjects")
+        alias_map = {}
+        for m in re.finditer(r'\bFROM\s+(\w+)\s+(?:AS\s+)?(\w+)', sql_clean, re.IGNORECASE):
+            table_name, alias = m.group(1).lower(), m.group(2).lower()
+            if alias not in ("where", "on", "join", "inner", "left", "right",
+                             "outer", "cross", "natural", "order", "group",
+                             "having", "limit"):
+                alias_map[alias] = table_name
+        for m in re.finditer(r'\bJOIN\s+(\w+)\s+(?:AS\s+)?(\w+)', sql_clean, re.IGNORECASE):
+            table_name, alias = m.group(1).lower(), m.group(2).lower()
+            if alias not in ("on", "where", "using"):
+                alias_map[alias] = table_name
+
         # Validate tables
         verified_tables = []
         unknown_tables = []
@@ -79,12 +92,14 @@ class SQLVerifier:
         verified_columns = []
         unknown_columns = []
         for c in columns_used:
-            # Handle table.column references
+            # Handle table.column or alias.column references
             if "." in c:
                 parts = c.split(".", 1)
                 table_part = parts[0].lower()
                 col_part = parts[1].lower()
-                table_cols = self._schema.get(table_part, set())
+                # Resolve alias to actual table name
+                resolved_table = alias_map.get(table_part, table_part)
+                table_cols = self._schema.get(resolved_table, set())
                 if col_part in table_cols or col_part == "*":
                     verified_columns.append(c)
                 else:
@@ -249,6 +264,9 @@ class SQLVerifier:
         "agreements", "agreement", "acuerdos", "acuerdo",
         "universities", "university", "universidad", "universidades",
         "destinations", "destination", "destino", "destinos",
+        "students", "student", "estudiante", "estudiantes",
+        "subjects", "subject", "asignatura", "asignaturas",
+        "degree", "degrees", "titulación", "titulaciones", "grado",
     }
 
     # Cross-language equivalences: term in question → might appear as this in SQL
@@ -616,12 +634,39 @@ class SQLVerifier:
         return tables
 
     @staticmethod
+    def _extract_aliases(sql: str) -> set:
+        """Extract table aliases from FROM and JOIN clauses (e.g. 'subjects s' → 's')."""
+        aliases = set()
+        # FROM table alias (no AS keyword)
+        for m in re.finditer(r'\bFROM\s+(\w+)\s+(\w+)', sql, re.IGNORECASE):
+            candidate = m.group(2).lower()
+            if candidate not in ("where", "on", "join", "inner", "left", "right",
+                                 "outer", "cross", "natural", "order", "group",
+                                 "having", "limit", "as"):
+                aliases.add(candidate)
+        # FROM table AS alias
+        for m in re.finditer(r'\bFROM\s+\w+\s+AS\s+(\w+)', sql, re.IGNORECASE):
+            aliases.add(m.group(1).lower())
+        # JOIN table alias
+        for m in re.finditer(r'\bJOIN\s+(\w+)\s+(\w+)', sql, re.IGNORECASE):
+            candidate = m.group(2).lower()
+            if candidate not in ("on", "where", "using", "as"):
+                aliases.add(candidate)
+        # JOIN table AS alias
+        for m in re.finditer(r'\bJOIN\s+\w+\s+AS\s+(\w+)', sql, re.IGNORECASE):
+            aliases.add(m.group(1).lower())
+        return aliases
+
+    @staticmethod
     def _extract_columns(sql: str) -> list:
         """Extract column names from SELECT, WHERE, ORDER BY, GROUP BY, etc."""
         # First, remove string literals so their contents are not parsed as columns
         # e.g. LIKE '%Países Bajos%' → LIKE ''
         sql_no_strings = re.sub(r"'[^']*'", "''", sql)
         sql_no_strings = re.sub(r'"[^"]*"', '""', sql_no_strings)
+
+        # Extract table aliases to exclude them from column detection
+        aliases = SQLVerifier._extract_aliases(sql)
 
         columns = []
         seen = set()
@@ -649,7 +694,7 @@ class SQLVerifier:
             select_part = select_match.group(1)
             for m in re.finditer(r'(\w+(?:\.\w+)?)', select_part):
                 ident = m.group(1)
-                if ident.lower() not in keywords and not ident.isdigit():
+                if ident.lower() not in keywords and not ident.isdigit() and ident.lower() not in aliases:
                     if ident.lower() not in seen:
                         columns.append(ident)
                         seen.add(ident.lower())
@@ -659,7 +704,7 @@ class SQLVerifier:
             clause_text = clause.group(1)
             for m in re.finditer(r'(\w+(?:\.\w+)?)', clause_text):
                 ident = m.group(1)
-                if ident.lower() not in keywords and not ident.isdigit():
+                if ident.lower() not in keywords and not ident.isdigit() and ident.lower() not in aliases:
                     if ident.lower() not in seen:
                         columns.append(ident)
                         seen.add(ident.lower())

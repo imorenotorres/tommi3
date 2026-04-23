@@ -68,16 +68,33 @@ def log_conversation(
     agent_name: str,
     question: str,
     response: str,
-    session_id: str = ""
+    session_id: str = "",
+    transparency_level: str = None,
+    username: str = None,
 ):
     """Registra una conversación en el log (si está habilitado).
     Writes to both the shared log and a per-agent JSONL file."""
     if not ENABLE_LOGGING or conversation_logger is None:
         return
+
+    # Pseudonymize username for privacy (same method as AuditLogger)
+    anon_user_id = None
+    email_domain = None
+    if username:
+        import hashlib
+        raw = f"tommi-uninovis-2026:{username}"
+        anon_user_id = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+        # Extract country TLD (e.g. "user@uma.es" -> "es")
+        if "@" in username:
+            email_domain = username.rsplit("@", 1)[1].rsplit(".", 1)[-1].lower()
+
     entry = {
         "timestamp": datetime.now().isoformat(),
         "client_ip": client_ip,
         "session_id": session_id,
+        "user_id": anon_user_id,
+        "email_domain": email_domain,
+        "transparency_level": transparency_level,
         "agent_id": agent_id,
         "agent_name": agent_name,
         "question": question,
@@ -1978,7 +1995,9 @@ async def chat_stream(
                 agent_name=agent.name,
                 question=message,
                 response=full_response,
-                session_id=new_session_id or session_id or ""
+                session_id=new_session_id or session_id or "",
+                transparency_level=transparency,
+                username=session["username"] if session else None,
             )
 
             yield "event: done\ndata: complete\n\n"
