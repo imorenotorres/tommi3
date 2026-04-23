@@ -216,14 +216,18 @@ async def api_logout(request: Request):
 
 @app.get("/api/auth/me")
 async def api_me(session: dict = Depends(require_auth)):
-    from auth import _load_users
+    from auth import _load_users, is_study_mode
     users = _load_users()
     user = users.get(session["username"], {})
-    return {
+    result = {
         "username": session["username"],
         "role": session["role"],
         "provisional_password": user.get("provisional_password", False),
     }
+    if is_study_mode():
+        result["study_mode"] = True
+        result["study_condition"] = user.get("study_condition")
+    return result
 
 
 @app.post("/api/auth/change-password")
@@ -435,7 +439,7 @@ async def api_invite_user(req: InviteUserRequest, request: Request, session: dic
         raise HTTPException(status_code=500, detail="Failed to create invitation token")
 
     # Build invitation URL
-    base_url = str(request.base_url).rstrip("/")
+    base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
     invite_url = f"{base_url}/set-password?token={invite_token}"
 
     # Send email
@@ -471,7 +475,7 @@ async def api_resend_invite(username: str, request: Request, session: dict = Dep
     if not invite_token:
         raise HTTPException(status_code=500, detail="Failed to create invitation token")
 
-    base_url = str(request.base_url).rstrip("/")
+    base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
     invite_url = f"{base_url}/set-password?token={invite_token}"
 
     ok = send_invite_email(
@@ -581,7 +585,7 @@ async def api_approve_request(
     if smtp["configured"]:
         invite_token = create_invite_token(email)
         if invite_token:
-            base_url = str(request.base_url).rstrip("/")
+            base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
             invite_url = f"{base_url}/set-password?token={invite_token}"
             email_sent = send_invite_email(
                 username=email,
@@ -604,6 +608,174 @@ async def api_reject_request(email: str, session: dict = Depends(require_role("s
     if not ok:
         raise HTTPException(status_code=404, detail="Pending request not found")
     return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Study mode endpoints (superuser only)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/study/status")
+async def study_status(session: dict = Depends(require_role("superuser"))):
+    """Get study mode status and condition assignments."""
+    from auth import is_study_mode, _load_users, STUDY_CONDITIONS
+    users = _load_users()
+    counts = {c: 0 for c in STUDY_CONDITIONS}
+    assignments = []
+    for uname, udata in users.items():
+        cond = udata.get("study_condition")
+        if cond:
+            counts[cond] = counts.get(cond, 0) + 1
+            assignments.append({"username": uname, "condition": cond})
+    return {
+        "enabled": is_study_mode(),
+        "conditions": STUDY_CONDITIONS,
+        "counts": counts,
+        "total_assigned": sum(counts.values()),
+        "assignments": assignments,
+    }
+
+
+@app.post("/api/study/enable")
+async def study_enable(session: dict = Depends(require_role("superuser"))):
+    """Enable study mode (random transparency assignment)."""
+    from auth import STUDY_CONFIG_FILE
+    config = {"enabled": True, "study_id": "UMA-IA-TOMMI-STUDY-001",
+              "conditions": ["black_box", "grey_box", "crystal_box"],
+              "description": "Effect of AI Transparency Levels on User Trust"}
+    with open(STUDY_CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=2)
+    return {"ok": True, "study_mode": True}
+
+
+@app.post("/api/study/disable")
+async def study_disable(session: dict = Depends(require_role("superuser"))):
+    """Disable study mode (users choose transparency freely)."""
+    from auth import STUDY_CONFIG_FILE
+    config = {"enabled": False}
+    with open(STUDY_CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=2)
+    return {"ok": True, "study_mode": False}
+
+
+@app.post("/api/study/reset")
+async def study_reset(session: dict = Depends(require_role("superuser"))):
+    """Clear all study condition assignments (for a new study run)."""
+    from auth import _load_users, _save_users
+    users = _load_users()
+    cleared = 0
+    for udata in users.values():
+        for key in ["study_condition", "study_participant", "study_id",
+                     "email_domain", "study_completed"]:
+            if key in udata:
+                del udata[key]
+        cleared += 1
+    _save_users(users)
+    return {"ok": True, "cleared": cleared}
+
+
+@app.post("/api/study/enroll/{username}")
+async def study_enroll(username: str, session: dict = Depends(require_role("superuser"))):
+    """Enroll a specific user as a study participant."""
+    from auth import enroll_study_participant
+    result = enroll_study_participant(username)
+    if not result:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"ok": True, **result}
+
+
+@app.post("/api/study/enroll-bulk")
+async def study_enroll_bulk(usernames: list[str], session: dict = Depends(require_role("superuser"))):
+    """Enroll multiple users as study participants."""
+    from auth import enroll_study_participant
+    results = []
+    for u in usernames:
+        r = enroll_study_participant(u)
+        results.append({"username": u, **(r or {"error": "not found"})})
+    return {"ok": True, "enrolled": results}
+
+
+@app.get("/api/study/queries")
+async def study_queries(session: dict = Depends(require_auth)):
+    """Return the predefined study queries."""
+    queries_file = SCRIPT_DIR / "data" / "study_queries.json"
+    if not queries_file.exists():
+        raise HTTPException(status_code=404, detail="Study queries not configured")
+    with open(queries_file, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+class StudyQuestionnaireRequest(BaseModel):
+    agent_id: str
+    query_number: int
+    stias_1: int
+    stias_2: int
+    stias_3: int
+    understanding: int
+    reliance: int
+
+
+@app.post("/api/study/questionnaire")
+async def study_questionnaire(req: StudyQuestionnaireRequest, session: dict = Depends(require_auth)):
+    """Save per-query questionnaire answers to the study log."""
+    from auth import get_study_info
+    info = get_study_info(session["username"])
+    if not info:
+        raise HTTPException(status_code=403, detail="Not a study participant")
+
+    # Find the agent's study_log.jsonl
+    agent_instance = runner.get_agent_instance(req.agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    import os
+    from sys import path as sys_path
+    agent_dir = getattr(agent_instance, '_agent_dir', None)
+    if not agent_dir:
+        raise HTTPException(status_code=500, detail="Agent directory not found")
+
+    study_log_path = os.path.join(agent_dir, "data", "study_log.jsonl")
+
+    # Import StudyLogger from the agent's base
+    sys_path_entry = os.path.join(os.path.dirname(agent_dir), "base")
+    if sys_path_entry not in sys_path:
+        sys_path.insert(0, sys_path_entry)
+    from badges import StudyLogger
+
+    questionnaire = {
+        "stias_1": req.stias_1,
+        "stias_2": req.stias_2,
+        "stias_3": req.stias_3,
+        "understanding": req.understanding,
+        "reliance": req.reliance,
+    }
+
+    updated = StudyLogger.update_questionnaire(
+        study_log_path=study_log_path,
+        study_id=info["study_id"],
+        query_number=req.query_number,
+        questionnaire=questionnaire,
+    )
+
+    if not updated:
+        raise HTTPException(status_code=404, detail="Study log entry not found for this query")
+    return {"ok": True}
+
+
+@app.post("/api/study/complete")
+async def study_complete(session: dict = Depends(require_auth)):
+    """Mark the current user's study as completed."""
+    from auth import mark_study_completed, get_study_info
+    info = get_study_info(session["username"])
+    if not info:
+        raise HTTPException(status_code=403, detail="Not a study participant")
+    mark_study_completed(session["username"])
+    return {"ok": True, "study_id": info["study_id"]}
+
+
+@app.get("/study")
+async def study_page():
+    """Serve the study interface page."""
+    return FileResponse(SCRIPT_DIR / "static" / "study.html")
 
 
 class ChatRequest(BaseModel):
@@ -1731,7 +1903,8 @@ async def chat_stream(
     session_id: Optional[str] = Query(None, description="ID de sesión (opcional, se crea automáticamente)"),
     model: Optional[str] = Query(None, description="LLM model override (client preference)"),
     transparency: Optional[str] = Query(None, description="Transparency level override (client preference)"),
-    prompt_level: Optional[str] = Query(None, description="Prompt level override (client preference)")
+    prompt_level: Optional[str] = Query(None, description="Prompt level override (client preference)"),
+    study_query_number: Optional[int] = Query(None, description="Study query number (1-8) for study participants"),
 ):
     """Envía un mensaje y hace streaming de la respuesta via SSE"""
     # Block users from accessing cloud-provider agents
@@ -1754,13 +1927,23 @@ async def chat_stream(
         full_response = ""
 
         try:
+            # Build study_info if this is a study participant query
+            _study_info = None
+            if session and study_query_number:
+                from auth import get_study_info as _get_si
+                _si = _get_si(session["username"])
+                if _si:
+                    _study_info = {**_si, "query_number": study_query_number}
+
             async for event_type, content, returned_session_id in runner.run_query_stream(
                 agent_id=agent_id,
                 message=message,
                 session_id=session_id,  # None en primera llamada
                 model_override=model,
                 transparency_override=transparency,
-                prompt_level_override=prompt_level
+                prompt_level_override=prompt_level,
+                username=session["username"] if session else None,
+                study_info=_study_info,
             ):
                 # Enviar session_id cuando lo recibimos (primera iteración)
                 if returned_session_id and not new_session_id:

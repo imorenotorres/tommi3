@@ -3276,10 +3276,17 @@ sqlite3 data/database.db < your_schema.sql
         else:
             return formatted
 
-    async def chat_stream(self, user_message: str, history: list = None, session_id: str = None):
+    async def chat_stream(self, user_message: str, history: list = None, session_id: str = None,
+                          transparency_override: str = None, model_override: str = None,
+                          prompt_level_override: str = None, **kwargs):
         """
         Versión streaming - emite eventos de estado y contenido.
         """
+        # Use per-request overrides or fall back to instance defaults
+        transparency = transparency_override or self._transparency
+        model = model_override or self.model
+        prompt_level = prompt_level_override or self._prompt_level
+
         # Usar session_id por defecto si no se proporciona
         if session_id is None:
             session_id = "default"
@@ -3373,7 +3380,7 @@ sqlite3 data/database.db < your_schema.sql
         state['shown_fields'] = set()  # Reset shown fields for new query
 
         # Mostrar la SQL generada inmediatamente (solo crystal_box y grey_box)
-        if self._transparency in ("crystal_box", "grey_box"):
+        if transparency in ("crystal_box", "grey_box"):
             yield ("content", f"**Generated SQL query:**\n```sql\n{sql_query}\n```\n\n")
 
         # ⏱️ Fase 3: Ejecutar SQL

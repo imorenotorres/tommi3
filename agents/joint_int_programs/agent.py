@@ -176,7 +176,7 @@ or
 
         return response_content
 
-    async def chat_stream(self, user_message: str, history: list = None, verify: bool = None):
+    async def chat_stream(self, user_message: str, history: list = None, verify: bool = None, **kwargs):
         should_verify = verify if verify is not None else self.verify_grounding
 
         if not self._chromadb_initialized:

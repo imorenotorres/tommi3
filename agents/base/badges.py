@@ -6,6 +6,7 @@ Classes
 - AuditLogger: static method for writing JSONL audit log entries (EU AI Act)
 """
 
+import hashlib
 import json
 import os
 
@@ -331,6 +332,16 @@ class ReliabilityBadge:
 class AuditLogger:
     """JSONL audit logger for EU AI Act compliance."""
 
+    # Stable salt for pseudonymizing usernames within the same deployment.
+    # Changing this value will break continuity of user_id across log entries.
+    _PSEUDO_SALT = "tommi-uninovis-2026"
+
+    @staticmethod
+    def pseudonymize(username: str) -> str:
+        """Return a pseudonymized user ID (SHA-256 prefix) for audit logs."""
+        raw = f"{AuditLogger._PSEUDO_SALT}:{username}"
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
     @staticmethod
     def log(
         audit_path: str,
@@ -346,6 +357,7 @@ class AuditLogger:
         context_sources: list = None,
         model_name: str = None,
         is_local_llm: bool = False,
+        username: str = None,
     ) -> None:
         """Append a decision event to the JSONL audit log.
 
@@ -373,6 +385,8 @@ class AuditLogger:
             When provided, included in the log entry.
         context_sources : list, optional
             When provided, included in the log entry.
+        username : str, optional
+            When provided, pseudonymized and included as ``user_id``.
         """
         if not enabled:
             return
@@ -391,6 +405,7 @@ class AuditLogger:
 
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
+            "user_id": AuditLogger.pseudonymize(username) if username else None,
             "agent_id": agent_id,
             "query": query,
             "query_type": query_type,
@@ -415,6 +430,97 @@ class AuditLogger:
                 f.write(json.dumps(entry, ensure_ascii=False) + "\n")
         except Exception as e:
             print(f"[audit_log] Write error: {e}")
+
+
+class StudyLogger:
+    """Separate JSONL logger for research study data.
+
+    Writes de-identified records keyed by study_id (not username).
+    Only contains: study_id, email_domain (country TLD), condition,
+    query metrics, and inline questionnaire responses.
+    """
+
+    @staticmethod
+    def log(
+        study_log_path: str,
+        study_id: str,
+        email_domain: str,
+        study_condition: str,
+        query_number: int,
+        query_text: str,
+        transparency_level: str,
+        confidence: int = None,
+        reliability_label: str = None,
+        breakdown: dict = None,
+        hallucination_count: int = 0,
+        questionnaire: dict = None,
+    ) -> None:
+        """Append a study event to the dedicated study JSONL log."""
+        from datetime import datetime, timezone
+
+        breakdown_entry = {}
+        if breakdown:
+            breakdown_entry = {
+                "metadata_pct": breakdown.get("metadata_pct", 0),
+                "database_pct": breakdown.get("database_pct", 0),
+                "llm_pct": breakdown.get("llm_pct", 0),
+                "web_pct": breakdown.get("web_pct", 0),
+            }
+
+        entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "study_id": study_id,
+            "email_domain": email_domain,
+            "study_condition": study_condition,
+            "query_number": query_number,
+            "query_text": query_text,
+            "transparency_level": transparency_level,
+            "confidence": confidence,
+            "reliability_label": reliability_label,
+            "breakdown": breakdown_entry,
+            "hallucination_count": hallucination_count,
+            "questionnaire": questionnaire,
+        }
+
+        try:
+            with open(study_log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        except Exception as e:
+            print(f"[study_log] Write error: {e}")
+
+    @staticmethod
+    def update_questionnaire(
+        study_log_path: str,
+        study_id: str,
+        query_number: int,
+        questionnaire: dict,
+    ) -> bool:
+        """Update the questionnaire field of the last matching entry."""
+        import os
+        if not os.path.exists(study_log_path):
+            return False
+
+        lines = []
+        updated = False
+        with open(study_log_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        # Find the last matching entry (reverse search)
+        for i in range(len(lines) - 1, -1, -1):
+            try:
+                entry = json.loads(lines[i])
+                if entry.get("study_id") == study_id and entry.get("query_number") == query_number:
+                    entry["questionnaire"] = questionnaire
+                    lines[i] = json.dumps(entry, ensure_ascii=False) + "\n"
+                    updated = True
+                    break
+            except json.JSONDecodeError:
+                continue
+
+        if updated:
+            with open(study_log_path, "w", encoding="utf-8") as f:
+                f.writelines(lines)
+        return updated
 
 
 # ------------------------------------------------------------------

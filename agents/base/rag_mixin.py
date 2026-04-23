@@ -74,7 +74,7 @@ class SimpleRAGMixin:
 
         return response_content
 
-    async def chat_stream(self, user_message: str, history: list = None):
+    async def chat_stream(self, user_message: str, history: list = None, **kwargs):
         """Send a message with RAG context and stream the response."""
         # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:

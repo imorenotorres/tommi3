@@ -1,0 +1,22 @@
+{
+  "agent_id": "responsible_ai2",
+  "queries": [
+    {"number": 1, "text": "What research exists on explainable artificial intelligence?"},
+    {"number": 2, "text": "List researchers working on AI ethics at UNINOVIS universities"},
+    {"number": 3, "text": "What is the relationship between fairness and accountability in AI?"},
+    {"number": 4, "text": "Are there any papers on quantum computing?"},
+    {"number": 5, "text": "Show me a map of publications on AI transparency"},
+    {"number": 6, "text": "What projects mention the Green Deal?"},
+    {"number": 7, "text": "What gaps exist in UNINOVIS research on AI governance?"},
+    {"number": 8, "text": "Compare the approaches to trustworthy AI across European universities"}
+  ],
+  "questionnaire_items": [
+    {"id": "stias_1", "text": "I trust the system's response", "scale": "1-7"},
+    {"id": "stias_2", "text": "I feel confident in the system's capabilities", "scale": "1-7"},
+    {"id": "stias_3", "text": "I can rely on the system", "scale": "1-7"},
+    {"id": "understanding", "text": "I understand how the system arrived at this response", "scale": "1-7"},
+    {"id": "reliance", "text": "I would use this response for my research", "scale": "1-7"}
+  ],
+  "post_questionnaire_url": "",
+  "thank_you_message": "Thank you for participating in this study. Your responses will help us understand how AI transparency affects user trust."
+}

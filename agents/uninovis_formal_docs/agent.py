@@ -395,7 +395,7 @@ or
 
         return response_content
 
-    async def chat_stream(self, user_message: str, history: list = None, verify: bool = None):
+    async def chat_stream(self, user_message: str, history: list = None, verify: bool = None, **kwargs):
         """
         Envía un mensaje con contexto RAG y obtiene respuesta en streaming.
 

@@ -78,7 +78,7 @@ def _web_search(query: str, api_key: str, cx: str, num_results: int = 5) -> str:
         parts.append(f"[Web source: {link} | {title}]\n{snippet}")
 
     return "\n\n---\n\n".join(parts)
-from .badges import ReliabilityBadge, AuditLogger
+from .badges import ReliabilityBadge, AuditLogger, StudyLogger
 
 
 class MetadataRAGMixin:
@@ -2763,7 +2763,7 @@ class MetadataRAGMixin:
     # Chat methods (override SimpleRAGMixin or BaseRAGAgent)
     # ------------------------------------------------------------------
 
-    def chat(self, user_message: str, history: list = None, **kwargs) -> str:
+    def chat(self, user_message: str, history: list = None, username: str = None, **kwargs) -> str:
         """Send a message with RAG+Metadata context and return the response."""
         # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
@@ -2967,6 +2967,7 @@ class MetadataRAGMixin:
             prompt_level=self._prompt_level,
             source_type=source_type or "none",
             context_sources=ctx_sources,
+            username=username,
         )
 
         self._query_history.append({
@@ -2976,7 +2977,7 @@ class MetadataRAGMixin:
 
         return response_content
 
-    async def chat_stream(self, user_message: str, history: list = None):
+    async def chat_stream(self, user_message: str, history: list = None, username: str = None, study_info: dict = None, **kwargs):
         """Send a message with RAG+Metadata context and stream the response."""
         # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
@@ -3215,7 +3216,25 @@ class MetadataRAGMixin:
             prompt_level=self._prompt_level,
             source_type=source_type or "none",
             context_sources=ctx_sources,
+            username=username,
         )
+
+        # Write study log (separate de-identified log for research)
+        if study_info:
+            study_log_path = os.path.join(self._agent_dir, "data", "study_log.jsonl")
+            StudyLogger.log(
+                study_log_path=study_log_path,
+                study_id=study_info.get("study_id", ""),
+                email_domain=study_info.get("email_domain", ""),
+                study_condition=study_info.get("study_condition", ""),
+                query_number=study_info.get("query_number", 0),
+                query_text=user_message,
+                transparency_level=self._transparency,
+                confidence=breakdown.get("confidence") if breakdown else None,
+                reliability_label=reliability_label,
+                breakdown=breakdown,
+                hallucination_count=hallucination_count,
+            )
 
         self._query_history.append({
             'question': self._get_last_query() if is_web_expand else user_message,

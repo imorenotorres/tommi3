@@ -3416,10 +3416,17 @@ sqlite3 data/database.db < your_schema.sql
             ) + "\n"
         return f"{badge}{autocorrect_note}{sql_section}{formatted}{suggestion_section}"
 
-    async def chat_stream(self, user_message: str, history: list = None, session_id: str = None):
+    async def chat_stream(self, user_message: str, history: list = None, session_id: str = None,
+                          transparency_override: str = None, model_override: str = None,
+                          prompt_level_override: str = None, **kwargs):
         """
         Versión streaming - emite eventos de estado y contenido.
         """
+        # Use per-request overrides or fall back to instance defaults
+        transparency = transparency_override or self._transparency
+        model = model_override or self.model
+        prompt_level = prompt_level_override or self._prompt_level
+
         # Usar session_id por defecto si no se proporciona
         if session_id is None:
             session_id = "default"
@@ -3517,12 +3524,12 @@ sqlite3 data/database.db < your_schema.sql
         state['last_sql_query'] = sql_query
 
         # Mostrar la SQL generada inmediatamente (solo crystal_box y grey_box)
-        show_sql = self._transparency in ("crystal_box", "grey_box")
+        show_sql = transparency in ("crystal_box", "grey_box")
         if show_sql:
             yield ("content", f"**Generated SQL query:**\n```sql\n{sql_query}\n```\n\n")
 
         # ⏱️ Fase 2b: Pre-execution verification (prompt level enforcement)
-        if self._prompt_level in ("stringent", "tolerant"):
+        if prompt_level in ("stringent", "tolerant"):
             pre_check = self._sql_verifier.verify(sql_query)
 
             # Semantic alignment check
@@ -3532,7 +3539,7 @@ sqlite3 data/database.db < your_schema.sql
                 pre_check["confidence"] = max(0, pre_check["confidence"] - semantic["penalty"])
                 logger.warning(f"⚠️ Semantic check: {semantic['issues']}")
 
-            if self._prompt_level == "stringent":
+            if prompt_level == "stringent":
                 hard_errors = [i for i in pre_check["issues"]
                                if i.startswith("Unknown table:") or i.startswith("Unknown column:")
                                or i.startswith("Dangerous keyword")
@@ -3540,14 +3547,15 @@ sqlite3 data/database.db < your_schema.sql
                 if hard_errors:
                     issues_text = "\n".join(f"- {i}" for i in hard_errors)
                     badge = SQLReliabilityBadge.source_badge(
-                        pre_check, transparency=self._transparency,
-                        prompt_level=self._prompt_level,
-                        model_name=self.model or "unknown",
+                        pre_check, transparency=transparency,
+                        prompt_level=prompt_level,
+                        model_name=model or "unknown",
                         is_local_llm=os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm"),
                     )
                     if badge:
                         yield ("badge", badge)
-                    self._write_audit_log(user_message, sql_query, pre_check, 0)
+                    self._write_audit_log(user_message, sql_query, pre_check, 0,
+                                          transparency=transparency, prompt_level=prompt_level, model_name=model)
                     self._log_timing_summary(timings)
                     yield ("content",
                         f"**SQL verification failed (stringent mode):**\n{issues_text}\n\n"
@@ -3556,7 +3564,7 @@ sqlite3 data/database.db < your_schema.sql
                     )
                     return
 
-            if self._prompt_level == "tolerant" and pre_check["issues"]:
+            if prompt_level == "tolerant" and pre_check["issues"]:
                 issues_text = ", ".join(pre_check["issues"])
                 yield ("content", f"⚠️ *Warning (tolerant mode): {issues_text}*\n\n")
 
@@ -3640,13 +3648,13 @@ sqlite3 data/database.db < your_schema.sql
         result_count = len(results) if isinstance(results, list) else 0
         verification = self._sql_verifier.verify_with_execution(sql_query, success, result_count)
 
-        model_display = self.model or "unknown"
+        model_display = model or "unknown"
         is_local = os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm")
 
         badge = SQLReliabilityBadge.source_badge(
             verification,
-            transparency=self._transparency,
-            prompt_level=self._prompt_level,
+            transparency=transparency,
+            prompt_level=prompt_level,
             model_name=model_display,
             is_local_llm=is_local,
         )
@@ -3654,7 +3662,8 @@ sqlite3 data/database.db < your_schema.sql
             yield ("badge", badge)
 
         # Audit log
-        self._write_audit_log(user_message, sql_query, verification, result_count)
+        self._write_audit_log(user_message, sql_query, verification, result_count,
+                              transparency=transparency, prompt_level=prompt_level, model_name=model)
 
         # Mostrar resumen de tiempos
         self._log_timing_summary(timings)
@@ -3667,7 +3676,8 @@ sqlite3 data/database.db < your_schema.sql
             suggestion_text = "\n".join(f"💡 {s}" for s in verification["suggestions"])
             yield ("content", f"\n\n{suggestion_text}\n")
 
-    def _write_audit_log(self, query: str, sql: str, verification: dict, result_count: int):
+    def _write_audit_log(self, query: str, sql: str, verification: dict, result_count: int,
+                         transparency: str = None, prompt_level: str = None, model_name: str = None):
         """Write an audit log entry for EU AI Act compliance."""
         if not self._audit_enabled:
             return
@@ -3685,9 +3695,9 @@ sqlite3 data/database.db < your_schema.sql
                 "unknown_columns": verification.get("unknown_columns", []),
                 "executed_ok": verification.get("executed_ok"),
                 "result_count": result_count,
-                "transparency_level": self._transparency,
-                "prompt_level": self._prompt_level,
-                "model": self.model,
+                "transparency_level": transparency or self._transparency,
+                "prompt_level": prompt_level or self._prompt_level,
+                "model": model_name or self.model,
             }
             import json as json_mod
             with open(self._audit_path, "a", encoding="utf-8") as f:

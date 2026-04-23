@@ -176,6 +176,64 @@
             color: var(--text-muted);
             margin-top: 0.25rem;
         }
+
+        /* Transparency selection (shown after login) */
+        #transparency-section {
+            display: none;
+        }
+
+        .transparency-options {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            justify-content: center;
+        }
+
+        @media (max-width: 600px) {
+            .transparency-options { flex-direction: column; }
+        }
+
+        .transparency-option {
+            flex: 1;
+            max-width: 220px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+            background: white;
+        }
+
+        .transparency-option:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 12px rgba(37, 99, 235, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .transparency-option.selected {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        .transparency-option img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 0.5rem;
+        }
+
+        .transparency-option .opt-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1e293b;
+            margin-bottom: 0.35rem;
+        }
+
+        .transparency-option .opt-desc {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -202,7 +260,7 @@
               </div>
                 <div class="gdpr-notice" style="margin-top:1rem; padding:0.75rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; font-size:0.75rem; color:#64748b; line-height:1.5;">
                     <p style="font-size:0.95rem; font-weight:600; color:#1e293b; margin-bottom:0.5rem;">Data Protection &amp; AI Transparency Notice</p>
-                    This service uses AI-powered agents that provide information only and do not make autonomous decisions. By signing in, you acknowledge that you are interacting with an AI system, in accordance with <b>Article 50</b> (transparency obligations) and <b>Article 4</b> (AI literacy) of the <b>EU Artificial Intelligence Act</b> (Regulation (EU) 2024/1689). Your personal data (username, IP address, and conversation logs) is processed for the purpose of operating this service, ensuring quality, and fulfilling the accountability principle established in <b>Article 5(2) of the GDPR</b>. All data is processed exclusively on infrastructure operated by the Universidad de M&aacute;laga and is not transferred to third parties. You may exercise your rights of access, rectification, erasure, and portability by contacting the Data Protection Officer at <a href="mailto:dpo@uma.es" style="color:#2563eb;">dpo@uma.es</a>.
+                    This service uses AI-powered agents that provide information only and do not make autonomous decisions. By signing in, you acknowledge that you are interacting with an AI system, in accordance with <b>Article 50</b> (transparency obligations) and <b>Article 4</b> (AI literacy) of the <b>EU Artificial Intelligence Act</b> (Regulation (EU) 2024/1689). Your personal data (username, IP address, and conversation logs) is processed for the purpose of operating this service, ensuring quality, and fulfilling the accountability principle established in <b>Article 5(2) of the GDPR</b>. Additionally, your interactions are logged with a <b>pseudonymized user identifier</b> (a non-reversible hash of your username) for <b>scientific research purposes</b>, under the legal basis of <b>Article 6(1)(e)</b> (task in the public interest) and the safeguards of <b>Article 89</b> (processing for scientific research) of the GDPR. These pseudonymized logs may be used to study AI transparency, explainability, and user interaction patterns within the UNINOVIS research programme. All data is processed exclusively on infrastructure operated by the Universidad de M&aacute;laga and is not transferred to third parties. You may exercise your rights of access, rectification, erasure, and portability by contacting the Data Protection Officer at <a href="mailto:dpo@uma.es" style="color:#2563eb;">dpo@uma.es</a>.
                 </div>
                 <button type="submit" class="btn btn-primary" id="login-btn">Sign in</button>
             </form>
@@ -284,6 +342,32 @@
                 <button type="submit" class="btn btn-primary" id="change-btn">Change password</button>
             </form>
         </div>
+
+        <!-- Transparency level selection (shown after login) -->
+        <div id="transparency-section">
+            <h2>Choose your transparency level</h2>
+            <p class="subtitle">This controls how much detail the AI agent shows about its reasoning and sources. You can change it at any time during your session.</p>
+
+            <div class="transparency-options">
+                <div class="transparency-option" data-level="crystal_box">
+                    <img src="/static/icon_crystal_box.svg" alt="Crystal box">
+                    <div class="opt-label">Crystal box</div>
+                    <div class="opt-desc">Full detail: source breakdown, claim verification, confidence formula, and inline highlights</div>
+                </div>
+                <div class="transparency-option" data-level="grey_box">
+                    <img src="/static/icon_grey_box.svg" alt="Grey box">
+                    <div class="opt-label">Grey box</div>
+                    <div class="opt-desc">Essential info: reliability score and agent tuning, without detailed source percentages</div>
+                </div>
+                <div class="transparency-option" data-level="black_box">
+                    <img src="/static/icon_black_box.svg" alt="Black box">
+                    <div class="opt-label">Black box</div>
+                    <div class="opt-desc">Clean output: responses only, no reliability badges or verification details</div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="transparency-continue-btn" disabled>Continue</button>
+        </div>
     </div>
 
     <script>
@@ -296,8 +380,14 @@
                 if (r.ok) return r.json();
                 throw new Error('invalid');
             }).then(data => {
+                if (data.study_participant || data.study_mode) {
+                    localStorage.setItem('tommi_transparency', data.study_condition);
+                    localStorage.setItem('tommi_study_mode', 'true');
+                }
                 if (data.provisional_password) {
                     showChangePassword(data.username);
+                } else if (data.study_participant) {
+                    window.location.href = '/study';
                 } else {
                     redirectByRole(data.role);
                 }
@@ -307,6 +397,7 @@
         }
 
         let _currentUsername = '';
+        let _pendingRole = '';  // stored while transparency is being selected
 
         function checkPasswordComplexity(pwd) {
             if (pwd.length < 8) return 'Password must be at least 8 characters';
@@ -324,12 +415,51 @@
         }
 
         function redirectByRole(role) {
+            // Study mode: condition assigned server-side, skip selector
+            if (localStorage.getItem('tommi_study_mode') === 'true') {
+                doRedirect(role);
+                return;
+            }
+            // If user already picked transparency this session, go straight through
+            if (localStorage.getItem('tommi_transparency')) {
+                doRedirect(role);
+                return;
+            }
+            // Otherwise show the transparency selector
+            _pendingRole = role;
+            showTransparencySelector();
+        }
+
+        function doRedirect(role) {
             if (role === 'tester' || role === 'superuser') {
                 window.location.href = '/testing';
             } else {
                 window.location.href = '/';
             }
         }
+
+        function showTransparencySelector() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('change-password-section').style.display = 'none';
+            document.getElementById('transparency-section').style.display = 'block';
+        }
+
+        // Transparency option click handling
+        document.querySelectorAll('.transparency-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.transparency-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                document.getElementById('transparency-continue-btn').disabled = false;
+            });
+        });
+
+        document.getElementById('transparency-continue-btn').addEventListener('click', () => {
+            const selected = document.querySelector('.transparency-option.selected');
+            if (!selected) return;
+            const level = selected.dataset.level;
+            localStorage.setItem('tommi_transparency', level);
+            doRedirect(_pendingRole);
+        });
 
         function showChangePassword(username) {
             _currentUsername = username;
@@ -366,6 +496,26 @@
                 localStorage.setItem('tommi_token', data.token);
                 localStorage.setItem('tommi_username', data.username);
                 localStorage.setItem('tommi_role', data.role);
+
+                // Study participant: redirect to /study
+                if (data.study_participant) {
+                    localStorage.setItem('tommi_transparency', data.study_condition);
+                    localStorage.setItem('tommi_study_mode', 'true');
+                    if (data.provisional_password) {
+                        showChangePassword(data.username);
+                    } else {
+                        window.location.href = '/study';
+                    }
+                    btn.disabled = false;
+                    btn.textContent = 'Sign in';
+                    return;
+                }
+
+                // Study mode (non-enrolled): store assigned condition and skip selector
+                if (data.study_mode && data.study_condition) {
+                    localStorage.setItem('tommi_transparency', data.study_condition);
+                    localStorage.setItem('tommi_study_mode', 'true');
+                }
 
                 if (data.provisional_password) {
                     showChangePassword(data.username);

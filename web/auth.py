@@ -11,6 +11,7 @@ Users are stored in data/users.json with PBKDF2-hashed passwords.
 
 import hashlib
 import json
+import random
 import secrets
 import time
 from pathlib import Path
@@ -27,6 +28,170 @@ ROLES = {
     "tester": 2,
     "user": 1,
 }
+
+# ---------------------------------------------------------------------------
+# Study mode — random transparency assignment for experiments
+# ---------------------------------------------------------------------------
+# When enabled, users are randomly assigned a transparency condition at first
+# login. The condition is stored in users.json as "study_condition" and cannot
+# be changed by the user during the session.
+
+STUDY_CONFIG_FILE = DATA_DIR / "study_config.json"
+STUDY_CONDITIONS = ["black_box", "grey_box", "crystal_box"]
+
+
+def _load_study_config() -> dict:
+    """Load study mode configuration."""
+    if not STUDY_CONFIG_FILE.exists():
+        return {"enabled": False}
+    with open(STUDY_CONFIG_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def is_study_mode() -> bool:
+    """Return True if study mode is currently enabled."""
+    return _load_study_config().get("enabled", False)
+
+
+def assign_study_condition(username: str) -> Optional[str]:
+    """Assign a random transparency condition to a user for the study.
+
+    Uses stratified assignment: picks the condition with the fewest
+    current participants to maintain balanced groups.
+
+    Returns the assigned condition, or None if study mode is disabled
+    or the user already has a condition.
+    """
+    if not is_study_mode():
+        return None
+
+    users = _load_users()
+    user = users.get(username)
+    if not user:
+        return None
+
+    # Already assigned
+    if user.get("study_condition"):
+        return user["study_condition"]
+
+    # Count current assignments for balanced allocation
+    counts = {c: 0 for c in STUDY_CONDITIONS}
+    for u in users.values():
+        cond = u.get("study_condition")
+        if cond in counts:
+            counts[cond] += 1
+
+    # Pick the least-assigned condition (random tiebreak)
+    min_count = min(counts.values())
+    candidates = [c for c, n in counts.items() if n == min_count]
+    condition = random.choice(candidates)
+
+    user["study_condition"] = condition
+    _save_users(users)
+    return condition
+
+
+def get_study_condition(username: str) -> Optional[str]:
+    """Return the user's assigned study condition, or None."""
+    users = _load_users()
+    user = users.get(username)
+    if not user:
+        return None
+    return user.get("study_condition")
+
+
+def _extract_email_domain(username: str) -> str:
+    """Extract country TLD from email/username (e.g. 'user@uma.es' -> 'es')."""
+    if "@" in username:
+        domain = username.rsplit("@", 1)[1]
+        return domain.rsplit(".", 1)[-1].lower()
+    return "unknown"
+
+
+def enroll_study_participant(username: str) -> Optional[dict]:
+    """Enroll a user as a study participant.
+
+    Assigns a study_id (S001, S002...), a random transparency condition,
+    and extracts the email country domain.  Returns the study info dict
+    or None if the user doesn't exist.
+    """
+    users = _load_users()
+    user = users.get(username)
+    if not user:
+        return None
+
+    # Already enrolled — return existing info
+    if user.get("study_participant"):
+        return {
+            "study_id": user["study_id"],
+            "study_condition": user["study_condition"],
+            "email_domain": user["email_domain"],
+        }
+
+    # Generate next study_id
+    existing_ids = [
+        u.get("study_id", "")
+        for u in users.values()
+        if u.get("study_participant")
+    ]
+    next_num = len(existing_ids) + 1
+    study_id = f"S{next_num:03d}"
+
+    # Ensure uniqueness
+    while study_id in existing_ids:
+        next_num += 1
+        study_id = f"S{next_num:03d}"
+
+    # Assign condition (balanced)
+    counts = {c: 0 for c in STUDY_CONDITIONS}
+    for u in users.values():
+        cond = u.get("study_condition")
+        if u.get("study_participant") and cond in counts:
+            counts[cond] += 1
+    min_count = min(counts.values())
+    candidates = [c for c, n in counts.items() if n == min_count]
+    condition = random.choice(candidates)
+
+    email_domain = _extract_email_domain(username)
+
+    user["study_participant"] = True
+    user["study_id"] = study_id
+    user["study_condition"] = condition
+    user["email_domain"] = email_domain
+    user["study_completed"] = False
+    _save_users(users)
+
+    return {
+        "study_id": study_id,
+        "study_condition": condition,
+        "email_domain": email_domain,
+    }
+
+
+def get_study_info(username: str) -> Optional[dict]:
+    """Return full study info for a participant, or None."""
+    users = _load_users()
+    user = users.get(username)
+    if not user or not user.get("study_participant"):
+        return None
+    return {
+        "study_id": user.get("study_id"),
+        "study_condition": user.get("study_condition"),
+        "email_domain": user.get("email_domain"),
+        "study_completed": user.get("study_completed", False),
+    }
+
+
+def mark_study_completed(username: str) -> bool:
+    """Mark a study participant as having completed all queries."""
+    users = _load_users()
+    user = users.get(username)
+    if not user or not user.get("study_participant"):
+        return False
+    user["study_completed"] = True
+    _save_users(users)
+    return True
+
 
 # Active sessions: {token: {"username": str, "role": str, "created": float}}
 _sessions: dict[str, dict] = {}
@@ -208,12 +373,25 @@ def authenticate(username: str, password: str) -> Optional[dict]:
         "created": time.time(),
     }
 
-    return {
+    # Study info
+    study_info = get_study_info(username)
+
+    result = {
         "token": token,
         "username": username,
         "role": user["role"],
         "provisional_password": user.get("provisional_password", False),
     }
+    if study_info:
+        result["study_participant"] = True
+        result["study_id"] = study_info["study_id"]
+        result["study_condition"] = study_info["study_condition"]
+    elif is_study_mode():
+        result["study_mode"] = True
+        cond = assign_study_condition(username)
+        result["study_condition"] = cond or user.get("study_condition")
+
+    return result
 
 
 def change_password(username: str, old_password: str, new_password: str) -> bool:

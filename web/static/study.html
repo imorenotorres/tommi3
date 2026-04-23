@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOMMI - Study Mode</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-muted: #64748b;
+            --success-color: #16a34a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: #1e293b;
+        }
+        .header {
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .header-left img { height: 36px; }
+        .header-left .study-badge {
+            background: #eff6ff; color: var(--primary-color);
+            padding: 3px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;
+        }
+        .header-right { font-size: 0.85rem; color: var(--text-muted); }
+
+        .progress-bar-container {
+            background: white; border-bottom: 1px solid var(--border-color);
+            padding: 0.5rem 1.5rem;
+        }
+        .progress-info { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.35rem; }
+        .progress-track { background: #e2e8f0; border-radius: 4px; height: 8px; }
+        .progress-fill { background: var(--primary-color); border-radius: 4px; height: 100%; transition: width 0.3s; }
+
+        .main-content {
+            max-width: 900px; margin: 1.5rem auto; padding: 0 1.5rem;
+        }
+
+        /* Query card */
+        .query-card {
+            background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 1.5rem; margin-bottom: 1rem;
+        }
+        .query-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem; font-weight: 500; }
+        .query-text { font-size: 1.05rem; font-weight: 500; }
+
+        /* Response area */
+        .response-card {
+            background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 1.5rem; margin-bottom: 1rem; min-height: 120px;
+        }
+        .response-card .waiting { color: var(--text-muted); font-style: italic; }
+        .response-card .agent-response { line-height: 1.6; }
+        .response-card .agent-response p { margin-bottom: 0.5em; }
+        .response-card .agent-response ul, .response-card .agent-response ol { margin-left: 1.5em; margin-bottom: 0.5em; }
+
+        .btn-send {
+            background: var(--primary-color); color: white; border: none;
+            padding: 0.6rem 1.5rem; border-radius: 6px; font-size: 0.95rem;
+            cursor: pointer; font-weight: 500; margin-bottom: 1rem;
+        }
+        .btn-send:hover { background: var(--primary-hover); }
+        .btn-send:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        /* Questionnaire */
+        .questionnaire-card {
+            background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+            padding: 1.5rem; margin-bottom: 1rem; display: none;
+        }
+        .questionnaire-card h3 { font-size: 1rem; margin-bottom: 1rem; }
+        .q-item { margin-bottom: 1.25rem; }
+        .q-item label { display: block; font-size: 0.9rem; margin-bottom: 0.5rem; font-weight: 500; }
+        .likert { display: flex; gap: 0.5rem; align-items: center; }
+        .likert .likert-label { font-size: 0.75rem; color: var(--text-muted); min-width: 80px; }
+        .likert .likert-label.right { text-align: right; }
+        .likert input[type="radio"] { display: none; }
+        .likert .radio-btn {
+            width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
+            transition: all 0.15s;
+        }
+        .likert .radio-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+        .likert input[type="radio"]:checked + .radio-btn {
+            background: var(--primary-color); color: white; border-color: var(--primary-color);
+        }
+
+        .btn-next {
+            background: var(--success-color); color: white; border: none;
+            padding: 0.6rem 1.5rem; border-radius: 6px; font-size: 0.95rem;
+            cursor: pointer; font-weight: 500; width: 100%;
+        }
+        .btn-next:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        /* Completion screen */
+        .completion-card {
+            background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 2.5rem; text-align: center; display: none;
+        }
+        .completion-card h2 { margin-bottom: 1rem; }
+        .completion-card .study-id-box {
+            background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 8px;
+            padding: 1rem; margin: 1.5rem auto; max-width: 300px;
+        }
+        .completion-card .study-id-box .id-label { font-size: 0.85rem; color: var(--text-muted); }
+        .completion-card .study-id-box .id-value { font-size: 1.8rem; font-weight: 700; color: var(--success-color); letter-spacing: 2px; }
+        .completion-card .post-link {
+            display: inline-block; margin-top: 1.5rem;
+            background: var(--primary-color); color: white; padding: 0.75rem 2rem;
+            border-radius: 6px; text-decoration: none; font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <img src="/static/logo_uninovis.png" alt="UNINOVIS">
+        <span class="study-badge">Study Mode</span>
+    </div>
+    <div class="header-right">
+        Participant: <strong id="participant-id">---</strong>
+    </div>
+</div>
+
+<div class="progress-bar-container">
+    <div class="progress-info">
+        <span id="progress-label">Query 1 of 8</span>
+        <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+</div>
+
+<div class="main-content">
+    <!-- Active query area -->
+    <div id="task-area">
+        <div class="query-card">
+            <div class="query-label">Query <span id="query-num">1</span> of 8</div>
+            <div class="query-text" id="query-text"></div>
+        </div>
+
+        <button class="btn-send" id="btn-send">Send query to agent</button>
+
+        <div class="response-card" id="response-card">
+            <div class="waiting" id="response-waiting">Click "Send query to agent" to begin</div>
+            <div class="agent-response" id="response-content" style="display:none;"></div>
+        </div>
+
+        <div class="questionnaire-card" id="questionnaire">
+            <h3>Please rate the response you just received:</h3>
+            <div id="q-items"></div>
+            <button class="btn-next" id="btn-next" disabled>Next query</button>
+        </div>
+    </div>
+
+    <!-- Completion screen -->
+    <div class="completion-card" id="completion">
+        <h2>Study completed</h2>
+        <p id="thank-you-msg"></p>
+        <div class="study-id-box">
+            <div class="id-label">Your study ID (use this in the post-questionnaire)</div>
+            <div class="id-value" id="final-study-id"></div>
+        </div>
+        <a href="" id="post-link" class="post-link" style="display:none;">Open post-questionnaire</a>
+    </div>
+</div>
+
+<script>
+const token = localStorage.getItem('tommi_token');
+if (!token) window.location.href = '/login';
+
+let studyId = '';
+let studyCondition = '';
+let agentId = '';
+let queries = [];
+let questionnaireItems = [];
+let currentIdx = 0;
+let postUrl = '';
+let thankYouMsg = '';
+
+// --- Init ---
+async function init() {
+    // Verify auth and study status
+    const meRes = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!meRes.ok) { window.location.href = '/login'; return; }
+    const me = await meRes.json();
+    if (!me.study_participant) { window.location.href = '/'; return; }
+
+    studyId = me.study_id;
+    studyCondition = me.study_condition;
+    document.getElementById('participant-id').textContent = studyId;
+
+    // Load queries
+    const qRes = await fetch('/api/study/queries', { headers: { 'Authorization': 'Bearer ' + token } });
+    const qData = await qRes.json();
+    agentId = qData.agent_id;
+    queries = qData.queries;
+    questionnaireItems = qData.questionnaire_items || [];
+    postUrl = qData.post_questionnaire_url || '';
+    thankYouMsg = qData.thank_you_message || 'Thank you for participating.';
+
+    buildQuestionnaireForm();
+    showQuery(0);
+}
+
+function buildQuestionnaireForm() {
+    const container = document.getElementById('q-items');
+    container.innerHTML = '';
+    for (const item of questionnaireItems) {
+        const div = document.createElement('div');
+        div.className = 'q-item';
+        let html = `<label>${item.text}</label><div class="likert">`;
+        html += `<span class="likert-label">Strongly disagree</span>`;
+        for (let v = 1; v <= 7; v++) {
+            html += `<label><input type="radio" name="q_${item.id}" value="${v}"><span class="radio-btn">${v}</span></label>`;
+        }
+        html += `<span class="likert-label right">Strongly agree</span>`;
+        html += `</div>`;
+        div.innerHTML = html;
+        container.appendChild(div);
+    }
+    // Listen for changes to enable Next button
+    container.addEventListener('change', checkAllAnswered);
+}
+
+function checkAllAnswered() {
+    const total = questionnaireItems.length;
+    let answered = 0;
+    for (const item of questionnaireItems) {
+        if (document.querySelector(`input[name="q_${item.id}"]:checked`)) answered++;
+    }
+    document.getElementById('btn-next').disabled = (answered < total);
+}
+
+function showQuery(idx) {
+    currentIdx = idx;
+    const q = queries[idx];
+    document.getElementById('query-num').textContent = q.number;
+    document.getElementById('query-text').textContent = q.text;
+    document.getElementById('progress-label').textContent = `Query ${q.number} of ${queries.length}`;
+    const pct = Math.round((idx / queries.length) * 100);
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-fill').style.width = pct + '%';
+
+    // Reset UI
+    document.getElementById('btn-send').disabled = false;
+    document.getElementById('response-waiting').style.display = '';
+    document.getElementById('response-content').style.display = 'none';
+    document.getElementById('response-content').innerHTML = '';
+    document.getElementById('questionnaire').style.display = 'none';
+    document.getElementById('btn-next').disabled = true;
+    // Clear radio buttons
+    for (const item of questionnaireItems) {
+        const checked = document.querySelector(`input[name="q_${item.id}"]:checked`);
+        if (checked) checked.checked = false;
+    }
+}
+
+// --- Send query via SSE ---
+document.getElementById('btn-send').addEventListener('click', () => {
+    const q = queries[currentIdx];
+    document.getElementById('btn-send').disabled = true;
+    document.getElementById('response-waiting').textContent = 'Thinking...';
+
+    const params = new URLSearchParams({
+        agent_id: agentId,
+        message: q.text,
+        transparency: studyCondition,
+        study_query_number: q.number,
+    });
+
+    const eventSource = new EventSource(`/api/chat/stream?${params.toString()}`);
+    let responseText = '';
+    let badgeHtml = '';
+
+    eventSource.addEventListener('badge', (e) => {
+        badgeHtml = e.data.replace(/\\n/g, '\n');
+    });
+
+    eventSource.addEventListener('status', (e) => {
+        document.getElementById('response-waiting').textContent = e.data;
+    });
+
+    eventSource.addEventListener('replace', (e) => {
+        responseText = e.data.replace(/\\n/g, '\n');
+    });
+
+    eventSource.onmessage = (e) => {
+        document.getElementById('response-waiting').style.display = 'none';
+        document.getElementById('response-content').style.display = '';
+        responseText += e.data.replace(/\\n/g, '\n');
+        document.getElementById('response-content').innerHTML = badgeHtml + marked.parse(responseText);
+    };
+
+    eventSource.addEventListener('done', () => {
+        eventSource.close();
+        document.getElementById('response-waiting').style.display = 'none';
+        document.getElementById('response-content').style.display = '';
+        document.getElementById('response-content').innerHTML = badgeHtml + marked.parse(responseText);
+        // Show questionnaire
+        document.getElementById('questionnaire').style.display = '';
+    });
+
+    eventSource.addEventListener('error', (e) => {
+        eventSource.close();
+        document.getElementById('response-waiting').textContent = 'An error occurred. Please try again.';
+        document.getElementById('btn-send').disabled = false;
+    });
+});
+
+// --- Submit questionnaire and advance ---
+document.getElementById('btn-next').addEventListener('click', async () => {
+    document.getElementById('btn-next').disabled = true;
+    const q = queries[currentIdx];
+
+    // Collect answers
+    const answers = {};
+    for (const item of questionnaireItems) {
+        const el = document.querySelector(`input[name="q_${item.id}"]:checked`);
+        answers[item.id] = el ? parseInt(el.value) : null;
+    }
+
+    // Submit to backend
+    await fetch('/api/study/questionnaire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ agent_id: agentId, query_number: q.number, ...answers }),
+    });
+
+    // Advance
+    if (currentIdx + 1 < queries.length) {
+        showQuery(currentIdx + 1);
+    } else {
+        // Study complete
+        await fetch('/api/study/complete', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token },
+        });
+        document.getElementById('task-area').style.display = 'none';
+        document.getElementById('progress-fill').style.width = '100%';
+        document.getElementById('progress-pct').textContent = '100%';
+        document.getElementById('progress-label').textContent = 'Complete';
+        document.getElementById('completion').style.display = '';
+        document.getElementById('thank-you-msg').textContent = thankYouMsg;
+        document.getElementById('final-study-id').textContent = studyId;
+        if (postUrl) {
+            const link = document.getElementById('post-link');
+            link.href = postUrl + '?study_id=' + encodeURIComponent(studyId);
+            link.style.display = '';
+        }
+    }
+});
+
+init();
+</script>
+</body>
+</html>

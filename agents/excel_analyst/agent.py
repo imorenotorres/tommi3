@@ -388,8 +388,15 @@ RULES:
     # Main chat
     # ------------------------------------------------------------------
 
-    def chat(self, user_message: str, history: list = None, session_id: str = None) -> str:
+    def chat(self, user_message: str, history: list = None, session_id: str = None,
+             transparency_override: str = None, model_override: str = None,
+             prompt_level_override: str = None, **kwargs) -> str:
         """Process a data analysis question."""
+        # Use per-request overrides or fall back to instance defaults
+        transparency = transparency_override or self._transparency
+        model = model_override or self.model
+        prompt_level = prompt_level_override or self._prompt_level
+
         if session_id is None:
             session_id = "default"
 
@@ -419,11 +426,11 @@ RULES:
         pre_check = verifier.verify(code)
 
         # Prompt level enforcement
-        if self._prompt_level == "stringent" and not pre_check["is_safe"]:
+        if prompt_level == "stringent" and not pre_check["is_safe"]:
             badge = DataReliabilityBadge.source_badge(
-                pre_check, transparency=self._transparency,
-                prompt_level=self._prompt_level,
-                model_name=self.model,
+                pre_check, transparency=transparency,
+                prompt_level=prompt_level,
+                model_name=model,
                 is_local_llm=os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm"),
             )
             issues_text = "\n".join(f"- {i}" for i in pre_check["issues"])
@@ -433,11 +440,11 @@ RULES:
                 f"The code was **not executed** because it contains unsafe patterns."
             )
 
-        if self._prompt_level == "stringent" and pre_check["unknown_columns"]:
+        if prompt_level == "stringent" and pre_check["unknown_columns"]:
             badge = DataReliabilityBadge.source_badge(
-                pre_check, transparency=self._transparency,
-                prompt_level=self._prompt_level,
-                model_name=self.model,
+                pre_check, transparency=transparency,
+                prompt_level=prompt_level,
+                model_name=model,
                 is_local_llm=os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm"),
             )
             issues_text = "\n".join(f"- {i}" for i in pre_check["issues"])
@@ -457,9 +464,9 @@ RULES:
 
         is_local = os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm")
         badge = DataReliabilityBadge.source_badge(
-            verification, transparency=self._transparency,
-            prompt_level=self._prompt_level,
-            model_name=self.model,
+            verification, transparency=transparency,
+            prompt_level=prompt_level,
+            model_name=model,
             is_local_llm=is_local,
         )
 
@@ -473,7 +480,7 @@ RULES:
         # Format response
         parts = [badge]
 
-        if self._transparency == "crystal_box":
+        if transparency == "crystal_box":
             parts.append(f"**Generated code:**\n```python\n{code}\n```\n\n")
 
         if exec_result["success"]:
@@ -486,13 +493,15 @@ RULES:
         else:
             parts.append(f"**Error:** {exec_result['error']}\n")
 
-        if self._prompt_level == "tolerant" and pre_check["issues"]:
+        if prompt_level == "tolerant" and pre_check["issues"]:
             issues_text = ", ".join(pre_check["issues"])
             parts.append(f"\n*Warning: {issues_text}*\n")
 
         return "\n".join(parts)
 
-    async def chat_stream(self, user_message: str, history: list = None, session_id: str = None):
+    async def chat_stream(self, user_message: str, history: list = None, session_id: str = None,
+                          transparency_override: str = None, model_override: str = None,
+                          prompt_level_override: str = None, **kwargs):
         """Streaming version — yields (event_type, content) tuples."""
         if session_id is None:
             session_id = "default"
@@ -505,7 +514,10 @@ RULES:
 
         yield ("status", "Generating analysis code...")
         # The actual analysis is fast enough to not need true streaming
-        result = self.chat(user_message, history, session_id)
+        result = self.chat(user_message, history, session_id,
+                           transparency_override=transparency_override,
+                           model_override=model_override,
+                           prompt_level_override=prompt_level_override)
 
         # Split badge from content
         if '<div class="claim-badge-area"' in result:

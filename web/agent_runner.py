@@ -2,7 +2,6 @@
 Agent Runner - Ejecuta agentes Tommi directamente
 """
 
-import asyncio
 import importlib.util
 import json
 import sys
@@ -314,7 +313,9 @@ class AgentRunner:
         session_id: Optional[str] = None,
         model_override: Optional[str] = None,
         transparency_override: Optional[str] = None,
-        prompt_level_override: Optional[str] = None
+        prompt_level_override: Optional[str] = None,
+        username: Optional[str] = None,
+        study_info: Optional[dict] = None
     ) -> AsyncGenerator[tuple[str, str, Optional[str]], None]:
         """
         Ejecuta una query y hace streaming de la respuesta.
@@ -323,17 +324,6 @@ class AgentRunner:
         model_override/transparency_override/prompt_level_override: per-request client preferences
         """
         agent_instance = self._load_agent_module(agent_id)
-
-        # Apply per-request overrides (save originals to restore after)
-        saved_model = getattr(agent_instance, 'model', None)
-        saved_transparency = getattr(agent_instance, '_transparency', None)
-        saved_prompt_level = getattr(agent_instance, '_prompt_level', None)
-        if model_override and hasattr(agent_instance, 'model'):
-            agent_instance.model = model_override
-        if transparency_override and hasattr(agent_instance, '_transparency'):
-            agent_instance._transparency = transparency_override
-        if prompt_level_override and hasattr(agent_instance, '_prompt_level'):
-            agent_instance._prompt_level = prompt_level_override
 
         # Generar session_id si no existe
         if not session_id:
@@ -347,11 +337,22 @@ class AgentRunner:
         first_chunk = True
 
         try:
-            # Pasar session_id si el agente lo soporta
+            # Pass optional kwargs if the agent supports them
+            kwargs = {}
             if 'session_id' in agent_instance.chat_stream.__code__.co_varnames:
-                stream = agent_instance.chat_stream(message, history, session_id=session_id)
-            else:
-                stream = agent_instance.chat_stream(message, history)
+                kwargs['session_id'] = session_id
+            if username and 'username' in agent_instance.chat_stream.__code__.co_varnames:
+                kwargs['username'] = username
+            if study_info and 'study_info' in agent_instance.chat_stream.__code__.co_varnames:
+                kwargs['study_info'] = study_info
+            # Pass overrides as parameters instead of mutating the shared instance
+            if transparency_override:
+                kwargs['transparency_override'] = transparency_override
+            if model_override:
+                kwargs['model_override'] = model_override
+            if prompt_level_override:
+                kwargs['prompt_level_override'] = prompt_level_override
+            stream = agent_instance.chat_stream(message, history, **kwargs)
 
             async for item in stream:
                 # El agente puede emitir tuplas (tipo, contenido) o solo strings
@@ -373,14 +374,6 @@ class AgentRunner:
             err = format_error(SERVER_STREAMING_ERROR, details=str(e))
             yield ("content", f"[Error {err['error_code']}: {err['error']}]", session_id if first_chunk else None)
             return
-        finally:
-            # Restore original values so the shared instance isn't permanently changed
-            if saved_model is not None and hasattr(agent_instance, 'model'):
-                agent_instance.model = saved_model
-            if saved_transparency is not None and hasattr(agent_instance, '_transparency'):
-                agent_instance._transparency = saved_transparency
-            if saved_prompt_level is not None and hasattr(agent_instance, '_prompt_level'):
-                agent_instance._prompt_level = saved_prompt_level
 
         # Guardar en sesión
         self._save_to_session(session_id, message, full_response)

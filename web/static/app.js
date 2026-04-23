@@ -35,6 +35,11 @@ async function checkAuth() {
             window.location.href = '/login';
             return false;
         }
+        // Study participants must use /study, not the normal interface
+        if (data.study_participant) {
+            window.location.href = '/study';
+            return false;
+        }
         // Update stored info
         localStorage.setItem('tommi_role', data.role);
         localStorage.setItem('tommi_username', data.username);
@@ -79,6 +84,8 @@ function doLogout() {
     localStorage.removeItem('tommi_token');
     localStorage.removeItem('tommi_role');
     localStorage.removeItem('tommi_username');
+    localStorage.removeItem('tommi_transparency');
+    localStorage.removeItem('tommi_study_mode');
     window.location.href = '/login';
 }
 
@@ -614,6 +621,12 @@ function showAgentInfo() {
         elements.agentDescription.classList.add('hidden');
     }
 
+    // Apply user's login-time transparency preference (overrides agent default)
+    const userTransparency = localStorage.getItem('tommi_transparency');
+    if (userTransparency && TRANSPARENCY_LEVELS.includes(userTransparency)) {
+        state.currentAgent.transparency_level = userTransparency;
+    }
+
     // Mostrar nivel de transparencia (clickable to cycle)
     if (state.currentAgent.transparency_level) {
         renderTransparencyBadge(state.currentAgent.transparency_level);
@@ -673,21 +686,29 @@ const TRANSPARENCY_STYLES = {
 
 function renderTransparencyBadge(level) {
     const s = TRANSPARENCY_STYLES[level] || TRANSPARENCY_STYLES.grey_box;
+    const isStudy = localStorage.getItem('tommi_study_mode') === 'true';
+    const cursor = isStudy ? 'default' : 'pointer';
+    const title = isStudy ? 'Transparency level (study mode — locked)' : 'Click to change transparency level';
     elements.transparencyLevel.innerHTML =
-        `<span class="transparency-badge" style="background-color:${s.bg};color:${s.color};padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" ` +
-        `title="Click to change transparency level">` +
+        `<span class="transparency-badge" style="background-color:${s.bg};color:${s.color};padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;cursor:${cursor};display:inline-flex;align-items:center;gap:4px;" ` +
+        `title="${title}">` +
         `<img src="${s.icon}" style="width:16px;height:16px;vertical-align:middle;"> Transparency: ${s.label}</span>`;
-    elements.transparencyLevel.querySelector('.transparency-badge')
-        .addEventListener('click', cycleTransparency);
+    if (!isStudy) {
+        elements.transparencyLevel.querySelector('.transparency-badge')
+            .addEventListener('click', cycleTransparency);
+    }
 }
 
 function cycleTransparency() {
+    // Study mode: transparency is locked to the assigned condition
+    if (localStorage.getItem('tommi_study_mode') === 'true') return;
     if (!state.currentAgent || !state.currentAgent.transparency_level) return;
     const current = state.currentAgent.transparency_level;
     const idx = TRANSPARENCY_LEVELS.indexOf(current);
     const next = TRANSPARENCY_LEVELS[(idx + 1) % TRANSPARENCY_LEVELS.length];
     // Client-side only — sent as param with each request
     state.currentAgent.transparency_level = next;
+    localStorage.setItem('tommi_transparency', next);
     renderTransparencyBadge(next);
 }
 
