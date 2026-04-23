@@ -45,7 +45,7 @@ from error_codes import (
 )
 
 # Configuración de logging (activable/desactivable via ENABLE_LOGGING)
-ENABLE_LOGGING = os.getenv("ENABLE_LOGGING", "false").lower() in ("true", "1", "yes")
+ENABLE_LOGGING = os.getenv("ENABLE_LOGGING", "true").lower() in ("true", "1", "yes")
 
 # All logs (conversations + feedback) stored in /logs, one file per agent
 LOGS_DIR = Path(__file__).parent / "logs"

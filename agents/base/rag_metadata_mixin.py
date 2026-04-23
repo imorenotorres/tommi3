@@ -739,18 +739,31 @@ class MetadataRAGMixin:
         for acronym, uni in sorted(results.items(), key=lambda x: x[1]["count"], reverse=True):
             if uni["count"] == 0:
                 continue
-            # Filter authors to only confirmed UNINOVIS members
+            # Filter authors to only confirmed UNINOVIS members who are
+            # genuinely relevant to this topic:
+            #   - appear on ≥2 matching papers, OR
+            #   - appear on a paper with a strong topic match (topic in
+            #     title or concepts, not just incidental abstract mention)
             uni_members = uninovis_researchers.get(acronym, set())
-            paper_authors = set()
+            author_paper_count = {}   # author → number of matching papers
+            author_strong_match = {}  # author → has at least one strong match
             paper_details = []
             for p in uni["papers"]:
+                is_strong = p.get("strong_topic_match", True)
                 for a in p["authors"]:
                     if a in uni_members:
-                        paper_authors.add(a)
+                        author_paper_count[a] = author_paper_count.get(a, 0) + 1
+                        if is_strong:
+                            author_strong_match[a] = True
                 authors_str = ", ".join(p["authors"])
                 year_str = f" ({p['year']})" if p.get("year") else ""
                 pdf = self._pdf_link(p.get("id", ""))
                 paper_details.append(f"  - \"{p['title']}\"{year_str} by {authors_str}{pdf}")
+            # Keep only researchers with ≥2 papers OR at least one strong match
+            paper_authors = {
+                a for a in author_paper_count
+                if author_paper_count[a] >= 2 or author_strong_match.get(a, False)
+            }
             lines.append(f"\n{acronym} ({uni['name']}): {uni['count']} papers, {len(paper_authors)} UNINOVIS researchers")
             if paper_authors:
                 lines.append(f"  UNINOVIS researchers: {', '.join(sorted(paper_authors))}")
@@ -1267,37 +1280,51 @@ class MetadataRAGMixin:
                 return output
 
         stop_words = {"the", "a", "an", "in", "on", "of", "and", "or", "for", "to", "is", "are", "was", "were", "by", "with", "from", "at", "as"}
-        topic_words = [w for w in re.split(r'\W+', topic_lower) if w and w not in stop_words and len(w) > 2]
+        # Keep domain-critical short terms like "ai", "xai", "ml" that would
+        # otherwise be dropped by the len>2 filter
+        keep_words = {"ai", "xai", "ml", "nlp", "cv", "rl", "llm"}
+        topic_words = [w for w in re.split(r'\W+', topic_lower) if w and w not in stop_words and (len(w) > 2 or w in keep_words)]
 
         # Use cached papers data
         all_uni_papers = self._all_uni_papers
 
         # Combine strict and keyword matching (deduplicated by paper id)
+        # Tag each paper with match strength for downstream researcher filtering
         results = {}
         for acronym, papers in all_uni_papers.items():
             seen_ids = set()
-            matching = []
-            # Strict matches first (higher priority)
+            matching = []  # list of (paper, is_strong_match)
+            # Strict matches first (higher priority) — strong match
             for p in papers:
                 if self._match_paper_strict(p, topic_lower, min_score):
                     pid = p.get("id", id(p))
                     if pid not in seen_ids:
                         seen_ids.add(pid)
-                        matching.append(p)
-            # Then keyword matches
+                        matching.append((p, True))
+            # Then keyword matches — check title/concepts for strong vs weak
             if topic_words:
                 for p in papers:
                     pid = p.get("id", id(p))
                     if pid not in seen_ids and self._match_paper_keywords(p, topic_lower, min_score, topic_words):
                         seen_ids.add(pid)
-                        matching.append(p)
+                        # Strong if topic words appear in title or concepts
+                        title = p.get("title", "").lower()
+                        concept_text = " ".join(
+                            c.get("name", "").lower()
+                            for c in p.get("concepts", [])
+                            if c.get("score", 0) >= min_score
+                        )
+                        strong = self._all_keywords_in_text(topic_words, title) or \
+                                 self._all_keywords_in_text(topic_words, concept_text) or \
+                                 self._all_keywords_in_text(topic_words, concept_text + " " + title)
+                        matching.append((p, strong))
             results[acronym] = matching
 
         # Build output
         output = {}
         for acronym, matching_papers in results.items():
             formatted_papers = []
-            for paper in matching_papers:
+            for paper, strong in matching_papers:
                 formatted_papers.append({
                     "id": paper.get("id", ""),
                     "title": paper.get("title", ""),
@@ -1305,6 +1332,7 @@ class MetadataRAGMixin:
                     "year": paper.get("publication_year"),
                     "doi": paper.get("doi", ""),
                     "cited_by_count": paper.get("cited_by_count", 0),
+                    "strong_topic_match": strong,
                 })
 
             coords = self.UNIVERSITY_COORDS.get(acronym, {})
@@ -1349,25 +1377,80 @@ class MetadataRAGMixin:
             return True
         return False
 
+    # Abbreviation expansions for keyword matching.
+    # When a keyword is an abbreviation, also accept its full form.
+    _KEYWORD_EXPANSIONS = {
+        "ai": "artificial intelligence",
+        "xai": "explainable artificial intelligence",
+        "ml": "machine learning",
+        "nlp": "natural language processing",
+        "cv": "computer vision",
+        "rl": "reinforcement learning",
+        "llm": "large language model",
+    }
+
+    @staticmethod
+    def _keyword_in_text(word, text):
+        """Check if a keyword appears in text, also trying abbreviation expansions."""
+        if word in text:
+            return True
+        expansion = RAGMetadataMixin._KEYWORD_EXPANSIONS.get(word)
+        if expansion and expansion in text:
+            return True
+        return False
+
+    @staticmethod
+    def _all_keywords_in_text(topic_words, text):
+        """Check if ALL keywords appear in text (with abbreviation expansion)."""
+        return all(RAGMetadataMixin._keyword_in_text(w, text) for w in topic_words)
+
     @staticmethod
     def _match_paper_keywords(paper, topic_lower, min_score=0.3, topic_words=None):
-        """Fallback: match if ALL keywords appear somewhere in the paper."""
+        """Fallback: match if ALL keywords appear somewhere in the paper.
+
+        Priority: concepts first, then title only.  Abstract is only used
+        when at least one keyword already appears in concepts or title,
+        to avoid matching papers that mention a keyword incidentally
+        (e.g. "ethics committee approval" matching an "AI ethics" query).
+        """
         if topic_words is None:
             stop_words = {"the", "a", "an", "in", "on", "of", "and", "or", "for", "to", "is", "are", "was", "were", "by", "with", "from", "at", "as"}
-            topic_words = [w for w in re.split(r'\W+', topic_lower) if w and w not in stop_words and len(w) > 2]
+            keep_words = {"ai", "xai", "ml", "nlp", "cv", "rl", "llm"}
+            topic_words = [w for w in re.split(r'\W+', topic_lower) if w and w not in stop_words and (len(w) > 2 or w in keep_words)]
         if not topic_words:
             return False
+
+        _kw = RAGMetadataMixin._all_keywords_in_text
+
+        # 1. All keywords in a single concept → strong match
         for concept in paper.get("concepts", []):
             concept_name = concept.get("name", "").lower()
             if concept.get("score", 0) < min_score:
                 continue
-            if all(w in concept_name for w in topic_words):
+            if _kw(topic_words, concept_name):
                 return True
+
+        # 2. All keywords in the title → strong match
         title = paper.get("title", "").lower()
-        abstract = (paper.get("abstract") or "").lower()
-        text = title + " " + abstract
-        if all(w in text for w in topic_words):
+        if _kw(topic_words, title):
             return True
+
+        # 3. Keywords split across concepts + title → acceptable match
+        concept_text = " ".join(
+            c.get("name", "").lower()
+            for c in paper.get("concepts", [])
+            if c.get("score", 0) >= min_score
+        )
+        combined = concept_text + " " + title
+        if _kw(topic_words, combined):
+            return True
+
+        # 4. Keywords in title + abstract (weaker match — paper is included
+        #    but flagged as not a strong topic match for researcher filtering)
+        abstract = (paper.get("abstract") or "").lower()
+        if _kw(topic_words, title + " " + abstract):
+            return True
+
         return False
 
     # ------------------------------------------------------------------
