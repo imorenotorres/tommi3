@@ -3315,9 +3315,35 @@ sqlite3 data/database.db < your_schema.sql
         sql_query = self._ensure_default_order(sql_query)
         state['last_sql_query'] = sql_query
 
-        # Mostrar la SQL generada (solo crystal_box y grey_box)
-        show_sql = self._transparency in ("crystal_box", "grey_box")
-        sql_display = f"```sql\n{sql_query}\n```\n\n" if show_sql else ""
+        # Procedural badges for SQL display
+        _BANNER_STYLE = 'padding:8px 12px;margin:6px 0;border-radius:4px;font-size:0.9em;'
+        show_banners = self._transparency in ("crystal_box", "grey_box")
+        is_crystal = self._transparency == "crystal_box"
+        sql_display = ""
+        yellow_banner = ""
+        if show_banners:
+            if is_crystal:
+                yellow_banner = (
+                    f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{_BANNER_STYLE}">'
+                    '\U0001F7E1 <strong>AI interpretation</strong> — '
+                    'The AI model interpreted your question as the SQL query below. '
+                    'Check that it matches your intent.'
+                    '</div>\n\n'
+                )
+                sql_explanation = SQLVerifier.sql_to_text(sql_query)
+                explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
+                sql_display = f"{yellow_banner}```sql\n{sql_query}\n```\n\n{explanation_line}"
+            else:
+                yellow_banner = (
+                    f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{_BANNER_STYLE}">'
+                    '\U0001F7E1 <strong>AI interpretation</strong> — '
+                    'The AI model interpreted your question as the query below. '
+                    'Check that it matches your intent.'
+                    '</div>\n\n'
+                )
+                sql_explanation = SQLVerifier.sql_to_text(sql_query)
+                explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
+                sql_display = f"{yellow_banner}{explanation_line}"
 
         # ⏱️ Fase 2b: Pre-execution verification (prompt level enforcement)
         if self._prompt_level in ("stringent", "tolerant"):
@@ -3346,7 +3372,7 @@ sqlite3 data/database.db < your_schema.sql
                     )
                     self._write_audit_log(user_message, sql_query, pre_check, 0)
                     self._log_timing_summary(timings)
-                    sql_section = f"**Generated SQL query:**\n{sql_display}" if show_sql else ""
+                    sql_section = sql_display if show_banners else ""
                     return (
                         f"{badge}{sql_section}"
                         f"**SQL verification failed (stringent mode):**\n{issues_text}\n\n"
@@ -3416,8 +3442,13 @@ sqlite3 data/database.db < your_schema.sql
                     sql_query = corrected_sql
                     state['last_sql_query'] = corrected_sql
                     autocorrect_note = "\n\n".join(f"🔄 {c}" for c in corrections) + "\n\n"
-                    if show_sql:
-                        sql_display = f"```sql\n{sql_query}\n```\n\n"
+                    if show_banners:
+                        if is_crystal:
+                            corr_expl = SQLVerifier.sql_to_text(sql_query)
+                            corr_expl_line = f"**In plain language:** {corr_expl}\n\n" if corr_expl else ""
+                            sql_display = f"{yellow_banner}**Corrected SQL query:**\n```sql\n{sql_query}\n```\n\n{corr_expl_line}"
+                        else:
+                            sql_display = yellow_banner
 
         # Guardar resultados para paginación
         if success and results:
@@ -3428,7 +3459,7 @@ sqlite3 data/database.db < your_schema.sql
         t_fase4_end = time.perf_counter()
         timings["4. Python formatea respuesta"] = t_fase4_end - t_fase4_start
 
-        # ⏱️ Fase 5: SQL verification and reliability badge
+        # ⏱️ Fase 5: SQL verification (for audit log)
         result_count = len(results) if isinstance(results, list) else 0
         verification = self._sql_verifier.verify_with_execution(sql_query, success, result_count)
 
@@ -3444,32 +3475,46 @@ sqlite3 data/database.db < your_schema.sql
         if verification['issues']:
             logger.info(f"⚠️ Issues: {verification['issues']}")
 
-        # Determine model display name
-        model_display = self.model or "unknown"
-        is_local = os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm")
-
-        badge = SQLReliabilityBadge.source_badge(
-            verification,
-            transparency=self._transparency,
-            prompt_level=self._prompt_level,
-            model_name=model_display,
-            is_local_llm=is_local,
-        )
-
         # Audit log
         self._write_audit_log(user_message, sql_query, verification, result_count)
 
         # Mostrar resumen de tiempos
         self._log_timing_summary(timings)
 
-        # Paso 5: Combinar badge + SQL + explicación + suggestions
-        sql_section = f"**Generated SQL query:**\n{sql_display}" if show_sql else ""
+        # Green procedural badge before data results
+        green_banner = ""
+        if show_banners and success:
+            if results:
+                if is_crystal:
+                    green_banner = (
+                        f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                        '\U0001F7E2 <strong>Verified data</strong> — '
+                        'The results below come directly from the database (no AI involved).'
+                        '</div>\n\n'
+                    )
+                else:
+                    green_banner = (
+                        f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                        '\U0001F7E2 <strong>Verified data</strong> — '
+                        'Data from the database.'
+                        '</div>\n\n'
+                    )
+            else:
+                green_banner = (
+                    f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                    '\U0001F7E2 <strong>Database response</strong> — '
+                    'The query was executed against the database but returned no results.'
+                    '</div>\n\n'
+                )
+
+        # Combinar SQL + green banner + data + suggestions
+        sql_section = sql_display if show_banners else ""
         suggestion_section = ""
         if verification.get("suggestions"):
             suggestion_section = "\n\n" + "\n".join(
                 f"💡 {s}" for s in verification["suggestions"]
             ) + "\n"
-        return f"{badge}{autocorrect_note}{sql_section}{formatted}{suggestion_section}"
+        return f"{autocorrect_note}{sql_section}{green_banner}{formatted}{suggestion_section}"
 
     async def chat_stream(self, user_message: str, history: list = None, session_id: str = None,
                           transparency_override: str = None, model_override: str = None,
@@ -3578,10 +3623,35 @@ sqlite3 data/database.db < your_schema.sql
         sql_query = self._ensure_default_order(sql_query)
         state['last_sql_query'] = sql_query
 
-        # Mostrar la SQL generada inmediatamente (solo crystal_box y grey_box)
-        show_sql = transparency in ("crystal_box", "grey_box")
-        if show_sql:
-            yield ("content", f"**Generated SQL query:**\n```sql\n{sql_query}\n```\n\n")
+        # Procedural badges for SQL display
+        _BANNER_STYLE = 'padding:8px 12px;margin:6px 0;border-radius:4px;font-size:0.9em;'
+        show_banners = transparency in ("crystal_box", "grey_box")
+        is_crystal = transparency == "crystal_box"
+        if show_banners:
+            if is_crystal:
+                yellow_banner = (
+                    f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{_BANNER_STYLE}">'
+                    '\U0001F7E1 <strong>AI interpretation</strong> — '
+                    'The AI model interpreted your question as the SQL query below. '
+                    'Check that it matches your intent.'
+                    '</div>\n\n'
+                )
+                yield ("content", yellow_banner)
+                sql_explanation = SQLVerifier.sql_to_text(sql_query)
+                explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
+                yield ("content", f"```sql\n{sql_query}\n```\n\n{explanation_line}")
+            else:
+                yellow_banner = (
+                    f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{_BANNER_STYLE}">'
+                    '\U0001F7E1 <strong>AI interpretation</strong> — '
+                    'The AI model interpreted your question as the query below. '
+                    'Check that it matches your intent.'
+                    '</div>\n\n'
+                )
+                yield ("content", yellow_banner)
+                sql_explanation = SQLVerifier.sql_to_text(sql_query)
+                explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
+                yield ("content", explanation_line)
 
         # ⏱️ Fase 2b: Pre-execution verification (prompt level enforcement)
         if prompt_level in ("stringent", "tolerant"):
@@ -3687,8 +3757,10 @@ sqlite3 data/database.db < your_schema.sql
                     state['last_sql_query'] = corrected_sql
                     correction_text = "\n\n".join(f"🔄 {c}" for c in corrections)
                     yield ("content", f"{correction_text}\n\n")
-                    if show_sql:
-                        yield ("content", f"**Corrected SQL query:**\n```sql\n{sql_query}\n```\n\n")
+                    if show_banners and is_crystal:
+                        corr_explanation = SQLVerifier.sql_to_text(sql_query)
+                        corr_expl_line = f"**In plain language:** {corr_explanation}\n\n" if corr_explanation else ""
+                        yield ("content", f"**Corrected SQL query:**\n```sql\n{sql_query}\n```\n\n{corr_expl_line}")
 
         # Guardar resultados para paginación y detalles
         if success and results:
@@ -3699,22 +3771,9 @@ sqlite3 data/database.db < your_schema.sql
         t_fase4_end = time.perf_counter()
         timings["4. Python formatea respuesta"] = t_fase4_end - t_fase4_start
 
-        # ⏱️ Fase 5: SQL verification and reliability badge
+        # ⏱️ Fase 5: SQL verification (for audit log, no verbose badge)
         result_count = len(results) if isinstance(results, list) else 0
         verification = self._sql_verifier.verify_with_execution(sql_query, success, result_count)
-
-        model_display = model or "unknown"
-        is_local = os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm")
-
-        badge = SQLReliabilityBadge.source_badge(
-            verification,
-            transparency=transparency,
-            prompt_level=prompt_level,
-            model_name=model_display,
-            is_local_llm=is_local,
-        )
-        if badge:
-            yield ("badge", badge)
 
         # Audit log
         self._write_audit_log(user_message, sql_query, verification, result_count,
@@ -3722,6 +3781,33 @@ sqlite3 data/database.db < your_schema.sql
 
         # Mostrar resumen de tiempos
         self._log_timing_summary(timings)
+
+        # Green procedural badge before data results (data comes from the database)
+        if show_banners and success:
+            if results:
+                if is_crystal:
+                    green_banner = (
+                        f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                        '\U0001F7E2 <strong>Verified data</strong> — '
+                        'The results below come directly from the database (no AI involved).'
+                        '</div>\n\n'
+                    )
+                else:
+                    green_banner = (
+                        f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                        '\U0001F7E2 <strong>Verified data</strong> — '
+                        'Data from the database.'
+                        '</div>\n\n'
+                    )
+                yield ("content", green_banner)
+            else:
+                green_banner = (
+                    f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                    '\U0001F7E2 <strong>Database response</strong> — '
+                    'The query was executed against the database but returned no results.'
+                    '</div>\n\n'
+                )
+                yield ("content", green_banner)
 
         # Enviar solo la explicación formateada (sin tabla HTML redundante)
         yield ("content", formatted)

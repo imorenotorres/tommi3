@@ -4,7 +4,7 @@
   "description": "Research assistant for THUAS Responsible AI Excellence Hub",
   "welcome_message": "Hello! I am a research assistant specialized in UNINOVIS Responsible AI research. How can I help you?",
   "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
-  "show_history": false,
+  "show_history": true,
   "extra_docs_dirs": ["project_docs"],
   "example_queries": [
     "**Show a figure** with all the publications per partner",

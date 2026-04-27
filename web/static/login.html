@@ -420,14 +420,10 @@
                 doRedirect(role);
                 return;
             }
-            // If user already picked transparency this session, go straight through
-            if (localStorage.getItem('tommi_transparency')) {
-                doRedirect(role);
-                return;
-            }
-            // Otherwise show the transparency selector
-            _pendingRole = role;
-            showTransparencySelector();
+            // Skip transparency selection — go straight through
+            // (Each agent defines its own default transparency level)
+            doRedirect(role);
+            return;
         }
 
         function doRedirect(role) {

@@ -48,7 +48,8 @@ TOMMI supports four agent types:
 |------|-------------|
 | **Oneshot** | Loads all data into LLM context. Best for small knowledge bases (<100 KB). |
 | **RAG** | Retrieval-Augmented Generation. Indexes documents into ChromaDB and retrieves relevant chunks per query. |
-| **Metadata+RAG** | RAG plus structured paper metadata, publication analytics, topic aggregation, and interactive map visualizations. Designed for multi-institution research analysis. |
+| **Metadata+RAG (Vector)** | RAG plus structured paper metadata, uses vector embeddings (ChromaDB). |
+| **Metadata+RAG (Vectorless)** | Same as above but uses BM25 keyword retrieval instead of vector embeddings. No ChromaDB dependency., publication analytics, topic aggregation, and interactive map visualizations. Designed for multi-institution research analysis. |
 | **Text2SQL** | Converts natural language to SQL queries against a SQLite database. |
 
 **Architecture at a glance:**
@@ -146,7 +147,8 @@ The `agents/base/` directory provides the building blocks:
 | `rag_mixin.py` | `SimpleRAGMixin` | `chat()` and `chat_stream()` for plain RAG agents (with claim extraction and badges) |
 | `rag_metadata_mixin.py` | `MetadataRAGMixin` | `chat()` and `chat_stream()` plus metadata search, maps, researchers, topic aggregation |
 | `claims.py` | `ClaimExtractor`, `GroundingAnalyzer` | Claim extraction from LLM responses and grounding analysis against data sources |
-| `badges.py` | `ReliabilityBadge`, `AuditLogger` | Traffic-light reliability badges and EU AI Act audit logging |
+| `vectorless_mixin.py` | `VectorlessMixin` | BM25 keyword retrieval replacement for ChromaDB. Enables Metadata+RAG without vector dependencies |
+| `badges.py` | `ReliabilityBadge`, `AuditLogger` | Reliability badges, procedural badges, and EU AI Act audit logging |
 
 ---
 
@@ -197,7 +199,7 @@ mkdir -p agents/{your_agent}/data/docs
   ],
   "research_topic": "Your research area (subtopic A, subtopic B, etc.)",
   "prompt_level": "stringent",
-  "transparency_level": "development",
+  "transparency_level": "crystal_box",
   "audit_log_enabled": true,
   "reliability_green_max_llm": 20,
   "reliability_red_min_llm": 50,
@@ -403,7 +405,8 @@ The inheritance pattern determines the agent's capabilities. All agents inherit 
 | Agent Type | Class Declaration |
 |------------|-------------------|
 | **Simple RAG** | `class Agent(SimpleRAGMixin, BaseRAGAgent): _AGENT_FILE = __file__` |
-| **Metadata+RAG** | `class Agent(MetadataRAGMixin, BaseRAGAgent): _AGENT_FILE = __file__` |
+| **Metadata+RAG (Vector)** | `class Agent(MetadataRAGMixin, BaseRAGAgent): _AGENT_FILE = __file__` |
+| **Metadata+RAG (Vectorless)** | `class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent): _AGENT_FILE = __file__` |
 | **Custom behavior** | Inherit from `BaseRAGAgent` directly and override `chat()` and `chat_stream()` |
 
 **Custom behavior example:** The `joint_int_programs` agent inherits directly from `BaseRAGAgent` (without a mixin) and implements its own `chat()` and `chat_stream()` methods to add LLM-based grounding verification and token usage tracking:
@@ -448,7 +451,7 @@ The `config.json` file drives all agent behavior. Below is a complete reference 
 | `universities` | object | Metadata+RAG | Map of acronym to `{ "name", "country", "lat", "lon" }`. Coordinates are used for map visualizations. |
 | `gap_analysis_examples` | string | Metadata+RAG | Comma-separated example subtopics for gap analysis prompts. |
 | `prompt_level` | string | No | `"stringent"` (all 3 prompt sections), `"tolerant"` (identity + rules), or `"lax"` (identity only). Default: `"stringent"`. |
-| `transparency_level` | string | No | `"development"` (full detail), `"production"` (minimal), or `"opaque"` (no transparency shown). Default: `"development"`. |
+| `transparency_level` | string | No | `"crystal_box"` (full detail), `"grey_box"` (minimal), `"black_box"` (none), or `"scaffolded"` (procedural badges for Vectorless agents). Default: `"crystal_box"`. |
 | `audit_log_enabled` | boolean | No | Enable/disable the JSONL audit log in `data/audit_log.jsonl`. Default: `false`. |
 | `reliability_green_max_llm` | integer | No | Maximum LLM % for green badge (High reliability). Default: `20`. |
 | `reliability_red_min_llm` | integer | No | Minimum LLM % for red badge (Poor reliability). Default: `50`. |
@@ -484,7 +487,7 @@ The `config.json` file drives all agent behavior. Below is a complete reference 
   },
   "gap_analysis_examples": "autonomous navigation, swarm robotics, soft robotics, human-robot collaboration",
   "prompt_level": "stringent",
-  "transparency_level": "development",
+  "transparency_level": "crystal_box",
   "audit_log_enabled": true,
   "reliability_green_max_llm": 20,
   "reliability_red_min_llm": 50,
@@ -743,11 +746,11 @@ Set via `transparency_level` in `config.json`:
 
 | Level | Badge & breakdown | Confidence | Inline highlights | Audit log |
 |-------|-------------------|------------|-------------------|-----------|
-| `development` | Full source % breakdown | With claim count | Colour-coded per claim | Active |
-| `production` | Label only (High/Good/Poor) | Percentage only | Hidden | Active |
-| `opaque` | Hidden | Hidden | Hidden | Active |
+| `crystal_box` | Full detail (source %, procedural badges) | With claim count | Colour-coded per claim | Active |
+| `grey_box` | Minimal (label + confidence only) | Percentage only | Hidden | Active |
+| `black_box` | Hidden | Hidden | Hidden | Active |
 
-Transparency can be switched live by clicking the badge in the web UI (cycles through development -> production -> opaque). The change takes effect immediately but resets to the `config.json` default on server restart.
+Transparency can be switched live by clicking the badge in the web UI. For non-scaffolded agents it cycles through crystal_box -> grey_box -> black_box. For scaffolded agents (Vectorless) it cycles through crystal_box (badges + hallucination detection) -> black_box (no guidance). The change takes effect immediately but resets to the `config.json` default on server restart.
 
 ### Reliability Badges
 
@@ -812,7 +815,7 @@ When `audit_log_enabled` is `true`, every query generates a JSON line in `data/a
     "llm_pct": 0
   },
   "context_sources": ["researcher", "metadata"],
-  "transparency_level": "development"
+  "transparency_level": "crystal_box"
 }
 ```
 

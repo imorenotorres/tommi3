@@ -198,19 +198,48 @@ class DataReliabilityBadge:
                 f'<img src="{llm_icon}" style="width:14px;height:14px;vertical-align:middle;"> '
                 f'{model_name} ({llm_location})'
             )
-        if prompt_level:
-            pl_labels = {
-                "stringent": "\U0001F6E1\uFE0F Stringent",
-                "tolerant": "\u2696\uFE0F Tolerant",
-                "lax": "\u26A0\uFE0F Lax",
-            }
-            tuning_parts.append(pl_labels.get(prompt_level, prompt_level.capitalize()))
         tuning_line = ""
         if tuning_parts:
             tuning_line = (
                 f'<span style="{s}"><span style="{b}">Agent tuning:</span> '
                 f'{" / ".join(tuning_parts)}</span>'
             )
+
+        # Line 1b: Prompt
+        # Code generation by the LLM needs supervision (prompt-level dependent),
+        # but data/chart rendering from executed code is always reliable.
+        supervision_line = ""
+        if prompt_level:
+            sv_labels = {
+                "stringent": ("\U0001F7E2", "Stringent", "#155724", "#d4edda"),
+                "tolerant":  ("\U0001F7E1", "Tolerant",  "#856404", "#fff3cd"),
+                "lax":       ("\U0001F534", "Lax",       "#721c24", "#f8d7da"),
+            }
+            if executed_ok:
+                # Code executed successfully — data/charts come from execution, not the LLM
+                code_dot, code_lbl, code_fg, code_bg = sv_labels.get(
+                    prompt_level, ("\U0001F7E1", "Mid", "#856404", "#fff3cd"))
+                supervision_line = (
+                    f'<span style="{s}"><span style="{b}">Prompt:</span> '
+                    f'Code generation: '
+                    f'<span style="background-color:{code_bg};color:{code_fg};'
+                    f'padding:1px 6px;border-radius:3px;font-weight:bold;">'
+                    f'{code_dot} {code_lbl}</span>'
+                    f' / Data rendering: '
+                    f'<span style="background-color:#d4edda;color:#155724;'
+                    f'padding:1px 6px;border-radius:3px;font-weight:bold;">'
+                    f'\U0001F7E2 None (from execution)</span></span>'
+                )
+            else:
+                # Code did not execute or failed — only LLM supervision applies
+                dot, lbl, fg, bg = sv_labels.get(
+                    prompt_level, ("\U0001F7E1", "Mid", "#856404", "#fff3cd"))
+                supervision_line = (
+                    f'<span style="{s}"><span style="{b}">Prompt:</span> '
+                    f'<span style="background-color:{bg};color:{fg};'
+                    f'padding:1px 6px;border-radius:3px;font-weight:bold;">'
+                    f'{dot} {lbl}</span></span>'
+                )
 
         # Line 2: Data verification
         total_cols = len(verified_cols) + len(unknown_cols)
@@ -265,6 +294,8 @@ class DataReliabilityBadge:
         lines = []
         if tuning_line:
             lines.append(tuning_line)
+        if supervision_line:
+            lines.append(supervision_line)
         if source_line:
             lines.append(source_line)
         if issues_line:
@@ -272,7 +303,7 @@ class DataReliabilityBadge:
         lines.append(reliability_line)
 
         if not is_dev:
-            lines = [l for l in lines if "Reliability" in l or "Agent tuning" in l]
+            lines = [l for l in lines if "Reliability" in l or "Agent tuning" in l or "Supervision" in l]
 
         body = '<br>'.join(lines)
         return f'<div class="claim-badge-area" style="margin-bottom:10px;">{body}</div>\n\n'

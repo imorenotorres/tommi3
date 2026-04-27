@@ -1,0 +1,18 @@
+{
+  "agent_id": "tommi_tutor_vectorless",
+  "agent_name": "Tommi Virtual Tutor (Vectorless)",
+  "type": "rag_vectorless",
+  "description": "Virtual tutor specialized in teaching about AI Agents development using the TOMMI framework. Uses BM25 keyword retrieval and procedural badges.",
+  "welcome_message": "Hello! I'm Tommi (Vectorless), your virtual tutor for AI Agent development with the TOMMI framework. How can I help you?",
+  "show_history": true,
+  "example_queries": [
+    "Which agent types exist in TOMMI?",
+    "How do I create a RAG agent?",
+    "Is TOMMI transparent?",
+    "Explain the difference between RAG and RAG+Metadata",
+    "How do I configure Ollama as the LLM provider?"
+  ],
+  "prompt_level": "stringent",
+  "transparency_level": "scaffolded",
+  "audit_log_enabled": true
+}

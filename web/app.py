@@ -2000,6 +2000,10 @@ async def chat_stream(
                 elif event_type == "claim_highlights":
                     # Send claim classification data for client-side highlighting
                     yield f"event: claim_highlights\ndata: {content}\n\n"
+                elif event_type == "procedural_banner":
+                    # Procedural banner — display as content but do NOT save to history
+                    escaped = content.replace("\n", "\\n")
+                    yield f"data: {escaped}\n\n"
                 elif event_type == "replace":
                     # Replace full response (e.g. after stripping map links)
                     full_response = content

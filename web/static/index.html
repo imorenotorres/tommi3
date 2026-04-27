@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tommi. Transparent AI Agents</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-    <link rel="stylesheet" href="/static/style.css?v=18">
+    <link rel="stylesheet" href="/static/style.css?v=19">
     <!-- Leaflet.js for inline maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -30,35 +30,31 @@
                     </select>
                 </div>
                 <div id="agent-info-section" class="agent-section-wrapper hidden">
-                    <h4>Agent type & LLM provider: <span id="agent-info-help" class="agent-options-help" title="Help">?</span></h4>
+                    <div style="display:inline-flex;align-items:center;gap:6px;cursor:help;" id="agent-info-row" title="">
+                        <span style="color:#fff;font-size:0.85em;">Agent type:</span>
+                        <img id="agent-type-icon" src="" alt="" style="width:22px;height:22px;">
+                        <img id="llm-provider-icon" src="" alt="" style="width:18px;height:18px;">
+                    </div>
+                    <span id="agent-info-help" class="agent-options-help" title="Help" style="cursor:pointer;margin-left:4px;">?</span>
+                    <span id="agent-type-label" style="display:none;"></span>
+                    <span id="llm-provider-label" style="display:none;"></span>
                     <div id="agent-info-tooltip" class="agent-options-tooltip hidden">
                         <span style="font-weight:bold;color:#2563eb;border-bottom:2px solid #2563eb;">Agent type</span> — The architecture used by this agent:<br>
-                        &bull; <b>RAG</b> — Searches a document database and answers from retrieved context.<br>
-                        &bull; <b>Metadata+RAG</b> — Like RAG plus structured metadata (authors, universities, topics), maps and figures.<br>
+                        &bull; <b>RAG</b> — Searches a document database using vector embeddings and answers from retrieved context.<br>
+                        &bull; <b>Metadata+RAG (Vector)</b> — Like RAG plus structured metadata (authors, universities, topics), maps and figures. Uses vector embeddings for document search.<br>
+                        &bull; <b>Metadata+RAG (Vectorless)</b> — Same as Metadata+RAG but uses keyword-based BM25 retrieval instead of vector embeddings. No ChromaDB dependency.<br>
                         &bull; <b>Text2SQL</b> — Converts questions into SQL queries against a relational database.<br>
                         &bull; <b>Oneshot</b> — Single LLM call with no document retrieval.<br>
                         The agent type is set when the agent is created and cannot be changed afterwards.<br><br>
                         <span style="font-weight:bold;color:#2563eb;border-bottom:2px solid #2563eb;">LLM provider</span> — The language model service. Can be changed in the <code>.env</code> file (LLM_PROVIDER = ollama or mistral).
                         <div style="text-align:right;margin-top:0.5rem;"><button class="tooltip-close-btn" data-tooltip="agent-info-tooltip">Close</button></div>
                     </div>
-                    <div class="agent-options-box">
-                        <div id="agent-type" class="agent-info-item">
-                            <img id="agent-type-icon" src="" alt="" class="agent-type-icon">
-                            <span id="agent-type-label"></span>
-                        </div>
-                        <div id="llm-provider" class="agent-info-item">
-                            <img id="llm-provider-icon" src="" alt="" class="agent-type-icon">
-                            <span id="llm-provider-label"></span>
-                        </div>
-                    </div>
                 </div>
                 <p id="agent-description" class="agent-description hidden"></p>
                 <div id="agent-options" class="agent-section-wrapper hidden">
                     <h4>Agent tuning: <span id="agent-options-help" class="agent-options-help" title="Help">?</span></h4>
                     <div id="agent-options-tooltip" class="agent-options-tooltip hidden">
-                        <b>LLM</b> — Select the language model. Click to cycle through available models.<br>
-                        <b>Transparency</b> — Controls how much detail is shown about response reliability. Crystal box = full detail, Grey box = minimal, Black box = none.<br>
-                        <b>Prompt</b> — Controls how strictly the system prompt constrains the LLM. Stringent = all rules enforced, Tolerant = standard rules only, Lax = identity only.
+                        <div id="agent-options-tooltip-content"></div>
                         <div style="text-align:right;margin-top:0.5rem;"><button class="tooltip-close-btn" data-tooltip="agent-options-tooltip">Close</button></div>
                     </div>
                     <div class="agent-options-box">
@@ -70,8 +66,10 @@
                     </div>
                 </div>
                 <div id="example-queries" class="example-queries hidden">
-                    <h4>Example queries:</h4>
-                    <div id="examples-container"></div>
+                    <details>
+                        <summary style="cursor:pointer;font-weight:bold;font-size:0.95em;color:#fff;">Example queries</summary>
+                        <div id="examples-container"></div>
+                    </details>
                 </div>
                 <div id="query-history" class="query-history hidden">
                     <details id="history-details" open>
@@ -120,6 +118,6 @@
         </main>
     </div>
 
-    <script src="/static/app.js?v=30"></script>
+    <script src="/static/app.js?v=62"></script>
 </body>
 </html>

@@ -771,6 +771,177 @@ class MetadataRAGMixin:
 
         return "\n".join(lines)
 
+    def _build_topic_factual_section(self, user_message: str, show_banners: bool = True) -> str:
+        """Build a user-facing factual section for topic queries.
+
+        Returns markdown text generated PROGRAMMATICALLY from structured data
+        (no LLM involved).  Every claim is directly traceable to papers.json.
+        Returns "" if no topic is detected or no results found.
+        """
+        topic = self._extract_topic(user_message)
+        if not topic:
+            return ""
+
+        results = self.search_papers_by_topic(topic)
+
+        # Apply university filter if present
+        uni_filter = self._detect_university_filter(user_message)
+        if uni_filter:
+            val = uni_filter.get("university_acronym")
+            if isinstance(val, str):
+                allowed = {val}
+            elif isinstance(val, dict) and "$in" in val:
+                allowed = set(val["$in"])
+            else:
+                allowed = None
+            if allowed:
+                results = {k: v for k, v in results.items() if k in allowed}
+
+        total = sum(uni["count"] for uni in results.values())
+        if total == 0:
+            return f"No papers found on **{topic}** in the UNINOVIS database."
+
+        # Build confirmed UNINOVIS researchers per university
+        uninovis_researchers = {}
+        for acronym, researchers in self._researchers_by_uni.items():
+            uninovis_researchers[acronym] = {r["name"] for r in researchers}
+
+        lines = []
+        if show_banners:
+            lines.append(self._banner_verified(f"{total} papers from the UNINOVIS database (no AI involved)."))
+        lines.extend([
+            f'### Papers on "{topic}" ({total} papers)',
+            '',
+        ])
+
+        paper_num = 0
+        for acronym, uni in sorted(results.items(), key=lambda x: x[1]["count"], reverse=True):
+            if uni["count"] == 0:
+                continue
+
+            uni_members = uninovis_researchers.get(acronym, set())
+            author_paper_count = {}
+            author_strong_match = {}
+
+            # Collect papers and researchers
+            paper_lines = []
+            for p in uni["papers"]:
+                paper_num += 1
+                is_strong = p.get("strong_topic_match", True)
+                for a in p["authors"]:
+                    if a in uni_members:
+                        author_paper_count[a] = author_paper_count.get(a, 0) + 1
+                        if is_strong:
+                            author_strong_match[a] = True
+
+                authors_str = ", ".join(p["authors"][:4])
+                if len(p["authors"]) > 4:
+                    authors_str += " et al."
+                year_str = f" ({p['year']})" if p.get("year") else ""
+                pdf = self._pdf_link(p.get("id", ""))
+                paper_lines.append(f"- \"{p['title']}\"{year_str} — {authors_str}{pdf}")
+
+            paper_authors = {
+                a for a in author_paper_count
+                if author_paper_count[a] >= 2 or author_strong_match.get(a, False)
+            }
+
+            # University header with researcher count
+            researcher_note = f", {len(paper_authors)} UNINOVIS researchers" if paper_authors else ""
+            lines.append(f"**{acronym}** ({uni['name']}): {uni['count']} papers{researcher_note}")
+            if paper_authors:
+                lines.append(f"*Researchers: {', '.join(sorted(paper_authors))}*")
+            lines.append("")
+            lines.extend(paper_lines)
+            lines.append("")
+
+        return "\n".join(lines)
+
+    # ------------------------------------------------------------------
+    # Section banners (4-level transparency system)
+    # ------------------------------------------------------------------
+    # 🟢 Verified data   — from structured database, no AI involved
+    # 🟡 AI Commentary   — LLM summarizes/formats verified data
+    # 🔴 AI Speculation  — LLM reasons beyond the data (gap analysis,
+    #                       researcher connections) — verify before use
+    # ⚪ Creative response — off-topic, no data relationship
+
+    # Common style for all banners (consistent padding, radius, font)
+    _BANNER_STYLE = 'padding:8px 12px;margin-bottom:10px;border-radius:4px;font-size:0.9em;'
+
+    @classmethod
+    def _banner_verified(cls, detail: str = "") -> str:
+        """🟢 Green banner for programmatic data from structured metadata."""
+        text = "This section is generated directly from the UNINOVIS database (no AI involved)."
+        if detail:
+            text = detail
+        return (
+            f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{cls._BANNER_STYLE}">'
+            f'\U0001F7E2 <strong>Verified data</strong> — {text}'
+            '</div>\n\n'
+        )
+
+    @classmethod
+    def _banner_database(cls, detail: str = "") -> str:
+        """🟡 Yellow banner for LLM responses based on document database content."""
+        text = "The response below is generated by the AI model based on research documents from the UNINOVIS database."
+        if detail:
+            text = detail
+        return (
+            f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{cls._BANNER_STYLE}">'
+            f'\U0001F7E1 <strong>AI interpretation of database content</strong> — {text}'
+            '</div>\n\n'
+        )
+
+    @classmethod
+    def _banner_commentary(cls, detail: str = "") -> str:
+        """🟡 Yellow banner for low-risk LLM output (topic summary, formatting)."""
+        text = "The commentary below is generated by the AI model based on the verified data above."
+        if detail:
+            text = detail
+        return (
+            '\n\n---\n\n'
+            f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{cls._BANNER_STYLE}">'
+            f'\U0001F7E1 <strong>AI Commentary</strong> — {text}'
+            '</div>\n\n'
+        )
+
+    @classmethod
+    def _banner_speculation(cls, detail: str = "") -> str:
+        """🔴 Red banner — AI output without direct database verification."""
+        text = "The content below involves AI interpretation that should be verified before use."
+        if detail:
+            text = detail
+        return (
+            '\n\n---\n\n'
+            f'<div style="background-color:#f8d7da;border-left:4px solid #dc3545;{cls._BANNER_STYLE}">'
+            f'\U0001F534 <strong>Unverified</strong> — {text}'
+            '</div>\n\n'
+        )
+
+    @classmethod
+    def _banner_creative(cls) -> str:
+        """🔴 Red banner for off-topic responses — no database verification possible."""
+        return (
+            f'<div style="background-color:#f8d7da;border-left:4px solid #dc3545;{cls._BANNER_STYLE}">'
+            '\U0001F534 <strong>Unverified</strong> — '
+            'This is outside the scope of the UNINOVIS research database.'
+            '</div>\n\n'
+        )
+
+    @staticmethod
+    def _analysis_prompt(topic: str) -> str:
+        """Return the constrained prompt for LLM analysis of topic data."""
+        return (
+            f"The factual data above has already been shown to the user. "
+            f"DO NOT repeat any paper titles, authors, IDs, or counts — the user can already see them. "
+            f"DO NOT list or enumerate papers. DO NOT start with a heading or horizontal rule. "
+            f"Instead, provide a brief analytical commentary (3-5 sentences) about the research on \"{topic}\" "
+            f"based ONLY on the data in the context. You may comment on: "
+            f"which universities are most active, what subtopics emerge, whether there are collaboration patterns, "
+            f"or suggest related topics the user might explore."
+        )
+
     @staticmethod
     def _is_project_query(user_message: str) -> bool:
         """Detect if the user is asking about research projects (not papers)."""
@@ -1080,16 +1251,62 @@ class MetadataRAGMixin:
                 except Exception:
                     pass
 
+        # Build paper-author lookup for attribution verification
+        paper_authors = {}  # paper_id -> set of lowercased author names
+        for uni_papers in self._all_uni_papers.values():
+            for paper in uni_papers:
+                pid = paper.get("id", "")
+                if pid:
+                    authors = set()
+                    for a in paper.get("authors", []):
+                        aname = a.get("name", "") if isinstance(a, dict) else str(a)
+                        if aname:
+                            authors.add(aname.lower())
+                    paper_authors[pid] = authors
+
         lines = [f"RESEARCHER LOOKUP RESULTS ({len(matches)} match(es)):"]
         lines.append("This data is authoritative. Use ONLY this information when answering about these researchers. Do NOT invent or reassign papers or projects.")
         for m in matches:
             status_tag = " [unconfirmed affiliation]" if m.get("affiliation_status") == "unconfirmed" else ""
             lines.append(f"\n{m['name']} -- {m['acronym']} ({m['university']}){status_tag}")
-            lines.append(f"  Papers ({m['paper_count']}):")
+
+            # Verify paper attributions against actual author lists
+            verified_papers = []
+            unverified_papers = []
+            researcher_name_lower = m["name"].lower()
+            researcher_surname = m["name"].split()[-1].lower() if m["name"].split() else ""
             for p in m["papers"]:
-                year_str = f" ({p['year']})" if p.get("year") else ""
-                pdf = self._pdf_link(p.get("id", ""))
-                lines.append(f"    - \"{p['title']}\"{year_str}{pdf}")
+                pid = p.get("id", "")
+                authors_set = paper_authors.get(pid, set())
+                # Check each author individually — no cross-author substring matching
+                is_author = False
+                for author in authors_set:
+                    # Full name match (e.g. "ignacio moreno-torres" in "ignacio moreno-torres")
+                    if researcher_name_lower in author or author in researcher_name_lower:
+                        is_author = True
+                        break
+                    # Surname match (e.g. "moreno-torres" in "i. moreno-torres")
+                    if researcher_surname and researcher_surname in author:
+                        is_author = True
+                        break
+                if is_author or not authors_set:
+                    verified_papers.append(p)
+                else:
+                    unverified_papers.append(p)
+
+            if verified_papers:
+                lines.append(f"  Papers ({len(verified_papers)} verified):")
+                for p in verified_papers:
+                    year_str = f" ({p['year']})" if p.get("year") else ""
+                    pdf = self._pdf_link(p.get("id", ""))
+                    lines.append(f"    - \"{p['title']}\"{year_str}{pdf}")
+            if unverified_papers:
+                lines.append(f"  ⚠️ Papers with UNVERIFIED attribution ({len(unverified_papers)}) — researcher name not found in author list:")
+                for p in unverified_papers:
+                    year_str = f" ({p['year']})" if p.get("year") else ""
+                    pdf = self._pdf_link(p.get("id", ""))
+                    lines.append(f"    - ⚠️ \"{p['title']}\"{year_str}{pdf} [ATTRIBUTION NOT VERIFIED]")
+
             # Add projects
             name_lower = m["name"].lower()
             projs = researcher_projects.get(name_lower, [])
@@ -2403,6 +2620,74 @@ class MetadataRAGMixin:
         return any(phrase in msg_lower for phrase in gap_phrases)
 
     @staticmethod
+    @staticmethod
+    def _is_off_topic_response(text: str) -> bool:
+        """Detect if the LLM response is an off-topic refusal."""
+        text_lower = text.lower()
+        off_topic_phrases = [
+            "outside my scope", "outside the scope",
+            "outside my area", "outside my domain",
+            "outside my expertise", "not within my scope",
+            "beyond my scope", "beyond the scope",
+            "not related to", "is not part of my",
+        ]
+        return any(phrase in text_lower for phrase in off_topic_phrases)
+
+    @classmethod
+    def _split_off_topic_banners(cls, text: str) -> str:
+        """Split an off-topic response into verified refusal + unverified suggestions.
+
+        The refusal part (correctly identifying the question as off-topic) gets a
+        green Verified banner. The suggestions part (AI-generated topic ideas) gets
+        a red Unverified banner since they may not correspond to actual database content.
+        """
+        import re
+        # Find where suggestions begin — match both newline-separated and mid-sentence
+        split_patterns = [
+            r'(?:However|That said|Instead),?\s+I can suggest',
+            r'(?:However|That said|Instead),?\s+(?:here are|you might|let me)',
+            r'\n\s*(?:However|That said|Instead|But),?\s',
+            r'\n\s*(?:I can suggest|Here are some|You might|Let me suggest)',
+            r'(?:I can suggest|Here are some|You might find)',
+            r'(?:such as:|for example:)',
+            r'\n\s*(?:related topics|suggest.*topics|topics.*interest)',
+        ]
+        split_pos = None
+        for pattern in split_patterns:
+            m = re.search(pattern, text, re.IGNORECASE)
+            if m:
+                if split_pos is None or m.start() < split_pos:
+                    split_pos = m.start()
+
+        if split_pos and split_pos > 10:
+            refusal = text[:split_pos].strip()
+            suggestions = text[split_pos:].strip()
+            return (
+                cls._banner_verified("This question is outside the scope of this agent.")
+                + refusal + "\n\n"
+                + cls._banner_speculation("The topic suggestions below are generated by the AI model and may not correspond to actual content in the database.")
+                + suggestions
+            )
+        else:
+            # Can't split — use verified banner for the whole refusal
+            return cls._banner_verified("This question is outside the scope of this agent.") + text
+
+    def _query_mentions_researcher(self, user_message: str) -> bool:
+        """Check if the user's query mentions a known researcher name."""
+        if not self._researchers_by_uni:
+            return False
+        msg_lower = user_message.lower()
+        for researchers in self._researchers_by_uni.values():
+            for r in researchers:
+                name = r["name"]
+                name_parts = name.split()
+                surname = name_parts[-1] if name_parts else ""
+                if (name.lower() in msg_lower or
+                        (len(surname) > 3 and surname.lower() in msg_lower)):
+                    return True
+        return False
+
+    @staticmethod
     def _is_not_found_response(text: str) -> bool:
         """Detect if the LLM response is just a 'not found' refusal (no substantive content)."""
         text_lower = text.lower()
@@ -2948,6 +3233,10 @@ class MetadataRAGMixin:
                 f"when information comes from web sources vs. the UNINOVIS database):\n{web_ctx}"
             )
 
+        has_structured_data = bool(
+            affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx
+        )
+
         # For web expand, rephrase the user message to re-ask the original query
         effective_message = user_message
         if is_web_expand and self._get_last_query():
@@ -2957,29 +3246,103 @@ class MetadataRAGMixin:
                 f"{self._get_last_query()}"
             )
 
-        messages = [{"role": "system", "content": system_with_context}]
+        use_procedural = getattr(self, '_skip_claim_classification', False)
+        show_banners = use_procedural and transparency == "scaffolded"
+        detect_hallucinations = not use_procedural or transparency == "scaffolded"
 
-        if history:
-            messages.extend(history)
+        # --- Approach D: Programmatic facts + LLM commentary (AI3 only) ---
+        factual_section = ""
+        if use_procedural and topic_ctx and not is_figure_request and not is_gap_analysis and not is_web_expand:
+            factual_section = self._build_topic_factual_section(user_message, show_banners=show_banners)
 
-        messages.append({"role": "user", "content": effective_message})
+        if factual_section:
+            topic = self._extract_topic(user_message)
+            analysis_prompt = self._analysis_prompt(topic)
+            messages = [{"role": "system", "content": system_with_context}]
+            if history:
+                messages.extend(history)
+            messages.append({"role": "user", "content": analysis_prompt})
 
-        response = self.client.chat.complete(
-            model=model,
-            messages=messages,
-            max_tokens=16384,
-        )
+            response = self.client.chat.complete(
+                model=model,
+                messages=messages,
+                max_tokens=1024,
+            )
+            separator = self._banner_commentary() if show_banners else "\n\n---\n\n"
+            llm_content = factual_section + separator + response.choices[0].message.content
+            hallucination_count = 0
+        else:
+            # Determine banner based on query type (AI3 only)
+            pre_banner = ""
+            if show_banners:
+                if is_figure_request:
+                    pre_banner = self._banner_verified(
+                        "This figure is generated directly from the UNINOVIS database (no AI involved)."
+                    )
+                elif is_followup:
+                    pre_banner = self._banner_database(
+                        "This follow-up response is generated by the AI model based on your previous query and database content."
+                    )
+                elif is_gap_analysis:
+                    pre_banner = self._banner_speculation(
+                        "The content below identifies potential research gaps by reasoning "
+                        "about what is absent from the database. Topics may exist under "
+                        "different names or may not have been indexed. "
+                        "Verify before using this to inform research decisions."
+                    )
+                elif researcher_ctx or (project_ctx and self._query_mentions_researcher(user_message)):
+                    if researcher_ctx and "ATTRIBUTION NOT VERIFIED" in researcher_ctx:
+                        pre_banner = self._banner_database(
+                            "Some papers attributed to this researcher could not be "
+                            "verified against the database author lists. "
+                            "Items marked with \u26A0\uFE0F should be checked."
+                        )
+                    else:
+                        pre_banner = self._banner_database(
+                            "Papers and projects come from the database, but links to "
+                            "specific researchers may contain errors due to name disambiguation. "
+                            "Verify authorship and participation before use."
+                        )
+                elif has_structured_data:
+                    pre_banner = self._banner_verified()
+                elif not context and not web_ctx:
+                    pre_banner = self._banner_creative()
+                elif context:
+                    pre_banner = self._banner_database()
 
-        llm_content = response.choices[0].message.content
-        if not is_figure_request:
-            llm_content = self._strip_map_links(llm_content)
+            messages = [{"role": "system", "content": system_with_context}]
 
-        # Verify paper references against the database
-        combined_ctx = " ".join(filter(None, [
-            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
-            metadata_ctx, context, web_ctx
-        ]))
-        llm_content, hallucination_count = self._verify_paper_references(llm_content, combined_ctx, transparency)
+            if history:
+                messages.extend(history)
+
+            messages.append({"role": "user", "content": effective_message})
+
+            response = self.client.chat.complete(
+                model=model,
+                messages=messages,
+                max_tokens=16384,
+            )
+
+            llm_content = response.choices[0].message.content
+            if not is_figure_request:
+                llm_content = self._strip_map_links(llm_content)
+
+            # Verify paper references against the database
+            combined_ctx = " ".join(filter(None, [
+                project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
+                metadata_ctx, context, web_ctx
+            ]))
+            if detect_hallucinations:
+                llm_content, hallucination_count = self._verify_paper_references(llm_content, combined_ctx, transparency)
+            else:
+                hallucination_count = 0
+
+            # Prepend banner (AI3 only)
+            # If the LLM refused as off-topic, split into verified refusal + unverified suggestions
+            if show_banners and self._is_off_topic_response(llm_content):
+                llm_content = self._split_off_topic_banners(llm_content)
+            elif pre_banner:
+                llm_content = pre_banner + llm_content
 
         # Compute grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
@@ -2988,7 +3351,20 @@ class MetadataRAGMixin:
 
         highlight_cfg = self._config.get("inline_claim_highlights")
 
-        if is_figure_request:
+        skip_claims = getattr(self, '_skip_claim_classification', False)
+
+        if skip_claims:
+            # AI3 procedural badge: agent tuning only, banners handle reliability
+            reliability_label = "none"
+            badge = ReliabilityBadge.procedural_badge(
+                transparency=transparency,
+                prompt_level=prompt_level,
+                model_name=self.model_display_name,
+                is_local_llm=self._is_local_llm,
+            )
+            breakdown = {}
+        elif is_figure_request:
+            # AI2 figure requests: 100% metadata, no claims
             reliability_label = "High"
             figure_breakdown = {"metadata_pct": 100, "database_pct": 0, "web_pct": 0, "llm_pct": 0,
                                 "total_claims": 0, "confidence": 100,
@@ -3003,6 +3379,7 @@ class MetadataRAGMixin:
             )
             breakdown = figure_breakdown
         else:
+            # AI2 standard: full claim classification
             badge, breakdown, reliability_label = ReliabilityBadge.compute_badge_and_breakdown(
                 llm_content, context,
                 metadata_ctx=structured_ctx,
@@ -3171,6 +3548,10 @@ class MetadataRAGMixin:
                 f"when information comes from web sources vs. the UNINOVIS database):\n{web_ctx}"
             )
 
+        has_structured_data = bool(
+            affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx
+        )
+
         # For web expand, rephrase the user message to re-ask the original query
         effective_message = user_message
         if is_web_expand and self._get_last_query():
@@ -3180,40 +3561,129 @@ class MetadataRAGMixin:
                 f"{self._get_last_query()}"
             )
 
-        messages = [{"role": "system", "content": system_with_context}]
+        use_procedural = getattr(self, '_skip_claim_classification', False)
+        show_banners = use_procedural and transparency == "scaffolded"
+        detect_hallucinations = not use_procedural or transparency == "scaffolded"
 
-        if history:
-            messages.extend(history)
+        # --- Approach D: Programmatic facts + LLM commentary (AI3 only) ---
+        factual_section = ""
+        if use_procedural and topic_ctx and not is_figure_request and not is_gap_analysis and not is_web_expand:
+            factual_section = self._build_topic_factual_section(user_message, show_banners=show_banners)
 
-        messages.append({"role": "user", "content": effective_message})
+        if factual_section:
+            # Stream the factual section first (no LLM involved)
+            separator = self._banner_commentary() if show_banners else "\n\n---\n\n"
+            full_response = factual_section
+            yield factual_section
 
-        # Stream response -- badges deferred until full response is collected
-        full_response = ""
-        async for chunk in await self.client.chat.stream_async(
-            model=model,
-            messages=messages,
-            max_tokens=16384,
-        ):
-            if chunk.data.choices[0].delta.content:
-                full_response += chunk.data.choices[0].delta.content
-                yield chunk.data.choices[0].delta.content
+            # Stream the separator/banner
+            full_response += separator
+            yield separator
 
-        # Strip map links if LLM added them despite not being a figure request
-        if not is_figure_request:
-            cleaned = self._strip_map_links(full_response)
-            if cleaned != full_response:
-                full_response = cleaned
-                yield ("replace", cleaned)
+            # Ask the LLM for a brief analysis only — constrained prompt
+            topic = self._extract_topic(user_message)
+            analysis_prompt = self._analysis_prompt(topic)
+            messages = [{"role": "system", "content": system_with_context}]
+            if history:
+                messages.extend(history)
+            messages.append({"role": "user", "content": analysis_prompt})
 
-        # Verify paper references against the database
-        combined_ctx = " ".join(filter(None, [
-            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
-            metadata_ctx, context, web_ctx
-        ]))
-        verified, hallucination_count = self._verify_paper_references(full_response, combined_ctx, transparency)
-        if verified != full_response:
-            full_response = verified
-            yield ("replace", verified)
+            async for chunk in await self.client.chat.stream_async(
+                model=model,
+                messages=messages,
+                max_tokens=1024,
+            ):
+                if chunk.data.choices[0].delta.content:
+                    full_response += chunk.data.choices[0].delta.content
+                    yield chunk.data.choices[0].delta.content
+
+            hallucination_count = 0  # Factual section is verified by construction
+        else:
+            # Determine banner based on query type (AI3 procedural only)
+            pre_banner = ""
+            if show_banners:
+                if is_figure_request:
+                    pre_banner = self._banner_verified(
+                        "This figure is generated directly from the UNINOVIS database (no AI involved)."
+                    )
+                elif is_followup:
+                    pre_banner = self._banner_database(
+                        "This follow-up response is generated by the AI model based on your previous query and database content."
+                    )
+                elif is_gap_analysis:
+                    pre_banner = self._banner_speculation(
+                        "The content below identifies potential research gaps by reasoning "
+                        "about what is absent from the database. Topics may exist under "
+                        "different names or may not have been indexed. "
+                        "Verify before using this to inform research decisions."
+                    )
+                elif researcher_ctx or (project_ctx and self._query_mentions_researcher(user_message)):
+                    if researcher_ctx and "ATTRIBUTION NOT VERIFIED" in researcher_ctx:
+                        pre_banner = self._banner_database(
+                            "Some papers attributed to this researcher could not be "
+                            "verified against the database author lists. "
+                            "Items marked with \u26A0\uFE0F should be checked."
+                        )
+                    else:
+                        pre_banner = self._banner_database(
+                            "Papers and projects come from the database, but links to "
+                            "specific researchers may contain errors due to name disambiguation. "
+                            "Verify authorship and participation before use."
+                        )
+                elif has_structured_data:
+                    pre_banner = self._banner_verified()
+                elif not context and not web_ctx:
+                    pre_banner = self._banner_creative()
+                elif context:
+                    pre_banner = self._banner_database()
+
+            messages = [{"role": "system", "content": system_with_context}]
+
+            if history:
+                messages.extend(history)
+
+            messages.append({"role": "user", "content": effective_message})
+
+            # Stream the banner first (AI3 only)
+            # Use "procedural_banner" event type so it's displayed but NOT saved to session history
+            full_response = ""
+            if pre_banner:
+                yield ("procedural_banner", pre_banner)
+
+            # Stream LLM response
+            async for chunk in await self.client.chat.stream_async(
+                model=model,
+                messages=messages,
+                max_tokens=16384,
+            ):
+                if chunk.data.choices[0].delta.content:
+                    full_response += chunk.data.choices[0].delta.content
+                    yield chunk.data.choices[0].delta.content
+
+            # Strip map links if LLM added them despite not being a figure request
+            if not is_figure_request:
+                cleaned = self._strip_map_links(full_response)
+                if cleaned != full_response:
+                    full_response = cleaned
+                    yield ("replace", cleaned)
+
+            # If the LLM refused as off-topic, split into verified refusal + unverified suggestions
+            if show_banners and self._is_off_topic_response(full_response):
+                corrected = self._split_off_topic_banners(full_response)
+                yield ("replace", corrected)
+
+            # Verify paper references against the database
+            combined_ctx = " ".join(filter(None, [
+                project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
+                metadata_ctx, context, web_ctx
+            ]))
+            if detect_hallucinations:
+                verified, hallucination_count = self._verify_paper_references(full_response, combined_ctx, transparency)
+                if verified != full_response:
+                    full_response = verified
+                    yield ("replace", verified)
+            else:
+                hallucination_count = 0
 
         # Deferred grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
@@ -3222,7 +3692,20 @@ class MetadataRAGMixin:
 
         highlight_cfg = self._config.get("inline_claim_highlights")
 
-        if is_figure_request:
+        skip_claims = getattr(self, '_skip_claim_classification', False)
+
+        if skip_claims:
+            # AI3 procedural badge: agent tuning only, banners handle reliability
+            reliability_label = "none"
+            yield ("badge", ReliabilityBadge.procedural_badge(
+                transparency=transparency,
+                prompt_level=prompt_level,
+                model_name=self.model_display_name,
+                is_local_llm=self._is_local_llm,
+            ))
+            breakdown = {}
+        elif is_figure_request:
+            # AI2 figure requests: 100% metadata, no claims
             reliability_label = "High"
             figure_breakdown = {"metadata_pct": 100, "database_pct": 0, "web_pct": 0, "llm_pct": 0,
                                 "total_claims": 0, "confidence": 100,
@@ -3237,6 +3720,7 @@ class MetadataRAGMixin:
             ))
             breakdown = figure_breakdown
         else:
+            # AI2 standard: full claim classification
             badge, breakdown, reliability_label = ReliabilityBadge.compute_badge_and_breakdown(
                 full_response, context,
                 metadata_ctx=structured_ctx,

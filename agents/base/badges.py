@@ -17,9 +17,15 @@ class ReliabilityBadge:
     """Unified reliability badge renderer for all TOMMI agent variants."""
 
     PROMPT_LEVEL_LABELS = {
-        "stringent": "\U0001F6E1\uFE0F Stringent",
-        "tolerant":  "\u2696\uFE0F Tolerant",
-        "lax":       "\u26A0\uFE0F Lax",
+        "stringent": "\u2705 Reliable",
+        "tolerant":  "\u26A0\uFE0F Minor supervision required",
+        "lax":       "\U0001F6A8 Major supervision required",
+    }
+
+    SUPERVISION_LABELS = {
+        "stringent": ("\U0001F7E2", "Stringent", "#155724", "#d4edda"),
+        "tolerant":  ("\U0001F7E1", "Tolerant",  "#856404", "#fff3cd"),
+        "lax":       ("\U0001F534", "Lax",       "#721c24", "#f8d7da"),
     }
 
     TRANSPARENCY_LABELS = {
@@ -27,6 +33,21 @@ class ReliabilityBadge:
         "grey_box": "Grey box",
         "black_box": "Black box",
     }
+
+    @staticmethod
+    def procedural_badge(
+        transparency: str = "scaffolded",
+        prompt_level: str = None,
+        model_name: str = None,
+        is_local_llm: bool = False,
+        **kwargs,
+    ) -> str:
+        """Agent tuning badge for scaffolded transparency agents (AI3).
+
+        Returns empty string — review need is shown in the sidebar,
+        and procedural banners handle reliability inline.
+        """
+        return ''
 
     @staticmethod
     def source_badge(
@@ -106,15 +127,22 @@ class ReliabilityBadge:
             )
         else:
             tuning_parts.append(tr_label)
-        if prompt_level:
-            pl_label = ReliabilityBadge.PROMPT_LEVEL_LABELS.get(
-                prompt_level, prompt_level.capitalize()
-            )
-            tuning_parts.append(pl_label)
         tuning_line = (
             f'<span style="{s}"><span style="{b}">Agent tuning:</span> '
             f'{" / ".join(tuning_parts)}</span>'
         )
+
+        # --- Line 1b: Prompt ---
+        supervision_line = ""
+        if prompt_level:
+            dot, level_label, fg, bg = ReliabilityBadge.SUPERVISION_LABELS.get(
+                prompt_level, ("\U0001F7E1", "Mid", "#856404", "#fff3cd"))
+            supervision_line = (
+                f'<span style="{s}"><span style="{b}">Prompt:</span> '
+                f'<span style="background-color:{bg};color:{fg};'
+                f'padding:1px 6px;border-radius:3px;font-weight:bold;">'
+                f'{dot} {level_label}</span></span>'
+            )
 
         # --- Line 2: Sources (Crystal box and Grey box) ---
         source_line = ""
@@ -216,14 +244,20 @@ class ReliabilityBadge:
 
         # ====== Assemble ======
         lines = [tuning_line]
+        if supervision_line:
+            lines.append(supervision_line)
         if source_line:
             lines.append(source_line)
         lines.append(reliability_line)
         body = '<br>'.join(lines)
 
-        # Grey box: tuning + reliability only (no sources breakdown)
+        # Grey box: tuning + supervision + reliability only (no sources breakdown)
         if not is_dev:
-            body = '<br>'.join([tuning_line, reliability_line])
+            grey_lines = [tuning_line]
+            if supervision_line:
+                grey_lines.append(supervision_line)
+            grey_lines.append(reliability_line)
+            body = '<br>'.join(grey_lines)
 
         return f'<div class="claim-badge-area" style="margin-bottom:10px;">{body}</div>\n\n'
 

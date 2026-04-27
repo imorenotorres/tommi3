@@ -271,6 +271,7 @@ class SQLVerifier:
 
     # Cross-language equivalences: term in question → might appear as this in SQL
     _EQUIVALENCES = {
+        # Languages
         "english": {"inglés", "ingles", "english"},
         "inglés": {"english", "inglés", "ingles"},
         "french": {"francés", "frances", "french", "français"},
@@ -281,7 +282,21 @@ class SQLVerifier:
         "italiano": {"italian", "italiano", "italiana"},
         "portuguese": {"portugués", "portugues", "portuguese"},
         "portugués": {"portuguese", "portugués", "portugues"},
-        "erasmus": {"erasmus", "ka131", "ka171", "erasmus+"},
+        "korean": {"coreano", "korean"},
+        "coreano": {"korean", "coreano"},
+        "greek": {"griego", "greek"},
+        "griego": {"greek", "griego"},
+        "japanese": {"japones", "japonés", "japanese"},
+        "japones": {"japanese", "japones", "japonés"},
+        "polish": {"polaco", "polish"},
+        "polaco": {"polish", "polaco"},
+        "spanish": {"español", "spanish", "castellano"},
+        "español": {"spanish", "español", "castellano"},
+        "none": {"ninguno", "none", "00 ninguno"},
+        "ninguno": {"none", "ninguno", "00 ninguno"},
+        # Mobility programmes
+        "erasmus": {"erasmus", "ka131", "ka171", "erasmus+", "erasmus bip"},
+        # Countries
         "finland": {"finlandia", "finland", "finnish"},
         "finlandia": {"finland", "finlandia"},
         "germany": {"alemania", "germany"},
@@ -292,7 +307,7 @@ class SQLVerifier:
         "italia": {"italy", "italia"},
         "spain": {"españa", "spain"},
         "españa": {"spain", "españa"},
-        "dutch": {"países bajos", "holanda", "netherlands", "dutch"},
+        "dutch": {"países bajos", "holanda", "netherlands", "dutch", "holandés"},
         "netherlands": {"países bajos", "holanda", "netherlands", "dutch"},
         "holanda": {"netherlands", "países bajos", "holanda", "dutch"},
         "países": {"países bajos", "netherlands", "holanda", "dutch"},
@@ -305,6 +320,91 @@ class SQLVerifier:
         "marruecos": {"morocco", "marruecos"},
         "turkey": {"turquía", "turquia", "turkey"},
         "turquía": {"turkey", "turquía", "turquia"},
+        "argentina": {"argentina"},
+        "armenia": {"armenia"},
+        "australia": {"australia"},
+        "austria": {"austria"},
+        "bolivia": {"bolivia"},
+        "brazil": {"brasil", "brazil"},
+        "brasil": {"brazil", "brasil"},
+        "canada": {"canadá", "canada"},
+        "canadá": {"canada", "canadá"},
+        "chile": {"chile"},
+        "colombia": {"colombia"},
+        "korea": {"corea del sur", "corea", "korea", "south korea"},
+        "corea": {"korea", "corea del sur", "south korea"},
+        "costa": {"costa rica"},
+        "usa": {"estados unidos", "usa", "united states"},
+        "united": {"estados unidos", "usa", "united states"},
+        "estados": {"estados unidos", "usa", "united states"},
+        "philippines": {"filipinas", "philippines"},
+        "filipinas": {"philippines", "filipinas"},
+        "georgia": {"georgia"},
+        "india": {"india"},
+        "japan": {"japón", "japan"},
+        "japón": {"japan", "japón"},
+        "mexico": {"méxico", "mexico"},
+        "méxico": {"mexico", "méxico"},
+        # Academic disciplines
+        "architecture": {"arquitectura", "architecture"},
+        "arquitectura": {"architecture", "arquitectura"},
+        "law": {"derecho", "law"},
+        "derecho": {"law", "derecho"},
+        "arts": {"bellas artes", "arts", "fine arts"},
+        "engineering": {"ingeniería", "ingenieria", "engineering"},
+        "ingeniería": {"engineering", "ingeniería", "ingenieria"},
+        "computer": {"informática", "informatica", "computer science", "computer"},
+        "informática": {"computer science", "informática", "informatica", "computer"},
+        "telecommunications": {"telecomunicación", "telecomunicacion", "telecommunications", "telecom"},
+        "telecomunicación": {"telecommunications", "telecomunicación", "telecomunicacion"},
+        "economics": {"económicas", "economicas", "economics", "business"},
+        "económicas": {"economics", "económicas", "economicas", "business"},
+        "business": {"empresariales", "business", "economics"},
+        "empresariales": {"business", "empresariales"},
+        "science": {"ciencias", "science"},
+        "ciencias": {"science", "ciencias"},
+        "education": {"educación", "educacion", "education", "didáctica"},
+        "educación": {"education", "educación", "educacion"},
+        "medicine": {"medicina", "medicine"},
+        "medicina": {"medicine", "medicina"},
+        "nursing": {"enfermería", "enfermeria", "nursing"},
+        "enfermería": {"nursing", "enfermería", "enfermeria"},
+        "psychology": {"psicología", "psicologia", "psychology"},
+        "psicología": {"psychology", "psicología", "psicologia"},
+        "chemistry": {"química", "quimica", "chemistry"},
+        "química": {"chemistry", "química", "quimica"},
+        "biology": {"biología", "biologia", "biology"},
+        "biología": {"biology", "biología", "biologia"},
+        "mathematics": {"matemáticas", "matematicas", "mathematics", "maths"},
+        "matemáticas": {"mathematics", "matemáticas", "matematicas"},
+        "philosophy": {"filosofía", "filosofia", "philosophy"},
+        "filosofía": {"philosophy", "filosofía", "filosofia"},
+        "history": {"historia", "history"},
+        "historia": {"history", "historia"},
+        "tourism": {"turismo", "tourism"},
+        "turismo": {"tourism", "turismo"},
+        "communication": {"comunicación", "comunicacion", "communication"},
+        "comunicación": {"communication", "comunicación", "comunicacion"},
+        "industrial": {"industrial"},
+        "mechanical": {"mecánica", "mecanica", "mechanical"},
+        "mecánica": {"mechanical", "mecánica", "mecanica"},
+        "electrical": {"eléctrica", "electrica", "electrical"},
+        "eléctrica": {"electrical", "eléctrica", "electrica"},
+        "electronic": {"electrónica", "electronica", "electronic"},
+        "electrónica": {"electronic", "electrónica", "electronica"},
+        "energy": {"energía", "energia", "energy"},
+        "energía": {"energy", "energía", "energia"},
+        "biotechnology": {"biotecnología", "biotecnologia", "biotechnology"},
+        "biotecnología": {"biotechnology", "biotecnología", "biotecnologia"},
+        "archaeology": {"arqueología", "arqueologia", "archaeology"},
+        "arqueología": {"archaeology", "arqueología", "arqueologia"},
+        # Common query terms
+        "agreements": {"acuerdos", "convenios", "agreements", "destinations"},
+        "students": {"estudiantes", "students", "alumnos"},
+        "degree": {"titulación", "titulacion", "grado", "degree"},
+        "faculty": {"facultad", "faculty", "escuela", "school"},
+        "any": {"cualquier", "any", "todos"},
+        "cualquier": {"any", "cualquier"},
     }
 
     # Words that express query intent but won't appear in SQL literally
@@ -711,12 +811,192 @@ class SQLVerifier:
 
         return columns
 
+    @staticmethod
+    def sql_to_text(sql: str) -> str:
+        """Convert a SQL query into a human-readable natural language description.
+
+        Designed for the simple, single-table queries generated by Pisha4.
+        Returns a plain-language string that non-technical users can understand.
+        """
+        if not sql or not sql.strip():
+            return ""
+
+        sql_clean = sql.strip().rstrip(";")
+
+        # Friendly names for tables
+        table_names = {
+            "destinations": "mobility agreements",
+            "students": "students",
+            "subjects": "subjects",
+            "degree": "degrees",
+        }
+
+        # Friendly names for columns
+        col_names = {
+            "host_institution": "university",
+            "destination_country": "country",
+            "mobility_program": "mobility programme",
+            "uma_faculties": "UMA faculties",
+            "uma_degrees": "UMA degrees",
+            "lang_1_name": "first required language",
+            "lang_1_level": "first language level",
+            "lang_2_name": "second required language",
+            "lang_2_level": "second language level",
+            "allows_undergraduate": "allows undergraduates",
+            "allows_master": "allows master students",
+            "allows_phd": "allows PhD students",
+            "min_gpa_requirement": "minimum GPA",
+            "student_vacancies": "available places",
+            "name": "name",
+            "email": "email",
+            "degree_id": "degree",
+            "id": "ID",
+        }
+
+        def _friendly_col(col):
+            """Return friendly column name, stripping table alias prefixes."""
+            col = col.strip()
+            if "." in col:
+                col = col.split(".")[-1]
+            return col_names.get(col.lower(), col.replace("_", " "))
+
+        def _friendly_table(t):
+            return table_names.get(t.strip().lower(), t.strip())
+
+        parts = []
+
+        try:
+            upper = sql_clean.upper()
+
+            # --- What is being selected ---
+            select_m = re.match(
+                r'SELECT\s+(.*?)\s+FROM\s+(\w+)',
+                sql_clean, re.IGNORECASE | re.DOTALL)
+            if not select_m:
+                return ""
+
+            select_clause = select_m.group(1).strip()
+            main_table = select_m.group(2).strip()
+            friendly_table = _friendly_table(main_table)
+
+            # COUNT
+            count_m = re.match(r'COUNT\s*\(\s*\*\s*\)', select_clause, re.IGNORECASE)
+            if count_m:
+                parts.append(f"Count the number of {friendly_table}")
+            # DISTINCT
+            elif re.match(r'DISTINCT\s+', select_clause, re.IGNORECASE):
+                dist_cols = re.sub(r'^DISTINCT\s+', '', select_clause, flags=re.IGNORECASE)
+                cols = [_friendly_col(c) for c in dist_cols.split(",")]
+                parts.append(f"List the distinct values of {', '.join(cols)} from {friendly_table}")
+            # SELECT *
+            elif select_clause.strip() == "*":
+                parts.append(f"Retrieve all {friendly_table}")
+            # Specific columns
+            else:
+                cols = [_friendly_col(c) for c in select_clause.split(",")]
+                parts.append(f"Show {', '.join(cols)} from {friendly_table}")
+
+            # --- JOIN ---
+            join_m = re.search(
+                r'JOIN\s+(\w+)\s+\w*\s*ON\s+', sql_clean, re.IGNORECASE)
+            if join_m:
+                join_table = _friendly_table(join_m.group(1))
+                parts.append(f"linked to {join_table}")
+
+            # --- WHERE conditions ---
+            where_m = re.search(
+                r'WHERE\s+(.*?)(?:\s+GROUP\s+BY|\s+ORDER\s+BY|\s+LIMIT\s+|$)',
+                sql_clean, re.IGNORECASE | re.DOTALL)
+            if where_m:
+                where_clause = where_m.group(1).strip()
+                conditions = re.split(r'\s+AND\s+', where_clause, flags=re.IGNORECASE)
+                filters = []
+                for cond in conditions:
+                    cond = cond.strip()
+                    # LIKE '%value%'
+                    like_m = re.match(
+                        r"(\w+(?:\.\w+)?)\s+LIKE\s+'%(.+?)%'",
+                        cond, re.IGNORECASE)
+                    if like_m:
+                        filters.append(f"{_friendly_col(like_m.group(1))} contains \"{like_m.group(2)}\"")
+                        continue
+                    # = 'value'
+                    eq_m = re.match(
+                        r"(\w+(?:\.\w+)?)\s*=\s*'(.+?)'",
+                        cond, re.IGNORECASE)
+                    if eq_m:
+                        filters.append(f"{_friendly_col(eq_m.group(1))} is \"{eq_m.group(2)}\"")
+                        continue
+                    # IS NULL / IS NOT NULL
+                    null_m = re.match(
+                        r"(\w+(?:\.\w+)?)\s+IS\s+(NOT\s+)?NULL",
+                        cond, re.IGNORECASE)
+                    if null_m:
+                        col = _friendly_col(null_m.group(1))
+                        if null_m.group(2):
+                            filters.append(f"{col} is specified")
+                        else:
+                            filters.append(f"{col} is not specified")
+                        continue
+                    # Fallback: include as-is but clean up
+                    filters.append(cond)
+
+                if filters:
+                    parts.append(f"where {' and '.join(filters)}")
+
+            # --- GROUP BY ---
+            group_m = re.search(
+                r'GROUP\s+BY\s+(.*?)(?:\s+ORDER\s+BY|\s+HAVING|\s+LIMIT|$)',
+                sql_clean, re.IGNORECASE | re.DOTALL)
+            if group_m:
+                cols = [_friendly_col(c) for c in group_m.group(1).split(",")]
+                parts.append(f"grouped by {', '.join(cols)}")
+
+            # --- ORDER BY ---
+            order_m = re.search(
+                r'ORDER\s+BY\s+(.*?)(?:\s+LIMIT|$)',
+                sql_clean, re.IGNORECASE | re.DOTALL)
+            if order_m:
+                order_clause = order_m.group(1).strip()
+                if "DESC" in order_clause.upper():
+                    col = re.sub(r'\s+(ASC|DESC).*', '', order_clause, flags=re.IGNORECASE)
+                    parts.append(f"sorted by {_friendly_col(col)} (highest first)")
+                else:
+                    col = re.sub(r'\s+(ASC|DESC).*', '', order_clause, flags=re.IGNORECASE)
+                    parts.append(f"sorted by {_friendly_col(col)}")
+
+            # --- LIMIT ---
+            limit_m = re.search(r'LIMIT\s+(\d+)', sql_clean, re.IGNORECASE)
+            if limit_m:
+                parts.append(f"showing up to {limit_m.group(1)} results")
+
+        except Exception:
+            return ""
+
+        if not parts:
+            return ""
+
+        text = " ".join(parts)
+        # Capitalize first letter
+        return text[0].upper() + text[1:]
+
 
 class SQLReliabilityBadge:
     """Render HTML reliability badges for Text-to-SQL responses."""
 
     @staticmethod
     def source_badge(
+        verification: dict,
+        transparency: str = "crystal_box",
+        prompt_level: str = None,
+        model_name: str = None,
+        is_local_llm: bool = False,
+    ) -> str:
+        # Procedural banners now handle transparency inline — no header badge needed
+        return ""
+
+    @staticmethod
+    def _source_badge_legacy(
         verification: dict,
         transparency: str = "crystal_box",
         prompt_level: str = None,
@@ -757,19 +1037,48 @@ class SQLReliabilityBadge:
                 f'<img src="{llm_icon}" style="width:14px;height:14px;vertical-align:middle;"> '
                 f'{model_name} ({llm_location})'
             )
-        if prompt_level:
-            pl_labels = {
-                "stringent": "\U0001F6E1\uFE0F Stringent",
-                "tolerant": "\u2696\uFE0F Tolerant",
-                "lax": "\u26A0\uFE0F Lax",
-            }
-            tuning_parts.append(pl_labels.get(prompt_level, prompt_level.capitalize()))
         tuning_line = ""
         if tuning_parts:
             tuning_line = (
                 f'<span style="{s}"><span style="{b}">Agent tuning:</span> '
                 f'{" / ".join(tuning_parts)}</span>'
             )
+
+        # --- Line 1b: Prompt ---
+        # SQL generation by the LLM needs supervision (prompt-level dependent),
+        # but data rendering from executed queries is always reliable.
+        supervision_line = ""
+        if prompt_level:
+            sv_labels = {
+                "stringent": ("\U0001F7E2", "Stringent", "#155724", "#d4edda"),
+                "tolerant":  ("\U0001F7E1", "Tolerant",  "#856404", "#fff3cd"),
+                "lax":       ("\U0001F534", "Lax",       "#721c24", "#f8d7da"),
+            }
+            if executed_ok:
+                # SQL executed successfully — data comes from the DB, not the LLM
+                sql_dot, sql_lbl, sql_fg, sql_bg = sv_labels.get(
+                    prompt_level, ("\U0001F7E1", "Mid", "#856404", "#fff3cd"))
+                supervision_line = (
+                    f'<span style="{s}"><span style="{b}">Prompt:</span> '
+                    f'SQL generation: '
+                    f'<span style="background-color:{sql_bg};color:{sql_fg};'
+                    f'padding:1px 6px;border-radius:3px;font-weight:bold;">'
+                    f'{sql_dot} {sql_lbl}</span>'
+                    f' / Data rendering: '
+                    f'<span style="background-color:#d4edda;color:#155724;'
+                    f'padding:1px 6px;border-radius:3px;font-weight:bold;">'
+                    f'\U0001F7E2 None (from database)</span></span>'
+                )
+            else:
+                # SQL did not execute or failed — only LLM supervision applies
+                dot, lbl, fg, bg = sv_labels.get(
+                    prompt_level, ("\U0001F7E1", "Mid", "#856404", "#fff3cd"))
+                supervision_line = (
+                    f'<span style="{s}"><span style="{b}">Prompt:</span> '
+                    f'<span style="background-color:{bg};color:{fg};'
+                    f'padding:1px 6px;border-radius:3px;font-weight:bold;">'
+                    f'{dot} {lbl}</span></span>'
+                )
 
         # --- Line 2: Schema verification ---
         total_tables = len(verified_tables) + len(unknown_tables)
@@ -835,6 +1144,8 @@ class SQLReliabilityBadge:
         lines = []
         if tuning_line:
             lines.append(tuning_line)
+        if supervision_line:
+            lines.append(supervision_line)
         if source_line:
             lines.append(source_line)
         if issues_line:
@@ -842,7 +1153,7 @@ class SQLReliabilityBadge:
         lines.append(reliability_line)
 
         if not is_dev:
-            lines = [l for l in lines if "Reliability" in l or "Agent tuning" in l]
+            lines = [l for l in lines if "Reliability" in l or "Agent tuning" in l or "Supervision" in l]
 
         body = '<br>'.join(lines)
         return f'<div class="claim-badge-area" style="margin-bottom:10px;">{body}</div>\n\n'

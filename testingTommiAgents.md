@@ -32,7 +32,7 @@ Testing should be performed on a local server before any agent is made available
 
 ## 2. Agent Tuning Options
 
-TOMMI agents expose three runtime controls that affect response quality, detail, and behaviour. All three can be changed live from the web interface without restarting the server.
+TOMMI agents expose three runtime controls (LLM, Transparency, and Prompt) that affect response quality, detail, and behaviour. All three can be changed live from the web interface without restarting the server.
 
 ### 2.1 LLM Selection
 
@@ -68,23 +68,20 @@ Click the **LLM badge** in the sidebar to cycle through available models. The ba
 
 Click the **transparency badge** (above the example queries) to cycle through levels: Crystal box, Grey box, Black box. The change takes effect immediately for the next query.
 
-- **Crystal box** -- full detail for developers and testers. All transparency features are active:
-  - Reliability badge with source breakdown percentages (e.g., `Metadata: 75% | Database: 10% | LLM: 15%`)
-  - Confidence score with claim count
-  - Source lines (coloured indicators)
-  - Inline claim highlights (colour-coded text showing the provenance of each claim)
-  - Colour legend explaining the highlight meanings
-  - Agent settings info (model name, LLM location, transparency level, prompt level)
+- **Crystal box** -- full transparency for developers and testers:
+  - For scaffolded agents (Metadata+RAG Vectorless): procedural badges (🟢 Verified data / 🟡 AI Commentary / 🔴 Unverified) and hallucination detection
+  - For non-scaffolded agents: reliability badge with source percentages, confidence score, inline claim highlights
+  - For Text2SQL agents: AI interpretation badge with SQL query (Crystal) or plain-language explanation (Grey), plus Verified data badge before results
 
 - **Grey box** -- minimal for end users:
-  - Reliability label only (High / Good / Poor)
-  - Confidence percentage only
-  - No source breakdown, no inline highlights, no legend
+  - For non-scaffolded agents: reliability label and confidence only
+  - For scaffolded agents: Grey box is not available (use Crystal or Black box)
+  - For Text2SQL agents: AI interpretation badge with plain-language explanation (no SQL shown)
 
-- **Black box** -- nothing shown:
-  - The response appears without any badge, confidence indicator, or highlights
+- **Black box** -- no transparency shown:
+  - The response appears without any badges, highlights, or procedural indicators
   - The **audit log still records everything** -- all decision data is logged for compliance and analysis
-  - Useful for A/B testing or researching user trust behaviour with vs. without transparency
+  - Useful for A/B testing, expert users, or researching user trust behaviour
 
 **Testing tip:** Always use Crystal box during testing so you can see the full detail. Then verify that Grey box and Black box correctly hide the expected elements. After testing, decide which level is appropriate for end users.
 
@@ -92,11 +89,11 @@ Click the **transparency badge** (above the example queries) to cycle through le
 
 Click the **prompt badge** to cycle through levels. The prompt level controls how much of the system prompt is active:
 
-- **Stringent** -- all 3 prompt sections active: identity + standard rules + strict restrictions. This is the most constrained behaviour. The agent follows all configured rules, including partner recognition, gap analysis constraints, and domain restrictions.
+- **🟢 Stringent** -- all 3 prompt sections active: identity + rules + strict. The agent is constrained to use only curated database content. LLM involvement is minimal. The agent follows all configured rules, including partner recognition, gap analysis constraints, and domain restrictions.
 
-- **Tolerant** -- sections 1 and 2 only: identity + standard rules. The strict restrictions (section 3) are removed. The agent still follows the general rules but is not subject to the most restrictive constraints.
+- **🟡 Tolerant** -- sections 1 and 2 only: identity + rules. The agent uses curated data but the LLM interprets and connects it. The agent still follows general rules but is not subject to strict constraints.
 
-- **Lax** -- section 1 only: just the agent's identity. The LLM answers freely with minimal constraints. Use with caution -- the agent may go off-topic, hallucinate more freely, or ignore domain boundaries.
+- **🔴 Lax** -- section 1 only: identity only. The agent can freely use all data sources including unconstrained LLM generation. Use with caution -- the agent may go off-topic, hallucinate more freely, or ignore domain boundaries.
 
 **How the prompt sections work:**
 

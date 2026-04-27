@@ -296,6 +296,9 @@ async function loadLLMStatus(agentId = null) {
             }
         }
 
+        // Update agent info hover tooltip now that LLM info is available
+        updateAgentInfoTooltip();
+
         return true; // LLM OK
     } catch (error) {
         console.error('Error loading LLM status:', error);
@@ -573,6 +576,28 @@ async function warmupAgent(agentId) {
     }
 }
 
+// Update agent info hover tooltip with LLM details (called after LLM status loads)
+function updateAgentInfoTooltip() {
+    const infoRow = document.getElementById('agent-info-row');
+    const llmIconEl = document.getElementById('llm-provider-icon');
+    const labelEl = document.getElementById('agent-type-label');
+    if (!infoRow || !state.currentAgent) return;
+
+    const typeLabel = labelEl ? labelEl.textContent : '';
+    const isLocal = state.isLocalLLM || false;
+    const llmName = state.currentModel || '';
+    const llmLocation = isLocal ? 'Local' : 'Cloud';
+
+    // Update LLM icon
+    if (llmIconEl) {
+        llmIconEl.src = isLocal ? '/static/icon_llm_local.svg' : '/static/icon_llm_cloud.svg';
+        llmIconEl.alt = isLocal ? 'Local LLM' : 'Cloud LLM';
+    }
+
+    // Update hover text
+    infoRow.title = llmName ? `${typeLabel} \u00B7 ${llmName} (${llmLocation})` : typeLabel;
+}
+
 // Mostrar información del agente
 function showAgentInfo() {
     // Mostrar tipo de agente con icono
@@ -580,7 +605,8 @@ function showAgentInfo() {
         const typeLabels = {
             'oneshot': 'Oneshot',
             'rag': 'RAG',
-            'rag_metadata': 'Metadata+RAG',
+            'rag_metadata': 'Metadata+RAG (Vector)',
+            'rag_metadata_vectorless': 'Metadata+RAG (Vectorless)',
             'toolcall': 'Toolcall',
             'text2sql': 'Text2SQL'
         };
@@ -600,13 +626,23 @@ function showAgentInfo() {
             console.log('RAG agent approach:', approach, '-> label:', approachLabel);
         }
 
-        // Actualizar icono y texto
+        // Actualizar iconos and hover tooltip
         const iconEl = document.getElementById('agent-type-icon');
         const labelEl = document.getElementById('agent-type-label');
-        iconEl.src = `/img/${agentType}.png`;
+        const llmIconEl = document.getElementById('llm-provider-icon');
+        const infoRow = document.getElementById('agent-info-row');
+
+        // Agent type icon
+        const iconType = agentType === 'rag_metadata_vectorless' || agentType === 'rag_vectorless' ? 'rag_metadata' : agentType;
+        const iconExt = iconType === 'text2sql' ? 'svg' : 'png';
+        iconEl.src = `/img/${iconType}.${iconExt}`;
         iconEl.alt = typeLabel;
-        iconEl.className = `agent-type-icon`;
         labelEl.textContent = typeLabel;
+
+        // Initial LLM icon (will be updated when LLM status loads)
+        llmIconEl.src = '/static/icon_llm_cloud.svg';
+        llmIconEl.alt = 'LLM';
+        infoRow.title = typeLabel;
 
         elements.agentInfoSection.classList.remove('hidden');
     } else {
@@ -622,20 +658,56 @@ function showAgentInfo() {
     }
 
     // Apply user's login-time transparency preference (overrides agent default)
-    const userTransparency = localStorage.getItem('tommi_transparency');
-    if (userTransparency && TRANSPARENCY_LEVELS.includes(userTransparency)) {
-        state.currentAgent.transparency_level = userTransparency;
+    // But NOT for scaffolded agents — they use their own transparency system
+    const agentTransparency = state.currentAgent.transparency_level || '';
+    const isScaffoldedAgent = SCAFFOLDING_LEVELS.includes(agentTransparency);
+    if (!isScaffoldedAgent) {
+        const userTransparency = localStorage.getItem('tommi_transparency');
+        if (userTransparency && TRANSPARENCY_LEVELS.includes(userTransparency)) {
+            state.currentAgent.transparency_level = userTransparency;
+        }
     }
 
     // Mostrar nivel de transparencia (clickable to cycle)
-    if (state.currentAgent.transparency_level) {
+    if (isScaffoldedAgent) {
+        renderTransparencyBadge(state.currentAgent.transparency_level);
+        elements.transparencyLevel.classList.remove('hidden');
+    } else if (state.currentAgent.transparency_level) {
         renderTransparencyBadge(state.currentAgent.transparency_level);
         elements.transparencyLevel.classList.remove('hidden');
     } else {
         elements.transparencyLevel.classList.add('hidden');
     }
 
-    // Mostrar prompt level (clickable to cycle)
+    // Update help tooltip content based on agent transparency type
+    const tooltipContent = document.getElementById('agent-options-tooltip-content');
+    if (tooltipContent) {
+        const supervisionBlock =
+            '<b>Prompt</b> — Click to cycle:<br>' +
+            '&bull; <b style="color:#155724;">&#x1F7E2; Stringent</b> — All prompt rules enforced. The agent is constrained to use only curated database content. LLM involvement is minimal.<br>' +
+            '&bull; <b style="color:#856404;">&#x1F7E1; Tolerant</b> — Standard rules only. The agent uses curated data but the LLM interprets and connects it.<br>' +
+            '&bull; <b style="color:#721c24;">&#x1F534; Lax</b> — Identity only. The agent can freely use all data sources including unconstrained LLM generation.';
+
+        if (isScaffoldedAgent) {
+            tooltipContent.innerHTML =
+                '<b>LLM</b> — The language model generating responses. Click to cycle through available models.<br><br>' +
+                '<b>Transparency</b> — Controls how much information you will be provided about the Agent data source and decision process. Click to cycle:<br>' +
+                '&bull; <b>Crystal box</b>: all relevant information (procedural badges and hallucination detection).<br>' +
+                '&bull; <b>Black box</b>: no guidance information.<br><br>' +
+                supervisionBlock;
+        } else {
+            tooltipContent.innerHTML =
+                '<b>LLM</b> — Select the language model. Click to cycle through available models.<br><br>' +
+                '<b>Transparency</b> — Controls how much information you will be provided about the Agent data source and decision process. Click to cycle:<br>' +
+                '&bull; <b>Crystal box</b>: all relevant information.<br>' +
+                '&bull; <b>Grey box</b>: basic details.<br>' +
+                '&bull; <b>Black box</b>: no information.<br><br>' +
+                supervisionBlock;
+        }
+    }
+
+    // Show Prompt badge for ALL agents with prompt_level
+    // This replaces the old prompt level badge — supervision requirement is more meaningful to users
     if (state.currentAgent.prompt_level) {
         renderPromptLevelBadge(state.currentAgent.prompt_level);
         elements.promptLevel.classList.remove('hidden');
@@ -650,15 +722,22 @@ function showAgentInfo() {
     if (state.currentAgent.example_queries && state.currentAgent.example_queries.length > 0) {
         elements.examplesContainer.innerHTML = '';
         state.currentAgent.example_queries.forEach(query => {
-            const button = document.createElement('button');
-            button.className = 'example-button';
+            const item = document.createElement('div');
+            item.className = 'history-item';
             // Support **bold** in example queries for display
             const displayHtml = query.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-            button.innerHTML = displayHtml;
+            item.innerHTML = `<div class="history-question">${displayHtml}</div>`;
             // Send plain text (without **) when clicked
             const plainText = query.replace(/\*\*/g, '');
-            button.addEventListener('click', () => sendMessage(plainText));
-            elements.examplesContainer.appendChild(button);
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Collapse the examples dropdown after selecting
+                const details = elements.exampleQueries.querySelector('details');
+                if (details) details.removeAttribute('open');
+                if (!state.isLoading) sendMessage(plainText);
+            });
+            elements.examplesContainer.appendChild(item);
         });
         elements.exampleQueries.classList.remove('hidden');
     } else {
@@ -678,10 +757,13 @@ function hideAgentInfo() {
 
 // Transparency badge rendering and cycling
 const TRANSPARENCY_LEVELS = ['crystal_box', 'grey_box', 'black_box'];
+const SCAFFOLDING_LEVELS = ['scaffolded', 'unscaffolded'];
 const TRANSPARENCY_STYLES = {
-    crystal_box: { label: 'Crystal box', icon: '/static/icon_crystal_box.svg', color: '#000000', bg: '#ffffff' },
-    grey_box:    { label: 'Grey box',    icon: '/static/icon_grey_box.svg',    color: '#000000', bg: '#ffffff' },
-    black_box:   { label: 'Black box',   icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
+    crystal_box:   { label: 'Crystal box',   icon: '/static/icon_crystal_box.svg', color: '#000000', bg: '#ffffff' },
+    grey_box:      { label: 'Grey box',      icon: '/static/icon_grey_box.svg',    color: '#000000', bg: '#ffffff' },
+    black_box:     { label: 'Black box',     icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
+    scaffolded:           { label: 'Crystal box', icon: '/static/icon_crystal_box.svg', color: '#000000', bg: '#ffffff' },
+    unscaffolded:         { label: 'Black box',   icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
 };
 
 function renderTransparencyBadge(level) {
@@ -704,28 +786,33 @@ function cycleTransparency() {
     if (localStorage.getItem('tommi_study_mode') === 'true') return;
     if (!state.currentAgent || !state.currentAgent.transparency_level) return;
     const current = state.currentAgent.transparency_level;
-    const idx = TRANSPARENCY_LEVELS.indexOf(current);
-    const next = TRANSPARENCY_LEVELS[(idx + 1) % TRANSPARENCY_LEVELS.length];
+    // Use the appropriate level set for this agent type
+    const levels = SCAFFOLDING_LEVELS.includes(current) ? SCAFFOLDING_LEVELS : TRANSPARENCY_LEVELS;
+    const idx = levels.indexOf(current);
+    const next = levels[(idx + 1) % levels.length];
     // Client-side only — sent as param with each request
     state.currentAgent.transparency_level = next;
     localStorage.setItem('tommi_transparency', next);
     renderTransparencyBadge(next);
 }
 
-// Prompt level badge rendering and cycling
-const PROMPT_LEVELS = ['stringent', 'tolerant', 'lax'];
-const PROMPT_LEVEL_STYLES = {
-    stringent: { label: '\uD83D\uDEE1\uFE0F Prompt: Stringent', color: '#000000', bg: '#ffffff' },
-    tolerant:  { label: '\u2696\uFE0F Prompt: Tolerant',         color: '#000000', bg: '#ffffff' },
-    lax:       { label: '\u26A0\uFE0F Prompt: Lax',              color: '#000000', bg: '#ffffff' },
+// Prompt badge for scaffolded agents (shown in sidebar instead of transparency)
+const SUPERVISION_STYLES = {
+    stringent: { label: 'Stringent', dot: '\uD83D\uDFE2', color: '#155724', bg: '#d4edda' },
+    tolerant:  { label: 'Tolerant',  dot: '\uD83D\uDFE1', color: '#856404', bg: '#fff3cd' },
+    lax:       { label: 'Lax',      dot: '\uD83D\uDD34', color: '#721c24', bg: '#f8d7da' },
 };
 
+// Prompt level badge rendering and cycling
+// The prompt level badge now shows "Prompt: Low/Mid/High" for all agents
+const PROMPT_LEVELS = ['stringent', 'tolerant', 'lax'];
+
 function renderPromptLevelBadge(level) {
-    const s = PROMPT_LEVEL_STYLES[level] || PROMPT_LEVEL_STYLES.stringent;
+    const s = SUPERVISION_STYLES[level] || SUPERVISION_STYLES.stringent;
     elements.promptLevel.innerHTML =
-        `<span class="prompt-level-badge" style="background-color:${s.bg};color:${s.color};padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;cursor:pointer;" ` +
+        `<span class="prompt-level-badge" style="background-color:${s.bg};color:${s.color};padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" ` +
         `title="Click to change prompt level">` +
-        `${s.label}</span>`;
+        `${s.dot} Prompt: ${s.label}</span>`;
     elements.promptLevel.querySelector('.prompt-level-badge')
         .addEventListener('click', cyclePromptLevel);
 }
@@ -975,10 +1062,11 @@ function applyClaimHighlights(container, data) {
  * Replaces broken markdown/HTML link patterns containing /pdf/W... with just the paper ID.
  */
 function cleanPdfLinks(text) {
-    // Remove markdown links like [PDF](api/agents/.../pdf/W1234567.pdf) or with extra HTML attrs
+    // Convert markdown PDF links to just "📄 PDF" text with the paper ID preserved
+    // The addPdfLinks function will later make paper IDs clickable
     text = text.replace(
-        /\[([^\]]*)\]\([^)]*\/pdf\/(W\d{7,})\.pdf[^)]*\)/g,
-        '$2'
+        /\s*\[([^\]]*)\]\([^)]*\/pdf\/(W\d{7,})\.pdf[^)]*\)/g,
+        '\uD83D\uDCC4 PDF'
     );
     // Remove raw HTML <a> tags pointing to PDF endpoints (LLM sometimes generates these)
     text = text.replace(
@@ -1592,7 +1680,8 @@ async function sendMessage(message) {
     elements.sendButton.disabled = true;
 
     // Mostrar mensaje del usuario
-    addMessage(message, 'user');
+    const userContentDiv = addMessage(message, 'user');
+    const userMessageDiv = userContentDiv.closest('.message') || userContentDiv.parentElement;
 
     // Crear placeholder para la respuesta
     const responseDiv = addMessage('', 'agent');
@@ -1633,11 +1722,24 @@ async function sendMessage(message) {
 
         let streamDone = false;
         let badgeHtml = '';
+        let hasScrolledToResponse = false;
+
+        function scrollToUserMessage() {
+            if (hasScrolledToResponse) return;
+            hasScrolledToResponse = true;
+            if (userMessageDiv) {
+                const containerRect = elements.chatMessages.getBoundingClientRect();
+                const messageRect = userMessageDiv.getBoundingClientRect();
+                const scrollOffset = messageRect.top - containerRect.top + elements.chatMessages.scrollTop;
+                elements.chatMessages.scrollTop = scrollOffset;
+            }
+        }
 
         eventSource.addEventListener('badge', (event) => {
             // Reliability badge — render once, not accumulated in responseText
             badgeHtml = event.data.replace(/\\n/g, '\n');
             responseDiv.innerHTML = badgeHtml;
+            scrollToUserMessage();
         });
 
         eventSource.onmessage = (event) => {
@@ -1646,6 +1748,7 @@ async function sendMessage(message) {
             const chunk = event.data.replace(/\\n/g, '\n');
             responseText += chunk;
             responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText));
+            scrollToUserMessage();
         };
 
         let claimHighlights = null;
@@ -1691,6 +1794,15 @@ async function sendMessage(message) {
             if (parentMsg) {
                 createFeedbackWidget(parentMsg, message, responseText);
             }
+            // Final scroll: ensure user's question (blue box) is at top of visible area
+            setTimeout(() => {
+                if (userMessageDiv) {
+                    const containerRect = elements.chatMessages.getBoundingClientRect();
+                    const messageRect = userMessageDiv.getBoundingClientRect();
+                    const scrollOffset = messageRect.top - containerRect.top + elements.chatMessages.scrollTop;
+                    elements.chatMessages.scrollTop = scrollOffset;
+                }
+            }, 150);
         });
 
         eventSource.addEventListener('error', (event) => {
@@ -2002,10 +2114,7 @@ function renderQueryHistory(history) {
         elements.historyContainer.appendChild(historyItem);
     });
 
-    // Hide example queries after 3 queries; keep them visible for the first few
-    if (history.length >= 3) {
-        elements.exampleQueries.classList.add('hidden');
-    }
+    // Example queries stay visible (collapsed dropdown, user can reopen anytime)
     elements.queryHistory.classList.remove('hidden');
 }
 

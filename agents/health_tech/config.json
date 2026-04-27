@@ -4,7 +4,7 @@
   "description": "Research assistant for UMA-TAMK health and social data science Excellence Hub",
   "welcome_message": "Hello! I am a research assistant specialized in UNINOVIS health and social data science research. How can I help you?",
   "research_topic": "Health and social data science",
-  "show_history": false,
+  "show_history": true,
   "example_queries": [
     "**Show a figure** with all the publications per partner",
     "**Show a figure** of studies on the **topic** AI and Aging",
