@@ -595,7 +595,8 @@ function updateAgentInfoTooltip() {
     }
 
     // Update hover text
-    infoRow.title = llmName ? `${typeLabel} \u00B7 ${llmName} (${llmLocation})` : typeLabel;
+    const ttLabel = state._transparencyType === 'procedural' ? 'Procedural' : 'Content-based';
+    infoRow.title = `Agent type: ${typeLabel}.  LLM architecture: ${llmLocation}.  Transparency model: ${ttLabel}.`;
 }
 
 // Mostrar información del agente
@@ -608,7 +609,8 @@ function showAgentInfo() {
             'rag_metadata': 'Metadata+RAG (Vector)',
             'rag_metadata_vectorless': 'Metadata+RAG (Vectorless)',
             'toolcall': 'Toolcall',
-            'text2sql': 'Text2SQL'
+            'text2sql': 'Text2SQL',
+            'data_analysis': 'Data Analysis'
         };
         const ragApproachLabels = {
             'basic': 'Basic',
@@ -632,17 +634,38 @@ function showAgentInfo() {
         const llmIconEl = document.getElementById('llm-provider-icon');
         const infoRow = document.getElementById('agent-info-row');
 
-        // Agent type icon
-        const iconType = agentType === 'rag_metadata_vectorless' || agentType === 'rag_vectorless' ? 'rag_metadata' : agentType;
-        const iconExt = iconType === 'text2sql' ? 'svg' : 'png';
-        iconEl.src = `/img/${iconType}.${iconExt}`;
+        // Agent type icon — use SVG for all types
+        const iconType = agentType;
+        iconEl.src = `/img/${iconType}.svg`;
         iconEl.alt = typeLabel;
         labelEl.textContent = typeLabel;
 
         // Initial LLM icon (will be updated when LLM status loads)
         llmIconEl.src = '/static/icon_llm_cloud.svg';
         llmIconEl.alt = 'LLM';
-        infoRow.title = typeLabel;
+
+        // Transparency type icon (procedural banners or content-based scores)
+        const ttIconEl = document.getElementById('transparency-type-icon');
+        if (ttIconEl) {
+            // Determine transparency type: explicit config, or infer from agent type + transparency level
+            let ttType = 'content';  // default
+            const configTT = state.currentAgent.transparency_type;
+            if (configTT === 'procedural' || configTT === 'content') {
+                ttType = configTT;
+            } else if (agentType.includes('vectorless') ||
+                       state.currentAgent.transparency_level === 'scaffolded') {
+                ttType = 'procedural';
+            }
+            console.log('Transparency type:', ttType, '(config:', configTT, 'agentType:', agentType, 'level:', state.currentAgent.transparency_level, ')');
+            ttIconEl.src = ttType === 'procedural' ? '/static/icon_procedural.svg' : '/static/icon_content.svg';
+            ttIconEl.alt = ttType === 'procedural' ? 'Procedural transparency' : 'Content-based transparency';
+            // Store for tooltip
+            state._transparencyType = ttType;
+        }
+
+        // Initial hover text (LLM details added later by updateAgentInfoTooltip)
+        const ttLabelInit = state._transparencyType === 'procedural' ? 'Procedural' : 'Content-based';
+        infoRow.title = `Agent type: ${typeLabel}.  LLM architecture: loading...  Transparency model: ${ttLabelInit}.`;
 
         elements.agentInfoSection.classList.remove('hidden');
     } else {

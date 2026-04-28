@@ -14,5 +14,6 @@
   "prompt_level": "stringent",
   "audit_log_enabled": true,
   "_transparency_comment": "crystal_box: show SQL + verification details + badge. grey_box: badge + results. black_box: results only.",
-  "_prompt_level_comment": "stringent: reject unverified SQL, show warnings. tolerant: flag issues but execute. lax: minimal validation."
+  "_prompt_level_comment": "stringent: reject unverified SQL, show warnings. tolerant: flag issues but execute. lax: minimal validation.",
+  "transparency_type": "procedural"
 }

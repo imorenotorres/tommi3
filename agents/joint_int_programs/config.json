@@ -23,5 +23,6 @@
     "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
     "show_legend": true,
     "_style_comment": "Green = metadata (structured data), Yellow = database (RAG documents), Blue = web search (external), Red = LLM interpretation"
-  }
+  },
+  "transparency_type": "content"
 }

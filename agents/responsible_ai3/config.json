@@ -6,7 +6,9 @@
   "welcome_message": "Hello! I am a research assistant specialized in UNINOVIS Responsible AI research (vectorless mode). How can I help you?",
   "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
   "show_history": true,
-  "extra_docs_dirs": ["project_docs"],
+  "extra_docs_dirs": [
+    "project_docs"
+  ],
   "example_queries": [
     "**Show a figure** with all the publications per partner",
     "**Show a figure** of studies on the **topic** AI and Ethics",
@@ -24,14 +26,54 @@
     "description": "UNINOVIS is a European university alliance focused on enhancing education, research, and innovation in applied data science."
   },
   "universities": {
-    "USPN":  {"name": "Université Sorbonne Paris Nord", "country": "France", "lat": 48.9566, "lon": 2.3522},
-    "UDCLV": {"name": "University of Campania \"Luigi Vanvitelli\"", "country": "Italy", "lat": 41.0742, "lon": 14.3272},
-    "UMA":   {"name": "Universidad de Málaga", "country": "Spain", "lat": 36.7213, "lon": -4.4214},
-    "KK":    {"name": "Kauno Kolegija Higher Education Institution", "country": "Lithuania", "lat": 54.8985, "lon": 23.9036},
-    "UT":    {"name": "University of Tirana", "country": "Albania", "lat": 41.3275, "lon": 19.8187},
-    "THWS":  {"name": "Technical University of Applied Sciences Würzburg-Schweinfurt", "country": "Germany", "lat": 49.7913, "lon": 9.9534},
-    "TAMK":  {"name": "Tampere University of Applied Sciences", "country": "Finland", "lat": 61.4978, "lon": 23.7610},
-    "THUAS": {"name": "The Hague University of Applied Sciences", "country": "Netherlands", "lat": 52.0705, "lon": 4.3007}
+    "USPN": {
+      "name": "Université Sorbonne Paris Nord",
+      "country": "France",
+      "lat": 48.9566,
+      "lon": 2.3522
+    },
+    "UDCLV": {
+      "name": "University of Campania \"Luigi Vanvitelli\"",
+      "country": "Italy",
+      "lat": 41.0742,
+      "lon": 14.3272
+    },
+    "UMA": {
+      "name": "Universidad de Málaga",
+      "country": "Spain",
+      "lat": 36.7213,
+      "lon": -4.4214
+    },
+    "KK": {
+      "name": "Kauno Kolegija Higher Education Institution",
+      "country": "Lithuania",
+      "lat": 54.8985,
+      "lon": 23.9036
+    },
+    "UT": {
+      "name": "University of Tirana",
+      "country": "Albania",
+      "lat": 41.3275,
+      "lon": 19.8187
+    },
+    "THWS": {
+      "name": "Technical University of Applied Sciences Würzburg-Schweinfurt",
+      "country": "Germany",
+      "lat": 49.7913,
+      "lon": 9.9534
+    },
+    "TAMK": {
+      "name": "Tampere University of Applied Sciences",
+      "country": "Finland",
+      "lat": 61.4978,
+      "lon": 23.761
+    },
+    "THUAS": {
+      "name": "The Hague University of Applied Sciences",
+      "country": "Netherlands",
+      "lat": 52.0705,
+      "lon": 4.3007
+    }
   },
   "gap_analysis_examples": "algorithmic auditing, AI safety, data sovereignty, human-AI interaction, AI and disability, AI and environmental impact, AI red-teaming, adversarial robustness, AI supply chain ethics",
   "prompt_level": "stringent",
@@ -56,5 +98,6 @@
     "google_cx": "",
     "num_results": 10,
     "_comment": "Google Custom Search API credentials. Leave empty to disable web search expansion. Get API key at https://console.cloud.google.com/ and CX at https://programmablesearchengine.google.com/"
-  }
+  },
+  "transparency_type": "procedural"
 }

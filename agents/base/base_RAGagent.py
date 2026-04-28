@@ -51,6 +51,15 @@ class BaseRAGAgent:
         self._transparency = self._config.get("transparency_level", "crystal_box")
         self._audit_enabled = self._config.get("audit_log_enabled", False)
         self._audit_path = os.path.join(self._agent_dir, "data", "audit_log.jsonl")
+        # Transparency type: "procedural" (banners) or "content" (claim-level scores)
+        # Config overrides the class default if specified
+        transparency_type = self._config.get("transparency_type")
+        if transparency_type == "procedural":
+            self._skip_claim_classification = True
+        elif transparency_type == "content":
+            self._skip_claim_classification = False
+        # If not specified in config, keep the class default (set by mixin or False)
+
         # Query history for the sidebar
         self._query_history = []
 

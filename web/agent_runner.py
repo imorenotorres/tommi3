@@ -31,6 +31,7 @@ class AgentInfo:
     show_history: bool = True
     show_description: bool = False
     transparency_level: str = "black_box"
+    transparency_type: str = ""  # "procedural" or "content" (empty = auto from class)
     prompt_level: str = "stringent"
 
 
@@ -134,6 +135,7 @@ class AgentRunner:
                     "show_description": cfg.get("show_description", False),
                     "public": cfg.get("public", True),
                     "transparency_level": cfg.get("transparency_level", "black_box"),
+                    "transparency_type": cfg.get("transparency_type", ""),
                     "prompt_level": cfg.get("prompt_level", "stringent"),
                 }
                 # Use type from config.json if present, otherwise try app.py

@@ -11,7 +11,6 @@
     "Do we have agreements with the Netherlands?"
   ],
   "transparency_level": "crystal_box",
-  "prompt_level": "stringent"
+  "prompt_level": "stringent",
+  "transparency_type": "content"
 }
-
-

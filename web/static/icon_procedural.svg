@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Tag outline -->
+  <path d="M2 4.5C2 3.67 2.67 3 3.5 3h6.38a1.5 1.5 0 0 1 1.06.44l9.12 9.12a1.5 1.5 0 0 1 0 2.12l-6.38 6.38a1.5 1.5 0 0 1-2.12 0L2.44 11.94A1.5 1.5 0 0 1 2 10.88V4.5z" fill="#f8f9fa" stroke="#333" stroke-width="1.2"/>
+  <!-- Tag hole -->
+  <circle cx="6" cy="7" r="1.2" fill="#333"/>
+  <!-- Three colored bars inside tag -->
+  <rect x="5" y="10" width="5" height="1.8" rx="0.5" fill="#28a745"/>
+  <rect x="7" y="13" width="5" height="1.8" rx="0.5" fill="#ffc107"/>
+  <rect x="9" y="16" width="5" height="1.8" rx="0.5" fill="#dc3545"/>
+</svg>

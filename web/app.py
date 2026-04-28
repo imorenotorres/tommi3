@@ -835,6 +835,7 @@ class AgentResponse(BaseModel):
     show_history: bool = True
     show_description: bool = False
     transparency_level: str = "black_box"
+    transparency_type: str = ""
     prompt_level: str = "stringent"
 
 
@@ -1286,6 +1287,7 @@ async def list_agents(request: Request, mode: Optional[str] = Query(None)):
             show_history=a.show_history,
             show_description=a.show_description,
             transparency_level=a.transparency_level,
+            transparency_type=a.transparency_type,
             prompt_level=a.prompt_level
         )
         for a in agents

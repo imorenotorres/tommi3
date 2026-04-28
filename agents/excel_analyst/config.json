@@ -16,5 +16,6 @@
   "prompt_level": "stringent",
   "max_rows_display": 50,
   "chart_style": "seaborn",
-  "_comment": "Data source: UNINOVIS survey '¿Ya formas parte de UNINOVIS? (respuestas).xlsx' — 279 responses, 13 columns."
+  "_comment": "Data source: UNINOVIS survey '¿Ya formas parte de UNINOVIS? (respuestas).xlsx' — 279 responses, 13 columns.",
+  "transparency_type": "content"
 }

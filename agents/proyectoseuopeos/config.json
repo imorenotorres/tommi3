@@ -13,5 +13,6 @@
   ],
   "prompt_level": "stringent",
   "transparency_level": "scaffolded",
-  "audit_log_enabled": true
+  "audit_log_enabled": true,
+  "transparency_type": "procedural"
 }

@@ -22,5 +22,6 @@
     "grounded_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
     "ungrounded_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
     "show_legend": true
-  }
+  },
+  "transparency_type": "content"
 }

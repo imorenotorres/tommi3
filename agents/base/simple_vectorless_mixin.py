@@ -64,6 +64,11 @@ class SimpleVectorlessMixin(VectorlessMixin):
     _skip_claim_classification = True
 
     def chat(self, user_message: str, history: list = None, **kwargs) -> str:
+        # If config overrode to content-based, delegate to SimpleRAGMixin
+        if not getattr(self, '_skip_claim_classification', True):
+            from .rag_mixin import SimpleRAGMixin
+            return SimpleRAGMixin.chat(self, user_message, history, **kwargs)
+
         transparency = kwargs.get('transparency_override') or self._transparency
         model = kwargs.get('model_override') or self.model
         prompt_level = kwargs.get('prompt_level_override') or self._prompt_level
@@ -101,6 +106,13 @@ class SimpleVectorlessMixin(VectorlessMixin):
         return llm_content
 
     async def chat_stream(self, user_message: str, history: list = None, **kwargs):
+        # If config overrode to content-based, delegate to SimpleRAGMixin
+        if not getattr(self, '_skip_claim_classification', True):
+            from .rag_mixin import SimpleRAGMixin
+            async for item in SimpleRAGMixin.chat_stream(self, user_message, history, **kwargs):
+                yield item
+            return
+
         transparency = kwargs.get('transparency_override') or self._transparency
         model = kwargs.get('model_override') or self.model
         prompt_level = kwargs.get('prompt_level_override') or self._prompt_level
