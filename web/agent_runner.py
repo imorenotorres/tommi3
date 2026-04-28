@@ -379,17 +379,17 @@ class AgentRunner:
         self._save_to_session(session_id, message, full_response)
 
     def get_agent_history(self, agent_id: str, session_id: str = None) -> list:
-        """Obtiene el historial de consultas de un agente (si tiene el método get_history)."""
-        if agent_id not in self._agent_instances:
+        """Get query history for a specific session (session-based, not shared)."""
+        if not session_id:
             return []
 
-        agent_instance = self._agent_instances[agent_id]
-        if hasattr(agent_instance, 'get_history'):
-            # Pasar session_id si el agente lo soporta
-            if 'session_id' in agent_instance.get_history.__code__.co_varnames:
-                return agent_instance.get_history(session_id=session_id)
-            return agent_instance.get_history()
-        return []
+        session_messages = self._sessions.get(session_id, [])
+        # Extract user messages from the session
+        return [
+            {"question": msg["content"], "num_results": 1}
+            for msg in session_messages
+            if msg.get("role") == "user"
+        ]
 
     def init_agent(self, agent_id: str) -> dict:
         """
