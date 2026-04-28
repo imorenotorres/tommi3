@@ -99,6 +99,7 @@ class AgentRunner:
                     show_history=config.get("show_history", True),
                     show_description=config.get("show_description", False),
                     transparency_level=config.get("transparency_level", "black_box"),
+                    transparency_type=config.get("transparency_type", ""),
                     prompt_level=config.get("prompt_level", "stringent"),
                 )
 
