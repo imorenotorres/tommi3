@@ -75,6 +75,13 @@ UNINOVIS_UNIVERSITIES = {
             "Tampere University of Applied Sciences",
             "Tampereen ammattikorkeakoulu",
         ],
+        # Affiliation text filter: only keep papers where at least one author's
+        # raw affiliation string contains one of these terms. This prevents
+        # OpenAlex disambiguation errors from including papers from
+        # "Tampere University" (a different institution).
+        "affiliation_must_contain": [
+            "applied sciences", "ammattikorkeakoulu", "TAMK",
+        ],
     },
     "THUAS": {
         "name": "The Hague University of Applied Sciences",
@@ -321,13 +328,30 @@ class OpenAlexCollector:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _has_uninovis_affiliation(paper: dict, institution_id: str) -> bool:
-        """Return True if at least one author is affiliated with *institution_id*."""
+    def _has_uninovis_affiliation(paper: dict, institution_id: str,
+                                   affiliation_must_contain: list = None) -> bool:
+        """Return True if at least one author is affiliated with *institution_id*.
+
+        When *affiliation_must_contain* is provided, additionally requires that
+        the author's raw affiliation string contains at least one of the given
+        terms (case-insensitive). This catches OpenAlex disambiguation errors
+        where papers from a similarly-named institution are incorrectly assigned.
+        """
         full_id = f"https://openalex.org/{institution_id}"
         for authorship in paper.get("authorships", []):
             for inst in authorship.get("institutions", []):
                 if inst.get("id") == full_id:
-                    return True
+                    # If no text filter, accept
+                    if not affiliation_must_contain:
+                        return True
+                    # Check raw affiliation string for required terms
+                    raw_aff = authorship.get("raw_affiliation_string", "") or ""
+                    raw_aff_lower = raw_aff.lower()
+                    # Also check institution display_name
+                    inst_name = (inst.get("display_name") or "").lower()
+                    combined = raw_aff_lower + " " + inst_name
+                    if any(term.lower() in combined for term in affiliation_must_contain):
+                        return True
         return False
 
     # ------------------------------------------------------------------
@@ -431,7 +455,9 @@ class OpenAlexCollector:
                         continue
 
                     # Verify the UNINOVIS institution really appears in affiliations
-                    if not self._has_uninovis_affiliation(paper, inst_id):
+                    # Also apply affiliation text filter if configured for this university
+                    aff_filter = UNINOVIS_UNIVERSITIES.get(acronym, {}).get("affiliation_must_contain")
+                    if not self._has_uninovis_affiliation(paper, inst_id, aff_filter):
                         continue
 
                     # Relevance filter
@@ -947,7 +973,8 @@ class ProjectCollector:
                         pid = paper.get("id", "")
                         if pid in seen_ids:
                             continue
-                        if not self.base._has_uninovis_affiliation(paper, inst_id):
+                        aff_filter = UNINOVIS_UNIVERSITIES.get(acronym, {}).get("affiliation_must_contain")
+                        if not self.base._has_uninovis_affiliation(paper, inst_id, aff_filter):
                             continue
                         if not self.base._is_relevant(paper):
                             continue
