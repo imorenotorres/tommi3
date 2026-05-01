@@ -790,7 +790,9 @@ class MetadataRAGMixin:
 
         lines = ["GLOSSARY CONTEXT — Definitions from the Responsible AI Glossary:"]
         lines.append("Use this information to answer the user's conceptual question. "
-                      "Do NOT search for papers unless the user explicitly asks for papers.")
+                      "Do NOT search for papers unless the user explicitly asks for papers. "
+                      "IMPORTANT: When listing references, you MUST include the full URLs exactly as they appear in the glossary entries below. "
+                      "Do NOT omit or shorten the URLs.")
         for concept_name in all_concepts:
             entry = glossary[concept_name]
             lines.append(f"\n### {concept_name}")
