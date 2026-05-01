@@ -161,148 +161,6 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Nuraddin Sadili",
-      "paper_count": 1,
-      "topics": [
-        "Epistemology",
-        "Generative grammar",
-        "Linguistics",
-        "Marketing",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4391676703",
-          "title": "Beyond interaction: Generative AI in conversational marketing - foundations, developments, and future directions",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "M. Fazail Basharat",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Criminal justice",
-        "Criminal law",
-        "Economic Justice",
-        "Enforcement",
-        "Law",
-        "Law enforcement",
-        "Legislature",
-        "Political science",
-        "Public administration"
-      ],
-      "papers": [
-        {
-          "id": "W4410293916",
-          "title": "National Policy and Legislative Framework for AI Governance in Law Enforcement Agencies and Criminal Justice System of Pakistan",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Nouman Sajid",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Criminal justice",
-        "Criminal law",
-        "Economic Justice",
-        "Enforcement",
-        "Law",
-        "Law enforcement",
-        "Legislature",
-        "Political science",
-        "Public administration"
-      ],
-      "papers": [
-        {
-          "id": "W4410293916",
-          "title": "National Policy and Legislative Framework for AI Governance in Law Enforcement Agencies and Criminal Justice System of Pakistan",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Syed Manzoor Hussain Shah",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Criminal justice",
-        "Criminal law",
-        "Economic Justice",
-        "Enforcement",
-        "Law",
-        "Law enforcement",
-        "Legislature",
-        "Political science",
-        "Public administration"
-      ],
-      "papers": [
-        {
-          "id": "W4410293916",
-          "title": "National Policy and Legislative Framework for AI Governance in Law Enforcement Agencies and Criminal Justice System of Pakistan",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Syed Ghafoor Abbas Kazmi",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Criminal justice",
-        "Criminal law",
-        "Economic Justice",
-        "Enforcement",
-        "Law",
-        "Law enforcement",
-        "Legislature",
-        "Political science",
-        "Public administration"
-      ],
-      "papers": [
-        {
-          "id": "W4410293916",
-          "title": "National Policy and Legislative Framework for AI Governance in Law Enforcement Agencies and Criminal Justice System of Pakistan",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Ahmet Atalay",
-      "paper_count": 1,
-      "topics": [
-        "Business",
-        "Computer science",
-        "Engineering",
-        "Environmental planning",
-        "Environmental resource management",
-        "Sustainability",
-        "Sustainable management"
-      ],
-      "papers": [
-        {
-          "id": "W4410858606",
-          "title": "Artificial Intelligence Technologies as Smart Solutions for Sustainable Protected Areas Management",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
       "name": "Dalia Perkumienė",
       "paper_count": 1,
       "topics": [
@@ -347,21 +205,19 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Mindaugas Škėma",
+      "name": "Violeta Vasiliauskienė",
       "paper_count": 1,
       "topics": [
         "Business",
-        "Computer science",
-        "Engineering",
-        "Environmental planning",
-        "Environmental resource management",
-        "Sustainability",
-        "Sustainable management"
+        "Computer security",
+        "National security",
+        "Political science",
+        "Public relations"
       ],
       "papers": [
         {
-          "id": "W4410858606",
-          "title": "Artificial Intelligence Technologies as Smart Solutions for Sustainable Protected Areas Management",
+          "id": "W4411160104",
+          "title": "BUSINESS ACTIONS POSING THREAT TO NATIONAL SECURITY",
           "year": 2025
         }
       ],
@@ -369,22 +225,60 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Marius Aleinikovas",
+      "name": "Anželika Banevičienė",
       "paper_count": 1,
       "topics": [
         "Business",
-        "Computer science",
-        "Engineering",
-        "Environmental planning",
-        "Environmental resource management",
-        "Sustainability",
-        "Sustainable management"
+        "Computer security",
+        "National security",
+        "Political science",
+        "Public relations"
       ],
       "papers": [
         {
-          "id": "W4410858606",
-          "title": "Artificial Intelligence Technologies as Smart Solutions for Sustainable Protected Areas Management",
+          "id": "W4411160104",
+          "title": "BUSINESS ACTIONS POSING THREAT TO NATIONAL SECURITY",
           "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Vykintas Stumbrys",
+      "paper_count": 1,
+      "topics": [
+        "Business",
+        "Computer security",
+        "National security",
+        "Political science",
+        "Public relations"
+      ],
+      "papers": [
+        {
+          "id": "W4411160104",
+          "title": "BUSINESS ACTIONS POSING THREAT TO NATIONAL SECURITY",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Lina Kankevičienė",
+      "paper_count": 1,
+      "topics": [
+        "Consumer behaviour",
+        "Credibility",
+        "Customer engagement",
+        "Experiential learning",
+        "Metaverse"
+      ],
+      "papers": [
+        {
+          "id": "W7131878786",
+          "title": "Experiential Metaverse Marketing",
+          "year": 2026
         }
       ],
       "affiliations": [],
@@ -5519,143 +5413,7 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Aldert Zomer",
-      "paper_count": 2,
-      "topics": [
-        "Bioinformatics",
-        "Biology",
-        "Comparability",
-        "Computational biology",
-        "Computer science",
-        "Data science",
-        "Exploit",
-        "Field (mathematics)",
-        "Health care",
-        "Human microbiome",
-        "Key (lock)",
-        "Microbiome",
-        "Risk analysis (engineering)",
-        "Volume (thermodynamics)"
-      ],
-      "papers": [
-        {
-          "id": "W4386921745",
-          "title": "Advancing microbiome research with machine learning: key findings from the ML4Microbiome COST action",
-          "year": 2023
-        },
-        {
-          "id": "W4403442497",
-          "title": "Editorial: Microbiome and machine learning, volume II",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
       "name": "Isabel Moreno‐Indias",
-      "paper_count": 2,
-      "topics": [
-        "Bioinformatics",
-        "Biology",
-        "Comparability",
-        "Computational biology",
-        "Computer science",
-        "Data science",
-        "Exploit",
-        "Field (mathematics)",
-        "Health care",
-        "Human microbiome",
-        "Key (lock)",
-        "Microbiome",
-        "Risk analysis (engineering)",
-        "Volume (thermodynamics)"
-      ],
-      "papers": [
-        {
-          "id": "W4386921745",
-          "title": "Advancing microbiome research with machine learning: key findings from the ML4Microbiome COST action",
-          "year": 2023
-        },
-        {
-          "id": "W4403442497",
-          "title": "Editorial: Microbiome and machine learning, volume II",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Erik Bongcam‐Rudloff",
-      "paper_count": 2,
-      "topics": [
-        "Bioinformatics",
-        "Biology",
-        "Comparability",
-        "Computational biology",
-        "Computer science",
-        "Data science",
-        "Exploit",
-        "Field (mathematics)",
-        "Health care",
-        "Human microbiome",
-        "Key (lock)",
-        "Microbiome",
-        "Risk analysis (engineering)",
-        "Volume (thermodynamics)"
-      ],
-      "papers": [
-        {
-          "id": "W4386921745",
-          "title": "Advancing microbiome research with machine learning: key findings from the ML4Microbiome COST action",
-          "year": 2023
-        },
-        {
-          "id": "W4403442497",
-          "title": "Editorial: Microbiome and machine learning, volume II",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Randi Jacobsen Bertelsen",
-      "paper_count": 2,
-      "topics": [
-        "Bioinformatics",
-        "Biology",
-        "Comparability",
-        "Computational biology",
-        "Computer science",
-        "Data science",
-        "Exploit",
-        "Field (mathematics)",
-        "Health care",
-        "Human microbiome",
-        "Key (lock)",
-        "Microbiome",
-        "Risk analysis (engineering)",
-        "Volume (thermodynamics)"
-      ],
-      "papers": [
-        {
-          "id": "W4386921745",
-          "title": "Advancing microbiome research with machine learning: key findings from the ML4Microbiome COST action",
-          "year": 2023
-        },
-        {
-          "id": "W4403442497",
-          "title": "Editorial: Microbiome and machine learning, volume II",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Marcus J. Claesson",
       "paper_count": 2,
       "topics": [
         "Bioinformatics",
@@ -5987,31 +5745,6 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "María Rubio-Gragera",
-      "paper_count": 1,
-      "topics": [
-        "Competence (human resources)",
-        "Computer science",
-        "Confirmatory factor analysis",
-        "Context (archaeology)",
-        "Exploratory factor analysis",
-        "Exploratory research",
-        "Knowledge management",
-        "Psychology",
-        "Structural equation modeling",
-        "Validity"
-      ],
-      "papers": [
-        {
-          "id": "W4417436257",
-          "title": "Validation of a digital competence in artificial intelligence scale for non-university students based on the DigComp model",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
       "name": "Ernesto Colomo Magaña",
       "paper_count": 1,
       "topics": [
@@ -6062,80 +5795,6 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Ana María Pinto Llorente",
-      "paper_count": 1,
-      "topics": [
-        "Confirmatory factor analysis",
-        "Discriminant validity",
-        "Exploratory factor analysis",
-        "Key (lock)",
-        "Knowledge management",
-        "Perception",
-        "Psychology",
-        "Reliability (semiconductor)",
-        "Structural equation modeling",
-        "Transformational leadership"
-      ],
-      "papers": [
-        {
-          "id": "W7120099924",
-          "title": "Design and validation of an instrument to evaluate transformational and managerial leadership in the responsible use of artificial intelligence in educational centers",
-          "year": 2026
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Marko Rosić",
-      "paper_count": 1,
-      "topics": [
-        "Confirmatory factor analysis",
-        "Discriminant validity",
-        "Exploratory factor analysis",
-        "Key (lock)",
-        "Knowledge management",
-        "Perception",
-        "Psychology",
-        "Reliability (semiconductor)",
-        "Structural equation modeling",
-        "Transformational leadership"
-      ],
-      "papers": [
-        {
-          "id": "W7120099924",
-          "title": "Design and validation of an instrument to evaluate transformational and managerial leadership in the responsible use of artificial intelligence in educational centers",
-          "year": 2026
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Mabel Sánchez-Torres",
-      "paper_count": 1,
-      "topics": [
-        "Big data",
-        "Data science",
-        "Disinformation",
-        "Engineering",
-        "Information and Communications Technology",
-        "Knowledge management",
-        "Political science",
-        "Social media",
-        "Social network analysis"
-      ],
-      "papers": [
-        {
-          "id": "W7126051914",
-          "title": "Cartography of the Use of Artificial Intelligence Against Disinformation in Europe: Trends, Stakeholders, and Emerging Challenges",
-          "year": 2026
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
       "name": "Francisco Javier Paniagua Rojano",
       "paper_count": 1,
       "topics": [
@@ -6153,105 +5812,6 @@
         {
           "id": "W7126051914",
           "title": "Cartography of the Use of Artificial Intelligence Against Disinformation in Europe: Trends, Stakeholders, and Emerging Challenges",
-          "year": 2026
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Raúl Magallón Rosa",
-      "paper_count": 1,
-      "topics": [
-        "Big data",
-        "Data science",
-        "Disinformation",
-        "Engineering",
-        "Information and Communications Technology",
-        "Knowledge management",
-        "Political science",
-        "Social media",
-        "Social network analysis"
-      ],
-      "papers": [
-        {
-          "id": "W7126051914",
-          "title": "Cartography of the Use of Artificial Intelligence Against Disinformation in Europe: Trends, Stakeholders, and Emerging Challenges",
-          "year": 2026
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Linety Juma",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Curriculum",
-        "Curriculum development",
-        "Curriculum framework",
-        "Engineering ethics",
-        "Knowledge management",
-        "Medical education",
-        "Political science",
-        "Professional development",
-        "Transformative learning"
-      ],
-      "papers": [
-        {
-          "id": "W7128909101",
-          "title": "Assessing the Role of AI Integration in Competence-Based Curriculum Development and Effective Implementation Strategies in Junior Secondary Schools in Kilifi County",
-          "year": 2026
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Petros Chavula",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Curriculum",
-        "Curriculum development",
-        "Curriculum framework",
-        "Engineering ethics",
-        "Knowledge management",
-        "Medical education",
-        "Political science",
-        "Professional development",
-        "Transformative learning"
-      ],
-      "papers": [
-        {
-          "id": "W7128909101",
-          "title": "Assessing the Role of AI Integration in Competence-Based Curriculum Development and Effective Implementation Strategies in Junior Secondary Schools in Kilifi County",
-          "year": 2026
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Fredrick Kayusi",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Curriculum",
-        "Curriculum development",
-        "Curriculum framework",
-        "Engineering ethics",
-        "Knowledge management",
-        "Medical education",
-        "Political science",
-        "Professional development",
-        "Transformative learning"
-      ],
-      "papers": [
-        {
-          "id": "W7128909101",
-          "title": "Assessing the Role of AI Integration in Competence-Based Curriculum Development and Effective Implementation Strategies in Junior Secondary Schools in Kilifi County",
           "year": 2026
         }
       ],
@@ -6434,307 +5994,7 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Marianna Adamo",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
       "name": "Fabrizio D’Ascenzo",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Łukasz Kołtowski",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Luca Saba",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Guiomar Mendieta",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Felice Gragnano",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Paolo Calabrò",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Lina Badimón",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Borja Ibáñez",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "R. Mehran",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Dominick J Angiolillo",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Thomas F. Lüscher",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
-        "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Davide Capodanno",
       "paper_count": 1,
       "topics": [
         "Artificial intelligence",
@@ -7671,31 +6931,6 @@
           "id": "W4410953613",
           "title": "Revolutionizing Sperm Analysis with AI: A Review of Computer-Aided Sperm Analysis Systems",
           "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Hadeel Alsalihi",
-      "paper_count": 1,
-      "topics": [
-        "Algorithm",
-        "Artificial intelligence",
-        "Artificial neural network",
-        "Computer science",
-        "Data mining",
-        "Interpretability",
-        "Machine learning",
-        "Normalization (sociology)",
-        "Outlier",
-        "Pattern recognition (psychology)"
-      ],
-      "papers": [
-        {
-          "id": "W4399217027",
-          "title": "Use Harris Hawks Optimization (HHO) Algorithm based on Artificial Neural Network for liver disease diagnosis",
-          "year": 2024
         }
       ],
       "affiliations": [],
@@ -11738,11 +10973,6 @@
       ],
       "papers": [
         {
-          "id": "W4417026910",
-          "title": "Guest Acceptance of Smart and AI Technologies in Hospitality: Evidence from Behavioral and Financial Intentions in an Emerging Market (Albania)",
-          "year": 2025
-        },
-        {
           "id": "W7128440946",
           "title": "A Technological Blueprint for Smart and AI-Driven Hospitality in Emerging Tourism Markets: Evidence from Albania",
           "year": 2026
@@ -11751,6 +10981,11 @@
           "id": "W7117989499",
           "title": "Guest Acceptance of Smart and AI-Enabled Hotel Services in an Emerging Market: Evidence from Albania",
           "year": 2026
+        },
+        {
+          "id": "W4417026910",
+          "title": "Guest Acceptance of Smart and AI Technologies in Hospitality: Evidence from Behavioral and Financial Intentions in an Emerging Market (Albania)",
+          "year": 2025
         },
         {
           "id": "W4415268218",
@@ -11769,10 +11004,12 @@
         "Business",
         "Computer science",
         "Corporate governance",
+        "Engineering",
         "Engineering ethics",
         "Generalizability theory",
         "Industry 4.0",
         "Knowledge management",
+        "Law",
         "Perception",
         "Perspective (graphical)",
         "Political science",
@@ -11790,14 +11027,14 @@
           "year": 2025
         },
         {
-          "id": "W4405913001",
-          "title": "CHALLANGES AND OPPORTUNITIES OF AI IMPLEMENTATION IN TOURISM: AN ETHICAL AND TECHNOLOGICAL PERSPECTIVE",
-          "year": 2024
-        },
-        {
           "id": "W4411665163",
           "title": "Shaping the Future Workforce: Students' Perceptions on AI and Human-Centric Technologies in Industry 5.0",
           "year": 2025
+        },
+        {
+          "id": "W4405913001",
+          "title": "CHALLANGES AND OPPORTUNITIES OF AI IMPLEMENTATION IN TOURISM: AN ETHICAL AND TECHNOLOGICAL PERSPECTIVE",
+          "year": 2024
         }
       ],
       "affiliations": [],
@@ -11811,10 +11048,12 @@
         "Business",
         "Computer science",
         "Corporate governance",
+        "Engineering",
         "Engineering ethics",
         "Generalizability theory",
         "Industry 4.0",
         "Knowledge management",
+        "Law",
         "Perception",
         "Perspective (graphical)",
         "Political science",
@@ -11832,13 +11071,122 @@
           "year": 2025
         },
         {
+          "id": "W4411665163",
+          "title": "Shaping the Future Workforce: Students' Perceptions on AI and Human-Centric Technologies in Industry 5.0",
+          "year": 2025
+        },
+        {
           "id": "W4405913001",
           "title": "CHALLANGES AND OPPORTUNITIES OF AI IMPLEMENTATION IN TOURISM: AN ETHICAL AND TECHNOLOGICAL PERSPECTIVE",
           "year": 2024
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Majlinda Godolja",
+      "paper_count": 3,
+      "topics": [
+        "Affect (linguistics)",
+        "Blueprint",
+        "Business",
+        "Emerging markets",
+        "Emerging technologies",
+        "Empirical evidence",
+        "Hospitality",
+        "Hospitality industry",
+        "Knowledge management",
+        "Marketing",
+        "Operationalization",
+        "Service provider",
+        "Sharing economy",
+        "Survey data collection",
+        "Technology acceptance model",
+        "Tourism"
+      ],
+      "papers": [
+        {
+          "id": "W7128440946",
+          "title": "A Technological Blueprint for Smart and AI-Driven Hospitality in Emerging Tourism Markets: Evidence from Albania",
+          "year": 2026
         },
         {
-          "id": "W4411665163",
-          "title": "Shaping the Future Workforce: Students' Perceptions on AI and Human-Centric Technologies in Industry 5.0",
+          "id": "W7117989499",
+          "title": "Guest Acceptance of Smart and AI-Enabled Hotel Services in an Emerging Market: Evidence from Albania",
+          "year": 2026
+        },
+        {
+          "id": "W4417026910",
+          "title": "Guest Acceptance of Smart and AI Technologies in Hospitality: Evidence from Behavioral and Financial Intentions in an Emerging Market (Albania)",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Tea Tavanxhiu",
+      "paper_count": 3,
+      "topics": [
+        "Affect (linguistics)",
+        "Blueprint",
+        "Business",
+        "Emerging markets",
+        "Emerging technologies",
+        "Empirical evidence",
+        "Hospitality",
+        "Hospitality industry",
+        "Knowledge management",
+        "Marketing",
+        "Operationalization",
+        "Service provider",
+        "Sharing economy",
+        "Survey data collection",
+        "Technology acceptance model",
+        "Tourism"
+      ],
+      "papers": [
+        {
+          "id": "W7128440946",
+          "title": "A Technological Blueprint for Smart and AI-Driven Hospitality in Emerging Tourism Markets: Evidence from Albania",
+          "year": 2026
+        },
+        {
+          "id": "W7117989499",
+          "title": "Guest Acceptance of Smart and AI-Enabled Hotel Services in an Emerging Market: Evidence from Albania",
+          "year": 2026
+        },
+        {
+          "id": "W4417026910",
+          "title": "Guest Acceptance of Smart and AI Technologies in Hospitality: Evidence from Behavioral and Financial Intentions in an Emerging Market (Albania)",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Almina Doko",
+      "paper_count": 2,
+      "topics": [
+        "Accounting",
+        "Acoustics",
+        "Audit",
+        "Business",
+        "Degree (music)",
+        "Physics",
+        "Psychology"
+      ],
+      "papers": [
+        {
+          "id": "W4407604885",
+          "title": "The Impact of AI and ML Tools on the Accounting and Auditing Profession: A Survey of Student Expectations",
+          "year": 2025
+        },
+        {
+          "id": "W4409274183",
+          "title": "Empirical Study of the Degree of Knowledge of Standards and References in Financial Information - Case of Albania",
           "year": 2025
         }
       ],
@@ -11859,6 +11207,7 @@
         "Domain (mathematical analysis)",
         "Feature (linguistics)",
         "Feature selection",
+        "Internal medicine",
         "Interpretability",
         "Machine learning",
         "Medicine",
@@ -11868,113 +11217,48 @@
       ],
       "papers": [
         {
-          "id": "W4404903329",
-          "title": "Integrating Metabolomics Domain Knowledge with Explainable Machine Learning in Atherosclerotic Cardiovascular Disease Classification",
-          "year": 2024
-        },
-        {
           "id": "W4414148337",
           "title": "Explainability in Microbiome-Based Models for CRC Prediction via Partial Dependence Plots",
           "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Roland Sahatcija",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Computer science",
-        "Corporate governance",
-        "Engineering ethics",
-        "Generalizability theory",
-        "Political science",
-        "Psychology",
-        "Robotics",
-        "Sociology",
-        "Transparency (behavior)"
-      ],
-      "papers": [
+        },
         {
-          "id": "W4406245123",
-          "title": "Ethical concerns in AI development: analyzing students’ perspectives on robotics and society",
-          "year": 2025
+          "id": "W4404903329",
+          "title": "Integrating Metabolomics Domain Knowledge with Explainable Machine Learning in Atherosclerotic Cardiovascular Disease Classification",
+          "year": 2024
         }
       ],
       "affiliations": [],
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Ariel Ora",
-      "paper_count": 1,
+      "name": "Inva Koçiaj",
+      "paper_count": 2,
       "topics": [
-        "Artificial intelligence",
         "Computer science",
-        "Corporate governance",
-        "Engineering ethics",
-        "Generalizability theory",
-        "Political science",
-        "Psychology",
-        "Robotics",
-        "Sociology",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4406245123",
-          "title": "Ethical concerns in AI development: analyzing students’ perspectives on robotics and society",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Enkelejda Koka",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Computer science",
-        "Corporate governance",
-        "Engineering ethics",
-        "Generalizability theory",
-        "Political science",
-        "Psychology",
-        "Robotics",
-        "Sociology",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4406245123",
-          "title": "Ethical concerns in AI development: analyzing students’ perspectives on robotics and society",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Erinda Ballanca",
-      "paper_count": 1,
-      "topics": [
-        "Convention",
-        "Corporate governance",
+        "Context (archaeology)",
+        "Curriculum",
+        "Digital economy",
         "Digital literacy",
-        "Digital rights",
-        "Digital transformation",
-        "Human rights",
-        "Information ethics",
+        "Directive",
+        "European union",
+        "Law",
         "Political science",
+        "Preparedness",
+        "Programming language",
         "Public relations",
-        "Public service"
+        "Variety (cybernetics)",
+        "Work (physics)",
+        "Workforce"
       ],
       "papers": [
         {
-          "id": "W7117587373",
-          "title": "Between ethics and algorithms: protecting rights in the digital era",
+          "id": "W7118576169",
+          "title": "Awareness and attitudes toward digital work platforms among Albanian students",
+          "year": 2025
+        },
+        {
+          "id": "W4413420839",
+          "title": "Regulation of Platform Work in the EU: A Comparative Analysis of the Draft Directive of 2021 and the Directive (EU) 2024/2831",
           "year": 2025
         }
       ],
@@ -11982,24 +11266,54 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Emiranda Loka",
-      "paper_count": 1,
+      "name": "Romina Muka",
+      "paper_count": 2,
       "topics": [
-        "Artificial intelligence",
-        "Big data",
-        "Computer science",
-        "Creative visualization",
-        "Data science",
-        "Data visualization",
-        "Face (sociological concept)",
-        "Information visualization",
-        "Scalability",
-        "Visualization"
+        "Affect (linguistics)",
+        "Business",
+        "Emerging markets",
+        "Emerging technologies",
+        "Hospitality",
+        "Hospitality industry",
+        "Marketing",
+        "Operationalization",
+        "Survey data collection",
+        "Technology acceptance model",
+        "Tourism"
       ],
       "papers": [
         {
-          "id": "W7131275768",
-          "title": "BIG DATA VISUALIZATION THROUGH AI AND ANALYTICAL TECHNIQUES",
+          "id": "W7117989499",
+          "title": "Guest Acceptance of Smart and AI-Enabled Hotel Services in an Emerging Market: Evidence from Albania",
+          "year": 2026
+        },
+        {
+          "id": "W4417026910",
+          "title": "Guest Acceptance of Smart and AI Technologies in Hospitality: Evidence from Behavioral and Financial Intentions in an Emerging Market (Albania)",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Aida Meto",
+      "paper_count": 1,
+      "topics": [
+        "Augmented reality",
+        "Computed tomography",
+        "Computer science",
+        "Cone beam computed tomography",
+        "Human–computer interaction",
+        "Medical physics",
+        "Medicine",
+        "Radiology",
+        "Virtual reality"
+      ],
+      "papers": [
+        {
+          "id": "W4411029021",
+          "title": "The Integration of Cone Beam Computed Tomography, Artificial Intelligence, Augmented Reality, and Virtual Reality in Dental Diagnostics, Surgical Planning, and Education: A Narrative Review",
           "year": 2025
         }
       ],
@@ -12032,20 +11346,19 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Pjereta Agalliu",
+      "name": "Ana Ktona",
       "paper_count": 1,
       "topics": [
-        "Environmental ethics",
-        "Human rights",
-        "Philosophy",
-        "Political science",
-        "Software deployment"
+        "Business",
+        "Computer science",
+        "Enterprise resource planning",
+        "Process management"
       ],
       "papers": [
         {
-          "id": "W4412933679",
-          "title": "A hermeneutical analysis of human rights protections in the deployment and regulation of AI systems in the Western Balkans",
-          "year": 2025
+          "id": "W4409480397",
+          "title": "AUTOMATING FINANCIAL AND OPERATIONALPROCESSES USING ERP SYSTEMS IN DEVELOPINGCOUNTRIES: TRENDS AND CHALLENGES",
+          "year": 2024
         }
       ],
       "affiliations": [],
@@ -12055,466 +11368,19 @@
       "name": "Anjeza Liçenji",
       "paper_count": 1,
       "topics": [
+        "Computer science",
         "Environmental ethics",
         "Human rights",
+        "Law",
         "Philosophy",
         "Political science",
-        "Software deployment"
+        "Software deployment",
+        "Software engineering"
       ],
       "papers": [
         {
           "id": "W4412933679",
           "title": "A hermeneutical analysis of human rights protections in the deployment and regulation of AI systems in the Western Balkans",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Sara Feizyab",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "G Bonetti",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Maria Chiara Medori",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Cecília Micheletti",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Immacolata De Luca",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "K Donato",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Ján Miertuš",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Mehmet Sait Dündar",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Miroslava Vráblová",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Gary T. Henehan",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Richard E. Brown",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Robert S. Marks",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Stanislav Miertuš",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Lorenzo Lorusso",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Gianluca Martino Tartaglia",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Munis Dündar",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Sandro Michelini",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Stephen Connelly",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
           "year": 2025
         }
       ],
@@ -12547,572 +11413,24 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Tommaso Beccari",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Ornela Gordani",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Xhilda Dhamo",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Eglantina Kalluçi",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Dominika Vešelényiová",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Iveta Dirgová Ľuptáková",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Jiřı́ Pospı́chal",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Matteo Bertelli",
-      "paper_count": 1,
-      "topics": [
-        "Accountability",
-        "Agency (philosophy)",
-        "Artificial intelligence",
-        "Autonomy",
-        "Bioethics",
-        "Economic Justice",
-        "Engineering ethics",
-        "Knowledge management",
-        "Robotics",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4413074216",
-          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Jonida Biçoku",
-      "paper_count": 1,
-      "topics": [
-        "Business",
-        "Engineering ethics",
-        "Industry 4.0",
-        "Knowledge management",
-        "Perception",
-        "Psychology",
-        "Workforce"
-      ],
-      "papers": [
-        {
-          "id": "W4411665163",
-          "title": "Shaping the Future Workforce: Students' Perceptions on AI and Human-Centric Technologies in Industry 5.0",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Aida Meto",
-      "paper_count": 1,
-      "topics": [
-        "Augmented reality",
-        "Computed tomography",
-        "Computer science",
-        "Cone beam computed tomography",
-        "Medical physics",
-        "Medicine",
-        "Virtual reality"
-      ],
-      "papers": [
-        {
-          "id": "W4411029021",
-          "title": "The Integration of Cone Beam Computed Tomography, Artificial Intelligence, Augmented Reality, and Virtual Reality in Dental Diagnostics, Surgical Planning, and Education: A Narrative Review",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Gerta Halilaj",
-      "paper_count": 1,
-      "topics": [
-        "Augmented reality",
-        "Computed tomography",
-        "Computer science",
-        "Cone beam computed tomography",
-        "Medical physics",
-        "Medicine",
-        "Virtual reality"
-      ],
-      "papers": [
-        {
-          "id": "W4411029021",
-          "title": "The Integration of Cone Beam Computed Tomography, Artificial Intelligence, Augmented Reality, and Virtual Reality in Dental Diagnostics, Surgical Planning, and Education: A Narrative Review",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Everton J. Santana",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Atherosclerotic cardiovascular disease",
-        "Bioinformatics",
-        "Computer science",
-        "Disease",
-        "Domain (mathematical analysis)",
-        "Machine learning",
-        "Medicine",
-        "Metabolomics"
-      ],
-      "papers": [
-        {
-          "id": "W4404903329",
-          "title": "Integrating Metabolomics Domain Knowledge with Explainable Machine Learning in Atherosclerotic Cardiovascular Disease Classification",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Evangelos Ntalianis",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Atherosclerotic cardiovascular disease",
-        "Bioinformatics",
-        "Computer science",
-        "Disease",
-        "Domain (mathematical analysis)",
-        "Machine learning",
-        "Medicine",
-        "Metabolomics"
-      ],
-      "papers": [
-        {
-          "id": "W4404903329",
-          "title": "Integrating Metabolomics Domain Knowledge with Explainable Machine Learning in Atherosclerotic Cardiovascular Disease Classification",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Nicholas Cauwenberghs",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Atherosclerotic cardiovascular disease",
-        "Bioinformatics",
-        "Computer science",
-        "Disease",
-        "Domain (mathematical analysis)",
-        "Machine learning",
-        "Medicine",
-        "Metabolomics"
-      ],
-      "papers": [
-        {
-          "id": "W4404903329",
-          "title": "Integrating Metabolomics Domain Knowledge with Explainable Machine Learning in Atherosclerotic Cardiovascular Disease Classification",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Tatiana Kuznetsova",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Atherosclerotic cardiovascular disease",
-        "Bioinformatics",
-        "Computer science",
-        "Disease",
-        "Domain (mathematical analysis)",
-        "Machine learning",
-        "Medicine",
-        "Metabolomics"
-      ],
-      "papers": [
-        {
-          "id": "W4404903329",
-          "title": "Integrating Metabolomics Domain Knowledge with Explainable Machine Learning in Atherosclerotic Cardiovascular Disease Classification",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Kejsi Rizo",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Business",
-        "Computer science",
-        "Emerging technologies",
-        "Natural (archaeology)",
-        "Set (abstract data type)"
-      ],
-      "papers": [
-        {
-          "id": "W4200523417",
-          "title": "Implications of daily applied artificial intelligence and the future of our rights",
-          "year": 2021
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Marjeta Shaholli",
-      "paper_count": 1,
-      "topics": [
-        "Applications of artificial intelligence",
-        "Balance (ability)",
-        "Business",
-        "Engineering ethics",
-        "Key (lock)",
-        "Law",
-        "Legal ethics",
-        "Political science",
-        "Transparency (behavior)",
-        "Work (physics)"
-      ],
-      "papers": [
-        {
-          "id": "W7123352955",
-          "title": "Artificial intelligence in the legal system: Regulation and ethics",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Miguel Ángel Ajuriaguerra Escudero",
-      "paper_count": 1,
-      "topics": [
-        "Big data",
-        "Business",
-        "Corporate governance",
-        "Humanity",
-        "Political science",
-        "Politics",
-        "Urban planning"
-      ],
-      "papers": [
-        {
-          "id": "W4213168039",
-          "title": "Artificial Intelligence in European Urban Governance",
-          "year": 2022
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Majlinda Abdiu",
-      "paper_count": 1,
-      "topics": [
-        "Big data",
-        "Business",
-        "Corporate governance",
-        "Humanity",
-        "Political science",
-        "Politics",
-        "Urban planning"
-      ],
-      "papers": [
-        {
-          "id": "W4213168039",
-          "title": "Artificial Intelligence in European Urban Governance",
-          "year": 2022
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Laura Çami",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Choice of law",
-        "International law",
-        "Interpretation (philosophy)",
-        "Law",
-        "Law and economics",
-        "Legislation",
-        "Political science"
-      ],
-      "papers": [
-        {
-          "id": "W4377080381",
-          "title": "The Impact of AI on Determining the Applicable Law in Cross-Border Disputes Under the Rome II Regulation",
-          "year": 2023
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
       "name": "Av. Xhon Skënderi",
       "paper_count": 1,
       "topics": [
         "Artificial intelligence",
         "Choice of law",
+        "Conflict of laws",
         "International law",
         "Interpretation (philosophy)",
         "Law",
         "Law and economics",
         "Legislation",
-        "Political science"
+        "Political science",
+        "Sociology"
       ],
       "papers": [
         {
           "id": "W4377080381",
           "title": "The Impact of AI on Determining the Applicable Law in Cross-Border Disputes Under the Rome II Regulation",
-          "year": 2023
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Blerim Rexha",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Computer science",
-        "Data mining",
-        "Fingerprint (computing)",
-        "Gradient boosting",
-        "Machine learning",
-        "Metadata",
-        "Network packet",
-        "Random forest",
-        "The Internet"
-      ],
-      "papers": [
-        {
-          "id": "W4386607180",
-          "title": "Unveiling the Digital Fingerprints: Analysis of Internet attacks based on website fingerprints",
-          "year": 2023
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Arbena Musa",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Computer science",
-        "Data mining",
-        "Fingerprint (computing)",
-        "Gradient boosting",
-        "Machine learning",
-        "Metadata",
-        "Network packet",
-        "Random forest",
-        "The Internet"
-      ],
-      "papers": [
-        {
-          "id": "W4386607180",
-          "title": "Unveiling the Digital Fingerprints: Analysis of Internet attacks based on website fingerprints",
-          "year": 2023
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Kamer Vishi",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Computer science",
-        "Data mining",
-        "Fingerprint (computing)",
-        "Gradient boosting",
-        "Machine learning",
-        "Metadata",
-        "Network packet",
-        "Random forest",
-        "The Internet"
-      ],
-      "papers": [
-        {
-          "id": "W4386607180",
-          "title": "Unveiling the Digital Fingerprints: Analysis of Internet attacks based on website fingerprints",
           "year": 2023
         }
       ],
@@ -13145,25 +11463,25 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Iris Shkelzen Berisha",
+      "name": "Eglantina Kalluçi",
       "paper_count": 1,
       "topics": [
-        "Business",
-        "Data Protection Act 1998",
-        "General Data Protection Regulation",
-        "Information privacy",
-        "Information privacy law",
-        "Internet privacy",
-        "Legislation",
-        "Privacy by Design",
-        "Privacy law",
-        "Safeguarding"
+        "Accountability",
+        "Agency (philosophy)",
+        "Artificial intelligence",
+        "Autonomy",
+        "Bioethics",
+        "Economic Justice",
+        "Engineering ethics",
+        "Knowledge management",
+        "Robotics",
+        "Sociology"
       ],
       "papers": [
         {
-          "id": "W7124704132",
-          "title": "Personal data protection and privacy",
-          "year": 2026
+          "id": "W4413074216",
+          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
+          "year": 2025
         }
       ],
       "affiliations": [],
@@ -13195,49 +11513,115 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Aigars Andersons",
+      "name": "Elira Hoxha",
+      "paper_count": 1,
+      "topics": [
+        "Artificial intelligence",
+        "Computer science",
+        "Data science",
+        "Exploratory analysis",
+        "Exploratory factor analysis",
+        "Factor (programming language)",
+        "Geography",
+        "Latent Dirichlet allocation",
+        "Structural equation modeling",
+        "Topic model"
+      ],
+      "papers": [
+        {
+          "id": "W4410481635",
+          "title": "Analyzing the Ecosystem Contexts in the AI Literature Using Latent Dirichlet Allocation and Exploratory Factor Analysis",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Emiranda Loka",
+      "paper_count": 1,
+      "topics": [
+        "Artificial intelligence",
+        "Big data",
+        "Computer science",
+        "Creative visualization",
+        "Data science",
+        "Data visualization",
+        "Face (sociological concept)",
+        "Information visualization",
+        "Scalability",
+        "Visualization"
+      ],
+      "papers": [
+        {
+          "id": "W7131275768",
+          "title": "BIG DATA VISUALIZATION THROUGH AI AND ANALYTICAL TECHNIQUES",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Eneida Sema",
+      "paper_count": 1,
+      "topics": [
+        "Computer science",
+        "Directive",
+        "Law",
+        "Political science",
+        "Programming language"
+      ],
+      "papers": [
+        {
+          "id": "W4413420839",
+          "title": "Regulation of Platform Work in the EU: A Comparative Analysis of the Draft Directive of 2021 and the Directive (EU) 2024/2831",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Enkelejda Koka",
+      "paper_count": 1,
+      "topics": [
+        "Artificial intelligence",
+        "Computer science",
+        "Corporate governance",
+        "Engineering ethics",
+        "Generalizability theory",
+        "Political science",
+        "Psychology",
+        "Robotics",
+        "Sociology",
+        "Transparency (behavior)"
+      ],
+      "papers": [
+        {
+          "id": "W4406245123",
+          "title": "Ethical concerns in AI development: analyzing students’ perspectives on robotics and society",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Erika Grabocka",
       "paper_count": 1,
       "topics": [
         "Business",
-        "Data Protection Act 1998",
-        "General Data Protection Regulation",
-        "Information privacy",
-        "Information privacy law",
-        "Internet privacy",
-        "Legislation",
-        "Privacy by Design",
-        "Privacy law",
-        "Safeguarding"
-      ],
-      "papers": [
-        {
-          "id": "W7124704132",
-          "title": "Personal data protection and privacy",
-          "year": 2026
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Annamaria Porreca",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Classifier (UML)",
         "Computer science",
-        "Data mining",
-        "Feature (linguistics)",
-        "Feature selection",
-        "Interpretability",
-        "Machine learning",
-        "Pattern recognition (psychology)",
-        "Random forest"
+        "Industrial organization",
+        "Information and Communications Technology",
+        "Knowledge management",
+        "World Wide Web"
       ],
       "papers": [
         {
-          "id": "W4414148337",
-          "title": "Explainability in Microbiome-Based Models for CRC Prediction via Partial Dependence Plots",
+          "id": "W4406560865",
+          "title": "AI-driven innovation within the ICT sector",
           "year": 2025
         }
       ],
@@ -13245,24 +11629,24 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Fabrizio Maturo",
+      "name": "Erinda Ballanca",
       "paper_count": 1,
       "topics": [
-        "Artificial intelligence",
-        "Classifier (UML)",
-        "Computer science",
-        "Data mining",
-        "Feature (linguistics)",
-        "Feature selection",
-        "Interpretability",
-        "Machine learning",
-        "Pattern recognition (psychology)",
-        "Random forest"
+        "Convention",
+        "Corporate governance",
+        "Digital literacy",
+        "Digital rights",
+        "Digital transformation",
+        "Human rights",
+        "Information ethics",
+        "Political science",
+        "Public relations",
+        "Public service"
       ],
       "papers": [
         {
-          "id": "W4414148337",
-          "title": "Explainability in Microbiome-Based Models for CRC Prediction via Partial Dependence Plots",
+          "id": "W7117587373",
+          "title": "Between ethics and algorithms: protecting rights in the digital era",
           "year": 2025
         }
       ],
@@ -13270,24 +11654,39 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Laura Judith Marcos-Zambrano",
+      "name": "Ernest Shahini",
       "paper_count": 1,
       "topics": [
-        "Artificial intelligence",
-        "Classifier (UML)",
+        "Business",
         "Computer science",
-        "Data mining",
-        "Feature (linguistics)",
-        "Feature selection",
-        "Interpretability",
-        "Machine learning",
-        "Pattern recognition (psychology)",
-        "Random forest"
+        "Enterprise resource planning",
+        "Process management"
       ],
       "papers": [
         {
-          "id": "W4414148337",
-          "title": "Explainability in Microbiome-Based Models for CRC Prediction via Partial Dependence Plots",
+          "id": "W4409480397",
+          "title": "AUTOMATING FINANCIAL AND OPERATIONALPROCESSES USING ERP SYSTEMS IN DEVELOPINGCOUNTRIES: TRENDS AND CHALLENGES",
+          "year": 2024
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Ervisa NDOKA",
+      "paper_count": 1,
+      "topics": [
+        "Business",
+        "Computer science",
+        "Industrial organization",
+        "Information and Communications Technology",
+        "Knowledge management",
+        "World Wide Web"
+      ],
+      "papers": [
+        {
+          "id": "W4406560865",
+          "title": "AI-driven innovation within the ICT sector",
           "year": 2025
         }
       ],
@@ -13295,49 +11694,23 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Melisa Meto",
+      "name": "Gerta Halilaj",
       "paper_count": 1,
       "topics": [
-        "Artificial intelligence",
-        "Classifier (UML)",
+        "Augmented reality",
+        "Computed tomography",
         "Computer science",
-        "Data mining",
-        "Feature (linguistics)",
-        "Feature selection",
-        "Interpretability",
-        "Machine learning",
-        "Pattern recognition (psychology)",
-        "Random forest"
+        "Cone beam computed tomography",
+        "Human–computer interaction",
+        "Medical physics",
+        "Medicine",
+        "Radiology",
+        "Virtual reality"
       ],
       "papers": [
         {
-          "id": "W4414148337",
-          "title": "Explainability in Microbiome-Based Models for CRC Prediction via Partial Dependence Plots",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Marta B. Lopes",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Classifier (UML)",
-        "Computer science",
-        "Data mining",
-        "Feature (linguistics)",
-        "Feature selection",
-        "Interpretability",
-        "Machine learning",
-        "Pattern recognition (psychology)",
-        "Random forest"
-      ],
-      "papers": [
-        {
-          "id": "W4414148337",
-          "title": "Explainability in Microbiome-Based Models for CRC Prediction via Partial Dependence Plots",
+          "id": "W4411029021",
+          "title": "The Integration of Cone Beam Computed Tomography, Artificial Intelligence, Augmented Reality, and Virtual Reality in Dental Diagnostics, Surgical Planning, and Education: A Narrative Review",
           "year": 2025
         }
       ],
@@ -13370,24 +11743,267 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Ilta Bylykbashi",
+      "name": "Iris Shkelzen Berisha",
+      "paper_count": 1,
+      "topics": [
+        "Business",
+        "Data Protection Act 1998",
+        "General Data Protection Regulation",
+        "Information privacy",
+        "Information privacy law",
+        "Internet privacy",
+        "Legislation",
+        "Privacy by Design",
+        "Privacy law",
+        "Safeguarding"
+      ],
+      "papers": [
+        {
+          "id": "W7124704132",
+          "title": "Personal data protection and privacy",
+          "year": 2026
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Kreshnik Vukatana",
       "paper_count": 1,
       "topics": [
         "Artificial intelligence",
         "Computer science",
-        "Data collection",
-        "Data mining",
         "Data science",
-        "Image (mathematics)",
-        "Pipeline (software)",
-        "Process (computing)",
-        "Relevance (law)",
-        "Resource (disambiguation)"
+        "Exploratory analysis",
+        "Exploratory factor analysis",
+        "Factor (programming language)",
+        "Geography",
+        "Latent Dirichlet allocation",
+        "Structural equation modeling",
+        "Topic model"
       ],
       "papers": [
         {
-          "id": "W4415268218",
-          "title": "From Ultrasound Image Collection to De-identification and Re-identification: A Practical Pipeline",
+          "id": "W4410481635",
+          "title": "Analyzing the Ecosystem Contexts in the AI Literature Using Latent Dirichlet Allocation and Exploratory Factor Analysis",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Laura Çami",
+      "paper_count": 1,
+      "topics": [
+        "Artificial intelligence",
+        "Choice of law",
+        "Conflict of laws",
+        "International law",
+        "Interpretation (philosophy)",
+        "Law",
+        "Law and economics",
+        "Legislation",
+        "Political science",
+        "Sociology"
+      ],
+      "papers": [
+        {
+          "id": "W4377080381",
+          "title": "The Impact of AI on Determining the Applicable Law in Cross-Border Disputes Under the Rome II Regulation",
+          "year": 2023
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Majlinda Abdiu",
+      "paper_count": 1,
+      "topics": [
+        "Big data",
+        "Business",
+        "Computer science",
+        "Corporate governance",
+        "Engineering",
+        "Humanity",
+        "Law",
+        "Political science",
+        "Politics",
+        "Urban planning"
+      ],
+      "papers": [
+        {
+          "id": "W4213168039",
+          "title": "Artificial Intelligence in European Urban Governance",
+          "year": 2022
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Matilda Naço",
+      "paper_count": 1,
+      "topics": [
+        "Blueprint",
+        "Business",
+        "Empirical evidence",
+        "Hospitality",
+        "Hospitality industry",
+        "Knowledge management",
+        "Marketing",
+        "Service provider",
+        "Sharing economy",
+        "Tourism"
+      ],
+      "papers": [
+        {
+          "id": "W7128440946",
+          "title": "A Technological Blueprint for Smart and AI-Driven Hospitality in Emerging Tourism Markets: Evidence from Albania",
+          "year": 2026
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Nertila Çika",
+      "paper_count": 1,
+      "topics": [
+        "Action plan",
+        "Conceptual framework",
+        "Curriculum",
+        "Digital literacy",
+        "Digital transformation",
+        "Higher education",
+        "Knowledge management",
+        "Political science",
+        "Process (computing)",
+        "Sociology"
+      ],
+      "papers": [
+        {
+          "id": "W4416102023",
+          "title": "Digital transformation and AI integration in accounting education: Evidence from Albania",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Ornela Gordani",
+      "paper_count": 1,
+      "topics": [
+        "Accountability",
+        "Agency (philosophy)",
+        "Artificial intelligence",
+        "Autonomy",
+        "Bioethics",
+        "Economic Justice",
+        "Engineering ethics",
+        "Knowledge management",
+        "Robotics",
+        "Sociology"
+      ],
+      "papers": [
+        {
+          "id": "W4413074216",
+          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Pjereta Agalliu",
+      "paper_count": 1,
+      "topics": [
+        "Computer science",
+        "Environmental ethics",
+        "Human rights",
+        "Law",
+        "Philosophy",
+        "Political science",
+        "Software deployment",
+        "Software engineering"
+      ],
+      "papers": [
+        {
+          "id": "W4412933679",
+          "title": "A hermeneutical analysis of human rights protections in the deployment and regulation of AI systems in the Western Balkans",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Rezarta Shkurti",
+      "paper_count": 1,
+      "topics": [
+        "Accounting",
+        "Acoustics",
+        "Business",
+        "Degree (music)",
+        "Physics"
+      ],
+      "papers": [
+        {
+          "id": "W4409274183",
+          "title": "Empirical Study of the Degree of Knowledge of Standards and References in Financial Information - Case of Albania",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Xhenis Sina",
+      "paper_count": 1,
+      "topics": [
+        "Context (archaeology)",
+        "Curriculum",
+        "Digital economy",
+        "Digital literacy",
+        "European union",
+        "Preparedness",
+        "Public relations",
+        "Variety (cybernetics)",
+        "Work (physics)",
+        "Workforce"
+      ],
+      "papers": [
+        {
+          "id": "W7118576169",
+          "title": "Awareness and attitudes toward digital work platforms among Albanian students",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Xhilda Dhamo",
+      "paper_count": 1,
+      "topics": [
+        "Accountability",
+        "Agency (philosophy)",
+        "Artificial intelligence",
+        "Autonomy",
+        "Bioethics",
+        "Economic Justice",
+        "Engineering ethics",
+        "Knowledge management",
+        "Robotics",
+        "Sociology"
+      ],
+      "papers": [
+        {
+          "id": "W4413074216",
+          "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
           "year": 2025
         }
       ],
