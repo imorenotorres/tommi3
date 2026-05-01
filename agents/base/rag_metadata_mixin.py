@@ -1433,7 +1433,7 @@ class MetadataRAGMixin:
             "researchers on", "researchers in", "research on", "research about",
             "projects on", "projects about", "projects related to",
             "grants on", "grants about", "funding on", "funding for",
-            "working on", "interested in", "interest in", "interest on",
+            "working on", "works on", "work on", "interested in", "interest in", "interest on",
             "figure of", "figure about", "figure with",
             "list of papers", "list of researchers", "list of publications",
             "list of projects", "list of grants",
