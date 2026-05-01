@@ -1505,7 +1505,7 @@ class MetadataRAGMixin:
         # PDF not available — show informative text + DOI link if available
         suffix = f" (ID: {paper_id}) — PDF not in database."
         if doi:
-            suffix += f" [Link to Internet paper]({doi})"
+            suffix += f' <a href="{doi}" target="_blank">Link to Internet paper</a>'
         return suffix
 
     # ------------------------------------------------------------------

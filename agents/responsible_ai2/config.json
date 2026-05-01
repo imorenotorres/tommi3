@@ -1,6 +1,6 @@
 {
   "agent_id": "responsible_ai2",
-  "agent_name": "EH: Responsible AI (proj&pub)",
+  "agent_name": "EH: Responsible AI (V01)",
   "description": "Research assistant for THUAS Responsible AI Excellence Hub",
   "welcome_message": "Hello! I am a research assistant specialized in UNINOVIS Responsible AI research. How can I help you?",
   "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
