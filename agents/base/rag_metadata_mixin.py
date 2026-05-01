@@ -698,6 +698,105 @@ class MetadataRAGMixin:
         lines.append("IMPORTANT: This is supplementary data for reference. Do NOT present this list as a separate section in your answer. When the user asks about relevant topics, integrate this information naturally with the content retrieved from the documents. Do not duplicate information -- if the retrieved documents already discuss topics, prefer that content over this list.")
         return "\n".join(lines)
 
+    def _load_glossary(self) -> dict:
+        """Load and parse the responsible AI glossary into a dict keyed by concept name.
+
+        Returns a dict like:
+            {"Explainable Artificial Intelligence (XAI)": {"definition": "...", "related_concepts": [...], "references": "..."}, ...}
+
+        The glossary is cached after first load.
+        """
+        if hasattr(self, '_glossary_cache'):
+            return self._glossary_cache
+
+        glossary_path = os.path.join(self._agent_dir, "data", "docs", "responsible_ai_glossary.md")
+        if not os.path.exists(glossary_path):
+            self._glossary_cache = {}
+            return self._glossary_cache
+
+        with open(glossary_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        glossary = {}
+        # Split by ## headings
+        sections = re.split(r'^## ', content, flags=re.MULTILINE)
+        for section in sections[1:]:  # skip preamble before first ##
+            lines = section.strip().split('\n')
+            concept_name = lines[0].strip()
+            body = '\n'.join(lines[1:]).strip()
+
+            # Extract related_concepts if present
+            related = []
+            related_match = re.search(r'\*\*Related concepts:\*\*\s*(.+?)(?:\n\n|\n\*\*|\Z)', body, re.DOTALL)
+            if related_match:
+                related_text = related_match.group(1).strip()
+                related = [r.strip().strip('.,') for r in re.split(r'[,;]', related_text) if r.strip()]
+
+            glossary[concept_name] = {
+                "definition": body,
+                "related_concepts": related,
+            }
+
+        self._glossary_cache = glossary
+        return self._glossary_cache
+
+    def _build_glossary_context(self, user_message: str) -> str:
+        """Build glossary context for conceptual questions.
+
+        Extracts concept names mentioned in the user message and returns
+        their glossary definitions plus related concepts.
+        """
+        glossary = self._load_glossary()
+        if not glossary:
+            return ""
+
+        msg_lower = user_message.lower()
+        matched = []
+
+        # Build lookup: lowercase aliases -> concept key
+        aliases = {}
+        for concept_name in glossary:
+            aliases[concept_name.lower()] = concept_name
+            # Also match abbreviations in parentheses, e.g. "XAI" from "Explainable Artificial Intelligence (XAI)"
+            abbrev_match = re.search(r'\(([A-Z]{2,})\)', concept_name)
+            if abbrev_match:
+                aliases[abbrev_match.group(1).lower()] = concept_name
+            # Also match the name without parenthetical
+            clean = re.sub(r'\s*\([^)]*\)\s*', '', concept_name).strip()
+            if clean:
+                aliases[clean.lower()] = concept_name
+
+        # Find concepts mentioned in the question
+        for alias, concept_name in aliases.items():
+            if alias in msg_lower and concept_name not in matched:
+                matched.append(concept_name)
+
+        # Also include related concepts of matched entries
+        related_to_add = []
+        for concept_name in matched:
+            entry = glossary[concept_name]
+            for related in entry.get("related_concepts", []):
+                # Find the glossary entry for this related concept
+                for alias, full_name in aliases.items():
+                    if related.lower() == alias or related.lower() in alias:
+                        if full_name not in matched and full_name not in related_to_add:
+                            related_to_add.append(full_name)
+                        break
+
+        all_concepts = matched + related_to_add
+
+        if not all_concepts:
+            return ""
+
+        lines = ["GLOSSARY CONTEXT — Definitions from the Responsible AI Glossary:"]
+        lines.append("Use this information to answer the user's conceptual question. "
+                      "Do NOT search for papers unless the user explicitly asks for papers.")
+        for concept_name in all_concepts:
+            entry = glossary[concept_name]
+            lines.append(f"\n### {concept_name}")
+            lines.append(entry["definition"])
+        return "\n".join(lines)
+
     def _build_topic_context(self, user_message: str) -> str:
         """Extract topic from user message and return structured paper data
         from search_papers_by_topic so that text responses and figures use the same source.
@@ -2598,6 +2697,50 @@ class MetadataRAGMixin:
     # ------------------------------------------------------------------
 
     @staticmethod
+    def _is_conceptual_question(user_message: str) -> bool:
+        """Detect questions about concept definitions or relationships between concepts.
+
+        Examples that match:
+        - "is explainable AI related with ethics"
+        - "what is fairness in AI?"
+        - "define transparency"
+        - "difference between interpretability and explainability"
+        - "how does XAI relate to accountability?"
+        - "what does bias mean in AI?"
+
+        These questions should be answered using the glossary, not by
+        searching for papers.
+        """
+        msg_lower = user_message.lower().strip().rstrip("?!.")
+        conceptual_patterns = [
+            # "is X related to/with Y"
+            r'\bis\b.+\brelated\s+(?:to|with)\b',
+            # "what is X" / "what are X"
+            r'^what\s+(?:is|are)\b',
+            # "define X" / "definition of X"
+            r'\bdefin(?:e|ition\s+of)\b',
+            # "difference between X and Y"
+            r'\bdifference\s+between\b',
+            # "how does X relate to Y" / "how is X related to Y"
+            r'\bhow\s+(?:does|do|is|are)\b.+\brelate[ds]?\s+(?:to|with)\b',
+            # "what does X mean"
+            r'\bwhat\s+does\b.+\bmean\b',
+            # "explain the concept of X"
+            r'\bexplain\s+(?:the\s+)?concept\b',
+            # "what is the relationship between X and Y"
+            r'\brelationship\s+between\b',
+            # "are X and Y related"
+            r'\bare\b.+\band\b.+\brelated\b',
+            # "does X have to do with Y"
+            r'\bdoes\b.+\bhave\s+to\s+do\s+with\b',
+            # "is X part of Y" / "is X a subset of Y"
+            r'\bis\b.+\b(?:part|subset|component|aspect|pillar|dimension)\s+of\b',
+            # "what is the connection between"
+            r'\bconnection\s+between\b',
+        ]
+        return any(re.search(p, msg_lower) for p in conceptual_patterns)
+
+    @staticmethod
     def _is_figure_request(user_message: str) -> bool:
         """Detect if the user is asking for a figure or map.
         These requests don't need RAG context -- the system prompt has all
@@ -3172,16 +3315,20 @@ class MetadataRAGMixin:
                     num_results=web_cfg.get("num_results", 5),
                 )
 
+        # Conceptual questions (definitions, concept relationships) use glossary, not paper search
+        is_conceptual = (not is_web_expand) and self._is_conceptual_question(user_message)
+        glossary_ctx = self._build_glossary_context(user_message) if is_conceptual else ""
+
         # Check for project-specific queries first (before paper queries)
-        project_ctx = "" if is_web_expand else self._build_project_context(user_message)
+        project_ctx = "" if (is_web_expand or is_conceptual) else self._build_project_context(user_message)
         # Check for affiliation-based researcher queries
-        affiliation_ctx = "" if (project_ctx or is_web_expand) else self._build_affiliation_context(user_message)
+        affiliation_ctx = "" if (project_ctx or is_web_expand or is_conceptual) else self._build_affiliation_context(user_message)
         # University paper listing (no topic) -- uses authoritative *_papers.json
-        uni_papers_ctx = "" if (affiliation_ctx or project_ctx or is_web_expand) else self._build_university_papers_context(user_message)
+        uni_papers_ctx = "" if (affiliation_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_university_papers_context(user_message)
         # Add topic-specific structured data (same source as figures)
-        topic_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand) else self._build_topic_context(user_message)
+        topic_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_topic_context(user_message)
         # Look up specific researchers mentioned in the query
-        researcher_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand) else self._build_researcher_context(user_message)
+        researcher_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_researcher_context(user_message)
 
         # Figure/map requests: the LLM generates the map link from system prompt
         # instructions alone -- no data context needed, maps use structured data
@@ -3200,6 +3347,9 @@ class MetadataRAGMixin:
             uni_filter = self._detect_university_filter(original_query)
             context = self._retrieve_context(original_query, metadata_filter=uni_filter)
             source_type = "Web+RAG"
+        elif is_conceptual:
+            context = ""
+            source_type = "Glossary"
         elif is_followup:
             context = ""
             source_type = "RAG"
@@ -3215,6 +3365,8 @@ class MetadataRAGMixin:
         metadata_ctx = self._build_metadata_context()
         if metadata_ctx:
             system_with_context += f"\n\n{metadata_ctx}"
+        if glossary_ctx:
+            system_with_context += f"\n\n{glossary_ctx}"
         if project_ctx:
             system_with_context += f"\n\n{project_ctx}"
         if affiliation_ctx:
@@ -3234,7 +3386,7 @@ class MetadataRAGMixin:
             )
 
         has_structured_data = bool(
-            affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx
+            affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx or glossary_ctx
         )
 
         # For web expand, rephrase the user message to re-ask the original query
@@ -3289,6 +3441,11 @@ class MetadataRAGMixin:
                         "about what is absent from the database. Topics may exist under "
                         "different names or may not have been indexed. "
                         "Verify before using this to inform research decisions."
+                    )
+                elif is_conceptual and glossary_ctx:
+                    pre_banner = self._banner_database(
+                        "This response is based on the Responsible AI Glossary — "
+                        "curated definitions and concept relationships."
                     )
                 elif researcher_ctx or (project_ctx and self._query_mentions_researcher(user_message)):
                     if researcher_ctx and "ATTRIBUTION NOT VERIFIED" in researcher_ctx:
@@ -3346,7 +3503,7 @@ class MetadataRAGMixin:
 
         # Compute grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
-            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx
+            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx, glossary_ctx
         ]))
 
         highlight_cfg = self._config.get("inline_claim_highlights")
@@ -3418,10 +3575,13 @@ class MetadataRAGMixin:
             query_type = "figure"
         elif is_gap_analysis:
             query_type = "gap_analysis"
+        elif is_conceptual:
+            query_type = "conceptual"
         else:
             query_type = "normal"
 
         ctx_sources = []
+        if glossary_ctx:    ctx_sources.append("glossary")
         if affiliation_ctx: ctx_sources.append("affiliation")
         if uni_papers_ctx:  ctx_sources.append("university_papers")
         if topic_ctx:       ctx_sources.append("topic")
@@ -3488,16 +3648,20 @@ class MetadataRAGMixin:
                     num_results=web_cfg.get("num_results", 5),
                 )
 
+        # Conceptual questions (definitions, concept relationships) use glossary, not paper search
+        is_conceptual = (not is_web_expand) and self._is_conceptual_question(user_message)
+        glossary_ctx = self._build_glossary_context(user_message) if is_conceptual else ""
+
         # Check for project-specific queries first (before paper queries)
-        project_ctx = "" if is_web_expand else self._build_project_context(user_message)
+        project_ctx = "" if (is_web_expand or is_conceptual) else self._build_project_context(user_message)
         # Check for affiliation-based researcher queries
-        affiliation_ctx = "" if (project_ctx or is_web_expand) else self._build_affiliation_context(user_message)
+        affiliation_ctx = "" if (project_ctx or is_web_expand or is_conceptual) else self._build_affiliation_context(user_message)
         # University paper listing (no topic) -- uses authoritative *_papers.json
-        uni_papers_ctx = "" if (affiliation_ctx or project_ctx or is_web_expand) else self._build_university_papers_context(user_message)
+        uni_papers_ctx = "" if (affiliation_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_university_papers_context(user_message)
         # Add topic-specific structured data (same source as figures)
-        topic_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand) else self._build_topic_context(user_message)
+        topic_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_topic_context(user_message)
         # Look up specific researchers mentioned in the query
-        researcher_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand) else self._build_researcher_context(user_message)
+        researcher_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_researcher_context(user_message)
 
         # Figure/map requests: the LLM generates the map link from system prompt
         # instructions alone -- no data context needed, maps use structured data
@@ -3515,6 +3679,9 @@ class MetadataRAGMixin:
             uni_filter = self._detect_university_filter(original_query)
             context = self._retrieve_context(original_query, metadata_filter=uni_filter)
             source_type = "Web+RAG"
+        elif is_conceptual:
+            context = ""
+            source_type = "Glossary"
         elif is_followup:
             context = ""
             source_type = "RAG"
@@ -3530,6 +3697,8 @@ class MetadataRAGMixin:
         metadata_ctx = self._build_metadata_context()
         if metadata_ctx:
             system_with_context += f"\n\n{metadata_ctx}"
+        if glossary_ctx:
+            system_with_context += f"\n\n{glossary_ctx}"
         if project_ctx:
             system_with_context += f"\n\n{project_ctx}"
         if affiliation_ctx:
@@ -3549,7 +3718,7 @@ class MetadataRAGMixin:
             )
 
         has_structured_data = bool(
-            affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx
+            affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx or glossary_ctx
         )
 
         # For web expand, rephrase the user message to re-ask the original query
@@ -3616,6 +3785,11 @@ class MetadataRAGMixin:
                         "about what is absent from the database. Topics may exist under "
                         "different names or may not have been indexed. "
                         "Verify before using this to inform research decisions."
+                    )
+                elif is_conceptual and glossary_ctx:
+                    pre_banner = self._banner_database(
+                        "This response is based on the Responsible AI Glossary — "
+                        "curated definitions and concept relationships."
                     )
                 elif researcher_ctx or (project_ctx and self._query_mentions_researcher(user_message)):
                     if researcher_ctx and "ATTRIBUTION NOT VERIFIED" in researcher_ctx:
@@ -3687,7 +3861,7 @@ class MetadataRAGMixin:
 
         # Deferred grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
-            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx
+            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx, glossary_ctx
         ]))
 
         highlight_cfg = self._config.get("inline_claim_highlights")
@@ -3778,10 +3952,13 @@ class MetadataRAGMixin:
             query_type = "figure"
         elif is_gap_analysis:
             query_type = "gap_analysis"
+        elif is_conceptual:
+            query_type = "conceptual"
         else:
             query_type = "normal"
 
         ctx_sources = []
+        if glossary_ctx:    ctx_sources.append("glossary")
         if affiliation_ctx: ctx_sources.append("affiliation")
         if uni_papers_ctx:  ctx_sources.append("university_papers")
         if topic_ctx:       ctx_sources.append("topic")
