@@ -128,7 +128,8 @@ class BaseRAGAgent:
         try:
             import httpx
             base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-            resp = httpx.post(f"{base_url}/api/show", json={"name": self.model}, timeout=5.0)
+            verify = not base_url.startswith("https")
+            resp = httpx.post(f"{base_url}/api/show", json={"name": self.model}, timeout=5.0, verify=verify)
             if resp.status_code == 200:
                 details = resp.json().get("details", {})
                 parts = [self.model]

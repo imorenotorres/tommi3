@@ -103,9 +103,15 @@ class LLMClient:
     def _init_ollama(self):
         """Initialize Ollama client."""
         import ollama
+        import httpx
 
         base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-        self._client = ollama.Client(host=base_url)
+        # Use verify=False for self-signed certificates when connecting over HTTPS
+        if base_url.startswith("https"):
+            http_client = httpx.Client(verify=False)
+            self._client = ollama.Client(host=base_url, http_client=http_client)
+        else:
+            self._client = ollama.Client(host=base_url)
         self._default_model = os.getenv("OLLAMA_MODEL", "mistral")
 
     def _init_vllm(self):
