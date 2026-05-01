@@ -858,7 +858,7 @@ class MetadataRAGMixin:
                             author_strong_match[a] = True
                 authors_str = ", ".join(p["authors"])
                 year_str = f" ({p['year']})" if p.get("year") else ""
-                pdf = self._pdf_link(p.get("id", ""))
+                pdf = self._pdf_link(p.get("id", ""), p.get("doi", ""))
                 paper_details.append(f"  - \"{p['title']}\"{year_str} by {authors_str}{pdf}")
             # Keep only researchers with ≥2 papers OR at least one strong match
             paper_authors = {
@@ -939,7 +939,7 @@ class MetadataRAGMixin:
                 if len(p["authors"]) > 4:
                     authors_str += " et al."
                 year_str = f" ({p['year']})" if p.get("year") else ""
-                pdf = self._pdf_link(p.get("id", ""))
+                pdf = self._pdf_link(p.get("id", ""), p.get("doi", ""))
                 paper_lines.append(f"- \"{p['title']}\"{year_str} — {authors_str}{pdf}")
 
             paper_authors = {
@@ -1194,7 +1194,7 @@ class MetadataRAGMixin:
                 authors_str = ", ".join(p["authors"])
                 year_str = f" ({p['year']})" if p.get("year") else ""
                 cited = f" -- Cited: {p['cited_by_count']}" if p.get("cited_by_count") else ""
-                pdf = self._pdf_link(p.get("id", ""))
+                pdf = self._pdf_link(p.get("id", ""), p.get("doi", ""))
                 paper_details.append(f"  - \"{p['title']}\"{year_str} by {authors_str}{cited}{pdf}")
             lines.append(f"\n{acronym} ({uni['name']}): {uni['count']} papers, {len(paper_authors)} UNINOVIS researchers")
             if paper_authors:
@@ -1399,13 +1399,13 @@ class MetadataRAGMixin:
                 lines.append(f"  Papers ({len(verified_papers)} verified):")
                 for p in verified_papers:
                     year_str = f" ({p['year']})" if p.get("year") else ""
-                    pdf = self._pdf_link(p.get("id", ""))
+                    pdf = self._pdf_link(p.get("id", ""), p.get("doi", ""))
                     lines.append(f"    - \"{p['title']}\"{year_str}{pdf}")
             if unverified_papers:
                 lines.append(f"  ⚠️ Papers with UNVERIFIED attribution ({len(unverified_papers)}) — researcher name not found in author list:")
                 for p in unverified_papers:
                     year_str = f" ({p['year']})" if p.get("year") else ""
-                    pdf = self._pdf_link(p.get("id", ""))
+                    pdf = self._pdf_link(p.get("id", ""), p.get("doi", ""))
                     lines.append(f"    - ⚠️ \"{p['title']}\"{year_str}{pdf} [ATTRIBUTION NOT VERIFIED]")
 
             # Add projects
@@ -1488,11 +1488,12 @@ class MetadataRAGMixin:
 
         return topic
 
-    def _pdf_link(self, paper_id: str) -> str:
+    def _pdf_link(self, paper_id: str, doi: str = "") -> str:
         """Return the paper ID and a PDF link (if the PDF exists locally).
 
         Always includes the paper ID so the LLM can cite it.
-        Only adds a clickable PDF link when the file actually exists.
+        When the PDF exists locally, adds a clickable PDF link.
+        When it does not, shows 'PDF not in database' and a DOI link if available.
         """
         if not paper_id:
             return ""
@@ -1501,7 +1502,11 @@ class MetadataRAGMixin:
         if os.path.exists(docs_path):
             agent_id = self._config.get("agent_id", "responsible_ai")
             return f" (ID: {paper_id}) [PDF](/api/agents/{agent_id}/pdf/{filename})"
-        return f" (ID: {paper_id})"
+        # PDF not available — show informative text + DOI link if available
+        suffix = f" (ID: {paper_id}) — PDF not in database."
+        if doi:
+            suffix += f" [Link to Internet paper]({doi})"
+        return suffix
 
     # ------------------------------------------------------------------
     # Paper search / map data methods

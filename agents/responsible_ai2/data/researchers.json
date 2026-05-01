@@ -161,148 +161,6 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Nuraddin Sadili",
-      "paper_count": 1,
-      "topics": [
-        "Epistemology",
-        "Generative grammar",
-        "Linguistics",
-        "Marketing",
-        "Sociology"
-      ],
-      "papers": [
-        {
-          "id": "W4391676703",
-          "title": "Beyond interaction: Generative AI in conversational marketing - foundations, developments, and future directions",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "M. Fazail Basharat",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Criminal justice",
-        "Criminal law",
-        "Economic Justice",
-        "Enforcement",
-        "Law",
-        "Law enforcement",
-        "Legislature",
-        "Political science",
-        "Public administration"
-      ],
-      "papers": [
-        {
-          "id": "W4410293916",
-          "title": "National Policy and Legislative Framework for AI Governance in Law Enforcement Agencies and Criminal Justice System of Pakistan",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Nouman Sajid",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Criminal justice",
-        "Criminal law",
-        "Economic Justice",
-        "Enforcement",
-        "Law",
-        "Law enforcement",
-        "Legislature",
-        "Political science",
-        "Public administration"
-      ],
-      "papers": [
-        {
-          "id": "W4410293916",
-          "title": "National Policy and Legislative Framework for AI Governance in Law Enforcement Agencies and Criminal Justice System of Pakistan",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Syed Manzoor Hussain Shah",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Criminal justice",
-        "Criminal law",
-        "Economic Justice",
-        "Enforcement",
-        "Law",
-        "Law enforcement",
-        "Legislature",
-        "Political science",
-        "Public administration"
-      ],
-      "papers": [
-        {
-          "id": "W4410293916",
-          "title": "National Policy and Legislative Framework for AI Governance in Law Enforcement Agencies and Criminal Justice System of Pakistan",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Syed Ghafoor Abbas Kazmi",
-      "paper_count": 1,
-      "topics": [
-        "Corporate governance",
-        "Criminal justice",
-        "Criminal law",
-        "Economic Justice",
-        "Enforcement",
-        "Law",
-        "Law enforcement",
-        "Legislature",
-        "Political science",
-        "Public administration"
-      ],
-      "papers": [
-        {
-          "id": "W4410293916",
-          "title": "National Policy and Legislative Framework for AI Governance in Law Enforcement Agencies and Criminal Justice System of Pakistan",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Ahmet Atalay",
-      "paper_count": 1,
-      "topics": [
-        "Business",
-        "Computer science",
-        "Engineering",
-        "Environmental planning",
-        "Environmental resource management",
-        "Sustainability",
-        "Sustainable management"
-      ],
-      "papers": [
-        {
-          "id": "W4410858606",
-          "title": "Artificial Intelligence Technologies as Smart Solutions for Sustainable Protected Areas Management",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
       "name": "Dalia Perkumienė",
       "paper_count": 1,
       "topics": [
@@ -347,21 +205,19 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Mindaugas Škėma",
+      "name": "Violeta Vasiliauskienė",
       "paper_count": 1,
       "topics": [
         "Business",
-        "Computer science",
-        "Engineering",
-        "Environmental planning",
-        "Environmental resource management",
-        "Sustainability",
-        "Sustainable management"
+        "Computer security",
+        "National security",
+        "Political science",
+        "Public relations"
       ],
       "papers": [
         {
-          "id": "W4410858606",
-          "title": "Artificial Intelligence Technologies as Smart Solutions for Sustainable Protected Areas Management",
+          "id": "W4411160104",
+          "title": "BUSINESS ACTIONS POSING THREAT TO NATIONAL SECURITY",
           "year": 2025
         }
       ],
@@ -369,22 +225,60 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Marius Aleinikovas",
+      "name": "Anželika Banevičienė",
       "paper_count": 1,
       "topics": [
         "Business",
-        "Computer science",
-        "Engineering",
-        "Environmental planning",
-        "Environmental resource management",
-        "Sustainability",
-        "Sustainable management"
+        "Computer security",
+        "National security",
+        "Political science",
+        "Public relations"
       ],
       "papers": [
         {
-          "id": "W4410858606",
-          "title": "Artificial Intelligence Technologies as Smart Solutions for Sustainable Protected Areas Management",
+          "id": "W4411160104",
+          "title": "BUSINESS ACTIONS POSING THREAT TO NATIONAL SECURITY",
           "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Vykintas Stumbrys",
+      "paper_count": 1,
+      "topics": [
+        "Business",
+        "Computer security",
+        "National security",
+        "Political science",
+        "Public relations"
+      ],
+      "papers": [
+        {
+          "id": "W4411160104",
+          "title": "BUSINESS ACTIONS POSING THREAT TO NATIONAL SECURITY",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Lina Kankevičienė",
+      "paper_count": 1,
+      "topics": [
+        "Consumer behaviour",
+        "Credibility",
+        "Customer engagement",
+        "Experiential learning",
+        "Metaverse"
+      ],
+      "papers": [
+        {
+          "id": "W7131878786",
+          "title": "Experiential Metaverse Marketing",
+          "year": 2026
         }
       ],
       "affiliations": [],
