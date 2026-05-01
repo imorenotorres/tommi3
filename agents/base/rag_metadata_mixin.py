@@ -2844,6 +2844,54 @@ class MetadataRAGMixin:
         ]
         return any(phrase in text_lower for phrase in not_found_phrases)
 
+    @classmethod
+    def _inject_unsolicited_gap_banner(cls, text: str, is_gap_analysis: bool) -> str:
+        """Inject a red 'Unverified' banner before unsolicited gap analysis sections.
+
+        When the user did NOT ask about gaps (is_gap_analysis=False) but the LLM
+        volunteers a section about topics not studied / research gaps, inject a
+        red banner before that section to warn the user.
+
+        Returns the text unchanged if no unsolicited gap section is found.
+        """
+        if is_gap_analysis:
+            return text  # user asked for gaps — the whole response is already bannered
+
+        # Patterns that indicate the start of a gap analysis section
+        gap_section_patterns = [
+            r'\n#+\s*(?:Topics?\s+Not\s+(?:Studied|Covered|Explored|Addressed|Researched))',
+            r'\n#+\s*(?:Research\s+Gaps?|Gaps?\s+in\s+Research|Missing\s+(?:Topics?|Areas?))',
+            r'\n#+\s*(?:Areas?\s+Not\s+(?:Covered|Explored|Addressed|Studied))',
+            r'\n\*\*(?:Topics?\s+Not\s+(?:Studied|Covered|Explored|Addressed))',
+            r'\n\*\*(?:Research\s+Gaps?|Missing\s+(?:Topics?|Areas?))',
+            # Bold or heading with "not" + studied/covered/explored
+            r'\n(?:#{1,4}\s+|\*\*)[^\n]*\bnot\b[^\n]*\b(?:studied|covered|explored|addressed|researched)\b',
+        ]
+
+        earliest_pos = None
+        for pattern in gap_section_patterns:
+            m = re.search(pattern, text, re.IGNORECASE)
+            if m and (earliest_pos is None or m.start() < earliest_pos):
+                earliest_pos = m.start()
+
+        if earliest_pos is None or earliest_pos < 20:
+            return text
+
+        before = text[:earliest_pos].rstrip()
+        gap_section = text[earliest_pos:]
+
+        banner = (
+            '\n\n'
+            + cls._banner_speculation(
+                "The section below identifies potential research gaps by reasoning "
+                "about what is absent from the database. Topics may exist under "
+                "different names or may not have been indexed. "
+                "Verify before using this to inform research decisions."
+            )
+        )
+
+        return before + banner + gap_section
+
     @staticmethod
     def _cites_database_sources(text: str) -> bool:
         """Detect if the LLM response cites actual sources from the database
@@ -3503,6 +3551,10 @@ class MetadataRAGMixin:
             elif pre_banner:
                 llm_content = pre_banner + llm_content
 
+            # Inject red banner before unsolicited gap analysis sections (AI3 only)
+            if show_banners:
+                llm_content = self._inject_unsolicited_gap_banner(llm_content, is_gap_analysis)
+
         # Compute grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
             project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx, glossary_ctx
@@ -3846,7 +3898,15 @@ class MetadataRAGMixin:
             # If the LLM refused as off-topic, split into verified refusal + unverified suggestions
             if show_banners and self._is_off_topic_response(full_response):
                 corrected = self._split_off_topic_banners(full_response)
+                full_response = corrected
                 yield ("replace", corrected)
+
+            # Inject red banner before unsolicited gap analysis sections (AI3 only)
+            if show_banners:
+                gap_corrected = self._inject_unsolicited_gap_banner(full_response, is_gap_analysis)
+                if gap_corrected != full_response:
+                    full_response = gap_corrected
+                    yield ("replace", gap_corrected)
 
             # Verify paper references against the database
             combined_ctx = " ".join(filter(None, [
