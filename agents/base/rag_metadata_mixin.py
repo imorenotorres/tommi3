@@ -1203,6 +1203,226 @@ class MetadataRAGMixin:
 
         return "\n".join(lines)
 
+    def _is_shared_topics_query(self, user_message: str) -> bool:
+        """Detect if the user is asking about shared/common topics between universities."""
+        uni_filter = self._detect_university_filter(user_message)
+        if not uni_filter:
+            return False
+        val = uni_filter.get("university_acronym")
+        # Need 2+ universities
+        if not (isinstance(val, dict) and "$in" in val and len(val["$in"]) >= 2):
+            return False
+        msg_lower = user_message.lower()
+        # Comparison intent keywords
+        comparison_words = [
+            "shared", "common", "in common", "both", "compare", "comparison",
+            "overlap", "overlapping", "similar", "similarities", "mutual",
+            "together", "intersection",
+        ]
+        # Topic/interest keywords
+        topic_words = [
+            "topic", "interest", "area", "field", "theme", "subject",
+            "research line", "research area",
+        ]
+        has_comparison = any(w in msg_lower for w in comparison_words)
+        has_topic = any(w in msg_lower for w in topic_words)
+        return has_comparison or has_topic
+
+    def _build_shared_topics_context(self, user_message: str) -> str:
+        """Build programmatic context for shared research topics between universities.
+
+        Groups papers by shared OpenAlex concept tags across the requested
+        universities, with full paper details and links.
+        """
+        uni_filter = self._detect_university_filter(user_message)
+        if not uni_filter:
+            return ""
+        val = uni_filter.get("university_acronym")
+        if isinstance(val, dict) and "$in" in val:
+            target_acronyms = set(val["$in"])
+        else:
+            return ""
+
+        if len(target_acronyms) < 2:
+            return ""
+
+        min_concept_score = 0.3
+
+        # Collect concepts per university with their papers
+        # concept_name → {acronym → [paper_dicts]}
+        concept_unis = {}
+        for acronym in target_acronyms:
+            papers = self._all_uni_papers.get(acronym, [])
+            for p in papers:
+                for c in p.get("concepts", []):
+                    if c.get("score", 0) < min_concept_score:
+                        continue
+                    cname = c["name"]
+                    if cname not in concept_unis:
+                        concept_unis[cname] = {}
+                    if acronym not in concept_unis[cname]:
+                        concept_unis[cname][acronym] = []
+                    concept_unis[cname][acronym].append(p)
+
+        # Filter to concepts present in ALL target universities
+        shared_concepts = {}
+        for cname, unis_papers in concept_unis.items():
+            if target_acronyms.issubset(unis_papers.keys()):
+                total = sum(len(ps) for ps in unis_papers.values())
+                shared_concepts[cname] = (unis_papers, total)
+
+        if not shared_concepts:
+            acronyms_str = " and ".join(sorted(target_acronyms))
+            return f"No shared research topics found between {acronyms_str} in the UNINOVIS database."
+
+        # Sort by total papers descending, take top 15 concepts
+        sorted_concepts = sorted(shared_concepts.items(), key=lambda x: x[1][1], reverse=True)[:15]
+
+        # Filter out overly generic concepts (Computer science, Business, etc.)
+        generic_concepts = {
+            "computer science", "mathematics", "business", "engineering",
+            "political science", "sociology", "psychology", "philosophy",
+            "economics", "medicine", "biology",
+        }
+        sorted_concepts = [
+            (cname, data) for cname, data in sorted_concepts
+            if cname.lower() not in generic_concepts
+        ]
+
+        acronyms_str = " and ".join(sorted(target_acronyms))
+        lines = [f'SHARED RESEARCH TOPICS between {acronyms_str} ({len(sorted_concepts)} topics):']
+        lines.append("This data is authoritative — generated from OpenAlex concept tags in the database.")
+        lines.append("Present the topics with their papers grouped by university. Include all paper links provided below.")
+        lines.append("")
+
+        seen_paper_ids = set()
+        for cname, (unis_papers, total) in sorted_concepts:
+            lines.append(f"### {cname} ({total} papers total)")
+            for acronym in sorted(target_acronyms):
+                papers = unis_papers.get(acronym, [])
+                if not papers:
+                    continue
+                uni_name = self.UNIVERSITY_COORDS.get(acronym, {}).get("name", acronym)
+                lines.append(f"**{acronym}** ({uni_name}): {len(papers)} papers")
+                for p in papers:
+                    pid = p.get("id", "")
+                    if pid in seen_paper_ids:
+                        continue
+                    seen_paper_ids.add(pid)
+                    authors = [a.get("name", "") for a in p.get("authors", [])]
+                    authors_str = ", ".join(authors[:4])
+                    if len(authors) > 4:
+                        authors_str += " et al."
+                    year_str = f" ({p.get('publication_year', '')})" if p.get("publication_year") else ""
+                    pdf = self._pdf_link(pid, p.get("doi", ""))
+                    lines.append(f"  - \"{p.get('title', '')}\"{year_str} — {authors_str}{pdf}")
+            lines.append("")
+
+        return "\n".join(lines)
+
+    def _build_shared_topics_factual_section(self, user_message: str, show_banners: bool = True) -> str:
+        """Build a user-facing factual section for shared topic queries.
+
+        Returns markdown text generated PROGRAMMATICALLY from structured data.
+        """
+        uni_filter = self._detect_university_filter(user_message)
+        if not uni_filter:
+            return ""
+        val = uni_filter.get("university_acronym")
+        if isinstance(val, dict) and "$in" in val:
+            target_acronyms = set(val["$in"])
+        else:
+            return ""
+
+        if len(target_acronyms) < 2:
+            return ""
+
+        min_concept_score = 0.3
+
+        # Collect concepts per university with their papers
+        concept_unis = {}
+        for acronym in target_acronyms:
+            papers = self._all_uni_papers.get(acronym, [])
+            for p in papers:
+                for c in p.get("concepts", []):
+                    if c.get("score", 0) < min_concept_score:
+                        continue
+                    cname = c["name"]
+                    if cname not in concept_unis:
+                        concept_unis[cname] = {}
+                    if acronym not in concept_unis[cname]:
+                        concept_unis[cname][acronym] = []
+                    concept_unis[cname][acronym].append(p)
+
+        # Filter to concepts present in ALL target universities
+        shared_concepts = {}
+        for cname, unis_papers in concept_unis.items():
+            if target_acronyms.issubset(unis_papers.keys()):
+                total = sum(len(ps) for ps in unis_papers.values())
+                shared_concepts[cname] = (unis_papers, total)
+
+        acronyms_str = " and ".join(sorted(target_acronyms))
+
+        if not shared_concepts:
+            return f"No shared research topics found between {acronyms_str} in the UNINOVIS database."
+
+        # Sort by total papers descending
+        sorted_concepts = sorted(shared_concepts.items(), key=lambda x: x[1][1], reverse=True)
+
+        # Filter out overly generic concepts
+        generic_concepts = {
+            "computer science", "mathematics", "business", "engineering",
+            "political science", "sociology", "psychology", "philosophy",
+            "economics", "medicine", "biology",
+        }
+        sorted_concepts = [
+            (cname, data) for cname, data in sorted_concepts
+            if cname.lower() not in generic_concepts
+        ][:15]
+
+        total_papers = len({
+            p.get("id", id(p))
+            for _, (unis_papers, _) in sorted_concepts
+            for ps in unis_papers.values()
+            for p in ps
+        })
+
+        lines = []
+        if show_banners:
+            lines.append(self._banner_verified(
+                f"Shared research topics between {acronyms_str} from the UNINOVIS database (no AI involved)."
+            ))
+        lines.append(f'### Shared Research Topics between {acronyms_str} ({len(sorted_concepts)} topics, {total_papers} unique papers)')
+        lines.append('')
+
+        seen_paper_ids = set()
+        for cname, (unis_papers, total) in sorted_concepts:
+            lines.append(f"**{cname}** ({total} papers)")
+            for acronym in sorted(target_acronyms):
+                papers = unis_papers.get(acronym, [])
+                if not papers:
+                    continue
+                uni_name = self.UNIVERSITY_COORDS.get(acronym, {}).get("name", acronym)
+                lines.append(f"- *{acronym}* ({len(papers)}):")
+                for p in papers:
+                    pid = p.get("id", "")
+                    title = p.get("title", "")
+                    # Deduplicate papers appearing under multiple concepts
+                    display_key = pid or title
+                    if display_key in seen_paper_ids:
+                        continue
+                    seen_paper_ids.add(display_key)
+                    authors = [a.get("name", "") for a in p.get("authors", [])]
+                    authors_str = ", ".join(authors[:4])
+                    if len(authors) > 4:
+                        authors_str += " et al."
+                    year_str = f" ({p.get('publication_year', '')})" if p.get("publication_year") else ""
+                    pdf = self._pdf_link(pid, p.get("doi", ""))
+                    lines.append(f"  - \"{title}\"{year_str} — {authors_str}{pdf}")
+            lines.append("")
+
+        return "\n".join(lines)
+
     def _build_affiliation_context(self, user_message: str) -> str:
         """Detect queries asking for researchers affiliated to a specific institution.
         Returns a clean list of researcher names and their affiliations."""
@@ -1507,6 +1727,66 @@ class MetadataRAGMixin:
         if doi:
             suffix += f' <a href="{doi}" target="_blank">Link to Internet paper</a>'
         return suffix
+
+    def _build_paper_id_index(self) -> dict:
+        """Build a paper_id → doi lookup from cached papers data.
+
+        Returns dict like {"W4400460850": "https://doi.org/...", ...}.
+        Cached after first call.
+        """
+        if hasattr(self, '_paper_id_doi_index'):
+            return self._paper_id_doi_index
+        index = {}
+        for papers in self._all_uni_papers.values():
+            for p in papers:
+                pid = p.get("id", "")
+                doi = p.get("doi", "")
+                if pid:
+                    index[pid] = doi
+        self._paper_id_doi_index = index
+        return index
+
+    def _inject_paper_links(self, text: str) -> str:
+        """Post-process LLM output to inject DOI/PDF links for paper IDs that lack them.
+
+        Scans for paper IDs (W followed by digits) and checks if they already
+        have an adjacent link. If not, appends the appropriate link.
+        """
+        index = self._build_paper_id_index()
+        if not index:
+            return text
+
+        def _replace_bare_id(m):
+            """Replace a bare paper ID mention with one that includes a link."""
+            full_match = m.group(0)
+            paper_id = m.group(1)
+            if paper_id not in index:
+                return full_match
+            # Check if there's already a link nearby (within the same line)
+            # by looking at what follows the match
+            after = text[m.end():m.end() + 200]
+            # If there's already a PDF link, DOI link, or "Link to Internet paper" nearby, skip
+            if re.match(r'[^<\n]{0,50}(?:<a\s|href=|\[PDF\]|\[Link)', after):
+                return full_match
+            # Generate the link — extract just the link portion (skip the "(ID: ...)" part
+            # since the ID is already present in the text)
+            link = self._pdf_link(paper_id, index[paper_id])
+            # _pdf_link returns " (ID: W...) [PDF](...)" or " (ID: W...) — PDF not in database. <a...>"
+            # Strip the "(ID: ...)" prefix since the ID already appears in the text
+            link_only = re.sub(r'^\s*\(ID:\s*\w+\)\s*', '', link).strip()
+            if link_only:
+                return full_match + " " + link_only
+            return full_match
+
+        # Match paper IDs in patterns like "(ID: W1234)" or bare "W1234"
+        # Capture optional surrounding (ID: ...) wrapper to replace the whole thing
+        # but NOT inside existing href/src attributes or markdown links
+        result = re.sub(
+            r'(?<!\/)(?<!=")(?<!\.pdf)(?:\(ID:\s*)?\b(W\d{5,})\b(?:\s*\))?(?!\.pdf)(?![^<]*<\/a>)',
+            _replace_bare_id,
+            text,
+        )
+        return result
 
     # ------------------------------------------------------------------
     # Paper search / map data methods
@@ -3378,12 +3658,17 @@ class MetadataRAGMixin:
         project_ctx = "" if (is_web_expand or is_conceptual) else self._build_project_context(user_message)
         # Check for affiliation-based researcher queries
         affiliation_ctx = "" if (project_ctx or is_web_expand or is_conceptual) else self._build_affiliation_context(user_message)
+        # Shared topics between 2+ universities (must check before uni_papers_ctx)
+        shared_topics_ctx = ""
+        if not (affiliation_ctx or project_ctx or is_web_expand or is_conceptual):
+            if self._is_shared_topics_query(user_message):
+                shared_topics_ctx = self._build_shared_topics_context(user_message)
         # University paper listing (no topic) -- uses authoritative *_papers.json
-        uni_papers_ctx = "" if (affiliation_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_university_papers_context(user_message)
+        uni_papers_ctx = "" if (shared_topics_ctx or affiliation_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_university_papers_context(user_message)
         # Add topic-specific structured data (same source as figures)
-        topic_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_topic_context(user_message)
+        topic_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_topic_context(user_message)
         # Look up specific researchers mentioned in the query
-        researcher_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_researcher_context(user_message)
+        researcher_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_researcher_context(user_message)
 
         # Figure/map requests: the LLM generates the map link from system prompt
         # instructions alone -- no data context needed, maps use structured data
@@ -3408,7 +3693,7 @@ class MetadataRAGMixin:
         elif is_followup:
             context = ""
             source_type = "RAG"
-        elif is_gap_analysis or affiliation_ctx or uni_papers_ctx or topic_ctx or researcher_ctx or project_ctx or is_figure_request:
+        elif is_gap_analysis or shared_topics_ctx or affiliation_ctx or uni_papers_ctx or topic_ctx or researcher_ctx or project_ctx or is_figure_request:
             context = ""
             source_type = "Metadata"
         else:
@@ -3426,6 +3711,8 @@ class MetadataRAGMixin:
             system_with_context += f"\n\n{project_ctx}"
         if affiliation_ctx:
             system_with_context += f"\n\n{affiliation_ctx}"
+        if shared_topics_ctx:
+            system_with_context += f"\n\n{shared_topics_ctx}"
         if uni_papers_ctx:
             system_with_context += f"\n\n{uni_papers_ctx}"
         if topic_ctx:
@@ -3441,7 +3728,7 @@ class MetadataRAGMixin:
             )
 
         has_structured_data = bool(
-            affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx or glossary_ctx
+            shared_topics_ctx or affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx or glossary_ctx
         )
 
         # For web expand, rephrase the user message to re-ask the original query
@@ -3459,11 +3746,14 @@ class MetadataRAGMixin:
 
         # --- Approach D: Programmatic facts + LLM commentary (AI3 only) ---
         factual_section = ""
-        if use_procedural and topic_ctx and not is_figure_request and not is_gap_analysis and not is_web_expand:
-            factual_section = self._build_topic_factual_section(user_message, show_banners=show_banners)
+        if use_procedural and not is_figure_request and not is_gap_analysis and not is_web_expand:
+            if shared_topics_ctx:
+                factual_section = self._build_shared_topics_factual_section(user_message, show_banners=show_banners)
+            elif topic_ctx:
+                factual_section = self._build_topic_factual_section(user_message, show_banners=show_banners)
 
         if factual_section:
-            topic = self._extract_topic(user_message)
+            topic = self._extract_topic(user_message) or "shared research topics"
             analysis_prompt = self._analysis_prompt(topic)
             messages = [{"role": "system", "content": system_with_context}]
             if history:
@@ -3541,13 +3831,16 @@ class MetadataRAGMixin:
 
             # Verify paper references against the database
             combined_ctx = " ".join(filter(None, [
-                project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
+                project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
                 metadata_ctx, context, web_ctx
             ]))
             if detect_hallucinations:
                 llm_content, hallucination_count = self._verify_paper_references(llm_content, combined_ctx, transparency)
             else:
                 hallucination_count = 0
+
+            # Post-process: inject DOI/PDF links for paper IDs missing links
+            llm_content = self._inject_paper_links(llm_content)
 
             # Prepend banner (AI3 only)
             # If the LLM refused as off-topic, split into verified refusal + unverified suggestions
@@ -3562,7 +3855,7 @@ class MetadataRAGMixin:
 
         # Compute grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
-            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx, glossary_ctx
+            project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx, glossary_ctx
         ]))
 
         highlight_cfg = self._config.get("inline_claim_highlights")
@@ -3642,6 +3935,7 @@ class MetadataRAGMixin:
         ctx_sources = []
         if glossary_ctx:    ctx_sources.append("glossary")
         if affiliation_ctx: ctx_sources.append("affiliation")
+        if shared_topics_ctx: ctx_sources.append("shared_topics")
         if uni_papers_ctx:  ctx_sources.append("university_papers")
         if topic_ctx:       ctx_sources.append("topic")
         if researcher_ctx:  ctx_sources.append("researcher")
@@ -3715,12 +4009,17 @@ class MetadataRAGMixin:
         project_ctx = "" if (is_web_expand or is_conceptual) else self._build_project_context(user_message)
         # Check for affiliation-based researcher queries
         affiliation_ctx = "" if (project_ctx or is_web_expand or is_conceptual) else self._build_affiliation_context(user_message)
+        # Shared topics between 2+ universities (must check before uni_papers_ctx)
+        shared_topics_ctx = ""
+        if not (affiliation_ctx or project_ctx or is_web_expand or is_conceptual):
+            if self._is_shared_topics_query(user_message):
+                shared_topics_ctx = self._build_shared_topics_context(user_message)
         # University paper listing (no topic) -- uses authoritative *_papers.json
-        uni_papers_ctx = "" if (affiliation_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_university_papers_context(user_message)
+        uni_papers_ctx = "" if (shared_topics_ctx or affiliation_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_university_papers_context(user_message)
         # Add topic-specific structured data (same source as figures)
-        topic_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_topic_context(user_message)
+        topic_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_topic_context(user_message)
         # Look up specific researchers mentioned in the query
-        researcher_ctx = "" if (affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_researcher_context(user_message)
+        researcher_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_researcher_context(user_message)
 
         # Figure/map requests: the LLM generates the map link from system prompt
         # instructions alone -- no data context needed, maps use structured data
@@ -3744,7 +4043,7 @@ class MetadataRAGMixin:
         elif is_followup:
             context = ""
             source_type = "RAG"
-        elif is_gap_analysis or affiliation_ctx or uni_papers_ctx or topic_ctx or researcher_ctx or project_ctx or is_figure_request:
+        elif is_gap_analysis or shared_topics_ctx or affiliation_ctx or uni_papers_ctx or topic_ctx or researcher_ctx or project_ctx or is_figure_request:
             context = ""
             source_type = "Metadata"
         else:
@@ -3762,6 +4061,8 @@ class MetadataRAGMixin:
             system_with_context += f"\n\n{project_ctx}"
         if affiliation_ctx:
             system_with_context += f"\n\n{affiliation_ctx}"
+        if shared_topics_ctx:
+            system_with_context += f"\n\n{shared_topics_ctx}"
         if uni_papers_ctx:
             system_with_context += f"\n\n{uni_papers_ctx}"
         if topic_ctx:
@@ -3777,7 +4078,7 @@ class MetadataRAGMixin:
             )
 
         has_structured_data = bool(
-            affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx or glossary_ctx
+            shared_topics_ctx or affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx or glossary_ctx
         )
 
         # For web expand, rephrase the user message to re-ask the original query
@@ -3795,8 +4096,11 @@ class MetadataRAGMixin:
 
         # --- Approach D: Programmatic facts + LLM commentary (AI3 only) ---
         factual_section = ""
-        if use_procedural and topic_ctx and not is_figure_request and not is_gap_analysis and not is_web_expand:
-            factual_section = self._build_topic_factual_section(user_message, show_banners=show_banners)
+        if use_procedural and not is_figure_request and not is_gap_analysis and not is_web_expand:
+            if shared_topics_ctx:
+                factual_section = self._build_shared_topics_factual_section(user_message, show_banners=show_banners)
+            elif topic_ctx:
+                factual_section = self._build_topic_factual_section(user_message, show_banners=show_banners)
 
         if factual_section:
             # Stream the factual section first (no LLM involved)
@@ -3809,7 +4113,7 @@ class MetadataRAGMixin:
             yield separator
 
             # Ask the LLM for a brief analysis only — constrained prompt
-            topic = self._extract_topic(user_message)
+            topic = self._extract_topic(user_message) or "shared research topics"
             analysis_prompt = self._analysis_prompt(topic)
             messages = [{"role": "system", "content": system_with_context}]
             if history:
@@ -3915,7 +4219,7 @@ class MetadataRAGMixin:
 
             # Verify paper references against the database
             combined_ctx = " ".join(filter(None, [
-                project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
+                project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
                 metadata_ctx, context, web_ctx
             ]))
             if detect_hallucinations:
@@ -3926,9 +4230,15 @@ class MetadataRAGMixin:
             else:
                 hallucination_count = 0
 
+            # Post-process: inject DOI/PDF links for paper IDs missing links
+            enriched = self._inject_paper_links(full_response)
+            if enriched != full_response:
+                full_response = enriched
+                yield ("replace", enriched)
+
         # Deferred grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [
-            project_ctx, affiliation_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx, glossary_ctx
+            project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx, glossary_ctx
         ]))
 
         highlight_cfg = self._config.get("inline_claim_highlights")
@@ -4027,6 +4337,7 @@ class MetadataRAGMixin:
         ctx_sources = []
         if glossary_ctx:    ctx_sources.append("glossary")
         if affiliation_ctx: ctx_sources.append("affiliation")
+        if shared_topics_ctx: ctx_sources.append("shared_topics")
         if uni_papers_ctx:  ctx_sources.append("university_papers")
         if topic_ctx:       ctx_sources.append("topic")
         if researcher_ctx:  ctx_sources.append("researcher")
