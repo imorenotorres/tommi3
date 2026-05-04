@@ -1,21 +1,26 @@
 {
-  "agent_id": "responsible_ai2",
+  "agents": {
+    "content": {
+      "agent_id": "responsible_ai2",
+      "label": "Agent A",
+      "desc": "This agent provides transparency information about its sources using quantitative indicators and citation details.",
+      "transparency": "grey_box"
+    },
+    "procedural": {
+      "agent_id": "responsible_ai3",
+      "label": "Agent B",
+      "desc": "This agent provides transparency information using colour-coded indicators for different sections of its response.",
+      "transparency": "scaffolded"
+    }
+  },
   "queries": [
-    {"number": 1, "text": "What research exists on explainable artificial intelligence?"},
-    {"number": 2, "text": "List researchers working on AI ethics at UNINOVIS universities"},
-    {"number": 3, "text": "What is the relationship between fairness and accountability in AI?"},
-    {"number": 4, "text": "Are there any papers on quantum computing?"},
-    {"number": 5, "text": "Show me a map of publications on AI transparency"},
-    {"number": 6, "text": "What projects mention the Green Deal?"},
-    {"number": 7, "text": "What gaps exist in UNINOVIS research on AI governance?"},
-    {"number": 8, "text": "Compare the approaches to trustworthy AI across European universities"}
+    {"number": 1, "text": "What are the main research topics on Responsible AI at UNINOVIS universities?"},
+    {"number": 2, "text": "Which researchers at the University of Malaga work on AI ethics?"}
   ],
   "questionnaire_items": [
-    {"id": "stias_1", "text": "I trust the system's response", "scale": "1-7"},
-    {"id": "stias_2", "text": "I feel confident in the system's capabilities", "scale": "1-7"},
-    {"id": "stias_3", "text": "I can rely on the system", "scale": "1-7"},
-    {"id": "understanding", "text": "I understand how the system arrived at this response", "scale": "1-7"},
-    {"id": "reliance", "text": "I would use this response for my research", "scale": "1-7"}
+    {"id": "trust", "text": "How much do you trust the information provided by this agent?", "anchor_low": "Not at all", "anchor_high": "Completely"},
+    {"id": "useful", "text": "How useful were the transparency indicators in helping you assess the reliability of the response?", "anchor_low": "Not useful", "anchor_high": "Extremely useful"},
+    {"id": "ease", "text": "How easy was it to understand the reliability of different parts of the response?", "anchor_low": "Very difficult", "anchor_high": "Very easy"}
   ],
   "post_questionnaire_url": "",
   "thank_you_message": "Thank you for participating in this study. Your responses will help us understand how AI transparency affects user trust."

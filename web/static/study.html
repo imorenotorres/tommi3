@@ -3,124 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TOMMI - Study Mode</title>
+    <title>TOMMI - Transparency Comparative Study</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --primary-color: #2563eb;
+            --primary: #2563eb;
             --primary-hover: #1d4ed8;
-            --bg-color: #f8fafc;
-            --border-color: #e2e8f0;
-            --text-muted: #64748b;
-            --success-color: #16a34a;
+            --bg: #f8fafc;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --success: #16a34a;
+            --warn-bg: #fffbeb;
+            --warn-border: #fde68a;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: #1e293b;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: #1e293b; }
+
         .header {
-            background: white;
-            border-bottom: 1px solid var(--border-color);
-            padding: 0.75rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background: white; border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
         }
         .header-left { display: flex; align-items: center; gap: 1rem; }
         .header-left img { height: 36px; }
-        .header-left .study-badge {
-            background: #eff6ff; color: var(--primary-color);
-            padding: 3px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;
-        }
-        .header-right { font-size: 0.85rem; color: var(--text-muted); }
+        .header-left .badge { background: #eff6ff; color: var(--primary); padding: 3px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+        .header-right { font-size: 0.85rem; color: var(--muted); }
 
-        .progress-bar-container {
-            background: white; border-bottom: 1px solid var(--border-color);
-            padding: 0.5rem 1.5rem;
-        }
+        .progress-container { background: white; border-bottom: 1px solid var(--border); padding: 0.5rem 1.5rem; }
         .progress-info { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.35rem; }
         .progress-track { background: #e2e8f0; border-radius: 4px; height: 8px; }
-        .progress-fill { background: var(--primary-color); border-radius: 4px; height: 100%; transition: width 0.3s; }
+        .progress-fill { background: var(--primary); border-radius: 4px; height: 100%; transition: width 0.4s; }
 
-        .main-content {
-            max-width: 900px; margin: 1.5rem auto; padding: 0 1.5rem;
-        }
+        .main { max-width: 900px; margin: 1.5rem auto; padding: 0 1.5rem; }
+
+        /* Phase containers */
+        .phase { display: none; }
+        .phase.active { display: block; }
+
+        /* Cards */
+        .card { background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); padding: 1.5rem; margin-bottom: 1rem; }
+        .card h2 { font-size: 1.15rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+        .card h3 { font-size: 1rem; margin: 1rem 0 0.5rem; }
+        .card p { margin-bottom: 0.75rem; font-size: 0.95rem; line-height: 1.6; }
+
+        .info-box { padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; margin: 1rem 0; }
+        .info-box.blue { background: #eff6ff; border-left: 4px solid var(--primary); }
+        .info-box.yellow { background: var(--warn-bg); border-left: 4px solid #f59e0b; }
+        .info-box.green { background: #f0fdf4; border-left: 4px solid var(--success); }
+
+        /* Consent */
+        .consent-text { max-height: 250px; overflow-y: auto; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; line-height: 1.7; margin-bottom: 1rem; }
+        .consent-check { display: flex; align-items: center; gap: 10px; margin: 1rem 0; font-weight: 600; font-size: 0.95rem; }
+        .consent-check input { width: 18px; height: 18px; cursor: pointer; }
+
+        /* Likert */
+        .likert-group { margin-bottom: 1.5rem; }
+        .likert-group label.q { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.92rem; }
+        .likert-row { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .likert-btn { flex: 1; text-align: center; cursor: pointer; padding: 10px 4px; border-right: 1px solid var(--border);
+                      font-size: 0.78rem; line-height: 1.3; background: white; transition: all 0.15s; }
+        .likert-btn:last-child { border-right: none; }
+        .likert-btn:hover { background: #eff6ff; }
+        .likert-btn.selected { background: var(--primary); color: white; font-weight: 600; }
+        .likert-num { display: block; font-weight: 700; font-size: 1.05em; margin-bottom: 3px; }
+
+        /* Preference cards */
+        .pref-row { display: flex; gap: 12px; margin: 1rem 0; flex-wrap: wrap; }
+        .pref-card { flex: 1; min-width: 180px; text-align: center; cursor: pointer; padding: 16px 12px;
+                     border: 2px solid var(--border); border-radius: 10px; background: white; transition: all 0.2s; font-size: 0.9rem; }
+        .pref-card:hover { border-color: var(--primary); background: #eff6ff; }
+        .pref-card.selected { border-color: var(--primary); background: var(--primary); color: white; }
+        .pref-card strong { display: block; margin-bottom: 4px; }
+        .pref-card .desc { font-size: 0.8rem; opacity: 0.8; }
+
+        /* Textarea */
+        .comment-box { width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px;
+                       font-family: inherit; font-size: 0.9rem; resize: vertical; min-height: 70px; }
+        .comment-box:focus { outline: none; border-color: var(--primary); }
 
         /* Query card */
-        .query-card {
-            background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            padding: 1.5rem; margin-bottom: 1rem;
-        }
-        .query-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem; font-weight: 500; }
+        .query-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; font-weight: 500; }
         .query-text { font-size: 1.05rem; font-weight: 500; }
 
-        /* Response area */
-        .response-card {
-            background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            padding: 1.5rem; margin-bottom: 1rem; min-height: 120px;
-        }
-        .response-card .waiting { color: var(--text-muted); font-style: italic; }
-        .response-card .agent-response { line-height: 1.6; }
-        .response-card .agent-response p { margin-bottom: 0.5em; }
-        .response-card .agent-response ul, .response-card .agent-response ol { margin-left: 1.5em; margin-bottom: 0.5em; }
+        /* Response */
+        .response-area { min-height: 100px; }
+        .response-area .waiting { color: var(--muted); font-style: italic; }
+        .response-area .agent-response { line-height: 1.6; }
+        .response-area .agent-response p { margin-bottom: 0.5em; }
+        .response-area .agent-response ul, .response-area .agent-response ol { margin-left: 1.5em; margin-bottom: 0.5em; }
 
-        .btn-send {
-            background: var(--primary-color); color: white; border: none;
-            padding: 0.6rem 1.5rem; border-radius: 6px; font-size: 0.95rem;
-            cursor: pointer; font-weight: 500; margin-bottom: 1rem;
-        }
-        .btn-send:hover { background: var(--primary-hover); }
-        .btn-send:disabled { background: #94a3b8; cursor: not-allowed; }
+        /* Buttons */
+        .btn { display: inline-block; padding: 10px 24px; border: none; border-radius: 6px;
+               font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn-group { display: flex; justify-content: flex-end; margin-top: 1.25rem; }
 
-        /* Questionnaire */
-        .questionnaire-card {
-            background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
-            padding: 1.5rem; margin-bottom: 1rem; display: none;
-        }
-        .questionnaire-card h3 { font-size: 1rem; margin-bottom: 1rem; }
-        .q-item { margin-bottom: 1.25rem; }
-        .q-item label { display: block; font-size: 0.9rem; margin-bottom: 0.5rem; font-weight: 500; }
-        .likert { display: flex; gap: 0.5rem; align-items: center; }
-        .likert .likert-label { font-size: 0.75rem; color: var(--text-muted); min-width: 80px; }
-        .likert .likert-label.right { text-align: right; }
-        .likert input[type="radio"] { display: none; }
-        .likert .radio-btn {
-            width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-color);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
-            transition: all 0.15s;
-        }
-        .likert .radio-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
-        .likert input[type="radio"]:checked + .radio-btn {
-            background: var(--primary-color); color: white; border-color: var(--primary-color);
-        }
+        /* Results table */
+        .results-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .results-table th, .results-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .results-table th { font-weight: 600; color: var(--muted); }
 
-        .btn-next {
-            background: var(--success-color); color: white; border: none;
-            padding: 0.6rem 1.5rem; border-radius: 6px; font-size: 0.95rem;
-            cursor: pointer; font-weight: 500; width: 100%;
-        }
-        .btn-next:disabled { background: #94a3b8; cursor: not-allowed; }
+        .pid-badge { display: inline-block; padding: 4px 14px; background: #eff6ff; border-radius: 16px;
+                     font-family: monospace; font-size: 1rem; color: var(--primary); font-weight: 700; }
 
-        /* Completion screen */
-        .completion-card {
-            background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            padding: 2.5rem; text-align: center; display: none;
-        }
-        .completion-card h2 { margin-bottom: 1rem; }
-        .completion-card .study-id-box {
-            background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 8px;
-            padding: 1rem; margin: 1.5rem auto; max-width: 300px;
-        }
-        .completion-card .study-id-box .id-label { font-size: 0.85rem; color: var(--text-muted); }
-        .completion-card .study-id-box .id-value { font-size: 1.8rem; font-weight: 700; color: var(--success-color); letter-spacing: 2px; }
-        .completion-card .post-link {
-            display: inline-block; margin-top: 1.5rem;
-            background: var(--primary-color); color: white; padding: 0.75rem 2rem;
-            border-radius: 6px; text-decoration: none; font-weight: 500;
+        /* Query checklist */
+        .q-list { list-style: none; margin: 1rem 0; }
+        .q-list li { padding: 10px 14px; margin-bottom: 6px; background: #f8f9fa; border-radius: 8px;
+                     border-left: 4px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+        .q-list li.done { border-left-color: var(--success); background: #f0fdf4; }
+        .q-list li .check { width: 22px; height: 22px; border: 2px solid var(--border); border-radius: 4px;
+                            cursor: pointer; display: flex; align-items: center; justify-content: center;
+                            flex-shrink: 0; font-size: 0.8em; transition: all 0.2s; }
+        .q-list li.done .check { background: var(--success); border-color: var(--success); color: white; }
+        .q-list li .q-text { flex: 1; }
+        .q-list li .copy-btn { font-size: 0.75em; padding: 4px 10px; background: var(--primary); color: white;
+                               border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+
+        .timer { text-align: right; font-family: monospace; color: var(--muted); font-size: 0.85em; margin-bottom: 8px; }
+
+        @media (max-width: 600px) {
+            .likert-row { flex-direction: column; }
+            .likert-btn { border-right: none; border-bottom: 1px solid var(--border); }
+            .likert-btn:last-child { border-bottom: none; }
+            .pref-row { flex-direction: column; }
+            .main { padding: 0 0.75rem; }
         }
     </style>
 </head>
@@ -129,16 +139,14 @@
 <div class="header">
     <div class="header-left">
         <img src="/static/logo_uninovis.png" alt="UNINOVIS">
-        <span class="study-badge">Study Mode</span>
+        <span class="badge">Comparative Study</span>
     </div>
-    <div class="header-right">
-        Participant: <strong id="participant-id">---</strong>
-    </div>
+    <div class="header-right">Participant: <strong id="pid-display">---</strong></div>
 </div>
 
-<div class="progress-bar-container">
+<div class="progress-container">
     <div class="progress-info">
-        <span id="progress-label">Query 1 of 8</span>
+        <span id="progress-label">Step 1 of 8</span>
         <span id="progress-pct">0%</span>
     </div>
     <div class="progress-track">
@@ -146,141 +154,319 @@
     </div>
 </div>
 
-<div class="main-content">
-    <!-- Active query area -->
-    <div id="task-area">
-        <div class="query-card">
-            <div class="query-label">Query <span id="query-num">1</span> of 8</div>
-            <div class="query-text" id="query-text"></div>
-        </div>
+<div class="main">
 
-        <button class="btn-send" id="btn-send">Send query to agent</button>
-
-        <div class="response-card" id="response-card">
-            <div class="waiting" id="response-waiting">Click "Send query to agent" to begin</div>
-            <div class="agent-response" id="response-content" style="display:none;"></div>
-        </div>
-
-        <div class="questionnaire-card" id="questionnaire">
-            <h3>Please rate the response you just received:</h3>
-            <div id="q-items"></div>
-            <button class="btn-next" id="btn-next" disabled>Next query</button>
+    <!-- ====== PHASE 0: CONSENT ====== -->
+    <div class="phase active" id="phase-0">
+        <div class="card">
+            <h2>Welcome & Informed Consent</h2>
+            <p>Thank you for participating in this study on AI transparency. It takes approximately <strong>12-15 minutes</strong>.</p>
+            <div class="consent-text">
+                <p><strong>Purpose:</strong> This study compares two approaches to AI transparency &mdash; Content Transparency and Procedural Transparency &mdash; to understand which better supports user trust calibration when interacting with AI agents.</p>
+                <p><strong>Procedure:</strong> You will (1) answer a brief background survey, (2) interact with two AI agents by asking 2 predefined questions to each, rating each agent immediately after, and (3) indicate your overall preference.</p>
+                <p><strong>Data:</strong> Your participant ID is randomly assigned. No personal data beyond your login is collected. Data will be used for research purposes only.</p>
+                <p><strong>Voluntary participation:</strong> You may withdraw at any time by closing this page. Incomplete responses will not be used.</p>
+                <p><strong>Contact:</strong> For questions, please contact the research team at the University of M&aacute;laga.</p>
+            </div>
+            <div class="consent-check">
+                <input type="checkbox" id="consent-check">
+                <label for="consent-check">I have read and agree to participate in this study.</label>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btn-consent" disabled onclick="startStudy()">Begin Study</button>
+            </div>
         </div>
     </div>
 
-    <!-- Completion screen -->
-    <div class="completion-card" id="completion">
-        <h2>Study completed</h2>
-        <p id="thank-you-msg"></p>
-        <div class="study-id-box">
-            <div class="id-label">Your study ID (use this in the post-questionnaire)</div>
-            <div class="id-value" id="final-study-id"></div>
+    <!-- ====== PHASE 1: BACKGROUND SURVEY ====== -->
+    <div class="phase" id="phase-1">
+        <div class="card">
+            <h2>Step 1: Background Survey</h2>
+            <div class="likert-group">
+                <label class="q">1. What is your degree of experience with AI Agents?</label>
+                <div class="likert-row">
+                    <div class="likert-btn" onclick="pickSurvey('experience',1,this)"><span class="likert-num">1</span>No experience</div>
+                    <div class="likert-btn" onclick="pickSurvey('experience',2,this)"><span class="likert-num">2</span>Occasional use</div>
+                    <div class="likert-btn" onclick="pickSurvey('experience',3,this)"><span class="likert-num">3</span>Regular use</div>
+                    <div class="likert-btn" onclick="pickSurvey('experience',4,this)"><span class="likert-num">4</span>I create agents</div>
+                </div>
+            </div>
+            <div class="likert-group">
+                <label class="q">2. How would you describe your general level of trust in AI Agents?</label>
+                <div class="likert-row">
+                    <div class="likert-btn" onclick="pickSurvey('trust_pre',1,this)"><span class="likert-num">1</span>I do not trust AI content</div>
+                    <div class="likert-btn" onclick="pickSurvey('trust_pre',2,this)"><span class="likert-num">2</span>Trust only after verifying</div>
+                    <div class="likert-btn" onclick="pickSurvey('trust_pre',3,this)"><span class="likert-num">3</span>Generally trust, verify key claims</div>
+                    <div class="likert-btn" onclick="pickSurvey('trust_pre',4,this)"><span class="likert-num">4</span>Trust as reliable</div>
+                </div>
+            </div>
+            <div class="likert-group">
+                <label class="q">3. What best describes your technical background?</label>
+                <div class="likert-row">
+                    <div class="likert-btn" onclick="pickSurvey('technical',1,this)"><span class="likert-num">1</span>Basic user</div>
+                    <div class="likert-btn" onclick="pickSurvey('technical',2,this)"><span class="likert-num">2</span>Expert user</div>
+                    <div class="likert-btn" onclick="pickSurvey('technical',3,this)"><span class="likert-num">3</span>Basic programming</div>
+                    <div class="likert-btn" onclick="pickSurvey('technical',4,this)"><span class="likert-num">4</span>Advanced programming</div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btn-survey" disabled onclick="submitSurvey()">Continue</button>
+            </div>
         </div>
-        <a href="" id="post-link" class="post-link" style="display:none;">Open post-questionnaire</a>
     </div>
+
+    <!-- ====== PHASE 2: AGENT 1 INTERACTION ====== -->
+    <div class="phase" id="phase-2">
+        <div class="card">
+            <h2>Step 2: First Agent Interaction</h2>
+            <div class="info-box blue" id="agent1-desc"></div>
+            <p>Send each question to the agent and read the response carefully. Mark each question as done when you have read the response.</p>
+            <div class="timer">Time: <span id="timer1">00:00</span></div>
+            <div id="agent1-queries"></div>
+            <div class="info-box yellow">Complete all questions before continuing.</div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btn-agent1" disabled onclick="finishAgent(1)">Rate This Agent</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PHASE 3: RATE AGENT 1 ====== -->
+    <div class="phase" id="phase-3">
+        <div class="card">
+            <h2>Step 3: Rate <span id="rate1-label"></span></h2>
+            <div class="info-box blue" id="rate1-desc"></div>
+            <div id="rating1-scales"></div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btn-rate1" disabled onclick="submitRating(1)">Continue to Second Agent</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PHASE 4: AGENT 2 INTERACTION ====== -->
+    <div class="phase" id="phase-4">
+        <div class="card">
+            <h2>Step 4: Second Agent Interaction</h2>
+            <div class="info-box blue" id="agent2-desc"></div>
+            <p>Ask the <strong>same</strong> questions to this agent. Read each response carefully.</p>
+            <div class="timer">Time: <span id="timer2">00:00</span></div>
+            <div id="agent2-queries"></div>
+            <div class="info-box yellow">Complete all questions before continuing.</div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btn-agent2" disabled onclick="finishAgent(2)">Rate This Agent</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PHASE 5: RATE AGENT 2 ====== -->
+    <div class="phase" id="phase-5">
+        <div class="card">
+            <h2>Step 5: Rate <span id="rate2-label"></span></h2>
+            <div class="info-box blue" id="rate2-desc"></div>
+            <div id="rating2-scales"></div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btn-rate2" disabled onclick="submitRating(2)">Continue to Comparison</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PHASE 6: COMPARISON ====== -->
+    <div class="phase" id="phase-6">
+        <div class="card">
+            <h2>Step 6: Overall Comparison</h2>
+            <p>Thinking about the transparency indicators each agent used:</p>
+            <div class="likert-group">
+                <label class="q">Which agent's transparency approach did you find more helpful for deciding what to trust?</label>
+                <div class="pref-row">
+                    <div class="pref-card" id="pref-content" onclick="pickPref('content',this)">
+                        <strong id="pref-label-content"></strong>
+                        <span class="desc" id="pref-desc-content"></span>
+                    </div>
+                    <div class="pref-card" onclick="pickPref('no_difference',this)">
+                        <strong>No difference</strong>
+                        <span class="desc">Both were equally helpful (or unhelpful).</span>
+                    </div>
+                    <div class="pref-card" id="pref-procedural" onclick="pickPref('procedural',this)">
+                        <strong id="pref-label-proc"></strong>
+                        <span class="desc" id="pref-desc-proc"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="likert-group">
+                <label class="q">Why did you choose this option? (optional)</label>
+                <textarea class="comment-box" id="comment-input" placeholder="Any thoughts on why one approach worked better for you..."></textarea>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-success" id="btn-finish" disabled onclick="submitComparison()">Submit & Finish</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PHASE 7: DONE ====== -->
+    <div class="phase" id="phase-7">
+        <div class="card">
+            <h2>Study Complete</h2>
+            <div class="info-box green">Thank you for participating! Your responses have been recorded.</div>
+            <p>Your participant ID: <span class="pid-badge" id="final-pid"></span></p>
+            <div id="results-summary" style="margin-top:1rem;"></div>
+        </div>
+    </div>
+
 </div>
 
 <script>
+// ============================================================
+// STATE
+// ============================================================
 const token = localStorage.getItem('tommi_token');
 if (!token) window.location.href = '/login';
 
-let studyId = '';
-let studyCondition = '';
-let agentId = '';
-let queries = [];
-let questionnaireItems = [];
-let currentIdx = 0;
-let postUrl = '';
-let thankYouMsg = '';
+const PHASES = ['Consent','Survey','Agent 1','Rate 1','Agent 2','Rate 2','Compare','Done'];
+let phase = 0;
+let studyConfig = null; // from /api/study/queries
+let participantId = '';
+let presentationOrder = ''; // 'content_first' or 'procedural_first'
 
-// --- Init ---
+// Agent order (set after config loads)
+let agents = []; // [{key, agent_id, label, desc, transparency}, ...]
+let queries = [];
+let qItems = [];
+
+let survey = { experience: null, trust_pre: null, technical: null };
+let agentRatings = { 1: {}, 2: {} };
+let preference = null;
+let timerStart = {};
+let timerInterval = {};
+
+// Track per-agent query completion and responses
+let agentResponses = { 1: {}, 2: {} }; // agentNum -> { queryIdx: responseHtml }
+let agentQueryDone = { 1: new Set(), 2: new Set() };
+
+// ============================================================
+// INIT
+// ============================================================
 async function init() {
-    // Verify auth and study status
+    // Auth check
     const meRes = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
     if (!meRes.ok) { window.location.href = '/login'; return; }
     const me = await meRes.json();
-    if (!me.study_participant) { window.location.href = '/'; return; }
+    participantId = me.study_id || me.username || '---';
+    document.getElementById('pid-display').textContent = participantId;
 
-    studyId = me.study_id;
-    studyCondition = me.study_condition;
-    document.getElementById('participant-id').textContent = studyId;
-
-    // Load queries
+    // Load study config
     const qRes = await fetch('/api/study/queries', { headers: { 'Authorization': 'Bearer ' + token } });
-    const qData = await qRes.json();
-    agentId = qData.agent_id;
-    queries = qData.queries;
-    questionnaireItems = qData.questionnaire_items || [];
-    postUrl = qData.post_questionnaire_url || '';
-    thankYouMsg = qData.thank_you_message || 'Thank you for participating.';
+    if (!qRes.ok) { alert('Study not configured. Contact the researcher.'); return; }
+    studyConfig = await qRes.json();
 
-    buildQuestionnaireForm();
-    showQuery(0);
-}
+    queries = studyConfig.queries;
+    qItems = studyConfig.questionnaire_items || [];
 
-function buildQuestionnaireForm() {
-    const container = document.getElementById('q-items');
-    container.innerHTML = '';
-    for (const item of questionnaireItems) {
-        const div = document.createElement('div');
-        div.className = 'q-item';
-        let html = `<label>${item.text}</label><div class="likert">`;
-        html += `<span class="likert-label">Strongly disagree</span>`;
-        for (let v = 1; v <= 7; v++) {
-            html += `<label><input type="radio" name="q_${item.id}" value="${v}"><span class="radio-btn">${v}</span></label>`;
-        }
-        html += `<span class="likert-label right">Strongly agree</span>`;
-        html += `</div>`;
-        div.innerHTML = html;
-        container.appendChild(div);
+    // Counterbalance: alternate based on participant ID hash
+    const hash = participantId.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    if (hash % 2 === 0) {
+        presentationOrder = 'content_first';
+        agents = [studyConfig.agents.content, studyConfig.agents.procedural];
+    } else {
+        presentationOrder = 'procedural_first';
+        agents = [studyConfig.agents.procedural, studyConfig.agents.content];
     }
-    // Listen for changes to enable Next button
-    container.addEventListener('change', checkAllAnswered);
+
+    // Setup consent checkbox
+    document.getElementById('consent-check').addEventListener('change', function() {
+        document.getElementById('btn-consent').disabled = !this.checked;
+    });
+
+    updateProgress();
 }
 
-function checkAllAnswered() {
-    const total = questionnaireItems.length;
-    let answered = 0;
-    for (const item of questionnaireItems) {
-        if (document.querySelector(`input[name="q_${item.id}"]:checked`)) answered++;
-    }
-    document.getElementById('btn-next').disabled = (answered < total);
-}
-
-function showQuery(idx) {
-    currentIdx = idx;
-    const q = queries[idx];
-    document.getElementById('query-num').textContent = q.number;
-    document.getElementById('query-text').textContent = q.text;
-    document.getElementById('progress-label').textContent = `Query ${q.number} of ${queries.length}`;
-    const pct = Math.round((idx / queries.length) * 100);
+// ============================================================
+// PROGRESS
+// ============================================================
+function updateProgress() {
+    const pct = Math.round((phase / (PHASES.length - 1)) * 100);
+    document.getElementById('progress-label').textContent = `Step ${phase + 1} of ${PHASES.length}`;
     document.getElementById('progress-pct').textContent = pct + '%';
     document.getElementById('progress-fill').style.width = pct + '%';
-
-    // Reset UI
-    document.getElementById('btn-send').disabled = false;
-    document.getElementById('response-waiting').style.display = '';
-    document.getElementById('response-content').style.display = 'none';
-    document.getElementById('response-content').innerHTML = '';
-    document.getElementById('questionnaire').style.display = 'none';
-    document.getElementById('btn-next').disabled = true;
-    // Clear radio buttons
-    for (const item of questionnaireItems) {
-        const checked = document.querySelector(`input[name="q_${item.id}"]:checked`);
-        if (checked) checked.checked = false;
-    }
 }
 
-// --- Send query via SSE ---
-document.getElementById('btn-send').addEventListener('click', () => {
-    const q = queries[currentIdx];
-    document.getElementById('btn-send').disabled = true;
-    document.getElementById('response-waiting').textContent = 'Thinking...';
+function goPhase(n) {
+    document.getElementById(`phase-${phase}`).classList.remove('active');
+    phase = n;
+    document.getElementById(`phase-${phase}`).classList.add('active');
+    updateProgress();
+    window.scrollTo(0, 0);
+}
+
+// ============================================================
+// PHASE 0: CONSENT
+// ============================================================
+function startStudy() {
+    goPhase(1);
+}
+
+// ============================================================
+// PHASE 1: SURVEY
+// ============================================================
+function pickSurvey(field, value, el) {
+    survey[field] = value;
+    el.parentElement.querySelectorAll('.likert-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('btn-survey').disabled = !(survey.experience && survey.trust_pre && survey.technical);
+}
+
+function submitSurvey() {
+    setupAgent(1);
+    goPhase(2);
+}
+
+// ============================================================
+// AGENT INTERACTION
+// ============================================================
+function setupAgent(agentNum) {
+    const agent = agents[agentNum - 1];
+    document.getElementById(`agent${agentNum}-desc`).textContent = agent.desc;
+
+    const container = document.getElementById(`agent${agentNum}-queries`);
+    container.innerHTML = '';
+
+    queries.forEach((q, i) => {
+        const qCard = document.createElement('div');
+        qCard.className = 'card';
+        qCard.id = `aq${agentNum}-${i}`;
+        qCard.innerHTML = `
+            <div class="query-label">Question ${i + 1} of ${queries.length}</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div class="query-text" style="flex:1;">${escapeHtml(q.text)}</div>
+                <button class="btn btn-primary" style="padding:6px 14px;font-size:0.85rem;" onclick="copyAndSend(${agentNum},${i})">Send to Agent</button>
+            </div>
+            <div class="response-area" id="resp-${agentNum}-${i}">
+                <div class="waiting">Click "Send to Agent" to get the response.</div>
+            </div>
+        `;
+        container.appendChild(qCard);
+    });
+
+    // Start timer
+    timerStart[agentNum] = Date.now();
+    timerInterval[agentNum] = setInterval(() => {
+        const s = Math.floor((Date.now() - timerStart[agentNum]) / 1000);
+        document.getElementById(`timer${agentNum}`).textContent =
+            `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    }, 1000);
+
+    agentQueryDone[agentNum] = new Set();
+    checkAgentDone(agentNum);
+}
+
+function copyAndSend(agentNum, qIdx) {
+    const agent = agents[agentNum - 1];
+    const q = queries[qIdx];
+    const respEl = document.getElementById(`resp-${agentNum}-${qIdx}`);
+    respEl.innerHTML = '<div class="waiting">Thinking...</div>';
 
     const params = new URLSearchParams({
-        agent_id: agentId,
+        agent_id: agent.agent_id,
         message: q.text,
-        transparency: studyCondition,
+        transparency: agent.transparency,
         study_query_number: q.number,
     });
 
@@ -293,7 +479,7 @@ document.getElementById('btn-send').addEventListener('click', () => {
     });
 
     eventSource.addEventListener('status', (e) => {
-        document.getElementById('response-waiting').textContent = e.data;
+        respEl.innerHTML = `<div class="waiting">${escapeHtml(e.data)}</div>`;
     });
 
     eventSource.addEventListener('replace', (e) => {
@@ -301,70 +487,190 @@ document.getElementById('btn-send').addEventListener('click', () => {
     });
 
     eventSource.onmessage = (e) => {
-        document.getElementById('response-waiting').style.display = 'none';
-        document.getElementById('response-content').style.display = '';
         responseText += e.data.replace(/\\n/g, '\n');
-        document.getElementById('response-content').innerHTML = badgeHtml + marked.parse(responseText);
+        respEl.innerHTML = `<div class="agent-response">${badgeHtml}${marked.parse(responseText)}</div>`;
     };
 
     eventSource.addEventListener('done', () => {
         eventSource.close();
-        document.getElementById('response-waiting').style.display = 'none';
-        document.getElementById('response-content').style.display = '';
-        document.getElementById('response-content').innerHTML = badgeHtml + marked.parse(responseText);
-        // Show questionnaire
-        document.getElementById('questionnaire').style.display = '';
+        respEl.innerHTML = `<div class="agent-response">${badgeHtml}${marked.parse(responseText)}</div>`;
+        agentQueryDone[agentNum].add(qIdx);
+        // Mark card visually
+        document.getElementById(`aq${agentNum}-${qIdx}`).style.borderLeft = '4px solid var(--success)';
+        checkAgentDone(agentNum);
     });
 
     eventSource.addEventListener('error', (e) => {
         eventSource.close();
-        document.getElementById('response-waiting').textContent = 'An error occurred. Please try again.';
-        document.getElementById('btn-send').disabled = false;
+        respEl.innerHTML = '<div class="waiting" style="color:#dc2626;">Error. Please try again.</div>';
     });
-});
+}
 
-// --- Submit questionnaire and advance ---
-document.getElementById('btn-next').addEventListener('click', async () => {
-    document.getElementById('btn-next').disabled = true;
-    const q = queries[currentIdx];
+function checkAgentDone(agentNum) {
+    document.getElementById(`btn-agent${agentNum}`).disabled = agentQueryDone[agentNum].size < queries.length;
+}
 
-    // Collect answers
-    const answers = {};
-    for (const item of questionnaireItems) {
-        const el = document.querySelector(`input[name="q_${item.id}"]:checked`);
-        answers[item.id] = el ? parseInt(el.value) : null;
+function finishAgent(agentNum) {
+    clearInterval(timerInterval[agentNum]);
+
+    const agent = agents[agentNum - 1];
+    document.getElementById(`rate${agentNum}-label`).textContent = agent.label;
+    document.getElementById(`rate${agentNum}-desc`).textContent = agent.desc;
+    buildRatingScales(agentNum);
+
+    if (agentNum === 1) {
+        goPhase(3);
+    } else {
+        goPhase(5);
+    }
+}
+
+// ============================================================
+// RATING SCALES (1-7)
+// ============================================================
+function buildRatingScales(agentNum) {
+    const container = document.getElementById(`rating${agentNum}-scales`);
+    container.innerHTML = '';
+    agentRatings[agentNum] = {};
+
+    qItems.forEach((item, idx) => {
+        const group = document.createElement('div');
+        group.className = 'likert-group';
+        let html = `<label class="q">${idx + 1}. ${escapeHtml(item.text)}</label><div class="likert-row">`;
+        for (let v = 1; v <= 7; v++) {
+            let label = '';
+            if (v === 1) label = item.anchor_low || '';
+            else if (v === 4) label = 'Neutral';
+            else if (v === 7) label = item.anchor_high || '';
+            html += `<div class="likert-btn" onclick="pickRating(${agentNum},'${item.id}',${v},this)"><span class="likert-num">${v}</span>${label}</div>`;
+        }
+        html += '</div>';
+        group.innerHTML = html;
+        container.appendChild(group);
+    });
+}
+
+function pickRating(agentNum, itemId, value, el) {
+    agentRatings[agentNum][itemId] = value;
+    el.parentElement.querySelectorAll('.likert-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+
+    const allAnswered = qItems.every(it => agentRatings[agentNum][it.id]);
+    document.getElementById(`btn-rate${agentNum}`).disabled = !allAnswered;
+}
+
+function submitRating(agentNum) {
+    if (agentNum === 1) {
+        setupAgent(2);
+        goPhase(4);
+    } else {
+        setupComparison();
+        goPhase(6);
+    }
+}
+
+// ============================================================
+// PHASE 6: COMPARISON
+// ============================================================
+function setupComparison() {
+    let contentAgent, procAgent;
+    if (presentationOrder === 'content_first') {
+        contentAgent = agents[0];
+        procAgent = agents[1];
+    } else {
+        contentAgent = agents[1];
+        procAgent = agents[0];
+    }
+    document.getElementById('pref-label-content').textContent = contentAgent.label;
+    document.getElementById('pref-desc-content').textContent = contentAgent.desc;
+    document.getElementById('pref-label-proc').textContent = procAgent.label;
+    document.getElementById('pref-desc-proc').textContent = procAgent.desc;
+}
+
+function pickPref(value, el) {
+    preference = value;
+    document.querySelectorAll('.pref-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('btn-finish').disabled = false;
+}
+
+async function submitComparison() {
+    document.getElementById('btn-finish').disabled = true;
+
+    // Map agent ratings to content/procedural
+    let contentRatings, procRatings;
+    if (presentationOrder === 'content_first') {
+        contentRatings = agentRatings[1];
+        procRatings = agentRatings[2];
+    } else {
+        contentRatings = agentRatings[2];
+        procRatings = agentRatings[1];
     }
 
-    // Submit to backend
-    await fetch('/api/study/questionnaire', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ agent_id: agentId, query_number: q.number, ...answers }),
-    });
+    const payload = {
+        participant_id: participantId,
+        presentation_order: presentationOrder,
+        survey: survey,
+        time_agent1_sec: timerStart[1] ? Math.floor((Date.now() - timerStart[1]) / 1000) : 0,
+        time_agent2_sec: timerStart[2] ? Math.floor((Date.now() - timerStart[2]) / 1000) : 0,
+        ratings_content: contentRatings,
+        ratings_procedural: procRatings,
+        preference: preference,
+        comment: document.getElementById('comment-input').value.trim(),
+    };
 
-    // Advance
-    if (currentIdx + 1 < queries.length) {
-        showQuery(currentIdx + 1);
-    } else {
-        // Study complete
+    // Save to study log endpoint
+    try {
+        await fetch('/api/study/comparison', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify(payload),
+        });
+    } catch (e) {
+        console.error('Failed to save comparison:', e);
+    }
+
+    // Mark study as completed
+    try {
         await fetch('/api/study/complete', {
             method: 'POST',
             headers: { 'Authorization': 'Bearer ' + token },
         });
-        document.getElementById('task-area').style.display = 'none';
-        document.getElementById('progress-fill').style.width = '100%';
-        document.getElementById('progress-pct').textContent = '100%';
-        document.getElementById('progress-label').textContent = 'Complete';
-        document.getElementById('completion').style.display = '';
-        document.getElementById('thank-you-msg').textContent = thankYouMsg;
-        document.getElementById('final-study-id').textContent = studyId;
-        if (postUrl) {
-            const link = document.getElementById('post-link');
-            link.href = postUrl + '?study_id=' + encodeURIComponent(studyId);
-            link.style.display = '';
-        }
+    } catch (e) { /* ignore */ }
+
+    showResults(contentRatings, procRatings);
+    goPhase(7);
+}
+
+// ============================================================
+// PHASE 7: RESULTS
+// ============================================================
+function showResults(contentRatings, procRatings) {
+    document.getElementById('final-pid').textContent = participantId;
+
+    const prefLabels = { content: 'Content transparency', procedural: 'Procedural transparency', no_difference: 'No difference' };
+    let rows = '';
+    for (const item of qItems) {
+        rows += `<tr><td>${escapeHtml(item.text).substring(0, 60)}...</td><td>${contentRatings[item.id] || '-'}/7</td><td>${procRatings[item.id] || '-'}/7</td></tr>`;
     }
-});
+
+    document.getElementById('results-summary').innerHTML = `
+        <table class="results-table">
+            <tr><th>Measure</th><th>Content (AI2)</th><th>Procedural (AI3)</th></tr>
+            ${rows}
+        </table>
+        <p style="margin-top:1rem;font-size:0.9rem;"><strong>Preference:</strong> ${prefLabels[preference] || preference}</p>
+    `;
+}
+
+// ============================================================
+// UTIL
+// ============================================================
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 init();
 </script>

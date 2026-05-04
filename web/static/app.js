@@ -1167,6 +1167,13 @@ function addPdfLinks(container) {
                         link.style.cssText = 'margin-left:4px;font-size:0.85em;';
                         frag.appendChild(link);
                     }
+                } else if (idMatch && !pdfSet.has(idMatch[1])) {
+                    // Paper ID exists but PDF is not available — show note
+                    frag.appendChild(document.createTextNode(part));
+                    const note = document.createElement('span');
+                    note.textContent = ' (PDF not available)';
+                    note.style.cssText = 'margin-left:4px;font-size:0.85em;color:#888;';
+                    frag.appendChild(note);
                 } else {
                     frag.appendChild(document.createTextNode(part));
                 }

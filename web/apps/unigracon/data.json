@@ -1,0 +1,295 @@
+{
+  "universities": {
+    "USPN": {
+      "name": "Université Sorbonne Paris Nord",
+      "country": "FR",
+      "grading_system": "French 0-20",
+      "min_grade": 0,
+      "max_grade": 20,
+      "pass_grade": 10,
+      "grade_labels": [
+        {"min": 16, "max": 20, "label": "Très bien (Very Good)"},
+        {"min": 14, "max": 15.99, "label": "Bien (Good)"},
+        {"min": 12, "max": 13.99, "label": "Assez bien (Fairly Good)"},
+        {"min": 10, "max": 11.99, "label": "Passable (Pass)"},
+        {"min": 0, "max": 9.99, "label": "Insuffisant (Fail)"}
+      ]
+    },
+    "UDCLV": {
+      "name": "University of Campania \"Luigi Vanvitelli\"",
+      "country": "IT",
+      "grading_system": "Italian 18-30 (+ 30 e lode)",
+      "min_grade": 0,
+      "max_grade": 31,
+      "pass_grade": 18,
+      "grade_labels": [
+        {"min": 31, "max": 31, "label": "30 e lode (Excellent with Honours)"},
+        {"min": 28, "max": 30.99, "label": "Ottimo (Excellent)"},
+        {"min": 25, "max": 27.99, "label": "Buono (Good)"},
+        {"min": 22, "max": 24.99, "label": "Discreto (Fair)"},
+        {"min": 18, "max": 21.99, "label": "Sufficiente (Pass)"},
+        {"min": 0, "max": 17.99, "label": "Insufficiente (Fail)"}
+      ],
+      "display_grade": "For 31, display as '30 e lode'"
+    },
+    "UMA": {
+      "name": "Universidad de Málaga",
+      "country": "ES",
+      "grading_system": "Spanish 0-10",
+      "min_grade": 0,
+      "max_grade": 10,
+      "pass_grade": 5,
+      "grade_labels": [
+        {"min": 9, "max": 10, "label": "Sobresaliente / Matrícula de Honor (Outstanding)"},
+        {"min": 7, "max": 8.99, "label": "Notable (Good)"},
+        {"min": 5, "max": 6.99, "label": "Aprobado (Pass)"},
+        {"min": 0, "max": 4.99, "label": "Suspenso (Fail)"}
+      ]
+    },
+    "KK": {
+      "name": "Kauno kolegija Higher Education Institution",
+      "country": "LT",
+      "grading_system": "Lithuanian 1-10",
+      "min_grade": 1,
+      "max_grade": 10,
+      "pass_grade": 5,
+      "grade_labels": [
+        {"min": 10, "max": 10, "label": "Puikiai (Excellent)"},
+        {"min": 9, "max": 9, "label": "Labai gerai (Very Good)"},
+        {"min": 8, "max": 8, "label": "Gerai (Good)"},
+        {"min": 7, "max": 7, "label": "Vidutiniškai (Satisfactory)"},
+        {"min": 6, "max": 6, "label": "Patenkinamai (Sufficient)"},
+        {"min": 5, "max": 5, "label": "Silpnai (Weak Pass)"},
+        {"min": 1, "max": 4, "label": "Nepatenkinamai (Fail)"}
+      ]
+    },
+    "UT": {
+      "name": "University of Tirana",
+      "country": "AL",
+      "grading_system": "Albanian 1-10 (4 = pass)",
+      "min_grade": 1,
+      "max_grade": 10,
+      "pass_grade": 4,
+      "grade_labels": [
+        {"min": 10, "max": 10, "label": "Shkëlqyeshëm (Excellent)"},
+        {"min": 9, "max": 9, "label": "Shumë mirë (Very Good)"},
+        {"min": 8, "max": 8, "label": "Mirë (Good)"},
+        {"min": 7, "max": 7, "label": "Kënaqshëm (Satisfactory)"},
+        {"min": 5, "max": 6, "label": "Mjaftueshëm (Sufficient)"},
+        {"min": 4, "max": 4, "label": "Kalueshëm (Pass)"},
+        {"min": 1, "max": 3, "label": "Mbetës (Fail)"}
+      ]
+    },
+    "THWS": {
+      "name": "Technical University of Applied Sciences Würzburg-Schweinfurt",
+      "country": "DE",
+      "grading_system": "German 1.0-5.0 (lower is better)",
+      "min_grade": 1.0,
+      "max_grade": 5.0,
+      "pass_grade": 4.0,
+      "inverted": true,
+      "grade_labels": [
+        {"min": 1.0, "max": 1.5, "label": "Sehr gut (Very Good)"},
+        {"min": 1.6, "max": 2.5, "label": "Gut (Good)"},
+        {"min": 2.6, "max": 3.5, "label": "Befriedigend (Satisfactory)"},
+        {"min": 3.6, "max": 4.0, "label": "Ausreichend (Sufficient)"},
+        {"min": 4.1, "max": 5.0, "label": "Nicht bestanden (Fail)"}
+      ]
+    },
+    "TAMK": {
+      "name": "Tampere University of Applied Sciences",
+      "country": "FI",
+      "grading_system": "Finnish 0-5",
+      "min_grade": 0,
+      "max_grade": 5,
+      "pass_grade": 1,
+      "grade_labels": [
+        {"min": 5, "max": 5, "label": "Erinomainen (Excellent)"},
+        {"min": 4, "max": 4, "label": "Kiitettävä (Very Good)"},
+        {"min": 3, "max": 3, "label": "Hyvä (Good)"},
+        {"min": 2, "max": 2, "label": "Tyydyttävä (Satisfactory)"},
+        {"min": 1, "max": 1, "label": "Välttävä (Pass)"},
+        {"min": 0, "max": 0, "label": "Hylätty (Fail)"}
+      ]
+    },
+    "THUAS": {
+      "name": "The Hague University of Applied Sciences",
+      "country": "NL",
+      "grading_system": "Dutch 1-10",
+      "min_grade": 1,
+      "max_grade": 10,
+      "pass_grade": 5.5,
+      "grade_labels": [
+        {"min": 9, "max": 10, "label": "Uitmuntend (Outstanding)"},
+        {"min": 8, "max": 8.99, "label": "Zeer goed (Very Good)"},
+        {"min": 7, "max": 7.99, "label": "Goed (Good)"},
+        {"min": 6, "max": 6.99, "label": "Voldoende (Satisfactory)"},
+        {"min": 5.5, "max": 5.99, "label": "Voldoende (Pass)"},
+        {"min": 1, "max": 5.49, "label": "Onvoldoende (Fail)"}
+      ]
+    }
+  },
+
+  "conversions": {
+    "UMA->USPN": {
+      "method": "formula",
+      "formula": "X * 2",
+      "notes": "Spanish 0-10 to French 0-20: linear scaling"
+    },
+    "USPN->UMA": {
+      "method": "formula",
+      "formula": "X / 2",
+      "notes": "French 0-20 to Spanish 0-10: linear scaling"
+    },
+    "UMA->UDCLV": {
+      "method": "formula",
+      "formula": "IF(X<5, X*17/5, 18 + (X-5)*(31-18)/(10-5))",
+      "notes": "Below pass: scale 0-5 to 0-17. Pass: scale 5-10 to 18-31 (30 e lode)"
+    },
+    "UDCLV->UMA": {
+      "method": "formula",
+      "formula": "IF(X<18, X*5/17, 5 + (X-18)*(10-5)/(31-18))",
+      "notes": "Below pass: scale 0-17 to 0-5. Pass: scale 18-31 to 5-10"
+    },
+    "UMA->THWS": {
+      "method": "formula",
+      "formula": "IF(X<5, 5, 1 + (10-X)*(4-1)/(10-5))",
+      "notes": "German scale is inverted. Fail below 5. Pass range: 5->4.0, 10->1.0"
+    },
+    "THWS->UMA": {
+      "method": "formula",
+      "formula": "IF(X>4, 4.99*(5-X)/(5-4.1), 10 - (X-1)*(10-5)/(4-1))",
+      "notes": "German inverted to Spanish. Fail above 4.0. Pass: 4.0->5, 1.0->10"
+    },
+    "UMA->TAMK": {
+      "method": "table",
+      "table": [
+        {"from_min": 0, "from_max": 4.99, "to": 0},
+        {"from_min": 5, "from_max": 5.99, "to": 1},
+        {"from_min": 6, "from_max": 6.99, "to": 2},
+        {"from_min": 7, "from_max": 7.99, "to": 3},
+        {"from_min": 8, "from_max": 8.99, "to": 4},
+        {"from_min": 9, "from_max": 10, "to": 5}
+      ],
+      "notes": "Spanish to Finnish: range-to-discrete mapping"
+    },
+    "TAMK->UMA": {
+      "method": "table",
+      "table": [
+        {"from_min": 0, "from_max": 0, "to": 4},
+        {"from_min": 1, "from_max": 1, "to": 5.5},
+        {"from_min": 2, "from_max": 2, "to": 6.5},
+        {"from_min": 3, "from_max": 3, "to": 7.5},
+        {"from_min": 4, "from_max": 4, "to": 8.5},
+        {"from_min": 5, "from_max": 5, "to": 9.5}
+      ],
+      "notes": "Finnish discrete to Spanish: midpoint mapping"
+    },
+    "UMA->THUAS": {
+      "method": "formula",
+      "formula": "IF(X<5, 1 + X*4.49/5, 5.5 + (X-5)*(10-5.5)/(10-5))",
+      "notes": "Fail: 0-5 -> 1-5.49. Pass: 5-10 -> 5.5-10"
+    },
+    "THUAS->UMA": {
+      "method": "formula",
+      "formula": "IF(X<5.5, (X-1)*5/4.49, 5 + (X-5.5)*(10-5)/(10-5.5))",
+      "notes": "Fail: 1-5.49 -> 0-5. Pass: 5.5-10 -> 5-10"
+    },
+    "UMA->KK": {
+      "method": "table",
+      "table": [
+        {"from_min": 0, "from_max": 4.99, "to": 3},
+        {"from_min": 5, "from_max": 5.49, "to": 5},
+        {"from_min": 5.5, "from_max": 5.99, "to": 6},
+        {"from_min": 6, "from_max": 6.99, "to": 7},
+        {"from_min": 7, "from_max": 7.99, "to": 8},
+        {"from_min": 8, "from_max": 8.99, "to": 9},
+        {"from_min": 9, "from_max": 10, "to": 10}
+      ],
+      "notes": "Spanish to Lithuanian: range-to-discrete mapping"
+    },
+    "KK->UMA": {
+      "method": "table",
+      "table": [
+        {"from_min": 1, "from_max": 4, "to": 4},
+        {"from_min": 5, "from_max": 5, "to": 5.2},
+        {"from_min": 6, "from_max": 6, "to": 5.7},
+        {"from_min": 7, "from_max": 7, "to": 6.5},
+        {"from_min": 8, "from_max": 8, "to": 7.5},
+        {"from_min": 9, "from_max": 9, "to": 8.5},
+        {"from_min": 10, "from_max": 10, "to": 9.5}
+      ],
+      "notes": "Lithuanian discrete to Spanish"
+    },
+    "UMA->UT": {
+      "method": "formula",
+      "formula": "IF(X<5, 1 + X*2/5, 4 + (X-5)*6/(10-5))",
+      "notes": "Fail: 0-5 -> 1-3. Pass: 5-10 -> 4-10"
+    },
+    "UT->UMA": {
+      "method": "formula",
+      "formula": "IF(X<4, (X-1)*5/2, 5 + (X-4)*(10-5)/6)",
+      "notes": "Fail: 1-3 -> 0-5. Pass: 4-10 -> 5-10"
+    },
+    "THWS->TAMK": {
+      "method": "table",
+      "table": [
+        {"from_min": 4.1, "from_max": 5.0, "to": 0},
+        {"from_min": 3.6, "from_max": 4.0, "to": 1},
+        {"from_min": 3.0, "from_max": 3.5, "to": 2},
+        {"from_min": 2.6, "from_max": 2.9, "to": 3},
+        {"from_min": 1.6, "from_max": 2.5, "to": 4},
+        {"from_min": 1.0, "from_max": 1.5, "to": 5}
+      ],
+      "notes": "German inverted to Finnish discrete"
+    },
+    "TAMK->THWS": {
+      "method": "table",
+      "table": [
+        {"from_min": 0, "from_max": 0, "to": 5.0},
+        {"from_min": 1, "from_max": 1, "to": 4.0},
+        {"from_min": 2, "from_max": 2, "to": 3.3},
+        {"from_min": 3, "from_max": 3, "to": 2.7},
+        {"from_min": 4, "from_max": 4, "to": 2.0},
+        {"from_min": 5, "from_max": 5, "to": 1.3}
+      ],
+      "notes": "Finnish discrete to German inverted"
+    },
+    "USPN->UDCLV": {
+      "method": "formula",
+      "formula": "IF(X<10, X*17/10, 18 + (X-10)*(31-18)/(20-10))",
+      "notes": "Below pass: 0-10 -> 0-17. Pass: 10-20 -> 18-31"
+    },
+    "UDCLV->USPN": {
+      "method": "formula",
+      "formula": "IF(X<18, X*10/17, 10 + (X-18)*(20-10)/(31-18))",
+      "notes": "Below pass: 0-17 -> 0-10. Pass: 18-31 -> 10-20"
+    },
+    "THUAS->KK": {
+      "method": "table",
+      "table": [
+        {"from_min": 1, "from_max": 5.49, "to": 3},
+        {"from_min": 5.5, "from_max": 5.99, "to": 5},
+        {"from_min": 6, "from_max": 6.49, "to": 6},
+        {"from_min": 6.5, "from_max": 6.99, "to": 7},
+        {"from_min": 7, "from_max": 7.99, "to": 8},
+        {"from_min": 8, "from_max": 8.99, "to": 9},
+        {"from_min": 9, "from_max": 10, "to": 10}
+      ],
+      "notes": "Dutch to Lithuanian: range-to-discrete mapping"
+    },
+    "KK->THUAS": {
+      "method": "table",
+      "table": [
+        {"from_min": 1, "from_max": 4, "to": 4},
+        {"from_min": 5, "from_max": 5, "to": 5.5},
+        {"from_min": 6, "from_max": 6, "to": 6.2},
+        {"from_min": 7, "from_max": 7, "to": 6.7},
+        {"from_min": 8, "from_max": 8, "to": 7.5},
+        {"from_min": 9, "from_max": 9, "to": 8.5},
+        {"from_min": 10, "from_max": 10, "to": 9.5}
+      ],
+      "notes": "Lithuanian discrete to Dutch"
+    }
+  }
+}

@@ -171,6 +171,11 @@ app.add_middleware(AuthMiddleware)
 app.mount("/static", StaticFiles(directory=SCRIPT_DIR / "static"), name="static")
 app.mount("/img", StaticFiles(directory=SCRIPT_DIR / "img"), name="img")
 
+# Mount UNIGRACON app (grade converter)
+from apps.unigracon.unigracon import router as unigracon_router
+app.include_router(unigracon_router)
+app.mount("/unigracon/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "unigracon" / "static"), name="unigracon_static")
+
 
 # ---------------------------------------------------------------------------
 # Auth helpers
@@ -790,6 +795,22 @@ async def study_questionnaire(req: StudyQuestionnaireRequest, session: dict = De
 
     if not updated:
         raise HTTPException(status_code=404, detail="Study log entry not found for this query")
+    return {"ok": True}
+
+
+@app.post("/api/study/comparison")
+async def study_comparison(request: Request, session: dict = Depends(require_auth)):
+    """Save within-subjects comparison study results to a JSONL log."""
+    import os
+    data = await request.json()
+    log_path = SCRIPT_DIR / "data" / "study_comparison_log.jsonl"
+    entry = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "username": session["username"],
+        **data,
+    }
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     return {"ok": True}
 
 
