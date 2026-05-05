@@ -13,7 +13,7 @@ import math
 import os
 import re
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
@@ -23,9 +23,44 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 router = APIRouter(prefix="/unigracon", tags=["unigracon"])
 
 
+# ── Auth helpers for edit protection ─────────────────────────────────
+
+from auth import get_session, ROLES
+
+
+def _get_token(request: Request) -> str | None:
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header[7:]
+    return request.query_params.get("token")
+
+
+def _require_auth(request: Request) -> dict:
+    token = _get_token(request)
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    session = get_session(token)
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+    return session
+
+
+def _require_editor(session: dict = Depends(_require_auth)) -> dict:
+    if ROLES.get(session["role"], 0) < ROLES.get("tester", 99):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    return session
+
+
+# ── Data I/O ─────────────────────────────────────────────────────────
+
 def load_data() -> dict:
     with open(DATA_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def save_data(data: dict):
+    with open(DATA_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 # ── Excel-style formula evaluator ─────────────────────────────────────
@@ -265,3 +300,131 @@ def convert(body: ConvertRequest):
     except ValueError as e:
         raise HTTPException(400, str(e))
     return result
+
+
+# ── Models for data editing ──────────────────────────────────────────
+
+class TableRow(BaseModel):
+    from_min: float
+    from_max: float
+    to: float
+
+
+class SingleConversion(BaseModel):
+    method: str
+    formula: str = ""
+    table: list[TableRow] = []
+    notes: str = ""
+
+
+class BatchConversionsBody(BaseModel):
+    conversions: dict[str, SingleConversion]
+
+
+class TestRequest(BaseModel):
+    method: str
+    formula: str = ""
+    table: list[dict] = []
+    grade: float
+
+
+# ── Auth check ───────────────────────────────────────────────────────
+
+@router.get("/api/auth-check")
+def auth_check(session: dict = Depends(_require_auth)):
+    can_edit = ROLES.get(session["role"], 0) >= ROLES.get("tester", 99)
+    return {"username": session["username"], "role": session["role"], "can_edit": can_edit}
+
+
+# ── Batch conversion update (per target university) ─────────────────
+
+@router.get("/api/conversions-to/{target}")
+def get_conversions_to(target: str):
+    data = load_data()
+    if target not in data["universities"]:
+        raise HTTPException(404, f"University {target} not found")
+    result = {}
+    for key, conv in data["conversions"].items():
+        src, tgt = key.split("->")
+        if tgt == target:
+            result[src] = conv
+    return {"target": target, "conversions": result}
+
+
+@router.put("/api/conversions-to/{target}")
+def update_conversions_to(
+    target: str,
+    body: BatchConversionsBody,
+    session: dict = Depends(_require_editor),
+):
+    data = load_data()
+    if target not in data["universities"]:
+        raise HTTPException(404, f"University {target} not found")
+
+    errors = []
+    for source, conv in body.conversions.items():
+        if source not in data["universities"]:
+            errors.append(f"Unknown university: {source}")
+            continue
+        if source == target:
+            continue
+
+        key = f"{source}->{target}"
+
+        # Empty conversion — remove if it exists
+        if conv.method == "formula" and not conv.formula.strip():
+            data["conversions"].pop(key, None)
+            continue
+        if conv.method == "table" and not conv.table:
+            data["conversions"].pop(key, None)
+            continue
+
+        if conv.method == "formula":
+            src_info = data["universities"][source]
+            mid = (src_info["min_grade"] + src_info["max_grade"]) / 2
+            try:
+                _eval_formula(conv.formula, mid)
+            except Exception as e:
+                errors.append(f"{source}: Invalid formula — {e}")
+                continue
+            data["conversions"][key] = {
+                "method": "formula",
+                "formula": conv.formula,
+                "notes": conv.notes,
+            }
+        elif conv.method == "table":
+            data["conversions"][key] = {
+                "method": "table",
+                "table": [row.model_dump() for row in conv.table],
+                "notes": conv.notes,
+            }
+        else:
+            errors.append(f"{source}: Invalid method — {conv.method}")
+
+    if errors:
+        raise HTTPException(400, detail={"errors": errors})
+
+    save_data(data)
+    return {"ok": True}
+
+
+# ── Test a formula / table without saving ────────────────────────────
+
+@router.post("/api/test-formula")
+def test_formula(body: TestRequest, session: dict = Depends(_require_editor)):
+    try:
+        if body.method == "formula":
+            if not body.formula.strip():
+                return {"error": "Formula is empty"}
+            result = _eval_formula(body.formula, body.grade)
+        elif body.method == "table":
+            if not body.table:
+                return {"error": "Table is empty"}
+            result = _table_lookup(body.table, body.grade)
+            if result is None:
+                return {"error": f"Grade {body.grade} not covered by table"}
+        else:
+            return {"error": f"Unknown method: {body.method}"}
+        return {"result": round(result, 2)}
+    except Exception as e:
+        return {"error": str(e)}

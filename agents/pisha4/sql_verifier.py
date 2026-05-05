@@ -909,24 +909,22 @@ class SQLVerifier:
                 sql_clean, re.IGNORECASE | re.DOTALL)
             if where_m:
                 where_clause = where_m.group(1).strip()
-                conditions = re.split(r'\s+AND\s+', where_clause, flags=re.IGNORECASE)
-                filters = []
-                for cond in conditions:
-                    cond = cond.strip()
+
+                def _parse_single_condition(cond):
+                    """Parse a single atomic condition into friendly text."""
+                    cond = cond.strip().strip("()")
                     # LIKE '%value%'
                     like_m = re.match(
                         r"(\w+(?:\.\w+)?)\s+LIKE\s+'%(.+?)%'",
                         cond, re.IGNORECASE)
                     if like_m:
-                        filters.append(f"{_friendly_col(like_m.group(1))} contains \"{like_m.group(2)}\"")
-                        continue
+                        return f"{_friendly_col(like_m.group(1))} contains \"{like_m.group(2)}\""
                     # = 'value'
                     eq_m = re.match(
                         r"(\w+(?:\.\w+)?)\s*=\s*'(.+?)'",
                         cond, re.IGNORECASE)
                     if eq_m:
-                        filters.append(f"{_friendly_col(eq_m.group(1))} is \"{eq_m.group(2)}\"")
-                        continue
+                        return f"{_friendly_col(eq_m.group(1))} is \"{eq_m.group(2)}\""
                     # IS NULL / IS NOT NULL
                     null_m = re.match(
                         r"(\w+(?:\.\w+)?)\s+IS\s+(NOT\s+)?NULL",
@@ -934,15 +932,51 @@ class SQLVerifier:
                     if null_m:
                         col = _friendly_col(null_m.group(1))
                         if null_m.group(2):
-                            filters.append(f"{col} is specified")
+                            return f"{col} is specified"
                         else:
-                            filters.append(f"{col} is not specified")
-                        continue
+                            return f"{col} is not specified"
+                    # Numeric comparisons: >=, <=, >, <
+                    num_m = re.match(
+                        r"(\w+(?:\.\w+)?)\s*(>=|<=|>|<)\s*(\d+(?:\.\d+)?)",
+                        cond, re.IGNORECASE)
+                    if num_m:
+                        col = _friendly_col(num_m.group(1))
+                        op = {">=": "is at least", "<=": "is at most", ">": "is more than", "<": "is less than"}
+                        return f"{col} {op.get(num_m.group(2), num_m.group(2))} {num_m.group(3)}"
                     # Fallback: include as-is but clean up
-                    filters.append(cond)
+                    return cond
 
-                if filters:
-                    parts.append(f"where {' and '.join(filters)}")
+                def _parse_and_group(group_str):
+                    """Parse a group of AND-connected conditions."""
+                    conditions = re.split(r'\s+AND\s+', group_str, flags=re.IGNORECASE)
+                    return [_parse_single_condition(c) for c in conditions]
+
+                # Check if there's an OR at the top level (possibly with parenthesized groups)
+                # Split by OR that's outside parentheses
+                or_groups = re.split(r'\)\s+OR\s+\(', where_clause, flags=re.IGNORECASE)
+                if len(or_groups) > 1:
+                    # Clean leading ( from first group and trailing ) from last
+                    or_groups[0] = or_groups[0].lstrip("( ")
+                    or_groups[-1] = or_groups[-1].rstrip(") ")
+                    group_texts = []
+                    for g in or_groups:
+                        filters = _parse_and_group(g)
+                        group_texts.append(" and ".join(filters))
+                    parts.append(f"where ({') or ('.join(group_texts)})")
+                else:
+                    # Also check for bare OR without parentheses
+                    or_parts = re.split(r'\s+OR\s+', where_clause, flags=re.IGNORECASE)
+                    if len(or_parts) > 1:
+                        group_texts = []
+                        for g in or_parts:
+                            filters = _parse_and_group(g.strip("() "))
+                            group_texts.append(" and ".join(filters))
+                        parts.append(f"where ({') or ('.join(group_texts)})")
+                    else:
+                        # Simple AND-only case
+                        filters = _parse_and_group(where_clause)
+                        if filters:
+                            parts.append(f"where {' and '.join(filters)}")
 
             # --- GROUP BY ---
             group_m = re.search(

@@ -31,7 +31,7 @@
         }
         .form-group { display: flex; flex-direction: column; }
         label { font-weight: 600; margin-bottom: 6px; color: #1a3a5c; font-size: 0.9em; }
-        select, input[type="number"] {
+        select, input[type="number"], input[type="text"], input[type="password"], textarea {
             padding: 10px 12px;
             border: 1px solid #ccc;
             border-radius: 6px;
@@ -130,7 +130,6 @@
             color: #555;
         }
         .method-info strong { color: #333; }
-        /* Tooltip for method detail */
         .tooltip-wrap {
             position: relative;
             display: inline-block;
@@ -206,6 +205,159 @@
             .conversion-detail { grid-template-columns: 1fr; }
             .conv-arrow { transform: rotate(90deg); margin: 8px auto; }
         }
+
+        /* ── Auth bar ──────────────────────────────────────────── */
+        .auth-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            font-size: 0.88em;
+        }
+        .auth-bar .auth-info { color: #555; }
+        .auth-btn {
+            background: #e9ecef;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 6px 16px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.2s;
+        }
+        .auth-btn:hover { background: #d0d4d9; }
+
+        /* ── Login modal ───────────────────────────────────────── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1000;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 80px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #fff;
+            border-radius: 8px;
+            padding: 28px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .modal-box h3 { color: #1a3a5c; margin-bottom: 16px; }
+        .modal-box .form-group { margin-bottom: 14px; }
+        .modal-box .error { font-size: 0.88em; margin-top: 8px; }
+
+        /* ── Editor panel ──────────────────────────────────────── */
+        .editor-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .editor-panel-header h3 { color: #1a3a5c; margin: 0; }
+        .editor-panel-header select {
+            width: auto;
+            min-width: 240px;
+        }
+        .editor-card {
+            border-left: 4px solid #ccc;
+            padding: 20px 24px;
+        }
+        .editor-card.has-conversion { border-left-color: #28a745; }
+        .editor-card.no-conversion { border-left-color: #ffc107; }
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+        .editor-header strong { font-size: 1.05em; color: #1a3a5c; }
+        .editor-grade-info { font-size: 0.82em; color: #888; margin-top: 2px; }
+        .conv-status {
+            font-size: 0.8em;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+        .status-ok { background: #d4edda; color: #155724; }
+        .status-missing { background: #fff3cd; color: #856404; }
+
+        .editor-method { margin-bottom: 12px; }
+        .editor-method label {
+            font-weight: 400;
+            margin-right: 18px;
+            cursor: pointer;
+        }
+        .formula-input {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+        .formula-hint {
+            font-size: 0.78em;
+            color: #999;
+            margin-top: 4px;
+        }
+        .table-section { margin-top: 8px; }
+        .table-row-edit {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto 1fr auto;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .table-row-edit input {
+            padding: 7px 8px;
+            font-size: 0.9em;
+        }
+        .table-row-edit span { text-align: center; color: #888; }
+        .btn-small {
+            background: #e9ecef;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        .btn-small:hover { background: #d0d4d9; }
+        .btn-remove {
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+        .btn-remove:hover { background: #fff5f5; border-radius: 4px; }
+        .editor-notes { margin-top: 10px; }
+        .editor-notes input { font-size: 0.88em; color: #666; }
+
+        .test-area {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .test-area .test-label { font-weight: 600; color: #1a3a5c; font-size: 0.9em; }
+        .test-area input[type="number"] { width: 110px; padding: 7px 8px; }
+        .test-result { font-weight: 600; font-size: 0.95em; }
+        .test-ok { color: #28a745; }
+        .test-error { color: #dc3545; }
+
+        .save-bar {
+            text-align: center;
+            padding: 20px;
+        }
+        .save-ok { color: #28a745; font-weight: 600; margin-left: 12px; }
+        .save-error { color: #dc3545; font-weight: 600; margin-left: 12px; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -213,7 +365,16 @@
         <h1>UNIGRACON</h1>
         <p class="subtitle">UNINOVIS Grade Converter</p>
 
-        <div class="card">
+        <!-- Auth bar -->
+        <div class="auth-bar" id="authBar">
+            <span class="auth-info" id="authInfo"></span>
+            <button class="auth-btn" id="loginBtn" onclick="showLoginModal()">Login to Edit</button>
+            <button class="auth-btn" id="userModeBtn" onclick="toggleEditorMode()" style="display:none">Switch to User Mode</button>
+            <button class="auth-btn" id="logoutBtn" onclick="doLogout()" style="display:none">Logout</button>
+        </div>
+
+        <!-- Converter card -->
+        <div class="card" id="converterCard">
             <div class="form-row">
                 <div class="form-group">
                     <label for="source">From (Source University)</label>
@@ -247,9 +408,54 @@
 
         <div id="results" class="card"></div>
 
+        <!-- Editor panel (hidden until login) -->
+        <div id="editorPanel" style="display:none;">
+            <div class="card">
+                <div class="editor-panel-header">
+                    <h3>Conversion Editor</h3>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <label style="margin:0; white-space:nowrap;">Home University:</label>
+                        <select id="homeUni" onchange="loadEditor()">
+                            <option value="">-- Select your university --</option>
+                        </select>
+                    </div>
+                </div>
+                <p style="font-size:0.85em; color:#666; margin-top:8px;">
+                    Edit conversions <strong>from</strong> other universities <strong>to</strong> your home university.
+                </p>
+            </div>
+
+            <div id="editorCards"></div>
+
+            <div class="card save-bar" id="saveBar" style="display:none;">
+                <button class="primary" id="saveBtn" onclick="saveAll()">Save All Changes</button>
+                <span id="saveStatus"></span>
+            </div>
+        </div>
+
         <div class="card" id="availableCard" style="display:none;">
             <h3 style="color:#1a3a5c; margin-bottom:10px;">Available Conversions</h3>
             <div id="availableList" style="font-size:0.9em;"></div>
+        </div>
+    </div>
+
+    <!-- Login modal -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Login</h3>
+            <div class="form-group">
+                <label for="loginUser">Username</label>
+                <input type="text" id="loginUser" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="loginPass">Password</label>
+                <input type="password" id="loginPass" autocomplete="current-password">
+            </div>
+            <p id="loginError" class="error"></p>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                <button class="auth-btn" onclick="closeLoginModal()">Cancel</button>
+                <button class="primary" style="padding:10px 28px;" onclick="doLogin()">Login</button>
+            </div>
         </div>
     </div>
 
@@ -269,27 +475,184 @@
         let universities = {};
         let conversionPairs = [];
 
+        /* ── Auth state ──────────────────────────────────────── */
+
+        let authToken = localStorage.getItem('unigracon_token');
+        let authUser = null;
+        let editorMode = true;
+
+        async function authFetch(url, options = {}) {
+            options.headers = options.headers || {};
+            if (authToken) options.headers['Authorization'] = 'Bearer ' + authToken;
+            return fetch(url, options);
+        }
+
+        async function checkAuth() {
+            if (!authToken) { updateAuthUI(); return; }
+            try {
+                const resp = await fetch(BASE + '/api/auth-check', {
+                    headers: { 'Authorization': 'Bearer ' + authToken },
+                });
+                if (resp.ok) {
+                    authUser = await resp.json();
+                } else {
+                    authToken = null;
+                    authUser = null;
+                    localStorage.removeItem('unigracon_token');
+                }
+            } catch (e) { /* server down — keep token */ }
+            updateAuthUI();
+        }
+
+        function updateAuthUI() {
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const userModeBtn = document.getElementById('userModeBtn');
+            const authInfo = document.getElementById('authInfo');
+            const editorPanel = document.getElementById('editorPanel');
+            const converterCard = document.getElementById('converterCard');
+            const resultsCard = document.getElementById('results');
+            const availableCard = document.getElementById('availableCard');
+
+            if (authUser && authUser.can_edit && editorMode) {
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = '';
+                userModeBtn.style.display = '';
+                userModeBtn.textContent = 'Switch to User Mode';
+                authInfo.textContent = authUser.username + ' (' + authUser.role + ')';
+                editorPanel.style.display = '';
+                converterCard.style.display = 'none';
+                resultsCard.style.display = 'none';
+                availableCard.style.display = 'none';
+                populateHomeUniSelector();
+            } else if (authUser && authUser.can_edit && !editorMode) {
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = '';
+                userModeBtn.style.display = '';
+                userModeBtn.textContent = 'Switch to Editor Mode';
+                authInfo.textContent = authUser.username;
+                editorPanel.style.display = 'none';
+                converterCard.style.display = '';
+                availableCard.style.display = '';
+            } else if (authUser) {
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = '';
+                userModeBtn.style.display = 'none';
+                authInfo.textContent = authUser.username;
+                editorPanel.style.display = 'none';
+                converterCard.style.display = '';
+                availableCard.style.display = '';
+            } else {
+                loginBtn.style.display = '';
+                logoutBtn.style.display = 'none';
+                userModeBtn.style.display = 'none';
+                authInfo.textContent = '';
+                editorPanel.style.display = 'none';
+                converterCard.style.display = '';
+                availableCard.style.display = '';
+            }
+        }
+
+        function toggleEditorMode() {
+            editorMode = !editorMode;
+            updateAuthUI();
+        }
+
+        function showLoginModal() {
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            document.getElementById('loginError').textContent = '';
+            document.getElementById('loginModal').classList.add('active');
+            document.getElementById('loginUser').focus();
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
+        async function doLogin() {
+            const username = document.getElementById('loginUser').value.trim();
+            const password = document.getElementById('loginPass').value;
+            const errorEl = document.getElementById('loginError');
+            if (!username || !password) { errorEl.textContent = 'Enter username and password'; return; }
+            try {
+                const resp = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                });
+                if (!resp.ok) { errorEl.textContent = 'Invalid credentials'; return; }
+                const data = await resp.json();
+                authToken = data.token;
+                localStorage.setItem('unigracon_token', authToken);
+                closeLoginModal();
+                await checkAuth();
+            } catch (e) {
+                errorEl.textContent = 'Login failed: ' + e.message;
+            }
+        }
+
+        function doLogout() {
+            authToken = null;
+            authUser = null;
+            localStorage.removeItem('unigracon_token');
+            updateAuthUI();
+        }
+
+        // Enter key in login modal
+        document.getElementById('loginPass').addEventListener('keydown', e => {
+            if (e.key === 'Enter') doLogin();
+        });
+        document.getElementById('loginModal').addEventListener('click', e => {
+            if (e.target.id === 'loginModal') closeLoginModal();
+        });
+
+        /* ── Data loading ────────────────────────────────────── */
+
+        function populateSelects() {
+            const sorted = Object.entries(universities).sort((a, b) => a[0].localeCompare(b[0]));
+            sourceEl.innerHTML = '<option value="">-- Select source --</option>';
+            targetEl.innerHTML = '<option value="">-- Select target --</option>';
+            for (const [acro, info] of sorted) {
+                const label = acro + ' \u2014 ' + info.name + ' (' + info.country + ')';
+                sourceEl.innerHTML += '<option value="' + acro + '">' + label + '</option>';
+                targetEl.innerHTML += '<option value="' + acro + '">' + label + '</option>';
+            }
+        }
+
         async function init() {
             const [uniResp, convResp] = await Promise.all([
-                fetch(`${BASE}/api/universities`),
-                fetch(`${BASE}/api/conversions`),
+                fetch(BASE + '/api/universities'),
+                fetch(BASE + '/api/conversions'),
             ]);
             universities = await uniResp.json();
             const convData = await convResp.json();
             conversionPairs = convData.conversions;
 
-            const sorted = Object.entries(universities).sort((a, b) => a[0].localeCompare(b[0]));
-
-            sourceEl.innerHTML = '<option value="">-- Select source --</option>';
-            targetEl.innerHTML = '<option value="">-- Select target --</option>';
-            for (const [acro, info] of sorted) {
-                const label = `${acro} — ${info.name} (${info.country})`;
-                sourceEl.innerHTML += `<option value="${acro}">${label}</option>`;
-                targetEl.innerHTML += `<option value="${acro}">${label}</option>`;
-            }
+            populateSelects();
             convertBtn.disabled = false;
             renderAvailable();
+            await checkAuth();
         }
+
+        async function reloadData() {
+            const savedSource = sourceEl.value;
+            const savedTarget = targetEl.value;
+            const [uniResp, convResp] = await Promise.all([
+                fetch(BASE + '/api/universities'),
+                fetch(BASE + '/api/conversions'),
+            ]);
+            universities = await uniResp.json();
+            const convData = await convResp.json();
+            conversionPairs = convData.conversions;
+            populateSelects();
+            sourceEl.value = savedSource;
+            targetEl.value = savedTarget;
+            updateHints();
+            renderAvailable();
+        }
+
+        /* ── Converter (unchanged logic) ─────────────────────── */
 
         function renderAvailable() {
             if (conversionPairs.length === 0) return;
@@ -300,12 +663,12 @@
                   + '<th style="padding:4px 8px;border-bottom:1px solid #ddd;">Notes</th></tr>';
             for (const c of conversionPairs) {
                 const mBadge = buildMethodTooltip(c);
-                html += `<tr>
-                    <td style="padding:4px 8px;border-bottom:1px solid #eee;">${c.source}</td>
-                    <td style="padding:4px 8px;border-bottom:1px solid #eee;">${c.target}</td>
-                    <td style="padding:4px 8px;border-bottom:1px solid #eee;">${mBadge}</td>
-                    <td style="padding:4px 8px;border-bottom:1px solid #eee;color:#666;">${c.notes}</td>
-                </tr>`;
+                html += '<tr>'
+                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + c.source + '</td>'
+                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + c.target + '</td>'
+                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + mBadge + '</td>'
+                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;color:#666;">' + c.notes + '</td>'
+                    + '</tr>';
             }
             html += '</table>';
             availList.innerHTML = html;
@@ -321,11 +684,10 @@
             }
             const info = universities[src];
             const inv = info.inverted ? ' (lower is better)' : '';
-            hintEl.textContent = `Range: ${info.min_grade} – ${info.max_grade}, Pass: ${info.pass_grade}${inv}`;
+            hintEl.textContent = 'Range: ' + info.min_grade + ' \u2013 ' + info.max_grade + ', Pass: ' + info.pass_grade + inv;
             gradeEl.min = info.min_grade;
             gradeEl.max = info.max_grade;
 
-            // Scale labels
             if (info.grade_labels && info.grade_labels.length > 0) {
                 let html = '<table><tr><th>Range</th><th>Label</th></tr>';
                 for (const lbl of info.grade_labels) {
@@ -333,8 +695,8 @@
                         ? lbl.max <= info.pass_grade
                         : lbl.min >= info.pass_grade;
                     const cls = isPass ? 'pass-row' : 'fail-row';
-                    const range = lbl.min === lbl.max ? lbl.min : `${lbl.min} – ${lbl.max}`;
-                    html += `<tr class="${cls}"><td>${range}</td><td>${lbl.label}</td></tr>`;
+                    const range = lbl.min === lbl.max ? lbl.min : lbl.min + ' \u2013 ' + lbl.max;
+                    html += '<tr class="' + cls + '"><td>' + range + '</td><td>' + lbl.label + '</td></tr>';
                 }
                 html += '</table>';
                 scaleEl.innerHTML = html;
@@ -353,7 +715,6 @@
             updateHints();
         });
 
-        // Convert on Enter key
         gradeEl.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') convertBtn.click();
         });
@@ -368,18 +729,17 @@
             if (source === target) { alert('Source and target must be different.'); return; }
             if (isNaN(grade)) { alert('Enter a grade to convert.'); return; }
 
-            // Check if conversion exists
             const exists = conversionPairs.some(c => c.source === source && c.target === target);
             if (!exists) {
-                resultsEl.innerHTML = `<div class="no-conversion">No conversion defined from ${source} to ${target}.<br>
-                    <span style="font-weight:400;font-size:0.9em;">Check the available conversions table below.</span></div>`;
+                resultsEl.innerHTML = '<div class="no-conversion">No conversion defined from ' + source + ' to ' + target + '.<br>'
+                    + '<span style="font-weight:400;font-size:0.9em;">Check the available conversions table below.</span></div>';
                 resultsEl.style.display = 'block';
                 return;
             }
 
             convertBtn.disabled = true;
             try {
-                const resp = await fetch(`${BASE}/api/convert`, {
+                const resp = await fetch(BASE + '/api/convert', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ source, target, grade }),
@@ -388,11 +748,11 @@
                 if (resp.ok) {
                     renderResult(data);
                 } else {
-                    resultsEl.innerHTML = `<p class="error">${data.detail || data.error || 'Conversion error'}</p>`;
+                    resultsEl.innerHTML = '<p class="error">' + (data.detail || data.error || 'Conversion error') + '</p>';
                 }
                 resultsEl.style.display = 'block';
             } catch (e) {
-                resultsEl.innerHTML = `<p class="error">Request failed: ${e.message}</p>`;
+                resultsEl.innerHTML = '<p class="error">Request failed: ' + e.message + '</p>';
                 resultsEl.style.display = 'block';
             }
             convertBtn.disabled = false;
@@ -401,29 +761,27 @@
         function buildMethodTooltip(conv) {
             let tooltipContent = '';
             if (conv.method === 'formula') {
-                tooltipContent = `<strong>Formula:</strong><br><code style="background:rgba(255,255,255,0.15);padding:2px 6px;border-radius:3px;">${escHtml(conv.formula)}</code>`;
-                return `<span class="tooltip-wrap" style="color:#0d6efd;">Formula<span class="tooltip-box">${tooltipContent}</span></span>`;
+                tooltipContent = '<strong>Formula:</strong><br><code style="background:rgba(255,255,255,0.15);padding:2px 6px;border-radius:3px;">' + escHtml(conv.formula) + '</code>';
+                return '<span class="tooltip-wrap" style="color:#0d6efd;">Formula<span class="tooltip-box">' + tooltipContent + '</span></span>';
             } else if (conv.method === 'table' && conv.table) {
                 let tbl = '<table><tr><th>From</th><th>To</th></tr>';
                 for (const row of conv.table) {
                     const fromStr = row.from_min === row.from_max
                         ? row.from_min
-                        : `${row.from_min} – ${row.from_max}`;
-                    tbl += `<tr><td>${fromStr}</td><td>${row.to}</td></tr>`;
+                        : row.from_min + ' \u2013 ' + row.from_max;
+                    tbl += '<tr><td>' + fromStr + '</td><td>' + row.to + '</td></tr>';
                 }
                 tbl += '</table>';
-                tooltipContent = `<strong>Conversion Table:</strong><br>${tbl}`;
-                return `<span class="tooltip-wrap" style="color:#6f42c1;">Table<span class="tooltip-box">${tooltipContent}</span></span>`;
+                tooltipContent = '<strong>Conversion Table:</strong><br>' + tbl;
+                return '<span class="tooltip-wrap" style="color:#6f42c1;">Table<span class="tooltip-box">' + tooltipContent + '</span></span>';
             }
             return conv.method;
         }
 
         function buildResultMethodTooltip(r) {
-            // Find the full conversion data from conversionPairs
             const conv = conversionPairs.find(c => c.source === r.source_university && c.target === r.target_university);
             if (conv) return buildMethodTooltip(conv);
-            // Fallback
-            return r.method === 'formula' ? `Formula — <code>${escHtml(r.formula)}</code>` : 'Table';
+            return r.method === 'formula' ? 'Formula \u2014 <code>' + escHtml(r.formula) + '</code>' : 'Table';
         }
 
         function renderResult(r) {
@@ -432,36 +790,289 @@
                 ? r.target_grade > tgtInfo.pass_grade
                 : r.target_grade < tgtInfo.pass_grade;
             const failCls = isFail ? 'result-fail' : '';
+            const methodHtml = '<strong>Method:</strong> ' + buildResultMethodTooltip(r);
 
-            const methodHtml = `<strong>Method:</strong> ${buildResultMethodTooltip(r)}`;
-
-            resultsEl.innerHTML = `
-                <div class="conversion-detail">
-                    <div class="conv-side source">
-                        <div class="uni-name">${r.source_university} — ${escHtml(r.source_name)}</div>
-                        <div class="grade-val">${r.source_grade}</div>
-                        <div class="grade-lbl">${escHtml(r.source_label)}</div>
-                        <div class="grade-sys">${escHtml(r.source_system)}</div>
-                    </div>
-                    <div class="conv-arrow">&#10132;</div>
-                    <div class="conv-side target ${failCls}">
-                        <div class="uni-name">${r.target_university} — ${escHtml(r.target_name)}</div>
-                        <div class="grade-val" style="${isFail ? 'color:#dc3545' : 'color:#28a745'}">${escHtml(r.target_grade_display)}</div>
-                        <div class="grade-lbl">${escHtml(r.target_label)}</div>
-                        <div class="grade-sys">${escHtml(r.target_system)}</div>
-                    </div>
-                </div>
-                <div class="method-info">
-                    ${methodHtml}<br>
-                    ${r.notes ? '<strong>Notes:</strong> ' + escHtml(r.notes) : ''}
-                </div>
-            `;
+            resultsEl.innerHTML =
+                '<div class="conversion-detail">'
+                + '<div class="conv-side source">'
+                +   '<div class="uni-name">' + r.source_university + ' \u2014 ' + escHtml(r.source_name) + '</div>'
+                +   '<div class="grade-val">' + r.source_grade + '</div>'
+                +   '<div class="grade-lbl">' + escHtml(r.source_label) + '</div>'
+                +   '<div class="grade-sys">' + escHtml(r.source_system) + '</div>'
+                + '</div>'
+                + '<div class="conv-arrow">&#10132;</div>'
+                + '<div class="conv-side target ' + failCls + '">'
+                +   '<div class="uni-name">' + r.target_university + ' \u2014 ' + escHtml(r.target_name) + '</div>'
+                +   '<div class="grade-val" style="' + (isFail ? 'color:#dc3545' : 'color:#28a745') + '">' + escHtml(r.target_grade_display) + '</div>'
+                +   '<div class="grade-lbl">' + escHtml(r.target_label) + '</div>'
+                +   '<div class="grade-sys">' + escHtml(r.target_system) + '</div>'
+                + '</div>'
+                + '</div>'
+                + '<div class="method-info">'
+                +   methodHtml + '<br>'
+                +   (r.notes ? '<strong>Notes:</strong> ' + escHtml(r.notes) : '')
+                + '</div>';
         }
 
         function escHtml(s) {
             if (!s) return '';
-            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
+
+        /* ── Editor panel ────────────────────────────────────── */
+
+        // Map email TLD to default home university
+        const TLD_TO_UNI = {
+            'es': 'UMA', 'com': 'UMA',
+            'fi': 'TAMK',
+            'de': 'THWS',
+            'nl': 'THUAS',
+            'fr': 'USPN',
+            'it': 'UDCLV',
+            'lt': 'KK',
+            'al': 'UT',
+        };
+
+        function guessHomeUni() {
+            if (!authUser || !authUser.username) return '';
+            const email = authUser.username;
+            if (email.indexOf('@') < 0) return '';
+            const tld = email.split('.').pop().toLowerCase();
+            return TLD_TO_UNI[tld] || '';
+        }
+
+        function populateHomeUniSelector() {
+            const sel = document.getElementById('homeUni');
+            const current = sel.value;
+            sel.innerHTML = '<option value="">-- Select your university --</option>';
+            const sorted = Object.keys(universities).sort();
+            for (const acro of sorted) {
+                const info = universities[acro];
+                sel.innerHTML += '<option value="' + acro + '">' + acro + ' \u2014 ' + escHtml(info.name) + '</option>';
+            }
+            // Restore previous selection, or auto-detect from email
+            if (current && universities[current]) {
+                sel.value = current;
+            } else {
+                const guess = guessHomeUni();
+                if (guess && universities[guess]) {
+                    sel.value = guess;
+                    loadEditor();
+                }
+            }
+        }
+
+        function loadEditor() {
+            const homeUni = document.getElementById('homeUni').value;
+            const cardsEl = document.getElementById('editorCards');
+            const saveBar = document.getElementById('saveBar');
+            if (!homeUni) {
+                cardsEl.innerHTML = '';
+                saveBar.style.display = 'none';
+                return;
+            }
+            renderEditorCards(homeUni);
+            saveBar.style.display = '';
+            document.getElementById('saveStatus').textContent = '';
+        }
+
+        function renderEditorCards(homeUni) {
+            const otherUnis = Object.keys(universities).filter(u => u !== homeUni).sort();
+            const existingSet = new Set(conversionPairs.map(c => c.source + '->' + c.target));
+            let html = '';
+
+            for (const src of otherUnis) {
+                const srcInfo = universities[src];
+                const key = src + '->' + homeUni;
+                const hasConv = existingSet.has(key);
+                const conv = conversionPairs.find(c => c.source === src && c.target === homeUni);
+                const method = conv ? conv.method : 'formula';
+                const formula = (conv && conv.method === 'formula') ? conv.formula : '';
+                const table = (conv && conv.method === 'table' && conv.table) ? conv.table : [];
+                const notes = conv ? (conv.notes || '') : '';
+
+                html += '<div class="card editor-card ' + (hasConv ? 'has-conversion' : 'no-conversion') + '" data-source="' + src + '">'
+                    + '<div class="editor-header">'
+                    +   '<div>'
+                    +     '<strong>From: ' + src + '</strong> \u2014 ' + escHtml(srcInfo.name) + ' (' + srcInfo.country + ')'
+                    +     '<div class="editor-grade-info">'
+                    +       escHtml(srcInfo.grading_system) + ' | Range: ' + srcInfo.min_grade + '\u2013' + srcInfo.max_grade
+                    +       ' | Pass: ' + srcInfo.pass_grade + (srcInfo.inverted ? ' (inverted)' : '')
+                    +     '</div>'
+                    +   '</div>'
+                    +   '<span class="conv-status ' + (hasConv ? 'status-ok' : 'status-missing') + '">'
+                    +     (hasConv ? 'Defined' : 'Missing') + '</span>'
+                    + '</div>'
+
+                    + '<div class="editor-method">'
+                    +   '<label><input type="radio" name="method_' + src + '" value="formula"'
+                    +     (method === 'formula' ? ' checked' : '') + ' onchange="toggleMethod(\'' + src + '\')"> Formula</label>'
+                    +   '<label><input type="radio" name="method_' + src + '" value="table"'
+                    +     (method === 'table' ? ' checked' : '') + ' onchange="toggleMethod(\'' + src + '\')"> Table</label>'
+                    + '</div>'
+
+                    + '<div class="formula-section" id="formula_' + src + '" style="' + (method === 'formula' ? '' : 'display:none') + '">'
+                    +   '<input type="text" class="formula-input" id="formulaInput_' + src + '"'
+                    +     ' value="' + escHtml(formula) + '"'
+                    +     ' placeholder="e.g. X * 2 or IF(X&lt;5, 0, X+10)">'
+                    +   '<div class="formula-hint">Use X for the input grade. Supports: +, -, *, /, IF(cond, true_val, false_val)</div>'
+                    + '</div>'
+
+                    + '<div class="table-section" id="table_' + src + '" style="' + (method === 'table' ? '' : 'display:none') + '">'
+                    +   '<div class="table-rows" id="tableRows_' + src + '">'
+                    +     table.map(function(r) { return tableRowHtml(r.from_min, r.from_max, r.to); }).join('')
+                    +   '</div>'
+                    +   '<button type="button" class="btn-small" onclick="addTableRow(\'' + src + '\')">+ Add Row</button>'
+                    + '</div>'
+
+                    + '<div class="editor-notes">'
+                    +   '<input type="text" id="notes_' + src + '" value="' + escHtml(notes) + '" placeholder="Notes (optional)">'
+                    + '</div>'
+
+                    + '<div class="test-area">'
+                    +   '<span class="test-label">Test:</span>'
+                    +   '<input type="number" id="testGrade_' + src + '" step="0.01" placeholder="Grade"'
+                    +     ' min="' + srcInfo.min_grade + '" max="' + srcInfo.max_grade + '">'
+                    +   '<button type="button" class="btn-small" onclick="testConv(\'' + src + '\')">Test</button>'
+                    +   '<span id="testResult_' + src + '" class="test-result"></span>'
+                    + '</div>'
+
+                    + '</div>';
+            }
+
+            document.getElementById('editorCards').innerHTML = html;
+        }
+
+        function tableRowHtml(fromMin, fromMax, to) {
+            fromMin = (fromMin !== undefined && fromMin !== '') ? fromMin : '';
+            fromMax = (fromMax !== undefined && fromMax !== '') ? fromMax : '';
+            to = (to !== undefined && to !== '') ? to : '';
+            return '<div class="table-row-edit">'
+                + '<input type="number" step="0.01" placeholder="From min" value="' + fromMin + '" class="trow-fmin">'
+                + '<input type="number" step="0.01" placeholder="From max" value="' + fromMax + '" class="trow-fmax">'
+                + '<span>\u2192</span>'
+                + '<input type="number" step="0.01" placeholder="To" value="' + to + '" class="trow-to">'
+                + '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">\u00d7</button>'
+                + '</div>';
+        }
+
+        function addTableRow(src) {
+            var container = document.getElementById('tableRows_' + src);
+            container.insertAdjacentHTML('beforeend', tableRowHtml('', '', ''));
+        }
+
+        function toggleMethod(src) {
+            var method = document.querySelector('input[name="method_' + src + '"]:checked').value;
+            document.getElementById('formula_' + src).style.display = method === 'formula' ? '' : 'none';
+            document.getElementById('table_' + src).style.display = method === 'table' ? '' : 'none';
+        }
+
+        function collectTableRows(src) {
+            var rows = [];
+            var els = document.querySelectorAll('#tableRows_' + src + ' .table-row-edit');
+            for (var i = 0; i < els.length; i++) {
+                var fmin = parseFloat(els[i].querySelector('.trow-fmin').value);
+                var fmax = parseFloat(els[i].querySelector('.trow-fmax').value);
+                var to = parseFloat(els[i].querySelector('.trow-to').value);
+                if (!isNaN(fmin) && !isNaN(fmax) && !isNaN(to)) {
+                    rows.push({ from_min: fmin, from_max: fmax, to: to });
+                }
+            }
+            return rows;
+        }
+
+        async function testConv(src) {
+            var grade = parseFloat(document.getElementById('testGrade_' + src).value);
+            var resultEl = document.getElementById('testResult_' + src);
+            if (isNaN(grade)) { resultEl.textContent = 'Enter a grade'; resultEl.className = 'test-result test-error'; return; }
+
+            var method = document.querySelector('input[name="method_' + src + '"]:checked').value;
+            var body = { method: method, grade: grade };
+            if (method === 'formula') {
+                body.formula = document.getElementById('formulaInput_' + src).value;
+            } else {
+                body.table = collectTableRows(src);
+            }
+
+            try {
+                var resp = await authFetch(BASE + '/api/test-formula', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                var data = await resp.json();
+                if (resp.status === 401 || resp.status === 403) {
+                    resultEl.textContent = 'Session expired — please login again';
+                    resultEl.className = 'test-result test-error';
+                } else if (data.error) {
+                    resultEl.textContent = data.error;
+                    resultEl.className = 'test-result test-error';
+                } else {
+                    resultEl.textContent = '\u2192 ' + data.result;
+                    resultEl.className = 'test-result test-ok';
+                }
+            } catch (e) {
+                resultEl.textContent = 'Error: ' + e.message;
+                resultEl.className = 'test-result test-error';
+            }
+        }
+
+        async function saveAll() {
+            var homeUni = document.getElementById('homeUni').value;
+            if (!homeUni) return;
+
+            var otherUnis = Object.keys(universities).filter(function(u) { return u !== homeUni; });
+            var conversions = {};
+
+            for (var i = 0; i < otherUnis.length; i++) {
+                var src = otherUnis[i];
+                var method = document.querySelector('input[name="method_' + src + '"]:checked').value;
+                var conv = { method: method, notes: document.getElementById('notes_' + src).value };
+                if (method === 'formula') {
+                    conv.formula = document.getElementById('formulaInput_' + src).value;
+                } else {
+                    conv.table = collectTableRows(src);
+                }
+                conversions[src] = conv;
+            }
+
+            var statusEl = document.getElementById('saveStatus');
+            var saveBtn = document.getElementById('saveBtn');
+            statusEl.textContent = 'Saving...';
+            statusEl.className = '';
+            saveBtn.disabled = true;
+
+            try {
+                var resp = await authFetch(BASE + '/api/conversions-to/' + homeUni, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ conversions: conversions }),
+                });
+
+                if (resp.ok) {
+                    statusEl.textContent = 'Saved successfully!';
+                    statusEl.className = 'save-ok';
+                    await reloadData();
+                    renderEditorCards(homeUni);
+                } else {
+                    var err = await resp.json();
+                    var msg = '';
+                    if (err.detail && typeof err.detail === 'object' && err.detail.errors) {
+                        msg = err.detail.errors.join('; ');
+                    } else {
+                        msg = (typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail)) || 'Unknown error';
+                    }
+                    statusEl.textContent = 'Errors: ' + msg;
+                    statusEl.className = 'save-error';
+                }
+            } catch (e) {
+                statusEl.textContent = 'Network error: ' + e.message;
+                statusEl.className = 'save-error';
+            }
+            saveBtn.disabled = false;
+        }
+
+        /* ── Init ────────────────────────────────────────────── */
 
         init();
     </script>
