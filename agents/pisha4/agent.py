@@ -1722,7 +1722,8 @@ REGLAS GENERALES:
 - Para JOINs entre subjects y degree: JOIN degree ON subjects.degree_id = degree.id
 
 REGLAS PARA TABLA destinations:
-- COUNT(*) solo para contar CONVENIOS/ACUERDOS ("cuántos convenios", "número de acuerdos")
+- COUNT(*) solo para contar CONVENIOS/ACUERDOS ("cuántos convenios", "número de acuerdos", "how many agreements")
+- IMPORTANTE: "¿Hay convenios con X?" / "Do we have agreements with X?" / "Are there agreements with X?" → SELECT * (NO COUNT). Solo usa COUNT cuando explícitamente pide CONTAR/CUÁNTOS/HOW MANY
 - PLAZAS y CUATRIMESTRES: student_vacancies es TEXTO
   * Para filtrar por cuatrimestre: WHERE student_vacancies LIKE '%1er CUATRIMESTRE%' o '%2do CUATRIMESTRE%' o '%ANUAL%'
   * NO uses SUM() con student_vacancies (es texto). Usa COUNT(*) para contar destinos o SELECT student_vacancies para ver detalles
@@ -1738,7 +1739,7 @@ REGLAS PARA TABLA destinations:
 - NOTA MEDIA MÍNIMA:
   * Con requisito de nota: WHERE min_gpa_requirement IS NOT NULL
   * Nota específica: WHERE min_gpa_requirement >= 7.0
-- Si pregunta "qué...", "cuáles...", "muéstrame...", "hay...", "universidades...", "facultades..." → usa SELECT * (NO COUNT, NO columnas específicas)
+- Si pregunta "qué...", "cuáles...", "muéstrame...", "hay...", "universidades...", "facultades...", "do we have...", "are there...", "what...", "which...", "show me..." → usa SELECT * (NO COUNT, NO columnas específicas)
 - SIEMPRE usa SELECT * excepto para:
   * COUNT(*) para contar convenios/acuerdos/estudiantes/asignaturas
   * SELECT DISTINCT columna SOLO cuando pide LISTAR valores únicos de UNA columna (ej: "¿Qué países hay?", "¿Qué programas existen?")
@@ -1758,6 +1759,7 @@ EJEMPLOS DESTINATIONS:
 - "¿Qué acuerdos hay con The Hague University of Applied Sciences?" → SELECT * FROM destinations WHERE host_institution LIKE '%The Hague%'
 - "¿Cuántos acuerdos hay con Alemania?" → SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Alemania%'
 - "¿Hay convenios con Italia?" → SELECT * FROM destinations WHERE destination_country LIKE '%Italia%'
+- "Do we have agreements with the Netherlands?" → SELECT * FROM destinations WHERE destination_country LIKE '%Países Bajos%'
 - "¿Qué nivel de inglés necesito para ir a Alemania?" → SELECT lang_1_name, lang_1_level, lang_2_name, lang_2_level FROM destinations WHERE destination_country LIKE '%Alemania%' AND (lang_1_name LIKE '%INGLÉS%' OR lang_2_name LIKE '%INGLÉS%')
 - "¿Qué destinos hay con ERASMUS+ KA131?" → SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS+ KA131%'
 - "¿Qué programas de movilidad hay?" → SELECT DISTINCT mobility_program FROM destinations
