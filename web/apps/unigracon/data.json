@@ -384,33 +384,33 @@
       "method": "table",
       "table": [
         {
-          "from_min": 0,
-          "from_max": 0,
-          "to": 4
+          "from_min": 0.0,
+          "from_max": 0.0,
+          "to": 4.0
         },
         {
-          "from_min": 1,
-          "from_max": 1,
+          "from_min": 1.0,
+          "from_max": 1.0,
           "to": 5.5
         },
         {
-          "from_min": 2,
-          "from_max": 2,
+          "from_min": 2.0,
+          "from_max": 2.0,
           "to": 6.5
         },
         {
-          "from_min": 3,
-          "from_max": 3,
+          "from_min": 3.0,
+          "from_max": 3.0,
           "to": 7.5
         },
         {
-          "from_min": 4,
-          "from_max": 4,
+          "from_min": 4.0,
+          "from_max": 4.0,
           "to": 8.5
         },
         {
-          "from_min": 5,
-          "from_max": 5,
+          "from_min": 5.0,
+          "from_max": 5.0,
           "to": 9.5
         }
       ],
@@ -471,38 +471,38 @@
       "method": "table",
       "table": [
         {
-          "from_min": 1,
-          "from_max": 4,
-          "to": 4
+          "from_min": 1.0,
+          "from_max": 4.0,
+          "to": 4.0
         },
         {
-          "from_min": 5,
-          "from_max": 5,
+          "from_min": 5.0,
+          "from_max": 5.0,
           "to": 5.2
         },
         {
-          "from_min": 6,
-          "from_max": 6,
+          "from_min": 6.0,
+          "from_max": 6.0,
           "to": 5.7
         },
         {
-          "from_min": 7,
-          "from_max": 7,
+          "from_min": 7.0,
+          "from_max": 7.0,
           "to": 6.5
         },
         {
-          "from_min": 8,
-          "from_max": 8,
+          "from_min": 8.0,
+          "from_max": 8.0,
           "to": 7.5
         },
         {
-          "from_min": 9,
-          "from_max": 9,
+          "from_min": 9.0,
+          "from_max": 9.0,
           "to": 8.5
         },
         {
-          "from_min": 10,
-          "from_max": 10,
+          "from_min": 10.0,
+          "from_max": 10.0,
           "to": 9.5
         }
       ],
@@ -684,13 +684,183 @@
     },
     "THWS->KK": {
       "method": "formula",
-      "formula": "(5-X)*2.5",
-      "notes": ""
+      "formula": "IF(X>4, 1 + (5-X)*(5-1)/(5-4), 5 + (4-X)*(10-5)/(4-1))",
+      "notes": "German inverted to Lithuanian. Fail: 4-5 → 1-5. Pass: 1-4 → 5-10"
     },
     "TAMK->KK": {
       "method": "formula",
-      "formula": "X*2",
-      "notes": ""
+      "formula": "IF(X<1, 1 + (X-0)*(5-1)/(1-0), 5 + (X-1)*(10-5)/(5-1))",
+      "notes": "Finnish to Lithuanian. Fail: 0-1 → 1-5. Pass: 1-5 → 5-10"
+    },
+    "KK->THWS": {
+      "method": "formula",
+      "formula": "IF(X<5, 5.25 - 0.25*X, 7 - 0.6*X)",
+      "notes": "Lithuanian to German inverted. Fail: 1-5 → 5-4. Pass: 5-10 → 4-1"
+    },
+    "KK->TAMK": {
+      "method": "formula",
+      "formula": "IF(X<5, (X-1)*0.25, 1 + (X-5)*0.8)",
+      "notes": "Lithuanian to Finnish. Fail: 1-5 → 0-1. Pass: 5-10 → 1-5"
+    },
+    "USPN->KK": {
+      "method": "formula",
+      "formula": "IF(X<10, 1 + 0.4*X, 0.5*X)",
+      "notes": "French to Lithuanian. Fail: 0-10 → 1-5. Pass: 10-20 → 5-10"
+    },
+    "KK->USPN": {
+      "method": "formula",
+      "formula": "IF(X<5, (X-1)*2.5, 2*X)",
+      "notes": "Lithuanian to French. Fail: 1-5 → 0-10. Pass: 5-10 → 10-20"
+    },
+    "USPN->UT": {
+      "method": "formula",
+      "formula": "IF(X<10, 1 + 0.3*X, 0.6*X - 2)",
+      "notes": "French to Albanian. Fail: 0-10 → 1-4. Pass: 10-20 → 4-10"
+    },
+    "UT->USPN": {
+      "method": "formula",
+      "formula": "IF(X<4, (X-1)*10/3, 10 + (X-4)*5/3)",
+      "notes": "Albanian to French. Fail: 1-4 → 0-10. Pass: 4-10 → 10-20"
+    },
+    "USPN->THWS": {
+      "method": "formula",
+      "formula": "IF(X<10, 5 - X/10, 4 - (X-10)*0.3)",
+      "notes": "French to German inverted. Fail: 0-10 → 5-4. Pass: 10-20 → 4-1"
+    },
+    "THWS->USPN": {
+      "method": "formula",
+      "formula": "IF(X>4, (5-X)*10, 10 + (4-X)*10/3)",
+      "notes": "German inverted to French. Fail: 4-5 → 0-10. Pass: 1-4 → 10-20"
+    },
+    "USPN->TAMK": {
+      "method": "formula",
+      "formula": "IF(X<10, X/10, 1 + (X-10)*0.4)",
+      "notes": "French to Finnish. Fail: 0-10 → 0-1. Pass: 10-20 → 1-5"
+    },
+    "TAMK->USPN": {
+      "method": "formula",
+      "formula": "IF(X<1, 10*X, 10 + (X-1)*2.5)",
+      "notes": "Finnish to French. Fail: 0-1 → 0-10. Pass: 1-5 → 10-20"
+    },
+    "USPN->THUAS": {
+      "method": "formula",
+      "formula": "1 + X*9/20",
+      "notes": "French to Dutch. Linear: 0→1, 10→5.5, 20→10"
+    },
+    "THUAS->USPN": {
+      "method": "formula",
+      "formula": "(X-1)*20/9",
+      "notes": "Dutch to French. Linear: 1→0, 5.5→10, 10→20"
+    },
+    "UDCLV->KK": {
+      "method": "formula",
+      "formula": "IF(X<18, 1 + 2*X/9, 5 + (X-18)*5/13)",
+      "notes": "Italian to Lithuanian. Fail: 0-18 → 1-5. Pass: 18-31 → 5-10"
+    },
+    "KK->UDCLV": {
+      "method": "formula",
+      "formula": "IF(X<5, (X-1)*4.5, 18 + (X-5)*2.6)",
+      "notes": "Lithuanian to Italian. Fail: 1-5 → 0-18. Pass: 5-10 → 18-31"
+    },
+    "UDCLV->UT": {
+      "method": "formula",
+      "formula": "IF(X<18, 1 + X/6, 4 + (X-18)*6/13)",
+      "notes": "Italian to Albanian. Fail: 0-18 → 1-4. Pass: 18-31 → 4-10"
+    },
+    "UT->UDCLV": {
+      "method": "formula",
+      "formula": "IF(X<4, (X-1)*6, 18 + (X-4)*13/6)",
+      "notes": "Albanian to Italian. Fail: 1-4 → 0-18. Pass: 4-10 → 18-31"
+    },
+    "UDCLV->THWS": {
+      "method": "formula",
+      "formula": "IF(X<18, 5 - X/18, 4 - (X-18)*3/13)",
+      "notes": "Italian to German inverted. Fail: 0-18 → 5-4. Pass: 18-31 → 4-1"
+    },
+    "THWS->UDCLV": {
+      "method": "formula",
+      "formula": "IF(X>4, (5-X)*18, 18 + (4-X)*13/3)",
+      "notes": "German inverted to Italian. Fail: 4-5 → 0-18. Pass: 1-4 → 18-31"
+    },
+    "UDCLV->TAMK": {
+      "method": "formula",
+      "formula": "IF(X<18, X/18, 1 + (X-18)*4/13)",
+      "notes": "Italian to Finnish. Fail: 0-18 → 0-1. Pass: 18-31 → 1-5"
+    },
+    "TAMK->UDCLV": {
+      "method": "formula",
+      "formula": "IF(X<1, 18*X, 18 + (X-1)*3.25)",
+      "notes": "Finnish to Italian. Fail: 0-1 → 0-18. Pass: 1-5 → 18-31"
+    },
+    "UDCLV->THUAS": {
+      "method": "formula",
+      "formula": "IF(X<18, 1 + X/4, 5.5 + (X-18)*4.5/13)",
+      "notes": "Italian to Dutch. Fail: 0-18 → 1-5.5. Pass: 18-31 → 5.5-10"
+    },
+    "THUAS->UDCLV": {
+      "method": "formula",
+      "formula": "IF(X<5.5, (X-1)*4, 18 + (X-5.5)*26/9)",
+      "notes": "Dutch to Italian. Fail: 1-5.5 → 0-18. Pass: 5.5-10 → 18-31"
+    },
+    "KK->UT": {
+      "method": "formula",
+      "formula": "IF(X<5, 0.25 + 0.75*X, 1.2*X - 2)",
+      "notes": "Lithuanian to Albanian. Fail: 1-5 → 1-4. Pass: 5-10 → 4-10"
+    },
+    "UT->KK": {
+      "method": "formula",
+      "formula": "IF(X<4, 1 + (X-1)*4/3, 5 + (X-4)*5/6)",
+      "notes": "Albanian to Lithuanian. Fail: 1-4 → 1-5. Pass: 4-10 → 5-10"
+    },
+    "THWS->THUAS": {
+      "method": "formula",
+      "formula": "IF(X>4, 23.5 - 4.5*X, 11.5 - 1.5*X)",
+      "notes": "German inverted to Dutch. Fail: 4-5 → 1-5.5. Pass: 1-4 → 5.5-10"
+    },
+    "THUAS->THWS": {
+      "method": "formula",
+      "formula": "IF(X<5.5, 5 - (X-1)*2/9, 4 - (X-5.5)*2/3)",
+      "notes": "Dutch to German inverted. Fail: 1-5.5 → 5-4. Pass: 5.5-10 → 4-1"
+    },
+    "THWS->UT": {
+      "method": "formula",
+      "formula": "IF(X>4, 16 - 3*X, 12 - 2*X)",
+      "notes": "German inverted to Albanian. Fail: 4-5 → 1-4. Pass: 1-4 → 4-10"
+    },
+    "UT->THWS": {
+      "method": "formula",
+      "formula": "IF(X<4, (16-X)/3, 6 - 0.5*X)",
+      "notes": "Albanian to German inverted. Fail: 1-4 → 5-4. Pass: 4-10 → 4-1"
+    },
+    "TAMK->THUAS": {
+      "method": "formula",
+      "formula": "IF(X<1, 4.5*X + 1, 1.125*X + 4.375)",
+      "notes": "Finnish to Dutch. Fail: 0-1 → 1-5.5. Pass: 1-5 → 5.5-10"
+    },
+    "THUAS->TAMK": {
+      "method": "formula",
+      "formula": "IF(X<5.5, (X-1)*2/9, 1 + (X-5.5)*8/9)",
+      "notes": "Dutch to Finnish. Fail: 1-5.5 → 0-1. Pass: 5.5-10 → 1-5"
+    },
+    "TAMK->UT": {
+      "method": "formula",
+      "formula": "IF(X<1, 3*X + 1, 1.5*X + 2.5)",
+      "notes": "Finnish to Albanian. Fail: 0-1 → 1-4. Pass: 1-5 → 4-10"
+    },
+    "UT->TAMK": {
+      "method": "formula",
+      "formula": "IF(X<4, (X-1)/3, 1 + (X-4)*2/3)",
+      "notes": "Albanian to Finnish. Fail: 1-4 → 0-1. Pass: 4-10 → 1-5"
+    },
+    "THUAS->UT": {
+      "method": "formula",
+      "formula": "IF(X<5.5, 1 + (X-1)*2/3, 4 + (X-5.5)*4/3)",
+      "notes": "Dutch to Albanian. Fail: 1-5.5 → 1-4. Pass: 5.5-10 → 4-10"
+    },
+    "UT->THUAS": {
+      "method": "formula",
+      "formula": "IF(X<4, 1.5*X - 0.5, 0.75*X + 2.5)",
+      "notes": "Albanian to Dutch. Fail: 1-4 → 1-5.5. Pass: 4-10 → 5.5-10"
     }
   }
 }

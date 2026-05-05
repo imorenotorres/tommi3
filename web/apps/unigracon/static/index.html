@@ -920,13 +920,20 @@
                 const table = (conv && conv.method === 'table' && conv.table) ? conv.table : [];
                 const notes = conv ? (conv.notes || '') : '';
 
+                const dstInfo = universities[homeUni];
                 html += '<div class="card editor-card ' + (hasConv ? 'has-conversion' : 'no-conversion') + '" data-source="' + src + '">'
                     + '<div class="editor-header">'
-                    +   '<div>'
-                    +     '<strong>From: ' + src + '</strong> \u2014 ' + escHtml(srcInfo.name) + ' (' + srcInfo.country + ')'
-                    +     '<div class="editor-grade-info">'
-                    +       escHtml(srcInfo.grading_system) + ' | Range: ' + srcInfo.min_grade + '\u2013' + srcInfo.max_grade
-                    +       ' | Pass: ' + srcInfo.pass_grade + (srcInfo.inverted ? ' (inverted)' : '')
+                    +   '<div style="width:100%">'
+                    +     '<strong>From: ' + src + ' &rarr; To: ' + homeUni + '</strong>'
+                    +     '<div class="editor-grade-info" style="display:flex;justify-content:space-between;gap:16px;">'
+                    +       '<span>' + escHtml(srcInfo.name) + ' (' + srcInfo.country + ')</span>'
+                    +       '<span>' + escHtml(dstInfo.name) + ' (' + dstInfo.country + ')</span>'
+                    +     '</div>'
+                    +     '<div class="editor-grade-info" style="display:flex;justify-content:space-between;gap:16px;">'
+                    +       '<span>' + escHtml(srcInfo.grading_system) + ' | Range: ' + srcInfo.min_grade + '\u2013' + srcInfo.max_grade
+                    +         ' | Pass: ' + srcInfo.pass_grade + (srcInfo.inverted ? ' (inverted)' : '') + '</span>'
+                    +       '<span>' + escHtml(dstInfo.grading_system) + ' | Range: ' + dstInfo.min_grade + '\u2013' + dstInfo.max_grade
+                    +         ' | Pass: ' + dstInfo.pass_grade + (dstInfo.inverted ? ' (inverted)' : '') + '</span>'
                     +     '</div>'
                     +   '</div>'
                     +   '<span class="conv-status ' + (hasConv ? 'status-ok' : 'status-missing') + '">'
