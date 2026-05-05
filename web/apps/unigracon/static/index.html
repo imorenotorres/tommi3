@@ -671,14 +671,28 @@
 
         function renderAvailable() {
             if (conversionPairs.length === 0) return;
+            // Sort by To (target) ascending, then by From (source) ascending
+            const sorted = conversionPairs.slice().sort((a, b) => {
+                const cmp = a.target.localeCompare(b.target);
+                return cmp !== 0 ? cmp : a.source.localeCompare(b.source);
+            });
+            // Assign alternating background colors per target university group
+            const groupColors = ['#ffffff', '#e3ecf7'];
+            let colorIdx = 0;
+            let prevTarget = null;
             let html = '<table style="width:100%;border-collapse:collapse;font-size:0.9em;">';
             html += '<tr><th style="padding:4px 8px;border-bottom:1px solid #ddd;">From</th>'
                   + '<th style="padding:4px 8px;border-bottom:1px solid #ddd;">To</th>'
                   + '<th style="padding:4px 8px;border-bottom:1px solid #ddd;">Method</th>'
                   + '<th style="padding:4px 8px;border-bottom:1px solid #ddd;">Notes</th></tr>';
-            for (const c of conversionPairs) {
+            for (const c of sorted) {
+                if (prevTarget !== null && c.target !== prevTarget) {
+                    colorIdx = (colorIdx + 1) % groupColors.length;
+                }
+                prevTarget = c.target;
+                const bg = groupColors[colorIdx];
                 const mBadge = buildMethodTooltip(c);
-                html += '<tr>'
+                html += '<tr style="background:' + bg + ';">'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + c.source + '</td>'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + c.target + '</td>'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + mBadge + '</td>'
