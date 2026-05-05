@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS Mobility Planner</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            padding: 20px;
+        }
+        h1 { text-align: center; margin-bottom: 6px; color: #1a3a5c; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 0.95em; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .form-group { margin-bottom: 18px; }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1a3a5c;
+        }
+        label .hint { font-weight: 400; color: #888; font-size: 0.85em; }
+        select, input[type="date"], input[type="number"], input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            background: #fff;
+        }
+        select[multiple] { height: 180px; }
+        button.primary {
+            display: inline-block;
+            background: #1a3a5c;
+            color: #fff;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button.primary:hover { background: #274d73; }
+        button.primary:disabled { background: #aaa; cursor: default; }
+        .btn-row { text-align: center; margin-top: 8px; }
+
+        /* Results */
+        .results-title { font-size: 1.1em; font-weight: 700; color: #1a3a5c; margin-bottom: 16px; }
+        .result-card {
+            background: #f9fbfd;
+            border-left: 4px solid #1a3a5c;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+        }
+        .result-card h3 { margin-bottom: 10px; color: #1a3a5c; font-size: 1em; }
+        .timeline { display: flex; align-items: center; gap: 0; margin: 14px 0; flex-wrap: wrap; }
+        .tl-node {
+            text-align: center; padding: 8px 14px; border-radius: 6px;
+            font-size: 0.85em; line-height: 1.4; min-width: 120px;
+        }
+        .tl-node.call     { background: #d4edda; border: 1px solid #28a745; }
+        .tl-node.docs     { background: #fff3cd; border: 1px solid #ffc107; }
+        .tl-node.activity  { background: #cce5ff; border: 1px solid #007bff; }
+        .tl-arrow { font-size: 0.8em; color: #666; padding: 4px 8px; text-align: center; min-width: 80px; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; font-size: 0.9em; }
+        .detail-grid dt { color: #666; }
+        .detail-grid dd { font-weight: 600; }
+        .holiday-note { margin-top: 6px; font-size: 0.85em; color: #b45309; font-style: italic; }
+        #results { display: none; }
+        .error { color: #dc3545; font-weight: 600; text-align: center; }
+
+        /* ── Auth bar ──────────────────────────────────────── */
+        .auth-bar {
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 10px; margin-bottom: 18px; font-size: 0.88em;
+        }
+        .auth-info { color: #555; }
+        .auth-btn {
+            background: #e9ecef; border: 1px solid #ccc; border-radius: 6px;
+            padding: 6px 16px; cursor: pointer; font-size: 0.9em; transition: background 0.2s;
+        }
+        .auth-btn:hover { background: #d0d4d9; }
+
+        /* ── Login modal ───────────────────────────────────── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45); z-index: 1000;
+            justify-content: center; align-items: flex-start; padding-top: 80px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: #fff; border-radius: 8px; padding: 28px;
+            width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .modal-box h3 { color: #1a3a5c; margin-bottom: 16px; }
+        .modal-box .form-group { margin-bottom: 14px; }
+
+        /* ── Editor table ──────────────────────────────────── */
+        .editor-card {
+            border-left: 4px solid #1a3a5c;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+        }
+        .editor-card h4 { color: #1a3a5c; margin-bottom: 12px; }
+        .editor-card .fields {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            margin-bottom: 14px;
+        }
+        .editor-card .fields label { font-size: 0.85em; margin-bottom: 4px; }
+        .editor-card .fields input { padding: 8px 10px; font-size: 0.9em; }
+        .holidays-section { margin-top: 8px; }
+        .holidays-section h5 { font-size: 0.9em; color: #1a3a5c; margin-bottom: 8px; }
+        .holiday-row {
+            display: grid; grid-template-columns: 1fr 1fr 1.5fr auto; gap: 8px;
+            align-items: center; margin-bottom: 6px;
+        }
+        .holiday-row input { padding: 7px 8px; font-size: 0.88em; }
+        .btn-small {
+            background: #e9ecef; border: 1px solid #ccc; border-radius: 4px;
+            padding: 5px 12px; cursor: pointer; font-size: 0.85em;
+        }
+        .btn-small:hover { background: #d0d4d9; }
+        .btn-remove {
+            background: none; border: none; color: #dc3545;
+            font-size: 1.2em; cursor: pointer; padding: 2px 6px;
+        }
+        .btn-remove:hover { background: #fff5f5; border-radius: 4px; }
+        .save-bar { text-align: center; padding: 20px; }
+        .save-ok { color: #28a745; font-weight: 600; margin-left: 12px; }
+        .save-error { color: #dc3545; font-weight: 600; margin-left: 12px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>UNINOVIS Mobility Planner</h1>
+        <p class="subtitle">Compute when to open mobility calls, accounting for administrative periods and holidays</p>
+
+        <!-- Auth bar -->
+        <div class="auth-bar">
+            <span class="auth-info" id="authInfo"></span>
+            <button class="auth-btn" id="loginBtn" onclick="showLoginModal()">Login to Edit</button>
+            <button class="auth-btn" id="userModeBtn" onclick="toggleEditorMode()" style="display:none">Switch to User Mode</button>
+            <button class="auth-btn" id="logoutBtn" onclick="doLogout()" style="display:none">Logout</button>
+        </div>
+
+        <!-- Planner card -->
+        <div class="card" id="plannerCard">
+            <div class="form-group">
+                <label for="receiving">Receiving University</label>
+                <select id="receiving"><option value="">Loading...</option></select>
+            </div>
+            <div class="form-group">
+                <label for="sending">Sending Universities <span class="hint">(hold Ctrl / Cmd to select multiple)</span></label>
+                <select id="sending" multiple><option value="">Loading...</option></select>
+            </div>
+            <div class="form-group">
+                <label for="activityDate">Activity Start Date</label>
+                <input type="date" id="activityDate">
+            </div>
+            <div class="btn-row">
+                <button class="primary" id="computeBtn" disabled>Compute Deadlines</button>
+            </div>
+        </div>
+
+        <div id="results" class="card">
+            <div class="results-title">Results</div>
+            <div id="resultsBody"></div>
+        </div>
+
+        <!-- Editor panel (hidden until login) -->
+        <div id="editorPanel" style="display:none;">
+            <div class="card">
+                <h3 style="color:#1a3a5c; margin-bottom:6px;">University Data Editor</h3>
+                <p style="font-size:0.85em; color:#666;">Edit administrative periods (in calendar days) and holiday calendars for each university.</p>
+            </div>
+            <div id="editorCards"></div>
+            <div class="card save-bar" id="saveBar" style="display:none;">
+                <button class="primary" id="saveBtn" onclick="saveAll()">Save All Changes</button>
+                <span id="saveStatus"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login modal -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Login</h3>
+            <div class="form-group">
+                <label for="loginUser">Username</label>
+                <input type="text" id="loginUser" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="loginPass">Password</label>
+                <input type="password" id="loginPass" autocomplete="current-password">
+            </div>
+            <p id="loginError" class="error"></p>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                <button class="auth-btn" onclick="closeLoginModal()">Cancel</button>
+                <button class="primary" style="padding:10px 28px;" onclick="doLogin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE = '/mobility_planner';
+        const receivingSel = document.getElementById('receiving');
+        const sendingSel   = document.getElementById('sending');
+        const dateInput    = document.getElementById('activityDate');
+        const computeBtn   = document.getElementById('computeBtn');
+        const resultsDiv   = document.getElementById('results');
+        const resultsBody  = document.getElementById('resultsBody');
+
+        let universities = {};
+
+        // Default date: 3 months from now
+        const defaultDate = new Date();
+        defaultDate.setMonth(defaultDate.getMonth() + 3);
+        dateInput.value = defaultDate.toISOString().split('T')[0];
+
+        /* ── Auth state ──────────────────────────────────────── */
+
+        let authToken = localStorage.getItem('mobility_token');
+        let authUser = null;
+        let editorMode = true;
+
+        async function authFetch(url, options) {
+            options = options || {};
+            options.headers = options.headers || {};
+            if (authToken) options.headers['Authorization'] = 'Bearer ' + authToken;
+            return fetch(url, options);
+        }
+
+        async function checkAuth() {
+            if (!authToken) { updateAuthUI(); return; }
+            try {
+                var resp = await fetch(BASE + '/api/auth-check', {
+                    headers: { 'Authorization': 'Bearer ' + authToken },
+                });
+                if (resp.ok) {
+                    authUser = await resp.json();
+                } else {
+                    authToken = null; authUser = null;
+                    localStorage.removeItem('mobility_token');
+                }
+            } catch (e) {}
+            updateAuthUI();
+        }
+
+        function updateAuthUI() {
+            var loginBtn = document.getElementById('loginBtn');
+            var logoutBtn = document.getElementById('logoutBtn');
+            var userModeBtn = document.getElementById('userModeBtn');
+            var authInfo = document.getElementById('authInfo');
+            var editorPanel = document.getElementById('editorPanel');
+            var plannerCard = document.getElementById('plannerCard');
+            var resultsCard = document.getElementById('results');
+
+            if (authUser && authUser.can_edit && editorMode) {
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = '';
+                userModeBtn.style.display = '';
+                userModeBtn.textContent = 'Switch to User Mode';
+                authInfo.textContent = authUser.username + ' (' + authUser.role + ')';
+                editorPanel.style.display = '';
+                plannerCard.style.display = 'none';
+                resultsCard.style.display = 'none';
+                loadEditorData();
+            } else if (authUser && authUser.can_edit && !editorMode) {
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = '';
+                userModeBtn.style.display = '';
+                userModeBtn.textContent = 'Switch to Editor Mode';
+                authInfo.textContent = authUser.username;
+                editorPanel.style.display = 'none';
+                plannerCard.style.display = '';
+            } else if (authUser) {
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = '';
+                userModeBtn.style.display = 'none';
+                authInfo.textContent = authUser.username;
+                editorPanel.style.display = 'none';
+                plannerCard.style.display = '';
+            } else {
+                loginBtn.style.display = '';
+                logoutBtn.style.display = 'none';
+                userModeBtn.style.display = 'none';
+                authInfo.textContent = '';
+                editorPanel.style.display = 'none';
+                plannerCard.style.display = '';
+            }
+        }
+
+        function toggleEditorMode() {
+            editorMode = !editorMode;
+            updateAuthUI();
+        }
+
+        function showLoginModal() {
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            document.getElementById('loginError').textContent = '';
+            document.getElementById('loginModal').classList.add('active');
+            document.getElementById('loginUser').focus();
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
+        async function doLogin() {
+            var username = document.getElementById('loginUser').value.trim();
+            var password = document.getElementById('loginPass').value;
+            var errorEl = document.getElementById('loginError');
+            if (!username || !password) { errorEl.textContent = 'Enter username and password'; return; }
+            try {
+                var resp = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, password: password }),
+                });
+                if (!resp.ok) { errorEl.textContent = 'Invalid credentials'; return; }
+                var data = await resp.json();
+                authToken = data.token;
+                localStorage.setItem('mobility_token', authToken);
+                closeLoginModal();
+                await checkAuth();
+            } catch (e) {
+                errorEl.textContent = 'Login failed: ' + e.message;
+            }
+        }
+
+        function doLogout() {
+            authToken = null; authUser = null;
+            localStorage.removeItem('mobility_token');
+            updateAuthUI();
+        }
+
+        document.getElementById('loginPass').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') doLogin();
+        });
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target.id === 'loginModal') closeLoginModal();
+        });
+
+        /* ── Data loading ────────────────────────────────────── */
+
+        function populateSelects() {
+            var sorted = Object.entries(universities).sort(function(a, b) { return a[0].localeCompare(b[0]); });
+            receivingSel.innerHTML = '<option value="">-- Select receiving university --</option>';
+            sendingSel.innerHTML = '';
+            for (var i = 0; i < sorted.length; i++) {
+                var acro = sorted[i][0], info = sorted[i][1];
+                var label = acro + ' - ' + info.name + ' (' + info.country + ')';
+                receivingSel.innerHTML += '<option value="' + acro + '">' + label + '</option>';
+                sendingSel.innerHTML += '<option value="' + acro + '">' + label + '</option>';
+            }
+        }
+
+        async function init() {
+            var resp = await fetch(BASE + '/api/universities');
+            universities = await resp.json();
+            populateSelects();
+            computeBtn.disabled = false;
+            await checkAuth();
+        }
+
+        async function reloadData() {
+            var savedRecv = receivingSel.value;
+            var resp = await fetch(BASE + '/api/universities');
+            universities = await resp.json();
+            populateSelects();
+            receivingSel.value = savedRecv;
+        }
+
+        /* ── Planner (compute) ───────────────────────────────── */
+
+        computeBtn.addEventListener('click', async function() {
+            var receiving = receivingSel.value;
+            var sending = Array.from(sendingSel.selectedOptions).map(function(o) { return o.value; });
+            var activityDate = dateInput.value;
+
+            if (!receiving) { alert('Please select a receiving university.'); return; }
+            if (sending.length === 0) { alert('Please select at least one sending university.'); return; }
+            if (!activityDate) { alert('Please select the activity start date.'); return; }
+
+            computeBtn.disabled = true;
+            computeBtn.textContent = 'Computing...';
+
+            try {
+                var resp = await fetch(BASE + '/api/compute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        receiving_university: receiving,
+                        sending_universities: sending,
+                        activity_date: activityDate,
+                    }),
+                });
+                var data = await resp.json();
+                if (data.error) {
+                    resultsBody.innerHTML = '<p class="error">' + data.error + '</p>';
+                } else {
+                    renderResults(data.results);
+                }
+                resultsDiv.style.display = 'block';
+            } catch (e) {
+                resultsBody.innerHTML = '<p class="error">Request failed: ' + e.message + '</p>';
+                resultsDiv.style.display = 'block';
+            }
+            computeBtn.disabled = false;
+            computeBtn.textContent = 'Compute Deadlines';
+        });
+
+        function fmtDate(iso) {
+            var d = new Date(iso + 'T00:00:00');
+            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function esc(s) {
+            if (!s) return '';
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function renderResults(results) {
+            if (results.length === 0) { resultsBody.innerHTML = '<p>No results.</p>'; return; }
+
+            var recvName = results[0].receiving_name;
+            var recvAcro = results[0].receiving_university;
+            var actDate  = results[0].activity_date;
+
+            var html = '<p style="margin-bottom:16px;">Receiving: <strong>' + recvAcro + '</strong> (' + esc(recvName) + ') &mdash; Activity date: <strong>' + fmtDate(actDate) + '</strong></p>';
+
+            for (var i = 0; i < results.length; i++) {
+                var r = results[i];
+                var sendHolNote = r.sending_holidays_hit.length > 0
+                    ? '<p class="holiday-note">+' + r.sending_holiday_days_added + ' day(s) added due to ' + r.sending_university + ' holidays: ' + r.sending_holidays_hit.join(', ') + '</p>' : '';
+                var recvHolNote = r.receiving_holidays_hit.length > 0
+                    ? '<p class="holiday-note">+' + r.receiving_holiday_days_added + ' day(s) added due to ' + r.receiving_university + ' holidays: ' + r.receiving_holidays_hit.join(', ') + '</p>' : '';
+
+                html += '<div class="result-card">'
+                    + '<h3>' + r.sending_university + ' (' + esc(r.sending_name) + ')</h3>'
+                    + '<div class="timeline">'
+                    +   '<div class="tl-node call"><strong>Call opens</strong><br>' + fmtDate(r.call_open_date) + '</div>'
+                    +   '<div class="tl-arrow">' + r.sending_period_days + ' days<br>sending'
+                    +     (r.sending_holiday_days_added > 0 ? '<br>(+' + r.sending_holiday_days_added + ' hol.)' : '') + '</div>'
+                    +   '<div class="tl-node docs"><strong>Docs arrive</strong><br>' + fmtDate(r.docs_arrival_date) + '</div>'
+                    +   '<div class="tl-arrow">' + r.receiving_period_days + ' days<br>receiving'
+                    +     (r.receiving_holiday_days_added > 0 ? '<br>(+' + r.receiving_holiday_days_added + ' hol.)' : '') + '</div>'
+                    +   '<div class="tl-node activity"><strong>Activity</strong><br>' + fmtDate(r.activity_date) + '</div>'
+                    + '</div>'
+                    + '<dl class="detail-grid">'
+                    +   '<dt>Total calendar days needed:</dt><dd>' + r.total_calendar_days + ' days</dd>'
+                    +   '<dt>Sending period:</dt><dd>' + r.sending_period_days + ' days' + (r.sending_holiday_days_added > 0 ? ' + ' + r.sending_holiday_days_added + ' holiday' : '') + '</dd>'
+                    +   '<dt>Receiving period:</dt><dd>' + r.receiving_period_days + ' days' + (r.receiving_holiday_days_added > 0 ? ' + ' + r.receiving_holiday_days_added + ' holiday' : '') + '</dd>'
+                    + '</dl>'
+                    + sendHolNote + recvHolNote
+                    + '</div>';
+            }
+            resultsBody.innerHTML = html;
+        }
+
+        /* ── Editor panel ────────────────────────────────────── */
+
+        var editorData = {};  // full university data with holidays
+
+        async function loadEditorData() {
+            try {
+                var resp = await authFetch(BASE + '/api/universities-full');
+                if (resp.ok) {
+                    editorData = await resp.json();
+                    renderEditorCards();
+                    document.getElementById('saveBar').style.display = '';
+                }
+            } catch (e) {}
+        }
+
+        function renderEditorCards() {
+            var unis = Object.keys(editorData).sort();
+            var html = '';
+            for (var i = 0; i < unis.length; i++) {
+                var acro = unis[i];
+                var u = editorData[acro];
+                html += '<div class="card editor-card" data-acro="' + acro + '">'
+                    + '<h4>' + acro + ' \u2014 ' + esc(u.name) + ' (' + u.country + ')</h4>'
+                    + '<div class="fields">'
+                    +   '<div class="form-group">'
+                    +     '<label>Sending period (days)</label>'
+                    +     '<input type="number" min="0" id="send_' + acro + '" value="' + u.sending_period_days + '">'
+                    +   '</div>'
+                    +   '<div class="form-group">'
+                    +     '<label>Receiving period (days)</label>'
+                    +     '<input type="number" min="0" id="recv_' + acro + '" value="' + u.receiving_period_days + '">'
+                    +   '</div>'
+                    + '</div>'
+                    + '<div class="holidays-section">'
+                    +   '<h5>Holidays / Closure periods</h5>'
+                    +   '<div id="holidays_' + acro + '">';
+                for (var j = 0; j < (u.holidays || []).length; j++) {
+                    var h = u.holidays[j];
+                    html += holidayRowHtml(h.start, h.end, h.label);
+                }
+                html += '</div>'
+                    +   '<button type="button" class="btn-small" onclick="addHolidayRow(\'' + acro + '\')">+ Add Holiday</button>'
+                    + '</div>'
+                    + '</div>';
+            }
+            document.getElementById('editorCards').innerHTML = html;
+        }
+
+        function holidayRowHtml(start, end, label) {
+            start = start || ''; end = end || ''; label = label || '';
+            return '<div class="holiday-row">'
+                + '<input type="date" value="' + start + '" class="hol-start">'
+                + '<input type="date" value="' + end + '" class="hol-end">'
+                + '<input type="text" value="' + esc(label) + '" placeholder="Label (e.g. Summer)" class="hol-label">'
+                + '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">\u00d7</button>'
+                + '</div>';
+        }
+
+        function addHolidayRow(acro) {
+            var container = document.getElementById('holidays_' + acro);
+            container.insertAdjacentHTML('beforeend', holidayRowHtml('', '', ''));
+        }
+
+        function collectUniversityData() {
+            var unis = Object.keys(editorData);
+            var result = {};
+            for (var i = 0; i < unis.length; i++) {
+                var acro = unis[i];
+                var u = editorData[acro];
+                var sendDays = parseInt(document.getElementById('send_' + acro).value) || 0;
+                var recvDays = parseInt(document.getElementById('recv_' + acro).value) || 0;
+                var holidays = [];
+                var rows = document.querySelectorAll('#holidays_' + acro + ' .holiday-row');
+                for (var j = 0; j < rows.length; j++) {
+                    var s = rows[j].querySelector('.hol-start').value;
+                    var e = rows[j].querySelector('.hol-end').value;
+                    var l = rows[j].querySelector('.hol-label').value;
+                    if (s && e) {
+                        holidays.push({ start: s, end: e, label: l });
+                    }
+                }
+                result[acro] = {
+                    name: u.name,
+                    country: u.country,
+                    sending_period_days: sendDays,
+                    receiving_period_days: recvDays,
+                    holidays: holidays,
+                };
+            }
+            return result;
+        }
+
+        async function saveAll() {
+            var data = collectUniversityData();
+            var statusEl = document.getElementById('saveStatus');
+            var saveBtn = document.getElementById('saveBtn');
+            statusEl.textContent = 'Saving...';
+            statusEl.className = '';
+            saveBtn.disabled = true;
+
+            try {
+                var resp = await authFetch(BASE + '/api/universities', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ universities: data }),
+                });
+                if (resp.ok) {
+                    statusEl.textContent = 'Saved successfully!';
+                    statusEl.className = 'save-ok';
+                    await reloadData();
+                } else {
+                    var err = await resp.json();
+                    var msg = '';
+                    if (err.detail && typeof err.detail === 'object' && err.detail.errors) {
+                        msg = err.detail.errors.join('; ');
+                    } else {
+                        msg = (typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail)) || 'Unknown error';
+                    }
+                    statusEl.textContent = 'Errors: ' + msg;
+                    statusEl.className = 'save-error';
+                }
+            } catch (e) {
+                statusEl.textContent = 'Network error: ' + e.message;
+                statusEl.className = 'save-error';
+            }
+            saveBtn.disabled = false;
+        }
+
+        /* ── Init ────────────────────────────────────────────── */
+        init();
+    </script>
+</body>
+</html>

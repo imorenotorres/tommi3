@@ -176,6 +176,11 @@ from apps.unigracon.unigracon import router as unigracon_router
 app.include_router(unigracon_router)
 app.mount("/unigracon/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "unigracon" / "static"), name="unigracon_static")
 
+# Mount Mobility Planner app
+from apps.mobility_planner.mobility_planner import router as mobility_router
+app.include_router(mobility_router)
+app.mount("/mobility_planner/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "mobility_planner" / "static"), name="mobility_static")
+
 
 # ---------------------------------------------------------------------------
 # Auth helpers
