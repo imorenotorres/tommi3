@@ -82,6 +82,10 @@
         {
           "id": "T3.3",
           "name": "Task 3.3 Research Groups"
+        },
+        {
+          "id": "Mobility",
+          "name": "Mobility subgroup"
         }
       ]
     },
@@ -90,16 +94,7 @@
       "name": "Work Package 4",
       "leader": "efbbd2d3",
       "verified": false,
-      "subgroups": [
-        {
-          "id": "WP4-Dig",
-          "name": "WP4 Digitalization"
-        },
-        {
-          "id": "WP4-Sus",
-          "name": "WP4 Sustainability"
-        }
-      ]
+      "subgroups": []
     },
     {
       "id": "WP5",
@@ -154,6 +149,13 @@
           "name": "UMA Excellence Hub"
         }
       ]
+    },
+    {
+      "id": "StuCouncil",
+      "name": "Students Council",
+      "leader": "",
+      "verified": false,
+      "subgroups": []
     }
   ],
   "users": [
@@ -177,7 +179,7 @@
       "university": "KK",
       "first_name": "Kristina",
       "family_name": "Grumadaite",
-      "role": "Dr.",
+      "role": "WP3 Board Member",
       "email": "kristina.grumadaite@kaunokolegija.lt",
       "telephone": "",
       "groups": [
@@ -212,9 +214,7 @@
         "TB",
         "WP4"
       ],
-      "subgroups": [
-        "WP4-Dig"
-      ]
+      "subgroups": []
     },
     {
       "id": "0f5ce445",
@@ -296,10 +296,7 @@
       "groups": [
         "WP4"
       ],
-      "subgroups": [
-        "WP4-Dig",
-        "WP4-Sus"
-      ]
+      "subgroups": []
     },
     {
       "id": "3c99c1d9",
@@ -367,9 +364,7 @@
         "TB",
         "WP4"
       ],
-      "subgroups": [
-        "WP4-Dig"
-      ]
+      "subgroups": []
     },
     {
       "id": "e7a391e1",
@@ -395,16 +390,14 @@
       "groups": [
         "WP4"
       ],
-      "subgroups": [
-        "WP4-Sus"
-      ]
+      "subgroups": []
     },
     {
       "id": "1f18cbb5",
       "university": "THWS",
       "first_name": "Maike",
       "family_name": "Antlitz",
-      "role": "",
+      "role": "WP3 Board Member",
       "email": "maike.antlitz@thws.de",
       "telephone": "",
       "groups": [
@@ -540,9 +533,7 @@
         "TB",
         "WP4"
       ],
-      "subgroups": [
-        "WP4-Dig"
-      ]
+      "subgroups": []
     },
     {
       "id": "281b08d7",
@@ -619,7 +610,7 @@
       "university": "UMA",
       "first_name": "Amparo",
       "family_name": "Zamora Mogollo",
-      "role": "",
+      "role": "Technical Body Member",
       "email": "amparo.zamora@uma.es",
       "telephone": "",
       "groups": [
@@ -627,14 +618,15 @@
       ],
       "subgroups": [
         "T2.4"
-      ]
+      ],
+      "custom": {}
     },
     {
       "id": "7c39ff49",
       "university": "UMA",
       "first_name": "Beatriz",
       "family_name": "Blázquez",
-      "role": "",
+      "role": "WP2 Board Member",
       "email": "vra.movilidad@uma.es",
       "telephone": "",
       "groups": [
@@ -642,14 +634,15 @@
       ],
       "subgroups": [
         "T3.2"
-      ]
+      ],
+      "custom": {}
     },
     {
       "id": "fdd6dad9",
       "university": "UMA",
       "first_name": "Daniel",
       "family_name": "Navas Carrillo",
-      "role": "",
+      "role": "WP2 Board Member",
       "email": "vra.posgrado@uma.es",
       "telephone": "",
       "groups": [
@@ -657,43 +650,44 @@
       ],
       "subgroups": [
         "T2.1"
-      ]
+      ],
+      "custom": {}
     },
     {
       "id": "ab21a1f6",
       "university": "UMA",
       "first_name": "Francisca",
       "family_name": "Martín Vergara",
-      "role": "",
+      "role": "Technical Body Leader",
       "email": "fmarver@uma.es",
       "telephone": "",
       "groups": [
-        "TB",
-        "WP4"
+        "WP4",
+        "TB"
       ],
-      "subgroups": [
-        "WP4-Dig"
-      ]
+      "subgroups": [],
+      "custom": {}
     },
     {
       "id": "22e95259",
       "university": "UMA",
       "first_name": "Gema",
       "family_name": "Lobillo",
-      "role": "",
+      "role": "WP5 Board Member",
       "email": "gmlobillo@uma.es",
       "telephone": "",
       "groups": [
         "WP5"
       ],
-      "subgroups": []
+      "subgroups": [],
+      "custom": {}
     },
     {
       "id": "2ad46c4d",
       "university": "UMA",
       "first_name": "Gema",
       "family_name": "Reca",
-      "role": "",
+      "role": "WP4 Board Member",
       "email": "gemareca@uma.es",
       "telephone": "",
       "groups": [
@@ -701,7 +695,8 @@
       ],
       "subgroups": [
         "T2.4"
-      ]
+      ],
+      "custom": {}
     },
     {
       "id": "9f3bb877",
@@ -713,9 +708,13 @@
       "telephone": "",
       "groups": [
         "WP1",
-        "WP2"
+        "WP3",
+        "WP4",
+        "ManagementBoard",
+        "Quality"
       ],
-      "subgroups": []
+      "subgroups": [],
+      "custom": {}
     },
     {
       "id": "f061d5bf",
@@ -737,7 +736,7 @@
       "university": "UMA",
       "first_name": "Javier",
       "family_name": "López",
-      "role": "",
+      "role": "EH Coordinator",
       "email": "javierlopez@uma.es",
       "telephone": "",
       "groups": [
@@ -745,14 +744,15 @@
       ],
       "subgroups": [
         "T3.1"
-      ]
+      ],
+      "custom": {}
     },
     {
       "id": "a0ce32e0",
       "university": "UMA",
       "first_name": "María José",
       "family_name": "Márquez Ballesteros",
-      "role": "",
+      "role": "WP2 Board Member",
       "email": "mjmarquez@uma.es",
       "telephone": "",
       "groups": [
@@ -760,25 +760,24 @@
       ],
       "subgroups": [
         "T2.2"
-      ]
+      ],
+      "custom": {}
     },
     {
       "id": "ca990447",
       "university": "UMA",
       "first_name": "Yamina",
       "family_name": "Seamari",
-      "role": "",
+      "role": "WP3 Leader",
       "email": "yamina@uma.es",
       "telephone": "",
       "groups": [
         "WP3",
-        "WP4"
+        "WP4",
+        "ManagementBoard"
       ],
-      "subgroups": [
-        "T3.1",
-        "T3.3",
-        "WP4-Sus"
-      ]
+      "subgroups": [],
+      "custom": {}
     },
     {
       "id": "ca37dc6a",
@@ -836,9 +835,7 @@
         "TB",
         "WP4"
       ],
-      "subgroups": [
-        "WP4-Dig"
-      ]
+      "subgroups": []
     },
     {
       "id": "9aefce09",
@@ -898,7 +895,7 @@
       "university": "UT",
       "first_name": "Eglantina",
       "family_name": "Gishti",
-      "role": "",
+      "role": "Local Coordinator",
       "email": "eglantina.gishti@unitir.edu.al",
       "telephone": "",
       "groups": [
@@ -933,9 +930,7 @@
       "groups": [
         "WP4"
       ],
-      "subgroups": [
-        "WP4-Sus"
-      ]
+      "subgroups": []
     },
     {
       "id": "5e79b808",
@@ -949,9 +944,34 @@
         "TB",
         "WP4"
       ],
-      "subgroups": [
-        "WP4-Dig"
-      ]
+      "subgroups": []
     }
-  ]
+  ],
+  "settings": {
+    "roles": [
+      "Board of Rectors Member",
+      "Board of Rectors Deputy Member",
+      "Executive Council Member",
+      "Management Board Member",
+      "General Coordinator",
+      "Local Coordinator",
+      "WP1 Leader",
+      "WP2 Leader",
+      "WP3 Leader",
+      "WP4 Leader",
+      "WP5 Leader",
+      "WP1 Board Member",
+      "WP2 Board Member",
+      "WP3 Board Member",
+      "WP4 Board Member",
+      "WP5 Board Member",
+      "EH Coordinator",
+      "Technical Body Member",
+      "Admin Support",
+      "DPO",
+      "Quality Officer",
+      "Technical Body Leader"
+    ],
+    "custom_fields": []
+  }
 }

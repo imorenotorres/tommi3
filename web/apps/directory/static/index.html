@@ -163,6 +163,7 @@
             <div class="tab" data-tab="groups" onclick="switchTab('groups')">Groups</div>
             <div class="tab" data-tab="universities" onclick="switchTab('universities')">Universities</div>
             <div class="tab" data-tab="orgchart" onclick="switchTab('orgchart')">Org Chart</div>
+            <div class="tab" data-tab="settings" id="settingsTab" style="display:none" onclick="switchTab('settings')">Settings</div>
         </div>
 
         <!-- ══ USERS TAB ══ -->
@@ -210,6 +211,46 @@
                 <div id="orgChartArea"></div>
             </div>
         </div>
+
+        <!-- ══ SETTINGS TAB ══ -->
+        <div id="tab-settings" style="display:none">
+            <div class="card">
+                <h2>Settings</h2>
+
+                <h3 style="color:#1a3a5c;font-size:1em;margin:16px 0 8px;">Main Roles</h3>
+                <div id="settingsRoles"></div>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <input type="text" id="newRoleName" placeholder="New role name" style="max-width:250px;">
+                    <button class="btn-small" onclick="addRole()">+ Add Role</button>
+                </div>
+
+                <h3 style="color:#1a3a5c;font-size:1em;margin:24px 0 8px;">Custom Person Fields</h3>
+                <div id="settingsFields"></div>
+                <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+                    <input type="text" id="newFieldLabel" placeholder="Field label" style="max-width:200px;">
+                    <select id="newFieldType" style="width:auto;">
+                        <option value="text">Text</option>
+                        <option value="dropdown">Dropdown</option>
+                        <option value="checkbox">Checkbox</option>
+                        <option value="image">Image</option>
+                    </select>
+                    <button class="btn-small" onclick="addCustomField()">+ Add Field</button>
+                </div>
+
+                <h3 style="color:#1a3a5c;font-size:1em;margin:24px 0 8px;">Groups & Subgroups</h3>
+                <div id="settingsGroups"></div>
+                <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+                    <input type="text" id="newGroupId" placeholder="Group ID (e.g. WP6)" style="max-width:150px;">
+                    <input type="text" id="newGroupName" placeholder="Group name" style="max-width:250px;">
+                    <button class="btn-small" onclick="addSettingsGroup()">+ Add Group</button>
+                </div>
+
+                <div style="margin-top:24px;text-align:center;">
+                    <button class="btn" onclick="saveSettings()">Save Settings</button>
+                    <span id="settingsStatus" style="margin-left:10px;font-size:0.85em;"></span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ══ LOGIN MODAL ══ -->
@@ -251,6 +292,7 @@
                     <div class="checkbox-list" id="userSubgroups"></div>
                 </div>
             </div>
+            <div id="userCustomFields"></div>
             <p id="userError" style="color:#dc3545;font-size:0.85em;margin-top:8px;"></p>
             <div class="modal-footer">
                 <button class="btn-small" onclick="closeModal('userModal')">Cancel</button>
@@ -302,7 +344,7 @@
 <script>
     var BASE = '/directory';
     var appData = { universities: {}, groups: [], users: [] };
-    var authToken = localStorage.getItem('directory_token');
+    var authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('directory_token') || localStorage.getItem('tommi_token');
     var authUser = null;
     var canEdit = false;
     var editorMode = true;
@@ -322,7 +364,7 @@
                 canEdit = authUser.can_edit;
             } else {
                 authToken = null; authUser = null; canEdit = false;
-                localStorage.removeItem('directory_token');
+                localStorage.removeItem('uninovis_token'); localStorage.removeItem('directory_token');
             }
         } catch (e) { authUser = null; canEdit = false; }
         updateAuthUI();
@@ -338,6 +380,7 @@
         document.getElementById('userModeBtn').textContent = editorMode ? 'User mode' : 'Editor mode';
         document.getElementById('addUserBtn').style.display = canEdit ? '' : 'none';
         document.getElementById('addGroupBtn').style.display = canEdit ? '' : 'none';
+        document.getElementById('settingsTab').style.display = canEdit ? '' : 'none';
         renderAll();
     }
 
@@ -363,7 +406,7 @@
             if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
             var data = await resp.json();
             authToken = data.token;
-            localStorage.setItem('directory_token', authToken);
+            localStorage.setItem('uninovis_token', authToken); localStorage.setItem('directory_token', authToken);
             closeModal('loginModal');
             await checkAuth();
         } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
@@ -371,7 +414,7 @@
 
     function doLogout() {
         authToken = null; authUser = null; canEdit = false;
-        localStorage.removeItem('directory_token');
+        localStorage.removeItem('uninovis_token'); localStorage.removeItem('directory_token');
         updateAuthUI();
     }
 
@@ -397,13 +440,15 @@
         document.getElementById('tab-groups').style.display = tab === 'groups' ? '' : 'none';
         document.getElementById('tab-universities').style.display = tab === 'universities' ? '' : 'none';
         document.getElementById('tab-orgchart').style.display = tab === 'orgchart' ? '' : 'none';
+        document.getElementById('tab-settings').style.display = tab === 'settings' ? '' : 'none';
         if (tab === 'orgchart') renderOrgChart();
+        if (tab === 'settings') initSettings();
     }
 
     // ── Data loading ──────────────────────────────────────────────
 
     async function loadData() {
-        var resp = await fetch(BASE + '/api/data');
+        var resp = await fetch(BASE + '/api/data?_=' + Date.now());
         appData = await resp.json();
         populateFilters();
         renderAll();
@@ -411,15 +456,19 @@
 
     function populateFilters() {
         var uniSel = document.getElementById('uniFilter');
+        var savedUni = uniSel.value;
         uniSel.innerHTML = '<option value="">All universities</option>';
         Object.keys(appData.universities).sort().forEach(function(a) {
             uniSel.innerHTML += '<option value="' + a + '">' + a + '</option>';
         });
+        if (savedUni) uniSel.value = savedUni;
         var grpSel = document.getElementById('groupFilter');
+        var savedGrp = grpSel.value;
         grpSel.innerHTML = '<option value="">All groups</option>';
         appData.groups.forEach(function(g) {
             grpSel.innerHTML += '<option value="' + g.id + '">' + esc(g.id) + '</option>';
         });
+        if (savedGrp) grpSel.value = savedGrp;
     }
 
     function renderAll() {
@@ -495,12 +544,20 @@
             var arrow = sortColumn === col ? (sortAsc ? ' \u25B2' : ' \u25BC') : '';
             return '<th style="cursor:pointer;" onclick="setSort(\'' + col + '\')">' + label + arrow + '</th>';
         }
-        var html = '<table><tr>' + sortHeader('university', 'University') + sortHeader('family_name', 'Family Name') + sortHeader('first_name', 'First Name') + sortHeader('role', 'Main Role') + '<th>Email</th><th>Telephone</th><th>Groups</th>';
+        var customFields = (appData.settings && appData.settings.custom_fields) || [];
+        var html = '<table><tr>' + sortHeader('university', 'University') + sortHeader('family_name', 'Family Name') + sortHeader('first_name', 'First Name') + sortHeader('role', 'Main Role') + '<th>Email</th><th>Telephone</th>';
+        customFields.forEach(function(cf) {
+            if (cf.type !== 'image') html += '<th>' + esc(cf.label) + '</th>';
+        });
+        var hasImageField = customFields.some(function(cf) { return cf.type === 'image'; });
+        if (hasImageField) html += '<th>Photo</th>';
+        html += '<th>Groups</th>';
         if (canEdit) html += '<th>Actions</th>';
         html += '</tr>';
 
         for (var i = 0; i < filtered.length; i++) {
             var u = filtered[i];
+            var uc = u.custom || {};
             var groupBadges = (u.groups || []).map(function(gid) { return '<span class="badge badge-group" style="cursor:pointer;" onclick="goToGroup(\'' + esc(gid) + '\')">' + esc(gid) + '</span>'; }).join(' ');
             var subBadges = (u.subgroups || []).map(function(sid) { return '<span class="badge badge-subgroup" style="cursor:pointer;" onclick="goToGroup(\'' + esc(sid) + '\')">' + esc(sid) + '</span>'; }).join(' ');
             html += '<tr>'
@@ -509,8 +566,26 @@
                 + '<td>' + esc(u.first_name) + '</td>'
                 + '<td>' + esc(u.role || '') + '</td>'
                 + '<td>' + esc(u.email) + '</td>'
-                + '<td>' + esc(u.telephone || '') + '</td>'
-                + '<td>' + groupBadges + ' ' + subBadges + '</td>';
+                + '<td>' + esc(u.telephone || '') + '</td>';
+            customFields.forEach(function(cf) {
+                var val = uc[cf.id];
+                if (cf.type === 'image') return; // handled separately
+                if (cf.type === 'checkbox') {
+                    html += '<td>' + (val ? 'Yes' : '') + '</td>';
+                } else {
+                    html += '<td>' + esc(val || '') + '</td>';
+                }
+            });
+            if (hasImageField) {
+                var imgHtml = '';
+                customFields.forEach(function(cf) {
+                    if (cf.type === 'image' && uc[cf.id]) {
+                        imgHtml += '<img src="' + BASE + '/api/images/' + esc(uc[cf.id]) + '" style="max-width:40px;max-height:40px;border-radius:4px;">';
+                    }
+                });
+                html += '<td>' + imgHtml + '</td>';
+            }
+            html += '<td>' + groupBadges + ' ' + subBadges + '</td>';
             if (canEdit) {
                 html += '<td>'
                     + '<button class="btn-small" onclick="editUser(\'' + u.id + '\')">Edit</button> '
@@ -535,25 +610,48 @@
         document.getElementById('userTel').value = user ? (user.telephone || '') : '';
         document.getElementById('userError').textContent = '';
 
-        // Role select
-        var ROLES = [
-            'General Coordinator',
-            'Local Coordinator',
-            'WP1 Leader', 'WP2 Leader', 'WP3 Leader', 'WP4 Leader', 'WP5 Leader',
-            'WP1 Board Member', 'WP2 Board Member', 'WP3 Board Member', 'WP4 Board Member', 'WP5 Board Member',
-            'Board of Rectors Member',
-            'Board of Rectors Deputy Member',
-        ];
+        // Role select (from settings)
+        var settingsRoles = (appData.settings && appData.settings.roles) || [];
         var roleSel = document.getElementById('userRole');
         var currentRole = user ? (user.role || '') : '';
         roleSel.innerHTML = '<option value="">-- None --</option>';
-        ROLES.forEach(function(r) {
+        settingsRoles.forEach(function(r) {
             roleSel.innerHTML += '<option value="' + esc(r) + '"' + (currentRole === r ? ' selected' : '') + '>' + esc(r) + '</option>';
         });
-        // If the user has a custom role not in the list, add it
-        if (currentRole && ROLES.indexOf(currentRole) === -1) {
+        if (currentRole && settingsRoles.indexOf(currentRole) === -1) {
             roleSel.innerHTML += '<option value="' + esc(currentRole) + '" selected>' + esc(currentRole) + '</option>';
         }
+
+        // Custom fields
+        var customHtml = '';
+        var customFields = (appData.settings && appData.settings.custom_fields) || [];
+        var userCustom = (user && user.custom) || {};
+        if (customFields.length > 0) {
+            customHtml += '<div style="margin-top:12px;border-top:1px solid #eee;padding-top:12px;">';
+            customHtml += '<div class="form-row">';
+            customFields.forEach(function(cf) {
+                var val = userCustom[cf.id] || '';
+                customHtml += '<div class="form-group">';
+                customHtml += '<label>' + esc(cf.label) + '</label>';
+                if (cf.type === 'text') {
+                    customHtml += '<input type="text" id="custom_' + esc(cf.id) + '" value="' + esc(val) + '">';
+                } else if (cf.type === 'dropdown') {
+                    customHtml += '<select id="custom_' + esc(cf.id) + '"><option value="">-- None --</option>';
+                    (cf.options || []).forEach(function(opt) {
+                        customHtml += '<option value="' + esc(opt) + '"' + (val === opt ? ' selected' : '') + '>' + esc(opt) + '</option>';
+                    });
+                    customHtml += '</select>';
+                } else if (cf.type === 'checkbox') {
+                    customHtml += '<input type="checkbox" id="custom_' + esc(cf.id) + '"' + (val ? ' checked' : '') + ' style="width:auto;">';
+                } else if (cf.type === 'image') {
+                    if (val) customHtml += '<img src="' + BASE + '/api/images/' + esc(val) + '" style="max-width:80px;max-height:80px;border-radius:6px;display:block;margin-bottom:4px;">';
+                    customHtml += '<input type="file" id="custom_' + esc(cf.id) + '" accept="image/*" style="font-size:0.82em;">';
+                }
+                customHtml += '</div>';
+            });
+            customHtml += '</div></div>';
+        }
+        document.getElementById('userCustomFields').innerHTML = customHtml;
 
         // University select
         var uniSel = document.getElementById('userUni');
@@ -598,6 +696,25 @@
 
     async function saveUser() {
         var id = document.getElementById('userId').value;
+        var customFields = (appData.settings && appData.settings.custom_fields) || [];
+        var customData = {};
+        var imageUploads = []; // {fieldId, file}
+
+        customFields.forEach(function(cf) {
+            var el = document.getElementById('custom_' + cf.id);
+            if (!el) return;
+            if (cf.type === 'checkbox') {
+                customData[cf.id] = el.checked;
+            } else if (cf.type === 'image') {
+                if (el.files && el.files[0]) {
+                    imageUploads.push({ fieldId: cf.id, file: el.files[0] });
+                }
+                // Keep existing value if no new file
+            } else {
+                customData[cf.id] = el.value;
+            }
+        });
+
         var body = {
             university: document.getElementById('userUni').value,
             first_name: document.getElementById('userFirstName').value.trim(),
@@ -606,10 +723,23 @@
             email: document.getElementById('userEmail').value.trim(),
             telephone: document.getElementById('userTel').value.trim(),
             groups: [],
-            subgroups: []
+            subgroups: [],
+            custom: customData
         };
         document.querySelectorAll('#userGroups input:checked').forEach(function(cb) { body.groups.push(cb.value); });
         document.querySelectorAll('#userSubgroups input:checked').forEach(function(cb) { body.subgroups.push(cb.value); });
+
+        // Preserve existing image values
+        if (id) {
+            var existingUser = appData.users.find(function(u) { return u.id === id; });
+            if (existingUser && existingUser.custom) {
+                customFields.forEach(function(cf) {
+                    if (cf.type === 'image' && existingUser.custom[cf.id] && !body.custom[cf.id]) {
+                        body.custom[cf.id] = existingUser.custom[cf.id];
+                    }
+                });
+            }
+        }
 
         if (!body.first_name) { document.getElementById('userError').textContent = 'First name is required'; return; }
         if (!body.family_name) { document.getElementById('userError').textContent = 'Family name is required'; return; }
@@ -619,8 +749,20 @@
         var method = id ? 'PUT' : 'POST';
         try {
             var resp = await authFetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-            if (resp.ok) { closeModal('userModal'); await loadData(); }
-            else { var err = await resp.json(); document.getElementById('userError').textContent = err.detail || 'Error saving user'; }
+            if (!resp.ok) { var err = await resp.json(); document.getElementById('userError').textContent = err.detail || 'Error saving user'; return; }
+            var savedUser = await resp.json();
+            var userId = savedUser.id;
+
+            // Upload images
+            for (var i = 0; i < imageUploads.length; i++) {
+                var img = imageUploads[i];
+                var formData = new FormData();
+                formData.append('file', img.file);
+                await authFetch(BASE + '/api/users/' + userId + '/image/' + encodeURIComponent(img.fieldId), { method: 'POST', body: formData });
+            }
+
+            closeModal('userModal');
+            await loadData();
         } catch (e) { document.getElementById('userError').textContent = 'Request failed'; }
     }
 
@@ -676,11 +818,13 @@
                 var sgMembers = appData.users.filter(function(u) { return (u.subgroups || []).indexOf(sg.id) !== -1; });
                 html += '<div class="subgroup-card">'
                     + '<div style="display:flex;justify-content:space-between;align-items:center;">'
-                    +   '<h4>' + esc(sg.id) + ' \u2014 ' + esc(sg.name) + '</h4>';
+                    +   '<h4>' + esc(sg.id) + ' \u2014 ' + esc(sg.name) + '</h4>'
+                    +   '<div>';
+                html += '<button class="btn-small" onclick="copySubgroupEmails(\'' + esc(sg.id) + '\', this)">Copy emails</button> ';
                 if (canEdit) {
                     html += '<button class="btn-small" onclick="openAddMembers(\'' + esc(g.id) + '\', \'' + esc(sg.id) + '\')">+ Members</button>';
                 }
-                html += '</div><div>';
+                html += '</div></div><div>';
                 if (sgMembers.length === 0) {
                     html += '<span style="color:#888;font-size:0.85em;">No members</span>';
                 } else {
@@ -788,7 +932,11 @@
 
     async function deleteGroup(id) {
         if (!confirm('Delete group "' + id + '" and remove all member associations?')) return;
-        await authFetch(BASE + '/api/groups/' + id, { method: 'DELETE' });
+        var resp = await authFetch(BASE + '/api/groups/' + encodeURIComponent(id), { method: 'DELETE' });
+        if (!resp.ok) {
+            var err = await resp.json();
+            alert('Error deleting group: ' + (err.detail || 'Unknown error'));
+        }
         await loadData();
     }
 
@@ -810,6 +958,17 @@
 
     function copyGroupEmails(groupId, btn) {
         var members = appData.users.filter(function(u) { return (u.groups || []).indexOf(groupId) !== -1; });
+        var emails = members.map(function(u) { return u.email; }).filter(Boolean);
+        if (emails.length === 0) { return; }
+        navigator.clipboard.writeText(emails.join('; ')).then(function() {
+            var orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = orig; }, 1500);
+        });
+    }
+
+    function copySubgroupEmails(subgroupId, btn) {
+        var members = appData.users.filter(function(u) { return (u.subgroups || []).indexOf(subgroupId) !== -1; });
         var emails = members.map(function(u) { return u.email; }).filter(Boolean);
         if (emails.length === 0) { return; }
         navigator.clipboard.writeText(emails.join('; ')).then(function() {
@@ -925,6 +1084,219 @@
         document.getElementById('uniTable').innerHTML = html;
     }
 
+    // ── Settings ──────────────────────────────────────────────────
+
+    var settingsData = { roles: [], custom_fields: [] };
+    var settingsGroups = [];
+
+    function initSettings() {
+        settingsData = JSON.parse(JSON.stringify(appData.settings || { roles: [], custom_fields: [] }));
+        settingsGroups = JSON.parse(JSON.stringify(appData.groups || []));
+        renderSettings();
+    }
+
+    function renderSettings() {
+
+        // Roles (drag & drop reorderable)
+        var rHtml = '';
+        settingsData.roles.forEach(function(r, i) {
+            rHtml += '<div draggable="true" data-role-idx="' + i + '" style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:grab;padding:4px 6px;border-radius:4px;transition:background 0.1s;" '
+                + 'ondragstart="dragRoleStart(event,' + i + ')" ondragover="dragRoleOver(event,' + i + ')" ondrop="dropRole(event,' + i + ')" ondragend="dragRoleEnd(event)">'
+                + '<span style="color:#aaa;font-size:0.8em;cursor:grab;">&#9776;</span>'
+                + '<input type="text" value="' + esc(r) + '" onchange="settingsData.roles[' + i + ']=this.value" style="max-width:300px;">'
+                + '<button class="btn-danger" onclick="settingsData.roles.splice(' + i + ',1);renderSettings();" style="font-size:0.78em;">x</button>'
+                + '</div>';
+        });
+        document.getElementById('settingsRoles').innerHTML = rHtml;
+
+        // Custom fields
+        var fHtml = '';
+        settingsData.custom_fields.forEach(function(cf, i) {
+            fHtml += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;padding:10px;background:#f8f9fa;border-radius:6px;">'
+                + '<div style="flex:1;">'
+                +   '<div style="display:flex;gap:8px;margin-bottom:4px;">'
+                +     '<input type="text" value="' + esc(cf.label) + '" placeholder="Label" onchange="settingsData.custom_fields[' + i + '].label=this.value" style="max-width:200px;">'
+                +     '<select onchange="settingsData.custom_fields[' + i + '].type=this.value;renderSettings();" style="width:auto;">'
+                +       '<option value="text"' + (cf.type === 'text' ? ' selected' : '') + '>Text</option>'
+                +       '<option value="dropdown"' + (cf.type === 'dropdown' ? ' selected' : '') + '>Dropdown</option>'
+                +       '<option value="checkbox"' + (cf.type === 'checkbox' ? ' selected' : '') + '>Checkbox</option>'
+                +       '<option value="image"' + (cf.type === 'image' ? ' selected' : '') + '>Image</option>'
+                +     '</select>'
+                +   '</div>';
+            if (cf.type === 'dropdown') {
+                fHtml += '<div style="margin-top:4px;font-size:0.85em;color:#666;">Options (one per line):</div>'
+                    + '<textarea rows="3" style="width:100%;max-width:300px;font-size:0.85em;" '
+                    + 'onchange="settingsData.custom_fields[' + i + '].options=this.value.split(\'\\n\').filter(function(x){return x.trim();})">'
+                    + (cf.options || []).join('\n') + '</textarea>';
+            }
+            fHtml += '</div>'
+                + '<button class="btn-danger" onclick="settingsData.custom_fields.splice(' + i + ',1);renderSettings();" style="font-size:0.78em;">x</button>'
+                + '</div>';
+        });
+        document.getElementById('settingsFields').innerHTML = fHtml || '<p style="color:#888;font-size:0.85em;">No custom fields defined.</p>';
+
+        // Groups
+        var gHtml = '';
+        settingsGroups.forEach(function(g, i) {
+            var memberCount = appData.users.filter(function(u) { return (u.groups || []).indexOf(g.id) !== -1; }).length;
+            gHtml += '<div style="padding:10px;background:#f8f9fa;border-radius:6px;margin-bottom:8px;border-left:3px solid #4250b3;">'
+                + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+                +   '<input type="text" value="' + esc(g.id) + '" style="max-width:120px;font-weight:600;" onchange="settingsGroups[' + i + '].id=this.value">'
+                +   '<input type="text" value="' + esc(g.name) + '" placeholder="Group name" style="flex:1;" onchange="settingsGroups[' + i + '].name=this.value">'
+                +   '<span style="font-size:0.8em;color:#888;">' + memberCount + ' members</span>'
+                +   '<button class="btn-danger" onclick="deleteSettingsGroup(' + i + ')" style="font-size:0.78em;">x</button>'
+                + '</div>';
+            // Subgroups
+            gHtml += '<div style="padding-left:16px;">';
+            (g.subgroups || []).forEach(function(sg, j) {
+                var sgCount = appData.users.filter(function(u) { return (u.subgroups || []).indexOf(sg.id) !== -1; }).length;
+                gHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+                    + '<span style="color:#888;font-size:0.8em;">&#x2514;</span>'
+                    + '<input type="text" value="' + esc(sg.id) + '" style="max-width:100px;font-size:0.88em;" onchange="settingsGroups[' + i + '].subgroups[' + j + '].id=this.value">'
+                    + '<input type="text" value="' + esc(sg.name) + '" placeholder="Subgroup name" style="flex:1;font-size:0.88em;" onchange="settingsGroups[' + i + '].subgroups[' + j + '].name=this.value">'
+                    + '<span style="font-size:0.75em;color:#888;">' + sgCount + '</span>'
+                    + '<button class="btn-danger" onclick="settingsGroups[' + i + '].subgroups.splice(' + j + ',1);renderSettings();" style="font-size:0.72em;">x</button>'
+                    + '</div>';
+            });
+            gHtml += '<button class="btn-small" onclick="addSettingsSubgroup(' + i + ')" style="font-size:0.78em;margin-top:2px;">+ Subgroup</button>';
+            gHtml += '</div></div>';
+        });
+        document.getElementById('settingsGroups').innerHTML = gHtml || '<p style="color:#888;font-size:0.85em;">No groups defined.</p>';
+    }
+
+    var dragRoleIdx = null;
+
+    function dragRoleStart(e, idx) {
+        dragRoleIdx = idx;
+        e.dataTransfer.effectAllowed = 'move';
+        e.target.style.opacity = '0.4';
+    }
+
+    function dragRoleOver(e, idx) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        var el = e.currentTarget;
+        if (idx !== dragRoleIdx) {
+            el.style.background = '#e8e0f0';
+        }
+    }
+
+    function dropRole(e, targetIdx) {
+        e.preventDefault();
+        e.currentTarget.style.background = '';
+        if (dragRoleIdx === null || dragRoleIdx === targetIdx) return;
+        var role = settingsData.roles.splice(dragRoleIdx, 1)[0];
+        settingsData.roles.splice(targetIdx, 0, role);
+        dragRoleIdx = null;
+        renderSettings();
+    }
+
+    function dragRoleEnd(e) {
+        e.target.style.opacity = '';
+        dragRoleIdx = null;
+        document.querySelectorAll('#settingsRoles > div').forEach(function(el) { el.style.background = ''; });
+    }
+
+    function addRole() {
+        var name = document.getElementById('newRoleName').value.trim();
+        if (!name) return;
+        settingsData.roles.push(name);
+        document.getElementById('newRoleName').value = '';
+        renderSettings();
+    }
+
+    function addCustomField() {
+        var label = document.getElementById('newFieldLabel').value.trim();
+        var type = document.getElementById('newFieldType').value;
+        if (!label) return;
+        var id = label.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+        settingsData.custom_fields.push({ id: id, label: label, type: type, options: [] });
+        document.getElementById('newFieldLabel').value = '';
+        renderSettings();
+    }
+
+    function addSettingsGroup() {
+        var id = document.getElementById('newGroupId').value.trim();
+        var name = document.getElementById('newGroupName').value.trim();
+        if (!id) return;
+        if (settingsGroups.some(function(g) { return g.id === id; })) { alert('Group "' + id + '" already exists'); return; }
+        settingsGroups.push({ id: id, name: name || id, leader: '', verified: false, subgroups: [] });
+        document.getElementById('newGroupId').value = '';
+        document.getElementById('newGroupName').value = '';
+        renderSettings();
+    }
+
+    function addSettingsSubgroup(groupIdx) {
+        var sg = { id: '', name: '' };
+        settingsGroups[groupIdx].subgroups.push(sg);
+        renderSettings();
+    }
+
+    function deleteSettingsGroup(idx) {
+        var g = settingsGroups[idx];
+        var memberCount = appData.users.filter(function(u) { return (u.groups || []).indexOf(g.id) !== -1; }).length;
+        var msg = 'Delete group "' + g.id + '"?';
+        if (memberCount > 0) msg += '\n\nThis will remove the group from ' + memberCount + ' member(s).';
+        if (!confirm(msg)) return;
+        settingsGroups.splice(idx, 1);
+        renderSettings();
+    }
+
+    async function saveSettings() {
+        var statusEl = document.getElementById('settingsStatus');
+        statusEl.textContent = 'Saving...';
+        statusEl.style.color = '#666';
+
+        // Sync any inline-edited role names before saving
+        document.querySelectorAll('#settingsRoles input[type="text"]').forEach(function(el, i) {
+            if (i < settingsData.roles.length) settingsData.roles[i] = el.value;
+        });
+
+        try {
+            // Save settings (roles + custom fields)
+            var resp = await authFetch(BASE + '/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settingsData)
+            });
+            if (!resp.ok) {
+                var err = await resp.json();
+                statusEl.textContent = err.detail || 'Error saving settings';
+                statusEl.style.color = '#dc3545';
+                return;
+            }
+
+            // Save groups: delete removed, create new, update existing
+            var existingIds = appData.groups.map(function(g) { return g.id; });
+            var newIds = settingsGroups.map(function(g) { return g.id; });
+
+            // Delete removed groups
+            for (var i = 0; i < existingIds.length; i++) {
+                if (newIds.indexOf(existingIds[i]) === -1) {
+                    await authFetch(BASE + '/api/groups/' + encodeURIComponent(existingIds[i]), { method: 'DELETE' });
+                }
+            }
+
+            // Create or update groups
+            for (var j = 0; j < settingsGroups.length; j++) {
+                var g = settingsGroups[j];
+                var body = { id: g.id, name: g.name, leader: g.leader || '', verified: g.verified || false, subgroups: g.subgroups || [] };
+                if (existingIds.indexOf(g.id) === -1) {
+                    await authFetch(BASE + '/api/groups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                } else {
+                    await authFetch(BASE + '/api/groups/' + encodeURIComponent(g.id), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                }
+            }
+
+            statusEl.textContent = 'Saved!';
+            statusEl.style.color = '#28a745';
+            await loadData();
+        } catch (e) {
+            statusEl.textContent = 'Request failed';
+            statusEl.style.color = '#dc3545';
+        }
+    }
+
     // ── Org Chart ─────────────────────────────────────────────────
 
     function populateOrgChartSelect() {
@@ -935,6 +1307,18 @@
             sel.innerHTML += '<option value="' + a + '">' + a + ' \u2014 ' + esc(appData.universities[a].name) + '</option>';
         });
         if (current && appData.universities[current]) sel.value = current;
+    }
+
+    function copyEmail(email, btn) {
+        navigator.clipboard.writeText(email).then(function() {
+            var orig = btn.innerHTML;
+            btn.innerHTML = '&#10003;';
+            setTimeout(function() { btn.innerHTML = orig; }, 1200);
+        });
+    }
+
+    function emailBtn(email) {
+        return ' <button class="btn-small" onclick="event.stopPropagation();copyEmail(\'' + esc(email) + '\', this)" style="font-size:0.7em;padding:1px 5px;margin-left:4px;" title="' + esc(email) + '">&#9993;</button>';
     }
 
     function renderOrgChart() {
@@ -971,7 +1355,7 @@
                 var cls = 'org-node org-node-member' + (isLeader ? ' org-node-leader' : '');
                 var roleTag = m.role ? '<span class="org-role-tag">' + esc(m.role) + '</span>' : '';
                 var leaderTag = isLeader ? '<span class="org-role-tag">[Leader]</span>' : '';
-                html += '<li><span class="' + cls + '">' + esc(m.first_name + ' ' + m.family_name) + leaderTag + roleTag + '</span></li>';
+                html += '<li><span class="' + cls + '">' + esc(m.first_name + ' ' + m.family_name) + leaderTag + roleTag + emailBtn(m.email) + '</span></li>';
             });
 
             // Subgroups
@@ -990,7 +1374,7 @@
                     var cls = 'org-node org-node-member' + (isLeader ? ' org-node-leader' : '');
                     var roleTag = m.role ? '<span class="org-role-tag">' + esc(m.role) + '</span>' : '';
                     var leaderTag = isLeader ? '<span class="org-role-tag">[Leader]</span>' : '';
-                    html += '<li><span class="' + cls + '">' + esc(m.first_name + ' ' + m.family_name) + leaderTag + roleTag + '</span></li>';
+                    html += '<li><span class="' + cls + '">' + esc(m.first_name + ' ' + m.family_name) + leaderTag + roleTag + emailBtn(m.email) + '</span></li>';
                 });
                 html += '</ul></li>';
             });
@@ -1006,7 +1390,7 @@
             ungrouped.sort(function(a, b) { return a.family_name.localeCompare(b.family_name); });
             ungrouped.forEach(function(m) {
                 var roleTag = m.role ? '<span class="org-role-tag">' + esc(m.role) + '</span>' : '';
-                html += '<li><span class="org-node org-node-member">' + esc(m.first_name + ' ' + m.family_name) + roleTag + '</span></li>';
+                html += '<li><span class="org-node org-node-member">' + esc(m.first_name + ' ' + m.family_name) + roleTag + emailBtn(m.email) + '</span></li>';
             });
             html += '</ul></li>';
         }

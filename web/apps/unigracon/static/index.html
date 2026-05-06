@@ -498,7 +498,7 @@
 
         /* ── Auth state ──────────────────────────────────────── */
 
-        let authToken = localStorage.getItem('unigracon_token');
+        let authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('unigracon_token') || localStorage.getItem('tommi_token');
         let authUser = null;
         let editorMode = true;
 
@@ -519,7 +519,7 @@
                 } else {
                     authToken = null;
                     authUser = null;
-                    localStorage.removeItem('unigracon_token');
+                    localStorage.removeItem('uninovis_token'); localStorage.removeItem('unigracon_token');
                 }
             } catch (e) { /* server down — keep token */ }
             updateAuthUI();
@@ -605,7 +605,7 @@
                 if (!resp.ok) { errorEl.textContent = 'Invalid credentials'; return; }
                 const data = await resp.json();
                 authToken = data.token;
-                localStorage.setItem('unigracon_token', authToken);
+                localStorage.setItem('uninovis_token', authToken); localStorage.setItem('unigracon_token', authToken);
                 closeLoginModal();
                 await checkAuth();
             } catch (e) {
@@ -616,7 +616,7 @@
         function doLogout() {
             authToken = null;
             authUser = null;
-            localStorage.removeItem('unigracon_token');
+            localStorage.removeItem('uninovis_token'); localStorage.removeItem('unigracon_token');
             updateAuthUI();
         }
 

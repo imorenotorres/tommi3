@@ -5,13 +5,14 @@ Manages users, groups, and subgroups with role-based editing.
 Designed to be mounted on the TOMMI FastAPI server.
 """
 
+import base64
 import json
 import os
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
@@ -90,6 +91,7 @@ class UserBody(BaseModel):
     telephone: str = ""
     groups: list[str] = []
     subgroups: list[str] = []
+    custom: dict = {}  # custom field values keyed by field id
 
 
 @router.post("/api/users")
@@ -107,6 +109,7 @@ def create_user(body: UserBody, session: dict = Depends(_require_editor)):
         "telephone": body.telephone,
         "groups": body.groups,
         "subgroups": body.subgroups,
+        "custom": body.custom,
     }
     data["users"].append(user)
     save_data(data)
@@ -126,6 +129,7 @@ def update_user(user_id: str, body: UserBody, session: dict = Depends(_require_e
             u["telephone"] = body.telephone
             u["groups"] = body.groups
             u["subgroups"] = body.subgroups
+            u["custom"] = body.custom
             save_data(data)
             return u
     raise HTTPException(404, "User not found")
@@ -270,3 +274,80 @@ def remove_subgroup_members(group_id: str, subgroup_id: str, body: MembershipBod
             u["subgroups"] = [sid for sid in u.get("subgroups", []) if sid != subgroup_id]
     save_data(data)
     return {"ok": True}
+
+
+# ── Settings ─────────────────────────────────────────────────────────
+
+class CustomFieldDef(BaseModel):
+    id: str
+    label: str
+    type: str  # "text", "dropdown", "checkbox", "image"
+    options: list[str] = []  # for dropdown type
+
+
+class SettingsBody(BaseModel):
+    roles: list[str] = []
+    custom_fields: list[CustomFieldDef] = []
+
+
+@router.get("/api/settings")
+def get_settings():
+    data = load_data()
+    return data.get("settings", {"roles": [], "custom_fields": []})
+
+
+@router.put("/api/settings")
+def update_settings(body: SettingsBody, session: dict = Depends(_require_editor)):
+    data = load_data()
+    data["settings"] = {
+        "roles": body.roles,
+        "custom_fields": [cf.model_dump() for cf in body.custom_fields],
+    }
+    save_data(data)
+    return {"ok": True}
+
+
+# ── Image upload for custom image fields ─────────────────────────────
+
+IMAGES_DIR = os.path.join(os.path.dirname(__file__), "images")
+os.makedirs(IMAGES_DIR, exist_ok=True)
+
+
+@router.post("/api/users/{user_id}/image/{field_id}")
+async def upload_user_image(
+    user_id: str,
+    field_id: str,
+    file: UploadFile = File(...),
+    session: dict = Depends(_require_editor),
+):
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(400, "File must be an image")
+    contents = await file.read()
+    if len(contents) > 2 * 1024 * 1024:  # 2MB limit
+        raise HTTPException(400, "Image must be under 2MB")
+
+    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg"
+    filename = f"{user_id}_{field_id}.{ext}"
+    filepath = os.path.join(IMAGES_DIR, filename)
+    with open(filepath, "wb") as f:
+        f.write(contents)
+
+    # Store reference in user data
+    data = load_data()
+    for u in data["users"]:
+        if u["id"] == user_id:
+            u.setdefault("custom", {})[field_id] = filename
+            save_data(data)
+            return {"ok": True, "filename": filename}
+    raise HTTPException(404, "User not found")
+
+
+@router.get("/api/images/{filename}")
+def get_image(filename: str):
+    filepath = os.path.join(IMAGES_DIR, filename)
+    if not os.path.exists(filepath):
+        raise HTTPException(404, "Image not found")
+    ext = filename.rsplit(".", 1)[-1].lower()
+    ct = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "gif": "image/gif", "webp": "image/webp"}.get(ext, "image/jpeg")
+    with open(filepath, "rb") as f:
+        return Response(content=f.read(), media_type=ct)

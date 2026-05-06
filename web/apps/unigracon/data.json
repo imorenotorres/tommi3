@@ -315,40 +315,384 @@
   },
   "conversions": {
     "UMA->USPN": {
-      "method": "formula",
-      "formula": "X * 2",
-      "notes": "Spanish 0-10 to French 0-20: linear scaling",
+      "method": "table",
+      "table": [
+        {
+          "from_min": 0,
+          "from_max": 4.99,
+          "to": 9
+        },
+        {
+          "from_min": 5.0,
+          "from_max": 5.99,
+          "to": 10.5
+        },
+        {
+          "from_min": 6.0,
+          "from_max": 6.99,
+          "to": 12.0
+        },
+        {
+          "from_min": 7.0,
+          "from_max": 7.99,
+          "to": 13.5
+        },
+        {
+          "from_min": 8.0,
+          "from_max": 8.99,
+          "to": 15.0
+        },
+        {
+          "from_min": 9.0,
+          "from_max": 9.49,
+          "to": 16.5
+        },
+        {
+          "from_min": 9.5,
+          "from_max": 9.99,
+          "to": 18.0
+        },
+        {
+          "from_min": 10.0,
+          "from_max": 10.0,
+          "to": 20.0
+        }
+      ],
+      "notes": "UMA to France. Reverse mapping based on updated UMA France table.",
       "confirmed": false
     },
     "USPN->UMA": {
-      "method": "formula",
-      "formula": "X / 2",
-      "notes": "French 0-20 to Spanish 0-10: linear scaling",
-      "confirmed": false
+      "method": "table",
+      "table": [
+        {
+          "from_min": 0.0,
+          "from_max": 9.99,
+          "to": 4.0
+        },
+        {
+          "from_min": 10.0,
+          "from_max": 10.14,
+          "to": 5.0
+        },
+        {
+          "from_min": 10.15,
+          "from_max": 10.44,
+          "to": 5.2
+        },
+        {
+          "from_min": 10.45,
+          "from_max": 10.74,
+          "to": 5.3
+        },
+        {
+          "from_min": 10.75,
+          "from_max": 11.04,
+          "to": 5.5
+        },
+        {
+          "from_min": 11.05,
+          "from_max": 11.34,
+          "to": 5.7
+        },
+        {
+          "from_min": 11.35,
+          "from_max": 11.64,
+          "to": 5.9
+        },
+        {
+          "from_min": 11.65,
+          "from_max": 11.94,
+          "to": 6.1
+        },
+        {
+          "from_min": 11.95,
+          "from_max": 12.24,
+          "to": 6.3
+        },
+        {
+          "from_min": 12.25,
+          "from_max": 12.54,
+          "to": 6.5
+        },
+        {
+          "from_min": 12.55,
+          "from_max": 12.84,
+          "to": 6.7
+        },
+        {
+          "from_min": 12.85,
+          "from_max": 12.99,
+          "to": 6.9
+        },
+        {
+          "from_min": 13.0,
+          "from_max": 13.12,
+          "to": 7.0
+        },
+        {
+          "from_min": 13.13,
+          "from_max": 13.37,
+          "to": 7.2
+        },
+        {
+          "from_min": 13.38,
+          "from_max": 13.62,
+          "to": 7.4
+        },
+        {
+          "from_min": 13.63,
+          "from_max": 13.87,
+          "to": 7.6
+        },
+        {
+          "from_min": 13.88,
+          "from_max": 14.12,
+          "to": 7.8
+        },
+        {
+          "from_min": 14.13,
+          "from_max": 14.37,
+          "to": 8.0
+        },
+        {
+          "from_min": 14.38,
+          "from_max": 14.62,
+          "to": 8.2
+        },
+        {
+          "from_min": 14.63,
+          "from_max": 14.87,
+          "to": 8.4
+        },
+        {
+          "from_min": 14.88,
+          "from_max": 15.12,
+          "to": 8.6
+        },
+        {
+          "from_min": 15.13,
+          "from_max": 15.37,
+          "to": 8.8
+        },
+        {
+          "from_min": 15.38,
+          "from_max": 15.49,
+          "to": 8.9
+        },
+        {
+          "from_min": 15.5,
+          "from_max": 15.94,
+          "to": 9.0
+        },
+        {
+          "from_min": 15.95,
+          "from_max": 16.39,
+          "to": 9.1
+        },
+        {
+          "from_min": 16.4,
+          "from_max": 16.84,
+          "to": 9.2
+        },
+        {
+          "from_min": 16.85,
+          "from_max": 17.29,
+          "to": 9.3
+        },
+        {
+          "from_min": 17.3,
+          "from_max": 17.74,
+          "to": 9.4
+        },
+        {
+          "from_min": 17.75,
+          "from_max": 17.99,
+          "to": 9.5
+        },
+        {
+          "from_min": 18.0,
+          "from_max": 18.64,
+          "to": 9.6
+        },
+        {
+          "from_min": 18.65,
+          "from_max": 19.09,
+          "to": 9.7
+        },
+        {
+          "from_min": 19.1,
+          "from_max": 19.54,
+          "to": 9.8
+        },
+        {
+          "from_min": 19.55,
+          "from_max": 19.99,
+          "to": 9.9
+        },
+        {
+          "from_min": 20.0,
+          "from_max": 20.0,
+          "to": 10.0
+        }
+      ],
+      "notes": "Updated UMA official table for France. Approved by UMA 2025. Detailed version.",
+      "confirmed": true
     },
     "UMA->UDCLV": {
-      "method": "formula",
-      "formula": "IF(X<5, X*17/5, 18 + (X-5)*(31-18)/(10-5))",
-      "notes": "Below pass: scale 0-5 to 0-17. Pass: scale 5-10 to 18-31 (30 e lode)",
+      "method": "table",
+      "table": [
+        {
+          "from_min": 0,
+          "from_max": 4.99,
+          "to": 17
+        },
+        {
+          "from_min": 5.0,
+          "from_max": 5.49,
+          "to": 18
+        },
+        {
+          "from_min": 5.5,
+          "from_max": 5.99,
+          "to": 20
+        },
+        {
+          "from_min": 6.0,
+          "from_max": 6.49,
+          "to": 21
+        },
+        {
+          "from_min": 6.5,
+          "from_max": 6.99,
+          "to": 22
+        },
+        {
+          "from_min": 7.0,
+          "from_max": 7.49,
+          "to": 23
+        },
+        {
+          "from_min": 7.5,
+          "from_max": 7.99,
+          "to": 24
+        },
+        {
+          "from_min": 8.0,
+          "from_max": 8.49,
+          "to": 25
+        },
+        {
+          "from_min": 8.5,
+          "from_max": 8.99,
+          "to": 26
+        },
+        {
+          "from_min": 9.0,
+          "from_max": 9.49,
+          "to": 28
+        },
+        {
+          "from_min": 9.5,
+          "from_max": 9.99,
+          "to": 30
+        },
+        {
+          "from_min": 10.0,
+          "from_max": 10.0,
+          "to": 31
+        }
+      ],
+      "notes": "UMA to Italy. Reverse of updated UMA Italy table. 31 = 30 e lode.",
       "confirmed": false
     },
     "UDCLV->UMA": {
-      "method": "formula",
-      "formula": "IF(X<18, X*5/17, 5 + (X-18)*(10-5)/(31-18))",
-      "notes": "Below pass: scale 0-17 to 0-5. Pass: scale 18-31 to 5-10",
-      "confirmed": false
+      "method": "table",
+      "table": [
+        {
+          "from_min": 0.0,
+          "from_max": 17.99,
+          "to": 4.0
+        },
+        {
+          "from_min": 18.0,
+          "from_max": 19.0,
+          "to": 5.0
+        },
+        {
+          "from_min": 19.01,
+          "from_max": 20.0,
+          "to": 5.5
+        },
+        {
+          "from_min": 20.01,
+          "from_max": 21.0,
+          "to": 6.0
+        },
+        {
+          "from_min": 21.01,
+          "from_max": 22.0,
+          "to": 6.5
+        },
+        {
+          "from_min": 22.01,
+          "from_max": 23.0,
+          "to": 7.0
+        },
+        {
+          "from_min": 23.01,
+          "from_max": 24.0,
+          "to": 7.5
+        },
+        {
+          "from_min": 24.01,
+          "from_max": 25.0,
+          "to": 8.0
+        },
+        {
+          "from_min": 25.01,
+          "from_max": 26.0,
+          "to": 8.5
+        },
+        {
+          "from_min": 26.01,
+          "from_max": 27.0,
+          "to": 9.0
+        },
+        {
+          "from_min": 27.01,
+          "from_max": 28.0,
+          "to": 9.0
+        },
+        {
+          "from_min": 28.01,
+          "from_max": 29.0,
+          "to": 9.5
+        },
+        {
+          "from_min": 29.01,
+          "from_max": 30.0,
+          "to": 9.5
+        },
+        {
+          "from_min": 30.01,
+          "from_max": 31.0,
+          "to": 10.0
+        }
+      ],
+      "notes": "Updated UMA table for Italy (18-30L). Approved by UMA Oct 2023. More favorable than ministry table.",
+      "confirmed": true
     },
     "UMA->THWS": {
       "method": "formula",
-      "formula": "IF(X<5, 5, 1 + (10-X)*(4-1)/(10-5))",
-      "notes": "German scale is inverted. Fail below 5. Pass range: 5->4.0, 10->1.0",
+      "formula": "IF(X<5, 5, 1 + (10-X)*3/5)",
+      "notes": "Spanish to German inverted. Reverse: 5->4.0, 10->1.0. Fail below 5.",
       "confirmed": false
     },
     "THWS->UMA": {
       "method": "formula",
-      "formula": "IF(X>4, 4.99*(5-X)/(5-4.1), 10 - (X-1)*(10-5)/(4-1))",
-      "notes": "German inverted to Spanish. Fail above 4.0. Pass: 4.0->5, 1.0->10",
-      "confirmed": false
+      "formula": "IF(X>4, 0, 10 - 5*(X-1)/3)",
+      "notes": "German 4.0-1.0 (inverted) to Spanish. Formula: 10-5*(x-1)/3. Approved by UMA 2025. 1->10, 4->5, >4->fail.",
+      "confirmed": true
     },
     "UMA->TAMK": {
       "method": "table",
@@ -422,7 +766,7 @@
         }
       ],
       "notes": "Finnish discrete to Spanish: midpoint mapping",
-      "confirmed": false
+      "confirmed": true
     },
     "UMA->THUAS": {
       "method": "formula",
@@ -434,7 +778,7 @@
       "method": "formula",
       "formula": "IF(X<5.5, (X-1)*5/4.49, 5 + (X-5.5)*(10-5)/(10-5.5))",
       "notes": "Fail: 1-5.49 -> 0-5. Pass: 5.5-10 -> 5-10",
-      "confirmed": false
+      "confirmed": true
     },
     "UMA->KK": {
       "method": "table",
@@ -530,7 +874,7 @@
       "method": "formula",
       "formula": "IF(X<4, (X-1)*5/2, 5 + (X-4)*(10-5)/6)",
       "notes": "Fail: 1-3 -> 0-5. Pass: 4-10 -> 5-10",
-      "confirmed": false
+      "confirmed": true
     },
     "THWS->TAMK": {
       "method": "table",

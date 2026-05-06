@@ -260,7 +260,7 @@
 
         /* ── Auth state ──────────────────────────────────────── */
 
-        let authToken = localStorage.getItem('mobility_token');
+        let authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('mobility_token') || localStorage.getItem('tommi_token');
         let authUser = null;
         let editorMode = true;
 
@@ -281,7 +281,7 @@
                     authUser = await resp.json();
                 } else {
                     authToken = null; authUser = null;
-                    localStorage.removeItem('mobility_token');
+                    localStorage.removeItem('uninovis_token'); localStorage.removeItem('mobility_token');
                 }
             } catch (e) {}
             updateAuthUI();
@@ -362,7 +362,7 @@
                 if (!resp.ok) { errorEl.textContent = 'Invalid credentials'; return; }
                 var data = await resp.json();
                 authToken = data.token;
-                localStorage.setItem('mobility_token', authToken);
+                localStorage.setItem('uninovis_token', authToken); localStorage.setItem('mobility_token', authToken);
                 closeLoginModal();
                 await checkAuth();
             } catch (e) {
@@ -372,7 +372,7 @@
 
         function doLogout() {
             authToken = null; authUser = null;
-            localStorage.removeItem('mobility_token');
+            localStorage.removeItem('uninovis_token'); localStorage.removeItem('mobility_token');
             updateAuthUI();
         }
 
