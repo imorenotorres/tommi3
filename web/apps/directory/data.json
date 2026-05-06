@@ -111,14 +111,14 @@
       "subgroups": []
     },
     {
-      "id": "ManagementBoard",
+      "id": "MngBrd",
       "name": "Management Board",
       "leader": "",
       "verified": false,
       "subgroups": []
     },
     {
-      "id": "ExecutiveBoard",
+      "id": "ExBrd",
       "name": "Executive Board",
       "leader": "",
       "verified": false,
@@ -132,7 +132,7 @@
       "subgroups": []
     },
     {
-      "id": "Quality",
+      "id": "QA",
       "name": "Quality Assurance",
       "leader": "",
       "verified": false,
@@ -710,8 +710,8 @@
         "WP1",
         "WP3",
         "WP4",
-        "ManagementBoard",
-        "Quality"
+        "MngBrd",
+        "QA"
       ],
       "subgroups": [],
       "custom": {}
@@ -774,7 +774,7 @@
       "groups": [
         "WP3",
         "WP4",
-        "ManagementBoard"
+        "MngBrd"
       ],
       "subgroups": [],
       "custom": {}
@@ -873,7 +873,7 @@
       "telephone": "",
       "groups": [
         "WP1",
-        "ManagementBoard"
+        "MngBrd"
       ],
       "subgroups": []
     },
