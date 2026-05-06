@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNINOVIS Admin</title>
+    <title>UNINOVIS Admin Tools (UAT)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -118,13 +118,13 @@
 </head>
 <body>
     <div class="header">
-        <h1>UNINOVIS Admin</h1>
-        <p class="subtitle">Central hub for UNINOVIS management tools</p>
+        <h1>UNINOVIS Admin Tools (UAT)</h1>
+        <p class="subtitle" id="versionLine">Version 1.0 May 6th 2026</p>
     </div>
 
     <div class="auth-bar">
         <span id="authInfo"></span>
-        <button id="loginBtn" onclick="showLogin()">Login</button>
+        <button id="loginBtn" onclick="showLogin()">Login to Edit</button>
         <button id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
     </div>
 
@@ -151,7 +151,7 @@
     var TOOLS = [
         {
             id: 'directory',
-            name: 'Directory',
+            name: 'UNINOVIS Directory',
             icon: '\uD83D\uDCCB',
             description: 'Internal staff directory. Manage contacts, groups, work packages, and org charts for all UNINOVIS partners.',
             url: '/directory/',
@@ -257,6 +257,16 @@
         });
         document.getElementById('toolsGrid').innerHTML = html;
     }
+
+    // ── Version line with current time ─────────────────────────────
+    function updateVersionTime() {
+        var now = new Date();
+        var h = String(now.getHours()).padStart(2, '0');
+        var m = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('versionLine').textContent = 'Version 1.0 May 6th 2026 ' + h + ':' + m;
+    }
+    updateVersionTime();
+    setInterval(updateVersionTime, 60000);
 
     // ── Init ──────────────────────────────────────────────────────
     checkAuth();

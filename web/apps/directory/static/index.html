@@ -152,7 +152,8 @@
 
         <div class="auth-bar">
             <span class="auth-info" id="authInfo"></span>
-            <button class="btn-small" id="loginBtn" onclick="showLoginModal()">Login</button>
+            <a href="/uninovis/" class="btn-small" style="text-decoration:none;">Back to UAT</a>
+            <button class="btn-small" id="loginBtn" onclick="showLoginModal()">Login to Edit</button>
             <button class="btn-small" id="userModeBtn" style="display:none" onclick="toggleEditorMode()">User mode</button>
             <button class="btn-small" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
         </div>
@@ -426,6 +427,7 @@
         renderGroups();
         renderUniversities();
         populateOrgChartSelect();
+        renderOrgChart();
     }
 
     // ── Users ─────────────────────────────────────────────────────
@@ -959,6 +961,7 @@
             var leaderUser = groupMembers.find(function(u) { return u.id === g.leader; });
 
             html += '<li><span class="org-node org-node-group">' + esc(g.id) + ' \u2014 ' + esc(g.name) + '</span>';
+            if (canEdit) html += ' <button class="btn-small" onclick="openAddMembers(\'' + esc(g.id) + '\', \'\')" style="font-size:0.75em;padding:2px 6px;">+ Add</button>';
             html += '<ul>';
 
             // All members of this group shown at group level
@@ -971,14 +974,15 @@
                 html += '<li><span class="' + cls + '">' + esc(m.first_name + ' ' + m.family_name) + leaderTag + roleTag + '</span></li>';
             });
 
-            // Subgroups with members from this university
+            // Subgroups
             (g.subgroups || []).forEach(function(sg) {
                 var sgMembers = groupMembers.filter(function(u) {
                     return (u.subgroups || []).indexOf(sg.id) !== -1;
                 });
-                if (sgMembers.length === 0) return;
+                if (sgMembers.length === 0 && !canEdit) return;
 
                 html += '<li><span class="org-node org-node-subgroup">' + esc(sg.id) + ' \u2014 ' + esc(sg.name) + '</span>';
+                if (canEdit) html += ' <button class="btn-small" onclick="openAddMembers(\'' + esc(g.id) + '\', \'' + esc(sg.id) + '\')" style="font-size:0.75em;padding:2px 6px;">+ Add</button>';
                 html += '<ul>';
                 sgMembers.sort(function(a, b) { return a.family_name.localeCompare(b.family_name); });
                 sgMembers.forEach(function(m) {
