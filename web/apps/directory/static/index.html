@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS Directory</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
+        h1 { text-align: center; color: #1a3a5c; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 0.95em; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px; }
+        .card h2 { color: #1a3a5c; margin-bottom: 16px; font-size: 1.15em; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; margin-bottom: 24px; }
+        .tab { padding: 10px 20px; border: 1px solid #ccc; border-radius: 6px 6px 0 0; background: #e9ecef; cursor: pointer; font-weight: 600; color: #555; }
+        .tab.active { background: #fff; border-bottom: 1px solid #fff; color: #1a3a5c; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th { padding: 8px 10px; border-bottom: 2px solid #ddd; text-align: left; color: #1a3a5c; font-size: 0.85em; }
+        td { padding: 6px 10px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f8f9fa; }
+
+        /* Buttons */
+        .btn { display: inline-block; background: #1a3a5c; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-size: 0.9em; cursor: pointer; }
+        .btn:hover { background: #24527a; }
+        .btn-small { background: #e9ecef; border: 1px solid #ccc; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.82em; }
+        .btn-small:hover { background: #d0d4d9; }
+        .btn-danger { background: #dc3545; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.82em; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+
+        /* Forms */
+        select, input[type="text"], input[type="email"], input[type="tel"], input[type="password"] {
+            padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; background: #fff; width: 100%;
+        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 4px; color: #1a3a5c; font-size: 0.85em; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-box { background: #fff; border-radius: 10px; padding: 28px; max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .modal-box h3 { color: #1a3a5c; margin-bottom: 16px; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+        /* Badges */
+        .badge { font-size: 0.72em; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+        .badge-verified { background: #d4edda; color: #155724; }
+        .badge-unverified { background: #e2d9f3; color: #5a3d8a; }
+        .badge-group { background: #d1ecf1; color: #0c5460; margin-right: 3px; margin-bottom: 2px; display: inline-block; }
+        .badge-subgroup { background: #fff3cd; color: #856404; margin-right: 3px; margin-bottom: 2px; display: inline-block; }
+        .badge-leader { background: #ffeeba; color: #856404; }
+        .badge-uni { background: #e9ecef; color: #495057; }
+
+        /* Checkbox list */
+        .checkbox-list { max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 8px; }
+        .checkbox-list label { display: block; padding: 3px 0; font-weight: 400; font-size: 0.9em; cursor: pointer; }
+        .checkbox-list label:hover { background: #f0f4fa; }
+        .checkbox-list input { margin-right: 6px; }
+
+        /* Member chips */
+        .member-chip { display: inline-block; background: #e9ecef; border-radius: 12px; padding: 2px 10px; margin: 2px; font-size: 0.82em; transition: background 0.15s; }
+        .member-chip:hover { background: #d0d4d9; }
+        .member-chip .remove { cursor: pointer; color: #dc3545; margin-left: 4px; font-weight: bold; }
+        .badge-group:hover, .badge-subgroup:hover { opacity: 0.8; }
+
+        /* Subgroup section */
+        .subgroup-card { background: #f8f9fa; border-radius: 6px; padding: 12px; margin-bottom: 10px; border-left: 3px solid #6c757d; }
+        .subgroup-card h4 { font-size: 0.95em; color: #495057; margin-bottom: 8px; }
+
+        /* Auth bar */
+        .auth-bar { text-align: right; margin-bottom: 16px; }
+        .auth-bar button { margin-left: 6px; }
+        .auth-info { font-size: 0.85em; color: #666; margin-right: 8px; }
+
+        /* Search */
+        .search-bar { margin-bottom: 16px; }
+        .search-bar input { max-width: 350px; }
+
+        /* Filter tags */
+        .filter-bar { margin-bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .filter-bar select { width: auto; min-width: 140px; }
+
+        .group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .group-header h3 { margin: 0; color: #1a3a5c; font-size: 1.05em; }
+
+        /* Org Chart tree */
+        .org-tree { padding: 0; }
+        .org-tree ul { list-style: none; padding-left: 24px; position: relative; }
+        .org-tree > ul { padding-left: 0; }
+        .org-tree li { position: relative; padding: 4px 0 4px 20px; }
+        .org-tree li::before {
+            content: ''; position: absolute; left: 0; top: 0;
+            border-left: 2px solid #b0bec5; height: 100%;
+        }
+        .org-tree li::after {
+            content: ''; position: absolute; left: 0; top: 16px;
+            border-top: 2px solid #b0bec5; width: 16px;
+        }
+        .org-tree li:last-child::before { height: 16px; }
+        .org-tree > ul > li::before, .org-tree > ul > li::after { display: none; }
+        .org-tree > ul > li { padding-left: 0; }
+
+        .org-node {
+            display: inline-block; padding: 8px 16px; border-radius: 8px;
+            font-size: 0.9em; font-weight: 600; margin: 2px 0;
+        }
+        .org-node-root {
+            background: #1a3a5c; color: #fff; font-size: 1.05em; padding: 12px 24px;
+        }
+        .org-node-group {
+            background: #d1ecf1; color: #0c5460; border: 1px solid #b8daff;
+        }
+        .org-node-subgroup {
+            background: #fff3cd; color: #856404; border: 1px solid #ffeeba; font-size: 0.85em;
+        }
+        .org-node-member {
+            background: #fff; color: #333; border: 1px solid #ddd; font-weight: 400; font-size: 0.85em;
+        }
+        .org-node-leader {
+            border: 2px solid #ffc107; background: #fffbea;
+        }
+        .org-role-tag { font-size: 0.75em; color: #888; font-weight: 400; margin-left: 6px; }
+    </style>
+    <!-- Matomo -->
+    <script>
+      var _paq = window._paq = window._paq || [];
+      /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="https://uninovis.matomo.cloud/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '3']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    <!-- End Matomo Code -->
+</head>
+<body>
+    <div class="container">
+        <h1>UNINOVIS Directory</h1>
+        <p class="subtitle">Internal staff directory for UNINOVIS partner universities</p>
+
+        <div class="auth-bar">
+            <span class="auth-info" id="authInfo"></span>
+            <button class="btn-small" id="loginBtn" onclick="showLoginModal()">Login</button>
+            <button class="btn-small" id="userModeBtn" style="display:none" onclick="toggleEditorMode()">User mode</button>
+            <button class="btn-small" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="users" onclick="switchTab('users')">Users</div>
+            <div class="tab" data-tab="groups" onclick="switchTab('groups')">Groups</div>
+            <div class="tab" data-tab="universities" onclick="switchTab('universities')">Universities</div>
+            <div class="tab" data-tab="orgchart" onclick="switchTab('orgchart')">Org Chart</div>
+        </div>
+
+        <!-- ══ USERS TAB ══ -->
+        <div id="tab-users">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h2 style="margin:0">Staff Directory</h2>
+                    <button class="btn" id="addUserBtn" style="display:none" onclick="openUserModal()">+ Add User</button>
+                </div>
+                <div class="filter-bar">
+                    <input type="text" id="userSearch" placeholder="Search by name or email..." style="max-width:250px;" oninput="renderUsers()">
+                    <select id="uniFilter" onchange="renderUsers()"><option value="">All universities</option></select>
+                    <select id="groupFilter" onchange="renderUsers()"><option value="">All groups</option></select>
+                </div>
+                <div id="usersTable"></div>
+            </div>
+        </div>
+
+        <!-- ══ GROUPS TAB ══ -->
+        <div id="tab-groups" style="display:none">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h2 style="margin:0">Groups & Subgroups</h2>
+                    <button class="btn" id="addGroupBtn" style="display:none" onclick="openGroupModal()">+ Add Group</button>
+                </div>
+                <div id="groupsList"></div>
+            </div>
+        </div>
+
+        <!-- ══ UNIVERSITIES TAB ══ -->
+        <div id="tab-universities" style="display:none">
+            <div class="card">
+                <h2>Partner Universities</h2>
+                <div id="uniTable"></div>
+            </div>
+        </div>
+
+        <!-- ══ ORG CHART TAB ══ -->
+        <div id="tab-orgchart" style="display:none">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h2 style="margin:0">Org Chart</h2>
+                    <select id="orgChartUni" onchange="renderOrgChart()" style="width:auto;min-width:200px;"></select>
+                </div>
+                <div id="orgChartArea"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ LOGIN MODAL ══ -->
+    <div class="modal" id="loginModal">
+        <div class="modal-box" style="max-width:360px;">
+            <h3>Login</h3>
+            <div class="form-group"><label>Username</label><input type="text" id="loginUser"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="loginPass"></div>
+            <p id="loginError" style="color:#dc3545;font-size:0.85em;"></p>
+            <div class="modal-footer">
+                <button class="btn-small" onclick="closeModal('loginModal')">Cancel</button>
+                <button class="btn" onclick="doLogin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ USER EDIT MODAL ══ -->
+    <div class="modal" id="userModal">
+        <div class="modal-box">
+            <h3 id="userModalTitle">Add User</h3>
+            <input type="hidden" id="userId">
+            <div class="form-row-3">
+                <div class="form-group"><label>First Name</label><input type="text" id="userFirstName"></div>
+                <div class="form-group"><label>Family Name</label><input type="text" id="userFamilyName"></div>
+                <div class="form-group"><label>University</label><select id="userUni"></select></div>
+            </div>
+            <div class="form-row-3">
+                <div class="form-group"><label>Email</label><input type="email" id="userEmail"></div>
+                <div class="form-group"><label>Telephone</label><input type="tel" id="userTel" placeholder="Optional"></div>
+                <div class="form-group"><label>Main Role</label><select id="userRole"><option value="">-- None --</option></select></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Groups</label>
+                    <div class="checkbox-list" id="userGroups"></div>
+                </div>
+                <div class="form-group">
+                    <label>Subgroups</label>
+                    <div class="checkbox-list" id="userSubgroups"></div>
+                </div>
+            </div>
+            <p id="userError" style="color:#dc3545;font-size:0.85em;margin-top:8px;"></p>
+            <div class="modal-footer">
+                <button class="btn-small" onclick="closeModal('userModal')">Cancel</button>
+                <button class="btn" onclick="saveUser()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ GROUP EDIT MODAL ══ -->
+    <div class="modal" id="groupModal">
+        <div class="modal-box">
+            <h3 id="groupModalTitle">Add Group</h3>
+            <input type="hidden" id="groupEditId">
+            <div class="form-row">
+                <div class="form-group"><label>ID (short code)</label><input type="text" id="groupId"></div>
+                <div class="form-group"><label>Name</label><input type="text" id="groupName"></div>
+            </div>
+            <div class="form-group">
+                <label>Leader</label>
+                <select id="groupLeader"><option value="">-- None --</option></select>
+            </div>
+            <div class="form-group">
+                <label>Subgroups</label>
+                <div id="subgroupRows"></div>
+                <button type="button" class="btn-small" onclick="addSubgroupRow('','')">+ Add Subgroup</button>
+            </div>
+            <p id="groupError" style="color:#dc3545;font-size:0.85em;margin-top:8px;"></p>
+            <div class="modal-footer">
+                <button class="btn-small" onclick="closeModal('groupModal')">Cancel</button>
+                <button class="btn" onclick="saveGroup()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ ADD MEMBERS MODAL ══ -->
+    <div class="modal" id="membersModal">
+        <div class="modal-box">
+            <h3 id="membersModalTitle">Add Members</h3>
+            <input type="hidden" id="membersGroupId">
+            <input type="hidden" id="membersSubgroupId">
+            <div class="checkbox-list" id="membersList" style="max-height:350px;"></div>
+            <div class="modal-footer">
+                <button class="btn-small" onclick="closeModal('membersModal')">Cancel</button>
+                <button class="btn" onclick="saveMembers()">Save</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    var BASE = '/directory';
+    var appData = { universities: {}, groups: [], users: [] };
+    var authToken = localStorage.getItem('directory_token');
+    var authUser = null;
+    var canEdit = false;
+    var editorMode = true;
+    var sortColumn = 'family_name';
+    var sortAsc = true;
+
+    function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+
+    // ── Auth ──────────────────────────────────────────────────────
+
+    async function checkAuth() {
+        if (!authToken) { updateAuthUI(); return; }
+        try {
+            var resp = await fetch(BASE + '/api/auth-check', { headers: { 'Authorization': 'Bearer ' + authToken } });
+            if (resp.ok) {
+                authUser = await resp.json();
+                canEdit = authUser.can_edit;
+            } else {
+                authToken = null; authUser = null; canEdit = false;
+                localStorage.removeItem('directory_token');
+            }
+        } catch (e) { authUser = null; canEdit = false; }
+        updateAuthUI();
+    }
+
+    function updateAuthUI() {
+        var inEditMode = authUser && authUser.can_edit && editorMode;
+        canEdit = inEditMode;
+        document.getElementById('authInfo').textContent = authUser ? 'Logged in as ' + authUser.username : '';
+        document.getElementById('loginBtn').style.display = authUser ? 'none' : '';
+        document.getElementById('logoutBtn').style.display = authUser ? '' : 'none';
+        document.getElementById('userModeBtn').style.display = authUser && authUser.can_edit ? '' : 'none';
+        document.getElementById('userModeBtn').textContent = editorMode ? 'User mode' : 'Editor mode';
+        document.getElementById('addUserBtn').style.display = canEdit ? '' : 'none';
+        document.getElementById('addGroupBtn').style.display = canEdit ? '' : 'none';
+        renderAll();
+    }
+
+    function toggleEditorMode() {
+        editorMode = !editorMode;
+        updateAuthUI();
+    }
+
+    function showLoginModal() {
+        document.getElementById('loginUser').value = '';
+        document.getElementById('loginPass').value = '';
+        document.getElementById('loginError').textContent = '';
+        openModal('loginModal');
+        document.getElementById('loginUser').focus();
+    }
+
+    async function doLogin() {
+        var username = document.getElementById('loginUser').value.trim();
+        var password = document.getElementById('loginPass').value;
+        if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
+        try {
+            var resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
+            if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
+            var data = await resp.json();
+            authToken = data.token;
+            localStorage.setItem('directory_token', authToken);
+            closeModal('loginModal');
+            await checkAuth();
+        } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
+    }
+
+    function doLogout() {
+        authToken = null; authUser = null; canEdit = false;
+        localStorage.removeItem('directory_token');
+        updateAuthUI();
+    }
+
+    document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+
+    function authFetch(url, opts) {
+        opts = opts || {};
+        opts.headers = opts.headers || {};
+        if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+        return fetch(url, opts);
+    }
+
+    // ── Modal helpers ─────────────────────────────────────────────
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    // ── Tabs ──────────────────────────────────────────────────────
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
+        document.getElementById('tab-users').style.display = tab === 'users' ? '' : 'none';
+        document.getElementById('tab-groups').style.display = tab === 'groups' ? '' : 'none';
+        document.getElementById('tab-universities').style.display = tab === 'universities' ? '' : 'none';
+        document.getElementById('tab-orgchart').style.display = tab === 'orgchart' ? '' : 'none';
+        if (tab === 'orgchart') renderOrgChart();
+    }
+
+    // ── Data loading ──────────────────────────────────────────────
+
+    async function loadData() {
+        var resp = await fetch(BASE + '/api/data');
+        appData = await resp.json();
+        populateFilters();
+        renderAll();
+    }
+
+    function populateFilters() {
+        var uniSel = document.getElementById('uniFilter');
+        uniSel.innerHTML = '<option value="">All universities</option>';
+        Object.keys(appData.universities).sort().forEach(function(a) {
+            uniSel.innerHTML += '<option value="' + a + '">' + a + '</option>';
+        });
+        var grpSel = document.getElementById('groupFilter');
+        grpSel.innerHTML = '<option value="">All groups</option>';
+        appData.groups.forEach(function(g) {
+            grpSel.innerHTML += '<option value="' + g.id + '">' + esc(g.id) + '</option>';
+        });
+    }
+
+    function renderAll() {
+        renderUsers();
+        renderGroups();
+        renderUniversities();
+        populateOrgChartSelect();
+    }
+
+    // ── Users ─────────────────────────────────────────────────────
+
+    function goToGroup(groupId) {
+        switchTab('groups');
+        // Try to scroll to the group card
+        setTimeout(function() {
+            var cards = document.querySelectorAll('#groupsList .card');
+            for (var i = 0; i < cards.length; i++) {
+                var h3 = cards[i].querySelector('h3');
+                if (h3 && h3.textContent.indexOf(groupId) === 0) {
+                    cards[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    cards[i].style.outline = '2px solid #1a3a5c';
+                    setTimeout(function() { cards[i].style.outline = ''; }, 2000);
+                    break;
+                }
+            }
+        }, 50);
+    }
+
+    function goToUser(userId) {
+        var user = appData.users.find(function(u) { return u.id === userId; });
+        if (!user) return;
+        document.getElementById('userSearch').value = user.family_name;
+        document.getElementById('uniFilter').value = '';
+        document.getElementById('groupFilter').value = '';
+        switchTab('users');
+        renderUsers();
+    }
+
+    function setSort(col) {
+        if (sortColumn === col) { sortAsc = !sortAsc; }
+        else { sortColumn = col; sortAsc = true; }
+        renderUsers();
+    }
+
+    function renderUsers() {
+        var search = (document.getElementById('userSearch').value || '').toLowerCase();
+        var uniFilter = document.getElementById('uniFilter').value;
+        var grpFilter = document.getElementById('groupFilter').value;
+
+        var filtered = appData.users.filter(function(u) {
+            var fullName = (u.first_name + ' ' + u.family_name).toLowerCase();
+            if (search && fullName.indexOf(search) === -1 && u.email.toLowerCase().indexOf(search) === -1) return false;
+            if (uniFilter && u.university !== uniFilter) return false;
+            if (grpFilter && (u.groups || []).indexOf(grpFilter) === -1) return false;
+            return true;
+        });
+
+        filtered.sort(function(a, b) {
+            var va = a[sortColumn] || '', vb = b[sortColumn] || '';
+            var c = va.localeCompare(vb);
+            if (!sortAsc) c = -c;
+            if (c !== 0) return c;
+            // Secondary sort
+            if (sortColumn !== 'family_name') {
+                c = a.family_name.localeCompare(b.family_name);
+                if (c !== 0) return c;
+            }
+            return a.first_name.localeCompare(b.first_name);
+        });
+
+        function sortHeader(col, label) {
+            var arrow = sortColumn === col ? (sortAsc ? ' \u25B2' : ' \u25BC') : '';
+            return '<th style="cursor:pointer;" onclick="setSort(\'' + col + '\')">' + label + arrow + '</th>';
+        }
+        var html = '<table><tr>' + sortHeader('university', 'University') + sortHeader('family_name', 'Family Name') + sortHeader('first_name', 'First Name') + sortHeader('role', 'Main Role') + '<th>Email</th><th>Telephone</th><th>Groups</th>';
+        if (canEdit) html += '<th>Actions</th>';
+        html += '</tr>';
+
+        for (var i = 0; i < filtered.length; i++) {
+            var u = filtered[i];
+            var groupBadges = (u.groups || []).map(function(gid) { return '<span class="badge badge-group" style="cursor:pointer;" onclick="goToGroup(\'' + esc(gid) + '\')">' + esc(gid) + '</span>'; }).join(' ');
+            var subBadges = (u.subgroups || []).map(function(sid) { return '<span class="badge badge-subgroup" style="cursor:pointer;" onclick="goToGroup(\'' + esc(sid) + '\')">' + esc(sid) + '</span>'; }).join(' ');
+            html += '<tr>'
+                + '<td><span class="badge badge-uni">' + esc(u.university) + '</span></td>'
+                + '<td>' + esc(u.family_name) + '</td>'
+                + '<td>' + esc(u.first_name) + '</td>'
+                + '<td>' + esc(u.role || '') + '</td>'
+                + '<td>' + esc(u.email) + '</td>'
+                + '<td>' + esc(u.telephone || '') + '</td>'
+                + '<td>' + groupBadges + ' ' + subBadges + '</td>';
+            if (canEdit) {
+                html += '<td>'
+                    + '<button class="btn-small" onclick="editUser(\'' + u.id + '\')">Edit</button> '
+                    + '<button class="btn-danger" onclick="deleteUser(\'' + u.id + '\')">Delete</button>'
+                    + '</td>';
+            }
+            html += '</tr>';
+        }
+        html += '</table>';
+        if (filtered.length === 0) html = '<p style="color:#888;text-align:center;padding:20px;">No users found.</p>';
+        document.getElementById('usersTable').innerHTML = html;
+    }
+
+    // ── User modal ────────────────────────────────────────────────
+
+    function openUserModal(user) {
+        document.getElementById('userModalTitle').textContent = user ? 'Edit User' : 'Add User';
+        document.getElementById('userId').value = user ? user.id : '';
+        document.getElementById('userFirstName').value = user ? user.first_name : '';
+        document.getElementById('userFamilyName').value = user ? user.family_name : '';
+        document.getElementById('userEmail').value = user ? user.email : '';
+        document.getElementById('userTel').value = user ? (user.telephone || '') : '';
+        document.getElementById('userError').textContent = '';
+
+        // Role select
+        var ROLES = [
+            'General Coordinator',
+            'Local Coordinator',
+            'WP1 Leader', 'WP2 Leader', 'WP3 Leader', 'WP4 Leader', 'WP5 Leader',
+            'WP1 Board Member', 'WP2 Board Member', 'WP3 Board Member', 'WP4 Board Member', 'WP5 Board Member',
+            'Board of Rectors Member',
+            'Board of Rectors Deputy Member',
+        ];
+        var roleSel = document.getElementById('userRole');
+        var currentRole = user ? (user.role || '') : '';
+        roleSel.innerHTML = '<option value="">-- None --</option>';
+        ROLES.forEach(function(r) {
+            roleSel.innerHTML += '<option value="' + esc(r) + '"' + (currentRole === r ? ' selected' : '') + '>' + esc(r) + '</option>';
+        });
+        // If the user has a custom role not in the list, add it
+        if (currentRole && ROLES.indexOf(currentRole) === -1) {
+            roleSel.innerHTML += '<option value="' + esc(currentRole) + '" selected>' + esc(currentRole) + '</option>';
+        }
+
+        // University select
+        var uniSel = document.getElementById('userUni');
+        uniSel.innerHTML = '';
+        Object.keys(appData.universities).sort().forEach(function(a) {
+            uniSel.innerHTML += '<option value="' + a + '"' + (user && user.university === a ? ' selected' : '') + '>' + a + ' \u2014 ' + esc(appData.universities[a].name) + '</option>';
+        });
+
+        // Groups checkboxes
+        var grpHtml = '';
+        appData.groups.forEach(function(g) {
+            var checked = user && (user.groups || []).indexOf(g.id) !== -1 ? ' checked' : '';
+            grpHtml += '<label><input type="checkbox" value="' + esc(g.id) + '"' + checked + ' onchange="updateSubgroupCheckboxes()"> ' + esc(g.id) + ' \u2014 ' + esc(g.name) + '</label>';
+        });
+        document.getElementById('userGroups').innerHTML = grpHtml;
+
+        updateSubgroupCheckboxes(user);
+        openModal('userModal');
+        document.getElementById('userFirstName').focus();
+    }
+
+    function updateSubgroupCheckboxes(user) {
+        var checkedGroups = [];
+        document.querySelectorAll('#userGroups input:checked').forEach(function(cb) { checkedGroups.push(cb.value); });
+
+        var sgHtml = '';
+        appData.groups.forEach(function(g) {
+            if (checkedGroups.indexOf(g.id) === -1) return;
+            (g.subgroups || []).forEach(function(sg) {
+                var checked = user && (user.subgroups || []).indexOf(sg.id) !== -1 ? ' checked' : '';
+                sgHtml += '<label><input type="checkbox" value="' + esc(sg.id) + '"' + checked + '> ' + esc(g.id) + ' / ' + esc(sg.name) + '</label>';
+            });
+        });
+        if (!sgHtml) sgHtml = '<span style="color:#888;font-size:0.85em;">Select groups first</span>';
+        document.getElementById('userSubgroups').innerHTML = sgHtml;
+    }
+
+    function editUser(id) {
+        var user = appData.users.find(function(u) { return u.id === id; });
+        if (user) openUserModal(user);
+    }
+
+    async function saveUser() {
+        var id = document.getElementById('userId').value;
+        var body = {
+            university: document.getElementById('userUni').value,
+            first_name: document.getElementById('userFirstName').value.trim(),
+            family_name: document.getElementById('userFamilyName').value.trim(),
+            role: document.getElementById('userRole').value,
+            email: document.getElementById('userEmail').value.trim(),
+            telephone: document.getElementById('userTel').value.trim(),
+            groups: [],
+            subgroups: []
+        };
+        document.querySelectorAll('#userGroups input:checked').forEach(function(cb) { body.groups.push(cb.value); });
+        document.querySelectorAll('#userSubgroups input:checked').forEach(function(cb) { body.subgroups.push(cb.value); });
+
+        if (!body.first_name) { document.getElementById('userError').textContent = 'First name is required'; return; }
+        if (!body.family_name) { document.getElementById('userError').textContent = 'Family name is required'; return; }
+        if (!body.email) { document.getElementById('userError').textContent = 'Email is required'; return; }
+
+        var url = id ? BASE + '/api/users/' + id : BASE + '/api/users';
+        var method = id ? 'PUT' : 'POST';
+        try {
+            var resp = await authFetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (resp.ok) { closeModal('userModal'); await loadData(); }
+            else { var err = await resp.json(); document.getElementById('userError').textContent = err.detail || 'Error saving user'; }
+        } catch (e) { document.getElementById('userError').textContent = 'Request failed'; }
+    }
+
+    async function deleteUser(id) {
+        var user = appData.users.find(function(u) { return u.id === id; });
+        if (!confirm('Delete user "' + user.first_name + ' ' + user.family_name + '"?')) return;
+        await authFetch(BASE + '/api/users/' + id, { method: 'DELETE' });
+        await loadData();
+    }
+
+    // ── Groups ────────────────────────────────────────────────────
+
+    function renderGroups() {
+        var html = '';
+        appData.groups.forEach(function(g) {
+            var verifiedBadge = g.verified
+                ? '<span class="badge badge-verified">Verified</span>'
+                : '<span class="badge badge-unverified">AI-generated</span>';
+
+            var members = appData.users.filter(function(u) { return (u.groups || []).indexOf(g.id) !== -1; });
+            var leaderUser = members.find(function(u) { return u.id === g.leader; });
+            var leaderHtml = leaderUser ? '<span class="badge badge-leader">Leader: ' + esc(leaderUser.first_name + ' ' + leaderUser.family_name) + '</span>' : '';
+
+            html += '<div class="card" style="padding:16px 20px;margin-bottom:14px;">'
+                + '<div class="group-header">'
+                +   '<h3>' + esc(g.id) + ' \u2014 ' + esc(g.name) + ' ' + verifiedBadge + '</h3>'
+                +   '<div>';
+            html += '<button class="btn-small" onclick="copyGroupEmails(\'' + esc(g.id) + '\', this)">Copy emails</button> ';
+            if (canEdit) {
+                html += '<button class="btn-small" onclick="editGroup(\'' + esc(g.id) + '\')">Edit</button> '
+                    + '<button class="btn-small" onclick="openAddMembers(\'' + esc(g.id) + '\', \'\')">+ Members</button> '
+                    + '<button class="btn-danger" onclick="deleteGroup(\'' + esc(g.id) + '\')">Delete</button>';
+            }
+            html += '</div></div>';
+            html += leaderHtml;
+
+            // Members list
+            html += '<div style="margin:8px 0;">';
+            if (members.length === 0) {
+                html += '<span style="color:#888;font-size:0.85em;">No members</span>';
+            } else {
+                members.sort(function(a, b) { return a.family_name.localeCompare(b.family_name) || a.first_name.localeCompare(b.first_name); });
+                members.forEach(function(m) {
+                    html += '<span class="member-chip" style="cursor:pointer;" onclick="goToUser(\'' + m.id + '\')">' + esc(m.first_name + ' ' + m.family_name) + ' <span class="badge badge-uni">' + m.university + '</span>';
+                    if (canEdit) html += '<span class="remove" onclick="removeFromGroup(\'' + esc(g.id) + '\', \'' + m.id + '\')">&times;</span>';
+                    html += '</span>';
+                });
+            }
+            html += '</div>';
+
+            // Subgroups
+            (g.subgroups || []).forEach(function(sg) {
+                var sgMembers = appData.users.filter(function(u) { return (u.subgroups || []).indexOf(sg.id) !== -1; });
+                html += '<div class="subgroup-card">'
+                    + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+                    +   '<h4>' + esc(sg.id) + ' \u2014 ' + esc(sg.name) + '</h4>';
+                if (canEdit) {
+                    html += '<button class="btn-small" onclick="openAddMembers(\'' + esc(g.id) + '\', \'' + esc(sg.id) + '\')">+ Members</button>';
+                }
+                html += '</div><div>';
+                if (sgMembers.length === 0) {
+                    html += '<span style="color:#888;font-size:0.85em;">No members</span>';
+                } else {
+                    sgMembers.sort(function(a, b) { return a.family_name.localeCompare(b.family_name) || a.first_name.localeCompare(b.first_name); });
+                    sgMembers.forEach(function(m) {
+                        html += '<span class="member-chip" style="cursor:pointer;" onclick="goToUser(\'' + m.id + '\')">' + esc(m.first_name + ' ' + m.family_name) + ' <span class="badge badge-uni">' + m.university + '</span>';
+                        if (canEdit) html += '<span class="remove" onclick="removeFromSubgroup(\'' + esc(g.id) + '\', \'' + esc(sg.id) + '\', \'' + m.id + '\')">&times;</span>';
+                        html += '</span>';
+                    });
+                }
+                html += '</div></div>';
+            });
+
+            // Verified toggle for leader
+            if (canEdit && leaderUser && authUser && authUser.username) {
+                html += '<div style="margin-top:8px;text-align:right;">'
+                    + '<label style="font-size:0.9em;font-weight:600;cursor:pointer;">'
+                    + '<input type="checkbox" ' + (g.verified ? 'checked' : '') + ' onchange="toggleVerified(\'' + esc(g.id) + '\', this.checked)"> Verified'
+                    + '</label></div>';
+            }
+
+            html += '</div>';
+        });
+        if (appData.groups.length === 0) html = '<p style="color:#888;text-align:center;">No groups defined.</p>';
+        document.getElementById('groupsList').innerHTML = html;
+    }
+
+    // ── Group modal ───────────────────────────────────────────────
+
+    function openGroupModal(group) {
+        document.getElementById('groupModalTitle').textContent = group ? 'Edit Group' : 'Add Group';
+        document.getElementById('groupEditId').value = group ? group.id : '';
+        document.getElementById('groupId').value = group ? group.id : '';
+        document.getElementById('groupId').disabled = !!group;
+        document.getElementById('groupName').value = group ? group.name : '';
+        document.getElementById('groupError').textContent = '';
+
+        // Leader select
+        var leaderSel = document.getElementById('groupLeader');
+        leaderSel.innerHTML = '<option value="">-- None --</option>';
+        var members = group ? appData.users.filter(function(u) { return (u.groups || []).indexOf(group.id) !== -1; }) : appData.users;
+        members.sort(function(a, b) { return a.family_name.localeCompare(b.family_name) || a.first_name.localeCompare(b.first_name); });
+        members.forEach(function(u) {
+            leaderSel.innerHTML += '<option value="' + u.id + '"' + (group && group.leader === u.id ? ' selected' : '') + '>' + esc(u.first_name + ' ' + u.family_name) + ' (' + u.university + ')</option>';
+        });
+
+        // Subgroups
+        document.getElementById('subgroupRows').innerHTML = '';
+        if (group && group.subgroups) {
+            group.subgroups.forEach(function(sg) { addSubgroupRow(sg.id, sg.name); });
+        }
+
+        openModal('groupModal');
+        if (!group) document.getElementById('groupId').focus();
+        else document.getElementById('groupName').focus();
+    }
+
+    function addSubgroupRow(id, name) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr 2fr auto;gap:8px;margin-bottom:6px;align-items:center;';
+        row.innerHTML = '<input type="text" value="' + esc(id) + '" placeholder="ID" class="sg-id">'
+            + '<input type="text" value="' + esc(name) + '" placeholder="Name" class="sg-name">'
+            + '<button type="button" class="btn-danger" onclick="this.parentElement.remove()">x</button>';
+        document.getElementById('subgroupRows').appendChild(row);
+    }
+
+    function editGroup(id) {
+        var group = appData.groups.find(function(g) { return g.id === id; });
+        if (group) openGroupModal(group);
+    }
+
+    async function saveGroup() {
+        var editId = document.getElementById('groupEditId').value;
+        var body = {
+            id: document.getElementById('groupId').value.trim(),
+            name: document.getElementById('groupName').value.trim(),
+            leader: document.getElementById('groupLeader').value,
+            verified: false,
+            subgroups: []
+        };
+
+        // Keep verified status if editing
+        if (editId) {
+            var existing = appData.groups.find(function(g) { return g.id === editId; });
+            if (existing) body.verified = existing.verified;
+        }
+
+        document.querySelectorAll('#subgroupRows > div').forEach(function(row) {
+            var sid = row.querySelector('.sg-id').value.trim();
+            var sname = row.querySelector('.sg-name').value.trim();
+            if (sid) body.subgroups.push({ id: sid, name: sname || sid });
+        });
+
+        if (!body.id) { document.getElementById('groupError').textContent = 'ID is required'; return; }
+        if (!body.name) { document.getElementById('groupError').textContent = 'Name is required'; return; }
+
+        var url = editId ? BASE + '/api/groups/' + editId : BASE + '/api/groups';
+        var method = editId ? 'PUT' : 'POST';
+        try {
+            var resp = await authFetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (resp.ok) { closeModal('groupModal'); await loadData(); }
+            else { var err = await resp.json(); document.getElementById('groupError').textContent = err.detail || 'Error saving group'; }
+        } catch (e) { document.getElementById('groupError').textContent = 'Request failed'; }
+    }
+
+    async function deleteGroup(id) {
+        if (!confirm('Delete group "' + id + '" and remove all member associations?')) return;
+        await authFetch(BASE + '/api/groups/' + id, { method: 'DELETE' });
+        await loadData();
+    }
+
+    async function toggleVerified(groupId, checked) {
+        var group = appData.groups.find(function(g) { return g.id === groupId; });
+        if (!group) return;
+        var body = {
+            id: group.id,
+            name: group.name,
+            leader: group.leader,
+            verified: checked,
+            subgroups: group.subgroups || []
+        };
+        await authFetch(BASE + '/api/groups/' + groupId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        await loadData();
+    }
+
+    // ── Add/Remove members from group view ────────────────────────
+
+    function copyGroupEmails(groupId, btn) {
+        var members = appData.users.filter(function(u) { return (u.groups || []).indexOf(groupId) !== -1; });
+        var emails = members.map(function(u) { return u.email; }).filter(Boolean);
+        if (emails.length === 0) { return; }
+        navigator.clipboard.writeText(emails.join('; ')).then(function() {
+            var orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = orig; }, 1500);
+        });
+    }
+
+    function openAddMembers(groupId, subgroupId) {
+        document.getElementById('membersGroupId').value = groupId;
+        document.getElementById('membersSubgroupId').value = subgroupId;
+
+        var title = subgroupId ? 'Members of ' + groupId + ' / ' + subgroupId : 'Members of ' + groupId;
+        document.getElementById('membersModalTitle').textContent = title;
+
+        var currentMembers;
+        if (subgroupId) {
+            currentMembers = appData.users.filter(function(u) { return (u.subgroups || []).indexOf(subgroupId) !== -1; });
+        } else {
+            currentMembers = appData.users.filter(function(u) { return (u.groups || []).indexOf(groupId) !== -1; });
+        }
+        var currentIds = currentMembers.map(function(u) { return u.id; });
+
+        var sorted = appData.users.slice().sort(function(a, b) {
+            var c = a.university.localeCompare(b.university);
+            return c !== 0 ? c : a.name.localeCompare(b.name);
+        });
+
+        var html = '';
+        sorted.forEach(function(u) {
+            var checked = currentIds.indexOf(u.id) !== -1 ? ' checked' : '';
+            html += '<label><input type="checkbox" value="' + u.id + '"' + checked + '> ' + esc(u.first_name + ' ' + u.family_name) + ' <span class="badge badge-uni">' + u.university + '</span></label>';
+        });
+        if (sorted.length === 0) html = '<p style="color:#888;">No users in directory. Add users first.</p>';
+        document.getElementById('membersList').innerHTML = html;
+
+        openModal('membersModal');
+    }
+
+    async function saveMembers() {
+        var groupId = document.getElementById('membersGroupId').value;
+        var subgroupId = document.getElementById('membersSubgroupId').value;
+
+        var selectedIds = [];
+        document.querySelectorAll('#membersList input:checked').forEach(function(cb) { selectedIds.push(cb.value); });
+
+        var currentMembers;
+        if (subgroupId) {
+            currentMembers = appData.users.filter(function(u) { return (u.subgroups || []).indexOf(subgroupId) !== -1; });
+        } else {
+            currentMembers = appData.users.filter(function(u) { return (u.groups || []).indexOf(groupId) !== -1; });
+        }
+        var currentIds = currentMembers.map(function(u) { return u.id; });
+
+        var toAdd = selectedIds.filter(function(id) { return currentIds.indexOf(id) === -1; });
+        var toRemove = currentIds.filter(function(id) { return selectedIds.indexOf(id) === -1; });
+
+        var baseUrl = subgroupId
+            ? BASE + '/api/groups/' + encodeURIComponent(groupId) + '/subgroups/' + encodeURIComponent(subgroupId) + '/members'
+            : BASE + '/api/groups/' + encodeURIComponent(groupId) + '/members';
+
+        try {
+            if (toAdd.length > 0) {
+                var resp = await authFetch(baseUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_ids: toAdd }) });
+                if (!resp.ok) { var err = await resp.json(); alert('Error adding members: ' + (err.detail || 'Unknown error')); return; }
+            }
+            if (toRemove.length > 0) {
+                var resp2 = await authFetch(baseUrl, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_ids: toRemove }) });
+                if (!resp2.ok) { var err2 = await resp2.json(); alert('Error removing members: ' + (err2.detail || 'Unknown error')); return; }
+            }
+        } catch (e) {
+            alert('Request failed: ' + e.message);
+            return;
+        }
+
+        closeModal('membersModal');
+        await loadData();
+    }
+
+    async function removeFromGroup(groupId, userId) {
+        await authFetch(BASE + '/api/groups/' + encodeURIComponent(groupId) + '/members', {
+            method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_ids: [userId] })
+        });
+        await loadData();
+    }
+
+    async function removeFromSubgroup(groupId, subgroupId, userId) {
+        await authFetch(BASE + '/api/groups/' + encodeURIComponent(groupId) + '/subgroups/' + encodeURIComponent(subgroupId) + '/members', {
+            method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_ids: [userId] })
+        });
+        await loadData();
+    }
+
+    // ── Universities ──────────────────────────────────────────────
+
+    function renderUniversities() {
+        var unis = Object.entries(appData.universities).sort(function(a, b) { return a[0].localeCompare(b[0]); });
+        var html = '<table><tr><th>Code</th><th>Name</th><th>Country</th><th>Staff</th></tr>';
+        unis.forEach(function(entry) {
+            var acro = entry[0], info = entry[1];
+            var count = appData.users.filter(function(u) { return u.university === acro; }).length;
+            html += '<tr>'
+                + '<td><strong>' + esc(acro) + '</strong></td>'
+                + '<td>' + esc(info.name) + '</td>'
+                + '<td>' + esc(info.country) + '</td>'
+                + '<td>' + count + '</td>'
+                + '</tr>';
+        });
+        html += '</table>';
+        document.getElementById('uniTable').innerHTML = html;
+    }
+
+    // ── Org Chart ─────────────────────────────────────────────────
+
+    function populateOrgChartSelect() {
+        var sel = document.getElementById('orgChartUni');
+        var current = sel.value;
+        sel.innerHTML = '';
+        Object.keys(appData.universities).sort().forEach(function(a) {
+            sel.innerHTML += '<option value="' + a + '">' + a + ' \u2014 ' + esc(appData.universities[a].name) + '</option>';
+        });
+        if (current && appData.universities[current]) sel.value = current;
+    }
+
+    function renderOrgChart() {
+        var uni = document.getElementById('orgChartUni').value;
+        if (!uni) { document.getElementById('orgChartArea').innerHTML = ''; return; }
+
+        var info = appData.universities[uni];
+        var uniUsers = appData.users.filter(function(u) { return u.university === uni; });
+
+        // Build tree: root -> groups -> subgroups -> members
+        var html = '<div class="org-tree"><ul>';
+
+        // Root node
+        html += '<li><span class="org-node org-node-root">' + esc(uni) + ' \u2014 ' + esc(info.name) + '</span>';
+        html += '<ul>';
+
+        // For each group that has members from this university
+        var groupsWithMembers = appData.groups.filter(function(g) {
+            return uniUsers.some(function(u) { return (u.groups || []).indexOf(g.id) !== -1; });
+        });
+
+        groupsWithMembers.forEach(function(g) {
+            var groupMembers = uniUsers.filter(function(u) { return (u.groups || []).indexOf(g.id) !== -1; });
+            var leaderUser = groupMembers.find(function(u) { return u.id === g.leader; });
+
+            html += '<li><span class="org-node org-node-group">' + esc(g.id) + ' \u2014 ' + esc(g.name) + '</span>';
+            html += '<ul>';
+
+            // All members of this group shown at group level
+            groupMembers.sort(function(a, b) { return a.family_name.localeCompare(b.family_name); });
+            groupMembers.forEach(function(m) {
+                var isLeader = leaderUser && m.id === leaderUser.id;
+                var cls = 'org-node org-node-member' + (isLeader ? ' org-node-leader' : '');
+                var roleTag = m.role ? '<span class="org-role-tag">' + esc(m.role) + '</span>' : '';
+                var leaderTag = isLeader ? '<span class="org-role-tag">[Leader]</span>' : '';
+                html += '<li><span class="' + cls + '">' + esc(m.first_name + ' ' + m.family_name) + leaderTag + roleTag + '</span></li>';
+            });
+
+            // Subgroups with members from this university
+            (g.subgroups || []).forEach(function(sg) {
+                var sgMembers = groupMembers.filter(function(u) {
+                    return (u.subgroups || []).indexOf(sg.id) !== -1;
+                });
+                if (sgMembers.length === 0) return;
+
+                html += '<li><span class="org-node org-node-subgroup">' + esc(sg.id) + ' \u2014 ' + esc(sg.name) + '</span>';
+                html += '<ul>';
+                sgMembers.sort(function(a, b) { return a.family_name.localeCompare(b.family_name); });
+                sgMembers.forEach(function(m) {
+                    var isLeader = leaderUser && m.id === leaderUser.id;
+                    var cls = 'org-node org-node-member' + (isLeader ? ' org-node-leader' : '');
+                    var roleTag = m.role ? '<span class="org-role-tag">' + esc(m.role) + '</span>' : '';
+                    var leaderTag = isLeader ? '<span class="org-role-tag">[Leader]</span>' : '';
+                    html += '<li><span class="' + cls + '">' + esc(m.first_name + ' ' + m.family_name) + leaderTag + roleTag + '</span></li>';
+                });
+                html += '</ul></li>';
+            });
+
+            html += '</ul></li>';
+        });
+
+        // Users not in any group
+        var ungrouped = uniUsers.filter(function(u) { return !u.groups || u.groups.length === 0; });
+        if (ungrouped.length > 0) {
+            html += '<li><span class="org-node org-node-group" style="background:#f8d7da;color:#721c24;border-color:#f5c6cb;">Unassigned</span>';
+            html += '<ul>';
+            ungrouped.sort(function(a, b) { return a.family_name.localeCompare(b.family_name); });
+            ungrouped.forEach(function(m) {
+                var roleTag = m.role ? '<span class="org-role-tag">' + esc(m.role) + '</span>' : '';
+                html += '<li><span class="org-node org-node-member">' + esc(m.first_name + ' ' + m.family_name) + roleTag + '</span></li>';
+            });
+            html += '</ul></li>';
+        }
+
+        html += '</ul></li></ul></div>';
+
+        if (uniUsers.length === 0) {
+            html = '<p style="color:#888;text-align:center;padding:20px;">No staff members found for ' + esc(uni) + '.</p>';
+        }
+
+        document.getElementById('orgChartArea').innerHTML = html;
+    }
+
+    // ── Init ──────────────────────────────────────────────────────
+
+    async function init() {
+        await loadData();
+        populateOrgChartSelect();
+        await checkAuth();
+    }
+    init();
+</script>
+</body>
+</html>

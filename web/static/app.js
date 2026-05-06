@@ -2439,9 +2439,19 @@ async function loadUsersList() {
                 }
                 actionsHtml += `<button onclick="adminDeleteUser('${u.username}')" style="background:#fee2e2; color:#dc2626; border:none; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; font-size:0.8rem;">Delete</button>`;
             }
+            let roleHtml;
+            if (isSelf) {
+                roleHtml = `<span style="color:${roleColor}; font-weight:500;">${u.role}</span>`;
+            } else {
+                roleHtml = `<select onchange="adminChangeRole('${u.username}', this.value)" style="padding:2px 4px; border:1px solid #e2e8f0; border-radius:4px; font-size:0.85rem; color:${roleColor}; font-weight:500; cursor:pointer;">`;
+                ['user', 'tester', 'superuser'].forEach(r => {
+                    roleHtml += `<option value="${r}"${u.role === r ? ' selected' : ''} style="color:${roleColors[r] || '#64748b'};">${r}</option>`;
+                });
+                roleHtml += '</select>';
+            }
             html += `<tr style="border-bottom:1px solid #f1f5f9;">
                 <td style="padding:0.4rem;">${u.username}${isSelf ? ' <small>(you)</small>' : ''}</td>
-                <td style="padding:0.4rem;"><span style="color:${roleColor}; font-weight:500;">${u.role}</span></td>
+                <td style="padding:0.4rem;">${roleHtml}</td>
                 <td style="padding:0.4rem;">${statusHtml}</td>
                 <td style="padding:0.4rem; text-align:right;">${actionsHtml}</td>
             </tr>`;
@@ -2510,6 +2520,30 @@ async function adminDeleteUser(username) {
         loadUsersList();
     } catch (err) {
         adminShowMessage('Connection error', 'error');
+    }
+}
+
+
+async function adminChangeRole(username, newRole) {
+    try {
+        const res = await authFetch(`/api/auth/users/${encodeURIComponent(username)}/role`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: newRole })
+        });
+
+        if (!res.ok) {
+            const data = await res.json();
+            adminShowMessage(data.detail || 'Error changing role', 'error');
+            loadUsersList();
+            return;
+        }
+
+        adminShowMessage(`Role for "${username}" changed to ${newRole}`, 'success');
+        loadUsersList();
+    } catch (err) {
+        adminShowMessage('Connection error', 'error');
+        loadUsersList();
     }
 }
 

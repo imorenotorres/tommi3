@@ -181,6 +181,16 @@ from apps.mobility_planner.mobility_planner import router as mobility_router
 app.include_router(mobility_router)
 app.mount("/mobility_planner/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "mobility_planner" / "static"), name="mobility_static")
 
+# Mount Directory app
+from apps.directory.directory import router as directory_router
+app.include_router(directory_router)
+app.mount("/directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "directory" / "static"), name="directory_static")
+
+# Mount UNINOVIS Admin hub
+from apps.uninovis.uninovis import router as uninovis_router
+app.include_router(uninovis_router)
+app.mount("/uninovis/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uninovis" / "static"), name="uninovis_static")
+
 
 # ---------------------------------------------------------------------------
 # Auth helpers

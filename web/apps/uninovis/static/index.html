@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS Admin</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        .header { text-align: center; margin-bottom: 36px; }
+        .header h1 { color: #1a3a5c; font-size: 2em; margin-bottom: 6px; }
+        .header .subtitle { color: #666; font-size: 1em; }
+
+        .auth-bar {
+            text-align: center; margin-bottom: 28px;
+            font-size: 0.9em; color: #666;
+        }
+        .auth-bar button {
+            background: #e9ecef; border: 1px solid #ccc; border-radius: 4px;
+            padding: 5px 14px; cursor: pointer; font-size: 0.85em; margin-left: 6px;
+        }
+        .auth-bar button:hover { background: #d0d4d9; }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 960px;
+            width: 100%;
+        }
+        .tool-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 28px 24px;
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: flex;
+            flex-direction: column;
+            border-left: 5px solid #1a3a5c;
+        }
+        .tool-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+        .tool-card .tool-icon {
+            font-size: 2em;
+            margin-bottom: 12px;
+        }
+        .tool-card h2 {
+            color: #1a3a5c;
+            font-size: 1.15em;
+            margin-bottom: 8px;
+        }
+        .tool-card p {
+            color: #666;
+            font-size: 0.88em;
+            line-height: 1.5;
+            flex: 1;
+        }
+        .tool-card .tool-tag {
+            margin-top: 14px;
+            font-size: 0.75em;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 10px;
+            display: inline-block;
+            align-self: flex-start;
+        }
+        .tag-active { background: #d4edda; color: #155724; }
+        .tag-soon { background: #fff3cd; color: #856404; }
+
+        .footer {
+            margin-top: 48px;
+            text-align: center;
+            color: #aaa;
+            font-size: 0.8em;
+        }
+
+        /* Login modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-box { background: #fff; border-radius: 10px; padding: 28px; max-width: 360px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .modal-box h3 { color: #1a3a5c; margin-bottom: 16px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 4px; color: #1a3a5c; font-size: 0.85em; }
+        .form-group input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+        .btn { background: #1a3a5c; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-size: 0.9em; cursor: pointer; }
+        .btn:hover { background: #24527a; }
+        .btn-small { background: #e9ecef; border: 1px solid #ccc; border-radius: 4px; padding: 5px 12px; cursor: pointer; font-size: 0.85em; }
+    </style>
+    <!-- Matomo -->
+    <script>
+      var _paq = window._paq = window._paq || [];
+      /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="https://uninovis.matomo.cloud/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '3']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+    <!-- End Matomo Code -->
+</head>
+<body>
+    <div class="header">
+        <h1>UNINOVIS Admin</h1>
+        <p class="subtitle">Central hub for UNINOVIS management tools</p>
+    </div>
+
+    <div class="auth-bar">
+        <span id="authInfo"></span>
+        <button id="loginBtn" onclick="showLogin()">Login</button>
+        <button id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
+    </div>
+
+    <div class="tools-grid" id="toolsGrid"></div>
+
+    <div class="footer">UNINOVIS — University Network for Innovation in Society</div>
+
+    <!-- Login modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-box">
+            <h3>Login</h3>
+            <div class="form-group"><label>Username</label><input type="text" id="loginUser"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="loginPass"></div>
+            <p id="loginError" style="color:#dc3545;font-size:0.85em;"></p>
+            <div class="modal-footer">
+                <button class="btn-small" onclick="closeLogin()">Cancel</button>
+                <button class="btn" onclick="doLogin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // ── Tool registry — add new tools here ────────────────────────
+    var TOOLS = [
+        {
+            id: 'directory',
+            name: 'Directory',
+            icon: '\uD83D\uDCCB',
+            description: 'Internal staff directory. Manage contacts, groups, work packages, and org charts for all UNINOVIS partners.',
+            url: '/directory/',
+            status: 'active',
+            requiresAuth: false,
+        },
+        {
+            id: 'unigracon',
+            name: 'UNIGRACON',
+            icon: '\uD83C\uDF93',
+            description: 'Grade converter between UNINOVIS partner universities. Supports formulas and conversion tables.',
+            url: '/unigracon/',
+            status: 'active',
+            requiresAuth: false,
+        },
+        {
+            id: 'mobility',
+            name: 'Mobility Planner',
+            icon: '\u2708\uFE0F',
+            description: 'Compute call opening dates for mobility activities, accounting for administrative periods and holidays.',
+            url: '/mobility_planner/',
+            status: 'active',
+            requiresAuth: false,
+        },
+    ];
+
+    // ── Auth ──────────────────────────────────────────────────────
+    var authToken = localStorage.getItem('uninovis_admin_token');
+    var authUser = null;
+
+    async function checkAuth() {
+        if (!authToken) { updateUI(); return; }
+        try {
+            // Use any app's auth-check (they all share the same auth)
+            var resp = await fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + authToken } });
+            if (resp.ok) {
+                authUser = await resp.json();
+            } else {
+                authToken = null; authUser = null;
+                localStorage.removeItem('uninovis_admin_token');
+            }
+        } catch (e) { authUser = null; }
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('authInfo').textContent = authUser ? 'Logged in as ' + authUser.username : '';
+        document.getElementById('loginBtn').style.display = authUser ? 'none' : '';
+        document.getElementById('logoutBtn').style.display = authUser ? '' : 'none';
+        renderTools();
+    }
+
+    function showLogin() {
+        document.getElementById('loginUser').value = '';
+        document.getElementById('loginPass').value = '';
+        document.getElementById('loginError').textContent = '';
+        document.getElementById('loginModal').classList.add('active');
+        document.getElementById('loginUser').focus();
+    }
+
+    function closeLogin() { document.getElementById('loginModal').classList.remove('active'); }
+
+    async function doLogin() {
+        var username = document.getElementById('loginUser').value.trim();
+        var password = document.getElementById('loginPass').value;
+        if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
+        try {
+            var resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
+            if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
+            var data = await resp.json();
+            authToken = data.token;
+            localStorage.setItem('uninovis_admin_token', authToken);
+            closeLogin();
+            await checkAuth();
+        } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
+    }
+
+    function doLogout() {
+        authToken = null; authUser = null;
+        localStorage.removeItem('uninovis_admin_token');
+        updateUI();
+    }
+
+    document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target.id === 'loginModal') closeLogin(); });
+
+    // ── Render tools ──────────────────────────────────────────────
+    function renderTools() {
+        var html = '';
+        TOOLS.forEach(function(tool) {
+            if (tool.requiresAuth && !authUser) return;
+            var tagClass = tool.status === 'active' ? 'tag-active' : 'tag-soon';
+            var tagText = tool.status === 'active' ? 'Active' : 'Coming soon';
+            var href = tool.status === 'active' ? tool.url : '#';
+            var clickAttr = tool.status !== 'active' ? ' onclick="event.preventDefault();" style="opacity:0.6;cursor:default;"' : '';
+
+            html += '<a class="tool-card" href="' + href + '"' + clickAttr + '>'
+                + '<div class="tool-icon">' + tool.icon + '</div>'
+                + '<h2>' + tool.name + '</h2>'
+                + '<p>' + tool.description + '</p>'
+                + '<span class="tool-tag ' + tagClass + '">' + tagText + '</span>'
+                + '</a>';
+        });
+        document.getElementById('toolsGrid').innerHTML = html;
+    }
+
+    // ── Init ──────────────────────────────────────────────────────
+    checkAuth();
+</script>
+</body>
+</html>
