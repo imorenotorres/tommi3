@@ -112,7 +112,7 @@
             padding: 18px 20px;
             margin-bottom: 16px;
         }
-        .editor-card h4 { color: #1a3a5c; margin-bottom: 12px; }
+        .editor-card h4 { color: #1a3a5c; margin: 0; }
         .editor-card .fields {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
             margin-bottom: 14px;
@@ -139,6 +139,20 @@
         .save-bar { text-align: center; padding: 20px; }
         .save-ok { color: #28a745; font-weight: 600; margin-left: 12px; }
         .save-error { color: #dc3545; font-weight: 600; margin-left: 12px; font-size: 0.9em; }
+        .confirmed-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.95em; font-weight: 600; margin-left: auto; }
+        .confirmed-toggle input { margin: 0; }
+        .holidays-footer { display: flex; align-items: center; margin-top: 8px; }
+        .editor-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .editor-card-header h4 { margin: 0; }
+        .editor-status-badge { font-size: 0.75em; font-weight: 600; padding: 3px 10px; border-radius: 10px; white-space: nowrap; }
+        .badge-confirmed { background: #d4edda; color: #155724; }
+        .badge-ai { background: #e2d9f3; color: #5a3d8a; }
+        .verification-banner {
+            padding: 6px 10px; border-radius: 6px; font-size: 0.85em; margin-bottom: 10px;
+        }
+        .verification-ok { background: #d4edda; color: #155724; }
+        .verification-ai { background: #e2d9f3; color: #5a3d8a; }
+        .tl-arrow.unverified { color: #7c4dba; font-style: italic; }
     </style>
     <!-- Matomo -->
     <script>
@@ -463,14 +477,27 @@
                 var recvHolNote = r.receiving_holidays_hit.length > 0
                     ? '<p class="holiday-note">+' + r.receiving_holiday_days_added + ' day(s) added due to ' + r.receiving_university + ' holidays: ' + r.receiving_holidays_hit.join(', ') + '</p>' : '';
 
+                var allConfirmed = r.sending_confirmed && r.receiving_confirmed;
+                var unverifiedUnis = [];
+                if (!r.sending_confirmed) unverifiedUnis.push(r.sending_university);
+                if (!r.receiving_confirmed) unverifiedUnis.push(r.receiving_university);
+                var verificationHtml = allConfirmed
+                    ? '<div class="verification-banner verification-ok"><strong>&#10003; Verified</strong> — Data from both institutions has been validated.</div>'
+                    : '<div class="verification-banner verification-ai"><strong>&#9888; AI-generated</strong> — Data from '
+                    +   unverifiedUnis.join(' and ') + ' has not been verified. Results are indicative.</div>';
+
+                var sendArrowCls = 'tl-arrow' + (!r.sending_confirmed ? ' unverified' : '');
+                var recvArrowCls = 'tl-arrow' + (!r.receiving_confirmed ? ' unverified' : '');
+
                 html += '<div class="result-card">'
+                    + verificationHtml
                     + '<h3>' + r.sending_university + ' (' + esc(r.sending_name) + ')</h3>'
                     + '<div class="timeline">'
                     +   '<div class="tl-node call"><strong>Call opens</strong><br>' + fmtDate(r.call_open_date) + '</div>'
-                    +   '<div class="tl-arrow">' + r.sending_period_days + ' days<br>sending'
+                    +   '<div class="' + sendArrowCls + '">' + r.sending_period_days + ' days<br>sending'
                     +     (r.sending_holiday_days_added > 0 ? '<br>(+' + r.sending_holiday_days_added + ' hol.)' : '') + '</div>'
                     +   '<div class="tl-node docs"><strong>Docs arrive</strong><br>' + fmtDate(r.docs_arrival_date) + '</div>'
-                    +   '<div class="tl-arrow">' + r.receiving_period_days + ' days<br>receiving'
+                    +   '<div class="' + recvArrowCls + '">' + r.receiving_period_days + ' days<br>receiving'
                     +     (r.receiving_holiday_days_added > 0 ? '<br>(+' + r.receiving_holiday_days_added + ' hol.)' : '') + '</div>'
                     +   '<div class="tl-node activity"><strong>Activity</strong><br>' + fmtDate(r.activity_date) + '</div>'
                     + '</div>'
@@ -506,8 +533,14 @@
             for (var i = 0; i < unis.length; i++) {
                 var acro = unis[i];
                 var u = editorData[acro];
+                var statusBadge = u.confirmed
+                    ? '<span class="editor-status-badge badge-confirmed">Validated</span>'
+                    : '<span class="editor-status-badge badge-ai">AI-generated</span>';
                 html += '<div class="card editor-card" data-acro="' + acro + '">'
-                    + '<h4>' + acro + ' \u2014 ' + esc(u.name) + ' (' + u.country + ')</h4>'
+                    + '<div class="editor-card-header">'
+                    +   '<h4>' + acro + ' \u2014 ' + esc(u.name) + ' (' + u.country + ')</h4>'
+                    +   statusBadge
+                    + '</div>'
                     + '<div class="fields">'
                     +   '<div class="form-group">'
                     +     '<label>Sending period (days)</label>'
@@ -526,7 +559,11 @@
                     html += holidayRowHtml(h.start, h.end, h.label);
                 }
                 html += '</div>'
-                    +   '<button type="button" class="btn-small" onclick="addHolidayRow(\'' + acro + '\')">+ Add Holiday</button>'
+                    +   '<div class="holidays-footer">'
+                    +     '<button type="button" class="btn-small" onclick="addHolidayRow(\'' + acro + '\')">+ Add Holiday</button>'
+                    +     '<label class="confirmed-toggle"><input type="checkbox" id="confirmed_' + acro + '"'
+                    +       (u.confirmed ? ' checked' : '') + '> Human validated data</label>'
+                    +   '</div>'
                     + '</div>'
                     + '</div>';
             }
@@ -566,12 +603,14 @@
                         holidays.push({ start: s, end: e, label: l });
                     }
                 }
+                var confirmedEl = document.getElementById('confirmed_' + acro);
                 result[acro] = {
                     name: u.name,
                     country: u.country,
                     sending_period_days: sendDays,
                     receiving_period_days: recvDays,
                     holidays: holidays,
+                    confirmed: confirmedEl ? confirmedEl.checked : false,
                 };
             }
             return result;
@@ -595,6 +634,7 @@
                     statusEl.textContent = 'Saved successfully!';
                     statusEl.className = 'save-ok';
                     await reloadData();
+                    await loadEditorData();
                 } else {
                     var err = await resp.json();
                     var msg = '';

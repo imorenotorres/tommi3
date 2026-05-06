@@ -126,8 +126,10 @@ def compute_deadline(activity_date: date, sending_uni: str, receiving_uni: str, 
     return {
         "sending_university": sending_uni,
         "sending_name": send["name"],
+        "sending_confirmed": send.get("confirmed", False),
         "receiving_university": receiving_uni,
         "receiving_name": recv["name"],
+        "receiving_confirmed": recv.get("confirmed", False),
         "activity_date": activity_date.isoformat(),
         "call_open_date": call_date.isoformat(),
         "docs_arrival_date": docs_date.isoformat(),
@@ -165,6 +167,7 @@ def universities():
             "country": info["country"],
             "sending_period_days": info["sending_period_days"],
             "receiving_period_days": info["receiving_period_days"],
+            "confirmed": info.get("confirmed", False),
         }
         for acro, info in data["universities"].items()
     }
@@ -221,6 +224,7 @@ class UniversityUpdate(BaseModel):
     sending_period_days: int
     receiving_period_days: int
     holidays: list[HolidayEntry] = []
+    confirmed: bool = False
 
 
 class BatchUniversitiesBody(BaseModel):
@@ -262,6 +266,7 @@ def update_universities(
         entry["sending_period_days"] = uni.sending_period_days
         entry["receiving_period_days"] = uni.receiving_period_days
         entry["holidays"] = [h.model_dump() for h in uni.holidays]
+        entry["confirmed"] = uni.confirmed
 
     save_data(data)
     return {"ok": True}

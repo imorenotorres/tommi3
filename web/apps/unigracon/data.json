@@ -518,7 +518,7 @@
         }
       ],
       "notes": "Lithuanian discrete to Spanish",
-      "confirmed": false
+      "confirmed": true
     },
     "UMA->UT": {
       "method": "formula",

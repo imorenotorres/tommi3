@@ -289,7 +289,7 @@
         .status-missing { background: #fff3cd; color: #856404; }
         .status-confirmed { background: #d4edda; color: #155724; }
         .status-ai { background: #e2d9f3; color: #5a3d8a; }
-        .confirmed-toggle { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.85em; }
+        .confirmed-toggle { display: flex; align-items: center; gap: 6px; margin-left: auto; font-size: 0.95em; font-weight: 600; }
         .confirmed-toggle input { margin: 0; }
         .confirmed-badge { font-size: 0.75em; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
 
@@ -833,13 +833,14 @@
             const conv = conversionPairs.find(c => c.source === r.source_university && c.target === r.target_university);
             const isConfirmed = conv && conv.confirmed;
             const verificationHtml = isConfirmed
-                ? '<div style="margin-top:8px;padding:6px 10px;border-radius:6px;background:#d4edda;color:#155724;font-size:0.85em;">'
+                ? '<div style="margin-bottom:12px;padding:6px 10px;border-radius:6px;background:#d4edda;color:#155724;font-size:0.85em;">'
                 +   '<strong>&#10003; Confirmed</strong> — This conversion has been verified by the partner institution.</div>'
-                : '<div style="margin-top:8px;padding:6px 10px;border-radius:6px;background:#e2d9f3;color:#5a3d8a;font-size:0.85em;">'
+                : '<div style="margin-bottom:12px;padding:6px 10px;border-radius:6px;background:#e2d9f3;color:#5a3d8a;font-size:0.85em;">'
                 +   '<strong>&#9888; AI-generated</strong> — This conversion has not yet been verified by the partner institution. Results are indicative.</div>';
 
             resultsEl.innerHTML =
-                '<div class="conversion-detail">'
+                verificationHtml
+                + '<div class="conversion-detail">'
                 + '<div class="conv-side source">'
                 +   '<div class="uni-name">' + r.source_university + ' \u2014 ' + escHtml(r.source_name) + '</div>'
                 +   '<div class="grade-val">' + r.source_grade + '</div>'
@@ -857,8 +858,7 @@
                 + '<div class="method-info">'
                 +   methodHtml + '<br>'
                 +   (r.notes ? '<strong>Notes:</strong> ' + escHtml(r.notes) : '')
-                + '</div>'
-                + verificationHtml;
+                + '</div>';
         }
 
         function escHtml(s) {
@@ -959,11 +959,6 @@
                     +     (!hasConv ? 'Missing' : (confirmed ? 'Confirmed' : 'AI-generated')) + '</span>'
                     + '</div>'
 
-                    + '<div class="confirmed-toggle">'
-                    +   '<label><input type="checkbox" id="confirmed_' + src + '"'
-                    +     (confirmed ? ' checked' : '') + '> Confirmed by partner</label>'
-                    + '</div>'
-
                     + '<div class="editor-method">'
                     +   '<label><input type="radio" name="method_' + src + '" value="formula"'
                     +     (method === 'formula' ? ' checked' : '') + ' onchange="toggleMethod(\'' + src + '\')"> Formula</label>'
@@ -995,6 +990,8 @@
                     +     ' min="' + srcInfo.min_grade + '" max="' + srcInfo.max_grade + '">'
                     +   '<button type="button" class="btn-small" onclick="testConv(\'' + src + '\')">Test</button>'
                     +   '<span id="testResult_' + src + '" class="test-result"></span>'
+                    +   '<label class="confirmed-toggle"><input type="checkbox" id="confirmed_' + src + '"'
+                    +     (confirmed ? ' checked' : '') + '> Human validated data</label>'
                     + '</div>'
 
                     + '</div>';
