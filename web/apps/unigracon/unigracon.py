@@ -283,6 +283,7 @@ def conversions_list():
             "target": tgt,
             "method": conv["method"],
             "notes": conv.get("notes", ""),
+            "confirmed": conv.get("confirmed", False),
         }
         if conv["method"] == "formula":
             entry["formula"] = conv["formula"]
@@ -315,6 +316,7 @@ class SingleConversion(BaseModel):
     formula: str = ""
     table: list[TableRow] = []
     notes: str = ""
+    confirmed: bool = False
 
 
 class BatchConversionsBody(BaseModel):
@@ -391,12 +393,14 @@ def update_conversions_to(
                 "method": "formula",
                 "formula": conv.formula,
                 "notes": conv.notes,
+                "confirmed": conv.confirmed,
             }
         elif conv.method == "table":
             data["conversions"][key] = {
                 "method": "table",
                 "table": [row.model_dump() for row in conv.table],
                 "notes": conv.notes,
+                "confirmed": conv.confirmed,
             }
         else:
             errors.append(f"{source}: Invalid method — {conv.method}")

@@ -287,6 +287,11 @@
         }
         .status-ok { background: #d4edda; color: #155724; }
         .status-missing { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-ai { background: #e2d9f3; color: #5a3d8a; }
+        .confirmed-toggle { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.85em; }
+        .confirmed-toggle input { margin: 0; }
+        .confirmed-badge { font-size: 0.75em; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
 
         .editor-method { margin-bottom: 12px; }
         .editor-method label {
@@ -684,6 +689,7 @@
             html += '<tr><th style="padding:4px 8px;border-bottom:1px solid #ddd;">From</th>'
                   + '<th style="padding:4px 8px;border-bottom:1px solid #ddd;">To</th>'
                   + '<th style="padding:4px 8px;border-bottom:1px solid #ddd;">Method</th>'
+                  + '<th style="padding:4px 8px;border-bottom:1px solid #ddd;">Status</th>'
                   + '<th style="padding:4px 8px;border-bottom:1px solid #ddd;">Notes</th></tr>';
             for (const c of sorted) {
                 if (prevTarget !== null && c.target !== prevTarget) {
@@ -692,10 +698,14 @@
                 prevTarget = c.target;
                 const bg = groupColors[colorIdx];
                 const mBadge = buildMethodTooltip(c);
+                const statusBadge = c.confirmed
+                    ? '<span class="confirmed-badge status-confirmed">Confirmed</span>'
+                    : '<span class="confirmed-badge status-ai">AI-generated</span>';
                 html += '<tr style="background:' + bg + ';">'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + c.source + '</td>'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + c.target + '</td>'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + mBadge + '</td>'
+                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + statusBadge + '</td>'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;color:#666;">' + c.notes + '</td>'
                     + '</tr>';
             }
@@ -820,6 +830,13 @@
                 : r.target_grade < tgtInfo.pass_grade;
             const failCls = isFail ? 'result-fail' : '';
             const methodHtml = '<strong>Method:</strong> ' + buildResultMethodTooltip(r);
+            const conv = conversionPairs.find(c => c.source === r.source_university && c.target === r.target_university);
+            const isConfirmed = conv && conv.confirmed;
+            const verificationHtml = isConfirmed
+                ? '<div style="margin-top:8px;padding:6px 10px;border-radius:6px;background:#d4edda;color:#155724;font-size:0.85em;">'
+                +   '<strong>&#10003; Confirmed</strong> — This conversion has been verified by the partner institution.</div>'
+                : '<div style="margin-top:8px;padding:6px 10px;border-radius:6px;background:#e2d9f3;color:#5a3d8a;font-size:0.85em;">'
+                +   '<strong>&#9888; AI-generated</strong> — This conversion has not yet been verified by the partner institution. Results are indicative.</div>';
 
             resultsEl.innerHTML =
                 '<div class="conversion-detail">'
@@ -840,7 +857,8 @@
                 + '<div class="method-info">'
                 +   methodHtml + '<br>'
                 +   (r.notes ? '<strong>Notes:</strong> ' + escHtml(r.notes) : '')
-                + '</div>';
+                + '</div>'
+                + verificationHtml;
         }
 
         function escHtml(s) {
@@ -919,6 +937,7 @@
                 const formula = (conv && conv.method === 'formula') ? conv.formula : '';
                 const table = (conv && conv.method === 'table' && conv.table) ? conv.table : [];
                 const notes = conv ? (conv.notes || '') : '';
+                const confirmed = conv ? (conv.confirmed || false) : false;
 
                 const dstInfo = universities[homeUni];
                 html += '<div class="card editor-card ' + (hasConv ? 'has-conversion' : 'no-conversion') + '" data-source="' + src + '">'
@@ -936,8 +955,13 @@
                     +         ' | Pass: ' + dstInfo.pass_grade + (dstInfo.inverted ? ' (inverted)' : '') + '</span>'
                     +     '</div>'
                     +   '</div>'
-                    +   '<span class="conv-status ' + (hasConv ? 'status-ok' : 'status-missing') + '">'
-                    +     (hasConv ? 'Defined' : 'Missing') + '</span>'
+                    +   '<span class="conv-status ' + (!hasConv ? 'status-missing' : (confirmed ? 'status-confirmed' : 'status-ai')) + '">'
+                    +     (!hasConv ? 'Missing' : (confirmed ? 'Confirmed' : 'AI-generated')) + '</span>'
+                    + '</div>'
+
+                    + '<div class="confirmed-toggle">'
+                    +   '<label><input type="checkbox" id="confirmed_' + src + '"'
+                    +     (confirmed ? ' checked' : '') + '> Confirmed by partner</label>'
                     + '</div>'
 
                     + '<div class="editor-method">'
@@ -1063,7 +1087,8 @@
             for (var i = 0; i < otherUnis.length; i++) {
                 var src = otherUnis[i];
                 var method = document.querySelector('input[name="method_' + src + '"]:checked').value;
-                var conv = { method: method, notes: document.getElementById('notes_' + src).value };
+                var confirmedEl = document.getElementById('confirmed_' + src);
+                var conv = { method: method, notes: document.getElementById('notes_' + src).value, confirmed: confirmedEl ? confirmedEl.checked : false };
                 if (method === 'formula') {
                     conv.formula = document.getElementById('formulaInput_' + src).value;
                 } else {
