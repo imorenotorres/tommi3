@@ -400,6 +400,7 @@
                 <div class="form-group">
                     <label for="source">From (Source University)</label>
                     <select id="source"><option value="">Loading...</option></select>
+                    <select id="sourceSystem" style="margin-top:4px;display:none;font-size:0.88em;"></select>
                 </div>
                 <div style="display:flex;align-items:center;justify-content:center;">
                     <div class="swap-btn" id="swapBtn" title="Swap universities">&#8644;</div>
@@ -407,6 +408,7 @@
                 <div class="form-group">
                     <label for="target">To (Target University)</label>
                     <select id="target"><option value="">Loading...</option></select>
+                    <select id="targetSystem" style="margin-top:4px;display:none;font-size:0.88em;"></select>
                 </div>
             </div>
 
@@ -484,6 +486,8 @@
         const BASE = '/unigracon';
         const sourceEl = document.getElementById('source');
         const targetEl = document.getElementById('target');
+        const sourceSysEl = document.getElementById('sourceSystem');
+        const targetSysEl = document.getElementById('targetSystem');
         const gradeEl  = document.getElementById('grade');
         const hintEl   = document.getElementById('gradeHint');
         const scaleEl  = document.getElementById('scaleRef');
@@ -715,14 +719,45 @@
             availCard.style.display = 'block';
         }
 
+        function getSystemInfo(uni, sysId) {
+            if (!uni || !universities[uni]) return null;
+            const systems = universities[uni].grading_systems || [];
+            return systems.find(s => s.id === sysId) || systems[0] || universities[uni];
+        }
+
+        function populateSystemSelect(uniAcro, selectEl) {
+            if (!uniAcro || !universities[uniAcro]) {
+                selectEl.style.display = 'none';
+                selectEl.innerHTML = '';
+                return;
+            }
+            const systems = universities[uniAcro].grading_systems || [];
+            if (systems.length <= 1) {
+                selectEl.style.display = 'none';
+                selectEl.innerHTML = '';
+                if (systems.length === 1) selectEl.value = systems[0].id;
+                return;
+            }
+            selectEl.innerHTML = '';
+            for (const gs of systems) {
+                selectEl.innerHTML += '<option value="' + escHtml(gs.id) + '">' + escHtml(gs.name) + '</option>';
+            }
+            selectEl.style.display = '';
+        }
+
         function updateHints() {
             const src = sourceEl.value;
+            populateSystemSelect(src, sourceSysEl);
+            populateSystemSelect(targetEl.value, targetSysEl);
+
             if (!src || !universities[src]) {
                 hintEl.textContent = '';
                 scaleEl.innerHTML = '';
                 return;
             }
-            const info = universities[src];
+            const sysId = sourceSysEl.value || 'general';
+            const info = getSystemInfo(src, sysId);
+            if (!info) return;
             const inv = info.inverted ? ' (lower is better)' : '';
             hintEl.textContent = 'Range: ' + info.min_grade + ' \u2013 ' + info.max_grade + ', Pass: ' + info.pass_grade + inv;
             gradeEl.min = info.min_grade;
@@ -747,12 +782,20 @@
 
         sourceEl.addEventListener('change', updateHints);
         targetEl.addEventListener('change', updateHints);
+        sourceSysEl.addEventListener('change', updateHints);
+        targetSysEl.addEventListener('change', updateHints);
 
         swapBtn.addEventListener('click', () => {
             const tmp = sourceEl.value;
             sourceEl.value = targetEl.value;
             targetEl.value = tmp;
             updateHints();
+            // Swap system selections if both visible
+            const tmpSys = sourceSysEl.value;
+            if (sourceSysEl.style.display !== 'none' && targetSysEl.style.display !== 'none') {
+                sourceSysEl.value = targetSysEl.value;
+                targetSysEl.value = tmpSys;
+            }
         });
 
         gradeEl.addEventListener('keydown', (e) => {
@@ -763,15 +806,20 @@
             const source = sourceEl.value;
             const target = targetEl.value;
             const grade = parseFloat(gradeEl.value);
+            const srcSys = sourceSysEl.value || 'general';
+            const tgtSys = targetSysEl.value || 'general';
 
             if (!source) { alert('Select a source university.'); return; }
             if (!target) { alert('Select a target university.'); return; }
-            if (source === target) { alert('Source and target must be different.'); return; }
+            if (source === target && srcSys === tgtSys) { alert('Source and target must be different.'); return; }
             if (isNaN(grade)) { alert('Enter a grade to convert.'); return; }
 
-            const exists = conversionPairs.some(c => c.source === source && c.target === target);
+            const exists = conversionPairs.some(c =>
+                c.source === source && c.target === target &&
+                (c.source_system || 'general') === srcSys && (c.target_system || 'general') === tgtSys
+            );
             if (!exists) {
-                resultsEl.innerHTML = '<div class="no-conversion">No conversion defined from ' + source + ' to ' + target + '.<br>'
+                resultsEl.innerHTML = '<div class="no-conversion">No conversion defined from ' + source + ' (' + srcSys + ') to ' + target + ' (' + tgtSys + ').<br>'
                     + '<span style="font-weight:400;font-size:0.9em;">Check the available conversions table below.</span></div>';
                 resultsEl.style.display = 'block';
                 return;
@@ -782,7 +830,7 @@
                 const resp = await fetch(BASE + '/api/convert', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ source, target, grade }),
+                    body: JSON.stringify({ source, target, grade, source_system: srcSys, target_system: tgtSys }),
                 });
                 const data = await resp.json();
                 if (resp.ok) {
@@ -833,11 +881,12 @@
             const methodHtml = '<strong>Method:</strong> ' + buildResultMethodTooltip(r);
             const conv = conversionPairs.find(c => c.source === r.source_university && c.target === r.target_university);
             const isConfirmed = conv && conv.confirmed;
+            const tgtName = r.target_name ? escHtml(r.target_name) + ' (' + r.target_university + ')' : r.target_university;
             const verificationHtml = isConfirmed
                 ? '<div style="margin-bottom:12px;padding:6px 10px;border-radius:6px;background:#d4edda;color:#155724;font-size:0.85em;">'
-                +   '<strong>&#10003; Confirmed</strong> — This conversion has been verified by the partner institution.</div>'
+                +   '<strong>&#10003; Confirmed</strong> — This conversion has been verified by ' + tgtName + '.</div>'
                 : '<div style="margin-bottom:12px;padding:6px 10px;border-radius:6px;background:#e2d9f3;color:#5a3d8a;font-size:0.85em;">'
-                +   '<strong>&#9888; AI-generated</strong> — This conversion has not yet been verified by the partner institution. Results are indicative.</div>';
+                +   '<strong>&#9888; AI-generated</strong> — This conversion has not yet been verified by ' + tgtName + ' (target university). Results are indicative.</div>';
 
             resultsEl.innerHTML =
                 verificationHtml

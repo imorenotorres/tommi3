@@ -169,10 +169,41 @@ def _table_lookup(table: list, x: float) -> float | None:
     return None
 
 
+# ── Grading system helpers ────────────────────────────────────────────
+
+def _get_system(uni_info: dict, system_id: str) -> dict:
+    """Get a grading system by id from a university's grading_systems list."""
+    for gs in uni_info.get("grading_systems", []):
+        if gs["id"] == system_id:
+            return gs
+    # Fallback: use top-level fields (backward compat)
+    if system_id == "general":
+        return {
+            "id": "general",
+            "name": uni_info.get("grading_system", "General"),
+            "description": "",
+            "min_grade": uni_info["min_grade"],
+            "max_grade": uni_info["max_grade"],
+            "pass_grade": uni_info["pass_grade"],
+            "inverted": uni_info.get("inverted", False),
+            "grade_labels": uni_info.get("grade_labels", []),
+        }
+    return None
+
+
+def _parse_key(compound: str):
+    """Parse 'UNI:system' into (uni, system). Default system is 'general'."""
+    if ':' in compound:
+        uni, sys = compound.split(':', 1)
+        return uni, sys
+    return compound, 'general'
+
+
 # ── Conversion logic ──────────────────────────────────────────────────
 
-def convert_grade(source: str, target: str, grade: float, data: dict) -> dict:
-    """Convert a grade from source university to target university."""
+def convert_grade(source: str, target: str, grade: float, data: dict,
+                  source_system: str = "general", target_system: str = "general") -> dict:
+    """Convert a grade from source university/system to target university/system."""
     unis = data["universities"]
     conversions = data["conversions"]
 
@@ -180,22 +211,28 @@ def convert_grade(source: str, target: str, grade: float, data: dict) -> dict:
         raise ValueError(f"Unknown university: {source}")
     if target not in unis:
         raise ValueError(f"Unknown university: {target}")
-    if source == target:
-        raise ValueError("Source and target must be different universities")
 
     src_info = unis[source]
     tgt_info = unis[target]
 
+    src_sys = _get_system(src_info, source_system)
+    tgt_sys = _get_system(tgt_info, target_system)
+
+    if not src_sys:
+        raise ValueError(f"Unknown grading system '{source_system}' for {source}")
+    if not tgt_sys:
+        raise ValueError(f"Unknown grading system '{target_system}' for {target}")
+
     # Validate input grade
-    if grade < src_info["min_grade"] or grade > src_info["max_grade"]:
+    if grade < src_sys["min_grade"] or grade > src_sys["max_grade"]:
         raise ValueError(
-            f"Grade {grade} is out of range for {source} "
-            f"({src_info['min_grade']}-{src_info['max_grade']})"
+            f"Grade {grade} is out of range for {source}:{source_system} "
+            f"({src_sys['min_grade']}-{src_sys['max_grade']})"
         )
 
-    key = f"{source}->{target}"
+    key = f"{source}:{source_system}->{target}:{target_system}"
     if key not in conversions:
-        raise ValueError(f"No conversion defined from {source} to {target}")
+        raise ValueError(f"No conversion defined from {source}:{source_system} to {target}:{target_system}")
 
     conv = conversions[key]
     method = conv["method"]
@@ -210,19 +247,19 @@ def convert_grade(source: str, target: str, grade: float, data: dict) -> dict:
         raise ValueError(f"Unknown conversion method: {method}")
 
     # Clamp to target range
-    result = max(tgt_info["min_grade"], min(tgt_info["max_grade"], result))
+    result = max(tgt_sys["min_grade"], min(tgt_sys["max_grade"], result))
     result = round(result, 2)
 
     # Find label for source grade
     src_label = ""
-    for lbl in src_info.get("grade_labels", []):
+    for lbl in src_sys.get("grade_labels", []):
         if lbl["min"] <= grade <= lbl["max"]:
             src_label = lbl["label"]
             break
 
     # Find label for target grade
     tgt_label = ""
-    for lbl in tgt_info.get("grade_labels", []):
+    for lbl in tgt_sys.get("grade_labels", []):
         if lbl["min"] <= result <= lbl["max"]:
             tgt_label = lbl["label"]
             break
@@ -235,12 +272,14 @@ def convert_grade(source: str, target: str, grade: float, data: dict) -> dict:
     return {
         "source_university": source,
         "source_name": src_info["name"],
-        "source_system": src_info["grading_system"],
+        "source_system": src_sys["name"],
+        "source_system_id": source_system,
         "source_grade": grade,
         "source_label": src_label,
         "target_university": target,
         "target_name": tgt_info["name"],
-        "target_system": tgt_info["grading_system"],
+        "target_system": tgt_sys["name"],
+        "target_system_id": target_system,
         "target_grade": result,
         "target_grade_display": str(display_result),
         "target_label": tgt_label,
@@ -256,6 +295,8 @@ class ConvertRequest(BaseModel):
     source: str
     target: str
     grade: float
+    source_system: str = "general"
+    target_system: str = "general"
 
 
 # ── Routes ────────────────────────────────────────────────────────────
@@ -277,10 +318,14 @@ def conversions_list():
     data = load_data()
     pairs = []
     for key, conv in data["conversions"].items():
-        src, tgt = key.split("->")
+        src_full, tgt_full = key.split("->")
+        src_uni, src_sys = _parse_key(src_full)
+        tgt_uni, tgt_sys = _parse_key(tgt_full)
         entry = {
-            "source": src,
-            "target": tgt,
+            "source": src_uni,
+            "source_system": src_sys,
+            "target": tgt_uni,
+            "target_system": tgt_sys,
             "method": conv["method"],
             "notes": conv.get("notes", ""),
             "confirmed": conv.get("confirmed", False),
@@ -297,7 +342,8 @@ def conversions_list():
 def convert(body: ConvertRequest):
     data = load_data()
     try:
-        result = convert_grade(body.source, body.target, body.grade, data)
+        result = convert_grade(body.source, body.target, body.grade, data,
+                               body.source_system, body.target_system)
     except ValueError as e:
         raise HTTPException(400, str(e))
     return result
@@ -347,9 +393,10 @@ def get_conversions_to(target: str):
         raise HTTPException(404, f"University {target} not found")
     result = {}
     for key, conv in data["conversions"].items():
-        src, tgt = key.split("->")
-        if tgt == target:
-            result[src] = conv
+        src_full, tgt_full = key.split("->")
+        tgt_uni, tgt_sys = _parse_key(tgt_full)
+        if tgt_uni == target:
+            result[src_full] = conv
     return {"target": target, "conversions": result}
 
 
@@ -364,14 +411,17 @@ def update_conversions_to(
         raise HTTPException(404, f"University {target} not found")
 
     errors = []
-    for source, conv in body.conversions.items():
-        if source not in data["universities"]:
-            errors.append(f"Unknown university: {source}")
+    for source_key, conv in body.conversions.items():
+        src_uni, src_sys = _parse_key(source_key)
+        if src_uni not in data["universities"]:
+            errors.append(f"Unknown university: {src_uni}")
             continue
-        if source == target:
+        if src_uni == target:
             continue
 
-        key = f"{source}->{target}"
+        # Key format: source:system->target:system
+        # target system defaults to general
+        key = f"{source_key}->{target}:general"
 
         # Empty conversion — remove if it exists
         if conv.method == "formula" and not conv.formula.strip():
@@ -382,12 +432,15 @@ def update_conversions_to(
             continue
 
         if conv.method == "formula":
-            src_info = data["universities"][source]
-            mid = (src_info["min_grade"] + src_info["max_grade"]) / 2
+            src_sys = _get_system(data["universities"][src_uni], src_sys)
+            if src_sys:
+                mid = (src_sys["min_grade"] + src_sys["max_grade"]) / 2
+            else:
+                mid = 5
             try:
                 _eval_formula(conv.formula, mid)
             except Exception as e:
-                errors.append(f"{source}: Invalid formula — {e}")
+                errors.append(f"{source_key}: Invalid formula — {e}")
                 continue
             data["conversions"][key] = {
                 "method": "formula",
@@ -403,11 +456,71 @@ def update_conversions_to(
                 "confirmed": conv.confirmed,
             }
         else:
-            errors.append(f"{source}: Invalid method — {conv.method}")
+            errors.append(f"{source_key}: Invalid method — {conv.method}")
 
     if errors:
         raise HTTPException(400, detail={"errors": errors})
 
+    save_data(data)
+    return {"ok": True}
+
+
+# ── Grading systems management ───────────────────────────────────────
+
+class GradingSystemBody(BaseModel):
+    id: str
+    name: str
+    description: str = ""
+    min_grade: float
+    max_grade: float
+    pass_grade: float
+    inverted: bool = False
+    grade_labels: list[dict] = []
+
+
+@router.post("/api/universities/{acro}/grading-systems")
+def add_grading_system(acro: str, body: GradingSystemBody, session: dict = Depends(_require_editor)):
+    data = load_data()
+    if acro not in data["universities"]:
+        raise HTTPException(404, f"University {acro} not found")
+    uni = data["universities"][acro]
+    systems = uni.setdefault("grading_systems", [])
+    if any(gs["id"] == body.id for gs in systems):
+        raise HTTPException(400, f"Grading system '{body.id}' already exists for {acro}")
+    systems.append(body.model_dump())
+    save_data(data)
+    return {"ok": True}
+
+
+@router.put("/api/universities/{acro}/grading-systems/{sys_id}")
+def update_grading_system(acro: str, sys_id: str, body: GradingSystemBody, session: dict = Depends(_require_editor)):
+    data = load_data()
+    if acro not in data["universities"]:
+        raise HTTPException(404, f"University {acro} not found")
+    systems = data["universities"][acro].get("grading_systems", [])
+    for i, gs in enumerate(systems):
+        if gs["id"] == sys_id:
+            systems[i] = body.model_dump()
+            save_data(data)
+            return {"ok": True}
+    raise HTTPException(404, f"Grading system '{sys_id}' not found")
+
+
+@router.delete("/api/universities/{acro}/grading-systems/{sys_id}")
+def delete_grading_system(acro: str, sys_id: str, session: dict = Depends(_require_editor)):
+    data = load_data()
+    if acro not in data["universities"]:
+        raise HTTPException(404, f"University {acro} not found")
+    if sys_id == "general":
+        raise HTTPException(400, "Cannot delete the general grading system")
+    systems = data["universities"][acro].get("grading_systems", [])
+    data["universities"][acro]["grading_systems"] = [gs for gs in systems if gs["id"] != sys_id]
+    # Remove conversions using this system
+    prefix_src = f"{acro}:{sys_id}->"
+    prefix_tgt = f"->{acro}:{sys_id}"
+    keys_to_remove = [k for k in data["conversions"] if prefix_src in k or k.endswith(f"->{acro}:{sys_id}")]
+    for k in keys_to_remove:
+        del data["conversions"][k]
     save_data(data)
     return {"ok": True}
 

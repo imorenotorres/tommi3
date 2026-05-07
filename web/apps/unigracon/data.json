@@ -33,6 +33,44 @@
           "max": 9.99,
           "label": "Insuffisant (Fail)"
         }
+      ],
+      "grading_systems": [
+        {
+          "id": "general",
+          "name": "French 0-20",
+          "description": "Default grading system",
+          "min_grade": 0,
+          "max_grade": 20,
+          "pass_grade": 10,
+          "inverted": false,
+          "grade_labels": [
+            {
+              "min": 16,
+              "max": 20,
+              "label": "Très bien (Very Good)"
+            },
+            {
+              "min": 14,
+              "max": 15.99,
+              "label": "Bien (Good)"
+            },
+            {
+              "min": 12,
+              "max": 13.99,
+              "label": "Assez bien (Fairly Good)"
+            },
+            {
+              "min": 10,
+              "max": 11.99,
+              "label": "Passable (Pass)"
+            },
+            {
+              "min": 0,
+              "max": 9.99,
+              "label": "Insuffisant (Fail)"
+            }
+          ]
+        }
       ]
     },
     "UDCLV": {
@@ -74,7 +112,50 @@
           "label": "Insufficiente (Fail)"
         }
       ],
-      "display_grade": "For 31, display as '30 e lode'"
+      "display_grade": "For 31, display as '30 e lode'",
+      "grading_systems": [
+        {
+          "id": "general",
+          "name": "Italian 18-30 (+ 30 e lode)",
+          "description": "Default grading system",
+          "min_grade": 0,
+          "max_grade": 31,
+          "pass_grade": 18,
+          "inverted": false,
+          "grade_labels": [
+            {
+              "min": 31,
+              "max": 31,
+              "label": "30 e lode (Excellent with Honours)"
+            },
+            {
+              "min": 28,
+              "max": 30.99,
+              "label": "Ottimo (Excellent)"
+            },
+            {
+              "min": 25,
+              "max": 27.99,
+              "label": "Buono (Good)"
+            },
+            {
+              "min": 22,
+              "max": 24.99,
+              "label": "Discreto (Fair)"
+            },
+            {
+              "min": 18,
+              "max": 21.99,
+              "label": "Sufficiente (Pass)"
+            },
+            {
+              "min": 0,
+              "max": 17.99,
+              "label": "Insufficiente (Fail)"
+            }
+          ]
+        }
+      ]
     },
     "UMA": {
       "name": "Universidad de Málaga",
@@ -103,6 +184,39 @@
           "min": 0,
           "max": 4.99,
           "label": "Suspenso (Fail)"
+        }
+      ],
+      "grading_systems": [
+        {
+          "id": "general",
+          "name": "Spanish 0-10",
+          "description": "Default grading system",
+          "min_grade": 0,
+          "max_grade": 10,
+          "pass_grade": 5,
+          "inverted": false,
+          "grade_labels": [
+            {
+              "min": 9,
+              "max": 10,
+              "label": "Sobresaliente / Matrícula de Honor (Outstanding)"
+            },
+            {
+              "min": 7,
+              "max": 8.99,
+              "label": "Notable (Good)"
+            },
+            {
+              "min": 5,
+              "max": 6.99,
+              "label": "Aprobado (Pass)"
+            },
+            {
+              "min": 0,
+              "max": 4.99,
+              "label": "Suspenso (Fail)"
+            }
+          ]
         }
       ]
     },
@@ -149,6 +263,54 @@
           "max": 4,
           "label": "Nepatenkinamai (Fail)"
         }
+      ],
+      "grading_systems": [
+        {
+          "id": "general",
+          "name": "Lithuanian 1-10",
+          "description": "Default grading system",
+          "min_grade": 1,
+          "max_grade": 10,
+          "pass_grade": 5,
+          "inverted": false,
+          "grade_labels": [
+            {
+              "min": 10,
+              "max": 10,
+              "label": "Puikiai (Excellent)"
+            },
+            {
+              "min": 9,
+              "max": 9,
+              "label": "Labai gerai (Very Good)"
+            },
+            {
+              "min": 8,
+              "max": 8,
+              "label": "Gerai (Good)"
+            },
+            {
+              "min": 7,
+              "max": 7,
+              "label": "Vidutiniškai (Satisfactory)"
+            },
+            {
+              "min": 6,
+              "max": 6,
+              "label": "Patenkinamai (Sufficient)"
+            },
+            {
+              "min": 5,
+              "max": 5,
+              "label": "Silpnai (Weak Pass)"
+            },
+            {
+              "min": 1,
+              "max": 4,
+              "label": "Nepatenkinamai (Fail)"
+            }
+          ]
+        }
       ]
     },
     "UT": {
@@ -194,6 +356,54 @@
           "max": 3,
           "label": "Mbetës (Fail)"
         }
+      ],
+      "grading_systems": [
+        {
+          "id": "general",
+          "name": "Albanian 1-10 (4 = pass)",
+          "description": "Default grading system",
+          "min_grade": 1,
+          "max_grade": 10,
+          "pass_grade": 4,
+          "inverted": false,
+          "grade_labels": [
+            {
+              "min": 10,
+              "max": 10,
+              "label": "Shkëlqyeshëm (Excellent)"
+            },
+            {
+              "min": 9,
+              "max": 9,
+              "label": "Shumë mirë (Very Good)"
+            },
+            {
+              "min": 8,
+              "max": 8,
+              "label": "Mirë (Good)"
+            },
+            {
+              "min": 7,
+              "max": 7,
+              "label": "Kënaqshëm (Satisfactory)"
+            },
+            {
+              "min": 5,
+              "max": 6,
+              "label": "Mjaftueshëm (Sufficient)"
+            },
+            {
+              "min": 4,
+              "max": 4,
+              "label": "Kalueshëm (Pass)"
+            },
+            {
+              "min": 1,
+              "max": 3,
+              "label": "Mbetës (Fail)"
+            }
+          ]
+        }
       ]
     },
     "THWS": {
@@ -229,6 +439,44 @@
           "min": 4.1,
           "max": 5.0,
           "label": "Nicht bestanden (Fail)"
+        }
+      ],
+      "grading_systems": [
+        {
+          "id": "general",
+          "name": "German 1.0-5.0 (lower is better)",
+          "description": "Default grading system",
+          "min_grade": 1.0,
+          "max_grade": 5.0,
+          "pass_grade": 4.0,
+          "inverted": true,
+          "grade_labels": [
+            {
+              "min": 1.0,
+              "max": 1.5,
+              "label": "Sehr gut (Very Good)"
+            },
+            {
+              "min": 1.6,
+              "max": 2.5,
+              "label": "Gut (Good)"
+            },
+            {
+              "min": 2.6,
+              "max": 3.5,
+              "label": "Befriedigend (Satisfactory)"
+            },
+            {
+              "min": 3.6,
+              "max": 4.0,
+              "label": "Ausreichend (Sufficient)"
+            },
+            {
+              "min": 4.1,
+              "max": 5.0,
+              "label": "Nicht bestanden (Fail)"
+            }
+          ]
         }
       ]
     },
@@ -270,6 +518,49 @@
           "max": 0,
           "label": "Hylätty (Fail)"
         }
+      ],
+      "grading_systems": [
+        {
+          "id": "general",
+          "name": "Finnish 0-5",
+          "description": "Default grading system",
+          "min_grade": 0,
+          "max_grade": 5,
+          "pass_grade": 1,
+          "inverted": false,
+          "grade_labels": [
+            {
+              "min": 5,
+              "max": 5,
+              "label": "Erinomainen (Excellent)"
+            },
+            {
+              "min": 4,
+              "max": 4,
+              "label": "Kiitettävä (Very Good)"
+            },
+            {
+              "min": 3,
+              "max": 3,
+              "label": "Hyvä (Good)"
+            },
+            {
+              "min": 2,
+              "max": 2,
+              "label": "Tyydyttävä (Satisfactory)"
+            },
+            {
+              "min": 1,
+              "max": 1,
+              "label": "Välttävä (Pass)"
+            },
+            {
+              "min": 0,
+              "max": 0,
+              "label": "Hylätty (Fail)"
+            }
+          ]
+        }
       ]
     },
     "THUAS": {
@@ -310,11 +601,54 @@
           "max": 5.49,
           "label": "Onvoldoende (Fail)"
         }
+      ],
+      "grading_systems": [
+        {
+          "id": "general",
+          "name": "Dutch 1-10",
+          "description": "Default grading system",
+          "min_grade": 1,
+          "max_grade": 10,
+          "pass_grade": 5.5,
+          "inverted": false,
+          "grade_labels": [
+            {
+              "min": 9,
+              "max": 10,
+              "label": "Uitmuntend (Outstanding)"
+            },
+            {
+              "min": 8,
+              "max": 8.99,
+              "label": "Zeer goed (Very Good)"
+            },
+            {
+              "min": 7,
+              "max": 7.99,
+              "label": "Goed (Good)"
+            },
+            {
+              "min": 6,
+              "max": 6.99,
+              "label": "Voldoende (Satisfactory)"
+            },
+            {
+              "min": 5.5,
+              "max": 5.99,
+              "label": "Voldoende (Pass)"
+            },
+            {
+              "min": 1,
+              "max": 5.49,
+              "label": "Onvoldoende (Fail)"
+            }
+          ]
+        }
       ]
     }
   },
   "conversions": {
-    "UMA->USPN": {
+    "UMA:general->USPN:general": {
       "method": "table",
       "table": [
         {
@@ -361,7 +695,7 @@
       "notes": "UMA to France. Reverse mapping based on updated UMA France table.",
       "confirmed": false
     },
-    "USPN->UMA": {
+    "USPN:general->UMA:general": {
       "method": "table",
       "table": [
         {
@@ -538,7 +872,7 @@
       "notes": "Updated UMA official table for France. Approved by UMA 2025. Detailed version.",
       "confirmed": true
     },
-    "UMA->UDCLV": {
+    "UMA:general->UDCLV:general": {
       "method": "table",
       "table": [
         {
@@ -605,7 +939,7 @@
       "notes": "UMA to Italy. Reverse of updated UMA Italy table. 31 = 30 e lode.",
       "confirmed": false
     },
-    "UDCLV->UMA": {
+    "UDCLV:general->UMA:general": {
       "method": "table",
       "table": [
         {
@@ -682,19 +1016,19 @@
       "notes": "Updated UMA table for Italy (18-30L). Approved by UMA Oct 2023. More favorable than ministry table.",
       "confirmed": true
     },
-    "UMA->THWS": {
+    "UMA:general->THWS:general": {
       "method": "formula",
       "formula": "IF(X<5, 5, 1 + (10-X)*3/5)",
       "notes": "Spanish to German inverted. Reverse: 5->4.0, 10->1.0. Fail below 5.",
       "confirmed": false
     },
-    "THWS->UMA": {
+    "THWS:general->UMA:general": {
       "method": "formula",
       "formula": "IF(X>4, 0, 10 - 5*(X-1)/3)",
       "notes": "German 4.0-1.0 (inverted) to Spanish. Formula: 10-5*(x-1)/3. Approved by UMA 2025. 1->10, 4->5, >4->fail.",
       "confirmed": true
     },
-    "UMA->TAMK": {
+    "UMA:general->TAMK:general": {
       "method": "table",
       "table": [
         {
@@ -731,7 +1065,7 @@
       "notes": "Spanish to Finnish: range-to-discrete mapping",
       "confirmed": false
     },
-    "TAMK->UMA": {
+    "TAMK:general->UMA:general": {
       "method": "table",
       "table": [
         {
@@ -768,19 +1102,19 @@
       "notes": "Finnish discrete to Spanish: midpoint mapping",
       "confirmed": true
     },
-    "UMA->THUAS": {
+    "UMA:general->THUAS:general": {
       "method": "formula",
       "formula": "IF(X<5, 1 + X*4.49/5, 5.5 + (X-5)*(10-5.5)/(10-5))",
       "notes": "Fail: 0-5 -> 1-5.49. Pass: 5-10 -> 5.5-10",
       "confirmed": false
     },
-    "THUAS->UMA": {
+    "THUAS:general->UMA:general": {
       "method": "formula",
       "formula": "IF(X<5.5, (X-1)*5/4.49, 5 + (X-5.5)*(10-5)/(10-5.5))",
       "notes": "Fail: 1-5.49 -> 0-5. Pass: 5.5-10 -> 5-10",
       "confirmed": true
     },
-    "UMA->KK": {
+    "UMA:general->KK:general": {
       "method": "table",
       "table": [
         {
@@ -822,7 +1156,7 @@
       "notes": "Spanish to Lithuanian: range-to-discrete mapping",
       "confirmed": false
     },
-    "KK->UMA": {
+    "KK:general->UMA:general": {
       "method": "table",
       "table": [
         {
@@ -864,19 +1198,19 @@
       "notes": "Lithuanian discrete to Spanish",
       "confirmed": true
     },
-    "UMA->UT": {
+    "UMA:general->UT:general": {
       "method": "formula",
       "formula": "IF(X<5, 1 + X*2/5, 4 + (X-5)*6/(10-5))",
       "notes": "Fail: 0-5 -> 1-3. Pass: 5-10 -> 4-10",
       "confirmed": false
     },
-    "UT->UMA": {
+    "UT:general->UMA:general": {
       "method": "formula",
       "formula": "IF(X<4, (X-1)*5/2, 5 + (X-4)*(10-5)/6)",
       "notes": "Fail: 1-3 -> 0-5. Pass: 4-10 -> 5-10",
       "confirmed": true
     },
-    "THWS->TAMK": {
+    "THWS:general->TAMK:general": {
       "method": "table",
       "table": [
         {
@@ -913,7 +1247,7 @@
       "notes": "German inverted to Finnish discrete",
       "confirmed": false
     },
-    "TAMK->THWS": {
+    "TAMK:general->THWS:general": {
       "method": "table",
       "table": [
         {
@@ -950,19 +1284,19 @@
       "notes": "Finnish discrete to German inverted",
       "confirmed": false
     },
-    "USPN->UDCLV": {
+    "USPN:general->UDCLV:general": {
       "method": "formula",
       "formula": "IF(X<10, X*17/10, 18 + (X-10)*(31-18)/(20-10))",
       "notes": "Below pass: 0-10 -> 0-17. Pass: 10-20 -> 18-31",
       "confirmed": false
     },
-    "UDCLV->USPN": {
+    "UDCLV:general->USPN:general": {
       "method": "formula",
       "formula": "IF(X<18, X*10/17, 10 + (X-18)*(20-10)/(31-18))",
       "notes": "Below pass: 0-17 -> 0-10. Pass: 18-31 -> 10-20",
       "confirmed": false
     },
-    "THUAS->KK": {
+    "THUAS:general->KK:general": {
       "method": "table",
       "table": [
         {
@@ -1004,7 +1338,7 @@
       "notes": "Dutch to Lithuanian: range-to-discrete mapping",
       "confirmed": false
     },
-    "KK->THUAS": {
+    "KK:general->THUAS:general": {
       "method": "table",
       "table": [
         {
@@ -1046,217 +1380,217 @@
       "notes": "Lithuanian discrete to Dutch",
       "confirmed": false
     },
-    "THWS->KK": {
+    "THWS:general->KK:general": {
       "method": "formula",
       "formula": "IF(X>4, 1 + (5-X)*(5-1)/(5-4), 5 + (4-X)*(10-5)/(4-1))",
       "notes": "German inverted to Lithuanian. Fail: 4-5 → 1-5. Pass: 1-4 → 5-10",
       "confirmed": false
     },
-    "TAMK->KK": {
+    "TAMK:general->KK:general": {
       "method": "formula",
       "formula": "IF(X<1, 1 + (X-0)*(5-1)/(1-0), 5 + (X-1)*(10-5)/(5-1))",
       "notes": "Finnish to Lithuanian. Fail: 0-1 → 1-5. Pass: 1-5 → 5-10",
       "confirmed": false
     },
-    "KK->THWS": {
+    "KK:general->THWS:general": {
       "method": "formula",
       "formula": "IF(X<5, 5.25 - 0.25*X, 7 - 0.6*X)",
       "notes": "Lithuanian to German inverted. Fail: 1-5 → 5-4. Pass: 5-10 → 4-1",
       "confirmed": false
     },
-    "KK->TAMK": {
+    "KK:general->TAMK:general": {
       "method": "formula",
       "formula": "IF(X<5, (X-1)*0.25, 1 + (X-5)*0.8)",
       "notes": "Lithuanian to Finnish. Fail: 1-5 → 0-1. Pass: 5-10 → 1-5",
       "confirmed": false
     },
-    "USPN->KK": {
+    "USPN:general->KK:general": {
       "method": "formula",
       "formula": "IF(X<10, 1 + 0.4*X, 0.5*X)",
       "notes": "French to Lithuanian. Fail: 0-10 → 1-5. Pass: 10-20 → 5-10",
       "confirmed": false
     },
-    "KK->USPN": {
+    "KK:general->USPN:general": {
       "method": "formula",
       "formula": "IF(X<5, (X-1)*2.5, 2*X)",
       "notes": "Lithuanian to French. Fail: 1-5 → 0-10. Pass: 5-10 → 10-20",
       "confirmed": false
     },
-    "USPN->UT": {
+    "USPN:general->UT:general": {
       "method": "formula",
       "formula": "IF(X<10, 1 + 0.3*X, 0.6*X - 2)",
       "notes": "French to Albanian. Fail: 0-10 → 1-4. Pass: 10-20 → 4-10",
       "confirmed": false
     },
-    "UT->USPN": {
+    "UT:general->USPN:general": {
       "method": "formula",
       "formula": "IF(X<4, (X-1)*10/3, 10 + (X-4)*5/3)",
       "notes": "Albanian to French. Fail: 1-4 → 0-10. Pass: 4-10 → 10-20",
       "confirmed": false
     },
-    "USPN->THWS": {
+    "USPN:general->THWS:general": {
       "method": "formula",
       "formula": "IF(X<10, 5 - X/10, 4 - (X-10)*0.3)",
       "notes": "French to German inverted. Fail: 0-10 → 5-4. Pass: 10-20 → 4-1",
       "confirmed": false
     },
-    "THWS->USPN": {
+    "THWS:general->USPN:general": {
       "method": "formula",
       "formula": "IF(X>4, (5-X)*10, 10 + (4-X)*10/3)",
       "notes": "German inverted to French. Fail: 4-5 → 0-10. Pass: 1-4 → 10-20",
       "confirmed": false
     },
-    "USPN->TAMK": {
+    "USPN:general->TAMK:general": {
       "method": "formula",
       "formula": "IF(X<10, X/10, 1 + (X-10)*0.4)",
       "notes": "French to Finnish. Fail: 0-10 → 0-1. Pass: 10-20 → 1-5",
       "confirmed": false
     },
-    "TAMK->USPN": {
+    "TAMK:general->USPN:general": {
       "method": "formula",
       "formula": "IF(X<1, 10*X, 10 + (X-1)*2.5)",
       "notes": "Finnish to French. Fail: 0-1 → 0-10. Pass: 1-5 → 10-20",
       "confirmed": false
     },
-    "USPN->THUAS": {
+    "USPN:general->THUAS:general": {
       "method": "formula",
       "formula": "1 + X*9/20",
       "notes": "French to Dutch. Linear: 0→1, 10→5.5, 20→10",
       "confirmed": false
     },
-    "THUAS->USPN": {
+    "THUAS:general->USPN:general": {
       "method": "formula",
       "formula": "(X-1)*20/9",
       "notes": "Dutch to French. Linear: 1→0, 5.5→10, 10→20",
       "confirmed": false
     },
-    "UDCLV->KK": {
+    "UDCLV:general->KK:general": {
       "method": "formula",
       "formula": "IF(X<18, 1 + 2*X/9, 5 + (X-18)*5/13)",
       "notes": "Italian to Lithuanian. Fail: 0-18 → 1-5. Pass: 18-31 → 5-10",
       "confirmed": false
     },
-    "KK->UDCLV": {
+    "KK:general->UDCLV:general": {
       "method": "formula",
       "formula": "IF(X<5, (X-1)*4.5, 18 + (X-5)*2.6)",
       "notes": "Lithuanian to Italian. Fail: 1-5 → 0-18. Pass: 5-10 → 18-31",
       "confirmed": false
     },
-    "UDCLV->UT": {
+    "UDCLV:general->UT:general": {
       "method": "formula",
       "formula": "IF(X<18, 1 + X/6, 4 + (X-18)*6/13)",
       "notes": "Italian to Albanian. Fail: 0-18 → 1-4. Pass: 18-31 → 4-10",
       "confirmed": false
     },
-    "UT->UDCLV": {
+    "UT:general->UDCLV:general": {
       "method": "formula",
       "formula": "IF(X<4, (X-1)*6, 18 + (X-4)*13/6)",
       "notes": "Albanian to Italian. Fail: 1-4 → 0-18. Pass: 4-10 → 18-31",
       "confirmed": false
     },
-    "UDCLV->THWS": {
+    "UDCLV:general->THWS:general": {
       "method": "formula",
       "formula": "IF(X<18, 5 - X/18, 4 - (X-18)*3/13)",
       "notes": "Italian to German inverted. Fail: 0-18 → 5-4. Pass: 18-31 → 4-1",
       "confirmed": false
     },
-    "THWS->UDCLV": {
+    "THWS:general->UDCLV:general": {
       "method": "formula",
       "formula": "IF(X>4, (5-X)*18, 18 + (4-X)*13/3)",
       "notes": "German inverted to Italian. Fail: 4-5 → 0-18. Pass: 1-4 → 18-31",
       "confirmed": false
     },
-    "UDCLV->TAMK": {
+    "UDCLV:general->TAMK:general": {
       "method": "formula",
       "formula": "IF(X<18, X/18, 1 + (X-18)*4/13)",
       "notes": "Italian to Finnish. Fail: 0-18 → 0-1. Pass: 18-31 → 1-5",
       "confirmed": false
     },
-    "TAMK->UDCLV": {
+    "TAMK:general->UDCLV:general": {
       "method": "formula",
       "formula": "IF(X<1, 18*X, 18 + (X-1)*3.25)",
       "notes": "Finnish to Italian. Fail: 0-1 → 0-18. Pass: 1-5 → 18-31",
       "confirmed": false
     },
-    "UDCLV->THUAS": {
+    "UDCLV:general->THUAS:general": {
       "method": "formula",
       "formula": "IF(X<18, 1 + X/4, 5.5 + (X-18)*4.5/13)",
       "notes": "Italian to Dutch. Fail: 0-18 → 1-5.5. Pass: 18-31 → 5.5-10",
       "confirmed": false
     },
-    "THUAS->UDCLV": {
+    "THUAS:general->UDCLV:general": {
       "method": "formula",
       "formula": "IF(X<5.5, (X-1)*4, 18 + (X-5.5)*26/9)",
       "notes": "Dutch to Italian. Fail: 1-5.5 → 0-18. Pass: 5.5-10 → 18-31",
       "confirmed": false
     },
-    "KK->UT": {
+    "KK:general->UT:general": {
       "method": "formula",
       "formula": "IF(X<5, 0.25 + 0.75*X, 1.2*X - 2)",
       "notes": "Lithuanian to Albanian. Fail: 1-5 → 1-4. Pass: 5-10 → 4-10",
       "confirmed": false
     },
-    "UT->KK": {
+    "UT:general->KK:general": {
       "method": "formula",
       "formula": "IF(X<4, 1 + (X-1)*4/3, 5 + (X-4)*5/6)",
       "notes": "Albanian to Lithuanian. Fail: 1-4 → 1-5. Pass: 4-10 → 5-10",
       "confirmed": false
     },
-    "THWS->THUAS": {
+    "THWS:general->THUAS:general": {
       "method": "formula",
       "formula": "IF(X>4, 23.5 - 4.5*X, 11.5 - 1.5*X)",
       "notes": "German inverted to Dutch. Fail: 4-5 → 1-5.5. Pass: 1-4 → 5.5-10",
       "confirmed": false
     },
-    "THUAS->THWS": {
+    "THUAS:general->THWS:general": {
       "method": "formula",
       "formula": "IF(X<5.5, 5 - (X-1)*2/9, 4 - (X-5.5)*2/3)",
       "notes": "Dutch to German inverted. Fail: 1-5.5 → 5-4. Pass: 5.5-10 → 4-1",
       "confirmed": false
     },
-    "THWS->UT": {
+    "THWS:general->UT:general": {
       "method": "formula",
       "formula": "IF(X>4, 16 - 3*X, 12 - 2*X)",
       "notes": "German inverted to Albanian. Fail: 4-5 → 1-4. Pass: 1-4 → 4-10",
       "confirmed": false
     },
-    "UT->THWS": {
+    "UT:general->THWS:general": {
       "method": "formula",
       "formula": "IF(X<4, (16-X)/3, 6 - 0.5*X)",
       "notes": "Albanian to German inverted. Fail: 1-4 → 5-4. Pass: 4-10 → 4-1",
       "confirmed": false
     },
-    "TAMK->THUAS": {
+    "TAMK:general->THUAS:general": {
       "method": "formula",
       "formula": "IF(X<1, 4.5*X + 1, 1.125*X + 4.375)",
       "notes": "Finnish to Dutch. Fail: 0-1 → 1-5.5. Pass: 1-5 → 5.5-10",
       "confirmed": false
     },
-    "THUAS->TAMK": {
+    "THUAS:general->TAMK:general": {
       "method": "formula",
       "formula": "IF(X<5.5, (X-1)*2/9, 1 + (X-5.5)*8/9)",
       "notes": "Dutch to Finnish. Fail: 1-5.5 → 0-1. Pass: 5.5-10 → 1-5",
       "confirmed": false
     },
-    "TAMK->UT": {
+    "TAMK:general->UT:general": {
       "method": "formula",
       "formula": "IF(X<1, 3*X + 1, 1.5*X + 2.5)",
       "notes": "Finnish to Albanian. Fail: 0-1 → 1-4. Pass: 1-5 → 4-10",
       "confirmed": false
     },
-    "UT->TAMK": {
+    "UT:general->TAMK:general": {
       "method": "formula",
       "formula": "IF(X<4, (X-1)/3, 1 + (X-4)*2/3)",
       "notes": "Albanian to Finnish. Fail: 1-4 → 0-1. Pass: 4-10 → 1-5",
       "confirmed": false
     },
-    "THUAS->UT": {
+    "THUAS:general->UT:general": {
       "method": "formula",
       "formula": "IF(X<5.5, 1 + (X-1)*2/3, 4 + (X-5.5)*4/3)",
       "notes": "Dutch to Albanian. Fail: 1-5.5 → 1-4. Pass: 5.5-10 → 4-10",
       "confirmed": false
     },
-    "UT->THUAS": {
+    "UT:general->THUAS:general": {
       "method": "formula",
       "formula": "IF(X<4, 1.5*X - 0.5, 0.75*X + 2.5)",
       "notes": "Albanian to Dutch. Fail: 1-4 → 1-5.5. Pass: 4-10 → 5.5-10",
