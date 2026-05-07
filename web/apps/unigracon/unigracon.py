@@ -405,10 +405,12 @@ def update_conversions_to(
     target: str,
     body: BatchConversionsBody,
     session: dict = Depends(_require_editor),
+    target_system: str = "general",
 ):
     data = load_data()
-    if target not in data["universities"]:
-        raise HTTPException(404, f"University {target} not found")
+    tgt_uni, _ = _parse_key(target)
+    if tgt_uni not in data["universities"]:
+        raise HTTPException(404, f"University {tgt_uni} not found")
 
     errors = []
     for source_key, conv in body.conversions.items():
@@ -416,12 +418,10 @@ def update_conversions_to(
         if src_uni not in data["universities"]:
             errors.append(f"Unknown university: {src_uni}")
             continue
-        if src_uni == target:
+        if src_uni == tgt_uni and src_sys == target_system:
             continue
 
-        # Key format: source:system->target:system
-        # target system defaults to general
-        key = f"{source_key}->{target}:general"
+        key = f"{source_key}->{tgt_uni}:{target_system}"
 
         # Empty conversion — remove if it exists
         if conv.method == "formula" and not conv.formula.strip():

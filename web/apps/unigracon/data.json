@@ -217,6 +217,16 @@
               "label": "Suspenso (Fail)"
             }
           ]
+        },
+        {
+          "id": "0-14",
+          "name": "PAU",
+          "description": "Grading system to access Higher Education in Spain",
+          "min_grade": 0.0,
+          "max_grade": 14.0,
+          "pass_grade": 5.0,
+          "inverted": false,
+          "grade_labels": []
         }
       ]
     },

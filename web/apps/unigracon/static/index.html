@@ -436,16 +436,49 @@
             <div class="card">
                 <div class="editor-panel-header">
                     <h3>Conversion Editor</h3>
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                         <label style="margin:0; white-space:nowrap;">Home University:</label>
                         <select id="homeUni" onchange="loadEditor()">
                             <option value="">-- Select your university --</option>
                         </select>
+                        <label id="homeSystemLabel" style="margin:0; white-space:nowrap; display:none;">Grading system:</label>
+                        <select id="homeSystem" onchange="loadEditor()" style="display:none;font-size:0.88em;"></select>
                     </div>
                 </div>
                 <p style="font-size:0.85em; color:#666; margin-top:8px;">
-                    Edit conversions <strong>from</strong> other universities <strong>to</strong> your home university.
+                    Edit conversions <strong>from</strong> other universities <strong>to</strong> your home university and selected grading system.
                 </p>
+                <div id="addConvArea" style="display:none;margin-top:12px;padding:12px;background:#f8f9fa;border-radius:6px;">
+                    <strong style="font-size:0.9em;">Add new conversion:</strong>
+                    <div style="display:flex;gap:8px;margin-top:8px;align-items:end;flex-wrap:wrap;">
+                        <div><label style="font-size:0.8em;">Source University</label><select id="newConvUni" onchange="updateNewConvSystems()" style="font-size:0.88em;"></select></div>
+                        <div><label style="font-size:0.8em;">Source System</label><select id="newConvSys" style="font-size:0.88em;"></select></div>
+                        <button class="btn-small" onclick="addNewConversion()">+ Add Conversion</button>
+                        <span id="newConvStatus" style="font-size:0.82em;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="gradingSystemsCard" style="display:none;margin-bottom:16px;">
+                <h3 style="color:#1a3a5c;margin-bottom:12px;">Grading Systems</h3>
+                <p style="font-size:0.85em;color:#666;margin-bottom:12px;">Manage grading scales for the selected home university. The "General" system cannot be deleted.</p>
+                <div id="gradingSystemsList"></div>
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
+                    <strong style="font-size:0.9em;">Add new grading system:</strong>
+                    <div style="display:grid;grid-template-columns:100px 1fr;gap:8px;margin-top:8px;">
+                        <div><label style="font-size:0.8em;">Short ID</label><input type="text" id="newSysId" placeholder="e.g. 5-15" style="font-size:0.88em;"></div>
+                        <div><label style="font-size:0.8em;">Name</label><input type="text" id="newSysName" placeholder="e.g. Scale 5.0-15.0" style="font-size:0.88em;"></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:6px;">
+                        <div><label style="font-size:0.8em;">Min grade</label><input type="number" id="newSysMin" step="0.01" style="font-size:0.88em;"></div>
+                        <div><label style="font-size:0.8em;">Max grade</label><input type="number" id="newSysMax" step="0.01" style="font-size:0.88em;"></div>
+                        <div><label style="font-size:0.8em;">Pass grade</label><input type="number" id="newSysPass" step="0.01" style="font-size:0.88em;"></div>
+                        <div><label style="font-size:0.8em;">Inverted?</label><br><input type="checkbox" id="newSysInv"></div>
+                    </div>
+                    <div style="margin-top:6px;"><label style="font-size:0.8em;">Description</label><input type="text" id="newSysDesc" placeholder="Optional description" style="font-size:0.88em;"></div>
+                    <button class="btn-small" onclick="addGradingSystem()" style="margin-top:8px;">+ Add System</button>
+                    <span id="gsStatus" style="margin-left:8px;font-size:0.85em;"></span>
+                </div>
             </div>
 
             <div id="editorCards"></div>
@@ -679,14 +712,27 @@
 
         /* ── Converter (unchanged logic) ─────────────────────── */
 
+        function fmtSys(uni, sys) {
+            var sysId = sys || 'general';
+            var label = sysId === 'general' ? 'General' : sysId;
+            var sysName = '';
+            if (universities[uni]) {
+                var gs = (universities[uni].grading_systems || []).find(function(s) { return s.id === sysId; });
+                if (gs) sysName = gs.name;
+            }
+            return uni + '-' + label + (sysName ? ' (' + sysName + ')' : '');
+        }
+
         function renderAvailable() {
             if (conversionPairs.length === 0) return;
-            // Sort by To (target) ascending, then by From (source) ascending
+            // Sort by To (target+system) ascending, then by From ascending
             const sorted = conversionPairs.slice().sort((a, b) => {
-                const cmp = a.target.localeCompare(b.target);
-                return cmp !== 0 ? cmp : a.source.localeCompare(b.source);
+                const ta = fmtSys(a.target, a.target_system);
+                const tb = fmtSys(b.target, b.target_system);
+                const cmp = ta.localeCompare(tb);
+                return cmp !== 0 ? cmp : fmtSys(a.source, a.source_system).localeCompare(fmtSys(b.source, b.source_system));
             });
-            // Assign alternating background colors per target university group
+            // Assign alternating background colors per target group
             const groupColors = ['#ffffff', '#e3ecf7'];
             let colorIdx = 0;
             let prevTarget = null;
@@ -697,18 +743,21 @@
                   + '<th style="padding:4px 8px;border-bottom:1px solid #ddd;">Status</th>'
                   + '<th style="padding:4px 8px;border-bottom:1px solid #ddd;">Notes</th></tr>';
             for (const c of sorted) {
-                if (prevTarget !== null && c.target !== prevTarget) {
+                const tgtKey = fmtSys(c.target, c.target_system);
+                if (prevTarget !== null && tgtKey !== prevTarget) {
                     colorIdx = (colorIdx + 1) % groupColors.length;
                 }
-                prevTarget = c.target;
+                prevTarget = tgtKey;
                 const bg = groupColors[colorIdx];
                 const mBadge = buildMethodTooltip(c);
                 const statusBadge = c.confirmed
                     ? '<span class="confirmed-badge status-confirmed">Confirmed</span>'
                     : '<span class="confirmed-badge status-ai">AI-generated</span>';
+                const srcLabel = fmtSys(c.source, c.source_system);
+                const tgtLabel = fmtSys(c.target, c.target_system);
                 html += '<tr style="background:' + bg + ';">'
-                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + c.source + '</td>'
-                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + c.target + '</td>'
+                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + srcLabel + '</td>'
+                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + tgtLabel + '</td>'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + mBadge + '</td>'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + statusBadge + '</td>'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;color:#666;">' + c.notes + '</td>'
@@ -726,21 +775,24 @@
         }
 
         function populateSystemSelect(uniAcro, selectEl) {
+            var savedVal = selectEl.value;
             if (!uniAcro || !universities[uniAcro]) {
                 selectEl.style.display = 'none';
-                selectEl.innerHTML = '';
+                selectEl.innerHTML = '<option value="general">General</option>';
                 return;
             }
-            const systems = universities[uniAcro].grading_systems || [];
+            var systems = universities[uniAcro].grading_systems || [];
             if (systems.length <= 1) {
                 selectEl.style.display = 'none';
-                selectEl.innerHTML = '';
-                if (systems.length === 1) selectEl.value = systems[0].id;
+                selectEl.innerHTML = '<option value="' + (systems.length ? systems[0].id : 'general') + '">' + (systems.length ? escHtml(systems[0].name) : 'General') + '</option>';
                 return;
             }
             selectEl.innerHTML = '';
-            for (const gs of systems) {
-                selectEl.innerHTML += '<option value="' + escHtml(gs.id) + '">' + escHtml(gs.name) + '</option>';
+            for (var i = 0; i < systems.length; i++) {
+                selectEl.innerHTML += '<option value="' + escHtml(systems[i].id) + '">' + escHtml(systems[i].name) + '</option>';
+            }
+            if (savedVal && systems.some(function(s) { return s.id === savedVal; })) {
+                selectEl.value = savedVal;
             }
             selectEl.style.display = '';
         }
@@ -963,84 +1015,274 @@
             const homeUni = document.getElementById('homeUni').value;
             const cardsEl = document.getElementById('editorCards');
             const saveBar = document.getElementById('saveBar');
+            const gsCard = document.getElementById('gradingSystemsCard');
+            const addArea = document.getElementById('addConvArea');
+            const homeSysEl = document.getElementById('homeSystem');
             if (!homeUni) {
                 cardsEl.innerHTML = '';
                 saveBar.style.display = 'none';
+                gsCard.style.display = 'none';
+                addArea.style.display = 'none';
+                homeSysEl.style.display = 'none';
+                document.getElementById('homeSystemLabel').style.display = 'none';
                 return;
             }
+            // Populate home system selector
+            var systems = (universities[homeUni] && universities[homeUni].grading_systems) || [];
+            var savedSys = homeSysEl.value;
+            homeSysEl.innerHTML = '';
+            systems.forEach(function(gs) {
+                homeSysEl.innerHTML += '<option value="' + escHtml(gs.id) + '">' + (gs.id === 'general' ? 'General' : gs.name) + '</option>';
+            });
+            if (savedSys && systems.some(function(s) { return s.id === savedSys; })) homeSysEl.value = savedSys;
+            var showSys = systems.length > 1;
+            homeSysEl.style.display = showSys ? '' : 'none';
+            document.getElementById('homeSystemLabel').style.display = showSys ? '' : 'none';
+
+            // Populate "add conversion" source university dropdown
+            var newConvUni = document.getElementById('newConvUni');
+            newConvUni.innerHTML = '';
+            Object.keys(universities).sort().forEach(function(a) {
+                if (a !== homeUni) {
+                    newConvUni.innerHTML += '<option value="' + a + '">' + a + ' \u2014 ' + escHtml(universities[a].name) + '</option>';
+                }
+            });
+            updateNewConvSystems();
+
+            renderGradingSystems(homeUni);
             renderEditorCards(homeUni);
             saveBar.style.display = '';
+            gsCard.style.display = '';
+            addArea.style.display = '';
             document.getElementById('saveStatus').textContent = '';
         }
 
+        function updateNewConvSystems() {
+            var uni = document.getElementById('newConvUni').value;
+            var sysSel = document.getElementById('newConvSys');
+            sysSel.innerHTML = '';
+            if (!uni || !universities[uni]) return;
+            var systems = universities[uni].grading_systems || [];
+            systems.forEach(function(gs) {
+                sysSel.innerHTML += '<option value="' + escHtml(gs.id) + '">' + (gs.id === 'general' ? 'General' : gs.name) + '</option>';
+            });
+        }
+
+        async function addNewConversion() {
+            var homeUni = document.getElementById('homeUni').value;
+            var homeSys = document.getElementById('homeSystem').value || 'general';
+            var srcUni = document.getElementById('newConvUni').value;
+            var srcSys = document.getElementById('newConvSys').value || 'general';
+            var statusEl = document.getElementById('newConvStatus');
+            if (!homeUni || !srcUni) return;
+
+            // Check if already exists
+            var key = srcUni + ':' + srcSys + '->' + homeUni + ':' + homeSys;
+            var exists = conversionPairs.some(function(c) {
+                return c.source === srcUni && c.target === homeUni
+                    && (c.source_system || 'general') === srcSys
+                    && (c.target_system || 'general') === homeSys;
+            });
+            if (exists) {
+                statusEl.textContent = 'This conversion already exists';
+                statusEl.style.color = '#dc3545';
+                return;
+            }
+
+            // Save an empty formula conversion as placeholder
+            var body = { conversions: {} };
+            body.conversions[srcUni + ':' + srcSys] = { method: 'formula', formula: 'X', notes: 'New conversion — edit formula or table', confirmed: false };
+            try {
+                var resp = await authFetch(BASE + '/api/conversions-to/' + homeUni + '?target_system=' + encodeURIComponent(homeSys), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                if (resp.ok) {
+                    statusEl.textContent = 'Added!';
+                    statusEl.style.color = '#28a745';
+                    await reloadData();
+                    loadEditor();
+                } else {
+                    var err = await resp.json();
+                    statusEl.textContent = (err.detail && err.detail.errors) ? err.detail.errors.join('; ') : 'Error';
+                    statusEl.style.color = '#dc3545';
+                }
+            } catch (e) { statusEl.textContent = 'Request failed'; statusEl.style.color = '#dc3545'; }
+        }
+
+        function renderGradingSystems(acro) {
+            var uni = universities[acro];
+            var systems = (uni && uni.grading_systems) || [];
+            var html = '';
+            systems.forEach(function(gs) {
+                var isGeneral = gs.id === 'general';
+                var inv = gs.inverted ? ' (inverted)' : '';
+                html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;background:#f8f9fa;border-radius:6px;border-left:3px solid ' + (isGeneral ? '#1a3a5c' : '#6c757d') + ';">'
+                    + '<div style="flex:1;">'
+                    +   '<strong>' + escHtml(gs.id) + '</strong> — ' + escHtml(gs.name)
+                    +   '<div style="font-size:0.82em;color:#666;">Range: ' + gs.min_grade + '–' + gs.max_grade + ' | Pass: ' + gs.pass_grade + inv
+                    +   (gs.description ? ' | ' + escHtml(gs.description) : '') + '</div>'
+                    + '</div>';
+                if (!isGeneral) {
+                    html += '<button class="btn-small" onclick="deleteGradingSystem(\'' + escHtml(acro) + '\', \'' + escHtml(gs.id) + '\')" style="color:#dc3545;font-size:0.78em;">Delete</button>';
+                }
+                html += '</div>';
+            });
+            if (systems.length === 0) html = '<p style="color:#888;font-size:0.85em;">No grading systems defined.</p>';
+            document.getElementById('gradingSystemsList').innerHTML = html;
+        }
+
+        async function addGradingSystem() {
+            var homeUni = document.getElementById('homeUni').value;
+            if (!homeUni) return;
+            var body = {
+                id: document.getElementById('newSysId').value.trim(),
+                name: document.getElementById('newSysName').value.trim(),
+                description: document.getElementById('newSysDesc').value.trim(),
+                min_grade: parseFloat(document.getElementById('newSysMin').value) || 0,
+                max_grade: parseFloat(document.getElementById('newSysMax').value) || 10,
+                pass_grade: parseFloat(document.getElementById('newSysPass').value) || 5,
+                inverted: document.getElementById('newSysInv').checked,
+                grade_labels: []
+            };
+            if (!body.id || !body.name) { document.getElementById('gsStatus').textContent = 'ID and Name required'; return; }
+            var statusEl = document.getElementById('gsStatus');
+            try {
+                var resp = await authFetch(BASE + '/api/universities/' + encodeURIComponent(homeUni) + '/grading-systems', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                });
+                if (resp.ok) {
+                    statusEl.textContent = 'Added!';
+                    statusEl.style.color = '#28a745';
+                    document.getElementById('newSysId').value = '';
+                    document.getElementById('newSysName').value = '';
+                    document.getElementById('newSysDesc').value = '';
+                    await reloadData();
+                    renderGradingSystems(homeUni);
+                } else {
+                    var err = await resp.json();
+                    statusEl.textContent = err.detail || 'Error';
+                    statusEl.style.color = '#dc3545';
+                }
+            } catch (e) { statusEl.textContent = 'Request failed'; statusEl.style.color = '#dc3545'; }
+        }
+
+        async function deleteGradingSystem(acro, sysId) {
+            if (!confirm('Delete grading system "' + sysId + '"? This will also remove all conversions using this system.')) return;
+            try {
+                await authFetch(BASE + '/api/universities/' + encodeURIComponent(acro) + '/grading-systems/' + encodeURIComponent(sysId), { method: 'DELETE' });
+                await reloadData();
+                renderGradingSystems(acro);
+            } catch (e) { alert('Error: ' + e.message); }
+        }
+
         function renderEditorCards(homeUni) {
-            const otherUnis = Object.keys(universities).filter(u => u !== homeUni).sort();
-            const existingSet = new Set(conversionPairs.map(c => c.source + '->' + c.target));
+            var homeSysId = document.getElementById('homeSystem').value || 'general';
+            var dstInfo = universities[homeUni];
+            var dstSys = getSystemInfo(homeUni, homeSysId);
+            var dstLabel = fmtSys(homeUni, homeSysId);
+
+            // Find all existing conversions targeting this home uni+system
+            var relevantConvs = conversionPairs.filter(function(c) {
+                return c.target === homeUni && (c.target_system || 'general') === homeSysId;
+            });
+
+            // Also include all source uni:system combinations that don't have a conversion yet
+            var otherUnis = Object.keys(universities).filter(function(u) { return u !== homeUni; }).sort();
+            var pairs = [];
+            // First add existing conversions
+            relevantConvs.forEach(function(c) {
+                var srcSysInfo = getSystemInfo(c.source, c.source_system || 'general');
+                if (srcSysInfo) {
+                    pairs.push({ uni: c.source, sys: c.source_system || 'general', sysInfo: srcSysInfo, conv: c });
+                }
+            });
+            // Then add missing general systems for other unis (if not already present)
+            otherUnis.forEach(function(src) {
+                var alreadyHas = pairs.some(function(p) { return p.uni === src && p.sys === 'general'; });
+                if (!alreadyHas) {
+                    var gs = getSystemInfo(src, 'general');
+                    if (gs) pairs.push({ uni: src, sys: 'general', sysInfo: gs, conv: null });
+                }
+            });
+
+            // Sort by source uni then system
+            pairs.sort(function(a, b) {
+                var c = a.uni.localeCompare(b.uni);
+                return c !== 0 ? c : a.sys.localeCompare(b.sys);
+            });
+
             let html = '';
 
-            for (const src of otherUnis) {
+            for (const p of pairs) {
+                const src = p.uni;
+                const srcSysId = p.sys;
+                const srcSys = p.sysInfo;
                 const srcInfo = universities[src];
-                const key = src + '->' + homeUni;
-                const hasConv = existingSet.has(key);
-                const conv = conversionPairs.find(c => c.source === src && c.target === homeUni);
+                const srcLabel = fmtSys(src, srcSysId);
+
+                const conv = p.conv;
+                const hasConv = !!conv;
                 const method = conv ? conv.method : 'formula';
                 const formula = (conv && conv.method === 'formula') ? conv.formula : '';
                 const table = (conv && conv.method === 'table' && conv.table) ? conv.table : [];
                 const notes = conv ? (conv.notes || '') : '';
                 const confirmed = conv ? (conv.confirmed || false) : false;
 
-                const dstInfo = universities[homeUni];
-                html += '<div class="card editor-card ' + (hasConv ? 'has-conversion' : 'no-conversion') + '" data-source="' + src + '">'
+                const dataKey = src + ':' + srcSysId;
+                html += '<div class="card editor-card ' + (hasConv ? 'has-conversion' : 'no-conversion') + '" data-source="' + dataKey + '">'
                     + '<div class="editor-header">'
                     +   '<div style="width:100%">'
-                    +     '<strong>From: ' + src + ' &rarr; To: ' + homeUni + '</strong>'
+                    +     '<strong>From: ' + srcLabel + ' &rarr; To: ' + dstLabel + '</strong>'
                     +     '<div class="editor-grade-info" style="display:flex;justify-content:space-between;gap:16px;">'
                     +       '<span>' + escHtml(srcInfo.name) + ' (' + srcInfo.country + ')</span>'
                     +       '<span>' + escHtml(dstInfo.name) + ' (' + dstInfo.country + ')</span>'
                     +     '</div>'
                     +     '<div class="editor-grade-info" style="display:flex;justify-content:space-between;gap:16px;">'
-                    +       '<span>' + escHtml(srcInfo.grading_system) + ' | Range: ' + srcInfo.min_grade + '\u2013' + srcInfo.max_grade
-                    +         ' | Pass: ' + srcInfo.pass_grade + (srcInfo.inverted ? ' (inverted)' : '') + '</span>'
-                    +       '<span>' + escHtml(dstInfo.grading_system) + ' | Range: ' + dstInfo.min_grade + '\u2013' + dstInfo.max_grade
-                    +         ' | Pass: ' + dstInfo.pass_grade + (dstInfo.inverted ? ' (inverted)' : '') + '</span>'
+                    +       '<span>' + escHtml(srcSys.name) + ' | Range: ' + srcSys.min_grade + '\u2013' + srcSys.max_grade
+                    +         ' | Pass: ' + srcSys.pass_grade + (srcSys.inverted ? ' (inverted)' : '') + '</span>'
+                    +       '<span>' + escHtml(dstSys.name) + ' | Range: ' + dstSys.min_grade + '\u2013' + dstSys.max_grade
+                    +         ' | Pass: ' + dstSys.pass_grade + (dstSys.inverted ? ' (inverted)' : '') + '</span>'
                     +     '</div>'
                     +   '</div>'
                     +   '<span class="conv-status ' + (!hasConv ? 'status-missing' : (confirmed ? 'status-confirmed' : 'status-ai')) + '">'
                     +     (!hasConv ? 'Missing' : (confirmed ? 'Confirmed' : 'AI-generated')) + '</span>'
                     + '</div>'
 
-                    + '<div class="editor-method">'
-                    +   '<label><input type="radio" name="method_' + src + '" value="formula"'
-                    +     (method === 'formula' ? ' checked' : '') + ' onchange="toggleMethod(\'' + src + '\')"> Formula</label>'
-                    +   '<label><input type="radio" name="method_' + src + '" value="table"'
-                    +     (method === 'table' ? ' checked' : '') + ' onchange="toggleMethod(\'' + src + '\')"> Table</label>'
+                var safeKey = dataKey.replace(/:/g, '_');
+                html += '<div class="editor-method">'
+                    +   '<label><input type="radio" name="method_' + safeKey + '" value="formula"'
+                    +     (method === 'formula' ? ' checked' : '') + ' onchange="toggleMethod(\'' + safeKey + '\')"> Formula</label>'
+                    +   '<label><input type="radio" name="method_' + safeKey + '" value="table"'
+                    +     (method === 'table' ? ' checked' : '') + ' onchange="toggleMethod(\'' + safeKey + '\')"> Table</label>'
                     + '</div>'
 
-                    + '<div class="formula-section" id="formula_' + src + '" style="' + (method === 'formula' ? '' : 'display:none') + '">'
-                    +   '<input type="text" class="formula-input" id="formulaInput_' + src + '"'
+                    + '<div class="formula-section" id="formula_' + safeKey + '" style="' + (method === 'formula' ? '' : 'display:none') + '">'
+                    +   '<input type="text" class="formula-input" id="formulaInput_' + safeKey + '"'
                     +     ' value="' + escHtml(formula) + '"'
                     +     ' placeholder="e.g. X * 2 or IF(X&lt;5, 0, X+10)">'
                     +   '<div class="formula-hint">Use X for the input grade. Supports: +, -, *, /, IF(cond, true_val, false_val)</div>'
                     + '</div>'
 
-                    + '<div class="table-section" id="table_' + src + '" style="' + (method === 'table' ? '' : 'display:none') + '">'
-                    +   '<div class="table-rows" id="tableRows_' + src + '">'
+                    + '<div class="table-section" id="table_' + safeKey + '" style="' + (method === 'table' ? '' : 'display:none') + '">'
+                    +   '<div class="table-rows" id="tableRows_' + safeKey + '">'
                     +     table.map(function(r) { return tableRowHtml(r.from_min, r.from_max, r.to); }).join('')
                     +   '</div>'
-                    +   '<button type="button" class="btn-small" onclick="addTableRow(\'' + src + '\')">+ Add Row</button>'
+                    +   '<button type="button" class="btn-small" onclick="addTableRow(\'' + safeKey + '\')">+ Add Row</button>'
                     + '</div>'
 
                     + '<div class="editor-notes">'
-                    +   '<input type="text" id="notes_' + src + '" value="' + escHtml(notes) + '" placeholder="Notes (optional)">'
+                    +   '<input type="text" id="notes_' + safeKey + '" value="' + escHtml(notes) + '" placeholder="Notes (optional)">'
                     + '</div>'
 
                     + '<div class="test-area">'
                     +   '<span class="test-label">Test:</span>'
-                    +   '<input type="number" id="testGrade_' + src + '" step="0.01" placeholder="Grade"'
-                    +     ' min="' + srcInfo.min_grade + '" max="' + srcInfo.max_grade + '">'
-                    +   '<button type="button" class="btn-small" onclick="testConv(\'' + src + '\')">Test</button>'
-                    +   '<span id="testResult_' + src + '" class="test-result"></span>'
-                    +   '<label class="confirmed-toggle"><input type="checkbox" id="confirmed_' + src + '"'
+                    +   '<input type="number" id="testGrade_' + safeKey + '" step="0.01" placeholder="Grade"'
+                    +     ' min="' + srcSys.min_grade + '" max="' + srcSys.max_grade + '">'
+                    +   '<button type="button" class="btn-small" onclick="testConv(\'' + safeKey + '\')">Test</button>'
+                    +   '<span id="testResult_' + safeKey + '" class="test-result"></span>'
+                    +   '<label class="confirmed-toggle"><input type="checkbox" id="confirmed_' + safeKey + '"'
                     +     (confirmed ? ' checked' : '') + '> Human validated data</label>'
                     + '</div>'
 
@@ -1128,21 +1370,25 @@
             var homeUni = document.getElementById('homeUni').value;
             if (!homeUni) return;
 
-            var otherUnis = Object.keys(universities).filter(function(u) { return u !== homeUni; });
+            // Collect from all editor cards (which use dataKey = uni:system, safeKey = uni_system)
+            var cards = document.querySelectorAll('#editorCards .editor-card');
             var conversions = {};
 
-            for (var i = 0; i < otherUnis.length; i++) {
-                var src = otherUnis[i];
-                var method = document.querySelector('input[name="method_' + src + '"]:checked').value;
-                var confirmedEl = document.getElementById('confirmed_' + src);
-                var conv = { method: method, notes: document.getElementById('notes_' + src).value, confirmed: confirmedEl ? confirmedEl.checked : false };
+            cards.forEach(function(card) {
+                var dataKey = card.dataset.source; // e.g. "KK:general"
+                var safeKey = dataKey.replace(/:/g, '_');
+                var methodEl = document.querySelector('input[name="method_' + safeKey + '"]:checked');
+                if (!methodEl) return;
+                var method = methodEl.value;
+                var confirmedEl = document.getElementById('confirmed_' + safeKey);
+                var conv = { method: method, notes: document.getElementById('notes_' + safeKey).value, confirmed: confirmedEl ? confirmedEl.checked : false };
                 if (method === 'formula') {
-                    conv.formula = document.getElementById('formulaInput_' + src).value;
+                    conv.formula = document.getElementById('formulaInput_' + safeKey).value;
                 } else {
-                    conv.table = collectTableRows(src);
+                    conv.table = collectTableRows(safeKey);
                 }
-                conversions[src] = conv;
-            }
+                conversions[dataKey] = conv;
+            });
 
             var statusEl = document.getElementById('saveStatus');
             var saveBtn = document.getElementById('saveBtn');
@@ -1150,8 +1396,9 @@
             statusEl.className = '';
             saveBtn.disabled = true;
 
+            var homeSys = document.getElementById('homeSystem').value || 'general';
             try {
-                var resp = await authFetch(BASE + '/api/conversions-to/' + homeUni, {
+                var resp = await authFetch(BASE + '/api/conversions-to/' + homeUni + '?target_system=' + encodeURIComponent(homeSys), {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ conversions: conversions }),
