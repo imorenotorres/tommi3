@@ -1,0 +1,25 @@
+# =============================================================================
+# TOMMI Setup Configuration Template
+# =============================================================================
+# Copy this file and fill in your values, then run:
+#   Linux/macOS: ./setup.sh path/to/your_config.txt
+#   Windows:     setup.bat path\to\your_config.txt
+# =============================================================================
+
+# Enable conversation logging (y/n)
+ENABLE_LOGGING=n
+
+# Mistral API key (leave empty to skip)
+MISTRAL_API_KEY=
+
+# Superuser account
+ADMIN_USER=admin
+ADMIN_PASSWORD=
+
+# SMTP Configuration (optional, for user invitations)
+# SMTP_HOST=smtp.example.com
+# SMTP_PORT=587
+# SMTP_USER=user@example.com
+# SMTP_PASSWORD=
+# SMTP_FROM=noreply@example.com
+# SMTP_USE_TLS=true
