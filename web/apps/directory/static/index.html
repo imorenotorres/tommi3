@@ -838,8 +838,8 @@
                 html += '</div></div>';
             });
 
-            // Verified toggle for leader
-            if (canEdit && leaderUser && authUser && authUser.username) {
+            // Verified toggle
+            if (canEdit) {
                 html += '<div style="margin-top:8px;text-align:right;">'
                     + '<label style="font-size:0.9em;font-weight:600;cursor:pointer;">'
                     + '<input type="checkbox" ' + (g.verified ? 'checked' : '') + ' onchange="toggleVerified(\'' + esc(g.id) + '\', this.checked)"> Verified'
@@ -995,7 +995,7 @@
 
         var sorted = appData.users.slice().sort(function(a, b) {
             var c = a.university.localeCompare(b.university);
-            return c !== 0 ? c : a.name.localeCompare(b.name);
+            return c !== 0 ? c : a.family_name.localeCompare(b.family_name) || a.first_name.localeCompare(b.first_name);
         });
 
         var html = '';
