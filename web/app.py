@@ -198,10 +198,6 @@ from apps.rag_study.study import router as rag_study_router
 app.include_router(rag_study_router)
 app.mount("/rag-study/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "rag_study" / "static"), name="rag_study_static")
 
-from apps.sql_study.study import router as sql_study_router
-app.include_router(sql_study_router)
-app.mount("/sql-study/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "sql_study" / "static"), name="sql_study_static")
-
 
 # ---------------------------------------------------------------------------
 # Auth helpers
