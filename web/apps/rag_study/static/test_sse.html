@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>SSE Test</title></head>
+<body>
+<h1>SSE Replay Test</h1>
+<button onclick="testReplay()">Test Replay</button>
+<pre id="log"></pre>
+<script>
+function log(msg) {
+    document.getElementById('log').textContent += msg + '\n';
+}
+
+function testReplay() {
+    log('Starting EventSource...');
+    const es = new EventSource('/rag-study/api/replay?agent_id=responsible_ai2');
+    
+    es.onmessage = function(e) {
+        log('DATA: ' + e.data.substring(0, 80) + '...');
+    };
+    es.addEventListener('status', function(e) {
+        log('STATUS: ' + e.data);
+    });
+    es.addEventListener('badge', function(e) {
+        log('BADGE: ' + e.data.substring(0, 80) + '...');
+    });
+    es.addEventListener('done', function(e) {
+        log('DONE event received!');
+        es.close();
+    });
+    es.onerror = function(e) {
+        log('ERROR event - readyState=' + es.readyState);
+    };
+}
+</script>
+</body></html>

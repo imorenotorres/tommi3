@@ -156,7 +156,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         path = request.url.path
         # Only protect /api/ routes (not static files, HTML pages, etc.)
         # PDF endpoints are public (academic documents, not personal data)
-        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path:
+        # Study app routes are public (participants don't need TOMMI accounts)
+        is_study = path.startswith("/study/api/") or path.startswith("/rag-study/api/") or path.startswith("/sql-study/api/")
+        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and not is_study:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
                 token = request.query_params.get("token", "")
@@ -190,6 +192,15 @@ app.mount("/directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "dire
 from apps.uninovis.uninovis import router as uninovis_router
 app.include_router(uninovis_router)
 app.mount("/uninovis/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uninovis" / "static"), name="uninovis_static")
+
+# Mount Transparency Study apps
+from apps.rag_study.study import router as rag_study_router
+app.include_router(rag_study_router)
+app.mount("/rag-study/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "rag_study" / "static"), name="rag_study_static")
+
+from apps.sql_study.study import router as sql_study_router
+app.include_router(sql_study_router)
+app.mount("/sql-study/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "sql_study" / "static"), name="sql_study_static")
 
 
 # ---------------------------------------------------------------------------

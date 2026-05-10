@@ -1,0 +1,17 @@
+{
+  "questions": [
+    {
+      "id": "q2",
+      "text": "List the papers on explainable AI from Université Sorbonne Paris Nord and identify research gaps",
+      "blackbox": "q2_blackbox",
+      "informator": "q2_informator",
+      "cooperator": "q2_cooperator"
+    }
+  ],
+
+  "INFORMATOR_LABEL": "Approach A",
+  "COOPERATOR_LABEL": "Approach B",
+
+  "INFORMATOR_DESC": "This version adds source information using quantitative indicators and factual details.",
+  "COOPERATOR_DESC": "This version adds colour-coded indicators to guide your interpretation of each section."
+}

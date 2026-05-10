@@ -1,7 +1,8 @@
 """
-Pisha2 - Agente Text-to-SQL
+Pisha4 - Agente Text-to-SQL with SQL verification and reliability badges.
 Convierte preguntas en lenguaje natural a consultas SQL usando qwen2.5-coder via Ollama.
 Usa Chain-of-Thought (CoT) para mejorar el razonamiento en consultas complejas.
+Adds schema verification and reliability assessment (badges) to every response.
 """
 
 import os
@@ -20,6 +21,7 @@ APPS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "apps")
 CONSULTAR_SQL_PATH = os.path.join(APPS_DIR, "consultar_sql.py")
 from llm_client import LLMClient
 from normalize import normalize_text_for_search
+from sql_verifier import SQLVerifier, SQLReliabilityBadge
 
 # Load config.json
 import json as _json
@@ -36,7 +38,7 @@ logging.basicConfig(
     format='%(asctime)s [%(levelname)s] %(message)s',
     datefmt='%H:%M:%S'
 )
-logger = logging.getLogger("pisha2")
+logger = logging.getLogger("pisha4")
 
 # UNINOVIS Alliance members (excluding UMA which is the home university)
 UNINOVIS_MEMBERS = [
@@ -57,17 +59,18 @@ class Agent:
         self.db_path = os.path.join(os.path.dirname(__file__), "data", "database.db")
         self.schema_path = os.path.join(os.path.dirname(__file__), "data", "database_schema.md")
         self._cached_schema = None  # Cache del esquema
-        # Transparency level from config
+        # SQL verification and reliability
         self._config = _agent_config
         self._transparency = self._config.get("transparency_level", "crystal_box")
         self._prompt_level = self._config.get("prompt_level", "stringent")
-        # SQL verification
-        from sql_verifier import SQLVerifier
         self._sql_verifier = SQLVerifier(self.db_path)
-        self.system_prompt = """You are Pisha3, a database assistant specialized in converting natural language questions to SQL queries.
+        # Audit log
+        self._audit_path = os.path.join(os.path.dirname(__file__), "data", "audit_log.jsonl")
+        self._audit_enabled = self._config.get("audit_log_enabled", False)
+        self.system_prompt = """You are Pisha4, a database assistant specialized in converting natural language questions to SQL queries.
 
 IMPORTANT RULES:
-1. You help users query a SQLite database by understanding their questions in natural language
+1. You help users query a SQLite database containing mobility agreements, students, degrees and subjects from Universidad de Málaga (UMA)
 2. When the user asks about data, you will receive the database schema and query results
 3. Explain the results clearly and concisely in the user\'s language
 4. If you cannot answer a question with the available data, explain why
@@ -1089,8 +1092,14 @@ RESPONSE FORMAT:
     def _fix_sql_operator_precedence(self, sql: str) -> str:
         """
         Fix SQL operator precedence when AND and OR are mixed without proper
-        parentheses. Wraps the OR group in parentheses to prevent ambiguous
-        queries like: WHERE (A AND B) OR (C AND D) AND E
+        parentheses. This prevents bugs like:
+            WHERE (A AND B) OR (C AND D) AND E
+        Which should be:
+            WHERE ((A AND B) OR (C AND D)) AND E
+
+        Strategy: split WHERE at top-level OR to find OR-connected segments,
+        then wrap the entire OR group in parentheses if there are also
+        top-level AND conditions outside the OR group.
         """
         import re
 
@@ -1100,6 +1109,7 @@ RESPONSE FORMAT:
 
         where_clause = where_match.group(1).strip()
 
+        # Find positions of top-level AND and OR operators
         depth = 0
         top_and_positions = []
         top_or_positions = []
@@ -1116,23 +1126,33 @@ RESPONSE FORMAT:
                     top_or_positions.append(i)
 
         if not top_and_positions or not top_or_positions:
-            return sql
+            return sql  # No mixed operators — no fix needed
 
+        # Find the span of the OR group: from the start of the first
+        # OR-connected segment to the end of the last one.
+        # The OR group starts at the beginning of the clause (or after the
+        # last AND before the first OR) and ends at the last OR segment
+        # (or before the first AND after the last OR).
         first_or = min(top_or_positions)
         last_or = max(top_or_positions)
 
+        # Find the start of the OR group: look for the last top-level AND
+        # before the first OR
         or_group_start = 0
         for pos in sorted(top_and_positions):
             if pos < first_or:
-                or_group_start = pos + 4
+                or_group_start = pos + 4  # skip "AND "
                 while or_group_start < len(where_clause) and where_clause[or_group_start] == ' ':
                     or_group_start += 1
             else:
                 break
 
+        # Find the end of the OR group: look for the first top-level AND
+        # after the last OR
         or_group_end = len(where_clause)
         for pos in sorted(top_and_positions):
             if pos > last_or:
+                # Back up to before the AND keyword (strip trailing space)
                 or_group_end = pos
                 while or_group_end > 0 and where_clause[or_group_end - 1] == ' ':
                     or_group_end -= 1
@@ -1140,7 +1160,10 @@ RESPONSE FORMAT:
 
         or_group = where_clause[or_group_start:or_group_end].strip()
 
+        # Only wrap if the OR group doesn't already start+end with parens
+        # covering the entire group
         if or_group.startswith('(') and or_group.endswith(')'):
+            # Check if the outer parens cover the whole group
             d = 0
             covers_all = True
             for k, c in enumerate(or_group):
@@ -1152,13 +1175,15 @@ RESPONSE FORMAT:
                     covers_all = False
                     break
             if covers_all:
-                return sql
+                return sql  # Already properly wrapped
 
+        # Rebuild the WHERE clause with the OR group wrapped
         before = where_clause[:or_group_start].strip()
         after = where_clause[or_group_end:].strip()
 
         parts = []
         if before:
+            # Remove trailing AND
             if before.upper().endswith(' AND'):
                 before = before[:-4].strip()
             elif before.upper().endswith('AND'):
@@ -1167,6 +1192,7 @@ RESPONSE FORMAT:
                 parts.append(before)
         parts.append(f'({or_group})')
         if after:
+            # Remove leading AND
             if after.upper().startswith('AND '):
                 after = after[4:].strip()
             if after:
@@ -1553,8 +1579,44 @@ RESPONSE FORMAT:
                 return "The database is empty (no tables found)."
 
             schema_parts = ["ESQUEMA DE LA BASE DE DATOS:"]
-            schema_parts.append("Base de datos de acuerdos de movilidad para estudiantes de la Universidad de Málaga.")
+            schema_parts.append("Base de datos de la Universidad de Málaga (UMA): acuerdos de movilidad, estudiantes, titulaciones y asignaturas.")
             schema_parts.append("")
+
+            # Column descriptions per table
+            table_descriptions = {
+                "destinations": [
+                    "Columnas importantes:",
+                    "- host_institution: nombre de la universidad de destino",
+                    "- destination_country: país del destino",
+                    "- mobility_program: programa completo (ej: 'ERASMUS+ KA131', 'ERASMUS+ KA171', 'MOVILIDAD INTERNACIONAL UMA')",
+                    "- uma_faculties: facultades UMA que pueden aplicar",
+                    "- uma_degrees: titulaciones UMA permitidas",
+                    "- lang_1_name, lang_1_level: primer idioma y nivel requerido",
+                    "- lang_2_name, lang_2_level: segundo idioma y nivel (si aplica)",
+                    "- allows_undergraduate, allows_master, allows_phd: niveles académicos permitidos",
+                    "- min_gpa_requirement: nota media mínima requerida",
+                    "- student_vacancies: plazas disponibles",
+                ],
+                "students": [
+                    "Columnas importantes:",
+                    "- student_id: identificador oficial (DNI, NIF, pasaporte)",
+                    "- name: nombre completo del estudiante",
+                    "- email: correo electrónico del estudiante",
+                    "- username: nombre de usuario para login",
+                    "- test: variable de prueba (siempre contiene 'TEST')",
+                ],
+                "degree": [
+                    "Columnas importantes:",
+                    "- name: nombre de la titulación (ej: 'Graduado/a en Informática')",
+                ],
+                "subjects": [
+                    "Columnas importantes:",
+                    "- name: nombre de la asignatura",
+                    "- subject_code: código PROA de la asignatura. La primera cifra indica el curso (ej: 301 = 3er curso, 8xx/9xx = optativa)",
+                    "- degree_id: FK → degree.id (vincula asignatura con titulación)",
+                    "- degree_code: código de la titulación (informativo)",
+                ],
+            }
 
             for (table_name,) in tables:
                 cursor.execute(f"PRAGMA table_info({table_name});")
@@ -1563,19 +1625,8 @@ RESPONSE FORMAT:
                 schema_parts.append(f"Columnas: {', '.join(columns)}")
                 schema_parts.append("")
 
-                # Añadir descripciones clave para columnas importantes
-                if table_name == "destinations":
-                    schema_parts.append("Columnas importantes:")
-                    schema_parts.append("- host_institution: nombre de la universidad de destino")
-                    schema_parts.append("- destination_country: país del destino")
-                    schema_parts.append("- mobility_program: programa completo (ej: 'ERASMUS+ KA131', 'ERASMUS+ KA171', 'MOVILIDAD INTERNACIONAL UMA')")
-                    schema_parts.append("- uma_faculties: facultades UMA que pueden aplicar")
-                    schema_parts.append("- uma_degrees: titulaciones UMA permitidas")
-                    schema_parts.append("- lang_1_name, lang_1_level: primer idioma y nivel requerido")
-                    schema_parts.append("- lang_2_name, lang_2_level: segundo idioma y nivel (si aplica)")
-                    schema_parts.append("- allows_undergraduate, allows_master, allows_phd: niveles académicos permitidos")
-                    schema_parts.append("- min_gpa_requirement: nota media mínima requerida")
-                    schema_parts.append("- student_vacancies: plazas disponibles")
+                if table_name in table_descriptions:
+                    schema_parts.extend(table_descriptions[table_name])
 
             conn.close()
             self._cached_schema = "\n".join(schema_parts)
@@ -1584,6 +1635,23 @@ RESPONSE FORMAT:
 
         except sqlite3.Error as e:
             return f"Error leyendo esquema: {str(e)}"
+
+    @staticmethod
+    def _ensure_default_order(sql: str) -> str:
+        """Append ORDER BY host_institution when a SELECT on 'destinations'
+        has no ORDER BY clause.  This ensures results are grouped by
+        university by default."""
+        import re as _re
+        sql_upper = sql.strip().upper()
+        if not sql_upper.startswith("SELECT"):
+            return sql
+        if "ORDER BY" in sql_upper:
+            return sql  # already has an ORDER BY
+        if "DESTINATIONS" not in sql_upper:
+            return sql  # not querying destinations table
+        # Append ORDER BY before any trailing semicolon
+        sql_stripped = sql.rstrip().rstrip(";")
+        return sql_stripped + " ORDER BY host_institution"
 
     def _text_to_sql(self, user_question: str, schema: str, previous_sql: str = None) -> str:
         """Usa Ollama con qwen2.5-coder para convertir preguntas a SQL."""
@@ -1605,9 +1673,10 @@ RESPONSE FORMAT:
         # Prompt simplificado - pide solo el SQL en bloque markdown
         conversion_prompt = f"""Eres un experto en SQL. Convierte la siguiente pregunta a una consulta SQL para SQLite.
 
-BASE DE DATOS (convenios de movilidad universitaria):
-- Tabla: destinations
-- Columnas:
+BASE DE DATOS (Universidad de Málaga - acuerdos de movilidad, estudiantes, titulaciones y asignaturas):
+
+TABLA 1: destinations (acuerdos de movilidad)
+Columnas:
   * host_institution: nombre de la UNIVERSIDAD DE DESTINO (ej: "The Hague University", "Sorbonne")
   * destination_country: PAÍS de destino (ej: "Francia", "Alemania")
   * mobility_program: nombre COMPLETO del programa (ej: "ERASMUS+ KA131", "ERASMUS+ KA171", "MOVILIDAD INTERNACIONAL UMA", "ISEP")
@@ -1621,13 +1690,41 @@ BASE DE DATOS (convenios de movilidad universitaria):
   * allows_master: "Sí" o "No" - si permite estudiantes de Máster
   * allows_phd: "Sí" o "No" - si permite estudiantes de Doctorado
   * min_gpa_requirement: nota media mínima requerida (REAL). NULL si no hay requisito
-  * student_vacancies: plazas disponibles
+  * student_vacancies: plazas disponibles (TEXTO, ej: "[Grado] Plazas: 4, Periodos permitidos: 1er CUATRIMESTRE")
 
-REGLAS:
+TABLA 2: students (estudiantes matriculados)
+Columnas:
+  * student_id: identificador oficial del estudiante (DNI, NIF, pasaporte)
+  * name: nombre completo del estudiante
+  * email: correo electrónico
+  * username: nombre de usuario para login
+  * test: variable de prueba (siempre contiene 'TEST')
+
+TABLA 3: degree (titulaciones de la UMA)
+Columnas:
+  * id: identificador único de la titulación
+  * name: nombre de la titulación (ej: "Graduado/a en Informática")
+
+TABLA 4: subjects (asignaturas de la UMA, curso 2025/26)
+Columnas:
+  * name: nombre de la asignatura
+  * subject_code: código PROA. La primera cifra indica el curso (ej: 301 = 3er curso; 8xx/9xx = optativa)
+  * degree_id: FK → degree.id (vincula asignatura con titulación)
+  * degree_code: código de la titulación (informativo)
+
+RELACIONES:
+- subjects.degree_id → degree.id (cada asignatura pertenece a una titulación)
+- destinations.uma_degrees contiene nombres de titulaciones (texto libre, usar LIKE para buscar)
+
+REGLAS GENERALES:
 - Usa LIKE '%texto%' para búsquedas de texto (no =)
 - Solo genera SELECT (nunca INSERT, UPDATE, DELETE)
-- COUNT(*) solo para contar CONVENIOS/ACUERDOS ("cuántos convenios", "número de acuerdos")
-- PLAZAS y CUATRIMESTRES: student_vacancies es TEXTO con formato "[Grado] Plazas: 4, Periodos permitidos: 1er CUATRIMESTRE"
+- Para JOINs entre subjects y degree: JOIN degree ON subjects.degree_id = degree.id
+
+REGLAS PARA TABLA destinations:
+- COUNT(*) solo para contar CONVENIOS/ACUERDOS ("cuántos convenios", "número de acuerdos", "how many agreements")
+- IMPORTANTE: "¿Hay convenios con X?" / "Do we have agreements with X?" / "Are there agreements with X?" → SELECT * (NO COUNT). Solo usa COUNT cuando explícitamente pide CONTAR/CUÁNTOS/HOW MANY
+- PLAZAS y CUATRIMESTRES: student_vacancies es TEXTO
   * Para filtrar por cuatrimestre: WHERE student_vacancies LIKE '%1er CUATRIMESTRE%' o '%2do CUATRIMESTRE%' o '%ANUAL%'
   * NO uses SUM() con student_vacancies (es texto). Usa COUNT(*) para contar destinos o SELECT student_vacancies para ver detalles
 - REQUISITOS DE IDIOMA: Usa los campos lang_1_name, lang_1_level, lang_2_name, lang_2_level
@@ -1642,9 +1739,9 @@ REGLAS:
 - NOTA MEDIA MÍNIMA:
   * Con requisito de nota: WHERE min_gpa_requirement IS NOT NULL
   * Nota específica: WHERE min_gpa_requirement >= 7.0
-- Si pregunta "qué...", "cuáles...", "muéstrame...", "hay...", "universidades...", "facultades..." → usa SELECT * (NO COUNT, NO columnas específicas)
+- Si pregunta "qué...", "cuáles...", "muéstrame...", "hay...", "universidades...", "facultades...", "do we have...", "are there...", "what...", "which...", "show me..." → usa SELECT * (NO COUNT, NO columnas específicas)
 - SIEMPRE usa SELECT * excepto para:
-  * COUNT(*) para contar convenios/acuerdos
+  * COUNT(*) para contar convenios/acuerdos/estudiantes/asignaturas
   * SELECT DISTINCT columna SOLO cuando pide LISTAR valores únicos de UNA columna (ej: "¿Qué países hay?", "¿Qué programas existen?")
   * SELECT columna_específica SOLO para preguntas MUY concretas como "qué idioma necesito para X"
 - IMPORTANTE: "¿Qué facultades tienen convenios con X?" → SELECT * (NO SELECT DISTINCT, necesitamos TODOS los datos incluyendo plazas e idiomas)
@@ -1658,31 +1755,34 @@ REGLAS:
   * "plazas disponibles" o "destinos con plazas" → EXCLUIR plazas vacías: WHERE student_vacancies NOT LIKE '%Plazas: 0%'
   * "¿Con qué PAÍSES tiene convenios X?" → usar SELECT DISTINCT destination_country para evitar duplicados
 
-EJEMPLOS:
+EJEMPLOS DESTINATIONS:
 - "¿Qué acuerdos hay con The Hague University of Applied Sciences?" → SELECT * FROM destinations WHERE host_institution LIKE '%The Hague%'
 - "¿Cuántos acuerdos hay con Alemania?" → SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Alemania%'
 - "¿Hay convenios con Italia?" → SELECT * FROM destinations WHERE destination_country LIKE '%Italia%'
+- "Do we have agreements with the Netherlands?" → SELECT * FROM destinations WHERE destination_country LIKE '%Países Bajos%'
 - "¿Qué nivel de inglés necesito para ir a Alemania?" → SELECT lang_1_name, lang_1_level, lang_2_name, lang_2_level FROM destinations WHERE destination_country LIKE '%Alemania%' AND (lang_1_name LIKE '%INGLÉS%' OR lang_2_name LIKE '%INGLÉS%')
-- "¿Qué universidades hay en Francia?" → SELECT * FROM destinations WHERE destination_country LIKE '%Francia%'
 - "¿Qué destinos hay con ERASMUS+ KA131?" → SELECT * FROM destinations WHERE mobility_program LIKE '%ERASMUS+ KA131%'
 - "¿Qué programas de movilidad hay?" → SELECT DISTINCT mobility_program FROM destinations
-- "¿Cuántas plazas hay para el primer cuatrimestre?" → SELECT COUNT(*) FROM destinations WHERE student_vacancies LIKE '%1er CUATRIMESTRE%'
-- "¿Qué destinos hay para el segundo cuatrimestre?" → SELECT * FROM destinations WHERE student_vacancies LIKE '%2do CUATRIMESTRE%'
-- "¿Qué plazas hay en Italia?" → SELECT * FROM destinations WHERE destination_country LIKE '%Italia%'
 - "¿Qué destinos no requieren idioma?" → SELECT * FROM destinations WHERE lang_1_name IS NULL
 - "¿Qué destinos requieren inglés B2?" → SELECT * FROM destinations WHERE (lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B2') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B2')
-- "¿Hay convenios con requisito de Inglés B1?" → SELECT * FROM destinations WHERE (lang_1_name LIKE '%INGLÉS%' AND lang_1_level = 'B1') OR (lang_2_name LIKE '%INGLÉS%' AND lang_2_level = 'B1')
-- "¿Cuántos destinos hay en América Latina?" → SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%América Latina%'
-- "¿Qué universidades hay en Europa?" → SELECT * FROM destinations WHERE destination_country LIKE '%Europa%'
-- "¿Cuántos convenios hay en Asia?" → SELECT COUNT(*) FROM destinations WHERE destination_country LIKE '%Asia%'
-- "¿Qué destinos tienen plazas disponibles?" → SELECT * FROM destinations WHERE student_vacancies NOT LIKE '%Plazas: 0%'
-- "¿Con qué países tiene convenios la Facultad de Medicina?" → SELECT DISTINCT destination_country FROM destinations WHERE uma_faculties LIKE '%Medicina%'
-- "¿Qué facultades tienen convenios con universidades de Africa?" → SELECT * FROM destinations WHERE destination_country LIKE '%Africa%'
-- "¿Qué facultades tienen acuerdos con Alemania?" → SELECT * FROM destinations WHERE destination_country LIKE '%Alemania%'
 - "¿Hay convenios con universidades UNINOVIS?" → SELECT * FROM destinations WHERE host_institution LIKE '%UNINOVIS%'
-- "What agreements do we have with UNINOVIS members?" → SELECT * FROM destinations WHERE host_institution LIKE '%UNINOVIS%'
 - "¿Hay destinos para estudiantes de Máster?" → SELECT * FROM destinations WHERE allows_master = 'Sí'
-- "¿Qué destinos exigen nota media mínima?" → SELECT * FROM destinations WHERE min_gpa_requirement IS NOT NULL
+
+EJEMPLOS STUDENTS:
+- "¿Cuántos estudiantes hay?" → SELECT COUNT(*) FROM students
+- "Busca al estudiante Juan García" → SELECT * FROM students WHERE name LIKE '%Juan García%'
+- "¿Qué estudiantes tienen email de UMA?" → SELECT * FROM students WHERE email LIKE '%@uma.es%'
+
+EJEMPLOS SUBJECTS/DEGREE:
+- "¿Qué asignaturas tiene el grado en Informática?" → SELECT s.* FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Informática%'
+- "¿Cuántas asignaturas hay?" → SELECT COUNT(*) FROM subjects
+- "¿Qué titulaciones hay?" → SELECT * FROM degree
+- "¿Cuántas titulaciones hay?" → SELECT COUNT(*) FROM degree
+- "¿Qué asignaturas de tercer curso tiene Derecho?" → SELECT s.* FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Derecho%' AND s.subject_code LIKE '3%'
+- "¿Qué asignaturas optativas tiene Medicina?" → SELECT s.* FROM subjects s JOIN degree d ON s.degree_id = d.id WHERE d.name LIKE '%Medicina%' AND (s.subject_code LIKE '8%' OR s.subject_code LIKE '9%')
+
+EJEMPLOS CROSS-TABLE:
+- "¿Qué destinos hay para estudiantes de Informática?" → SELECT * FROM destinations WHERE uma_degrees LIKE '%Informática%'
 
 PREGUNTA: {normalized_question}
 
@@ -3213,8 +3313,77 @@ sqlite3 data/database.db < your_schema.sql
         state['last_user_question'] = user_message
         state['shown_fields'] = set()  # Reset shown fields for new query
 
-        # Mostrar la SQL generada
-        sql_display = f"```sql\n{sql_query}\n```\n\n"
+        # Inject default ORDER BY host_institution when missing
+        sql_query = self._ensure_default_order(sql_query)
+        state['last_sql_query'] = sql_query
+
+        # Content + procedural: show banners AND verification details
+        _BANNER_STYLE_NF = 'padding:8px 12px;margin:6px 0;border-radius:4px;font-size:0.9em;'
+        show_banners = self._transparency in ("crystal_box", "grey_box")
+        is_crystal = self._transparency == "crystal_box"
+        sql_display = ""
+        if show_banners:
+            if is_crystal:
+                yellow_banner = (
+                    f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{_BANNER_STYLE_NF}">'
+                    '\U0001F7E1 <strong>AI interpretation</strong> — '
+                    'The AI model interpreted your question as the SQL query below. '
+                    'Check that it matches your intent.'
+                    '</div>\n\n'
+                )
+                sql_explanation = SQLVerifier.sql_to_text(sql_query)
+                explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
+                sql_display = f"{yellow_banner}```sql\n{sql_query}\n```\n\n{explanation_line}"
+            else:
+                yellow_banner = (
+                    f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{_BANNER_STYLE_NF}">'
+                    '\U0001F7E1 <strong>AI interpretation</strong> — '
+                    'The AI model interpreted your question as the query below. '
+                    'Check that it matches your intent.'
+                    '</div>\n\n'
+                )
+                sql_explanation = SQLVerifier.sql_to_text(sql_query)
+                explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
+                sql_display = f"{yellow_banner}{explanation_line}"
+
+        # ⏱️ Fase 2b: Pre-execution verification (prompt level enforcement)
+        if self._prompt_level in ("stringent", "tolerant"):
+            pre_check = self._sql_verifier.verify(sql_query)
+
+            # Semantic alignment check: does the SQL match the user's question?
+            semantic = self._sql_verifier.verify_semantic(user_message, sql_query)
+            if semantic["issues"]:
+                pre_check["issues"].extend(semantic["issues"])
+                pre_check["confidence"] = max(0, pre_check["confidence"] - semantic["penalty"])
+                logger.warning(f"⚠️ Semantic check: {semantic['issues']}")
+
+            if self._prompt_level == "stringent":
+                # STRINGENT: reject on hard errors (unknown tables/columns, unsafe code, semantic mismatch)
+                hard_errors = [i for i in pre_check["issues"]
+                               if i.startswith("Unknown table:") or i.startswith("Unknown column:")
+                               or i.startswith("Dangerous keyword")
+                               or i.startswith("Semantic mismatch:")]
+                if hard_errors:
+                    issues_text = "\n".join(f"- {i}" for i in hard_errors)
+                    badge = SQLReliabilityBadge.source_badge(
+                        pre_check, transparency=self._transparency,
+                        prompt_level=self._prompt_level,
+                        model_name=self.model or "unknown",
+                        is_local_llm=os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm"),
+                    )
+                    self._write_audit_log(user_message, sql_query, pre_check, 0)
+                    self._log_timing_summary(timings)
+                    sql_section = sql_display if show_banners else ""
+                    return (
+                        f"{badge}{sql_section}"
+                        f"**SQL verification failed (stringent mode):**\n{issues_text}\n\n"
+                        f"The query was **not executed** because it does not match your question. "
+                        f"Please try rephrasing your question."
+                    )
+
+            if self._prompt_level == "tolerant" and pre_check["issues"]:
+                # TOLERANT: warn but continue execution
+                logger.warning(f"⚠️ [tolerant] SQL issues detected but proceeding: {pre_check['issues']}")
 
         # ⏱️ Fase 3: Ejecutar SQL usando consultar_sql.py
         t_fase3_start = time.perf_counter()
@@ -3261,6 +3430,27 @@ sqlite3 data/database.db < your_schema.sql
         t_fase4_start = time.perf_counter()
         success, results = self._execute_sql(sql_query)
 
+        # Auto-correct: if 0 results, try fixing misspelled LIKE terms
+        autocorrect_note = ""
+        if success and (not results or len(results) == 0):
+            corrected_sql, corrections = self._sql_verifier.autocorrect_sql(sql_query)
+            if corrected_sql and corrected_sql != sql_query:
+                logger.info(f"🔄 Auto-correcting SQL: {corrections}")
+                success2, results2 = self._execute_sql(corrected_sql)
+                if success2 and results2:
+                    # Use corrected results
+                    success, results = success2, results2
+                    sql_query = corrected_sql
+                    state['last_sql_query'] = corrected_sql
+                    autocorrect_note = "\n\n".join(f"🔄 {c}" for c in corrections) + "\n\n"
+                    if show_banners:
+                        if is_crystal:
+                            corr_expl = SQLVerifier.sql_to_text(sql_query)
+                            corr_expl_line = f"**In plain language:** {corr_expl}\n\n" if corr_expl else ""
+                            sql_display = f"{yellow_banner}**Corrected SQL query:**\n```sql\n{sql_query}\n```\n\n{corr_expl_line}"
+                        else:
+                            sql_display = yellow_banner
+
         # Guardar resultados para paginación
         if success and results:
             state['last_results'] = results
@@ -3270,15 +3460,65 @@ sqlite3 data/database.db < your_schema.sql
         t_fase4_end = time.perf_counter()
         timings["4. Python formatea respuesta"] = t_fase4_end - t_fase4_start
 
+        # ⏱️ Fase 5: SQL verification (for audit log)
+        result_count = len(results) if isinstance(results, list) else 0
+        verification = self._sql_verifier.verify_with_execution(sql_query, success, result_count)
+
+        # Post-execution semantic check (also applies to tolerant mode)
+        semantic_post = self._sql_verifier.verify_semantic(user_message, sql_query)
+        if semantic_post["issues"]:
+            verification["issues"].extend(semantic_post["issues"])
+            verification["confidence"] = max(0, verification["confidence"] - semantic_post["penalty"])
+
+        logger.info(f"🔍 SQL verification: confidence={verification['confidence']}%, "
+                     f"tables={len(verification['verified_tables'])}/{len(verification['verified_tables'])+len(verification['unknown_tables'])}, "
+                     f"columns={len(verification['verified_columns'])}/{len(verification['verified_columns'])+len(verification['unknown_columns'])}")
+        if verification['issues']:
+            logger.info(f"⚠️ Issues: {verification['issues']}")
+
+        # Audit log
+        self._write_audit_log(user_message, sql_query, verification, result_count)
+
         # Mostrar resumen de tiempos
         self._log_timing_summary(timings)
 
-        # Paso 5: Combinar SQL + explicación (solo crystal_box y grey_box muestran SQL)
-        show_sql = self._transparency in ("crystal_box", "grey_box")
-        if show_sql:
-            return f"**Generated SQL query:**\n{sql_display}{formatted}"
-        else:
-            return formatted
+        # Green procedural banner before data results
+        _BANNER_STYLE = 'padding:8px 12px;margin:6px 0;border-radius:4px;font-size:0.9em;'
+        green_banner = ""
+        if self._transparency in ("crystal_box", "grey_box") and success:
+            if results:
+                green_banner = (
+                    f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                    '\U0001F7E2 <strong>Verified data</strong> — '
+                    'The results below come directly from the database (no AI involved).'
+                    '</div>\n\n'
+                )
+            else:
+                green_banner = (
+                    f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                    '\U0001F7E2 <strong>Database response</strong> — '
+                    'The query was executed against the database but returned no results.'
+                    '</div>\n\n'
+                )
+
+        # Content transparency: verification footer with quantitative details
+        verification_footer = (
+            f"\n\n---\n"
+            f"**Verification details:**\n"
+            f"- Confidence score: **{verification['confidence']}%**\n"
+            f"- Tables verified: {len(verification['verified_tables'])}/{len(verification['verified_tables'])+len(verification['unknown_tables'])}\n"
+            f"- Columns verified: {len(verification['verified_columns'])}/{len(verification['verified_columns'])+len(verification['unknown_columns'])}\n"
+            f"- Source: SQLite database query\n"
+        )
+        if verification['issues']:
+            verification_footer += "- Issues: " + "; ".join(verification['issues']) + "\n"
+
+        suggestion_section = ""
+        if verification.get("suggestions"):
+            suggestion_section = "\n\n" + "\n".join(
+                f"💡 {s}" for s in verification["suggestions"]
+            ) + "\n"
+        return f"{autocorrect_note}{sql_display}{green_banner}{formatted}{verification_footer}{suggestion_section}"
 
     async def chat_stream(self, user_message: str, history: list = None, session_id: str = None,
                           transparency_override: str = None, model_override: str = None,
@@ -3383,14 +3623,41 @@ sqlite3 data/database.db < your_schema.sql
         state['last_user_question'] = user_message
         state['shown_fields'] = set()  # Reset shown fields for new query
 
-        # Mostrar la SQL generada inmediatamente (solo crystal_box y grey_box)
-        if transparency in ("crystal_box", "grey_box"):
-            from sql_verifier import SQLVerifier
-            sql_explanation = SQLVerifier.sql_to_text(sql_query)
-            explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
-            yield ("content", f"**Generated SQL query:**\n```sql\n{sql_query}\n```\n\n{explanation_line}")
+        # Inject default ORDER BY host_institution when missing
+        sql_query = self._ensure_default_order(sql_query)
+        state['last_sql_query'] = sql_query
 
-        # ⏱️ Fase 2b: Pre-execution verification (lexical + semantic)
+        # Content + procedural: show banners AND verification details
+        _BANNER_STYLE = 'padding:8px 12px;margin:6px 0;border-radius:4px;font-size:0.9em;'
+        show_banners = transparency in ("crystal_box", "grey_box")
+        is_crystal = transparency == "crystal_box"
+        if show_banners:
+            if is_crystal:
+                yellow_banner = (
+                    f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{_BANNER_STYLE}">'
+                    '\U0001F7E1 <strong>AI interpretation</strong> — '
+                    'The AI model interpreted your question as the SQL query below. '
+                    'Check that it matches your intent.'
+                    '</div>\n\n'
+                )
+                yield ("content", yellow_banner)
+                sql_explanation = SQLVerifier.sql_to_text(sql_query)
+                explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
+                yield ("content", f"```sql\n{sql_query}\n```\n\n{explanation_line}")
+            else:
+                yellow_banner = (
+                    f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{_BANNER_STYLE}">'
+                    '\U0001F7E1 <strong>AI interpretation</strong> — '
+                    'The AI model interpreted your question as the query below. '
+                    'Check that it matches your intent.'
+                    '</div>\n\n'
+                )
+                yield ("content", yellow_banner)
+                sql_explanation = SQLVerifier.sql_to_text(sql_query)
+                explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
+                yield ("content", explanation_line)
+
+        # ⏱️ Fase 2b: Pre-execution verification (prompt level enforcement)
         if prompt_level in ("stringent", "tolerant"):
             pre_check = self._sql_verifier.verify(sql_query)
 
@@ -3408,20 +3675,27 @@ sqlite3 data/database.db < your_schema.sql
                                or i.startswith("Semantic mismatch:")]
                 if hard_errors:
                     issues_text = "\n".join(f"- {i}" for i in hard_errors)
-                    # Content transparency: show verification details as data
-                    verification_report = (
-                        f"**SQL Verification Report:**\n"
-                        f"- Confidence: {pre_check['confidence']}%\n"
-                        f"- Tables verified: {len(pre_check['verified_tables'])}\n"
-                        f"- Unknown tables: {len(pre_check['unknown_tables'])}\n"
-                        f"- Columns verified: {len(pre_check['verified_columns'])}\n"
-                        f"- Unknown columns: {len(pre_check['unknown_columns'])}\n\n"
-                        f"**Verification failed (stringent mode):**\n{issues_text}\n\n"
-                        f"The query was **not executed**. Please rephrase your question."
+                    badge = SQLReliabilityBadge.source_badge(
+                        pre_check, transparency=transparency,
+                        prompt_level=prompt_level,
+                        model_name=model or "unknown",
+                        is_local_llm=os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm"),
                     )
+                    if badge:
+                        yield ("badge", badge)
+                    self._write_audit_log(user_message, sql_query, pre_check, 0,
+                                          transparency=transparency, prompt_level=prompt_level, model_name=model)
                     self._log_timing_summary(timings)
-                    yield ("content", verification_report)
+                    yield ("content",
+                        f"**SQL verification failed (stringent mode):**\n{issues_text}\n\n"
+                        f"The query was **not executed** because it does not match your question. "
+                        f"Please try rephrasing your question."
+                    )
                     return
+
+            if prompt_level == "tolerant" and pre_check["issues"]:
+                issues_text = ", ".join(pre_check["issues"])
+                yield ("content", f"⚠️ *Warning (tolerant mode): {issues_text}*\n\n")
 
         # ⏱️ Fase 3: Ejecutar SQL
         t_fase3_start = time.perf_counter()
@@ -3475,6 +3749,23 @@ sqlite3 data/database.db < your_schema.sql
         yield ("status", "Formateando explicación...")
         success, results = self._execute_sql(sql_query)
 
+        # Auto-correct: if 0 results, try fixing misspelled LIKE terms
+        if success and (not results or len(results) == 0):
+            corrected_sql, corrections = self._sql_verifier.autocorrect_sql(sql_query)
+            if corrected_sql and corrected_sql != sql_query:
+                logger.info(f"🔄 Auto-correcting SQL: {corrections}")
+                success2, results2 = self._execute_sql(corrected_sql)
+                if success2 and results2:
+                    success, results = success2, results2
+                    sql_query = corrected_sql
+                    state['last_sql_query'] = corrected_sql
+                    correction_text = "\n\n".join(f"🔄 {c}" for c in corrections)
+                    yield ("content", f"{correction_text}\n\n")
+                    if show_banners and is_crystal:
+                        corr_explanation = SQLVerifier.sql_to_text(sql_query)
+                        corr_expl_line = f"**In plain language:** {corr_explanation}\n\n" if corr_explanation else ""
+                        yield ("content", f"**Corrected SQL query:**\n```sql\n{sql_query}\n```\n\n{corr_expl_line}")
+
         # Guardar resultados para paginación y detalles
         if success and results:
             state['last_results'] = results
@@ -3484,19 +3775,48 @@ sqlite3 data/database.db < your_schema.sql
         t_fase4_end = time.perf_counter()
         timings["4. Python formatea respuesta"] = t_fase4_end - t_fase4_start
 
-        # Post-execution verification
+        # ⏱️ Fase 5: SQL verification (for audit log, no verbose badge)
         result_count = len(results) if isinstance(results, list) else 0
         verification = self._sql_verifier.verify_with_execution(sql_query, success, result_count)
-        semantic_post = self._sql_verifier.verify_semantic(user_message, sql_query)
-        if semantic_post["issues"]:
-            verification["issues"].extend(semantic_post["issues"])
-            verification["confidence"] = max(0, verification["confidence"] - semantic_post["penalty"])
 
-        logger.info(f"🔍 SQL verification: confidence={verification['confidence']}%, "
-                     f"tables={len(verification['verified_tables'])}/{len(verification['verified_tables'])+len(verification['unknown_tables'])}, "
-                     f"columns={len(verification['verified_columns'])}/{len(verification['verified_columns'])+len(verification['unknown_columns'])}")
+        # Audit log
+        self._write_audit_log(user_message, sql_query, verification, result_count,
+                              transparency=transparency, prompt_level=prompt_level, model_name=model)
 
-        # Content transparency: append verification details as quantitative data
+        # Mostrar resumen de tiempos
+        self._log_timing_summary(timings)
+
+        # Green procedural banner before data results
+        if show_banners and success:
+            if results:
+                if is_crystal:
+                    green_banner = (
+                        f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                        '\U0001F7E2 <strong>Verified data</strong> — '
+                        'The results below come directly from the database (no AI involved).'
+                        '</div>\n\n'
+                    )
+                else:
+                    green_banner = (
+                        f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                        '\U0001F7E2 <strong>Verified data</strong> — '
+                        'Data from the database.'
+                        '</div>\n\n'
+                    )
+                yield ("content", green_banner)
+            else:
+                green_banner = (
+                    f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
+                    '\U0001F7E2 <strong>Database response</strong> — '
+                    'The query was executed against the database but returned no results.'
+                    '</div>\n\n'
+                )
+                yield ("content", green_banner)
+
+        # Enviar la explicación formateada
+        yield ("content", formatted)
+
+        # Content transparency: verification footer with quantitative details
         verification_footer = (
             f"\n\n---\n"
             f"**Verification details:**\n"
@@ -3507,12 +3827,41 @@ sqlite3 data/database.db < your_schema.sql
         )
         if verification['issues']:
             verification_footer += "- Issues: " + "; ".join(verification['issues']) + "\n"
+        yield ("content", verification_footer)
 
-        # Mostrar resumen de tiempos
-        self._log_timing_summary(timings)
+        # Show suggestions if any
+        if verification.get("suggestions"):
+            suggestion_text = "\n".join(f"💡 {s}" for s in verification["suggestions"])
+            yield ("content", f"\n\n{suggestion_text}\n")
 
-        # Enviar explicación formateada + verification report
-        yield ("content", formatted + verification_footer)
+    def _write_audit_log(self, query: str, sql: str, verification: dict, result_count: int,
+                         transparency: str = None, prompt_level: str = None, model_name: str = None):
+        """Write an audit log entry for EU AI Act compliance."""
+        if not self._audit_enabled:
+            return
+        try:
+            from datetime import datetime, timezone
+            entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "agent_id": self._config.get("agent_id", "pisha5"),
+                "query": query,
+                "query_type": "text2sql",
+                "sql": sql,
+                "confidence": verification.get("confidence", 0),
+                "issues": verification.get("issues", []),
+                "verified_tables": verification.get("verified_tables", []),
+                "unknown_columns": verification.get("unknown_columns", []),
+                "executed_ok": verification.get("executed_ok"),
+                "result_count": result_count,
+                "transparency_level": transparency or self._transparency,
+                "prompt_level": prompt_level or self._prompt_level,
+                "model": model_name or self.model,
+            }
+            import json as json_mod
+            with open(self._audit_path, "a", encoding="utf-8") as f:
+                f.write(json_mod.dumps(entry, ensure_ascii=False) + "\n")
+        except Exception as e:
+            logger.warning(f"[audit_log] Write error: {e}")
 
     def get_schema(self) -> str:
         """Devuelve el esquema de la BD (útil para debugging/API)."""

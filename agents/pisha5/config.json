@@ -1,0 +1,19 @@
+{
+  "agent_id": "pisha5",
+  "agent_name": "Agoria DB assistant (content)",
+  "type": "text2sql",
+  "description": "Database assistant for university agreements with SQL verification and content transparency",
+  "welcome_message": "Hi! I'm Gloria, the Agoria DB assistant. How can I help you?",
+  "example_queries": [
+    "What agreements are there with The Hague University of Applied Sciences?",
+    "Which Dutch universities have agreements?",
+    "Are there any agreements with 'English B1' as language requirement?",
+    "Do we have agreements with the Netherlands?"
+  ],
+  "transparency_level": "crystal_box",
+  "prompt_level": "stringent",
+  "audit_log_enabled": true,
+  "_transparency_comment": "crystal_box: show SQL + verification details + badge. grey_box: badge + results. black_box: results only.",
+  "_prompt_level_comment": "stringent: reject unverified SQL, show warnings. tolerant: flag issues but execute. lax: minimal validation.",
+  "transparency_type": "content"
+}
