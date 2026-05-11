@@ -193,6 +193,11 @@ from apps.uninovis.uninovis import router as uninovis_router
 app.include_router(uninovis_router)
 app.mount("/uninovis/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uninovis" / "static"), name="uninovis_static")
 
+# Mount Researcher Connect app
+from apps.researcher_connect.researcher_connect import router as researcher_connect_router
+app.include_router(researcher_connect_router)
+app.mount("/researcher_connect/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "researcher_connect" / "static"), name="researcher_connect_static")
+
 # Mount Transparency Study apps
 from apps.rag_study.study import router as rag_study_router
 app.include_router(rag_study_router)

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS Researcher Connect</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
+        h1 { text-align: center; color: #4250b3; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 0.95em; }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* Auth bar */
+        .auth-bar { text-align: right; margin-bottom: 16px; }
+        .auth-bar button { margin-left: 6px; }
+        .auth-info { font-size: 0.85em; color: #666; margin-right: 8px; }
+
+        /* Cards */
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px; }
+        .card h2 { color: #4250b3; margin-bottom: 16px; font-size: 1.15em; }
+
+        /* Toolbar */
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+        .toolbar input[type="text"] { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+        .toolbar select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; min-width: 160px; }
+
+        /* Buttons */
+        .btn { display: inline-block; background: #4250b3; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-size: 0.9em; cursor: pointer; }
+        .btn:hover { background: #374399; }
+        .btn-small { background: #e9ecef; border: 1px solid #ccc; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.82em; }
+        .btn-small:hover { background: #d0d4d9; }
+        .btn-danger { background: #dc3545; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.82em; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-outline { background: transparent; border: 1px solid #4250b3; color: #4250b3; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85em; }
+        .btn-outline:hover { background: #4250b3; color: #fff; }
+
+        /* Researcher grid */
+        .researcher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+        .researcher-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 20px; border-left: 4px solid #4250b3; transition: transform 0.15s, box-shadow 0.15s; }
+        .researcher-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+        .researcher-card .name { font-size: 1.1em; font-weight: 700; color: #4250b3; margin-bottom: 4px; }
+        .researcher-card .position { color: #666; font-size: 0.85em; margin-bottom: 2px; }
+        .researcher-card .university { color: #888; font-size: 0.82em; margin-bottom: 10px; }
+        .researcher-card .areas { margin-bottom: 8px; }
+        .researcher-card .keywords { margin-bottom: 8px; }
+        .researcher-card .bio { color: #555; font-size: 0.85em; line-height: 1.5; margin-bottom: 8px; max-height: 60px; overflow: hidden; }
+        .researcher-card .looking-for { font-size: 0.83em; color: #4250b3; font-style: italic; margin-bottom: 8px; }
+        .researcher-card .links { font-size: 0.82em; }
+        .researcher-card .links a { color: #4250b3; margin-right: 12px; text-decoration: none; }
+        .researcher-card .links a:hover { text-decoration: underline; }
+        .researcher-card .actions { margin-top: 10px; display: flex; gap: 6px; }
+
+        /* Badges */
+        .badge { font-size: 0.72em; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; display: inline-block; margin: 1px 2px; }
+        .badge-area { background: #e8e0f0; color: #4250b3; }
+        .badge-kw { background: #d1ecf1; color: #0c5460; }
+        .badge-uni { background: #e9ecef; color: #495057; }
+
+        /* Forms */
+        select, input[type="text"], input[type="email"], input[type="url"], textarea {
+            padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; background: #fff; width: 100%;
+        }
+        textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 4px; color: #4250b3; font-size: 0.85em; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-box { background: #fff; border-radius: 10px; padding: 28px; max-width: 640px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .modal-box h3 { color: #4250b3; margin-bottom: 16px; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+        /* Checkbox grid for areas */
+        .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; max-height: 180px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 8px; }
+        .checkbox-grid label { font-weight: 400; font-size: 0.88em; cursor: pointer; }
+        .checkbox-grid label:hover { color: #4250b3; }
+
+        /* Stats bar */
+        .stats-bar { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+        .stat { background: #fff; border-radius: 8px; padding: 14px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); text-align: center; min-width: 120px; }
+        .stat .number { font-size: 1.6em; font-weight: 700; color: #4250b3; }
+        .stat .label { font-size: 0.78em; color: #888; }
+
+        /* No results */
+        .no-results { text-align: center; padding: 40px; color: #999; font-size: 1.1em; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>UNINOVIS Researcher Connect</h1>
+    <p class="subtitle">Find and connect with researchers across UNINOVIS partner universities</p>
+
+    <!-- Auth bar -->
+    <div class="auth-bar">
+        <span class="auth-info" id="authInfo"></span>
+        <button class="btn-small" id="loginBtn" onclick="showLogin()">Login to Edit</button>
+        <button class="btn-small hidden" id="logoutBtn" onclick="doLogout()">Logout</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar" id="statsBar"></div>
+
+    <!-- Toolbar -->
+    <div class="card">
+        <div class="toolbar">
+            <input type="text" id="searchInput" placeholder="Search by name, keyword, interest...">
+            <select id="filterUni"><option value="">All Universities</option></select>
+            <select id="filterArea"><option value="">All Research Areas</option></select>
+            <button class="btn-outline" onclick="clearFilters()">Clear</button>
+        </div>
+        <div class="toolbar hidden" id="editorToolbar">
+            <button class="btn" onclick="openAddModal()">+ Add Researcher</button>
+            <button class="btn-outline" onclick="openImportModal()">Import Excel</button>
+            <button class="btn-outline" onclick="location.href='/researcher_connect/api/export'">Export Excel</button>
+            <button class="btn-outline" onclick="location.href='/researcher_connect/api/template'">Download Template</button>
+        </div>
+    </div>
+
+    <!-- Researcher list -->
+    <div class="researcher-grid" id="researcherGrid"></div>
+    <div class="no-results hidden" id="noResults">No researchers match your search.</div>
+</div>
+
+<!-- Login modal -->
+<div class="modal" id="loginModal">
+    <div class="modal-box">
+        <h3>Login</h3>
+        <div class="form-group"><label>Username</label><input type="text" id="loginUser"></div>
+        <div class="form-group"><label>Password</label><input type="text" id="loginPass" style="-webkit-text-security:disc;"></div>
+        <p id="loginError" style="color:#dc3545;font-size:0.85em;"></p>
+        <div class="modal-footer">
+            <button class="btn-small" onclick="closeModal('loginModal')">Cancel</button>
+            <button class="btn" onclick="doLogin()">Login</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit researcher modal -->
+<div class="modal" id="researcherModal">
+    <div class="modal-box">
+        <h3 id="researcherModalTitle">Add Researcher</h3>
+        <input type="hidden" id="editId">
+        <div class="form-row">
+            <div class="form-group"><label>First Name *</label><input type="text" id="rFirstName"></div>
+            <div class="form-group"><label>Family Name *</label><input type="text" id="rFamilyName"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Email *</label><input type="email" id="rEmail"></div>
+            <div class="form-group">
+                <label>University *</label>
+                <select id="rUniversity"></select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Department</label><input type="text" id="rDepartment"></div>
+            <div class="form-group"><label>Position</label><input type="text" id="rPosition"></div>
+        </div>
+        <div class="form-group">
+            <label>Research Areas</label>
+            <div class="checkbox-grid" id="areasCheckboxes"></div>
+        </div>
+        <div class="form-group">
+            <label>Keywords (comma-separated)</label>
+            <input type="text" id="rKeywords" placeholder="e.g. NLP, machine learning, ethics">
+        </div>
+        <div class="form-group"><label>Short Bio</label><textarea id="rBio" rows="3"></textarea></div>
+        <div class="form-group"><label>Looking For (collaboration interests)</label><textarea id="rLookingFor" rows="2"></textarea></div>
+        <div class="form-row">
+            <div class="form-group"><label>ORCID</label><input type="text" id="rOrcid" placeholder="0000-0001-2345-6789"></div>
+            <div class="form-group"><label>Website</label><input type="url" id="rWebsite" placeholder="https://..."></div>
+        </div>
+        <p id="researcherError" style="color:#dc3545;font-size:0.85em;"></p>
+        <div class="modal-footer">
+            <button class="btn-small" onclick="closeModal('researcherModal')">Cancel</button>
+            <button class="btn" onclick="saveResearcher()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Import modal -->
+<div class="modal" id="importModal">
+    <div class="modal-box">
+        <h3>Import Researchers from Excel</h3>
+        <p style="font-size:0.88em;color:#666;margin-bottom:12px;">
+            Upload an <strong>.xlsx</strong> file with columns: First Name, Family Name, Email, University, Department, Position, Research Areas, Keywords, Bio, Looking For, ORCID, Website.<br>
+            Use semicolons to separate multiple Research Areas or Keywords.<br>
+            Researchers with duplicate emails will be skipped.
+        </p>
+        <div class="form-group">
+            <label>Excel File</label>
+            <input type="file" id="importFile" accept=".xlsx,.xls">
+        </div>
+        <p id="importResult" style="font-size:0.88em;color:#28a745;"></p>
+        <p id="importError" style="color:#dc3545;font-size:0.85em;"></p>
+        <div class="modal-footer">
+            <button class="btn-small" onclick="closeModal('importModal')">Cancel</button>
+            <button class="btn" onclick="doImport()">Import</button>
+        </div>
+    </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal" id="detailModal">
+    <div class="modal-box" id="detailContent"></div>
+</div>
+
+<script>
+// -- State --
+var DATA = { universities: {}, researchers: [], research_areas: [] };
+var authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('uninovis_admin_token') || localStorage.getItem('tommi_token');
+var authUser = null;
+var canEdit = false;
+
+// -- Init --
+async function init() {
+    await checkAuth();
+    await loadData();
+    render();
+}
+
+// -- Auth --
+async function checkAuth() {
+    if (!authToken) { updateAuthUI(); return; }
+    try {
+        var resp = await fetch('/researcher_connect/api/auth-check', { headers: { 'Authorization': 'Bearer ' + authToken } });
+        if (resp.ok) {
+            authUser = await resp.json();
+            canEdit = authUser.can_edit;
+        } else {
+            authToken = null; authUser = null; canEdit = false;
+        }
+    } catch (e) { authUser = null; canEdit = false; }
+    updateAuthUI();
+}
+
+function updateAuthUI() {
+    document.getElementById('authInfo').textContent = authUser ? 'Logged in as ' + authUser.username : '';
+    document.getElementById('loginBtn').classList.toggle('hidden', !!authUser);
+    document.getElementById('logoutBtn').classList.toggle('hidden', !authUser);
+    document.getElementById('editorToolbar').classList.toggle('hidden', !canEdit);
+}
+
+function showLogin() {
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginError').textContent = '';
+    openModal('loginModal');
+    document.getElementById('loginUser').focus();
+}
+
+async function doLogin() {
+    var username = document.getElementById('loginUser').value.trim();
+    var password = document.getElementById('loginPass').value;
+    if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
+    try {
+        var resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
+        if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
+        var d = await resp.json();
+        authToken = d.token;
+        localStorage.setItem('uninovis_token', authToken);
+        localStorage.setItem('uninovis_admin_token', authToken);
+        closeModal('loginModal');
+        await checkAuth();
+        render();
+    } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
+}
+
+function doLogout() {
+    authToken = null; authUser = null; canEdit = false;
+    localStorage.removeItem('uninovis_token');
+    localStorage.removeItem('uninovis_admin_token');
+    updateAuthUI();
+    render();
+}
+
+document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+
+// -- Data --
+async function loadData() {
+    try {
+        var resp = await fetch('/researcher_connect/api/data');
+        DATA = await resp.json();
+    } catch (e) { console.error('Failed to load data', e); }
+}
+
+// -- Modals --
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal').forEach(function(m) {
+    m.addEventListener('click', function(e) { if (e.target === m) closeModal(m.id); });
+});
+
+// -- Rendering --
+function render() {
+    renderStats();
+    renderFilters();
+    renderGrid();
+}
+
+function renderStats() {
+    var unis = new Set(DATA.researchers.map(function(r) { return r.university; }));
+    var areas = new Set();
+    DATA.researchers.forEach(function(r) { (r.research_areas || []).forEach(function(a) { areas.add(a); }); });
+    document.getElementById('statsBar').innerHTML =
+        '<div class="stat"><div class="number">' + DATA.researchers.length + '</div><div class="label">Researchers</div></div>' +
+        '<div class="stat"><div class="number">' + unis.size + '</div><div class="label">Universities</div></div>' +
+        '<div class="stat"><div class="number">' + areas.size + '</div><div class="label">Research Areas</div></div>';
+}
+
+function renderFilters() {
+    var uniSel = document.getElementById('filterUni');
+    var current = uniSel.value;
+    uniSel.innerHTML = '<option value="">All Universities</option>';
+    Object.keys(DATA.universities).sort().forEach(function(code) {
+        var u = DATA.universities[code];
+        uniSel.innerHTML += '<option value="' + code + '">' + code + ' - ' + u.name + '</option>';
+    });
+    uniSel.value = current;
+
+    var areaSel = document.getElementById('filterArea');
+    var currentArea = areaSel.value;
+    areaSel.innerHTML = '<option value="">All Research Areas</option>';
+    (DATA.research_areas || []).forEach(function(a) {
+        areaSel.innerHTML += '<option value="' + a + '">' + a + '</option>';
+    });
+    areaSel.value = currentArea;
+}
+
+function getFilteredResearchers() {
+    var q = document.getElementById('searchInput').value.toLowerCase().trim();
+    var uni = document.getElementById('filterUni').value;
+    var area = document.getElementById('filterArea').value;
+
+    return DATA.researchers.filter(function(r) {
+        if (uni && r.university !== uni) return false;
+        if (area && (r.research_areas || []).indexOf(area) === -1) return false;
+        if (q) {
+            var haystack = [
+                r.first_name, r.family_name, r.email, r.department, r.position,
+                r.bio, r.looking_for, r.university
+            ].concat(r.research_areas || []).concat(r.keywords || []).join(' ').toLowerCase();
+            if (haystack.indexOf(q) === -1) return false;
+        }
+        return true;
+    });
+}
+
+function renderGrid() {
+    var filtered = getFilteredResearchers();
+    var grid = document.getElementById('researcherGrid');
+    var noRes = document.getElementById('noResults');
+
+    if (filtered.length === 0) {
+        grid.innerHTML = '';
+        noRes.classList.remove('hidden');
+        return;
+    }
+    noRes.classList.add('hidden');
+
+    grid.innerHTML = filtered.map(function(r) {
+        var uniName = DATA.universities[r.university] ? DATA.universities[r.university].name : r.university;
+        var areas = (r.research_areas || []).map(function(a) { return '<span class="badge badge-area">' + esc(a) + '</span>'; }).join('');
+        var kws = (r.keywords || []).map(function(k) { return '<span class="badge badge-kw">' + esc(k) + '</span>'; }).join('');
+        var links = '';
+        if (r.email) links += '<a href="mailto:' + esc(r.email) + '">Email</a>';
+        if (r.orcid) links += '<a href="https://orcid.org/' + esc(r.orcid) + '" target="_blank">ORCID</a>';
+        if (r.website) links += '<a href="' + esc(r.website) + '" target="_blank">Website</a>';
+        var actions = '';
+        if (canEdit) {
+            actions = '<div class="actions">' +
+                '<button class="btn-small" onclick="openEditModal(\'' + r.id + '\')">Edit</button>' +
+                '<button class="btn-danger" onclick="deleteResearcher(\'' + r.id + '\')">Delete</button>' +
+                '</div>';
+        }
+        return '<div class="researcher-card" onclick="showDetail(\'' + r.id + '\')" style="cursor:pointer">' +
+            '<div class="name">' + esc(r.first_name) + ' ' + esc(r.family_name) + '</div>' +
+            '<div class="position">' + esc(r.position || '') + (r.department ? ' — ' + esc(r.department) : '') + '</div>' +
+            '<div class="university"><span class="badge badge-uni">' + esc(r.university) + '</span> ' + esc(uniName) + '</div>' +
+            (areas ? '<div class="areas">' + areas + '</div>' : '') +
+            (kws ? '<div class="keywords">' + kws + '</div>' : '') +
+            (r.bio ? '<div class="bio">' + esc(r.bio) + '</div>' : '') +
+            (r.looking_for ? '<div class="looking-for">' + esc(r.looking_for) + '</div>' : '') +
+            '<div class="links">' + links + '</div>' +
+            actions +
+            '</div>';
+    }).join('');
+}
+
+function esc(s) {
+    if (!s) return '';
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+// -- Search & filter --
+document.getElementById('searchInput').addEventListener('input', renderGrid);
+document.getElementById('filterUni').addEventListener('change', renderGrid);
+document.getElementById('filterArea').addEventListener('change', renderGrid);
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterUni').value = '';
+    document.getElementById('filterArea').value = '';
+    renderGrid();
+}
+
+// -- Detail modal --
+function showDetail(id) {
+    var r = DATA.researchers.find(function(x) { return x.id === id; });
+    if (!r) return;
+    var uniName = DATA.universities[r.university] ? DATA.universities[r.university].name : r.university;
+    var areas = (r.research_areas || []).map(function(a) { return '<span class="badge badge-area">' + esc(a) + '</span>'; }).join(' ');
+    var kws = (r.keywords || []).map(function(k) { return '<span class="badge badge-kw">' + esc(k) + '</span>'; }).join(' ');
+
+    var html = '<h3>' + esc(r.first_name) + ' ' + esc(r.family_name) + '</h3>';
+    html += '<p style="color:#666;margin-bottom:12px;">' + esc(r.position || '') + (r.department ? ' — ' + esc(r.department) : '') + '</p>';
+    html += '<p style="margin-bottom:12px;"><span class="badge badge-uni">' + esc(r.university) + '</span> ' + esc(uniName) + '</p>';
+    if (areas) html += '<p style="margin-bottom:8px;"><strong>Research Areas:</strong><br>' + areas + '</p>';
+    if (kws) html += '<p style="margin-bottom:8px;"><strong>Keywords:</strong><br>' + kws + '</p>';
+    if (r.bio) html += '<p style="margin-bottom:8px;"><strong>Bio:</strong><br>' + esc(r.bio) + '</p>';
+    if (r.looking_for) html += '<p style="margin-bottom:8px;color:#4250b3;"><strong>Looking for:</strong> ' + esc(r.looking_for) + '</p>';
+    html += '<p style="margin-bottom:8px;">';
+    if (r.email) html += '<strong>Email:</strong> <a href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a><br>';
+    if (r.orcid) html += '<strong>ORCID:</strong> <a href="https://orcid.org/' + esc(r.orcid) + '" target="_blank">' + esc(r.orcid) + '</a><br>';
+    if (r.website) html += '<strong>Website:</strong> <a href="' + esc(r.website) + '" target="_blank">' + esc(r.website) + '</a><br>';
+    html += '</p>';
+    html += '<div class="modal-footer"><button class="btn-small" onclick="closeModal(\'detailModal\')">Close</button>';
+    if (canEdit) html += '<button class="btn" onclick="closeModal(\'detailModal\');openEditModal(\'' + r.id + '\')">Edit</button>';
+    html += '</div>';
+
+    document.getElementById('detailContent').innerHTML = html;
+    openModal('detailModal');
+}
+
+// -- Add/Edit modal --
+function populateAreasCheckboxes(selected) {
+    var container = document.getElementById('areasCheckboxes');
+    container.innerHTML = (DATA.research_areas || []).map(function(a) {
+        var checked = (selected || []).indexOf(a) >= 0 ? ' checked' : '';
+        return '<label><input type="checkbox" value="' + esc(a) + '"' + checked + '> ' + esc(a) + '</label>';
+    }).join('');
+}
+
+function populateUniSelect() {
+    var sel = document.getElementById('rUniversity');
+    sel.innerHTML = '<option value="">-- Select --</option>';
+    Object.keys(DATA.universities).sort().forEach(function(code) {
+        sel.innerHTML += '<option value="' + code + '">' + code + ' - ' + DATA.universities[code].name + '</option>';
+    });
+}
+
+function openAddModal() {
+    document.getElementById('researcherModalTitle').textContent = 'Add Researcher';
+    document.getElementById('editId').value = '';
+    document.getElementById('rFirstName').value = '';
+    document.getElementById('rFamilyName').value = '';
+    document.getElementById('rEmail').value = '';
+    document.getElementById('rDepartment').value = '';
+    document.getElementById('rPosition').value = '';
+    document.getElementById('rKeywords').value = '';
+    document.getElementById('rBio').value = '';
+    document.getElementById('rLookingFor').value = '';
+    document.getElementById('rOrcid').value = '';
+    document.getElementById('rWebsite').value = '';
+    document.getElementById('researcherError').textContent = '';
+    populateUniSelect();
+    document.getElementById('rUniversity').value = '';
+    populateAreasCheckboxes([]);
+    openModal('researcherModal');
+    document.getElementById('rFirstName').focus();
+}
+
+function openEditModal(id) {
+    var r = DATA.researchers.find(function(x) { return x.id === id; });
+    if (!r) return;
+    document.getElementById('researcherModalTitle').textContent = 'Edit Researcher';
+    document.getElementById('editId').value = r.id;
+    document.getElementById('rFirstName').value = r.first_name;
+    document.getElementById('rFamilyName').value = r.family_name;
+    document.getElementById('rEmail').value = r.email;
+    document.getElementById('rDepartment').value = r.department || '';
+    document.getElementById('rPosition').value = r.position || '';
+    document.getElementById('rKeywords').value = (r.keywords || []).join(', ');
+    document.getElementById('rBio').value = r.bio || '';
+    document.getElementById('rLookingFor').value = r.looking_for || '';
+    document.getElementById('rOrcid').value = r.orcid || '';
+    document.getElementById('rWebsite').value = r.website || '';
+    document.getElementById('researcherError').textContent = '';
+    populateUniSelect();
+    document.getElementById('rUniversity').value = r.university;
+    populateAreasCheckboxes(r.research_areas || []);
+    openModal('researcherModal');
+}
+
+async function saveResearcher() {
+    var id = document.getElementById('editId').value;
+    var firstName = document.getElementById('rFirstName').value.trim();
+    var familyName = document.getElementById('rFamilyName').value.trim();
+    var email = document.getElementById('rEmail').value.trim();
+    var university = document.getElementById('rUniversity').value;
+
+    if (!firstName || !familyName || !email || !university) {
+        document.getElementById('researcherError').textContent = 'First Name, Family Name, Email, and University are required.';
+        return;
+    }
+
+    var selectedAreas = [];
+    document.querySelectorAll('#areasCheckboxes input:checked').forEach(function(cb) { selectedAreas.push(cb.value); });
+    var keywords = document.getElementById('rKeywords').value.split(',').map(function(k) { return k.trim(); }).filter(Boolean);
+
+    var body = {
+        first_name: firstName,
+        family_name: familyName,
+        email: email,
+        university: university,
+        department: document.getElementById('rDepartment').value.trim(),
+        position: document.getElementById('rPosition').value.trim(),
+        research_areas: selectedAreas,
+        keywords: keywords,
+        bio: document.getElementById('rBio').value.trim(),
+        looking_for: document.getElementById('rLookingFor').value.trim(),
+        orcid: document.getElementById('rOrcid').value.trim(),
+        website: document.getElementById('rWebsite').value.trim(),
+    };
+
+    var url = id ? '/researcher_connect/api/researchers/' + id : '/researcher_connect/api/researchers';
+    var method = id ? 'PUT' : 'POST';
+
+    try {
+        var resp = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+            body: JSON.stringify(body),
+        });
+        if (!resp.ok) {
+            var err = await resp.json();
+            document.getElementById('researcherError').textContent = err.detail || 'Save failed';
+            return;
+        }
+        closeModal('researcherModal');
+        await loadData();
+        render();
+    } catch (e) {
+        document.getElementById('researcherError').textContent = 'Save failed';
+    }
+}
+
+async function deleteResearcher(id) {
+    event.stopPropagation();
+    if (!confirm('Delete this researcher?')) return;
+    try {
+        await fetch('/researcher_connect/api/researchers/' + id, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + authToken },
+        });
+        await loadData();
+        render();
+    } catch (e) { alert('Delete failed'); }
+}
+
+// -- Import --
+function openImportModal() {
+    document.getElementById('importFile').value = '';
+    document.getElementById('importResult').textContent = '';
+    document.getElementById('importError').textContent = '';
+    openModal('importModal');
+}
+
+async function doImport() {
+    var fileInput = document.getElementById('importFile');
+    if (!fileInput.files.length) { document.getElementById('importError').textContent = 'Select a file'; return; }
+    var formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    try {
+        var resp = await fetch('/researcher_connect/api/import', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + authToken },
+            body: formData,
+        });
+        if (!resp.ok) {
+            var err = await resp.json();
+            document.getElementById('importError').textContent = err.detail || 'Import failed';
+            document.getElementById('importResult').textContent = '';
+            return;
+        }
+        var result = await resp.json();
+        document.getElementById('importResult').textContent = 'Added ' + result.added + ' researcher(s), skipped ' + result.skipped + '.';
+        document.getElementById('importError').textContent = '';
+        await loadData();
+        render();
+    } catch (e) {
+        document.getElementById('importError').textContent = 'Import failed';
+    }
+}
+
+// -- Stop click propagation on action buttons --
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.actions')) e.stopPropagation();
+});
+
+// -- Start --
+init();
+</script>
+<script>
+    function sendHeight() {
+        var height = document.documentElement.scrollHeight;
+        window.parent.postMessage({ type: 'iframeHeight', height: height }, 'https://uninovis.widening.eu');
+    }
+    window.addEventListener('load', sendHeight);
+    window.addEventListener('resize', sendHeight);
+    var observer = new MutationObserver(sendHeight);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+</script>
+</body>
+</html>

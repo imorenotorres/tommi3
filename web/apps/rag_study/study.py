@@ -71,6 +71,7 @@ def get_db():
             effort_procedural INTEGER,
             preference TEXT,
             comment TEXT,
+            total_time_sec INTEGER,
             completed INTEGER DEFAULT 0
         )
     """)
@@ -163,6 +164,7 @@ class ComparisonBody(BaseModel):
     participant_id: str
     preference: str
     comment: str = ""
+    total_time_sec: int = 0
 
 
 # ============================================================
@@ -340,9 +342,11 @@ def save_comparison(body: ComparisonBody):
     conn.execute(
         """UPDATE participants
            SET preference = ?, comment = ?,
-               completed = 1, completed_at = ?
+               completed = 1, completed_at = ?,
+               total_time_sec = ?
            WHERE participant_id = ?""",
-        (body.preference, body.comment, datetime.utcnow().isoformat(), body.participant_id),
+        (body.preference, body.comment, datetime.utcnow().isoformat(),
+         body.total_time_sec, body.participant_id),
     )
     conn.commit()
     conn.close()
@@ -370,7 +374,7 @@ def export_csv():
         "useful_content", "useful_procedural",
         "ease_content", "ease_procedural",
         "effort_content", "effort_procedural",
-        "preference", "comment",
+        "preference", "comment", "total_time_sec",
     ]
 
     def generate():

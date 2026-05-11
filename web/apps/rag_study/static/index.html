@@ -458,7 +458,7 @@
 
     <!-- STEP 8: DIRECT COMPARISON -->
     <div class="step" id="step-8">
-        <h2>Step 8: Overall Comparison</h2>
+        <h2>Step 8: Comparison</h2>
         <p>You have now seen both types of added information. Thinking about how each one helped you assess the reliability of the response:</p>
 
         <div class="likert-group">
@@ -520,6 +520,7 @@ let agentRatings = {
 };
 let preference = null;
 let timerStart = {};
+let studyStartTime = null;
 let timerInterval = {};
 
 // ============================================================
@@ -588,6 +589,7 @@ async function startStudy() {
     errEl.style.display = 'none';
     try {
         studyData = await post('/api/start', { email });
+        studyStartTime = Date.now();
         document.getElementById('pidDisplay').textContent = studyData.participant_id;
         goStep(1);
     } catch (e) {
@@ -826,10 +828,12 @@ function setupComparison() {
 }
 
 async function submitComparison() {
+    const totalSec = studyStartTime ? Math.floor((Date.now() - studyStartTime) / 1000) : 0;
     await post('/api/save_comparison', {
         participant_id: studyData.participant_id,
         preference,
-        comment: document.getElementById('commentInput').value.trim()
+        comment: document.getElementById('commentInput').value.trim(),
+        total_time_sec: totalSec
     });
     showResults();
     goStep(9);
