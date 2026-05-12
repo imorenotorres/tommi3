@@ -92,81 +92,6 @@ def auth_check(session: dict = Depends(_require_auth)):
     return {"username": session["username"], "role": session["role"], "can_edit": can_edit}
 
 
-def _find_own_researcher(data: dict, username: str):
-    """Return the researcher record linked to this username, or None."""
-    for r in data["researchers"]:
-        if (r.get("email", "").lower() == username or
-                r.get("linked_username", "").lower() == username):
-            return r
-    return None
-
-
-@router.get("/api/my-profile")
-def get_my_profile(session: dict = Depends(_require_auth)):
-    data = load_data()
-    r = _find_own_researcher(data, session["username"].lower())
-    if r is None:
-        raise HTTPException(404, "No researcher profile found for your account")
-    return r
-
-
-@router.post("/api/my-profile")
-def create_my_profile(body: ResearcherBody, session: dict = Depends(_require_auth)):
-    data = load_data()
-    username = session["username"].lower()
-    if _find_own_researcher(data, username) is not None:
-        raise HTTPException(409, "A profile already exists for your account")
-    if body.university not in data["universities"]:
-        raise HTTPException(400, f"Unknown university: {body.university}")
-    researcher = {
-        "id": str(uuid.uuid4())[:8],
-        "first_name": body.first_name,
-        "family_name": body.family_name,
-        "email": body.email,
-        "university": body.university,
-        "department": body.department,
-        "position": body.position,
-        "research_areas": body.research_areas,
-        "keywords": body.keywords,
-        "bio": body.bio,
-        "looking_for": body.looking_for,
-        "orcid": body.orcid,
-        "website": body.website,
-        "linked_username": username,
-    }
-    data["researchers"].append(researcher)
-    save_data(data)
-    return researcher
-
-
-@router.put("/api/my-profile")
-def update_my_profile(body: ResearcherBody, session: dict = Depends(_require_auth)):
-    data = load_data()
-    username = session["username"].lower()
-    if body.university not in data["universities"]:
-        raise HTTPException(400, f"Unknown university: {body.university}")
-    r = _find_own_researcher(data, username)
-    if r is None:
-        raise HTTPException(404, "No researcher profile found for your account")
-    r.update({
-        "first_name": body.first_name,
-        "family_name": body.family_name,
-        "email": body.email,
-        "university": body.university,
-        "department": body.department,
-        "position": body.position,
-        "research_areas": body.research_areas,
-        "keywords": body.keywords,
-        "bio": body.bio,
-        "looking_for": body.looking_for,
-        "orcid": body.orcid,
-        "website": body.website,
-        "linked_username": username,
-    })
-    save_data(data)
-    return r
-
-
 @router.get("/api/data")
 def get_all_data():
     """Return all researcher data (public read)."""
@@ -176,15 +101,8 @@ def get_all_data():
 # -- Researcher CRUD -----------------------------------------------------------
 
 @router.post("/api/researchers")
-def create_researcher(body: ResearcherBody, session: dict = Depends(_require_auth)):
-    is_editor = ROLES.get(session["role"], 0) >= ROLES.get("tester", 99)
+def create_researcher(body: ResearcherBody, session: dict = Depends(_require_editor)):
     data = load_data()
-    if not is_editor:
-        username = session["username"].lower()
-        if body.email.lower() != username:
-            raise HTTPException(403, "You can only create a profile for your own email address")
-        if any(r.get("email", "").lower() == username for r in data["researchers"]):
-            raise HTTPException(409, "A profile already exists for your account")
     if body.university not in data["universities"]:
         raise HTTPException(400, f"Unknown university: {body.university}")
     researcher = {
@@ -208,18 +126,10 @@ def create_researcher(body: ResearcherBody, session: dict = Depends(_require_aut
 
 
 @router.put("/api/researchers/{researcher_id}")
-def update_researcher(researcher_id: str, body: ResearcherBody, session: dict = Depends(_require_auth)):
-    is_editor = ROLES.get(session["role"], 0) >= ROLES.get("tester", 99)
+def update_researcher(researcher_id: str, body: ResearcherBody, session: dict = Depends(_require_editor)):
     data = load_data()
     for r in data["researchers"]:
         if r["id"] == researcher_id:
-            username = session["username"].lower()
-            is_owner = (r.get("email", "").lower() == username or
-                        r.get("linked_username", "").lower() == username)
-            if not is_editor and not is_owner:
-                raise HTTPException(403, "You can only edit your own profile")
-            if body.university not in data["universities"]:
-                raise HTTPException(400, f"Unknown university: {body.university}")
             r.update({
                 "first_name": body.first_name,
                 "family_name": body.family_name,
