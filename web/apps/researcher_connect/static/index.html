@@ -13,8 +13,21 @@
 
         /* Auth bar */
         .auth-bar { text-align: right; margin-bottom: 16px; }
-        .auth-bar button { margin-left: 6px; }
-        .auth-info { font-size: 0.85em; color: #666; margin-right: 8px; }
+
+        /* User menu */
+        .user-menu-wrapper { position: relative; display: inline-block; }
+        .user-menu-btn { background: #4250b3; color: #fff; border: none; padding: 7px 18px; border-radius: 20px; cursor: pointer; font-size: 0.88em; font-weight: 600; }
+        .user-menu-btn:hover { background: #374399; }
+        .user-dropdown { display: none; position: absolute; right: 0; top: 110%; background: #fff; border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,0.15); min-width: 210px; z-index: 200; padding: 6px 0; }
+        .user-dropdown.open { display: block; }
+        .user-dropdown .menu-header { padding: 10px 16px 8px; border-bottom: 1px solid #f0f0f0; }
+        .user-dropdown .menu-header .menu-name { font-weight: 700; color: #333; font-size: 0.9em; }
+        .user-dropdown .menu-header .menu-email-text { color: #888; font-size: 0.8em; margin-top: 2px; }
+        .user-dropdown .menu-item { display: block; width: 100%; text-align: left; padding: 10px 16px; background: none; border: none; cursor: pointer; font-size: 0.88em; color: #333; }
+        .user-dropdown .menu-item:hover { background: #f5f5f5; color: #4250b3; }
+        .user-dropdown .menu-divider { border: none; border-top: 1px solid #f0f0f0; margin: 4px 0; }
+        .user-dropdown .menu-item.danger { color: #dc3545; }
+        .user-dropdown .menu-item.danger:hover { background: #fff5f5; color: #c82333; }
 
         /* Cards */
         .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px; }
@@ -97,9 +110,23 @@
 
     <!-- Auth bar -->
     <div class="auth-bar">
-        <span class="auth-info" id="authInfo"></span>
-        <button class="btn-small" id="loginBtn" onclick="showLogin()">Login to Edit</button>
-        <button class="btn-small hidden" id="logoutBtn" onclick="doLogout()">Logout</button>
+        <a href="/uninovis/" class="btn-small" style="text-decoration:none;margin-right:0.5rem;">&#8592; Home</a>
+        <button class="btn-small" id="loginBtn" onclick="window.location.href='/login?next=/researcher_connect/'">Login</button>
+        <div class="user-menu-wrapper hidden" id="userMenuWrapper">
+            <button class="user-menu-btn" id="userMenuBtn" onclick="toggleUserMenu()">
+                <span id="userMenuName"></span> &#9662;
+            </button>
+            <div class="user-dropdown" id="userDropdown">
+                <div class="menu-header">
+                    <div class="menu-name" id="userMenuDisplayName"></div>
+                    <div class="menu-email-text" id="userMenuEmailText"></div>
+                </div>
+                <button class="menu-item" onclick="openMyProfile()">See my profile</button>
+                <button class="menu-item" id="userEmailBtn" onclick="emailMyAccount()">Email</button>
+                <hr class="menu-divider">
+                <button class="menu-item danger" onclick="doLogout()">Logout</button>
+            </div>
+        </div>
     </div>
 
     <!-- Stats -->
@@ -126,19 +153,53 @@
     <div class="no-results hidden" id="noResults">No researchers match your search.</div>
 </div>
 
-<!-- Login modal -->
-<div class="modal" id="loginModal">
-    <div class="modal-box">
-        <h3>Login</h3>
-        <div class="form-group"><label>Username</label><input type="text" id="loginUser"></div>
-        <div class="form-group"><label>Password</label><input type="text" id="loginPass" style="-webkit-text-security:disc;"></div>
-        <p id="loginError" style="color:#dc3545;font-size:0.85em;"></p>
-        <div class="modal-footer">
-            <button class="btn-small" onclick="closeModal('loginModal')">Cancel</button>
-            <button class="btn" onclick="doLogin()">Login</button>
+<!-- My Profile modal -->
+<div class="modal" id="myProfileModal">
+    <div class="modal-box" style="max-width:720px;">
+        <h3>My Profile</h3>
+        <div id="myProfileNotFound" class="hidden" style="text-align:center;padding:30px 0;color:#888;">
+            <p style="font-size:1.05em;">No researcher profile found for your account.</p>
+            <p style="font-size:0.85em;margin-top:8px;">Contact an administrator to create your researcher profile.</p>
+        </div>
+        <div id="myProfileFormWrap">
+            <div class="form-row">
+                <div class="form-group"><label>First Name *</label><input type="text" id="mpFirstName"></div>
+                <div class="form-group"><label>Family Name *</label><input type="text" id="mpFamilyName"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Email *</label><input type="email" id="mpEmail"></div>
+                <div class="form-group">
+                    <label>University *</label>
+                    <select id="mpUniversity"></select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Department</label><input type="text" id="mpDepartment"></div>
+                <div class="form-group"><label>Position</label><input type="text" id="mpPosition"></div>
+            </div>
+            <div class="form-group">
+                <label>Research Areas</label>
+                <div class="checkbox-grid" id="mpAreasCheckboxes"></div>
+            </div>
+            <div class="form-group">
+                <label>Keywords (comma-separated)</label>
+                <input type="text" id="mpKeywords" placeholder="e.g. NLP, machine learning, ethics">
+            </div>
+            <div class="form-group"><label>Short Bio</label><textarea id="mpBio" rows="3"></textarea></div>
+            <div class="form-group"><label>Looking For (collaboration interests)</label><textarea id="mpLookingFor" rows="2"></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label>ORCID</label><input type="text" id="mpOrcid" placeholder="0000-0001-2345-6789"></div>
+                <div class="form-group"><label>Website</label><input type="url" id="mpWebsite" placeholder="https://..."></div>
+            </div>
+            <p id="myProfileError" style="color:#dc3545;font-size:0.85em;"></p>
+            <div class="modal-footer">
+                <button class="btn-small" onclick="closeModal('myProfileModal')">Cancel</button>
+                <button class="btn" id="myProfileSaveBtn" onclick="saveMyProfile()">Save</button>
+            </div>
         </div>
     </div>
 </div>
+
 
 <!-- Add/Edit researcher modal -->
 <div class="modal" id="researcherModal">
@@ -212,9 +273,11 @@
 <script>
 // -- State --
 var DATA = { universities: {}, researchers: [], research_areas: [] };
-var authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('uninovis_admin_token') || localStorage.getItem('tommi_token');
+var authToken = localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || localStorage.getItem('uninovis_admin_token');
 var authUser = null;
 var canEdit = false;
+var myProfile = null;
+var myProfileMode = 'edit'; // 'create' or 'edit'
 
 // -- Init --
 async function init() {
@@ -233,52 +296,53 @@ async function checkAuth() {
             canEdit = authUser.can_edit;
         } else {
             authToken = null; authUser = null; canEdit = false;
+            localStorage.removeItem('tommi_token');
+            localStorage.removeItem('uninovis_token');
+            localStorage.removeItem('uninovis_admin_token');
         }
     } catch (e) { authUser = null; canEdit = false; }
     updateAuthUI();
 }
 
 function updateAuthUI() {
-    document.getElementById('authInfo').textContent = authUser ? 'Logged in as ' + authUser.username : '';
     document.getElementById('loginBtn').classList.toggle('hidden', !!authUser);
-    document.getElementById('logoutBtn').classList.toggle('hidden', !authUser);
+    var wrapper = document.getElementById('userMenuWrapper');
+    wrapper.classList.toggle('hidden', !authUser);
+    if (authUser) {
+        document.getElementById('userMenuName').textContent = authUser.username;
+        document.getElementById('userMenuDisplayName').textContent = authUser.username;
+        document.getElementById('userMenuEmailText').textContent = authUser.username;
+    }
     document.getElementById('editorToolbar').classList.toggle('hidden', !canEdit);
 }
 
-function showLogin() {
-    document.getElementById('loginUser').value = '';
-    document.getElementById('loginPass').value = '';
-    document.getElementById('loginError').textContent = '';
-    openModal('loginModal');
-    document.getElementById('loginUser').focus();
+function toggleUserMenu() {
+    document.getElementById('userDropdown').classList.toggle('open');
 }
 
-async function doLogin() {
-    var username = document.getElementById('loginUser').value.trim();
-    var password = document.getElementById('loginPass').value;
-    if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
-    try {
-        var resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
-        if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
-        var d = await resp.json();
-        authToken = d.token;
-        localStorage.setItem('uninovis_token', authToken);
-        localStorage.setItem('uninovis_admin_token', authToken);
-        closeModal('loginModal');
-        await checkAuth();
-        render();
-    } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
+function emailMyAccount() {
+    var email = myProfile && myProfile.email ? myProfile.email : (authUser ? authUser.username : null);
+    if (email) window.location.href = 'mailto:' + email;
+    document.getElementById('userDropdown').classList.remove('open');
 }
+
+// Close user dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    var wrapper = document.getElementById('userMenuWrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+        document.getElementById('userDropdown').classList.remove('open');
+    }
+});
 
 function doLogout() {
-    authToken = null; authUser = null; canEdit = false;
+    authToken = null; authUser = null; canEdit = false; myProfile = null;
+    localStorage.removeItem('tommi_token');
     localStorage.removeItem('uninovis_token');
     localStorage.removeItem('uninovis_admin_token');
+    document.getElementById('userDropdown').classList.remove('open');
     updateAuthUI();
     render();
 }
-
-document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
 
 // -- Data --
 async function loadData() {
@@ -372,11 +436,14 @@ function renderGrid() {
         if (r.email) links += '<a href="mailto:' + esc(r.email) + '">Email</a>';
         if (r.orcid) links += '<a href="https://orcid.org/' + esc(r.orcid) + '" target="_blank">ORCID</a>';
         if (r.website) links += '<a href="' + esc(r.website) + '" target="_blank">Website</a>';
+        var isMyCard = authUser && (
+            (r.email && r.email.toLowerCase() === authUser.username.toLowerCase()) ||
+            (r.linked_username && r.linked_username.toLowerCase() === authUser.username.toLowerCase()));
         var actions = '';
-        if (canEdit) {
+        if (canEdit || isMyCard) {
             actions = '<div class="actions">' +
                 '<button class="btn-small" onclick="openEditModal(\'' + r.id + '\')">Edit</button>' +
-                '<button class="btn-danger" onclick="deleteResearcher(\'' + r.id + '\')">Delete</button>' +
+                (canEdit ? '<button class="btn-danger" onclick="deleteResearcher(\'' + r.id + '\')">Delete</button>' : '') +
                 '</div>';
         }
         return '<div class="researcher-card" onclick="showDetail(\'' + r.id + '\')" style="cursor:pointer">' +
@@ -432,8 +499,9 @@ function showDetail(id) {
     if (r.orcid) html += '<strong>ORCID:</strong> <a href="https://orcid.org/' + esc(r.orcid) + '" target="_blank">' + esc(r.orcid) + '</a><br>';
     if (r.website) html += '<strong>Website:</strong> <a href="' + esc(r.website) + '" target="_blank">' + esc(r.website) + '</a><br>';
     html += '</p>';
+    var isMyCard = authUser && r.email && r.email.toLowerCase() === authUser.username.toLowerCase();
     html += '<div class="modal-footer"><button class="btn-small" onclick="closeModal(\'detailModal\')">Close</button>';
-    if (canEdit) html += '<button class="btn" onclick="closeModal(\'detailModal\');openEditModal(\'' + r.id + '\')">Edit</button>';
+    if (canEdit || isMyCard) html += '<button class="btn" onclick="closeModal(\'detailModal\');openEditModal(\'' + r.id + '\')">Edit</button>';
     html += '</div>';
 
     document.getElementById('detailContent').innerHTML = html;
@@ -564,6 +632,115 @@ async function deleteResearcher(id) {
         await loadData();
         render();
     } catch (e) { alert('Delete failed'); }
+}
+
+// -- My Profile --
+function _fillMpForm(data) {
+    populateMpUniSelect();
+    document.getElementById('mpFirstName').value = data.first_name || '';
+    document.getElementById('mpFamilyName').value = data.family_name || '';
+    document.getElementById('mpEmail').value = data.email || '';
+    document.getElementById('mpUniversity').value = data.university || '';
+    document.getElementById('mpDepartment').value = data.department || '';
+    document.getElementById('mpPosition').value = data.position || '';
+    document.getElementById('mpKeywords').value = (data.keywords || []).join(', ');
+    document.getElementById('mpBio').value = data.bio || '';
+    document.getElementById('mpLookingFor').value = data.looking_for || '';
+    document.getElementById('mpOrcid').value = data.orcid || '';
+    document.getElementById('mpWebsite').value = data.website || '';
+    populateMpAreasCheckboxes(data.research_areas || []);
+}
+
+async function openMyProfile() {
+    document.getElementById('userDropdown').classList.remove('open');
+    document.getElementById('myProfileError').textContent = '';
+    document.getElementById('myProfileNotFound').classList.add('hidden');
+    document.getElementById('myProfileFormWrap').classList.remove('hidden');
+    // Default to edit mode — overridden below only if no profile exists
+    myProfileMode = 'edit';
+    document.querySelector('#myProfileModal h3').textContent = 'My Profile';
+    document.getElementById('myProfileSaveBtn').textContent = 'Save';
+    openModal('myProfileModal');
+
+    try {
+        var resp = await fetch('/researcher_connect/api/my-profile', {
+            headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        if (resp.status === 404) {
+            myProfile = null;
+            myProfileMode = 'create';
+            document.querySelector('#myProfileModal h3').textContent = 'Create Your Profile';
+            document.getElementById('myProfileSaveBtn').textContent = 'Create Profile';
+            _fillMpForm({ email: authUser ? authUser.username : '' });
+            return;
+        }
+        if (!resp.ok) { document.getElementById('myProfileError').textContent = 'Failed to load profile'; return; }
+        myProfile = await resp.json();
+        _fillMpForm(myProfile);
+    } catch (e) {
+        document.getElementById('myProfileError').textContent = 'Failed to load profile';
+    }
+}
+
+function populateMpUniSelect() {
+    var sel = document.getElementById('mpUniversity');
+    sel.innerHTML = '<option value="">-- Select --</option>';
+    Object.keys(DATA.universities).sort().forEach(function(code) {
+        sel.innerHTML += '<option value="' + code + '">' + code + ' - ' + DATA.universities[code].name + '</option>';
+    });
+    if (myProfile) sel.value = myProfile.university || '';
+}
+
+function populateMpAreasCheckboxes(selected) {
+    var container = document.getElementById('mpAreasCheckboxes');
+    container.innerHTML = (DATA.research_areas || []).map(function(a) {
+        var checked = (selected || []).indexOf(a) >= 0 ? ' checked' : '';
+        return '<label><input type="checkbox" value="' + esc(a) + '"' + checked + '> ' + esc(a) + '</label>';
+    }).join('');
+}
+
+async function saveMyProfile() {
+    var firstName = document.getElementById('mpFirstName').value.trim();
+    var familyName = document.getElementById('mpFamilyName').value.trim();
+    var email = document.getElementById('mpEmail').value.trim();
+    var university = document.getElementById('mpUniversity').value;
+    if (!firstName || !familyName || !email || !university) {
+        document.getElementById('myProfileError').textContent = 'First Name, Family Name, Email, and University are required.';
+        return;
+    }
+    var selectedAreas = [];
+    document.querySelectorAll('#mpAreasCheckboxes input:checked').forEach(function(cb) { selectedAreas.push(cb.value); });
+    var keywords = document.getElementById('mpKeywords').value.split(',').map(function(k) { return k.trim(); }).filter(Boolean);
+    var body = {
+        first_name: firstName, family_name: familyName, email: email, university: university,
+        department: document.getElementById('mpDepartment').value.trim(),
+        position: document.getElementById('mpPosition').value.trim(),
+        research_areas: selectedAreas, keywords: keywords,
+        bio: document.getElementById('mpBio').value.trim(),
+        looking_for: document.getElementById('mpLookingFor').value.trim(),
+        orcid: document.getElementById('mpOrcid').value.trim(),
+        website: document.getElementById('mpWebsite').value.trim(),
+    };
+    var url = '/researcher_connect/api/my-profile';
+    var method = myProfileMode === 'create' ? 'POST' : 'PUT';
+    try {
+        var resp = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+            body: JSON.stringify(body),
+        });
+        if (!resp.ok) {
+            var err = await resp.json();
+            document.getElementById('myProfileError').textContent = err.detail || 'Save failed';
+            return;
+        }
+        myProfile = await resp.json();
+        closeModal('myProfileModal');
+        await loadData();
+        render();
+    } catch (e) {
+        document.getElementById('myProfileError').textContent = 'Save failed';
+    }
 }
 
 // -- Import --

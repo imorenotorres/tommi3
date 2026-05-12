@@ -11907,6 +11907,27 @@
       "looking_for": "",
       "orcid": "0000-0002-5157-7075",
       "website": ""
+    },
+    {
+      "id": "2640f167",
+      "first_name": "Amparo",
+      "family_name": "Zamora-Mogollo",
+      "email": "amparo.zamora@uma.es",
+      "university": "UMA",
+      "department": "Physiotherapy",
+      "position": "PhD candidate",
+      "research_areas": [
+        "Artificial Intelligence",
+        "Data Science",
+        "Engineering"
+      ],
+      "keywords": [
+        "traumatology"
+      ],
+      "bio": "",
+      "looking_for": "",
+      "orcid": "0000-0002-5674-0353",
+      "website": ""
     }
   ],
   "research_areas": [

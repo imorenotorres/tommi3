@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Research Proposals — UNINOVIS</title>
+  <style>
+    :root {
+      --brand: #4250B3;
+      --brand-dark: #303a8a;
+      --brand-light: #e8eaf6;
+      --accent: #7c4dff;
+      --success: #2e7d32;
+      --success-bg: #e8f5e9;
+      --warning: #f57c00;
+      --warning-bg: #fff3e0;
+      --danger: #c62828;
+      --danger-bg: #ffebee;
+      --info: #0277bd;
+      --info-bg: #e1f5fe;
+      --text: #1a1a2e;
+      --text-muted: #666;
+      --border: #dde1f5;
+      --bg: #f5f6ff;
+      --card: #ffffff;
+      --radius: 12px;
+      --shadow: 0 2px 12px rgba(66,80,179,0.10);
+      --shadow-hover: 0 6px 24px rgba(66,80,179,0.18);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ---- Header ---- */
+    header {
+      background: var(--brand);
+      color: white;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    header h1 span { opacity: 0.7; font-weight: 400; font-size: 0.85em; }
+
+    #user-area {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #username-display {
+      font-size: 0.85rem;
+      opacity: 0.85;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary { background: var(--brand); color: white; }
+    .btn-primary:hover { background: var(--brand-dark); box-shadow: var(--shadow); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      color: white;
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.12); }
+
+    .btn-secondary {
+      background: var(--brand-light);
+      color: var(--brand);
+    }
+    .btn-secondary:hover { background: #d0d4f0; }
+
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #b71c1c; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--brand);
+      padding: 0.45rem 0.75rem;
+    }
+    .btn-ghost:hover { background: var(--brand-light); }
+
+    .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+
+    /* ---- Main layout ---- */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ---- Controls bar ---- */
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 0.55rem 1rem 0.55rem 2.5rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: var(--card);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-wrap input:focus { border-color: var(--brand); }
+
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    select.filter-select {
+      padding: 0.55rem 0.75rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      background: var(--card);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+    select.filter-select:focus { border-color: var(--brand); }
+
+    /* ---- Stats strip ---- */
+    .stats-strip {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .stat-chip strong { color: var(--brand); }
+
+    /* ---- Cards grid ---- */
+    #proposals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .proposal-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.4rem;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    .proposal-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+      border-color: var(--brand);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--brand);
+      line-height: 1.35;
+    }
+
+    .status-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .status-open { background: var(--success-bg); color: var(--success); }
+    .status-submitted { background: var(--info-bg); color: var(--info); }
+    .status-funded { background: #f3e5f5; color: #6a1b9a; }
+    .status-closed { background: #f5f5f5; color: #757575; }
+    .status-planning { background: var(--warning-bg); color: var(--warning); }
+
+    .funding-status-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.55rem;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .fs-planning { background: var(--warning-bg); color: var(--warning); }
+    .fs-submitted { background: var(--info-bg); color: var(--info); }
+    .fs-funded { background: #f3e5f5; color: #6a1b9a; }
+    .fs-ongoing { background: var(--success-bg); color: var(--success); }
+
+    .card-topic {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      background: var(--brand-light);
+      color: var(--brand);
+      font-weight: 500;
+    }
+
+    .tag-collab {
+      background: #f3e5f5;
+      color: #6a1b9a;
+    }
+
+    .card-proposer {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .card-positions {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .position-pill {
+      font-size: 0.72rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 12px;
+      border: 1px solid;
+    }
+
+    .pill-phd { border-color: #7b1fa2; color: #7b1fa2; background: #f3e5f5; }
+    .pill-intern { border-color: #1565c0; color: #1565c0; background: #e3f2fd; }
+    .pill-postdoc { border-color: #1b5e20; color: #1b5e20; background: #e8f5e9; }
+
+    .card-date {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .funding-row {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* ---- Empty state ---- */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-state h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text); }
+
+    /* ---- Modal ---- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,40,0.55);
+      z-index: 200;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-y: auto;
+      backdrop-filter: blur(2px);
+    }
+
+    .modal-overlay.hidden { display: none; }
+
+    .modal {
+      background: var(--card);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 780px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+      animation: modal-in 0.2s ease;
+      margin: auto;
+    }
+
+    @keyframes modal-in {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+      padding: 1.5rem 1.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .modal-header h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--brand);
+      line-height: 1.35;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.4rem;
+      color: var(--text-muted);
+      padding: 0.2rem;
+      border-radius: 6px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .modal-close:hover { background: var(--brand-light); color: var(--brand); }
+
+    .modal-body {
+      padding: 1.5rem 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.75rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    /* Detail view sections */
+    .detail-section {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .detail-section-title {
+      background: var(--brand-light);
+      color: var(--brand);
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 0.5rem 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .detail-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+    .detail-item:nth-child(2n) { border-right: none; }
+    .detail-item:last-child, .detail-item:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+
+    .detail-item-full {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      grid-column: 1 / -1;
+    }
+    .detail-item-full:last-child { border-bottom: none; }
+
+    .detail-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+      font-size: 0.9rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .detail-value.muted { color: var(--text-muted); font-style: italic; }
+
+    /* ---- Form modal ---- */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .form-field.full { grid-column: 1 / -1; }
+
+    .form-field label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .form-field label .required { color: var(--danger); }
+
+    .form-field input,
+    .form-field textarea,
+    .form-field select {
+      padding: 0.55rem 0.85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      background: #fafbff;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+
+    .form-field input:focus,
+    .form-field textarea:focus,
+    .form-field select:focus { border-color: var(--brand); background: white; }
+
+    .form-field textarea { resize: vertical; min-height: 80px; }
+
+    .form-section-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding-bottom: 0.3rem;
+      border-bottom: 2px solid var(--brand-light);
+      grid-column: 1 / -1;
+      margin-top: 0.25rem;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      accent-color: var(--brand);
+    }
+
+    /* Multi-select chips */
+    .chips-input-wrap {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      min-height: 42px;
+      background: #fafbff;
+      cursor: text;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      align-items: center;
+    }
+    .chips-input-wrap:focus-within { border-color: var(--brand); background: white; }
+
+    .chip {
+      background: var(--brand);
+      color: white;
+      border-radius: 6px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      max-width: 200px;
+    }
+
+    .chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .chip-remove {
+      cursor: pointer;
+      font-size: 0.9rem;
+      line-height: 1;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+    .chip-remove:hover { opacity: 1; }
+
+    .chips-input-wrap input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.875rem;
+      min-width: 80px;
+      flex: 1;
+      padding: 0;
+      color: var(--text);
+    }
+
+    .chips-dropdown {
+      position: absolute;
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow-hover);
+      z-index: 300;
+      max-height: 200px;
+      overflow-y: auto;
+      min-width: 220px;
+    }
+
+    .chips-dropdown-item {
+      padding: 0.5rem 0.85rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .chips-dropdown-item:hover { background: var(--brand-light); color: var(--brand); }
+    .chips-dropdown-item.selected { background: var(--brand-light); color: var(--brand); font-weight: 600; }
+
+    .chips-wrap-outer {
+      position: relative;
+    }
+
+    /* Form error */
+    .form-error {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.85rem;
+      display: none;
+    }
+    .form-error.visible { display: block; }
+
+    /* ---- Toast ---- */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #1e2640;
+      color: white;
+      padding: 0.75rem 1.2rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      z-index: 500;
+      transition: opacity 0.3s, transform 0.3s;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { background: #1b5e20; }
+    #toast.error { background: #b71c1c; }
+
+    /* ---- Login prompt ---- */
+    #login-prompt {
+      background: var(--brand-light);
+      border: 1px solid var(--brand);
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    #login-prompt p { font-size: 0.9rem; color: var(--brand); }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-item { border-right: none; }
+      header h1 span { display: none; }
+      #proposals-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Research Proposals <span>— UNINOVIS</span></h1>
+  <div id="user-area">
+    <span id="username-display"></span>
+    <button class="btn btn-outline btn-sm" id="btn-new-proposal" style="display:none" onclick="openNewProposalModal()">+ New Proposal</button>
+    <a href="/uninovis/" class="btn btn-outline btn-sm">&#8592; Home</a>
+  </div>
+</header>
+
+<main>
+  <div id="login-prompt" style="display:none">
+    <p>Log in to post your own research proposals and express interest in collaborating.</p>
+    <a href="/login?next=/research_proposals/" class="btn btn-primary btn-sm">Log in</a>
+  </div>
+
+  <!-- Controls bar -->
+  <div class="controls-bar">
+    <div class="search-wrap">
+      <span class="search-icon">&#128269;</span>
+      <input type="text" id="search-input" placeholder="Search by title, topic, keywords, funding call…" oninput="renderProposals()" />
+    </div>
+    <select class="filter-select" id="filter-status" onchange="renderProposals()">
+      <option value="">All statuses</option>
+      <option value="open">Open for partners</option>
+      <option value="planning">Planning</option>
+      <option value="submitted">Submitted</option>
+      <option value="funded">Funded</option>
+      <option value="closed">Closed</option>
+    </select>
+    <select class="filter-select" id="filter-area" onchange="renderProposals()">
+      <option value="">All research areas</option>
+    </select>
+    <select class="filter-select" id="filter-collab" onchange="renderProposals()">
+      <option value="">All collaboration types</option>
+    </select>
+    <select class="filter-select" id="filter-positions" onchange="renderProposals()">
+      <option value="">All positions</option>
+      <option value="phd">PhD positions</option>
+      <option value="intern">Internships</option>
+      <option value="postdoc">Postdoc</option>
+    </select>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-strip" id="stats-strip"></div>
+
+  <!-- Proposals grid -->
+  <div id="proposals-grid"></div>
+</main>
+
+<!-- View Proposal Modal -->
+<div class="modal-overlay hidden" id="view-modal">
+  <div class="modal" id="view-modal-content">
+    <div class="modal-header">
+      <div>
+        <h2 id="vm-title"></h2>
+        <div style="margin-top:0.4rem; display:flex; gap:0.5rem; flex-wrap:wrap;" id="vm-badges"></div>
+      </div>
+      <button class="modal-close" onclick="closeViewModal()">&#10005;</button>
+    </div>
+    <div class="modal-body" id="vm-body"></div>
+    <div class="modal-footer" id="vm-footer"></div>
+  </div>
+</div>
+
+<!-- Create/Edit Proposal Modal -->
+<div class="modal-overlay hidden" id="form-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="form-modal-title">New Research Proposal</h2>
+      <button class="modal-close" onclick="closeFormModal()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-error" id="form-error"></div>
+      <form id="proposal-form" onsubmit="submitProposal(event)">
+        <div class="form-grid">
+
+          <!-- Basic info -->
+          <div class="form-section-title">Basic Information</div>
+
+          <div class="form-field full">
+            <label>Title <span class="required">*</span></label>
+            <input type="text" name="title" required placeholder="e.g. AI-Powered Tools for Multilingual Education in EU HEIs" />
+          </div>
+
+          <div class="form-field full">
+            <label>Topic / Short Description <span class="required">*</span></label>
+            <textarea name="topic" required rows="2" placeholder="Brief summary of what the proposal is about (2–3 sentences)"></textarea>
+          </div>
+
+          <div class="form-field full">
+            <label>Abstract / Detailed Description</label>
+            <textarea name="abstract" rows="4" placeholder="Full description: objectives, methodology, expected impact…"></textarea>
+          </div>
+
+          <div class="form-field">
+            <label>Research Areas</label>
+            <div class="chips-wrap-outer" id="areas-wrap-outer">
+              <div class="chips-input-wrap" id="areas-chips-wrap" onclick="focusChipInput('areas')">
+                <input type="text" id="areas-chip-input" placeholder="Type to search…" autocomplete="off"
+                  oninput="filterChipDropdown('areas')" onfocus="showChipDropdown('areas')" onblur="hideChipDropdown('areas', 200)" onkeydown="chipInputKeydown(event,'areas')" />
+              </div>
+              <div class="chips-dropdown" id="areas-dropdown" style="display:none"></div>
+            </div>
+            <input type="hidden" name="research_areas" id="research_areas_hidden" />
+          </div>
+
+          <div class="form-field">
+            <label>Keywords</label>
+            <div class="chips-wrap-outer" id="keywords-wrap-outer">
+              <div class="chips-input-wrap" id="keywords-chips-wrap" onclick="focusChipInput('keywords')">
+                <input type="text" id="keywords-chip-input" placeholder="Type and press Enter…" autocomplete="off"
+                  oninput="filterChipDropdown('keywords')" onfocus="showChipDropdown('keywords')" onblur="hideChipDropdown('keywords', 200)" onkeydown="chipInputKeydown(event,'keywords')" />
+              </div>
+              <div class="chips-dropdown" id="keywords-dropdown" style="display:none"></div>
+            </div>
+            <input type="hidden" name="keywords" id="keywords_hidden" />
+          </div>
+
+          <!-- Proposer -->
+          <div class="form-section-title">Proposer Information</div>
+
+          <div class="form-field">
+            <label>Your Name <span class="required">*</span></label>
+            <input type="text" name="proposer_name" required placeholder="First and family name" />
+          </div>
+
+          <div class="form-field">
+            <label>Contact Email <span class="required">*</span></label>
+            <input type="email" name="proposer_email" required placeholder="your@university.edu" />
+          </div>
+
+          <div class="form-field">
+            <label>University / Institution</label>
+            <input type="text" name="proposer_university" placeholder="e.g. Universidad de Málaga" />
+          </div>
+
+          <div class="form-field">
+            <label>Department</label>
+            <input type="text" name="proposer_department" placeholder="e.g. Computer Science" />
+          </div>
+
+          <div class="form-field">
+            <label>Position</label>
+            <input type="text" name="proposer_position" placeholder="e.g. Associate Professor" />
+          </div>
+
+          <div class="form-field">
+            <label>ORCID iD</label>
+            <input type="text" name="proposer_orcid" placeholder="0000-0000-0000-0000" />
+          </div>
+
+          <!-- Funding -->
+          <div class="form-section-title">Funding Information</div>
+
+          <div class="form-field full">
+            <label>Funding Call Name</label>
+            <input type="text" name="funding_call" placeholder="e.g. Horizon Europe MSCA-IF 2025, ERC Starting Grant 2026…" />
+          </div>
+
+          <div class="form-field">
+            <label>Funding Agency</label>
+            <select name="funding_agency" id="funding_agency_select">
+              <option value="">Select or type below…</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Funding Status</label>
+            <select name="funding_status">
+              <option value="planning">Planning to apply</option>
+              <option value="submitted">Application submitted</option>
+              <option value="funded">Funded / Approved</option>
+              <option value="ongoing">Ongoing project</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Application Deadline</label>
+            <input type="date" name="application_deadline" />
+          </div>
+
+          <div class="form-field">
+            <label>Interest Deadline</label>
+            <input type="date" name="interest_deadline" title="Deadline for potential collaborators to reach out" />
+            <span style="font-size:0.75rem;color:var(--text-muted)">By when should interested partners contact you?</span>
+          </div>
+
+          <!-- Collaboration -->
+          <div class="form-section-title">Collaboration Details</div>
+
+          <div class="form-field full">
+            <label>Type of Collaboration Sought</label>
+            <div class="chips-wrap-outer" id="collab-wrap-outer">
+              <div class="chips-input-wrap" id="collab-chips-wrap" onclick="focusChipInput('collab')">
+                <input type="text" id="collab-chip-input" placeholder="Type to search…" autocomplete="off"
+                  oninput="filterChipDropdown('collab')" onfocus="showChipDropdown('collab')" onblur="hideChipDropdown('collab', 200)" onkeydown="chipInputKeydown(event,'collab')" />
+              </div>
+              <div class="chips-dropdown" id="collab-dropdown" style="display:none"></div>
+            </div>
+            <input type="hidden" name="collaboration_types" id="collaboration_types_hidden" />
+          </div>
+
+          <div class="form-field full">
+            <label>Roles Available for Partners</label>
+            <div class="chips-wrap-outer" id="roles-wrap-outer">
+              <div class="chips-input-wrap" id="roles-chips-wrap" onclick="focusChipInput('roles')">
+                <input type="text" id="roles-chip-input" placeholder="e.g. Partner, Co-PI…" autocomplete="off"
+                  oninput="filterChipDropdown('roles')" onfocus="showChipDropdown('roles')" onblur="hideChipDropdown('roles', 200)" onkeydown="chipInputKeydown(event,'roles')" />
+              </div>
+              <div class="chips-dropdown" id="roles-dropdown" style="display:none"></div>
+            </div>
+            <input type="hidden" name="roles_available" id="roles_available_hidden" />
+          </div>
+
+          <div class="form-field full">
+            <label>Ideal Partner Profile</label>
+            <textarea name="partner_profile" rows="3" placeholder="Describe the expertise, background, or institutional profile you are looking for in collaborators…"></textarea>
+          </div>
+
+          <div class="form-field">
+            <label>Number of Partners Needed</label>
+            <input type="number" name="partners_needed" min="0" max="50" placeholder="0 = not specified" />
+          </div>
+
+          <div class="form-field">
+            <label>Geographic Scope</label>
+            <select name="geographic_scope" id="geographic_scope_select">
+              <option value="">Not specified</option>
+            </select>
+          </div>
+
+          <!-- Positions & budget -->
+          <div class="form-section-title">Positions &amp; Budget</div>
+
+          <div class="form-field">
+            <div class="checkbox-row">
+              <input type="checkbox" name="phd_positions" id="phd_positions_check" onchange="toggleCount('phd')" />
+              <label for="phd_positions_check">PhD positions in budget</label>
+            </div>
+          </div>
+
+          <div class="form-field" id="phd_count_wrap" style="display:none">
+            <label>Number of PhD positions</label>
+            <input type="number" name="phd_positions_count" min="1" max="20" value="1" />
+          </div>
+
+          <div class="form-field">
+            <div class="checkbox-row">
+              <input type="checkbox" name="internship_positions" id="intern_positions_check" onchange="toggleCount('intern')" />
+              <label for="intern_positions_check">Internship positions in budget</label>
+            </div>
+          </div>
+
+          <div class="form-field" id="intern_count_wrap" style="display:none">
+            <label>Number of internship positions</label>
+            <input type="number" name="internship_positions_count" min="1" max="50" value="1" />
+          </div>
+
+          <div class="form-field">
+            <div class="checkbox-row">
+              <input type="checkbox" name="postdoc_positions" id="postdoc_positions_check" />
+              <label for="postdoc_positions_check">Postdoc positions in budget</label>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Approximate Budget</label>
+            <input type="text" name="budget_range" placeholder="e.g. €200k–500k, TBD…" />
+          </div>
+
+          <!-- Project details -->
+          <div class="form-section-title">Project Details</div>
+
+          <div class="form-field">
+            <label>Project Type</label>
+            <select name="project_type" id="project_type_select">
+              <option value="">Not specified</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label>Expected Duration</label>
+            <input type="text" name="expected_duration" placeholder="e.g. 3 years, 24 months…" />
+          </div>
+
+          <div class="form-field full">
+            <label>Expected Outputs / Deliverables</label>
+            <textarea name="expected_outputs" rows="2" placeholder="e.g. Joint publications, training programmes, software tools, policy recommendations…"></textarea>
+          </div>
+
+          <!-- Listing status -->
+          <div class="form-section-title">Listing Status</div>
+
+          <div class="form-field">
+            <label>Proposal Status</label>
+            <select name="status">
+              <option value="open">Open for collaboration partners</option>
+              <option value="planning">Planning (not yet open)</option>
+              <option value="submitted">Submitted to funding call</option>
+              <option value="funded">Funded</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+
+        </div><!-- end form-grid -->
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeFormModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="document.getElementById('proposal-form').requestSubmit()" id="form-submit-btn">Save Proposal</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const BASE = '/research_proposals';
+  let state = {
+    proposals: [],
+    researchAreas: [],
+    collaborationTypes: [],
+    fundingAgencies: [],
+    projectTypes: [],
+    geographicScopes: [],
+    session: null,
+    editingId: null,
+    // chip state per field
+    chips: {
+      areas: { selected: [], options: [] },
+      keywords: { selected: [], options: [] },
+      collab: { selected: [], options: [] },
+      roles: { selected: [], options: [] }
+    }
+  };
+
+  function token() {
+    return localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
+  }
+
+  function authHeaders() {
+    const t = token();
+    return t ? { 'Authorization': `Bearer ${t}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+  }
+
+  async function init() {
+    // Check auth
+    const t = token();
+    if (t) {
+      try {
+        const res = await fetch(`${BASE}/api/auth-check`, { headers: { 'Authorization': `Bearer ${t}` } });
+        if (res.ok) {
+          state.session = await res.json();
+          document.getElementById('username-display').textContent = state.session.username;
+          document.getElementById('btn-new-proposal').style.display = '';
+          document.getElementById('login-prompt').style.display = 'none';
+        }
+      } catch(e) {}
+    }
+
+    if (!state.session) {
+      document.getElementById('login-prompt').style.display = 'flex';
+    }
+
+    // Load data
+    const data = await fetch(`${BASE}/api/data`).then(r => r.json());
+    state.proposals = data.proposals || [];
+    state.researchAreas = data.research_areas || [];
+    state.collaborationTypes = data.collaboration_types || [];
+    state.fundingAgencies = data.funding_agencies || [];
+    state.projectTypes = data.project_types || [];
+    state.geographicScopes = data.geographic_scopes || [];
+
+    // Populate filter dropdowns
+    const areaFilter = document.getElementById('filter-area');
+    state.researchAreas.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a; opt.textContent = a;
+      areaFilter.appendChild(opt);
+    });
+
+    const collabFilter = document.getElementById('filter-collab');
+    state.collaborationTypes.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      collabFilter.appendChild(opt);
+    });
+
+    // Populate form selects
+    const agencySelect = document.getElementById('funding_agency_select');
+    state.fundingAgencies.forEach(a => {
+      const opt = document.createElement('option'); opt.value = a; opt.textContent = a;
+      agencySelect.appendChild(opt);
+    });
+
+    const geoSelect = document.getElementById('geographic_scope_select');
+    state.geographicScopes.forEach(g => {
+      const opt = document.createElement('option'); opt.value = g; opt.textContent = g;
+      geoSelect.appendChild(opt);
+    });
+
+    const projSelect = document.getElementById('project_type_select');
+    state.projectTypes.forEach(pt => {
+      const opt = document.createElement('option'); opt.value = pt; opt.textContent = pt;
+      projSelect.appendChild(opt);
+    });
+
+    // Init chip options
+    state.chips.areas.options = state.researchAreas;
+    state.chips.collab.options = state.collaborationTypes;
+    state.chips.roles.options = ['Coordinator', 'Partner', 'Co-Principal Investigator', 'Associate Partner', 'Subcontractor'];
+
+    renderProposals();
+  }
+
+  // ---- Rendering ----
+
+  function renderProposals() {
+    const query = document.getElementById('search-input').value.toLowerCase();
+    const filterStatus = document.getElementById('filter-status').value;
+    const filterArea = document.getElementById('filter-area').value;
+    const filterCollab = document.getElementById('filter-collab').value;
+    const filterPos = document.getElementById('filter-positions').value;
+
+    let filtered = state.proposals.filter(p => {
+      if (filterStatus && p.status !== filterStatus) return false;
+      if (filterArea && !p.research_areas.includes(filterArea)) return false;
+      if (filterCollab && !p.collaboration_types.includes(filterCollab)) return false;
+      if (filterPos === 'phd' && !p.phd_positions) return false;
+      if (filterPos === 'intern' && !p.internship_positions) return false;
+      if (filterPos === 'postdoc' && !p.postdoc_positions) return false;
+      if (query) {
+        const haystack = [p.title, p.topic, p.abstract, p.funding_call,
+          ...(p.keywords||[]), ...(p.research_areas||[]), p.proposer_name].join(' ').toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    });
+
+    // Sort: open first, then by date desc
+    filtered.sort((a, b) => {
+      const order = {open:0, planning:1, submitted:2, funded:3, closed:4};
+      const od = (order[a.status]||99) - (order[b.status]||99);
+      if (od !== 0) return od;
+      return (b.created_at||'').localeCompare(a.created_at||'');
+    });
+
+    // Stats
+    const strip = document.getElementById('stats-strip');
+    strip.innerHTML = `
+      <div class="stat-chip"><strong>${state.proposals.length}</strong> total proposals</div>
+      <div class="stat-chip"><strong>${state.proposals.filter(p=>p.status==='open').length}</strong> open</div>
+      <div class="stat-chip"><strong>${state.proposals.filter(p=>p.phd_positions).length}</strong> with PhD positions</div>
+      <div class="stat-chip"><strong>${state.proposals.filter(p=>p.internship_positions).length}</strong> with internships</div>
+      ${filtered.length !== state.proposals.length ? `<div class="stat-chip"><strong>${filtered.length}</strong> shown</div>` : ''}
+    `;
+
+    const grid = document.getElementById('proposals-grid');
+    if (!filtered.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <div class="icon">&#128270;</div>
+        <h3>No proposals found</h3>
+        <p>Try adjusting your filters or search terms.</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(p => proposalCard(p)).join('');
+  }
+
+  function proposalCard(p) {
+    const isOwner = state.session && p.linked_username === state.session.username;
+    const canEdit = state.session && (isOwner || state.session.can_edit);
+
+    const positions = [];
+    if (p.phd_positions) positions.push(`<span class="position-pill pill-phd">PhD${p.phd_positions_count > 0 ? ' ×'+p.phd_positions_count : ''}</span>`);
+    if (p.internship_positions) positions.push(`<span class="position-pill pill-intern">Internship${p.internship_positions_count > 0 ? ' ×'+p.internship_positions_count : ''}</span>`);
+    if (p.postdoc_positions) positions.push(`<span class="position-pill pill-postdoc">Postdoc</span>`);
+
+    const areas = (p.research_areas||[]).slice(0,3).map(a => `<span class="tag">${esc(a)}</span>`).join('');
+    const collabs = (p.collaboration_types||[]).slice(0,2).map(c => `<span class="tag tag-collab">${esc(c)}</span>`).join('');
+
+    return `<div class="proposal-card" onclick="openViewModal('${p.id}')">
+      <div class="card-header">
+        <div class="card-title">${esc(p.title)}</div>
+        <span class="status-badge status-${p.status}">${statusLabel(p.status)}</span>
+      </div>
+      <div class="card-topic">${esc(p.topic)}</div>
+      ${p.funding_call ? `<div class="funding-row">&#128196; <span>${esc(p.funding_call)}</span> <span class="funding-status-badge fs-${p.funding_status}">${fundingStatusLabel(p.funding_status)}</span></div>` : ''}
+      <div class="card-meta">${areas}${collabs}</div>
+      <div class="card-proposer">&#128100; ${esc(p.proposer_name || 'Unknown')} ${p.proposer_university ? '· '+esc(p.proposer_university) : ''}</div>
+      <div class="card-footer">
+        <div class="card-positions">${positions.join('') || '<span style="font-size:0.75rem;color:var(--text-muted)">No positions listed</span>'}</div>
+        <span class="card-date">${formatDate(p.created_at)}</span>
+      </div>
+    </div>`;
+  }
+
+  // ---- View Modal ----
+
+  function openViewModal(id) {
+    const p = state.proposals.find(x => x.id === id);
+    if (!p) return;
+
+    const isOwner = state.session && p.linked_username === state.session.username;
+    const canEdit = state.session && (isOwner || state.session.can_edit);
+
+    document.getElementById('vm-title').textContent = p.title;
+
+    const badges = document.getElementById('vm-badges');
+    badges.innerHTML = `<span class="status-badge status-${p.status}">${statusLabel(p.status)}</span>
+      ${p.funding_status ? `<span class="funding-status-badge fs-${p.funding_status}">${fundingStatusLabel(p.funding_status)}</span>` : ''}`;
+
+    const body = document.getElementById('vm-body');
+    body.innerHTML = buildDetailView(p);
+
+    const footer = document.getElementById('vm-footer');
+    footer.innerHTML = `
+      ${canEdit ? `<button class="btn btn-secondary btn-sm" onclick="openEditModal('${p.id}')">Edit</button>` : ''}
+      ${canEdit ? `<button class="btn btn-danger btn-sm" onclick="confirmDelete('${p.id}')">Delete</button>` : ''}
+      <button class="btn btn-primary btn-sm" onclick="closeViewModal()">Close</button>
+    `;
+
+    document.getElementById('view-modal').classList.remove('hidden');
+  }
+
+  function buildDetailView(p) {
+    const sections = [];
+
+    // Proposer
+    sections.push(`
+      <div class="detail-section">
+        <div class="detail-section-title">Proposer</div>
+        <div class="detail-grid">
+          ${di('Name', p.proposer_name)}
+          ${di('Email', p.proposer_email ? `<a href="mailto:${esc(p.proposer_email)}">${esc(p.proposer_email)}</a>` : '', true)}
+          ${di('University', p.proposer_university)}
+          ${di('Department', p.proposer_department)}
+          ${di('Position', p.proposer_position)}
+          ${p.proposer_orcid ? di('ORCID', `<a href="https://orcid.org/${esc(p.proposer_orcid)}" target="_blank">${esc(p.proposer_orcid)}</a>`, true) : ''}
+        </div>
+      </div>`);
+
+    // Topic & description
+    sections.push(`
+      <div class="detail-section">
+        <div class="detail-section-title">About the Proposal</div>
+        <div>
+          ${diFull('Topic', p.topic)}
+          ${p.abstract ? diFull('Abstract', p.abstract) : ''}
+          ${p.research_areas?.length ? diFull('Research Areas', p.research_areas.map(a => `<span class="tag">${esc(a)}</span>`).join(' ')) : ''}
+          ${p.keywords?.length ? diFull('Keywords', p.keywords.map(k => `<span class="tag" style="background:#f5f5f5;color:#444">${esc(k)}</span>`).join(' ')) : ''}
+        </div>
+      </div>`);
+
+    // Funding
+    sections.push(`
+      <div class="detail-section">
+        <div class="detail-section-title">Funding</div>
+        <div class="detail-grid">
+          ${di('Funding Call', p.funding_call)}
+          ${di('Funding Agency', p.funding_agency)}
+          ${di('Status', fundingStatusLabel(p.funding_status))}
+          ${di('Application Deadline', formatDate(p.application_deadline))}
+          ${di('Interest Deadline', p.interest_deadline ? `<strong>${formatDate(p.interest_deadline)}</strong>` : '', true)}
+        </div>
+      </div>`);
+
+    // Collaboration
+    sections.push(`
+      <div class="detail-section">
+        <div class="detail-section-title">Collaboration Sought</div>
+        <div>
+          ${p.collaboration_types?.length ? diFull('Collaboration Types', p.collaboration_types.map(c => `<span class="tag tag-collab">${esc(c)}</span>`).join(' ')) : ''}
+          ${p.roles_available?.length ? diFull('Roles Available', p.roles_available.map(r => `<span class="tag">${esc(r)}</span>`).join(' ')) : ''}
+          ${p.partner_profile ? diFull('Ideal Partner Profile', p.partner_profile) : ''}
+          ${di('Partners Needed', p.partners_needed > 0 ? p.partners_needed : 'Not specified')}
+          ${di('Geographic Scope', p.geographic_scope)}
+        </div>
+      </div>`);
+
+    // Positions & Budget
+    sections.push(`
+      <div class="detail-section">
+        <div class="detail-section-title">Positions &amp; Budget</div>
+        <div class="detail-grid">
+          ${di('PhD Positions', p.phd_positions ? `Yes${p.phd_positions_count > 0 ? ' (×'+p.phd_positions_count+')' : ''}` : 'No')}
+          ${di('Internship Positions', p.internship_positions ? `Yes${p.internship_positions_count > 0 ? ' (×'+p.internship_positions_count+')' : ''}` : 'No')}
+          ${di('Postdoc Positions', p.postdoc_positions ? 'Yes' : 'No')}
+          ${di('Approximate Budget', p.budget_range)}
+        </div>
+      </div>`);
+
+    // Project details
+    if (p.project_type || p.expected_duration || p.expected_outputs) {
+      sections.push(`
+        <div class="detail-section">
+          <div class="detail-section-title">Project Details</div>
+          <div class="detail-grid">
+            ${di('Project Type', p.project_type)}
+            ${di('Expected Duration', p.expected_duration)}
+            ${p.expected_outputs ? diFull('Expected Outputs', p.expected_outputs) : ''}
+          </div>
+        </div>`);
+    }
+
+    return sections.join('');
+  }
+
+  function di(label, value, isHtml = false) {
+    const display = (isHtml ? value : esc(value || '')) || '<span class="muted">—</span>';
+    return `<div class="detail-item">
+      <div class="detail-label">${label}</div>
+      <div class="detail-value">${display}</div>
+    </div>`;
+  }
+
+  function diFull(label, value, isHtml = true) {
+    const display = (isHtml ? value : esc(value || '')) || '<span class="muted">—</span>';
+    return `<div class="detail-item-full">
+      <div class="detail-label">${label}</div>
+      <div class="detail-value">${display}</div>
+    </div>`;
+  }
+
+  function closeViewModal() {
+    document.getElementById('view-modal').classList.add('hidden');
+  }
+
+  // ---- Form Modal ----
+
+  function openNewProposalModal() {
+    state.editingId = null;
+    document.getElementById('form-modal-title').textContent = 'New Research Proposal';
+    document.getElementById('form-submit-btn').textContent = 'Publish Proposal';
+    document.getElementById('proposal-form').reset();
+    // Reset chips
+    ['areas','keywords','collab','roles'].forEach(field => {
+      state.chips[field].selected = [];
+      renderChips(field);
+    });
+    document.getElementById('form-error').classList.remove('visible');
+    document.getElementById('phd_count_wrap').style.display = 'none';
+    document.getElementById('intern_count_wrap').style.display = 'none';
+    document.getElementById('form-modal').classList.remove('hidden');
+  }
+
+  function openEditModal(id) {
+    closeViewModal();
+    const p = state.proposals.find(x => x.id === id);
+    if (!p) return;
+
+    state.editingId = id;
+    document.getElementById('form-modal-title').textContent = 'Edit Proposal';
+    document.getElementById('form-submit-btn').textContent = 'Save Changes';
+    document.getElementById('form-error').classList.remove('visible');
+
+    const form = document.getElementById('proposal-form');
+    const fields = ['title','topic','abstract','proposer_name','proposer_email',
+      'proposer_university','proposer_department','proposer_position','proposer_orcid',
+      'funding_call','funding_status','application_deadline','interest_deadline',
+      'partner_profile','partners_needed','budget_range','expected_duration',
+      'expected_outputs','status'];
+    fields.forEach(f => {
+      const el = form.elements[f];
+      if (el) el.value = p[f] || '';
+    });
+
+    // Selects
+    const agencySelect = form.elements['funding_agency'];
+    if (agencySelect) agencySelect.value = p.funding_agency || '';
+    const geoSelect = form.elements['geographic_scope'];
+    if (geoSelect) geoSelect.value = p.geographic_scope || '';
+    const projSelect = form.elements['project_type'];
+    if (projSelect) projSelect.value = p.project_type || '';
+
+    // Checkboxes
+    form.elements['phd_positions'].checked = !!p.phd_positions;
+    form.elements['internship_positions'].checked = !!p.internship_positions;
+    form.elements['postdoc_positions'].checked = !!p.postdoc_positions;
+    form.elements['phd_positions_count'].value = p.phd_positions_count || 1;
+    form.elements['internship_positions_count'].value = p.internship_positions_count || 1;
+    document.getElementById('phd_count_wrap').style.display = p.phd_positions ? '' : 'none';
+    document.getElementById('intern_count_wrap').style.display = p.internship_positions ? '' : 'none';
+
+    // Chips
+    state.chips.areas.selected = [...(p.research_areas || [])];
+    state.chips.keywords.selected = [...(p.keywords || [])];
+    state.chips.collab.selected = [...(p.collaboration_types || [])];
+    state.chips.roles.selected = [...(p.roles_available || [])];
+    ['areas','keywords','collab','roles'].forEach(renderChips);
+
+    document.getElementById('form-modal').classList.remove('hidden');
+  }
+
+  function closeFormModal() {
+    document.getElementById('form-modal').classList.add('hidden');
+    state.editingId = null;
+  }
+
+  async function submitProposal(e) {
+    e.preventDefault();
+    const form = e.target;
+    const errEl = document.getElementById('form-error');
+
+    const body = {
+      title: form.elements['title'].value.trim(),
+      topic: form.elements['topic'].value.trim(),
+      abstract: form.elements['abstract'].value.trim(),
+      research_areas: state.chips.areas.selected,
+      keywords: state.chips.keywords.selected,
+      proposer_name: form.elements['proposer_name'].value.trim(),
+      proposer_email: form.elements['proposer_email'].value.trim(),
+      proposer_university: form.elements['proposer_university'].value.trim(),
+      proposer_department: form.elements['proposer_department'].value.trim(),
+      proposer_position: form.elements['proposer_position'].value.trim(),
+      proposer_orcid: form.elements['proposer_orcid'].value.trim(),
+      funding_call: form.elements['funding_call'].value.trim(),
+      funding_agency: form.elements['funding_agency'].value,
+      funding_status: form.elements['funding_status'].value,
+      application_deadline: form.elements['application_deadline'].value,
+      interest_deadline: form.elements['interest_deadline'].value,
+      collaboration_types: state.chips.collab.selected,
+      partner_profile: form.elements['partner_profile'].value.trim(),
+      roles_available: state.chips.roles.selected,
+      partners_needed: parseInt(form.elements['partners_needed'].value) || 0,
+      geographic_scope: form.elements['geographic_scope'].value,
+      budget_range: form.elements['budget_range'].value.trim(),
+      phd_positions: form.elements['phd_positions'].checked,
+      phd_positions_count: parseInt(form.elements['phd_positions_count'].value) || 0,
+      internship_positions: form.elements['internship_positions'].checked,
+      internship_positions_count: parseInt(form.elements['internship_positions_count'].value) || 0,
+      postdoc_positions: form.elements['postdoc_positions'].checked,
+      project_type: form.elements['project_type'].value,
+      expected_duration: form.elements['expected_duration'].value.trim(),
+      expected_outputs: form.elements['expected_outputs'].value.trim(),
+      status: form.elements['status'].value,
+    };
+
+    const url = state.editingId
+      ? `${BASE}/api/proposals/${state.editingId}`
+      : `${BASE}/api/proposals`;
+    const method = state.editingId ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: authHeaders(),
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        errEl.textContent = err.detail || 'Something went wrong.';
+        errEl.classList.add('visible');
+        return;
+      }
+      const saved = await res.json();
+      if (state.editingId) {
+        state.proposals = state.proposals.map(p => p.id === saved.id ? saved : p);
+        showToast('Proposal updated.', 'success');
+      } else {
+        state.proposals.push(saved);
+        showToast('Proposal published!', 'success');
+      }
+      closeFormModal();
+      renderProposals();
+    } catch(ex) {
+      errEl.textContent = 'Network error. Please try again.';
+      errEl.classList.add('visible');
+    }
+  }
+
+  async function confirmDelete(id) {
+    if (!confirm('Delete this proposal? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`${BASE}/api/proposals/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      if (!res.ok) { showToast('Could not delete.', 'error'); return; }
+      state.proposals = state.proposals.filter(p => p.id !== id);
+      closeViewModal();
+      renderProposals();
+      showToast('Proposal deleted.', 'success');
+    } catch(ex) {
+      showToast('Network error.', 'error');
+    }
+  }
+
+  // ---- Chips ----
+
+  const CHIP_CONFIGS = {
+    areas: { inputId: 'areas-chip-input', wrapId: 'areas-chips-wrap', dropId: 'areas-dropdown', freeInput: false },
+    keywords: { inputId: 'keywords-chip-input', wrapId: 'keywords-chips-wrap', dropId: 'keywords-dropdown', freeInput: true },
+    collab: { inputId: 'collab-chip-input', wrapId: 'collab-chips-wrap', dropId: 'collab-dropdown', freeInput: false },
+    roles: { inputId: 'roles-chip-input', wrapId: 'roles-chips-wrap', dropId: 'roles-dropdown', freeInput: true },
+  };
+
+  function renderChips(field) {
+    const cfg = CHIP_CONFIGS[field];
+    const wrap = document.getElementById(cfg.wrapId);
+    // Remove existing chips
+    wrap.querySelectorAll('.chip').forEach(c => c.remove());
+    const input = document.getElementById(cfg.inputId);
+    state.chips[field].selected.forEach(val => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.innerHTML = `<span>${esc(val)}</span><span class="chip-remove" onmousedown="removeChip('${field}','${val.replace(/'/g,"\\'")}')">×</span>`;
+      wrap.insertBefore(chip, input);
+    });
+  }
+
+  function focusChipInput(field) {
+    document.getElementById(CHIP_CONFIGS[field].inputId).focus();
+  }
+
+  function filterChipDropdown(field) {
+    const cfg = CHIP_CONFIGS[field];
+    const query = document.getElementById(cfg.inputId).value.toLowerCase();
+    const opts = state.chips[field].options.filter(o =>
+      o.toLowerCase().includes(query) && !state.chips[field].selected.includes(o)
+    );
+    renderChipDropdown(field, opts);
+  }
+
+  function renderChipDropdown(field, opts) {
+    const cfg = CHIP_CONFIGS[field];
+    const drop = document.getElementById(cfg.dropId);
+    drop.innerHTML = '';
+    if (!opts.length) { drop.style.display = 'none'; return; }
+    opts.forEach(opt => {
+      const item = document.createElement('div');
+      item.className = 'chips-dropdown-item';
+      item.textContent = opt;
+      item.onmousedown = () => addChip(field, opt);
+      drop.appendChild(item);
+    });
+    drop.style.display = 'block';
+  }
+
+  function showChipDropdown(field) {
+    filterChipDropdown(field);
+  }
+
+  function hideChipDropdown(field, delay) {
+    setTimeout(() => {
+      document.getElementById(CHIP_CONFIGS[field].dropId).style.display = 'none';
+    }, delay || 0);
+  }
+
+  function chipInputKeydown(e, field) {
+    const cfg = CHIP_CONFIGS[field];
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = document.getElementById(cfg.inputId).value.trim();
+      if (!val) return;
+      // Try to match dropdown option
+      const match = state.chips[field].options.find(o => o.toLowerCase() === val.toLowerCase());
+      if (match) {
+        addChip(field, match);
+      } else if (cfg.freeInput) {
+        addChip(field, val);
+      }
+    } else if (e.key === 'Backspace' && !document.getElementById(cfg.inputId).value) {
+      const sel = state.chips[field].selected;
+      if (sel.length) removeChip(field, sel[sel.length - 1]);
+    }
+  }
+
+  function addChip(field, val) {
+    if (!state.chips[field].selected.includes(val)) {
+      state.chips[field].selected.push(val);
+    }
+    document.getElementById(CHIP_CONFIGS[field].inputId).value = '';
+    document.getElementById(CHIP_CONFIGS[field].dropId).style.display = 'none';
+    renderChips(field);
+  }
+
+  function removeChip(field, val) {
+    state.chips[field].selected = state.chips[field].selected.filter(v => v !== val);
+    renderChips(field);
+  }
+
+  // ---- Helpers ----
+
+  function toggleCount(type) {
+    if (type === 'phd') {
+      document.getElementById('phd_count_wrap').style.display =
+        document.getElementById('phd_positions_check').checked ? '' : 'none';
+    } else {
+      document.getElementById('intern_count_wrap').style.display =
+        document.getElementById('intern_positions_check').checked ? '' : 'none';
+    }
+  }
+
+  function statusLabel(s) {
+    return { open: 'Open', planning: 'Planning', submitted: 'Submitted', funded: 'Funded', closed: 'Closed' }[s] || s;
+  }
+
+  function fundingStatusLabel(s) {
+    return { planning: 'Planning to apply', submitted: 'Submitted', funded: 'Funded', ongoing: 'Ongoing' }[s] || s || '';
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  function esc(str) {
+    if (!str && str !== 0) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  let _toastTimer;
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show' + (type ? ' '+type : '');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+  }
+
+  // Close modals on overlay click
+  document.getElementById('view-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeViewModal();
+  });
+  document.getElementById('form-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeFormModal();
+  });
+
+  init();
+</script>
+</body>
+</html>

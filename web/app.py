@@ -198,6 +198,11 @@ from apps.researcher_connect.researcher_connect import router as researcher_conn
 app.include_router(researcher_connect_router)
 app.mount("/researcher_connect/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "researcher_connect" / "static"), name="researcher_connect_static")
 
+# Mount Research Proposals app
+from apps.research_proposals.research_proposals import router as research_proposals_router
+app.include_router(research_proposals_router)
+app.mount("/research_proposals/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "research_proposals" / "static"), name="research_proposals_static")
+
 # Mount Transparency Study apps
 from apps.rag_study.study import router as rag_study_router
 app.include_router(rag_study_router)
