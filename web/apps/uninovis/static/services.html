@@ -7,64 +7,49 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1300px; margin: 0 auto; }
 
         h1 { text-align: center; color: #4250b3; margin-bottom: 4px; font-size: 1.8em; }
         .subtitle { text-align: center; color: #666; margin-bottom: 28px; font-size: 0.95em; }
         .back-link { display: inline-block; margin-bottom: 16px; color: #4250b3; text-decoration: none; font-size: 0.9em; }
         .back-link:hover { text-decoration: underline; }
 
-        /* Category headers */
-        .category { margin-bottom: 32px; }
-        .category-header {
-            display: flex; align-items: center; gap: 10px;
-            margin-bottom: 12px; padding-bottom: 8px;
-            border-bottom: 2px solid #4250b3;
-        }
-        .category-header h2 { color: #4250b3; font-size: 1.15em; }
-        .category-header .server-badge {
-            font-size: 0.75em; padding: 3px 10px; border-radius: 12px;
-            font-weight: 600; white-space: nowrap;
-        }
-        .server-gloria { background: #e8e0f0; color: #4250b3; }
-        .server-agora { background: #d1ecf1; color: #0c5460; }
-        .server-other { background: #fff3cd; color: #856404; }
-
         /* Table */
         table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 8px; }
         thead { background: #4250b3; color: #fff; }
-        th { padding: 10px 14px; text-align: left; font-size: 0.85em; font-weight: 600; letter-spacing: 0.02em; }
-        td { padding: 10px 14px; border-bottom: 1px solid #eee; font-size: 0.88em; vertical-align: top; }
+        th { padding: 10px 12px; text-align: left; font-size: 0.82em; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; user-select: none; }
+        th:hover { background: #374399; }
+        th .sort-arrow { font-size: 0.7em; margin-left: 4px; opacity: 0.5; }
+        td { padding: 9px 12px; border-bottom: 1px solid #eee; font-size: 0.85em; vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
         tr:hover { background: #f8f9ff; }
 
-        /* Service name */
-        .service-name { font-weight: 700; color: #1a3a5c; }
-        .service-name a { color: #4250b3; text-decoration: none; }
-        .service-name a:hover { text-decoration: underline; }
-        .service-desc { color: #666; font-size: 0.85em; margin-top: 2px; }
-
         /* Badges */
         .badge { font-size: 0.72em; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; display: inline-block; }
-        .badge-active { background: #d4edda; color: #155724; }
-        .badge-preparation { background: #fff3cd; color: #856404; }
-        .badge-proposed { background: #e2d9f3; color: #5a3d8a; }
-        .badge-public { background: #d1ecf1; color: #0c5460; }
-        .badge-login { background: #e8e0f0; color: #4250b3; }
-        .badge-editor { background: #ffeeba; color: #856404; }
-        .badge-auth-gloria { background: #e8e0f0; color: #4250b3; }
-        .badge-auth-agora { background: #d1ecf1; color: #0c5460; }
-        .badge-auth-matomo { background: #fff3cd; color: #856404; }
-        .badge-auth-none { background: #e9ecef; color: #495057; }
-
-        /* Auth legend */
-        .auth-cell { display: flex; flex-direction: column; gap: 3px; }
+        .badge-wp { background: #e8e0f0; color: #4250b3; }
+        .badge-cm { background: #d4edda; color: #155724; }
+        .badge-tester { background: #d1ecf1; color: #0c5460; }
+        .badge-admin { background: #ffeeba; color: #856404; }
+        .badge-na { background: #e9ecef; color: #999; }
+        .badge-gloria { background: #e8e0f0; color: #4250b3; }
+        .badge-agora { background: #d1ecf1; color: #0c5460; }
+        .badge-sharepoint { background: #fff3cd; color: #856404; }
+        .badge-ewp { background: #fce4ec; color: #880e4f; }
+        .badge-eu { background: #e8f5e9; color: #2e7d32; }
+        .badge-llms { background: #f3e5f5; color: #6a1b9a; }
+        .badge-all { background: #e0f2f1; color: #00695c; }
+        .badge-platform-na { background: #e9ecef; color: #999; }
 
         /* Footer */
         .footer { text-align: center; color: #aaa; font-size: 0.8em; margin-top: 32px; padding-top: 16px; border-top: 1px solid #ddd; }
 
+        /* Legend */
+        .legend { background: #fff; border-radius: 8px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-top: 24px; }
+        .legend h3 { color: #4250b3; font-size: 0.95em; margin-bottom: 10px; }
+        .legend-row { display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.85em; margin-bottom: 8px; }
+
         /* Responsive */
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             table, thead, tbody, th, td, tr { display: block; }
             thead { display: none; }
             tr { margin-bottom: 12px; background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 12px; }
@@ -79,344 +64,189 @@
     <h1>UNINOVIS Intranet Services</h1>
     <p class="subtitle">Complete catalogue of digital services available to the UNINOVIS consortium</p>
 
-    <!-- ============================================================ -->
-    <!-- AGORA — uninovis.widening.eu (FIRST) -->
-    <!-- ============================================================ -->
-    <div class="category">
-        <div class="category-header">
-            <h2>Agora Platform</h2>
-            <span class="server-badge server-agora">uninovis.widening.eu</span>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:20%">Service</th>
-                    <th style="width:28%">Description</th>
-                    <th style="width:10%">Status</th>
-                    <th style="width:14%">Authentication</th>
-                    <th style="width:14%">Auth Server</th>
-                    <th style="width:14%">URL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://uninovis.widening.eu/event-catalogue" target="_blank">Event Catalogue</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Catalogue of events, workshops, seminars, and activities organised by UNINOVIS partners. Content managed by CMs.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-editor">Agora CMS login to edit</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-agora">uninovis.widening.eu</span></td>
-                    <td data-label="URL"><a href="https://uninovis.widening.eu/event-catalogue" target="_blank">uninovis.widening.eu</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://uninovis.widening.eu" target="_blank">Projects Repository</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Repository of collaborative research projects within the UNINOVIS consortium.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-editor">Agora CMS login to edit</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-agora">uninovis.widening.eu</span></td>
-                    <td data-label="URL"><a href="https://uninovis.widening.eu" target="_blank">uninovis.widening.eu</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://uninovis.widening.eu" target="_blank">News & Announcements</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">News feed and announcements from UNINOVIS partners and the consortium coordination office.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-editor">Agora CMS login to edit</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-agora">uninovis.widening.eu</span></td>
-                    <td data-label="URL"><a href="https://uninovis.widening.eu" target="_blank">uninovis.widening.eu</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://uninovis.widening.eu" target="_blank">Partner Profiles</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Institutional profiles and information pages for each UNINOVIS partner university.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-editor">Agora CMS login to edit</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-agora">uninovis.widening.eu</span></td>
-                    <td data-label="URL"><a href="https://uninovis.widening.eu" target="_blank">uninovis.widening.eu</a></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <table id="servicesTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Service <span class="sort-arrow">&#9650;&#9660;</span></th>
+                <th onclick="sortTable(1)">WP <span class="sort-arrow">&#9650;&#9660;</span></th>
+                <th onclick="sortTable(2)">Managed by <span class="sort-arrow">&#9650;&#9660;</span></th>
+                <th onclick="sortTable(3)">Server <span class="sort-arrow">&#9650;&#9660;</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td data-label="Service">Internal Communication System</td>
+                <td data-label="WP"><span class="badge badge-wp">WP1</span></td>
+                <td data-label="Managed by"><span class="badge badge-na">N/A</span></td>
+                <td data-label="Server"><span class="badge badge-sharepoint">SharePoint</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Course Catalogue</td>
+                <td data-label="WP"><span class="badge badge-wp">WP2</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-agora">Agora</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Metacampus</td>
+                <td data-label="WP"><span class="badge badge-wp">WP4</span></td>
+                <td data-label="Managed by"><span class="badge badge-admin">Univ. Admin</span></td>
+                <td data-label="Server"><span class="badge badge-llms">LLMs</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Micro Credentials</td>
+                <td data-label="WP"><span class="badge badge-wp">WP2</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-agora">Agora</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Module Recognition Platform</td>
+                <td data-label="WP"><span class="badge badge-wp">WP2</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-gloria">Gloria</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Learning Support</td>
+                <td data-label="WP"><span class="badge badge-wp">WP2</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-agora">Agora</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Web Personal Folder / Wallet</td>
+                <td data-label="WP"><span class="badge badge-wp">WP4</span></td>
+                <td data-label="Managed by"><span class="badge badge-na">N/A</span></td>
+                <td data-label="Server"><span class="badge badge-ewp">EWP</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Research Portfolio</td>
+                <td data-label="WP"><span class="badge badge-wp">WP3</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-agora">Agora</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Student Mobility Programme</td>
+                <td data-label="WP"><span class="badge badge-wp">WP3</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-platform-na">N/A</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">European Student Card / Identity</td>
+                <td data-label="WP"><span class="badge badge-na">N/A</span></td>
+                <td data-label="Managed by"><span class="badge badge-na">N/A</span></td>
+                <td data-label="Server"><span class="badge badge-platform-na">N/A</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Visual Identity Toolkit</td>
+                <td data-label="WP"><span class="badge badge-wp">WP5</span></td>
+                <td data-label="Managed by"><span class="badge badge-na">N/A</span></td>
+                <td data-label="Server"><span class="badge badge-sharepoint">SharePoint</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Centralised Public Dissemination Dashboard</td>
+                <td data-label="WP"><span class="badge badge-wp">WP5</span></td>
+                <td data-label="Managed by"><span class="badge badge-na">N/A</span></td>
+                <td data-label="Server"><span class="badge badge-eu">uninovis.eu</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">KPI Dashboard</td>
+                <td data-label="WP"><span class="badge badge-na">N/A</span></td>
+                <td data-label="Managed by"><span class="badge badge-na">N/A</span></td>
+                <td data-label="Server"><span class="badge badge-platform-na">N/A</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Identity (eduGAIN Access)</td>
+                <td data-label="WP"><span class="badge badge-wp">WP4</span></td>
+                <td data-label="Managed by"><span class="badge badge-na">N/A</span></td>
+                <td data-label="Server"><span class="badge badge-all">All platforms</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Internships</td>
+                <td data-label="WP"><span class="badge badge-wp">WP3</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-agora">Agora</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Research Proposals</td>
+                <td data-label="WP"><span class="badge badge-wp">WP3</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-agora">Agora</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Module Overview</td>
+                <td data-label="WP"><span class="badge badge-wp">WP2</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-agora">Agora</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Mobility Planning</td>
+                <td data-label="WP"><span class="badge badge-wp">WP3</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-gloria">Gloria</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">UNINOVIS Directory</td>
+                <td data-label="WP"><span class="badge badge-wp">WP3</span></td>
+                <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                <td data-label="Server"><span class="badge badge-gloria">Gloria</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">AI Agents</td>
+                <td data-label="WP"><span class="badge badge-wp">WP3</span></td>
+                <td data-label="Managed by"><span class="badge badge-tester">Testers</span></td>
+                <td data-label="Server"><span class="badge badge-gloria">Gloria</span></td>
+            </tr>
+            <tr>
+                <td data-label="Service">Credentials</td>
+                <td data-label="WP"><span class="badge badge-wp">WP2</span></td>
+                <td data-label="Managed by"><span class="badge badge-na">N/A</span></td>
+                <td data-label="Server"><span class="badge badge-platform-na">N/A</span></td>
+            </tr>
+        </tbody>
+    </table>
 
-    <!-- ============================================================ -->
-    <!-- GLORIA.UMA.ES — Administrative & Research Tools -->
-    <!-- ============================================================ -->
-    <div class="category">
-        <div class="category-header">
-            <h2>Administrative & Research Tools</h2>
-            <span class="server-badge server-gloria">gloria.uma.es</span>
+    <!-- Legend -->
+    <div class="legend">
+        <h3>Legend</h3>
+        <div class="legend-row">
+            <div><strong>Managed by:</strong></div>
+            <div><span class="badge badge-cm">Content Manager</span> Partner-appointed editor who maintains data</div>
+            <div><span class="badge badge-tester">Testers</span> Users with tester-level access</div>
+            <div><span class="badge badge-admin">Univ. Admin</span> University administration</div>
+            <div><span class="badge badge-na">N/A</span> Not yet defined or not applicable</div>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:20%">Service</th>
-                    <th style="width:28%">Description</th>
-                    <th style="width:10%">Status</th>
-                    <th style="width:14%">Authentication</th>
-                    <th style="width:14%">Auth Server</th>
-                    <th style="width:14%">URL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://gloria.uma.es/directory/">UNINOVIS Directory</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Internal staff directory. Manage contacts, groups, work packages, and org charts for all UNINOVIS partners.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-login">Login to edit</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
-                    <td data-label="URL"><a href="https://gloria.uma.es/directory/" target="_blank">gloria.uma.es/directory</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://gloria.uma.es/unigracon/">UNIGRACON</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Grade converter between UNINOVIS partner universities. Supports formulas, conversion tables, and grading system management.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-login">Login to edit</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
-                    <td data-label="URL"><a href="https://gloria.uma.es/unigracon/" target="_blank">gloria.uma.es/unigracon</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://gloria.uma.es/mobility_planner/">Mobility Planner</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Compute call opening dates for mobility activities, accounting for administrative periods and holidays at each partner university.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-login">Login to edit</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
-                    <td data-label="URL"><a href="https://gloria.uma.es/mobility_planner/" target="_blank">gloria.uma.es/mobility_planner</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://gloria.uma.es/researcher_connect/">Researcher Connect</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Find and connect with researchers across UNINOVIS partner universities. Search by interests, keywords, and expertise. Import/export via Excel.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-preparation">Exploring...</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-login">Login to edit / self-register</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
-                    <td data-label="URL"><a href="https://gloria.uma.es/researcher_connect/" target="_blank">gloria.uma.es/researcher_connect</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://gloria.uma.es/research_proposals/">Research Proposals</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Post and discover research collaboration opportunities. Share funding calls, collaboration needs, PhD and internship positions with UNINOVIS partner researchers.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-preparation">Exploring...</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-login">Login to post</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
-                    <td data-label="URL"><a href="https://gloria.uma.es/research_proposals/" target="_blank">gloria.uma.es/research_proposals</a></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- GLORIA.UMA.ES — AI Agents (Excellence Hubs) -->
-    <!-- ============================================================ -->
-    <div class="category">
-        <div class="category-header">
-            <h2>AI Agents — Excellence Hubs</h2>
-            <span class="server-badge server-gloria">gloria.uma.es</span>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:20%">Service</th>
-                    <th style="width:28%">Description</th>
-                    <th style="width:10%">Status</th>
-                    <th style="width:14%">Authentication</th>
-                    <th style="width:14%">Auth Server</th>
-                    <th style="width:14%">URL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name">EH: Responsible AI</div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Research assistant for the THUAS Responsible AI Excellence Hub. RAG-based agent with 188 papers and 415 researchers across all partners.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-login">Login required</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
-                    <td data-label="URL"><a href="https://gloria.uma.es" target="_blank">gloria.uma.es</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name">European Projects Agent</div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">AI assistant for European project management, documentation, and funding information.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-login">Login required</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
-                    <td data-label="URL"><a href="https://gloria.uma.es" target="_blank">gloria.uma.es</a></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- OTHER / EXTERNAL -->
-    <!-- ============================================================ -->
-    <div class="category">
-        <div class="category-header">
-            <h2>Other Services</h2>
-            <span class="server-badge server-other">External</span>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:20%">Service</th>
-                    <th style="width:28%">Description</th>
-                    <th style="width:10%">Status</th>
-                    <th style="width:14%">Authentication</th>
-                    <th style="width:14%">Auth Server</th>
-                    <th style="width:14%">URL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://uninovis.eu" target="_blank">UNINOVIS Public Website</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Main public-facing website of the UNINOVIS alliance. General information, news, and public resources.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-none">uninovis.eu (WordPress)</span></td>
-                    <td data-label="URL"><a href="https://uninovis.eu" target="_blank">uninovis.eu</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name">Matomo Analytics</div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Web analytics for UNINOVIS digital platforms. Privacy-compliant usage tracking and reporting.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-login">Matomo cloud login</span>
-                        </div>
-                    </td>
-                    <td data-label="Auth Server"><span class="badge badge-auth-matomo">uninovis.matomo.cloud</span></td>
-                    <td data-label="URL"><a href="https://uninovis.matomo.cloud" target="_blank">uninovis.matomo.cloud</a></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- LEGEND -->
-    <!-- ============================================================ -->
-    <div style="background:#fff;border-radius:8px;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-top:24px;">
-        <h3 style="color:#4250b3;font-size:0.95em;margin-bottom:10px;">Legend</h3>
-        <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:0.85em;">
-            <div><span class="server-badge server-gloria" style="margin-right:4px;">gloria.uma.es</span> UMA AI Agents Server (TOMMI)</div>
-            <div><span class="server-badge server-agora" style="margin-right:4px;">uninovis.widening.eu</span> Agora Platform</div>
-            <div><span class="server-badge server-other" style="margin-right:4px;">External</span> Third-party services</div>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:0.85em;margin-top:10px;">
-            <div><span class="badge badge-public">Public read</span> No login needed to view</div>
-            <div><span class="badge badge-login">Login required</span> TOMMI account needed</div>
-            <div><span class="badge badge-editor">Agora CMS login</span> Agora editor credentials</div>
-        </div>
-        <h3 style="color:#4250b3;font-size:0.95em;margin-bottom:8px;margin-top:14px;">Authentication Servers</h3>
-        <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:0.85em;">
-            <div><span class="badge badge-auth-gloria">gloria.uma.es</span> TOMMI server — managed by UMA</div>
-            <div><span class="badge badge-auth-agora">uninovis.widening.eu</span> Agora CMS — managed by THUAS</div>
-            <div><span class="badge badge-auth-matomo">uninovis.matomo.cloud</span> Matomo Cloud — analytics platform</div>
-            <div><span class="badge badge-auth-none">uninovis.eu</span> WordPress — public website</div>
+        <div class="legend-row">
+            <div><strong>Servers:</strong></div>
+            <div><span class="badge badge-agora">Agora</span> uninovis.widening.eu — managed by THUAS</div>
+            <div><span class="badge badge-gloria">Gloria</span> gloria.uma.es — managed by UMA</div>
+            <div><span class="badge badge-sharepoint">SharePoint</span> Microsoft SharePoint</div>
+            <div><span class="badge badge-eu">uninovis.eu</span> Public website (WordPress)</div>
+            <div><span class="badge badge-ewp">EWP</span> Erasmus Without Paper</div>
+            <div><span class="badge badge-llms">LLMs</span> Large Language Model services</div>
+            <div><span class="badge badge-all">All platforms</span> Cross-platform service</div>
         </div>
     </div>
 
     <div class="footer">UNINOVIS — University Network for Innovation in Society</div>
 </div>
+
+<script>
+var sortDir = {};
+function sortTable(col) {
+    var table = document.getElementById('servicesTable');
+    var tbody = table.tBodies[0];
+    var rows = Array.from(tbody.rows);
+    var dir = sortDir[col] === 'asc' ? 'desc' : 'asc';
+    sortDir[col] = dir;
+    rows.sort(function(a, b) {
+        var va = a.cells[col].textContent.trim().toLowerCase();
+        var vb = b.cells[col].textContent.trim().toLowerCase();
+        if (va === 'n/a') va = 'zzz';
+        if (vb === 'n/a') vb = 'zzz';
+        if (va < vb) return dir === 'asc' ? -1 : 1;
+        if (va > vb) return dir === 'asc' ? 1 : -1;
+        return 0;
+    });
+    rows.forEach(function(r) { tbody.appendChild(r); });
+}
+</script>
 </body>
 </html>
