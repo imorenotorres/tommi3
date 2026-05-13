@@ -52,6 +52,10 @@
         .badge-public { background: #d1ecf1; color: #0c5460; }
         .badge-login { background: #e8e0f0; color: #4250b3; }
         .badge-editor { background: #ffeeba; color: #856404; }
+        .badge-auth-gloria { background: #e8e0f0; color: #4250b3; }
+        .badge-auth-agora { background: #d1ecf1; color: #0c5460; }
+        .badge-auth-matomo { background: #fff3cd; color: #856404; }
+        .badge-auth-none { background: #e9ecef; color: #495057; }
 
         /* Auth legend */
         .auth-cell { display: flex; flex-direction: column; gap: 3px; }
@@ -76,208 +80,7 @@
     <p class="subtitle">Complete catalogue of digital services available to the UNINOVIS consortium</p>
 
     <!-- ============================================================ -->
-    <!-- GLORIA.UMA.ES — Administrative & Research Tools -->
-    <!-- ============================================================ -->
-    <div class="category">
-        <div class="category-header">
-            <h2>Administrative & Research Tools</h2>
-            <span class="server-badge server-gloria">gloria.uma.es</span>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:22%">Service</th>
-                    <th style="width:32%">Description</th>
-                    <th style="width:13%">Status</th>
-                    <th style="width:18%">Authentication</th>
-                    <th style="width:15%">URL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://gloria.uma.es/directory/">UNINOVIS Directory</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Internal staff directory. Manage contacts, groups, work packages, and org charts for all UNINOVIS partners.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-login">Login to edit</span>
-                        </div>
-                    </td>
-                    <td data-label="URL"><a href="https://gloria.uma.es/directory/" target="_blank">gloria.uma.es/directory</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://gloria.uma.es/unigracon/">UNIGRACON</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Grade converter between UNINOVIS partner universities. Supports formulas, conversion tables, and grading system management.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-login">Login to edit</span>
-                        </div>
-                    </td>
-                    <td data-label="URL"><a href="https://gloria.uma.es/unigracon/" target="_blank">gloria.uma.es/unigracon</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://gloria.uma.es/mobility_planner/">Mobility Planner</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Compute call opening dates for mobility activities, accounting for administrative periods and holidays at each partner university.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-login">Login to edit</span>
-                        </div>
-                    </td>
-                    <td data-label="URL"><a href="https://gloria.uma.es/mobility_planner/" target="_blank">gloria.uma.es/mobility_planner</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://gloria.uma.es/researcher_connect/">Researcher Connect</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Find and connect with researchers across UNINOVIS partner universities. Search by interests, keywords, and expertise. Import/export via Excel.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-login">Login to edit / self-register</span>
-                        </div>
-                    </td>
-                    <td data-label="URL"><a href="https://gloria.uma.es/researcher_connect/" target="_blank">gloria.uma.es/researcher_connect</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name"><a href="https://gloria.uma.es/research_proposals/">Research Proposals</a></div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Post and discover research collaboration opportunities. Share funding calls, collaboration needs, PhD and internship positions with UNINOVIS partner researchers.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-public">Public read</span>
-                            <span class="badge badge-login">Login to post</span>
-                        </div>
-                    </td>
-                    <td data-label="URL"><a href="https://gloria.uma.es/research_proposals/" target="_blank">gloria.uma.es/research_proposals</a></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- GLORIA.UMA.ES — AI Agents (Excellence Hubs) -->
-    <!-- ============================================================ -->
-    <div class="category">
-        <div class="category-header">
-            <h2>AI Agents — Excellence Hubs</h2>
-            <span class="server-badge server-gloria">gloria.uma.es</span>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:22%">Service</th>
-                    <th style="width:32%">Description</th>
-                    <th style="width:13%">Status</th>
-                    <th style="width:18%">Authentication</th>
-                    <th style="width:15%">URL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name">EH: Responsible AI</div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Research assistant for the THUAS Responsible AI Excellence Hub. RAG-based agent with 188 papers and 415 researchers across all partners.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-login">Login required</span>
-                        </div>
-                    </td>
-                    <td data-label="URL"><a href="https://gloria.uma.es" target="_blank">gloria.uma.es</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name">European Projects Agent</div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">AI assistant for European project management, documentation, and funding information.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-login">Login required</span>
-                        </div>
-                    </td>
-                    <td data-label="URL"><a href="https://gloria.uma.es" target="_blank">gloria.uma.es</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name">Joint International Programmes</div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">AI assistant for joint international programme development and documentation.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-login">Login required</span>
-                        </div>
-                    </td>
-                    <td data-label="URL"><a href="https://gloria.uma.es" target="_blank">gloria.uma.es</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name">UNINOVIS Formal Documents</div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">AI assistant for UNINOVIS formal documentation, policies, and institutional agreements.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-login">Login required</span>
-                        </div>
-                    </td>
-                    <td data-label="URL"><a href="https://gloria.uma.es" target="_blank">gloria.uma.es</a></td>
-                </tr>
-                <tr>
-                    <td data-label="Service">
-                        <div class="service-name">TOMMI Tutor</div>
-                    </td>
-                    <td data-label="Description">
-                        <div class="service-desc">Tutorial agent that helps users understand how to use the TOMMI platform and its tools.</div>
-                    </td>
-                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
-                    <td data-label="Authentication">
-                        <div class="auth-cell">
-                            <span class="badge badge-login">Login required</span>
-                        </div>
-                    </td>
-                    <td data-label="URL"><a href="https://gloria.uma.es" target="_blank">gloria.uma.es</a></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- AGORA — uninovis.widening.eu -->
+    <!-- AGORA — uninovis.widening.eu (FIRST) -->
     <!-- ============================================================ -->
     <div class="category">
         <div class="category-header">
@@ -287,11 +90,12 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width:22%">Service</th>
-                    <th style="width:32%">Description</th>
-                    <th style="width:13%">Status</th>
-                    <th style="width:18%">Authentication</th>
-                    <th style="width:15%">URL</th>
+                    <th style="width:20%">Service</th>
+                    <th style="width:28%">Description</th>
+                    <th style="width:10%">Status</th>
+                    <th style="width:14%">Authentication</th>
+                    <th style="width:14%">Auth Server</th>
+                    <th style="width:14%">URL</th>
                 </tr>
             </thead>
             <tbody>
@@ -309,6 +113,7 @@
                             <span class="badge badge-editor">Agora CMS login to edit</span>
                         </div>
                     </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-agora">uninovis.widening.eu</span></td>
                     <td data-label="URL"><a href="https://uninovis.widening.eu/event-catalogue" target="_blank">uninovis.widening.eu</a></td>
                 </tr>
                 <tr>
@@ -325,6 +130,7 @@
                             <span class="badge badge-editor">Agora CMS login to edit</span>
                         </div>
                     </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-agora">uninovis.widening.eu</span></td>
                     <td data-label="URL"><a href="https://uninovis.widening.eu" target="_blank">uninovis.widening.eu</a></td>
                 </tr>
                 <tr>
@@ -341,6 +147,7 @@
                             <span class="badge badge-editor">Agora CMS login to edit</span>
                         </div>
                     </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-agora">uninovis.widening.eu</span></td>
                     <td data-label="URL"><a href="https://uninovis.widening.eu" target="_blank">uninovis.widening.eu</a></td>
                 </tr>
                 <tr>
@@ -357,7 +164,173 @@
                             <span class="badge badge-editor">Agora CMS login to edit</span>
                         </div>
                     </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-agora">uninovis.widening.eu</span></td>
                     <td data-label="URL"><a href="https://uninovis.widening.eu" target="_blank">uninovis.widening.eu</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- GLORIA.UMA.ES — Administrative & Research Tools -->
+    <!-- ============================================================ -->
+    <div class="category">
+        <div class="category-header">
+            <h2>Administrative & Research Tools</h2>
+            <span class="server-badge server-gloria">gloria.uma.es</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:20%">Service</th>
+                    <th style="width:28%">Description</th>
+                    <th style="width:10%">Status</th>
+                    <th style="width:14%">Authentication</th>
+                    <th style="width:14%">Auth Server</th>
+                    <th style="width:14%">URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-label="Service">
+                        <div class="service-name"><a href="https://gloria.uma.es/directory/">UNINOVIS Directory</a></div>
+                    </td>
+                    <td data-label="Description">
+                        <div class="service-desc">Internal staff directory. Manage contacts, groups, work packages, and org charts for all UNINOVIS partners.</div>
+                    </td>
+                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
+                    <td data-label="Authentication">
+                        <div class="auth-cell">
+                            <span class="badge badge-public">Public read</span>
+                            <span class="badge badge-login">Login to edit</span>
+                        </div>
+                    </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
+                    <td data-label="URL"><a href="https://gloria.uma.es/directory/" target="_blank">gloria.uma.es/directory</a></td>
+                </tr>
+                <tr>
+                    <td data-label="Service">
+                        <div class="service-name"><a href="https://gloria.uma.es/unigracon/">UNIGRACON</a></div>
+                    </td>
+                    <td data-label="Description">
+                        <div class="service-desc">Grade converter between UNINOVIS partner universities. Supports formulas, conversion tables, and grading system management.</div>
+                    </td>
+                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
+                    <td data-label="Authentication">
+                        <div class="auth-cell">
+                            <span class="badge badge-public">Public read</span>
+                            <span class="badge badge-login">Login to edit</span>
+                        </div>
+                    </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
+                    <td data-label="URL"><a href="https://gloria.uma.es/unigracon/" target="_blank">gloria.uma.es/unigracon</a></td>
+                </tr>
+                <tr>
+                    <td data-label="Service">
+                        <div class="service-name"><a href="https://gloria.uma.es/mobility_planner/">Mobility Planner</a></div>
+                    </td>
+                    <td data-label="Description">
+                        <div class="service-desc">Compute call opening dates for mobility activities, accounting for administrative periods and holidays at each partner university.</div>
+                    </td>
+                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
+                    <td data-label="Authentication">
+                        <div class="auth-cell">
+                            <span class="badge badge-public">Public read</span>
+                            <span class="badge badge-login">Login to edit</span>
+                        </div>
+                    </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
+                    <td data-label="URL"><a href="https://gloria.uma.es/mobility_planner/" target="_blank">gloria.uma.es/mobility_planner</a></td>
+                </tr>
+                <tr>
+                    <td data-label="Service">
+                        <div class="service-name"><a href="https://gloria.uma.es/researcher_connect/">Researcher Connect</a></div>
+                    </td>
+                    <td data-label="Description">
+                        <div class="service-desc">Find and connect with researchers across UNINOVIS partner universities. Search by interests, keywords, and expertise. Import/export via Excel.</div>
+                    </td>
+                    <td data-label="Status"><span class="badge badge-preparation">Exploring...</span></td>
+                    <td data-label="Authentication">
+                        <div class="auth-cell">
+                            <span class="badge badge-public">Public read</span>
+                            <span class="badge badge-login">Login to edit / self-register</span>
+                        </div>
+                    </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
+                    <td data-label="URL"><a href="https://gloria.uma.es/researcher_connect/" target="_blank">gloria.uma.es/researcher_connect</a></td>
+                </tr>
+                <tr>
+                    <td data-label="Service">
+                        <div class="service-name"><a href="https://gloria.uma.es/research_proposals/">Research Proposals</a></div>
+                    </td>
+                    <td data-label="Description">
+                        <div class="service-desc">Post and discover research collaboration opportunities. Share funding calls, collaboration needs, PhD and internship positions with UNINOVIS partner researchers.</div>
+                    </td>
+                    <td data-label="Status"><span class="badge badge-preparation">Exploring...</span></td>
+                    <td data-label="Authentication">
+                        <div class="auth-cell">
+                            <span class="badge badge-public">Public read</span>
+                            <span class="badge badge-login">Login to post</span>
+                        </div>
+                    </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
+                    <td data-label="URL"><a href="https://gloria.uma.es/research_proposals/" target="_blank">gloria.uma.es/research_proposals</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- GLORIA.UMA.ES — AI Agents (Excellence Hubs) -->
+    <!-- ============================================================ -->
+    <div class="category">
+        <div class="category-header">
+            <h2>AI Agents — Excellence Hubs</h2>
+            <span class="server-badge server-gloria">gloria.uma.es</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:20%">Service</th>
+                    <th style="width:28%">Description</th>
+                    <th style="width:10%">Status</th>
+                    <th style="width:14%">Authentication</th>
+                    <th style="width:14%">Auth Server</th>
+                    <th style="width:14%">URL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-label="Service">
+                        <div class="service-name">EH: Responsible AI</div>
+                    </td>
+                    <td data-label="Description">
+                        <div class="service-desc">Research assistant for the THUAS Responsible AI Excellence Hub. RAG-based agent with 188 papers and 415 researchers across all partners.</div>
+                    </td>
+                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
+                    <td data-label="Authentication">
+                        <div class="auth-cell">
+                            <span class="badge badge-login">Login required</span>
+                        </div>
+                    </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
+                    <td data-label="URL"><a href="https://gloria.uma.es" target="_blank">gloria.uma.es</a></td>
+                </tr>
+                <tr>
+                    <td data-label="Service">
+                        <div class="service-name">European Projects Agent</div>
+                    </td>
+                    <td data-label="Description">
+                        <div class="service-desc">AI assistant for European project management, documentation, and funding information.</div>
+                    </td>
+                    <td data-label="Status"><span class="badge badge-active">Active</span></td>
+                    <td data-label="Authentication">
+                        <div class="auth-cell">
+                            <span class="badge badge-login">Login required</span>
+                        </div>
+                    </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-gloria">gloria.uma.es</span></td>
+                    <td data-label="URL"><a href="https://gloria.uma.es" target="_blank">gloria.uma.es</a></td>
                 </tr>
             </tbody>
         </table>
@@ -374,11 +347,12 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width:22%">Service</th>
-                    <th style="width:32%">Description</th>
-                    <th style="width:13%">Status</th>
-                    <th style="width:18%">Authentication</th>
-                    <th style="width:15%">URL</th>
+                    <th style="width:20%">Service</th>
+                    <th style="width:28%">Description</th>
+                    <th style="width:10%">Status</th>
+                    <th style="width:14%">Authentication</th>
+                    <th style="width:14%">Auth Server</th>
+                    <th style="width:14%">URL</th>
                 </tr>
             </thead>
             <tbody>
@@ -395,6 +369,7 @@
                             <span class="badge badge-public">Public</span>
                         </div>
                     </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-none">uninovis.eu (WordPress)</span></td>
                     <td data-label="URL"><a href="https://uninovis.eu" target="_blank">uninovis.eu</a></td>
                 </tr>
                 <tr>
@@ -410,6 +385,7 @@
                             <span class="badge badge-login">Matomo cloud login</span>
                         </div>
                     </td>
+                    <td data-label="Auth Server"><span class="badge badge-auth-matomo">uninovis.matomo.cloud</span></td>
                     <td data-label="URL"><a href="https://uninovis.matomo.cloud" target="_blank">uninovis.matomo.cloud</a></td>
                 </tr>
             </tbody>
@@ -430,6 +406,13 @@
             <div><span class="badge badge-public">Public read</span> No login needed to view</div>
             <div><span class="badge badge-login">Login required</span> TOMMI account needed</div>
             <div><span class="badge badge-editor">Agora CMS login</span> Agora editor credentials</div>
+        </div>
+        <h3 style="color:#4250b3;font-size:0.95em;margin-bottom:8px;margin-top:14px;">Authentication Servers</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:0.85em;">
+            <div><span class="badge badge-auth-gloria">gloria.uma.es</span> TOMMI server — managed by UMA</div>
+            <div><span class="badge badge-auth-agora">uninovis.widening.eu</span> Agora CMS — managed by THUAS</div>
+            <div><span class="badge badge-auth-matomo">uninovis.matomo.cloud</span> Matomo Cloud — analytics platform</div>
+            <div><span class="badge badge-auth-none">uninovis.eu</span> WordPress — public website</div>
         </div>
     </div>
 
