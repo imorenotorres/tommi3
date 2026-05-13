@@ -15,3 +15,8 @@ router = APIRouter(prefix="/uninovis", tags=["uninovis"])
 @router.get("/")
 def index():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
+
+@router.get("/services")
+def services():
+    return FileResponse(os.path.join(STATIC_DIR, "services.html"))
