@@ -2292,6 +2292,18 @@ function openAdminPanel() {
         </div>
 
         <h3 style="margin:0 0 0.75rem 0; font-size:0.95rem;">Existing users</h3>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; margin-bottom:0.75rem;">
+            <input id="admin-user-search" type="text" placeholder="Search..." oninput="loadUsersList()" style="flex:1; min-width:120px; padding:0.35rem 0.6rem; border:1px solid #e2e8f0; border-radius:4px; font-size:0.85rem;">
+            <select id="admin-domain-filter" onchange="loadUsersList()" style="padding:0.35rem 0.6rem; border:1px solid #e2e8f0; border-radius:4px; font-size:0.85rem;">
+                <option value="">All domains</option>
+            </select>
+            <select id="admin-role-filter" onchange="loadUsersList()" style="padding:0.35rem 0.6rem; border:1px solid #e2e8f0; border-radius:4px; font-size:0.85rem;">
+                <option value="">All roles</option>
+                <option value="user">user</option>
+                <option value="tester">tester</option>
+                <option value="superuser">superuser</option>
+            </select>
+        </div>
         <div id="users-list" style="font-size:0.9rem;">Loading...</div>
     `;
 
@@ -2402,66 +2414,138 @@ function adminShowMessage(text, type) {
     setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
+var _adminUsersCache = null;
+var _adminSortCol = 'username';
+var _adminSortAsc = true;
+
+function adminSetSort(col) {
+    if (_adminSortCol === col) { _adminSortAsc = !_adminSortAsc; }
+    else { _adminSortCol = col; _adminSortAsc = true; }
+    _renderAdminUsers();
+}
+
 async function loadUsersList() {
     const container = document.getElementById('users-list');
     if (!container) return;
 
     try {
         const res = await authFetch('/api/auth/users');
-        const users = await res.json();
+        _adminUsersCache = await res.json();
 
-        if (users.length === 0) {
-            container.innerHTML = '<p style="color:#64748b;">No users found.</p>';
-            return;
+        // Populate domain filter
+        const domainSelect = document.getElementById('admin-domain-filter');
+        if (domainSelect) {
+            const currentVal = domainSelect.value;
+            const domains = new Set();
+            _adminUsersCache.forEach(u => {
+                const at = u.username.indexOf('@');
+                if (at > 0) domains.add(u.username.substring(at + 1).toLowerCase());
+            });
+            let opts = '<option value="">All domains</option>';
+            Array.from(domains).sort().forEach(d => {
+                opts += `<option value="${d}">${d}</option>`;
+            });
+            domainSelect.innerHTML = opts;
+            domainSelect.value = currentVal;
         }
 
-        const roleColors = { superuser: '#dc2626', tester: '#d97706', user: '#2563eb' };
-        const currentUser = getAuthUsername();
-
-        let html = '<table style="width:100%; border-collapse:collapse;">';
-        html += '<tr style="border-bottom:2px solid #e2e8f0;"><th style="text-align:left; padding:0.4rem;">Username</th><th style="text-align:left; padding:0.4rem;">Role</th><th style="text-align:left; padding:0.4rem;">Status</th><th style="padding:0.4rem;"></th></tr>';
-
-        users.forEach(u => {
-            const isSelf = u.username === currentUser;
-            const roleColor = roleColors[u.role] || '#64748b';
-            let statusHtml;
-            if (u.pending_invite) {
-                statusHtml = '<span style="color:#9333ea; font-size:0.8rem;">pending invite</span>';
-            } else if (u.provisional_password) {
-                statusHtml = '<span style="color:#d97706; font-size:0.8rem;">provisional pwd</span>';
-            } else {
-                statusHtml = '<span style="color:#16a34a; font-size:0.8rem;">active</span>';
-            }
-            let actionsHtml = '';
-            if (!isSelf) {
-                if (u.pending_invite || u.provisional_password) {
-                    actionsHtml += `<button onclick="adminResendInvite('${u.username}')" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; font-size:0.8rem; margin-right:0.3rem;" title="Resend invitation email">Resend</button>`;
-                }
-                actionsHtml += `<button onclick="adminDeleteUser('${u.username}')" style="background:#fee2e2; color:#dc2626; border:none; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; font-size:0.8rem;">Delete</button>`;
-            }
-            let roleHtml;
-            if (isSelf) {
-                roleHtml = `<span style="color:${roleColor}; font-weight:500;">${u.role}</span>`;
-            } else {
-                roleHtml = `<select onchange="adminChangeRole('${u.username}', this.value)" style="padding:2px 4px; border:1px solid #e2e8f0; border-radius:4px; font-size:0.85rem; color:${roleColor}; font-weight:500; cursor:pointer;">`;
-                ['user', 'tester', 'superuser'].forEach(r => {
-                    roleHtml += `<option value="${r}"${u.role === r ? ' selected' : ''} style="color:${roleColors[r] || '#64748b'};">${r}</option>`;
-                });
-                roleHtml += '</select>';
-            }
-            html += `<tr style="border-bottom:1px solid #f1f5f9;">
-                <td style="padding:0.4rem;">${u.username}${isSelf ? ' <small>(you)</small>' : ''}</td>
-                <td style="padding:0.4rem;">${roleHtml}</td>
-                <td style="padding:0.4rem;">${statusHtml}</td>
-                <td style="padding:0.4rem; text-align:right;">${actionsHtml}</td>
-            </tr>`;
-        });
-
-        html += '</table>';
-        container.innerHTML = html;
+        _renderAdminUsers();
     } catch (err) {
         container.innerHTML = '<p style="color:#dc2626;">Error loading users</p>';
     }
+}
+
+function _renderAdminUsers() {
+    const container = document.getElementById('users-list');
+    if (!container || !_adminUsersCache) return;
+
+    const searchEl = document.getElementById('admin-user-search');
+    const domainEl = document.getElementById('admin-domain-filter');
+    const roleEl = document.getElementById('admin-role-filter');
+    const search = (searchEl ? searchEl.value : '').toLowerCase();
+    const domainFilter = domainEl ? domainEl.value : '';
+    const roleFilter = roleEl ? roleEl.value : '';
+
+    let users = _adminUsersCache.filter(u => {
+        if (search && u.username.toLowerCase().indexOf(search) === -1) return false;
+        if (roleFilter && u.role !== roleFilter) return false;
+        if (domainFilter) {
+            const at = u.username.indexOf('@');
+            const domain = at > 0 ? u.username.substring(at + 1).toLowerCase() : '';
+            if (domain !== domainFilter) return false;
+        }
+        return true;
+    });
+
+    // Sort
+    users.sort((a, b) => {
+        let va, vb;
+        if (_adminSortCol === 'username') { va = a.username; vb = b.username; }
+        else if (_adminSortCol === 'role') { va = a.role; vb = b.role; }
+        else if (_adminSortCol === 'status') {
+            va = a.pending_invite ? 'a' : a.provisional_password ? 'b' : 'c';
+            vb = b.pending_invite ? 'a' : b.provisional_password ? 'b' : 'c';
+        } else { va = a.username; vb = b.username; }
+        let c = va.localeCompare(vb);
+        if (!_adminSortAsc) c = -c;
+        return c;
+    });
+
+    if (users.length === 0) {
+        container.innerHTML = '<p style="color:#64748b;">No users match the filter.</p>';
+        return;
+    }
+
+    const roleColors = { superuser: '#dc2626', tester: '#d97706', user: '#2563eb' };
+    const currentUser = getAuthUsername();
+
+    function sortTh(col, label) {
+        const arrow = _adminSortCol === col ? (_adminSortAsc ? ' \u25B2' : ' \u25BC') : '';
+        return `<th style="text-align:left; padding:0.4rem; cursor:pointer;" onclick="adminSetSort('${col}')">${label}${arrow}</th>`;
+    }
+
+    let html = `<p style="font-size:0.8rem; color:#64748b; margin-bottom:0.3rem;">Showing ${users.length} of ${_adminUsersCache.length} users</p>`;
+    html += '<table style="width:100%; border-collapse:collapse;">';
+    html += '<tr style="border-bottom:2px solid #e2e8f0;">' + sortTh('username', 'Username') + sortTh('role', 'Role') + sortTh('status', 'Status') + '<th style="padding:0.4rem;"></th></tr>';
+
+    users.forEach(u => {
+        const isSelf = u.username === currentUser;
+        const roleColor = roleColors[u.role] || '#64748b';
+        let statusHtml;
+        if (u.pending_invite) {
+            statusHtml = '<span style="color:#9333ea; font-size:0.8rem;">pending invite</span>';
+        } else if (u.provisional_password) {
+            statusHtml = '<span style="color:#d97706; font-size:0.8rem;">provisional pwd</span>';
+        } else {
+            statusHtml = '<span style="color:#16a34a; font-size:0.8rem;">active</span>';
+        }
+        let actionsHtml = '';
+        if (!isSelf) {
+            if (u.pending_invite || u.provisional_password) {
+                actionsHtml += `<button onclick="adminResendInvite('${u.username}')" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; font-size:0.8rem; margin-right:0.3rem;" title="Resend invitation email">Resend</button>`;
+            }
+            actionsHtml += `<button onclick="adminDeleteUser('${u.username}')" style="background:#fee2e2; color:#dc2626; border:none; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; font-size:0.8rem;">Delete</button>`;
+        }
+        let roleHtml;
+        if (isSelf) {
+            roleHtml = `<span style="color:${roleColor}; font-weight:500;">${u.role}</span>`;
+        } else {
+            roleHtml = `<select onchange="adminChangeRole('${u.username}', this.value)" style="padding:2px 4px; border:1px solid #e2e8f0; border-radius:4px; font-size:0.85rem; color:${roleColor}; font-weight:500; cursor:pointer;">`;
+            ['user', 'tester', 'superuser'].forEach(r => {
+                roleHtml += `<option value="${r}"${u.role === r ? ' selected' : ''} style="color:${roleColors[r] || '#64748b'};">${r}</option>`;
+            });
+            roleHtml += '</select>';
+        }
+        html += `<tr style="border-bottom:1px solid #f1f5f9;">
+            <td style="padding:0.4rem;">${u.username}${isSelf ? ' <small>(you)</small>' : ''}</td>
+            <td style="padding:0.4rem;">${roleHtml}</td>
+            <td style="padding:0.4rem;">${statusHtml}</td>
+            <td style="padding:0.4rem; text-align:right;">${actionsHtml}</td>
+        </tr>`;
+    });
+
+    html += '</table>';
+    container.innerHTML = html;
 }
 
 async function adminCreateUser() {
