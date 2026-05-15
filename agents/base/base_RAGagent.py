@@ -60,6 +60,9 @@ class BaseRAGAgent:
             self._skip_claim_classification = False
         # If not specified in config, keep the class default (set by mixin or False)
 
+        # Reliability display mode: "visual", "text_style", "both", "none"
+        self._reliability_display = self._config.get("reliability_display", "visual")
+
         # Query history for the sidebar
         self._query_history = []
 
@@ -254,6 +257,81 @@ class BaseRAGAgent:
             if strict:
                 parts.append(strict)
         return "\n".join(parts)
+
+    # ------------------------------------------------------------------
+    # Reliability display: context quality estimation & style instructions
+    # ------------------------------------------------------------------
+
+    def _should_show_visual_badge(self) -> bool:
+        """Whether to render the visual reliability badge."""
+        return self._reliability_display in ("visual", "both")
+
+    def _should_use_text_style(self) -> bool:
+        """Whether to inject hedging instructions based on context quality."""
+        return self._reliability_display in ("text_style", "both")
+
+    def _estimate_context_quality(self, context: str, metadata_ctx: str = "") -> str:
+        """Estimate context quality BEFORE LLM generation.
+
+        Returns "high", "moderate", or "low" based on the amount and
+        presence of retrieved context.
+        """
+        has_context = bool(context and context.strip())
+        has_metadata = bool(metadata_ctx and metadata_ctx.strip())
+
+        if has_metadata and has_context:
+            return "high"
+        if has_metadata or has_context:
+            # Rough heuristic: short context is weaker
+            text = context or metadata_ctx
+            if len(text) > 500:
+                return "high"
+            return "moderate"
+        return "low"
+
+    def _get_style_instruction(self, quality: str) -> str:
+        """Return a style instruction to append to the system prompt
+        based on the pre-generation context quality estimate."""
+        if quality == "gap_analysis":
+            return (
+                "\n\nSTYLE INSTRUCTION (MANDATORY): You are identifying potential research gaps — "
+                "reasoning about what is ABSENT from the database. This is inherently speculative. "
+                "You MUST follow these rules strictly:\n"
+                "- NEVER state that a topic 'has not been studied' or that there are 'no papers'. "
+                "Instead say 'does not appear in the indexed database', 'was not found among the indexed records', "
+                "or 'no matching entries were identified'.\n"
+                "- NEVER use authority-claiming language such as 'well-known', 'widely recognized', "
+                "'it is established that', 'clearly', or 'certainly'. You do not know what is well-known "
+                "or important — only what is or is not in the database.\n"
+                "- ALWAYS caveat that the database may be incomplete, topics may exist under different names, "
+                "or relevant work may not have been indexed.\n"
+                "- Use hedging language throughout: 'it appears that', 'based on the available records', "
+                "'this could suggest', 'it is possible that', 'some authors have discussed'.\n"
+                "- When listing potential gaps, frame them as possibilities, not facts: "
+                "'topics such as X, which are sometimes discussed in the literature, do not appear "
+                "in the current index' rather than 'X has not been studied'.\n"
+                "- End with a reminder that these gaps reflect the database contents, not necessarily "
+                "the actual research activity of the alliance."
+            )
+        elif quality == "high":
+            return (
+                "\n\nSTYLE INSTRUCTION: You have strong evidence from the knowledge base. "
+                "Write with confidence and cite the source documents when possible."
+            )
+        elif quality == "moderate":
+            return (
+                "\n\nSTYLE INSTRUCTION: The available evidence is limited. "
+                "Use cautious language (e.g., 'based on the available data', "
+                "'the documents suggest'). Note which parts of your answer "
+                "you are less certain about."
+            )
+        else:
+            return (
+                "\n\nSTYLE INSTRUCTION: You have no relevant data from the knowledge base "
+                "for this query. State clearly that your answer is based on general "
+                "knowledge and may not be accurate. Recommend the user verify "
+                "the information from an authoritative source."
+            )
 
     # ------------------------------------------------------------------
     # Post-init hook

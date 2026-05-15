@@ -2375,7 +2375,12 @@ function openAgentPanel() {
         <div id="agent-admin-message" style="display:none; padding:0.5rem 0.75rem; border-radius:6px; font-size:0.85rem; margin-bottom:1rem;"></div>
 
         <h3 style="margin:0 0 0.5rem 0; font-size:0.95rem;">Agent visibility</h3>
-        <p style="font-size:0.8rem; color:#64748b; margin-bottom:0.75rem;">Hidden agents are not visible to testers or users. Visible agents are shown to testers; users only see those with a local LLM provider.</p>
+        <p style="font-size:0.8rem; color:#64748b; margin-bottom:0.75rem;">
+            <b>Hidden</b>: superusers only &nbsp;|&nbsp;
+            <b>Restricted</b>: testers and above &nbsp;|&nbsp;
+            <b>Open</b>: any logged-in user.<br>
+            If <b>Allowed users</b> are set, only those users can see the agent (overrides level).
+        </p>
         <div id="agent-visibility-list" style="font-size:0.9rem;">Loading...</div>
     `;
 
@@ -2898,36 +2903,47 @@ async function adminRejectRequest(email) {
 }
 
 
+var _agentVisCache = [];
+
 async function loadAgentVisibility() {
     const container = document.getElementById('agent-visibility-list');
     if (!container) return;
 
     try {
         const res = await authFetch('/api/agents/visibility');
-        const agents = await res.json();
+        _agentVisCache = await res.json();
 
-        if (agents.length === 0) {
+        if (_agentVisCache.length === 0) {
             container.innerHTML = '<p style="color:#64748b;">No agents found.</p>';
             return;
         }
 
-        let html = '<table style="width:100%; border-collapse:collapse;">';
-        html += '<tr style="border-bottom:2px solid #e2e8f0;"><th style="text-align:left; padding:0.4rem;">Agent</th><th style="text-align:left; padding:0.4rem;">Provider</th><th style="text-align:center; padding:0.4rem;">Visibility</th><th style="text-align:center; padding:0.4rem;">Export data</th><th style="text-align:center; padding:0.4rem;">Logs</th></tr>';
+        const levelColors = { hidden: '#dc2626', restricted: '#d97706', open: '#16a34a' };
 
-        agents.forEach(a => {
+        let html = '<table style="width:100%; border-collapse:collapse;">';
+        html += '<tr style="border-bottom:2px solid #e2e8f0;"><th style="text-align:left; padding:0.4rem;">Agent</th><th style="text-align:left; padding:0.4rem;">Provider</th><th style="text-align:center; padding:0.4rem;">Level</th><th style="text-align:left; padding:0.4rem;">Allowed users</th><th style="text-align:center; padding:0.4rem;">Export data</th><th style="text-align:center; padding:0.4rem;">Logs</th></tr>';
+
+        _agentVisCache.forEach(a => {
             const providerBadge = a.is_local
                 ? `<span style="color:#16a34a; font-size:0.8rem;">local</span>`
                 : `<span style="color:#d97706; font-size:0.8rem;">cloud</span>`;
-            const toggleId = `vis-${CSS.escape(a.id)}`;
-            const checked = a.visible ? 'checked' : '';
+            const selId = `level-${CSS.escape(a.id)}`;
+            const usersId = `users-${CSS.escape(a.id)}`;
+            const levelColor = levelColors[a.level] || '#64748b';
+            const allowedStr = (a.allowed_users || []).join(', ');
+
             html += `<tr style="border-bottom:1px solid #f1f5f9;">
                 <td style="padding:0.4rem;"><b>${a.name}</b> <span style="color:#94a3b8; font-size:0.75rem;">${a.id}</span></td>
                 <td style="padding:0.4rem;">${providerBadge} <span style="font-size:0.8rem; color:#64748b;">${a.provider}</span></td>
                 <td style="padding:0.4rem; text-align:center;">
-                    <label style="cursor:pointer; display:inline-flex; align-items:center; gap:0.3rem;">
-                        <input type="checkbox" id="${toggleId}" ${checked} onchange="toggleAgentVisibility('${a.id}', this.checked)" style="cursor:pointer; width:1rem; height:1rem;">
-                        <span id="${toggleId}-label" style="font-size:0.8rem; color:${a.visible ? '#16a34a' : '#dc2626'};">${a.visible ? 'Visible' : 'Hidden'}</span>
-                    </label>
+                    <select id="${selId}" onchange="updateAgentVisibility('${a.id}')" style="padding:2px 4px; border:1px solid #e2e8f0; border-radius:4px; font-size:0.82rem; color:${levelColor}; font-weight:500; cursor:pointer;">
+                        <option value="hidden"${a.level === 'hidden' ? ' selected' : ''} style="color:#dc2626;">Hidden</option>
+                        <option value="restricted"${a.level === 'restricted' ? ' selected' : ''} style="color:#d97706;">Restricted</option>
+                        <option value="open"${a.level === 'open' ? ' selected' : ''} style="color:#16a34a;">Open</option>
+                    </select>
+                </td>
+                <td style="padding:0.4rem;">
+                    <input type="text" id="${usersId}" value="${allowedStr}" placeholder="e.g. user1@uma.es, user2@thuas.nl" onchange="updateAgentVisibility('${a.id}')" style="width:100%; padding:2px 4px; border:1px solid #e2e8f0; border-radius:4px; font-size:0.78rem; min-width:160px;">
                 </td>
                 <td style="padding:0.4rem; text-align:center; white-space:nowrap;">
                     <a href="/api/agents/${a.id}/export/researchers?token=${encodeURIComponent(getAuthToken())}" style="font-size:0.7rem; color:#2563eb; margin-right:0.3rem;" title="Download researchers Excel for review">Researchers</a>
@@ -2959,30 +2975,33 @@ function agentShowMessage(text, type) {
     setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
-async function toggleAgentVisibility(agentId, visible) {
-    const label = document.getElementById(`vis-${CSS.escape(agentId)}-label`);
+async function updateAgentVisibility(agentId) {
+    const selEl = document.getElementById(`level-${CSS.escape(agentId)}`);
+    const usersEl = document.getElementById(`users-${CSS.escape(agentId)}`);
+    const level = selEl ? selEl.value : 'restricted';
+    const allowedUsers = usersEl ? usersEl.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+
     try {
-        const res = await authFetch(`/api/agents/${encodeURIComponent(agentId)}/visibility?visible=${visible}`, {
-            method: 'PUT'
+        const res = await authFetch(`/api/agents/${encodeURIComponent(agentId)}/visibility`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ level, allowed_users: allowedUsers })
         });
 
         if (!res.ok) {
             const data = await res.json();
             agentShowMessage(data.detail || 'Error updating visibility', 'error');
-            const cb = document.getElementById(`vis-${CSS.escape(agentId)}`);
-            if (cb) cb.checked = !visible;
             return;
         }
 
-        if (label) {
-            label.textContent = visible ? 'Visible' : 'Hidden';
-            label.style.color = visible ? '#16a34a' : '#dc2626';
-        }
-        agentShowMessage(`${agentId}: ${visible ? 'visible' : 'hidden'}`, 'success');
+        // Update select color
+        const levelColors = { hidden: '#dc2626', restricted: '#d97706', open: '#16a34a' };
+        if (selEl) selEl.style.color = levelColors[level] || '#64748b';
+
+        const usersNote = allowedUsers.length ? ` (restricted to ${allowedUsers.length} user${allowedUsers.length > 1 ? 's' : ''})` : '';
+        agentShowMessage(`${agentId}: ${level}${usersNote}`, 'success');
     } catch (err) {
         agentShowMessage('Connection error', 'error');
-        const cb = document.getElementById(`vis-${CSS.escape(agentId)}`);
-        if (cb) cb.checked = !visible;
     }
 }
 

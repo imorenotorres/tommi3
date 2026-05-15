@@ -98,5 +98,7 @@
     "num_results": 10,
     "_comment": "Google Custom Search API credentials. Leave empty to disable web search expansion. Get API key at https://console.cloud.google.com/ and CX at https://programmablesearchengine.google.com/"
   },
+  "reliability_display": "both",
+  "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
   "transparency_type": "content"
 }

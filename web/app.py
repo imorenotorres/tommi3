@@ -1077,15 +1077,31 @@ async def check_vllm_health(base_url: str, model: str) -> dict:
 
 LOCAL_PROVIDERS = {"ollama", "vllm"}
 
-# Agent visibility: {agent_id: True/False}. Stored in data/agent_visibility.json
+# Agent visibility: {agent_id: {level: "hidden"|"restricted"|"open", allowed_users: [...]}}
+# Stored in data/agent_visibility.json
+# Levels: hidden = superuser only, restricted (default) = testers+, open = any user
 _VISIBILITY_FILE = Path(__file__).parent / "data" / "agent_visibility.json"
+
+VISIBILITY_LEVELS = {"hidden", "restricted", "open"}
 
 
 def _load_visibility() -> dict:
     if not _VISIBILITY_FILE.exists():
         return {}
     with open(_VISIBILITY_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    # Migrate old boolean format to new format
+    migrated = False
+    for k, v in list(data.items()):
+        if isinstance(v, bool):
+            data[k] = {"level": "restricted" if v else "hidden", "allowed_users": []}
+            migrated = True
+        elif isinstance(v, str):
+            data[k] = {"level": v if v in VISIBILITY_LEVELS else "restricted", "allowed_users": []}
+            migrated = True
+    if migrated:
+        _save_visibility(data)
+    return data
 
 
 def _save_visibility(data: dict) -> None:
@@ -1093,10 +1109,30 @@ def _save_visibility(data: dict) -> None:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
-def _is_agent_visible(agent_id: str) -> bool:
-    """Check if an agent is visible. Default is True (visible) if not set."""
+def _get_agent_visibility(agent_id: str) -> dict:
+    """Get visibility config for an agent. Default is restricted."""
     vis = _load_visibility()
-    return vis.get(agent_id, True)
+    entry = vis.get(agent_id, {})
+    if isinstance(entry, dict):
+        return {"level": entry.get("level", "restricted"), "allowed_users": entry.get("allowed_users", [])}
+    return {"level": "restricted", "allowed_users": []}
+
+
+def _can_user_see_agent(agent_id: str, username: str, role: str) -> bool:
+    """Check if a user can see an agent based on visibility level and allowed_users."""
+    if role == "superuser":
+        return True
+    cfg = _get_agent_visibility(agent_id)
+    # If allowed_users is set, only those users can see it (overrides level)
+    if cfg["allowed_users"]:
+        return username.lower() in [u.lower() for u in cfg["allowed_users"]]
+    level = cfg["level"]
+    if level == "hidden":
+        return False
+    if level == "open":
+        return True
+    # restricted: testers and above
+    return role in ("tester", "superuser")
 
 
 def _get_agent_provider(agent_id: str) -> str:
@@ -1306,22 +1342,14 @@ async def list_agents(request: Request, mode: Optional[str] = Query(None)):
     """Lista todos los agentes disponibles (filtered by visibility, mode, and role)"""
     agents = runner.discover_agents()
 
-    # Determine user role from session
+    # Determine user role and username from session
     token = _get_token(request)
     session = get_session(token) if token else None
     user_role = session["role"] if session else "user"
+    username = session["username"] if session else ""
 
-    # Superusers see all agents regardless of visibility or provider
-    if user_role == "superuser":
-        pass  # no filtering
-    elif user_role == "tester":
-        # Testers see visible agents only; in user mode, further restrict to local providers
-        agents = [a for a in agents if _is_agent_visible(a.id)]
-        if mode == "user":
-            agents = [a for a in agents if _is_local_provider(a.id)]
-    else:
-        # Users: only visible agents with local providers
-        agents = [a for a in agents if _is_agent_visible(a.id) and _is_local_provider(a.id)]
+    # Filter agents based on visibility level and allowed_users
+    agents = [a for a in agents if _can_user_see_agent(a.id, username, user_role)]
 
     return [
         AgentResponse(
@@ -1344,14 +1372,15 @@ async def list_agents(request: Request, mode: Optional[str] = Query(None)):
 
 @app.get("/api/agents/visibility")
 async def get_agents_visibility(session: dict = Depends(require_role("superuser"))):
-    """Get visibility status of all agents (superuser only)."""
+    """Get visibility config of all agents (superuser only)."""
     all_agents = runner.discover_agents()
     vis = _load_visibility()
     return [
         {
             "id": a.id,
             "name": a.name,
-            "visible": vis.get(a.id, True),
+            "level": vis.get(a.id, {}).get("level", "restricted") if isinstance(vis.get(a.id), dict) else "restricted",
+            "allowed_users": vis.get(a.id, {}).get("allowed_users", []) if isinstance(vis.get(a.id), dict) else [],
             "provider": _get_agent_provider(a.id),
             "is_local": _is_local_provider(a.id),
         }
@@ -1359,23 +1388,29 @@ async def get_agents_visibility(session: dict = Depends(require_role("superuser"
     ]
 
 
+class AgentVisibilityBody(BaseModel):
+    level: str = "restricted"
+    allowed_users: list[str] = []
+
+
 @app.put("/api/agents/{agent_id}/visibility")
 async def set_agent_visibility(
     agent_id: str,
-    visible: bool = Query(...),
+    body: AgentVisibilityBody,
     session: dict = Depends(require_role("superuser")),
 ):
-    """Set visibility of an agent (superuser only)."""
+    """Set visibility level and allowed users for an agent (superuser only)."""
+    if body.level not in VISIBILITY_LEVELS:
+        raise HTTPException(status_code=400, detail=f"Invalid level. Must be one of: {', '.join(VISIBILITY_LEVELS)}")
     agent = runner.get_agent(agent_id)
     if not agent:
-        # Check if it's a discovered but not-yet-loaded agent
         all_agents = runner.discover_agents()
         if not any(a.id == agent_id for a in all_agents):
             raise HTTPException(status_code=404, detail="Agent not found")
     vis = _load_visibility()
-    vis[agent_id] = visible
+    vis[agent_id] = {"level": body.level, "allowed_users": body.allowed_users}
     _save_visibility(vis)
-    return {"ok": True, "agent_id": agent_id, "visible": visible}
+    return {"ok": True, "agent_id": agent_id, "level": body.level, "allowed_users": body.allowed_users}
 
 
 # ---------------------------------------------------------------------------
@@ -2570,9 +2605,15 @@ if __name__ == "__main__":
         sock.close()
     except OSError as e:
         if e.errno == 48:  # Address already in use
-            print(f"\nERROR:    [Error 504] error while attempting to bind on address ('{host}', {port}): address already in use", file=sys.stderr)
-            print(f"\nYou can fix this by running: ./liberar-puerto.sh {port}", file=sys.stderr)
-            print("\nSee howto.html (section 7.5. Server errors) for more information.", file=sys.stderr)
+            msg = (
+                f"\n*** ERROR: Port {port} is already in use. ***\n"
+                f"Another server (or a previous instance of TOMMI) is using this port.\n\n"
+                f"To fix this, either:\n"
+                f"  1. Stop the other server, or\n"
+                f"  2. Run: ./liberar-puerto.sh {port}\n"
+            )
+            print(msg)
+            print(msg, file=sys.stderr)
             sys.exit(1)
         else:
             raise

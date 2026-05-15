@@ -1034,9 +1034,9 @@ class MetadataRAGMixin:
         )
 
     @staticmethod
-    def _analysis_prompt(topic: str) -> str:
+    def _analysis_prompt(topic: str, hedged: bool = False) -> str:
         """Return the constrained prompt for LLM analysis of topic data."""
-        return (
+        base = (
             f"The factual data above has already been shown to the user. "
             f"DO NOT repeat any paper titles, authors, IDs, or counts — the user can already see them. "
             f"DO NOT list or enumerate papers. DO NOT start with a heading or horizontal rule. "
@@ -1045,6 +1045,15 @@ class MetadataRAGMixin:
             f"which universities are most active, what subtopics emerge, whether there are collaboration patterns, "
             f"or suggest related topics the user might explore."
         )
+        if hedged:
+            base += (
+                f"\n\nIMPORTANT STYLE: This commentary is YOUR interpretation, not verified fact. "
+                f"Use cautious, hedging language throughout (e.g., 'the data suggests', "
+                f"'this may indicate', 'it appears that', 'based on the available records'). "
+                f"Avoid definitive claims. Acknowledge limitations — the database may not capture "
+                f"all research activity, and patterns observed may reflect indexing rather than reality."
+            )
+        return base
 
     @staticmethod
     def _is_project_query(user_message: str) -> bool:
@@ -3734,6 +3743,19 @@ class MetadataRAGMixin:
             shared_topics_ctx or affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx or glossary_ctx
         )
 
+        # Reliability text style: inject hedging instructions based on context quality
+        if self._should_use_text_style():
+            # Gap analysis is inherently speculative — always use cautious style
+            if is_gap_analysis:
+                quality = "gap_analysis"
+            else:
+                combined_for_estimate = " ".join(filter(None, [
+                    project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx,
+                    topic_ctx, researcher_ctx, glossary_ctx,
+                ]))
+                quality = self._estimate_context_quality(context, metadata_ctx=combined_for_estimate)
+            system_with_context += self._get_style_instruction(quality)
+
         # For web expand, rephrase the user message to re-ask the original query
         effective_message = user_message
         if is_web_expand and self._get_last_query():
@@ -3744,7 +3766,7 @@ class MetadataRAGMixin:
             )
 
         use_procedural = getattr(self, '_skip_claim_classification', False)
-        show_banners = use_procedural and transparency == "scaffolded"
+        show_banners = use_procedural and transparency == "scaffolded" and self._should_show_visual_badge()
         detect_hallucinations = not use_procedural or transparency == "scaffolded"
 
         # --- Approach D: Programmatic facts + LLM commentary (AI3 only) ---
@@ -3757,7 +3779,7 @@ class MetadataRAGMixin:
 
         if factual_section:
             topic = self._extract_topic(user_message) or "shared research topics"
-            analysis_prompt = self._analysis_prompt(topic)
+            analysis_prompt = self._analysis_prompt(topic, hedged=self._should_use_text_style())
             messages = [{"role": "system", "content": system_with_context}]
             if history:
                 messages.extend(history)
@@ -3909,7 +3931,11 @@ class MetadataRAGMixin:
                 hallucination_count=hallucination_count,
             )
 
-        response_content = badge + llm_content
+        # Only prepend visual badge if configured
+        if self._should_show_visual_badge() and badge:
+            response_content = badge + llm_content
+        else:
+            response_content = llm_content
 
         # Offer web search expansion if results were insufficient
         if (not is_web_expand and not is_figure_request and not is_followup
@@ -4084,6 +4110,19 @@ class MetadataRAGMixin:
             shared_topics_ctx or affiliation_ctx or uni_papers_ctx or researcher_ctx or project_ctx or glossary_ctx
         )
 
+        # Reliability text style: inject hedging instructions based on context quality
+        if self._should_use_text_style():
+            # Gap analysis is inherently speculative — always use cautious style
+            if is_gap_analysis:
+                quality = "gap_analysis"
+            else:
+                combined_for_estimate = " ".join(filter(None, [
+                    project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx,
+                    topic_ctx, researcher_ctx, glossary_ctx,
+                ]))
+                quality = self._estimate_context_quality(context, metadata_ctx=combined_for_estimate)
+            system_with_context += self._get_style_instruction(quality)
+
         # For web expand, rephrase the user message to re-ask the original query
         effective_message = user_message
         if is_web_expand and self._get_last_query():
@@ -4094,7 +4133,7 @@ class MetadataRAGMixin:
             )
 
         use_procedural = getattr(self, '_skip_claim_classification', False)
-        show_banners = use_procedural and transparency == "scaffolded"
+        show_banners = use_procedural and transparency == "scaffolded" and self._should_show_visual_badge()
         detect_hallucinations = not use_procedural or transparency == "scaffolded"
 
         # --- Approach D: Programmatic facts + LLM commentary (AI3 only) ---
@@ -4117,7 +4156,7 @@ class MetadataRAGMixin:
 
             # Ask the LLM for a brief analysis only — constrained prompt
             topic = self._extract_topic(user_message) or "shared research topics"
-            analysis_prompt = self._analysis_prompt(topic)
+            analysis_prompt = self._analysis_prompt(topic, hedged=self._should_use_text_style())
             messages = [{"role": "system", "content": system_with_context}]
             if history:
                 messages.extend(history)
@@ -4251,12 +4290,13 @@ class MetadataRAGMixin:
         if skip_claims:
             # AI3 procedural badge: agent tuning only, banners handle reliability
             reliability_label = "none"
-            yield ("badge", ReliabilityBadge.procedural_badge(
-                transparency=transparency,
-                prompt_level=prompt_level,
-                model_name=self.model_display_name,
-                is_local_llm=self._is_local_llm,
-            ))
+            if self._should_show_visual_badge():
+                yield ("badge", ReliabilityBadge.procedural_badge(
+                    transparency=transparency,
+                    prompt_level=prompt_level,
+                    model_name=self.model_display_name,
+                    is_local_llm=self._is_local_llm,
+                ))
             breakdown = {}
         elif is_figure_request:
             # AI2 figure requests: 100% metadata, no claims
@@ -4264,14 +4304,15 @@ class MetadataRAGMixin:
             figure_breakdown = {"metadata_pct": 100, "database_pct": 0, "web_pct": 0, "llm_pct": 0,
                                 "total_claims": 0, "confidence": 100,
                                 "metadata_claims": [], "database_claims": [], "web_claims": [], "llm_claims": []}
-            yield ("badge", ReliabilityBadge.source_badge(
-                "Metadata", figure_breakdown,
-                transparency=transparency,
-                highlight_config=highlight_cfg,
-                prompt_level=prompt_level,
-                model_name=self.model_display_name,
-                is_local_llm=self._is_local_llm,
-            ))
+            if self._should_show_visual_badge():
+                yield ("badge", ReliabilityBadge.source_badge(
+                    "Metadata", figure_breakdown,
+                    transparency=transparency,
+                    highlight_config=highlight_cfg,
+                    prompt_level=prompt_level,
+                    model_name=self.model_display_name,
+                    is_local_llm=self._is_local_llm,
+                ))
             breakdown = figure_breakdown
         else:
             # AI2 standard: full claim classification
@@ -4291,7 +4332,7 @@ class MetadataRAGMixin:
                 is_local_llm=self._is_local_llm,
                 hallucination_count=hallucination_count,
             )
-            if badge:
+            if self._should_show_visual_badge() and badge:
                 yield ("badge", badge)
 
         # Offer web search expansion if results were insufficient

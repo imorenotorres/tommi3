@@ -17,5 +17,7 @@
   "max_rows_display": 50,
   "chart_style": "seaborn",
   "_comment": "Data source: UNINOVIS survey '¿Ya formas parte de UNINOVIS? (respuestas).xlsx' — 279 responses, 13 columns.",
+  "reliability_display": "both",
+  "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
   "transparency_type": "content"
 }

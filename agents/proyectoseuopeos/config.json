@@ -14,5 +14,7 @@
   "prompt_level": "stringent",
   "transparency_level": "scaffolded",
   "audit_log_enabled": true,
+  "reliability_display": "both",
+  "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
   "transparency_type": "procedural"
 }

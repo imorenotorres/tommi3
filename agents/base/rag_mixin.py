@@ -26,6 +26,11 @@ class SimpleRAGMixin:
         if context:
             system_with_context += f"\n\nRelevant context from the knowledge base:\n{context}"
 
+        # Reliability text style: inject hedging instructions based on context quality
+        if self._should_use_text_style():
+            quality = self._estimate_context_quality(context)
+            system_with_context += self._get_style_instruction(quality)
+
         messages = [{"role": "system", "content": system_with_context}]
         if history:
             messages.extend(history)
@@ -54,9 +59,13 @@ class SimpleRAGMixin:
             model_name=self.model_display_name,
             is_local_llm=self._is_local_llm,
         )
-        response_content = badge + llm_content
+        # Only prepend visual badge if configured
+        if self._should_show_visual_badge() and badge:
+            response_content = badge + llm_content
+        else:
+            response_content = llm_content
 
-        # Audit log
+        # Audit log (always log regardless of display mode)
         is_followup = self._is_followup_query(user_message) and history
         AuditLogger.log(
             audit_path=self._audit_path,
@@ -104,6 +113,11 @@ class SimpleRAGMixin:
         if context:
             system_with_context += f"\n\nRelevant context from the knowledge base:\n{context}"
 
+        # Reliability text style: inject hedging instructions based on context quality
+        if self._should_use_text_style():
+            quality = self._estimate_context_quality(context)
+            system_with_context += self._get_style_instruction(quality)
+
         messages = [{"role": "system", "content": system_with_context}]
         if history:
             messages.extend(history)
@@ -138,11 +152,12 @@ class SimpleRAGMixin:
             model_name=self.model_display_name,
             is_local_llm=self._is_local_llm,
         )
-        if badge:
+        # Only show visual badge if configured
+        if self._should_show_visual_badge() and badge:
             yield ("badge", badge)
 
         # Send claim highlights (development only)
-        if transparency == "crystal_box":
+        if self._should_show_visual_badge() and transparency == "crystal_box":
             import json
             highlight_cfg = self._config.get("inline_claim_highlights", {})
             if highlight_cfg.get("enabled", False) and breakdown.get("total_claims", 0) > 0:
@@ -153,7 +168,7 @@ class SimpleRAGMixin:
                     "ungrounded_style": highlight_cfg.get("ungrounded_style", ""),
                 }))
 
-        # Audit log
+        # Audit log (always log regardless of display mode)
         is_followup = self._is_followup_query(user_message) and history
         AuditLogger.log(
             audit_path=self._audit_path,

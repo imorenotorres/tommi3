@@ -82,6 +82,11 @@ class SimpleVectorlessMixin(VectorlessMixin):
         if context:
             system_with_context += f"\n\nRelevant context from the knowledge base:\n{context}"
 
+        # Reliability text style: inject hedging instructions based on context quality
+        if self._should_use_text_style():
+            quality = self._estimate_context_quality(context)
+            system_with_context += self._get_style_instruction(quality)
+
         messages = [{"role": "system", "content": system_with_context}]
         if history:
             messages.extend(history)
@@ -90,8 +95,8 @@ class SimpleVectorlessMixin(VectorlessMixin):
         response = self.client.chat.complete(model=model, messages=messages)
         llm_content = response.choices[0].message.content
 
-        # Procedural banner (Crystal box only)
-        if transparency in ("crystal_box", "scaffolded"):
+        # Procedural banner (only if visual display is enabled)
+        if self._should_show_visual_badge() and transparency in ("crystal_box", "scaffolded"):
             if _is_off_topic(llm_content):
                 llm_content = _banner_unverified() + llm_content
             else:
@@ -129,13 +134,18 @@ class SimpleVectorlessMixin(VectorlessMixin):
         if context:
             system_with_context += f"\n\nRelevant context from the knowledge base:\n{context}"
 
+        # Reliability text style: inject hedging instructions based on context quality
+        if self._should_use_text_style():
+            quality = self._estimate_context_quality(context)
+            system_with_context += self._get_style_instruction(quality)
+
         messages = [{"role": "system", "content": system_with_context}]
         if history:
             messages.extend(history)
         messages.append({"role": "user", "content": user_message})
 
-        # Start with AI Commentary banner (most responses are on-topic)
-        if transparency in ("crystal_box", "scaffolded"):
+        # Start with AI Commentary banner (only if visual display is enabled)
+        if self._should_show_visual_badge() and transparency in ("crystal_box", "scaffolded"):
             yield ("procedural_banner", _banner_database())
 
         # Stream LLM response
@@ -145,8 +155,8 @@ class SimpleVectorlessMixin(VectorlessMixin):
                 full_response += chunk.data.choices[0].delta.content
                 yield chunk.data.choices[0].delta.content
 
-        # If off-topic, replace the banner
-        if transparency in ("crystal_box", "scaffolded") and _is_off_topic(full_response):
+        # If off-topic, replace the banner (only if visual display is enabled)
+        if self._should_show_visual_badge() and transparency in ("crystal_box", "scaffolded") and _is_off_topic(full_response):
             yield ("replace", _banner_unverified() + full_response)
 
         # Save to query history
