@@ -63,6 +63,10 @@ class BaseRAGAgent:
         # Reliability display mode: "visual", "text_style", "both", "none"
         self._reliability_display = self._config.get("reliability_display", "visual")
 
+        # Humility post-processing: "off", "moderate", "strict"
+        from .humility import HumilityRewriter
+        self._humility = HumilityRewriter(self._config.get("humility_level", "off"))
+
         # Query history for the sidebar
         self._query_history = []
 
@@ -292,17 +296,55 @@ class BaseRAGAgent:
     def _get_style_instruction(self, quality: str) -> str:
         """Return a style instruction to append to the system prompt
         based on the pre-generation context quality estimate."""
-        if quality == "gap_analysis":
+        if quality == "conceptual":
             return (
-                "\n\nSTYLE INSTRUCTION (MANDATORY): You are identifying potential research gaps — "
-                "reasoning about what is ABSENT from the database. This is inherently speculative. "
+                "\n\nSTYLE INSTRUCTION (MANDATORY): You are answering a conceptual question. "
+                "Your response is based primarily on your general knowledge, NOT on verified data "
+                "from the knowledge base. You MUST follow these rules strictly:\n"
+                "- FORMAT (MANDATORY — VIOLATIONS WILL BE FLAGGED): "
+                "Write EXACTLY 2-3 short paragraphs of flowing prose. "
+                "NEVER use numbered lists, bullet points, headings (###), tables, or structured sections. "
+                "NEVER enumerate challenges, principles, or frameworks as a list. "
+                "Instead, weave 3-4 key points into natural prose paragraphs. "
+                "If you produce more than 4 paragraphs or any numbered/bulleted list, the response WILL be rejected.\n"
+                "- NEVER present definitions or explanations as established facts. "
+                "Use framing such as 'Responsible AI is generally understood as', "
+                "'this concept is often described as', 'according to common frameworks'.\n"
+                "- NEVER use authoritative language such as 'X is a core requirement', "
+                "'X is essential', 'X is a foundational principle', 'X are explicit requirements'. "
+                "Instead use 'X is often considered', 'X is commonly cited as', "
+                "'many authors describe X as'.\n"
+                "- BANNED PHRASES: 'is a core requirement', 'is essential', 'is a foundational principle', "
+                "'are explicit requirements', 'is necessary for', 'is critical for', "
+                "'widely discussed', 'widely recognized'. "
+                "These imply authority beyond what your knowledge supports.\n"
+                "- Acknowledge that definitions and frameworks vary across authors, institutions, "
+                "and contexts.\n"
+                "- GROUND YOUR RESPONSE in the database: after the conceptual overview, briefly note "
+                "which related topics DO appear in the indexed database and which do not. "
+                "This helps the user connect the concept to available UNINOVIS research.\n"
+                "- If the glossary provides a definition, you may reference it, but note that "
+                "the broader explanation is your own interpretation.\n"
+                "- End with a note that this explanation reflects general AI knowledge and "
+                "the user should consult authoritative sources for formal definitions."
+            )
+        elif quality == "gap_analysis":
+            return (
+                "\n\nSTYLE INSTRUCTION (MANDATORY — VIOLATIONS WILL BE FLAGGED): "
+                "You are identifying potential research gaps — reasoning about what is ABSENT "
+                "from the database. This is inherently speculative. "
                 "You MUST follow these rules strictly:\n"
-                "- NEVER state that a topic 'has not been studied' or that there are 'no papers'. "
-                "Instead say 'does not appear in the indexed database', 'was not found among the indexed records', "
-                "or 'no matching entries were identified'.\n"
-                "- NEVER use authority-claiming language such as 'well-known', 'widely recognized', "
-                "'it is established that', 'clearly', or 'certainly'. You do not know what is well-known "
-                "or important — only what is or is not in the database.\n"
+                "- The words 'studied' and 'study' are BANNED in this response. "
+                "NEVER write 'has not been studied', 'have not been studied', 'not yet studied', "
+                "'understudied', or ANY phrase containing the word 'studied'. "
+                "Instead use: 'does not appear in the indexed database', 'was not found among the indexed records', "
+                "'no matching entries were identified', or 'not represented in the current index'.\n"
+                "- BANNED WORDS AND PHRASES (do NOT use any of these): "
+                "'well-known', 'well known', 'widely recognized', 'widely known', "
+                "'it is established', 'clearly', 'certainly', 'obviously', 'undoubtedly', "
+                "'important', 'fundamental', 'key', 'essential', 'critical', 'major'. "
+                "These words imply authority you do not have. You only know what is or is not "
+                "in the database — you cannot judge what is important or well-known.\n"
                 "- ALWAYS caveat that the database may be incomplete, topics may exist under different names, "
                 "or relevant work may not have been indexed.\n"
                 "- Use hedging language throughout: 'it appears that', 'based on the available records', "
@@ -314,9 +356,26 @@ class BaseRAGAgent:
                 "the actual research activity of the alliance."
             )
         elif quality == "high":
+            if self._transparency in ("crystal_box", "scaffolded"):
+                return (
+                    "\n\nSTYLE INSTRUCTION (MANDATORY): The user can see the raw data directly. "
+                    "Your role is to offer a possible interpretation, NOT to state conclusions as fact. "
+                    "You MUST follow these rules:\n"
+                    "- Frame your commentary as ONE possible reading of the data: "
+                    "'the data suggests', 'this may indicate', 'one possible interpretation is'.\n"
+                    "- NEVER use authoritative language such as 'this shows', 'this confirms', "
+                    "'it is clear that', 'the evidence demonstrates'. The user can judge for themselves.\n"
+                    "- Acknowledge alternative explanations for any pattern you identify "
+                    "(e.g., 'though this could also reflect differences in indexing rather than actual research volume').\n"
+                    "- When commenting on distributions or patterns, note that the database may not "
+                    "capture all relevant work and that apparent gaps may be artifacts.\n"
+                    "- Position yourself as a helper offering perspective, not as an authority delivering findings."
+                )
             return (
                 "\n\nSTYLE INSTRUCTION: You have strong evidence from the knowledge base. "
-                "Write with confidence and cite the source documents when possible."
+                "Present the information clearly, but use measured language. "
+                "Prefer 'the data suggests' and 'based on the available records' over "
+                "definitive claims. Cite source documents when possible."
             )
         elif quality == "moderate":
             return (
@@ -332,6 +391,41 @@ class BaseRAGAgent:
                 "knowledge and may not be accurate. Recommend the user verify "
                 "the information from an authoritative source."
             )
+
+    # ------------------------------------------------------------------
+    # Post-processing: sanitize authoritative language in LLM output
+    # ------------------------------------------------------------------
+
+    _AUTHORITY_REPLACEMENTS = [
+        # "has/have not been studied" in any context
+        ("has not been studied", "does not appear in the indexed database"),
+        ("have not been studied", "do not appear in the indexed database"),
+        ("has not yet been studied", "does not yet appear in the indexed database"),
+        ("not yet been studied", "not yet represented in the indexed database"),
+        ("understudied", "underrepresented in the indexed database"),
+        # Common authoritative phrases
+        ("well-known", "commonly discussed"),
+        ("well known", "commonly discussed"),
+        ("it is clear that", "the data suggests that"),
+        ("it is clear", "it appears"),
+        ("clearly ", "notably "),
+        ("widely recognized", "commonly discussed"),
+        ("widely known", "commonly discussed"),
+    ]
+
+    def _sanitize_authority(self, text: str) -> str:
+        """Post-process LLM output to replace authoritative phrases with
+        humble alternatives.  Applied unconditionally as a safety net — these
+        phrases are banned in prompts across all transparency conditions."""
+        for old, new in self._AUTHORITY_REPLACEMENTS:
+            # Case-insensitive replacement preserving first-char case
+            pattern = re.compile(re.escape(old), re.IGNORECASE)
+            def _repl(m, new=new):
+                if m.group(0)[0].isupper():
+                    return new[0].upper() + new[1:]
+                return new
+            text = pattern.sub(_repl, text)
+        return text
 
     # ------------------------------------------------------------------
     # Post-init hook

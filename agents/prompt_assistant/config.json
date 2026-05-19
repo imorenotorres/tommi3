@@ -1,0 +1,18 @@
+{
+  "agent_id": "prompt_assistant",
+  "agent_name": "PROMPT Assistant",
+  "type": "oneshot",
+  "description": "Helps you design and improve prompts for your agents",
+  "welcome_message": "Hi! I'm your PROMPT Assistant. I can help you design, review, and improve prompts for your agents.\n\nType **list** to see your agents and select one to review. I'll load its current prompts, suggest improvements, and apply changes directly if you approve.\n\nOr just describe what you need and I'll write a prompt from scratch.",
+  "example_queries": [
+    "**List my agents**",
+    "Review this prompt and suggest improvements: [paste prompt]",
+    "Write a prompt for a customer support agent",
+    "What should go in Identity vs Rules vs Strict?"
+  ],
+  "show_history": true,
+  "prompt_level": "stringent",
+  "public": true,
+  "reliability_display": "both",
+  "humility_level": "moderate"
+}

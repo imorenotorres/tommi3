@@ -59,6 +59,9 @@ class SimpleRAGMixin:
             model_name=self.model_display_name,
             is_local_llm=self._is_local_llm,
         )
+        # Humility post-processing: soften ungrounded claims
+        llm_content = self._humility.rewrite(llm_content, breakdown)
+
         # Only prepend visual badge if configured
         if self._should_show_visual_badge() and badge:
             response_content = badge + llm_content
@@ -155,6 +158,12 @@ class SimpleRAGMixin:
         # Only show visual badge if configured
         if self._should_show_visual_badge() and badge:
             yield ("badge", badge)
+
+        # Humility post-processing: soften ungrounded claims
+        humbled = self._humility.rewrite(full_response, breakdown)
+        if humbled != full_response:
+            full_response = humbled
+            yield ("replace", humbled)
 
         # Send claim highlights (development only)
         if self._should_show_visual_badge() and transparency == "crystal_box":

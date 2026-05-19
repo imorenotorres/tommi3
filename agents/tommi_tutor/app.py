@@ -25,7 +25,7 @@ from agent import Agent
 
 # Configuración del agente
 AGENT_CONFIG = {
-    "id": "tommi_tutor_nube",
+    "id": "tommi_tutor",
     "name": "Tommi virtual tutor",
     "type": "rag",
     "description": "Your virtual tutor to learn the basics of AI Agents development with Tommi, and somme advanced options also",

@@ -318,6 +318,7 @@ class AgentRunner:
         transparency_override: Optional[str] = None,
         prompt_level_override: Optional[str] = None,
         username: Optional[str] = None,
+        role: Optional[str] = None,
         study_info: Optional[dict] = None
     ) -> AsyncGenerator[tuple[str, str, Optional[str]], None]:
         """
@@ -342,11 +343,15 @@ class AgentRunner:
         try:
             # Pass optional kwargs if the agent supports them
             kwargs = {}
-            if 'session_id' in agent_instance.chat_stream.__code__.co_varnames:
+            code = agent_instance.chat_stream.__code__
+            accepts_kwargs = bool(code.co_flags & 0x08)  # CO_VARKEYWORDS
+            if accepts_kwargs or 'session_id' in code.co_varnames:
                 kwargs['session_id'] = session_id
-            if username and 'username' in agent_instance.chat_stream.__code__.co_varnames:
+            if username and (accepts_kwargs or 'username' in code.co_varnames):
                 kwargs['username'] = username
-            if study_info and 'study_info' in agent_instance.chat_stream.__code__.co_varnames:
+            if role and (accepts_kwargs or 'role' in code.co_varnames):
+                kwargs['role'] = role
+            if study_info and (accepts_kwargs or 'study_info' in code.co_varnames):
                 kwargs['study_info'] = study_info
             # Pass overrides as parameters instead of mutating the shared instance
             if transparency_override:

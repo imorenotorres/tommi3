@@ -1414,6 +1414,48 @@ async def set_agent_visibility(
 
 
 # ---------------------------------------------------------------------------
+# Agent config editing (tester+ only)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/agents/{agent_id}/config")
+async def get_agent_config(agent_id: str, session: dict = Depends(require_role("tester"))):
+    """Get config.json and prompts.json for an agent (tester+)."""
+    agent = runner.get_agent(agent_id)
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    agent_path = Path(agent.path)
+    config, prompts = {}, {}
+    config_path = agent_path / "config.json"
+    prompts_path = agent_path / "prompts.json"
+    if config_path.exists():
+        with open(config_path, "r", encoding="utf-8") as f:
+            config = json.load(f)
+    if prompts_path.exists():
+        with open(prompts_path, "r", encoding="utf-8") as f:
+            prompts = json.load(f)
+    return {"config": config, "prompts": prompts}
+
+
+@app.put("/api/agents/{agent_id}/config")
+async def set_agent_config(agent_id: str, request: Request, session: dict = Depends(require_role("tester"))):
+    """Update config.json and/or prompts.json for an agent (tester+)."""
+    agent = runner.get_agent(agent_id)
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    body = await request.json()
+    agent_path = Path(agent.path)
+    if "config" in body and isinstance(body["config"], dict):
+        with open(agent_path / "config.json", "w", encoding="utf-8") as f:
+            json.dump(body["config"], f, indent=2, ensure_ascii=False)
+            f.write("\n")
+    if "prompts" in body and isinstance(body["prompts"], dict):
+        with open(agent_path / "prompts.json", "w", encoding="utf-8") as f:
+            json.dump(body["prompts"], f, indent=2, ensure_ascii=False)
+            f.write("\n")
+    return {"ok": True, "agent_id": agent_id}
+
+
+# ---------------------------------------------------------------------------
 # Data export & review endpoints (for tester verification)
 # ---------------------------------------------------------------------------
 
@@ -2068,6 +2110,7 @@ async def chat_stream(
                 transparency_override=transparency,
                 prompt_level_override=prompt_level,
                 username=session["username"] if session else None,
+                role=session["role"] if session else None,
                 study_info=_study_info,
             ):
                 # Enviar session_id cuando lo recibimos (primera iteración)
@@ -2085,6 +2128,10 @@ async def chat_stream(
                 elif event_type == "claim_highlights":
                     # Send claim classification data for client-side highlighting
                     yield f"event: claim_highlights\ndata: {content}\n\n"
+                elif event_type == "editor":
+                    # Raw HTML editor widget — sent as-is, bypasses markdown
+                    escaped = content.replace("\n", "\\n")
+                    yield f"event: editor\ndata: {escaped}\n\n"
                 elif event_type == "procedural_banner":
                     # Procedural banner — display as content but do NOT save to history
                     escaped = content.replace("\n", "\\n")

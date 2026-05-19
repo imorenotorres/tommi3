@@ -95,16 +95,37 @@ body {
 /* Agent selector */
 .agent-selector {
     margin-bottom: 0.5rem;
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
 }
 
 .agent-selector select {
-    width: 100%;
+    flex: 1;
     padding: 0.75rem;
     border-radius: 0.5rem;
     border: 1px solid var(--border-color);
     background-color: #ffffff;
     font-size: 1rem;
     cursor: pointer;
+}
+
+.agent-config-btn {
+    background: rgba(255,255,255,0.85);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, background 0.15s;
+}
+
+.agent-config-btn:hover {
+    color: var(--primary-color);
+    background: #fff;
 }
 
 /* LLM Status Badge */
@@ -1061,4 +1082,76 @@ body {
 
 .tester-badge-section {
     margin-bottom: 2px;
+}
+
+/* ── Prompt Assistant editor ─────────────────────────────────── */
+.prompt-editor {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.prompt-editor label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--agent-msg-text);
+}
+
+.prompt-editor textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 0.75rem;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--agent-msg-text);
+    resize: vertical;
+}
+
+.prompt-editor textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.editor-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.editor-buttons .btn-apply {
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.editor-buttons .btn-apply:hover {
+    background: var(--primary-hover);
+}
+
+.editor-buttons .btn-discard {
+    padding: 0.5rem 1rem;
+    background: #fff;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.editor-buttons .btn-discard:hover {
+    background: #fef2f2;
 }

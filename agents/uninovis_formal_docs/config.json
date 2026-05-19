@@ -25,5 +25,6 @@
   },
   "reliability_display": "both",
   "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "transparency_type": "content"
+  "transparency_type": "content",
+  "humility_level": "moderate"
 }

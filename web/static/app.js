@@ -199,6 +199,15 @@ async function init() {
 
     // Inject user menu in the top-right area
     injectUserMenu(role);
+
+    // Show gear icon for testers and superusers
+    if (role === 'tester' || role === 'superuser') {
+        const gearBtn = document.getElementById('btn-agent-config');
+        if (gearBtn) {
+            gearBtn.classList.remove('hidden');
+            gearBtn.addEventListener('click', openAgentConfigPanel);
+        }
+    }
 }
 
 // Cargar configuración del servidor
@@ -1793,10 +1802,28 @@ async function sendMessage(message) {
             }
         });
 
+        let editorHtml = '';
+
         eventSource.addEventListener('replace', (event) => {
             // Server stripped map links — replace the full response text
             responseText = event.data.replace(/\\n/g, '\n');
-            responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText));
+            responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText)) + editorHtml;
+        });
+
+        eventSource.addEventListener('editor', (event) => {
+            // Raw HTML editor widget — appended after markdown, not parsed
+            editorHtml = event.data.replace(/\\n/g, '\n');
+            responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText)) + editorHtml;
+            // Populate textarea from base64 data attribute (avoids SSE escaping corruption)
+            const editorDiv = responseDiv.querySelector('.prompt-editor[data-json]');
+            if (editorDiv) {
+                const textarea = editorDiv.querySelector('textarea');
+                if (textarea) {
+                    textarea.value = new TextDecoder().decode(
+                        Uint8Array.from(atob(editorDiv.dataset.json), c => c.charCodeAt(0))
+                    );
+                }
+            }
         });
 
         eventSource.addEventListener('done', () => {
@@ -1807,7 +1834,17 @@ async function sendMessage(message) {
             elements.messageInput.focus();
             // Final render — clean PDF links and replace map markdown links before parsing
             const processedText = replaceMapLinksWithPlaceholders(cleanPdfLinks(responseText));
-            responseDiv.innerHTML = badgeHtml + marked.parse(processedText);
+            responseDiv.innerHTML = badgeHtml + marked.parse(processedText) + editorHtml;
+            // Populate editor textarea from base64 if present
+            const editorDiv = responseDiv.querySelector('.prompt-editor[data-json]');
+            if (editorDiv) {
+                const textarea = editorDiv.querySelector('textarea');
+                if (textarea) {
+                    textarea.value = new TextDecoder().decode(
+                        Uint8Array.from(atob(editorDiv.dataset.json), c => c.charCodeAt(0))
+                    );
+                }
+            }
             // Add PDF links and make them open in new tab
             addPdfLinks(responseDiv);
             renderInlineMapPlaceholders(responseDiv);
@@ -3088,6 +3125,35 @@ function closeDataExportPanel() {
     if (overlay) overlay.remove();
 }
 
+// ---------------------------------------------------------------------------
+// Prompt Assistant – editor buttons
+// ---------------------------------------------------------------------------
+
+function applyPromptEdit(agentId, editorId) {
+    const textarea = document.getElementById(editorId);
+    if (!textarea) return;
+    const json = textarea.value.trim();
+    // Validate JSON before sending
+    try {
+        JSON.parse(json);
+    } catch (e) {
+        alert('Invalid JSON – please fix syntax errors before applying.');
+        return;
+    }
+    // Remove the editor widget
+    const editorWidget = textarea.closest('.prompt-editor');
+    if (editorWidget) editorWidget.remove();
+    // Send as a special command the server can parse
+    sendMessage('apply_json:' + json);
+}
+
+function discardPromptEdit(btn) {
+    const editorWidget = btn.closest('.prompt-editor');
+    if (editorWidget) editorWidget.remove();
+    sendMessage('cancel');
+}
+
+
 async function loadExportAgents() {
     const container = document.getElementById('export-agents-list');
     if (!container) return;
@@ -3129,5 +3195,198 @@ async function loadExportAgents() {
         container.innerHTML = html;
     } catch (err) {
         container.innerHTML = '<p style="color:#dc2626;">Error loading agents</p>';
+    }
+}
+
+
+// ---------------------------------------------------------------------------
+// Agent config panel (tester + superuser)
+// ---------------------------------------------------------------------------
+
+// Store original config/prompts so we can preserve unknown fields on save
+var _cfgOrigConfig = {};
+var _cfgOrigPrompts = {};
+
+const _cfgFieldStyle = 'width:100%;padding:0.4rem 0.6rem;border:1px solid #e2e8f0;border-radius:5px;font-size:0.88rem;';
+const _cfgLabelStyle = 'display:block;font-weight:600;font-size:0.82rem;margin-bottom:0.2rem;color:#334155;';
+const _cfgTextareaStyle = _cfgFieldStyle + 'font-family:inherit;min-height:60px;resize:vertical;';
+const _cfgSelectStyle = _cfgFieldStyle + 'cursor:pointer;background:#fff;';
+const _cfgRowStyle = 'margin-bottom:0.8rem;';
+
+function _cfgField(label, id, type, value, options) {
+    let input = '';
+    const escaped = typeof value === 'string' ? value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : value;
+    if (type === 'text') {
+        input = `<input id="${id}" type="text" value="${escaped}" style="${_cfgFieldStyle}">`;
+    } else if (type === 'textarea') {
+        const safeVal = typeof value === 'string' ? value.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : value;
+        input = `<textarea id="${id}" style="${_cfgTextareaStyle}">${safeVal}</textarea>`;
+    } else if (type === 'select') {
+        const opts = options.map(o => `<option value="${o}"${value === o ? ' selected' : ''}>${o}</option>`).join('');
+        input = `<select id="${id}" style="${_cfgSelectStyle}">${opts}</select>`;
+    } else if (type === 'checkbox') {
+        input = `<label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;"><input id="${id}" type="checkbox"${value ? ' checked' : ''}> Enabled</label>`;
+    }
+    return `<div style="${_cfgRowStyle}"><label style="${_cfgLabelStyle}">${label}</label>${input}</div>`;
+}
+
+async function openAgentConfigPanel() {
+    if (!state.currentAgent) {
+        alert('Select an agent first.');
+        return;
+    }
+    if (document.getElementById('agent-config-overlay')) return;
+
+    const agentId = state.currentAgent.id;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'agent-config-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
+
+    const panel = document.createElement('div');
+    panel.style.cssText = 'background:#fff;border-radius:12px;padding:2rem;width:750px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);';
+    panel.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h2 style="margin:0;font-size:1.2rem;">Edit: ${state.currentAgent.name}</h2>
+            <button id="config-close" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#64748b;">&times;</button>
+        </div>
+        <div id="config-msg" style="display:none;padding:0.5rem 0.75rem;border-radius:6px;margin-bottom:0.75rem;font-size:0.85rem;"></div>
+        <div id="cfg-form-area" style="color:#64748b;font-size:0.9rem;">Loading...</div>
+        <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem;">
+            <button id="cfg-save" style="padding:0.5rem 1.2rem;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:0.9rem;cursor:pointer;">Save</button>
+            <button id="cfg-cancel" style="padding:0.5rem 1.2rem;background:#fff;color:#64748b;border:1px solid #e2e8f0;border-radius:6px;font-size:0.9rem;cursor:pointer;">Cancel</button>
+        </div>
+    `;
+
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeAgentConfigPanel(); });
+    document.getElementById('config-close').addEventListener('click', closeAgentConfigPanel);
+    document.getElementById('cfg-cancel').addEventListener('click', closeAgentConfigPanel);
+    document.getElementById('cfg-save').addEventListener('click', () => saveAgentConfig(agentId));
+
+    // Load data and build form
+    try {
+        const res = await authFetch(`/api/agents/${encodeURIComponent(agentId)}/config`);
+        if (!res.ok) throw new Error('Failed to load config');
+        const data = await res.json();
+        _cfgOrigConfig = data.config || {};
+        _cfgOrigPrompts = data.prompts || {};
+        _renderConfigForm(_cfgOrigConfig, _cfgOrigPrompts);
+    } catch (err) {
+        document.getElementById('cfg-form-area').innerHTML = '<p style="color:#dc2626;">Error loading agent configuration.</p>';
+    }
+}
+
+function _renderConfigForm(config, prompts) {
+    const area = document.getElementById('cfg-form-area');
+    if (!area) return;
+
+    const c = config;
+    const exQ = (c.example_queries || []).join('\n');
+
+    let html = '';
+
+    // -- Config section --
+    html += '<div style="border-bottom:2px solid #e2e8f0;padding-bottom:0.3rem;margin-bottom:0.8rem;"><strong style="font-size:0.95rem;color:#1e293b;">Configuration</strong></div>';
+
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">';
+    html += _cfgField('Agent name', 'cfg-agent-name', 'text', c.agent_name || '');
+    html += _cfgField('Agent ID', 'cfg-agent-id', 'text', c.agent_id || '');
+    html += _cfgField('Prompt level', 'cfg-prompt-level', 'select', c.prompt_level || 'stringent', ['stringent', 'tolerant', 'lax']);
+    html += _cfgField('Transparency', 'cfg-transparency', 'select', c.transparency_level || 'crystal_box', ['crystal_box', 'grey_box', 'black_box']);
+    html += _cfgField('Reliability display', 'cfg-reliability-display', 'select', c.reliability_display || 'visual', ['visual', 'text_style', 'both', 'none']);
+    html += _cfgField('Humility level', 'cfg-humility', 'select', c.humility_level || 'off', ['off', 'moderate', 'strict']);
+    html += _cfgField('Show history', 'cfg-show-history', 'checkbox', c.show_history !== false);
+    html += _cfgField('Audit log', 'cfg-audit-log', 'checkbox', !!c.audit_log_enabled);
+    html += '</div>';
+
+    html += _cfgField('Description', 'cfg-description', 'textarea', c.description || '');
+    html += _cfgField('Welcome message', 'cfg-welcome', 'textarea', c.welcome_message || '');
+    html += _cfgField('Example queries (one per line)', 'cfg-examples', 'textarea', exQ);
+
+    // -- Prompts section --
+    if (Object.keys(prompts).length > 0) {
+        html += '<div style="border-bottom:2px solid #e2e8f0;padding-bottom:0.3rem;margin-bottom:0.8rem;margin-top:1.2rem;"><strong style="font-size:0.95rem;color:#1e293b;">Prompts</strong></div>';
+        html += _cfgField('Identity', 'cfg-prompt-identity', 'textarea', prompts.identity || '');
+        html += _cfgField('Rules', 'cfg-prompt-rules', 'textarea', prompts.rules || '');
+        html += _cfgField('Strict', 'cfg-prompt-strict', 'textarea', prompts.strict || '');
+    }
+
+    area.innerHTML = html;
+
+    // Auto-grow textareas
+    area.querySelectorAll('textarea').forEach(ta => {
+        ta.style.minHeight = Math.min(200, Math.max(60, ta.scrollHeight)) + 'px';
+        ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
+    });
+}
+
+function closeAgentConfigPanel() {
+    const overlay = document.getElementById('agent-config-overlay');
+    if (overlay) overlay.remove();
+    _cfgOrigConfig = {};
+    _cfgOrigPrompts = {};
+}
+
+async function saveAgentConfig(agentId) {
+    const msgEl = document.getElementById('config-msg');
+
+    // Build config from form, preserving all original fields
+    const config = { ..._cfgOrigConfig };
+    config.agent_name = document.getElementById('cfg-agent-name').value.trim();
+    config.agent_id = document.getElementById('cfg-agent-id').value.trim();
+    config.description = document.getElementById('cfg-description').value.trim();
+    config.welcome_message = document.getElementById('cfg-welcome').value.trim();
+    config.prompt_level = document.getElementById('cfg-prompt-level').value;
+    config.transparency_level = document.getElementById('cfg-transparency').value;
+    config.reliability_display = document.getElementById('cfg-reliability-display').value;
+    config.humility_level = document.getElementById('cfg-humility').value;
+    config.show_history = document.getElementById('cfg-show-history').checked;
+    config.audit_log_enabled = document.getElementById('cfg-audit-log').checked;
+
+    const exText = document.getElementById('cfg-examples').value.trim();
+    config.example_queries = exText ? exText.split('\n').map(l => l.trim()).filter(Boolean) : [];
+
+    // Build prompts from form, preserving original fields
+    const body = { config };
+    if (Object.keys(_cfgOrigPrompts).length > 0) {
+        const prompts = { ..._cfgOrigPrompts };
+        const idEl = document.getElementById('cfg-prompt-identity');
+        const ruEl = document.getElementById('cfg-prompt-rules');
+        const stEl = document.getElementById('cfg-prompt-strict');
+        if (idEl) prompts.identity = idEl.value;
+        if (ruEl) prompts.rules = ruEl.value;
+        if (stEl) prompts.strict = stEl.value;
+        body.prompts = prompts;
+    }
+
+    try {
+        const res = await authFetch(`/api/agents/${encodeURIComponent(agentId)}/config`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+            const data = await res.json();
+            msgEl.style.display = 'block';
+            msgEl.style.background = '#fef2f2';
+            msgEl.style.color = '#dc2626';
+            msgEl.textContent = data.detail || 'Error saving config';
+            return;
+        }
+
+        msgEl.style.display = 'block';
+        msgEl.style.background = '#f0fdf4';
+        msgEl.style.color = '#16a34a';
+        msgEl.textContent = 'Saved. Restart the server or start a new chat to apply changes.';
+        setTimeout(closeAgentConfigPanel, 2000);
+    } catch (err) {
+        msgEl.style.display = 'block';
+        msgEl.style.background = '#fef2f2';
+        msgEl.style.color = '#dc2626';
+        msgEl.textContent = 'Connection error';
     }
 }

@@ -1,5 +1,5 @@
 {
-  "agent_id": "tommi_tutor_nube",
+  "agent_id": "tommi_tutor",
   "agent_name": "Tommi Virtual Tutor",
   "type": "rag",
   "description": "Virtual tutor specialized in teaching about AI Agents development using the TOMMI framework",
@@ -25,5 +25,6 @@
   },
   "reliability_display": "both",
   "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "transparency_type": "content"
+  "transparency_type": "content",
+  "humility_level": "moderate"
 }

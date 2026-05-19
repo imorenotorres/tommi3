@@ -1047,11 +1047,18 @@ class MetadataRAGMixin:
         )
         if hedged:
             base += (
-                f"\n\nIMPORTANT STYLE: This commentary is YOUR interpretation, not verified fact. "
-                f"Use cautious, hedging language throughout (e.g., 'the data suggests', "
-                f"'this may indicate', 'it appears that', 'based on the available records'). "
-                f"Avoid definitive claims. Acknowledge limitations — the database may not capture "
-                f"all research activity, and patterns observed may reflect indexing rather than reality."
+                f"\n\nIMPORTANT STYLE (MANDATORY): This commentary is YOUR interpretation, not verified fact. "
+                f"The user can already see the raw data — your job is to offer perspective, not authority. "
+                f"You MUST:\n"
+                f"- Use cautious, hedging language throughout (e.g., 'the data suggests', "
+                f"'this may indicate', 'it appears that', 'based on the available records').\n"
+                f"- NEVER use definitive or authoritative phrasing such as 'this shows', 'this confirms', "
+                f"'it is clear', 'the most active', 'the leading'. Instead say 'appear to be among the most active', "
+                f"'seem to contribute frequently'.\n"
+                f"- For EVERY pattern you mention, offer at least one alternative explanation "
+                f"(e.g., 'though this could reflect indexing differences rather than actual research volume').\n"
+                f"- Acknowledge that the database is partial and may not represent the full picture.\n"
+                f"- Frame suggestions as gentle possibilities, not directives."
             )
         return base
 
@@ -3745,9 +3752,11 @@ class MetadataRAGMixin:
 
         # Reliability text style: inject hedging instructions based on context quality
         if self._should_use_text_style():
-            # Gap analysis is inherently speculative — always use cautious style
+            # Gap analysis and conceptual questions are speculative — always use cautious style
             if is_gap_analysis:
                 quality = "gap_analysis"
+            elif is_conceptual:
+                quality = "conceptual"
             else:
                 combined_for_estimate = " ".join(filter(None, [
                     project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx,
@@ -3791,7 +3800,8 @@ class MetadataRAGMixin:
                 max_tokens=1024,
             )
             separator = self._banner_commentary() if show_banners else "\n\n---\n\n"
-            llm_content = factual_section + separator + response.choices[0].message.content
+            commentary = self._sanitize_authority(response.choices[0].message.content)
+            llm_content = factual_section + separator + commentary
             hallucination_count = 0
         else:
             # Determine banner based on query type (AI3 only)
@@ -3844,13 +3854,17 @@ class MetadataRAGMixin:
 
             messages.append({"role": "user", "content": effective_message})
 
+            # Cap tokens for conceptual queries to enforce brevity
+            tokens_limit = 1024 if is_conceptual else 16384
+
             response = self.client.chat.complete(
                 model=model,
                 messages=messages,
-                max_tokens=16384,
+                max_tokens=tokens_limit,
             )
 
             llm_content = response.choices[0].message.content
+            llm_content = self._sanitize_authority(llm_content)
             if not is_figure_request:
                 llm_content = self._strip_map_links(llm_content)
 
@@ -3930,6 +3944,9 @@ class MetadataRAGMixin:
                 is_local_llm=self._is_local_llm,
                 hallucination_count=hallucination_count,
             )
+
+        # Humility post-processing: soften ungrounded claims
+        llm_content = self._humility.rewrite(llm_content, breakdown)
 
         # Only prepend visual badge if configured
         if self._should_show_visual_badge() and badge:
@@ -4112,9 +4129,11 @@ class MetadataRAGMixin:
 
         # Reliability text style: inject hedging instructions based on context quality
         if self._should_use_text_style():
-            # Gap analysis is inherently speculative — always use cautious style
+            # Gap analysis and conceptual questions are speculative — always use cautious style
             if is_gap_analysis:
                 quality = "gap_analysis"
+            elif is_conceptual:
+                quality = "conceptual"
             else:
                 combined_for_estimate = " ".join(filter(None, [
                     project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx,
@@ -4170,6 +4189,12 @@ class MetadataRAGMixin:
                 if chunk.data.choices[0].delta.content:
                     full_response += chunk.data.choices[0].delta.content
                     yield chunk.data.choices[0].delta.content
+
+            # Post-process: sanitize authoritative phrases in commentary
+            sanitized = self._sanitize_authority(full_response)
+            if sanitized != full_response:
+                full_response = sanitized
+                yield ("replace", factual_section + separator + sanitized)
 
             hallucination_count = 0  # Factual section is verified by construction
         else:
@@ -4229,15 +4254,24 @@ class MetadataRAGMixin:
             if pre_banner:
                 yield ("procedural_banner", pre_banner)
 
+            # Cap tokens for conceptual queries to enforce brevity
+            stream_tokens_limit = 1024 if is_conceptual else 16384
+
             # Stream LLM response
             async for chunk in await self.client.chat.stream_async(
                 model=model,
                 messages=messages,
-                max_tokens=16384,
+                max_tokens=stream_tokens_limit,
             ):
                 if chunk.data.choices[0].delta.content:
                     full_response += chunk.data.choices[0].delta.content
                     yield chunk.data.choices[0].delta.content
+
+            # Post-process: sanitize authoritative phrases
+            sanitized = self._sanitize_authority(full_response)
+            if sanitized != full_response:
+                full_response = sanitized
+                yield ("replace", sanitized)
 
             # Strip map links if LLM added them despite not being a figure request
             if not is_figure_request:
@@ -4334,6 +4368,12 @@ class MetadataRAGMixin:
             )
             if self._should_show_visual_badge() and badge:
                 yield ("badge", badge)
+
+        # Humility post-processing: soften ungrounded claims
+        humbled = self._humility.rewrite(full_response, breakdown)
+        if humbled != full_response:
+            full_response = humbled
+            yield ("replace", humbled)
 
         # Offer web search expansion if results were insufficient
         if (not is_web_expand and not is_figure_request and not is_followup
