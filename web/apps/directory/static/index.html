@@ -664,7 +664,7 @@
         var grpHtml = '';
         appData.groups.forEach(function(g) {
             var checked = user && (user.groups || []).indexOf(g.id) !== -1 ? ' checked' : '';
-            grpHtml += '<label><input type="checkbox" value="' + esc(g.id) + '"' + checked + ' onchange="updateSubgroupCheckboxes()"> ' + esc(g.id) + ' \u2014 ' + esc(g.name) + '</label>';
+            grpHtml += '<label><input type="checkbox" value="' + esc(g.id) + '"' + checked + '> ' + esc(g.id) + ' \u2014 ' + esc(g.name) + '</label>';
         });
         document.getElementById('userGroups').innerHTML = grpHtml;
 
@@ -674,18 +674,17 @@
     }
 
     function updateSubgroupCheckboxes(user) {
-        var checkedGroups = [];
-        document.querySelectorAll('#userGroups input:checked').forEach(function(cb) { checkedGroups.push(cb.value); });
-
         var sgHtml = '';
         appData.groups.forEach(function(g) {
-            if (checkedGroups.indexOf(g.id) === -1) return;
+            if (!(g.subgroups || []).length) return;
+            sgHtml += '<div style="margin-bottom:4px;"><span style="font-size:0.78em;color:#666;font-weight:600;">' + esc(g.id) + ':</span> ';
             (g.subgroups || []).forEach(function(sg) {
                 var checked = user && (user.subgroups || []).indexOf(sg.id) !== -1 ? ' checked' : '';
-                sgHtml += '<label><input type="checkbox" value="' + esc(sg.id) + '"' + checked + '> ' + esc(g.id) + ' / ' + esc(sg.name) + '</label>';
+                sgHtml += '<label style="margin-right:8px;"><input type="checkbox" value="' + esc(sg.id) + '"' + checked + '> ' + esc(sg.name) + '</label>';
             });
+            sgHtml += '</div>';
         });
-        if (!sgHtml) sgHtml = '<span style="color:#888;font-size:0.85em;">Select groups first</span>';
+        if (!sgHtml) sgHtml = '<span style="color:#888;font-size:0.85em;">No subgroups defined</span>';
         document.getElementById('userSubgroups').innerHTML = sgHtml;
     }
 
@@ -993,17 +992,38 @@
         }
         var currentIds = currentMembers.map(function(u) { return u.id; });
 
-        var sorted = appData.users.slice().sort(function(a, b) {
-            var c = a.university.localeCompare(b.university);
-            return c !== 0 ? c : a.family_name.localeCompare(b.family_name) || a.first_name.localeCompare(b.first_name);
+        // Group users by university, sort by first name within each
+        var byUni = {};
+        var uniOrder = Object.keys(appData.universities).sort();
+        uniOrder.forEach(function(uni) { byUni[uni] = []; });
+        appData.users.forEach(function(u) {
+            if (!byUni[u.university]) byUni[u.university] = [];
+            byUni[u.university].push(u);
+        });
+        uniOrder.forEach(function(uni) {
+            byUni[uni].sort(function(a, b) {
+                return a.first_name.localeCompare(b.first_name) || a.family_name.localeCompare(b.family_name);
+            });
         });
 
         var html = '';
-        sorted.forEach(function(u) {
-            var checked = currentIds.indexOf(u.id) !== -1 ? ' checked' : '';
-            html += '<label><input type="checkbox" value="' + u.id + '"' + checked + '> ' + esc(u.first_name + ' ' + u.family_name) + ' <span class="badge badge-uni">' + u.university + '</span></label>';
+        uniOrder.forEach(function(uni) {
+            var users = byUni[uni];
+            if (!users || users.length === 0) return;
+            var uniName = appData.universities[uni] ? appData.universities[uni].name : uni;
+            var memberCount = users.filter(function(u) { return currentIds.indexOf(u.id) !== -1; }).length;
+            var countLabel = memberCount > 0 ? ' (' + memberCount + ' selected)' : '';
+            html += '<div style="margin-top:10px;margin-bottom:4px;padding:4px 8px;background:#e9ecef;border-radius:4px;font-weight:600;font-size:0.85em;color:#1a3a5c;cursor:pointer;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'\':\'none\'">'
+                + esc(uni) + ' \u2014 ' + esc(uniName) + ' <span style="font-weight:400;color:#666;">(' + users.length + ' people' + countLabel + ')</span>'
+                + ' <span style="float:right;font-size:0.9em;">\u25B6</span></div>';
+            html += '<div>';
+            users.forEach(function(u) {
+                var checked = currentIds.indexOf(u.id) !== -1 ? ' checked' : '';
+                html += '<label><input type="checkbox" value="' + u.id + '"' + checked + '> ' + esc(u.first_name + ' ' + u.family_name) + '</label>';
+            });
+            html += '</div>';
         });
-        if (sorted.length === 0) html = '<p style="color:#888;">No users in directory. Add users first.</p>';
+        if (appData.users.length === 0) html = '<p style="color:#888;">No users in directory. Add users first.</p>';
         document.getElementById('membersList').innerHTML = html;
 
         openModal('membersModal');

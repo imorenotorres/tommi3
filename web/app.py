@@ -203,6 +203,11 @@ from apps.rag_study.study import router as rag_study_router
 app.include_router(rag_study_router)
 app.mount("/rag-study/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "rag_study" / "static"), name="rag_study_static")
 
+# Mount Event Calendar app
+from apps.event_calendar.event_calendar import router as event_calendar_router
+app.include_router(event_calendar_router)
+app.mount("/event-calendar/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "event_calendar" / "static"), name="event_calendar_static")
+
 
 # ---------------------------------------------------------------------------
 # Auth helpers

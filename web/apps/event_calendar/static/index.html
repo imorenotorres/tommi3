@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNINOVIS Event Calendar</title>
+<style>
+:root {
+  --primary: #2D3876;
+  --primary-light: #4a5299;
+  --bg: #f5f6fa;
+  --card: #fff;
+  --text: #333;
+  --text-light: #666;
+  --border: #e0e0e0;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+/* Header */
+.header { background: var(--primary); color: #fff; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 1.3rem; font-weight: 600; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header .btn-back { color: #fff; text-decoration: none; opacity: 0.8; font-size: 0.9rem; }
+.header .btn-back:hover { opacity: 1; }
+
+/* Filters */
+.filters-bar { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 24px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+.filter-row:last-child { margin-bottom: 0; }
+.filter-btn { padding: 5px 12px; border: 1px solid var(--border); border-radius: 20px; background: #fff; cursor: pointer; font-size: 0.78rem; transition: all 0.15s; color: var(--text); }
+.filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+.filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.filter-btn.group-btn { font-weight: 600; }
+.filter-btn.group-btn.active { background: #1a2255; }
+.filters-label { font-size: 0.78rem; color: var(--text-light); font-weight: 600; margin-right: 4px; min-width: 72px; }
+.filter-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+
+/* View controls */
+.controls { padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.nav-group { display: flex; align-items: center; gap: 8px; }
+.nav-btn { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 14px; cursor: pointer; font-size: 0.9rem; }
+.nav-btn:hover { background: #eee; }
+.view-group { display: flex; gap: 4px; }
+.view-btn { padding: 6px 16px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 0.85rem; }
+.view-btn:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.view-btn:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.view-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.current-label { font-size: 1.1rem; font-weight: 600; min-width: 200px; text-align: center; }
+.btn-add { background: var(--primary); color: #fff; border: none; border-radius: var(--radius); padding: 8px 18px; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
+.btn-add:hover { background: var(--primary-light); }
+
+/* Stats bar */
+.stats-bar { padding: 4px 24px 8px; font-size: 0.78rem; color: var(--text-light); display: flex; gap: 16px; }
+.stats-bar span { font-weight: 600; }
+
+/* Month grid */
+.month-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; background: var(--border); margin: 0 24px 24px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.month-grid .day-header { background: var(--primary); color: #fff; text-align: center; padding: 8px; font-size: 0.8rem; font-weight: 600; }
+.month-grid .day-cell { background: var(--card); min-height: 100px; padding: 6px; position: relative; vertical-align: top; }
+.month-grid .day-cell.other-month { background: #f9f9fb; }
+.month-grid .day-cell.today { background: #e8f0fe; }
+.day-num { font-size: 0.8rem; font-weight: 600; color: var(--text-light); margin-bottom: 4px; }
+.day-cell.today .day-num { color: var(--primary); font-weight: 700; }
+.event-chip { display: block; font-size: 0.72rem; padding: 2px 6px; margin-bottom: 2px; border-radius: 4px; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.event-chip:hover { opacity: 0.85; }
+
+/* Week grid */
+.week-grid { display: grid; grid-template-columns: 60px repeat(7,1fr); margin: 0 24px 24px; background: var(--border); gap: 1px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.week-grid .wg-header { background: var(--primary); color: #fff; text-align: center; padding: 8px 4px; font-size: 0.78rem; font-weight: 600; }
+.week-grid .wg-time { background: #f9f9fb; padding: 4px; font-size: 0.7rem; color: var(--text-light); text-align: right; padding-right: 8px; min-height: 48px; display: flex; align-items: flex-start; justify-content: flex-end; }
+.week-grid .wg-cell { background: var(--card); min-height: 48px; position: relative; padding: 2px; }
+.week-grid .wg-cell.today-col { background: #e8f0fe; }
+.wg-event { font-size: 0.7rem; padding: 2px 4px; margin-bottom: 1px; border-radius: 3px; color: #fff; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Day view */
+.day-view { margin: 0 24px 24px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.day-view .dv-row { display: grid; grid-template-columns: 60px 1fr; border-bottom: 1px solid var(--border); }
+.day-view .dv-time { padding: 8px; font-size: 0.75rem; color: var(--text-light); text-align: right; padding-right: 12px; background: #f9f9fb; }
+.day-view .dv-cell { padding: 4px 8px; min-height: 48px; position: relative; }
+.dv-event { font-size: 0.8rem; padding: 4px 8px; margin-bottom: 2px; border-radius: 4px; color: #fff; cursor: pointer; }
+
+/* Category colors */
+.cat-WP1 { background: #34a853; }
+.cat-WP2 { background: #fbbc04; color: #333; }
+.cat-WP3 { background: #ff6d01; }
+.cat-WP4 { background: #46bdc6; }
+.cat-WP5 { background: #9334e6; }
+.cat-BoP { background: #e91e63; }
+.cat-ExecCouncil { background: #795548; }
+.cat-BIP { background: #4285f4; }
+.cat-Hackathon { background: #ea4335; }
+.cat-Other_public_events { background: #00897b; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; justify-content: center; align-items: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--card); border-radius: var(--radius); width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h2 { font-size: 1.1rem; }
+.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
+.modal-body { padding: 20px; }
+.modal-body label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 4px; margin-top: 12px; }
+.modal-body label:first-child { margin-top: 0; }
+.modal-body input, .modal-body select, .modal-body textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; font-family: inherit; }
+.modal-body textarea { resize: vertical; min-height: 60px; }
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+.modal-footer .btn { padding: 8px 20px; border-radius: var(--radius); border: 1px solid var(--border); cursor: pointer; font-size: 0.9rem; }
+.modal-footer .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.modal-footer .btn-danger { background: #ea4335; color: #fff; border-color: #ea4335; }
+
+/* Detail modal */
+.detail-field { margin-bottom: 10px; }
+.detail-field .dl { font-size: 0.78rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; }
+.detail-field .dv { font-size: 0.95rem; margin-top: 2px; }
+.detail-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+/* Participants */
+.participants-section { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.participants-section h4 { font-size: 0.85rem; margin-bottom: 8px; color: var(--primary); }
+.part-add-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.part-add-row select { flex: 1; min-width: 140px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.82rem; }
+.part-add-row .btn-sm { padding: 5px 12px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 0.78rem; background: var(--card); white-space: nowrap; }
+.part-add-row .btn-sm:hover { background: #eee; }
+.part-add-row .btn-sm.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.part-search { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.82rem; margin-bottom: 6px; }
+.part-list { max-height: 180px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+.part-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; border-bottom: 1px solid #f0f0f0; font-size: 0.8rem; }
+.part-item:last-child { border-bottom: none; }
+.part-item .part-info { display: flex; flex-direction: column; }
+.part-item .part-name { font-weight: 500; }
+.part-item .part-email { font-size: 0.72rem; color: var(--text-light); }
+.part-item .part-remove { background: none; border: none; color: #ea4335; cursor: pointer; font-size: 1rem; padding: 0 4px; }
+.part-group-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.part-group-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; background: #e8e0f0; color: var(--primary); font-size: 0.75rem; font-weight: 500; }
+.part-group-tag .tag-remove { background: none; border: none; cursor: pointer; color: var(--primary); font-size: 0.85rem; padding: 0; }
+.btn-copy-emails { padding: 5px 14px; border: 1px solid var(--primary); border-radius: var(--radius); background: #fff; color: var(--primary); cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+.btn-copy-emails:hover { background: var(--primary); color: #fff; }
+.copy-feedback { font-size: 0.75rem; color: #34a853; margin-left: 8px; }
+
+/* Detail participants list */
+.detail-part-list { margin-top: 4px; }
+.detail-part-item { font-size: 0.85rem; padding: 2px 0; }
+.detail-part-item .dpi-uni { font-size: 0.72rem; color: var(--text-light); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .month-grid .day-cell { min-height: 60px; }
+  .controls { padding: 8px 12px; }
+  .filters-bar { padding: 8px 12px; }
+  .month-grid, .week-grid, .day-view { margin: 0 8px 16px; }
+  .current-label { font-size: 0.95rem; min-width: auto; }
+  .filters-label { min-width: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a class="btn-back" href="/">← TOMMI</a>
+    <h1>UNINOVIS Event Calendar</h1>
+  </div>
+  <div class="header-right">
+    <span id="userInfo" style="font-size:0.85rem;opacity:0.8;"></span>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+  <div class="filter-row" id="categoryFilters"></div>
+  <div class="filter-row" id="universityFilters"></div>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar" id="statsBar"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <div class="nav-group">
+    <button class="nav-btn" id="btnPrev">&#8249;</button>
+    <button class="nav-btn" id="btnToday">Today</button>
+    <button class="nav-btn" id="btnNext">&#8250;</button>
+    <span class="current-label" id="currentLabel"></span>
+  </div>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <div class="view-group">
+      <button class="view-btn active" data-view="month">Month</button>
+      <button class="view-btn" data-view="week">Week</button>
+      <button class="view-btn" data-view="day">Day</button>
+    </div>
+    <button class="btn-add" id="btnAdd" style="display:none;">+ New Event</button>
+  </div>
+</div>
+
+<!-- Calendar container -->
+<div id="calendarContainer"></div>
+
+<!-- Detail modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="detailTitle"></h2>
+      <button class="modal-close" onclick="closeDetail()">&times;</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="editModalTitle">New Event</h2>
+      <button class="modal-close" onclick="closeEdit()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <label>Name *</label>
+      <input type="text" id="editName" required>
+      <label>Category *</label>
+      <select id="editCategory"></select>
+      <label>Organizing University *</label>
+      <select id="editUniversity"></select>
+      <label>Type *</label>
+      <select id="editType" onchange="toggleTypeFields()">
+        <option value="Physical">Physical</option>
+        <option value="Virtual">Virtual</option>
+      </select>
+      <div id="placeGroup">
+        <label>Place</label>
+        <input type="text" id="editPlace" placeholder="Venue, City, Country">
+      </div>
+      <div id="meetingUrlGroup" style="display:none;">
+        <label>Meeting URL</label>
+        <input type="url" id="editMeetingUrl" placeholder="https://meet.uninovis.eu/...">
+      </div>
+      <label>Description</label>
+      <textarea id="editDesc"></textarea>
+      <label>Start Date * <small style="color:var(--text-light);">(CEST, UTC+2)</small></label>
+      <input type="datetime-local" id="editStart">
+      <label>End Date * <small style="color:var(--text-light);">(CEST, UTC+2)</small></label>
+      <input type="datetime-local" id="editEnd">
+      <label>Registration Link</label>
+      <input type="url" id="editLink" placeholder="https://...">
+      <div id="participantsSection" class="participants-section" style="display:none;">
+        <h4>Participants (from Directory)</h4>
+        <div class="part-add-row">
+          <select id="partGroupSelect">
+            <option value="">-- Add group --</option>
+          </select>
+          <button class="btn-sm primary" onclick="addGroup()">Add Group</button>
+        </div>
+        <div class="part-group-tags" id="partGroupTags"></div>
+        <div class="part-add-row">
+          <input type="text" class="part-search" id="partSearch" placeholder="Search person by name..." oninput="filterPersonList()">
+        </div>
+        <div class="part-list" id="partPersonList"></div>
+        <div style="margin-top:8px;">
+          <span style="font-size:0.78rem;color:var(--text-light);" id="partCount">0 participants</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeEdit()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// -- State -------------------------------------------------------------------
+let TOKEN = '';
+let events = [];
+let categories = [];
+let universities = [];
+let dirGroups = [];
+let dirUsers = [];
+let canEdit = false;
+let currentView = 'month';
+let currentDate = new Date();
+let activeCatFilter = 'all';
+let activeUniFilter = 'all';
+
+// Edit-mode participant state
+let editParticipants = [];    // user IDs
+let editPartGroups = [];      // group/subgroup IDs
+
+const INTERNAL_CATS = ['WP1','WP2','WP3','WP4','WP5','BoP','ExecCouncil'];
+const EXTERNAL_CATS = ['BIP','Hackathon','Other public events'];
+
+const CAT_CSS_CLASS = c => 'cat-' + c.replace(/ /g, '_');
+
+// -- Init --------------------------------------------------------------------
+(async function init() {
+  TOKEN = localStorage.getItem('tommi_token') || new URLSearchParams(location.search).get('token') || '';
+  if (!TOKEN) { location.href = '/static/login.html?redirect=' + encodeURIComponent(location.pathname); return; }
+
+  try {
+    const auth = await api('GET', '/api/auth-check');
+    document.getElementById('userInfo').textContent = auth.username + ' (' + auth.role + ')';
+    canEdit = auth.can_edit;
+    if (canEdit) document.getElementById('btnAdd').style.display = '';
+  } catch {
+    location.href = '/static/login.html?redirect=' + encodeURIComponent(location.pathname);
+    return;
+  }
+
+  await loadData();
+  render();
+
+  document.getElementById('btnPrev').onclick = () => { navigate(-1); };
+  document.getElementById('btnNext').onclick = () => { navigate(1); };
+  document.getElementById('btnToday').onclick = () => { currentDate = new Date(); render(); };
+  document.getElementById('btnAdd').onclick = () => openEdit(null);
+
+  document.querySelectorAll('.view-btn').forEach(b => {
+    b.onclick = () => {
+      document.querySelectorAll('.view-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      currentView = b.dataset.view;
+      render();
+    };
+  });
+})();
+
+async function loadData() {
+  const [evts, cfg, dir] = await Promise.all([
+    api('GET', '/api/events'),
+    api('GET', '/api/config'),
+    api('GET', '/api/directory'),
+  ]);
+  events = evts;
+  categories = cfg.categories;
+  universities = cfg.universities;
+  dirGroups = dir.groups;
+  dirUsers = dir.users;
+  buildFilters();
+}
+
+// -- Filters -----------------------------------------------------------------
+function buildFilters() {
+  // Category row
+  const catRow = document.getElementById('categoryFilters');
+  let html = '<span class="filters-label">Category:</span>';
+  html += btn('all', 'All', activeCatFilter, 'cat');
+  html += '<span class="filter-sep"></span>';
+  html += btn('all_internal', 'All Internal', activeCatFilter, 'cat', true);
+  INTERNAL_CATS.forEach(c => { html += btn(c, c, activeCatFilter, 'cat'); });
+  html += '<span class="filter-sep"></span>';
+  html += btn('all_external', 'All External', activeCatFilter, 'cat', true);
+  EXTERNAL_CATS.forEach(c => { html += btn(c, c, activeCatFilter, 'cat'); });
+  catRow.innerHTML = html;
+  catRow.querySelectorAll('.filter-btn').forEach(b => {
+    b.onclick = () => setCatFilter(b.dataset.val);
+  });
+
+  // University row
+  const uniRow = document.getElementById('universityFilters');
+  let uhtml = '<span class="filters-label">University:</span>';
+  uhtml += btn('all', 'All', activeUniFilter, 'uni');
+  universities.forEach(u => { uhtml += btn(u, u, activeUniFilter, 'uni'); });
+  uniRow.innerHTML = uhtml;
+  uniRow.querySelectorAll('.filter-btn').forEach(b => {
+    b.onclick = () => setUniFilter(b.dataset.val);
+  });
+}
+
+function btn(val, label, active, prefix, isGroup) {
+  const cls = (active === val ? ' active' : '') + (isGroup ? ' group-btn' : '');
+  return `<button class="filter-btn${cls}" data-val="${val}" data-prefix="${prefix}">${label}</button>`;
+}
+
+function setCatFilter(val) {
+  activeCatFilter = val;
+  refreshFilterUI();
+  render();
+}
+
+function setUniFilter(val) {
+  activeUniFilter = val;
+  refreshFilterUI();
+  render();
+}
+
+function refreshFilterUI() {
+  document.getElementById('categoryFilters').querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === activeCatFilter);
+  });
+  document.getElementById('universityFilters').querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === activeUniFilter);
+  });
+}
+
+function filteredEvents() {
+  return events.filter(e => {
+    let catOk = false;
+    if (activeCatFilter === 'all') catOk = true;
+    else if (activeCatFilter === 'all_internal') catOk = INTERNAL_CATS.includes(e.category);
+    else if (activeCatFilter === 'all_external') catOk = EXTERNAL_CATS.includes(e.category);
+    else catOk = e.category === activeCatFilter;
+
+    let uniOk = activeUniFilter === 'all' || e.university === activeUniFilter;
+    return catOk && uniOk;
+  });
+}
+
+function updateStats() {
+  const f = filteredEvents();
+  const internal = events.filter(e => INTERNAL_CATS.includes(e.category));
+  const external = events.filter(e => EXTERNAL_CATS.includes(e.category));
+  document.getElementById('statsBar').innerHTML =
+    `Showing <span>${f.length}</span> of <span>${events.length}</span> events` +
+    ` &middot; All Internal: <span>${internal.length}</span>` +
+    ` &middot; All External: <span>${external.length}</span>` +
+    ` &middot; Total: <span>${events.length}</span>`;
+}
+
+// -- API helper --------------------------------------------------------------
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch('/event-calendar' + path, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || res.statusText);
+  }
+  return res.json();
+}
+
+// -- Navigation --------------------------------------------------------------
+function navigate(dir) {
+  if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() + dir);
+  else if (currentView === 'week') currentDate.setDate(currentDate.getDate() + dir * 7);
+  else currentDate.setDate(currentDate.getDate() + dir);
+  render();
+}
+
+// -- Render ------------------------------------------------------------------
+function render() {
+  updateLabel();
+  updateStats();
+  if (currentView === 'month') renderMonth();
+  else if (currentView === 'week') renderWeek();
+  else renderDay();
+}
+
+function updateLabel() {
+  const opts = currentView === 'day'
+    ? { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+    : { year: 'numeric', month: 'long' };
+  if (currentView === 'week') {
+    const start = weekStart(currentDate);
+    const end = new Date(start); end.setDate(end.getDate() + 6);
+    document.getElementById('currentLabel').textContent =
+      start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' - ' +
+      end.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  } else {
+    document.getElementById('currentLabel').textContent = currentDate.toLocaleDateString(undefined, opts);
+  }
+}
+
+function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+function weekStart(d) { const s = new Date(d); s.setDate(s.getDate() - ((s.getDay() + 6) % 7)); return s; }
+
+function eventsOnDate(date) {
+  return filteredEvents().filter(e => {
+    const s = new Date(e.start_date); s.setHours(0,0,0,0);
+    const en = new Date(e.end_date); en.setHours(23,59,59,999);
+    const d = new Date(date); d.setHours(12,0,0,0);
+    return d >= s && d <= en;
+  });
+}
+
+function chipHTML(ev) {
+  const cls = CAT_CSS_CLASS(ev.category);
+  const uni = ev.university ? ' [' + ev.university + ']' : '';
+  return `<div class="event-chip ${cls}" onclick="showDetail('${ev.id}')" title="${ev.name}${uni}">${ev.name}</div>`;
+}
+
+// -- Month view --------------------------------------------------------------
+function renderMonth() {
+  const year = currentDate.getFullYear(), month = currentDate.getMonth();
+  const first = new Date(year, month, 1);
+  const startOff = (first.getDay() + 6) % 7;
+  const start = new Date(first); start.setDate(start.getDate() - startOff);
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let html = '<div class="month-grid">';
+  days.forEach(d => { html += `<div class="day-header">${d}</div>`; });
+
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(d.getDate() + i);
+    const isOther = d.getMonth() !== month;
+    const isToday = sameDay(d, today);
+    html += `<div class="day-cell${isOther ? ' other-month' : ''}${isToday ? ' today' : ''}">`;
+    html += `<div class="day-num">${d.getDate()}</div>`;
+    eventsOnDate(d).forEach(ev => { html += chipHTML(ev); });
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('calendarContainer').innerHTML = html;
+}
+
+// -- Week view ---------------------------------------------------------------
+function renderWeek() {
+  const ws = weekStart(currentDate);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const hours = [];
+  for (let h = 7; h <= 21; h++) hours.push(h);
+
+  let html = '<div class="week-grid">';
+  html += '<div class="wg-header"></div>';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(ws); d.setDate(d.getDate() + i);
+    const isToday = sameDay(d, today);
+    const label = d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' });
+    html += `<div class="wg-header${isToday ? ' today-col' : ''}">${label}</div>`;
+  }
+
+  hours.forEach(h => {
+    html += `<div class="wg-time">${String(h).padStart(2,'0')}:00</div>`;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(ws); d.setDate(d.getDate() + i);
+      const isToday = sameDay(d, today);
+      const dayEvents = eventsOnDate(d).filter(ev => {
+        const s = new Date(ev.start_date);
+        const e = new Date(ev.end_date);
+        return s.getHours() <= h && e.getHours() >= h;
+      });
+      html += `<div class="wg-cell${isToday ? ' today-col' : ''}">`;
+      dayEvents.forEach(ev => {
+        html += `<div class="wg-event ${CAT_CSS_CLASS(ev.category)}" onclick="showDetail('${ev.id}')">${ev.name}</div>`;
+      });
+      html += '</div>';
+    }
+  });
+  html += '</div>';
+  document.getElementById('calendarContainer').innerHTML = html;
+}
+
+// -- Day view ----------------------------------------------------------------
+function renderDay() {
+  const hours = [];
+  for (let h = 7; h <= 21; h++) hours.push(h);
+
+  let html = '<div class="day-view">';
+  hours.forEach(h => {
+    const dayEvents = eventsOnDate(currentDate).filter(ev => {
+      const s = new Date(ev.start_date);
+      const e = new Date(ev.end_date);
+      return s.getHours() <= h && e.getHours() >= h;
+    });
+    html += '<div class="dv-row">';
+    html += `<div class="dv-time">${String(h).padStart(2,'0')}:00</div>`;
+    html += '<div class="dv-cell">';
+    dayEvents.forEach(ev => {
+      html += `<div class="dv-event ${CAT_CSS_CLASS(ev.category)}" onclick="showDetail('${ev.id}')">${ev.name}</div>`;
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('calendarContainer').innerHTML = html;
+}
+
+// -- Time formatting with CEST -----------------------------------------------
+function fmtDateCEST(isoStr) {
+  const d = new Date(isoStr);
+  const date = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+  const time = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  const m = d.getMonth();
+  const tz = (m >= 2 && m <= 9) ? 'CEST' : 'CET';
+  return date + ' ' + time + ' ' + tz;
+}
+
+// -- Participant helpers -----------------------------------------------------
+function isInternal(category) { return INTERNAL_CATS.includes(category); }
+
+function resolveParticipants(ev) {
+  // Collect unique user IDs from individual picks + group memberships
+  const ids = new Set(ev.participants || []);
+  const groupIds = ev.participant_groups || [];
+  groupIds.forEach(gid => {
+    dirUsers.forEach(u => {
+      if (u.groups.includes(gid) || u.subgroups.includes(gid)) ids.add(u.id);
+    });
+  });
+  return dirUsers.filter(u => ids.has(u.id));
+}
+
+function groupLabel(gid) {
+  for (const g of dirGroups) {
+    if (g.id === gid) return g.name;
+    for (const sg of g.subgroups || []) {
+      if (sg.id === gid) return g.name + ' / ' + sg.name;
+    }
+  }
+  return gid;
+}
+
+// -- Detail modal ------------------------------------------------------------
+function showDetail(id) {
+  const ev = events.find(e => e.id === id);
+  if (!ev) return;
+  document.getElementById('detailTitle').textContent = ev.name;
+  const eType = ev.event_type || 'Physical';
+  const typeIcon = eType === 'Virtual' ? '&#128187; Virtual' : '&#127970; Physical';
+  let html = `
+    <div class="detail-field"><div class="dl">Category</div><div class="dv"><span class="event-chip ${CAT_CSS_CLASS(ev.category)}" style="display:inline-block;cursor:default;">${ev.category}</span></div></div>
+    <div class="detail-field"><div class="dl">Organizing University</div><div class="dv">${ev.university || '<em>Not specified</em>'}</div></div>
+    <div class="detail-field"><div class="dl">Type</div><div class="dv">${typeIcon}</div></div>
+  `;
+  if (eType === 'Physical' && ev.place) {
+    html += `<div class="detail-field"><div class="dl">Place</div><div class="dv">${ev.place}</div></div>`;
+  }
+  if (eType === 'Virtual' && ev.meeting_url) {
+    html += `<div class="detail-field"><div class="dl">Meeting URL</div><div class="dv"><a href="${ev.meeting_url}" target="_blank" rel="noopener">${ev.meeting_url}</a></div></div>`;
+  }
+  html += `
+    <div class="detail-field"><div class="dl">Description</div><div class="dv">${ev.description || '<em>No description</em>'}</div></div>
+    <div class="detail-field"><div class="dl">Start</div><div class="dv">${fmtDateCEST(ev.start_date)}</div></div>
+    <div class="detail-field"><div class="dl">End</div><div class="dv">${fmtDateCEST(ev.end_date)}</div></div>
+  `;
+  if (ev.registration_link) {
+    html += `<div class="detail-field"><div class="dl">Registration</div><div class="dv"><a href="${ev.registration_link}" target="_blank" rel="noopener">${ev.registration_link}</a></div></div>`;
+  }
+
+  // Participants for internal events
+  if (isInternal(ev.category)) {
+    const parts = resolveParticipants(ev);
+    const gids = ev.participant_groups || [];
+    html += '<div class="detail-field"><div class="dl">Participants (' + parts.length + ')</div><div class="dv">';
+    if (gids.length) {
+      html += '<div style="margin-bottom:4px;font-size:0.8rem;color:var(--text-light);">Groups: ' + gids.map(g => '<strong>' + groupLabel(g) + '</strong>').join(', ') + '</div>';
+    }
+    if (parts.length) {
+      html += '<div class="detail-part-list">';
+      parts.sort((a,b) => a.family_name.localeCompare(b.family_name)).forEach(u => {
+        html += `<div class="detail-part-item">${u.first_name} ${u.family_name} <span class="dpi-uni">(${u.university})</span> &mdash; <span style="font-size:0.8rem;">${u.email}</span></div>`;
+      });
+      html += '</div>';
+      html += `<div style="margin-top:8px;"><button class="btn-copy-emails" onclick="copyEmails('${ev.id}')">Copy all emails</button><span class="copy-feedback" id="copyFeedback"></span></div>`;
+    } else {
+      html += '<em style="font-size:0.85rem;">No participants assigned</em>';
+    }
+    html += '</div></div>';
+  }
+
+  if (canEdit) {
+    html += `<div class="detail-actions">
+      <button class="btn btn-primary" onclick="closeDetail();openEdit('${ev.id}')">Edit</button>
+      <button class="btn btn-danger" onclick="deleteEvent('${ev.id}')">Delete</button>
+    </div>`;
+  }
+  document.getElementById('detailBody').innerHTML = html;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function copyEmails(evId) {
+  const ev = events.find(e => e.id === evId);
+  if (!ev) return;
+  const parts = resolveParticipants(ev);
+  const emails = parts.map(u => u.email).filter(Boolean);
+  const text = emails.join('; ');
+  navigator.clipboard.writeText(text).then(() => {
+    const fb = document.getElementById('copyFeedback');
+    if (fb) { fb.textContent = emails.length + ' emails copied!'; setTimeout(() => { fb.textContent = ''; }, 2500); }
+  });
+}
+
+function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
+
+// -- Edit modal --------------------------------------------------------------
+function toggleTypeFields() {
+  const t = document.getElementById('editType').value;
+  document.getElementById('placeGroup').style.display = t === 'Physical' ? '' : 'none';
+  document.getElementById('meetingUrlGroup').style.display = t === 'Virtual' ? '' : 'none';
+}
+
+function showParticipantsSection(show) {
+  document.getElementById('participantsSection').style.display = show ? '' : 'none';
+}
+
+function populateGroupSelect() {
+  const sel = document.getElementById('partGroupSelect');
+  let opts = '<option value="">-- Add group / subgroup --</option>';
+  dirGroups.forEach(g => {
+    opts += `<option value="${g.id}">${g.name}</option>`;
+    (g.subgroups || []).forEach(sg => {
+      opts += `<option value="${sg.id}">&nbsp;&nbsp;↳ ${sg.name}</option>`;
+    });
+  });
+  sel.innerHTML = opts;
+}
+
+function addGroup() {
+  const sel = document.getElementById('partGroupSelect');
+  const gid = sel.value;
+  if (!gid || editPartGroups.includes(gid)) return;
+  editPartGroups.push(gid);
+  sel.value = '';
+  renderPartGroupTags();
+  renderPartPersonList();
+}
+
+function removeGroup(gid) {
+  editPartGroups = editPartGroups.filter(g => g !== gid);
+  renderPartGroupTags();
+  renderPartPersonList();
+}
+
+function renderPartGroupTags() {
+  const el = document.getElementById('partGroupTags');
+  el.innerHTML = editPartGroups.map(gid =>
+    `<span class="part-group-tag">${groupLabel(gid)}<button class="tag-remove" onclick="removeGroup('${gid}')">&times;</button></span>`
+  ).join('');
+}
+
+function addPerson(uid) {
+  if (!editParticipants.includes(uid)) {
+    editParticipants.push(uid);
+    renderPartPersonList();
+  }
+}
+
+function removePerson(uid) {
+  editParticipants = editParticipants.filter(id => id !== uid);
+  renderPartPersonList();
+}
+
+function getAllSelectedIds() {
+  const ids = new Set(editParticipants);
+  editPartGroups.forEach(gid => {
+    dirUsers.forEach(u => {
+      if (u.groups.includes(gid) || u.subgroups.includes(gid)) ids.add(u.id);
+    });
+  });
+  return ids;
+}
+
+function renderPartPersonList() {
+  const allIds = getAllSelectedIds();
+  const query = (document.getElementById('partSearch').value || '').toLowerCase();
+  const container = document.getElementById('partPersonList');
+
+  // Show selected individuals first, then search results
+  const selected = dirUsers.filter(u => editParticipants.includes(u.id));
+  const searchResults = query.length >= 2
+    ? dirUsers.filter(u => !editParticipants.includes(u.id) &&
+        (u.first_name.toLowerCase().includes(query) || u.family_name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)))
+    : [];
+
+  let html = '';
+  selected.sort((a,b) => a.family_name.localeCompare(b.family_name)).forEach(u => {
+    const inGroup = allIds.has(u.id) && !editParticipants.includes(u.id); // won't happen here
+    html += `<div class="part-item">
+      <div class="part-info"><span class="part-name">${u.first_name} ${u.family_name} (${u.university})</span><span class="part-email">${u.email}</span></div>
+      <button class="part-remove" onclick="removePerson('${u.id}')">&times;</button>
+    </div>`;
+  });
+  searchResults.slice(0, 15).forEach(u => {
+    const alreadyViaGroup = allIds.has(u.id);
+    html += `<div class="part-item" style="${alreadyViaGroup ? 'opacity:0.5;' : ''}">
+      <div class="part-info"><span class="part-name">${u.first_name} ${u.family_name} (${u.university})</span><span class="part-email">${u.email}</span></div>
+      <button class="btn-sm" onclick="addPerson('${u.id}')" ${alreadyViaGroup ? 'disabled title="Already via group"' : ''}>+ Add</button>
+    </div>`;
+  });
+  if (!html) html = '<div style="padding:8px;font-size:0.8rem;color:var(--text-light);">Type to search or add groups above</div>';
+  container.innerHTML = html;
+  document.getElementById('partCount').textContent = allIds.size + ' participant' + (allIds.size !== 1 ? 's' : '');
+}
+
+function filterPersonList() { renderPartPersonList(); }
+
+function openEdit(id) {
+  const modal = document.getElementById('editModal');
+  const catSel = document.getElementById('editCategory');
+  catSel.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+  const uniSel = document.getElementById('editUniversity');
+  uniSel.innerHTML = '<option value="">-- Select --</option>' + universities.map(u => `<option value="${u}">${u}</option>`).join('');
+  populateGroupSelect();
+
+  if (id) {
+    const ev = events.find(e => e.id === id);
+    if (!ev) return;
+    document.getElementById('editModalTitle').textContent = 'Edit Event';
+    document.getElementById('editId').value = ev.id;
+    document.getElementById('editName').value = ev.name;
+    document.getElementById('editDesc').value = ev.description;
+    catSel.value = ev.category;
+    uniSel.value = ev.university || '';
+    document.getElementById('editType').value = ev.event_type || 'Physical';
+    document.getElementById('editPlace').value = ev.place || '';
+    document.getElementById('editMeetingUrl').value = ev.meeting_url || '';
+    document.getElementById('editStart').value = ev.start_date.slice(0, 16);
+    document.getElementById('editEnd').value = ev.end_date.slice(0, 16);
+    document.getElementById('editLink').value = ev.registration_link || '';
+    editParticipants = [...(ev.participants || [])];
+    editPartGroups = [...(ev.participant_groups || [])];
+  } else {
+    document.getElementById('editModalTitle').textContent = 'New Event';
+    document.getElementById('editId').value = '';
+    document.getElementById('editName').value = '';
+    document.getElementById('editDesc').value = '';
+    document.getElementById('editType').value = 'Physical';
+    document.getElementById('editPlace').value = '';
+    document.getElementById('editMeetingUrl').value = '';
+    document.getElementById('editStart').value = '';
+    document.getElementById('editEnd').value = '';
+    document.getElementById('editLink').value = '';
+    editParticipants = [];
+    editPartGroups = [];
+  }
+  toggleTypeFields();
+  const cat = catSel.value;
+  showParticipantsSection(isInternal(cat));
+  renderPartGroupTags();
+  renderPartPersonList();
+
+  // Toggle participants when category changes
+  catSel.onchange = () => showParticipantsSection(isInternal(catSel.value));
+
+  modal.classList.add('open');
+}
+
+function closeEdit() { document.getElementById('editModal').classList.remove('open'); }
+
+async function saveEvent() {
+  const id = document.getElementById('editId').value;
+  const cat = document.getElementById('editCategory').value;
+  const body = {
+    name: document.getElementById('editName').value.trim(),
+    description: document.getElementById('editDesc').value.trim(),
+    category: cat,
+    university: document.getElementById('editUniversity').value,
+    event_type: document.getElementById('editType').value,
+    place: document.getElementById('editPlace').value.trim(),
+    meeting_url: document.getElementById('editMeetingUrl').value.trim(),
+    start_date: document.getElementById('editStart').value + ':00',
+    end_date: document.getElementById('editEnd').value + ':00',
+    registration_link: document.getElementById('editLink').value.trim(),
+    participants: isInternal(cat) ? editParticipants : [],
+    participant_groups: isInternal(cat) ? editPartGroups : [],
+  };
+  if (!body.name || !body.start_date || !body.end_date) { alert('Name, start and end dates are required.'); return; }
+
+  try {
+    if (id) await api('PUT', '/api/events/' + id, body);
+    else await api('POST', '/api/events', body);
+    closeEdit();
+    await loadData();
+    render();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+async function deleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  try {
+    await api('DELETE', '/api/events/' + id);
+    closeDetail();
+    await loadData();
+    render();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+</script>
+</body>
+</html>
