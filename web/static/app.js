@@ -3309,6 +3309,45 @@ async function saveAgentConfig(agentId) {
             return;
         }
 
+        // Update state so icons refresh immediately
+        state.currentAgent.transparency_level = config.transparency_level;
+        state.currentAgent.prompt_level = config.prompt_level;
+        state.currentAgent.description = config.description;
+        state.currentAgent.agent_name = config.agent_name;
+        state.currentAgent.welcome_message = config.welcome_message;
+
+        // Refresh transparency level icon
+        if (elements.transparencyLevelIcon) {
+            const s = TRANSPARENCY_STYLES[config.transparency_level];
+            if (s) {
+                elements.transparencyLevelIcon.src = s.icon;
+                elements.transparencyLevelIcon.alt = s.label;
+            }
+        }
+
+        // Refresh prompt level icon
+        if (elements.promptLevelIcon && config.prompt_level) {
+            const s = SUPERVISION_STYLES[config.prompt_level] || SUPERVISION_STYLES.stringent;
+            elements.promptLevelIcon.textContent = s.dot;
+        }
+
+        // Refresh transparency type icon
+        const ttIconEl = document.getElementById('transparency-type-icon');
+        if (ttIconEl) {
+            let ttType = 'content';
+            const agentType = state.currentAgent.agent_type || '';
+            if (config.transparency_type === 'procedural' || config.transparency_type === 'content') {
+                ttType = config.transparency_type;
+            } else if (agentType.includes('vectorless') || config.transparency_level === 'scaffolded') {
+                ttType = 'procedural';
+            }
+            ttIconEl.src = ttType === 'procedural' ? '/static/icon_procedural.svg' : '/static/icon_content.svg';
+            ttIconEl.alt = ttType === 'procedural' ? 'Procedural transparency' : 'Content-based transparency';
+            state._transparencyType = ttType;
+        }
+
+        updateIconTooltips();
+
         msgEl.style.display = 'block';
         msgEl.style.background = '#f0fdf4';
         msgEl.style.color = '#16a34a';

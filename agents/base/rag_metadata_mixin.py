@@ -11,14 +11,18 @@ in BaseRAGAgent or SimpleRAGMixin, including:
 - reindex() with metadata cache clearing
 """
 
+import asyncio
 import os
 import sys
 import json
 import re
 import glob
+import logging
 import urllib.request
 import urllib.error
 import urllib.parse
+
+logger = logging.getLogger(__name__)
 
 from .claims import ClaimExtractor, GroundingAnalyzer
 
@@ -4181,14 +4185,23 @@ class MetadataRAGMixin:
                 messages.extend(history)
             messages.append({"role": "user", "content": analysis_prompt})
 
-            async for chunk in await self.client.chat.stream_async(
-                model=model,
-                messages=messages,
-                max_tokens=1024,
-            ):
-                if chunk.data.choices[0].delta.content:
-                    full_response += chunk.data.choices[0].delta.content
-                    yield chunk.data.choices[0].delta.content
+            for _attempt in range(3):
+                try:
+                    async for chunk in await self.client.chat.stream_async(
+                        model=model,
+                        messages=messages,
+                        max_tokens=1024,
+                    ):
+                        if chunk.data.choices[0].delta.content:
+                            full_response += chunk.data.choices[0].delta.content
+                            yield chunk.data.choices[0].delta.content
+                    break  # success
+                except Exception as e:
+                    logger.warning("Mistral streaming attempt %d failed: %s", _attempt + 1, e)
+                    if _attempt < 2:
+                        await asyncio.sleep(1 * (_attempt + 1))
+                    else:
+                        raise
 
             # Post-process: sanitize authoritative phrases in commentary
             sanitized = self._sanitize_authority(full_response)
@@ -4258,14 +4271,23 @@ class MetadataRAGMixin:
             stream_tokens_limit = 1024 if is_conceptual else 16384
 
             # Stream LLM response
-            async for chunk in await self.client.chat.stream_async(
-                model=model,
-                messages=messages,
-                max_tokens=stream_tokens_limit,
-            ):
-                if chunk.data.choices[0].delta.content:
-                    full_response += chunk.data.choices[0].delta.content
-                    yield chunk.data.choices[0].delta.content
+            for _attempt in range(3):
+                try:
+                    async for chunk in await self.client.chat.stream_async(
+                        model=model,
+                        messages=messages,
+                        max_tokens=stream_tokens_limit,
+                    ):
+                        if chunk.data.choices[0].delta.content:
+                            full_response += chunk.data.choices[0].delta.content
+                            yield chunk.data.choices[0].delta.content
+                    break  # success
+                except Exception as e:
+                    logger.warning("Mistral streaming attempt %d failed: %s", _attempt + 1, e)
+                    if _attempt < 2:
+                        await asyncio.sleep(1 * (_attempt + 1))
+                    else:
+                        raise
 
             # Post-process: sanitize authoritative phrases
             sanitized = self._sanitize_authority(full_response)

@@ -379,7 +379,8 @@ class AgentRunner:
                 else:
                     yield (event_type, content, None)
         except Exception as e:
-            err = format_error(SERVER_STREAMING_ERROR, details=str(e))
+            details = str(e) or f"{type(e).__name__} (no message)"
+            err = format_error(SERVER_STREAMING_ERROR, details=details)
             yield ("content", f"[Error {err['error_code']}: {err['error']}]", session_id if first_chunk else None)
             return
 
