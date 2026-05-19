@@ -43,47 +43,22 @@
                     <select id="agent-select">
                         <option value="">Loading agents...</option>
                     </select>
-                    <button id="btn-agent-config" class="agent-config-btn hidden" title="Edit agent configuration">
-                        <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
-                    </button>
                 </div>
                 <div id="agent-info-section" class="agent-section-wrapper hidden">
-                    <div style="display:inline-flex;align-items:center;gap:8px;cursor:help;" id="agent-info-row" title="">
-                        <span style="color:#fff;font-size:0.85em;font-weight:bold;">This agent is:</span>
-                        <img id="agent-type-icon" src="" alt="" style="height:26px;">
-                        <img id="llm-provider-icon" src="" alt="" style="width:24px;height:24px;">
-                        <img id="transparency-type-icon" src="" alt="" style="width:24px;height:24px;">
+                    <div style="display:inline-flex;align-items:center;gap:8px;" id="agent-info-row">
+                        <img id="agent-type-icon" src="" alt="" style="height:26px;cursor:help;">
+                        <img id="llm-provider-icon" src="" alt="" style="width:24px;height:24px;cursor:help;">
+                        <img id="transparency-type-icon" src="" alt="" style="width:24px;height:24px;cursor:help;">
+                        <img id="transparency-level-icon" src="" alt="" style="width:24px;height:24px;cursor:help;" class="hidden">
+                        <span id="prompt-level-icon" style="font-size:18px;cursor:help;" class="hidden"></span>
+                        <button id="btn-agent-config" class="hidden" title="Change agent settings" style="background:none;border:none;color:#cbd5e1;cursor:pointer;padding:0;display:inline-flex;align-items:center;">
+                            <svg width="24" height="24" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+                        </button>
                     </div>
-                    <span id="agent-info-help" class="agent-options-help" title="Help" style="cursor:pointer;margin-left:4px;">?</span>
                     <span id="agent-type-label" style="display:none;"></span>
                     <span id="llm-provider-label" style="display:none;"></span>
-                    <div id="agent-info-tooltip" class="agent-options-tooltip hidden">
-                        <span style="font-weight:bold;color:#2563eb;border-bottom:2px solid #2563eb;">Agent type</span> — The architecture used by this agent:<br>
-                        &bull; <b>RAG</b> — Searches a document database using vector embeddings and answers from retrieved context.<br>
-                        &bull; <b>Metadata+RAG (Vector)</b> — Like RAG plus structured metadata (authors, universities, topics), maps and figures. Uses vector embeddings for document search.<br>
-                        &bull; <b>Metadata+RAG (Vectorless)</b> — Same as Metadata+RAG but uses keyword-based BM25 retrieval instead of vector embeddings. No ChromaDB dependency.<br>
-                        &bull; <b>Text2SQL</b> — Converts questions into SQL queries against a relational database.<br>
-                        &bull; <b>Oneshot</b> — Single LLM call with no document retrieval.<br>
-                        The agent type is set when the agent is created and cannot be changed afterwards.<br><br>
-                        <span style="font-weight:bold;color:#2563eb;border-bottom:2px solid #2563eb;">LLM provider</span> — The language model service. Can be changed in the <code>.env</code> file (LLM_PROVIDER = ollama or mistral).
-                        <div style="text-align:right;margin-top:0.5rem;"><button class="tooltip-close-btn" data-tooltip="agent-info-tooltip">Close</button></div>
-                    </div>
                 </div>
                 <p id="agent-description" class="agent-description hidden"></p>
-                <div id="agent-options" class="agent-section-wrapper hidden">
-                    <h4>Agent tuning: <span id="agent-options-help" class="agent-options-help" title="Help">?</span></h4>
-                    <div id="agent-options-tooltip" class="agent-options-tooltip hidden">
-                        <div id="agent-options-tooltip-content"></div>
-                        <div style="text-align:right;margin-top:0.5rem;"><button class="tooltip-close-btn" data-tooltip="agent-options-tooltip">Close</button></div>
-                    </div>
-                    <div class="agent-options-box">
-                        <div id="llm-status" class="llm-status">
-                            <span id="llm-badge" class="llm-badge loading">Loading...</span>
-                        </div>
-                        <div id="transparency-level" class="transparency-level hidden"></div>
-                        <div id="prompt-level" class="prompt-level hidden"></div>
-                    </div>
-                </div>
                 <div id="example-queries" class="example-queries hidden">
                     <details>
                         <summary style="cursor:pointer;font-weight:bold;font-size:0.95em;color:#fff;">Example queries</summary>

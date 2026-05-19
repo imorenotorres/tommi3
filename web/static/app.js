@@ -109,9 +109,9 @@ const elements = {
     agentInfoSection: document.getElementById('agent-info-section'),
     llmProviderIcon: document.getElementById('llm-provider-icon'),
     llmProviderLabel: document.getElementById('llm-provider-label'),
-    agentOptions: document.getElementById('agent-options'),
-    transparencyLevel: document.getElementById('transparency-level'),
-    promptLevel: document.getElementById('prompt-level'),
+    transparencyLevelIcon: document.getElementById('transparency-level-icon'),
+    promptLevelIcon: document.getElementById('prompt-level-icon'),
+    btnAgentConfig: document.getElementById('btn-agent-config'),
     exampleQueries: document.getElementById('example-queries'),
     examplesContainer: document.getElementById('examples-container'),
     queryHistory: document.getElementById('query-history'),
@@ -120,8 +120,7 @@ const elements = {
     chatForm: document.getElementById('chat-form'),
     messageInput: document.getElementById('message-input'),
     sendButton: document.getElementById('send-button'),
-    loggingNotice: document.getElementById('logging-notice'),
-    llmBadge: document.getElementById('llm-badge')
+    loggingNotice: document.getElementById('logging-notice')
 };
 
 /**
@@ -192,19 +191,15 @@ async function init() {
     await loadConfig();
     await loadAgents();
     setupEventListeners();
-    // Ocultar badge hasta que se seleccione un agente
-    if (elements.llmBadge) {
-        elements.llmBadge.style.display = 'none';
-    }
 
     // Inject user menu in the top-right area
     injectUserMenu(role);
 
-    // Show gear icon for testers and superusers
+    // Show gear row for testers and superusers (visibility toggled when agent loads)
     if (role === 'tester' || role === 'superuser') {
+        state._showGear = true;
         const gearBtn = document.getElementById('btn-agent-config');
         if (gearBtn) {
-            gearBtn.classList.remove('hidden');
             gearBtn.addEventListener('click', openAgentConfigPanel);
         }
     }
@@ -226,11 +221,8 @@ async function loadConfig() {
 // Load LLM status (local vs cloud)
 // Returns true if LLM is OK, false if there's an error
 async function loadLLMStatus(agentId = null) {
-    // If no agent, hide badge and clear errors
+    // If no agent, clear errors
     if (!agentId) {
-        if (elements.llmBadge) {
-            elements.llmBadge.style.display = 'none';
-        }
         hideLLMError();
         return false;
     }
@@ -242,80 +234,51 @@ async function loadLLMStatus(agentId = null) {
         // Check for configuration errors
         if (status.status === 'error') {
             showLLMError(status);
-            if (elements.llmBadge) {
-                elements.llmBadge.style.display = '';
-                elements.llmBadge.textContent = '⚠️ No connection';
-                elements.llmBadge.classList.remove('loading', 'local', 'cloud', 'unknown');
-                elements.llmBadge.classList.add('error');
-                elements.llmBadge.title = status.error;
+            if (elements.llmProviderIcon) {
+                elements.llmProviderIcon.title = '⚠️ ' + status.error;
             }
             return false; // LLM not OK
         }
 
-        // All OK - hide errors and show normal badge
+        // All OK - hide errors
         hideLLMError();
 
-        if (elements.llmBadge) {
-            elements.llmBadge.style.display = '';
-            elements.llmBadge.classList.remove('loading', 'local', 'cloud', 'cloud-small', 'cloud-large', 'unknown', 'error');
-
-            // Strip provider prefix from display_name (e.g. "Ollama: mistral 7B" -> "mistral 7B")
+        // Update LLM provider icon and tooltip in the info row
+        if (elements.llmProviderIcon) {
             const modelOnly = (status.display_name || status.model || '').replace(/^[^:]+:\s*/, '');
-
             if (status.is_local) {
-                // Local LLM — green house <20GB, yellow house >=20GB
                 const sizes = status.model_sizes || {};
                 const sizeGb = sizes[status.model] || 0;
-                const icon = sizeGb >= 20 ? '/static/icon_llm_local_large.svg' : '/static/icon_llm_local.svg';
-                elements.llmBadge.innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:middle;"> LLM: ${modelOnly}`;
-                elements.llmBadge.title = `Local LLM: ${status.model} (${sizeGb} GB) at ${status.base_url}`;
+                elements.llmProviderIcon.src = sizeGb >= 20 ? '/static/icon_llm_local_large.svg' : '/static/icon_llm_local.svg';
+                elements.llmProviderIcon.title = `${modelOnly} on local server (${sizeGb} GB)`;
             } else {
-                // Cloud LLM — red cloud icon
-                elements.llmBadge.innerHTML = `<img src="/static/icon_llm_cloud.svg" style="width:16px;height:16px;vertical-align:middle;"> LLM: ${modelOnly}`;
-                elements.llmBadge.title = `Cloud LLM: ${status.provider} (${status.model})`;
+                elements.llmProviderIcon.src = '/static/icon_llm_cloud.svg';
+                elements.llmProviderIcon.title = `${modelOnly} on cloud`;
             }
-
-            // Update LLM provider badge in the info section
-            if (elements.llmProviderIcon && elements.llmProviderLabel) {
-                if (status.is_local) {
-                    elements.llmProviderIcon.src = '/static/icon_llm_local.svg';
-                    elements.llmProviderLabel.textContent = 'LLM provider: Ollama';
-                } else {
-                    elements.llmProviderIcon.src = '/static/icon_llm_cloud.svg';
-                    const providerName = (status.provider || 'mistral').charAt(0).toUpperCase() + (status.provider || 'mistral').slice(1);
-                    elements.llmProviderLabel.textContent = `LLM provider: ${providerName}`;
-                }
-            }
-
-            // Store available models, sizes, and is_local for cycling
-            const available = status.available_models || [];
-            state.availableModels = available;
-            state.currentModel = status.model;
-            state.modelSizes = status.model_sizes || {};
-            state.isLocalLLM = status.is_local || false;
-
-            // Remove old listener
-            elements.llmBadge.removeEventListener('click', cycleLLMModel);
-            elements.llmBadge.style.cursor = '';
-
-            if (available.length > 1) {
-                elements.llmBadge.style.cursor = 'pointer';
-                elements.llmBadge.title += ' (click to switch model)';
-                elements.llmBadge.addEventListener('click', cycleLLMModel);
+        }
+        if (elements.llmProviderLabel) {
+            if (status.is_local) {
+                elements.llmProviderLabel.textContent = 'LLM provider: Ollama';
+            } else {
+                const providerName = (status.provider || 'mistral').charAt(0).toUpperCase() + (status.provider || 'mistral').slice(1);
+                elements.llmProviderLabel.textContent = `LLM provider: ${providerName}`;
             }
         }
 
-        // Update agent info hover tooltip now that LLM info is available
-        updateAgentInfoTooltip();
+        // Store available models, sizes, and is_local
+        state.availableModels = status.available_models || [];
+        state.currentModel = status.model;
+        state.modelSizes = status.model_sizes || {};
+        state.isLocalLLM = status.is_local || false;
+
+        // Update all icon tooltips now that LLM info is available
+        updateIconTooltips();
 
         return true; // LLM OK
     } catch (error) {
         console.error('Error loading LLM status:', error);
-        if (elements.llmBadge) {
-            elements.llmBadge.style.display = '';
-            elements.llmBadge.textContent = 'Unknown';
-            elements.llmBadge.classList.remove('loading', 'local', 'cloud', 'error');
-            elements.llmBadge.classList.add('unknown');
+        if (elements.llmProviderIcon) {
+            elements.llmProviderIcon.title = 'LLM status unknown';
         }
         return false; // LLM not OK
     }
@@ -386,23 +349,6 @@ function setupEventListeners() {
         }
     });
 
-    // Agent type & LLM provider help toggle
-    const infoHelpBtn = document.getElementById('agent-info-help');
-    const infoTooltip = document.getElementById('agent-info-tooltip');
-    if (infoHelpBtn && infoTooltip) {
-        infoHelpBtn.addEventListener('click', () => {
-            infoTooltip.classList.toggle('hidden');
-        });
-    }
-
-    // Agent tuning help toggle
-    const helpBtn = document.getElementById('agent-options-help');
-    const tooltip = document.getElementById('agent-options-tooltip');
-    if (helpBtn && tooltip) {
-        helpBtn.addEventListener('click', () => {
-            tooltip.classList.toggle('hidden');
-        });
-    }
 
     // Event delegation for clickable suggestions in chat messages
     elements.chatMessages.addEventListener('click', (e) => {
@@ -425,7 +371,7 @@ async function onAgentChange(event) {
         hideAgentInfo();
         disableChat();
         clearChat();
-        loadLLMStatus(null); // Hide badge
+        loadLLMStatus(null); // Clear LLM state
         return;
     }
 
@@ -437,12 +383,9 @@ async function onAgentChange(event) {
     clearChat();
     hideQueryHistory(); // Clear previous agent's history
 
-    // Show loading in badge
-    if (elements.llmBadge) {
-        elements.llmBadge.style.display = '';
-        elements.llmBadge.textContent = 'Checking LLM...';
-        elements.llmBadge.classList.remove('local', 'cloud', 'unknown', 'error');
-        elements.llmBadge.classList.add('loading');
+    // Show loading state in LLM icon tooltip
+    if (elements.llmProviderIcon) {
+        elements.llmProviderIcon.title = 'Checking LLM...';
     }
 
     // For RAG agents, initialize/index the database with progress streaming
@@ -585,27 +528,39 @@ async function warmupAgent(agentId) {
     }
 }
 
-// Update agent info hover tooltip with LLM details (called after LLM status loads)
-function updateAgentInfoTooltip() {
-    const infoRow = document.getElementById('agent-info-row');
-    const llmIconEl = document.getElementById('llm-provider-icon');
+// Update individual icon tooltips (called after LLM status loads and on agent load)
+function updateIconTooltips() {
+    if (!state.currentAgent) return;
+
+    // Agent type icon
+    const agentTypeIcon = document.getElementById('agent-type-icon');
     const labelEl = document.getElementById('agent-type-label');
-    if (!infoRow || !state.currentAgent) return;
-
-    const typeLabel = labelEl ? labelEl.textContent : '';
-    const isLocal = state.isLocalLLM || false;
-    const llmName = state.currentModel || '';
-    const llmLocation = isLocal ? 'Local' : 'Cloud';
-
-    // Update LLM icon
-    if (llmIconEl) {
-        llmIconEl.src = isLocal ? '/static/icon_llm_local.svg' : '/static/icon_llm_cloud.svg';
-        llmIconEl.alt = isLocal ? 'Local LLM' : 'Cloud LLM';
+    if (agentTypeIcon && labelEl) {
+        agentTypeIcon.title = `Agent type: ${labelEl.textContent}`;
     }
 
-    // Update hover text
-    const ttLabel = state._transparencyType === 'procedural' ? 'Procedural' : 'Content-based';
-    infoRow.title = `Agent type: ${typeLabel}.  LLM architecture: ${llmLocation}.  Transparency model: ${ttLabel}.`;
+    // LLM icon — updated by loadLLMStatus directly
+
+    // Transparency type icon
+    const ttIconEl = document.getElementById('transparency-type-icon');
+    if (ttIconEl) {
+        const ttLabel = state._transparencyType === 'procedural' ? 'Procedural' : 'Content-based';
+        ttIconEl.title = `Transparency model: ${ttLabel}`;
+    }
+
+    // Transparency level icon
+    if (elements.transparencyLevelIcon) {
+        const level = state.currentAgent.transparency_level || '';
+        const s = TRANSPARENCY_STYLES[level] || TRANSPARENCY_STYLES.grey_box;
+        elements.transparencyLevelIcon.title = `Transparency: ${s.label}`;
+    }
+
+    // Prompt level icon
+    if (elements.promptLevelIcon) {
+        const level = state.currentAgent.prompt_level || '';
+        const s = SUPERVISION_STYLES[level] || SUPERVISION_STYLES.stringent;
+        elements.promptLevelIcon.title = `Prompt: ${s.label}`;
+    }
 }
 
 // Mostrar información del agente
@@ -672,10 +627,6 @@ function showAgentInfo() {
             state._transparencyType = ttType;
         }
 
-        // Initial hover text (LLM details added later by updateAgentInfoTooltip)
-        const ttLabelInit = state._transparencyType === 'procedural' ? 'Procedural' : 'Content-based';
-        infoRow.title = `Agent type: ${typeLabel}.  LLM architecture: loading...  Transparency model: ${ttLabelInit}.`;
-
         elements.agentInfoSection.classList.remove('hidden');
     } else {
         elements.agentInfoSection.classList.add('hidden');
@@ -700,55 +651,37 @@ function showAgentInfo() {
         }
     }
 
-    // Mostrar nivel de transparencia (clickable to cycle)
-    if (isScaffoldedAgent) {
-        renderTransparencyBadge(state.currentAgent.transparency_level);
-        elements.transparencyLevel.classList.remove('hidden');
-    } else if (state.currentAgent.transparency_level) {
-        renderTransparencyBadge(state.currentAgent.transparency_level);
-        elements.transparencyLevel.classList.remove('hidden');
-    } else {
-        elements.transparencyLevel.classList.add('hidden');
-    }
-
-    // Update help tooltip content based on agent transparency type
-    const tooltipContent = document.getElementById('agent-options-tooltip-content');
-    if (tooltipContent) {
-        const supervisionBlock =
-            '<b>Prompt</b> — Click to cycle:<br>' +
-            '&bull; <b style="color:#155724;">&#x1F7E2; Stringent</b> — All prompt rules enforced. The agent is constrained to use only curated database content. LLM involvement is minimal.<br>' +
-            '&bull; <b style="color:#856404;">&#x1F7E1; Tolerant</b> — Standard rules only. The agent uses curated data but the LLM interprets and connects it.<br>' +
-            '&bull; <b style="color:#721c24;">&#x1F534; Lax</b> — Identity only. The agent can freely use all data sources including unconstrained LLM generation.';
-
-        if (isScaffoldedAgent) {
-            tooltipContent.innerHTML =
-                '<b>LLM</b> — The language model generating responses. Click to cycle through available models.<br><br>' +
-                '<b>Transparency</b> — Controls how much information you will be provided about the Agent data source and decision process. Click to cycle:<br>' +
-                '&bull; <b>Crystal box</b>: all relevant information (procedural badges and hallucination detection).<br>' +
-                '&bull; <b>Black box</b>: no guidance information.<br><br>' +
-                supervisionBlock;
+    // Show transparency level icon in the info row
+    if (elements.transparencyLevelIcon) {
+        const level = state.currentAgent.transparency_level || '';
+        const s = TRANSPARENCY_STYLES[level];
+        if (s) {
+            elements.transparencyLevelIcon.src = s.icon;
+            elements.transparencyLevelIcon.alt = s.label;
+            elements.transparencyLevelIcon.classList.remove('hidden');
         } else {
-            tooltipContent.innerHTML =
-                '<b>LLM</b> — Select the language model. Click to cycle through available models.<br><br>' +
-                '<b>Transparency</b> — Controls how much information you will be provided about the Agent data source and decision process. Click to cycle:<br>' +
-                '&bull; <b>Crystal box</b>: all relevant information.<br>' +
-                '&bull; <b>Grey box</b>: basic details.<br>' +
-                '&bull; <b>Black box</b>: no information.<br><br>' +
-                supervisionBlock;
+            elements.transparencyLevelIcon.classList.add('hidden');
         }
     }
 
-    // Show Prompt badge for ALL agents with prompt_level
-    // This replaces the old prompt level badge — supervision requirement is more meaningful to users
-    if (state.currentAgent.prompt_level) {
-        renderPromptLevelBadge(state.currentAgent.prompt_level);
-        elements.promptLevel.classList.remove('hidden');
-    } else {
-        elements.promptLevel.classList.add('hidden');
+    // Show prompt level icon in the info row
+    if (elements.promptLevelIcon) {
+        if (state.currentAgent.prompt_level) {
+            const s = SUPERVISION_STYLES[state.currentAgent.prompt_level] || SUPERVISION_STYLES.stringent;
+            elements.promptLevelIcon.textContent = s.dot;
+            elements.promptLevelIcon.classList.remove('hidden');
+        } else {
+            elements.promptLevelIcon.classList.add('hidden');
+        }
     }
 
-    // Show the options box
-    elements.agentOptions.classList.remove('hidden');
+    // Show gear icon for testers/superusers
+    if (elements.btnAgentConfig && state._showGear) {
+        elements.btnAgentConfig.classList.remove('hidden');
+    }
+
+    // Set individual icon tooltips
+    updateIconTooltips();
 
     // Mostrar ejemplos
     if (state.currentAgent.example_queries && state.currentAgent.example_queries.length > 0) {
@@ -781,9 +714,9 @@ function showAgentInfo() {
 function hideAgentInfo() {
     elements.agentInfoSection.classList.add('hidden');
     elements.agentDescription.classList.add('hidden');
-    elements.agentOptions.classList.add('hidden');
-    elements.transparencyLevel.classList.add('hidden');
-    elements.promptLevel.classList.add('hidden');
+    if (elements.transparencyLevelIcon) elements.transparencyLevelIcon.classList.add('hidden');
+    if (elements.promptLevelIcon) elements.promptLevelIcon.classList.add('hidden');
+    if (elements.btnAgentConfig) elements.btnAgentConfig.classList.add('hidden');
     elements.exampleQueries.classList.add('hidden');
 }
 
@@ -798,20 +731,6 @@ const TRANSPARENCY_STYLES = {
     unscaffolded:         { label: 'Black box',   icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
 };
 
-function renderTransparencyBadge(level) {
-    const s = TRANSPARENCY_STYLES[level] || TRANSPARENCY_STYLES.grey_box;
-    const isStudy = localStorage.getItem('tommi_study_mode') === 'true';
-    const cursor = isStudy ? 'default' : 'pointer';
-    const title = isStudy ? 'Transparency level (study mode — locked)' : 'Click to change transparency level';
-    elements.transparencyLevel.innerHTML =
-        `<span class="transparency-badge" style="background-color:${s.bg};color:${s.color};padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;cursor:${cursor};display:inline-flex;align-items:center;gap:4px;" ` +
-        `title="${title}">` +
-        `<img src="${s.icon}" style="width:16px;height:16px;vertical-align:middle;"> Transparency: ${s.label}</span>`;
-    if (!isStudy) {
-        elements.transparencyLevel.querySelector('.transparency-badge')
-            .addEventListener('click', cycleTransparency);
-    }
-}
 
 function cycleTransparency() {
     // Study mode: transparency is locked to the assigned condition
@@ -825,7 +744,13 @@ function cycleTransparency() {
     // Client-side only — sent as param with each request
     state.currentAgent.transparency_level = next;
     localStorage.setItem('tommi_transparency', next);
-    renderTransparencyBadge(next);
+    // Update the icon in the info row
+    if (elements.transparencyLevelIcon) {
+        const s = TRANSPARENCY_STYLES[next] || TRANSPARENCY_STYLES.grey_box;
+        elements.transparencyLevelIcon.src = s.icon;
+        elements.transparencyLevelIcon.alt = s.label;
+        elements.transparencyLevelIcon.title = `Transparency: ${s.label}`;
+    }
 }
 
 // Prompt badge for scaffolded agents (shown in sidebar instead of transparency)
@@ -839,16 +764,6 @@ const SUPERVISION_STYLES = {
 // The prompt level badge now shows "Prompt: Low/Mid/High" for all agents
 const PROMPT_LEVELS = ['stringent', 'tolerant', 'lax'];
 
-function renderPromptLevelBadge(level) {
-    const s = SUPERVISION_STYLES[level] || SUPERVISION_STYLES.stringent;
-    elements.promptLevel.innerHTML =
-        `<span class="prompt-level-badge" style="background-color:${s.bg};color:${s.color};padding:2px 8px;border-radius:4px;font-size:0.85em;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" ` +
-        `title="Click to change prompt level">` +
-        `${s.dot} Prompt: ${s.label}</span>`;
-    elements.promptLevel.querySelector('.prompt-level-badge')
-        .addEventListener('click', cyclePromptLevel);
-}
-
 function cyclePromptLevel() {
     if (!state.currentAgent || !state.currentAgent.prompt_level) return;
     const current = state.currentAgent.prompt_level;
@@ -856,7 +771,12 @@ function cyclePromptLevel() {
     const next = PROMPT_LEVELS[(idx + 1) % PROMPT_LEVELS.length];
     // Client-side only — sent as param with each request
     state.currentAgent.prompt_level = next;
-    renderPromptLevelBadge(next);
+    // Update the icon in the info row
+    if (elements.promptLevelIcon) {
+        const s = SUPERVISION_STYLES[next] || SUPERVISION_STYLES.stringent;
+        elements.promptLevelIcon.textContent = s.dot;
+        elements.promptLevelIcon.title = `Prompt: ${s.label}`;
+    }
     // Reset session so previous conversation history (from a different
     // prompt level) does not contaminate the new prompt behaviour.
     state.sessionId = null;
@@ -873,16 +793,13 @@ function cycleLLMModel() {
     // Client-side only — sent as param with each request
     state.currentModel = next;
 
-    // Update badge display to reflect new model
-    if (elements.llmBadge) {
+    // Update LLM icon tooltip to reflect new model
+    if (elements.llmProviderIcon) {
         if (state.isLocalLLM) {
             const sizeGb = (state.modelSizes || {})[next] || 0;
-            const icon = sizeGb >= 20 ? '/static/icon_llm_local_large.svg' : '/static/icon_llm_local.svg';
-            elements.llmBadge.innerHTML = `<img src="${icon}" style="width:16px;height:16px;vertical-align:middle;"> LLM: ${next}`;
-            elements.llmBadge.title = `Local LLM: ${next} (${sizeGb} GB) (click to switch model)`;
+            elements.llmProviderIcon.title = `${next} on local server (${sizeGb} GB)`;
         } else {
-            elements.llmBadge.innerHTML = `<img src="/static/icon_llm_cloud.svg" style="width:16px;height:16px;vertical-align:middle;"> LLM: ${next}`;
-            elements.llmBadge.title = `Cloud LLM: ${next} (click to switch model)`;
+            elements.llmProviderIcon.title = `${next} on cloud`;
         }
     }
 }
@@ -3300,6 +3217,9 @@ function _renderConfigForm(config, prompts) {
     html += _cfgField('Humility level', 'cfg-humility', 'select', c.humility_level || 'off', ['off', 'moderate', 'strict']);
     html += _cfgField('Show history', 'cfg-show-history', 'checkbox', c.show_history !== false);
     html += _cfgField('Audit log', 'cfg-audit-log', 'checkbox', !!c.audit_log_enabled);
+    // LLM model selector (populated from available models)
+    const llmModels = state.availableModels && state.availableModels.length > 0 ? state.availableModels : [state.currentModel || 'default'];
+    html += _cfgField('LLM model', 'cfg-llm-model', 'select', state.currentModel || llmModels[0], llmModels);
     html += '</div>';
 
     html += _cfgField('Description', 'cfg-description', 'textarea', c.description || '');
@@ -3345,6 +3265,17 @@ async function saveAgentConfig(agentId) {
     config.humility_level = document.getElementById('cfg-humility').value;
     config.show_history = document.getElementById('cfg-show-history').checked;
     config.audit_log_enabled = document.getElementById('cfg-audit-log').checked;
+
+    // Apply LLM model selection (client-side — sent as param with each request)
+    const selectedModel = document.getElementById('cfg-llm-model');
+    if (selectedModel) {
+        state.currentModel = selectedModel.value;
+        // Update the LLM icon tooltip
+        if (elements.llmProviderIcon) {
+            const location = state.isLocalLLM ? 'local server' : 'cloud';
+            elements.llmProviderIcon.title = `${state.currentModel} on ${location}`;
+        }
+    }
 
     const exText = document.getElementById('cfg-examples').value.trim();
     config.example_queries = exText ? exText.split('\n').map(l => l.trim()).filter(Boolean) : [];
