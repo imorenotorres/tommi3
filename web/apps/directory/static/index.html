@@ -282,6 +282,10 @@
                 <div class="form-group"><label>Telephone</label><input type="tel" id="userTel" placeholder="Optional"></div>
                 <div class="form-group"><label>Main Role</label><select id="userRole"><option value="">-- None --</option></select></div>
             </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea id="userNotes" rows="2" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;font-size:0.95em;font-family:inherit;resize:vertical;" placeholder="Optional notes about this person"></textarea>
+            </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Groups</label>
@@ -545,7 +549,7 @@
             return '<th style="cursor:pointer;" onclick="setSort(\'' + col + '\')">' + label + arrow + '</th>';
         }
         var customFields = (appData.settings && appData.settings.custom_fields) || [];
-        var html = '<table><tr>' + sortHeader('university', 'University') + sortHeader('family_name', 'Family Name') + sortHeader('first_name', 'First Name') + sortHeader('role', 'Main Role') + sortHeader('email', 'Email') + sortHeader('telephone', 'Telephone');
+        var html = '<table><tr>' + sortHeader('university', 'University') + sortHeader('family_name', 'Family Name') + sortHeader('first_name', 'First Name') + sortHeader('role', 'Main Role') + sortHeader('email', 'Email') + sortHeader('telephone', 'Telephone') + sortHeader('notes', 'Notes');
         customFields.forEach(function(cf) {
             if (cf.type !== 'image') html += '<th>' + esc(cf.label) + '</th>';
         });
@@ -566,7 +570,8 @@
                 + '<td>' + esc(u.first_name) + '</td>'
                 + '<td>' + esc(u.role || '') + '</td>'
                 + '<td>' + esc(u.email) + '</td>'
-                + '<td>' + esc(u.telephone || '') + '</td>';
+                + '<td>' + esc(u.telephone || '') + '</td>'
+                + '<td style="max-width:150px;font-size:0.82em;white-space:pre-wrap;">' + esc(u.notes || '') + '</td>';
             customFields.forEach(function(cf) {
                 var val = uc[cf.id];
                 if (cf.type === 'image') return; // handled separately
@@ -608,6 +613,7 @@
         document.getElementById('userFamilyName').value = user ? user.family_name : '';
         document.getElementById('userEmail').value = user ? user.email : '';
         document.getElementById('userTel').value = user ? (user.telephone || '') : '';
+        document.getElementById('userNotes').value = user ? (user.notes || '') : '';
         document.getElementById('userError').textContent = '';
 
         // Role select (from settings)
@@ -721,6 +727,7 @@
             role: document.getElementById('userRole').value,
             email: document.getElementById('userEmail').value.trim(),
             telephone: document.getElementById('userTel').value.trim(),
+            notes: document.getElementById('userNotes').value.trim(),
             groups: [],
             subgroups: [],
             custom: customData

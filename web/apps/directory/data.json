@@ -104,9 +104,14 @@
     {
       "id": "WP5",
       "name": "Work Package 5",
-      "leader": "c0cae297",
+      "leader": "cdef6ca3",
       "verified": false,
-      "subgroups": []
+      "subgroups": [
+        {
+          "id": "WP5Assist",
+          "name": "WP5 assistant"
+        }
+      ]
     },
     {
       "id": "TB",
@@ -338,20 +343,6 @@
       "telephone": "",
       "groups": [
         "TB"
-      ],
-      "subgroups": []
-    },
-    {
-      "id": "217b0bf0",
-      "university": "THUAS",
-      "first_name": "Jerke",
-      "family_name": "Verschoold",
-      "role": "(Joost van den Berg / IT-director or rep from his team, TBD)",
-      "email": "j.c.verschoor@hhs.nl",
-      "telephone": "",
-      "groups": [
-        "TB",
-        "WP1"
       ],
       "subgroups": []
     },
@@ -633,12 +624,12 @@
       "email": "amparo.zamora@uma.es",
       "telephone": "",
       "groups": [
-        "WP1",
-        "WP4"
+        "WP4",
+        "TB"
       ],
       "subgroups": [
-        "T2.4",
-        "CntMngers"
+        "CntMngers",
+        "T2.4"
       ],
       "custom": {}
     },
@@ -709,9 +700,7 @@
       "role": "WP4 Board Member",
       "email": "gemareca@uma.es",
       "telephone": "",
-      "groups": [
-        "WP2"
-      ],
+      "groups": [],
       "subgroups": [
         "T2.4"
       ],
@@ -740,13 +729,14 @@
       "university": "UMA",
       "first_name": "Inés",
       "family_name": "Moreno",
-      "role": "Deputy Vice-Chancellor for Research",
+      "role": "No role or unknown rol",
       "email": "vra.investigacion@uma.es",
       "telephone": "",
       "groups": [],
       "subgroups": [
         "T3.3"
-      ]
+      ],
+      "custom": {}
     },
     {
       "id": "76c41c3f",
@@ -851,14 +841,15 @@
       "university": "USPN",
       "first_name": "Fabio",
       "family_name": "Villalba",
-      "role": "Project Manager",
+      "role": "Technical Body Member",
       "email": "fabio.villalba@univ-paris13.fr",
       "telephone": "",
       "groups": [
-        "TB",
-        "WP4"
+        "WP4",
+        "TB"
       ],
-      "subgroups": []
+      "subgroups": [],
+      "custom": {}
     },
     {
       "id": "9aefce09",
@@ -966,29 +957,28 @@
       "university": "UT",
       "first_name": "Kreshnik",
       "family_name": "Vukatana",
-      "role": "Chief of Departement of Statistics and Applied Informatics",
+      "role": "No role or unknown rol",
       "email": "kreshnik.vukatana@unitir.edu.al",
       "telephone": "",
       "groups": [
-        "TB",
-        "WP4"
+        "WP4",
+        "TB"
       ],
       "subgroups": [
         "T3.1",
         "EH-WG"
-      ]
+      ],
+      "custom": {}
     },
     {
       "id": "bbeef889",
       "university": "USPN",
       "first_name": "Achraf",
       "family_name": "Jdidi",
-      "role": "",
-      "email": "mailto:achraf.jdidi@sorbonne-paris-nord.fr",
+      "role": "Technical Body Member",
+      "email": "achraf.jdidi@sorbonne-paris-nord.fr",
       "telephone": "",
       "groups": [
-        "WP1",
-        "WP4",
         "TB"
       ],
       "subgroups": [
@@ -1032,7 +1022,9 @@
       "role": "UNINOVIS Management",
       "email": "uninovis@uma.es",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "MngBrd"
+      ],
       "subgroups": [],
       "custom": {}
     },
@@ -1041,7 +1033,7 @@
       "university": "UMA",
       "first_name": "Daniel",
       "family_name": "Guerrero",
-      "role": "Communications Director",
+      "role": "No role or unknown rol",
       "email": "dguerrero@uma.es",
       "telephone": "",
       "groups": [
@@ -1055,7 +1047,7 @@
       "university": "UMA",
       "first_name": "Sonia",
       "family_name": "Osorio Algar",
-      "role": "Deputy Vice-President for International Mobility & Projects",
+      "role": "No role or unknown rol",
       "email": "sosorio@uma.es",
       "telephone": "",
       "groups": [],
@@ -1385,7 +1377,7 @@
       "university": "UMA",
       "first_name": "Manuel",
       "family_name": "Enciso",
-      "role": "Director",
+      "role": "No role or unknown rol",
       "email": "director.informatica@uma.es",
       "telephone": "",
       "groups": [],
@@ -1397,7 +1389,7 @@
       "university": "UMA",
       "first_name": "Inma",
       "family_name": "Fortes",
-      "role": "Sub director for mobility.",
+      "role": "No role or unknown rol",
       "email": "international-mobility.informatica@uma.es",
       "telephone": "",
       "groups": [],
@@ -1409,32 +1401,8 @@
       "university": "UMA",
       "first_name": "Francisco",
       "family_name": "Javier Trujillo",
-      "role": "Subdirector for Internationalization",
+      "role": "No role or unknown rol",
       "email": "subpi.eii@uma.es",
-      "telephone": "",
-      "groups": [],
-      "subgroups": [],
-      "custom": {}
-    },
-    {
-      "id": "b2a744e6",
-      "university": "UMA",
-      "first_name": "Isaías",
-      "family_name": "Martín Ruiz",
-      "role": "Academic Secretary",
-      "email": "secreacaemica.decpsi@uma.es",
-      "telephone": "",
-      "groups": [],
-      "subgroups": [],
-      "custom": {}
-    },
-    {
-      "id": "89b9ecb5",
-      "university": "UMA",
-      "first_name": "Sara",
-      "family_name": "Robles",
-      "role": "Dean",
-      "email": "coordinacion.letras@uma.es",
       "telephone": "",
       "groups": [],
       "subgroups": [],
@@ -1788,10 +1756,11 @@
       "university": "THUAS",
       "first_name": "Jerke",
       "family_name": "Verschoor",
-      "role": "",
-      "email": "",
+      "role": "Local Coordinator",
+      "email": "J.C.Verschoor@hhs.nl",
       "telephone": "",
       "groups": [
+        "WP1",
         "WP3"
       ],
       "subgroups": [],
@@ -1847,7 +1816,7 @@
       "university": "UMA",
       "first_name": "Joaquín",
       "family_name": "Canca Cuenca",
-      "role": "Chief Administrator",
+      "role": "No role or unknown rol",
       "email": "joaquin@uma.es",
       "telephone": "",
       "groups": [
@@ -1861,7 +1830,7 @@
       "university": "UMA",
       "first_name": "Victoriano",
       "family_name": "Giralt",
-      "role": "External Advisor",
+      "role": "No role or unknown rol",
       "email": "v@uma.es",
       "telephone": "",
       "groups": [
@@ -1890,7 +1859,7 @@
       "university": "KK",
       "first_name": "dr.",
       "family_name": "Zivile Jukneviciene",
-      "role": "Head of Project Development /responsible for UNINOVIS green transition activities at KK",
+      "role": "No role or unknown rol",
       "email": "zivile.jukneviciene@kaunokolegija.lt",
       "telephone": "",
       "groups": [
@@ -1988,7 +1957,7 @@
       "university": "UMA",
       "first_name": "Miriam",
       "family_name": "Seghiri",
-      "role": "UNINOVIS WP collaborator",
+      "role": "WP5 Board Member",
       "email": "seghiri@uma.es",
       "telephone": "",
       "groups": [
@@ -2044,7 +2013,7 @@
       "university": "THUAS",
       "first_name": "Rob",
       "family_name": "Van Netburg",
-      "role": "WP5 task leader",
+      "role": "WP5 Leader",
       "email": "G.J.vanNetburg@hhs.nl",
       "telephone": "",
       "groups": [
@@ -2108,6 +2077,20 @@
       ],
       "subgroups": [],
       "custom": {}
+    },
+    {
+      "id": "3ae83c72",
+      "university": "UMA",
+      "first_name": "María",
+      "family_name": "Martos",
+      "role": "Student assistant",
+      "email": "mariamartos@uma.es",
+      "telephone": "",
+      "groups": [],
+      "subgroups": [
+        "WP5Assist"
+      ],
+      "custom": {}
     }
   ],
   "settings": {
@@ -2134,7 +2117,8 @@
       "DPO",
       "Quality Officer",
       "Technical Body Leader",
-      "No role or unknown rol"
+      "No role or unknown rol",
+      "Student assistant"
     ],
     "custom_fields": []
   }

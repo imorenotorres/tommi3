@@ -89,6 +89,7 @@ class UserBody(BaseModel):
     role: str = ""
     email: str
     telephone: str = ""
+    notes: str = ""
     groups: list[str] = []
     subgroups: list[str] = []
     custom: dict = {}  # custom field values keyed by field id
@@ -107,6 +108,7 @@ def create_user(body: UserBody, session: dict = Depends(_require_editor)):
         "role": body.role,
         "email": body.email,
         "telephone": body.telephone,
+        "notes": body.notes,
         "groups": body.groups,
         "subgroups": body.subgroups,
         "custom": body.custom,
@@ -127,6 +129,7 @@ def update_user(user_id: str, body: UserBody, session: dict = Depends(_require_e
             u["role"] = body.role
             u["email"] = body.email
             u["telephone"] = body.telephone
+            u["notes"] = body.notes
             u["groups"] = body.groups
             u["subgroups"] = body.subgroups
             u["custom"] = body.custom
