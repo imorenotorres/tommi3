@@ -604,7 +604,10 @@
         }
         html += '</table>';
         if (filtered.length === 0) html = '<p style="color:#888;text-align:center;padding:20px;">No users found.</p>';
-        document.getElementById('usersTable').innerHTML = html;
+        var countHtml = '<p style="font-size:0.82em;color:#666;margin-bottom:8px;">' + filtered.length;
+        if (filtered.length !== appData.users.length) countHtml += ' of ' + appData.users.length;
+        countHtml += ' user' + (filtered.length !== 1 ? 's' : '') + '</p>';
+        document.getElementById('usersTable').innerHTML = countHtml + html;
     }
 
     // ── User modal ────────────────────────────────────────────────

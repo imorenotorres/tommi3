@@ -1833,12 +1833,10 @@
       "role": "No role or unknown rol",
       "email": "v@uma.es",
       "telephone": "",
-      "groups": [
-        "WP4",
-        "TB"
-      ],
+      "groups": [],
       "subgroups": [],
-      "custom": {}
+      "custom": {},
+      "notes": ""
     },
     {
       "id": "4eb879e4",
