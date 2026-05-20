@@ -13,7 +13,7 @@ agents/*/data/*.sql
 agents/*/data/chroma_db/
 agents/*/data/audit_log*.jsonl
 agents/*/data/authorships_cache.json
-agents/*/data/docs/
+agents/*/data/docs/*.pdf
 
 # Agent data JSON (large data files, NOT config)
 #agents/*/data/papers.json

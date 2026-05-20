@@ -1681,6 +1681,7 @@ async function sendMessage(message) {
 
         let streamDone = false;
         let badgeHtml = '';
+        let hasReceivedContent = false;
         let hasScrolledToResponse = false;
 
         function scrollToUserMessage() {
@@ -1706,7 +1707,13 @@ async function sendMessage(message) {
             // Desescapar newlines
             const chunk = event.data.replace(/\\n/g, '\n');
             responseText += chunk;
-            responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText));
+            // Show a waiting indicator after banners until real LLM content arrives
+            const isBannerChunk = chunk.trimStart().startsWith('<div ');
+            if (!isBannerChunk) hasReceivedContent = true;
+            const waiting = (!hasReceivedContent)
+                ? '<span class="loading" style="display:block;margin-top:8px;">Generating response…</span>'
+                : '';
+            responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText)) + waiting;
             scrollToUserMessage();
         };
 
@@ -1793,6 +1800,8 @@ async function sendMessage(message) {
         });
 
         eventSource.addEventListener('error', (event) => {
+            // Preserve any banners/content already rendered before showing the error
+            const existing = badgeHtml + (responseText ? marked.parse(cleanPdfLinks(responseText)) : '');
             if (event.data) {
                 // Try to parse as JSON (structured error)
                 try {
@@ -1800,10 +1809,10 @@ async function sendMessage(message) {
                     const errorMsg = errData.error_code
                         ? `<strong>Error ${errData.error_code}:</strong> ${errData.error}`
                         : errData.error || event.data;
-                    responseDiv.innerHTML = `<span class="error">${errorMsg}</span>`;
+                    responseDiv.innerHTML = existing + `<span class="error">${errorMsg}</span>`;
                 } catch {
                     // Plain text error
-                    responseDiv.innerHTML = `<span class="error">Error: ${event.data}</span>`;
+                    responseDiv.innerHTML = existing + `<span class="error">Error: ${event.data}</span>`;
                 }
             }
             eventSource.close();
@@ -1813,9 +1822,8 @@ async function sendMessage(message) {
 
         eventSource.onerror = () => {
             eventSource.close();
-            if (!responseText) {
-                responseDiv.innerHTML = '<span class="error">Connection error</span>';
-            }
+            const existing = badgeHtml + (responseText ? marked.parse(cleanPdfLinks(responseText)) : '');
+            responseDiv.innerHTML = existing + (existing.trim() ? '' : '<span class="error">Connection error</span>');
             state.isLoading = false;
             elements.sendButton.disabled = false;
         };
