@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS Research Proposals</title>
+    <link rel="stylesheet" href="/static/nav.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
+        h1 { text-align: center; color: #4250b3; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 0.95em; }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* Auth bar */
+        .auth-bar { text-align: right; margin-bottom: 16px; }
+        .auth-bar button { margin-left: 6px; }
+        .auth-info { font-size: 0.85em; color: #666; margin-right: 8px; }
+
+        /* Cards */
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px; }
+        .card h2 { color: #4250b3; margin-bottom: 16px; font-size: 1.15em; }
+
+        /* Toolbar */
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+        .toolbar input[type="text"] { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+        .toolbar select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; min-width: 160px; }
+
+        /* Buttons */
+        .btn { display: inline-block; background: #4250b3; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-size: 0.9em; cursor: pointer; }
+        .btn:hover { background: #374399; }
+        .btn-small { background: #e9ecef; border: 1px solid #ccc; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.82em; }
+        .btn-small:hover { background: #d0d4d9; }
+        .btn-danger { background: #dc3545; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.82em; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-outline { background: transparent; border: 1px solid #4250b3; color: #4250b3; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85em; }
+        .btn-outline:hover { background: #4250b3; color: #fff; }
+        .btn-secondary { background: #e8e0f0; color: #4250b3; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.82em; }
+        .btn-secondary:hover { background: #d0c4e0; }
+        .btn-ghost { background: transparent; color: #4250b3; border: none; padding: 8px 16px; cursor: pointer; font-size: 0.85em; }
+        .btn-ghost:hover { background: #e8e0f0; border-radius: 6px; }
+
+        /* Proposals grid */
+        .proposals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+        .proposal-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 20px; border-left: 4px solid #4250b3; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
+        .proposal-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+        .proposal-card .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+        .proposal-card .card-title { font-size: 1em; font-weight: 700; color: #4250b3; line-height: 1.35; }
+        .proposal-card .card-topic { font-size: 0.85em; color: #666; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .proposal-card .card-meta { display: flex; flex-wrap: wrap; gap: 4px; }
+        .proposal-card .card-proposer { font-size: 0.82em; color: #666; }
+        .proposal-card .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid #eee; }
+        .proposal-card .card-date { font-size: 0.75em; color: #888; }
+
+        /* Badges */
+        .badge { font-size: 0.72em; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; display: inline-block; margin: 1px 2px; }
+        .badge-area { background: #e8e0f0; color: #4250b3; }
+        .badge-collab { background: #f3e5f5; color: #6a1b9a; }
+        .badge-kw { background: #d1ecf1; color: #0c5460; }
+
+        /* Status badges */
+        .status-badge { font-size: 0.72em; font-weight: 700; padding: 3px 10px; border-radius: 10px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
+        .status-open { background: #e8f5e9; color: #2e7d32; }
+        .status-submitted { background: #e1f5fe; color: #0277bd; }
+        .status-funded { background: #f3e5f5; color: #6a1b9a; }
+        .status-closed { background: #f5f5f5; color: #757575; }
+        .status-planning { background: #fff3e0; color: #f57c00; }
+
+        .funding-status-badge { font-size: 0.72em; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+        .fs-planning { background: #fff3e0; color: #f57c00; }
+        .fs-submitted { background: #e1f5fe; color: #0277bd; }
+        .fs-funded { background: #f3e5f5; color: #6a1b9a; }
+        .fs-ongoing { background: #e8f5e9; color: #2e7d32; }
+
+        /* Position pills */
+        .position-pill { font-size: 0.72em; padding: 2px 8px; border-radius: 12px; border: 1px solid; }
+        .pill-phd { border-color: #7b1fa2; color: #7b1fa2; background: #f3e5f5; }
+        .pill-intern { border-color: #1565c0; color: #1565c0; background: #e3f2fd; }
+        .pill-postdoc { border-color: #1b5e20; color: #1b5e20; background: #e8f5e9; }
+
+        /* Funding row */
+        .funding-row { font-size: 0.82em; color: #666; display: flex; align-items: center; gap: 4px; }
+
+        /* Stats bar */
+        .stats-bar { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+        .stat { background: #fff; border-radius: 8px; padding: 14px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); text-align: center; min-width: 120px; }
+        .stat .number { font-size: 1.6em; font-weight: 700; color: #4250b3; }
+        .stat .label { font-size: 0.78em; color: #888; }
+
+        /* Login prompt */
+        .login-prompt { background: #e8e0f0; border: 1px solid #4250b3; border-radius: 8px; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+        .login-prompt p { font-size: 0.9em; color: #4250b3; }
+
+        /* No results */
+        .no-results { text-align: center; padding: 40px; color: #999; font-size: 1.1em; }
+
+        /* Forms */
+        select, input[type="text"], input[type="email"], input[type="url"], input[type="number"], input[type="date"], textarea {
+            padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; background: #fff; width: 100%;
+        }
+        textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 4px; color: #4250b3; font-size: 0.85em; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 2rem 1rem; }
+        .modal.active { display: flex; }
+        .modal-box { background: #fff; border-radius: 10px; padding: 28px; max-width: 780px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); margin: auto; }
+        .modal-box h3 { color: #4250b3; margin-bottom: 16px; }
+        .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+        .modal-header h3 { margin-bottom: 0; }
+        .modal-close { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: #666; padding: 2px; border-radius: 4px; line-height: 1; }
+        .modal-close:hover { background: #e8e0f0; color: #4250b3; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid #eee; }
+
+        /* Detail view */
+        .detail-section { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+        .detail-section-title { background: #e8e0f0; color: #4250b3; font-weight: 700; font-size: 0.82em; padding: 8px 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .detail-item { padding: 10px 12px; border-bottom: 1px solid #eee; border-right: 1px solid #eee; }
+        .detail-item:nth-child(2n) { border-right: none; }
+        .detail-item:last-child, .detail-item:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+        .detail-item-full { padding: 10px 12px; border-bottom: 1px solid #eee; grid-column: 1 / -1; }
+        .detail-item-full:last-child { border-bottom: none; }
+        .detail-label { font-size: 0.75em; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+        .detail-value { font-size: 0.9em; color: #333; line-height: 1.5; }
+        .detail-value a { color: #4250b3; }
+        .detail-value .muted { color: #999; font-style: italic; }
+
+        /* Form grid */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-field { display: flex; flex-direction: column; gap: 4px; }
+        .form-field.full { grid-column: 1 / -1; }
+        .form-field label { font-size: 0.85em; font-weight: 600; color: #4250b3; }
+        .form-field label .required { color: #dc3545; }
+        .form-section-title { font-size: 0.8em; font-weight: 700; color: #4250b3; text-transform: uppercase; letter-spacing: 0.06em; padding-bottom: 4px; border-bottom: 2px solid #e8e0f0; grid-column: 1 / -1; margin-top: 4px; }
+
+        .checkbox-row { display: flex; align-items: center; gap: 8px; }
+        .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #4250b3; }
+
+        /* Chips */
+        .chips-input-wrap { border: 1px solid #ccc; border-radius: 6px; padding: 6px 8px; min-height: 40px; background: #fff; cursor: text; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+        .chips-input-wrap:focus-within { border-color: #4250b3; }
+        .chip { background: #4250b3; color: #fff; border-radius: 4px; padding: 2px 8px; font-size: 0.78em; display: flex; align-items: center; gap: 4px; max-width: 200px; }
+        .chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .chip-remove { cursor: pointer; font-size: 0.9em; line-height: 1; opacity: 0.7; }
+        .chip-remove:hover { opacity: 1; }
+        .chips-input-wrap input { border: none; background: transparent; outline: none; font-size: 0.88em; min-width: 80px; flex: 1; padding: 0; }
+        .chips-dropdown { position: absolute; background: #fff; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 300; max-height: 200px; overflow-y: auto; min-width: 220px; }
+        .chips-dropdown-item { padding: 8px 12px; font-size: 0.88em; cursor: pointer; }
+        .chips-dropdown-item:hover { background: #e8e0f0; color: #4250b3; }
+        .chips-wrap-outer { position: relative; }
+
+        /* Form error */
+        .form-error { background: #ffebee; color: #c62828; border-radius: 6px; padding: 8px 12px; font-size: 0.85em; display: none; }
+        .form-error.visible { display: block; margin-bottom: 12px; }
+
+        /* Toast */
+        #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1e2640; color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 0.88em; box-shadow: 0 4px 16px rgba(0,0,0,0.25); z-index: 500; opacity: 0; transform: translateY(10px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+        #toast.success { background: #1b5e20; }
+        #toast.error { background: #b71c1c; }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .detail-item { border-right: none; }
+            .proposals-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Code -->
+</head>
+<body>
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ crumbs: [{label:'Teaching & Research', href:'/'}], current: 'Research Proposals' });</script>
+<div class="container">
+    <h1>UNINOVIS Research Proposals</h1>
+    <p class="subtitle">Post and discover research collaboration opportunities across UNINOVIS partner universities</p>
+
+    <!-- Auth bar -->
+    <div class="auth-bar">
+        <span class="auth-info" id="authInfo"></span>
+        <button class="btn-small" id="loginBtn" onclick="showLogin()">Login to Edit</button>
+        <button class="btn-small" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
+        <button class="btn" id="btn-new-proposal" style="display:none" onclick="openNewProposalModal()">+ New Proposal</button>
+    </div>
+
+    <!-- Login prompt for unauthenticated users -->
+    <div class="login-prompt" id="login-prompt" style="display:none">
+        <p>Log in to post your own research proposals and express interest in collaborating.</p>
+        <button class="btn" onclick="showLogin()">Log in</button>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar" id="stats-bar"></div>
+
+    <!-- Controls / Filters -->
+    <div class="toolbar">
+        <input type="text" id="search-input" placeholder="Search by title, topic, keywords, funding call..." oninput="renderProposals()" />
+        <select id="filter-status" onchange="renderProposals()">
+            <option value="">All statuses</option>
+            <option value="open">Open for partners</option>
+            <option value="planning">Planning</option>
+            <option value="submitted">Submitted</option>
+            <option value="funded">Funded</option>
+            <option value="closed">Closed</option>
+        </select>
+        <select id="filter-area" onchange="renderProposals()">
+            <option value="">All research areas</option>
+        </select>
+        <select id="filter-collab" onchange="renderProposals()">
+            <option value="">All collaboration types</option>
+        </select>
+        <select id="filter-positions" onchange="renderProposals()">
+            <option value="">All positions</option>
+            <option value="phd">PhD positions</option>
+            <option value="intern">Internships</option>
+            <option value="postdoc">Postdoc</option>
+        </select>
+    </div>
+
+    <!-- Proposals grid -->
+    <div class="proposals-grid" id="proposals-grid"></div>
+</div>
+
+<!-- Login modal -->
+<div class="modal" id="loginModal">
+    <div class="modal-box" style="max-width:360px;">
+        <h3>Login</h3>
+        <div class="form-group"><label>Username</label><input type="text" id="loginUser"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="loginPass"></div>
+        <p id="loginError" style="color:#dc3545;font-size:0.85em;"></p>
+        <div class="modal-footer">
+            <button class="btn-small" type="button" onclick="closeLogin()">Cancel</button>
+            <button class="btn" type="button" onclick="doLogin()">Login</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Proposal Modal -->
+<div class="modal" id="view-modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div>
+                <h3 id="vm-title"></h3>
+                <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;" id="vm-badges"></div>
+            </div>
+            <button class="modal-close" onclick="closeViewModal()">&#10005;</button>
+        </div>
+        <div id="vm-body"></div>
+        <div class="modal-footer" id="vm-footer"></div>
+    </div>
+</div>
+
+<!-- Create/Edit Proposal Modal -->
+<div class="modal" id="form-modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="form-modal-title">New Research Proposal</h3>
+            <button class="modal-close" onclick="closeFormModal()">&#10005;</button>
+        </div>
+        <div class="form-error" id="form-error"></div>
+        <form id="proposal-form" onsubmit="submitProposal(event)">
+            <div class="form-grid">
+
+                <!-- Basic info -->
+                <div class="form-section-title">Basic Information</div>
+
+                <div class="form-field full">
+                    <label>Title <span class="required">*</span></label>
+                    <input type="text" name="title" required placeholder="e.g. AI-Powered Tools for Multilingual Education in EU HEIs" />
+                </div>
+
+                <div class="form-field full">
+                    <label>Topic / Short Description <span class="required">*</span></label>
+                    <textarea name="topic" required rows="2" placeholder="Brief summary of what the proposal is about (2-3 sentences)"></textarea>
+                </div>
+
+                <div class="form-field full">
+                    <label>Abstract / Detailed Description</label>
+                    <textarea name="abstract" rows="4" placeholder="Full description: objectives, methodology, expected impact..."></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label>Research Areas</label>
+                    <div class="chips-wrap-outer" id="areas-wrap-outer">
+                        <div class="chips-input-wrap" id="areas-chips-wrap" onclick="focusChipInput('areas')">
+                            <input type="text" id="areas-chip-input" placeholder="Type to search..." autocomplete="off"
+                              oninput="filterChipDropdown('areas')" onfocus="showChipDropdown('areas')" onblur="hideChipDropdown('areas', 200)" onkeydown="chipInputKeydown(event,'areas')" />
+                        </div>
+                        <div class="chips-dropdown" id="areas-dropdown" style="display:none"></div>
+                    </div>
+                    <input type="hidden" name="research_areas" id="research_areas_hidden" />
+                </div>
+
+                <div class="form-field">
+                    <label>Keywords</label>
+                    <div class="chips-wrap-outer" id="keywords-wrap-outer">
+                        <div class="chips-input-wrap" id="keywords-chips-wrap" onclick="focusChipInput('keywords')">
+                            <input type="text" id="keywords-chip-input" placeholder="Type and press Enter..." autocomplete="off"
+                              oninput="filterChipDropdown('keywords')" onfocus="showChipDropdown('keywords')" onblur="hideChipDropdown('keywords', 200)" onkeydown="chipInputKeydown(event,'keywords')" />
+                        </div>
+                        <div class="chips-dropdown" id="keywords-dropdown" style="display:none"></div>
+                    </div>
+                    <input type="hidden" name="keywords" id="keywords_hidden" />
+                </div>
+
+                <!-- Proposer -->
+                <div class="form-section-title">Proposer Information</div>
+
+                <div class="form-field">
+                    <label>Your Name <span class="required">*</span></label>
+                    <input type="text" name="proposer_name" required placeholder="First and family name" />
+                </div>
+
+                <div class="form-field">
+                    <label>Contact Email <span class="required">*</span></label>
+                    <input type="email" name="proposer_email" required placeholder="your@university.edu" />
+                </div>
+
+                <div class="form-field">
+                    <label>University / Institution</label>
+                    <input type="text" name="proposer_university" placeholder="e.g. Universidad de Malaga" />
+                </div>
+
+                <div class="form-field">
+                    <label>Department</label>
+                    <input type="text" name="proposer_department" placeholder="e.g. Computer Science" />
+                </div>
+
+                <div class="form-field">
+                    <label>Position</label>
+                    <input type="text" name="proposer_position" placeholder="e.g. Associate Professor" />
+                </div>
+
+                <div class="form-field">
+                    <label>ORCID iD</label>
+                    <input type="text" name="proposer_orcid" placeholder="0000-0000-0000-0000" />
+                </div>
+
+                <!-- Funding -->
+                <div class="form-section-title">Funding Information</div>
+
+                <div class="form-field full">
+                    <label>Funding Call Name</label>
+                    <input type="text" name="funding_call" placeholder="e.g. Horizon Europe MSCA-IF 2025, ERC Starting Grant 2026..." />
+                </div>
+
+                <div class="form-field">
+                    <label>Funding Agency</label>
+                    <select name="funding_agency" id="funding_agency_select">
+                        <option value="">Select or type below...</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Funding Status</label>
+                    <select name="funding_status">
+                        <option value="planning">Planning to apply</option>
+                        <option value="submitted">Application submitted</option>
+                        <option value="funded">Funded / Approved</option>
+                        <option value="ongoing">Ongoing project</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Application Deadline</label>
+                    <input type="date" name="application_deadline" />
+                </div>
+
+                <div class="form-field">
+                    <label>Interest Deadline</label>
+                    <input type="date" name="interest_deadline" title="Deadline for potential collaborators to reach out" />
+                    <span style="font-size:0.75em;color:#888">By when should interested partners contact you?</span>
+                </div>
+
+                <!-- Collaboration -->
+                <div class="form-section-title">Collaboration Details</div>
+
+                <div class="form-field full">
+                    <label>Type of Collaboration Sought</label>
+                    <div class="chips-wrap-outer" id="collab-wrap-outer">
+                        <div class="chips-input-wrap" id="collab-chips-wrap" onclick="focusChipInput('collab')">
+                            <input type="text" id="collab-chip-input" placeholder="Type to search..." autocomplete="off"
+                              oninput="filterChipDropdown('collab')" onfocus="showChipDropdown('collab')" onblur="hideChipDropdown('collab', 200)" onkeydown="chipInputKeydown(event,'collab')" />
+                        </div>
+                        <div class="chips-dropdown" id="collab-dropdown" style="display:none"></div>
+                    </div>
+                    <input type="hidden" name="collaboration_types" id="collaboration_types_hidden" />
+                </div>
+
+                <div class="form-field full">
+                    <label>Roles Available for Partners</label>
+                    <div class="chips-wrap-outer" id="roles-wrap-outer">
+                        <div class="chips-input-wrap" id="roles-chips-wrap" onclick="focusChipInput('roles')">
+                            <input type="text" id="roles-chip-input" placeholder="e.g. Partner, Co-PI..." autocomplete="off"
+                              oninput="filterChipDropdown('roles')" onfocus="showChipDropdown('roles')" onblur="hideChipDropdown('roles', 200)" onkeydown="chipInputKeydown(event,'roles')" />
+                        </div>
+                        <div class="chips-dropdown" id="roles-dropdown" style="display:none"></div>
+                    </div>
+                    <input type="hidden" name="roles_available" id="roles_available_hidden" />
+                </div>
+
+                <div class="form-field full">
+                    <label>Ideal Partner Profile</label>
+                    <textarea name="partner_profile" rows="3" placeholder="Describe the expertise, background, or institutional profile you are looking for in collaborators..."></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label>Number of Partners Needed</label>
+                    <input type="number" name="partners_needed" min="0" max="50" placeholder="0 = not specified" />
+                </div>
+
+                <div class="form-field">
+                    <label>Geographic Scope</label>
+                    <select name="geographic_scope" id="geographic_scope_select">
+                        <option value="">Not specified</option>
+                    </select>
+                </div>
+
+                <!-- Positions & budget -->
+                <div class="form-section-title">Positions &amp; Budget</div>
+
+                <div class="form-field">
+                    <div class="checkbox-row">
+                        <input type="checkbox" name="phd_positions" id="phd_positions_check" onchange="toggleCount('phd')" />
+                        <label for="phd_positions_check" style="color:#333">PhD positions in budget</label>
+                    </div>
+                </div>
+
+                <div class="form-field" id="phd_count_wrap" style="display:none">
+                    <label>Number of PhD positions</label>
+                    <input type="number" name="phd_positions_count" min="1" max="20" value="1" />
+                </div>
+
+                <div class="form-field">
+                    <div class="checkbox-row">
+                        <input type="checkbox" name="internship_positions" id="intern_positions_check" onchange="toggleCount('intern')" />
+                        <label for="intern_positions_check" style="color:#333">Internship positions in budget</label>
+                    </div>
+                </div>
+
+                <div class="form-field" id="intern_count_wrap" style="display:none">
+                    <label>Number of internship positions</label>
+                    <input type="number" name="internship_positions_count" min="1" max="50" value="1" />
+                </div>
+
+                <div class="form-field">
+                    <div class="checkbox-row">
+                        <input type="checkbox" name="postdoc_positions" id="postdoc_positions_check" />
+                        <label for="postdoc_positions_check" style="color:#333">Postdoc positions in budget</label>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label>Approximate Budget</label>
+                    <input type="text" name="budget_range" placeholder="e.g. EUR 200k-500k, TBD..." />
+                </div>
+
+                <!-- Project details -->
+                <div class="form-section-title">Project Details</div>
+
+                <div class="form-field">
+                    <label>Project Type</label>
+                    <select name="project_type" id="project_type_select">
+                        <option value="">Not specified</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Expected Duration</label>
+                    <input type="text" name="expected_duration" placeholder="e.g. 3 years, 24 months..." />
+                </div>
+
+                <div class="form-field full">
+                    <label>Expected Outputs / Deliverables</label>
+                    <textarea name="expected_outputs" rows="2" placeholder="e.g. Joint publications, training programmes, software tools, policy recommendations..."></textarea>
+                </div>
+
+                <!-- Listing status -->
+                <div class="form-section-title">Listing Status</div>
+
+                <div class="form-field">
+                    <label>Proposal Status</label>
+                    <select name="status">
+                        <option value="open">Open for collaboration partners</option>
+                        <option value="planning">Planning (not yet open)</option>
+                        <option value="submitted">Submitted to funding call</option>
+                        <option value="funded">Funded</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+
+            </div>
+        </form>
+        <div class="modal-footer">
+            <button class="btn-ghost" type="button" onclick="closeFormModal()">Cancel</button>
+            <button class="btn" type="button" onclick="document.getElementById('proposal-form').requestSubmit()" id="form-submit-btn">Save Proposal</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    var BASE = '/research_proposals';
+    var state = {
+        proposals: [],
+        researchAreas: [],
+        collaborationTypes: [],
+        fundingAgencies: [],
+        projectTypes: [],
+        geographicScopes: [],
+        session: null,
+        editingId: null,
+        chips: {
+            areas: { selected: [], options: [] },
+            keywords: { selected: [], options: [] },
+            collab: { selected: [], options: [] },
+            roles: { selected: [], options: [] }
+        }
+    };
+
+    // ---- Auth ----
+
+    var authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('uninovis_admin_token') || localStorage.getItem('tommi_token');
+
+    function getToken() {
+        return localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
+    }
+
+    function authHeaders() {
+        var t = getToken();
+        return t ? { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+    }
+
+    function showLogin() {
+        document.getElementById('loginUser').value = '';
+        document.getElementById('loginPass').value = '';
+        document.getElementById('loginError').textContent = '';
+        document.getElementById('loginModal').classList.add('active');
+        document.getElementById('loginUser').focus();
+    }
+
+    function closeLogin() { document.getElementById('loginModal').classList.remove('active'); }
+
+    async function doLogin() {
+        var username = document.getElementById('loginUser').value.trim();
+        var password = document.getElementById('loginPass').value;
+        if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
+        try {
+            var resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
+            if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
+            var data = await resp.json();
+            authToken = data.token;
+            localStorage.setItem('uninovis_token', authToken);
+            localStorage.setItem('uninovis_admin_token', authToken);
+            closeLogin();
+            location.reload();
+        } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
+    }
+
+    function doLogout() {
+        authToken = null; state.session = null;
+        localStorage.removeItem('uninovis_token');
+        localStorage.removeItem('uninovis_admin_token');
+        location.reload();
+    }
+
+    document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target.id === 'loginModal') closeLogin(); });
+
+    // ---- Init ----
+
+    async function init() {
+        var t = getToken();
+        if (t) {
+            try {
+                var res = await fetch(BASE + '/api/auth-check', { headers: { 'Authorization': 'Bearer ' + t } });
+                if (res.ok) {
+                    state.session = await res.json();
+                    document.getElementById('authInfo').textContent = 'Logged in as ' + state.session.username;
+                    document.getElementById('loginBtn').style.display = 'none';
+                    document.getElementById('logoutBtn').style.display = '';
+                    document.getElementById('btn-new-proposal').style.display = '';
+                    document.getElementById('login-prompt').style.display = 'none';
+                }
+            } catch(e) {}
+        }
+
+        if (!state.session) {
+            document.getElementById('login-prompt').style.display = 'flex';
+        }
+
+        var data = await fetch(BASE + '/api/data').then(function(r) { return r.json(); });
+        state.proposals = data.proposals || [];
+        state.researchAreas = data.research_areas || [];
+        state.collaborationTypes = data.collaboration_types || [];
+        state.fundingAgencies = data.funding_agencies || [];
+        state.projectTypes = data.project_types || [];
+        state.geographicScopes = data.geographic_scopes || [];
+
+        // Populate filter dropdowns
+        var areaFilter = document.getElementById('filter-area');
+        state.researchAreas.forEach(function(a) {
+            var opt = document.createElement('option'); opt.value = a; opt.textContent = a;
+            areaFilter.appendChild(opt);
+        });
+        var collabFilter = document.getElementById('filter-collab');
+        state.collaborationTypes.forEach(function(c) {
+            var opt = document.createElement('option'); opt.value = c; opt.textContent = c;
+            collabFilter.appendChild(opt);
+        });
+
+        // Populate form selects
+        var agencySelect = document.getElementById('funding_agency_select');
+        state.fundingAgencies.forEach(function(a) {
+            var opt = document.createElement('option'); opt.value = a; opt.textContent = a;
+            agencySelect.appendChild(opt);
+        });
+        var geoSelect = document.getElementById('geographic_scope_select');
+        state.geographicScopes.forEach(function(g) {
+            var opt = document.createElement('option'); opt.value = g; opt.textContent = g;
+            geoSelect.appendChild(opt);
+        });
+        var projSelect = document.getElementById('project_type_select');
+        state.projectTypes.forEach(function(pt) {
+            var opt = document.createElement('option'); opt.value = pt; opt.textContent = pt;
+            projSelect.appendChild(opt);
+        });
+
+        // Init chip options
+        state.chips.areas.options = state.researchAreas;
+        state.chips.collab.options = state.collaborationTypes;
+        state.chips.roles.options = ['Coordinator', 'Partner', 'Co-Principal Investigator', 'Associate Partner', 'Subcontractor'];
+
+        renderProposals();
+    }
+
+    // ---- Rendering ----
+
+    function renderProposals() {
+        var query = document.getElementById('search-input').value.toLowerCase();
+        var filterStatus = document.getElementById('filter-status').value;
+        var filterArea = document.getElementById('filter-area').value;
+        var filterCollab = document.getElementById('filter-collab').value;
+        var filterPos = document.getElementById('filter-positions').value;
+
+        var filtered = state.proposals.filter(function(p) {
+            if (filterStatus && p.status !== filterStatus) return false;
+            if (filterArea && !p.research_areas.includes(filterArea)) return false;
+            if (filterCollab && !p.collaboration_types.includes(filterCollab)) return false;
+            if (filterPos === 'phd' && !p.phd_positions) return false;
+            if (filterPos === 'intern' && !p.internship_positions) return false;
+            if (filterPos === 'postdoc' && !p.postdoc_positions) return false;
+            if (query) {
+                var haystack = [p.title, p.topic, p.abstract, p.funding_call].concat(p.keywords||[]).concat(p.research_areas||[]).concat([p.proposer_name]).join(' ').toLowerCase();
+                if (haystack.indexOf(query) === -1) return false;
+            }
+            return true;
+        });
+
+        filtered.sort(function(a, b) {
+            var order = {open:0, planning:1, submitted:2, funded:3, closed:4};
+            var od = (order[a.status]||99) - (order[b.status]||99);
+            if (od !== 0) return od;
+            return (b.created_at||'').localeCompare(a.created_at||'');
+        });
+
+        // Stats
+        var strip = document.getElementById('stats-bar');
+        var openCount = state.proposals.filter(function(p) { return p.status === 'open'; }).length;
+        var phdCount = state.proposals.filter(function(p) { return p.phd_positions; }).length;
+        var internCount = state.proposals.filter(function(p) { return p.internship_positions; }).length;
+        strip.innerHTML =
+            '<div class="stat"><div class="number">' + state.proposals.length + '</div><div class="label">Total</div></div>' +
+            '<div class="stat"><div class="number">' + openCount + '</div><div class="label">Open</div></div>' +
+            '<div class="stat"><div class="number">' + phdCount + '</div><div class="label">PhD positions</div></div>' +
+            '<div class="stat"><div class="number">' + internCount + '</div><div class="label">Internships</div></div>' +
+            (filtered.length !== state.proposals.length ? '<div class="stat"><div class="number">' + filtered.length + '</div><div class="label">Shown</div></div>' : '');
+
+        var grid = document.getElementById('proposals-grid');
+        if (!filtered.length) {
+            grid.innerHTML = '<div class="no-results" style="grid-column:1/-1">No proposals found. Try adjusting your filters or search terms.</div>';
+            return;
+        }
+        grid.innerHTML = filtered.map(function(p) { return proposalCard(p); }).join('');
+    }
+
+    function proposalCard(p) {
+        var positions = [];
+        if (p.phd_positions) positions.push('<span class="position-pill pill-phd">PhD' + (p.phd_positions_count > 0 ? ' x' + p.phd_positions_count : '') + '</span>');
+        if (p.internship_positions) positions.push('<span class="position-pill pill-intern">Internship' + (p.internship_positions_count > 0 ? ' x' + p.internship_positions_count : '') + '</span>');
+        if (p.postdoc_positions) positions.push('<span class="position-pill pill-postdoc">Postdoc</span>');
+
+        var areas = (p.research_areas||[]).slice(0,3).map(function(a) { return '<span class="badge badge-area">' + esc(a) + '</span>'; }).join('');
+        var collabs = (p.collaboration_types||[]).slice(0,2).map(function(c) { return '<span class="badge badge-collab">' + esc(c) + '</span>'; }).join('');
+
+        return '<div class="proposal-card" onclick="openViewModal(\'' + p.id + '\')">' +
+            '<div class="card-header"><div class="card-title">' + esc(p.title) + '</div><span class="status-badge status-' + p.status + '">' + statusLabel(p.status) + '</span></div>' +
+            '<div class="card-topic">' + esc(p.topic) + '</div>' +
+            (p.funding_call ? '<div class="funding-row">&#128196; <span>' + esc(p.funding_call) + '</span> <span class="funding-status-badge fs-' + p.funding_status + '">' + fundingStatusLabel(p.funding_status) + '</span></div>' : '') +
+            '<div class="card-meta">' + areas + collabs + '</div>' +
+            '<div class="card-proposer">&#128100; ' + esc(p.proposer_name || 'Unknown') + (p.proposer_university ? ' &middot; ' + esc(p.proposer_university) : '') + '</div>' +
+            '<div class="card-footer"><div>' + (positions.join('') || '<span style="font-size:0.75em;color:#888">No positions listed</span>') + '</div><span class="card-date">' + formatDate(p.created_at) + '</span></div>' +
+            '</div>';
+    }
+
+    // ---- View Modal ----
+
+    function openViewModal(id) {
+        var p = state.proposals.find(function(x) { return x.id === id; });
+        if (!p) return;
+
+        var isOwner = state.session && p.linked_username === state.session.username;
+        var canEdit = state.session && (isOwner || state.session.can_edit);
+
+        document.getElementById('vm-title').textContent = p.title;
+        document.getElementById('vm-badges').innerHTML =
+            '<span class="status-badge status-' + p.status + '">' + statusLabel(p.status) + '</span>' +
+            (p.funding_status ? ' <span class="funding-status-badge fs-' + p.funding_status + '">' + fundingStatusLabel(p.funding_status) + '</span>' : '');
+
+        document.getElementById('vm-body').innerHTML = buildDetailView(p);
+        document.getElementById('vm-footer').innerHTML =
+            (canEdit ? '<button class="btn-secondary" onclick="openEditModal(\'' + p.id + '\')">Edit</button>' : '') +
+            (canEdit ? '<button class="btn-danger" onclick="confirmDelete(\'' + p.id + '\')">Delete</button>' : '') +
+            '<button class="btn" onclick="closeViewModal()">Close</button>';
+
+        document.getElementById('view-modal').classList.add('active');
+    }
+
+    function buildDetailView(p) {
+        var sections = [];
+
+        sections.push(
+            '<div class="detail-section"><div class="detail-section-title">Proposer</div><div class="detail-grid">' +
+            di('Name', p.proposer_name) +
+            di('Email', p.proposer_email ? '<a href="mailto:' + esc(p.proposer_email) + '">' + esc(p.proposer_email) + '</a>' : '', true) +
+            di('University', p.proposer_university) +
+            di('Department', p.proposer_department) +
+            di('Position', p.proposer_position) +
+            (p.proposer_orcid ? di('ORCID', '<a href="https://orcid.org/' + esc(p.proposer_orcid) + '" target="_blank">' + esc(p.proposer_orcid) + '</a>', true) : '') +
+            '</div></div>');
+
+        sections.push(
+            '<div class="detail-section"><div class="detail-section-title">About the Proposal</div><div>' +
+            diFull('Topic', p.topic) +
+            (p.abstract ? diFull('Abstract', p.abstract) : '') +
+            (p.research_areas && p.research_areas.length ? diFull('Research Areas', p.research_areas.map(function(a) { return '<span class="badge badge-area">' + esc(a) + '</span>'; }).join(' ')) : '') +
+            (p.keywords && p.keywords.length ? diFull('Keywords', p.keywords.map(function(k) { return '<span class="badge badge-kw">' + esc(k) + '</span>'; }).join(' ')) : '') +
+            '</div></div>');
+
+        sections.push(
+            '<div class="detail-section"><div class="detail-section-title">Funding</div><div class="detail-grid">' +
+            di('Funding Call', p.funding_call) +
+            di('Funding Agency', p.funding_agency) +
+            di('Status', fundingStatusLabel(p.funding_status)) +
+            di('Application Deadline', formatDate(p.application_deadline)) +
+            di('Interest Deadline', p.interest_deadline ? '<strong>' + formatDate(p.interest_deadline) + '</strong>' : '', true) +
+            '</div></div>');
+
+        sections.push(
+            '<div class="detail-section"><div class="detail-section-title">Collaboration Sought</div><div>' +
+            (p.collaboration_types && p.collaboration_types.length ? diFull('Collaboration Types', p.collaboration_types.map(function(c) { return '<span class="badge badge-collab">' + esc(c) + '</span>'; }).join(' ')) : '') +
+            (p.roles_available && p.roles_available.length ? diFull('Roles Available', p.roles_available.map(function(r) { return '<span class="badge badge-area">' + esc(r) + '</span>'; }).join(' ')) : '') +
+            (p.partner_profile ? diFull('Ideal Partner Profile', p.partner_profile) : '') +
+            di('Partners Needed', p.partners_needed > 0 ? String(p.partners_needed) : 'Not specified') +
+            di('Geographic Scope', p.geographic_scope) +
+            '</div></div>');
+
+        sections.push(
+            '<div class="detail-section"><div class="detail-section-title">Positions &amp; Budget</div><div class="detail-grid">' +
+            di('PhD Positions', p.phd_positions ? 'Yes' + (p.phd_positions_count > 0 ? ' (x' + p.phd_positions_count + ')' : '') : 'No') +
+            di('Internship Positions', p.internship_positions ? 'Yes' + (p.internship_positions_count > 0 ? ' (x' + p.internship_positions_count + ')' : '') : 'No') +
+            di('Postdoc Positions', p.postdoc_positions ? 'Yes' : 'No') +
+            di('Approximate Budget', p.budget_range) +
+            '</div></div>');
+
+        if (p.project_type || p.expected_duration || p.expected_outputs) {
+            sections.push(
+                '<div class="detail-section"><div class="detail-section-title">Project Details</div><div class="detail-grid">' +
+                di('Project Type', p.project_type) +
+                di('Expected Duration', p.expected_duration) +
+                (p.expected_outputs ? diFull('Expected Outputs', p.expected_outputs) : '') +
+                '</div></div>');
+        }
+
+        return sections.join('');
+    }
+
+    function di(label, value, isHtml) {
+        var display = (isHtml ? value : esc(value || '')) || '<span class="muted">&mdash;</span>';
+        return '<div class="detail-item"><div class="detail-label">' + label + '</div><div class="detail-value">' + display + '</div></div>';
+    }
+
+    function diFull(label, value, isHtml) {
+        if (isHtml === undefined) isHtml = true;
+        var display = (isHtml ? value : esc(value || '')) || '<span class="muted">&mdash;</span>';
+        return '<div class="detail-item-full"><div class="detail-label">' + label + '</div><div class="detail-value">' + display + '</div></div>';
+    }
+
+    function closeViewModal() { document.getElementById('view-modal').classList.remove('active'); }
+
+    // ---- Form Modal ----
+
+    function openNewProposalModal() {
+        state.editingId = null;
+        document.getElementById('form-modal-title').textContent = 'New Research Proposal';
+        document.getElementById('form-submit-btn').textContent = 'Publish Proposal';
+        document.getElementById('proposal-form').reset();
+        ['areas','keywords','collab','roles'].forEach(function(field) {
+            state.chips[field].selected = [];
+            renderChips(field);
+        });
+        document.getElementById('form-error').classList.remove('visible');
+        document.getElementById('phd_count_wrap').style.display = 'none';
+        document.getElementById('intern_count_wrap').style.display = 'none';
+        document.getElementById('form-modal').classList.add('active');
+    }
+
+    function openEditModal(id) {
+        closeViewModal();
+        var p = state.proposals.find(function(x) { return x.id === id; });
+        if (!p) return;
+
+        state.editingId = id;
+        document.getElementById('form-modal-title').textContent = 'Edit Proposal';
+        document.getElementById('form-submit-btn').textContent = 'Save Changes';
+        document.getElementById('form-error').classList.remove('visible');
+
+        var form = document.getElementById('proposal-form');
+        var fields = ['title','topic','abstract','proposer_name','proposer_email',
+            'proposer_university','proposer_department','proposer_position','proposer_orcid',
+            'funding_call','funding_status','application_deadline','interest_deadline',
+            'partner_profile','partners_needed','budget_range','expected_duration',
+            'expected_outputs','status'];
+        fields.forEach(function(f) {
+            var el = form.elements[f];
+            if (el) el.value = p[f] || '';
+        });
+
+        if (form.elements['funding_agency']) form.elements['funding_agency'].value = p.funding_agency || '';
+        if (form.elements['geographic_scope']) form.elements['geographic_scope'].value = p.geographic_scope || '';
+        if (form.elements['project_type']) form.elements['project_type'].value = p.project_type || '';
+
+        form.elements['phd_positions'].checked = !!p.phd_positions;
+        form.elements['internship_positions'].checked = !!p.internship_positions;
+        form.elements['postdoc_positions'].checked = !!p.postdoc_positions;
+        form.elements['phd_positions_count'].value = p.phd_positions_count || 1;
+        form.elements['internship_positions_count'].value = p.internship_positions_count || 1;
+        document.getElementById('phd_count_wrap').style.display = p.phd_positions ? '' : 'none';
+        document.getElementById('intern_count_wrap').style.display = p.internship_positions ? '' : 'none';
+
+        state.chips.areas.selected = [].concat(p.research_areas || []);
+        state.chips.keywords.selected = [].concat(p.keywords || []);
+        state.chips.collab.selected = [].concat(p.collaboration_types || []);
+        state.chips.roles.selected = [].concat(p.roles_available || []);
+        ['areas','keywords','collab','roles'].forEach(renderChips);
+
+        document.getElementById('form-modal').classList.add('active');
+    }
+
+    function closeFormModal() {
+        document.getElementById('form-modal').classList.remove('active');
+        state.editingId = null;
+    }
+
+    async function submitProposal(e) {
+        e.preventDefault();
+        var form = e.target;
+        var errEl = document.getElementById('form-error');
+
+        var body = {
+            title: form.elements['title'].value.trim(),
+            topic: form.elements['topic'].value.trim(),
+            abstract: form.elements['abstract'].value.trim(),
+            research_areas: state.chips.areas.selected,
+            keywords: state.chips.keywords.selected,
+            proposer_name: form.elements['proposer_name'].value.trim(),
+            proposer_email: form.elements['proposer_email'].value.trim(),
+            proposer_university: form.elements['proposer_university'].value.trim(),
+            proposer_department: form.elements['proposer_department'].value.trim(),
+            proposer_position: form.elements['proposer_position'].value.trim(),
+            proposer_orcid: form.elements['proposer_orcid'].value.trim(),
+            funding_call: form.elements['funding_call'].value.trim(),
+            funding_agency: form.elements['funding_agency'].value,
+            funding_status: form.elements['funding_status'].value,
+            application_deadline: form.elements['application_deadline'].value,
+            interest_deadline: form.elements['interest_deadline'].value,
+            collaboration_types: state.chips.collab.selected,
+            partner_profile: form.elements['partner_profile'].value.trim(),
+            roles_available: state.chips.roles.selected,
+            partners_needed: parseInt(form.elements['partners_needed'].value) || 0,
+            geographic_scope: form.elements['geographic_scope'].value,
+            budget_range: form.elements['budget_range'].value.trim(),
+            phd_positions: form.elements['phd_positions'].checked,
+            phd_positions_count: parseInt(form.elements['phd_positions_count'].value) || 0,
+            internship_positions: form.elements['internship_positions'].checked,
+            internship_positions_count: parseInt(form.elements['internship_positions_count'].value) || 0,
+            postdoc_positions: form.elements['postdoc_positions'].checked,
+            project_type: form.elements['project_type'].value,
+            expected_duration: form.elements['expected_duration'].value.trim(),
+            expected_outputs: form.elements['expected_outputs'].value.trim(),
+            status: form.elements['status'].value
+        };
+
+        var url = state.editingId ? BASE + '/api/proposals/' + state.editingId : BASE + '/api/proposals';
+        var method = state.editingId ? 'PUT' : 'POST';
+
+        try {
+            var res = await fetch(url, { method: method, headers: authHeaders(), body: JSON.stringify(body) });
+            if (!res.ok) {
+                var err = await res.json();
+                errEl.textContent = err.detail || 'Something went wrong.';
+                errEl.classList.add('visible');
+                return;
+            }
+            var saved = await res.json();
+            if (state.editingId) {
+                state.proposals = state.proposals.map(function(p) { return p.id === saved.id ? saved : p; });
+                showToast('Proposal updated.', 'success');
+            } else {
+                state.proposals.push(saved);
+                showToast('Proposal published!', 'success');
+            }
+            closeFormModal();
+            renderProposals();
+        } catch(ex) {
+            errEl.textContent = 'Network error. Please try again.';
+            errEl.classList.add('visible');
+        }
+    }
+
+    async function confirmDelete(id) {
+        if (!confirm('Delete this proposal? This cannot be undone.')) return;
+        try {
+            var res = await fetch(BASE + '/api/proposals/' + id, { method: 'DELETE', headers: authHeaders() });
+            if (!res.ok) { showToast('Could not delete.', 'error'); return; }
+            state.proposals = state.proposals.filter(function(p) { return p.id !== id; });
+            closeViewModal();
+            renderProposals();
+            showToast('Proposal deleted.', 'success');
+        } catch(ex) { showToast('Network error.', 'error'); }
+    }
+
+    // ---- Chips ----
+
+    var CHIP_CONFIGS = {
+        areas: { inputId: 'areas-chip-input', wrapId: 'areas-chips-wrap', dropId: 'areas-dropdown', freeInput: false },
+        keywords: { inputId: 'keywords-chip-input', wrapId: 'keywords-chips-wrap', dropId: 'keywords-dropdown', freeInput: true },
+        collab: { inputId: 'collab-chip-input', wrapId: 'collab-chips-wrap', dropId: 'collab-dropdown', freeInput: false },
+        roles: { inputId: 'roles-chip-input', wrapId: 'roles-chips-wrap', dropId: 'roles-dropdown', freeInput: true }
+    };
+
+    function renderChips(field) {
+        var cfg = CHIP_CONFIGS[field];
+        var wrap = document.getElementById(cfg.wrapId);
+        wrap.querySelectorAll('.chip').forEach(function(c) { c.remove(); });
+        var input = document.getElementById(cfg.inputId);
+        state.chips[field].selected.forEach(function(val) {
+            var chip = document.createElement('div');
+            chip.className = 'chip';
+            chip.innerHTML = '<span>' + esc(val) + '</span><span class="chip-remove" onmousedown="removeChip(\'' + field + '\',\'' + val.replace(/'/g, "\\'") + '\')">x</span>';
+            wrap.insertBefore(chip, input);
+        });
+    }
+
+    function focusChipInput(field) { document.getElementById(CHIP_CONFIGS[field].inputId).focus(); }
+
+    function filterChipDropdown(field) {
+        var cfg = CHIP_CONFIGS[field];
+        var query = document.getElementById(cfg.inputId).value.toLowerCase();
+        var opts = state.chips[field].options.filter(function(o) {
+            return o.toLowerCase().indexOf(query) !== -1 && state.chips[field].selected.indexOf(o) === -1;
+        });
+        renderChipDropdown(field, opts);
+    }
+
+    function renderChipDropdown(field, opts) {
+        var cfg = CHIP_CONFIGS[field];
+        var drop = document.getElementById(cfg.dropId);
+        drop.innerHTML = '';
+        if (!opts.length) { drop.style.display = 'none'; return; }
+        opts.forEach(function(opt) {
+            var item = document.createElement('div');
+            item.className = 'chips-dropdown-item';
+            item.textContent = opt;
+            item.onmousedown = function() { addChip(field, opt); };
+            drop.appendChild(item);
+        });
+        drop.style.display = 'block';
+    }
+
+    function showChipDropdown(field) { filterChipDropdown(field); }
+
+    function hideChipDropdown(field, delay) {
+        setTimeout(function() { document.getElementById(CHIP_CONFIGS[field].dropId).style.display = 'none'; }, delay || 0);
+    }
+
+    function chipInputKeydown(e, field) {
+        var cfg = CHIP_CONFIGS[field];
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            var val = document.getElementById(cfg.inputId).value.trim();
+            if (!val) return;
+            var match = state.chips[field].options.find(function(o) { return o.toLowerCase() === val.toLowerCase(); });
+            if (match) { addChip(field, match); }
+            else if (cfg.freeInput) { addChip(field, val); }
+        } else if (e.key === 'Backspace' && !document.getElementById(cfg.inputId).value) {
+            var sel = state.chips[field].selected;
+            if (sel.length) removeChip(field, sel[sel.length - 1]);
+        }
+    }
+
+    function addChip(field, val) {
+        if (state.chips[field].selected.indexOf(val) === -1) { state.chips[field].selected.push(val); }
+        document.getElementById(CHIP_CONFIGS[field].inputId).value = '';
+        document.getElementById(CHIP_CONFIGS[field].dropId).style.display = 'none';
+        renderChips(field);
+    }
+
+    function removeChip(field, val) {
+        state.chips[field].selected = state.chips[field].selected.filter(function(v) { return v !== val; });
+        renderChips(field);
+    }
+
+    // ---- Helpers ----
+
+    function toggleCount(type) {
+        if (type === 'phd') {
+            document.getElementById('phd_count_wrap').style.display = document.getElementById('phd_positions_check').checked ? '' : 'none';
+        } else {
+            document.getElementById('intern_count_wrap').style.display = document.getElementById('intern_positions_check').checked ? '' : 'none';
+        }
+    }
+
+    function statusLabel(s) {
+        return { open: 'Open', planning: 'Planning', submitted: 'Submitted', funded: 'Funded', closed: 'Closed' }[s] || s;
+    }
+
+    function fundingStatusLabel(s) {
+        return { planning: 'Planning to apply', submitted: 'Submitted', funded: 'Funded', ongoing: 'Ongoing' }[s] || s || '';
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '';
+        var d = new Date(iso);
+        if (isNaN(d)) return iso;
+        return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    function esc(str) {
+        if (!str && str !== 0) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    var _toastTimer;
+    function showToast(msg, type) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'show' + (type ? ' ' + type : '');
+        clearTimeout(_toastTimer);
+        _toastTimer = setTimeout(function() { t.className = ''; }, 3000);
+    }
+
+    // Close modals on overlay click
+    document.getElementById('view-modal').addEventListener('click', function(e) { if (e.target === this) closeViewModal(); });
+    document.getElementById('form-modal').addEventListener('click', function(e) { if (e.target === this) closeFormModal(); });
+
+    init();
+</script>
+<script>
+    function sendHeight() {
+        var height = document.documentElement.scrollHeight;
+        window.parent.postMessage({ type: 'iframeHeight', height: height }, 'https://uninovis.widening.eu');
+    }
+    window.addEventListener('load', sendHeight);
+    window.addEventListener('resize', sendHeight);
+    var observer = new MutationObserver(sendHeight);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+</script>
+</body>
+</html>

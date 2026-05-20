@@ -40,6 +40,7 @@ TOOL_ACCESS = {
     "intranet_services":  ["admin_staff", "teaching_staff", "tester", "superuser"],
     "unigracon":          ["teaching_staff", "tester", "superuser"],
     "researcher_connect": ["teaching_staff", "tester", "superuser"],
+    "research_proposals": ["teaching_staff", "tester", "superuser"],
     "tommi_agents":       ["teaching_staff", "tester", "superuser"],
     "virtual_campus":     ["student", "tester", "superuser"],
     "student_admin":      ["student", "tester", "superuser"],

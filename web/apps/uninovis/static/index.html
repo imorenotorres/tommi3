@@ -79,6 +79,7 @@
             align-self: flex-start;
         }
         .tag-active { background: #e8e0f0; color: #374399; }
+        .tag-pilot { background: #cce5ff; color: #004085; }
         .tag-soon { background: #fff3cd; color: #856404; }
 
         .footer {
@@ -159,6 +160,7 @@
         'intranet_services':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
         'unigracon':          ['teaching_staff', 'tester', 'superuser'],
         'researcher_connect': ['teaching_staff', 'tester', 'superuser'],
+        'research_proposals': ['teaching_staff', 'tester', 'superuser'],
         'tommi_agents':       ['teaching_staff', 'tester', 'superuser'],
         'virtual_campus':     ['student', 'tester', 'superuser'],
         'student_admin':      ['student', 'tester', 'superuser'],
@@ -179,7 +181,7 @@
             icon: '\uD83D\uDCCB',
             description: 'Internal staff directory. Manage contacts, groups, and org charts for all UNINOVIS partners.',
             url: '/directory/',
-            status: 'active',
+            status: 'pilot',
         },
         {
             id: 'event_calendar',
@@ -187,7 +189,7 @@
             icon: '\uD83D\uDCC5',
             description: 'UNINOVIS event tracker with category filters, calendar views, list view, and iCal subscription.',
             url: '/event-calendar/',
-            status: 'active',
+            status: 'pilot',
         },
         {
             id: 'unigracon',
@@ -195,7 +197,7 @@
             icon: '\uD83C\uDF93',
             description: 'Grade converter between UNINOVIS partner universities. Supports formulas and conversion tables.',
             url: '/unigracon/',
-            status: 'active',
+            status: 'pilot',
         },
         {
             id: 'researcher_connect',
@@ -203,7 +205,15 @@
             icon: '\uD83D\uDD2C',
             description: 'Find and connect with researchers across UNINOVIS partner universities. Search by interests, keywords, and expertise.',
             url: '/researcher_connect/',
-            status: 'active',
+            status: 'pilot',
+        },
+        {
+            id: 'research_proposals',
+            name: 'Research Proposals',
+            icon: '\uD83D\uDCDD',
+            description: 'Post and discover research collaboration opportunities. Share funding calls, collaboration needs, and partner profiles.',
+            url: '/research_proposals/',
+            status: 'pilot',
         },
         {
             id: 'mobility_planner',
@@ -211,7 +221,7 @@
             icon: '\u2708\uFE0F',
             description: 'Compute call opening dates for mobility activities, accounting for administrative periods and holidays.',
             url: '/mobility_planner/',
-            status: 'active',
+            status: 'pilot',
         },
         {
             id: 'intranet_services',
@@ -219,7 +229,7 @@
             icon: '\uD83D\uDDA5\uFE0F',
             description: 'Complete catalogue of all UNINOVIS digital services: administrative tools, AI agents, Agora platform, and external services.',
             url: '/uninovis/services',
-            status: 'active',
+            status: 'pilot',
         },
         {
             id: 'tommi_agents',
@@ -227,7 +237,7 @@
             icon: '\uD83E\uDD16',
             description: 'Chat with UNINOVIS AI agents for research, project management, and administrative support.',
             url: '/agents',
-            status: 'active',
+            status: 'pilot',
         },
         {
             id: 'virtual_campus',
@@ -324,10 +334,11 @@
             if (authUser && !canAccessTool(tool.id, roles)) return;
             // If not logged in, only show tools that don't require auth (none now — all require role check)
             if (!authUser) return;
-            var tagClass = tool.status === 'active' ? 'tag-active' : 'tag-soon';
-            var tagText = tool.status === 'active' ? 'Active' : 'Coming soon';
-            var href = tool.status === 'active' ? tool.url : '#';
-            var clickAttr = tool.status !== 'active' ? ' onclick="event.preventDefault();" style="opacity:0.6;cursor:default;"' : '';
+            var isClickable = tool.status === 'active' || tool.status === 'pilot';
+            var tagClass = tool.status === 'active' ? 'tag-active' : tool.status === 'pilot' ? 'tag-pilot' : 'tag-soon';
+            var tagText = tool.status === 'active' ? 'Active' : tool.status === 'pilot' ? 'Pilot' : 'Coming soon';
+            var href = isClickable ? tool.url : '#';
+            var clickAttr = !isClickable ? ' onclick="event.preventDefault();" style="opacity:0.6;cursor:default;"' : '';
 
             html += '<a class="tool-card" href="' + href + '"' + clickAttr + '>'
                 + '<div class="tool-icon">' + tool.icon + '</div>'

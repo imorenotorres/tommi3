@@ -209,6 +209,11 @@ from apps.event_calendar.event_calendar import router as event_calendar_router
 app.include_router(event_calendar_router)
 app.mount("/event-calendar/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "event_calendar" / "static"), name="event_calendar_static")
 
+# Mount Research Proposals app
+from apps.research_proposals.research_proposals import router as research_proposals_router
+app.include_router(research_proposals_router)
+app.mount("/research_proposals/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "research_proposals" / "static"), name="research_proposals_static")
+
 
 # ---------------------------------------------------------------------------
 # Auth helpers
