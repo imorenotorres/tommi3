@@ -8,7 +8,23 @@
   .response { background: white; border: 1px solid #dcdde1; border-radius: 8px; padding: 20px; font-size: 1.05em; line-height: 1.4; }
   .response p { margin: 0.3em 0; } .response ul, .response ol { margin: 0.3em 0 0.3em 1.5em; }
   .response li { margin: 0.15em 0; } .response h3 { margin: 0.5em 0 0.2em; } .response hr { margin: 0.5em 0; }
-</style></head><body>
+</style>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Code -->
+</head><body>
 <h1>Informator (content-based)</h1>
 <div class="meta"><strong>Question:</strong> <em>List the papers on explainable artificial intelligence from Université Sorbonne Paris Nord</em></div>
 <div class="response" id="content"></div>
