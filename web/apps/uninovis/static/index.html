@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UNINOVIS Admin Tools (UAT)</title>
+    <link rel="stylesheet" href="/static/nav.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -14,14 +15,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px 20px;
+            padding: 20px 20px;
         }
-        .header { text-align: center; margin-bottom: 36px; }
-        .header h1 { color: #4250b3; font-size: 2em; margin-bottom: 6px; }
-        .header .subtitle { color: #666; font-size: 1em; }
+        .header { text-align: center; margin-bottom: 12px; }
+        .header h1 { color: #4250b3; font-size: 1.5em; margin-bottom: 4px; }
+        .header .subtitle { color: #666; font-size: 0.85em; }
 
         .auth-bar {
-            text-align: center; margin-bottom: 28px;
+            text-align: center; margin-bottom: 12px;
             font-size: 0.9em; color: #666;
         }
         .auth-bar button {
@@ -32,45 +33,45 @@
 
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
             max-width: 960px;
             width: 100%;
         }
         .tool-card {
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            padding: 28px 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 16px 16px;
             text-decoration: none;
             color: #333;
             transition: transform 0.15s, box-shadow 0.15s;
             display: flex;
             flex-direction: column;
-            border-left: 5px solid #4250b3;
+            border-left: 4px solid #4250b3;
         }
         .tool-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
         }
         .tool-card .tool-icon {
-            font-size: 2em;
-            margin-bottom: 12px;
+            font-size: 1.5em;
+            margin-bottom: 6px;
         }
         .tool-card h2 {
             color: #4250b3;
-            font-size: 1.15em;
-            margin-bottom: 8px;
+            font-size: 0.95em;
+            margin-bottom: 4px;
         }
         .tool-card p {
             color: #666;
-            font-size: 0.88em;
-            line-height: 1.5;
+            font-size: 0.78em;
+            line-height: 1.4;
             flex: 1;
         }
         .tool-card .tool-tag {
-            margin-top: 14px;
-            font-size: 0.75em;
+            margin-top: 8px;
+            font-size: 0.68em;
             font-weight: 600;
             padding: 3px 10px;
             border-radius: 10px;
@@ -117,6 +118,8 @@
     <!-- End Matomo Code -->
 </head>
 <body>
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ current: 'Admin Tools (UAT)' });</script>
     <div class="header">
         <h1>UNINOVIS Admin Tools (UAT)</h1>
         <p class="subtitle" id="versionLine">Version 1.0 May 6th 2026</p>
@@ -148,15 +151,43 @@
 
 <script>
     // ── Tool registry — add new tools here ────────────────────────
+    // Tool access rules (mirrors TOOL_ACCESS in auth.py)
+    var TOOL_ACCESS = {
+        'directory':          ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+        'event_calendar':     ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+        'mobility_planner':   ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+        'intranet_services':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+        'unigracon':          ['teaching_staff', 'tester', 'superuser'],
+        'researcher_connect': ['teaching_staff', 'tester', 'superuser'],
+        'tommi_agents':       ['teaching_staff', 'tester', 'superuser'],
+        'virtual_campus':     ['student', 'tester', 'superuser'],
+        'student_admin':      ['student', 'tester', 'superuser'],
+    };
+
+    function canAccessTool(toolId, roles) {
+        if (!TOOL_ACCESS[toolId]) return true;
+        for (var i = 0; i < roles.length; i++) {
+            if (TOOL_ACCESS[toolId].indexOf(roles[i]) !== -1) return true;
+        }
+        return false;
+    }
+
     var TOOLS = [
         {
             id: 'directory',
             name: 'UNINOVIS Directory',
             icon: '\uD83D\uDCCB',
-            description: 'Internal staff directory. Manage contacts, groups, work packages, and org charts for all UNINOVIS partners.',
+            description: 'Internal staff directory. Manage contacts, groups, and org charts for all UNINOVIS partners.',
             url: '/directory/',
             status: 'active',
-            requiresAuth: false,
+        },
+        {
+            id: 'event_calendar',
+            name: 'Event Tracker',
+            icon: '\uD83D\uDCC5',
+            description: 'UNINOVIS event tracker with category filters, calendar views, list view, and iCal subscription.',
+            url: '/event-calendar/',
+            status: 'active',
         },
         {
             id: 'unigracon',
@@ -165,43 +196,54 @@
             description: 'Grade converter between UNINOVIS partner universities. Supports formulas and conversion tables.',
             url: '/unigracon/',
             status: 'active',
-            requiresAuth: false,
         },
         {
             id: 'researcher_connect',
             name: 'Researcher Connect',
             icon: '\uD83D\uDD2C',
-            description: 'Find and connect with researchers across UNINOVIS partner universities. Search by interests, keywords, and expertise. Import/export via Excel.',
+            description: 'Find and connect with researchers across UNINOVIS partner universities. Search by interests, keywords, and expertise.',
             url: '/researcher_connect/',
             status: 'active',
-            requiresAuth: false,
         },
         {
-            id: 'mobility',
+            id: 'mobility_planner',
             name: 'Mobility Planner',
             icon: '\u2708\uFE0F',
             description: 'Compute call opening dates for mobility activities, accounting for administrative periods and holidays.',
             url: '/mobility_planner/',
             status: 'active',
-            requiresAuth: false,
         },
         {
-            id: 'event_calendar',
-            name: 'Event Calendar',
-            icon: '\uD83D\uDCC5',
-            description: 'UNINOVIS event calendar with category filters (Academic, WPs, Admin, Public). Month, week, and day views.',
-            url: '/event-calendar/',
-            status: 'active',
-            requiresAuth: true,
-        },
-        {
-            id: 'services',
+            id: 'intranet_services',
             name: 'Intranet Services',
             icon: '\uD83D\uDDA5\uFE0F',
             description: 'Complete catalogue of all UNINOVIS digital services: administrative tools, AI agents, Agora platform, and external services.',
             url: '/uninovis/services',
             status: 'active',
-            requiresAuth: false,
+        },
+        {
+            id: 'tommi_agents',
+            name: 'TOMMI Agents',
+            icon: '\uD83E\uDD16',
+            description: 'Chat with UNINOVIS AI agents for research, project management, and administrative support.',
+            url: '/agents',
+            status: 'active',
+        },
+        {
+            id: 'virtual_campus',
+            name: 'Virtual Campus',
+            icon: '\uD83C\uDFEB',
+            description: 'Access your courses, learning materials, and virtual classrooms.',
+            url: '#',
+            status: 'soon',
+        },
+        {
+            id: 'student_admin',
+            name: 'Student Administration',
+            icon: '\uD83D\uDCDD',
+            description: 'Grades, curriculum, enrolment, and academic records.',
+            url: '#',
+            status: 'soon',
         },
     ];
 
@@ -224,8 +266,16 @@
         updateUI();
     }
 
+    function getUserRoles() {
+        if (!authUser) return [];
+        if (authUser.roles && Array.isArray(authUser.roles)) return authUser.roles;
+        return authUser.role ? [authUser.role] : [];
+    }
+
     function updateUI() {
-        document.getElementById('authInfo').textContent = authUser ? 'Logged in as ' + authUser.username : '';
+        var roles = getUserRoles();
+        var rolesLabel = roles.length ? roles.join(', ') : '';
+        document.getElementById('authInfo').textContent = authUser ? 'Logged in as ' + authUser.username + (rolesLabel ? ' (' + rolesLabel + ')' : '') : '';
         document.getElementById('loginBtn').style.display = authUser ? 'none' : '';
         document.getElementById('logoutBtn').style.display = authUser ? '' : 'none';
         renderTools();
@@ -267,9 +317,13 @@
 
     // ── Render tools ──────────────────────────────────────────────
     function renderTools() {
+        var roles = getUserRoles();
         var html = '';
         TOOLS.forEach(function(tool) {
-            if (tool.requiresAuth && !authUser) return;
+            // Filter by role: if user is logged in, only show tools they can access
+            if (authUser && !canAccessTool(tool.id, roles)) return;
+            // If not logged in, only show tools that don't require auth (none now — all require role check)
+            if (!authUser) return;
             var tagClass = tool.status === 'active' ? 'tag-active' : 'tag-soon';
             var tagText = tool.status === 'active' ? 'Active' : 'Coming soon';
             var href = tool.status === 'active' ? tool.url : '#';
@@ -282,6 +336,11 @@
                 + '<span class="tool-tag ' + tagClass + '">' + tagText + '</span>'
                 + '</a>';
         });
+        if (!html && authUser) {
+            html = '<p style="color:#888;text-align:center;grid-column:1/-1;">No tools available for your role. Contact an administrator.</p>';
+        } else if (!html) {
+            html = '<p style="color:#888;text-align:center;grid-column:1/-1;">Please log in to see available tools.</p>';
+        }
         document.getElementById('toolsGrid').innerHTML = html;
     }
 

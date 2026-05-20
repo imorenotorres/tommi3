@@ -22,12 +22,58 @@ DATA_DIR = Path(__file__).parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
 USERS_FILE = DATA_DIR / "users.json"
 
-# Role hierarchy
+# Role hierarchy — numeric level for privilege checks
 ROLES = {
-    "superuser": 3,
-    "tester": 2,
-    "user": 1,
+    "superuser": 4,
+    "tester": 3,
+    "admin_staff": 2,
+    "teaching_staff": 2,
+    "student": 1,
+    "user": 1,  # legacy alias for student
 }
+
+# Tool access — which roles can access each tool
+TOOL_ACCESS = {
+    "directory":          ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "event_calendar":     ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "mobility_planner":   ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "intranet_services":  ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "unigracon":          ["teaching_staff", "tester", "superuser"],
+    "researcher_connect": ["teaching_staff", "tester", "superuser"],
+    "tommi_agents":       ["teaching_staff", "tester", "superuser"],
+    "virtual_campus":     ["student", "tester", "superuser"],
+    "student_admin":      ["student", "tester", "superuser"],
+}
+
+# Roles that grant editing rights in apps (equivalent to old "tester" check)
+EDITOR_ROLES = {"admin_staff", "teaching_staff", "tester", "superuser"}
+
+
+def user_roles(user_or_session: dict) -> list:
+    """Return the list of roles for a user/session. Supports both 'role' (str) and 'roles' (list)."""
+    roles = user_or_session.get("roles")
+    if roles and isinstance(roles, list):
+        return roles
+    role = user_or_session.get("role", "")
+    return [role] if role else []
+
+
+def can_access_tool(user_or_session: dict, tool_id: str) -> bool:
+    """Check if a user can access a given tool based on their roles."""
+    if tool_id not in TOOL_ACCESS:
+        return True  # Tool not restricted
+    allowed = set(TOOL_ACCESS[tool_id])
+    return bool(allowed & set(user_roles(user_or_session)))
+
+
+def can_edit(user_or_session: dict) -> bool:
+    """Check if a user has editing rights (admin_staff, teaching_staff, tester, superuser)."""
+    return bool(EDITOR_ROLES & set(user_roles(user_or_session)))
+
+
+def max_role_level(user_or_session: dict) -> int:
+    """Return the highest privilege level among the user's roles."""
+    return max((ROLES.get(r, 0) for r in user_roles(user_or_session)), default=0)
 
 # ---------------------------------------------------------------------------
 # Study mode — random transparency assignment for experiments
@@ -286,25 +332,31 @@ def user_exists(username: str) -> bool:
     return username in users
 
 
-def create_user(username: str, password: str, role: str, provisional: bool = True) -> bool:
+def create_user(username: str, password: str, role: str, provisional: bool = True, roles: list = None) -> bool:
     """
-    Create a new user.
+    Create a new user. Supports dual roles via the `roles` parameter.
     Returns True if created, False if username already exists.
     """
     if role not in ROLES:
         raise ValueError(f"Invalid role: {role}. Must be one of {list(ROLES.keys())}")
+    if roles:
+        for r in roles:
+            if r not in ROLES:
+                raise ValueError(f"Invalid role: {r}. Must be one of {list(ROLES.keys())}")
 
     users = _load_users()
     if username in users:
         return False
 
     hash_hex, salt = _hash_password(password)
-    users[username] = {
+    user_data = {
         "password_hash": hash_hex,
         "salt": salt,
         "role": role,
+        "roles": roles or [role],
         "provisional_password": provisional,
     }
+    users[username] = user_data
     _save_users(users)
     return True
 
@@ -330,6 +382,7 @@ def list_users() -> list[dict]:
         {
             "username": uname,
             "role": data["role"],
+            "roles": data.get("roles", [data["role"]]),
             "provisional_password": data.get("provisional_password", False),
             "pending_invite": data.get("pending_invite", False),
         }
@@ -337,14 +390,17 @@ def list_users() -> list[dict]:
     ]
 
 
-def update_user_role(username: str, new_role: str) -> bool:
-    """Update a user's role. Returns True if updated."""
-    if new_role not in ROLES:
-        raise ValueError(f"Invalid role: {new_role}")
+def update_user_role(username: str, new_role: str, roles: list = None) -> bool:
+    """Update a user's role(s). Returns True if updated."""
+    all_roles = roles or [new_role]
+    for r in all_roles:
+        if r not in ROLES:
+            raise ValueError(f"Invalid role: {r}")
     users = _load_users()
     if username not in users:
         return False
-    users[username]["role"] = new_role
+    users[username]["role"] = all_roles[0]
+    users[username]["roles"] = all_roles
     _save_users(users)
     return True
 
@@ -366,10 +422,14 @@ def authenticate(username: str, password: str) -> Optional[dict]:
     if not _verify_password(password, user["password_hash"], user["salt"]):
         return None
 
+    roles = user.get("roles") or [user.get("role", "user")]
+    primary_role = roles[0] if roles else "user"
+
     token = secrets.token_hex(32)
     _sessions[token] = {
         "username": username,
-        "role": user["role"],
+        "role": primary_role,
+        "roles": roles,
         "created": time.time(),
     }
 
@@ -379,7 +439,8 @@ def authenticate(username: str, password: str) -> Optional[dict]:
     result = {
         "token": token,
         "username": username,
-        "role": user["role"],
+        "role": primary_role,
+        "roles": roles,
         "provisional_password": user.get("provisional_password", False),
     }
     if study_info:
@@ -438,7 +499,7 @@ def has_role(token: str, minimum_role: str) -> bool:
     session = get_session(token)
     if not session:
         return False
-    return ROLES.get(session["role"], 0) >= ROLES.get(minimum_role, 99)
+    return max_role_level(session) >= ROLES.get(minimum_role, 99)
 
 
 # ---------------------------------------------------------------------------

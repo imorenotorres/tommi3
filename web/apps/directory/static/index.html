@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UNINOVIS Directory</title>
+    <link rel="stylesheet" href="/static/nav.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
@@ -146,13 +147,14 @@
     <!-- End Matomo Code -->
 </head>
 <body>
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ crumbs: [{label:'Administration', href:'/'}], current: 'Directory' });</script>
     <div class="container">
         <h1>UNINOVIS Directory</h1>
         <p class="subtitle">Internal staff directory for UNINOVIS partner universities</p>
 
         <div class="auth-bar">
             <span class="auth-info" id="authInfo"></span>
-            <a href="/uninovis/" class="btn-small" style="text-decoration:none;">Back to UAT</a>
             <button class="btn-small" id="loginBtn" onclick="showLoginModal()">Login to Edit</button>
             <button class="btn-small" id="userModeBtn" style="display:none" onclick="toggleEditorMode()">User mode</button>
             <button class="btn-small" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
@@ -272,6 +274,7 @@
         <div class="modal-box">
             <h3 id="userModalTitle">Add User</h3>
             <input type="hidden" id="userId">
+            <input type="hidden" id="userSelfEdit">
             <div class="form-row-3">
                 <div class="form-group"><label>First Name</label><input type="text" id="userFirstName"></div>
                 <div class="form-group"><label>Family Name</label><input type="text" id="userFamilyName"></div>
@@ -351,7 +354,7 @@
     var authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('directory_token') || localStorage.getItem('tommi_token');
     var authUser = null;
     var canEdit = false;
-    var editorMode = true;
+    var editorMode = false;
     var sortColumn = 'family_name';
     var sortAsc = true;
 
@@ -609,6 +612,11 @@
     function openUserModal(user) {
         document.getElementById('userModalTitle').textContent = user ? 'Edit User' : 'Add User';
         document.getElementById('userId').value = user ? user.id : '';
+        document.getElementById('userSelfEdit').value = '';
+        // Re-enable all fields (may have been disabled by self-edit)
+        document.getElementById('userUni').disabled = false;
+        document.getElementById('userRole').disabled = false;
+        document.getElementById('userEmail').disabled = false;
         document.getElementById('userFirstName').value = user ? user.first_name : '';
         document.getElementById('userFamilyName').value = user ? user.family_name : '';
         document.getElementById('userEmail').value = user ? user.email : '';
@@ -751,8 +759,18 @@
         if (!body.family_name) { document.getElementById('userError').textContent = 'Family name is required'; return; }
         if (!body.email) { document.getElementById('userError').textContent = 'Email is required'; return; }
 
-        var url = id ? BASE + '/api/users/' + id : BASE + '/api/users';
-        var method = id ? 'PUT' : 'POST';
+        var selfEdit = document.getElementById('userSelfEdit').value === 'true';
+        var url, method;
+        if (selfEdit && id) {
+            url = BASE + '/api/my-profile';
+            method = 'PUT';
+        } else if (id) {
+            url = BASE + '/api/users/' + id;
+            method = 'PUT';
+        } else {
+            url = BASE + '/api/users';
+            method = 'POST';
+        }
         try {
             var resp = await authFetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (!resp.ok) { var err = await resp.json(); document.getElementById('userError').textContent = err.detail || 'Error saving user'; return; }
@@ -1437,6 +1455,31 @@
         await loadData();
         populateOrgChartSelect();
         await checkAuth();
+        // Handle #my-profile hash — open current user's profile for editing
+        if (window.location.hash === '#my-profile' && authUser) {
+            var username = authUser.username.toLowerCase();
+            var me = appData.users.find(function(u) {
+                if (!u.email) return false;
+                var emails = u.email.toLowerCase().split(';');
+                for (var i = 0; i < emails.length; i++) {
+                    if (emails[i].trim() === username) return true;
+                }
+                return false;
+            });
+            if (me) {
+                setTimeout(function() {
+                    openUserModal(me);
+                    document.getElementById('userSelfEdit').value = 'true';
+                    document.getElementById('userModalTitle').textContent = 'Edit My Profile';
+                    // Disable fields the user shouldn't change themselves
+                    document.getElementById('userUni').disabled = true;
+                    document.getElementById('userRole').disabled = true;
+                    document.getElementById('userEmail').disabled = true;
+                    var grpInputs = document.querySelectorAll('#userGroups input, #userSubgroups input');
+                    grpInputs.forEach(function(cb) { cb.disabled = true; });
+                }, 100);
+            }
+        }
     }
     init();
 </script>

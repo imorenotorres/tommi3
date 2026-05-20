@@ -23,7 +23,7 @@ router = APIRouter(prefix="/directory", tags=["directory"])
 
 # ── Auth helpers ─────────────────────────────────────────────────────
 
-from auth import get_session, ROLES
+from auth import get_session, ROLES, can_edit as _can_edit_check
 
 
 def _get_token(request: Request) -> str | None:
@@ -44,7 +44,7 @@ def _require_auth(request: Request) -> dict:
 
 
 def _require_editor(session: dict = Depends(_require_auth)) -> dict:
-    if ROLES.get(session["role"], 0) < ROLES.get("tester", 99):
+    if not _can_edit_check(session):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return session
 
@@ -76,8 +76,8 @@ def get_all_data():
 
 @router.get("/api/auth-check")
 def auth_check(session: dict = Depends(_require_auth)):
-    can_edit = ROLES.get(session["role"], 0) >= ROLES.get("tester", 99)
-    return {"username": session["username"], "role": session["role"], "can_edit": can_edit}
+    can_edit = _can_edit_check(session)
+    return {"username": session["username"], "role": session["role"], "roles": session.get("roles", [session["role"]]), "can_edit": can_edit}
 
 
 # ── User CRUD ────────────────────────────────────────────────────────
@@ -116,6 +116,24 @@ def create_user(body: UserBody, session: dict = Depends(_require_editor)):
     data["users"].append(user)
     save_data(data)
     return user
+
+
+@router.put("/api/my-profile")
+def update_my_profile(body: UserBody, session: dict = Depends(_require_auth)):
+    """Any authenticated user can edit their own directory profile (matched by email)."""
+    data = load_data()
+    username = session["username"].lower()
+    for u in data["users"]:
+        emails = [e.strip().lower() for e in (u.get("email") or "").split(";")]
+        if username in emails:
+            u["first_name"] = body.first_name
+            u["family_name"] = body.family_name
+            u["telephone"] = body.telephone
+            u["notes"] = body.notes
+            u["custom"] = body.custom
+            save_data(data)
+            return u
+    raise HTTPException(404, "Your profile was not found in the directory")
 
 
 @router.put("/api/users/{user_id}")

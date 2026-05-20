@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UNIGRACON — UNINOVIS Grade Converter</title>
+    <link rel="stylesheet" href="/static/nav.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -381,6 +382,8 @@
     <!-- End Matomo Code -->
 </head>
 <body>
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ crumbs: [{label:'Teaching & Research', href:'/'}], current: 'UNIGRACON' });</script>
     <div class="container">
         <h1>UNIGRACON</h1>
         <p class="subtitle">UNINOVIS Grade Converter</p>
@@ -388,7 +391,6 @@
         <!-- Auth bar -->
         <div class="auth-bar" id="authBar">
             <span class="auth-info" id="authInfo"></span>
-            <a href="/uninovis/" class="auth-btn" style="text-decoration:none;">Back to UAT</a>
             <button class="auth-btn" id="loginBtn" onclick="showLoginModal()">Login to Edit</button>
             <button class="auth-btn" id="userModeBtn" onclick="toggleEditorMode()" style="display:none">Switch to User Mode</button>
             <button class="auth-btn" id="logoutBtn" onclick="doLogout()" style="display:none">Logout</button>
@@ -537,7 +539,7 @@
 
         let authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('unigracon_token') || localStorage.getItem('tommi_token');
         let authUser = null;
-        let editorMode = true;
+        let editorMode = false;
 
         async function authFetch(url, options = {}) {
             options.headers = options.headers || {};

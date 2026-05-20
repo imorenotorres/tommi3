@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UNINOVIS Mobility Planner</title>
+    <link rel="stylesheet" href="/static/nav.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -171,6 +172,8 @@
     <!-- End Matomo Code -->
 </head>
 <body>
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ crumbs: [{label:'Administration', href:'/'}], current: 'Mobility Planner' });</script>
     <div class="container">
         <h1>UNINOVIS Mobility Planner</h1>
         <p class="subtitle">Compute when to open mobility calls, accounting for administrative periods and holidays</p>
@@ -178,7 +181,6 @@
         <!-- Auth bar -->
         <div class="auth-bar">
             <span class="auth-info" id="authInfo"></span>
-            <a href="/uninovis/" class="auth-btn" style="text-decoration:none;">Back to UAT</a>
             <button class="auth-btn" id="loginBtn" onclick="showLoginModal()">Login to Edit</button>
             <button class="auth-btn" id="userModeBtn" onclick="toggleEditorMode()" style="display:none">Switch to User Mode</button>
             <button class="auth-btn" id="logoutBtn" onclick="doLogout()" style="display:none">Logout</button>
@@ -262,7 +264,7 @@
 
         let authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('mobility_token') || localStorage.getItem('tommi_token');
         let authUser = null;
-        let editorMode = true;
+        let editorMode = false;
 
         async function authFetch(url, options) {
             options = options || {};

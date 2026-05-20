@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UNINOVIS Event Calendar</title>
+<title>UNINOVIS Event Tracker</title>
+<link rel="stylesheet" href="/static/nav.css">
 <style>
 :root {
   --primary: #2D3876;
@@ -52,6 +53,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .current-label { font-size: 1.1rem; font-weight: 600; min-width: 200px; text-align: center; }
 .btn-add { background: var(--primary); color: #fff; border: none; border-radius: var(--radius); padding: 8px 18px; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
 .btn-add:hover { background: var(--primary-light); }
+.io-group { display: flex; gap: 4px; align-items: center; margin-left: 4px; }
+.io-group .nav-btn { font-size: 0.78rem; padding: 5px 10px; }
 
 /* Stats bar */
 .stats-bar { padding: 4px 24px 8px; font-size: 0.78rem; color: var(--text-light); display: flex; gap: 16px; }
@@ -106,6 +109,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .cat-BIP { background: #4285f4; }
 .cat-Hackathon { background: #ea4335; }
 .cat-Other_public_events { background: #00897b; }
+.event-chip.personal { border: 2px dashed #fff; opacity: 0.9; }
+.personal-badge { display: inline-block; font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; background: #ffe0b2; color: #e65100; margin-left: 4px; }
 
 /* Modal */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; justify-content: center; align-items: center; }
@@ -171,16 +176,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 </head>
 <body>
 
-<!-- Header -->
-<div class="header">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <a class="btn-back" href="/uninovis/">← UAT</a>
-    <h1>UNINOVIS Event Calendar</h1>
-  </div>
-  <div class="header-right">
-    <span id="userInfo" style="font-size:0.85rem;opacity:0.8;"></span>
-  </div>
-</div>
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ crumbs: [{label:'Administration', href:'/'}], current: 'Event Tracker' });</script>
 
 <!-- Filters -->
 <div class="filters-bar">
@@ -209,11 +206,116 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <button class="view-btn" id="btnListToggle" style="border-radius:var(--radius);margin-left:0;">List view</button>
     <span style="width:1px;height:24px;background:var(--border);"></span>
     <button class="btn-add" id="btnAdd" style="display:none;">+ New Event</button>
+    <button class="nav-btn" id="btnPersonal" onclick="openEdit(null, 'personal')" style="display:none;font-size:0.82rem;">+ Personal Event</button>
+    <div class="io-group" id="ioGroup" style="display:none;">
+      <button class="nav-btn" onclick="openExportModal()" title="Export events with filters">Export</button>
+      <button class="nav-btn" onclick="document.getElementById('importModal').classList.add('open')" title="Import events">Import</button>
+    </div>
+    <span style="width:1px;height:24px;background:var(--border);"></span>
+    <button class="nav-btn" onclick="showSubscribe()" title="Subscribe from Apple Calendar, Google Calendar, Outlook...">Subscribe / .ics</button>
   </div>
 </div>
 
 <!-- Calendar container -->
 <div id="calendarContainer"></div>
+
+<!-- Import modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Import Events</h2>
+      <button class="modal-close" onclick="document.getElementById('importModal').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:12px;">
+        Upload a JSON or CSV file. Events with an existing <code>id</code> will be updated; new events will be added.
+      </p>
+      <label>Format</label>
+      <select id="importFormat">
+        <option value="json">JSON</option>
+        <option value="tsv">TSV (tab-separated)</option>
+      </select>
+      <label style="margin-top:12px;">File</label>
+      <input type="file" id="importFile" accept=".json,.tsv,.txt,.csv">
+      <div id="importResult" style="margin-top:12px;font-size:0.85rem;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('importModal').classList.remove('open')">Close</button>
+      <button class="btn btn-primary" onclick="doImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Export Events</h2>
+      <button class="modal-close" onclick="document.getElementById('exportModal').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label>Date from</label>
+      <input type="date" id="exportFrom">
+      <label>Date to</label>
+      <input type="date" id="exportTo">
+      <label>University</label>
+      <div id="exportUniChecks" class="checkbox-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;"></div>
+      <label>Category</label>
+      <div id="exportCatChecks" class="checkbox-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;"></div>
+      <div id="exportPreview" style="margin-top:8px;font-size:0.82rem;color:var(--text-light);"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('exportModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="doExport('json')">Export JSON</button>
+      <button class="btn btn-primary" onclick="doExport('tsv')">Export TSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- Subscribe modal -->
+<div class="modal-overlay" id="subscribeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Subscribe to Calendar</h2>
+      <button class="modal-close" onclick="document.getElementById('subscribeModal').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:16px;">
+        Subscribe to this calendar from Apple Calendar, Google Calendar, Outlook, or any app that supports iCalendar feeds. Events update automatically.
+      </p>
+
+      <label>Subscription URL</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <input type="text" id="icalUrl" readonly style="font-size:0.82rem;background:#f5f6fa;">
+        <button class="btn btn-primary" onclick="copyIcalUrl()" style="white-space:nowrap;padding:8px 14px;">Copy</button>
+      </div>
+      <span class="copy-feedback" id="icalCopyFeedback" style="font-size:0.8rem;"></span>
+
+      <div style="margin-top:16px;padding:12px;background:#f5f6fa;border-radius:var(--radius);font-size:0.82rem;">
+        <strong>Apple Calendar:</strong><br>
+        1. Copy the URL above<br>
+        2. Open Calendar app &rarr; File &rarr; New Calendar Subscription<br>
+        3. Paste the URL and click Subscribe<br><br>
+        <strong>Google Calendar:</strong><br>
+        1. Copy the URL above<br>
+        2. Go to Settings &rarr; Add calendar &rarr; From URL<br>
+        3. Paste and click Add calendar<br><br>
+        <strong>Outlook:</strong><br>
+        1. Copy the URL above<br>
+        2. Go to Calendar &rarr; Add calendar &rarr; Subscribe from web<br>
+        3. Paste the URL
+      </div>
+
+      <div style="margin-top:16px;">
+        <button class="nav-btn" onclick="downloadIcs()" style="font-size:0.85rem;">Download .ics file</button>
+        <span style="font-size:0.78rem;color:var(--text-light);margin-left:8px;">One-time download (not auto-updated)</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('subscribeModal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
 
 <!-- Detail modal -->
 <div class="modal-overlay" id="detailModal">
@@ -235,6 +337,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
     <div class="modal-body">
       <input type="hidden" id="editId">
+      <input type="hidden" id="editVisibility" value="shared">
+      <div id="visibilityRow" style="margin-bottom:8px;">
+        <label>Visibility</label>
+        <select id="editVisibilitySelect" onchange="document.getElementById('editVisibility').value=this.value">
+          <option value="shared">Shared (visible to all)</option>
+          <option value="personal">Personal (only you)</option>
+        </select>
+      </div>
       <label>Name *</label>
       <input type="text" id="editName" required>
       <label>Category *</label>
@@ -347,6 +457,7 @@ let universities = [];
 let dirGroups = [];
 let dirUsers = [];
 let canEdit = false;
+let authUsername = '';
 let currentView = 'month';
 let currentDate = new Date();
 let activeCatFilter = 'all';
@@ -364,15 +475,21 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/ /g, '_');
 // -- Init --------------------------------------------------------------------
 (async function init() {
   TOKEN = localStorage.getItem('tommi_token') || new URLSearchParams(location.search).get('token') || '';
-  if (!TOKEN) { location.href = '/static/login.html?redirect=' + encodeURIComponent(location.pathname); return; }
+  if (!TOKEN) { location.href = '/intranet?redirect=' + encodeURIComponent(location.pathname); return; }
 
   try {
     const auth = await api('GET', '/api/auth-check');
-    document.getElementById('userInfo').textContent = auth.username + ' (' + auth.role + ')';
+    var userInfoEl = document.getElementById('userInfo');
+    if (userInfoEl) userInfoEl.textContent = auth.username + ' (' + auth.role + ')';
+    authUsername = auth.username;
     canEdit = auth.can_edit;
-    if (canEdit) document.getElementById('btnAdd').style.display = '';
+    document.getElementById('btnPersonal').style.display = '';
+    if (canEdit) {
+      document.getElementById('btnAdd').style.display = '';
+      document.getElementById('ioGroup').style.display = '';
+    }
   } catch {
-    location.href = '/static/login.html?redirect=' + encodeURIComponent(location.pathname);
+    location.href = '/intranet?redirect=' + encodeURIComponent(location.pathname);
     return;
   }
 
@@ -587,9 +704,11 @@ function fmtTime(isoStr) {
 
 function chipHTML(ev) {
   const cls = CAT_CSS_CLASS(ev.category);
+  const personal = ev.visibility === 'personal' ? ' personal' : '';
   const t = fmtTime(ev.start_date);
   const tz = evTZ(ev);
-  return `<div class="event-chip ${cls}" onclick="showDetail('${ev.id}')" title="${ev.name} - ${t} ${tz}">${t} ${ev.name}</div>`;
+  const icon = ev.visibility === 'personal' ? '&#128274; ' : '';
+  return `<div class="event-chip ${cls}${personal}" onclick="showDetail('${ev.id}')" title="${ev.name} - ${t} ${tz}${ev.visibility === 'personal' ? ' (personal)' : ''}">${icon}${t} ${ev.name}</div>`;
 }
 
 function evTZ(ev) { return ev.timezone || 'CEST'; }
@@ -883,13 +1002,20 @@ function showDetail(id) {
     html += '</div></div>';
   }
 
+  // Visibility
+  if (ev.visibility === 'personal') {
+    html += `<div class="detail-field"><div class="dl">Visibility</div><div class="dv"><span class="personal-badge">Personal</span> Only visible to you</div></div>`;
+  }
+
   // Series info
   if (ev.series_id) {
     const seriesCount = events.filter(e => e.series_id === ev.series_id).length;
     html += `<div class="detail-field"><div class="dl">Recurring</div><div class="dv">Part of a series (${seriesCount} events)</div></div>`;
   }
 
-  if (canEdit) {
+  // Actions: editors can edit shared events, anyone can edit their own personal events
+  const isOwner = ev.visibility === 'personal' && ev.created_by === authUsername;
+  if (canEdit || isOwner) {
     html += '<div class="detail-actions">';
     html += `<button class="btn btn-primary" onclick="closeDetail();openEdit('${ev.id}')">Edit this event</button>`;
     html += `<button class="btn btn-danger" onclick="deleteEvent('${ev.id}')">Delete this event</button>`;
@@ -1025,7 +1151,7 @@ function renderPartPersonList() {
 
 function filterPersonList() { renderPartPersonList(); }
 
-function openEdit(id) {
+function openEdit(id, defaultVisibility) {
   const modal = document.getElementById('editModal');
   const catSel = document.getElementById('editCategory');
   catSel.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -1051,10 +1177,16 @@ function openEdit(id) {
     document.getElementById('editLink').value = ev.registration_link || '';
     editParticipants = [...(ev.participants || [])];
     editPartGroups = [...(ev.participant_groups || [])];
+    const vis = ev.visibility || 'shared';
+    document.getElementById('editVisibility').value = vis;
+    document.getElementById('editVisibilitySelect').value = vis;
     // Hide recurrence when editing existing event (dates already set)
     document.getElementById('recurrenceSection').style.display = 'none';
   } else {
-    document.getElementById('editModalTitle').textContent = 'New Event';
+    const vis = defaultVisibility || 'shared';
+    document.getElementById('editModalTitle').textContent = vis === 'personal' ? 'New Personal Event' : 'New Event';
+    document.getElementById('editVisibility').value = vis;
+    document.getElementById('editVisibilitySelect').value = vis;
     document.getElementById('editId').value = '';
     document.getElementById('editName').value = '';
     document.getElementById('editDesc').value = '';
@@ -1072,6 +1204,14 @@ function openEdit(id) {
     document.getElementById('editRecurrenceType').value = '';
     document.getElementById('editRecUntil').value = '';
     toggleRecurrenceFields();
+  }
+  // Non-editors can only create personal events — hide visibility selector
+  const visRow = document.getElementById('visibilityRow');
+  if (!canEdit) {
+    visRow.style.display = 'none';
+    document.getElementById('editVisibility').value = 'personal';
+  } else {
+    visRow.style.display = '';
   }
   toggleTypeFields();
   const cat = catSel.value;
@@ -1096,6 +1236,7 @@ async function saveEvent() {
     category: cat,
     university: document.getElementById('editUniversity').value,
     event_type: document.getElementById('editType').value,
+    visibility: document.getElementById('editVisibility').value,
     timezone: document.getElementById('editTimezone').value,
     place: document.getElementById('editPlace').value.trim(),
     meeting_url: document.getElementById('editMeetingUrl').value.trim(),
@@ -1203,6 +1344,139 @@ function editSeries(seriesId, evId) {
   catSel.onchange = () => showParticipantsSection(isInternal(catSel.value));
 
   modal.classList.add('open');
+}
+
+// -- Export / Import ---------------------------------------------------------
+function openExportModal() {
+  // Populate university checkboxes
+  const uniDiv = document.getElementById('exportUniChecks');
+  uniDiv.innerHTML = universities.map(u =>
+    `<label style="font-size:0.82rem;"><input type="checkbox" value="${u}" checked onchange="updateExportPreview()"> ${u}</label>`
+  ).join('');
+
+  // Populate category checkboxes
+  const allCats = INTERNAL_CATS.concat(EXTERNAL_CATS);
+  const catDiv = document.getElementById('exportCatChecks');
+  catDiv.innerHTML = allCats.map(c =>
+    `<label style="font-size:0.82rem;"><input type="checkbox" value="${c}" checked onchange="updateExportPreview()"> ${c}</label>`
+  ).join('');
+
+  document.getElementById('exportFrom').value = '';
+  document.getElementById('exportTo').value = '';
+  document.getElementById('exportFrom').onchange = updateExportPreview;
+  document.getElementById('exportTo').onchange = updateExportPreview;
+  updateExportPreview();
+  document.getElementById('exportModal').classList.add('open');
+}
+
+function getExportParams() {
+  const params = new URLSearchParams();
+  params.set('token', TOKEN);
+  const from = document.getElementById('exportFrom').value;
+  const to = document.getElementById('exportTo').value;
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+
+  const selUnis = [];
+  document.querySelectorAll('#exportUniChecks input:checked').forEach(cb => selUnis.push(cb.value));
+  if (selUnis.length > 0 && selUnis.length < universities.length) {
+    params.set('university', selUnis.join(','));
+  }
+
+  const allCats = INTERNAL_CATS.concat(EXTERNAL_CATS);
+  const selCats = [];
+  document.querySelectorAll('#exportCatChecks input:checked').forEach(cb => selCats.push(cb.value));
+  if (selCats.length > 0 && selCats.length < allCats.length) {
+    params.set('category', selCats.join(','));
+  }
+  return params;
+}
+
+function updateExportPreview() {
+  const params = getExportParams();
+  // Count matching events locally for preview
+  const from = document.getElementById('exportFrom').value;
+  const to = document.getElementById('exportTo').value;
+  const selUnis = [];
+  document.querySelectorAll('#exportUniChecks input:checked').forEach(cb => selUnis.push(cb.value));
+  const selCats = [];
+  document.querySelectorAll('#exportCatChecks input:checked').forEach(cb => selCats.push(cb.value));
+
+  const shared = events.filter(e => (e.visibility || 'shared') === 'shared');
+  const filtered = shared.filter(e => {
+    if (from && (e.start_date || '') < from) return false;
+    if (to && (e.start_date || '') > to + 'T23:59:59') return false;
+    if (selUnis.length > 0 && selUnis.length < universities.length && !selUnis.includes(e.university)) return false;
+    if (selCats.length > 0 && selCats.length < INTERNAL_CATS.concat(EXTERNAL_CATS).length && !selCats.includes(e.category)) return false;
+    return true;
+  });
+  document.getElementById('exportPreview').textContent = filtered.length + ' events will be exported';
+}
+
+function doExport(format) {
+  const params = getExportParams();
+  window.location.href = '/event-calendar/api/export/' + format + '?' + params.toString();
+  document.getElementById('exportModal').classList.remove('open');
+}
+
+function showSubscribe() {
+  const base = window.location.origin;
+  const url = base + '/event-calendar/api/feed/ical?token=' + TOKEN;
+  document.getElementById('icalUrl').value = url;
+  document.getElementById('icalCopyFeedback').textContent = '';
+  document.getElementById('subscribeModal').classList.add('open');
+}
+
+function copyIcalUrl() {
+  const url = document.getElementById('icalUrl').value;
+  navigator.clipboard.writeText(url).then(() => {
+    const fb = document.getElementById('icalCopyFeedback');
+    fb.textContent = 'URL copied!';
+    fb.style.color = '#34a853';
+    setTimeout(() => { fb.textContent = ''; }, 3000);
+  });
+}
+
+function downloadIcs() {
+  window.location.href = '/event-calendar/api/export/ical?token=' + TOKEN;
+}
+
+async function doImport() {
+  const fmt = document.getElementById('importFormat').value;
+  const fileInput = document.getElementById('importFile');
+  const resultDiv = document.getElementById('importResult');
+  if (!fileInput.files || !fileInput.files[0]) {
+    resultDiv.innerHTML = '<span style="color:#ea4335;">Please select a file.</span>';
+    return;
+  }
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+
+  resultDiv.innerHTML = 'Importing...';
+  try {
+    const res = await fetch('/event-calendar/api/import/' + fmt, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      resultDiv.innerHTML = '<span style="color:#ea4335;">Error: ' + (data.detail || 'Unknown error') + '</span>';
+      return;
+    }
+    let msg = '<strong style="color:#34a853;">' + data.added + ' added, ' + data.updated + ' updated.</strong>';
+    if (data.errors && data.errors.length) {
+      msg += '<br><span style="color:#ea4335;">Errors (' + data.errors.length + '):</span><ul style="margin:4px 0 0 16px;font-size:0.8rem;">';
+      data.errors.slice(0, 10).forEach(e => { msg += '<li>' + e + '</li>'; });
+      if (data.errors.length > 10) msg += '<li>...and ' + (data.errors.length - 10) + ' more</li>';
+      msg += '</ul>';
+    }
+    resultDiv.innerHTML = msg;
+    await loadData();
+    render();
+  } catch (err) {
+    resultDiv.innerHTML = '<span style="color:#ea4335;">Request failed: ' + err.message + '</span>';
+  }
 }
 
 </script>

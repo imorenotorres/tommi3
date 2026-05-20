@@ -33,7 +33,8 @@ from auth import (
     ensure_superuser, get_session, has_role, list_access_requests, list_users,
     logout, reject_access_request, send_invite_email, set_password_from_invite,
     update_user_role, validate_invite_token, validate_password,
-    validate_uninovis_email, ROLES, UNINOVIS_DOMAINS,
+    validate_uninovis_email, ROLES, TOOL_ACCESS, UNINOVIS_DOMAINS,
+    can_access_tool, can_edit, user_roles, max_role_level,
 )
 from error_codes import (
     format_error,
@@ -233,11 +234,10 @@ def require_auth(request: Request) -> dict:
 
 
 def require_role(minimum_role: str):
-    """Dependency factory: require at least the given role."""
+    """Dependency factory: require at least the given role level."""
+    from auth import max_role_level as _max_level
     def _check(session: dict = Depends(require_auth)):
-        user_level = ROLES.get(session["role"], 0)
-        required_level = ROLES.get(minimum_role, 99)
-        if user_level < required_level:
+        if _max_level(session) < ROLES.get(minimum_role, 99):
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return session
     return _check
@@ -260,11 +260,13 @@ class ChangePasswordRequest(BaseModel):
 class CreateUserRequest(BaseModel):
     username: str
     password: str
-    role: str  # superuser | tester | user
+    role: str
+    roles: list[str] = []
 
 
 class UpdateRoleRequest(BaseModel):
     role: str
+    roles: list[str] = []
 
 
 @app.post("/api/auth/login")
@@ -291,6 +293,7 @@ async def api_me(session: dict = Depends(require_auth)):
     result = {
         "username": session["username"],
         "role": session["role"],
+        "roles": session.get("roles", [session["role"]]),
         "provisional_password": user.get("provisional_password", False),
     }
     if is_study_mode():
@@ -317,15 +320,17 @@ async def api_list_users(session: dict = Depends(require_role("superuser"))):
 
 @app.post("/api/auth/users")
 async def api_create_user(req: CreateUserRequest, session: dict = Depends(require_role("superuser"))):
-    if req.role not in ROLES:
-        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {list(ROLES.keys())}")
+    all_roles = req.roles if req.roles else [req.role]
+    for r in all_roles:
+        if r not in ROLES:
+            raise HTTPException(status_code=400, detail=f"Invalid role '{r}'. Must be one of: {list(ROLES.keys())}")
     pwd_error = validate_password(req.password)
     if pwd_error:
         raise HTTPException(status_code=400, detail=pwd_error)
-    ok = create_user(req.username, req.password, req.role, provisional=True)
+    ok = create_user(req.username, req.password, all_roles[0], provisional=True, roles=all_roles)
     if not ok:
         raise HTTPException(status_code=409, detail="Username already exists")
-    return {"ok": True, "username": req.username, "role": req.role}
+    return {"ok": True, "username": req.username, "roles": all_roles}
 
 
 @app.post("/api/auth/users/bulk")
@@ -437,11 +442,13 @@ async def api_delete_user(username: str, session: dict = Depends(require_role("s
 
 @app.put("/api/auth/users/{username}/role")
 async def api_update_role(username: str, req: UpdateRoleRequest, session: dict = Depends(require_role("superuser"))):
-    if req.role not in ROLES:
-        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {list(ROLES.keys())}")
+    all_roles = req.roles if req.roles else [req.role]
+    for r in all_roles:
+        if r not in ROLES:
+            raise HTTPException(status_code=400, detail=f"Invalid role '{r}'. Must be one of: {list(ROLES.keys())}")
     if username == session["username"]:
         raise HTTPException(status_code=400, detail="Cannot change your own role")
-    ok = update_user_role(username, req.role)
+    ok = update_user_role(username, all_roles[0], all_roles)
     if not ok:
         raise HTTPException(status_code=404, detail="User not found")
     return {"ok": True}
@@ -892,16 +899,28 @@ class AgentResponse(BaseModel):
     prompt_level: str = "stringent"
 
 
+@app.get("/")
+async def root():
+    """Serve the UNINOVIS intranet as the landing page"""
+    return FileResponse(SCRIPT_DIR / "static" / "intranet.html")
+
+
+@app.get("/intranet")
+async def intranet_page():
+    """Alias for the intranet landing page"""
+    return FileResponse(SCRIPT_DIR / "static" / "intranet.html")
+
+
+@app.get("/agents")
+async def agents_page():
+    """Serve the TOMMI AI Agents interface"""
+    return FileResponse(SCRIPT_DIR / "static" / "index.html")
+
+
 @app.get("/login")
 async def login_page():
     """Sirve la página de login"""
     return FileResponse(SCRIPT_DIR / "static" / "login.html")
-
-
-@app.get("/")
-async def root():
-    """Sirve la página principal (auth checked client-side via JS)"""
-    return FileResponse(SCRIPT_DIR / "static" / "index.html")
 
 
 @app.get("/testing")

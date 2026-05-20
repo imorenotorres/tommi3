@@ -23,7 +23,7 @@ router = APIRouter(prefix="/researcher_connect", tags=["researcher_connect"])
 
 # -- Auth helpers (shared with tommi server) -----------------------------------
 
-from auth import get_session, ROLES
+from auth import get_session, ROLES, can_edit as _can_edit_check
 
 
 def _get_token(request: Request) -> str | None:
@@ -45,7 +45,7 @@ def _require_auth(request: Request) -> dict:
 
 def _require_editor(request: Request) -> dict:
     session = _require_auth(request)
-    if ROLES.get(session["role"], 0) < ROLES.get("tester", 99):
+    if not _can_edit_check(session):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return session
 
@@ -88,7 +88,7 @@ def index():
 
 @router.get("/api/auth-check")
 def auth_check(session: dict = Depends(_require_auth)):
-    can_edit = ROLES.get(session["role"], 0) >= ROLES.get("tester", 99)
+    can_edit = _can_edit_check(session)
     return {"username": session["username"], "role": session["role"], "can_edit": can_edit}
 
 

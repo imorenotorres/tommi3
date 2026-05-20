@@ -1,0 +1,48 @@
+/* UNINOVIS shared navigation bar */
+.uninovis-nav {
+    background: #111b3d;
+    color: #fff;
+    padding: 0 24px;
+    height: 42px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.82rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 950;
+    border-bottom: 2px solid rgba(255,255,255,0.15);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.uninovis-nav a { color: #fff; text-decoration: none; }
+.uninovis-nav a:hover { opacity: 0.85; }
+.uninovis-nav-left { display: flex; align-items: center; gap: 6px; }
+.uninovis-nav-brand {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-right: 4px;
+    opacity: 0.9;
+}
+.uninovis-nav-brand:hover { opacity: 1; }
+.uninovis-nav-sep { opacity: 0.4; margin: 0 2px; }
+.uninovis-nav-crumb { opacity: 0.75; font-size: 0.82rem; }
+.uninovis-nav-crumb:hover { opacity: 1; }
+.uninovis-nav-current { opacity: 1; font-weight: 600; }
+.uninovis-nav-right { display: flex; align-items: center; gap: 10px; }
+.uninovis-nav-user { opacity: 0.75; font-size: 0.78rem; }
+.uninovis-nav-btn {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    padding: 3px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+.uninovis-nav-btn:hover { background: rgba(255,255,255,0.22); }
+
+/* Push body content below fixed nav */
+body.has-uninovis-nav { padding-top: 42px; }

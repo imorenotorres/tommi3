@@ -1,9 +1,9 @@
 /* Variables */
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
+    --primary-color: #2D3876;
+    --primary-hover: #4250b3;
     --bg-color: #f8fafc;
-    --sidebar-bg: #1e293b;
+    --sidebar-bg: #2D3876;
     --sidebar-text: #e2e8f0;
     --chat-bg: #ffffff;
     --user-msg-bg: #2563eb;
@@ -31,7 +31,8 @@ body {
 /* Layout principal */
 .container {
     display: flex;
-    height: 100vh;
+    height: calc(100vh - 42px);
+    margin-top: 42px;
 }
 
 /* Sidebar */
@@ -41,55 +42,35 @@ body {
     flex-direction: column;
     overflow-y: auto;
     position: fixed;
-    top: 0;
+    top: 42px;
     left: 0;
-    height: 100vh;
+    height: calc(100vh - 42px);
+    background-color: #2D3876;
+    color: #e2e8f0;
 }
 
-/* Parte superior del sidebar - fondo blanco */
-.sidebar-top {
-    background-color: #ffffff;
-    padding: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: calc(100vh * 0.15);
-}
-
-/* Parte inferior del sidebar - fondo azul oscuro */
-.sidebar-bottom {
+.sidebar-content {
     flex: 1;
-    background-color: var(--sidebar-bg);
-    color: var(--sidebar-text);
-    padding: 1.5rem;
+    padding: 1.2rem;
     display: flex;
     flex-direction: column;
 }
 
-.logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    color: #ffffff;
-}
-
-.logo-uma {
-    text-align: center;
-}
-
-.logo-uma img {
-    max-width: 260px;
-    height: auto;
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 1rem;
 }
 
 .logo-uninovis {
-    margin-top: auto;
-    padding-top: 1rem;
+    padding-top: 0.5rem;
 }
 
 .logo-uninovis img {
     width: 90%;
     height: auto;
+    background: #fff;
+    border-radius: 6px;
+    padding: 6px 10px;
 }
 
 /* Agent selector */
@@ -235,7 +216,13 @@ body {
     width: 16px;
     height: 16px;
     object-fit: contain;
-    /* No filter - show icons in original colors */
+}
+
+/* Make sidebar icons visible on dark background */
+.sidebar img[id$="-icon"] {
+    background: rgba(255,255,255,0.85);
+    border-radius: 4px;
+    padding: 2px;
 }
 
 .agent-description {
@@ -388,35 +375,32 @@ body {
 }
 
 .chat-area-top {
-    background-image: url('/static/fondo.png');
-    background-size: cover;
-    background-position: center;
-    height: calc(100vh * 0.15);
+    background: #2D3876;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    padding: 0 1rem;
     position: fixed;
-    top: 0;
+    top: 42px;
     left: 300px;
     right: 0;
+    z-index: 10;
 }
 
 .disclaimer {
     color: #ffffff;
     text-align: center;
-    font-size: 1.25rem;
-    max-width: 80%;
+    font-size: 0.85rem;
 }
 
 .disclaimer p {
-    margin: 0.25rem 0;
+    margin: 0;
 }
 
 .disclaimer-title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .chat-area-bottom {
@@ -424,7 +408,7 @@ body {
     display: flex;
     flex-direction: column;
     background-color: var(--chat-bg);
-    margin-top: calc(100vh * 0.15);
+    margin-top: 48px;
 }
 
 .chat-messages {
@@ -432,7 +416,7 @@ body {
     overflow-y: auto;
     padding: 1.5rem;
     padding-bottom: 5rem;
-    max-height: calc(100vh - 15vh - 80px);
+    max-height: calc(100vh - 42px - 80px);
     position: relative;
 }
 
@@ -572,9 +556,7 @@ body {
     display: flex;
     padding: 1rem 1.5rem;
     border-top: 1px solid var(--border-color);
-    background-image: url('/static/fondo.png');
-    background-size: cover;
-    background-position: center;
+    background: #f0f2f5;
     position: fixed;
     bottom: 0;
     right: 0;
@@ -735,16 +717,8 @@ body {
         max-height: 40vh;
     }
 
-    .sidebar-top {
+    .sidebar-content {
         padding: 1rem;
-    }
-
-    .sidebar-bottom {
-        padding: 1rem;
-    }
-
-    .logo-uma img {
-        max-width: 150px;
     }
 
     .chat-area {

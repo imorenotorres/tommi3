@@ -23,7 +23,7 @@ router = APIRouter(prefix="/mobility_planner", tags=["mobility_planner"])
 
 # ── Auth helpers for edit protection ─────────────────────────────────
 
-from auth import get_session, ROLES
+from auth import get_session, ROLES, can_edit as _can_edit_check
 
 
 def _get_token(request: Request) -> str | None:
@@ -44,7 +44,7 @@ def _require_auth(request: Request) -> dict:
 
 
 def _require_editor(session: dict = Depends(_require_auth)) -> dict:
-    if ROLES.get(session["role"], 0) < ROLES.get("tester", 99):
+    if not _can_edit_check(session):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return session
 
@@ -198,7 +198,7 @@ def compute(body: ComputeRequest):
 
 @router.get("/api/auth-check")
 def auth_check(session: dict = Depends(_require_auth)):
-    can_edit = ROLES.get(session["role"], 0) >= ROLES.get("tester", 99)
+    can_edit = _can_edit_check(session)
     return {"username": session["username"], "role": session["role"], "can_edit": can_edit}
 
 

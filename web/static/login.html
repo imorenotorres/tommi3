@@ -442,10 +442,13 @@
         }
 
         function doRedirect(role) {
-            if (role === 'tester' || role === 'superuser') {
-                window.location.href = '/testing';
+            // Check if there's a redirect parameter in the URL
+            var params = new URLSearchParams(window.location.search);
+            var redirect = params.get('redirect');
+            if (redirect) {
+                window.location.href = redirect;
             } else {
-                window.location.href = '/';
+                window.location.href = '/intranet';
             }
         }
 

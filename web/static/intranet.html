@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS Intranet</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; }
+
+        /* Top bar */
+        .topbar { background: #1a2255; color: #fff; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .topbar h1 { font-size: 1.2em; font-weight: 600; }
+        .topbar .user-info { font-size: 0.82em; display: flex; align-items: center; gap: 10px; }
+        .topbar .user-info span { opacity: 0.85; }
+        .topbar button { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 14px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
+        .topbar button:hover { background: rgba(255,255,255,0.25); }
+
+        /* Login screen */
+        .login-screen { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 50px); padding: 20px; }
+        .login-box { background: #fff; border-radius: 10px; padding: 36px 32px; max-width: 380px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.12); text-align: center; }
+        .login-box h2 { color: #2D3876; margin-bottom: 4px; font-size: 1.3em; }
+        .login-box .login-subtitle { color: #666; font-size: 0.85em; margin-bottom: 24px; }
+        .login-box .form-group { margin-bottom: 14px; text-align: left; }
+        .login-box label { display: block; font-weight: 600; margin-bottom: 4px; color: #2D3876; font-size: 0.85em; }
+        .login-box input { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+        .login-box input:focus { outline: none; border-color: #2D3876; }
+        .login-box .btn-login { width: 100%; background: #2D3876; color: #fff; border: none; padding: 11px; border-radius: 6px; font-size: 1em; cursor: pointer; margin-top: 8px; }
+        .login-box .btn-login:hover { background: #4250b3; }
+        .login-box .login-error { color: #dc3545; font-size: 0.85em; margin-top: 8px; min-height: 1.2em; }
+
+        /* Main content */
+        .main { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .welcome { margin-bottom: 20px; }
+        .welcome h2 { color: #2D3876; font-size: 1.2em; margin-bottom: 4px; }
+        .welcome .roles-badge { display: inline-block; background: #e8e0f0; color: #2D3876; padding: 2px 10px; border-radius: 10px; font-size: 0.75em; font-weight: 600; margin-left: 4px; }
+
+        /* Sections */
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 0.82em; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-left: 2px; }
+
+        /* Tool grid */
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .tool-card {
+            background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 14px 14px; text-decoration: none; color: #333;
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: flex; flex-direction: column; border-left: 4px solid #2D3876;
+        }
+        .tool-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+        .tool-card .tool-icon { font-size: 1.3em; margin-bottom: 4px; }
+        .tool-card h3 { color: #2D3876; font-size: 0.88em; margin-bottom: 2px; }
+        .tool-card p { color: #666; font-size: 0.72em; line-height: 1.3; flex: 1; }
+        .tool-card .tool-tag { margin-top: 6px; font-size: 0.62em; font-weight: 600; padding: 2px 8px; border-radius: 8px; display: inline-block; align-self: flex-start; }
+        .tag-active { background: #e8e0f0; color: #374399; }
+        .tag-soon { background: #fff3cd; color: #856404; }
+
+        .footer { text-align: center; color: #aaa; font-size: 0.75em; padding: 16px; }
+
+        @media (max-width: 600px) {
+            .tools-grid { grid-template-columns: 1fr 1fr; }
+            .login-box { padding: 24px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top bar (always visible) -->
+<div class="topbar">
+    <h1>UNINOVIS Intranet</h1>
+    <div class="user-info" id="topUserInfo" style="display:none;">
+        <span id="topUsername"></span>
+        <button onclick="doLogout()">Logout</button>
+    </div>
+</div>
+
+<!-- Login screen (shown when not authenticated) -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-box">
+        <h2>UNINOVIS</h2>
+        <p class="login-subtitle">Sign in to access the intranet</p>
+        <div class="form-group">
+            <label>Email / Username</label>
+            <input type="text" id="loginUser" autocomplete="username">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPass" autocomplete="current-password">
+        </div>
+        <button class="btn-login" onclick="doLogin()">Sign in</button>
+        <div class="login-error" id="loginError"></div>
+    </div>
+</div>
+
+<!-- Main content (shown after login) -->
+<div class="main" id="mainContent" style="display:none;">
+    <div class="welcome" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <h2 id="welcomeMsg">Welcome</h2>
+        <a href="/directory/#my-profile" id="editProfileLink" style="font-size:0.82rem;color:#2D3876;text-decoration:none;border:1px solid #2D3876;padding:4px 14px;border-radius:6px;">Edit my profile</a>
+    </div>
+    <div id="toolSections"></div>
+</div>
+
+<div class="footer">UNINOVIS &mdash; European University Alliance</div>
+
+<script>
+// ── Tool definitions ─────────────────────────────────────────────
+var TOOL_ACCESS = {
+    'directory':          ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'event_calendar':     ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'mobility_planner':   ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'intranet_services':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'unigracon':          ['teaching_staff', 'tester', 'superuser'],
+    'researcher_connect': ['teaching_staff', 'tester', 'superuser'],
+    'tommi_agents':       ['teaching_staff', 'tester', 'superuser'],
+    'virtual_campus':     ['student', 'tester', 'superuser'],
+    'student_admin':      ['student', 'tester', 'superuser'],
+    'user_management':    ['superuser'],
+    'tommi_testing':      ['tester', 'superuser'],
+};
+
+// Tools grouped by section
+var SECTIONS = [
+    {
+        id: 'campus',
+        title: 'Campus',
+        roles: ['student'],
+        tools: [
+            { id: 'virtual_campus', name: 'Virtual Campus', icon: '\uD83C\uDFEB', desc: 'Courses, learning materials, and virtual classrooms.', url: '#', status: 'soon' },
+            { id: 'student_admin', name: 'Student Administration', icon: '\uD83D\uDCDD', desc: 'Grades, curriculum, enrolment, and academic records.', url: '#', status: 'soon' },
+        ]
+    },
+    {
+        id: 'teaching',
+        title: 'Teaching & Research',
+        roles: ['teaching_staff'],
+        tools: [
+            { id: 'unigracon', name: 'UNIGRACON', icon: '\uD83C\uDF93', desc: 'Grade converter between partner universities.', url: '/unigracon/', status: 'active' },
+            { id: 'researcher_connect', name: 'Researcher Connect', icon: '\uD83D\uDD2C', desc: 'Find and connect with researchers across UNINOVIS.', url: '/researcher_connect/', status: 'active' },
+        ]
+    },
+    {
+        id: 'admin',
+        title: 'Administration',
+        roles: ['admin_staff', 'teaching_staff'],
+        tools: [
+            { id: 'directory', name: 'Directory', icon: '\uD83D\uDCCB', desc: 'Staff directory, groups, and org charts.', url: '/directory/', status: 'active' },
+            { id: 'event_calendar', name: 'Event Tracker', icon: '\uD83D\uDCC5', desc: 'Event calendar with filters and iCal sync.', url: '/event-calendar/', status: 'active' },
+            { id: 'mobility_planner', name: 'Mobility Planner', icon: '\u2708\uFE0F', desc: 'Call opening dates for mobility activities.', url: '/mobility_planner/', status: 'active' },
+            { id: 'intranet_services', name: 'Services Catalogue', icon: '\uD83D\uDDA5\uFE0F', desc: 'All UNINOVIS digital services and tools.', url: '/uninovis/services', status: 'active' },
+        ]
+    },
+    {
+        id: 'ai',
+        title: 'AI Agents',
+        roles: ['teaching_staff', 'tester', 'superuser'],
+        tools: [
+            { id: 'tommi_agents', name: 'TOMMI Agents', icon: '\uD83E\uDD16', desc: 'Chat with AI agents for research and admin support.', url: '/agents', status: 'active' },
+            { id: 'tommi_testing', name: 'Agent Testing', icon: '\uD83E\uDDEA', desc: 'Testing and development interface for AI agents.', url: '/testing', status: 'active' },
+        ]
+    },
+    {
+        id: 'superuser',
+        title: 'System Administration',
+        roles: ['superuser'],
+        tools: [
+            { id: 'user_management', name: 'User Management', icon: '\uD83D\uDD10', desc: 'Create, edit, and delete users. Manage roles and invitations.', url: '#', status: 'active', action: 'openUserManagement' },
+        ]
+    },
+];
+
+function canAccess(toolId, roles) {
+    if (!TOOL_ACCESS[toolId]) return true;
+    for (var i = 0; i < roles.length; i++) {
+        if (TOOL_ACCESS[toolId].indexOf(roles[i]) !== -1) return true;
+    }
+    return false;
+}
+
+function sectionVisible(section, roles) {
+    // Show section if user has any of the section's target roles, or is superuser/tester
+    for (var i = 0; i < roles.length; i++) {
+        if (section.roles.indexOf(roles[i]) !== -1) return true;
+        if (roles[i] === 'superuser' || roles[i] === 'tester') return true;
+    }
+    return false;
+}
+
+// ── Auth ─────────────────────────────────────────────────────────
+var authToken = localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
+var authUser = null;
+
+async function checkAuth() {
+    if (!authToken) { showLogin(); return; }
+    try {
+        var resp = await fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + authToken } });
+        if (resp.ok) {
+            authUser = await resp.json();
+            var params = new URLSearchParams(window.location.search);
+            var redirect = params.get('redirect');
+            if (redirect) { window.location.href = redirect; return; }
+            showMain();
+        } else {
+            authToken = '';
+            showLogin();
+        }
+    } catch (e) { showLogin(); }
+}
+
+function showLogin() {
+    document.getElementById('loginScreen').style.display = '';
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('topUserInfo').style.display = 'none';
+}
+
+function showMain() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainContent').style.display = '';
+    document.getElementById('topUserInfo').style.display = '';
+
+    var roles = (authUser.roles && Array.isArray(authUser.roles)) ? authUser.roles : [authUser.role];
+    var name = authUser.username.split('@')[0].replace(/\./g, ' ');
+    name = name.split(' ').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+
+    document.getElementById('topUsername').textContent = authUser.username;
+    var roleBadges = roles.map(function(r) { return '<span class="roles-badge">' + r.replace('_', ' ') + '</span>'; }).join(' ');
+    document.getElementById('welcomeMsg').innerHTML = 'Welcome to UNINOVIS Intranet site.<br><span style="font-size:0.75em;font-weight:400;color:#666;">From here you have access to services only accessible to UNINOVIS members.</span>';
+
+    renderSections(roles);
+}
+
+async function doLogin() {
+    var username = document.getElementById('loginUser').value.trim();
+    var password = document.getElementById('loginPass').value;
+    if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
+    try {
+        var resp = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, password: password })
+        });
+        if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
+        var data = await resp.json();
+        authToken = data.token;
+        localStorage.setItem('tommi_token', authToken);
+        localStorage.setItem('uninovis_token', authToken);
+        authUser = data;
+        // Check for redirect parameter
+        var params = new URLSearchParams(window.location.search);
+        var redirect = params.get('redirect');
+        if (redirect) {
+            window.location.href = redirect;
+            return;
+        }
+        showMain();
+    } catch (e) { document.getElementById('loginError').textContent = 'Connection error'; }
+}
+
+function doLogout() {
+    fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + authToken } }).catch(function(){});
+    authToken = ''; authUser = null;
+    localStorage.removeItem('tommi_token');
+    localStorage.removeItem('uninovis_token');
+    localStorage.removeItem('uninovis_admin_token');
+    showLogin();
+}
+
+document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
+
+// ── Render sections ──────────────────────────────────────────────
+function renderSections(roles) {
+    var html = '';
+    SECTIONS.forEach(function(section) {
+        if (!sectionVisible(section, roles)) return;
+        var toolsHtml = '';
+        section.tools.forEach(function(tool) {
+            if (!canAccess(tool.id, roles)) return;
+            var tagClass = tool.status === 'active' ? 'tag-active' : 'tag-soon';
+            var tagText = tool.status === 'active' ? 'Active' : 'Coming soon';
+            var href = tool.status === 'active' ? tool.url : '#';
+            var clickAttr = '';
+            if (tool.status !== 'active') {
+                clickAttr = ' onclick="event.preventDefault();" style="opacity:0.6;cursor:default;"';
+            } else if (tool.action) {
+                clickAttr = ' onclick="event.preventDefault();' + tool.action + '()"';
+                href = '#';
+            }
+            toolsHtml += '<a class="tool-card" href="' + href + '"' + clickAttr + '>'
+                + '<div class="tool-icon">' + tool.icon + '</div>'
+                + '<h3>' + tool.name + '</h3>'
+                + '<p>' + tool.desc + '</p>'
+                + '<span class="tool-tag ' + tagClass + '">' + tagText + '</span>'
+                + '</a>';
+        });
+        if (!toolsHtml) return;
+        html += '<div class="section">'
+            + '<div class="section-title">' + section.title + '</div>'
+            + '<div class="tools-grid">' + toolsHtml + '</div>'
+            + '</div>';
+    });
+    if (!html) {
+        html = '<p style="color:#888;text-align:center;">No tools available for your role. Contact an administrator.</p>';
+    }
+    document.getElementById('toolSections').innerHTML = html;
+}
+
+// ── Init ─────────────────────────────────────────────────────────
+checkAuth();
+
+// ── User Management Panel ────────────────────────────────────────
+var _umUsers = [];
+
+function openUserManagement() {
+    var existing = document.getElementById('um-overlay');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'um-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
+
+    var panel = document.createElement('div');
+    panel.style.cssText = 'background:#fff;border-radius:12px;padding:24px;width:620px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);';
+    panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+        + '<h2 style="margin:0;font-size:1.15rem;color:#2D3876;">User Management</h2>'
+        + '<button onclick="closeUserManagement()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+        + '</div>'
+        + '<div id="um-message" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+        + '<div style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">'
+        + '<h3 style="margin:0 0 8px 0;font-size:0.9rem;">Create new user</h3>'
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">'
+        + '<input id="um-new-user" type="text" placeholder="Email" style="flex:1;min-width:120px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
+        + '<input id="um-new-pwd" type="text" placeholder="Password" style="width:120px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
+        + '<select id="um-new-roles" multiple style="width:160px;padding:4px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.8rem;height:60px;">'
+        + '<option value="student">student</option>'
+        + '<option value="admin_staff">admin_staff</option>'
+        + '<option value="teaching_staff">teaching_staff</option>'
+        + '<option value="tester">tester</option>'
+        + '<option value="superuser">superuser</option>'
+        + '</select>'
+        + '<button onclick="umCreateUser()" style="background:#2D3876;color:#fff;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:0.85rem;">Create</button>'
+        + '</div>'
+        + '<p style="font-size:0.72rem;color:#888;margin-top:4px;">Hold Ctrl/Cmd to select multiple roles</p>'
+        + '</div>'
+        + '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">'
+        + '<input id="um-search" type="text" placeholder="Search..." oninput="umRender()" style="flex:1;min-width:120px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
+        + '<select id="um-role-filter" onchange="umRender()" style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
+        + '<option value="">All roles</option>'
+        + '<option value="student">student</option>'
+        + '<option value="admin_staff">admin_staff</option>'
+        + '<option value="teaching_staff">teaching_staff</option>'
+        + '<option value="tester">tester</option>'
+        + '<option value="superuser">superuser</option>'
+        + '</select>'
+        + '</div>'
+        + '<div id="um-list" style="font-size:0.85rem;">Loading...</div>';
+
+    overlay.appendChild(panel);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeUserManagement(); });
+    document.body.appendChild(overlay);
+    umLoadUsers();
+}
+
+function closeUserManagement() {
+    var el = document.getElementById('um-overlay');
+    if (el) el.remove();
+}
+
+function umMsg(text, ok) {
+    var el = document.getElementById('um-message');
+    if (!el) return;
+    el.style.display = '';
+    el.style.background = ok ? '#dcfce7' : '#fee2e2';
+    el.style.color = ok ? '#166534' : '#991b1b';
+    el.textContent = text;
+    setTimeout(function() { el.style.display = 'none'; }, 3000);
+}
+
+async function umFetch(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' }, opts.headers || {});
+    return fetch(path, opts);
+}
+
+async function umLoadUsers() {
+    try {
+        var res = await umFetch('/api/auth/users');
+        _umUsers = await res.json();
+        umRender();
+    } catch (e) {
+        document.getElementById('um-list').innerHTML = '<p style="color:#dc3545;">Error loading users</p>';
+    }
+}
+
+function umRender() {
+    var container = document.getElementById('um-list');
+    if (!container) return;
+    var search = (document.getElementById('um-search').value || '').toLowerCase();
+    var roleFilter = document.getElementById('um-role-filter').value;
+
+    var filtered = _umUsers.filter(function(u) {
+        if (search && u.username.toLowerCase().indexOf(search) === -1) return false;
+        if (roleFilter) {
+            var roles = u.roles || [u.role];
+            if (roles.indexOf(roleFilter) === -1) return false;
+        }
+        return true;
+    });
+
+    var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
+        + '<tr style="border-bottom:2px solid #e2e8f0;"><th style="text-align:left;padding:6px;">User</th><th style="text-align:left;padding:6px;">Roles</th><th style="padding:6px;width:120px;">Actions</th></tr>';
+    filtered.forEach(function(u) {
+        var roles = u.roles || [u.role];
+        var roleBadges = roles.map(function(r) {
+            return '<span style="display:inline-block;background:#e8e0f0;color:#2D3876;padding:1px 6px;border-radius:8px;font-size:0.72rem;margin-right:2px;">' + r + '</span>';
+        }).join('');
+        html += '<tr style="border-bottom:1px solid #f0f0f0;">'
+            + '<td style="padding:5px 6px;">' + u.username + (u.provisional_password ? ' <span style="color:#ea4335;font-size:0.7rem;">(provisional)</span>' : '') + '</td>'
+            + '<td style="padding:5px 6px;">' + roleBadges + '</td>'
+            + '<td style="padding:5px 6px;text-align:center;">'
+            + '<button onclick="umEditRoles(\'' + u.username.replace(/'/g, "\\'") + '\')" style="background:none;border:1px solid #ccc;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:0.75rem;margin-right:4px;">Roles</button>'
+            + '<button onclick="umDeleteUser(\'' + u.username.replace(/'/g, "\\'") + '\')" style="background:none;border:1px solid #dc3545;color:#dc3545;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:0.75rem;">Delete</button>'
+            + '</td></tr>';
+    });
+    html += '</table>';
+    html += '<p style="font-size:0.75rem;color:#888;margin-top:6px;">' + filtered.length + ' of ' + _umUsers.length + ' users</p>';
+    container.innerHTML = html;
+}
+
+async function umCreateUser() {
+    var username = document.getElementById('um-new-user').value.trim();
+    var password = document.getElementById('um-new-pwd').value;
+    var sel = document.getElementById('um-new-roles');
+    var roles = [];
+    for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].selected) roles.push(sel.options[i].value);
+    }
+    if (!username || !password) { umMsg('Username and password required', false); return; }
+    if (!roles.length) roles = ['student'];
+    try {
+        var res = await umFetch('/api/auth/users', {
+            method: 'POST',
+            body: JSON.stringify({ username: username, password: password, role: roles[0], roles: roles })
+        });
+        if (!res.ok) { var err = await res.json(); umMsg(err.detail || 'Error', false); return; }
+        umMsg('User created', true);
+        document.getElementById('um-new-user').value = '';
+        document.getElementById('um-new-pwd').value = '';
+        umLoadUsers();
+    } catch (e) { umMsg('Request failed', false); }
+}
+
+async function umEditRoles(username) {
+    var user = _umUsers.find(function(u) { return u.username === username; });
+    if (!user) return;
+    var currentRoles = user.roles || [user.role];
+    var allRoles = ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'];
+    var checkboxes = allRoles.map(function(r) {
+        var checked = currentRoles.indexOf(r) !== -1 ? ' checked' : '';
+        return '<label style="display:block;font-size:0.85rem;margin:2px 0;"><input type="checkbox" value="' + r + '"' + checked + '> ' + r + '</label>';
+    }).join('');
+
+    var dialog = document.createElement('div');
+    dialog.id = 'um-role-dialog';
+    dialog.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:1100;display:flex;justify-content:center;align-items:center;';
+    dialog.innerHTML = '<div style="background:#fff;border-radius:10px;padding:20px;width:300px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+        + '<h3 style="margin:0 0 12px 0;font-size:0.95rem;color:#2D3876;">Roles for ' + username + '</h3>'
+        + '<div id="um-role-checks">' + checkboxes + '</div>'
+        + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">'
+        + '<button onclick="document.getElementById(\'um-role-dialog\').remove()" style="background:#e9ecef;border:1px solid #ccc;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Cancel</button>'
+        + '<button onclick="umSaveRoles(\'' + username.replace(/'/g, "\\'") + '\')" style="background:#2D3876;color:#fff;border:none;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Save</button>'
+        + '</div></div>';
+    document.body.appendChild(dialog);
+}
+
+async function umSaveRoles(username) {
+    var checks = document.querySelectorAll('#um-role-checks input:checked');
+    var roles = [];
+    checks.forEach(function(cb) { roles.push(cb.value); });
+    if (!roles.length) { alert('Select at least one role'); return; }
+    try {
+        var res = await umFetch('/api/auth/users/' + encodeURIComponent(username) + '/role', {
+            method: 'PUT',
+            body: JSON.stringify({ role: roles[0], roles: roles })
+        });
+        if (!res.ok) { var err = await res.json(); umMsg(err.detail || 'Error', false); return; }
+        var dialog = document.getElementById('um-role-dialog');
+        if (dialog) dialog.remove();
+        umMsg('Roles updated for ' + username, true);
+        umLoadUsers();
+    } catch (e) { umMsg('Request failed', false); }
+}
+
+async function umDeleteUser(username) {
+    if (!confirm('Delete user ' + username + '?')) return;
+    try {
+        var res = await umFetch('/api/auth/users/' + encodeURIComponent(username), { method: 'DELETE' });
+        if (!res.ok) { var err = await res.json(); umMsg(err.detail || 'Error', false); return; }
+        umMsg('User deleted', true);
+        umLoadUsers();
+    } catch (e) { umMsg('Request failed', false); }
+}
+
+</script>
+</body>
+</html>

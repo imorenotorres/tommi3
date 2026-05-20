@@ -22,7 +22,7 @@ function getAuthUsername() {
 async function checkAuth() {
     const token = getAuthToken();
     if (!token) {
-        window.location.href = '/login';
+        window.location.href = '/intranet?redirect=' + encodeURIComponent(window.location.pathname);
         return false;
     }
     try {
@@ -32,7 +32,7 @@ async function checkAuth() {
         if (!res.ok) throw new Error('unauthorized');
         const data = await res.json();
         if (data.provisional_password) {
-            window.location.href = '/login';
+            window.location.href = '/intranet';
             return false;
         }
         // Study participants must use /study, not the normal interface
@@ -43,12 +43,15 @@ async function checkAuth() {
         // Update stored info
         localStorage.setItem('tommi_role', data.role);
         localStorage.setItem('tommi_username', data.username);
+        // Update nav bar username
+        const navUser = document.getElementById('uninovis-nav-user');
+        if (navUser) navUser.textContent = data.username;
         return true;
     } catch {
         localStorage.removeItem('tommi_token');
         localStorage.removeItem('tommi_role');
         localStorage.removeItem('tommi_username');
-        window.location.href = '/login';
+        window.location.href = '/intranet';
         return false;
     }
 }
@@ -57,7 +60,7 @@ async function checkAuth() {
 function authFetch(url, options = {}) {
     const token = getAuthToken();
     if (!token) {
-        window.location.href = '/login';
+        window.location.href = '/intranet';
         return Promise.reject(new Error('Not authenticated'));
     }
     options.headers = options.headers || {};
@@ -86,7 +89,7 @@ function doLogout() {
     localStorage.removeItem('tommi_username');
     localStorage.removeItem('tommi_transparency');
     localStorage.removeItem('tommi_study_mode');
-    window.location.href = '/login';
+    window.location.href = '/intranet';
 }
 
 // Estado de la aplicación
