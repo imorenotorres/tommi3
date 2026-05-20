@@ -310,6 +310,8 @@ checkAuth();
 
 // ── User Management Panel ────────────────────────────────────────
 var _umUsers = [];
+var _umDirUsers = {};  // email -> directory user info
+var _umUniversities = [];
 
 function openUserManagement() {
     var existing = document.getElementById('um-overlay');
@@ -352,6 +354,14 @@ function openUserManagement() {
         + '<option value="tester">tester</option>'
         + '<option value="superuser">superuser</option>'
         + '</select>'
+        + '<select id="um-uni-filter" onchange="umRender()" style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
+        + '<option value="">All universities</option>'
+        + '</select>'
+        + '<select id="um-sort" onchange="umRender()" style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
+        + '<option value="name">Sort by name</option>'
+        + '<option value="email">Sort by email</option>'
+        + '<option value="university">Sort by university</option>'
+        + '</select>'
         + '</div>'
         + '<div id="um-list" style="font-size:0.85rem;">Loading...</div>';
 
@@ -386,10 +396,42 @@ async function umLoadUsers() {
     try {
         var res = await umFetch('/api/auth/users');
         _umUsers = await res.json();
+
+        // Load directory data to get university and name info
+        try {
+            var dirRes = await umFetch('/directory/api/data');
+            var dirData = await dirRes.json();
+            _umDirUsers = {};
+            (dirData.users || []).forEach(function(du) {
+                if (du.email) {
+                    du.email.toLowerCase().split(';').forEach(function(e) {
+                        _umDirUsers[e.trim()] = du;
+                    });
+                }
+            });
+            // Populate university filter
+            var unis = new Set();
+            (dirData.users || []).forEach(function(du) { if (du.university) unis.add(du.university); });
+            _umUniversities = Array.from(unis).sort();
+            var uniSel = document.getElementById('um-uni-filter');
+            if (uniSel) {
+                var val = uniSel.value;
+                uniSel.innerHTML = '<option value="">All universities</option>';
+                _umUniversities.forEach(function(u) {
+                    uniSel.innerHTML += '<option value="' + u + '">' + u + '</option>';
+                });
+                uniSel.value = val;
+            }
+        } catch (e) { /* Directory not available, continue without it */ }
+
         umRender();
     } catch (e) {
         document.getElementById('um-list').innerHTML = '<p style="color:#dc3545;">Error loading users</p>';
     }
+}
+
+function umGetDirInfo(username) {
+    return _umDirUsers[username.toLowerCase()] || null;
 }
 
 function umRender() {
@@ -397,34 +439,89 @@ function umRender() {
     if (!container) return;
     var search = (document.getElementById('um-search').value || '').toLowerCase();
     var roleFilter = document.getElementById('um-role-filter').value;
+    var uniFilter = (document.getElementById('um-uni-filter') || {}).value || '';
+    var sortBy = (document.getElementById('um-sort') || {}).value || 'name';
 
-    var filtered = _umUsers.filter(function(u) {
-        if (search && u.username.toLowerCase().indexOf(search) === -1) return false;
-        if (roleFilter) {
-            var roles = u.roles || [u.role];
-            if (roles.indexOf(roleFilter) === -1) return false;
+    // Enrich users with directory info
+    var enriched = _umUsers.map(function(u) {
+        var dir = umGetDirInfo(u.username);
+        return {
+            username: u.username,
+            role: u.role,
+            roles: u.roles || [u.role],
+            provisional_password: u.provisional_password,
+            name: dir ? (dir.first_name + ' ' + dir.family_name) : '',
+            university: dir ? (dir.university || '') : '',
+        };
+    });
+
+    // Filter
+    var filtered = enriched.filter(function(u) {
+        if (search) {
+            var s = u.username.toLowerCase() + ' ' + u.name.toLowerCase();
+            if (s.indexOf(search) === -1) return false;
         }
+        if (roleFilter && u.roles.indexOf(roleFilter) === -1) return false;
+        if (uniFilter && u.university !== uniFilter) return false;
         return true;
     });
 
+    // Sort
+    filtered.sort(function(a, b) {
+        if (sortBy === 'name') {
+            return (a.name || a.username).localeCompare(b.name || b.username);
+        } else if (sortBy === 'email') {
+            return a.username.localeCompare(b.username);
+        } else {
+            var c = (a.university || 'ZZZ').localeCompare(b.university || 'ZZZ');
+            return c !== 0 ? c : (a.name || a.username).localeCompare(b.name || b.username);
+        }
+    });
+
+    // Group by university if sorting by university
+    var html = '';
+    if (sortBy === 'university') {
+        var groups = {};
+        var order = [];
+        filtered.forEach(function(u) {
+            var uni = u.university || '(No university)';
+            if (!groups[uni]) { groups[uni] = []; order.push(uni); }
+            groups[uni].push(u);
+        });
+        order.forEach(function(uni) {
+            html += '<div style="margin-top:10px;margin-bottom:4px;padding:4px 8px;background:#e9ecef;border-radius:4px;font-weight:600;font-size:0.82rem;color:#2D3876;">'
+                + uni + ' <span style="font-weight:400;color:#666;">(' + groups[uni].length + ')</span></div>';
+            html += umTableHtml(groups[uni]);
+        });
+    } else {
+        html = umTableHtml(filtered);
+    }
+
+    html += '<p style="font-size:0.75rem;color:#888;margin-top:6px;">' + filtered.length + ' of ' + _umUsers.length + ' users</p>';
+    container.innerHTML = html;
+}
+
+function umTableHtml(users) {
     var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
-        + '<tr style="border-bottom:2px solid #e2e8f0;"><th style="text-align:left;padding:6px;">User</th><th style="text-align:left;padding:6px;">Roles</th><th style="padding:6px;width:120px;">Actions</th></tr>';
-    filtered.forEach(function(u) {
-        var roles = u.roles || [u.role];
-        var roleBadges = roles.map(function(r) {
-            return '<span style="display:inline-block;background:#e8e0f0;color:#2D3876;padding:1px 6px;border-radius:8px;font-size:0.72rem;margin-right:2px;">' + r + '</span>';
+        + '<tr style="border-bottom:2px solid #e2e8f0;"><th style="text-align:left;padding:6px;">Name</th><th style="text-align:left;padding:6px;">Email</th><th style="text-align:left;padding:6px;">Uni</th><th style="text-align:left;padding:6px;">Roles</th><th style="padding:6px;width:110px;">Actions</th></tr>';
+    users.forEach(function(u) {
+        var roleBadges = u.roles.map(function(r) {
+            return '<span style="display:inline-block;background:#e8e0f0;color:#2D3876;padding:1px 6px;border-radius:8px;font-size:0.68rem;margin-right:2px;">' + r + '</span>';
         }).join('');
+        var nameDisplay = u.name || '<span style="color:#aaa;">-</span>';
+        var uniDisplay = u.university ? '<span style="font-size:0.72rem;">' + u.university + '</span>' : '<span style="color:#aaa;font-size:0.72rem;">-</span>';
         html += '<tr style="border-bottom:1px solid #f0f0f0;">'
-            + '<td style="padding:5px 6px;">' + u.username + (u.provisional_password ? ' <span style="color:#ea4335;font-size:0.7rem;">(provisional)</span>' : '') + '</td>'
-            + '<td style="padding:5px 6px;">' + roleBadges + '</td>'
-            + '<td style="padding:5px 6px;text-align:center;">'
-            + '<button onclick="umEditRoles(\'' + u.username.replace(/'/g, "\\'") + '\')" style="background:none;border:1px solid #ccc;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:0.75rem;margin-right:4px;">Roles</button>'
-            + '<button onclick="umDeleteUser(\'' + u.username.replace(/'/g, "\\'") + '\')" style="background:none;border:1px solid #dc3545;color:#dc3545;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:0.75rem;">Delete</button>'
+            + '<td style="padding:4px 6px;">' + nameDisplay + (u.provisional_password ? ' <span style="color:#ea4335;font-size:0.65rem;">(prov.)</span>' : '') + '</td>'
+            + '<td style="padding:4px 6px;font-size:0.78rem;color:#555;">' + u.username + '</td>'
+            + '<td style="padding:4px 6px;">' + uniDisplay + '</td>'
+            + '<td style="padding:4px 6px;">' + roleBadges + '</td>'
+            + '<td style="padding:4px 6px;text-align:center;">'
+            + '<button onclick="umEditRoles(\'' + u.username.replace(/'/g, "\\'") + '\')" style="background:none;border:1px solid #ccc;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;margin-right:3px;">Roles</button>'
+            + '<button onclick="umDeleteUser(\'' + u.username.replace(/'/g, "\\'") + '\')" style="background:none;border:1px solid #dc3545;color:#dc3545;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;">Del</button>'
             + '</td></tr>';
     });
     html += '</table>';
-    html += '<p style="font-size:0.75rem;color:#888;margin-top:6px;">' + filtered.length + ' of ' + _umUsers.length + ' users</p>';
-    container.innerHTML = html;
+    return html;
 }
 
 async function umCreateUser() {
