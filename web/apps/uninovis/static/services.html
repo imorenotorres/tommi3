@@ -58,10 +58,12 @@
             td::before { content: attr(data-label); font-weight: 600; color: #4250b3; display: block; font-size: 0.8em; margin-bottom: 2px; }
         }
     </style>
+    <link rel="stylesheet" href="/static/nav.css">
 </head>
 <body>
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ crumbs: [{label:'Administration', href:'/'}], current: 'Services Catalogue' });</script>
 <div class="container">
-    <a href="/uninovis/" class="back-link">&larr; Back to UNINOVIS Admin Tools</a>
     <h1>UNINOVIS Intranet Services</h1>
     <p class="subtitle">Complete catalogue of digital services available to the UNINOVIS consortium</p>
 
@@ -220,6 +222,16 @@
                     <td data-label="Owner"><span class="badge badge-wp">UMA</span></td>
                     <td data-label="Auth Server"><span class="badge badge-gloria">Gloria</span></td>
                     <td data-label="URL"><a href="https://gloria.uma.es/researcher_connect/" target="_blank">gloria.uma.es/researcher_connect</a></td>
+                </tr>
+                <tr>
+                    <td data-label="Service">Event Tracker</td>
+                    <td data-label="Description">Shared calendar for tracking all alliance activities. Category filters, calendar views, list view, iCal subscription, personal events, recurring events, participant management.</td>
+                    <td data-label="WP"><span class="badge badge-wp">WP1</span></td>
+                    <td data-label="Managed by"><span class="badge badge-cm">Content Manager</span></td>
+                    <td data-label="Status"><span class="badge" style="background:#d1ecf1;color:#0c5460;">Testing</span></td>
+                    <td data-label="Owner"><span class="badge badge-wp">UMA</span></td>
+                    <td data-label="Auth Server"><span class="badge badge-gloria">Gloria</span></td>
+                    <td data-label="URL"><a href="https://gloria.uma.es/event-calendar/" target="_blank">gloria.uma.es/event-calendar</a></td>
                 </tr>
                 <tr>
                     <td data-label="Service">Research Proposals</td>

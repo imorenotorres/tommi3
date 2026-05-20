@@ -344,6 +344,21 @@ function openUserManagement() {
         + '</div>'
         + '<p style="font-size:0.72rem;color:#888;margin-top:4px;">Hold Ctrl/Cmd to select multiple roles</p>'
         + '</div>'
+        + '<div style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">'
+        + '<h3 style="margin:0 0 8px 0;font-size:0.9rem;">Invite user by email</h3>'
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">'
+        + '<input id="um-invite-email" type="email" placeholder="Email address" style="flex:1;min-width:180px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
+        + '<select id="um-invite-role" style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
+        + '<option value="teaching_staff">teaching_staff</option>'
+        + '<option value="admin_staff">admin_staff</option>'
+        + '<option value="student">student</option>'
+        + '<option value="tester">tester</option>'
+        + '<option value="superuser">superuser</option>'
+        + '</select>'
+        + '<button onclick="umInviteUser()" style="background:#2D3876;color:#fff;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:0.85rem;">Send Invitation</button>'
+        + '</div>'
+        + '<p id="um-smtp-status" style="font-size:0.72rem;color:#888;margin-top:4px;">Checking email configuration...</p>'
+        + '</div>'
         + '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">'
         + '<input id="um-search" type="text" placeholder="Search..." oninput="umRender()" style="flex:1;min-width:120px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
         + '<select id="um-role-filter" onchange="umRender()" style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
@@ -369,6 +384,7 @@ function openUserManagement() {
     overlay.addEventListener('click', function(e) { if (e.target === overlay) closeUserManagement(); });
     document.body.appendChild(overlay);
     umLoadUsers();
+    umCheckSmtp();
 }
 
 function closeUserManagement() {
@@ -450,6 +466,7 @@ function umRender() {
             role: u.role,
             roles: u.roles || [u.role],
             provisional_password: u.provisional_password,
+            pending_invite: u.pending_invite,
             name: dir ? (dir.first_name + ' ' + dir.family_name) : '',
             university: dir ? (dir.university || '') : '',
         };
@@ -510,14 +527,21 @@ function umTableHtml(users) {
         }).join('');
         var nameDisplay = u.name || '<span style="color:#aaa;">-</span>';
         var uniDisplay = u.university ? '<span style="font-size:0.72rem;">' + u.university + '</span>' : '<span style="color:#aaa;font-size:0.72rem;">-</span>';
+        var statusBadge = '';
+        if (u.pending_invite) statusBadge = ' <span style="color:#856404;font-size:0.65rem;background:#fff3cd;padding:1px 4px;border-radius:4px;">invited</span>';
+        else if (u.provisional_password) statusBadge = ' <span style="color:#ea4335;font-size:0.65rem;">(prov.)</span>';
+        var esc_user = u.username.replace(/'/g, "\\'");
         html += '<tr style="border-bottom:1px solid #f0f0f0;">'
-            + '<td style="padding:4px 6px;">' + nameDisplay + (u.provisional_password ? ' <span style="color:#ea4335;font-size:0.65rem;">(prov.)</span>' : '') + '</td>'
+            + '<td style="padding:4px 6px;">' + nameDisplay + statusBadge + '</td>'
             + '<td style="padding:4px 6px;font-size:0.78rem;color:#555;">' + u.username + '</td>'
             + '<td style="padding:4px 6px;">' + uniDisplay + '</td>'
             + '<td style="padding:4px 6px;">' + roleBadges + '</td>'
-            + '<td style="padding:4px 6px;text-align:center;">'
-            + '<button onclick="umEditRoles(\'' + u.username.replace(/'/g, "\\'") + '\')" style="background:none;border:1px solid #ccc;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;margin-right:3px;">Roles</button>'
-            + '<button onclick="umDeleteUser(\'' + u.username.replace(/'/g, "\\'") + '\')" style="background:none;border:1px solid #dc3545;color:#dc3545;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;">Del</button>'
+            + '<td style="padding:4px 6px;text-align:center;white-space:nowrap;">'
+            + '<button onclick="umEditRoles(\'' + esc_user + '\')" style="background:none;border:1px solid #ccc;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;margin-right:2px;">Roles</button>';
+        if (u.pending_invite) {
+            html += '<button onclick="umResendInvite(\'' + esc_user + '\')" style="background:none;border:1px solid #2D3876;color:#2D3876;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;margin-right:2px;">Resend</button>';
+        }
+        html += '<button onclick="umDeleteUser(\'' + esc_user + '\')" style="background:none;border:1px solid #dc3545;color:#dc3545;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;">Del</button>'
             + '</td></tr>';
     });
     html += '</table>';
@@ -595,6 +619,57 @@ async function umDeleteUser(username) {
         if (!res.ok) { var err = await res.json(); umMsg(err.detail || 'Error', false); return; }
         umMsg('User deleted', true);
         umLoadUsers();
+    } catch (e) { umMsg('Request failed', false); }
+}
+
+async function umCheckSmtp() {
+    try {
+        var res = await umFetch('/api/auth/smtp-status');
+        var data = await res.json();
+        var el = document.getElementById('um-smtp-status');
+        if (el) {
+            if (data.configured) {
+                el.textContent = 'Email service is configured and ready.';
+                el.style.color = '#34a853';
+            } else {
+                el.innerHTML = 'Email not configured. Add SMTP_HOST, SMTP_USER, SMTP_PASSWORD to web/.env';
+                el.style.color = '#ea4335';
+            }
+        }
+    } catch (e) {}
+}
+
+async function umInviteUser() {
+    var email = document.getElementById('um-invite-email').value.trim();
+    var role = document.getElementById('um-invite-role').value;
+    if (!email) { umMsg('Enter an email address', false); return; }
+    try {
+        var res = await umFetch('/api/auth/invite', {
+            method: 'POST',
+            body: JSON.stringify({ username: email, role: role })
+        });
+        var data = await res.json();
+        if (!res.ok) { umMsg(data.detail || 'Error', false); return; }
+        if (data.email_sent) {
+            umMsg('Invitation sent to ' + email, true);
+        } else {
+            umMsg('User created but email could not be sent. ' + (data.warning || ''), false);
+        }
+        document.getElementById('um-invite-email').value = '';
+        umLoadUsers();
+    } catch (e) { umMsg('Request failed', false); }
+}
+
+async function umResendInvite(username) {
+    try {
+        var res = await umFetch('/api/auth/invite/resend/' + encodeURIComponent(username), { method: 'POST' });
+        var data = await res.json();
+        if (!res.ok) { umMsg(data.detail || 'Error resending', false); return; }
+        if (data.email_sent) {
+            umMsg('Invitation resent to ' + username, true);
+        } else {
+            umMsg('Could not send email. ' + (data.warning || ''), false);
+        }
     } catch (e) { umMsg('Request failed', false); }
 }
 
