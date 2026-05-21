@@ -247,15 +247,15 @@ On the backend, write protection enforces these boundaries. When a tester saves,
 
 | Field | Values | Effect | Editable by |
 |-------|--------|--------|-------------|
-| `prompt_level` | `stringent` / `tolerant` / `lax` | Controls how many prompt sections are included in the system prompt. **Stringent**: identity + rules + strict (all guardrails). **Tolerant**: identity + rules (no strict section). **Lax**: identity only (minimal constraints). | tester+ |
-| `transparency_level` | `scaffolded` / `unscaffolded` | **Scaffolded**: shows colored banners (green/yellow/red) on each response section indicating data source reliability. **Unscaffolded**: no banners, plain responses. Used for research comparison studies. | tester+ |
-| `humility_level` | `off` / `moderate` / `strict` | **Off**: no post-processing. **Moderate**: adds hedging prefixes to sentences with ungrounded claims. **Strict**: hedges all uncertain claims + appends a disclaimer footer. | tester+ |
-| `reliability_display` | `visual` / `text_style` / `both` / `none` | **Visual**: color badges in the sidebar. **Text style**: hedging language injected into LLM instructions. **Both**: badges + hedging. **None**: disabled. | tester+ |
-| LLM model | (depends on provider) | Affects response quality, speed, and cost. Client-side selection sent with each request. | tester+ |
-| `extra_scope_terms` | list of strings | Domain terms that are in-scope but not yet in the glossary or papers. Used by the two-axis banner system. | tester+ |
-| `example_queries` | list of strings | Shown in the UI as suggested questions for the user. | tester+ |
-| `description` | text | Agent description shown in the UI. | tester+ |
-| `welcome_message` | text | Greeting shown when the agent is selected. | tester+ |
+| `prompt_level` | `stringent` / `tolerant` / `lax` | Controls how many prompt sections are included in the system prompt. **Stringent**: identity + rules + strict (all guardrails). **Tolerant**: identity + rules (no strict section). **Lax**: identity only (minimal constraints). | tester+ | immediate |
+| `transparency_level` | `scaffolded` / `unscaffolded` | **Scaffolded**: shows colored banners (green/yellow/red) on each response section indicating data source reliability. **Unscaffolded**: no banners, plain responses. Used for research comparison studies. | tester+ | immediate |
+| LLM model | (depends on provider) | Affects response quality, speed, and cost. Client-side selection sent with each request. | tester+ | immediate |
+| `humility_level` | `off` / `moderate` / `strict` | **Off**: no post-processing. **Moderate**: adds hedging prefixes to sentences with ungrounded claims. **Strict**: hedges all uncertain claims + appends a disclaimer footer. | superuser only | restart |
+| `reliability_display` | `visual` / `text_style` / `both` / `none` | **Visual**: color badges in the sidebar. **Text style**: hedging language injected into LLM instructions. **Both**: badges + hedging. **None**: disabled. | superuser only | restart |
+| `extra_scope_terms` | list of strings | Domain terms that are in-scope but not yet in the glossary or papers. Used by the two-axis banner system. | superuser only | restart |
+| `example_queries` | list of strings | Shown in the UI as suggested questions for the user. | superuser only | restart |
+| `description` | text | Agent description shown in the UI. | superuser only | restart |
+| `welcome_message` | text | Greeting shown when the agent is selected. | superuser only | restart |
 | `agent_name` | text | Display name of the agent. | superuser only |
 | `agent_id` | text | Internal identifier. Changing this requires corresponding filesystem changes. | superuser only |
 | `universities` | object | University definitions with coordinates. | superuser only |

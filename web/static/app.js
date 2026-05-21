@@ -3215,7 +3215,6 @@ function _renderConfigForm(config, prompts, role) {
 
     const c = config;
     const isSuperuser = role === 'superuser';
-    // Testers and superusers both see the editor; testers see a subset
     const exQ = (c.example_queries || []).join('\n');
 
     let html = '';
@@ -3223,7 +3222,7 @@ function _renderConfigForm(config, prompts, role) {
     // -- Role indicator --
     const roleLabel = isSuperuser ? 'Superuser' : 'Tester';
     const roleColor = isSuperuser ? '#dc2626' : '#d97706';
-    html += `<div style="margin-bottom:0.8rem;font-size:0.8rem;color:${roleColor};"><strong>${roleLabel} view</strong>${isSuperuser ? '' : ' — some fields are restricted to superusers'}</div>`;
+    html += `<div style="margin-bottom:0.8rem;font-size:0.8rem;color:${roleColor};"><strong>${roleLabel} view</strong>${isSuperuser ? '' : ' — changes apply immediately, no server restart needed'}</div>`;
 
     // -- Config section --
     html += '<div style="border-bottom:2px solid #e2e8f0;padding-bottom:0.3rem;margin-bottom:0.8rem;"><strong style="font-size:0.95rem;color:#1e293b;">Configuration</strong></div>';
@@ -3235,31 +3234,36 @@ function _renderConfigForm(config, prompts, role) {
     }
     html += _cfgField('Prompt level', 'cfg-prompt-level', 'select', c.prompt_level || 'stringent', ['stringent', 'tolerant', 'lax']);
     html += _cfgField('Transparency', 'cfg-transparency', 'select', c.transparency_level || 'scaffolded', ['scaffolded', 'unscaffolded']);
-    html += _cfgField('Reliability display', 'cfg-reliability-display', 'select', c.reliability_display || 'visual', ['visual', 'text_style', 'both', 'none']);
-    html += _cfgField('Humility level', 'cfg-humility', 'select', c.humility_level || 'off', ['off', 'moderate', 'strict']);
-    html += _cfgField('Show history', 'cfg-show-history', 'checkbox', c.show_history !== false);
-    html += _cfgField('Audit log', 'cfg-audit-log', 'checkbox', !!c.audit_log_enabled);
     // LLM model selector (populated from available models)
     const llmModels = state.availableModels && state.availableModels.length > 0 ? state.availableModels : [state.currentModel || 'default'];
     html += _cfgField('LLM model', 'cfg-llm-model', 'select', state.currentModel || llmModels[0], llmModels);
+
+    if (isSuperuser) {
+        html += _cfgField('Reliability display', 'cfg-reliability-display', 'select', c.reliability_display || 'visual', ['visual', 'text_style', 'both', 'none']);
+        html += _cfgField('Humility level', 'cfg-humility', 'select', c.humility_level || 'off', ['off', 'moderate', 'strict']);
+        html += _cfgField('Show history', 'cfg-show-history', 'checkbox', c.show_history !== false);
+        html += _cfgField('Audit log', 'cfg-audit-log', 'checkbox', !!c.audit_log_enabled);
+    }
     html += '</div>';
 
-    html += _cfgField('Description', 'cfg-description', 'textarea', c.description || '');
-    html += _cfgField('Welcome message', 'cfg-welcome', 'textarea', c.welcome_message || '');
-    html += _cfgField('Example queries (one per line)', 'cfg-examples', 'textarea', exQ);
+    if (isSuperuser) {
+        html += _cfgField('Description', 'cfg-description', 'textarea', c.description || '');
+        html += _cfgField('Welcome message', 'cfg-welcome', 'textarea', c.welcome_message || '');
+        html += _cfgField('Example queries (one per line)', 'cfg-examples', 'textarea', exQ);
 
-    // -- Scope terms section (tester+) --
-    const scopeTerms = (c.extra_scope_terms || []).join('\n');
-    html += '<div style="border-bottom:2px solid #e2e8f0;padding-bottom:0.3rem;margin-bottom:0.8rem;margin-top:1.2rem;"><strong style="font-size:0.95rem;color:#1e293b;">Topical Scope Terms</strong></div>';
-    html += '<p style="font-size:0.8rem;color:#64748b;margin:0 0 0.5rem;">Domain terms that are in-scope but not yet in the glossary or papers. One per line.</p>';
-    html += _cfgField('Extra scope terms', 'cfg-scope-terms', 'textarea', scopeTerms);
+        // -- Scope terms section --
+        const scopeTerms = (c.extra_scope_terms || []).join('\n');
+        html += '<div style="border-bottom:2px solid #e2e8f0;padding-bottom:0.3rem;margin-bottom:0.8rem;margin-top:1.2rem;"><strong style="font-size:0.95rem;color:#1e293b;">Topical Scope Terms</strong></div>';
+        html += '<p style="font-size:0.8rem;color:#64748b;margin:0 0 0.5rem;">Domain terms that are in-scope but not yet in the glossary or papers. One per line.</p>';
+        html += _cfgField('Extra scope terms', 'cfg-scope-terms', 'textarea', scopeTerms);
 
-    // -- Prompts section (tester+) --
-    if (Object.keys(prompts).length > 0) {
-        html += '<div style="border-bottom:2px solid #e2e8f0;padding-bottom:0.3rem;margin-bottom:0.8rem;margin-top:1.2rem;"><strong style="font-size:0.95rem;color:#1e293b;">Prompts</strong></div>';
-        html += _cfgField('Identity', 'cfg-prompt-identity', 'textarea', prompts.identity || '');
-        html += _cfgField('Rules', 'cfg-prompt-rules', 'textarea', prompts.rules || '');
-        html += _cfgField('Strict', 'cfg-prompt-strict', 'textarea', prompts.strict || '');
+        // -- Prompts section --
+        if (Object.keys(prompts).length > 0) {
+            html += '<div style="border-bottom:2px solid #e2e8f0;padding-bottom:0.3rem;margin-bottom:0.8rem;margin-top:1.2rem;"><strong style="font-size:0.95rem;color:#1e293b;">Prompts</strong></div>';
+            html += _cfgField('Identity', 'cfg-prompt-identity', 'textarea', prompts.identity || '');
+            html += _cfgField('Rules', 'cfg-prompt-rules', 'textarea', prompts.rules || '');
+            html += _cfgField('Strict', 'cfg-prompt-strict', 'textarea', prompts.strict || '');
+        }
     }
 
     area.innerHTML = html;
@@ -3383,11 +3387,33 @@ async function saveAgentConfig(agentId) {
 
         updateIconTooltips();
 
+        // Determine which settings need a restart
+        const needsRestart = [];
+        if (_cfgOrigConfig.extra_scope_terms !== undefined || config.extra_scope_terms !== undefined) {
+            const origTerms = JSON.stringify(_cfgOrigConfig.extra_scope_terms || []);
+            const newTerms = JSON.stringify(config.extra_scope_terms || []);
+            if (origTerms !== newTerms) needsRestart.push('scope terms');
+        }
+        if ((_cfgOrigConfig.humility_level || 'off') !== (config.humility_level || 'off')) needsRestart.push('humility level');
+        if ((_cfgOrigConfig.reliability_display || 'visual') !== (config.reliability_display || 'visual')) needsRestart.push('reliability display');
+        if ((_cfgOrigConfig.audit_log_enabled || false) !== (config.audit_log_enabled || false)) needsRestart.push('audit log');
+        const origExamples = JSON.stringify(_cfgOrigConfig.example_queries || []);
+        const newExamples = JSON.stringify(config.example_queries || []);
+        if (origExamples !== newExamples) needsRestart.push('example queries');
+
         msgEl.style.display = 'block';
         msgEl.style.background = '#f0fdf4';
         msgEl.style.color = '#16a34a';
-        msgEl.textContent = 'Saved. Restart the server or start a new chat to apply changes.';
-        setTimeout(closeAgentConfigPanel, 2000);
+        if (needsRestart.length > 0) {
+            msgEl.innerHTML = '<b>Saved.</b> Changes to <b>' + needsRestart.join(', ') + '</b> require a server restart to take effect.'
+                + '<br><span style="font-size:0.8em;color:#64748b;">Prompt level, transparency, and LLM model apply immediately on the next query.</span>';
+            msgEl.style.background = '#fffbeb';
+            msgEl.style.color = '#92400e';
+            msgEl.style.border = '1px solid #fde68a';
+        } else {
+            msgEl.textContent = 'Saved. Changes apply on the next query.';
+        }
+        setTimeout(closeAgentConfigPanel, needsRestart.length > 0 ? 5000 : 2000);
     } catch (err) {
         msgEl.style.display = 'block';
         msgEl.style.background = '#fef2f2';

@@ -1530,13 +1530,8 @@ async def set_agent_config(agent_id: str, request: Request, session: dict = Depe
 
         if role_level >= 4:  # superuser — full access
             merged = new_config
-        else:  # tester — restricted to safe fields
-            TESTER_FIELDS = {
-                "prompt_level", "transparency_level", "reliability_display",
-                "humility_level", "show_history", "audit_log_enabled",
-                "extra_scope_terms", "example_queries", "description",
-                "welcome_message",
-            }
+        else:  # tester — only immediate-effect settings (no restart needed)
+            TESTER_FIELDS = {"prompt_level", "transparency_level"}
             merged = {**current}
             for key in TESTER_FIELDS:
                 if key in new_config:
@@ -1546,7 +1541,7 @@ async def set_agent_config(agent_id: str, request: Request, session: dict = Depe
             json.dump(merged, f, indent=2, ensure_ascii=False)
             f.write("\n")
 
-    if "prompts" in body and isinstance(body["prompts"], dict):
+    if "prompts" in body and isinstance(body["prompts"], dict) and role_level >= 4:
         with open(agent_path / "prompts.json", "w", encoding="utf-8") as f:
             json.dump(body["prompts"], f, indent=2, ensure_ascii=False)
             f.write("\n")
