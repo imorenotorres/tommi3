@@ -32,19 +32,42 @@ ROLES = {
     "user": 1,  # legacy alias for student
 }
 
-# Tool access — which roles can access each tool
-TOOL_ACCESS = {
+# Tool access — which roles can access each tool (defaults)
+_DEFAULT_TOOL_ACCESS = {
     "directory":          ["admin_staff", "teaching_staff", "tester", "superuser"],
     "event_calendar":     ["admin_staff", "teaching_staff", "tester", "superuser"],
     "mobility_planner":   ["admin_staff", "teaching_staff", "tester", "superuser"],
     "intranet_services":  ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "unigracon":          ["teaching_staff", "tester", "superuser"],
+    "unigracon":          ["admin_staff", "teaching_staff", "tester", "superuser"],
     "researcher_connect": ["teaching_staff", "tester", "superuser"],
     "research_proposals": ["teaching_staff", "tester", "superuser"],
     "tommi_agents":       ["teaching_staff", "tester", "superuser"],
     "virtual_campus":     ["student", "tester", "superuser"],
     "student_admin":      ["student", "tester", "superuser"],
 }
+
+TOOL_ACCESS_FILE = DATA_DIR / "tool_access.json"
+
+
+def _load_tool_access() -> dict:
+    """Load tool access from JSON file, falling back to defaults."""
+    if TOOL_ACCESS_FILE.exists():
+        try:
+            with open(TOOL_ACCESS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return dict(_DEFAULT_TOOL_ACCESS)
+
+
+def save_tool_access(access: dict):
+    """Save tool access overrides to JSON file."""
+    with open(TOOL_ACCESS_FILE, "w", encoding="utf-8") as f:
+        json.dump(access, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+
+TOOL_ACCESS = _load_tool_access()
 
 # Roles that grant editing rights in apps (equivalent to old "tester" check)
 EDITOR_ROLES = {"admin_staff", "teaching_staff", "tester", "superuser"}

@@ -198,6 +198,9 @@ async function init() {
     // Inject user menu in the top-right area
     injectUserMenu(role);
 
+    // Store role for config editor field visibility
+    state._userRole = role;
+
     // Show gear row for testers and superusers (visibility toggled when agent loads)
     if (role === 'tester' || role === 'superuser') {
         state._showGear = true;
@@ -1644,7 +1647,7 @@ async function sendMessage(message) {
 
     // Crear placeholder para la respuesta
     const responseDiv = addMessage('', 'agent');
-    responseDiv.innerHTML = '<span class="loading">Loading...</span>';
+    responseDiv.innerHTML = '<span class="loading">Preparing response...</span>';
 
     try {
         // Construir URL con parámetros
@@ -2148,8 +2151,7 @@ function injectUserMenu(role) {
     let hasButtons = false;
 
     if (role === 'superuser') {
-        bottomLine += `<button id="btn-admin" style="${btnStyle}">User management</button>`;
-        bottomLine += `<button id="btn-agent-admin" style="${btnStyle}">Agent management</button>`;
+        bottomLine += `<button id="btn-admin" style="${btnStyle}">System Administration</button>`;
         hasButtons = true;
     }
 
@@ -2178,7 +2180,6 @@ function injectUserMenu(role) {
 
     if (role === 'superuser') {
         document.getElementById('btn-admin').addEventListener('click', openAdminPanel);
-        document.getElementById('btn-agent-admin').addEventListener('click', openAgentPanel);
     }
 
     if ((role === 'superuser' || role === 'tester') && state.mode === 'tester') {
@@ -3201,29 +3202,39 @@ async function openAgentConfigPanel() {
         const data = await res.json();
         _cfgOrigConfig = data.config || {};
         _cfgOrigPrompts = data.prompts || {};
-        _renderConfigForm(_cfgOrigConfig, _cfgOrigPrompts);
+        const editorRole = data.role || state._userRole || 'tester';
+        _renderConfigForm(_cfgOrigConfig, _cfgOrigPrompts, editorRole);
     } catch (err) {
         document.getElementById('cfg-form-area').innerHTML = '<p style="color:#dc2626;">Error loading agent configuration.</p>';
     }
 }
 
-function _renderConfigForm(config, prompts) {
+function _renderConfigForm(config, prompts, role) {
     const area = document.getElementById('cfg-form-area');
     if (!area) return;
 
     const c = config;
+    const isSuperuser = role === 'superuser';
+    // Testers and superusers both see the editor; testers see a subset
     const exQ = (c.example_queries || []).join('\n');
 
     let html = '';
+
+    // -- Role indicator --
+    const roleLabel = isSuperuser ? 'Superuser' : 'Tester';
+    const roleColor = isSuperuser ? '#dc2626' : '#d97706';
+    html += `<div style="margin-bottom:0.8rem;font-size:0.8rem;color:${roleColor};"><strong>${roleLabel} view</strong>${isSuperuser ? '' : ' — some fields are restricted to superusers'}</div>`;
 
     // -- Config section --
     html += '<div style="border-bottom:2px solid #e2e8f0;padding-bottom:0.3rem;margin-bottom:0.8rem;"><strong style="font-size:0.95rem;color:#1e293b;">Configuration</strong></div>';
 
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 1rem;">';
-    html += _cfgField('Agent name', 'cfg-agent-name', 'text', c.agent_name || '');
-    html += _cfgField('Agent ID', 'cfg-agent-id', 'text', c.agent_id || '');
+    if (isSuperuser) {
+        html += _cfgField('Agent name', 'cfg-agent-name', 'text', c.agent_name || '');
+        html += _cfgField('Agent ID', 'cfg-agent-id', 'text', c.agent_id || '');
+    }
     html += _cfgField('Prompt level', 'cfg-prompt-level', 'select', c.prompt_level || 'stringent', ['stringent', 'tolerant', 'lax']);
-    html += _cfgField('Transparency', 'cfg-transparency', 'select', c.transparency_level || 'crystal_box', ['crystal_box', 'grey_box', 'black_box']);
+    html += _cfgField('Transparency', 'cfg-transparency', 'select', c.transparency_level || 'scaffolded', ['scaffolded', 'unscaffolded']);
     html += _cfgField('Reliability display', 'cfg-reliability-display', 'select', c.reliability_display || 'visual', ['visual', 'text_style', 'both', 'none']);
     html += _cfgField('Humility level', 'cfg-humility', 'select', c.humility_level || 'off', ['off', 'moderate', 'strict']);
     html += _cfgField('Show history', 'cfg-show-history', 'checkbox', c.show_history !== false);
@@ -3237,7 +3248,13 @@ function _renderConfigForm(config, prompts) {
     html += _cfgField('Welcome message', 'cfg-welcome', 'textarea', c.welcome_message || '');
     html += _cfgField('Example queries (one per line)', 'cfg-examples', 'textarea', exQ);
 
-    // -- Prompts section --
+    // -- Scope terms section (tester+) --
+    const scopeTerms = (c.extra_scope_terms || []).join('\n');
+    html += '<div style="border-bottom:2px solid #e2e8f0;padding-bottom:0.3rem;margin-bottom:0.8rem;margin-top:1.2rem;"><strong style="font-size:0.95rem;color:#1e293b;">Topical Scope Terms</strong></div>';
+    html += '<p style="font-size:0.8rem;color:#64748b;margin:0 0 0.5rem;">Domain terms that are in-scope but not yet in the glossary or papers. One per line.</p>';
+    html += _cfgField('Extra scope terms', 'cfg-scope-terms', 'textarea', scopeTerms);
+
+    // -- Prompts section (tester+) --
     if (Object.keys(prompts).length > 0) {
         html += '<div style="border-bottom:2px solid #e2e8f0;padding-bottom:0.3rem;margin-bottom:0.8rem;margin-top:1.2rem;"><strong style="font-size:0.95rem;color:#1e293b;">Prompts</strong></div>';
         html += _cfgField('Identity', 'cfg-prompt-identity', 'textarea', prompts.identity || '');
@@ -3290,6 +3307,13 @@ async function saveAgentConfig(agentId) {
 
     const exText = document.getElementById('cfg-examples').value.trim();
     config.example_queries = exText ? exText.split('\n').map(l => l.trim()).filter(Boolean) : [];
+
+    // Save scope terms
+    const scopeEl = document.getElementById('cfg-scope-terms');
+    if (scopeEl) {
+        const scopeText = scopeEl.value.trim();
+        config.extra_scope_terms = scopeText ? scopeText.split('\n').map(l => l.trim()).filter(Boolean) : [];
+    }
 
     // Build prompts from form, preserving original fields
     const body = { config };

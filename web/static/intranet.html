@@ -131,6 +131,8 @@ var TOOL_ACCESS = {
     'virtual_campus':     ['student', 'tester', 'superuser'],
     'student_admin':      ['student', 'tester', 'superuser'],
     'user_management':    ['superuser'],
+    'agent_management':   ['superuser'],
+    'tool_visibility':    ['superuser'],
     'research_proposals': ['teaching_staff', 'tester', 'superuser'],
     'tommi_testing':      ['tester', 'superuser'],
 };
@@ -151,7 +153,6 @@ var SECTIONS = [
         title: 'Teaching & Research',
         roles: ['teaching_staff'],
         tools: [
-            { id: 'unigracon', name: 'UNIGRACON', icon: '\uD83C\uDF93', desc: 'Grade converter between partner universities.', url: '/unigracon/', status: 'active' },
             { id: 'researcher_connect', name: 'Researcher Connect', icon: '\uD83D\uDD2C', desc: 'Find and connect with researchers across UNINOVIS.', url: '/researcher_connect/', status: 'active' },
             { id: 'research_proposals', name: 'Research Proposals', icon: '\uD83D\uDCDD', desc: 'Post and discover research collaboration opportunities.', url: '/research_proposals/', status: 'active' },
         ]
@@ -164,6 +165,7 @@ var SECTIONS = [
             { id: 'directory', name: 'Directory', icon: '\uD83D\uDCCB', desc: 'Staff directory, groups, and org charts.', url: '/directory/', status: 'active' },
             { id: 'event_calendar', name: 'Event Tracker', icon: '\uD83D\uDCC5', desc: 'Event calendar with filters and iCal sync.', url: '/event-calendar/', status: 'active' },
             { id: 'mobility_planner', name: 'Mobility Planner', icon: '\u2708\uFE0F', desc: 'Call opening dates for mobility activities.', url: '/mobility_planner/', status: 'active' },
+            { id: 'unigracon', name: 'UNIGRACON', icon: '\uD83C\uDF93', desc: 'Grade converter between partner universities.', url: '/unigracon/', status: 'active' },
             { id: 'intranet_services', name: 'Services Catalogue', icon: '\uD83D\uDDA5\uFE0F', desc: 'All UNINOVIS digital services and tools.', url: '/uninovis/services', status: 'active' },
         ]
     },
@@ -182,6 +184,8 @@ var SECTIONS = [
         roles: ['superuser'],
         tools: [
             { id: 'user_management', name: 'User Management', icon: '\uD83D\uDD10', desc: 'Create, edit, and delete users. Manage roles and invitations.', url: '#', status: 'active', action: 'openUserManagement' },
+            { id: 'agent_management', name: 'Agent Management', icon: '\u2699\uFE0F', desc: 'Agent visibility, access control, data export, and log management.', url: '#', status: 'active', action: 'openAgentManagement' },
+            { id: 'tool_visibility', name: 'Tool Visibility', icon: '\uD83D\uDC41', desc: 'Configure which intranet tools are visible to each role.', url: '#', status: 'active', action: 'openToolVisibility' },
         ]
     },
 ];
@@ -230,7 +234,7 @@ function showLogin() {
     document.getElementById('topUserInfo').style.display = 'none';
 }
 
-function showMain() {
+async function showMain() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainContent').style.display = '';
     document.getElementById('topUserInfo').style.display = '';
@@ -243,6 +247,8 @@ function showMain() {
     var roleBadges = roles.map(function(r) { return '<span class="roles-badge">' + r.replace('_', ' ') + '</span>'; }).join(' ');
     document.getElementById('welcomeMsg').innerHTML = 'Welcome to UNINOVIS Intranet site.<br><span style="font-size:0.75em;font-weight:400;color:#666;">From here you have access to services only accessible to UNINOVIS members.</span>';
 
+    // Load server-side tool access overrides before rendering
+    await loadToolAccess();
     renderSections(roles);
 }
 
@@ -320,6 +326,22 @@ function renderSections(roles) {
         html = '<p style="color:#888;text-align:center;">No tools available for your role. Contact an administrator.</p>';
     }
     document.getElementById('toolSections').innerHTML = html;
+}
+
+// ── Load server-side tool access overrides ───────────────────────
+async function loadToolAccess() {
+    try {
+        var res = await fetch('/api/tool-access', { headers: { 'Authorization': 'Bearer ' + authToken } });
+        if (res.ok) {
+            var data = await res.json();
+            if (data.tool_access) {
+                // Merge server overrides into client TOOL_ACCESS
+                for (var key in data.tool_access) {
+                    TOOL_ACCESS[key] = data.tool_access[key];
+                }
+            }
+        }
+    } catch (e) { /* Keep defaults if endpoint unavailable */ }
 }
 
 // ── Init ─────────────────────────────────────────────────────────
@@ -688,6 +710,283 @@ async function umResendInvite(username) {
             umMsg('Could not send email. ' + (data.warning || ''), false);
         }
     } catch (e) { umMsg('Request failed', false); }
+}
+
+// ── Agent Management Panel ──────────────────────────────────────
+function openAgentManagement() {
+    var existing = document.getElementById('am-overlay');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'am-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
+
+    var panel = document.createElement('div');
+    panel.style.cssText = 'background:#fff;border-radius:12px;padding:24px;width:750px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);';
+    panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+        + '<h2 style="margin:0;font-size:1.15rem;color:#2D3876;">Agent Management</h2>'
+        + '<button onclick="closeAgentManagement()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+        + '</div>'
+        + '<div id="am-message" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+        + '<h3 style="margin:0 0 6px 0;font-size:0.9rem;color:#2D3876;">Agent visibility</h3>'
+        + '<p style="font-size:0.78rem;color:#666;margin-bottom:10px;">'
+        + '<b>Hidden</b>: superusers only &nbsp;|&nbsp; '
+        + '<b>Restricted</b>: testers and above &nbsp;|&nbsp; '
+        + '<b>Open</b>: any logged-in user. '
+        + 'If <b>Allowed users</b> are set, only those users can see the agent.</p>'
+        + '<div id="am-agent-list" style="font-size:0.85rem;">Loading...</div>';
+
+    overlay.appendChild(panel);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeAgentManagement(); });
+    document.body.appendChild(overlay);
+    amLoadAgents();
+}
+
+function closeAgentManagement() {
+    var el = document.getElementById('am-overlay');
+    if (el) el.remove();
+}
+
+function amMsg(text, ok) {
+    var el = document.getElementById('am-message');
+    if (!el) return;
+    el.style.display = '';
+    el.style.background = ok ? '#dcfce7' : '#fee2e2';
+    el.style.color = ok ? '#166534' : '#991b1b';
+    el.textContent = text;
+    setTimeout(function() { el.style.display = 'none'; }, 3000);
+}
+
+async function amLoadAgents() {
+    var container = document.getElementById('am-agent-list');
+    if (!container) return;
+    try {
+        var res = await umFetch('/api/agents/visibility');
+        var agents = await res.json();
+        if (!agents.length) { container.innerHTML = '<p style="color:#888;">No agents found.</p>'; return; }
+
+        var levelColors = { hidden: '#dc2626', restricted: '#d97706', open: '#16a34a' };
+        var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
+            + '<tr style="border-bottom:2px solid #e2e8f0;">'
+            + '<th style="text-align:left;padding:6px;">Agent</th>'
+            + '<th style="text-align:left;padding:6px;">Provider</th>'
+            + '<th style="text-align:center;padding:6px;">Level</th>'
+            + '<th style="text-align:left;padding:6px;">Allowed users</th>'
+            + '<th style="text-align:center;padding:6px;">Export</th>'
+            + '<th style="text-align:center;padding:6px;">Logs</th>'
+            + '</tr>';
+
+        agents.forEach(function(a) {
+            var providerBadge = a.is_local
+                ? '<span style="color:#16a34a;font-size:0.78rem;">local</span>'
+                : '<span style="color:#d97706;font-size:0.78rem;">cloud</span>';
+            var selId = 'am-level-' + a.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+            var usersId = 'am-users-' + a.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+            var levelColor = levelColors[a.level] || '#64748b';
+            var allowedStr = (a.allowed_users || []).join(', ');
+            var escId = a.id.replace(/'/g, "\\'");
+
+            html += '<tr style="border-bottom:1px solid #f0f0f0;">'
+                + '<td style="padding:6px;"><b>' + a.name + '</b><br><span style="color:#94a3b8;font-size:0.72rem;">' + a.id + '</span></td>'
+                + '<td style="padding:6px;">' + providerBadge + ' <span style="font-size:0.78rem;color:#666;">' + a.provider + '</span></td>'
+                + '<td style="padding:6px;text-align:center;">'
+                + '<select id="' + selId + '" onchange="amUpdateVisibility(\'' + escId + '\')" style="padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.8rem;color:' + levelColor + ';font-weight:500;cursor:pointer;">'
+                + '<option value="hidden"' + (a.level === 'hidden' ? ' selected' : '') + ' style="color:#dc2626;">Hidden</option>'
+                + '<option value="restricted"' + (a.level === 'restricted' ? ' selected' : '') + ' style="color:#d97706;">Restricted</option>'
+                + '<option value="open"' + (a.level === 'open' ? ' selected' : '') + ' style="color:#16a34a;">Open</option>'
+                + '</select></td>'
+                + '<td style="padding:6px;">'
+                + '<input type="text" id="' + usersId + '" value="' + allowedStr + '" placeholder="user1@uma.es, user2@thuas.nl" onchange="amUpdateVisibility(\'' + escId + '\')" style="width:100%;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.76rem;min-width:140px;">'
+                + '</td>'
+                + '<td style="padding:6px;text-align:center;white-space:nowrap;">'
+                + '<a href="/api/agents/' + a.id + '/export/researchers?token=' + encodeURIComponent(authToken) + '" style="font-size:0.68rem;color:#2D3876;margin-right:3px;">Res.</a>'
+                + '<a href="/api/agents/' + a.id + '/export/papers?token=' + encodeURIComponent(authToken) + '" style="font-size:0.68rem;color:#2D3876;margin-right:3px;">Papers</a>'
+                + '<a href="/api/agents/' + a.id + '/export/projects?token=' + encodeURIComponent(authToken) + '" style="font-size:0.68rem;color:#2D3876;">Proj.</a>'
+                + '</td>'
+                + '<td style="padding:6px;text-align:center;">'
+                + '<button onclick="amResetLogs(\'' + escId + '\')" style="background:none;border:1px solid #ccc;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;" title="Archive current logs and start fresh">Reset</button>'
+                + '</td></tr>';
+        });
+
+        html += '</table>';
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = '<p style="color:#dc3545;">Error loading agents</p>';
+    }
+}
+
+async function amUpdateVisibility(agentId) {
+    var selEl = document.getElementById('am-level-' + agentId.replace(/[^a-zA-Z0-9_-]/g, '_'));
+    var usersEl = document.getElementById('am-users-' + agentId.replace(/[^a-zA-Z0-9_-]/g, '_'));
+    var level = selEl ? selEl.value : 'restricted';
+    var allowedUsers = usersEl ? usersEl.value.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+
+    try {
+        var res = await umFetch('/api/agents/' + encodeURIComponent(agentId) + '/visibility', {
+            method: 'PUT',
+            body: JSON.stringify({ level: level, allowed_users: allowedUsers })
+        });
+        if (!res.ok) { var err = await res.json(); amMsg(err.detail || 'Error', false); return; }
+        var levelColors = { hidden: '#dc2626', restricted: '#d97706', open: '#16a34a' };
+        if (selEl) selEl.style.color = levelColors[level] || '#64748b';
+        var note = allowedUsers.length ? ' (restricted to ' + allowedUsers.length + ' user' + (allowedUsers.length > 1 ? 's' : '') + ')' : '';
+        amMsg('Updated ' + agentId + ': ' + level + note, true);
+    } catch (e) { amMsg('Request failed', false); }
+}
+
+async function amResetLogs(agentId) {
+    if (!confirm('Archive and reset logs for ' + agentId + '?')) return;
+    try {
+        var res = await umFetch('/api/agents/' + encodeURIComponent(agentId) + '/reset-logs', { method: 'POST' });
+        if (!res.ok) { var err = await res.json(); amMsg(err.detail || 'Error', false); return; }
+        amMsg('Logs reset for ' + agentId, true);
+    } catch (e) { amMsg('Request failed', false); }
+}
+
+// ── Tool Visibility Panel ───────────────────────────────────────
+var _tvData = {};
+var ALL_ROLES = ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'];
+
+// Readable labels for tool IDs
+var TOOL_LABELS = {
+    directory: 'Directory',
+    event_calendar: 'Event Tracker',
+    mobility_planner: 'Mobility Planner',
+    intranet_services: 'Services Catalogue',
+    unigracon: 'UNIGRACON',
+    researcher_connect: 'Researcher Connect',
+    research_proposals: 'Research Proposals',
+    tommi_agents: 'TOMMI Agents',
+    tommi_testing: 'Agent Testing',
+    virtual_campus: 'Virtual Campus',
+    student_admin: 'Student Administration',
+};
+
+function openToolVisibility() {
+    var existing = document.getElementById('tv-overlay');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'tv-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
+
+    var panel = document.createElement('div');
+    panel.style.cssText = 'background:#fff;border-radius:12px;padding:24px;width:720px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);';
+    panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+        + '<h2 style="margin:0;font-size:1.15rem;color:#2D3876;">Tool Visibility</h2>'
+        + '<button onclick="closeToolVisibility()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+        + '</div>'
+        + '<div id="tv-message" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+        + '<p style="font-size:0.78rem;color:#666;margin-bottom:12px;">Select which roles can access each intranet tool. Superuser always has access. Changes take effect immediately for all users.</p>'
+        + '<div id="tv-grid" style="font-size:0.85rem;">Loading...</div>'
+        + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
+        + '<button onclick="tvSave()" style="background:#2D3876;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:0.9rem;">Save</button>'
+        + '<button onclick="closeToolVisibility()" style="background:#fff;color:#666;border:1px solid #e2e8f0;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:0.9rem;">Cancel</button>'
+        + '</div>';
+
+    overlay.appendChild(panel);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeToolVisibility(); });
+    document.body.appendChild(overlay);
+    tvLoad();
+}
+
+function closeToolVisibility() {
+    var el = document.getElementById('tv-overlay');
+    if (el) el.remove();
+}
+
+function tvMsg(text, ok) {
+    var el = document.getElementById('tv-message');
+    if (!el) return;
+    el.style.display = '';
+    el.style.background = ok ? '#dcfce7' : '#fee2e2';
+    el.style.color = ok ? '#166534' : '#991b1b';
+    el.textContent = text;
+    setTimeout(function() { el.style.display = 'none'; }, 3000);
+}
+
+async function tvLoad() {
+    var container = document.getElementById('tv-grid');
+    if (!container) return;
+    try {
+        var res = await umFetch('/api/tool-access');
+        var data = await res.json();
+        _tvData = data.tool_access || {};
+        tvRender();
+    } catch (e) {
+        container.innerHTML = '<p style="color:#dc3545;">Error loading tool access configuration</p>';
+    }
+}
+
+function tvRender() {
+    var container = document.getElementById('tv-grid');
+    if (!container) return;
+
+    var roleLabels = {
+        student: 'Student', admin_staff: 'Admin staff',
+        teaching_staff: 'Teaching staff', tester: 'Tester', superuser: 'Superuser'
+    };
+
+    var html = '<table style="width:100%;border-collapse:collapse;">'
+        + '<tr style="border-bottom:2px solid #e2e8f0;"><th style="text-align:left;padding:6px 8px;">Tool</th>';
+    ALL_ROLES.forEach(function(r) {
+        var disabled = r === 'superuser' ? ' <span style="font-size:0.65rem;color:#888;">(always)</span>' : '';
+        html += '<th style="text-align:center;padding:6px 4px;font-size:0.78rem;">' + roleLabels[r] + disabled + '</th>';
+    });
+    html += '</tr>';
+
+    // Sort tools by label
+    var toolIds = Object.keys(_tvData).sort(function(a, b) {
+        return (TOOL_LABELS[a] || a).localeCompare(TOOL_LABELS[b] || b);
+    });
+
+    toolIds.forEach(function(toolId) {
+        var roles = _tvData[toolId] || [];
+        var label = TOOL_LABELS[toolId] || toolId;
+        html += '<tr style="border-bottom:1px solid #f0f0f0;">';
+        html += '<td style="padding:6px 8px;font-weight:500;">' + label + ' <span style="color:#94a3b8;font-size:0.7rem;">' + toolId + '</span></td>';
+        ALL_ROLES.forEach(function(r) {
+            var checked = roles.indexOf(r) !== -1 ? ' checked' : '';
+            var disabled = r === 'superuser' ? ' checked disabled' : '';
+            html += '<td style="text-align:center;padding:6px 4px;">'
+                + '<input type="checkbox" data-tool="' + toolId + '" data-role="' + r + '"' + checked + disabled + ' style="cursor:pointer;">'
+                + '</td>';
+        });
+        html += '</tr>';
+    });
+
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+async function tvSave() {
+    // Collect checkbox states
+    var newAccess = {};
+    var checkboxes = document.querySelectorAll('#tv-grid input[type="checkbox"]');
+    checkboxes.forEach(function(cb) {
+        var tool = cb.getAttribute('data-tool');
+        var role = cb.getAttribute('data-role');
+        if (!tool || !role) return;
+        if (!newAccess[tool]) newAccess[tool] = [];
+        if (cb.checked) newAccess[tool].push(role);
+    });
+    // Ensure superuser is always included
+    for (var tool in newAccess) {
+        if (newAccess[tool].indexOf('superuser') === -1) {
+            newAccess[tool].push('superuser');
+        }
+    }
+
+    try {
+        var res = await umFetch('/api/tool-access', {
+            method: 'PUT',
+            body: JSON.stringify({ tool_access: newAccess })
+        });
+        if (!res.ok) { var err = await res.json(); tvMsg(err.detail || 'Error saving', false); return; }
+        // Update local TOOL_ACCESS
+        for (var key in newAccess) { TOOL_ACCESS[key] = newAccess[key]; }
+        tvMsg('Saved. Changes take effect on next page load.', true);
+    } catch (e) { tvMsg('Request failed', false); }
 }
 
 </script>

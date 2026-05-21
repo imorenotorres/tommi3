@@ -100,7 +100,8 @@ class SimpleRAGMixin:
 
         # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
-            yield ("status", "Creating ChromaDB for the agent...")
+            init_msg = getattr(self, '_init_status_message', "Creating ChromaDB for the agent...")
+            yield ("status", init_msg)
             self._init_chromadb()
 
         yield ("status", "Thinking...")

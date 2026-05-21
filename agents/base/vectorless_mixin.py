@@ -72,6 +72,7 @@ class VectorlessMixin:
     _chunk_db_idf = None
     _chunk_db_avg_kw = 15.0
     _skip_claim_classification = True  # Banners handle transparency, no need for claim analysis
+    _init_status_message = "Preparing knowledge base — indexing documents..."
 
     def _init_chromadb(self):
         """Skip ChromaDB — load or rebuild the keyword chunk database."""
@@ -85,10 +86,12 @@ class VectorlessMixin:
 
             # Auto-rebuild if chunk_db.json is missing or stale
             if self._chunk_db_needs_rebuild(db_path):
+                self._report_progress("Rebuilding search index from documents...")
                 self._rebuild_chunk_db(db_path)
 
             # Load chunk_db.json
             if os.path.exists(db_path):
+                self._report_progress("Loading search index...")
                 try:
                     with open(db_path, "r", encoding="utf-8") as f:
                         data = json.load(f)
@@ -107,6 +110,13 @@ class VectorlessMixin:
                 print("No chunk_db.json and no documents to build from — pure metadata mode")
                 VectorlessMixin._chunk_db = []
                 VectorlessMixin._chunk_db_idf = {}
+
+    def _report_progress(self, message: str):
+        """Report progress via callback if available, otherwise print."""
+        cb = getattr(self, '_progress_callback', None)
+        if cb:
+            cb(message)
+        print(message)
 
     def _chunk_db_needs_rebuild(self, db_path: str) -> bool:
         """Check if chunk_db.json is missing or older than any document."""

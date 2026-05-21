@@ -4,7 +4,7 @@ This glossary provides definitions of key concepts in Responsible AI, curated fo
 
 ---
 
-## \#\# Responsible AI
+## Responsible AI
 
 Responsible AI refers to the practice and processes of designing, developing, deployment and implementation of AI systems in a manner that is ethical, transparent, fair, inclusive and accountable. It includes maintenance, algorithmic audits, and accountability, as well as a broad set of principles aimed at ensuring that AI technologies benefit individuals and society while minimising potential harms. Responsible AI focuses on the development and deployment of AI to minimize the potential risks and negative consequences associated with it, such as bias, discrimination, and a lack of transparency.
 
@@ -22,7 +22,7 @@ Responsibility in this case is understood as a \*\*description\*\* of the user�
 
 ---
 
-## \#\# Trustworthy AI
+## Trustworthy AI
 
 Trustworthy AI refers to AI systems that are lawful, ethical, and robust, ensuring they operate reliably and safely in real-world contexts. According to the European Commission's High-Level Expert Group on AI (the first comprehensive legal framework for trustworthy AI), trustworthy AI must satisfy seven key requirements: human agency and oversight, technical robustness and safety, privacy and data governance, transparency, diversity, non-discrimination and fairness, societal and environmental well-being, and accountability. Mentions to both trustworthiness and responsibility are in reference to the use of AI, as these concepts can not be qualities of a being that in principle is not autonomous or accountable, at least as currently AI capabilities are conceived and implemented.
 
@@ -37,7 +37,7 @@ Trustworthy AI refers to AI systems that are lawful, ethical, and robust, ensuri
 
 ---
 
-## \#\# Explainable Artificial Intelligence (XAI)
+## Explainable Artificial Intelligence (XAI)
 
 Explainable AI (XAI) refers to a collection of machine learning techniques that enables human users to understand, appropriately trust, and effectively manage the emerging generation of artificially intelligent partners. In other words it refers to the methods and techniques that make the behaviour and outputs of AI systems understandable to humans. XAI aims to bridge the gap between high-performing but opaque models (such as deep neural networks) and the need for human interpretability, enabling users, developers, and regulators to understand why an AI system made a particular decision. Explainability covers the techniques used to convert a non-interpretable model into an explainable one, by producing details or reasons to make its functioning clear or easy to understand.
 
@@ -54,7 +54,7 @@ Key XAI methods include LIME (Local Interpretable Model-agnostic Explanations), 
 
 ---
 
-## \#\# AI Ethics
+## AI Ethics
 
 AI Ethics is the branch of applied ethics that examines the moral implications related to AI systems. It addresses questions about the values embedded in AI design, the societal impact of AI deployment, and the responsibilities of developers, deployers, and users. Ethical AI underscores adherence to moral principles in the design and utilization of AI systems, making sure AI systems don’t unfairly treat people, invade privacy, or disrespect human dignity. Core concerns (coming from traditional bioethics principles) include beneficence, non-maleficence, autonomy, justice; and new enabling principles for AI such as explicability. 
 
@@ -71,7 +71,7 @@ Other principles and themes often mentioned in guidelines, proposals and recomme
 
 ---
 
-## \#\# Fairness in AI
+## Fairness in AI
 
 Fairness in AI concerns the design and evaluation of AI systems to ensure they do not produce  bias, understood as any prejudice or favoritism towards an individual or group based on their inherent or acquired characteristics. It is the moral lens through which we examine decisions made by AI systems that do not produce discriminatory outcomes across different groups defined by protected attributes such as race, gender, age, or disability, among other characteristics. With more than twenty different notions of fairness proposed in the last few years, fairness is a complex and debated topic. It has been tried to be defined, in the field of ethics and technology, through multiple mathematical formalisms, including demographic parity, equalised odds, and individual fairness, which are often mutually incompatible.
 
@@ -85,7 +85,7 @@ Fairness in AI concerns the design and evaluation of AI systems to ensure they d
 
 ---
 
-## \#\# Bias in AI
+## Bias in AI
 
 Bias is a broad concept studied across many disciplines including social science, cognitive psychology or law, and encompasses phenomena such as confirmation bias and other cognitive biases, as well as systemic, discriminatory outcomes, or harms. Bias in AI refers to systematic errors or prejudices in AI system outputs that arise from biased training data, flawed model design, or biased human decisions during development. Types of AI bias include: Data to Algorithm (Aggregation Bias, Measurement Bias, Omitted Variable Bias, Representation Bias, Sampling Bias…); Algorithm to User (Algorithmic Bias, User Interaction Bias, Popularity Bias, Emergent Bias, Evaluation Bias); or User to Data (Historical Bias, Population Bias, Self-selection Bias, Social Bias, Behavioral Bias, Temporal Bias, Content Production Bias.
 
@@ -93,12 +93,12 @@ Bias is a broad concept studied across many disciplines including social science
 
 **References:**
 
-- Mehrabi, N., Morstatter, F., Saxena, N., Lerman, K., & Galstyan, A. (2021). A Survey on Bias and Fairness in Machine Learning. *ACM Computing Surveys*, 54(6), 1–35. wh[https://doi.org/10.1145/3457607](https://doi.org/10.1145/3457607)  
+- Mehrabi, N., Morstatter, F., Saxena, N., Lerman, K., & Galstyan, A. (2021). A Survey on Bias and Fairness in Machine Learning. *ACM Computing Surveys*, 54(6), 1–35. [https://doi.org/10.1145/3457607](https://doi.org/10.1145/3457607)  
 - Olteanu, A., Castillo, C., Diaz, F., & Kıcıman, E. (2019). Social Data: Biases, Methodological Pitfalls, and Ethical Boundaries. *Frontiers in Big Data*, 2, 13\. [https://doi.org/10.3389/fdata.2019.00013](https://doi.org/10.3389/fdata.2019.00013)
 
 ---
 
-## \#\# Transparency in AI
+## Transparency in AI
 
 Transparency can be broadly understood as the availability of information about an actor allowing other actors to monitor the workings or performance of this actor. It can also refer to explainability, interpretability, openness, accessibility, and visibility, amongst others. Transparency in AI refers to the degree to which the workings, decisions, and data usage of an AI system can be understood and examined by stakeholders. Thus, in AI it necessarily entails a relational perspective, conceived not as an individual characteristic but as a relation between an agent and a recipient. 
 
@@ -113,7 +113,7 @@ As defined by the European Parliament, transparency in AI is what enables approp
 
 ---
 
-## \#\# Accountability in AI
+## Accountability in AI
 
 Accountability in AI refers to the obligation to justify its decisions and take responsibility for the outcomes and impacts of AI systems. It  requires clear identification of who is responsible for the outcomes. In this sense it relates to the expectation that designers, developers, and deployers will comply with standards and legislation to ensure the proper functioning of AIs during their lifecycle, and thus spans individual, organisational, and regulatory levels. The features of accountability in AI, including: context; range; agent; forum; standards; process; and implications .
 
@@ -128,7 +128,7 @@ Accountability in AI refers to the obligation to justify its decisions and take 
   
 ---
 
-## \#\# Privacy and Data Governance in AI
+## Privacy and Data Governance in AI
 
 Privacy in AI involves protecting personal and sensitive information from unauthorized access and ensuring that data is used by AI systems responsibly throughout the AI lifecycle, including data collection, storage, processing, and model deployment. Regulations and standards, such as the General Data Protection Regulation (GDPR) in the European Union, play a significant role in shaping AI ethics by setting strict guidelines for data use.
 
@@ -149,7 +149,7 @@ Key challenges for privacy and data governance include the re-identification ris
 
 ---
 
-## \#\# Human-Centred AI
+## Human-Centred AI
 
 Human-Centred AI (HCAI) is an approach to AI design that focuses on understanding purposes, human values, and desired AI properties in the creation of AI systems by applying Human-Centered Design practices. HCAI seeks to augment human capabilities while maintaining human control over AI systems, by considering the necessity, context, and ethical and legal conditions of the AI system as well as promoting individual and societal well-being. It emphasises that AI systems should augment and empower humans rather than replace them, and that human oversight should be maintained throughout the AI lifecycle. HCAI draws on principles from human-computer interaction (HCI), participatory design, and cognitive science.
 
@@ -163,7 +163,7 @@ Human-Centred AI (HCAI) is an approach to AI design that focuses on understandin
 
 ---
 
-## \#\# AI Safety
+## AI Safety
 
 AI Safety is the field concerned with ensuring that AI systems operate as intended without causing unintended harm, as machine learning becomes more widely used, especially in areas  
 where safety and security are critical. With the aim to mitigate risks, it focuses on technical solutions to ensure that AI systems operate safely and reliably. More specifically, it aims to identify causes of unintended behavior in machine learning systems and develop tools to ensure these systems work safely and reliably, addressing problems of robustness, assurance, and specification. Problems in AI safety can be grouped into three categories: robustness, assurance, and specification.
@@ -178,7 +178,7 @@ where safety and security are critical. With the aim to mitigate risks, it focus
 
 ---
 
-## \#\# Algorithmic Auditing
+## Algorithmic Auditing
 
 Algorithmic auditing is the systematic evaluation of AI systems to assess their compliance with policy, industry standards or regulations. It is done by repeatedly and systematically querying an algorithm with inputs and observing the corresponding outputs in order to draw inferences about its opaque inner workings.  Audits may examine bias, data quality, model fairness, transparency, security, and societal impact. Auditing can be internal (conducted by the developing organisation) or external (conducted by independent third parties or regulators).
 
@@ -192,7 +192,7 @@ Algorithmic auditing is the systematic evaluation of AI systems to assess their 
 
 ---
 
-## \#\# AI Governance
+## AI Governance
 
 AI Governance is a movement of data governance encouraging the management of AI  to make sure that the design and the implementation of AI systems are aligned with values and responsibilities of organisations and society. For this purpose it encompasses a set of regulations, methods, procedures, and technological mechanisms used to ensure that an organization’s development and deployment of AI technologies align with its strategies, principles, and goals.  
 In other words, it comprehends the cooperative possibilities (such as frameworks, policies, institutions, and practices) that guide the development, deployment, and oversight of AI systems based on common values and principles. It spans organisational governance (internal AI policies, ethics boards), national governance (legislation, regulatory bodies), and international governance (treaties, standards, multilateral agreements). To build ethical governance actors should ensure their AI governance mechanisms are  inclusive,  transparent,  multidisciplinary,  multilateral  and  multi-stakeholder.  
@@ -208,7 +208,7 @@ In other words, it comprehends the cooperative possibilities (such as frameworks
 
 ---
 
-## \#\# Robustness in AI
+## Robustness in AI
 
 Robustness in AI refers to the property of an AI model or systems to maintain reliable performance when confronted with unexpected inputs, adversarial attacks, distribution shifts, or noisy data. It is a critical aspect of Artificial Intelligence reliability and resilience. A robust AI system should degrade gracefully rather than fail catastrophically when operating outside its training distribution.
 
@@ -222,7 +222,7 @@ Robustness in AI refers to the property of an AI model or systems to maintain re
 
 ---
 
-## \#\# AI and Healthcare
+## AI and Healthcare
 
 AI in Healthcare refers to the application of AI techniques to medical and health-related domains, including clinical decision support, medical image analysis, drug discovery, patient monitoring, and health system optimization. It mainly has an impact in three levels: for clinicians, predominantly via rapid, accurate image interpretation; for health systems, by improving workflow and the potential for reducing medical errors; and for patients, by enabling them to process their own data to promote health. Robust clinical evaluation, using metrics that are intuitive to clinicians and ideally go beyond measures of technical accuracy to include quality of care and patient outcomes is essential. 
 
@@ -240,7 +240,7 @@ The six core principles identified by the WHO Expert Group are: Protect autonomy
 
 ---
 
-## \#\# Interpretability vs. Explainability
+## Interpretability vs. Explainability
 
 Interpretability and explainability are related but distinct concepts. Interpretability refers to the degree to which a human can understand the internal mechanics and decisions of a model (intrinsic property of the model itself). The interpretability of predictive models can be characterized following the logic of the model; a description of the kind of data that is expected to be used in the model, including the boundaries of the input space; and in the case of classification tasks, how the decision is taken using the output values. 
 
@@ -256,7 +256,7 @@ Explainability refers to the ability to provide post-hoc explanations that allow
 
 ---
 
-## \#\# Data Sovereignty
+## Data Sovereignty
 
 Data sovereignty is a widely used concept in policy discourse but remains left undefined in the major legal instruments such as the GDPR, the Data Governance Act, the Data Act, even the AI Act.   
 Data sovereignty generally refers to the control of data flows via national jurisdiction. Depending on the context in which it is used, it has varying connotations:  
@@ -276,7 +276,7 @@ Data sovereignty generally refers to the control of data flows via national juri
 
 ---
 
-## \#\# EU AI Act
+## EU AI Act
 
 The EU AI Act (Regulation 2024/1689) is the first comprehensive legal framework for artificial intelligence worldwide. Amending previous regulations and harmonising rules for the development, placing on the market, and use of AI in the European Union (EU). The main concerns are to promote the uptake of human centric and trustworthy AI while ensuring a high level of protection of health, safety, fundamental rights, democracy, the rule of law and environmental protection, free movement, cross-border, of AI-based goods and services. It also prevents Member States from imposing restrictions on the development, marketing and use of AI systems, unless explicitly authorised by this Regulation.
 
@@ -291,7 +291,7 @@ It establishes a risk-based classification of AI systems and a conformity assess
 
 ---
 
-## \#\# Sustainable AI
+## Sustainable AI
 
 Sustainable AI is a field of research that applies to the technology of AI (the hardware powering AI, the methods to train AI, and the processing of data by AI) and the application of AI while addressing issues of AI sustainability and/or sustainable development. With a demonstrated link between carbon emission and exponential AI growth, sustainable AI is a school of thought emerging as a response to societal worries about climate change and AI accelerating its negative effects. At its core, it promotes a change in the lifecycle of AI products (i.e. idea generation, training, retuning, implementation, governance) towards greater ecological integrity and social justice. As such, Sustainable AI is focused on more than AI applications; rather, it addresses the whole sociotechnical system of AI. 
 
@@ -305,7 +305,7 @@ Sustainable AI is a field of research that applies to the technology of AI (the 
 
 ---
 
-## \#\# Generative AI and Responsibility
+## Generative AI and Responsibility
 
 Generative AI refers to the modeling that is instantiated with a machine learning architecture (or system, such as a deep neural network) through which it can create new data samples, estimate or approximate a probability distribution over data based on learned patterns from training data. More broadly, Generative AI encompasses models and computational techniques (model, data processing, and user interface components) capable of generating seemingly new, meaningful content such as text, images, or audio from training data. 
 

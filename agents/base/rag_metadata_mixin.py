@@ -168,6 +168,108 @@ class MetadataRAGMixin:
             except Exception as e:
                 print(f"Warning: Could not load researchers.json: {e}")
 
+        # Build topical scope set for two-axis banner system
+        self._topical_scope = self._build_topical_scope()
+
+    # ------------------------------------------------------------------
+    # Topical scope (two-axis banner system)
+    # ------------------------------------------------------------------
+
+    def _build_topical_scope(self) -> set:
+        """Build a set of lowercase terms that define the agent's topical scope.
+
+        Sources:
+        1. Glossary concept names + aliases + abbreviations
+        2. Related concepts from glossary entries
+        3. Bold/technical terms from glossary definition bodies
+        4. Concept/topic names from papers.json
+        5. Researcher topics from researchers.json
+        6. Extra scope terms from config.json
+        """
+        scope = set()
+
+        # 1, 2 & 3: Glossary concepts, related concepts, and body terms
+        glossary = self._load_glossary()
+        for concept_name, entry in glossary.items():
+            scope.add(concept_name.lower())
+            # Abbreviations in parentheses
+            abbrev_match = re.search(r'\(([A-Z]{2,})\)', concept_name)
+            if abbrev_match:
+                scope.add(abbrev_match.group(1).lower())
+            # Name without parenthetical
+            clean = re.sub(r'\s*\([^)]*\)\s*', '', concept_name).strip()
+            if clean:
+                scope.add(clean.lower())
+            # Related concepts
+            for related in entry.get("related_concepts", []):
+                scope.add(related.lower().strip())
+            # Bold terms from definition body (technical phrases)
+            definition = entry.get("definition", "")
+            for bold_match in re.findall(r'\*\*(.+?)\*\*', definition):
+                term = bold_match.strip().strip(':.,').lower()
+                if (term and len(term) > 3
+                        and not term.startswith("related")
+                        and not term.startswith("reference")):
+                    scope.add(term)
+
+        # 4: Concepts from papers
+        for papers in self._all_uni_papers.values():
+            for paper in papers:
+                for concept in paper.get("concepts", []):
+                    name = concept.get("name", "").lower().strip()
+                    if name and len(name) > 2:
+                        scope.add(name)
+
+        # 5: Researcher topics
+        for researchers in self._researchers_by_uni.values():
+            for researcher in researchers:
+                for topic in researcher.get("topics", []):
+                    t = topic.lower().strip()
+                    if t and len(t) > 2:
+                        scope.add(t)
+
+        # 6: Extra scope terms from config
+        for term in self._config.get("extra_scope_terms", []):
+            t = term.lower().strip()
+            if t:
+                scope.add(t)
+
+        if scope:
+            print(f"Topical scope built: {len(scope)} terms")
+        return scope
+
+    def _is_in_topical_scope(self, user_message: str) -> bool:
+        """Check if the user's question falls within the agent's topical scope.
+
+        Returns True if the message mentions any term from the scope set
+        (glossary concepts, paper topics, researcher topics).
+        """
+        if not self._topical_scope:
+            return False
+        msg_lower = user_message.lower()
+        for term in self._topical_scope:
+            if term in msg_lower:
+                return True
+        return False
+
+    def _log_undefined_topic(self, user_message: str):
+        """Log queries that are in-scope but have no glossary or database match.
+
+        Writes to data/undefined_topics.jsonl so developers can review
+        which Responsible AI concepts users are asking about.
+        """
+        import datetime
+        log_path = os.path.join(self._agent_dir, "data", "undefined_topics.jsonl")
+        try:
+            entry = {
+                "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+                "query": user_message.strip(),
+            }
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        except Exception:
+            pass  # Non-critical — do not break the query flow
+
     # ------------------------------------------------------------------
     # Project document parsing
     # ------------------------------------------------------------------
@@ -715,6 +817,8 @@ class MetadataRAGMixin:
 
         glossary_path = os.path.join(self._agent_dir, "data", "docs", "responsible_ai_glossary.md")
         if not os.path.exists(glossary_path):
+            glossary_path = os.path.join(self._agent_dir, "data", "docs", "Glossary_Responsible_AI.md")
+        if not os.path.exists(glossary_path):
             self._glossary_cache = {}
             return self._glossary_cache
 
@@ -1028,6 +1132,18 @@ class MetadataRAGMixin:
         )
 
     @classmethod
+    def _banner_undefined(cls) -> str:
+        """🟡 Yellow banner for on-topic queries not yet covered in the database."""
+        return (
+            f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{cls._BANNER_STYLE}">'
+            '\U0001F7E1 <strong>On-topic, undefined</strong> — '
+            'This topic is related to Responsible AI but is not yet defined in the glossary '
+            'or covered by specific papers in the database. The answer below is based on '
+            'general AI knowledge. Consider adding a glossary entry or related research.'
+            '</div>\n\n'
+        )
+
+    @classmethod
     def _banner_creative(cls) -> str:
         """🔴 Red banner for off-topic responses — no database verification possible."""
         return (
@@ -1036,6 +1152,40 @@ class MetadataRAGMixin:
             'This is outside the scope of the UNINOVIS research database.'
             '</div>\n\n'
         )
+
+    @staticmethod
+    def _glossary_answer_diverged(llm_response: str, glossary_ctx: str) -> bool:
+        """Check if the LLM response substantially diverges from the glossary content.
+
+        Returns True if the LLM introduced significant content not present in the
+        glossary, suggesting the answer goes beyond curated definitions.
+        """
+        # Extract glossary definition text (strip the GLOSSARY CONTEXT header)
+        glossary_words = set(re.findall(r'[a-z]{3,}', glossary_ctx.lower()))
+        response_words = set(re.findall(r'[a-z]{3,}', llm_response.lower()))
+
+        if not response_words:
+            return False
+
+        # Words in the response that are NOT in the glossary
+        novel_words = response_words - glossary_words
+        # Common filler/connecting words that don't indicate divergence
+        fillers = {
+            'the', 'and', 'that', 'this', 'with', 'for', 'are', 'from', 'has',
+            'have', 'been', 'which', 'their', 'also', 'can', 'not', 'but',
+            'may', 'more', 'such', 'into', 'these', 'than', 'other', 'its',
+            'all', 'some', 'about', 'would', 'will', 'could', 'should',
+            'being', 'each', 'how', 'our', 'many', 'most', 'often',
+            'generally', 'understood', 'described', 'commonly', 'according',
+            'various', 'across', 'while', 'both', 'between', 'those',
+        }
+        novel_words -= fillers
+        # High proportion of novel substantive words suggests divergence
+        substantive_response = response_words - fillers
+        if not substantive_response:
+            return False
+        novelty_ratio = len(novel_words) / len(substantive_response)
+        return novelty_ratio > 0.5
 
     @staticmethod
     def _analysis_prompt(topic: str, hedged: bool = False) -> str:
@@ -3827,7 +3977,7 @@ class MetadataRAGMixin:
                         "Verify before using this to inform research decisions."
                     )
                 elif is_conceptual and glossary_ctx:
-                    pre_banner = self._banner_database(
+                    pre_banner = self._banner_verified(
                         "This response is based on the Responsible AI Glossary — "
                         "curated definitions and concept relationships."
                     )
@@ -3847,7 +3997,12 @@ class MetadataRAGMixin:
                 elif has_structured_data:
                     pre_banner = self._banner_verified()
                 elif not context and not web_ctx:
-                    pre_banner = self._banner_creative()
+                    # Two-axis banner: distinguish in-scope (undefined) from out-of-scope
+                    if self._is_in_topical_scope(user_message):
+                        pre_banner = self._banner_undefined()
+                        self._log_undefined_topic(user_message)
+                    else:
+                        pre_banner = self._banner_creative()
                 elif context:
                     pre_banner = self._banner_database()
 
@@ -3884,6 +4039,16 @@ class MetadataRAGMixin:
 
             # Post-process: inject DOI/PDF links for paper IDs missing links
             llm_content = self._inject_paper_links(llm_content)
+
+            # For conceptual+glossary answers, check if the LLM substantially
+            # deviated from the glossary content.  If so, downgrade the banner
+            # from verified to database (AI interpretation).
+            if is_conceptual and glossary_ctx and pre_banner and "Verified" in pre_banner:
+                if self._glossary_answer_diverged(llm_content, glossary_ctx):
+                    pre_banner = self._banner_database(
+                        "This response is based on the Responsible AI Glossary, "
+                        "but includes additional AI interpretation beyond the curated definitions."
+                    )
 
             # Prepend banner (AI3 only)
             # If the LLM refused as off-topic, split into verified refusal + unverified suggestions
@@ -4024,7 +4189,8 @@ class MetadataRAGMixin:
 
         # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
-            yield ("status", "Creating ChromaDB for the agent...")
+            init_msg = getattr(self, '_init_status_message', "Creating ChromaDB for the agent...")
+            yield ("status", init_msg)
             self._init_chromadb()
 
         yield ("status", "Thinking...")
@@ -4230,7 +4396,7 @@ class MetadataRAGMixin:
                         "Verify before using this to inform research decisions."
                     )
                 elif is_conceptual and glossary_ctx:
-                    pre_banner = self._banner_database(
+                    pre_banner = self._banner_verified(
                         "This response is based on the Responsible AI Glossary — "
                         "curated definitions and concept relationships."
                     )
@@ -4250,7 +4416,12 @@ class MetadataRAGMixin:
                 elif has_structured_data:
                     pre_banner = self._banner_verified()
                 elif not context and not web_ctx:
-                    pre_banner = self._banner_creative()
+                    # Two-axis banner: distinguish in-scope (undefined) from out-of-scope
+                    if self._is_in_topical_scope(user_message):
+                        pre_banner = self._banner_undefined()
+                        self._log_undefined_topic(user_message)
+                    else:
+                        pre_banner = self._banner_creative()
                 elif context:
                     pre_banner = self._banner_database()
 
@@ -4333,6 +4504,15 @@ class MetadataRAGMixin:
             if enriched != full_response:
                 full_response = enriched
                 yield ("replace", enriched)
+
+            # For conceptual+glossary answers, downgrade banner if LLM diverged
+            if is_conceptual and glossary_ctx and show_banners and pre_banner and "Verified" in pre_banner:
+                if self._glossary_answer_diverged(full_response, glossary_ctx):
+                    downgraded = self._banner_database(
+                        "This response is based on the Responsible AI Glossary, "
+                        "but includes additional AI interpretation beyond the curated definitions."
+                    )
+                    yield ("replace", downgraded + full_response)
 
         # Deferred grounding badge with source breakdown
         structured_ctx = " ".join(filter(None, [

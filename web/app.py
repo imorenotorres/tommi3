@@ -1443,12 +1443,50 @@ async def set_agent_visibility(
 
 
 # ---------------------------------------------------------------------------
+# Tool access management (superuser only)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/tool-access")
+async def get_tool_access(session: dict = Depends(require_role("superuser"))):
+    """Get current tool access configuration."""
+    return {"tool_access": TOOL_ACCESS}
+
+
+@app.put("/api/tool-access")
+async def set_tool_access(request: Request, session: dict = Depends(require_role("superuser"))):
+    """Update tool access configuration (superuser only)."""
+    from auth import save_tool_access
+    body = await request.json()
+    new_access = body.get("tool_access")
+    if not isinstance(new_access, dict):
+        raise HTTPException(status_code=400, detail="tool_access must be a dict")
+    # Validate: values must be lists of known role strings
+    valid_roles = {"student", "admin_staff", "teaching_staff", "tester", "superuser"}
+    for tool_id, roles in new_access.items():
+        if not isinstance(roles, list):
+            raise HTTPException(status_code=400, detail=f"Roles for {tool_id} must be a list")
+        for r in roles:
+            if r not in valid_roles:
+                raise HTTPException(status_code=400, detail=f"Unknown role: {r}")
+    # Update in-memory and persist
+    TOOL_ACCESS.clear()
+    TOOL_ACCESS.update(new_access)
+    save_tool_access(new_access)
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
 # Agent config editing (tester+ only)
 # ---------------------------------------------------------------------------
 
 @app.get("/api/agents/{agent_id}/config")
 async def get_agent_config(agent_id: str, session: dict = Depends(require_role("tester"))):
-    """Get config.json and prompts.json for an agent (tester+)."""
+    """Get config.json and prompts.json for an agent (tester+).
+
+    Includes the caller's role so the frontend can render a role-appropriate
+    editor (testers see basic settings + prompts + scope terms, superusers
+    see everything).
+    """
     agent = runner.get_agent(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -1462,25 +1500,57 @@ async def get_agent_config(agent_id: str, session: dict = Depends(require_role("
     if prompts_path.exists():
         with open(prompts_path, "r", encoding="utf-8") as f:
             prompts = json.load(f)
-    return {"config": config, "prompts": prompts}
+    return {"config": config, "prompts": prompts, "role": session.get("role", "tester")}
 
 
 @app.put("/api/agents/{agent_id}/config")
 async def set_agent_config(agent_id: str, request: Request, session: dict = Depends(require_role("tester"))):
-    """Update config.json and/or prompts.json for an agent (tester+)."""
+    """Update config.json and/or prompts.json for an agent (tester+).
+
+    Role-based write protection:
+    - tester: can update basic settings, prompts, scope terms, examples
+    - superuser: can update everything (including agent_id, universities, etc.)
+    """
+    from auth import max_role_level as _max_level
     agent = runner.get_agent(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     body = await request.json()
     agent_path = Path(agent.path)
+    role_level = _max_level(session)
+
     if "config" in body and isinstance(body["config"], dict):
-        with open(agent_path / "config.json", "w", encoding="utf-8") as f:
-            json.dump(body["config"], f, indent=2, ensure_ascii=False)
+        config_path = agent_path / "config.json"
+        current = {}
+        if config_path.exists():
+            with open(config_path, "r", encoding="utf-8") as f:
+                current = json.load(f)
+
+        new_config = body["config"]
+
+        if role_level >= 4:  # superuser — full access
+            merged = new_config
+        else:  # tester — restricted to safe fields
+            TESTER_FIELDS = {
+                "prompt_level", "transparency_level", "reliability_display",
+                "humility_level", "show_history", "audit_log_enabled",
+                "extra_scope_terms", "example_queries", "description",
+                "welcome_message",
+            }
+            merged = {**current}
+            for key in TESTER_FIELDS:
+                if key in new_config:
+                    merged[key] = new_config[key]
+
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(merged, f, indent=2, ensure_ascii=False)
             f.write("\n")
+
     if "prompts" in body and isinstance(body["prompts"], dict):
         with open(agent_path / "prompts.json", "w", encoding="utf-8") as f:
             json.dump(body["prompts"], f, indent=2, ensure_ascii=False)
             f.write("\n")
+
     return {"ok": True, "agent_id": agent_id}
 
 
