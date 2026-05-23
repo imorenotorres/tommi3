@@ -1356,6 +1356,101 @@ async def get_llm_status(agent_id: Optional[str] = Query(None, description="ID d
     return response
 
 
+@app.get("/api/llm-models")
+async def get_llm_models(provider: str = Query(...), session: dict = Depends(require_role("tester"))):
+    """Return available models for a given LLM provider."""
+    from dotenv import dotenv_values
+    web_env = dotenv_values(Path(__file__).parent / ".env")
+    provider = provider.lower()
+
+    if provider == "ollama":
+        base_url = web_env.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        models = []
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=5.0) as hclient:
+                resp = await hclient.get(f"{base_url}/api/tags")
+                if resp.status_code == 200:
+                    for m in resp.json().get("models", []):
+                        name = m.get("name", "")
+                        size_gb = round(m.get("size", 0) / (1024**3), 1)
+                        models.append({"name": name, "size_gb": size_gb})
+        except Exception:
+            pass
+        max_gb = float(os.getenv("OLLAMA_MAX_CYCLING_GB", "20"))
+        return {"provider": "ollama", "models": [m["name"] for m in models if m["size_gb"] <= max_gb]}
+    elif provider == "mistral":
+        available_raw = web_env.get("AVAILABLE_MODELS", "")
+        models = [m.strip() for m in available_raw.split(",") if m.strip()] if available_raw else ["mistral-small-latest", "mistral-large-latest"]
+        return {"provider": "mistral", "models": models}
+    elif provider == "openai":
+        return {"provider": "openai", "models": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"]}
+    elif provider == "anthropic":
+        return {"provider": "anthropic", "models": ["claude-sonnet-4-20250514", "claude-haiku-4-5-20251001"]}
+    else:
+        return {"provider": provider, "models": []}
+
+
+@app.put("/api/agents/{agent_id}/llm-provider")
+async def set_agent_llm_provider(agent_id: str, request: Request, session: dict = Depends(require_role("superuser"))):
+    """Update the LLM provider and model for an agent by writing its .env file."""
+    agent = runner.get_agent(agent_id)
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    body = await request.json()
+    provider = body.get("provider", "").lower()
+    model = body.get("model", "")
+
+    if not provider or not model:
+        raise HTTPException(status_code=400, detail="provider and model are required")
+
+    agent_env_path = Path(agent.path) / ".env"
+
+    # Read existing .env lines, preserving non-LLM entries
+    existing_lines = []
+    llm_keys = {"LLM_PROVIDER", "OLLAMA_MODEL", "OLLAMA_BASE_URL", "MISTRAL_MODEL",
+                "MISTRAL_API_KEY", "VLLM_MODEL", "VLLM_BASE_URL", "OPENAI_MODEL",
+                "OPENAI_API_KEY", "ANTHROPIC_MODEL", "ANTHROPIC_API_KEY"}
+    if agent_env_path.exists():
+        with open(agent_env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                key = line.split("=", 1)[0].strip()
+                if key not in llm_keys:
+                    existing_lines.append(line)
+
+    # Build new LLM lines
+    from dotenv import dotenv_values
+    web_env = dotenv_values(Path(__file__).parent / ".env")
+    new_lines = [f"LLM_PROVIDER={provider}\n"]
+
+    if provider == "ollama":
+        base_url = web_env.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        new_lines.append(f"OLLAMA_MODEL={model}\n")
+        new_lines.append(f"OLLAMA_BASE_URL={base_url}\n")
+    elif provider == "mistral":
+        api_key = web_env.get("MISTRAL_API_KEY", "")
+        new_lines.append(f"MISTRAL_MODEL={model}\n")
+        if api_key:
+            new_lines.append(f"MISTRAL_API_KEY={api_key}\n")
+    elif provider == "openai":
+        api_key = web_env.get("OPENAI_API_KEY", "")
+        new_lines.append(f"OPENAI_MODEL={model}\n")
+        if api_key:
+            new_lines.append(f"OPENAI_API_KEY={api_key}\n")
+    elif provider == "anthropic":
+        api_key = web_env.get("ANTHROPIC_API_KEY", "")
+        new_lines.append(f"ANTHROPIC_MODEL={model}\n")
+        if api_key:
+            new_lines.append(f"ANTHROPIC_API_KEY={api_key}\n")
+
+    with open(agent_env_path, "w", encoding="utf-8") as f:
+        f.writelines(existing_lines)
+        f.writelines(new_lines)
+
+    return {"ok": True, "provider": provider, "model": model}
+
+
 @app.get("/api/history")
 async def get_history(
     agent_id: str = Query(..., description="ID del agente"),
@@ -1500,7 +1595,39 @@ async def get_agent_config(agent_id: str, session: dict = Depends(require_role("
     if prompts_path.exists():
         with open(prompts_path, "r", encoding="utf-8") as f:
             prompts = json.load(f)
-    return {"config": config, "prompts": prompts, "role": session.get("role", "tester")}
+
+    # Include current LLM provider info
+    from dotenv import dotenv_values
+    agent_env_path = agent_path / ".env"
+    llm_provider = None
+    llm_model = None
+    if agent_env_path.exists():
+        agent_env = dotenv_values(agent_env_path)
+        llm_provider = agent_env.get("LLM_PROVIDER")
+        if llm_provider:
+            llm_provider = llm_provider.lower()
+            if llm_provider == "ollama":
+                llm_model = agent_env.get("OLLAMA_MODEL")
+            elif llm_provider == "mistral":
+                llm_model = agent_env.get("MISTRAL_MODEL")
+            elif llm_provider == "openai":
+                llm_model = agent_env.get("OPENAI_MODEL")
+            elif llm_provider == "anthropic":
+                llm_model = agent_env.get("ANTHROPIC_MODEL")
+    if not llm_provider:
+        web_env = dotenv_values(Path(__file__).parent / ".env")
+        llm_provider = web_env.get("LLM_PROVIDER", "mistral").lower()
+        if llm_provider == "ollama":
+            llm_model = web_env.get("OLLAMA_MODEL")
+        elif llm_provider == "mistral":
+            llm_model = web_env.get("MISTRAL_MODEL")
+        elif llm_provider == "openai":
+            llm_model = web_env.get("OPENAI_MODEL")
+        elif llm_provider == "anthropic":
+            llm_model = web_env.get("ANTHROPIC_MODEL")
+
+    return {"config": config, "prompts": prompts, "role": session.get("role", "tester"),
+            "llm_provider": llm_provider, "llm_model": llm_model}
 
 
 @app.put("/api/agents/{agent_id}/config")
@@ -1998,6 +2125,187 @@ async def reset_agent_logs(agent_id: str, session: dict = Depends(require_role("
         return {"ok": True, "message": "No logs to reset", "archived": []}
 
     return {"ok": True, "message": f"Archived {len(archived)} log file(s)", "archived": archived}
+
+
+# ---------------------------------------------------------------------------
+# Log Analytics API (superuser only)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/logs/summary")
+async def logs_summary(
+    period: str = "day",
+    start: str | None = None,
+    end: str | None = None,
+    session: dict = Depends(require_role("superuser")),
+):
+    """
+    Return aggregated request/visitor stats across all agents.
+    period: 'hour', 'day', 'week' (ignored when start/end are given).
+    start/end: ISO date(time) strings for a custom interval.
+    """
+    from datetime import datetime as dt, timedelta
+
+    now = dt.now()
+    if start and end:
+        try:
+            t_start = dt.fromisoformat(start)
+            t_end = dt.fromisoformat(end)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use ISO 8601.")
+    else:
+        if period == "hour":
+            t_start = now - timedelta(hours=1)
+        elif period == "3days":
+            t_start = now - timedelta(days=3)
+        elif period == "week":
+            t_start = now - timedelta(weeks=1)
+        else:
+            t_start = now - timedelta(days=1)
+        t_end = now
+
+    # Scan all JSONL conversation logs
+    totals = {"requests": 0, "sessions": set(), "users": set()}
+    per_agent: dict[str, dict] = {}
+
+    for log_file in sorted(LOGS_DIR.glob("*_conversations.jsonl")):
+        agent_id = log_file.name.rsplit("_conversations.jsonl", 1)[0]
+        agent_stats = {"requests": 0, "sessions": set(), "users": set()}
+
+        try:
+            with open(log_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    try:
+                        ts = dt.fromisoformat(entry["timestamp"])
+                    except (KeyError, ValueError):
+                        continue
+                    if ts < t_start or ts > t_end:
+                        continue
+
+                    agent_stats["requests"] += 1
+                    if entry.get("session_id"):
+                        agent_stats["sessions"].add(entry["session_id"])
+                    if entry.get("user_id"):
+                        agent_stats["users"].add(entry["user_id"])
+        except Exception:
+            continue
+
+        if agent_stats["requests"] > 0:
+            per_agent[agent_id] = {
+                "requests": agent_stats["requests"],
+                "sessions": len(agent_stats["sessions"]),
+                "unique_users": len(agent_stats["users"]),
+            }
+            totals["requests"] += agent_stats["requests"]
+            totals["sessions"] |= agent_stats["sessions"]
+            totals["users"] |= agent_stats["users"]
+
+    return {
+        "period": period if not (start and end) else "custom",
+        "start": t_start.isoformat(),
+        "end": t_end.isoformat(),
+        "totals": {
+            "requests": totals["requests"],
+            "sessions": len(totals["sessions"]),
+            "unique_users": len(totals["users"]),
+        },
+        "per_agent": per_agent,
+    }
+
+
+@app.get("/api/logs/files")
+async def list_log_files(session: dict = Depends(require_role("superuser"))):
+    """List all log files with size and modification time."""
+    files = []
+    for f in sorted(LOGS_DIR.iterdir()):
+        if f.is_file() and f.name != ".DS_Store":
+            stat = f.stat()
+            files.append({
+                "name": f.name,
+                "size": stat.st_size,
+                "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+            })
+    return files
+
+
+@app.get("/api/logs/content")
+async def get_log_content(filename: str, session: dict = Depends(require_role("superuser"))):
+    """Return parsed content of a log file (superuser only)."""
+    if "/" in filename or "\\" in filename or ".." in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    target = LOGS_DIR / filename
+    if not target.exists() or not target.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    entries = []
+    try:
+        with open(target, "r", encoding="utf-8") as f:
+            if filename.endswith(".jsonl"):
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entries.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        entries.append({"_raw": line})
+            elif filename.endswith(".log"):
+                # .log files contain pretty-printed JSON blocks separated by blank lines
+                buf = []
+                for line in f:
+                    stripped = line.strip()
+                    if stripped:
+                        buf.append(stripped)
+                    else:
+                        if buf:
+                            try:
+                                entries.append(json.loads(" ".join(buf)))
+                            except json.JSONDecodeError:
+                                entries.append({"_raw": "\n".join(buf)})
+                            buf = []
+                if buf:
+                    try:
+                        entries.append(json.loads(" ".join(buf)))
+                    except json.JSONDecodeError:
+                        entries.append({"_raw": "\n".join(buf)})
+            else:
+                text = f.read()
+                return {"filename": filename, "format": "text", "text": text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading file: {e}")
+
+    return {"filename": filename, "format": "entries", "count": len(entries), "entries": entries}
+
+
+@app.delete("/api/logs/{filename}")
+async def delete_log_file(filename: str, session: dict = Depends(require_role("superuser"))):
+    """Delete a specific log file (superuser only)."""
+    # Sanitize: prevent directory traversal
+    if "/" in filename or "\\" in filename or ".." in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    target = LOGS_DIR / filename
+    if not target.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    if not target.is_file():
+        raise HTTPException(status_code=400, detail="Not a file")
+
+    # If it's an active conversation log, also clear the cached logger
+    for agent_id in list(_agent_loggers.keys()):
+        if filename == f"{agent_id}_conversations.log":
+            logger = _agent_loggers.pop(agent_id)
+            for h in logger.handlers[:]:
+                h.close()
+                logger.removeHandler(h)
+            break
+
+    target.unlink()
+    return {"ok": True, "message": f"Deleted {filename}"}
 
 
 @app.post("/api/agents/{agent_id}/init")

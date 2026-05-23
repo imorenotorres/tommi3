@@ -133,6 +133,7 @@ var TOOL_ACCESS = {
     'user_management':    ['superuser'],
     'agent_management':   ['superuser'],
     'tool_visibility':    ['superuser'],
+    'log_analytics':      ['superuser'],
     'research_proposals': ['teaching_staff', 'tester', 'superuser'],
     'tommi_testing':      ['tester', 'superuser'],
 };
@@ -186,6 +187,7 @@ var SECTIONS = [
             { id: 'user_management', name: 'User Management', icon: '\uD83D\uDD10', desc: 'Create, edit, and delete users. Manage roles and invitations.', url: '#', status: 'active', action: 'openUserManagement' },
             { id: 'agent_management', name: 'Agent Management', icon: '\u2699\uFE0F', desc: 'Agent visibility, access control, data export, and log management.', url: '#', status: 'active', action: 'openAgentManagement' },
             { id: 'tool_visibility', name: 'Tool Visibility', icon: '\uD83D\uDC41', desc: 'Configure which intranet tools are visible to each role.', url: '#', status: 'active', action: 'openToolVisibility' },
+            { id: 'log_analytics', name: 'Agents Analytics', icon: '\uD83D\uDCCA', desc: 'View request summaries, visitor stats, and manage agent log files.', url: '#', status: 'active', action: 'openLogAnalytics' },
         ]
     },
 ];
@@ -860,6 +862,7 @@ var TOOL_LABELS = {
     tommi_testing: 'Agent Testing',
     virtual_campus: 'Virtual Campus',
     student_admin: 'Student Administration',
+    log_analytics: 'Agents Analytics',
 };
 
 function openToolVisibility() {
@@ -987,6 +990,277 @@ async function tvSave() {
         for (var key in newAccess) { TOOL_ACCESS[key] = newAccess[key]; }
         tvMsg('Saved. Changes take effect on next page load.', true);
     } catch (e) { tvMsg('Request failed', false); }
+}
+
+// ── Log Analytics Panel ─────────────────────────────────────────
+function openLogAnalytics() {
+    var existing = document.getElementById('la-overlay');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'la-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
+
+    var panel = document.createElement('div');
+    panel.style.cssText = 'background:#fff;border-radius:12px;padding:24px;width:780px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);';
+    panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+        + '<h2 style="margin:0;font-size:1.15rem;color:#2D3876;">Agents Analytics</h2>'
+        + '<button onclick="closeLogAnalytics()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+        + '</div>'
+        + '<div id="la-message" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+        // Period selector
+        + '<div style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">'
+        + '<h3 style="margin:0 0 8px 0;font-size:0.9rem;">Request Summary</h3>'
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">'
+        + '<button onclick="laLoadSummary(\'hour\')" class="la-period-btn" id="la-btn-hour" style="background:#e8e0f0;color:#2D3876;border:1px solid #ccc;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.82rem;">Last hour</button>'
+        + '<button onclick="laLoadSummary(\'day\')" class="la-period-btn" id="la-btn-day" style="background:#2D3876;color:#fff;border:1px solid #2D3876;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.82rem;">Last 24h</button>'
+        + '<button onclick="laLoadSummary(\'3days\')" class="la-period-btn" id="la-btn-3days" style="background:#e8e0f0;color:#2D3876;border:1px solid #ccc;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.82rem;">Last 3 days</button>'
+        + '<button onclick="laLoadSummary(\'week\')" class="la-period-btn" id="la-btn-week" style="background:#e8e0f0;color:#2D3876;border:1px solid #ccc;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.82rem;">Last 7 days</button>'
+        + '<span style="color:#aaa;font-size:0.8rem;margin:0 4px;">|</span>'
+        + '<input type="date" id="la-start" style="padding:4px 6px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.8rem;">'
+        + '<span style="font-size:0.8rem;color:#666;">to</span>'
+        + '<input type="date" id="la-end" style="padding:4px 6px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.8rem;">'
+        + '<button onclick="laLoadCustom()" style="background:#2D3876;color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.82rem;">Go</button>'
+        + '</div>'
+        + '<div id="la-summary" style="margin-top:12px;font-size:0.85rem;color:#666;">Loading...</div>'
+        + '</div>'
+        // Log files
+        + '<div style="padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">'
+        + '<h3 style="margin:0 0 8px 0;font-size:0.9rem;">Log Files</h3>'
+        + '<div id="la-files" style="font-size:0.85rem;">Loading...</div>'
+        + '</div>';
+
+    overlay.appendChild(panel);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeLogAnalytics(); });
+    document.body.appendChild(overlay);
+    laLoadSummary('day');
+    laLoadFiles();
+}
+
+function closeLogAnalytics() {
+    var el = document.getElementById('la-overlay');
+    if (el) el.remove();
+}
+
+function laMsg(text, ok) {
+    var el = document.getElementById('la-message');
+    if (!el) return;
+    el.style.display = '';
+    el.style.background = ok ? '#dcfce7' : '#fee2e2';
+    el.style.color = ok ? '#166534' : '#991b1b';
+    el.textContent = text;
+    setTimeout(function() { el.style.display = 'none'; }, 3000);
+}
+
+function laSetActive(period) {
+    ['hour', 'day', '3days', 'week'].forEach(function(p) {
+        var btn = document.getElementById('la-btn-' + p);
+        if (!btn) return;
+        if (p === period) {
+            btn.style.background = '#2D3876'; btn.style.color = '#fff'; btn.style.borderColor = '#2D3876';
+        } else {
+            btn.style.background = '#e8e0f0'; btn.style.color = '#2D3876'; btn.style.borderColor = '#ccc';
+        }
+    });
+}
+
+async function laLoadSummary(period) {
+    laSetActive(period);
+    var container = document.getElementById('la-summary');
+    if (!container) return;
+    container.innerHTML = 'Loading...';
+    try {
+        var res = await umFetch('/api/logs/summary?period=' + period);
+        var data = await res.json();
+        laRenderSummary(data, container);
+    } catch (e) { container.innerHTML = '<span style="color:#dc3545;">Error loading summary</span>'; }
+}
+
+async function laLoadCustom() {
+    var s = document.getElementById('la-start').value;
+    var e = document.getElementById('la-end').value;
+    if (!s || !e) { laMsg('Select both start and end dates', false); return; }
+    laSetActive('');
+    var container = document.getElementById('la-summary');
+    if (!container) return;
+    container.innerHTML = 'Loading...';
+    try {
+        var res = await umFetch('/api/logs/summary?start=' + encodeURIComponent(s) + '&end=' + encodeURIComponent(e + 'T23:59:59'));
+        var data = await res.json();
+        laRenderSummary(data, container);
+    } catch (err) { container.innerHTML = '<span style="color:#dc3545;">Error loading summary</span>'; }
+}
+
+function laRenderSummary(data, container) {
+    var t = data.totals;
+    var periodLabel = data.period === 'hour' ? 'Last hour' : data.period === 'day' ? 'Last 24 hours' : data.period === '3days' ? 'Last 3 days' : data.period === 'week' ? 'Last 7 days' : data.start.split('T')[0] + ' to ' + data.end.split('T')[0];
+
+    var html = '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;">'
+        + '<div style="background:#fff;padding:10px 16px;border-radius:8px;border:1px solid #e2e8f0;text-align:center;min-width:100px;">'
+        + '<div style="font-size:1.4rem;font-weight:700;color:#2D3876;">' + t.requests + '</div>'
+        + '<div style="font-size:0.72rem;color:#888;">Requests</div></div>'
+        + '<div style="background:#fff;padding:10px 16px;border-radius:8px;border:1px solid #e2e8f0;text-align:center;min-width:100px;">'
+        + '<div style="font-size:1.4rem;font-weight:700;color:#2D3876;">' + t.sessions + '</div>'
+        + '<div style="font-size:0.72rem;color:#888;">Sessions</div></div>'
+        + '<div style="background:#fff;padding:10px 16px;border-radius:8px;border:1px solid #e2e8f0;text-align:center;min-width:100px;">'
+        + '<div style="font-size:1.4rem;font-weight:700;color:#2D3876;">' + t.unique_users + '</div>'
+        + '<div style="font-size:0.72rem;color:#888;">Unique Users</div></div>'
+        + '</div>';
+
+    html += '<div style="font-size:0.75rem;color:#888;margin-bottom:6px;">' + periodLabel + '</div>';
+
+    var agents = Object.keys(data.per_agent);
+    if (agents.length > 0) {
+        agents.sort(function(a, b) { return data.per_agent[b].requests - data.per_agent[a].requests; });
+        html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
+            + '<tr style="border-bottom:2px solid #e2e8f0;"><th style="text-align:left;padding:4px 6px;">Agent</th>'
+            + '<th style="text-align:right;padding:4px 6px;">Requests</th>'
+            + '<th style="text-align:right;padding:4px 6px;">Sessions</th>'
+            + '<th style="text-align:right;padding:4px 6px;">Users</th></tr>';
+        agents.forEach(function(aid) {
+            var a = data.per_agent[aid];
+            html += '<tr style="border-bottom:1px solid #f0f0f0;">'
+                + '<td style="padding:4px 6px;">' + aid + '</td>'
+                + '<td style="text-align:right;padding:4px 6px;">' + a.requests + '</td>'
+                + '<td style="text-align:right;padding:4px 6px;">' + a.sessions + '</td>'
+                + '<td style="text-align:right;padding:4px 6px;">' + a.unique_users + '</td></tr>';
+        });
+        html += '</table>';
+    } else {
+        html += '<p style="color:#888;">No activity in this period.</p>';
+    }
+
+    container.innerHTML = html;
+}
+
+function laFormatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+async function laLoadFiles() {
+    var container = document.getElementById('la-files');
+    if (!container) return;
+    try {
+        var res = await umFetch('/api/logs/files');
+        var files = await res.json();
+        if (!files.length) { container.innerHTML = '<p style="color:#888;">No log files.</p>'; return; }
+
+        var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
+            + '<tr style="border-bottom:2px solid #e2e8f0;">'
+            + '<th style="text-align:left;padding:4px 6px;">File</th>'
+            + '<th style="text-align:right;padding:4px 6px;">Size</th>'
+            + '<th style="text-align:left;padding:4px 6px;">Modified</th>'
+            + '<th style="text-align:center;padding:4px 6px;">Actions</th></tr>';
+
+        files.forEach(function(f) {
+            var esc = f.name.replace(/'/g, "\\'");
+            var mod = f.modified.split('T')[0] + ' ' + f.modified.split('T')[1].substring(0, 5);
+            html += '<tr style="border-bottom:1px solid #f0f0f0;">'
+                + '<td style="padding:4px 6px;word-break:break-all;">' + f.name + '</td>'
+                + '<td style="text-align:right;padding:4px 6px;white-space:nowrap;">' + laFormatSize(f.size) + '</td>'
+                + '<td style="padding:4px 6px;white-space:nowrap;color:#666;">' + mod + '</td>'
+                + '<td style="text-align:center;padding:4px 6px;">'
+                + '<button onclick="laViewFile(\'' + esc + '\')" style="background:none;border:1px solid #2D3876;color:#2D3876;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;margin-right:3px;">View</button>'
+                + '<button onclick="laDeleteFile(\'' + esc + '\')" style="background:none;border:1px solid #ccc;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;">Reset</button>'
+                + '</td></tr>';
+        });
+
+        html += '</table>'
+            + '<p style="font-size:0.72rem;color:#888;margin-top:6px;">' + files.length + ' file(s)</p>';
+        container.innerHTML = html;
+    } catch (e) { container.innerHTML = '<span style="color:#dc3545;">Error loading files</span>'; }
+}
+
+async function laViewFile(filename) {
+    var existing = document.getElementById('la-viewer');
+    if (existing) existing.remove();
+
+    var viewer = document.createElement('div');
+    viewer.id = 'la-viewer';
+    viewer.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1100;display:flex;justify-content:center;align-items:center;';
+
+    var panel = document.createElement('div');
+    panel.style.cssText = 'background:#fff;border-radius:12px;padding:24px;width:850px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.25);';
+    panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
+        + '<h3 style="margin:0;font-size:1rem;color:#2D3876;word-break:break-all;">' + filename + '</h3>'
+        + '<button onclick="document.getElementById(\'la-viewer\').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+        + '</div>'
+        + '<div id="la-viewer-content" style="font-size:0.85rem;">Loading...</div>';
+
+    viewer.appendChild(panel);
+    viewer.addEventListener('click', function(e) { if (e.target === viewer) viewer.remove(); });
+    document.body.appendChild(viewer);
+
+    try {
+        var res = await umFetch('/api/logs/content?filename=' + encodeURIComponent(filename));
+        if (!res.ok) { document.getElementById('la-viewer-content').innerHTML = '<span style="color:#dc3545;">Error loading file</span>'; return; }
+        var data = await res.json();
+        var container = document.getElementById('la-viewer-content');
+
+        if (data.format === 'text') {
+            container.innerHTML = '<pre style="white-space:pre-wrap;word-break:break-word;background:#f8fafc;padding:12px;border-radius:6px;border:1px solid #e2e8f0;max-height:65vh;overflow-y:auto;font-size:0.8rem;">'
+                + laEscape(data.text) + '</pre>';
+            return;
+        }
+
+        if (!data.entries || !data.entries.length) {
+            container.innerHTML = '<p style="color:#888;">File is empty.</p>';
+            return;
+        }
+
+        var html = '<p style="font-size:0.75rem;color:#888;margin-bottom:8px;">' + data.count + ' entries</p>';
+        data.entries.forEach(function(entry, idx) {
+            if (entry._raw) {
+                html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;margin-bottom:8px;">'
+                    + '<pre style="white-space:pre-wrap;word-break:break-word;font-size:0.78rem;margin:0;">' + laEscape(entry._raw) + '</pre></div>';
+                return;
+            }
+            var ts = (entry.timestamp || '').replace('T', ' ').substring(0, 19);
+            var agent = entry.agent_name || entry.agent_id || '-';
+            var user = entry.user_id ? entry.user_id.substring(0, 8) + '...' : '-';
+            var domain = entry.email_domain || '';
+            var session = entry.session_id ? entry.session_id.substring(0, 8) + '...' : '-';
+            var question = entry.question || '';
+            var response = entry.response || '';
+
+            html += '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;margin-bottom:8px;">'
+                + '<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:0.72rem;color:#666;margin-bottom:6px;">'
+                + '<span><b>Time:</b> ' + ts + '</span>'
+                + '<span><b>Agent:</b> ' + laEscape(agent) + '</span>'
+                + '<span><b>User:</b> ' + user + (domain ? ' (' + domain + ')' : '') + '</span>'
+                + '<span><b>Session:</b> ' + session + '</span>'
+                + (entry.transparency_level ? '<span><b>Transparency:</b> ' + entry.transparency_level + '</span>' : '')
+                + (entry.client_ip ? '<span><b>IP:</b> ' + entry.client_ip + '</span>' : '')
+                + '</div>'
+                + '<div style="margin-bottom:4px;"><span style="font-size:0.72rem;font-weight:600;color:#2D3876;">Q:</span> '
+                + '<span style="font-size:0.82rem;">' + laEscape(question) + '</span></div>'
+                + '<div><span style="font-size:0.72rem;font-weight:600;color:#555;">A:</span> '
+                + '<span style="font-size:0.78rem;color:#444;">' + laEscape(response).substring(0, 300) + (response.length > 300 ? '...' : '') + '</span></div>'
+                + '</div>';
+        });
+
+        container.innerHTML = html;
+    } catch (e) {
+        document.getElementById('la-viewer-content').innerHTML = '<span style="color:#dc3545;">Error loading file</span>';
+    }
+}
+
+function laEscape(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+async function laDeleteFile(filename) {
+    if (!confirm('Delete log file "' + filename + '"? This cannot be undone.')) return;
+    try {
+        var res = await umFetch('/api/logs/' + encodeURIComponent(filename), { method: 'DELETE' });
+        if (!res.ok) { var err = await res.json(); laMsg(err.detail || 'Error', false); return; }
+        laMsg('Deleted ' + filename, true);
+        laLoadFiles();
+    } catch (e) { laMsg('Request failed', false); }
 }
 
 </script>

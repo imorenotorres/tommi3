@@ -3135,6 +3135,8 @@ async function loadExportAgents() {
 // Store original config/prompts so we can preserve unknown fields on save
 var _cfgOrigConfig = {};
 var _cfgOrigPrompts = {};
+var _cfgLlmProvider = 'mistral';
+var _cfgLlmModel = '';
 
 const _cfgFieldStyle = 'width:100%;padding:0.4rem 0.6rem;border:1px solid #e2e8f0;border-radius:5px;font-size:0.88rem;';
 const _cfgLabelStyle = 'display:block;font-weight:600;font-size:0.82rem;margin-bottom:0.2rem;color:#334155;';
@@ -3202,6 +3204,8 @@ async function openAgentConfigPanel() {
         const data = await res.json();
         _cfgOrigConfig = data.config || {};
         _cfgOrigPrompts = data.prompts || {};
+        _cfgLlmProvider = data.llm_provider || 'mistral';
+        _cfgLlmModel = data.llm_model || '';
         const editorRole = data.role || state._userRole || 'tester';
         _renderConfigForm(_cfgOrigConfig, _cfgOrigPrompts, editorRole);
     } catch (err) {
@@ -3234,9 +3238,14 @@ function _renderConfigForm(config, prompts, role) {
     }
     html += _cfgField('Prompt level', 'cfg-prompt-level', 'select', c.prompt_level || 'stringent', ['stringent', 'tolerant', 'lax']);
     html += _cfgField('Transparency', 'cfg-transparency', 'select', c.transparency_level || 'scaffolded', ['scaffolded', 'unscaffolded']);
-    // LLM model selector (populated from available models)
-    const llmModels = state.availableModels && state.availableModels.length > 0 ? state.availableModels : [state.currentModel || 'default'];
-    html += _cfgField('LLM model', 'cfg-llm-model', 'select', state.currentModel || llmModels[0], llmModels);
+    // LLM provider + model selector
+    html += _cfgField('LLM provider', 'cfg-llm-provider', 'select', _cfgLlmProvider, ['mistral', 'ollama']);
+    html += `<div class="cfg-field" style="margin-bottom:0.6rem;">
+        <label style="display:block;font-size:0.8rem;font-weight:600;color:#334155;margin-bottom:2px;">LLM model</label>
+        <select id="cfg-llm-model" style="width:100%;padding:0.35rem 0.5rem;border:1px solid #e2e8f0;border-radius:5px;font-size:0.85rem;">
+            <option value="">Loading...</option>
+        </select>
+    </div>`;
 
     if (isSuperuser) {
         html += _cfgField('Reliability display', 'cfg-reliability-display', 'select', c.reliability_display || 'visual', ['visual', 'text_style', 'both', 'none']);
@@ -3273,6 +3282,43 @@ function _renderConfigForm(config, prompts, role) {
         ta.style.minHeight = Math.min(200, Math.max(60, ta.scrollHeight)) + 'px';
         ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
     });
+
+    // Wire up LLM provider change to dynamically load models
+    const providerSel = document.getElementById('cfg-llm-provider');
+    if (providerSel) {
+        providerSel.addEventListener('change', () => _cfgLoadModels(providerSel.value, ''));
+        // Load models for current provider
+        _cfgLoadModels(_cfgLlmProvider, _cfgLlmModel);
+    }
+}
+
+async function _cfgLoadModels(provider, selectedModel) {
+    const modelSel = document.getElementById('cfg-llm-model');
+    if (!modelSel) return;
+    modelSel.innerHTML = '<option value="">Loading...</option>';
+    try {
+        const res = await authFetch(`/api/llm-models?provider=${encodeURIComponent(provider)}`);
+        const data = await res.json();
+        const models = data.models || [];
+        if (models.length === 0) {
+            modelSel.innerHTML = '<option value="">(no models available)</option>';
+            return;
+        }
+        modelSel.innerHTML = '';
+        models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = m;
+            if (m === selectedModel) opt.selected = true;
+            modelSel.appendChild(opt);
+        });
+        // If selectedModel wasn't in the list, select the first one
+        if (selectedModel && !models.includes(selectedModel)) {
+            modelSel.value = models[0];
+        }
+    } catch (e) {
+        modelSel.innerHTML = '<option value="">(error loading models)</option>';
+    }
 }
 
 function closeAgentConfigPanel() {
@@ -3298,14 +3344,24 @@ async function saveAgentConfig(agentId) {
     config.show_history = document.getElementById('cfg-show-history').checked;
     config.audit_log_enabled = document.getElementById('cfg-audit-log').checked;
 
-    // Apply LLM model selection (client-side — sent as param with each request)
-    const selectedModel = document.getElementById('cfg-llm-model');
-    if (selectedModel) {
-        state.currentModel = selectedModel.value;
-        // Update the LLM icon tooltip
-        if (elements.llmProviderIcon) {
-            const location = state.isLocalLLM ? 'local server' : 'cloud';
-            elements.llmProviderIcon.title = `${state.currentModel} on ${location}`;
+    // Save LLM provider + model to agent .env
+    const providerEl = document.getElementById('cfg-llm-provider');
+    const modelEl = document.getElementById('cfg-llm-model');
+    if (providerEl && modelEl && modelEl.value) {
+        try {
+            await authFetch(`/api/agents/${encodeURIComponent(agentId)}/llm-provider`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provider: providerEl.value, model: modelEl.value })
+            });
+            state.currentModel = modelEl.value;
+            state.isLocalLLM = (providerEl.value === 'ollama');
+            if (elements.llmProviderIcon) {
+                const location = state.isLocalLLM ? 'local server' : 'cloud';
+                elements.llmProviderIcon.title = `${state.currentModel} on ${location}`;
+            }
+        } catch (e) {
+            console.error('Error saving LLM provider:', e);
         }
     }
 
