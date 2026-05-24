@@ -46,7 +46,7 @@
 
 <p>The Responsible AI Agent is a research assistant that answers questions about <strong>Responsible AI research</strong> within the <strong>UNINOVIS</strong> European university alliance. It draws on a curated database of scientific publications, researcher profiles, funded research projects, and a glossary of Responsible AI concepts contributed by the 8 UNINOVIS partner universities.</p>
 
-<h2>What information does it have?</h2>
+<h2>Which are the main information sources of the Agent?</h2>
 
 <p>The agent has three sources of information:</p>
 
@@ -55,8 +55,6 @@
   <li><strong>A documents database</strong> – The PDF papers produced by the authors, the funded research projects in which they have participated, and a glossary of Responsible AI concepts. The list of documents included in the database was <strong style="color:#28a745;">selected by UNINOVIS staff</strong>.</li>
   <li><strong>An external LLM</strong> (Large Language Model) – We use Mistral, a general-purpose AI model trained on large amounts of text from the internet. Because it is a general-purpose model, <strong style="color:#dc3545;">we cannot guarantee that the information it provides about specific topics is correct</strong>.</li>
 </ol>
-
-<p>Depending on your question, the agent will use a different source of information.</p>
 
 <h2>How does the agent select which data source to use?</h2>
 
@@ -93,8 +91,12 @@
 
 <h2>Up to what point is Responsible AI a reliable information source?</h2>
 
-<p>It depends on the data source used to answer your question. When the agent draws from curated metadata, the information is highly reliable. When it retrieves and summarises document content, the underlying data is real but the presentation involves AI interpretation. When the answer relies on the external LLM, the information is unverified and should be treated with caution.</p>
-
+<p>It depends on the data source used to answer your question. </p>
+<ul>
+  <li>When the agent draws from curated metadata, the information is highly reliable.</li>
+  <li>When it retrieves and summarises document content, the underlying data is real but the presentation involves AI interpretation.</li>
+  <li>When the answer relies on the external LLM, the information is unverified and should be treated with caution.</li>
+</ul>
 <p>To make this visible, a <strong>coloured banner</strong> appears at the top of every answer:</p>
 
 <table>

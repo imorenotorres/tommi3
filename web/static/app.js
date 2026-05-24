@@ -478,7 +478,7 @@ async function onAgentChange(event) {
         try {
             const guideCheck = await fetch(authUrl(guideUrl), { method: 'HEAD' });
             if (guideCheck.ok) {
-                const guideMsg = `**Is this your first time with ${state.currentAgent.agent_name || 'this agent'}?** We strongly recommend you to read [this brief document](${guideUrl}). It will help you make a responsible use of this AI Agent.`;
+                const guideMsg = `**Is this the first time you use TOMMI Agents?** We strongly recommend you to read [this brief document](${guideUrl}). It will help you understand its main interest and potential limitations.`;
                 const guideContent = addMessage(guideMsg, 'agent');
                 const guideDiv = guideContent.parentElement;
                 guideDiv.style.background = '#eef6ff';

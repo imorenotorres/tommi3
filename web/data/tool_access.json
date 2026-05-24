@@ -18,11 +18,13 @@
     "superuser"
   ],
   "research_proposals": [
+    "admin_staff",
     "teaching_staff",
     "tester",
     "superuser"
   ],
   "researcher_connect": [
+    "admin_staff",
     "teaching_staff",
     "tester",
     "superuser"
@@ -34,11 +36,12 @@
     "superuser"
   ],
   "student_admin": [
-    "student",
+    "admin_staff",
     "tester",
     "superuser"
   ],
   "tommi_agents": [
+    "admin_staff",
     "teaching_staff",
     "tester",
     "superuser"

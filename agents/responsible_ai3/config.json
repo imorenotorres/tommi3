@@ -1,7 +1,7 @@
 {
   "type": "rag_metadata_vectorless",
   "agent_id": "responsible_ai3",
-  "agent_name": "EH: Responsible AI (V02)",
+  "agent_name": "EH: Responsible AI",
   "description": "Research assistant for THUAS Responsible AI Excellence Hub (vectorless variant — no ChromaDB, metadata-only)",
   "welcome_message": "Hello! I am a research assistant specialized in UNINOVIS Responsible AI research (vectorless mode). How can I help you?",
   "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
