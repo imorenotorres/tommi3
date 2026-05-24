@@ -159,7 +159,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # PDF endpoints are public (academic documents, not personal data)
         # Study app routes are public (participants don't need TOMMI accounts)
         is_study = path.startswith("/study/api/") or path.startswith("/rag-study/api/") or path.startswith("/sql-study/api/")
-        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and not is_study:
+        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and not is_study:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
                 token = request.query_params.get("token", "")
@@ -2775,6 +2775,25 @@ async def agent_pdf(agent_id: str, filename: str):
         raise HTTPException(status_code=404, detail="PDF not found")
 
     return FileResponse(pdf_path, media_type="application/pdf", filename=filename)
+
+
+# ============================================================================
+# Agent Quick Guide Endpoint
+# ============================================================================
+
+@app.head("/api/agents/{agent_id}/quickguide")
+@app.get("/api/agents/{agent_id}/quickguide")
+async def agent_quickguide(agent_id: str):
+    """Serve the quick guide HTML for an agent (if available)."""
+    agent_info = runner.get_agent(agent_id)
+    if not agent_info:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    guide_path = Path(agent_info.path) / "responsibleAI_quickguide.html"
+    if not guide_path.exists():
+        raise HTTPException(status_code=404, detail="Quick guide not found")
+
+    return FileResponse(guide_path, media_type="text/html")
 
 
 # ============================================================================

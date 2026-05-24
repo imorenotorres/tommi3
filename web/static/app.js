@@ -473,6 +473,23 @@ async function onAgentChange(event) {
         if (state.currentAgent.welcome_message) {
             addMessage(state.currentAgent.welcome_message, 'agent');
         }
+        // Show quick guide link for agents that have one
+        const guideUrl = `/api/agents/${agentId}/quickguide`;
+        try {
+            const guideCheck = await fetch(authUrl(guideUrl), { method: 'HEAD' });
+            if (guideCheck.ok) {
+                const guideMsg = `**Is this your first time with ${state.currentAgent.agent_name || 'this agent'}?** We strongly recommend you to read [this brief document](${guideUrl}). It will help you make a responsible use of this AI Agent.`;
+                const guideContent = addMessage(guideMsg, 'agent');
+                const guideDiv = guideContent.parentElement;
+                guideDiv.style.background = '#eef6ff';
+                guideDiv.style.border = '2px solid #3498db';
+                guideDiv.style.borderRadius = '8px';
+                guideDiv.style.padding = '1rem 1.2rem';
+                // Open guide link in new tab
+                const link = guideContent.querySelector('a');
+                if (link) link.setAttribute('target', '_blank');
+            }
+        } catch (e) { /* no guide available, skip */ }
         enableChat();
         // Load query history if enabled for this agent
         if (state.currentAgent.show_history !== false) {

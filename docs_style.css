@@ -1,0 +1,190 @@
+/* TOMMI Documentation Style */
+:root {
+  --primary: #2c3e50;
+  --accent: #3498db;
+  --accent-dark: #2980b9;
+  --bg: #ffffff;
+  --bg-alt: #f8f9fa;
+  --bg-code: #f4f4f4;
+  --border: #dee2e6;
+  --text: #333333;
+  --text-light: #6c757d;
+  --green: #28a745;
+  --yellow: #ffc107;
+  --red: #dc3545;
+  --blue: #007bff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--bg);
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 2.5rem;
+  font-size: 15px;
+}
+
+/* Header & Navigation */
+h1 {
+  font-size: 2rem;
+  color: var(--primary);
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+h2 {
+  font-size: 1.5rem;
+  color: var(--primary);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin-top: 2.5rem;
+}
+
+h3 {
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin-top: 2rem;
+}
+
+h4 {
+  font-size: 1.05rem;
+  color: var(--primary);
+  margin-top: 1.5rem;
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--accent-dark);
+  text-decoration: underline;
+}
+
+/* Blockquotes (used for audience callouts) */
+blockquote {
+  background: #eef6ff;
+  border-left: 4px solid var(--accent);
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.95em;
+}
+blockquote p { margin: 0.4rem 0; }
+blockquote strong { color: var(--primary); }
+
+/* Code */
+code {
+  background: var(--bg-code);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+  color: #c7254e;
+}
+
+pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1rem 1.2rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.88em;
+  line-height: 1.5;
+  margin: 1rem 0;
+}
+pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.93em;
+}
+thead {
+  background: var(--primary);
+  color: #fff;
+}
+th {
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  font-weight: 600;
+}
+td {
+  padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+tr:nth-child(even) { background: var(--bg-alt); }
+tr:hover { background: #e8f4fd; }
+
+/* Lists */
+ul, ol {
+  padding-left: 1.5rem;
+}
+li {
+  margin-bottom: 0.3rem;
+}
+li > ul, li > ol {
+  margin-top: 0.2rem;
+}
+
+/* Horizontal rules */
+hr {
+  border: none;
+  border-top: 2px solid var(--border);
+  margin: 2.5rem 0;
+}
+
+/* Strong & emphasis */
+strong { color: var(--primary); }
+
+/* Paragraphs */
+p { margin: 0.8rem 0; }
+
+/* Target audience badge */
+.target-audience {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Print styles */
+@media print {
+  body {
+    max-width: 100%;
+    padding: 1rem;
+    font-size: 12px;
+  }
+  pre { background: #f4f4f4 !important; color: #333 !important; }
+  thead { background: #ddd !important; color: #333 !important; }
+  a { color: var(--text) !important; }
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.3rem; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  body {
+    padding: 1rem;
+    font-size: 14px;
+  }
+  table { font-size: 0.85em; }
+  pre { font-size: 0.82em; }
+}

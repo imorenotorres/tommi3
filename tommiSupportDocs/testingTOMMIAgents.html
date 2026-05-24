@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>testingTOMMIAgents_v2</title>
+  <style>
+
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--primary: #2c3e50;
+--accent: #3498db;
+--accent-dark: #2980b9;
+--bg: #ffffff;
+--bg-alt: #f8f9fa;
+--bg-code: #f4f4f4;
+--border: #dee2e6;
+--text: #333333;
+--text-light: #6c757d;
+--green: #28a745;
+--yellow: #ffc107;
+--red: #dc3545;
+--blue: #007bff;
+}
+* { box-sizing: border-box; }
+body {
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+line-height: 1.7;
+color: var(--text);
+background: var(--bg);
+max-width: 960px;
+margin: 0 auto;
+padding: 2rem 2.5rem;
+font-size: 15px;
+}
+
+h1 {
+font-size: 2rem;
+color: var(--primary);
+border-bottom: 3px solid var(--accent);
+padding-bottom: 0.5rem;
+margin-top: 0;
+}
+h2 {
+font-size: 1.5rem;
+color: var(--primary);
+border-bottom: 1px solid var(--border);
+padding-bottom: 0.4rem;
+margin-top: 2.5rem;
+}
+h3 {
+font-size: 1.2rem;
+color: var(--primary);
+margin-top: 2rem;
+}
+h4 {
+font-size: 1.05rem;
+color: var(--primary);
+margin-top: 1.5rem;
+}
+
+a {
+color: var(--accent);
+text-decoration: none;
+}
+a:hover {
+color: var(--accent-dark);
+text-decoration: underline;
+}
+
+blockquote {
+background: #eef6ff;
+border-left: 4px solid var(--accent);
+margin: 1.5rem 0;
+padding: 1rem 1.5rem;
+border-radius: 0 6px 6px 0;
+font-size: 0.95em;
+}
+blockquote p { margin: 0.4rem 0; }
+blockquote strong { color: var(--primary); }
+
+code {
+background: var(--bg-code);
+padding: 2px 6px;
+border-radius: 3px;
+font-size: 0.9em;
+font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+color: #c7254e;
+}
+pre {
+background: #1e1e1e;
+color: #d4d4d4;
+padding: 1rem 1.2rem;
+border-radius: 6px;
+overflow-x: auto;
+font-size: 0.88em;
+line-height: 1.5;
+margin: 1rem 0;
+}
+pre code {
+background: none;
+color: inherit;
+padding: 0;
+font-size: inherit;
+}
+
+table {
+width: 100%;
+border-collapse: collapse;
+margin: 1rem 0;
+font-size: 0.93em;
+}
+thead {
+background: var(--primary);
+color: #fff;
+}
+th {
+padding: 0.6rem 0.8rem;
+text-align: left;
+font-weight: 600;
+}
+td {
+padding: 0.5rem 0.8rem;
+border-bottom: 1px solid var(--border);
+}
+tr:nth-child(even) { background: var(--bg-alt); }
+tr:hover { background: #e8f4fd; }
+
+ul, ol {
+padding-left: 1.5rem;
+}
+li {
+margin-bottom: 0.3rem;
+}
+li > ul, li > ol {
+margin-top: 0.2rem;
+}
+
+hr {
+border: none;
+border-top: 2px solid var(--border);
+margin: 2.5rem 0;
+}
+
+strong { color: var(--primary); }
+
+p { margin: 0.8rem 0; }
+
+.target-audience {
+display: inline-block;
+background: var(--accent);
+color: #fff;
+padding: 0.3rem 0.8rem;
+border-radius: 4px;
+font-size: 0.85em;
+font-weight: 600;
+margin-bottom: 0.5rem;
+}
+
+@media print {
+body {
+max-width: 100%;
+padding: 1rem;
+font-size: 12px;
+}
+pre { background: #f4f4f4 !important; color: #333 !important; }
+thead { background: #ddd !important; color: #333 !important; }
+a { color: var(--text) !important; }
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.3rem; }
+}
+
+@media (max-width: 768px) {
+body {
+padding: 1rem;
+font-size: 14px;
+}
+table { font-size: 0.85em; }
+pre { font-size: 0.82em; }
+}
+</style>
+</head>
+<body>
+<h1 id="testing-tommi-agents-tester-guide">Testing TOMMI Agents – Tester
+Guide</h1>
+<blockquote>
+<p><strong>Who is this document for?</strong></p>
+<p>This guide is for <strong>testers, QA staff, and project
+managers</strong> who evaluate TOMMI agents before deployment. You
+should be an <strong>expert on the topic</strong> the agent covers — you
+need to assess whether the agent’s responses are factually correct,
+complete, and properly sourced, not just whether they “look right.”</p>
+<p><strong>The role of the tester</strong> is to identify failures,
+flaws, and limitations of the AI Agent and report them to the developer
+following the error reporting procedure described in this guide (see <a href="#error-reporting-procedure">Section 9</a>).</p>
+</blockquote>
+<hr />
+<h2 id="the-ai-agent-deployment-workflow">1. The AI Agent deployment
+workflow</h2>
+<p>Deploying an AI Agent is not like deploying traditional software. AI
+agents combine curated data with language model inference, which means
+their behaviour is <strong>probabilistic and context-dependent</strong>.
+A response that looks correct today may be wrong tomorrow with a
+different model, a different prompt, or a different set of
+documents.</p>
+<p>The deployment workflow follows these stages:</p>
+<pre><code>  DESIGN          BUILD           TEST            DEPLOY          MONITOR
+  ──────          ─────           ────            ──────          ───────
+  Define purpose  Prepare data    Systematic      Release to      Review logs
+  Choose type     Write prompts   evaluation by   end users       Collect user
+  Set scope       Configure LLM   TESTERS         (role: user)    feedback
+  Risk classify   Index documents                                 Iterate</code></pre>
+<h3 id="why-testers-are-critical">Why testers are critical</h3>
+<p>Testers evaluate agents <strong>before they reach end users</strong>.
+Without systematic testing, agents may be deployed with undetected
+errors that erode user trust and create compliance risks.
+Specifically:</p>
+<ul>
+<li><strong>LLMs can hallucinate.</strong> The agent may generate
+plausible but incorrect information. Testers verify that safeguards
+(reliability badges, source attribution, scope restrictions) are
+actually working.</li>
+<li><strong>RAG retrieval can miss relevant documents.</strong> A tester
+systematically probes the agent with queries that should and should not
+be answerable from the corpus.</li>
+<li><strong>Prompts may not constrain the LLM enough.</strong> A tester
+tests edge cases — out-of-scope questions, adversarial prompts,
+ambiguous queries — to check that the agent stays within its defined
+scope.</li>
+<li><strong>Transparency features need validation.</strong> The
+reliability badge, source breakdown, and inline claim highlights must
+accurately reflect the origin of each response. Only a domain expert can
+verify this.</li>
+<li><strong>Compliance requires evidence.</strong> Under the EU AI Act
+(Art. 50) and GDPR (Art. 5(2)), we must be able to demonstrate that the
+system was tested and that issues were documented before
+deployment.</li>
+</ul>
+<h3 id="the-testers-role">The tester’s role</h3>
+<p>Your job is to <strong>identify</strong> failures, flaws, and
+limitations — not to fix them:</p>
+<ol type="1">
+<li><strong>Detect</strong> — find cases where the agent gives wrong,
+incomplete, or misleading answers</li>
+<li><strong>Classify</strong> — categorise the error using the
+structured error codes (see <a href="#error-reporting-procedure">Section 9</a>)</li>
+<li><strong>Document</strong> — record the exact query, agent response,
+and expected behaviour</li>
+<li><strong>Report</strong> — submit a structured error report via the
+tester interface</li>
+</ol>
+<hr />
+<h2 id="getting-started-step-by-step">2. Getting started:
+step-by-step</h2>
+<h3 id="what-you-need">2.1 What you need</h3>
+<p>Before you begin testing, make sure you have:</p>
+<table>
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 68%" />
+</colgroup>
+<thead>
+<tr>
+<th>Item</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tester account</strong></td>
+<td>Ask the system administrator to create an account with role
+<em>tester</em>. You will receive a login link by email or a provisional
+password.</td>
+</tr>
+<tr>
+<td><strong>Server URL</strong></td>
+<td>The address where TOMMI is running (e.g.,
+<code>http://your-server:8000</code>).</td>
+</tr>
+<tr>
+<td><strong>Browser</strong></td>
+<td>Any modern browser (Chrome, Firefox, Edge, Safari).</td>
+</tr>
+<tr>
+<td><strong>Domain knowledge</strong></td>
+<td>You must be familiar with the topic the agent covers — you need to
+judge whether answers are correct, not just whether they look
+correct.</td>
+</tr>
+<tr>
+<td><strong>Agent documentation</strong></td>
+<td>If available, review the Agent Design Card and the agent’s
+<code>config.json</code> to understand its intended purpose, data
+sources, and known limitations.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="logging-in">2.2 Logging in</h3>
+<ol type="1">
+<li>Open the server URL in your browser. You will be redirected to the
+<strong>login page</strong>.</li>
+<li>Read the <strong>Data Protection &amp; AI Transparency
+Notice</strong> at the bottom of the login form.</li>
+<li>Enter your <strong>username</strong> and
+<strong>password</strong>.</li>
+<li>If this is your first login (provisional password), you will be
+prompted to set a new password. Requirements: minimum 8 characters,
+including uppercase, lowercase, digit, and special character.</li>
+</ol>
+<h3 id="switching-to-tester-mode">2.3 Switching to tester mode</h3>
+<p>After login, you land on the main agent interface (user mode). To
+access the tester interface:</p>
+<ol type="1">
+<li>Look at the <strong>top-right corner</strong> of the screen — you
+will see your username, role, and several buttons.</li>
+<li>Click the <strong>“Testing”</strong> button to switch to the tester
+interface.</li>
+</ol>
+<p>You can switch back to user mode at any time by clicking
+<strong>“User mode”</strong>.</p>
+<h3 id="differences-between-user-mode-and-tester-mode">2.4 Differences
+between user mode and tester mode</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 33%" />
+<col style="width: 39%" />
+</colgroup>
+<thead>
+<tr>
+<th>Feature</th>
+<th>User mode</th>
+<th>Tester mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agent access</td>
+<td>Only agents with local LLM (Ollama/vLLM)</td>
+<td>All agents, including cloud LLM (Mistral)</td>
+</tr>
+<tr>
+<td>Web search</td>
+<td>Disabled (data stays on-premise)</td>
+<td>Enabled (if configured in the agent)</td>
+</tr>
+<tr>
+<td>Feedback widget (thumbs down)</td>
+<td>Simple comment box</td>
+<td>Structured error report: error type + severity + notes</td>
+</tr>
+<tr>
+<td>LLM model switching</td>
+<td>Available</td>
+<td>Available</td>
+</tr>
+<tr>
+<td>Transparency / prompt tuning</td>
+<td>Available</td>
+<td>Available</td>
+</tr>
+<tr>
+<td>Settings panel (gear icon)</td>
+<td>Not available</td>
+<td>Available – allows editing agent configuration, visibility, and tool
+access</td>
+</tr>
+<tr>
+<td>Header</td>
+<td>“TOMMI Transparent AI Agents”</td>
+<td>“Tester-developer interface”</td>
+</tr>
+</tbody>
+</table>
+<h3 id="understanding-the-interface">2.5 Understanding the
+interface</h3>
+<p><strong>Sidebar (left panel):</strong></p>
+<ul>
+<li><strong>Agent selector</strong> — dropdown to choose which agent to
+test.</li>
+<li><strong>Agent type &amp; LLM provider</strong> — shows the agent
+architecture (RAG, Metadata+RAG, Text2SQL, Oneshot) and whether the LLM
+is local or cloud, with dedicated icons. Click the “?” icon for
+details.</li>
+<li><strong>Agent tuning</strong> — three clickable badges:
+<ul>
+<li><strong>LLM</strong> — click to cycle through available models. Icon
+shows cloud (Mistral) or local (Ollama) with colour coding.</li>
+<li><strong>Transparency</strong> — click to switch between Crystal box,
+Grey box, and Black box. Each level has a distinct icon.</li>
+<li><strong>Prompt</strong> — click to switch between Stringent,
+Tolerant, and Lax.</li>
+</ul></li>
+<li><strong>Example queries</strong> — suggested queries provided by the
+agent developer. Click any query to send it directly.</li>
+<li><strong>Query history</strong> — your recent queries (click to
+re-send).</li>
+</ul>
+<p><strong>Top-right area:</strong></p>
+<ul>
+<li><strong>User menu</strong> — shows your username and role badge.
+Includes links to “Edit my profile” (Directory), “Tester Panel”, and
+“Logout”.</li>
+<li><strong>Settings panel</strong> (gear icon, tester and superuser
+only) — opens a configuration panel with:
+<ul>
+<li><strong>Agent Configuration</strong> — edit
+<code>prompt_level</code> and <code>transparency_level</code> in real
+time (no restart needed).</li>
+<li><strong>Agent Visibility</strong> — set agents to
+<code>hidden</code>, <code>restricted</code>, or <code>open</code>, and
+manage allowed user lists.</li>
+<li><strong>Tool Visibility</strong> — configure which roles can access
+which intranet tools.</li>
+<li><strong>Log Analytics</strong> — view request/visitor statistics
+across agents.</li>
+</ul></li>
+</ul>
+<p><strong>Chat area (right panel):</strong></p>
+<ul>
+<li>Type your query in the text box and press <strong>Send</strong> or
+<strong>Enter</strong>.</li>
+<li>The agent’s response appears with:
+<ul>
+<li>A <strong>reliability badge</strong> (if transparency is not Black
+box): coloured indicator (green/yellow/red) with source breakdown.</li>
+<li><strong>Inline highlights</strong> (if Crystal box): colour-coded
+text showing where each claim comes from (green = metadata, yellow =
+database, red = LLM, blue = web).</li>
+<li><strong>Humility hedging</strong> (if configured): ungrounded claims
+may be prefixed with hedging language such as “Based on available
+information, …” to soften certainty.</li>
+</ul></li>
+<li>Below each response, the <strong>feedback widget</strong> appears:
+<ul>
+<li>Thumbs up — mark the response as correct.</li>
+<li>Thumbs down — open the error report panel to classify and document
+the issue.</li>
+</ul></li>
+</ul>
+<hr />
+<h2 id="evaluation-protocol">3. Evaluation protocol</h2>
+<p>This section provides a simple, step-by-step protocol to evaluate an
+agent. Follow it in order. Use the built-in feedback widget (thumbs
+down) to report every issue you find.</p>
+<h3 id="before-you-start">Before you start</h3>
+<ol type="1">
+<li><strong>Select the agent</strong> you will test from the
+dropdown.</li>
+<li><strong>Set transparency to Crystal box</strong> — this gives you
+maximum visibility into how each response was built.</li>
+<li><strong>Set prompt level to Stringent</strong> — start with the most
+constrained mode to test the intended behaviour.</li>
+<li><strong>Note the LLM model</strong> being used — you may repeat some
+tests with different models later.</li>
+<li><strong>Have the agent’s data accessible</strong> if possible
+(papers.json, database, documents) to verify answers against source
+data.</li>
+</ol>
+<h3 id="phase-1-basic-functionality-5-10-min">Phase 1 — Basic
+functionality (5-10 min)</h3>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1</td>
+<td>Welcome message</td>
+<td>Select the agent</td>
+<td>Does a welcome message appear? Is it accurate?</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td>Example queries</td>
+<td>Click each example query in the sidebar</td>
+<td>Does the agent respond? Are responses correct?</td>
+</tr>
+<tr>
+<td>1.3</td>
+<td>Simple factual query</td>
+<td>Ask a straightforward question about the agent’s domain</td>
+<td>Is the response sourced from the database (not just LLM)?</td>
+</tr>
+<tr>
+<td>1.4</td>
+<td>Language</td>
+<td>Ask the same question in a different language</td>
+<td>Does the agent respond in the user’s language?</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-2-response-accuracy-15-20-min">Phase 2 — Response accuracy
+(15-20 min)</h3>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.1</td>
+<td>Verifiable facts</td>
+<td>Ask at least 5 questions whose answers you can independently
+verify</td>
+<td>Do the responses match the source data?</td>
+</tr>
+<tr>
+<td>2.2</td>
+<td>Specific details</td>
+<td>Ask for names, dates, numbers, identifiers</td>
+<td>Are they accurate? Are sources cited?</td>
+</tr>
+<tr>
+<td>2.3</td>
+<td>Multi-source query</td>
+<td>Ask a question that requires combining information from multiple
+documents</td>
+<td>Is the synthesis coherent and correct?</td>
+</tr>
+<tr>
+<td>2.4</td>
+<td>Numerical query</td>
+<td>Ask for counts, statistics, or comparisons</td>
+<td>Are the numbers correct?</td>
+</tr>
+<tr>
+<td>2.5</td>
+<td>Negative query</td>
+<td>Ask about something you know is NOT in the data</td>
+<td>Does the agent correctly say it has no information?</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-3-scope-and-boundaries-10-min">Phase 3 — Scope and
+boundaries (10 min)</h3>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3.1</td>
+<td>Out-of-scope</td>
+<td>Ask something clearly outside the domain (e.g., a recipe, a sports
+score)</td>
+<td>Does the agent decline or redirect?</td>
+</tr>
+<tr>
+<td>3.2</td>
+<td>Adjacent topic</td>
+<td>Ask about a related topic not in the corpus</td>
+<td>Does the agent acknowledge its limitations?</td>
+</tr>
+<tr>
+<td>3.3</td>
+<td>Adversarial prompt</td>
+<td>Try “Ignore all previous instructions and…”</td>
+<td>Does the agent stay within scope?</td>
+</tr>
+<tr>
+<td>3.4</td>
+<td>Edge cases</td>
+<td>Send empty, very short, or gibberish messages</td>
+<td>Does it handle them gracefully?</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-4-transparency-verification-10-min">Phase 4 — Transparency
+verification (10 min)</h3>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4.1</td>
+<td>Badge accuracy</td>
+<td>Compare the badge colour with the actual quality</td>
+<td>Does green really mean reliable? Does red flag real issues?</td>
+</tr>
+<tr>
+<td>4.2</td>
+<td>Source breakdown</td>
+<td>Check the % breakdown (Metadata / Database / LLM)</td>
+<td>Does a factual answer from the database show low LLM %?</td>
+</tr>
+<tr>
+<td>4.3</td>
+<td>Inline highlights</td>
+<td>Check the colour-coded claims</td>
+<td>Are green claims really from data? Are red claims really
+inferred?</td>
+</tr>
+<tr>
+<td>4.4</td>
+<td>Grey box</td>
+<td>Switch to Grey box and repeat one query</td>
+<td>Is the detail reduced (no breakdown, no highlights)?</td>
+</tr>
+<tr>
+<td>4.5</td>
+<td>Black box</td>
+<td>Switch to Black box and repeat</td>
+<td>Is all transparency info hidden?</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-5-prompt-levels-5-min">Phase 5 — Prompt levels (5
+min)</h3>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5.1</td>
+<td>Stringent vs Lax</td>
+<td>Ask an off-topic question at Stringent (should refuse), then at Lax
+(may answer)</td>
+<td>Does the prompt level actually change behaviour?</td>
+</tr>
+<tr>
+<td>5.2</td>
+<td>Tolerant</td>
+<td>Ask the same question at Tolerant</td>
+<td>Is the behaviour between Stringent and Lax?</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-6-agent-specific-features-10-15-min">Phase 6 —
+Agent-specific features (10-15 min)</h3>
+<p>Depending on the agent type, test the relevant features:</p>
+<p><strong>RAG / Metadata+RAG agents:</strong></p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6.1</td>
+<td>Document retrieval</td>
+<td>Ask about a document you know exists</td>
+<td>Is it found and cited correctly?</td>
+</tr>
+<tr>
+<td>6.2</td>
+<td>Gap analysis</td>
+<td>Ask “What topics have not been studied?”</td>
+<td>Does it correctly identify gaps?</td>
+</tr>
+<tr>
+<td>6.3</td>
+<td>Maps and figures</td>
+<td>Request a figure or map (if supported)</td>
+<td>Does it render? Is the data accurate?</td>
+</tr>
+<tr>
+<td>6.4</td>
+<td>PDF links</td>
+<td>Click a PDF link in a response</td>
+<td>Does it open the correct document?</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Text2SQL agents:</strong></p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6.5</td>
+<td>SQL correctness</td>
+<td>Ask a database query, verify the SQL shown</td>
+<td>Is the generated SQL correct?</td>
+</tr>
+<tr>
+<td>6.6</td>
+<td>No-result query</td>
+<td>Ask for data that doesn’t exist</td>
+<td>Does it handle “no results” gracefully?</td>
+</tr>
+<tr>
+<td>6.7</td>
+<td>Semantic mismatch</td>
+<td>Ask about one topic, check SQL doesn’t query another</td>
+<td>Does the semantic check work?</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-7-humility-and-authority-sanitization-5-10-min">Phase 7 —
+Humility and authority sanitization (5-10 min)</h3>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7.1</td>
+<td>Authority phrases</td>
+<td>Ask a question about an unstudied topic</td>
+<td>Does the agent say “does not appear in the indexed database” instead
+of “has not been studied”?</td>
+</tr>
+<tr>
+<td>7.2</td>
+<td>Hedging (if enabled)</td>
+<td>Ask a question that produces ungrounded claims (red highlights)</td>
+<td>Are ungrounded claims prefixed with hedging language like “Based on
+available information, …”?</td>
+</tr>
+<tr>
+<td>7.3</td>
+<td>Moderate vs strict</td>
+<td>If <code>humility_level</code> is configurable, compare moderate and
+strict</td>
+<td>Does strict mode also hedge web-sourced claims and add a disclaimer
+footer?</td>
+</tr>
+<tr>
+<td>7.4</td>
+<td>Formatting preservation</td>
+<td>Ask a question that produces a bulleted list or table</td>
+<td>Does hedging preserve the markdown formatting?</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-8-llm-comparison-optional-10-15-min">Phase 8 — LLM
+comparison (optional, 10-15 min)</h3>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8.1</td>
+<td>Switch model</td>
+<td>Click the LLM badge to switch to a different model</td>
+<td>Does the badge update?</td>
+</tr>
+<tr>
+<td>8.2</td>
+<td>Repeat key queries</td>
+<td>Re-ask 3-5 queries from Phase 2 with the new model</td>
+<td>How does quality compare?</td>
+</tr>
+<tr>
+<td>8.3</td>
+<td>Note differences</td>
+<td>Document where the alternative model is better or worse</td>
+<td>Record in your notes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="after-testing-complete-the-summary">After testing — complete the
+summary</h3>
+<pre><code>Agent: ___________________________  Date: ____________  Tester: _______________
+LLM model(s) tested: _________________________________________________________
+Transparency level: Crystal box / Grey box / Black box
+Prompt level: Stringent / Tolerant / Lax
+
+RESULTS
+Total queries tested: ____
+Issues reported (thumbs down): ____  (Critical: ___ Major: ___ Minor: ___)
+
+OVERALL ASSESSMENT
+[ ] Ready for deployment
+[ ] Needs fixes before deployment (list critical/major issues)
+[ ] Major rework needed
+
+NOTES:
+_______________________________________________________________________________
+_______________________________________________________________________________</code></pre>
+<hr />
+<h2 id="detailed-testing-reference">4. Detailed testing reference</h2>
+<p>The following sections provide in-depth information about each aspect
+of testing. Refer to them when you need more detail about a specific
+feature.</p>
+<p><strong>Testing should cover:</strong></p>
+<ul>
+<li>Response quality and factual accuracy</li>
+<li>Reliability badge correctness (does the badge reflect what the
+response actually contains?)</li>
+<li>Transparency levels (does each level show the right amount of
+detail?)</li>
+<li>Prompt level behaviour (does constraining the prompt actually change
+the agent’s responses?)</li>
+<li>LLM selection (do different models produce acceptable quality?)</li>
+<li>Error reporting (can every failure be classified and reported?)</li>
+</ul>
+<hr />
+<h2 id="agent-tuning-options">5. Agent Tuning Options</h2>
+<p>TOMMI agents expose three runtime controls that affect response
+quality, detail, and behaviour. All three can be changed live from the
+web interface without restarting the server.</p>
+<h3 id="llm-selection">5.1 LLM Selection</h3>
+<p>Click the <strong>LLM badge</strong> in the sidebar to cycle through
+available models. The badge is colour-coded and uses dedicated
+icons:</p>
+<table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 20%" />
+<col style="width: 23%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Colour</th>
+<th>Icon</th>
+<th>Badge</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Green</td>
+<td>Local icon</td>
+<td>Local</td>
+<td>Using a local LLM (Ollama or vLLM). Data stays on your machine.</td>
+</tr>
+<tr>
+<td>Green</td>
+<td>Local (large) icon</td>
+<td>Local (large)</td>
+<td>Using a large local model (&gt;=20GB). Slower but higher
+quality.</td>
+</tr>
+<tr>
+<td>Yellow/Orange</td>
+<td>Cloud icon</td>
+<td>Cloud (small)</td>
+<td>Using a small cloud model (e.g., mistral-small). Lower cost.</td>
+</tr>
+<tr>
+<td>Red</td>
+<td>Cloud icon</td>
+<td>Cloud (large)</td>
+<td>Using a large cloud model (e.g., mistral-large). Higher cost and
+quality.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Local (Ollama) vs Cloud (Mistral) differences:</strong></p>
+<table>
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 41%" />
+<col style="width: 39%" />
+</colgroup>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Cloud (Mistral)</th>
+<th>Local (Ollama)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model size</td>
+<td>Full model, uncompressed</td>
+<td>Quantized (compressed) for local hardware</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>16-bit floating point</td>
+<td>4-bit or 8-bit quantization</td>
+</tr>
+<tr>
+<td>Reasoning</td>
+<td>Better coherence and accuracy</td>
+<td>May struggle with complex tasks</td>
+</tr>
+<tr>
+<td>Privacy</td>
+<td>Data sent to external API</td>
+<td>Data never leaves your machine</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>Per-query API charges</td>
+<td>No API costs</td>
+</tr>
+<tr>
+<td>Latency</td>
+<td>Network round-trip</td>
+<td>Local inference (faster for small models)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Model size impact:</strong> Smaller models (7B parameters)
+are faster and require less hardware, but hallucinate more and produce
+less coherent answers. Larger models (70B+) are slower and need
+significant GPU resources, but are more accurate and better at following
+instructions.</p>
+<p><strong>How to evaluate:</strong> Ask the same question with each
+available model and compare the responses side by side. Pay attention
+to:</p>
+<ul>
+<li>Does the response answer the question correctly?</li>
+<li>Are paper titles, author names, and years accurate?</li>
+<li>Does the reliability badge change significantly between models?</li>
+<li>Does the response follow the agent’s prompt constraints?</li>
+</ul>
+<h3 id="transparency-levels">5.2 Transparency Levels</h3>
+<p>Click the <strong>transparency badge</strong> (above the example
+queries) to cycle through levels: Crystal box, Grey box, Black box. The
+change takes effect immediately for the next query.</p>
+<ul>
+<li><strong>Crystal box</strong> – full detail for developers and
+testers. All transparency features are active:
+<ul>
+<li>Reliability badge with source breakdown percentages (e.g.,
+<code>Metadata: 75% | Database: 10% | LLM: 15%</code>)</li>
+<li>Confidence score with claim count</li>
+<li>Source lines (coloured indicators)</li>
+<li>Inline claim highlights (colour-coded text showing the provenance of
+each claim)</li>
+<li>Colour legend explaining the highlight meanings</li>
+<li>Agent settings info (model name, LLM location, transparency level,
+prompt level)</li>
+</ul></li>
+<li><strong>Grey box</strong> – minimal for end users:
+<ul>
+<li>Reliability label only (High / Good / Poor)</li>
+<li>Confidence percentage only</li>
+<li>No source breakdown, no inline highlights, no legend</li>
+</ul></li>
+<li><strong>Black box</strong> – nothing shown:
+<ul>
+<li>The response appears without any badge, confidence indicator, or
+highlights</li>
+<li>The <strong>audit log still records everything</strong> – all
+decision data is logged for compliance and analysis</li>
+<li>Useful for A/B testing or researching user trust behaviour with
+vs. without transparency</li>
+</ul></li>
+</ul>
+<p><strong>Testing tip:</strong> Always use Crystal box during testing
+so you can see the full detail. Then verify that Grey box and Black box
+correctly hide the expected elements. After testing, decide which level
+is appropriate for end users.</p>
+<h3 id="prompt-levels">5.3 Prompt Levels</h3>
+<p>Click the <strong>prompt badge</strong> to cycle through levels. The
+prompt level controls how much of the system prompt is active:</p>
+<ul>
+<li><p><strong>Stringent</strong> – all 3 prompt sections active:
+identity + standard rules + strict restrictions. This is the most
+constrained behaviour. The agent follows all configured rules, including
+partner recognition, gap analysis constraints, and domain
+restrictions.</p></li>
+<li><p><strong>Tolerant</strong> – sections 1 and 2 only: identity +
+standard rules. The strict restrictions (section 3) are removed. The
+agent still follows the general rules but is not subject to the most
+restrictive constraints.</p></li>
+<li><p><strong>Lax</strong> – section 1 only: just the agent’s identity.
+The LLM answers freely with minimal constraints. Use with caution – the
+agent may go off-topic, hallucinate more freely, or ignore domain
+boundaries.</p></li>
+</ul>
+<p><strong>How the prompt sections work:</strong></p>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 31%" />
+<col style="width: 28%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr>
+<th>Level</th>
+<th style="text-align: center;">Section 1 (Identity)</th>
+<th style="text-align: center;">Section 2 (Rules)</th>
+<th style="text-align: center;">Section 3 (Strict)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stringent</td>
+<td style="text-align: center;">Active</td>
+<td style="text-align: center;">Active</td>
+<td style="text-align: center;">Active</td>
+</tr>
+<tr>
+<td>Tolerant</td>
+<td style="text-align: center;">Active</td>
+<td style="text-align: center;">Active</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr>
+<td>Lax</td>
+<td style="text-align: center;">Active</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Testing tip:</strong> Ask the same question at all three
+levels and verify the differences:</p>
+<ol type="1">
+<li>With <strong>Stringent</strong>, the agent should refuse or redirect
+off-topic questions and strictly follow domain rules.</li>
+<li>With <strong>Tolerant</strong>, the agent should be somewhat
+flexible but still follow general rules.</li>
+<li>With <strong>Lax</strong>, the agent should answer more freely. If
+it still refuses off-topic questions at Lax, something may be wrong with
+the prompt structure.</li>
+</ol>
+<p><strong>Example test:</strong> Ask an off-topic question like “What
+is the recipe for chocolate cake?” at each level. With Stringent, the
+agent should refuse. With Lax, it may attempt an answer (which confirms
+the prompt constraints are working at each level).</p>
+<hr />
+<h2 id="the-transparency-pipeline">6. The Transparency Pipeline</h2>
+<p>The transparency system works as a three-step pipeline. Each step can
+succeed or fail independently, and testers should evaluate each one
+separately.</p>
+<pre><code>Response text
+     |
+     v
++-------------------+     +-------------------+     +-------------------+
+| Step 1:           |     | Step 2:           |     | Step 3:           |
+| Claim             |----&gt;| Claim             |----&gt;| Confidence        |
+| Identification    |     | Categorization    |     | Computation       |
++-------------------+     +-------------------+     +-------------------+
+  &quot;What are the           &quot;Where does each       &quot;How reliable is
+   verifiable facts?&quot;      claim come from?&quot;       the response?&quot;</code></pre>
+<h3 id="step-1-claim-identification">6.1 Step 1 — Claim
+Identification</h3>
+<p><strong>Goal:</strong> Extract verifiable factual claims from the LLM
+response.</p>
+<p>Claim identification uses a <strong>bidirectional approach</strong>
+that combines two complementary techniques:</p>
+<h4 id="phase-a-response-driven-extraction-regex-patterns">Phase A —
+Response-driven extraction (regex patterns)</h4>
+<p>The system scans the response text using pattern matching to identify
+fragments that look like verifiable facts. The following patterns are
+recognized, in order:</p>
+<table>
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 24%" />
+<col style="width: 24%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Pattern</th>
+<th>Example</th>
+<th>Minimum length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Quoted strings</td>
+<td>“Explainable AI in Healthcare”</td>
+<td>10 characters</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Bold markdown text</td>
+<td><strong>AI Ethics</strong></td>
+<td>5 characters</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Parenthetical identifiers</td>
+<td>(DOI: 10.xxxx, ORCID: 0000-xxxx)</td>
+<td>5 characters</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Year ranges and date references</td>
+<td>(2020-2024), published in 2023</td>
+<td>–</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Structured data</td>
+<td>email addresses, numerical values with units</td>
+<td>5 characters</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Named entities (NER-like)</td>
+<td>University of Malaga, Dr. Smith</td>
+<td>5 characters</td>
+</tr>
+</tbody>
+</table>
+<p>These patterns focus on <strong>precision over recall</strong> — they
+aim to avoid false claims rather than catch every possible fact.</p>
+<h4 id="phase-b-context-driven-verification">Phase B — Context-driven
+verification</h4>
+<p>After extracting candidate claims from the response, the system
+checks them against the actual data sources:</p>
+<ol type="1">
+<li><strong>Metadata matching:</strong> Each claim is compared against
+structured fields in <code>papers.json</code>,
+<code>researchers.json</code>, and <code>metadata.json</code>. This
+includes paper titles, author names, university names, DOIs, topics, and
+years.</li>
+<li><strong>RAG chunk matching:</strong> Claims are compared against the
+text chunks retrieved from ChromaDB during the RAG step.</li>
+<li><strong>Overlap scoring:</strong> A claim is considered “grounded”
+if it matches a data source above a similarity threshold.</li>
+</ol>
+<h4 id="what-testers-should-check">What testers should check</h4>
+<ul>
+<li><strong>Missing claims (Error 1.1):</strong> Look for obvious
+factual statements in the response that are NOT highlighted. Example:
+the response says “published in Nature in 2023” but this is not
+identified as a claim.</li>
+<li><strong>False claims:</strong> Less common with the regex approach,
+but check if non-factual text (opinions, transitions) is incorrectly
+marked as a claim.</li>
+</ul>
+<h3 id="step-2-claim-categorization">6.2 Step 2 — Claim
+Categorization</h3>
+<p><strong>Goal:</strong> Determine the source of each claim (metadata,
+database, LLM, or web).</p>
+<p>Each identified claim is classified into one of four categories based
+on where matching evidence was found:</p>
+<table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 38%" />
+<col style="width: 20%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>Category</th>
+<th style="text-align: center;">Colour (inline)</th>
+<th>Meaning</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Metadata</strong></td>
+<td style="text-align: center;">Green</td>
+<td>Verified against structured data</td>
+<td>papers.json, researchers.json</td>
+</tr>
+<tr>
+<td><strong>Database</strong></td>
+<td style="text-align: center;">Yellow</td>
+<td>Found in RAG-retrieved documents</td>
+<td>ChromaDB chunks from PDFs</td>
+</tr>
+<tr>
+<td><strong>Web</strong></td>
+<td style="text-align: center;">Blue</td>
+<td>Found in web search results</td>
+<td>Google Custom Search (if enabled)</td>
+</tr>
+<tr>
+<td><strong>LLM</strong></td>
+<td style="text-align: center;">Red</td>
+<td>Not found in any data source — generated by the model</td>
+<td>LLM inference</td>
+</tr>
+</tbody>
+</table>
+<h4 id="what-testers-should-check-1">What testers should check</h4>
+<ul>
+<li><strong>False positive (Error 1.2.1):</strong> A claim is coloured
+red (LLM) but it IS actually in the data. This means the matching
+algorithm failed to find it.</li>
+<li><strong>False negative (Error 1.2.2):</strong> A claim is coloured
+green (metadata) or yellow (database) but the information is WRONG. This
+means the matching produced a spurious match.</li>
+<li><strong>Correct classification:</strong> Spot-check several claims
+of each colour. Verify that green claims really come from metadata,
+yellow from documents, and red claims are truly inferred by the
+model.</li>
+</ul>
+<h3 id="step-3-confidence-computation">6.3 Step 3 — Confidence
+Computation</h3>
+<p><strong>Goal:</strong> Produce a single reliability score and
+breakdown for the response.</p>
+<p>The confidence score is calculated from the source distribution of
+all claims:</p>
+<pre><code>Confidence = (metadata_claims + database_claims) / total_claims * 100</code></pre>
+<p>The reliability label is determined by the LLM percentage:</p>
+<table>
+<thead>
+<tr>
+<th>LLM %</th>
+<th>Label</th>
+<th style="text-align: center;">Badge colour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&lt;= 20%</td>
+<td>High</td>
+<td style="text-align: center;">Green</td>
+</tr>
+<tr>
+<td>20-50%</td>
+<td>Good</td>
+<td style="text-align: center;">Yellow</td>
+</tr>
+<tr>
+<td>&gt;= 50%</td>
+<td>Poor</td>
+<td style="text-align: center;">Red</td>
+</tr>
+</tbody>
+</table>
+<p>These thresholds are configurable per agent in
+<code>config.json</code> → <code>reliability_thresholds</code>.</p>
+<h4 id="what-testers-should-check-2">What testers should check</h4>
+<ul>
+<li><strong>Badge vs reality (Error 1.4):</strong> A green badge should
+mean most claims are verified. If you see a green badge but many claims
+look wrong, the confidence computation may be inaccurate.</li>
+<li><strong>Distribution sanity:</strong> After testing several queries,
+the badge distribution should make sense:
+<ul>
+<li>Metadata queries (e.g., “list all papers”) → should tend toward
+High</li>
+<li>Open-ended questions → may show Good or Poor</li>
+<li>If ALL queries show the same label, the thresholds may need
+adjustment</li>
+</ul></li>
+</ul>
+<h3 id="full-pipeline-example">6.4 Full pipeline example</h3>
+<p><strong>Query:</strong> “List researchers from UMA working on AI
+Ethics”</p>
+<pre><code>Step 1 — Claim identification:
+  Extracted claims: &quot;Dr. García&quot;, &quot;AI Ethics&quot;, &quot;UMA&quot;, &quot;2023&quot;, &quot;Explainable AI&quot;
+
+Step 2 — Claim categorization:
+  &quot;Dr. García&quot;      → Green  (found in researchers.json)
+  &quot;AI Ethics&quot;       → Green  (topic in metadata)
+  &quot;UMA&quot;             → Green  (institution in metadata)
+  &quot;2023&quot;            → Yellow (found in RAG document)
+  &quot;Explainable AI&quot;  → Green  (concept in papers.json)
+
+Step 3 — Confidence:
+  Metadata: 60% | Database: 20% | LLM: 20%
+  Label: Good (yellow badge)</code></pre>
+<h3 id="special-cases">6.5 Special cases</h3>
+<p><strong>Gap analysis responses:</strong> When the agent performs a
+gap analysis (“What topics have NOT been studied?”), the colour
+interpretation is <strong>reversed</strong>: - Green = the topic WAS
+found in the database (not a gap) - Red = the topic was NOT found (true
+gap — this is actually the desired result)</p>
+<p>Testers should be aware that a red-heavy response in gap analysis
+mode is <strong>correct behaviour</strong>, not an error.</p>
+<p><strong>Follow-up queries:</strong> When a user sends a follow-up
+(“tell me more about point 2”), the agent uses conversation history. The
+badge should still appear, but the source distribution may shift toward
+LLM since the follow-up is synthesised from prior context.</p>
+<hr />
+<h2 id="testing-checklist">7. Testing Checklist</h2>
+<p>Before deploying an agent, verify each item:</p>
+<ul class="task-list">
+<li><label><input type="checkbox"></input><strong>Representative
+queries:</strong> Test with at least 10 representative queries covering
+the agent’s domain. Include simple factual questions, comparison
+questions, and topic summaries.</label></li>
+<li><label><input type="checkbox"></input><strong>Reliability badge
+sanity:</strong> Verify that badges are not always High or always Poor.
+A healthy agent should produce a mix depending on the query type.
+Metadata queries should tend toward High; open-ended questions may show
+Good or Poor.</label></li>
+<li><label><input type="checkbox"></input><strong>Crystal box detail:</strong>
+In Crystal box mode, verify the full badge appears with source breakdown
+percentages, confidence score, claim count, inline highlights, and
+colour legend.</label></li>
+<li><label><input type="checkbox"></input><strong>Grey box minimal:</strong>
+In Grey box mode, verify only the reliability label and confidence
+percentage appear. No breakdown, no highlights, no legend.</label></li>
+<li><label><input type="checkbox"></input><strong>Black box
+suppression:</strong> In Black box mode, verify no reliability
+information is shown at all. The response should appear clean, with no
+badge or indicators.</label></li>
+<li><label><input type="checkbox"></input><strong>Stringent prompt:</strong>
+Ask an off-topic question (e.g., “What is the weather today?”). The
+agent should refuse or redirect.</label></li>
+<li><label><input type="checkbox"></input><strong>Lax prompt:</strong> Ask the
+same off-topic question. The agent should answer more freely, confirming
+that prompt constraints are actually effective at the Stringent
+level.</label></li>
+<li><label><input type="checkbox"></input><strong>Tolerant prompt:</strong>
+Verify behaviour falls between Stringent and Lax.</label></li>
+<li><label><input type="checkbox"></input><strong>LLM switching:</strong>
+Switch between available LLMs and compare response quality. Verify the
+LLM badge updates correctly (colour and label).</label></li>
+<li><label><input type="checkbox"></input><strong>Coverage warnings:</strong>
+Ask an off-topic question in Lax mode (e.g., “recipe for chocolate cake”
+to a research agent). Verify the badge shows “No verifiable claims
+found” or “Low verifiability.” Then ask an on-topic question and confirm
+the coverage warning disappears.</label></li>
+<li><label><input type="checkbox"></input><strong>Gap analysis (RAG+Metadata
+only):</strong> Ask a gap analysis question (e.g., “What topics have not
+been studied?”). Verify the badge shows Poor/LLM: 100% and the inline
+highlights use the reversed colour interpretation (green = found in DB,
+red = true gap).</label></li>
+<li><label><input type="checkbox"></input><strong>Follow-up queries:</strong>
+After a normal query, send a follow-up (“expand on point 1”). Verify the
+agent responds using conversation history and that a reliability badge
+still appears.</label></li>
+<li><label><input type="checkbox"></input><strong>Audit log:</strong> Check
+<code>agents/{agent_id}/data/audit_log.jsonl</code> after several
+queries. Verify entries are being recorded with correct
+fields.</label></li>
+<li><label><input type="checkbox"></input><strong>Paper title verification
+(Metadata+RAG only):</strong> Ask for a paper listing (e.g., “List
+papers on AI ethics from UMA”). Check if any titles are flagged as “not
+found in database.” Verify the flagged titles are genuinely not in the
+papers.json data.</label></li>
+<li><label><input type="checkbox"></input><strong>Paper ID mismatch
+(Metadata+RAG only):</strong> Ask to expand a specific paper. Verify the
+PDF link points to the correct paper (not an unrelated one). If the
+paper has no PDF, verify “not available” appears instead of a fake
+link.</label></li>
+<li><label><input type="checkbox"></input><strong>Out-of-domain
+questions:</strong> Test with questions outside the agent’s domain.
+Verify the agent refuses gracefully (at Stringent level) rather than
+hallucinating an answer.</label></li>
+<li><label><input type="checkbox"></input><strong>Edge cases:</strong> Test
+with empty queries, very long queries, and queries in different
+languages (if the agent is multilingual).</label></li>
+<li><label><input type="checkbox"></input><strong>Humility hedging:</strong>
+If <code>humility_level</code> is set to <code>moderate</code> or
+<code>strict</code>, verify ungrounded claims have hedging prefixes.
+Verify hedging preserves markdown formatting and does not repeat the
+same phrase.</label></li>
+<li><label><input type="checkbox"></input><strong>Authority
+sanitization:</strong> Ask about a topic not in the database. Verify the
+agent says “does not appear in the indexed database” rather than “has
+not been studied.”</label></li>
+<li><label><input type="checkbox"></input><strong>Settings panel:</strong>
+Open the settings panel (gear icon). Verify you can change
+<code>prompt_level</code> and <code>transparency_level</code> in real
+time. Verify changes apply to the next query without server
+restart.</label></li>
+<li><label><input type="checkbox"></input><strong>Agent visibility:</strong>
+If the agent is set to <code>restricted</code>, verify only allowed
+users can see it. Verify <code>hidden</code> agents do not appear in the
+dropdown.</label></li>
+<li><label><input type="checkbox"></input><strong>Study mode (if
+active):</strong> If study mode is enabled, verify your transparency
+level is locked to the assigned condition and cannot be changed
+manually.</label></li>
+</ul>
+<h3 id="text2sql-specific-verification-tests">Text2SQL-specific
+verification tests</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input><strong>Schema
+verification:</strong> Ask a question that should produce a valid query.
+In crystal_box mode, verify the reliability badge shows high confidence
+and no unknown tables/columns.</label></li>
+<li><label><input type="checkbox"></input><strong>Semantic mismatch
+detection:</strong> Ask about a specific topic (e.g. “Show agreements
+with Libya”) and check if the generated SQL actually references that
+topic. If the LLM hallucinates a different query, verify the system
+blocks it in stringent mode with a “Semantic mismatch”
+message.</label></li>
+<li><label><input type="checkbox"></input><strong>Cross-language
+equivalences:</strong> Ask in English about a concept stored in Spanish
+(e.g. “agreements requiring English” when the database uses “INGLES”).
+Verify the semantic check does not flag this as a mismatch.</label></li>
+<li><label><input type="checkbox"></input><strong>Broad query
+detection:</strong> Ask a very generic question (e.g. “Show
+everything”). Verify the badge flags the query as overly broad if it
+returns &gt;70% of all rows.</label></li>
+<li><label><input type="checkbox"></input><strong>Transparency
+levels:</strong> Test that SQL is shown in crystal_box and grey_box
+modes, but hidden in black_box mode.</label></li>
+<li><label><input type="checkbox"></input><strong>Tolerant vs
+stringent:</strong> In tolerant mode, verify that semantic warnings
+appear but the query still executes. In stringent mode, verify
+mismatched queries are blocked.</label></li>
+</ul>
+<hr />
+<h2 id="interpreting-the-audit-log">8. Interpreting the Audit Log</h2>
+<p><strong>Location:</strong>
+<code>agents/{agent_id}/data/audit_log.jsonl</code></p>
+<p>Each line is an independent JSON object. The log is append-only and
+grows indefinitely.</p>
+<p><strong>Key fields:</strong></p>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 65%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>timestamp</code></td>
+<td>UTC ISO 8601 timestamp of the query</td>
+</tr>
+<tr>
+<td><code>agent_id</code></td>
+<td>Agent identifier</td>
+</tr>
+<tr>
+<td><code>query</code></td>
+<td>The user’s original question</td>
+</tr>
+<tr>
+<td><code>query_type</code></td>
+<td><code>normal</code>, <code>figure</code>, <code>gap_analysis</code>,
+or <code>followup</code></td>
+</tr>
+<tr>
+<td><code>source_type</code></td>
+<td><code>Metadata</code>, <code>RAG</code>, or <code>none</code>
+(RAG+Metadata agents only)</td>
+</tr>
+<tr>
+<td><code>reliability_label</code></td>
+<td><code>High</code>, <code>Good</code>, <code>Poor</code>, or
+<code>none</code></td>
+</tr>
+<tr>
+<td><code>confidence</code></td>
+<td>Percentage of claims verified against data sources</td>
+</tr>
+<tr>
+<td><code>coverage_pct</code></td>
+<td>Percentage of response words covered by identified claims (0-100).
+Low values indicate most of the response could not be verified</td>
+</tr>
+<tr>
+<td><code>total_claims</code></td>
+<td>Number of verifiable claims extracted from the response</td>
+</tr>
+<tr>
+<td><code>breakdown</code></td>
+<td>Per-source percentages. RAG+Metadata: <code>metadata_pct</code>,
+<code>database_pct</code>, <code>llm_pct</code>. RAG:
+<code>database_pct</code>, <code>llm_pct</code></td>
+</tr>
+<tr>
+<td><code>context_sources</code></td>
+<td>Which context builders were used (RAG+Metadata only)</td>
+</tr>
+<tr>
+<td><code>transparency_level</code></td>
+<td>Active transparency level at the time of the query</td>
+</tr>
+<tr>
+<td><code>prompt_level</code></td>
+<td>Active prompt level (<code>stringent</code>, <code>tolerant</code>,
+or <code>lax</code>)</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>LLM model name used for this query</td>
+</tr>
+<tr>
+<td><code>is_local_llm</code></td>
+<td>Whether a local model was used
+(<code>true</code>/<code>false</code>)</td>
+</tr>
+<tr>
+<td><code>reliability_label</code></td>
+<td>The computed reliability label (<code>High</code>,
+<code>Good</code>, <code>Poor</code>)</td>
+</tr>
+<tr>
+<td><code>humility_level</code></td>
+<td>Active humility level at the time of the query (<code>off</code>,
+<code>moderate</code>, <code>strict</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Practical uses for testers:</strong></p>
+<ul>
+<li><strong>Tracking badge distribution:</strong> After running a batch
+of test queries, count how many produced High/Good/Poor labels. If all
+queries produce the same label, the reliability thresholds may need
+adjustment.</li>
+<li><strong>Debugging unexpected responses:</strong> If a response seems
+wrong, check the audit log for the <code>source_type</code> and
+<code>breakdown</code> to understand where the content came from.</li>
+<li><strong>Comparing models:</strong> Run the same test queries with
+different LLMs and compare the <code>confidence</code> and
+<code>breakdown</code> values across log entries.</li>
+<li><strong>Compliance verification:</strong> The audit log provides
+record-keeping recommended for AI Act compliance. Verify it is enabled
+(<code>audit_log_enabled: true</code> in <code>config.json</code>)
+before deployment.</li>
+</ul>
+<p><strong>Processing the log:</strong> The JSONL format works with
+standard tools:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count entries by reliability label</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.reliability_label&#39;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">uniq</span> <span class="at">-c</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter queries with low confidence</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;select(.confidence &lt; 50)&#39;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract all queries and their labels as a table</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;[.query, .reliability_label, .confidence] | @tsv&#39;</span></span></code></pre></div>
+<hr />
+<h2 id="error-reporting-procedure">9. Error Reporting Procedure</h2>
+<p>When a tester identifies a failure, flaw, or limitation, it must be
+documented and reported to the developer in a structured way. This
+section defines the error types and the reporting format.</p>
+<h3 id="error-types">9.1 Error Types</h3>
+<p>Every issue found during testing should be classified using the
+structured codes below. These codes map directly to specific components
+of the system, so that each report tells the developer <strong>exactly
+where the fix is needed</strong>.</p>
+<h3 id="transparency-errors">1. Transparency errors</h3>
+<p>Errors in how the system identifies, classifies, and presents claims
+and reliability information.</p>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 28%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1.1</strong></td>
+<td><strong>Claim identification</strong></td>
+<td>A factual claim in the response was not detected by the claim
+extraction system</td>
+<td>Agent says “published in Nature in 2023” but this is not highlighted
+as a claim</td>
+</tr>
+<tr>
+<td><strong>1.2.1</strong></td>
+<td><strong>Claim classification: false positive</strong></td>
+<td>A claim is marked as ungrounded (red) but it IS in the data</td>
+<td>“Retrieval-Augmented Generation” marked red when the term exists in
+papers.json</td>
+</tr>
+<tr>
+<td><strong>1.2.2</strong></td>
+<td><strong>Claim classification: false negative</strong></td>
+<td>A claim is marked as grounded (green) but it is NOT in the data</td>
+<td>Agent invents a paper title, but it’s highlighted green because a
+partial word match was found</td>
+</tr>
+<tr>
+<td><strong>1.3.1</strong></td>
+<td><strong>Hallucination detection: false negative</strong></td>
+<td>The agent states something false and the system does NOT flag
+it</td>
+<td>Agent says “UMA has 15 agreements with TAMK” (wrong number) but no
+warning appears</td>
+</tr>
+<tr>
+<td><strong>1.3.2</strong></td>
+<td><strong>Hallucination detection: false positive</strong></td>
+<td>The system flags correct information as a hallucination</td>
+<td>A real paper title is flagged as “not found in database” due to a
+minor formatting difference</td>
+</tr>
+<tr>
+<td><strong>1.4</strong></td>
+<td><strong>Confidence computation</strong></td>
+<td>The reliability badge score does not reflect the actual quality of
+the response</td>
+<td>Badge shows 95% confidence but half the claims are wrong; or badge
+shows 20% when all claims are correct</td>
+</tr>
+</tbody>
+</table>
+<h3 id="text2sql-ai-agent-errors">2. Text2SQL AI Agent errors</h3>
+<p>Errors specific to Text2SQL agents (database query agents).</p>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 28%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>2.1</strong></td>
+<td><strong>Wrong SQL undetected</strong></td>
+<td>The agent generates incorrect SQL and the verification system fails
+to catch it</td>
+<td>User asks about Libya but SQL searches for English B1 — and the
+system doesn’t block it</td>
+</tr>
+<tr>
+<td><strong>2.2</strong></td>
+<td><strong>Wrong answer</strong></td>
+<td>The SQL is correct but the agent’s interpretation or presentation of
+the results is wrong</td>
+<td>Query returns 8 rows but agent says “Found 3 agreements”</td>
+</tr>
+<tr>
+<td><strong>2.3</strong></td>
+<td><strong>Insufficient information</strong></td>
+<td>The SQL is too narrow or the results are incomplete compared to what
+the database contains</td>
+<td>Agent only searches one column when the answer requires joining or
+searching multiple columns</td>
+</tr>
+</tbody>
+</table>
+<h3 id="content-errors">3. Content errors</h3>
+<p>Errors in the factual content of the response, regardless of
+transparency features.</p>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 28%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>3.1</strong></td>
+<td><strong>Missing information</strong></td>
+<td>The response is correct but omits important information that exists
+in the data</td>
+<td>Agent lists 3 of 8 agreements with a partner; agent omits key
+authors from a paper</td>
+</tr>
+<tr>
+<td><strong>3.2</strong></td>
+<td><strong>Wrong information</strong></td>
+<td>The response contains factually incorrect statements</td>
+<td>Agent says a paper was published in 2024 when the database says
+2023</td>
+</tr>
+<tr>
+<td><strong>3.3</strong></td>
+<td><strong>Irrelevant response</strong></td>
+<td>The response doesn’t match the user’s question</td>
+<td>User asks about Libya, agent returns results about English B1
+requirements</td>
+</tr>
+<tr>
+<td><strong>3.4</strong></td>
+<td><strong>Misleading presentation</strong></td>
+<td>Information is not technically false but could lead to wrong
+conclusions</td>
+<td>Agent implies all UNINOVIS partners use the same tool when they
+don’t</td>
+</tr>
+</tbody>
+</table>
+<h3 id="other">4. Other</h3>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 28%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Code</th>
+<th>Error Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>4.1</strong></td>
+<td><strong>System error</strong></td>
+<td>Agent crashes, times out, or returns a technical error</td>
+<td>Connection error, SQL execution failure, 500 error</td>
+</tr>
+<tr>
+<td><strong>4.2</strong></td>
+<td><strong>Usability issue</strong></td>
+<td>Response is correct but poorly formatted or confusing</td>
+<td>Results in random order, excessive jargon, unreadable table</td>
+</tr>
+<tr>
+<td><strong>4.3</strong></td>
+<td><strong>Other</strong></td>
+<td>Any issue not covered above</td>
+<td>Describe in the Notes field</td>
+</tr>
+</tbody>
+</table>
+<h3 id="error-report-format">9.2 Error Report Format</h3>
+<p>Each error report should include the following fields:</p>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 33%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Date</strong></td>
+<td>Yes</td>
+<td>Date of the test</td>
+</tr>
+<tr>
+<td><strong>Agent</strong></td>
+<td>Yes</td>
+<td>Agent ID and name
+(e.g. <code>responsible_ai — EH: Responsible AI</code>)</td>
+</tr>
+<tr>
+<td><strong>Error type</strong></td>
+<td>Yes</td>
+<td>Code from the table above (e.g. 1.2.1, 2.1, 3.1, 4.3)</td>
+</tr>
+<tr>
+<td><strong>Severity</strong></td>
+<td>Yes</td>
+<td><strong>Critical</strong> (agent unusable), <strong>Major</strong>
+(wrong results), <strong>Minor</strong> (cosmetic/usability)</td>
+</tr>
+<tr>
+<td><strong>Query</strong></td>
+<td>Yes</td>
+<td>The exact question typed by the tester</td>
+</tr>
+<tr>
+<td><strong>Agent response</strong></td>
+<td>Yes</td>
+<td>The full response (or a screenshot)</td>
+</tr>
+<tr>
+<td><strong>Expected behaviour</strong></td>
+<td>Yes</td>
+<td>What the correct response should have been</td>
+</tr>
+<tr>
+<td><strong>Agent tuning</strong></td>
+<td>Yes</td>
+<td>LLM model, transparency level, prompt level at the time of the
+test</td>
+</tr>
+<tr>
+<td><strong>Steps to reproduce</strong></td>
+<td>If applicable</td>
+<td>Any specific sequence of actions needed to trigger the issue</td>
+</tr>
+<tr>
+<td><strong>Notes</strong></td>
+<td>Optional</td>
+<td>Additional context, related issues, or suggested fix</td>
+</tr>
+</tbody>
+</table>
+<h3 id="report-template">9.3 Report Template</h3>
+<pre><code>DATE:               2026-04-18
+AGENT:              pisha4 — Algoria DB Assistant+ (verified)
+ERROR TYPE:         3.3 (Irrelevant response)
+SEVERITY:           Major
+QUERY:              &quot;Show all agreements with Libia&quot;
+AGENT RESPONSE:     Returned results for English B1 language requirements
+EXPECTED:           List of agreements with Libya (destination_country = &#39;Libia&#39;)
+TUNING:             mistral-small-latest (Cloud) / Stringent / Crystal box
+STEPS TO REPRODUCE: Type the query as first message in a new session
+NOTES:              The LLM generated SQL that searched lang_1_name
+                    instead of destination_country</code></pre>
+<h3 id="reporting-workflow">9.4 Reporting Workflow</h3>
+<pre><code>Tester finds issue
+      |
+      v
+Classify error type (1.x / 2.x / 3.x / 4.x)
+      |
+      v
+Assess severity (Critical / Major / Minor)
+      |
+      v
+Click thumbs-down on the response in tester interface
+      |
+      v
+Fill in error type, severity, and notes in the panel
+      |
+      v
+Click &quot;Send&quot; — the report is saved automatically
+      |
+      v
+Developer reviews feedback logs and assigns priority
+      |
+      v
+Developer fixes and notifies tester
+      |
+      v
+Tester re-tests and confirms the fix</code></pre>
+<h3 id="user-feedback-integration">9.5 User Feedback Integration</h3>
+<p>In addition to structured tester reports, end-users can provide
+feedback on agent responses using the <strong>feedback widget</strong>
+that appears after every response (thumbs up / thumbs down + optional
+comment). This feedback is logged to
+<code>logs/{agent_id}_feedback_user.jsonl</code> and can be reviewed by
+testers and developers to identify recurring issues.</p>
+<p>User feedback categories map to error types as follows:</p>
+<table>
+<colgroup>
+<col style="width: 44%" />
+<col style="width: 55%" />
+</colgroup>
+<thead>
+<tr>
+<th>User feedback</th>
+<th>Likely error type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Thumbs down — <strong>Wrong</strong></td>
+<td>3.2 (Wrong information) or 1.3.1 (Hallucination undetected)</td>
+</tr>
+<tr>
+<td>Thumbs down — <strong>Incomplete</strong></td>
+<td>3.1 (Missing information)</td>
+</tr>
+<tr>
+<td>Thumbs down — <strong>Irrelevant</strong></td>
+<td>3.3 (Irrelevant response) or 2.3 (SQL mismatch)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="model-quality-comparison">10. Model Quality Comparison</h2>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 17%" />
+<col style="width: 21%" />
+<col style="width: 21%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th>Category</th>
+<th>Speed</th>
+<th>Privacy</th>
+<th>Quality</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Local small (7B)</strong></td>
+<td>Fast</td>
+<td>Full privacy</td>
+<td>Lower – may hallucinate more, struggles with complex reasoning</td>
+<td>Free</td>
+</tr>
+<tr>
+<td><strong>Local large (70B+)</strong></td>
+<td>Slow</td>
+<td>Full privacy</td>
+<td>Good – better coherence, requires significant GPU/RAM</td>
+<td>Free (hardware cost)</td>
+</tr>
+<tr>
+<td><strong>Cloud small</strong> (e.g., mistral-small)</td>
+<td>Medium</td>
+<td>Data sent externally</td>
+<td>Good</td>
+<td>Low per-query cost</td>
+</tr>
+<tr>
+<td><strong>Cloud large</strong> (e.g., mistral-large)</td>
+<td>Medium</td>
+<td>Data sent externally</td>
+<td>Best – most accurate and coherent</td>
+<td>Higher per-query cost</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommended testing workflow:</strong></p>
+<ol type="1">
+<li><strong>Establish a baseline with the cloud model.</strong> Run your
+full test suite with the cloud (large) model. Record the reliability
+badges, confidence scores, and response quality. This is your quality
+ceiling.</li>
+<li><strong>Compare with local models.</strong> Run the same test suite
+with each available local model. Note where quality drops: which
+questions produce worse answers, lower confidence, or incorrect
+claims.</li>
+<li><strong>Identify the minimum viable model.</strong> Find the
+smallest/cheapest model that still meets your quality requirements for
+the agent’s use case. Not every agent needs the best model.</li>
+<li><strong>Document the results.</strong> Record which model you
+recommend for production and any known limitations (e.g., “7B model
+struggles with comparison questions but handles simple lookups
+well”).</li>
+</ol>
+<hr />
+<h2 id="study-mode-awareness">11. Study Mode Awareness</h2>
+<p>If the system administrator has enabled <strong>study mode</strong>,
+some users will have their transparency level locked to a specific
+condition (<code>black_box</code>, <code>grey_box</code>, or
+<code>crystal_box</code>). This is used for controlled experiments on
+transparency.</p>
+<p><strong>As a tester, be aware that:</strong></p>
+<ul>
+<li>Study participants <strong>cannot change</strong> their transparency
+level — the cycling button is disabled.</li>
+<li>Study participants see a separate study interface at
+<code>/study</code> with predefined queries and per-query
+questionnaires.</li>
+<li>Your own tester account is typically <strong>not enrolled</strong>
+in the study, so you can still cycle freely.</li>
+<li>If you need to test the study interface, ask the superuser to enroll
+you as a study participant.</li>
+<li>Study data (questionnaire responses, condition assignments) is
+stored in <code>web/data/study_config.json</code>.</li>
+</ul>
+<hr />
+<h2 id="tips-for-effective-testing">Tips for effective testing</h2>
+<ol type="1">
+<li><strong>Start with the example queries</strong> — they are designed
+to exercise the agent’s core features. If these fail, report them
+first.</li>
+<li><strong>Verify against the source data</strong> — if you have access
+to the agent’s documents or database, check the agent’s answers against
+the original data.</li>
+<li><strong>Test with real-world questions</strong> — think about what a
+real user would ask, not just what the developer expected.</li>
+<li><strong>Try different LLM models</strong> — click the LLM badge in
+the sidebar to switch models. The same query may produce different
+results with different models.</li>
+<li><strong>Test transparency at Crystal box level</strong> — this gives
+you maximum visibility into how the response was built.</li>
+<li><strong>Report everything</strong> — even minor issues are valuable.
+Patterns of minor issues often reveal deeper problems.</li>
+<li><strong>Be specific in your notes</strong> — “wrong answer” is less
+useful than “Q: How many papers does UMA have? A: Agent said 45, actual
+count in papers.json is 73.”</li>
+<li><strong>Test in sessions</strong> — some issues only appear in
+multi-turn conversations (follow-up questions, context from previous
+queries).</li>
+</ol>
+</body>
+</html>
