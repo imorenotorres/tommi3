@@ -51,9 +51,9 @@
 <p>The agent has three sources of information:</p>
 
 <ol>
-  <li><strong>Metadata</strong> – A structured list of authors, their universities, research topics, and publication records within the UNINOVIS alliance.</li>
-  <li><strong>A text database</strong> – The PDF papers produced by the authors, the funded research projects in which they have participated, and a glossary of Responsible AI concepts.</li>
-  <li><strong>An external LLM</strong> (Large Language Model) – A general-purpose AI model trained on large amounts of text from the internet. It contains broad knowledge but it is not specific to UNINOVIS or its research.</li>
+  <li><strong>Metadata</strong> – A structured list of authors, their universities, research topics, and publication records within the UNINOVIS alliance. This data has been <strong style="color:#28a745;">curated by UNINOVIS staff</strong> from public academic sources.</li>
+  <li><strong>A documents database</strong> – The PDF papers produced by the authors, the funded research projects in which they have participated, and a glossary of Responsible AI concepts. The list of documents included in the database was <strong style="color:#28a745;">selected by UNINOVIS staff</strong>.</li>
+  <li><strong>An external LLM</strong> (Large Language Model) – We use Mistral, a general-purpose AI model trained on large amounts of text from the internet. Because it is a general-purpose model, <strong style="color:#dc3545;">we cannot guarantee that the information it provides about specific topics is correct</strong>.</li>
 </ol>
 
 <p>Depending on your question, the agent will use a different source of information.</p>
@@ -76,7 +76,7 @@
     <strong style="color: #856404;">Workflow 2 — What does something mean? What does a paper say?</strong><br/>
     <span style="font-size: 0.95em; color: #333;">e.g. "What is explainable AI?", "What are the findings of paper X?", "Describe the project Y"</span>
     <div style="margin-top: 0.6rem; font-family: monospace; font-size: 0.9em; color: #856404;">
-      Your question &#10132; <strong>Text database</strong> (relevant passages retrieved) &#10132; <strong>LLM</strong> composes the response
+      Your question &#10132; <strong>Documents database</strong> (relevant passages retrieved) &#10132; <strong>LLM</strong> composes the response
     </div>
   </div>
 
