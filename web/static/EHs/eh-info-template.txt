@@ -1,0 +1,114 @@
+==============================================================
+ UNINOVIS EXCELLENCE HUB — INFORMATION TEMPLATE
+==============================================================
+ Fill in this template for each Excellence Hub.
+ Items marked [REQUIRED] are needed for the page.
+ Items marked [OPTIONAL] can be added later.
+==============================================================
+
+1. BASIC INFORMATION
+------------------------------------------------------------
+Hub Name:               [REQUIRED] e.g. "Responsible AI"
+Host University:        [REQUIRED] e.g. "The Hague University of Applied Sciences"
+City, Country:          [REQUIRED] e.g. "The Hague, Netherlands"
+Tagline:                [REQUIRED] Short sentence summarising the hub's mission
+                        e.g. "Advancing trustworthy and ethical AI in Europe"
+
+2. ABOUT THIS HUB
+------------------------------------------------------------
+Description (1-3 paragraphs): [REQUIRED]
+    - Mission and vision
+    - What challenges does the hub address?
+    - Connection to the local ecosystem
+    - Role within the UNINOVIS alliance
+
+3. THEMATIC AREAS
+------------------------------------------------------------
+For each thematic area, provide:
+    - Name:             [REQUIRED]
+    - Description:      [REQUIRED] 1-2 sentences
+    - Keywords/tags:    [OPTIONAL]
+
+    Thematic Area 1:    ___________________________________
+    Thematic Area 2:    ___________________________________
+    Thematic Area 3:    ___________________________________
+    Thematic Area 4:    ___________________________________
+    (add more as needed)
+
+4. OBJECTIVES
+------------------------------------------------------------
+List 3-6 objectives:    [REQUIRED]
+    1. ________________________________________________
+    2. ________________________________________________
+    3. ________________________________________________
+    4. ________________________________________________
+    5. ________________________________________________
+
+5. FACILITIES & RESOURCES
+------------------------------------------------------------
+Description:            [REQUIRED] Labs, co-working spaces, computing
+                        resources, living labs, partner facilities, etc.
+Photos (3-6):           [OPTIONAL] High-res images of facilities
+
+6. TEAM
+------------------------------------------------------------
+For each team member:
+    - Full Name:        [REQUIRED]
+    - Role:             [REQUIRED] e.g. "Hub Director", "Hub Manager"
+    - Email:            [REQUIRED]
+    - Photo:            [OPTIONAL] Headshot image
+    - Brief bio:        [OPTIONAL] 1-2 sentences
+
+    Member 1: ____________________________________________
+    Member 2: ____________________________________________
+    Member 3: ____________________________________________
+    (add more as needed)
+
+7. EVENTS
+------------------------------------------------------------
+For each event:
+    - Title:            [REQUIRED]
+    - Date:             [REQUIRED]
+    - Format:           [REQUIRED] In-person / Online / Hybrid
+    - Description:      [REQUIRED] 1-2 sentences
+    - Link:             [OPTIONAL] URL to event page
+
+8. NEWS
+------------------------------------------------------------
+For each news item:
+    - Title:            [REQUIRED]
+    - Date:             [REQUIRED]
+    - Excerpt:          [REQUIRED] 1-2 sentences
+    - Image:            [OPTIONAL]
+    - Link:             [OPTIONAL] Full article URL
+
+9. ASSOCIATED PARTNERS
+------------------------------------------------------------
+For each partner:
+    - Organisation Name:    [REQUIRED]
+    - Logo:                 [OPTIONAL]
+    - Website URL:          [OPTIONAL]
+    - Type:                 [OPTIONAL] e.g. "Local authority",
+                            "Industry partner", "Research centre"
+
+10. CONTACT & LOCATION
+------------------------------------------------------------
+Contact Person Name:    [REQUIRED]
+Contact Person Role:    [REQUIRED]
+Contact Email:          [REQUIRED]
+Street Address:         [REQUIRED]
+Google Maps link/embed: [OPTIONAL]
+
+11. VISUAL ASSETS
+------------------------------------------------------------
+Hero image/banner:      [REQUIRED] High-res image for the page header
+                        (recommended: 1920x800px, relevant to hub theme)
+Hub logo (if any):      [OPTIONAL]
+Additional photos:      [OPTIONAL] Gallery images, event photos
+
+==============================================================
+ NOTES
+ - All placeholder text in the HTML is marked with [brackets]
+ - Replace placeholders with actual content
+ - Images should be placed in /web/static/EHs/img/
+==============================================================

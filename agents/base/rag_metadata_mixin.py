@@ -243,10 +243,36 @@ class MetadataRAGMixin:
 
         Returns True if the message mentions any term from the scope set
         (glossary concepts, paper topics, researcher topics).
+        Returns False for non-research task requests (write, translate, book,
+        etc.) even if they contain scope terms.
         """
         if not self._topical_scope:
             return False
         msg_lower = user_message.lower()
+
+        # Non-research task requests are out of scope regardless of terms present
+        task_patterns = [
+            r'^write\b.*\b(?:essay|report|letter|poem|story|code)\b',
+            r'^translate\b',
+            r'\btranslate\s+(?:this|the|my|following)\b',
+            r'\bbook\s+(?:me|a|my)\b',
+            r'\border\s+(?:me|a|my)\b',
+            r'\bwho\s+won\b',
+            r'\bwhat\s+is\s+the\s+(?:weather|temperature|time|capital|population)\b',
+            r'\bwrite\s+(?:me\s+)?(?:an?\s+)?essay\b',
+        ]
+        if any(re.search(p, msg_lower) for p in task_patterns):
+            return False
+
+        # Meta-questions about the agent itself are always in scope
+        meta_patterns = [
+            "what can you do", "how does this work", "how do you work",
+            "what kind of questions", "what do the", "what are the banners",
+            "what is uninovis", "which universities",
+        ]
+        if any(p in msg_lower for p in meta_patterns):
+            return True
+
         for term in self._topical_scope:
             if term in msg_lower:
                 return True
@@ -873,6 +899,10 @@ class MetadataRAGMixin:
             clean = re.sub(r'\s*\([^)]*\)\s*', '', concept_name).strip()
             if clean:
                 aliases[clean.lower()] = concept_name
+            # Also match shortened forms: "Explainable Artificial Intelligence" -> "explainable ai"
+            short = re.sub(r'\bartificial intelligence\b', 'ai', clean.lower())
+            if short != clean.lower():
+                aliases[short] = concept_name
 
         # Find concepts mentioned in the question
         for alias, concept_name in aliases.items():
@@ -3172,6 +3202,16 @@ class MetadataRAGMixin:
         searching for papers.
         """
         msg_lower = user_message.lower().strip().rstrip("?!.")
+
+        # Exclude project queries — "What is the TAILOR project about?" is not conceptual
+        if any(kw in msg_lower for kw in ("project", "grant", "funding", "funded", "consortium")):
+            return False
+
+        # Exclude researcher queries — "What are the research interests of X?" is not conceptual
+        if any(kw in msg_lower for kw in ("research interest", "published", "work on", "works on",
+                                           "papers by", "researcher")):
+            return False
+
         conceptual_patterns = [
             # "is X related to/with Y"
             r'\bis\b.+\brelated\s+(?:to|with)\b',
@@ -3208,6 +3248,28 @@ class MetadataRAGMixin:
         and the map endpoints themselves use structured data."""
         msg_lower = user_message.lower()
         return any(kw in msg_lower for kw in ("figure", "map"))
+
+    @staticmethod
+    def _is_non_research_task(user_message: str) -> bool:
+        """Detect non-research task requests (write essays, translate, book flights, etc.).
+
+        These should always get a red banner regardless of whether the query
+        contains in-scope terms, because the user's intent is not research.
+        """
+        msg_lower = user_message.lower().strip()
+        task_patterns = [
+            r'^write\s+(?:me\s+)?(?:an?\s+)?(?:essay|report|letter|poem|story|code)',
+            r'^translate\b',
+            r'\btranslate\s+(?:this|the|my|following)\b',
+            r'\bbook\s+(?:me|a|my)\s+(?:a\s+)?(?:flight|hotel|ticket|room)',
+            r'\border\s+(?:me|a|my)\b',
+            r'\bwho\s+won\s+(?:the|last)\b',
+            r'\bwhat\s+is\s+the\s+(?:weather|temperature|time|capital|population)\b',
+            r'\bwhat\s+(?:is|was)\s+the\s+score\b',
+            r'\brecipe\s+for\b',
+            r'\bhow\s+(?:do|can)\s+(?:i|you)\s+(?:cook|make|bake|prepare)\b',
+        ]
+        return any(re.search(p, msg_lower) for p in task_patterns)
 
     @staticmethod
     def _is_gap_analysis_query(user_message: str) -> bool:
@@ -4006,6 +4068,10 @@ class MetadataRAGMixin:
                 elif context:
                     pre_banner = self._banner_database()
 
+                # Override: non-research task requests always get a red banner
+                if pre_banner and self._is_non_research_task(user_message):
+                    pre_banner = self._banner_creative()
+
             messages = [{"role": "system", "content": system_with_context}]
 
             if history:
@@ -4424,6 +4490,10 @@ class MetadataRAGMixin:
                         pre_banner = self._banner_creative()
                 elif context:
                     pre_banner = self._banner_database()
+
+                # Override: non-research task requests always get a red banner
+                if pre_banner and self._is_non_research_task(user_message):
+                    pre_banner = self._banner_creative()
 
             messages = [{"role": "system", "content": system_with_context}]
 

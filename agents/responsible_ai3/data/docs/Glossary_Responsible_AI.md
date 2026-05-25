@@ -240,6 +240,25 @@ The six core principles identified by the WHO Expert Group are: Protect autonomy
 
 ---
 
+## AI and Education
+
+AI in Education refers to the application of AI techniques to educational contexts, including **adaptive learning systems**, **intelligent tutoring**, **automated assessment**, **learning analytics**, **AI-powered chatbots**, and **recommender systems** for personalised learning paths. AI is increasingly used across all levels of education — from primary schools to higher education and professional training — to support both teaching and learning processes.
+
+Responsible AI in education raises specific concerns due to the vulnerability of learners (particularly children and young adults) and the high impact of educational decisions on individuals' life trajectories. Key ethical issues include: **algorithmic bias** in student assessment and grading, which may reinforce existing inequalities; **privacy and data protection** of student data, particularly under regulations such as the GDPR; **transparency** of AI-driven decisions that affect academic outcomes (admissions, grading, recommendations); the risk of **over-reliance on AI** and reduced human judgement in pedagogical decisions; and the **digital divide**, where unequal access to AI-powered tools may deepen educational inequalities.
+
+The UNESCO Recommendation on the Ethics of AI (2021) specifically addresses education, calling for AI systems that support inclusive, equitable, and quality education. The European Commission's Ethical Guidelines for the Use of AI and Data in Teaching and Learning (2022) further emphasise the need for human-centred AI in education, ensuring that educators remain in control of pedagogical decisions and that AI tools are used to augment — not replace — the teacher-student relationship.
+
+**Related concepts:** AI Ethics; Fairness in AI; Bias in AI; Privacy and Data Governance in AI; Human-Centred AI; Responsible AI; Transparency in AI; AI Governance
+
+**References:**
+
+- Holmes, W., Bialik, M., & Fadel, C. (2019). *Artificial Intelligence in Education: Promises and Implications for Teaching and Learning*. Center for Curriculum Redesign.
+- Zawacki-Richter, O., Marín, V. I., Bond, M., & Gouverneur, F. (2019). Systematic review of research on artificial intelligence applications in higher education – where are the educators? *International Journal of Educational Technology in Higher Education*, 16, 39. [https://doi.org/10.1186/s41239-019-0171-0](https://doi.org/10.1186/s41239-019-0171-0)
+- European Commission (2022). *Ethical Guidelines on the Use of Artificial Intelligence and Data in Teaching and Learning for Educators*. [https://op.europa.eu/en/publication-detail/-/publication/d81a0d54-5348-11ed-92ed-01aa75ed71a1](https://op.europa.eu/en/publication-detail/-/publication/d81a0d54-5348-11ed-92ed-01aa75ed71a1)
+- UNESCO (2021). *Recommendation on the Ethics of Artificial Intelligence*. [https://unesdoc.unesco.org/ark:/48223/pf0000381137](https://unesdoc.unesco.org/ark:/48223/pf0000381137)
+
+---
+
 ## Interpretability vs. Explainability
 
 Interpretability and explainability are related but distinct concepts. Interpretability refers to the degree to which a human can understand the internal mechanics and decisions of a model (intrinsic property of the model itself). The interpretability of predictive models can be characterized following the logic of the model; a description of the kind of data that is expected to be used in the model, including the boundaries of the input space; and in the case of classification tasks, how the decision is taken using the output values. 
@@ -322,3 +341,22 @@ A responsible use of generative AI requires consideration of the ethical and soc
 - Feuerriegel, S., Hartmann, J., Janiesch, C. et al. (2024). *Generative AI. Business & Information Systems \-  Eng 66*, 111–126. [https://doi.org/10.1007/s12599-023-00834-7](https://doi.org/10.1007/s12599-023-00834-7)  
 - Gu, J. (2024). A Survey on Responsible Generative AI: What to Generate and What Not. *Computers and Society*. https://doi.org/10.48550/arXiv.2404.05783  
 - Weidinger, L., Mellor, J., Rauh, M., et al. (2021). Ethical and social risks of harm from Language Models. *arXiv preprint arXiv:2112.04359*. [https://doi.org/10.48550/arXiv.2112.04359](https://doi.org/10.48550/arXiv.2112.04359)
+
+---
+
+## AI Red-Teaming
+
+AI red-teaming is the practice of systematically probing an AI system to discover its vulnerabilities, failure modes, and potential for harm before deployment. Borrowed from **cybersecurity** and **military strategy**, where red teams simulate adversarial attacks to test defences, AI red-teaming involves deliberately crafting inputs designed to elicit undesirable outputs from AI systems — including **harmful content**, **biased responses**, **hallucinations**, **prompt injection exploits**, and **safety bypasses**.
+
+AI red-teaming can be conducted manually by human testers or automated through adversarial machine learning techniques. It typically covers several dimensions: **robustness testing** (adversarial inputs, edge cases, out-of-distribution data), **bias and fairness probing** (testing for discriminatory behaviour across demographic groups), **safety evaluation** (attempts to elicit dangerous, toxic, or illegal content), **factual accuracy testing** (checking for hallucinations and fabricated references), and **boundary testing** (exploring behaviour outside the system's intended scope).
+
+Red-teaming is increasingly recognised as a key component of responsible AI deployment. The **EU AI Act** requires robustness and adversarial testing for high-risk AI systems. The **NIST AI Risk Management Framework** includes adversarial testing as part of its "Test" function. The **White House Executive Order on AI Safety** (2023) calls on developers of powerful AI systems to conduct red-team testing and share results with the government. Several major AI companies have adopted structured red-teaming programmes as part of their model evaluation pipelines.
+
+**Related concepts:** AI Safety; Robustness in AI; Algorithmic Auditing; Trustworthy AI; AI Governance; Responsible AI; Bias in AI
+
+**References:**
+
+- Ganguli, D., Lovitt, L., Kernion, J., et al. (2022). Red Teaming Language Models to Reduce Harms: Methods, Scaling Behaviors, and Lessons Learned. *arXiv preprint arXiv:2209.07858*. [https://doi.org/10.48550/arXiv.2209.07858](https://doi.org/10.48550/arXiv.2209.07858)
+- Perez, E., Huang, S., Song, F., et al. (2022). Red Teaming Language Models with Language Models. *Proceedings of EMNLP*, 3419–3448. [https://doi.org/10.18653/v1/2022.emnlp-main.225](https://doi.org/10.18653/v1/2022.emnlp-main.225)
+- NIST (2024). *Adversarial Machine Learning: A Taxonomy and Terminology of Attacks and Mitigations*. NIST AI 100-2e2023. [https://doi.org/10.6028/NIST.AI.100-2e2023](https://doi.org/10.6028/NIST.AI.100-2e2023)
+- Casper, S., Davies, X., Shi, C., et al. (2024). Black-Box Access is Insufficient for Rigorous AI Audits. *Proceedings of ACM FAccT*, 2463–2477. [https://doi.org/10.1145/3630106.3659037](https://doi.org/10.1145/3630106.3659037)
