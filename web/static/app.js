@@ -193,19 +193,18 @@ async function init() {
 
     await loadConfig();
     await loadAgents();
+    setupEventListeners();
 
-    // Auto-select agent from URL path (e.g. /agents/Responsible_AI3)
+    // Auto-select agent from URL path (e.g. /agents/responsible_ai3)
     const agentMatch = window.location.pathname.match(/^\/agents\/(.+)$/);
     if (agentMatch) {
         const agentId = decodeURIComponent(agentMatch[1]);
-        const found = state.agents.find(a => a.id === agentId);
+        const found = state.agents.find(a => a.id === agentId || a.id.toLowerCase() === agentId.toLowerCase());
         if (found) {
-            elements.agentSelect.value = agentId;
+            elements.agentSelect.value = found.id;
             elements.agentSelect.dispatchEvent(new Event('change'));
         }
     }
-
-    setupEventListeners();
 
     // Inject user menu in the top-right area
     injectUserMenu(role);
