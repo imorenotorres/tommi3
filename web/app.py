@@ -922,6 +922,12 @@ async def agents_page():
     return FileResponse(SCRIPT_DIR / "static" / "index.html")
 
 
+@app.get("/agents/{agent_id}")
+async def agents_page_with_agent(agent_id: str):
+    """Serve the TOMMI AI Agents interface with a specific agent pre-selected"""
+    return FileResponse(SCRIPT_DIR / "static" / "index.html")
+
+
 @app.get("/login")
 async def login_page():
     """Sirve la página de login"""
