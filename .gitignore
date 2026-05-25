@@ -29,6 +29,7 @@ web/data/users.json
 web/data/invites.json
 web/data/access_requests.json
 web/data/agent_visibility.json
+agents/responsible_ai3/Benchmark/get_token.sh
 
 # Web logs
 web/logs/
@@ -57,6 +58,10 @@ scripts/data/
 
 # Old agents
 OldAgents/
+
+# Excel files
+*.xlsx
+*.xls
 
 # Archives
 *.zip

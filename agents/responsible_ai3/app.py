@@ -3,6 +3,7 @@ Responsible AI (Vectorless) - Servidor FastAPI (Metadata-only)
 """
 
 import os
+import re
 import json
 import urllib.parse
 from contextlib import asynccontextmanager
@@ -84,6 +85,100 @@ async def health():
     return {"status": "ok"}
 
 
+# Allowed external domains: UNINOVIS alliance, partner universities, and academic publishers
+_ALLOWED_DOMAINS = [
+    # UNINOVIS and partners
+    "uninovis.eu",
+    "univ-paris13.fr", "sorbonne-paris-nord.fr",  # USPN
+    "unicampania.it",  # UDCLV
+    "uma.es",  # UMA
+    "kfraunokolegija.lt", "go.kauko.lt",  # KK
+    "unitir.edu.al",  # UT
+    "thws.de",  # THWS
+    "tuni.fi", "tamk.fi",  # TAMK
+    "thuas.com", "dehaagsehogeschool.nl",  # THUAS
+    # Academic publishers and indices
+    "doi.org", "arxiv.org", "springer.com", "nature.com",
+    "ieee.org", "acm.org", "sciencedirect.com", "wiley.com",
+    "mdpi.com", "frontiersin.org", "plos.org", "elsevier.com",
+    "researchgate.net", "scholar.google.com", "scopus.com",
+    "openalex.org", "semanticscholar.org", "pubmed.ncbi.nlm.nih.gov",
+    "taylorandfrancis.com", "tandfonline.com", "iospress.com",
+    "cambridge.org", "oxford.org", "oxfordjournals.org",
+    "sagepub.com", "degruyter.com", "jstor.org",
+]
+
+
+def _is_allowed_url(url: str) -> bool:
+    """Check if a URL belongs to an allowed domain."""
+    for domain in _ALLOWED_DOMAINS:
+        if domain in url:
+            return True
+    return False
+
+
+# Known system prompt fragments that should never appear in responses
+_PROMPT_LEAK_PATTERNS = [
+    r"NEVER invent, fabricate, or hallucinate.*?paper IDs",
+    r"CRITICAL.*?UNINOVIS PARTNER RECOGNITION",
+    r"GAP ANALYSIS.*?TOPICS NOT STUDIED",
+    r"DECISION RULE for choosing figure type",
+    r"INTERACTIVE MAP FEATURE.*?STRICT RULES",
+    r"ABSOLUTE SECURITY RULES",
+    r"RESPONSE FORMAT:",
+    r"IMPORTANT RULES:\s*\n",
+    r"Figure link formats:",
+    r"TOPIC figure \(papers\):",
+    r"PUBLICATIONS figure \(papers\):",
+    r"COLLABORATION figure:",
+    r"PROJECTS figure \(all projects\):",
+    r"PROJECT-TOPIC figure",
+    r"View interactive map for",
+    r"View projects map for",
+    r"prompt_level",
+    r"transparency_level",
+    r"NEVER invent, fabricate, or hallucinate",  # Exact rule text from completion attack
+]
+
+
+def filter_prompt_leaks(response: str) -> str:
+    """Detect and redact system prompt fragments from the response."""
+    for pattern in _PROMPT_LEAK_PATTERNS:
+        if re.search(pattern, response, re.IGNORECASE | re.DOTALL):
+            # Replace the response with a safe refusal
+            return (
+                "I cannot share my system instructions. "
+                "I am a research assistant for UNINOVIS AI & Responsibility "
+                "(explainable AI, AI ethics, trustworthy AI, AI fairness, etc.). "
+                "I can help you search papers, researchers, and projects."
+            )
+    return response
+
+
+def sanitize_response(response: str, agent_id: str) -> str:
+    """Remove external URLs and prompt leaks from responses."""
+    def _replace_link(m):
+        url = m.group(2)
+        # Allow internal API links
+        if url.startswith(f"/api/agents/{agent_id}/") or url.startswith("/api/agents/"):
+            return m.group(0)
+        # Allow whitelisted domains
+        if _is_allowed_url(url):
+            return m.group(0)
+        return m.group(1)  # Keep link text, remove URL
+
+    # Replace markdown links [text](url) with disallowed external URLs
+    response = re.sub(r'\[([^\]]*)\]\((https?://[^\)]+)\)', _replace_link, response)
+    # Remove any remaining bare external URLs that aren't allowed
+    def _replace_bare(m):
+        url = m.group(0)
+        if _is_allowed_url(url):
+            return url
+        return '[external link removed]'
+    response = re.sub(r'(?<!\()(https?://[^\s\)<>]+)', _replace_bare, response)
+    return response
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """Endpoint principal de chat con Metadata."""
@@ -98,6 +193,8 @@ async def chat(request: ChatRequest):
         return StreamingResponse(generate(), media_type="text/plain")
 
     response = agent.chat(request.message, request.history, verify=request.verify)
+    response = filter_prompt_leaks(response)
+    response = sanitize_response(response, AGENT_CONFIG["id"])
     return ChatResponse(response=response)
 
 
