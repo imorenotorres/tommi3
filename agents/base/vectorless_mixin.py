@@ -202,12 +202,34 @@ class VectorlessMixin:
 
         # Format like BaseRAGAgent._retrieve_context
         context_parts = []
+        has_glossary = False
         for score, chunk in top:
             source = chunk.get("source", "unknown")
             text = chunk.get("text", "")
-            context_parts.append(f"[Fuente: {source}]\n{text}")
+            # Tag glossary chunks so the LLM knows they are NOT UNINOVIS papers
+            is_glossary = not source.startswith("W") and source.endswith(".md")
+            if is_glossary:
+                has_glossary = True
+                context_parts.append(
+                    f"[Fuente: {source} — GLOSSARY: definitions and concepts, "
+                    f"NOT UNINOVIS papers]\n{text}"
+                )
+            else:
+                context_parts.append(f"[Fuente: {source}]\n{text}")
 
-        return "\n\n---\n\n".join(context_parts)
+        result = "\n\n---\n\n".join(context_parts)
+
+        if has_glossary:
+            result += (
+                "\n\n⚠️ IMPORTANT: Glossary chunks above contain definitions and "
+                "concept explanations from the curated glossary. Any paper titles, "
+                "authors, or references mentioned in glossary text are from EXTERNAL "
+                "literature and are NOT papers in the UNINOVIS database. Do NOT cite "
+                "them as UNINOVIS papers. Only cite papers that appear in the "
+                "TOPIC SEARCH RESULTS or structured metadata sections."
+            )
+
+        return result
 
     def reindex(self):
         """Clear cached chunk DB so it reloads on next query."""
