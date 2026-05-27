@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Responsible AI Agent – Quick Guide</title>
+  <title>Health &amp; Wellbeing Systems Agent – Quick Guide</title>
   <style>
     :root {
       --primary: #2c3e50;
@@ -40,11 +40,11 @@
 </head>
 <body>
 
-<h1>Responsible AI Agent – Quick Guide</h1>
+<h1>Health &amp; Wellbeing Systems Agent – Quick Guide</h1>
 
 <h2>What is this agent?</h2>
 
-<p>The Responsible AI Agent is a research assistant that answers questions about <strong>Responsible AI research</strong> within the <strong>UNINOVIS</strong> European university alliance. It draws on a curated database of scientific publications, researcher profiles, funded research projects, and a glossary of Responsible AI concepts contributed by the 8 UNINOVIS partner universities.</p>
+<p>The Health &amp; Wellbeing Systems Agent is a research assistant that answers questions about <strong>Health and Wellbeing Systems research</strong> within the <strong>UNINOVIS</strong> European university alliance. It draws on a curated database of scientific publications, funded research projects, and a glossary of Health and Wellbeing Systems concepts contributed by the 8 UNINOVIS partner universities.</p>
 
 <h2>Which are the main information sources of the Agent?</h2>
 
@@ -52,7 +52,7 @@
 
 <ol>
   <li><strong>Metadata</strong> – A structured list of authors, their universities, research topics, and publication records within the UNINOVIS alliance. This data has been <strong style="color:#28a745;">curated by UNINOVIS staff</strong> from public academic sources.</li>
-  <li><strong>A documents database</strong> – The PDF papers produced by the authors, the funded research projects in which they have participated, and a glossary of Responsible AI concepts. The list of documents included in the database was <strong style="color:#28a745;">selected by UNINOVIS staff</strong>.</li>
+  <li><strong>A documents database</strong> – The PDF papers produced by the authors, the funded research projects in which they have participated, and a glossary of Health and Wellbeing Systems concepts. The list of documents included in the database was <strong style="color:#28a745;">selected by UNINOVIS staff</strong>.</li>
   <li><strong>An external LLM</strong> (Large Language Model) – We use Mistral, a general-purpose AI model trained on large amounts of text from the internet. Because it is a general-purpose model, <strong style="color:#dc3545;">we cannot guarantee that the information it provides about specific topics is correct</strong>.</li>
 </ol>
 
@@ -64,7 +64,7 @@
 
   <div style="background: #d4edda; border-left: 5px solid #28a745; padding: 1rem 1.2rem; border-radius: 0 6px 6px 0; margin-bottom: 1rem;">
     <strong style="color: #155724;">Workflow 1 — Who, where, or how many?</strong><br/>
-    <span style="font-size: 0.95em; color: #333;">e.g. "List researchers working on AI ethics", "Show publications per university", "How many papers in 2024?"</span>
+    <span style="font-size: 0.95em; color: #333;">e.g. "List researchers working on AI and healthcare", "Show publications per university", "How many papers on aging in 2024?"</span>
     <div style="margin-top: 0.6rem; font-family: monospace; font-size: 0.9em; color: #155724;">
       Your question &#10132; <strong>Metadata</strong> &#10132; Direct response (no LLM involved)
     </div>
@@ -72,7 +72,7 @@
 
   <div style="background: #fff3cd; border-left: 5px solid #ffc107; padding: 1rem 1.2rem; border-radius: 0 6px 6px 0; margin-bottom: 1rem;">
     <strong style="color: #856404;">Workflow 2 — What does something mean? What does a paper say?</strong><br/>
-    <span style="font-size: 0.95em; color: #333;">e.g. "What is explainable AI?", "What are the findings of paper X?", "Describe the project Y"</span>
+    <span style="font-size: 0.95em; color: #333;">e.g. "What is digital health?", "What are the findings of paper X?", "Describe the MENHIR project"</span>
     <div style="margin-top: 0.6rem; font-family: monospace; font-size: 0.9em; color: #856404;">
       Your question &#10132; <strong>Documents database</strong> (relevant passages retrieved) &#10132; <strong>LLM</strong> composes the response
     </div>
@@ -80,7 +80,7 @@
 
   <div style="background: #f8d7da; border-left: 5px solid #dc3545; padding: 1rem 1.2rem; border-radius: 0 6px 6px 0; margin-bottom: 1rem;">
     <strong style="color: #721c24;">Workflow 3 — Beyond the database</strong><br/>
-    <span style="font-size: 0.95em; color: #333;">e.g. "What research gaps exist?", "Tell me about AI regulation in China", "Write me a recipe"</span>
+    <span style="font-size: 0.95em; color: #333;">e.g. "What research gaps exist in wellbeing systems?", "Tell me about AI regulation in China", "Write me a recipe"</span>
     <div style="margin-top: 0.6rem; font-family: monospace; font-size: 0.9em; color: #721c24;">
       Your question &#10132; <strong>LLM</strong> responds from its own general knowledge (no curated data involved)
     </div>
@@ -89,9 +89,9 @@
 </div>
 
 
-<h2>Up to what point is Responsible AI a reliable information source?</h2>
+<h2>Up to what point is the Health &amp; Wellbeing Systems Agent a reliable information source?</h2>
 
-<p>It depends on the data source used to answer your question. </p>
+<p>It depends on the data source used to answer your question.</p>
 <ul>
   <li>When the agent draws from curated metadata, the information is highly reliable.</li>
   <li>When it retrieves and summarises document content, the underlying data is real but the presentation involves AI interpretation.</li>
@@ -106,11 +106,11 @@
   <tbody>
     <tr>
       <td><strong style="color:#28a745;">&#x1F7E2; Verified data</strong></td>
-      <td>The information comes <strong>directly from the database</strong> with no AI involvement — paper lists, researcher data, figures, glossary definitions. <strong>You can trust this data.</strong></td>
+      <td>The information comes <strong>directly from the database</strong> with no AI involvement — paper lists, researcher data, figures. <strong>You can trust this data.</strong></td>
     </tr>
     <tr>
       <td><strong style="color:#ffc107;">&#x1F7E1; AI interpretation</strong></td>
-      <td>The AI model generated this response <strong>based on real data</strong> from the database. The information is grounded, but the AI may summarize, group, or interpret it. <strong>Check important details.</strong></td>
+      <td>The AI model generated this response <strong>based on real data</strong> from the database — glossary definitions, project descriptions, conceptual explanations. The information is grounded, but the AI may summarize, group, or interpret it. <strong>Check important details.</strong></td>
     </tr>
     <tr>
       <td><strong style="color:#dc3545;">&#x1F534; Unverified</strong></td>

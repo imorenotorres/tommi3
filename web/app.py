@@ -2795,8 +2795,13 @@ async def agent_quickguide(agent_id: str):
     if not agent_info:
         raise HTTPException(status_code=404, detail="Agent not found")
 
-    guide_path = Path(agent_info.path) / "responsibleAI_quickguide.html"
-    if not guide_path.exists():
+    # Look for agent-specific quickguide, then fall back to the legacy name
+    agent_dir = Path(agent_info.path)
+    guide_path = None
+    for candidate in sorted(agent_dir.glob("*quickguide*.html")):
+        guide_path = candidate
+        break
+    if not guide_path or not guide_path.exists():
         raise HTTPException(status_code=404, detail="Quick guide not found")
 
     return FileResponse(guide_path, media_type="text/html")
