@@ -1,9 +1,0 @@
-__pycache__/
-*.py[cod]
-.venv/
-*.xlsx
-*.xls
-*.csv
-data/*.xlsx
-data/*.xls
-data/*.csv
