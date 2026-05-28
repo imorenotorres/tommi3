@@ -80,14 +80,20 @@ When reliability cues are enabled, a coloured banner appears at the top of each 
 - **🟡 AI Commentary** (yellow) – The AI model interprets or presents verified data. The underlying data is real, but the presentation involves AI selection and inference. Check important details.
 - **🔴 Unverified** (red) – The AI output cannot be directly verified against the database. This includes gap analysis, off-topic suggestions, and AI reasoning beyond the data. Verify independently.
 
-### 4.2 Content Transparency for Text-to-SQL Agents
+### 4.2 Content Transparency for Text2SQL (Text-to-SQL) Agents
 
-Text-to-SQL agents can show additional transparency about the process:
+Text2SQL agents can show additional transparency about the process. When `transparency_level` is set to `crystal_box`, each response shows two sections:
 
-- **🟡 AI interpretation** – the AI model interpreted your question as a database query. When transparency is set to Crystal box, the SQL query and a plain-language explanation are shown.
+- **🟡 AI interpretation** – the AI model interpreted your question as a database query. The SQL query and a plain-language explanation are shown so you can verify the translation is correct.
 - **🟢 Verified data** – the results come directly from the database (no AI involved).
 
-This makes the locus of unreliability explicit: the risk is in the translation from your question to the query, not in the data itself.
+For example, if you ask a Text2SQL agent "How many agreements require English?", a transparent (Crystal box) response would show:
+
+1. A yellow banner explaining that the AI translated your question into the SQL query: `SELECT COUNT(*) FROM agreements WHERE language = 'INGLES'`
+2. A plain-language explanation: "I interpreted your question as: count all agreements where the language is English."
+3. A green banner with the actual result from the database.
+
+This makes the locus of unreliability explicit: the risk is in the AI translation from your question to the SQL query, not in the data itself. When transparency is set to `black_box`, only the final result is shown without the SQL query.
 
 ---
 
