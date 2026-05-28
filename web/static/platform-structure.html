@@ -18,6 +18,7 @@
       --rw-bg: #dcfce7; --rw-border: #16a34a; --rw-text: #15803d;
       --r-bg: #dbeafe;  --r-border: #1d4ed8;  --r-text: #1d4ed8;
       --w-bg: #fef9c3;  --w-border: #ca8a04;  --w-text: #92400e;
+      --wr-bg: #ccfbf1; --wr-border: #0d9488; --wr-text: #0f766e;
       --none-bg: #f1f5f9; --none-border: #cbd5e1; --none-text: #94a3b8;
 
       --gloria: #7c3aed;
@@ -124,6 +125,7 @@
     .chip-rw   { background: var(--rw-bg);   color: var(--rw-text);   border: 1px solid var(--rw-border);   }
     .chip-r    { background: var(--r-bg);    color: var(--r-text);    border: 1px solid var(--r-border);    }
     .chip-w    { background: var(--w-bg);    color: var(--w-text);    border: 1px solid var(--w-border);    }
+    .chip-wr   { background: var(--wr-bg);   color: var(--wr-text);   border: 1px solid var(--wr-border);   }
     .chip-none { background: var(--none-bg); color: var(--none-text); border: 1px solid var(--none-border); }
 
     /* ── Platform grid ── */
@@ -214,6 +216,7 @@
     .app-card.ac-rw   { background: var(--rw-bg);   border-color: var(--rw-border); }
     .app-card.ac-r    { background: var(--r-bg);    border-color: var(--r-border); }
     .app-card.ac-w    { background: var(--w-bg);    border-color: var(--w-border); }
+    .app-card.ac-wr   { background: var(--wr-bg);   border-color: var(--wr-border); }
     .app-card.ac-none { background: var(--none-bg); border-color: var(--none-border); opacity: 0.55; }
 
     .app-name {
@@ -225,6 +228,7 @@
     .app-card.ac-rw   .app-name { color: var(--rw-text); }
     .app-card.ac-r    .app-name { color: var(--r-text); }
     .app-card.ac-w    .app-name { color: var(--w-text); }
+    .app-card.ac-wr   .app-name { color: var(--wr-text); }
     .app-card.ac-none .app-name { color: var(--none-text); }
 
     .app-tags { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
@@ -244,6 +248,7 @@
     .ac-rw .access-chip   { background: var(--rw-border); color: white; }
     .ac-r  .access-chip   { background: var(--r-border);  color: white; }
     .ac-w  .access-chip   { background: var(--w-border);  color: white; }
+    .ac-wr .access-chip   { background: var(--wr-border); color: white; }
     .ac-none .access-chip { display: none; }
 
     /* ── Connections panel ── */
@@ -427,11 +432,15 @@
           <span>Read &amp; Write</span>
         </div>
         <div class="legend-row">
-          <span class="legend-chip chip-r">R</span>
+          <span class="legend-chip chip-wr">Restricted Write</span>
+          <span>Restricted Write</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-chip chip-r">Read</span>
           <span>Read only</span>
         </div>
         <div class="legend-row">
-          <span class="legend-chip chip-w">W</span>
+          <span class="legend-chip chip-w">Write</span>
           <span>Write only</span>
         </div>
         <div class="legend-row">
@@ -480,8 +489,8 @@ const GLORIA = {
       label: 'Research & Events',
       apps: [
         { name: 'Researcher Connect', migrateTo: 'Agora',
-          access: { developer:'rw', contentManager:'rw', teachingStaff:'w', adminStaff:'r', student:null, public:null },
-          tooltip: 'Teaching staff can submit; admin staff can view' },
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'wr', adminStaff:'r', student:null, public:null },
+          tooltip: 'Teaching staff: read + restricted write (own entries only); admin staff: read' },
         { name: 'Event Tracker', migrateTo: 'Agora',
           access: { developer:'rw', contentManager:'rw', teachingStaff:null, adminStaff:'w', student:null, public:null },
           tooltip: 'Admin staff can create events' },
@@ -655,7 +664,11 @@ function accessClass(level) {
 
 function accessLabel(level) {
   if (!level) return null;
-  return level.toUpperCase().replace('RW','R+W');
+  if (level === 'rw') return 'R+W';
+  if (level === 'r')  return 'Read';
+  if (level === 'w')  return 'Write';
+  if (level === 'wr') return 'Restricted Write';
+  return level;
 }
 
 function renderAppCard(app, role) {
@@ -765,7 +778,7 @@ function renderCurrent(role) {
 }
 
 function renderFuture(role) {
-  const platforms = [GLORIA, AGORA, CDP, WEBSITE];
+  const platforms = [GLORIA, AGORA, CDP];
 
   const cards = platforms.map(p => renderPlatformCard(p, role, '✅ SSO Unlocked')).join('');
 
@@ -781,9 +794,9 @@ function renderFuture(role) {
       <div class="future-wrapper">
         <div class="sso-box">
           <h2>🔑 Single Sign-On Gateway</h2>
-          <p>One authentication point for the entire TOMMI ecosystem</p>
+          <p>One authentication point for the entire Digital Platform</p>
           <div class="sso-badge">
-            🌐 EduGAIN · 🏛️ UMA · &nbsp;Sign in once, access everywhere
+            🌐 EduGAIN · Sign in once, access everywhere
           </div>
         </div>
 
@@ -804,11 +817,17 @@ function renderFuture(role) {
           <span style="flex:1;text-align:center;padding:6px 10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:8px;color:var(--gloria);">Gloria</span>
           <span style="flex:1;text-align:center;padding:6px 10px;background:rgba(2,132,199,0.08);border:1px solid rgba(2,132,199,0.25);border-radius:8px;color:var(--agora);">Agora</span>
           <span style="flex:1;text-align:center;padding:6px 10px;background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.25);border-radius:8px;color:var(--cdp);">CDP</span>
-          <span style="flex:1;text-align:center;padding:6px 10px;background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.25);border-radius:8px;color:var(--website);">Website</span>
         </div>
 
-        <div class="future-grid">
+        <div class="future-grid" style="grid-template-columns:1fr 1fr 1fr;">
           ${cards}
+        </div>
+
+        <div style="margin-top:14px;width:100%;">
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;">
+            The <strong>Website</strong> remains publicly accessible — no authentication required:
+          </p>
+          ${renderPlatformCard(WEBSITE, role, '🔓 No auth required')}
         </div>
 
         <div class="connections-panel" style="margin-top:18px;width:100%;">
@@ -829,7 +848,7 @@ function renderFuture(role) {
             <div class="conn-row">
               <span class="conn-from">Single login</span>
               <span class="conn-arrow">→</span>
-              <span class="conn-to cdp">Unlocks Gloria + Agora + CDP + Website</span>
+              <span class="conn-to cdp">Unlocks Gloria + Agora + CDP</span>
               <span class="conn-note">SSO federation</span>
             </div>
           </div>
