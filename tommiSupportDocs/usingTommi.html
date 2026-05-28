@@ -315,19 +315,32 @@ directly verified against the database. This includes gap analysis,
 off-topic suggestions, and AI reasoning beyond the data. Verify
 independently.</li>
 </ul>
-<h3 id="content-transparency-for-text-to-sql-agents">4.2 Content
-Transparency for Text-to-SQL Agents</h3>
-<p>Text-to-SQL agents can show additional transparency about the
-process:</p>
+<h3 id="content-transparency-for-text2sql-text-to-sql-agents">4.2
+Content Transparency for Text2SQL (Text-to-SQL) Agents</h3>
+<p>Text2SQL agents can show additional transparency about the process.
+When <code>transparency_level</code> is set to <code>crystal_box</code>,
+each response shows two sections:</p>
 <ul>
 <li><strong>🟡 AI interpretation</strong> – the AI model interpreted
-your question as a database query. When transparency is set to Crystal
-box, the SQL query and a plain-language explanation are shown.</li>
+your question as a database query. The SQL query and a plain-language
+explanation are shown so you can verify the translation is correct.</li>
 <li><strong>🟢 Verified data</strong> – the results come directly from
 the database (no AI involved).</li>
 </ul>
-<p>This makes the locus of unreliability explicit: the risk is in the
-translation from your question to the query, not in the data itself.</p>
+<p>For example, if you ask a Text2SQL agent “How many agreements require
+English?”, a transparent (Crystal box) response would show:</p>
+<ol type="1">
+<li>A yellow banner explaining that the AI translated your question into
+the SQL query:
+<code>SELECT COUNT(*) FROM agreements WHERE language = 'INGLES'</code></li>
+<li>A plain-language explanation: “I interpreted your question as: count
+all agreements where the language is English.”</li>
+<li>A green banner with the actual result from the database.</li>
+</ol>
+<p>This makes the locus of unreliability explicit: the risk is in the AI
+translation from your question to the SQL query, not in the data itself.
+When transparency is set to <code>black_box</code>, only the final
+result is shown without the SQL query.</p>
 <hr />
 <h2 id="agent-tuning-options">5. Agent Tuning Options</h2>
 <p>The <strong>Agent tuning</strong> section in the sidebar contains
@@ -338,7 +351,8 @@ take effect on your next question.</p>
 Different models may produce different quality or speed of responses.
 The badge shows the name of the currently active model.</p>
 <h3 id="reliability-cues">5.2 Reliability Cues</h3>
-<p>Click to toggle reliability cues on or off:</p>
+<p>Testers and superusers can toggle reliability cues on or off via the
+settings panel (gear icon):</p>
 <ul>
 <li><strong>Shown</strong> – coloured banners (🟢/🟡/🔴) appear at the
 top of each response, indicating the source and trustworthiness of the

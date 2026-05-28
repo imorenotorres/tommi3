@@ -985,7 +985,7 @@ TOMMI uses **reliability cues** — coloured banners prepended to each response 
 
 **Configuration:** Set `reliability_cues: "shown"` in `config.json`. Set to `"hidden"` to disable banners.
 
-Reliability cues can be toggled live by clicking the badge icon in the web UI. The change takes effect immediately but resets to the `config.json` default on server restart.
+Reliability cues can be toggled live by testers and superusers via the settings panel (gear icon) in the web UI. The change takes effect immediately but resets to the `config.json` default on server restart.
 
 ### Content Transparency (Text2SQL Only)
 

@@ -468,8 +468,8 @@ only) — opens a configuration panel with:
 <li><strong>Agent Configuration</strong> — edit LLM provider/model,
 <code>prompt_level</code>, <code>transparency_level</code> (only for
 Text2SQL agents), <code>reliability_cues</code>,
-<code>humility_prompt</code>, and <code>humility_level</code> in real
-time (no restart needed).</li>
+<code>humility_prompt</code>, and <code>humility_postprocessing</code>
+in real time (no restart needed).</li>
 <li><strong>Agent Visibility</strong> — set agents to
 <code>hidden</code>, <code>restricted</code>, or <code>open</code>, and
 manage allowed user lists.</li>
@@ -863,8 +863,8 @@ available information, …”?</td>
 <tr>
 <td>7.3</td>
 <td>Moderate vs strict</td>
-<td>If <code>humility_level</code> is configurable, compare moderate and
-strict</td>
+<td>If <code>humility_postprocessing</code> is configurable, compare
+moderate and strict</td>
 <td>Does strict mode also hedge web-sourced claims and add a disclaimer
 footer?</td>
 </tr>
@@ -1493,7 +1493,7 @@ languages (if the agent is multilingual).</label></li>
 <li><label><input type="checkbox" /><strong>Humility hedging:</strong>
 If <code>humility_prompt</code> is <code>on</code>, verify responses use
 hedging language adapted to context quality. If
-<code>humility_level</code> is set to <code>moderate</code> or
+<code>humility_postprocessing</code> is set to <code>moderate</code> or
 <code>strict</code>, verify ungrounded claims have hedging prefixes in
 post-processing. Verify hedging preserves markdown formatting and does
 not repeat the same phrase.</label></li>
@@ -1505,7 +1505,7 @@ not been studied.”</label></li>
 Open the settings panel (gear icon). Verify you can change LLM
 provider/model, <code>prompt_level</code>,
 <code>reliability_cues</code>, <code>humility_prompt</code>, and
-<code>humility_level</code> in real time. Verify that
+<code>humility_postprocessing</code> in real time. Verify that
 <code>transparency_level</code> is disabled for non-Text2SQL agents.
 Verify changes apply to the next query without server
 restart.</label></li>
@@ -1642,7 +1642,7 @@ or <code>lax</code>)</td>
 <code>Good</code>, <code>Poor</code>)</td>
 </tr>
 <tr>
-<td><code>humility_level</code></td>
+<td><code>humility_postprocessing</code></td>
 <td>Active humility level at the time of the query (<code>off</code>,
 <code>moderate</code>, <code>strict</code>)</td>
 </tr>

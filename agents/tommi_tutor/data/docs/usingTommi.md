@@ -107,7 +107,7 @@ Click this badge to switch between the available language models. Different mode
 
 ### 5.2 Reliability Cues
 
-Click to toggle reliability cues on or off:
+Testers and superusers can toggle reliability cues on or off via the settings panel (gear icon):
 
 - **Shown** – coloured banners (🟢/🟡/🔴) appear at the top of each response, indicating the source and trustworthiness of the information. Hallucination detection is active.
 - **Hidden** – no banners are shown. The answer appears without reliability indicators. Useful for research, testing, or expert users who have internalised the trust patterns.

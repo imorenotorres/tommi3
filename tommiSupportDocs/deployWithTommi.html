@@ -1926,9 +1926,10 @@ papers in the database</td>
 <p><strong>Configuration:</strong> Set
 <code>reliability_cues: "shown"</code> in <code>config.json</code>. Set
 to <code>"hidden"</code> to disable banners.</p>
-<p>Reliability cues can be toggled live by clicking the badge icon in
-the web UI. The change takes effect immediately but resets to the
-<code>config.json</code> default on server restart.</p>
+<p>Reliability cues can be toggled live by testers and superusers via
+the settings panel (gear icon) in the web UI. The change takes effect
+immediately but resets to the <code>config.json</code> default on server
+restart.</p>
 <h3 id="content-transparency-text2sql-only">Content Transparency
 (Text2SQL Only)</h3>
 <p>For Text2SQL agents, an additional <code>transparency_level</code>
@@ -1957,8 +1958,8 @@ to use phrases like “it appears that”, “based on available records”, and
 to avoid confident words like “clearly” or “obviously”. Set to
 <code>"on"</code> to enable, <code>"off"</code> to disable.</p></li>
 <li><p><strong>Humility (post-processing)</strong>
-(<code>humility_level</code>): A rule-based post-processor that scans
-the LLM output <em>after</em> generation and adds hedging prefixes
+(<code>humility_postprocessing</code>): A rule-based post-processor that
+scans the LLM output <em>after</em> generation and adds hedging prefixes
 (e.g., “Based on available information, …”) to sentences containing
 ungrounded claims. Levels: <code>"off"</code> (disabled),
 <code>"moderate"</code> (hedge ungrounded claims), <code>"strict"</code>
