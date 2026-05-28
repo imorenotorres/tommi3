@@ -28,6 +28,7 @@
     "show_legend": true,
     "_style_comment": "Green = metadata, Yellow = database (RAG), Blue = web search, Red = LLM interpretation"
   },
+  "retrieve_chunks": 10,
   "reliability_cues": "shown",
   "humility_prompt": "on",
   "humility_postprocessing": "moderate"
