@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOMMI — Digital Platform Structure</title>
+  <style>
+    :root {
+      --primary: #2D3876;
+      --primary-light: #4250b3;
+      --bg: #f1f4f9;
+      --surface: #ffffff;
+      --surface2: #f8fafc;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+
+      --rw-bg: #dcfce7; --rw-border: #16a34a; --rw-text: #15803d;
+      --r-bg: #dbeafe;  --r-border: #1d4ed8;  --r-text: #1d4ed8;
+      --w-bg: #fef9c3;  --w-border: #ca8a04;  --w-text: #92400e;
+      --none-bg: #f1f5f9; --none-border: #cbd5e1; --none-text: #94a3b8;
+
+      --gloria: #7c3aed;
+      --agora: #0284c7;
+      --cdp: #059669;
+      --website: #d97706;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--primary);
+      color: white;
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .app-header h1 { font-size: 1rem; font-weight: 700; letter-spacing: 0.02em; }
+    .app-header .sep { opacity: 0.4; }
+    .app-header .subtitle { font-size: 0.875rem; opacity: 0.8; }
+
+    /* ── Layout ── */
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    .viz-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 230px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      padding: 20px 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      flex-shrink: 0;
+    }
+
+    .ctrl-section h3 {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .btn-group { display: flex; flex-direction: column; gap: 5px; }
+
+    .ctrl-btn {
+      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-align: left;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ctrl-btn:hover { border-color: var(--primary-light); color: var(--primary); }
+    .ctrl-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+    .role-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Legend ── */
+    .legend { display: flex; flex-direction: column; gap: 6px; }
+    .legend-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.78rem; color: var(--text-muted);
+    }
+    .legend-chip {
+      padding: 2px 8px; border-radius: 4px;
+      font-size: 0.7rem; font-weight: 700; white-space: nowrap;
+    }
+    .chip-rw   { background: var(--rw-bg);   color: var(--rw-text);   border: 1px solid var(--rw-border);   }
+    .chip-r    { background: var(--r-bg);    color: var(--r-text);    border: 1px solid var(--r-border);    }
+    .chip-w    { background: var(--w-bg);    color: var(--w-text);    border: 1px solid var(--w-border);    }
+    .chip-none { background: var(--none-bg); color: var(--none-text); border: 1px solid var(--none-border); }
+
+    /* ── Platform grid ── */
+    .platforms-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .platform-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .platform-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+    .platform-card.gloria-theme  { border-top: 3px solid var(--gloria); }
+    .platform-card.agora-theme   { border-top: 3px solid var(--agora); }
+    .platform-card.cdp-theme     { border-top: 3px solid var(--cdp); }
+    .platform-card.website-theme { border-top: 3px solid var(--website); }
+
+    .platform-header {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .platform-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .gloria-theme  .platform-icon { background: rgba(124,58,237,0.12); }
+    .agora-theme   .platform-icon { background: rgba(2,132,199,0.12); }
+    .cdp-theme     .platform-icon { background: rgba(5,150,105,0.12); }
+    .website-theme .platform-icon { background: rgba(217,119,6,0.12); }
+
+    .platform-meta { flex: 1; min-width: 0; }
+    .platform-meta h2 { font-size: 0.95rem; font-weight: 700; }
+    .platform-meta p  { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+
+    .auth-badge {
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      white-space: nowrap;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .auth-uma     { background: rgba(124,58,237,0.1);  color: var(--gloria); border: 1px solid rgba(124,58,237,0.3); }
+    .auth-edugain { background: rgba(2,132,199,0.1);   color: var(--agora);  border: 1px solid rgba(2,132,199,0.3); }
+    .auth-public  { background: rgba(217,119,6,0.1);   color: var(--website);border: 1px solid rgba(217,119,6,0.3); }
+    .auth-sso     { background: rgba(45,56,118,0.1);   color: var(--primary);border: 1px solid rgba(45,56,118,0.3); }
+
+    .platform-body { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+
+    .apps-group-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-top: 6px;
+      margin-bottom: 2px;
+      padding: 0 2px;
+    }
+    .apps-group-label:first-child { margin-top: 0; }
+
+    /* ── App cards ── */
+    .app-card {
+      padding: 7px 11px;
+      border-radius: 8px;
+      border: 1.5px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .app-card.ac-rw   { background: var(--rw-bg);   border-color: var(--rw-border); }
+    .app-card.ac-r    { background: var(--r-bg);    border-color: var(--r-border); }
+    .app-card.ac-w    { background: var(--w-bg);    border-color: var(--w-border); }
+    .app-card.ac-none { background: var(--none-bg); border-color: var(--none-border); opacity: 0.55; }
+
+    .app-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      flex: 1;
+      min-width: 0;
+    }
+    .app-card.ac-rw   .app-name { color: var(--rw-text); }
+    .app-card.ac-r    .app-name { color: var(--r-text); }
+    .app-card.ac-w    .app-name { color: var(--w-text); }
+    .app-card.ac-none .app-name { color: var(--none-text); }
+
+    .app-tags { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+    .tag {
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .tag-migrate { background: rgba(234,88,12,0.12); color: #c2410c; border: 1px solid rgba(234,88,12,0.3); }
+    .tag-link    { background: rgba(5,150,105,0.12); color: var(--cdp); border: 1px solid rgba(5,150,105,0.3); }
+    .tag-public  { background: rgba(217,119,6,0.1);  color: #92400e;   border: 1px solid rgba(217,119,6,0.3); }
+
+    .access-chip { padding: 1px 5px; border-radius: 3px; font-size: 0.62rem; font-weight: 700; }
+    .ac-rw .access-chip   { background: var(--rw-border); color: white; }
+    .ac-r  .access-chip   { background: var(--r-border);  color: white; }
+    .ac-w  .access-chip   { background: var(--w-border);  color: white; }
+    .ac-none .access-chip { display: none; }
+
+    /* ── Connections panel ── */
+    .connections-panel {
+      margin-top: 18px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .connections-header {
+      padding: 12px 16px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .connections-body { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .conn-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.83rem;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+    }
+    .conn-from { font-weight: 600; color: var(--text); }
+    .conn-arrow { color: var(--text-muted); font-size: 1.1rem; }
+    .conn-to { font-weight: 600; }
+    .conn-note { font-size: 0.75rem; color: var(--text-muted); margin-left: auto; }
+    .conn-to.agora   { color: var(--agora); }
+    .conn-to.cdp     { color: var(--cdp); }
+    .conn-to.website { color: var(--website); }
+    .conn-to.gloria  { color: var(--gloria); }
+
+    /* ── Future view ── */
+    .future-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .sso-box {
+      background: var(--surface);
+      border: 2px solid var(--primary);
+      border-radius: 16px;
+      padding: 20px 48px;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(45,56,118,0.15);
+      width: fit-content;
+    }
+    .sso-box h2 { font-size: 1.05rem; font-weight: 700; color: var(--primary); }
+    .sso-box p  { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+    .sso-box .sso-badge {
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(45,56,118,0.08);
+      border: 1px solid rgba(45,56,118,0.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .unlock-lines {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 0;
+      height: 52px;
+      width: 100%;
+      position: relative;
+    }
+    .unlock-lines svg { width: 100%; height: 100%; overflow: visible; }
+
+    .future-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      width: 100%;
+    }
+
+    .unlocked-badge {
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: rgba(22,163,74,0.1);
+      color: #15803d;
+      border: 1px solid rgba(22,163,74,0.3);
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    /* ── Animations ── */
+    .view-in { animation: viewIn 0.3s ease both; }
+    @keyframes viewIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Tooltip ── */
+    .tooltip-anchor { position: relative; cursor: default; }
+    .tooltip-box {
+      display: none;
+      position: absolute;
+      z-index: 100;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: white;
+      font-size: 0.75rem;
+      padding: 8px 12px;
+      border-radius: 8px;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      pointer-events: none;
+    }
+    .tooltip-box::after {
+      content: '';
+      position: absolute;
+      top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #1e293b;
+    }
+    .tooltip-anchor:hover .tooltip-box { display: block; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>TOMMI</h1>
+  <span class="sep">/</span>
+  <span class="subtitle">Digital Platform Structure</span>
+</div>
+
+<div class="layout">
+  <div class="viz-area" id="viz-area"></div>
+
+  <aside class="sidebar">
+    <!-- View toggle -->
+    <div class="ctrl-section">
+      <h3>View</h3>
+      <div class="btn-group">
+        <button class="ctrl-btn active" id="btn-current" onclick="setView('current')">
+          📍 Currently
+        </button>
+        <button class="ctrl-btn" id="btn-future" onclick="setView('future')">
+          🚀 Future Plans
+        </button>
+      </div>
+    </div>
+
+    <!-- Role selector -->
+    <div class="ctrl-section">
+      <h3>Filter by Role</h3>
+      <div class="btn-group" id="role-buttons"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="ctrl-section">
+      <h3>Access Legend</h3>
+      <div class="legend">
+        <div class="legend-row">
+          <span class="legend-chip chip-rw">R+W</span>
+          <span>Read &amp; Write</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-chip chip-r">R</span>
+          <span>Read only</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-chip chip-w">W</span>
+          <span>Write only</span>
+        </div>
+        <div class="legend-row">
+          <span class="legend-chip chip-none">—</span>
+          <span>No access</span>
+        </div>
+        <div style="margin-top:4px; border-top:1px solid var(--border); padding-top:8px; display:flex; flex-direction:column; gap:5px;">
+          <div class="legend-row"><span class="legend-chip tag tag-migrate">→ Agora</span><span>May migrate</span></div>
+          <div class="legend-row"><span class="legend-chip tag tag-link">→ CDP</span><span>Links to CDP</span></div>
+          <div class="legend-row"><span class="legend-chip tag tag-public">Public</span><span>Publicly visible</span></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────
+   STATE
+───────────────────────────────────────────── */
+const state = { view: 'current', role: 'public' };
+
+/* ─────────────────────────────────────────────
+   DATA
+───────────────────────────────────────────── */
+const ROLES = [
+  { id: 'public',         label: 'Public',           color: '#78716c' },
+  { id: 'student',        label: 'Student',          color: '#d97706' },
+  { id: 'teachingStaff',  label: 'Teaching Staff',   color: '#0284c7' },
+  { id: 'adminStaff',     label: 'Admin Staff',      color: '#16a34a' },
+  { id: 'contentManager', label: 'Content Manager',  color: '#db2777' },
+  { id: 'developer',      label: 'Developer',        color: '#7c3aed' },
+];
+
+// rw = read+write, r = read only, w = write only, null = no access
+const GLORIA = {
+  id: 'gloria',
+  name: 'Gloria',
+  subtitle: 'UMA Server',
+  icon: '🏛️',
+  theme: 'gloria-theme',
+  auth: 'uma',
+  authLabel: '🔐 UMA Auth',
+  groups: [
+    {
+      label: 'Research & Events',
+      apps: [
+        { name: 'Researcher Connect', migrateTo: 'Agora',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'w', adminStaff:'r', student:null, public:null },
+          tooltip: 'Teaching staff can submit; admin staff can view' },
+        { name: 'Event Tracker', migrateTo: 'Agora',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:null, adminStaff:'w', student:null, public:null },
+          tooltip: 'Admin staff can create events' },
+      ]
+    },
+    {
+      label: 'Administrative',
+      apps: [
+        { name: 'Mobility Planner',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:null, adminStaff:'r', student:null, public:null } },
+        { name: 'UNIGRACONS',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:null, adminStaff:'r', student:null, public:null } },
+        { name: 'Service Catalogue',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:null, adminStaff:'r', student:null, public:null } },
+      ]
+    },
+    {
+      label: 'AI Agents',
+      apps: [
+        { name: 'TOMMI Agents',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:null, public:null } },
+        { name: 'Agents Testing',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:null, adminStaff:null, student:null, public:null } },
+      ]
+    },
+    {
+      label: 'Developer Tools',
+      apps: [
+        { name: 'User Management',
+          access: { developer:'rw', contentManager:null, teachingStaff:null, adminStaff:null, student:null, public:null } },
+        { name: 'Agent Management',
+          access: { developer:'rw', contentManager:null, teachingStaff:null, adminStaff:null, student:null, public:null } },
+        { name: 'Tool Visibility',
+          access: { developer:'rw', contentManager:null, teachingStaff:null, adminStaff:null, student:null, public:null } },
+      ]
+    },
+  ]
+};
+
+const AGORA = {
+  id: 'agora',
+  name: 'Agora',
+  subtitle: 'EduGAIN Authentication',
+  icon: '🎓',
+  theme: 'agora-theme',
+  auth: 'edugain',
+  authLabel: '🌐 EduGAIN',
+  groups: [
+    {
+      label: 'Public Modules',
+      apps: [
+        { name: 'Research Portfolio', isPublic: true,
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:'r' } },
+        { name: 'Course Catalogue', isPublic: true, linksTo: 'CDP',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:'r' } },
+        { name: 'Module Overview', isPublic: true,
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:'r' } },
+        { name: 'Event Catalogue', isPublic: true,
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:'r' } },
+        { name: 'Research Infrastructure', isPublic: true,
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:'r' } },
+      ]
+    },
+    {
+      label: 'Internal Users',
+      apps: [
+        { name: 'Learner Support',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:null } },
+        { name: 'Internships',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:null } },
+      ]
+    },
+    {
+      label: 'Staff Only',
+      apps: [
+        { name: 'Research Proposals',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'rw', adminStaff:'r', student:null, public:null },
+          tooltip: 'Teaching staff can write; admin staff can review' },
+        { name: 'Directory',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:null, adminStaff:'r', student:null, public:null } },
+      ]
+    },
+  ]
+};
+
+const CDP = {
+  id: 'cdp',
+  name: 'Common Distributed Platform',
+  subtitle: 'EduGAIN Authentication',
+  icon: '🔗',
+  theme: 'cdp-theme',
+  auth: 'edugain',
+  authLabel: '🌐 EduGAIN',
+  groups: [
+    {
+      label: 'Learning Management',
+      apps: [
+        { name: 'Learning Management Systems', linksTo: 'Course Catalogue',
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'rw', adminStaff:null, student:'r', public:null },
+          tooltip: 'Requires authentication — accessible to teaching staff and students only' },
+      ]
+    }
+  ]
+};
+
+const WEBSITE = {
+  id: 'website',
+  name: 'Website',
+  subtitle: 'Public Portal',
+  icon: '🌐',
+  theme: 'website-theme',
+  auth: 'public',
+  authLabel: '🔓 No auth required',
+  groups: [
+    {
+      label: 'Public Agora Modules',
+      apps: [
+        { name: 'Research Portfolio', isPublic: true,
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:'r' } },
+        { name: 'Course Catalogue', isPublic: true,
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:'r' } },
+        { name: 'Module Overview', isPublic: true,
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:'r' } },
+        { name: 'Event Catalogue', isPublic: true,
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:'r' } },
+        { name: 'Research Infrastructure', isPublic: true,
+          access: { developer:'rw', contentManager:'rw', teachingStaff:'r', adminStaff:'r', student:'r', public:'r' } },
+      ]
+    }
+  ]
+};
+
+const INTRANET = {
+  id: 'intranet',
+  name: 'Intranet',
+  subtitle: 'Authenticated Portal (all internal users)',
+  icon: '🔒',
+  theme: 'website-theme',
+  auth: 'uma',
+  authLabel: '🔐 UMA / EduGAIN',
+  groups: [
+    {
+      label: 'From Agora (all modules)',
+      apps: AGORA.groups.flatMap(g => g.apps),
+    },
+    {
+      label: 'From Gloria (per role)',
+      apps: GLORIA.groups.flatMap(g => g.apps),
+    }
+  ]
+};
+
+const CONNECTIONS_CURRENTLY = [
+  { from: 'Course Catalogue (Agora)', to: 'Common Distributed Platform', toClass: 'cdp',
+    note: 'Data integration' },
+  { from: 'Website', to: 'Public Agora modules', toClass: 'agora',
+    note: 'Surfaces public content' },
+  { from: 'Intranet', to: 'Agora + Gloria apps', toClass: 'gloria',
+    note: 'Authenticated access to all internal apps' },
+  { from: 'Researcher Connect / Event Tracker', to: 'Agora (planned migration)', toClass: 'agora',
+    note: 'Possible future move' },
+];
+
+/* ─────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────── */
+function accessClass(level) {
+  if (!level) return 'ac-none';
+  return 'ac-' + level;
+}
+
+function accessLabel(level) {
+  if (!level) return null;
+  return level.toUpperCase().replace('RW','R+W');
+}
+
+function renderAppCard(app, role) {
+  const level = app.access[role] || null;
+
+  const cls = accessClass(level);
+  const lbl = accessLabel(level);
+
+  const migTag   = app.migrateTo ? `<span class="tag tag-migrate">→ ${app.migrateTo}</span>` : '';
+  const linkTag  = app.linksTo   ? `<span class="tag tag-link">→ ${app.linksTo}</span>`      : '';
+  const pubTag   = app.isPublic  ? `<span class="tag tag-public">Public</span>`               : '';
+  const chip     = lbl           ? `<span class="access-chip">${lbl}</span>`                  : '';
+
+  const tooltipHtml = app.tooltip
+    ? `<div class="tooltip-box">${app.tooltip}</div>`
+    : '';
+
+  return `
+    <div class="app-card ${cls} tooltip-anchor">
+      ${tooltipHtml}
+      <span class="app-name">${app.name}</span>
+      <span class="app-tags">
+        ${pubTag}${migTag}${linkTag}${chip}
+      </span>
+    </div>`;
+}
+
+function renderPlatformCard(platform, role, overrideAuthLabel) {
+  const authLabel = overrideAuthLabel || platform.authLabel;
+  const authClass = platform.auth === 'edugain' ? 'auth-edugain'
+                  : platform.auth === 'public'  ? 'auth-public'
+                  : platform.auth === 'sso'     ? 'auth-sso'
+                  : 'auth-uma';
+
+  const groups = platform.groups.map(g => {
+    const apps = g.apps.map(a => renderAppCard(a, role)).join('');
+    return `
+      <div class="apps-group-label">${g.label}</div>
+      ${apps}`;
+  }).join('');
+
+  return `
+    <div class="platform-card ${platform.theme}">
+      <div class="platform-header">
+        <div class="platform-icon">${platform.icon}</div>
+        <div class="platform-meta">
+          <h2>${platform.name}</h2>
+          <p>${platform.subtitle}</p>
+        </div>
+        <span class="auth-badge ${authClass}">${authLabel}</span>
+      </div>
+      <div class="platform-body">
+        ${groups}
+      </div>
+    </div>`;
+}
+
+function renderConnections() {
+  const rows = CONNECTIONS_CURRENTLY.map(c => `
+    <div class="conn-row">
+      <span class="conn-from">${c.from}</span>
+      <span class="conn-arrow">→</span>
+      <span class="conn-to ${c.toClass}">${c.to}</span>
+      <span class="conn-note">${c.note}</span>
+    </div>`).join('');
+  return `
+    <div class="connections-panel">
+      <div class="connections-header">Platform Connections &amp; Integrations</div>
+      <div class="connections-body">${rows}</div>
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────
+   RENDER
+───────────────────────────────────────────── */
+function renderCurrent(role) {
+  const gloriaHtml   = renderPlatformCard(GLORIA,   role);
+  const agoraHtml    = renderPlatformCard(AGORA,    role);
+  const cdpHtml      = renderPlatformCard(CDP,      role);
+  const websiteHtml  = renderPlatformCard(WEBSITE,  role);
+  const intranetHtml = renderPlatformCard(INTRANET, role);
+  const conns        = renderConnections();
+
+  return `
+    <div class="view-in">
+      <div style="margin-bottom:12px;">
+        <p style="font-size:0.82rem;color:var(--text-muted);">
+          Each platform requires separate authentication.
+          Agora and the Common Distributed Platform use <strong>EduGAIN</strong> federation.
+        </p>
+      </div>
+      <div class="platforms-grid">
+        ${gloriaHtml}
+        ${agoraHtml}
+        ${cdpHtml}
+        ${websiteHtml}
+      </div>
+      <div style="margin-top:18px;">
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:10px;">
+          The <strong>Intranet</strong> aggregates all apps accessible to authenticated internal users
+          (teaching staff, admin staff, students):
+        </p>
+        ${intranetHtml}
+      </div>
+      ${conns}
+    </div>`;
+}
+
+function renderFuture(role) {
+  const platforms = [GLORIA, AGORA, CDP, WEBSITE];
+
+  const cards = platforms.map(p => renderPlatformCard(p, role, '✅ SSO Unlocked')).join('');
+
+  return `
+    <div class="view-in">
+      <div style="margin-bottom:16px;">
+        <p style="font-size:0.82rem;color:var(--text-muted);">
+          A single <strong>SSO gateway</strong> authenticates users once and unlocks access
+          across all platforms automatically — no separate logins needed.
+        </p>
+      </div>
+
+      <div class="future-wrapper">
+        <div class="sso-box">
+          <h2>🔑 Single Sign-On Gateway</h2>
+          <p>One authentication point for the entire TOMMI ecosystem</p>
+          <div class="sso-badge">
+            🌐 EduGAIN · 🏛️ UMA · &nbsp;Sign in once, access everywhere
+          </div>
+        </div>
+
+        <div style="text-align:center; padding:10px 0; font-size:1.6rem; color:var(--primary); letter-spacing:16px;">
+          ↓
+        </div>
+
+        <div style="
+          width:100%;
+          display:flex;
+          justify-content:center;
+          gap:10px;
+          margin-bottom:10px;
+          font-size:0.78rem;
+          color:var(--text-muted);
+          font-weight:600;
+        ">
+          <span style="flex:1;text-align:center;padding:6px 10px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:8px;color:var(--gloria);">Gloria</span>
+          <span style="flex:1;text-align:center;padding:6px 10px;background:rgba(2,132,199,0.08);border:1px solid rgba(2,132,199,0.25);border-radius:8px;color:var(--agora);">Agora</span>
+          <span style="flex:1;text-align:center;padding:6px 10px;background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.25);border-radius:8px;color:var(--cdp);">CDP</span>
+          <span style="flex:1;text-align:center;padding:6px 10px;background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.25);border-radius:8px;color:var(--website);">Website</span>
+        </div>
+
+        <div class="future-grid">
+          ${cards}
+        </div>
+
+        <div class="connections-panel" style="margin-top:18px;width:100%;">
+          <div class="connections-header">What Changes in Future Plans</div>
+          <div class="connections-body">
+            <div class="conn-row">
+              <span class="conn-from">Researcher Connect</span>
+              <span class="conn-arrow">→</span>
+              <span class="conn-to agora">Migrates to Agora</span>
+              <span class="conn-note">Planned migration</span>
+            </div>
+            <div class="conn-row">
+              <span class="conn-from">Event Tracker</span>
+              <span class="conn-arrow">→</span>
+              <span class="conn-to agora">Migrates to Agora</span>
+              <span class="conn-note">Planned migration</span>
+            </div>
+            <div class="conn-row">
+              <span class="conn-from">Single login</span>
+              <span class="conn-arrow">→</span>
+              <span class="conn-to cdp">Unlocks Gloria + Agora + CDP + Website</span>
+              <span class="conn-note">SSO federation</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function render() {
+  const viz = document.getElementById('viz-area');
+  const role = state.role;
+  viz.innerHTML = state.view === 'current'
+    ? renderCurrent(role)
+    : renderFuture(role);
+}
+
+/* ─────────────────────────────────────────────
+   ROLE BUTTONS
+───────────────────────────────────────────── */
+function buildRoleButtons() {
+  const container = document.getElementById('role-buttons');
+  container.innerHTML = ROLES.map(r => `
+    <button
+      class="ctrl-btn role-btn ${state.role === r.id ? 'active' : ''}"
+      id="role-btn-${r.id}"
+      onclick="setRole('${r.id}')"
+    >
+      <span class="role-dot" style="background:${r.color}"></span>
+      ${r.label}
+    </button>`).join('');
+}
+
+/* ─────────────────────────────────────────────
+   INTERACTIONS
+───────────────────────────────────────────── */
+function setView(v) {
+  state.view = v;
+  document.getElementById('btn-current').classList.toggle('active', v === 'current');
+  document.getElementById('btn-future').classList.toggle('active', v === 'future');
+  render();
+}
+
+function setRole(r) {
+  state.role = r;
+  buildRoleButtons();
+  render();
+}
+
+/* ─────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────── */
+buildRoleButtons();
+render();
+</script>
+</body>
+</html>
