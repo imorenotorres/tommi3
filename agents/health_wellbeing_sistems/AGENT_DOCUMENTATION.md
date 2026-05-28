@@ -138,20 +138,19 @@ Configured via `transparency_type` in `config.json`:
 
 The current agent uses **procedural** transparency.
 
-### 1.8 Reliability Display Modes
+### 1.8 Humility
 
-Configured via `reliability_display` in `config.json`:
+TOMMI provides two complementary humility mechanisms to reduce the risk of presenting uncertain information as fact:
 
-| Mode | Value | Effect |
-|------|-------|--------|
-| Visual | `"visual"` | Color badges only (sidebar reliability indicator) |
-| Text style | `"text_style"` | Hedging language injected into LLM instructions based on context quality |
-| Both | `"both"` | Badges + hedging language (current default) |
-| None | `"none"` | Disabled |
+#### Humility (system prompt)
 
-### 1.9 Humility Rewriter
+Configured via `humility_prompt` in `config.json` (`"on"` / `"off"`).
 
-Post-processing step in `base/humility.py` (`HumilityRewriter`). Applied after the LLM response, before final output.
+When enabled, hedging instructions are injected into the system prompt *before* the LLM generates its response. The instructions vary based on estimated context quality (high, moderate, low). For example, when context is low, the LLM is instructed to use phrases like "it appears that", "based on available records", and to avoid confident words like "clearly" or "obviously".
+
+#### Humility (post-processing)
+
+Post-processing step in `base/humility.py` (`HumilityRewriter`). Applied *after* the LLM response, before final output. Configured via `humility_postprocessing` in `config.json`.
 
 | Level | Behavior |
 |-------|----------|
@@ -160,6 +159,8 @@ Post-processing step in `base/humility.py` (`HumilityRewriter`). Applied after t
 | `strict` | Hedges all partially-grounded and ungrounded claims + appends a disclaimer footer |
 
 The rewriter skips markdown headers, code blocks, table rows, blockquotes, and sentences that already contain hedging language. Hedging prefixes rotate to avoid repetitive phrasing.
+
+The two mechanisms are complementary: the system prompt shapes the LLM's tone during generation, while post-processing catches any remaining unhedged claims in the output.
 
 ### 1.10 Audit Logging
 
@@ -250,8 +251,8 @@ On the backend, write protection enforces these boundaries. When a tester saves,
 | `prompt_level` | `stringent` / `tolerant` / `lax` | Controls how many prompt sections are included in the system prompt. **Stringent**: identity + rules + strict (all guardrails). **Tolerant**: identity + rules (no strict section). **Lax**: identity only (minimal constraints). | tester+ | immediate |
 | `transparency_level` | `scaffolded` / `unscaffolded` | **Scaffolded**: shows colored banners (green/yellow/red) on each response section indicating data source reliability. **Unscaffolded**: no banners, plain responses. Used for research comparison studies. | tester+ | immediate |
 | LLM model | (depends on provider) | Affects response quality, speed, and cost. Client-side selection sent with each request. | tester+ | immediate |
-| `humility_level` | `off` / `moderate` / `strict` | **Off**: no post-processing. **Moderate**: adds hedging prefixes to sentences with ungrounded claims. **Strict**: hedges all uncertain claims + appends a disclaimer footer. | superuser only | restart |
-| `reliability_display` | `visual` / `text_style` / `both` / `none` | **Visual**: color badges in the sidebar. **Text style**: hedging language injected into LLM instructions. **Both**: badges + hedging. **None**: disabled. | superuser only | restart |
+| `humility_prompt` | `on` / `off` | **On**: hedging instructions injected into the system prompt based on context quality. **Off**: disabled. | tester+ | restart |
+| `humility_postprocessing` | `off` / `moderate` / `strict` | **Off**: no post-processing. **Moderate**: adds hedging prefixes to sentences with ungrounded claims. **Strict**: hedges all uncertain claims + appends a disclaimer footer. | superuser only | restart |
 | `extra_scope_terms` | list of strings | Domain terms that are in-scope but not yet in the glossary or papers. Used by the two-axis banner system. | superuser only | restart |
 | `example_queries` | list of strings | Shown in the UI as suggested questions for the user. | superuser only | restart |
 | `description` | text | Agent description shown in the UI. | superuser only | restart |

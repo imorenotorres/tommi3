@@ -28,8 +28,7 @@
     "show_legend": true,
     "_style_comment": "Green = metadata, Yellow = database (RAG), Blue = web search, Red = LLM interpretation"
   },
-  "reliability_display": "both",
-  "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "humility_level": "moderate",
-  "reliability_cues": "shown"
+  "reliability_cues": "shown",
+  "humility_prompt": "on",
+  "humility_postprocessing": "moderate"
 }

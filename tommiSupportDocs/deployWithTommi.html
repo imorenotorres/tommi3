@@ -235,9 +235,11 @@
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
-  <style>td { border-bottom: 1px solid #ddd; } th { border-bottom: 2px solid #1a1a1a; } table { display: table; table-layout: auto; }</style>
 </head>
 <body>
+<header id="title-block-header">
+<h1 class="title">deployWithTommi</h1>
+</header>
 <h1 id="deploying-with-tommi-developer-guide">Deploying with TOMMI –
 Developer Guide</h1>
 <blockquote>
@@ -1040,8 +1042,8 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href=
 <span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;research_topic&quot;</span><span class="fu">:</span> <span class="st">&quot;Your research area (subtopic A, subtopic B, etc.)&quot;</span><span class="fu">,</span></span>
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;prompt_level&quot;</span><span class="fu">:</span> <span class="st">&quot;stringent&quot;</span><span class="fu">,</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;transparency_level&quot;</span><span class="fu">:</span> <span class="st">&quot;scaffolded&quot;</span><span class="fu">,</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;transparency_type&quot;</span><span class="fu">:</span> <span class="st">&quot;procedural&quot;</span><span class="fu">,</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;reliability_cues&quot;</span><span class="fu">:</span> <span class="st">&quot;shown&quot;</span><span class="fu">,</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;transparency_level&quot;</span><span class="fu">:</span> <span class="st">&quot;black_box&quot;</span><span class="fu">,</span></span>
 <span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;audit_log_enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
 <span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;show_history&quot;</span><span class="fu">:</span> <span class="kw">false</span><span class="fu">,</span></span>
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;show_description&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
@@ -1216,12 +1218,13 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href=
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Helps with specific tasks&quot;</span><span class="fu">,</span></span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;welcome_message&quot;</span><span class="fu">:</span> <span class="st">&quot;Hello! How can I help you?&quot;</span><span class="fu">,</span></span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;example_queries&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;What can you do?&quot;</span><span class="ot">,</span> <span class="st">&quot;Tell me about X&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;transparency_level&quot;</span><span class="fu">:</span> <span class="st">&quot;crystal_box&quot;</span><span class="fu">,</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;prompt_level&quot;</span><span class="fu">:</span> <span class="st">&quot;stringent&quot;</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;reliability_cues&quot;</span><span class="fu">:</span> <span class="st">&quot;shown&quot;</span><span class="fu">,</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;transparency_level&quot;</span><span class="fu">:</span> <span class="st">&quot;black_box&quot;</span><span class="fu">,</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;prompt_level&quot;</span><span class="fu">:</span> <span class="st">&quot;stringent&quot;</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>For RAG and RAG+Metadata agents, <code>config.json</code>
-additionally includes <code>audit_log_enabled</code> and transparency
-settings. See <a href="#config.json">Section 7.1</a> for the full
+additionally includes <code>audit_log_enabled</code> and reliability
+cues settings. See <a href="#config.json">Section 7.1</a> for the full
 reference.</p>
 <p><strong>Step 6 – Add documents to
 <code>data/docs/</code>:</strong></p>
@@ -1375,28 +1378,30 @@ Coordinates are used for map visualizations.</td>
 (identity only). Default: <code>"stringent"</code>.</td>
 </tr>
 <tr>
+<td><code>reliability_cues</code></td>
+<td>string</td>
+<td>No</td>
+<td><code>"shown"</code> (coloured banners visible) or
+<code>"hidden"</code> (no banners). Controls procedural reliability
+banners (green/yellow/red). Applies to all agents. Default:
+<code>"shown"</code>.</td>
+</tr>
+<tr>
 <td><code>transparency_level</code></td>
 <td>string</td>
 <td>No</td>
-<td><code>"crystal_box"</code> (full detail), <code>"grey_box"</code>
-(minimal), <code>"black_box"</code> (none), or <code>"scaffolded"</code>
-(procedural badges for Vectorless agents). Default:
-<code>"crystal_box"</code>.</td>
+<td><code>"crystal_box"</code> (SQL queries and sources visible) or
+<code>"black_box"</code> (hidden). Only applicable to Text2SQL agents;
+the setting is disabled in the UI for other agent types. Default:
+<code>"black_box"</code>.</td>
 </tr>
 <tr>
-<td><code>transparency_type</code></td>
+<td><code>humility_prompt</code></td>
 <td>string</td>
 <td>No</td>
-<td><code>"procedural"</code> (coloured banners per response section).
-Default: <code>"procedural"</code>.</td>
-</tr>
-<tr>
-<td><code>reliability_display</code></td>
-<td>string</td>
-<td>No</td>
-<td><code>"visual"</code> (badge only), <code>"text_style"</code>
-(inline hedging), <code>"both"</code>, or <code>"none"</code>. Default:
-<code>"visual"</code>.</td>
+<td><code>"on"</code> (inject hedging instructions into system prompt
+based on context quality) or <code>"off"</code> (disabled). Default:
+<code>"off"</code>.</td>
 </tr>
 <tr>
 <td><code>audit_log_enabled</code></td>
@@ -1465,8 +1470,8 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href=
 <span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
 <span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;gap_analysis_examples&quot;</span><span class="fu">:</span> <span class="st">&quot;autonomous navigation, swarm robotics, soft robotics, human-robot collaboration&quot;</span><span class="fu">,</span></span>
 <span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;prompt_level&quot;</span><span class="fu">:</span> <span class="st">&quot;stringent&quot;</span><span class="fu">,</span></span>
-<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;transparency_level&quot;</span><span class="fu">:</span> <span class="st">&quot;scaffolded&quot;</span><span class="fu">,</span></span>
-<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;transparency_type&quot;</span><span class="fu">:</span> <span class="st">&quot;procedural&quot;</span><span class="fu">,</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;reliability_cues&quot;</span><span class="fu">:</span> <span class="st">&quot;shown&quot;</span><span class="fu">,</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;transparency_level&quot;</span><span class="fu">:</span> <span class="st">&quot;black_box&quot;</span><span class="fu">,</span></span>
 <span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;audit_log_enabled&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
 <span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <h3 id="prompts.json">7.2 prompts.json</h3>
@@ -1874,12 +1879,11 @@ Reliability Configuration</h2>
 <p>TOMMI implements a Graduated Transparency framework aligned with the
 EU AI Act (Articles 12-14), the NIST AI Risk Management Framework, and
 the OECD AI Principles.</p>
-<h3 id="procedural-transparency-coloured-banners">Procedural
-Transparency (Coloured Banners)</h3>
-<p>TOMMI uses a <strong>procedural transparency</strong> system that
-provides cognitive scaffolding through coloured banners prepended to
-each response. Each banner indicates the data source and reliability of
-the information:</p>
+<h3 id="reliability-cues-coloured-banners">Reliability Cues (Coloured
+Banners)</h3>
+<p>TOMMI uses <strong>reliability cues</strong> — coloured banners
+prepended to each response that indicate the data source and reliability
+of the information:</p>
 <table>
 <colgroup>
 <col style="width: 32%" />
@@ -1920,13 +1924,49 @@ papers in the database</td>
 </tbody>
 </table>
 <p><strong>Configuration:</strong> Set
-<code>transparency_level: "scaffolded"</code> and
-<code>transparency_type: "procedural"</code> in
-<code>config.json</code>.</p>
-<p>Transparency can be toggled live by clicking the badge in the web UI.
-It cycles through scaffolded (banners + hallucination detection) →
-black_box (no guidance). The change takes effect immediately but resets
-to the <code>config.json</code> default on server restart.</p>
+<code>reliability_cues: "shown"</code> in <code>config.json</code>. Set
+to <code>"hidden"</code> to disable banners.</p>
+<p>Reliability cues can be toggled live by clicking the badge icon in
+the web UI. The change takes effect immediately but resets to the
+<code>config.json</code> default on server restart.</p>
+<h3 id="content-transparency-text2sql-only">Content Transparency
+(Text2SQL Only)</h3>
+<p>For Text2SQL agents, an additional <code>transparency_level</code>
+parameter controls whether the SQL query and its natural-language
+translation are shown to the user:</p>
+<ul>
+<li><code>"crystal_box"</code> — SQL queries and source details are
+visible</li>
+<li><code>"black_box"</code> — no process disclosure</li>
+</ul>
+<p><strong>Configuration:</strong> Set
+<code>transparency_level: "crystal_box"</code> in
+<code>config.json</code>. This parameter only applies to Text2SQL
+agents. In the settings panel, the field is labelled “Transparency (only
+for Text2SQL)” and is disabled for non-Text2SQL agents.</p>
+<h3 id="humility">Humility</h3>
+<p>TOMMI provides two complementary humility mechanisms that reduce the
+risk of presenting uncertain information as fact:</p>
+<ul>
+<li><p><strong>Humility (system prompt)</strong>
+(<code>humility_prompt</code>): Injects hedging instructions into the
+system prompt <em>before</em> the LLM generates its response. The
+instructions vary based on the estimated context quality (high,
+moderate, low). For example, when context is low, the LLM is instructed
+to use phrases like “it appears that”, “based on available records”, and
+to avoid confident words like “clearly” or “obviously”. Set to
+<code>"on"</code> to enable, <code>"off"</code> to disable.</p></li>
+<li><p><strong>Humility (post-processing)</strong>
+(<code>humility_level</code>): A rule-based post-processor that scans
+the LLM output <em>after</em> generation and adds hedging prefixes
+(e.g., “Based on available information, …”) to sentences containing
+ungrounded claims. Levels: <code>"off"</code> (disabled),
+<code>"moderate"</code> (hedge ungrounded claims), <code>"strict"</code>
+(hedge ungrounded + web-sourced claims, add disclaimer footer).</p></li>
+</ul>
+<p>The two mechanisms are complementary: the system prompt shapes the
+LLM’s tone during generation, while post-processing catches any
+remaining unhedged claims in the output.</p>
 <h3 id="authority-sanitization">Authority Sanitization</h3>
 <p><code>BaseRAGAgent</code> automatically replaces authoritative
 phrases in LLM responses to avoid overstating certainty:</p>
@@ -1972,7 +2012,7 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href=
 <span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;query_type&quot;</span><span class="fu">:</span> <span class="st">&quot;normal&quot;</span><span class="fu">,</span></span>
 <span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;source_type&quot;</span><span class="fu">:</span> <span class="st">&quot;Metadata&quot;</span><span class="fu">,</span></span>
 <span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;context_sources&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;researcher&quot;</span><span class="ot">,</span> <span class="st">&quot;metadata&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;transparency_level&quot;</span><span class="fu">:</span> <span class="st">&quot;scaffolded&quot;</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;reliability_cues&quot;</span><span class="fu">:</span> <span class="st">&quot;shown&quot;</span></span>
 <span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>The JSONL format is append-only and processable with standard tools
 (<code>jq</code>, <code>grep</code>, pandas). For production, use

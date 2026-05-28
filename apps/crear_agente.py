@@ -5865,8 +5865,8 @@ def create_agent_structure(config: dict) -> str:
                 "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
                 "show_legend": True,
             },
-            "reliability_display": "both",
-            "humility_level": "moderate",
+            "humility_prompt": "on",
+            "humility_postprocessing": "moderate",
         }
         with open(os.path.join(output_dir, "config.json"), "w", encoding="utf-8") as f:
             json.dump(agent_config, f, indent=2, ensure_ascii=False)

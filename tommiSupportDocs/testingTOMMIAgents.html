@@ -4,264 +4,242 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>testingTOMMIAgents_v2</title>
+  <title>testingTOMMIAgents</title>
   <style>
-
-code{white-space: pre-wrap;}
-span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
-div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-
-ul.task-list[class]{list-style: none;}
-ul.task-list li input[type="checkbox"] {
-font-size: inherit;
-width: 0.8em;
-margin: 0 0.8em 0.2em -1.6em;
-vertical-align: middle;
-}
-.display.math{display: block; text-align: center; margin: 0.5rem auto;}
-
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-{ counter-reset: source-line 0; }
-pre.numberSource code > span
-{ position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-{ content: counter(source-line);
-position: relative; left: -1em; text-align: right; vertical-align: baseline;
-border: none; display: inline-block;
--webkit-touch-callout: none; -webkit-user-select: none;
--khtml-user-select: none; -moz-user-select: none;
--ms-user-select: none; user-select: none;
-padding: 0 4px; width: 4em;
-color: #aaaaaa;
-}
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
-div.sourceCode
-{ }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } 
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.at { color: #7d9029; } 
-code span.bn { color: #40a070; } 
-code span.bu { color: #008000; } 
-code span.cf { color: #007020; font-weight: bold; } 
-code span.ch { color: #4070a0; } 
-code span.cn { color: #880000; } 
-code span.co { color: #60a0b0; font-style: italic; } 
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.do { color: #ba2121; font-style: italic; } 
-code span.dt { color: #902000; } 
-code span.dv { color: #40a070; } 
-code span.er { color: #ff0000; font-weight: bold; } 
-code span.ex { } 
-code span.fl { color: #40a070; } 
-code span.fu { color: #06287e; } 
-code span.im { color: #008000; font-weight: bold; } 
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.kw { color: #007020; font-weight: bold; } 
-code span.op { color: #666666; } 
-code span.ot { color: #007020; } 
-code span.pp { color: #bc7a00; } 
-code span.sc { color: #4070a0; } 
-code span.ss { color: #bb6688; } 
-code span.st { color: #4070a0; } 
-code span.va { color: #19177c; } 
-code span.vs { color: #4070a0; } 
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
-</style>
-  <style type="text/css">
-:root {
---primary: #2c3e50;
---accent: #3498db;
---accent-dark: #2980b9;
---bg: #ffffff;
---bg-alt: #f8f9fa;
---bg-code: #f4f4f4;
---border: #dee2e6;
---text: #333333;
---text-light: #6c757d;
---green: #28a745;
---yellow: #ffc107;
---red: #dc3545;
---blue: #007bff;
-}
-* { box-sizing: border-box; }
-body {
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-line-height: 1.7;
-color: var(--text);
-background: var(--bg);
-max-width: 960px;
-margin: 0 auto;
-padding: 2rem 2.5rem;
-font-size: 15px;
-}
-
-h1 {
-font-size: 2rem;
-color: var(--primary);
-border-bottom: 3px solid var(--accent);
-padding-bottom: 0.5rem;
-margin-top: 0;
-}
-h2 {
-font-size: 1.5rem;
-color: var(--primary);
-border-bottom: 1px solid var(--border);
-padding-bottom: 0.4rem;
-margin-top: 2.5rem;
-}
-h3 {
-font-size: 1.2rem;
-color: var(--primary);
-margin-top: 2rem;
-}
-h4 {
-font-size: 1.05rem;
-color: var(--primary);
-margin-top: 1.5rem;
-}
-
-a {
-color: var(--accent);
-text-decoration: none;
-}
-a:hover {
-color: var(--accent-dark);
-text-decoration: underline;
-}
-
-blockquote {
-background: #eef6ff;
-border-left: 4px solid var(--accent);
-margin: 1.5rem 0;
-padding: 1rem 1.5rem;
-border-radius: 0 6px 6px 0;
-font-size: 0.95em;
-}
-blockquote p { margin: 0.4rem 0; }
-blockquote strong { color: var(--primary); }
-
-code {
-background: var(--bg-code);
-padding: 2px 6px;
-border-radius: 3px;
-font-size: 0.9em;
-font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
-color: #c7254e;
-}
-pre {
-background: #1e1e1e;
-color: #d4d4d4;
-padding: 1rem 1.2rem;
-border-radius: 6px;
-overflow-x: auto;
-font-size: 0.88em;
-line-height: 1.5;
-margin: 1rem 0;
-}
-pre code {
-background: none;
-color: inherit;
-padding: 0;
-font-size: inherit;
-}
-
-table {
-width: 100%;
-border-collapse: collapse;
-margin: 1rem 0;
-font-size: 0.93em;
-}
-thead {
-background: var(--primary);
-color: #fff;
-}
-th {
-padding: 0.6rem 0.8rem;
-text-align: left;
-font-weight: 600;
-}
-td {
-padding: 0.5rem 0.8rem;
-border-bottom: 1px solid var(--border);
-}
-tr:nth-child(even) { background: var(--bg-alt); }
-tr:hover { background: #e8f4fd; }
-
-ul, ol {
-padding-left: 1.5rem;
-}
-li {
-margin-bottom: 0.3rem;
-}
-li > ul, li > ol {
-margin-top: 0.2rem;
-}
-
-hr {
-border: none;
-border-top: 2px solid var(--border);
-margin: 2.5rem 0;
-}
-
-strong { color: var(--primary); }
-
-p { margin: 0.8rem 0; }
-
-.target-audience {
-display: inline-block;
-background: var(--accent);
-color: #fff;
-padding: 0.3rem 0.8rem;
-border-radius: 4px;
-font-size: 0.85em;
-font-weight: 600;
-margin-bottom: 0.5rem;
-}
-
-@media print {
-body {
-max-width: 100%;
-padding: 1rem;
-font-size: 12px;
-}
-pre { background: #f4f4f4 !important; color: #333 !important; }
-thead { background: #ddd !important; color: #333 !important; }
-a { color: var(--text) !important; }
-h1 { font-size: 1.6rem; }
-h2 { font-size: 1.3rem; }
-}
-
-@media (max-width: 768px) {
-body {
-padding: 1rem;
-font-size: 14px;
-}
-table { font-size: 0.85em; }
-pre { font-size: 0.82em; }
-}
-</style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
 </head>
 <body>
+<header id="title-block-header">
+<h1 class="title">testingTOMMIAgents</h1>
+</header>
 <h1 id="testing-tommi-agents-tester-guide">Testing TOMMI Agents – Tester
 Guide</h1>
 <blockquote>
@@ -273,7 +251,8 @@ need to assess whether the agent’s responses are factually correct,
 complete, and properly sourced, not just whether they “look right.”</p>
 <p><strong>The role of the tester</strong> is to identify failures,
 flaws, and limitations of the AI Agent and report them to the developer
-following the error reporting procedure described in this guide (see <a href="#error-reporting-procedure">Section 9</a>).</p>
+following the error reporting procedure described in this guide (see <a
+href="#9-error-reporting-procedure">Section 9</a>).</p>
 </blockquote>
 <hr />
 <h2 id="the-ai-agent-deployment-workflow">1. The AI Agent deployment
@@ -324,7 +303,8 @@ limitations — not to fix them:</p>
 <li><strong>Detect</strong> — find cases where the agent gives wrong,
 incomplete, or misleading answers</li>
 <li><strong>Classify</strong> — categorise the error using the
-structured error codes (see <a href="#error-reporting-procedure">Section 9</a>)</li>
+structured error codes (see <a
+href="#9-error-reporting-procedure">Section 9</a>)</li>
 <li><strong>Document</strong> — record the exact query, agent response,
 and expected behaviour</li>
 <li><strong>Report</strong> — submit a structured error report via the
@@ -485,8 +465,10 @@ Includes links to “Edit my profile” (Directory), “Tester Panel”, and
 <li><strong>Settings panel</strong> (gear icon, tester and superuser
 only) — opens a configuration panel with:
 <ul>
-<li><strong>Agent Configuration</strong> — edit
-<code>prompt_level</code> and <code>transparency_level</code> in real
+<li><strong>Agent Configuration</strong> — edit LLM provider/model,
+<code>prompt_level</code>, <code>transparency_level</code> (only for
+Text2SQL agents), <code>reliability_cues</code>,
+<code>humility_prompt</code>, and <code>humility_level</code> in real
 time (no restart needed).</li>
 <li><strong>Agent Visibility</strong> — set agents to
 <code>hidden</code>, <code>restricted</code>, or <code>open</code>, and
@@ -1441,92 +1423,97 @@ LLM since the follow-up is synthesised from prior context.</p>
 <h2 id="testing-checklist">7. Testing Checklist</h2>
 <p>Before deploying an agent, verify each item:</p>
 <ul class="task-list">
-<li><label><input type="checkbox"></input><strong>Representative
+<li><label><input type="checkbox" /><strong>Representative
 queries:</strong> Test with at least 10 representative queries covering
 the agent’s domain. Include simple factual questions, comparison
 questions, and topic summaries.</label></li>
-<li><label><input type="checkbox"></input><strong>Reliability badge
+<li><label><input type="checkbox" /><strong>Reliability badge
 sanity:</strong> Verify that badges are not always High or always Poor.
 A healthy agent should produce a mix depending on the query type.
 Metadata queries should tend toward High; open-ended questions may show
 Good or Poor.</label></li>
-<li><label><input type="checkbox"></input><strong>Crystal box detail:</strong>
+<li><label><input type="checkbox" /><strong>Crystal box detail:</strong>
 In Crystal box mode, verify the full badge appears with source breakdown
 percentages, confidence score, claim count, inline highlights, and
 colour legend.</label></li>
-<li><label><input type="checkbox"></input><strong>Grey box minimal:</strong>
+<li><label><input type="checkbox" /><strong>Grey box minimal:</strong>
 In Grey box mode, verify only the reliability label and confidence
 percentage appear. No breakdown, no highlights, no legend.</label></li>
-<li><label><input type="checkbox"></input><strong>Black box
+<li><label><input type="checkbox" /><strong>Black box
 suppression:</strong> In Black box mode, verify no reliability
 information is shown at all. The response should appear clean, with no
 badge or indicators.</label></li>
-<li><label><input type="checkbox"></input><strong>Stringent prompt:</strong>
+<li><label><input type="checkbox" /><strong>Stringent prompt:</strong>
 Ask an off-topic question (e.g., “What is the weather today?”). The
 agent should refuse or redirect.</label></li>
-<li><label><input type="checkbox"></input><strong>Lax prompt:</strong> Ask the
+<li><label><input type="checkbox" /><strong>Lax prompt:</strong> Ask the
 same off-topic question. The agent should answer more freely, confirming
 that prompt constraints are actually effective at the Stringent
 level.</label></li>
-<li><label><input type="checkbox"></input><strong>Tolerant prompt:</strong>
+<li><label><input type="checkbox" /><strong>Tolerant prompt:</strong>
 Verify behaviour falls between Stringent and Lax.</label></li>
-<li><label><input type="checkbox"></input><strong>LLM switching:</strong>
+<li><label><input type="checkbox" /><strong>LLM switching:</strong>
 Switch between available LLMs and compare response quality. Verify the
 LLM badge updates correctly (colour and label).</label></li>
-<li><label><input type="checkbox"></input><strong>Coverage warnings:</strong>
+<li><label><input type="checkbox" /><strong>Coverage warnings:</strong>
 Ask an off-topic question in Lax mode (e.g., “recipe for chocolate cake”
 to a research agent). Verify the badge shows “No verifiable claims
 found” or “Low verifiability.” Then ask an on-topic question and confirm
 the coverage warning disappears.</label></li>
-<li><label><input type="checkbox"></input><strong>Gap analysis (RAG+Metadata
+<li><label><input type="checkbox" /><strong>Gap analysis (RAG+Metadata
 only):</strong> Ask a gap analysis question (e.g., “What topics have not
 been studied?”). Verify the badge shows Poor/LLM: 100% and the inline
 highlights use the reversed colour interpretation (green = found in DB,
 red = true gap).</label></li>
-<li><label><input type="checkbox"></input><strong>Follow-up queries:</strong>
+<li><label><input type="checkbox" /><strong>Follow-up queries:</strong>
 After a normal query, send a follow-up (“expand on point 1”). Verify the
 agent responds using conversation history and that a reliability badge
 still appears.</label></li>
-<li><label><input type="checkbox"></input><strong>Audit log:</strong> Check
+<li><label><input type="checkbox" /><strong>Audit log:</strong> Check
 <code>agents/{agent_id}/data/audit_log.jsonl</code> after several
 queries. Verify entries are being recorded with correct
 fields.</label></li>
-<li><label><input type="checkbox"></input><strong>Paper title verification
+<li><label><input type="checkbox" /><strong>Paper title verification
 (Metadata+RAG only):</strong> Ask for a paper listing (e.g., “List
 papers on AI ethics from UMA”). Check if any titles are flagged as “not
 found in database.” Verify the flagged titles are genuinely not in the
 papers.json data.</label></li>
-<li><label><input type="checkbox"></input><strong>Paper ID mismatch
+<li><label><input type="checkbox" /><strong>Paper ID mismatch
 (Metadata+RAG only):</strong> Ask to expand a specific paper. Verify the
 PDF link points to the correct paper (not an unrelated one). If the
 paper has no PDF, verify “not available” appears instead of a fake
 link.</label></li>
-<li><label><input type="checkbox"></input><strong>Out-of-domain
+<li><label><input type="checkbox" /><strong>Out-of-domain
 questions:</strong> Test with questions outside the agent’s domain.
 Verify the agent refuses gracefully (at Stringent level) rather than
 hallucinating an answer.</label></li>
-<li><label><input type="checkbox"></input><strong>Edge cases:</strong> Test
+<li><label><input type="checkbox" /><strong>Edge cases:</strong> Test
 with empty queries, very long queries, and queries in different
 languages (if the agent is multilingual).</label></li>
-<li><label><input type="checkbox"></input><strong>Humility hedging:</strong>
-If <code>humility_level</code> is set to <code>moderate</code> or
-<code>strict</code>, verify ungrounded claims have hedging prefixes.
-Verify hedging preserves markdown formatting and does not repeat the
-same phrase.</label></li>
-<li><label><input type="checkbox"></input><strong>Authority
+<li><label><input type="checkbox" /><strong>Humility hedging:</strong>
+If <code>humility_prompt</code> is <code>on</code>, verify responses use
+hedging language adapted to context quality. If
+<code>humility_level</code> is set to <code>moderate</code> or
+<code>strict</code>, verify ungrounded claims have hedging prefixes in
+post-processing. Verify hedging preserves markdown formatting and does
+not repeat the same phrase.</label></li>
+<li><label><input type="checkbox" /><strong>Authority
 sanitization:</strong> Ask about a topic not in the database. Verify the
 agent says “does not appear in the indexed database” rather than “has
 not been studied.”</label></li>
-<li><label><input type="checkbox"></input><strong>Settings panel:</strong>
-Open the settings panel (gear icon). Verify you can change
-<code>prompt_level</code> and <code>transparency_level</code> in real
-time. Verify changes apply to the next query without server
+<li><label><input type="checkbox" /><strong>Settings panel:</strong>
+Open the settings panel (gear icon). Verify you can change LLM
+provider/model, <code>prompt_level</code>,
+<code>reliability_cues</code>, <code>humility_prompt</code>, and
+<code>humility_level</code> in real time. Verify that
+<code>transparency_level</code> is disabled for non-Text2SQL agents.
+Verify changes apply to the next query without server
 restart.</label></li>
-<li><label><input type="checkbox"></input><strong>Agent visibility:</strong>
+<li><label><input type="checkbox" /><strong>Agent visibility:</strong>
 If the agent is set to <code>restricted</code>, verify only allowed
 users can see it. Verify <code>hidden</code> agents do not appear in the
 dropdown.</label></li>
-<li><label><input type="checkbox"></input><strong>Study mode (if
+<li><label><input type="checkbox" /><strong>Study mode (if
 active):</strong> If study mode is enabled, verify your transparency
 level is locked to the assigned condition and cannot be changed
 manually.</label></li>
@@ -1534,28 +1521,29 @@ manually.</label></li>
 <h3 id="text2sql-specific-verification-tests">Text2SQL-specific
 verification tests</h3>
 <ul class="task-list">
-<li><label><input type="checkbox"></input><strong>Schema
+<li><label><input type="checkbox" /><strong>Schema
 verification:</strong> Ask a question that should produce a valid query.
-In crystal_box mode, verify the reliability badge shows high confidence
-and no unknown tables/columns.</label></li>
-<li><label><input type="checkbox"></input><strong>Semantic mismatch
+With <code>transparency_level: "crystal_box"</code>, verify the SQL
+query is shown and no unknown tables/columns appear.</label></li>
+<li><label><input type="checkbox" /><strong>Semantic mismatch
 detection:</strong> Ask about a specific topic (e.g. “Show agreements
 with Libya”) and check if the generated SQL actually references that
 topic. If the LLM hallucinates a different query, verify the system
 blocks it in stringent mode with a “Semantic mismatch”
 message.</label></li>
-<li><label><input type="checkbox"></input><strong>Cross-language
+<li><label><input type="checkbox" /><strong>Cross-language
 equivalences:</strong> Ask in English about a concept stored in Spanish
 (e.g. “agreements requiring English” when the database uses “INGLES”).
 Verify the semantic check does not flag this as a mismatch.</label></li>
-<li><label><input type="checkbox"></input><strong>Broad query
+<li><label><input type="checkbox" /><strong>Broad query
 detection:</strong> Ask a very generic question (e.g. “Show
 everything”). Verify the badge flags the query as overly broad if it
 returns &gt;70% of all rows.</label></li>
-<li><label><input type="checkbox"></input><strong>Transparency
-levels:</strong> Test that SQL is shown in crystal_box and grey_box
-modes, but hidden in black_box mode.</label></li>
-<li><label><input type="checkbox"></input><strong>Tolerant vs
+<li><label><input type="checkbox" /><strong>Transparency
+levels:</strong> Test that SQL is shown when
+<code>transparency_level</code> is <code>crystal_box</code>, and hidden
+when it is <code>black_box</code>.</label></li>
+<li><label><input type="checkbox" /><strong>Tolerant vs
 stringent:</strong> In tolerant mode, verify that semantic warnings
 appear but the query still executes. In stringent mode, verify
 mismatched queries are blocked.</label></li>
@@ -1630,8 +1618,9 @@ Low values indicate most of the response could not be verified</td>
 <td>Which context builders were used (RAG+Metadata only)</td>
 </tr>
 <tr>
-<td><code>transparency_level</code></td>
-<td>Active transparency level at the time of the query</td>
+<td><code>reliability_cues</code></td>
+<td>Whether reliability cues were shown or hidden at the time of the
+query</td>
 </tr>
 <tr>
 <td><code>prompt_level</code></td>
@@ -1678,7 +1667,8 @@ before deployment.</li>
 </ul>
 <p><strong>Processing the log:</strong> The JSONL format works with
 standard tools:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count entries by reliability label</span></span>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count entries by reliability label</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.reliability_label&#39;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">uniq</span> <span class="at">-c</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter queries with low confidence</span></span>
@@ -2107,10 +2097,10 @@ well”).</li>
 <hr />
 <h2 id="study-mode-awareness">11. Study Mode Awareness</h2>
 <p>If the system administrator has enabled <strong>study mode</strong>,
-some users will have their transparency level locked to a specific
-condition (<code>black_box</code>, <code>grey_box</code>, or
-<code>crystal_box</code>). This is used for controlled experiments on
-transparency.</p>
+some users will have their reliability cues locked to a specific
+condition (<code>shown</code> or <code>hidden</code>). This is used for
+controlled experiments on how reliability cues affect user
+behaviour.</p>
 <p><strong>As a tester, be aware that:</strong></p>
 <ul>
 <li>Study participants <strong>cannot change</strong> their transparency

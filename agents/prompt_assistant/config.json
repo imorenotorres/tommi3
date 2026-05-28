@@ -13,10 +13,10 @@
   "show_history": true,
   "prompt_level": "stringent",
   "public": true,
-  "reliability_display": "both",
-  "humility_level": "moderate",
   "transparency_level": "black_box",
   "audit_log_enabled": false,
   "extra_scope_terms": [],
-  "reliability_cues": "hidden"
+  "reliability_cues": "hidden",
+  "humility_prompt": "on",
+  "humility_postprocessing": "moderate"
 }

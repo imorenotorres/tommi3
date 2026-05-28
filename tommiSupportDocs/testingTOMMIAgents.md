@@ -103,7 +103,7 @@ You can switch back to user mode at any time by clicking **"User mode"**.
 
 - **User menu** — shows your username and role badge. Includes links to "Edit my profile" (Directory), "Tester Panel", and "Logout".
 - **Settings panel** (gear icon, tester and superuser only) — opens a configuration panel with:
-  - **Agent Configuration** — edit `prompt_level` and `transparency_level` in real time (no restart needed).
+  - **Agent Configuration** — edit LLM provider/model, `prompt_level`, `transparency_level` (only for Text2SQL agents), `reliability_cues`, `humility_prompt`, and `humility_postprocessing` in real time (no restart needed).
   - **Agent Visibility** — set agents to `hidden`, `restricted`, or `open`, and manage allowed user lists.
   - **Tool Visibility** — configure which roles can access which intranet tools.
   - **Log Analytics** — view request/visitor statistics across agents.
@@ -205,7 +205,7 @@ Depending on the agent type, test the relevant features:
 |---|------|--------|---------------|
 | 7.1 | Authority phrases | Ask a question about an unstudied topic | Does the agent say "does not appear in the indexed database" instead of "has not been studied"? |
 | 7.2 | Hedging (if enabled) | Ask a question that produces ungrounded claims (red highlights) | Are ungrounded claims prefixed with hedging language like "Based on available information, ..."? |
-| 7.3 | Moderate vs strict | If `humility_level` is configurable, compare moderate and strict | Does strict mode also hedge web-sourced claims and add a disclaimer footer? |
+| 7.3 | Moderate vs strict | If `humility_postprocessing` is configurable, compare moderate and strict | Does strict mode also hedge web-sourced claims and add a disclaimer footer? |
 | 7.4 | Formatting preservation | Ask a question that produces a bulleted list or table | Does hedging preserve the markdown formatting? |
 
 ### Phase 8 — LLM comparison (optional, 10-15 min)
@@ -493,19 +493,19 @@ Before deploying an agent, verify each item:
 - [ ] **Paper ID mismatch (Metadata+RAG only):** Ask to expand a specific paper. Verify the PDF link points to the correct paper (not an unrelated one). If the paper has no PDF, verify "not available" appears instead of a fake link.
 - [ ] **Out-of-domain questions:** Test with questions outside the agent's domain. Verify the agent refuses gracefully (at Stringent level) rather than hallucinating an answer.
 - [ ] **Edge cases:** Test with empty queries, very long queries, and queries in different languages (if the agent is multilingual).
-- [ ] **Humility hedging:** If `humility_level` is set to `moderate` or `strict`, verify ungrounded claims have hedging prefixes. Verify hedging preserves markdown formatting and does not repeat the same phrase.
+- [ ] **Humility hedging:** If `humility_prompt` is `on`, verify responses use hedging language adapted to context quality. If `humility_postprocessing` is set to `moderate` or `strict`, verify ungrounded claims have hedging prefixes in post-processing. Verify hedging preserves markdown formatting and does not repeat the same phrase.
 - [ ] **Authority sanitization:** Ask about a topic not in the database. Verify the agent says "does not appear in the indexed database" rather than "has not been studied."
-- [ ] **Settings panel:** Open the settings panel (gear icon). Verify you can change `prompt_level` and `transparency_level` in real time. Verify changes apply to the next query without server restart.
+- [ ] **Settings panel:** Open the settings panel (gear icon). Verify you can change LLM provider/model, `prompt_level`, `reliability_cues`, `humility_prompt`, and `humility_postprocessing` in real time. Verify that `transparency_level` is disabled for non-Text2SQL agents. Verify changes apply to the next query without server restart.
 - [ ] **Agent visibility:** If the agent is set to `restricted`, verify only allowed users can see it. Verify `hidden` agents do not appear in the dropdown.
 - [ ] **Study mode (if active):** If study mode is enabled, verify your transparency level is locked to the assigned condition and cannot be changed manually.
 
 ### Text2SQL-specific verification tests
 
-- [ ] **Schema verification:** Ask a question that should produce a valid query. In crystal_box mode, verify the reliability badge shows high confidence and no unknown tables/columns.
+- [ ] **Schema verification:** Ask a question that should produce a valid query. With `transparency_level: "crystal_box"`, verify the SQL query is shown and no unknown tables/columns appear.
 - [ ] **Semantic mismatch detection:** Ask about a specific topic (e.g. "Show agreements with Libya") and check if the generated SQL actually references that topic. If the LLM hallucinates a different query, verify the system blocks it in stringent mode with a "Semantic mismatch" message.
 - [ ] **Cross-language equivalences:** Ask in English about a concept stored in Spanish (e.g. "agreements requiring English" when the database uses "INGLES"). Verify the semantic check does not flag this as a mismatch.
 - [ ] **Broad query detection:** Ask a very generic question (e.g. "Show everything"). Verify the badge flags the query as overly broad if it returns >70% of all rows.
-- [ ] **Transparency levels:** Test that SQL is shown in crystal_box and grey_box modes, but hidden in black_box mode.
+- [ ] **Transparency levels:** Test that SQL is shown when `transparency_level` is `crystal_box`, and hidden when it is `black_box`.
 - [ ] **Tolerant vs stringent:** In tolerant mode, verify that semantic warnings appear but the query still executes. In stringent mode, verify mismatched queries are blocked.
 
 ---
@@ -531,12 +531,12 @@ Each line is an independent JSON object. The log is append-only and grows indefi
 | `total_claims` | Number of verifiable claims extracted from the response |
 | `breakdown` | Per-source percentages. RAG+Metadata: `metadata_pct`, `database_pct`, `llm_pct`. RAG: `database_pct`, `llm_pct` |
 | `context_sources` | Which context builders were used (RAG+Metadata only) |
-| `transparency_level` | Active transparency level at the time of the query |
+| `reliability_cues` | Whether reliability cues were shown or hidden at the time of the query |
 | `prompt_level` | Active prompt level (`stringent`, `tolerant`, or `lax`) |
 | `model` | LLM model name used for this query |
 | `is_local_llm` | Whether a local model was used (`true`/`false`) |
 | `reliability_label` | The computed reliability label (`High`, `Good`, `Poor`) |
-| `humility_level` | Active humility level at the time of the query (`off`, `moderate`, `strict`) |
+| `humility_postprocessing` | Active humility level at the time of the query (`off`, `moderate`, `strict`) |
 
 **Practical uses for testers:**
 
@@ -707,7 +707,7 @@ User feedback categories map to error types as follows:
 
 ## 11. Study Mode Awareness
 
-If the system administrator has enabled **study mode**, some users will have their transparency level locked to a specific condition (`black_box`, `grey_box`, or `crystal_box`). This is used for controlled experiments on transparency.
+If the system administrator has enabled **study mode**, some users will have their reliability cues locked to a specific condition (`shown` or `hidden`). This is used for controlled experiments on how reliability cues affect user behaviour.
 
 **As a tester, be aware that:**
 

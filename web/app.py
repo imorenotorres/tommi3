@@ -1664,7 +1664,7 @@ async def set_agent_config(agent_id: str, request: Request, session: dict = Depe
         if role_level >= 4:  # superuser — full access
             merged = new_config
         else:  # tester — only immediate-effect settings (no restart needed)
-            TESTER_FIELDS = {"prompt_level", "transparency_level"}
+            TESTER_FIELDS = {"prompt_level", "transparency_level", "reliability_cues", "humility_prompt", "humility_postprocessing"}
             merged = {**current}
             for key in TESTER_FIELDS:
                 if key in new_config:

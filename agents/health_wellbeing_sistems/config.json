@@ -99,9 +99,8 @@
     "num_results": 10,
     "_comment": "Google Custom Search API credentials. Leave empty to disable web search expansion. Get API key at https://console.cloud.google.com/ and CX at https://programmablesearchengine.google.com/"
   },
-  "reliability_display": "both",
-  "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "humility_level": "moderate",
+  "humility_prompt": "on",
+  "_humility_prompt_comment": "Options: on (inject hedging instructions into system prompt based on context quality), off (disabled)",
   "extra_scope_terms": [
     "AI and Aging",
     "AI and fertility",
@@ -163,5 +162,6 @@
     "Virtual Patient Simulation"
   ],
   "_extra_scope_terms_comment": "Additional terms that are within the Health and Wellbeing Systems domain but may not appear in the glossary or paper topics. Used by the two-axis banner system to distinguish on-topic queries from off-topic ones.",
-  "reliability_cues": "shown"
+  "reliability_cues": "shown",
+  "humility_postprocessing": "moderate"
 }

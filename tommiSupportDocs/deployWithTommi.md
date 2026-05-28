@@ -450,8 +450,8 @@ mkdir -p agents/{your_agent}/data/docs
   ],
   "research_topic": "Your research area (subtopic A, subtopic B, etc.)",
   "prompt_level": "stringent",
-  "transparency_level": "scaffolded",
-  "transparency_type": "procedural",
+  "reliability_cues": "shown",
+  "transparency_level": "black_box",
   "audit_log_enabled": true,
   "show_history": false,
   "show_description": true
@@ -637,12 +637,13 @@ All agent types (Oneshot, RAG, Text2SQL, RAG+Metadata) now use a `config.json` f
   "description": "Helps with specific tasks",
   "welcome_message": "Hello! How can I help you?",
   "example_queries": ["What can you do?", "Tell me about X"],
-  "transparency_level": "crystal_box",
+  "reliability_cues": "shown",
+  "transparency_level": "black_box",
   "prompt_level": "stringent"
 }
 ```
 
-For RAG and RAG+Metadata agents, `config.json` additionally includes `audit_log_enabled` and transparency settings. See [Section 7.1](#config.json) for the full reference.
+For RAG and RAG+Metadata agents, `config.json` additionally includes `audit_log_enabled` and reliability cues settings. See [Section 7.1](#config.json) for the full reference.
 
 **Step 6 -- Add documents to `data/docs/`:**
 
@@ -701,9 +702,9 @@ The `config.json` file drives all agent behavior. Below is a complete reference 
 | `universities` | object | Metadata+RAG | Map of acronym to `{ "name", "country", "lat", "lon" }`. Coordinates are used for map visualizations. |
 | `gap_analysis_examples` | string | Metadata+RAG | Comma-separated example subtopics for gap analysis prompts. |
 | `prompt_level` | string | No | `"stringent"` (all 3 prompt sections), `"tolerant"` (identity + rules), or `"lax"` (identity only). Default: `"stringent"`. |
-| `transparency_level` | string | No | `"crystal_box"` (full detail), `"grey_box"` (minimal), `"black_box"` (none), or `"scaffolded"` (procedural badges for Vectorless agents). Default: `"crystal_box"`. |
-| `transparency_type` | string | No | `"procedural"` (coloured banners per response section). Default: `"procedural"`. |
-| `reliability_display` | string | No | `"visual"` (badge only), `"text_style"` (inline hedging), `"both"`, or `"none"`. Default: `"visual"`. |
+| `reliability_cues` | string | No | `"shown"` (coloured banners visible) or `"hidden"` (no banners). Controls procedural reliability banners (green/yellow/red). Applies to all agents. Default: `"shown"`. |
+| `transparency_level` | string | No | `"crystal_box"` (SQL queries and sources visible) or `"black_box"` (hidden). Only applicable to Text2SQL agents; the setting is disabled in the UI for other agent types. Default: `"black_box"`. |
+| `humility_prompt` | string | No | `"on"` (inject hedging instructions into system prompt based on context quality) or `"off"` (disabled). Default: `"off"`. |
 | `audit_log_enabled` | boolean | No | Enable/disable the JSONL audit log in `data/audit_log.jsonl`. Default: `false`. |
 | `web_search` | object | No | Web search expansion config. When configured, the agent offers to search the web when local results are insufficient. See below. |
 | `show_history` | boolean | No | Display query history in the sidebar. Default: `true`. |
@@ -736,8 +737,8 @@ The `config.json` file drives all agent behavior. Below is a complete reference 
   },
   "gap_analysis_examples": "autonomous navigation, swarm robotics, soft robotics, human-robot collaboration",
   "prompt_level": "stringent",
-  "transparency_level": "scaffolded",
-  "transparency_type": "procedural",
+  "reliability_cues": "shown",
+  "transparency_level": "black_box",
   "audit_log_enabled": true
 }
 ```
@@ -971,9 +972,9 @@ The agent automatically reads the database schema at startup. Well-designed tabl
 
 TOMMI implements a Graduated Transparency framework aligned with the EU AI Act (Articles 12-14), the NIST AI Risk Management Framework, and the OECD AI Principles.
 
-### Procedural Transparency (Coloured Banners)
+### Reliability Cues (Coloured Banners)
 
-TOMMI uses a **procedural transparency** system that provides cognitive scaffolding through coloured banners prepended to each response. Each banner indicates the data source and reliability of the information:
+TOMMI uses **reliability cues** — coloured banners prepended to each response that indicate the data source and reliability of the information:
 
 | Banner | Colour | Meaning |
 |--------|--------|---------|
@@ -982,9 +983,28 @@ TOMMI uses a **procedural transparency** system that provides cognitive scaffold
 | 🟡 **On-topic, undefined** | Yellow | Topic is within the agent's domain but not yet covered by specific papers in the database |
 | 🔴 **Unverified** | Red | Question is outside the scope of the research database |
 
-**Configuration:** Set `transparency_level: "scaffolded"` and `transparency_type: "procedural"` in `config.json`.
+**Configuration:** Set `reliability_cues: "shown"` in `config.json`. Set to `"hidden"` to disable banners.
 
-Transparency can be toggled live by clicking the badge in the web UI. It cycles through scaffolded (banners + hallucination detection) → black_box (no guidance). The change takes effect immediately but resets to the `config.json` default on server restart.
+Reliability cues can be toggled live by clicking the badge icon in the web UI. The change takes effect immediately but resets to the `config.json` default on server restart.
+
+### Content Transparency (Text2SQL Only)
+
+For Text2SQL agents, an additional `transparency_level` parameter controls whether the SQL query and its natural-language translation are shown to the user:
+
+- `"crystal_box"` — SQL queries and source details are visible
+- `"black_box"` — no process disclosure
+
+**Configuration:** Set `transparency_level: "crystal_box"` in `config.json`. This parameter only applies to Text2SQL agents. In the settings panel, the field is labelled "Transparency (only for Text2SQL)" and is disabled for non-Text2SQL agents.
+
+### Humility
+
+TOMMI provides two complementary humility mechanisms that reduce the risk of presenting uncertain information as fact:
+
+- **Humility (system prompt)** (`humility_prompt`): Injects hedging instructions into the system prompt *before* the LLM generates its response. The instructions vary based on the estimated context quality (high, moderate, low). For example, when context is low, the LLM is instructed to use phrases like "it appears that", "based on available records", and to avoid confident words like "clearly" or "obviously". Set to `"on"` to enable, `"off"` to disable.
+
+- **Humility (post-processing)** (`humility_postprocessing`): A rule-based post-processor that scans the LLM output *after* generation and adds hedging prefixes (e.g., "Based on available information, ...") to sentences containing ungrounded claims. Levels: `"off"` (disabled), `"moderate"` (hedge ungrounded claims), `"strict"` (hedge ungrounded + web-sourced claims, add disclaimer footer).
+
+The two mechanisms are complementary: the system prompt shapes the LLM's tone during generation, while post-processing catches any remaining unhedged claims in the output.
 
 ### Authority Sanitization
 
@@ -1012,7 +1032,7 @@ When `audit_log_enabled` is `true`, every query generates a JSON line in `data/a
   "query_type": "normal",
   "source_type": "Metadata",
   "context_sources": ["researcher", "metadata"],
-  "transparency_level": "scaffolded"
+  "reliability_cues": "shown"
 }
 ```
 

@@ -703,8 +703,8 @@ The `config.json` file drives all agent behavior. Below is a complete reference 
 | `gap_analysis_examples` | string | Metadata+RAG | Comma-separated example subtopics for gap analysis prompts. |
 | `prompt_level` | string | No | `"stringent"` (all 3 prompt sections), `"tolerant"` (identity + rules), or `"lax"` (identity only). Default: `"stringent"`. |
 | `reliability_cues` | string | No | `"shown"` (coloured banners visible) or `"hidden"` (no banners). Controls procedural reliability banners (green/yellow/red). Applies to all agents. Default: `"shown"`. |
-| `transparency_level` | string | No | `"crystal_box"` (SQL queries and sources visible) or `"black_box"` (hidden). Only applicable to Text2SQL agents. Default: `"black_box"`. |
-| `reliability_display` | string | No | `"visual"` (badge only), `"text_style"` (inline hedging), `"both"`, or `"none"`. Default: `"visual"`. |
+| `transparency_level` | string | No | `"crystal_box"` (SQL queries and sources visible) or `"black_box"` (hidden). Only applicable to Text2SQL agents; the setting is disabled in the UI for other agent types. Default: `"black_box"`. |
+| `humility_prompt` | string | No | `"on"` (inject hedging instructions into system prompt based on context quality) or `"off"` (disabled). Default: `"off"`. |
 | `audit_log_enabled` | boolean | No | Enable/disable the JSONL audit log in `data/audit_log.jsonl`. Default: `false`. |
 | `web_search` | object | No | Web search expansion config. When configured, the agent offers to search the web when local results are insufficient. See below. |
 | `show_history` | boolean | No | Display query history in the sidebar. Default: `true`. |
@@ -994,7 +994,17 @@ For Text2SQL agents, an additional `transparency_level` parameter controls wheth
 - `"crystal_box"` — SQL queries and source details are visible
 - `"black_box"` — no process disclosure
 
-**Configuration:** Set `transparency_level: "crystal_box"` in `config.json`. This parameter only applies to Text2SQL agents.
+**Configuration:** Set `transparency_level: "crystal_box"` in `config.json`. This parameter only applies to Text2SQL agents. In the settings panel, the field is labelled "Transparency (only for Text2SQL)" and is disabled for non-Text2SQL agents.
+
+### Humility
+
+TOMMI provides two complementary humility mechanisms that reduce the risk of presenting uncertain information as fact:
+
+- **Humility (system prompt)** (`humility_prompt`): Injects hedging instructions into the system prompt *before* the LLM generates its response. The instructions vary based on the estimated context quality (high, moderate, low). For example, when context is low, the LLM is instructed to use phrases like "it appears that", "based on available records", and to avoid confident words like "clearly" or "obviously". Set to `"on"` to enable, `"off"` to disable.
+
+- **Humility (post-processing)** (`humility_postprocessing`): A rule-based post-processor that scans the LLM output *after* generation and adds hedging prefixes (e.g., "Based on available information, ...") to sentences containing ungrounded claims. Levels: `"off"` (disabled), `"moderate"` (hedge ungrounded claims), `"strict"` (hedge ungrounded + web-sourced claims, add disclaimer footer).
+
+The two mechanisms are complementary: the system prompt shapes the LLM's tone during generation, while post-processing catches any remaining unhedged claims in the output.
 
 ### Authority Sanitization
 

@@ -81,9 +81,8 @@
     "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
     "show_legend": true
   },
-  "reliability_display": "both",
-  "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "humility_level": "moderate",
   "type": "rag_metadata",
-  "reliability_cues": "shown"
+  "reliability_cues": "shown",
+  "humility_prompt": "on",
+  "humility_postprocessing": "moderate"
 }

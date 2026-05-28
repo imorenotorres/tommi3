@@ -66,12 +66,12 @@ class BaseRAGAgent:
         # Claim-level analysis is not used by any current agent type
         self._skip_claim_classification = True
 
-        # Reliability display mode: "visual", "text_style", "both", "none"
-        self._reliability_display = self._config.get("reliability_display", "visual")
+        # Humility (system prompt): pre-generation hedging instructions
+        self._humility_prompt = self._config.get("humility_prompt", "off")
 
-        # Humility post-processing: "off", "moderate", "strict"
+        # Humility (post-processing): "off", "moderate", "strict"
         from .humility import HumilityRewriter
-        self._humility = HumilityRewriter(self._config.get("humility_level", "off"))
+        self._humility = HumilityRewriter(self._config.get("humility_postprocessing", "off"))
 
         # Query history for the sidebar
         self._query_history = []
@@ -269,16 +269,16 @@ class BaseRAGAgent:
         return "\n".join(parts)
 
     # ------------------------------------------------------------------
-    # Reliability display: context quality estimation & style instructions
+    # Reliability cues & humility: visual badges and prompt-level hedging
     # ------------------------------------------------------------------
 
     def _should_show_visual_badge(self) -> bool:
-        """Whether to render the visual reliability badge."""
-        return self._reliability_display in ("visual", "both")
+        """Whether to render the visual reliability badge (tied to reliability_cues)."""
+        return self._show_procedural_banners
 
     def _should_use_text_style(self) -> bool:
-        """Whether to inject hedging instructions based on context quality."""
-        return self._reliability_display in ("text_style", "both")
+        """Whether to inject hedging instructions based on context quality (humility_prompt)."""
+        return self._humility_prompt == "on"
 
     def _estimate_context_quality(self, context: str, metadata_ctx: str = "") -> str:
         """Estimate context quality BEFORE LLM generation.

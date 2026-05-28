@@ -82,9 +82,8 @@
   },
   "reliability_green_max_llm": 20,
   "reliability_red_min_llm": 50,
-  "reliability_display": "both",
-  "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "humility_level": "moderate",
   "type": "rag_metadata",
-  "reliability_cues": "shown"
+  "reliability_cues": "shown",
+  "humility_prompt": "on",
+  "humility_postprocessing": "moderate"
 }

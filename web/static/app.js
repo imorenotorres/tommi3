@@ -267,10 +267,10 @@ async function loadLLMStatus(agentId = null) {
                 const sizes = status.model_sizes || {};
                 const sizeGb = sizes[status.model] || 0;
                 elements.llmProviderIcon.src = sizeGb >= 20 ? '/static/icon_llm_local_large.svg' : '/static/icon_llm_local.svg';
-                elements.llmProviderIcon.title = `${modelOnly} on local server (${sizeGb} GB)`;
+                elements.llmProviderIcon.title = `LLM: ${modelOnly} on local server (${sizeGb} GB)`;
             } else {
                 elements.llmProviderIcon.src = '/static/icon_llm_cloud.svg';
-                elements.llmProviderIcon.title = `${modelOnly} on cloud`;
+                elements.llmProviderIcon.title = `LLM: ${modelOnly} on cloud`;
             }
         }
         if (elements.llmProviderLabel) {
@@ -576,12 +576,6 @@ function updateIconTooltips() {
     // LLM icon — updated by loadLLMStatus directly
 
     // Reliability cues icon tooltip
-    const ttIconEl = document.getElementById('transparency-type-icon');
-    if (ttIconEl) {
-        ttIconEl.title = ttIconEl.alt || 'Reliability cues';
-    }
-
-    // Reliability cues level icon tooltip
     if (elements.transparencyLevelIcon) {
         const cues = (state.currentAgent && state.currentAgent.reliability_cues) || 'shown';
         const s = TRANSPARENCY_STYLES[cues] || TRANSPARENCY_STYLES.shown;
@@ -640,28 +634,6 @@ function showAgentInfo() {
         // Initial LLM icon (will be updated when LLM status loads)
         llmIconEl.src = '/static/icon_llm_cloud.svg';
         llmIconEl.alt = 'LLM';
-
-        // Reliability cues icon
-        const ttIconEl = document.getElementById('transparency-type-icon');
-        if (ttIconEl) {
-            const cues = state.currentAgent.reliability_cues || 'shown';
-            const tl = state.currentAgent.transparency_level || 'black_box';
-            const hasCues = (cues === 'shown');
-            const hasTransparency = (tl === 'crystal_box');
-            if (hasCues && hasTransparency) {
-                ttIconEl.src = '/static/icon_procedural.svg';
-                ttIconEl.alt = 'Reliability cues + Transparency';
-            } else if (hasCues) {
-                ttIconEl.src = '/static/icon_procedural.svg';
-                ttIconEl.alt = 'Reliability cues (banners)';
-            } else if (hasTransparency) {
-                ttIconEl.src = '/static/icon_content.svg';
-                ttIconEl.alt = 'Transparency (SQL/sources)';
-            } else {
-                ttIconEl.src = '/static/icon_black_box.svg';
-                ttIconEl.alt = 'No reliability cues';
-            }
-        }
 
         elements.agentInfoSection.classList.remove('hidden');
     } else {
@@ -818,9 +790,9 @@ function cycleLLMModel() {
     if (elements.llmProviderIcon) {
         if (state.isLocalLLM) {
             const sizeGb = (state.modelSizes || {})[next] || 0;
-            elements.llmProviderIcon.title = `${next} on local server (${sizeGb} GB)`;
+            elements.llmProviderIcon.title = `LLM: ${next} on local server (${sizeGb} GB)`;
         } else {
-            elements.llmProviderIcon.title = `${next} on cloud`;
+            elements.llmProviderIcon.title = `LLM: ${next} on cloud`;
         }
     }
 }
@@ -3251,10 +3223,7 @@ function _renderConfigForm(config, prompts, role) {
         html += _cfgField('Agent name', 'cfg-agent-name', 'text', c.agent_name || '');
         html += _cfgField('Agent ID', 'cfg-agent-id', 'text', c.agent_id || '');
     }
-    html += _cfgField('Prompt level', 'cfg-prompt-level', 'select', c.prompt_level || 'stringent', ['stringent', 'tolerant', 'lax']);
-    html += _cfgField('Reliability cues', 'cfg-reliability-cues', 'select', c.reliability_cues || 'shown', ['shown', 'hidden']);
-    html += _cfgField('Transparency (Text2SQL)', 'cfg-transparency-level', 'select', c.transparency_level || 'black_box', ['crystal_box', 'black_box']);
-    // LLM provider + model selector
+    // Row 2: LLM provider | LLM model
     html += _cfgField('LLM provider', 'cfg-llm-provider', 'select', _cfgLlmProvider, ['mistral', 'ollama']);
     html += `<div class="cfg-field" style="margin-bottom:0.6rem;">
         <label style="display:block;font-size:0.8rem;font-weight:600;color:#334155;margin-bottom:2px;">LLM model</label>
@@ -3262,10 +3231,21 @@ function _renderConfigForm(config, prompts, role) {
             <option value="">Loading...</option>
         </select>
     </div>`;
+    const isText2SQL = c.agent_type === 'text2sql';
+    // Row 3: Prompt level | Transparency (only for Text2SQL)
+    html += _cfgField('Prompt level', 'cfg-prompt-level', 'select', c.prompt_level || 'stringent', ['stringent', 'tolerant', 'lax']);
+    html += `<div class="cfg-field" style="margin-bottom:0.6rem;">
+        <label style="display:block;font-size:0.8rem;font-weight:600;color:#334155;margin-bottom:2px;">Transparency (only for Text2SQL)</label>
+        <select id="cfg-transparency-level" style="width:100%;padding:0.35rem 0.5rem;border:1px solid #e2e8f0;border-radius:5px;font-size:0.85rem;"${isText2SQL ? '' : ' disabled'}>
+            ${['crystal_box', 'black_box'].map(v => `<option value="${v}"${v === (c.transparency_level || 'black_box') ? ' selected' : ''}>${v}</option>`).join('')}
+        </select>
+    </div>`;
+    // Row 4: Reliability cues | Humility (system prompt)
+    html += _cfgField('Reliability cues', 'cfg-reliability-cues', 'select', c.reliability_cues || 'shown', ['shown', 'hidden']);
+    html += _cfgField('Humility (system prompt)', 'cfg-humility-prompt', 'select', c.humility_prompt || 'off', ['on', 'off']);
+    html += _cfgField('Humility (post-processing)', 'cfg-humility', 'select', c.humility_postprocessing || 'off', ['off', 'moderate', 'strict']);
 
     if (isSuperuser) {
-        html += _cfgField('Reliability display', 'cfg-reliability-display', 'select', c.reliability_display || 'visual', ['visual', 'text_style', 'both', 'none']);
-        html += _cfgField('Humility level', 'cfg-humility', 'select', c.humility_level || 'off', ['off', 'moderate', 'strict']);
         html += _cfgField('Show history', 'cfg-show-history', 'checkbox', c.show_history !== false);
         html += _cfgField('Audit log', 'cfg-audit-log', 'checkbox', !!c.audit_log_enabled);
     }
@@ -3350,17 +3330,25 @@ async function saveAgentConfig(agentId) {
 
     // Build config from form, preserving all original fields
     const config = { ..._cfgOrigConfig };
-    config.agent_name = document.getElementById('cfg-agent-name').value.trim();
-    config.agent_id = document.getElementById('cfg-agent-id').value.trim();
-    config.description = document.getElementById('cfg-description').value.trim();
-    config.welcome_message = document.getElementById('cfg-welcome').value.trim();
+    // Superuser-only fields (guarded)
+    const nameEl = document.getElementById('cfg-agent-name');
+    if (nameEl) config.agent_name = nameEl.value.trim();
+    const idEl = document.getElementById('cfg-agent-id');
+    if (idEl) config.agent_id = idEl.value.trim();
+    const descEl = document.getElementById('cfg-description');
+    if (descEl) config.description = descEl.value.trim();
+    const welcomeEl = document.getElementById('cfg-welcome');
+    if (welcomeEl) config.welcome_message = welcomeEl.value.trim();
+    const showHistEl = document.getElementById('cfg-show-history');
+    if (showHistEl) config.show_history = showHistEl.checked;
+    const auditEl = document.getElementById('cfg-audit-log');
+    if (auditEl) config.audit_log_enabled = auditEl.checked;
+    config.humility_postprocessing = document.getElementById('cfg-humility').value;
+    // Fields available to all roles
     config.prompt_level = document.getElementById('cfg-prompt-level').value;
     config.reliability_cues = document.getElementById('cfg-reliability-cues').value;
     config.transparency_level = document.getElementById('cfg-transparency-level').value;
-    config.reliability_display = document.getElementById('cfg-reliability-display').value;
-    config.humility_level = document.getElementById('cfg-humility').value;
-    config.show_history = document.getElementById('cfg-show-history').checked;
-    config.audit_log_enabled = document.getElementById('cfg-audit-log').checked;
+    config.humility_prompt = document.getElementById('cfg-humility-prompt').value;
 
     // Save LLM provider + model to agent .env
     const providerEl = document.getElementById('cfg-llm-provider');
@@ -3376,15 +3364,18 @@ async function saveAgentConfig(agentId) {
             state.isLocalLLM = (providerEl.value === 'ollama');
             if (elements.llmProviderIcon) {
                 const location = state.isLocalLLM ? 'local server' : 'cloud';
-                elements.llmProviderIcon.title = `${state.currentModel} on ${location}`;
+                elements.llmProviderIcon.title = `LLM: ${state.currentModel} on ${location}`;
             }
         } catch (e) {
             console.error('Error saving LLM provider:', e);
         }
     }
 
-    const exText = document.getElementById('cfg-examples').value.trim();
-    config.example_queries = exText ? exText.split('\n').map(l => l.trim()).filter(Boolean) : [];
+    const exEl = document.getElementById('cfg-examples');
+    if (exEl) {
+        const exText = exEl.value.trim();
+        config.example_queries = exText ? exText.split('\n').map(l => l.trim()).filter(Boolean) : [];
+    }
 
     // Save scope terms
     const scopeEl = document.getElementById('cfg-scope-terms');
@@ -3453,8 +3444,8 @@ async function saveAgentConfig(agentId) {
             const newTerms = JSON.stringify(config.extra_scope_terms || []);
             if (origTerms !== newTerms) needsRestart.push('scope terms');
         }
-        if ((_cfgOrigConfig.humility_level || 'off') !== (config.humility_level || 'off')) needsRestart.push('humility level');
-        if ((_cfgOrigConfig.reliability_display || 'visual') !== (config.reliability_display || 'visual')) needsRestart.push('reliability display');
+        if ((_cfgOrigConfig.humility_postprocessing || 'off') !== (config.humility_postprocessing || 'off')) needsRestart.push('humility (post-processing)');
+        if ((_cfgOrigConfig.humility_prompt || 'off') !== (config.humility_prompt || 'off')) needsRestart.push('humility (system prompt)');
         if ((_cfgOrigConfig.audit_log_enabled || false) !== (config.audit_log_enabled || false)) needsRestart.push('audit log');
         const origExamples = JSON.stringify(_cfgOrigConfig.example_queries || []);
         const newExamples = JSON.stringify(config.example_queries || []);

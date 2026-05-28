@@ -100,10 +100,7 @@
     "num_results": 10,
     "_comment": "Google Custom Search API credentials. Leave empty to disable web search expansion. Get API key at https://console.cloud.google.com/ and CX at https://programmablesearchengine.google.com/"
   },
-  "reliability_display": "both",
-  "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
   "transparency_type": "procedural",
-  "humility_level": "moderate",
   "extra_scope_terms": [
     "green ai",
     "federated learning",
@@ -269,5 +266,7 @@
     "adverse drug reaction",
     "polypharmacy"
   ],
-  "_extra_scope_terms_comment": "Additional terms that are within the Responsible AI domain but may not appear in the glossary or paper topics. Used by the two-axis banner system to distinguish on-topic queries from off-topic ones."
+  "_extra_scope_terms_comment": "Additional terms that are within the Responsible AI domain but may not appear in the glossary or paper topics. Used by the two-axis banner system to distinguish on-topic queries from off-topic ones.",
+  "humility_prompt": "on",
+  "humility_postprocessing": "moderate"
 }

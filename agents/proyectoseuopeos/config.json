@@ -14,8 +14,7 @@
   "prompt_level": "stringent",
   "transparency_level": "black_box",
   "audit_log_enabled": true,
-  "reliability_display": "both",
-  "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "humility_level": "moderate",
-  "reliability_cues": "shown"
+  "reliability_cues": "shown",
+  "humility_prompt": "on",
+  "humility_postprocessing": "moderate"
 }

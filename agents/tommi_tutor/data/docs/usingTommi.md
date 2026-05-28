@@ -17,7 +17,7 @@ This guide explains how to use TOMMI agents from the web interface. No technical
 
 However, if the template does not match your requirements, you will need to make changes that may require increased expertise. This is particularly the case for **RAG+Metadata agents**, which have been customized for a specific context in UNINOVIS: the Excellence Hubs. These include features like researcher profiles, university metadata, collaboration detection, and publication maps that are tailored to the UNINOVIS alliance.
 
-**An important point:** TOMMI can be adapted and extended using advanced AI coding tools such as **Claude Code, Cursor, or Gemini**. This means that **a good understanding of the AI agents' architecture and behavior — rather than deep coding expertise — is the key requirement** for making significant modifications. A user who understands what the agent should do can use AI coding tools to implement the necessary changes.
+**An important point:** TOMMI can be adapted and extended using advanced AI coding tools such as **Mistral's Devstral, Claude Code, Cursor, or Gemini**. This means that **a good understanding of the AI agents' architecture and behavior — rather than deep coding expertise — is the key requirement** for making significant modifications. A user who understands what the agent should do can use AI coding tools to implement the necessary changes.
 
 For details on creating agents, see the *Deploying with TOMMI* guide, Section 5.
 

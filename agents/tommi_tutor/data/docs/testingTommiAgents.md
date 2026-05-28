@@ -103,7 +103,7 @@ You can switch back to user mode at any time by clicking **"User mode"**.
 
 - **User menu** — shows your username and role badge. Includes links to "Edit my profile" (Directory), "Tester Panel", and "Logout".
 - **Settings panel** (gear icon, tester and superuser only) — opens a configuration panel with:
-  - **Agent Configuration** — edit `prompt_level`, `reliability_cues`, and `transparency_level` in real time (no restart needed).
+  - **Agent Configuration** — edit LLM provider/model, `prompt_level`, `transparency_level` (only for Text2SQL agents), `reliability_cues`, `humility_prompt`, and `humility_postprocessing` in real time (no restart needed).
   - **Agent Visibility** — set agents to `hidden`, `restricted`, or `open`, and manage allowed user lists.
   - **Tool Visibility** — configure which roles can access which intranet tools.
   - **Log Analytics** — view request/visitor statistics across agents.
@@ -205,7 +205,7 @@ Depending on the agent type, test the relevant features:
 |---|------|--------|---------------|
 | 7.1 | Authority phrases | Ask a question about an unstudied topic | Does the agent say "does not appear in the indexed database" instead of "has not been studied"? |
 | 7.2 | Hedging (if enabled) | Ask a question that produces ungrounded claims (red highlights) | Are ungrounded claims prefixed with hedging language like "Based on available information, ..."? |
-| 7.3 | Moderate vs strict | If `humility_level` is configurable, compare moderate and strict | Does strict mode also hedge web-sourced claims and add a disclaimer footer? |
+| 7.3 | Moderate vs strict | If `humility_postprocessing` is configurable, compare moderate and strict | Does strict mode also hedge web-sourced claims and add a disclaimer footer? |
 | 7.4 | Formatting preservation | Ask a question that produces a bulleted list or table | Does hedging preserve the markdown formatting? |
 
 ### Phase 8 — LLM comparison (optional, 10-15 min)
@@ -493,9 +493,9 @@ Before deploying an agent, verify each item:
 - [ ] **Paper ID mismatch (Metadata+RAG only):** Ask to expand a specific paper. Verify the PDF link points to the correct paper (not an unrelated one). If the paper has no PDF, verify "not available" appears instead of a fake link.
 - [ ] **Out-of-domain questions:** Test with questions outside the agent's domain. Verify the agent refuses gracefully (at Stringent level) rather than hallucinating an answer.
 - [ ] **Edge cases:** Test with empty queries, very long queries, and queries in different languages (if the agent is multilingual).
-- [ ] **Humility hedging:** If `humility_level` is set to `moderate` or `strict`, verify ungrounded claims have hedging prefixes. Verify hedging preserves markdown formatting and does not repeat the same phrase.
+- [ ] **Humility hedging:** If `humility_prompt` is `on`, verify responses use hedging language adapted to context quality. If `humility_postprocessing` is set to `moderate` or `strict`, verify ungrounded claims have hedging prefixes in post-processing. Verify hedging preserves markdown formatting and does not repeat the same phrase.
 - [ ] **Authority sanitization:** Ask about a topic not in the database. Verify the agent says "does not appear in the indexed database" rather than "has not been studied."
-- [ ] **Settings panel:** Open the settings panel (gear icon). Verify you can change `prompt_level` and `reliability_cues` in real time. Verify changes apply to the next query without server restart.
+- [ ] **Settings panel:** Open the settings panel (gear icon). Verify you can change LLM provider/model, `prompt_level`, `reliability_cues`, `humility_prompt`, and `humility_postprocessing` in real time. Verify that `transparency_level` is disabled for non-Text2SQL agents. Verify changes apply to the next query without server restart.
 - [ ] **Agent visibility:** If the agent is set to `restricted`, verify only allowed users can see it. Verify `hidden` agents do not appear in the dropdown.
 - [ ] **Study mode (if active):** If study mode is enabled, verify your transparency level is locked to the assigned condition and cannot be changed manually.
 
@@ -536,7 +536,7 @@ Each line is an independent JSON object. The log is append-only and grows indefi
 | `model` | LLM model name used for this query |
 | `is_local_llm` | Whether a local model was used (`true`/`false`) |
 | `reliability_label` | The computed reliability label (`High`, `Good`, `Poor`) |
-| `humility_level` | Active humility level at the time of the query (`off`, `moderate`, `strict`) |
+| `humility_postprocessing` | Active humility level at the time of the query (`off`, `moderate`, `strict`) |
 
 **Practical uses for testers:**
 
