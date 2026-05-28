@@ -48,8 +48,10 @@ def _banner_unverified(detail=""):
 
 
 def _is_off_topic(text):
-    text_lower = text.lower()
-    return any(p in text_lower for p in _OFF_TOPIC_PHRASES)
+    # Only check the first ~300 chars to avoid false positives when the LLM
+    # quotes or explains off-topic phrases within an otherwise valid answer.
+    head = text[:300].lower()
+    return any(p in head for p in _OFF_TOPIC_PHRASES)
 
 
 class SimpleVectorlessMixin(VectorlessMixin):

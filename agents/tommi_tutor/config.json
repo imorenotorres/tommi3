@@ -7,6 +7,7 @@
   "show_history": true,
   "example_queries": [
     "Which agent types exist in TOMMI?",
+    "What are the reliability cues?",
     "How do I create a RAG agent?",
     "Is TOMMI transparent?",
     "Explain the difference between RAG and RAG+Metadata",
@@ -31,5 +32,6 @@
   "retrieve_chunks": 10,
   "reliability_cues": "shown",
   "humility_prompt": "on",
-  "humility_postprocessing": "moderate"
+  "humility_postprocessing": "moderate",
+  "extra_scope_terms": []
 }
