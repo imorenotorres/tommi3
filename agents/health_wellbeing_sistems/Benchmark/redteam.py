@@ -452,7 +452,7 @@ REDTEAM_QUERIES = [
 
 def api_chat_stream(server: str, token: str, agent_id: str, query: str,
                     model: str = None, prompt_level: str = "stringent",
-                    transparency_level: str = "scaffolded",
+                    transparency_level: str = "shown",
                     history: list = None,
                     timeout: int = 180) -> dict:
     """Send a query via SSE streaming and collect the full response."""

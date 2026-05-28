@@ -2876,6 +2876,7 @@ async def create_agent(
     data_file: Optional[UploadFile] = File(None),
     schema_file: Optional[UploadFile] = File(None),
     rag_documents: List[UploadFile] = File(None),
+    rag_vectorless_documents: List[UploadFile] = File(None),
     rag_metadata_documents: List[UploadFile] = File(None),
     metadata_file: Optional[UploadFile] = File(None),
     database_file: Optional[UploadFile] = File(None),
@@ -2949,6 +2950,22 @@ async def create_agent(
                     # Handle folder structure - get just the filename
                     filename = Path(doc.filename).name
                     # Skip hidden files and non-document files
+                    if filename.startswith('.'):
+                        continue
+                    ext = Path(filename).suffix.lower()
+                    if ext in ['.pdf', '.txt', '.md', '.docx', '.doc']:
+                        doc_path = docs_dir / filename
+                        content = await doc.read()
+                        with open(doc_path, "wb") as f:
+                            f.write(content)
+
+        elif agent_type == "rag_vectorless" and rag_vectorless_documents:
+            # Create docs subfolder for RAG Vectorless
+            docs_dir = data_dir / "docs"
+            docs_dir.mkdir(exist_ok=True)
+            for doc in rag_vectorless_documents:
+                if doc.filename:
+                    filename = Path(doc.filename).name
                     if filename.startswith('.'):
                         continue
                     ext = Path(filename).suffix.lower()

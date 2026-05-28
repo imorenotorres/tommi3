@@ -8,7 +8,7 @@
     "Make a concept note for a Joint Bachelor in Applied data science degree proposal. The participants will the UMA (leader), THUAS and USPN, and it will be open to other UNINOVIS partners",
     "Which are the agreed Standards for Quality Assurance of Joint Programmes in the EHEA"
   ],
-  "transparency_level": "crystal_box",
+  "transparency_level": "black_box",
   "prompt_level": "stringent",
   "audit_log_enabled": true,
   "_audit_log_comment": "Logs decision events to data/audit_log.jsonl for EU AI Act compliance.",
@@ -26,6 +26,6 @@
   },
   "reliability_display": "both",
   "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "transparency_type": "content",
-  "humility_level": "moderate"
+  "humility_level": "moderate",
+  "reliability_cues": "shown"
 }

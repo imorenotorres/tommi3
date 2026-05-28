@@ -71,7 +71,8 @@ class VectorlessMixin:
     _chunk_db = None       # Loaded once, shared across queries
     _chunk_db_idf = None
     _chunk_db_avg_kw = 15.0
-    _skip_claim_classification = True  # Banners handle transparency, no need for claim analysis
+    _skip_claim_classification = True   # Banners handle transparency, no need for claim analysis
+    _show_procedural_banners = True   # Show procedural banners (green/yellow/red)
     _init_status_message = "Preparing knowledge base — indexing documents..."
 
     def _init_chromadb(self):

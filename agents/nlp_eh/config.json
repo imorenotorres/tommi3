@@ -70,7 +70,7 @@
   },
   "gap_analysis_examples": "speech recognition, dialogue systems, low-resource languages, language generation, cross-lingual transfer, multimodal NLP, sign language processing, automatic summarization, question answering, hate speech detection",
   "prompt_level": "stringent",
-  "transparency_level": "crystal_box",
+  "transparency_level": "black_box",
   "audit_log_enabled": true,
   "reliability_green_max_llm": 20,
   "reliability_red_min_llm": 50,
@@ -83,6 +83,7 @@
   },
   "reliability_display": "both",
   "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "transparency_type": "content",
-  "humility_level": "moderate"
+  "humility_level": "moderate",
+  "type": "rag_metadata",
+  "reliability_cues": "shown"
 }

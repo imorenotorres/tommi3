@@ -71,7 +71,7 @@
   },
   "gap_analysis_examples": "autonomous navigation, swarm robotics, soft robotics, human-robot collaboration in manufacturing, robot ethics, explainable robot decision-making, digital twins for robotics, edge AI for embedded systems",
   "prompt_level": "stringent",
-  "transparency_level": "crystal_box",
+  "transparency_level": "black_box",
   "audit_log_enabled": true,
   "inline_claim_highlights": {
     "enabled": true,
@@ -84,6 +84,7 @@
   "reliability_red_min_llm": 50,
   "reliability_display": "both",
   "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "transparency_type": "content",
-  "humility_level": "moderate"
+  "humility_level": "moderate",
+  "type": "rag_metadata",
+  "reliability_cues": "shown"
 }

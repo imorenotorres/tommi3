@@ -62,6 +62,7 @@ class SimpleVectorlessMixin(VectorlessMixin):
     """
 
     _skip_claim_classification = True
+    _show_procedural_banners = True
 
     def chat(self, user_message: str, history: list = None, **kwargs) -> str:
         # If config overrode to content-based, delegate to SimpleRAGMixin
@@ -96,7 +97,7 @@ class SimpleVectorlessMixin(VectorlessMixin):
         llm_content = response.choices[0].message.content
 
         # Procedural banner (only if visual display is enabled)
-        if self._should_show_visual_badge() and transparency in ("crystal_box", "scaffolded"):
+        if self._should_show_visual_badge() and transparency not in ("black_box", "hidden"):
             if _is_off_topic(llm_content):
                 llm_content = _banner_unverified() + llm_content
             else:
@@ -145,7 +146,7 @@ class SimpleVectorlessMixin(VectorlessMixin):
         messages.append({"role": "user", "content": user_message})
 
         # Start with AI Commentary banner (only if visual display is enabled)
-        if self._should_show_visual_badge() and transparency in ("crystal_box", "scaffolded"):
+        if self._should_show_visual_badge() and transparency not in ("black_box", "hidden"):
             yield ("procedural_banner", _banner_database())
 
         # Stream LLM response
@@ -156,7 +157,7 @@ class SimpleVectorlessMixin(VectorlessMixin):
                 yield chunk.data.choices[0].delta.content
 
         # If off-topic, replace the banner (only if visual display is enabled)
-        if self._should_show_visual_badge() and transparency in ("crystal_box", "scaffolded") and _is_off_topic(full_response):
+        if self._should_show_visual_badge() and transparency not in ("black_box", "hidden") and _is_off_topic(full_response):
             yield ("replace", _banner_unverified() + full_response)
 
         # Save to query history

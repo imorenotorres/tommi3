@@ -43,6 +43,7 @@ def list_prompt_templates(agent_type: str) -> list:
     # Mapeo de tipos a patrones de archivo (case-insensitive matching)
     type_patterns = {
         "oneshot": ["prompt_Oneshot.txt"],
+        "rag_vectorless": ["prompt_RAG.txt"],
         "rag": ["prompt_RAG.txt"],
         "rag_metadata": ["prompt_RAG_Metadata.txt"],
         "text2sql": ["prompt_Text2SQL.txt"]
@@ -5730,7 +5731,7 @@ def create_agent_structure(config: dict) -> str:
 
     Args:
         config: Dictionary with agent configuration:
-            - agent_type: 'oneshot', 'rag', 'rag_metadata', or 'text2sql'
+            - agent_type: 'oneshot', 'rag', 'rag_vectorless', 'rag_metadata', or 'text2sql'
             - agent_id: Lowercase identifier
             - output_dir: Directory to create agent in
             - agent_name: Display name
@@ -5772,8 +5773,8 @@ def create_agent_structure(config: dict) -> str:
     data_dir = os.path.join(output_dir, "data")
     os.makedirs(data_dir, exist_ok=True)
 
-    # For RAG/RAG+Metadata, create documents directory
-    if agent_type in ["rag", "rag_metadata"]:
+    # For RAG types, create documents directory
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         docs_dir = os.path.join(data_dir, "docs")
         os.makedirs(docs_dir, exist_ok=True)
 
@@ -5781,11 +5782,12 @@ def create_agent_structure(config: dict) -> str:
     requirements_map = {
         "oneshot": REQUIREMENTS_ONESHOT,
         "rag": REQUIREMENTS_RAG,
+        "rag_vectorless": REQUIREMENTS_RAG,
         "rag_metadata": REQUIREMENTS_RAG_METADATA,
         "text2sql": REQUIREMENTS_TEXT2SQL
     }
     with open(os.path.join(output_dir, "requirements.txt"), "w", encoding="utf-8") as f:
-        f.write(requirements_map[agent_type])
+        f.write(requirements_map.get(agent_type, REQUIREMENTS_RAG))
 
     # .env by provider
     with open(os.path.join(output_dir, ".env"), "w", encoding="utf-8") as f:
@@ -5796,7 +5798,7 @@ def create_agent_structure(config: dict) -> str:
         elif llm_provider == "ollama":
             f.write(ENV_TEMPLATE_OLLAMA.format(ollama_url=ollama_url, ollama_model=ollama_model))
 
-        # Add verification configuration for oneshot and rag (not rag_metadata — uses lightweight grounding)
+        # Add verification configuration for oneshot and rag (not rag_metadata/rag_vectorless — uses procedural banners)
         if agent_type in ["oneshot", "rag"]:
             f.write("\n# ============================================\n")
             f.write("# Grounding Verification (Anti-hallucination)\n")
@@ -5809,7 +5811,7 @@ def create_agent_structure(config: dict) -> str:
             f.write(f"VERIFY_GROUNDING={'true' if verify_grounding else 'false'}\n")
 
         # Add RAG chunking configuration for rag agents
-        if agent_type in ["rag", "rag_metadata"]:
+        if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
             f.write("\n# ============================================\n")
             f.write("# RAG Chunking Configuration\n")
             f.write("# ============================================\n")
@@ -5826,13 +5828,65 @@ def create_agent_structure(config: dict) -> str:
 
     # .gitignore
     gitignore_content = GITIGNORE
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         gitignore_content += "data/chroma_db/\n"
     with open(os.path.join(output_dir, ".gitignore"), "w", encoding="utf-8") as f:
         f.write(gitignore_content)
 
     # agent.py by type
-    if agent_type == "rag_metadata":
+    if agent_type == "rag_vectorless":
+        # RAG Vectorless agents use SimpleVectorlessMixin with procedural banners
+        agent_py_content = '"""\n{name} — Simple vectorless RAG agent with procedural banners.\nAll behavior from config.json + base classes.\n"""\n\nimport os\nimport sys\n\nsys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))\nfrom base import BaseRAGAgent, SimpleRAGMixin\nfrom base.simple_vectorless_mixin import SimpleVectorlessMixin\n\n\nclass Agent(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):\n    _AGENT_FILE = __file__\n'.format(name=agent_name)
+        with open(os.path.join(output_dir, "agent.py"), "w", encoding="utf-8") as f:
+            f.write(agent_py_content)
+
+        # Generate config.json for RAG Vectorless agents
+        reliability_green = config.get('reliability_green_max_llm', 20)
+        reliability_red = config.get('reliability_red_min_llm', 50)
+        agent_config = {
+            "agent_id": agent_id,
+            "agent_name": agent_name,
+            "type": "rag_vectorless",
+            "description": description,
+            "welcome_message": welcome,
+            "show_history": True,
+            "example_queries": examples,
+            "prompt_level": "stringent",
+            "transparency_level": "scaffolded",
+            "transparency_type": "procedural",
+            "audit_log_enabled": True,
+            "reliability_green_max_llm": reliability_green,
+            "reliability_red_min_llm": reliability_red,
+            "inline_claim_highlights": {
+                "enabled": True,
+                "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
+                "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
+                "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
+                "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
+                "show_legend": True,
+            },
+            "reliability_display": "both",
+            "humility_level": "moderate",
+        }
+        with open(os.path.join(output_dir, "config.json"), "w", encoding="utf-8") as f:
+            json.dump(agent_config, f, indent=2, ensure_ascii=False)
+
+        # Generate prompts.json for RAG Vectorless agents
+        prompts_scaffold = {
+            "identity": "You are {agent_name}, a helpful {description}.",
+            "rules": "IMPORTANT RULES:\n1. Answer questions based ONLY on the context provided from the knowledge base below.\n2. If you cannot find relevant information in the context, say: \"I don't have information about that in my knowledge base.\"\n3. NEVER use your general knowledge. Only use the text provided in the context.",
+            "strict": ""
+        }
+        with open(os.path.join(output_dir, "prompts.json"), "w", encoding="utf-8") as f:
+            json.dump(prompts_scaffold, f, indent=2, ensure_ascii=False)
+
+        # Copy build_chunk_db.py from tommi_tutor as reference
+        build_script_src = os.path.join(os.path.dirname(__file__), "..", "agents", "tommi_tutor", "build_chunk_db.py")
+        if os.path.exists(build_script_src):
+            import shutil as _shutil2
+            _shutil2.copy2(build_script_src, os.path.join(output_dir, "build_chunk_db.py"))
+
+    elif agent_type == "rag_metadata":
         # RAG+Metadata agents use a reference agent.py (config-driven, no template needed)
         import shutil
         reference_agent = os.path.join(os.path.dirname(__file__), "..", "agents", "responsible_ai", "agent.py")
@@ -5957,7 +6011,7 @@ def create_agent_structure(config: dict) -> str:
         f.write(app_content)
 
     # Data files by type
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         example_doc = f"# Example document for {agent_name}\n\nAdd your content here.\n\nThis file will be automatically indexed when the agent starts.\n"
         with open(os.path.join(docs_dir, "example.md"), "w", encoding="utf-8") as f:
             f.write(example_doc)
@@ -6011,7 +6065,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
             f.write(data_content)
 
     # run.sh
-    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type in ["rag", "rag_metadata"] else RUN_SH_TEMPLATE
+    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type in ["rag", "rag_vectorless", "rag_metadata"] else RUN_SH_TEMPLATE
     with open(os.path.join(output_dir, "run.sh"), "w", encoding="utf-8") as f:
         f.write(run_sh_template)
     os.chmod(os.path.join(output_dir, "run.sh"), 0o755)
@@ -6060,7 +6114,7 @@ def main():
     print(f"  → Selected type: {agent_type}")
 
     # Warning for RAG if Python 3.14+
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         import platform
         py_version = tuple(map(int, platform.python_version().split('.')[:2]))
         if py_version >= (3, 14):
@@ -6216,7 +6270,7 @@ def main():
     rag_retrieve_chunks = 8
     rag_chunking_strategy = "smart"
 
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         print("\nRAG Chunking Approach:")
         print("  1. basic             - Fast indexing, lower accuracy")
         print("                         (500 chars, 100 overlap, 3 results)")
@@ -6277,7 +6331,7 @@ def main():
     print(f"  Examples:     {len(examples)} question(s)")
     if agent_type in ["oneshot", "rag", "rag_metadata"]:
         print(f"  Verification: {'Yes (grounding check)' if verify_grounding else 'No'}")
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         print(f"  RAG approach: {rag_approach}")
     print("=" * 60)
 
@@ -6297,7 +6351,7 @@ def main():
     os.makedirs(data_dir, exist_ok=True)
 
     # For RAG/RAG+Metadata, create documents directory
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         docs_dir = os.path.join(data_dir, "docs")
         os.makedirs(docs_dir, exist_ok=True)
 
@@ -6334,7 +6388,7 @@ def main():
             f.write(f"VERIFY_GROUNDING={'true' if verify_grounding else 'false'}\n")
 
         # Add RAG chunking configuration for rag agents
-        if agent_type in ["rag", "rag_metadata"]:
+        if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
             f.write("\n# ============================================\n")
             f.write("# RAG Chunking Configuration\n")
             f.write("# ============================================\n")
@@ -6358,7 +6412,7 @@ def main():
 
     # .gitignore
     gitignore_content = GITIGNORE
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         gitignore_content += "data/chroma_db/\n"
     with open(os.path.join(output_dir, ".gitignore"), "w", encoding="utf-8") as f:
         f.write(gitignore_content)
@@ -6490,7 +6544,7 @@ def main():
     print(f"  ✓ {output_dir}/app.py")
 
     # data/data.md (for oneshot) or example in docs/ (for rag/rag_metadata) or README for text2sql
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         example_doc = f"# Example document for {agent_name}\n\nAdd your content here.\n\nThis file will be automatically indexed when the agent starts.\n"
         with open(os.path.join(docs_dir, "example.md"), "w", encoding="utf-8") as f:
             f.write(example_doc)
@@ -6560,7 +6614,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
         print(f"  ✓ {data_dir}/data.md")
 
     # run.sh (usa template especial para RAG por compatibilidad con Python)
-    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type in ["rag", "rag_metadata"] else RUN_SH_TEMPLATE
+    run_sh_template = RUN_SH_RAG_TEMPLATE if agent_type in ["rag", "rag_vectorless", "rag_metadata"] else RUN_SH_TEMPLATE
     with open(os.path.join(output_dir, "run.sh"), "w", encoding="utf-8") as f:
         f.write(run_sh_template)
     os.chmod(os.path.join(output_dir, "run.sh"), 0o755)
@@ -6633,7 +6687,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
     print()
     print("Next steps:")
     step = 1
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         print(f"  {step}. Add documents (.txt, .md) in {data_dir}/docs/")
     elif agent_type == "text2sql":
         print(f"  {step}. Create your SQLite database at {data_dir}/database.db")
@@ -6661,7 +6715,7 @@ Once the DB is created, the agent will be able to answer questions in natural la
     print("  GET  /         - Agent info")
     print("  GET  /examples - Example questions")
     print("  POST /chat     - Send message")
-    if agent_type in ["rag", "rag_metadata"]:
+    if agent_type in ["rag", "rag_vectorless", "rag_metadata"]:
         print("  POST /reindex  - Reindex documents")
         if agent_type == "rag_metadata":
             print("  GET  /metadata - View document metadata")

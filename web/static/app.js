@@ -575,18 +575,17 @@ function updateIconTooltips() {
 
     // LLM icon — updated by loadLLMStatus directly
 
-    // Transparency type icon
+    // Reliability cues icon tooltip
     const ttIconEl = document.getElementById('transparency-type-icon');
     if (ttIconEl) {
-        const ttLabel = state._transparencyType === 'procedural' ? 'Procedural' : 'Content-based';
-        ttIconEl.title = `Transparency model: ${ttLabel}`;
+        ttIconEl.title = ttIconEl.alt || 'Reliability cues';
     }
 
-    // Transparency level icon
+    // Reliability cues level icon tooltip
     if (elements.transparencyLevelIcon) {
-        const level = state.currentAgent.transparency_level || '';
-        const s = TRANSPARENCY_STYLES[level] || TRANSPARENCY_STYLES.grey_box;
-        elements.transparencyLevelIcon.title = `Transparency: ${s.label}`;
+        const cues = (state.currentAgent && state.currentAgent.reliability_cues) || 'shown';
+        const s = TRANSPARENCY_STYLES[cues] || TRANSPARENCY_STYLES.shown;
+        elements.transparencyLevelIcon.title = s.label;
     }
 
     // Prompt level icon
@@ -642,23 +641,26 @@ function showAgentInfo() {
         llmIconEl.src = '/static/icon_llm_cloud.svg';
         llmIconEl.alt = 'LLM';
 
-        // Transparency type icon (procedural banners or content-based scores)
+        // Reliability cues icon
         const ttIconEl = document.getElementById('transparency-type-icon');
         if (ttIconEl) {
-            // Determine transparency type: explicit config, or infer from agent type + transparency level
-            let ttType = 'content';  // default
-            const configTT = state.currentAgent.transparency_type;
-            if (configTT === 'procedural' || configTT === 'content') {
-                ttType = configTT;
-            } else if (agentType.includes('vectorless') ||
-                       state.currentAgent.transparency_level === 'scaffolded') {
-                ttType = 'procedural';
+            const cues = state.currentAgent.reliability_cues || 'shown';
+            const tl = state.currentAgent.transparency_level || 'black_box';
+            const hasCues = (cues === 'shown');
+            const hasTransparency = (tl === 'crystal_box');
+            if (hasCues && hasTransparency) {
+                ttIconEl.src = '/static/icon_procedural.svg';
+                ttIconEl.alt = 'Reliability cues + Transparency';
+            } else if (hasCues) {
+                ttIconEl.src = '/static/icon_procedural.svg';
+                ttIconEl.alt = 'Reliability cues (banners)';
+            } else if (hasTransparency) {
+                ttIconEl.src = '/static/icon_content.svg';
+                ttIconEl.alt = 'Transparency (SQL/sources)';
+            } else {
+                ttIconEl.src = '/static/icon_black_box.svg';
+                ttIconEl.alt = 'No reliability cues';
             }
-            console.log('Transparency type:', ttType, '(config:', configTT, 'agentType:', agentType, 'level:', state.currentAgent.transparency_level, ')');
-            ttIconEl.src = ttType === 'procedural' ? '/static/icon_procedural.svg' : '/static/icon_content.svg';
-            ttIconEl.alt = ttType === 'procedural' ? 'Procedural transparency' : 'Content-based transparency';
-            // Store for tooltip
-            state._transparencyType = ttType;
         }
 
         elements.agentInfoSection.classList.remove('hidden');
@@ -674,21 +676,10 @@ function showAgentInfo() {
         elements.agentDescription.classList.add('hidden');
     }
 
-    // Apply user's login-time transparency preference (overrides agent default)
-    // But NOT for scaffolded agents — they use their own transparency system
-    const agentTransparency = state.currentAgent.transparency_level || '';
-    const isScaffoldedAgent = SCAFFOLDING_LEVELS.includes(agentTransparency);
-    if (!isScaffoldedAgent) {
-        const userTransparency = localStorage.getItem('tommi_transparency');
-        if (userTransparency && TRANSPARENCY_LEVELS.includes(userTransparency)) {
-            state.currentAgent.transparency_level = userTransparency;
-        }
-    }
-
-    // Show transparency level icon in the info row
+    // Show reliability cues icon in the info row
     if (elements.transparencyLevelIcon) {
-        const level = state.currentAgent.transparency_level || '';
-        const s = TRANSPARENCY_STYLES[level];
+        const cues = state.currentAgent.reliability_cues || 'shown';
+        const s = TRANSPARENCY_STYLES[cues];
         if (s) {
             elements.transparencyLevelIcon.src = s.icon;
             elements.transparencyLevelIcon.alt = s.label;
@@ -756,38 +747,34 @@ function hideAgentInfo() {
 
 // Transparency badge rendering and cycling
 const TRANSPARENCY_LEVELS = ['crystal_box', 'grey_box', 'black_box'];
-const SCAFFOLDING_LEVELS = ['scaffolded', 'unscaffolded'];
+const SCAFFOLDING_LEVELS = ['shown', 'hidden'];
 const TRANSPARENCY_STYLES = {
-    crystal_box:   { label: 'Crystal box',   icon: '/static/icon_crystal_box.svg', color: '#000000', bg: '#ffffff' },
-    grey_box:      { label: 'Grey box',      icon: '/static/icon_grey_box.svg',    color: '#000000', bg: '#ffffff' },
-    black_box:     { label: 'Black box',     icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
-    scaffolded:           { label: 'Crystal box', icon: '/static/icon_crystal_box.svg', color: '#000000', bg: '#ffffff' },
-    unscaffolded:         { label: 'Black box',   icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
+    crystal_box:   { label: 'Transparency: Full',   icon: '/static/icon_crystal_box.svg', color: '#000000', bg: '#ffffff' },
+    grey_box:      { label: 'Transparency: Partial', icon: '/static/icon_grey_box.svg',    color: '#000000', bg: '#ffffff' },
+    black_box:     { label: 'Hidden',                icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
+    shown:         { label: 'Reliability cues: Shown', icon: '/static/icon_crystal_box.svg', color: '#000000', bg: '#ffffff' },
+    hidden:        { label: 'Reliability cues: Hidden', icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
 };
 
 
 function cycleTransparency() {
-    // Study mode: transparency is locked to the assigned condition
+    // Study mode: locked to assigned condition
     if (localStorage.getItem('tommi_study_mode') === 'true') return;
-    if (!state.currentAgent || !state.currentAgent.transparency_level) return;
-    const current = state.currentAgent.transparency_level;
-    // Use the appropriate level set for this agent type
-    const levels = SCAFFOLDING_LEVELS.includes(current) ? SCAFFOLDING_LEVELS : TRANSPARENCY_LEVELS;
-    const idx = levels.indexOf(current);
-    const next = levels[(idx + 1) % levels.length];
-    // Client-side only — sent as param with each request
-    state.currentAgent.transparency_level = next;
-    localStorage.setItem('tommi_transparency', next);
+    if (!state.currentAgent) return;
+    // Toggle reliability cues: shown <-> hidden
+    const current = state.currentAgent.reliability_cues || 'shown';
+    const next = current === 'shown' ? 'hidden' : 'shown';
+    state.currentAgent.reliability_cues = next;
     // Update the icon in the info row
     if (elements.transparencyLevelIcon) {
-        const s = TRANSPARENCY_STYLES[next] || TRANSPARENCY_STYLES.grey_box;
+        const s = TRANSPARENCY_STYLES[next] || TRANSPARENCY_STYLES.shown;
         elements.transparencyLevelIcon.src = s.icon;
         elements.transparencyLevelIcon.alt = s.label;
-        elements.transparencyLevelIcon.title = `Transparency: ${s.label}`;
+        elements.transparencyLevelIcon.title = s.label;
     }
 }
 
-// Prompt badge for scaffolded agents (shown in sidebar instead of transparency)
+// Prompt badge for agents with reliability cues (shown in sidebar)
 const SUPERVISION_STYLES = {
     stringent: { label: 'Stringent', dot: '\uD83D\uDFE2', color: '#155724', bg: '#d4edda' },
     tolerant:  { label: 'Tolerant',  dot: '\uD83D\uDFE1', color: '#856404', bg: '#fff3cd' },
@@ -1690,8 +1677,8 @@ async function sendMessage(message) {
         if (state.currentModel) {
             params.append('model', state.currentModel);
         }
-        if (state.currentAgent && state.currentAgent.transparency_level) {
-            params.append('transparency', state.currentAgent.transparency_level);
+        if (state.currentAgent && state.currentAgent.reliability_cues) {
+            params.append('transparency', state.currentAgent.reliability_cues);
         }
         if (state.currentAgent && state.currentAgent.prompt_level) {
             params.append('prompt_level', state.currentAgent.prompt_level);
@@ -3265,7 +3252,8 @@ function _renderConfigForm(config, prompts, role) {
         html += _cfgField('Agent ID', 'cfg-agent-id', 'text', c.agent_id || '');
     }
     html += _cfgField('Prompt level', 'cfg-prompt-level', 'select', c.prompt_level || 'stringent', ['stringent', 'tolerant', 'lax']);
-    html += _cfgField('Transparency', 'cfg-transparency', 'select', c.transparency_level || 'scaffolded', ['scaffolded', 'unscaffolded']);
+    html += _cfgField('Reliability cues', 'cfg-reliability-cues', 'select', c.reliability_cues || 'shown', ['shown', 'hidden']);
+    html += _cfgField('Transparency (Text2SQL)', 'cfg-transparency-level', 'select', c.transparency_level || 'black_box', ['crystal_box', 'black_box']);
     // LLM provider + model selector
     html += _cfgField('LLM provider', 'cfg-llm-provider', 'select', _cfgLlmProvider, ['mistral', 'ollama']);
     html += `<div class="cfg-field" style="margin-bottom:0.6rem;">
@@ -3318,6 +3306,7 @@ function _renderConfigForm(config, prompts, role) {
         // Load models for current provider
         _cfgLoadModels(_cfgLlmProvider, _cfgLlmModel);
     }
+
 }
 
 async function _cfgLoadModels(provider, selectedModel) {
@@ -3366,7 +3355,8 @@ async function saveAgentConfig(agentId) {
     config.description = document.getElementById('cfg-description').value.trim();
     config.welcome_message = document.getElementById('cfg-welcome').value.trim();
     config.prompt_level = document.getElementById('cfg-prompt-level').value;
-    config.transparency_level = document.getElementById('cfg-transparency').value;
+    config.reliability_cues = document.getElementById('cfg-reliability-cues').value;
+    config.transparency_level = document.getElementById('cfg-transparency-level').value;
     config.reliability_display = document.getElementById('cfg-reliability-display').value;
     config.humility_level = document.getElementById('cfg-humility').value;
     config.show_history = document.getElementById('cfg-show-history').checked;
@@ -3433,40 +3423,25 @@ async function saveAgentConfig(agentId) {
         }
 
         // Update state so icons refresh immediately
+        state.currentAgent.reliability_cues = config.reliability_cues;
         state.currentAgent.transparency_level = config.transparency_level;
         state.currentAgent.prompt_level = config.prompt_level;
         state.currentAgent.description = config.description;
         state.currentAgent.agent_name = config.agent_name;
         state.currentAgent.welcome_message = config.welcome_message;
 
-        // Refresh transparency level icon
+        // Refresh reliability cues icon
         if (elements.transparencyLevelIcon) {
-            const s = TRANSPARENCY_STYLES[config.transparency_level];
-            if (s) {
-                elements.transparencyLevelIcon.src = s.icon;
-                elements.transparencyLevelIcon.alt = s.label;
-            }
+            const cues = config.reliability_cues || 'shown';
+            const s = TRANSPARENCY_STYLES[cues] || TRANSPARENCY_STYLES.shown;
+            elements.transparencyLevelIcon.src = s.icon;
+            elements.transparencyLevelIcon.alt = s.label;
         }
 
         // Refresh prompt level icon
         if (elements.promptLevelIcon && config.prompt_level) {
             const s = SUPERVISION_STYLES[config.prompt_level] || SUPERVISION_STYLES.stringent;
             elements.promptLevelIcon.textContent = s.dot;
-        }
-
-        // Refresh transparency type icon
-        const ttIconEl = document.getElementById('transparency-type-icon');
-        if (ttIconEl) {
-            let ttType = 'content';
-            const agentType = state.currentAgent.agent_type || '';
-            if (config.transparency_type === 'procedural' || config.transparency_type === 'content') {
-                ttType = config.transparency_type;
-            } else if (agentType.includes('vectorless') || config.transparency_level === 'scaffolded') {
-                ttType = 'procedural';
-            }
-            ttIconEl.src = ttType === 'procedural' ? '/static/icon_procedural.svg' : '/static/icon_content.svg';
-            ttIconEl.alt = ttType === 'procedural' ? 'Procedural transparency' : 'Content-based transparency';
-            state._transparencyType = ttType;
         }
 
         updateIconTooltips();

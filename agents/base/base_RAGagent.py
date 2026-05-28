@@ -47,18 +47,24 @@ class BaseRAGAgent:
         # Reliability badge thresholds from config
         self._reliability_green_max_llm = self._config.get("reliability_green_max_llm", 20)
         self._reliability_red_min_llm = self._config.get("reliability_red_min_llm", 50)
-        # Transparency & audit
-        self._transparency = self._config.get("transparency_level", "crystal_box")
+        # Reliability cues & content transparency (two independent dimensions)
+        #   reliability_cues: "shown" (banners visible) or "hidden" — all agents
+        #   transparency_level: "crystal_box" (SQL/sources visible) or "black_box" — Text2SQL only
         self._audit_enabled = self._config.get("audit_log_enabled", False)
         self._audit_path = os.path.join(self._agent_dir, "data", "audit_log.jsonl")
-        # Transparency type: "procedural" (banners) or "content" (claim-level scores)
-        # Config overrides the class default if specified
-        transparency_type = self._config.get("transparency_type")
-        if transparency_type == "procedural":
-            self._skip_claim_classification = True
-        elif transparency_type == "content":
-            self._skip_claim_classification = False
-        # If not specified in config, keep the class default (set by mixin or False)
+
+        # Reliability cues (procedural banners: green/yellow/red)
+        cues = self._config.get("reliability_cues", "shown")
+        self._show_procedural_banners = (cues == "shown")
+        # For internal compatibility: set _transparency to map cues to the old values
+        self._transparency = "shown" if cues == "shown" else "hidden"
+
+        # Content transparency (SQL queries, source disclosure) — Text2SQL agents
+        self._transparency_level = self._config.get("transparency_level", "black_box")
+        self._show_content_transparency = (self._transparency_level == "crystal_box")
+
+        # Claim-level analysis is not used by any current agent type
+        self._skip_claim_classification = True
 
         # Reliability display mode: "visual", "text_style", "both", "none"
         self._reliability_display = self._config.get("reliability_display", "visual")
@@ -356,7 +362,7 @@ class BaseRAGAgent:
                 "the actual research activity of the alliance."
             )
         elif quality == "high":
-            if self._transparency in ("crystal_box", "scaffolded"):
+            if self._show_procedural_banners or self._show_content_transparency:
                 return (
                     "\n\nSTYLE INSTRUCTION (MANDATORY): The user can see the raw data directly. "
                     "Your role is to offer a possible interpretation, NOT to state conclusions as fact. "
@@ -700,10 +706,8 @@ class BaseRAGAgent:
     # Query helpers
     # ------------------------------------------------------------------
 
-    # NOTE: _audit_log, _extract_claims, _grounding_breakdown, _source_badge,
-    # and _compute_badge_and_breakdown have been extracted to base/badges.py
-    # and base/claims.py.  The authoritative versions live there now.
-    # Mixins call ReliabilityBadge / AuditLogger / GroundingAnalyzer directly.
+    # NOTE: badge rendering and audit logging live in base/badges.py.
+    # Mixins call ReliabilityBadge / AuditLogger directly.
     @staticmethod
     def _is_followup_query(user_message: str) -> bool:
         """Detect short follow-up queries."""

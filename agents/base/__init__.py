@@ -5,7 +5,6 @@ Provides shared functionality for all TOMMI agents:
 - BaseRAGAgent: core config, ChromaDB, prompt assembly, document indexing
 - SimpleRAGMixin: chat/chat_stream for plain RAG agents
 - MetadataRAGMixin: chat/chat_stream + metadata, maps, researchers for EH agents
-- ClaimExtractor, GroundingAnalyzer: claim extraction and grounding analysis
 - ReliabilityBadge, AuditLogger: transparency badges and EU AI Act audit logging
 - HumilityRewriter: post-processing to soften ungrounded claims
 """
@@ -15,7 +14,6 @@ from .rag_mixin import SimpleRAGMixin
 from .rag_metadata_mixin import MetadataRAGMixin
 from .vectorless_mixin import VectorlessMixin
 from .simple_vectorless_mixin import SimpleVectorlessMixin
-from .claims import ClaimExtractor, GroundingAnalyzer
 from .badges import ReliabilityBadge, AuditLogger
 from .humility import HumilityRewriter
 
@@ -25,8 +23,6 @@ __all__ = [
     "MetadataRAGMixin",
     "VectorlessMixin",
     "SimpleVectorlessMixin",
-    "ClaimExtractor",
-    "GroundingAnalyzer",
     "ReliabilityBadge",
     "AuditLogger",
     "HumilityRewriter",

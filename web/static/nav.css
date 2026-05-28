@@ -43,6 +43,16 @@
     font-size: 0.75rem;
 }
 .uninovis-nav-btn:hover { background: rgba(255,255,255,0.22); }
+.uninovis-nav-logout {
+    background: rgba(220,38,38,0.7);
+    border: 1px solid rgba(220,38,38,0.9);
+    color: #fff;
+    padding: 3px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+.uninovis-nav-logout:hover { background: rgba(220,38,38,0.9); }
 
 /* Push body content below fixed nav */
 body.has-uninovis-nav { padding-top: 42px; }

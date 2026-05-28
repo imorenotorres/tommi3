@@ -612,7 +612,7 @@ assert len(BENCHMARK_QUERIES) == 100, f"Expected 100 queries, got {len(BENCHMARK
 
 def api_chat_stream(server: str, token: str, agent_id: str, query: str,
                     model: str = None, prompt_level: str = "stringent",
-                    transparency_level: str = "scaffolded",
+                    transparency_level: str = "shown",
                     timeout: int = 180) -> dict:
     """Send a query via SSE streaming and collect the full response + banner."""
     params = {
@@ -962,8 +962,8 @@ def main():
     parser.add_argument("--delay", type=float, default=2.0, help="Delay between queries in seconds (default: 2)")
     parser.add_argument("--prompt-level", default="stringent",
                         choices=["stringent", "tolerant", "lax"], help="Prompt level (default: stringent)")
-    parser.add_argument("--transparency", default="scaffolded",
-                        choices=["scaffolded", "unscaffolded"], help="Transparency level (default: scaffolded)")
+    parser.add_argument("--transparency", default="shown",
+                        choices=["shown", "hidden"], help="Reliability cues level (default: shown)")
     args = parser.parse_args()
 
     # Authenticate

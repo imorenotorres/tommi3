@@ -78,8 +78,7 @@
   },
   "gap_analysis_examples": "algorithmic auditing, AI safety, data sovereignty, human-AI interaction, AI and disability, AI and environmental impact, AI red-teaming, adversarial robustness, AI supply chain ethics",
   "prompt_level": "stringent",
-  "transparency_level": "scaffolded",
-  "_transparency_level_comment": "scaffolded = inline pragmatic banners (green/yellow/red/white) providing cognitive scaffolding for trust calibration. unscaffolded = no banners, plain responses (for research comparison).",
+  "transparency_level": "black_box",
   "audit_log_enabled": true,
   "_audit_log_comment": "Logs decision events to data/audit_log.jsonl for EU AI Act compliance. Each query records: timestamp, query, source type, breakdown, confidence, query type, context sources used.",
   "reliability_green_max_llm": 20,
@@ -102,7 +101,6 @@
   },
   "reliability_display": "both",
   "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "transparency_type": "procedural",
   "humility_level": "moderate",
   "extra_scope_terms": [
     "green ai",
@@ -175,5 +173,6 @@
     "large language model",
     "llm"
   ],
-  "_extra_scope_terms_comment": "Additional terms that are within the Responsible AI domain but may not appear in the glossary or paper topics. Used by the two-axis banner system to distinguish on-topic queries from off-topic ones."
+  "_extra_scope_terms_comment": "Additional terms that are within the Responsible AI domain but may not appear in the glossary or paper topics. Used by the two-axis banner system to distinguish on-topic queries from off-topic ones.",
+  "reliability_cues": "shown"
 }

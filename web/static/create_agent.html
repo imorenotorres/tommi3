@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Agent - Tommi</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/nav.css">
     <style>
         .create-agent-container {
             max-width: 800px;
@@ -271,6 +272,8 @@
     <!-- End Matomo Code -->
 </head>
 <body>
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ crumbs: [{label:'AI Agents', href:'/'}], current: 'Create Agent' });</script>
     <div class="create-agent-container">
         <div class="create-agent-header">
             <h1>Create New Agent</h1>
@@ -295,6 +298,13 @@
                             <div>
                                 <strong>RAG</strong>
                                 <div class="hint">Semantic search in documents (ChromaDB)</div>
+                            </div>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="agent_type" value="rag_vectorless">
+                            <div>
+                                <strong>RAG Vectorless</strong>
+                                <div class="hint">BM25 keyword search in documents (no ChromaDB needed)</div>
                             </div>
                         </label>
                         <label class="radio-option">
@@ -394,6 +404,17 @@
                         <label for="rag_folder">Documents Folder</label>
                         <div class="hint">Select a folder containing documents for RAG (PDF, TXT, MD, DOCX)</div>
                         <input type="file" id="rag_folder" name="rag_documents"
+                               webkitdirectory directory multiple>
+                    </div>
+                    <div class="hint" style="margin-top: 0.5rem; color: #dc2626;">
+                        Note: Folder selection only works with Chrome. You can also add documents later to the agent's data/docs/ folder.
+                    </div>
+                </div>
+                <div id="data-rag-vectorless" class="conditional-field">
+                    <div class="form-group">
+                        <label for="rag_vectorless_folder">Documents Folder</label>
+                        <div class="hint">Select a folder containing documents (PDF, TXT, MD). A keyword index (chunk_db.json) will be built automatically.</div>
+                        <input type="file" id="rag_vectorless_folder" name="rag_vectorless_documents"
                                webkitdirectory directory multiple>
                     </div>
                     <div class="hint" style="margin-top: 0.5rem; color: #dc2626;">
@@ -601,22 +622,24 @@
             document.querySelector('input[name="agent_type"]:checked').closest('.radio-option').classList.add('selected');
 
             // Show/hide data fields
+            var isRAGType = (agentType === 'rag' || agentType === 'rag_vectorless' || agentType === 'rag_metadata');
             document.getElementById('data-oneshot').classList.toggle('visible', agentType === 'oneshot');
             document.getElementById('data-rag').classList.toggle('visible', agentType === 'rag');
+            document.getElementById('data-rag-vectorless').classList.toggle('visible', agentType === 'rag_vectorless');
             document.getElementById('data-rag-metadata').classList.toggle('visible', agentType === 'rag_metadata');
             document.getElementById('data-sql').classList.toggle('visible', agentType === 'text2sql');
 
-            // Show/hide options section (chunking option for rag/rag_metadata)
+            // Show/hide options section (chunking option for RAG types)
             document.getElementById('options-section').style.display =
-                (agentType === 'rag' || agentType === 'rag_metadata') ? 'block' : 'none';
+                isRAGType ? 'block' : 'none';
 
             // Show/hide RAG-specific options
             document.getElementById('rag-context-option').style.display =
-                (agentType === 'rag' || agentType === 'rag_metadata') ? 'block' : 'none';
+                isRAGType ? 'block' : 'none';
 
-            // Show/hide reliability badge options (RAG+Metadata only)
+            // Show/hide reliability badge options (RAG+Metadata and RAG Vectorless)
             document.getElementById('reliability-options').style.display =
-                (agentType === 'rag_metadata') ? 'block' : 'none';
+                (agentType === 'rag_metadata' || agentType === 'rag_vectorless') ? 'block' : 'none';
 
             // Load appropriate prompt templates
             loadPromptTemplates(agentType);

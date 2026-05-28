@@ -1,30 +1,35 @@
 {
   "agent_id": "tommi_tutor",
   "agent_name": "Tommi Virtual Tutor",
-  "type": "rag",
+  "type": "rag_vectorless",
   "description": "Virtual tutor specialized in teaching about AI Agents development using the TOMMI framework",
   "welcome_message": "Hello! I'm Tommi, your virtual tutor for AI Agent development with the TOMMI framework. How can I help you?",
   "show_history": true,
   "example_queries": [
     "Which agent types exist in TOMMI?",
     "How do I create a RAG agent?",
-    "Is TOMMI is transparent?",
+    "Is TOMMI transparent?",
     "Explain the difference between RAG and RAG+Metadata",
     "How do I configure Ollama as the LLM provider?"
   ],
   "prompt_level": "stringent",
-  "transparency_level": "crystal_box",
+  "transparency_level": "black_box",
   "audit_log_enabled": true,
+  "_audit_log_comment": "Logs decision events to data/audit_log.jsonl. Each query records: timestamp, query, source type, context sources used.",
   "reliability_green_max_llm": 20,
   "reliability_red_min_llm": 50,
+  "_reliability_thresholds_comment": "LLM % thresholds for reliability badge colors. Green: LLM <= green_max_llm. Yellow: between. Red: LLM >= red_min_llm.",
   "inline_claim_highlights": {
     "enabled": true,
-    "grounded_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
-    "ungrounded_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
-    "show_legend": true
+    "metadata_style": "background-color:#d4edda;padding:1px 3px;border-radius:3px;border-bottom:2px solid #28a745;",
+    "database_style": "background-color:#fff3cd;padding:1px 3px;border-radius:3px;border-bottom:2px solid #ffc107;",
+    "llm_style": "background-color:#f8d7da;padding:1px 3px;border-radius:3px;border-bottom:2px solid #dc3545;font-style:italic;",
+    "web_style": "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;",
+    "show_legend": true,
+    "_style_comment": "Green = metadata, Yellow = database (RAG), Blue = web search, Red = LLM interpretation"
   },
   "reliability_display": "both",
   "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "transparency_type": "content",
-  "humility_level": "moderate"
+  "humility_level": "moderate",
+  "reliability_cues": "shown"
 }

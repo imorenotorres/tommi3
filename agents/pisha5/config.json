@@ -17,6 +17,6 @@
   "_prompt_level_comment": "stringent: reject unverified SQL, show warnings. tolerant: flag issues but execute. lax: minimal validation.",
   "reliability_display": "both",
   "_reliability_display_comment": "Options: visual (color badges only), text_style (hedging language only), both (badges + hedging), none (disabled)",
-  "transparency_type": "content",
-  "humility_level": "moderate"
+  "humility_level": "moderate",
+  "reliability_cues": "shown"
 }

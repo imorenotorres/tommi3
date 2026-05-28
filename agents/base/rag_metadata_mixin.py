@@ -24,7 +24,6 @@ import urllib.parse
 
 logger = logging.getLogger(__name__)
 
-from .claims import ClaimExtractor, GroundingAnalyzer
 
 
 # ---------------------------------------------------------------------------
@@ -3528,8 +3527,9 @@ class MetadataRAGMixin:
         2. **ID verification** — every paper ID is cross-checked against the
            surrounding text to detect ID-title mismatches.
         """
-        # No verification in black_box mode
-        if (transparency or self._transparency) == "black_box":
+        # No verification when reliability cues are hidden
+        effective = transparency or self._transparency
+        if effective in ("black_box", "hidden"):
             return text, 0
 
         # Build lookups
@@ -4011,9 +4011,10 @@ class MetadataRAGMixin:
                 f"{self._get_last_query()}"
             )
 
-        use_procedural = getattr(self, '_skip_claim_classification', False)
-        show_banners = use_procedural and transparency == "scaffolded" and self._should_show_visual_badge()
-        detect_hallucinations = not use_procedural or transparency == "scaffolded"
+        use_procedural = getattr(self, '_show_procedural_banners', False)
+        show_banners = use_procedural and transparency == "shown" and self._should_show_visual_badge()
+        skip_claims = getattr(self, '_skip_claim_classification', False)
+        detect_hallucinations = not skip_claims or transparency == "shown"
 
         # --- Approach D: Programmatic facts + LLM commentary (AI3 only) ---
         factual_section = ""
@@ -4176,53 +4177,17 @@ class MetadataRAGMixin:
 
         highlight_cfg = self._config.get("inline_claim_highlights")
 
-        skip_claims = getattr(self, '_skip_claim_classification', False)
+        # Procedural badge: agent tuning info, banners handle reliability
+        reliability_label = "none"
+        badge = ReliabilityBadge.procedural_badge(
+            transparency=transparency,
+            prompt_level=prompt_level,
+            model_name=self.model_display_name,
+            is_local_llm=self._is_local_llm,
+        )
+        breakdown = {}
 
-        if skip_claims:
-            # AI3 procedural badge: agent tuning only, banners handle reliability
-            reliability_label = "none"
-            badge = ReliabilityBadge.procedural_badge(
-                transparency=transparency,
-                prompt_level=prompt_level,
-                model_name=self.model_display_name,
-                is_local_llm=self._is_local_llm,
-            )
-            breakdown = {}
-        elif is_figure_request:
-            # AI2 figure requests: 100% metadata, no claims
-            reliability_label = "High"
-            figure_breakdown = {"metadata_pct": 100, "database_pct": 0, "web_pct": 0, "llm_pct": 0,
-                                "total_claims": 0, "confidence": 100,
-                                "metadata_claims": [], "database_claims": [], "web_claims": [], "llm_claims": []}
-            badge = ReliabilityBadge.source_badge(
-                "Metadata", figure_breakdown,
-                transparency=transparency,
-                highlight_config=highlight_cfg,
-                prompt_level=prompt_level,
-                model_name=self.model_display_name,
-                is_local_llm=self._is_local_llm,
-            )
-            breakdown = figure_breakdown
-        else:
-            # AI2 standard: full claim classification
-            badge, breakdown, reliability_label = ReliabilityBadge.compute_badge_and_breakdown(
-                llm_content, context,
-                metadata_ctx=structured_ctx,
-                web_ctx=web_ctx,
-                transparency=transparency,
-                green_max=self._reliability_green_max_llm,
-                red_min=self._reliability_red_min_llm,
-                highlight_config=highlight_cfg,
-                university_acronyms=university_acronyms,
-                is_gap_analysis=is_gap_analysis,
-                is_not_found=self._is_not_found_response(llm_content),
-                prompt_level=prompt_level,
-                model_name=self.model_display_name,
-                is_local_llm=self._is_local_llm,
-                hallucination_count=hallucination_count,
-            )
-
-        # Humility post-processing: soften ungrounded claims
+        # Humility post-processing
         llm_content = self._humility.rewrite(llm_content, breakdown)
 
         # Only prepend visual badge if configured
@@ -4429,9 +4394,10 @@ class MetadataRAGMixin:
                 f"{self._get_last_query()}"
             )
 
-        use_procedural = getattr(self, '_skip_claim_classification', False)
-        show_banners = use_procedural and transparency == "scaffolded" and self._should_show_visual_badge()
-        detect_hallucinations = not use_procedural or transparency == "scaffolded"
+        use_procedural = getattr(self, '_show_procedural_banners', False)
+        show_banners = use_procedural and transparency == "shown" and self._should_show_visual_badge()
+        skip_claims = getattr(self, '_skip_claim_classification', False)
+        detect_hallucinations = not skip_claims or transparency == "shown"
 
         # --- Approach D: Programmatic facts + LLM commentary (AI3 only) ---
         factual_section = ""
@@ -4654,57 +4620,18 @@ class MetadataRAGMixin:
 
         highlight_cfg = self._config.get("inline_claim_highlights")
 
-        skip_claims = getattr(self, '_skip_claim_classification', False)
-
-        if skip_claims:
-            # AI3 procedural badge: agent tuning only, banners handle reliability
-            reliability_label = "none"
-            if self._should_show_visual_badge():
-                yield ("badge", ReliabilityBadge.procedural_badge(
-                    transparency=transparency,
-                    prompt_level=prompt_level,
-                    model_name=self.model_display_name,
-                    is_local_llm=self._is_local_llm,
-                ))
-            breakdown = {}
-        elif is_figure_request:
-            # AI2 figure requests: 100% metadata, no claims
-            reliability_label = "High"
-            figure_breakdown = {"metadata_pct": 100, "database_pct": 0, "web_pct": 0, "llm_pct": 0,
-                                "total_claims": 0, "confidence": 100,
-                                "metadata_claims": [], "database_claims": [], "web_claims": [], "llm_claims": []}
-            if self._should_show_visual_badge():
-                yield ("badge", ReliabilityBadge.source_badge(
-                    "Metadata", figure_breakdown,
-                    transparency=transparency,
-                    highlight_config=highlight_cfg,
-                    prompt_level=prompt_level,
-                    model_name=self.model_display_name,
-                    is_local_llm=self._is_local_llm,
-                ))
-            breakdown = figure_breakdown
-        else:
-            # AI2 standard: full claim classification
-            badge, breakdown, reliability_label = ReliabilityBadge.compute_badge_and_breakdown(
-                full_response, context,
-                metadata_ctx=structured_ctx,
-                web_ctx=web_ctx,
+        # Procedural badge: agent tuning info, banners handle reliability
+        reliability_label = "none"
+        if self._should_show_visual_badge():
+            yield ("badge", ReliabilityBadge.procedural_badge(
                 transparency=transparency,
-                green_max=self._reliability_green_max_llm,
-                red_min=self._reliability_red_min_llm,
-                highlight_config=highlight_cfg,
-                university_acronyms=university_acronyms,
-                is_gap_analysis=is_gap_analysis,
-                is_not_found=self._is_not_found_response(full_response),
                 prompt_level=prompt_level,
                 model_name=self.model_display_name,
                 is_local_llm=self._is_local_llm,
-                hallucination_count=hallucination_count,
-            )
-            if self._should_show_visual_badge() and badge:
-                yield ("badge", badge)
+            ))
+        breakdown = {}
 
-        # Humility post-processing: soften ungrounded claims
+        # Humility post-processing
         humbled = self._humility.rewrite(full_response, breakdown)
         if humbled != full_response:
             full_response = humbled
@@ -4721,23 +4648,6 @@ class MetadataRAGMixin:
             )
             full_response += offer_text
             yield offer_text
-
-        # Send claim highlights (development only)
-        if transparency == "crystal_box":
-            highlight_cfg_obj = self._config.get("inline_claim_highlights", {})
-            if (highlight_cfg_obj.get("enabled", False)
-                    and breakdown.get("total_claims", 0) > 0):
-                yield ("claim_highlights", json.dumps({
-                    "metadata": breakdown.get("metadata_claims", []),
-                    "database": breakdown.get("database_claims", []),
-                    "web": breakdown.get("web_claims", []),
-                    "llm": breakdown.get("llm_claims", []),
-                    "metadata_style": highlight_cfg_obj.get("metadata_style", ""),
-                    "database_style": highlight_cfg_obj.get("database_style", ""),
-                    "web_style": highlight_cfg_obj.get("web_style", "background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;"),
-                    "llm_style": highlight_cfg_obj.get("llm_style", ""),
-                    "gap_analysis": is_gap_analysis,
-                }))
 
         # Determine query type and context sources for audit
         if is_web_expand:

@@ -10,9 +10,6 @@ import hashlib
 import json
 import os
 
-from .claims import GroundingAnalyzer
-
-
 class ReliabilityBadge:
     """Unified reliability badge renderer for all TOMMI agent variants."""
 
@@ -36,13 +33,13 @@ class ReliabilityBadge:
 
     @staticmethod
     def procedural_badge(
-        transparency: str = "scaffolded",
+        transparency: str = "shown",
         prompt_level: str = None,
         model_name: str = None,
         is_local_llm: bool = False,
         **kwargs,
     ) -> str:
-        """Agent tuning badge for scaffolded transparency agents (AI3).
+        """Agent tuning badge for agents with procedural reliability cues.
 
         Returns empty string — review need is shown in the sidebar,
         and procedural banners handle reliability inline.

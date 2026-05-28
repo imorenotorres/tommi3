@@ -1,6 +1,5 @@
 """
-Tommi virtual tutor - Servidor FastAPI (RAG)
-Versión RAG con búsqueda semántica usando ChromaDB
+Tommi virtual tutor - Servidor FastAPI (Vectorless RAG)
 """
 
 # Activar venv automáticamente si no está activo
@@ -11,6 +10,7 @@ from venv_helper import ensure_venv
 ensure_venv()
 
 import os
+import json
 from contextlib import asynccontextmanager
 from typing import Optional
 from dotenv import load_dotenv
@@ -23,18 +23,21 @@ load_dotenv()
 
 from agent import Agent
 
-# Configuración del agente
+# Load configuration from config.json
+_config_path = os.path.join(os.path.dirname(__file__), "config.json")
+_config = {}
+if os.path.exists(_config_path):
+    with open(_config_path, "r", encoding="utf-8") as _f:
+        _config = json.load(_f)
+
 AGENT_CONFIG = {
-    "id": "tommi_tutor",
-    "name": "Tommi virtual tutor",
-    "type": "rag",
-    "description": "Your virtual tutor to learn the basics of AI Agents development with Tommi, and somme advanced options also",
-    "welcome_message": "Hi, I am Tommi virtual tutor. Is there anything I can do for you today?",
-    "example_queries": ["Which types of agents can I create with Tommi?", 
-                        "Is Tommi open source?", 
-                        "Which open source LLMs can I use with Tommi?",
-                        "Can I use a non-quantized Mistral-large LLM with Ollama",
-                        "Explain Error 101"]
+    "id": _config.get("agent_id", "tommi_tutor"),
+    "name": _config.get("agent_name", "Tommi Virtual Tutor"),
+    "type": _config.get("type", "rag_vectorless"),
+    "description": _config.get("description", ""),
+    "welcome_message": _config.get("welcome_message", ""),
+    "show_history": _config.get("show_history", True),
+    "example_queries": _config.get("example_queries", []),
 }
 
 agent: Agent = None
