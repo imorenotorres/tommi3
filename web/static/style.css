@@ -932,6 +932,11 @@ body {
     box-sizing: border-box !important;
 }
 
+/* Ensure Leaflet popup content scrolls */
+.leaflet-popup-content {
+    overflow-y: auto;
+}
+
 /* ── Feedback widget ─────────────────────────────────────────── */
 .feedback-widget {
     display: flex;

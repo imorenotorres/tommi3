@@ -1229,14 +1229,15 @@ function replaceMapLinksWithPlaceholders(text) {
     console.log('[MAP DEBUG] text contains "collaboration-map":', text.includes('collaboration-map'));
     console.log('[MAP DEBUG] text contains "projects-map":', text.includes('projects-map'));
     console.log('[MAP DEBUG] text contains "project-topic-map":', text.includes('project-topic-map'));
-    return text.replace(/\[([^\]]+)\]\(([^)]*(?:project-topic-map|projects-map|topic-map|publications-map|collaboration-map)[^)]*)\)/g, (match, linkText, href) => {
+    return text.replace(/\[([^\]]+)\]\(([^)]*(?:project-topic-map|projects-map|topic-map|publications-map|collaboration-map|agreements-map)[^)]*)\)/g, (match, linkText, href) => {
         console.log('[MAP DEBUG] Matched link:', match, '-> href:', href);
         const mapId = 'topic-map-' + (++state.mapCounter);
         let dataUrl;
         const mapType = href.includes('project-topic-map') ? 'project-topic' :
                          href.includes('projects-map') ? 'projects' :
                          href.includes('collaboration-map') ? 'collaboration' :
-                         href.includes('publications-map') ? 'publications' : 'topic';
+                         href.includes('publications-map') ? 'publications' :
+                         href.includes('agreements-map') ? 'agreements' : 'topic';
         if (mapType === 'project-topic') {
             dataUrl = href.replace('project-topic-map', 'project-topic-search');
         } else if (mapType === 'projects') {
@@ -1245,6 +1246,8 @@ function replaceMapLinksWithPlaceholders(text) {
             dataUrl = href.replace('collaboration-map', 'collaboration-search');
         } else if (mapType === 'publications') {
             dataUrl = href.replace('publications-map', 'publications-search');
+        } else if (mapType === 'agreements') {
+            dataUrl = href.replace('agreements-map', 'agreements-search');
         } else {
             dataUrl = href.replace('topic-map', 'topic-search');
         }
@@ -1296,17 +1299,28 @@ function renderInlineMapPlaceholders(container) {
                 L.latLng(66, 27)
             );
 
-            const map = L.map(mapId, {
+            // Agreements maps need world view; other maps are Europe-only
+            const isAgreements = (mapType === 'agreements');
+            const mapOptions = isAgreements ? {
+                zoomControl: true,
+                attributionControl: false,
+                minZoom: 2,
+                maxZoom: 18
+            } : {
                 maxBounds: fitBounds.pad(0.1),
                 maxBoundsViscosity: 1.0,
                 minZoom: 4,
                 maxZoom: 10,
                 zoomControl: true,
                 attributionControl: false
-            }).fitBounds(fitBounds, { padding: [20, 10] });
+            };
+            const map = L.map(mapId, mapOptions);
+            if (!isAgreements) {
+                map.fitBounds(fitBounds, { padding: [20, 10] });
+            }
 
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                maxZoom: 10
+                maxZoom: isAgreements ? 18 : 10
             }).addTo(map);
 
             if (mapType === 'collaboration') {
@@ -1500,6 +1514,81 @@ function renderInlineMapPlaceholders(container) {
                     });
                 });
 
+            } else if (mapType === 'agreements') {
+                // --- Agreements map: markercluster with university-level data ---
+                const markers = result.markers || [];
+                const center = result.center || [20, 0];
+                const zoom = result.zoom || 2;
+
+                // If server specifies a specific view (country/continent query), use it.
+                // Otherwise default to a fixed world view showing all continents.
+                if (result.has_geo_filter) {
+                    map.setView(center, zoom);
+                } else {
+                    map.setView([25, 15], 2);
+                }
+
+                // Create markercluster group
+                const clusterGroup = L.markerClusterGroup({
+                    maxClusterRadius: 40,
+                    spiderfyOnMaxZoom: true,
+                    showCoverageOnHover: false,
+                    zoomToBoundsOnClick: true,
+                    iconCreateFunction: function(cluster) {
+                        const count = cluster.getChildCount();
+                        let size = 36, cls = 'small';
+                        if (count >= 100) { size = 52; cls = 'large'; }
+                        else if (count >= 20) { size = 44; cls = 'medium'; }
+                        return L.divIcon({
+                            html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;' +
+                                  'background:rgba(37,99,235,0.7);border:2px solid #1e40af;' +
+                                  'display:flex;align-items:center;justify-content:center;' +
+                                  'color:#fff;font-weight:bold;font-size:' + (cls === 'large' ? 15 : 13) + 'px;' +
+                                  'text-shadow:0 1px 2px rgba(0,0,0,0.4);">' + count + '</div>',
+                            className: 'marker-cluster marker-cluster-' + cls,
+                            iconSize: L.point(size, size)
+                        });
+                    }
+                });
+
+                // "Open in new window" handler for agreement popups
+                window._algoriaOpenDetail = function(key) {
+                    const data = window._algoriaDetailData && window._algoriaDetailData[key];
+                    if (!data) return;
+                    const w = window.open('', '_blank', 'width=700,height=600');
+                    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8">' +
+                        '<title>' + data.title + '</title>' +
+                        '<style>body{font-family:system-ui,sans-serif;margin:20px;color:#1a1a1a;line-height:1.5;}' +
+                        'b{color:#334155;}</style></head><body>' +
+                        '<h2>' + data.title + '</h2>' + data.html +
+                        '</body></html>');
+                    w.document.close();
+                };
+                window._algoriaDetailData = window._algoriaDetailData || {};
+
+                markers.forEach(function(m) {
+                    // Store detail data for "open in new window"
+                    if (m.detail_key) {
+                        window._algoriaDetailData[m.detail_key] = {
+                            title: m.detail_title || m.university || '',
+                            html: m.detail_html || ''
+                        };
+                    }
+                    // Each marker represents a university with m.count agreements
+                    const radius = Math.max(6, Math.min(18, 6 + Math.sqrt(m.count) * 2));
+                    const marker = L.circleMarker([m.lat, m.lon], {
+                        radius: radius,
+                        fillColor: '#2563eb',
+                        color: '#1e40af',
+                        weight: 1.5,
+                        opacity: 0.9,
+                        fillOpacity: 0.65
+                    }).bindPopup(m.popup, { maxWidth: 500, maxHeight: 400, autoPan: true, autoPanPadding: L.point(20, 20) });
+                    clusterGroup.addLayer(marker);
+                });
+
+                map.addLayer(clusterGroup);
+
             } else {
                 // --- Topic / Publications map: circle markers ---
                 const data = result.universities || {};
@@ -1568,7 +1657,9 @@ function renderInlineMapPlaceholders(container) {
             // Force resize after map is in the DOM, then re-fit bounds
             setTimeout(() => {
                 map.invalidateSize();
-                map.fitBounds(fitBounds, { padding: [20, 10] });
+                if (mapType !== 'agreements') {
+                    map.fitBounds(fitBounds, { padding: [20, 10] });
+                }
             }, 300);
 
         } catch (err) {
@@ -1791,7 +1882,8 @@ async function sendMessage(message) {
 
         eventSource.addEventListener('error', (event) => {
             // Preserve any banners/content already rendered before showing the error
-            const existing = badgeHtml + (responseText ? marked.parse(cleanPdfLinks(responseText)) : '');
+            const processed = responseText ? replaceMapLinksWithPlaceholders(cleanPdfLinks(responseText)) : '';
+            const existing = badgeHtml + (processed ? marked.parse(processed) : '');
             if (event.data) {
                 // Try to parse as JSON (structured error)
                 try {
@@ -1808,14 +1900,17 @@ async function sendMessage(message) {
             eventSource.close();
             state.isLoading = false;
             elements.sendButton.disabled = false;
+            renderInlineMapPlaceholders(responseDiv);
         });
 
         eventSource.onerror = () => {
             eventSource.close();
-            const existing = badgeHtml + (responseText ? marked.parse(cleanPdfLinks(responseText)) : '');
+            const processed = responseText ? replaceMapLinksWithPlaceholders(cleanPdfLinks(responseText)) : '';
+            const existing = badgeHtml + (processed ? marked.parse(processed) : '');
             responseDiv.innerHTML = existing + (existing.trim() ? '' : '<span class="error">Connection error</span>');
             state.isLoading = false;
             elements.sendButton.disabled = false;
+            renderInlineMapPlaceholders(responseDiv);
         };
 
     } catch (error) {

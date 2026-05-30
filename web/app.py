@@ -159,7 +159,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # PDF endpoints are public (academic documents, not personal data)
         # Study app routes are public (participants don't need TOMMI accounts)
         is_study = path.startswith("/study/api/") or path.startswith("/rag-study/api/") or path.startswith("/sql-study/api/")
-        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and not is_study:
+        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and not is_study:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
                 token = request.query_params.get("token", "")
@@ -2746,6 +2746,60 @@ async def agent_project_topic_map(agent_id: str, topic: str = Query(...),
         return HTMLResponse(content=html)
 
     return HTMLResponse(content=f"<html><body><h1>Projects on {title}</h1><pre>{results_json}</pre></body></html>")
+
+
+# ============================================================================
+# Algoria Map — Agreements map endpoint
+# ============================================================================
+
+@app.get("/api/agents/{agent_id}/agreements-config")
+async def agent_agreements_config(agent_id: str):
+    """Returns public config (language, translations) for the agreements map page."""
+    agent_info = runner.get_agent(agent_id)
+    if not agent_info:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    config_path = Path(agent_info.path) / "config.json"
+    if not config_path.exists():
+        return {}
+    import json as json_module
+    with open(config_path, "r", encoding="utf-8") as f:
+        cfg = json_module.load(f)
+    # Only expose language and translations (no sensitive data)
+    return {"language": cfg.get("language", "en"), "translations": cfg.get("translations", {})}
+
+
+@app.get("/api/agents/{agent_id}/agreements-search")
+async def agent_agreements_search(
+    agent_id: str,
+    continent: Optional[str] = Query(None),
+    country: Optional[str] = Query(None),
+    faculty: Optional[str] = Query(None),
+    language: Optional[str] = Query(None),
+    language_level: Optional[str] = Query(None),
+    mobility_program: Optional[str] = Query(None),
+    degree_level: Optional[str] = Query(None),
+    university: Optional[str] = Query(None),
+    uninovis: Optional[bool] = Query(None),
+):
+    """Returns JSON data for the agreements map (markers, center, zoom)."""
+    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+    if not agent_instance:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    if not hasattr(agent_instance, "get_map_data"):
+        raise HTTPException(status_code=400, detail="Agent does not support agreements search")
+
+    filters = {}
+    if continent: filters["continent"] = continent
+    if country: filters["country"] = country
+    if faculty: filters["faculty"] = faculty
+    if language: filters["language"] = language
+    if language_level: filters["language_level"] = language_level
+    if mobility_program: filters["mobility_program"] = mobility_program
+    if degree_level: filters["degree_level"] = degree_level
+    if university: filters["university"] = university
+    if uninovis: filters["uninovis"] = True
+
+    return agent_instance.get_map_data(filters)
 
 
 # ============================================================================

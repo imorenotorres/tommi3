@@ -1,0 +1,4392 @@
+{
+  "UNIVERSITY METROPOLITAN TIRANA": {
+    "lat": 41.3199256,
+    "lon": 19.8305648,
+    "country": "Albania"
+  },
+  "UNIVERSITY OF TIRANA": {
+    "lat": 41.3166196,
+    "lon": 19.8217354,
+    "country": "Albania"
+  },
+  "Albert-Ludwigs-Universität Freiburg": {
+    "lat": 48.0022957,
+    "lon": 7.8491401,
+    "country": "Alemania"
+  },
+  "Alice Salomon Hochschule Berlin": {
+    "lat": 52.5371991,
+    "lon": 13.6060882,
+    "country": "Alemania"
+  },
+  "Anhalt University of Applied Sciences": {
+    "lat": 51.8398414,
+    "lon": 12.2280088,
+    "country": "Alemania"
+  },
+  "Ansbach University of Applied Sciences": {
+    "lat": null,
+    "lon": null,
+    "country": "Alemania"
+  },
+  "Aschaffenburg University of Applied Sciences - AUAS": {
+    "lat": 49.9721189,
+    "lon": 9.161701,
+    "country": "Alemania"
+  },
+  "Bauhaus-Universität Weimar": {
+    "lat": 50.9757134,
+    "lon": 11.3301092,
+    "country": "Alemania"
+  },
+  "Bergische Universität Wuppertal": {
+    "lat": 51.2565046,
+    "lon": 7.1641526,
+    "country": "Alemania"
+  },
+  "Brandenburgische Technische Universität Cottbus-Senftenberg": {
+    "lat": 51.7670579,
+    "lon": 14.3250723,
+    "country": "Alemania"
+  },
+  "CHEMNITZ UNIVERSITY OF TECHNOLOGY": {
+    "lat": 50.8142025,
+    "lon": 12.9293622,
+    "country": "Alemania"
+  },
+  "Christian-Albrechts-Universität zu Kiel": {
+    "lat": 54.3458218,
+    "lon": 10.113073,
+    "country": "Alemania"
+  },
+  "ERNST-ABBE-HOCHSCHULE JENA": {
+    "lat": 50.9183206,
+    "lon": 11.5687484,
+    "country": "Alemania"
+  },
+  "Eberhard Karls Universität Tübingen": {
+    "lat": 48.5227184,
+    "lon": 9.060626,
+    "country": "Alemania"
+  },
+  "Europa-Universität Flensburg": {
+    "lat": 54.7738273,
+    "lon": 9.4521281,
+    "country": "Alemania"
+  },
+  "Europa-Universität Viadrina Frankfurt (Oder)": {
+    "lat": 52.3450983,
+    "lon": 14.5566035,
+    "country": "Alemania"
+  },
+  "Evangelische Hochschule Berlin": {
+    "lat": 52.4232367,
+    "lon": 13.2614947,
+    "country": "Alemania"
+  },
+  "FACHHOCHSCHULE DRESDEN PRIVATE FACHHOCHSCHULE GMBH": {
+    "lat": null,
+    "lon": null,
+    "country": "Alemania"
+  },
+  "FRANKFURT UNIVERSITY OF APPLIED SCIENCES": {
+    "lat": 50.1305335,
+    "lon": 8.6923331,
+    "country": "Alemania"
+  },
+  "FRIEDRICH-ALEXANDER UNIVERSITY ERLANGEN-NÜRNBERG": {
+    "lat": 49.458322,
+    "lon": 11.08546,
+    "country": "Alemania"
+  },
+  "FULDA UNIVERSITY OF APPLIED SCIENCES": {
+    "lat": 50.5655735,
+    "lon": 9.6874525,
+    "country": "Alemania"
+  },
+  "Fachhochschule Potsdam University of Applied Sciences": {
+    "lat": 52.4123583,
+    "lon": 13.0507485,
+    "country": "Alemania"
+  },
+  "Freie Universität Berlin": {
+    "lat": 52.4528565,
+    "lon": 13.2907249,
+    "country": "Alemania"
+  },
+  "Gottfried Wilhelm Leibniz Universität Hannover": {
+    "lat": 52.3744779,
+    "lon": 9.7385532,
+    "country": "Alemania"
+  },
+  "HAMBURG UNIVERSITY OF APPLIED SCIENCES": {
+    "lat": 53.5909051,
+    "lon": 9.9753758,
+    "country": "Alemania"
+  },
+  "HAWK Hochschule Hildesheim/Holzminden/Goettingen": {
+    "lat": 51.8272575,
+    "lon": 9.4509457,
+    "country": "Alemania"
+  },
+  "HEILBRONN UNIVERSITY": {
+    "lat": 49.1225796,
+    "lon": 9.2099329,
+    "country": "Alemania"
+  },
+  "HOCHSCHULE BREMEN, UNIVERSITY OF APPLIED SCIENCES": {
+    "lat": null,
+    "lon": null,
+    "country": "Alemania"
+  },
+  "HOCHSCHULE FUER FORSTWIRTSCHAFT ROTTENBURG": {
+    "lat": 48.4577534,
+    "lon": 8.9427902,
+    "country": "Alemania"
+  },
+  "HOCHSCHULE KARLSRUHE": {
+    "lat": 49.0164075,
+    "lon": 8.3908688,
+    "country": "Alemania"
+  },
+  "HOCHSCHULE TRIER": {
+    "lat": 49.6080794,
+    "lon": 7.169332,
+    "country": "Alemania"
+  },
+  "HOCHSCHULEN FRESENIUS GEMEINNUTZIGE TRAGERGESELLSCHAFT MBH": {
+    "lat": null,
+    "lon": null,
+    "country": "Alemania"
+  },
+  "Heinrich-Heine-Universität Düsseldorf": {
+    "lat": 51.1907733,
+    "lon": 6.7935167,
+    "country": "Alemania"
+  },
+  "Hochschule Emden/Leer": {
+    "lat": 53.3690121,
+    "lon": 7.1843534,
+    "country": "Alemania"
+  },
+  "Hochschule Esslingen": {
+    "lat": 48.7380125,
+    "lon": 9.3114613,
+    "country": "Alemania"
+  },
+  "Hochschule Furtwangen": {
+    "lat": 48.0514527,
+    "lon": 8.2082261,
+    "country": "Alemania"
+  },
+  "Hochschule Harz - Hochschule für Angewandte Wissenschaften (FH)": {
+    "lat": 51.8259513,
+    "lon": 10.7614382,
+    "country": "Alemania"
+  },
+  "Hochschule Hof": {
+    "lat": 50.3252934,
+    "lon": 11.9405309,
+    "country": "Alemania"
+  },
+  "Hochschule Koblenz": {
+    "lat": 50.3356118,
+    "lon": 7.5690961,
+    "country": "Alemania"
+  },
+  "Hochschule München": {
+    "lat": 48.154141,
+    "lon": 11.5562484,
+    "country": "Alemania"
+  },
+  "Hochschule Offenburg": {
+    "lat": 48.457532,
+    "lon": 7.9424181,
+    "country": "Alemania"
+  },
+  "Hochschule Ravensburg-Weingarten": {
+    "lat": 47.8096103,
+    "lon": 9.6441081,
+    "country": "Alemania"
+  },
+  "Hochschule der Medien - HDM": {
+    "lat": 48.7416439,
+    "lon": 9.1010287,
+    "country": "Alemania"
+  },
+  "Hochschule fuer Polizei und oeffentliche Verwaltung Nordrhein-Westfalen": {
+    "lat": 51.4907001,
+    "lon": 7.4012265,
+    "country": "Alemania"
+  },
+  "Hochschule fuer Technik und Wirtschaft Dresden": {
+    "lat": 51.0360298,
+    "lon": 13.7356975,
+    "country": "Alemania"
+  },
+  "Hochschule für Wirtschaft und Umwelt Nürtingen-Geislingen (HfWU)": {
+    "lat": null,
+    "lon": null,
+    "country": "Alemania"
+  },
+  "Humboldt-Universität zu Berlin": {
+    "lat": 52.5183402,
+    "lon": 13.3929202,
+    "country": "Alemania"
+  },
+  "Institut für Fremdsprachen und Auslandskunde bei der Universität Erlangen-Nürnberg": {
+    "lat": 49.458322,
+    "lon": 11.08546,
+    "country": "Alemania"
+  },
+  "International School of Management (ISM)": {
+    "lat": 51.489051,
+    "lon": 7.4062793,
+    "country": "Alemania"
+  },
+  "International University SDI München": {
+    "lat": 48.0968065,
+    "lon": 11.5315775,
+    "country": "Alemania"
+  },
+  "Jade University of Applied Sciences": {
+    "lat": 53.1425015,
+    "lon": 8.2017,
+    "country": "Alemania"
+  },
+  "Johann Wolfgang Goethe-Universität": {
+    "lat": 50.1272173,
+    "lon": 8.6676228,
+    "country": "Alemania"
+  },
+  "Julius-Maximilians-Universität Würzburg": {
+    "lat": 49.7806089,
+    "lon": 9.9716367,
+    "country": "Alemania"
+  },
+  "Justus-Liebig-Universität Giessen": {
+    "lat": 50.5735892,
+    "lon": 8.6999768,
+    "country": "Alemania"
+  },
+  "KATHOLISCHE HOCHSCHULE FREIBURG GGMBH": {
+    "lat": null,
+    "lon": null,
+    "country": "Alemania"
+  },
+  "Kiel University of Applied Sciences": {
+    "lat": 54.3458218,
+    "lon": 10.113073,
+    "country": "Alemania"
+  },
+  "Leuphana Universität Lüneburg": {
+    "lat": 53.2287819,
+    "lon": 10.4014752,
+    "country": "Alemania"
+  },
+  "Ludwig-Maximilians-Universität München - LMU": {
+    "lat": 48.1504758,
+    "lon": 11.5798356,
+    "country": "Alemania"
+  },
+  "MARTIN LUTHER UNIVERSITÄT HALLE-WITTENBERG": {
+    "lat": 51.4842987,
+    "lon": 11.9733091,
+    "country": "Alemania"
+  },
+  "Naturwissenschaftlich-Technische Akademie Isny": {
+    "lat": null,
+    "lon": null,
+    "country": "Alemania"
+  },
+  "OTTO-FRIEDRICH-UNIVERSITAET BAMBERG": {
+    "lat": 49.9073867,
+    "lon": 10.9042038,
+    "country": "Alemania"
+  },
+  "Otto-Von-Guericke-Universität Magdeburg": {
+    "lat": 52.1405894,
+    "lon": 11.6455823,
+    "country": "Alemania"
+  },
+  "Philipps-Universität Marburg": {
+    "lat": 50.8124763,
+    "lon": 8.7722345,
+    "country": "Alemania"
+  },
+  "Rheinisch-Westfälische Technische Hochschule Aachen": {
+    "lat": 50.7791732,
+    "lon": 6.0689207,
+    "country": "Alemania"
+  },
+  "Rheinland-Pfälzische Technische Universität Kaiserslautern-Landau": {
+    "lat": 49.2040667,
+    "lon": 8.1072687,
+    "country": "Alemania"
+  },
+  "Ruhr-Universität Bochum": {
+    "lat": 51.4441576,
+    "lon": 7.2610046,
+    "country": "Alemania"
+  },
+  "TECHNISCHE HOCHSCHULE NURNBERG GEORG SIMON OHM": {
+    "lat": 49.4524152,
+    "lon": 11.0939996,
+    "country": "Alemania"
+  },
+  "TECHNISCHE UNIVERSITAT CLAUSTHAL": {
+    "lat": 51.8019554,
+    "lon": 10.3455053,
+    "country": "Alemania"
+  },
+  "TECHNISCHE UNIVERSITÄT DRESDEN": {
+    "lat": 51.0282765,
+    "lon": 13.7359828,
+    "country": "Alemania"
+  },
+  "TECHNISCHE UNIVERSITÄT ILMENAU": {
+    "lat": 50.6824953,
+    "lon": 10.936496,
+    "country": "Alemania"
+  },
+  "Technical University of Applied Sciences Würzburg-Schweinfurt": {
+    "lat": 50.0447823,
+    "lon": 10.208888,
+    "country": "Alemania"
+  },
+  "Technische Hochschule Köln": {
+    "lat": 50.9340217,
+    "lon": 6.9889108,
+    "country": "Alemania"
+  },
+  "Technische Hochschule Rosenheim - Technical  University of Applied Sciences": {
+    "lat": 47.866926,
+    "lon": 12.1077613,
+    "country": "Alemania"
+  },
+  "Technische Universität Dortmund - TU": {
+    "lat": 51.4914844,
+    "lon": 7.4122739,
+    "country": "Alemania"
+  },
+  "Technische Universität München (TUM)": {
+    "lat": 48.2654976,
+    "lon": 11.6692249,
+    "country": "Alemania"
+  },
+  "UNIVERSITAET MANNHEIM": {
+    "lat": 49.4832445,
+    "lon": 8.4645749,
+    "country": "Alemania"
+  },
+  "UNIVERSITAET VECHTA": {
+    "lat": 52.7198738,
+    "lon": 8.2948385,
+    "country": "Alemania"
+  },
+  "UNIVERSITY OF BREMEN": {
+    "lat": 53.1079646,
+    "lon": 8.8556646,
+    "country": "Alemania"
+  },
+  "Universität Bielefeld": {
+    "lat": 52.0376828,
+    "lon": 8.4932878,
+    "country": "Alemania"
+  },
+  "Universität Duisburg-Essen": {
+    "lat": 51.4641041,
+    "lon": 7.005847,
+    "country": "Alemania"
+  },
+  "Universität Erfurt": {
+    "lat": 50.9909272,
+    "lon": 11.0095474,
+    "country": "Alemania"
+  },
+  "Universität Greifswald": {
+    "lat": 54.0894347,
+    "lon": 13.4048743,
+    "country": "Alemania"
+  },
+  "Universität Hamburg": {
+    "lat": 53.5909051,
+    "lon": 9.9753758,
+    "country": "Alemania"
+  },
+  "Universität Heidelberg": {
+    "lat": 49.4186003,
+    "lon": 8.6692402,
+    "country": "Alemania"
+  },
+  "Universität Hildesheim": {
+    "lat": 52.133874,
+    "lon": 9.9757072,
+    "country": "Alemania"
+  },
+  "Universität Kassel": {
+    "lat": 51.3494162,
+    "lon": 9.8549227,
+    "country": "Alemania"
+  },
+  "Universität Leipzig": {
+    "lat": 51.3384539,
+    "lon": 12.3786386,
+    "country": "Alemania"
+  },
+  "Universität Münster": {
+    "lat": 51.9673422,
+    "lon": 7.5992433,
+    "country": "Alemania"
+  },
+  "Universität Passau": {
+    "lat": 48.5675495,
+    "lon": 13.452108,
+    "country": "Alemania"
+  },
+  "Universität Regensburg": {
+    "lat": 48.9966127,
+    "lon": 12.0940697,
+    "country": "Alemania"
+  },
+  "Universität Rostock": {
+    "lat": 54.4308835,
+    "lon": 12.6856683,
+    "country": "Alemania"
+  },
+  "Universität Siegen": {
+    "lat": 50.892904,
+    "lon": 8.0322158,
+    "country": "Alemania"
+  },
+  "Universität Trier": {
+    "lat": 49.7468633,
+    "lon": 6.687527,
+    "country": "Alemania"
+  },
+  "Universität Ulm": {
+    "lat": 48.4206167,
+    "lon": 9.9470045,
+    "country": "Alemania"
+  },
+  "Universität des Saarlandes": {
+    "lat": 49.2542421,
+    "lon": 7.0415117,
+    "country": "Alemania"
+  },
+  "Universität zu Köln": {
+    "lat": 50.9280445,
+    "lon": 6.9281305,
+    "country": "Alemania"
+  },
+  "Westsächsische Hochschule Zwickau": {
+    "lat": 50.7335118,
+    "lon": 12.5032855,
+    "country": "Alemania"
+  },
+  "UNIVERSITÉ ABDELHAMID IBN BADIS MOSTAGANEM": {
+    "lat": null,
+    "lon": null,
+    "country": "Argelia"
+  },
+  "FACULTAD DE AGRONOMÍA UNIVERSIDAD DE BUENOS AIRES": {
+    "lat": -36.7672451,
+    "lon": -59.8816189,
+    "country": "Argentina"
+  },
+  "INSTITUTO TECNOLOGICO DE BUENOS AIRES": {
+    "lat": -34.6036105,
+    "lon": -58.3677499,
+    "country": "Argentina"
+  },
+  "INSTITUTO UNIVERSITARIO DE CIENCIAS DE LA SALUD. FUNDACIÓN H. A. BARCELÓ PARA EL DESARROLLO DE LA CI": {
+    "lat": null,
+    "lon": null,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD AUSTRAL": {
+    "lat": -46.4334246,
+    "lon": -67.5204523,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD BLAS PASCAL": {
+    "lat": -34.5959933,
+    "lon": -58.3917679,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD CATOLICA DE CORDOBA": {
+    "lat": -31.4863388,
+    "lon": -64.2428419,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD CATOLICA DE SALTA": {
+    "lat": -24.7399497,
+    "lon": -65.392077,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD DE BELGRANO": {
+    "lat": -34.5638653,
+    "lon": -58.4438473,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD DE BUENOS AIRES": {
+    "lat": -34.5086718,
+    "lon": -58.688352,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD DE CONGRESO": {
+    "lat": -32.8950351,
+    "lon": -68.8413918,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD DE MENDOZA": {
+    "lat": -32.8920439,
+    "lon": -68.8612413,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD DEL SALVADOR": {
+    "lat": -34.5992095,
+    "lon": -58.3900408,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD NACIONAL DE AVELLANEDA": {
+    "lat": -34.6636254,
+    "lon": -58.3714604,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD NACIONAL DE CORDOBA": {
+    "lat": -31.4369591,
+    "lon": -64.1876756,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD NACIONAL DE LA PLATA": {
+    "lat": -34.9124004,
+    "lon": -57.9566071,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD NACIONAL DE ROSARIO": {
+    "lat": -32.9461498,
+    "lon": -60.6370036,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD NACIONAL DE SAN MARTIN": {
+    "lat": -34.5802662,
+    "lon": -58.523858,
+    "country": "Argentina"
+  },
+  "UNIVERSIDAD NACIONAL DEL LITORAL": {
+    "lat": -31.6346663,
+    "lon": -60.7051439,
+    "country": "Argentina"
+  },
+  "STATE ACADEMY OF FINE ARTS OF ARMENIA FOUNDATION": {
+    "lat": null,
+    "lon": null,
+    "country": "Armenia"
+  },
+  "VANADZOR STATE UNIVERSITY": {
+    "lat": 40.8087995,
+    "lon": 44.4908309,
+    "country": "Armenia"
+  },
+  "YEREVAN STATE MEDICAL UNIVERSITY": {
+    "lat": 40.1883981,
+    "lon": 44.5258767,
+    "country": "Armenia"
+  },
+  "YEREVAN STATE UNIVERSITY - YSU": {
+    "lat": 40.1811888,
+    "lon": 44.5279094,
+    "country": "Armenia"
+  },
+  "UNIVERSITY OF TECHNOLOGY SIDNEY": {
+    "lat": -33.8832536,
+    "lon": 151.2003294,
+    "country": "Australia"
+  },
+  "FH JOANNEUM GESELLSCHAFT MBH": {
+    "lat": null,
+    "lon": null,
+    "country": "Austria"
+  },
+  "Hochschule für Angewandte Wissenschaften Burgenland GmbH": {
+    "lat": null,
+    "lon": null,
+    "country": "Austria"
+  },
+  "IMC HOCHSCHULE FUR ANGEWANDTE WISSENSCHAFTEN KREMS GMBH": {
+    "lat": null,
+    "lon": null,
+    "country": "Austria"
+  },
+  "KATHOLISCHE PRIVAT - UNIVERSITAT LINZ": {
+    "lat": null,
+    "lon": null,
+    "country": "Austria"
+  },
+  "PARIS-LODRON UNIVERSITÄT SALZBURG": {
+    "lat": 47.7988987,
+    "lon": 13.0442511,
+    "country": "Austria"
+  },
+  "PÄDAGOGISCHE HOCHSCHULE  WIEN": {
+    "lat": 48.1657465,
+    "lon": 16.3742854,
+    "country": "Austria"
+  },
+  "Pädagogische Hochschule Niederösterreich": {
+    "lat": 48.0095418,
+    "lon": 16.2554071,
+    "country": "Austria"
+  },
+  "Technische Universität Wien": {
+    "lat": 48.1989256,
+    "lon": 16.3698784,
+    "country": "Austria"
+  },
+  "UNIVERSITÄT KLAGENFURT - University of Klagenfurt": {
+    "lat": 46.6164026,
+    "lon": 14.2646809,
+    "country": "Austria"
+  },
+  "USTP - University of Applied Sciences St. Pölten": {
+    "lat": 48.2134784,
+    "lon": 15.6319161,
+    "country": "Austria"
+  },
+  "University of Applied Sciences Upper Austria (FH Upper Austria)": {
+    "lat": 48.3018659,
+    "lon": 14.3111106,
+    "country": "Austria"
+  },
+  "Universität Graz": {
+    "lat": 47.0778573,
+    "lon": 15.4498491,
+    "country": "Austria"
+  },
+  "Universität Wien": {
+    "lat": 48.2131278,
+    "lon": 16.3606855,
+    "country": "Austria"
+  },
+  "AZERBAIJAN STATE UNIVERSITY OF ECONOMICS": {
+    "lat": 40.4054171,
+    "lon": 49.8601838,
+    "country": "Azerbaiyán"
+  },
+  "UNIVERSIDAD CATOLICA BOLIVIANA SAN PABLO": {
+    "lat": -16.522801,
+    "lon": -68.1118247,
+    "country": "Bolivia"
+  },
+  "UNIVERSIDAD PRIVADA DE SANTA CRUZ DE LA SIERRA": {
+    "lat": -17.7614767,
+    "lon": -63.1472956,
+    "country": "Bolivia"
+  },
+  "UNIVERSIDAD PRIVADA DEL VALLE": {
+    "lat": -19.0274935,
+    "lon": -65.2597969,
+    "country": "Bolivia"
+  },
+  "CENTRO UNIVERSITARIO MUNICIPAL DE FRANCA – UNI FACEF": {
+    "lat": null,
+    "lon": null,
+    "country": "Brasil"
+  },
+  "CENTRO UNIVERSITARIO TABOSA DE ALMEIDA ASCES-UNITA": {
+    "lat": -8.2637489,
+    "lon": -35.9651055,
+    "country": "Brasil"
+  },
+  "PONTIFICIA UNIVERSIDADE CATOLICA DE MINAS GERAIS (PUC MINAS)": {
+    "lat": -19.9221086,
+    "lon": -43.9917251,
+    "country": "Brasil"
+  },
+  "SOCIEDADE DE EDUCAÇAO TIRADENTES": {
+    "lat": null,
+    "lon": null,
+    "country": "Brasil"
+  },
+  "UNIVERSIDAD DE RIBEIRÃO PRETO": {
+    "lat": -21.2009609,
+    "lon": -47.7791873,
+    "country": "Brasil"
+  },
+  "UNIVERSIDAD DE SAO JUDAS TADEU": {
+    "lat": -13.8479782,
+    "lon": -40.0756548,
+    "country": "Brasil"
+  },
+  "UNIVERSIDAD LUTERANA DE BRASIL": {
+    "lat": -30.1033682,
+    "lon": -51.2358513,
+    "country": "Brasil"
+  },
+  "UNIVERSIDADE DE CAMPINAS": {
+    "lat": -22.822656,
+    "lon": -47.0627959,
+    "country": "Brasil"
+  },
+  "UNIVERSIDADE DO SUL DE SANTA CATARINA (UNISUL)": {
+    "lat": -28.4816718,
+    "lon": -49.0196632,
+    "country": "Brasil"
+  },
+  "UNIVERSIDADE FEDERAL DE SANTA CATARINA": {
+    "lat": -27.6034133,
+    "lon": -48.5224425,
+    "country": "Brasil"
+  },
+  "UNIVERSIDADE FEDERAL DE SAO CARLOS": {
+    "lat": -21.9834422,
+    "lon": -47.8806644,
+    "country": "Brasil"
+  },
+  "UNIVERSIDADE FEDERAL DO CEARÁ": {
+    "lat": -4.980084,
+    "lon": -39.0564813,
+    "country": "Brasil"
+  },
+  "UNIVERSIDADE FEDERAL DO ESTADO DO RIO DE JANEIRO (UNIRIO)": {
+    "lat": -23.3118082,
+    "lon": -51.158628,
+    "country": "Brasil"
+  },
+  "UNIVERSIDADE FEDERAL DO PARANÁ": {
+    "lat": -23.5984439,
+    "lon": -51.6733576,
+    "country": "Brasil"
+  },
+  "UNIVERSIDADE FEDERAL DO RIO GRANDE DO NORTE": {
+    "lat": -5.8377994,
+    "lon": -35.2039783,
+    "country": "Brasil"
+  },
+  "UNIVERSIDADE FEDERAL FLUMINENSE": {
+    "lat": -22.5323633,
+    "lon": -43.2076213,
+    "country": "Brasil"
+  },
+  "NATSIONALNA SPORTNA AKADEMIYA VASSIL LEVSKI": {
+    "lat": 42.6977028,
+    "lon": 23.3217359,
+    "country": "Bulgaria"
+  },
+  "NOV BALGARSKI UNIVERSITET": {
+    "lat": null,
+    "lon": null,
+    "country": "Bulgaria"
+  },
+  "SOFIA UNIVERSITY ST KLIMENT OHRIDSKI": {
+    "lat": 42.6935364,
+    "lon": 23.33528,
+    "country": "Bulgaria"
+  },
+  "STOPANSKA AKADEMIA DIMITAR A. TSENOV": {
+    "lat": 43.6203457,
+    "lon": 25.3438509,
+    "country": "Bulgaria"
+  },
+  "TECHNICAL UNIVERSITY - GABROVO": {
+    "lat": 42.8762877,
+    "lon": 25.310557,
+    "country": "Bulgaria"
+  },
+  "UNIVERSITY OF NATIONAL AND WORLD ECONOMY": {
+    "lat": 42.6505806,
+    "lon": 23.3486588,
+    "country": "Bulgaria"
+  },
+  "UNIVERSITY OF RUSE ANGEL KANCHEV": {
+    "lat": 43.8534816,
+    "lon": 25.9726127,
+    "country": "Bulgaria"
+  },
+  "VELIKOTARNOVSKI UNIVERSITET SV SV KIRIL I METODIY": {
+    "lat": null,
+    "lon": null,
+    "country": "Bulgaria"
+  },
+  "ARTEVELDEHOGESCHOOL": {
+    "lat": 51.0486077,
+    "lon": 3.7024159,
+    "country": "Bélgica"
+  },
+  "Académie Royale des Beaux-Arts de Liege - Ecole Supérieure des Arts de la Ville de Liège": {
+    "lat": 50.647193,
+    "lon": 5.568466,
+    "country": "Bélgica"
+  },
+  "College Charlemagne": {
+    "lat": 50.6236639,
+    "lon": 5.5742961,
+    "country": "Bélgica"
+  },
+  "GALILEE UNIVERSITY COLLEGE": {
+    "lat": 51.2129816,
+    "lon": 4.4482313,
+    "country": "Bélgica"
+  },
+  "Ghent University": {
+    "lat": 51.0078485,
+    "lon": 3.7108831,
+    "country": "Bélgica"
+  },
+  "HAUTE ECOLE EPHEC": {
+    "lat": 50.8467372,
+    "lon": 4.352493,
+    "country": "Bélgica"
+  },
+  "Haute Ecole Libre Mosane - HELMO": {
+    "lat": 50.6442733,
+    "lon": 5.5656473,
+    "country": "Bélgica"
+  },
+  "Haute Ecole Libre de Bruxelles - Ilya Prigogine": {
+    "lat": 50.8467372,
+    "lon": 4.352493,
+    "country": "Bélgica"
+  },
+  "Haute Ecole Lucia de Brouckère": {
+    "lat": 50.8467372,
+    "lon": 4.352493,
+    "country": "Bélgica"
+  },
+  "Haute Ecole en Hainaut": {
+    "lat": 50.4600147,
+    "lon": 3.9566652,
+    "country": "Bélgica"
+  },
+  "Haute École Louvain en Hainaut (HELHa)": {
+    "lat": 50.600342,
+    "lon": 3.6229879,
+    "country": "Bélgica"
+  },
+  "Haute École Léonard de Vinci": {
+    "lat": 50.8351633,
+    "lon": 4.3765572,
+    "country": "Bélgica"
+  },
+  "Haute école ICHEC ECAM ISFSC": {
+    "lat": 50.8467372,
+    "lon": 4.352493,
+    "country": "Bélgica"
+  },
+  "Haute école de la province de Liège": {
+    "lat": 50.6122875,
+    "lon": 5.5058199,
+    "country": "Bélgica"
+  },
+  "Haute école provinciale de Hainaut-Condorcet": {
+    "lat": 50.4549568,
+    "lon": 3.951958,
+    "country": "Bélgica"
+  },
+  "KU Leuven": {
+    "lat": 50.8057129,
+    "lon": 3.2915374,
+    "country": "Bélgica"
+  },
+  "PXL UNIVERSITY COLLEGE": {
+    "lat": 51.2129816,
+    "lon": 4.4482313,
+    "country": "Bélgica"
+  },
+  "Royal Conservatoire Antwerp - AP University College Antwerp": {
+    "lat": 51.2129816,
+    "lon": 4.4482313,
+    "country": "Bélgica"
+  },
+  "Thomas More Mechelen-Antwerpen": {
+    "lat": 51.0284787,
+    "lon": 4.4814941,
+    "country": "Bélgica"
+  },
+  "UC Leuven (UCLL)": {
+    "lat": 50.8791404,
+    "lon": 4.7150836,
+    "country": "Bélgica"
+  },
+  "UCLouvain": {
+    "lat": 50.8534643,
+    "lon": 4.3611421,
+    "country": "Bélgica"
+  },
+  "UNIVERSITE DE MONS": {
+    "lat": 50.4612236,
+    "lon": 3.9442454,
+    "country": "Bélgica"
+  },
+  "Universiteit Antwerpen": {
+    "lat": 51.2243192,
+    "lon": 4.4114471,
+    "country": "Bélgica"
+  },
+  "University of Liège": {
+    "lat": 50.6368602,
+    "lon": 5.5624252,
+    "country": "Bélgica"
+  },
+  "Université Libre de Bruxelles - ULB": {
+    "lat": 50.8134719,
+    "lon": 4.3812357,
+    "country": "Bélgica"
+  },
+  "VIVES University of Applied Sciences Brugge-Oostende": {
+    "lat": 51.2003125,
+    "lon": 2.8739254,
+    "country": "Bélgica"
+  },
+  "VIVES University of Applied Sciences Kortrijk-Roeselare-Torhout": {
+    "lat": null,
+    "lon": null,
+    "country": "Bélgica"
+  },
+  "VRIJE UNIVERSITEIT BRUSSEL": {
+    "lat": 50.8225504,
+    "lon": 4.3954969,
+    "country": "Bélgica"
+  },
+  "transnational University Limburg": {
+    "lat": 50.9977937,
+    "lon": 5.4453575,
+    "country": "Bélgica"
+  },
+  "TORONTO METROPOLITAN UNIVERSITY": {
+    "lat": 43.6585342,
+    "lon": -79.3784674,
+    "country": "Canadá"
+  },
+  "UNIVERSITE DE MONTREAL": {
+    "lat": 45.5047577,
+    "lon": -73.6145418,
+    "country": "Canadá"
+  },
+  "UNIVERSITY OF CALGARY": {
+    "lat": 51.075054,
+    "lon": -114.138805,
+    "country": "Canadá"
+  },
+  "UNIVERSITY OF GUELPH": {
+    "lat": 43.5327864,
+    "lon": -80.2249974,
+    "country": "Canadá"
+  },
+  "UNIVERSITY OF REGINA": {
+    "lat": 50.4152275,
+    "lon": -104.589,
+    "country": "Canadá"
+  },
+  "BRNO UNIVERSITY OF TECHNOLOGY": {
+    "lat": 50.102222,
+    "lon": 14.39063,
+    "country": "Chequia"
+  },
+  "Charles University": {
+    "lat": 50.0888947,
+    "lon": 14.4162757,
+    "country": "Chequia"
+  },
+  "Czech Technical University in Prague": {
+    "lat": 50.1029026,
+    "lon": 14.3946353,
+    "country": "Chequia"
+  },
+  "Czech University of Life Sciences Prague": {
+    "lat": 50.1301754,
+    "lon": 14.3737163,
+    "country": "Chequia"
+  },
+  "European Research University": {
+    "lat": 49.8395121,
+    "lon": 18.2916183,
+    "country": "Chequia"
+  },
+  "JAN EVANGELISTA PURKYNĚ UNIVERSITY IN ÚSTÍ NAD LABEM": {
+    "lat": 50.6893118,
+    "lon": 13.9873728,
+    "country": "Chequia"
+  },
+  "Masaryk University": {
+    "lat": 49.2099967,
+    "lon": 16.5992487,
+    "country": "Chequia"
+  },
+  "Mendel University in Brno": {
+    "lat": 49.2107529,
+    "lon": 16.6158204,
+    "country": "Chequia"
+  },
+  "Palacký University Olomouc": {
+    "lat": 49.5940567,
+    "lon": 17.251143,
+    "country": "Chequia"
+  },
+  "Prague University of Economics and Business": {
+    "lat": null,
+    "lon": null,
+    "country": "Chequia"
+  },
+  "Technical University of Liberec": {
+    "lat": 50.7702648,
+    "lon": 15.0583947,
+    "country": "Chequia"
+  },
+  "Tomas Bata University in Zlín": {
+    "lat": 49.221017,
+    "lon": 17.6658612,
+    "country": "Chequia"
+  },
+  "UNIVERSITY OF SOUTH BOHEMIA IN ČESKÉ BUDĚJOVICE": {
+    "lat": 48.9766916,
+    "lon": 14.4507334,
+    "country": "Chequia"
+  },
+  "University of Ostrava": {
+    "lat": 49.8364324,
+    "lon": 18.2901697,
+    "country": "Chequia"
+  },
+  "University of Pardubice": {
+    "lat": 50.0385812,
+    "lon": 15.7791356,
+    "country": "Chequia"
+  },
+  "University of West Bohemia in Pilsen": {
+    "lat": null,
+    "lon": null,
+    "country": "Chequia"
+  },
+  "VSB - Technical University of Ostrava": {
+    "lat": 49.8332605,
+    "lon": 18.161631,
+    "country": "Chequia"
+  },
+  "VYSOKA SKOLA CHEMICKO-TECHNOLOGICKA V PRAZE": {
+    "lat": 50.102222,
+    "lon": 14.39063,
+    "country": "Chequia"
+  },
+  "PONTIFICIA UNIVERSIDAD CATOLICA DE VALPARAISO": {
+    "lat": -33.0449391,
+    "lon": -71.6067573,
+    "country": "Chile"
+  },
+  "PONTIFICIA UNIVERSIDAD CATÓLICA DE CHILE": {
+    "lat": -33.4417748,
+    "lon": -70.6403258,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD AUSTRAL DE CHILE": {
+    "lat": -39.8046509,
+    "lon": -73.2508121,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD AUTONOMA DE CHILE": {
+    "lat": -33.42762,
+    "lon": -70.6118803,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD CATÓLICA DE LA STMA. CONCEPCIÓN": {
+    "lat": null,
+    "lon": null,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD CATÓLICA DEL MAULE": {
+    "lat": -35.4354476,
+    "lon": -71.6195634,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD CATÓLICA DEL NORTE": {
+    "lat": -30.0036839,
+    "lon": -70.816404,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD CENTRAL DE CHILE": {
+    "lat": -33.4529674,
+    "lon": -70.6600272,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE CONCEPCION": {
+    "lat": -36.8302048,
+    "lon": -73.0372293,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE LA SERENA": {
+    "lat": -30.0042768,
+    "lon": -70.8170685,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE LAS AMERICAS": {
+    "lat": -33.4364956,
+    "lon": -70.6155675,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE LOS ANDES": {
+    "lat": 4.6014026,
+    "lon": -74.064905,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD DE LOS LAGOS": {
+    "lat": -40.5864467,
+    "lon": -73.0906667,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE MAGALLANES": {
+    "lat": -53.1366708,
+    "lon": -70.8793762,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE PLAYA ANCHA": {
+    "lat": -32.748128,
+    "lon": -70.7307584,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE SANTIAGO DE CHILE": {
+    "lat": -33.4489016,
+    "lon": -70.6816237,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE SANTO TOMAS": {
+    "lat": -33.5689773,
+    "lon": -70.6329257,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE TALCA": {
+    "lat": -35.4055941,
+    "lon": -71.6347418,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE TARAPACÁ": {
+    "lat": -18.4901565,
+    "lon": -70.2961678,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DE VALPARAISO": {
+    "lat": -33.0439191,
+    "lon": -71.6171173,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD DEL DESARROLLO": {
+    "lat": -36.8212758,
+    "lon": -73.0366801,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD MAYOR": {
+    "lat": -33.4482753,
+    "lon": -70.6673954,
+    "country": "Chile"
+  },
+  "UNIVERSIDAD TÉCNICA FEDERICO SANTA MARIA": {
+    "lat": -33.0351828,
+    "lon": -71.5952743,
+    "country": "Chile"
+  },
+  "CORPORACION UNIVERSIDAD DE LA COSTA": {
+    "lat": null,
+    "lon": null,
+    "country": "Colombia"
+  },
+  "PONTIFICIA UNIVERSIDAD JAVERIANA, BOGOTÁ": {
+    "lat": 4.6287061,
+    "lon": -74.0636499,
+    "country": "Colombia"
+  },
+  "PONTIFICIA UNIVERSIDAD JAVERIANA, CALI": {
+    "lat": 3.3471455,
+    "lon": -76.5330245,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD AUTÓNOMA DEL CARIBE": {
+    "lat": 11.0043195,
+    "lon": -74.8236214,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD COOPERATIVA DE COLOMBIA": {
+    "lat": 4.62991,
+    "lon": -74.0688088,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD DE SANTANDER": {
+    "lat": 7.9110519,
+    "lon": -72.4997897,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD DEL CAUCA": {
+    "lat": 2.446415,
+    "lon": -76.599972,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD DEL NORTE": {
+    "lat": 11.0191398,
+    "lon": -74.8507959,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD DEL VALLE": {
+    "lat": 3.43478,
+    "lon": -76.5425339,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD EAFIT": {
+    "lat": 6.2002022,
+    "lon": -75.5784855,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD EXTERNADO DE COLOMBIA": {
+    "lat": 4.5952455,
+    "lon": -74.0683393,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD NACIONAL DE COLOMBIA": {
+    "lat": 6.262958,
+    "lon": -75.5771705,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD PEDAGÓGICA Y TECNOLÓGICA DE COLOMBIA": {
+    "lat": 5.5521632,
+    "lon": -73.3567425,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD PONTIFICIA BOLIVARIANA": {
+    "lat": 6.2419536,
+    "lon": -75.5895305,
+    "country": "Colombia"
+  },
+  "UNIVERSIDAD SIMON BOLIVAR": {
+    "lat": 16.8739451,
+    "lon": -99.8977856,
+    "country": "México"
+  },
+  "CHONNAM NATIONAL UNIVERSITY": {
+    "lat": 35.1769099,
+    "lon": 126.9068927,
+    "country": "Corea del Sur"
+  },
+  "CHUNG-ANG UNIVERSITY": {
+    "lat": 37.5080182,
+    "lon": 126.9612686,
+    "country": "Corea del Sur"
+  },
+  "CHUNGNAM NATIONAL UNIVERSITY": {
+    "lat": 36.3699984,
+    "lon": 127.344827,
+    "country": "Corea del Sur"
+  },
+  "DONG-A UNIVERSITY": {
+    "lat": 35.1127425,
+    "lon": 128.9642171,
+    "country": "Corea del Sur"
+  },
+  "DUKSUNG WOMENS UNIVERSITY": {
+    "lat": null,
+    "lon": null,
+    "country": "Corea del Sur"
+  },
+  "EWHA WOMANS UNIVERSITY": {
+    "lat": 37.5643371,
+    "lon": 126.9468925,
+    "country": "Corea del Sur"
+  },
+  "GYEONGSANG NATIONAL UNIVERSITY (GNU)": {
+    "lat": 35.155469,
+    "lon": 128.0962563,
+    "country": "Corea del Sur"
+  },
+  "HANKUK UNIVERSITY OF FOREIGN STUDIES": {
+    "lat": 37.5956329,
+    "lon": 127.063374,
+    "country": "Corea del Sur"
+  },
+  "HANYANG UNIVERSITY": {
+    "lat": 37.5557232,
+    "lon": 127.0436441,
+    "country": "Corea del Sur"
+  },
+  "INCHEON NATIONAL UNIVERSITY": {
+    "lat": 37.386116,
+    "lon": 126.6394474,
+    "country": "Corea del Sur"
+  },
+  "JEONBUK NATIONAL UNIVERSITY": {
+    "lat": 35.8466752,
+    "lon": 127.1337209,
+    "country": "Corea del Sur"
+  },
+  "KEIMYUNG UNIVERSITY": {
+    "lat": 35.8567134,
+    "lon": 128.4849417,
+    "country": "Corea del Sur"
+  },
+  "KONKUK UNIVERSITY": {
+    "lat": 37.5400566,
+    "lon": 127.0702592,
+    "country": "Corea del Sur"
+  },
+  "KOREA UNIVERSITY": {
+    "lat": 36.6108894,
+    "lon": 127.2934174,
+    "country": "Corea del Sur"
+  },
+  "KYONGGI UNIVERSITY": {
+    "lat": 37.301391,
+    "lon": 127.0365609,
+    "country": "Corea del Sur"
+  },
+  "KYUNGPOOK NATIONAL UNIVERSITY": {
+    "lat": 35.8905697,
+    "lon": 128.6108553,
+    "country": "Corea del Sur"
+  },
+  "SEJONG UNIVERSITY": {
+    "lat": 37.550848,
+    "lon": 127.0746074,
+    "country": "Corea del Sur"
+  },
+  "SEOUL NATIONAL UNIVERSITY": {
+    "lat": 37.4668979,
+    "lon": 126.9477791,
+    "country": "Corea del Sur"
+  },
+  "SOONGSIL UNIVERSITY": {
+    "lat": 37.4962989,
+    "lon": 126.9567202,
+    "country": "Corea del Sur"
+  },
+  "THE CHOSUN UNIVERSITY": {
+    "lat": null,
+    "lon": null,
+    "country": "Corea del Sur"
+  },
+  "THE UNIVERSITY OF SEOUL": {
+    "lat": 37.5004435,
+    "lon": 127.0055211,
+    "country": "Corea del Sur"
+  },
+  "INSTITUTO TECNOLÓGICO DE COSTA RICA": {
+    "lat": 9.8535173,
+    "lon": -83.9087134,
+    "country": "Costa Rica"
+  },
+  "UNIVERSIDAD DE COSTA RICA": {
+    "lat": 9.9363792,
+    "lon": -84.0508272,
+    "country": "Costa Rica"
+  },
+  "LIBERTAS MEDUNARODNO SVEUCILISTE": {
+    "lat": 45.8149855,
+    "lon": 16.0123641,
+    "country": "Croacia"
+  },
+  "PAR UNIVERSITY OF APPLIED SCIENCES": {
+    "lat": null,
+    "lon": null,
+    "country": "Croacia"
+  },
+  "SVEUCILISTE JOSIPA JURJA STROSSMAYERA U OSIJEKU": {
+    "lat": 45.5548793,
+    "lon": 18.6953685,
+    "country": "Croacia"
+  },
+  "SVEUCILISTE SJEVER -University North": {
+    "lat": 46.1742143,
+    "lon": 16.8425235,
+    "country": "Croacia"
+  },
+  "SVEUCILISTE U RIJECI": {
+    "lat": 45.3256397,
+    "lon": 14.4540567,
+    "country": "Croacia"
+  },
+  "SVEUCILISTE U SPLITU": {
+    "lat": 43.5117478,
+    "lon": 16.4676015,
+    "country": "Croacia"
+  },
+  "SVEUCILISTE U ZADRU": {
+    "lat": 44.1116264,
+    "lon": 15.2352986,
+    "country": "Croacia"
+  },
+  "SVEUCILISTE VERN": {
+    "lat": 45.805938,
+    "lon": 15.9814664,
+    "country": "Croacia"
+  },
+  "Sveuciliste u Slavonskom Brodu": {
+    "lat": 45.1584339,
+    "lon": 18.0125553,
+    "country": "Croacia"
+  },
+  "Visoka skola za menadzment i dizajn Aspira": {
+    "lat": 43.5116383,
+    "lon": 16.4399659,
+    "country": "Croacia"
+  },
+  "Zdravstveno veleuciliste": {
+    "lat": 45.8276137,
+    "lon": 15.9782711,
+    "country": "Croacia"
+  },
+  "Aalborg University": {
+    "lat": 57.0159071,
+    "lon": 9.9753082,
+    "country": "Dinamarca"
+  },
+  "Copenhagen Business Academy": {
+    "lat": 55.677873,
+    "lon": 12.5216155,
+    "country": "Dinamarca"
+  },
+  "Roskilde Universitet": {
+    "lat": 55.6527054,
+    "lon": 12.1393296,
+    "country": "Dinamarca"
+  },
+  "SYDDANSK UNIVERSITET": {
+    "lat": 55.3678533,
+    "lon": 10.4280534,
+    "country": "Dinamarca"
+  },
+  "UCL University College": {
+    "lat": null,
+    "lon": null,
+    "country": "Dinamarca"
+  },
+  "University College Copenhagen": {
+    "lat": 55.6809856,
+    "lon": 12.5541552,
+    "country": "Dinamarca"
+  },
+  "University College Syddanmark - UC SYD": {
+    "lat": 55.482808,
+    "lon": 8.4858021,
+    "country": "Dinamarca"
+  },
+  "ESCUELA SUPERIOR POLITÉCNICA DEL LITORAL": {
+    "lat": -2.147712,
+    "lon": -79.9647289,
+    "country": "Ecuador"
+  },
+  "UNIVERSIDAD DE LA PENÍNSULA DE SANTA ELENA": {
+    "lat": null,
+    "lon": null,
+    "country": "Ecuador"
+  },
+  "UNIVERSIDAD DEL AZUAY": {
+    "lat": -2.9190926,
+    "lon": -79.0024466,
+    "country": "Ecuador"
+  },
+  "UNIVERSIDAD TECNICA DE MANABI": {
+    "lat": -1.0423484,
+    "lon": -80.4562641,
+    "country": "Ecuador"
+  },
+  "Comenius University Bratislava": {
+    "lat": 48.1402969,
+    "lon": 17.1158258,
+    "country": "Eslovaquia"
+  },
+  "PAN-EUROPEAN UNIVERSITY - BRATISLAVA": {
+    "lat": 48.1516988,
+    "lon": 17.1093063,
+    "country": "Eslovaquia"
+  },
+  "PRESOVSKA UNIVERZITA V PRESOVE": {
+    "lat": 48.989434,
+    "lon": 21.2350152,
+    "country": "Eslovaquia"
+  },
+  "TECHNICKA UNIVERZITA V KOSICIACH": {
+    "lat": 48.7331148,
+    "lon": 21.2439925,
+    "country": "Eslovaquia"
+  },
+  "TRNAVSKA UNIVERZITA V TRNAVE": {
+    "lat": 48.3796409,
+    "lon": 17.5866607,
+    "country": "Eslovaquia"
+  },
+  "UNIVERZITA  KONSTANTINA FILOZOFA VNITRE": {
+    "lat": 48.31295,
+    "lon": 18.0894593,
+    "country": "Eslovaquia"
+  },
+  "UNIVERZITA MATEJA BELA V BANSKEJ BYSTRICI": {
+    "lat": 48.7331796,
+    "lon": 19.1455309,
+    "country": "Eslovaquia"
+  },
+  "UNIVERZITA PAVLA JOZEFA SAFARIKA V KOSICIACH": {
+    "lat": 48.7202089,
+    "lon": 21.2509388,
+    "country": "Eslovaquia"
+  },
+  "UNIVERZITA SV. CYRILA A METODA V TRNAVE": {
+    "lat": 48.3767652,
+    "lon": 17.5858175,
+    "country": "Eslovaquia"
+  },
+  "VYSOKA SKOLA EKONOMIE A MANAZMENTUVEREJNEJ SPRAVY V BRATISLAVE": {
+    "lat": 48.1516988,
+    "lon": 17.1093063,
+    "country": "Eslovaquia"
+  },
+  "VYSOKA SKOLA MANAZMENTU": {
+    "lat": 48.1169067,
+    "lon": 17.0975275,
+    "country": "Eslovaquia"
+  },
+  "ZILINSKA UNIVERZITA V ZILINE": {
+    "lat": 49.2058428,
+    "lon": 18.7553439,
+    "country": "Eslovaquia"
+  },
+  "UNIVERZA V MARIBORU": {
+    "lat": 46.5592325,
+    "lon": 15.6432937,
+    "country": "Eslovenia"
+  },
+  "University of Ljubljana": {
+    "lat": 46.0744053,
+    "lon": 14.5141463,
+    "country": "Eslovenia"
+  },
+  "University of Primorska": {
+    "lat": 45.5489418,
+    "lon": 13.7276254,
+    "country": "Eslovenia"
+  },
+  "UNIVERSIDADES CEIMAR": {
+    "lat": 36.5297438,
+    "lon": -6.2928976,
+    "country": "España"
+  },
+  "Dickinson College": {
+    "lat": 40.2028116,
+    "lon": -77.199574,
+    "country": "Estados Unidos"
+  },
+  "McDANIEL COLLEGE": {
+    "lat": 39.5851682,
+    "lon": -77.0037276,
+    "country": "Estados Unidos"
+  },
+  "UNIVERSITY OF CENTRAL FLORIDA": {
+    "lat": 28.599591,
+    "lon": -81.1971284,
+    "country": "Estados Unidos"
+  },
+  "UNIVERSITY OF NORTH FLORIDA": {
+    "lat": 30.2689865,
+    "lon": -81.5096561,
+    "country": "Estados Unidos"
+  },
+  "TTK University of Applied Sciences": {
+    "lat": 59.4228132,
+    "lon": 24.8002077,
+    "country": "Estonia"
+  },
+  "Tartu Tervishoiu Kõrgkool": {
+    "lat": 58.3653425,
+    "lon": 26.6910932,
+    "country": "Estonia"
+  },
+  "University of Tartu": {
+    "lat": 58.381014,
+    "lon": 26.7195598,
+    "country": "Estonia"
+  },
+  "ATENEO DE MANILA UNIVERSITY": {
+    "lat": 14.6398984,
+    "lon": 121.0781952,
+    "country": "Filipinas"
+  },
+  "UNIVERSITY OF THE PHILIPPINES": {
+    "lat": 14.650376,
+    "lon": 121.0676426,
+    "country": "Filipinas"
+  },
+  "Centria University of Applied Sciences": {
+    "lat": 63.8337529,
+    "lon": 23.1599499,
+    "country": "Finlandia"
+  },
+  "LAB University of Applied Sciences": {
+    "lat": 61.0064093,
+    "lon": 25.664325,
+    "country": "Finlandia"
+  },
+  "Metropolia University of Applied Sciences": {
+    "lat": 60.2581346,
+    "lon": 24.8442326,
+    "country": "Finlandia"
+  },
+  "Novia University of Applied Sciences": {
+    "lat": 63.1055001,
+    "lon": 21.5957845,
+    "country": "Finlandia"
+  },
+  "Satakunta University of Applied Sciences": {
+    "lat": 61.4770479,
+    "lon": 21.7915543,
+    "country": "Finlandia"
+  },
+  "Savonia University of Applied Sciences, Kuopio School of Music and Dance in Kuopio": {
+    "lat": 60.4472243,
+    "lon": 22.2994085,
+    "country": "Finlandia"
+  },
+  "South-Eastern Finland University of Applied Sciences": {
+    "lat": 60.4472243,
+    "lon": 22.2994085,
+    "country": "Finlandia"
+  },
+  "TAMK": {
+    "lat": 61.5041278,
+    "lon": 23.8083919,
+    "country": "Finlandia"
+  },
+  "TURKU UNIVERSITY OF APPLIED SCIENCES": {
+    "lat": 60.4472243,
+    "lon": 22.2994085,
+    "country": "Finlandia"
+  },
+  "UNIVERSITY OF JYVÄSKYLÄ": {
+    "lat": 62.2317777,
+    "lon": 25.735787,
+    "country": "Finlandia"
+  },
+  "University of Eastern Finland - UEF": {
+    "lat": 62.6043509,
+    "lon": 29.7422326,
+    "country": "Finlandia"
+  },
+  "University of Oulu": {
+    "lat": 65.0593277,
+    "lon": 25.4673577,
+    "country": "Finlandia"
+  },
+  "University of the Arts Helsinki": {
+    "lat": 60.1816697,
+    "lon": 24.9596878,
+    "country": "Finlandia"
+  },
+  "Åland University of Applied Sciences": {
+    "lat": 60.1033701,
+    "lon": 19.9289846,
+    "country": "Finlandia"
+  },
+  "Aix-Marseille Université": {
+    "lat": 43.5259126,
+    "lon": 5.4141035,
+    "country": "Francia"
+  },
+  "Avignon Université": {
+    "lat": 43.9491562,
+    "lon": 4.8180008,
+    "country": "Francia"
+  },
+  "CENTRALE LILLE": {
+    "lat": 50.6065889,
+    "lon": 3.1363691,
+    "country": "Francia"
+  },
+  "CENTRE HOSPITALIER UNIVERSITAIRE DE TOULOUSE": {
+    "lat": 43.6044638,
+    "lon": 1.4442433,
+    "country": "Francia"
+  },
+  "CY Cergy Paris Université": {
+    "lat": 49.0394375,
+    "lon": 2.0755603,
+    "country": "Francia"
+  },
+  "De Vinci Higher Education": {
+    "lat": 48.8588897,
+    "lon": 2.320041,
+    "country": "Francia"
+  },
+  "EBS – European Business School – Paris": {
+    "lat": 48.8588897,
+    "lon": 2.320041,
+    "country": "Francia"
+  },
+  "ECE - Ecole d’Ingénieurs": {
+    "lat": 49.4926397,
+    "lon": 0.1193647,
+    "country": "Francia"
+  },
+  "ECOLE DE MANAGEMENT DE NORMANDIE - EM": {
+    "lat": 49.2108855,
+    "lon": -0.3566076,
+    "country": "Francia"
+  },
+  "ECOLE SUPERIEURE DE CHIMIE ORGANIQUE ET MINERALE": {
+    "lat": 49.4021441,
+    "lon": 2.802568,
+    "country": "Francia"
+  },
+  "ECOLE SUPERIEURE EN TRAVAIL EDUCATIF ET SOCIAL - ESTES": {
+    "lat": 48.584614,
+    "lon": 7.7507127,
+    "country": "Francia"
+  },
+  "EPITECH- L'ECOLE DE L'EXPERTISE INFORMATIQUE": {
+    "lat": 48.8588897,
+    "lon": 2.320041,
+    "country": "Francia"
+  },
+  "ESAIP": {
+    "lat": 47.4638042,
+    "lon": -0.4975334,
+    "country": "Francia"
+  },
+  "Ecole Nationale Supérieure d&#39;Architecture Paris Val de Seine": {
+    "lat": 48.8588897,
+    "lon": 2.320041,
+    "country": "Francia"
+  },
+  "Ecole Nationale Supérieure d’Architecture de Paris-La-Villette": {
+    "lat": 48.8929565,
+    "lon": 2.3825131,
+    "country": "Francia"
+  },
+  "Ecole Santé Social Sud Est - OCELLIA": {
+    "lat": 45.7578137,
+    "lon": 4.8320114,
+    "country": "Francia"
+  },
+  "Efrei Paris": {
+    "lat": 48.7898071,
+    "lon": 2.3695815,
+    "country": "Francia"
+  },
+  "Excelia Group": {
+    "lat": 46.1405495,
+    "lon": -1.1558126,
+    "country": "Francia"
+  },
+  "INSTITUT D ETUDES POLITIQUES DE LYON": {
+    "lat": 45.7471156,
+    "lon": 4.8353768,
+    "country": "Francia"
+  },
+  "INSTITUT DE MANAGEMENT ET DE COMMUNICATION INTERCULTURELS ASSOCIATION": {
+    "lat": 48.8588897,
+    "lon": 2.320041,
+    "country": "Francia"
+  },
+  "INSTITUT REGIONAL DU TRAVAIL SOCIAL NOUVELLE AQUITAINE": {
+    "lat": 44.7959363,
+    "lon": -0.5980087,
+    "country": "Francia"
+  },
+  "IPAC": {
+    "lat": 46.2089907,
+    "lon": 6.2816822,
+    "country": "Francia"
+  },
+  "Institut National de Podologie": {
+    "lat": 48.8588897,
+    "lon": 2.320041,
+    "country": "Francia"
+  },
+  "Institut Polytechnique de Bordeaux": {
+    "lat": 44.841225,
+    "lon": -0.5800364,
+    "country": "Francia"
+  },
+  "KEDGE BUSINESS SCHOOL": {
+    "lat": 44.7964286,
+    "lon": -0.6008878,
+    "country": "Francia"
+  },
+  "LYCEE LEON BLUM": {
+    "lat": 46.8033528,
+    "lon": 4.4073553,
+    "country": "Francia"
+  },
+  "Nantes Université": {
+    "lat": 47.2454573,
+    "lon": -1.5519856,
+    "country": "Francia"
+  },
+  "OGICES": {
+    "lat": 45.7578137,
+    "lon": 4.8320114,
+    "country": "Francia"
+  },
+  "RENNES SCHOOL OF BUSINESS": {
+    "lat": 48.1274799,
+    "lon": -1.6903697,
+    "country": "Francia"
+  },
+  "SORBONNE UNIVERSITE": {
+    "lat": 48.8379885,
+    "lon": 2.3611216,
+    "country": "Francia"
+  },
+  "UNIVERSITE D&#39;EVRY-VAL D&#39;ESSONE": {
+    "lat": 48.6241665,
+    "lon": 2.4289667,
+    "country": "Francia"
+  },
+  "UNIVERSITE DE LIMOGES": {
+    "lat": 45.8260427,
+    "lon": 1.2585756,
+    "country": "Francia"
+  },
+  "UNIVERSITE DE PERPIGNAN": {
+    "lat": 42.682174,
+    "lon": 2.8990979,
+    "country": "Francia"
+  },
+  "UNIVERSITE DE POITIERS": {
+    "lat": 46.585955,
+    "lon": 0.3460338,
+    "country": "Francia"
+  },
+  "UNIVERSITE DE REIMS CHAMPAGNE-ARDENNE": {
+    "lat": 49.2519504,
+    "lon": 4.0374455,
+    "country": "Francia"
+  },
+  "UNIVERSITE DE RENNES": {
+    "lat": 48.1193848,
+    "lon": -1.701487,
+    "country": "Francia"
+  },
+  "UNIVERSITE DE TECHNOLOGIE DE TARBES": {
+    "lat": 43.232858,
+    "lon": 0.0781021,
+    "country": "Francia"
+  },
+  "UNIVERSITE DE TOURS": {
+    "lat": 47.3569353,
+    "lon": 0.7033407,
+    "country": "Francia"
+  },
+  "UNIVERSITE JEAN MOULIN LYON 3": {
+    "lat": 45.7578137,
+    "lon": 4.8320114,
+    "country": "Francia"
+  },
+  "UNIVERSITE LYON 1 CLAUDE BERNARD": {
+    "lat": 45.7809155,
+    "lon": 4.8663473,
+    "country": "Francia"
+  },
+  "UNIVERSITÉ CATHOLIQUE DE LYON": {
+    "lat": 45.7569127,
+    "lon": 4.8290262,
+    "country": "Francia"
+  },
+  "UNIVERSITÉ MARIE ET LOUIS PASTEUR": {
+    "lat": 47.2483019,
+    "lon": 5.9894106,
+    "country": "Francia"
+  },
+  "UNIVERSITÉ RENNES 2": {
+    "lat": 48.1193848,
+    "lon": -1.701487,
+    "country": "Francia"
+  },
+  "Université Bordeaux Montaigne": {
+    "lat": 44.7949425,
+    "lon": -0.6173657,
+    "country": "Francia"
+  },
+  "Université Catholique de l&#39;Ouest": {
+    "lat": 47.4739884,
+    "lon": -0.5515588,
+    "country": "Francia"
+  },
+  "Université Clermont Auvergne": {
+    "lat": 45.7719719,
+    "lon": 3.0917595,
+    "country": "Francia"
+  },
+  "Université Côte d’Azur": {
+    "lat": 43.7170132,
+    "lon": 7.2675774,
+    "country": "Francia"
+  },
+  "Université Grenoble Alpes": {
+    "lat": 45.1931884,
+    "lon": 5.7651901,
+    "country": "Francia"
+  },
+  "Université Gustave Eiffel": {
+    "lat": 50.6078918,
+    "lon": 3.1320651,
+    "country": "Francia"
+  },
+  "Université Le Havre Normandie": {
+    "lat": 49.4963786,
+    "lon": 0.1272456,
+    "country": "Francia"
+  },
+  "Université Lumière Lyon 2": {
+    "lat": 45.7206314,
+    "lon": 4.9175834,
+    "country": "Francia"
+  },
+  "Université Paris 8 Vincennes – Saint-Denis": {
+    "lat": 48.9383732,
+    "lon": 2.3627508,
+    "country": "Francia"
+  },
+  "Université Paris Cité": {
+    "lat": 48.8514684,
+    "lon": 2.341089,
+    "country": "Francia"
+  },
+  "Université Paris Est Créteil – Val de Marne": {
+    "lat": 48.7951326,
+    "lon": 2.453947,
+    "country": "Francia"
+  },
+  "Université Paris Nanterre": {
+    "lat": 48.9042269,
+    "lon": 2.2139518,
+    "country": "Francia"
+  },
+  "Université Paris-Saclay": {
+    "lat": 48.7121501,
+    "lon": 2.1735087,
+    "country": "Francia"
+  },
+  "Université Savoie Mont Blanc": {
+    "lat": 45.6413771,
+    "lon": 5.8691124,
+    "country": "Francia"
+  },
+  "Université Sorbonne Nouvelle Paris 3": {
+    "lat": 48.8448205,
+    "lon": 2.3967376,
+    "country": "Francia"
+  },
+  "Université Sorbonne Paris Nord (USPN)": {
+    "lat": 48.956638,
+    "lon": 2.3405983,
+    "country": "Francia"
+  },
+  "Université Toulouse - Jean Jaurès": {
+    "lat": 43.5783751,
+    "lon": 1.4010003,
+    "country": "Francia"
+  },
+  "Université d'Angers": {
+    "lat": 47.4879427,
+    "lon": -0.5509657,
+    "country": "Francia"
+  },
+  "Université d'Artois": {
+    "lat": 50.2835005,
+    "lon": 2.793544,
+    "country": "Francia"
+  },
+  "Université d'Orléans": {
+    "lat": 47.8416678,
+    "lon": 1.9366943,
+    "country": "Francia"
+  },
+  "Université de Bordeaux": {
+    "lat": 44.8096516,
+    "lon": -0.5974013,
+    "country": "Francia"
+  },
+  "Université de Bretagne Sud": {
+    "lat": 47.646595,
+    "lon": -2.7434363,
+    "country": "Francia"
+  },
+  "Université de Caen Normandie": {
+    "lat": 48.4447651,
+    "lon": 0.0591698,
+    "country": "Francia"
+  },
+  "Université de Corse-Pascal-Paoli": {
+    "lat": 42.6998572,
+    "lon": 9.4500031,
+    "country": "Francia"
+  },
+  "Université de Haute-Alsace": {
+    "lat": 48.0415319,
+    "lon": 5.3538716,
+    "country": "Francia"
+  },
+  "Université de Lille": {
+    "lat": 50.6285707,
+    "lon": 3.125956,
+    "country": "Francia"
+  },
+  "Université de Lorraine": {
+    "lat": 49.1199381,
+    "lon": 6.1613478,
+    "country": "Francia"
+  },
+  "Université de Montpellier": {
+    "lat": 43.6331162,
+    "lon": 3.8605852,
+    "country": "Francia"
+  },
+  "Université de Montpellier Paul-Valéry": {
+    "lat": 43.6325304,
+    "lon": 3.8701088,
+    "country": "Francia"
+  },
+  "Université de Pau et des Pays de l'Adour": {
+    "lat": 43.3146145,
+    "lon": -0.3653306,
+    "country": "Francia"
+  },
+  "Université de Picardie Jules Verne": {
+    "lat": 49.8741955,
+    "lon": 2.268363,
+    "country": "Francia"
+  },
+  "Université de Rouen Normandie": {
+    "lat": 49.3849168,
+    "lon": 1.0720751,
+    "country": "Francia"
+  },
+  "Université de Strasbourg": {
+    "lat": 48.5831481,
+    "lon": 7.7728728,
+    "country": "Francia"
+  },
+  "Université de Toulouse": {
+    "lat": 43.5642189,
+    "lon": 1.4665724,
+    "country": "Francia"
+  },
+  "Université de la Rochelle": {
+    "lat": 46.1386902,
+    "lon": -1.1453926,
+    "country": "Francia"
+  },
+  "Université de la Réunion": {
+    "lat": -20.9019193,
+    "lon": 55.4843818,
+    "country": "Francia"
+  },
+  "Y SCHOOLS - TROYES AUBE FORMATION": {
+    "lat": 48.2843475,
+    "lon": 4.0795844,
+    "country": "Francia"
+  },
+  "école nationale supérieure d'architecture de Marseille - ENSA": {
+    "lat": 43.30234,
+    "lon": 5.3760486,
+    "country": "Francia"
+  },
+  "EUROPEAN UNIVERSITY LLC": {
+    "lat": 33.7838847,
+    "lon": -84.3902046,
+    "country": "Georgia"
+  },
+  "GEORGIAN STATE TEACHING UNIVERSITY OF PHYSICAL EDUCATION AND SPORT": {
+    "lat": null,
+    "lon": null,
+    "country": "Georgia"
+  },
+  "ILIA STATE UNIVERSITY": {
+    "lat": 41.7124798,
+    "lon": 44.7491002,
+    "country": "Georgia"
+  },
+  "Aristotle University of Thessaloniki": {
+    "lat": 40.6296719,
+    "lon": 22.9591469,
+    "country": "Grecia"
+  },
+  "DIETHNES PANEPISTIMIO ELLADOS": {
+    "lat": 40.6403167,
+    "lon": 22.9352716,
+    "country": "Grecia"
+  },
+  "ETHNICON METSOVION POLYTECHNION": {
+    "lat": 37.9755648,
+    "lon": 23.7348324,
+    "country": "Grecia"
+  },
+  "ETHNIKO KAI KAPODISTRIAKO PANEPISTIMIO ATHINON": {
+    "lat": 37.9755648,
+    "lon": 23.7348324,
+    "country": "Grecia"
+  },
+  "GEOPONIKO PANEPISTIMION ATHINON": {
+    "lat": 37.9755648,
+    "lon": 23.7348324,
+    "country": "Grecia"
+  },
+  "IONIAN UNIVERSITY": {
+    "lat": 39.6230716,
+    "lon": 19.9151898,
+    "country": "Grecia"
+  },
+  "PANEPISTIMIO AIGAIOU": {
+    "lat": 39.1037355,
+    "lon": 26.554788,
+    "country": "Grecia"
+  },
+  "PANEPISTIMIO DYTIKIS ATTIKIS": {
+    "lat": 37.9755648,
+    "lon": 23.7348324,
+    "country": "Grecia"
+  },
+  "PANEPISTIMIO DYTIKIS MAKEDONIAS": {
+    "lat": 40.3007259,
+    "lon": 21.7883119,
+    "country": "Grecia"
+  },
+  "PANEPISTIMIO IOANNINON": {
+    "lat": 39.6639818,
+    "lon": 20.8522784,
+    "country": "Grecia"
+  },
+  "PANEPISTIMIO KRITIS": {
+    "lat": 35.33908,
+    "lon": 25.1332843,
+    "country": "Grecia"
+  },
+  "PANEPISTIMIO PATRON": {
+    "lat": 38.287244,
+    "lon": 21.7843303,
+    "country": "Grecia"
+  },
+  "PANEPISTIMIO THESSALIAS": {
+    "lat": 39.3624833,
+    "lon": 22.9401864,
+    "country": "Grecia"
+  },
+  "PANTEIO PANEPISTIMIO KOINONIKON KAIPOLITIKON EPISTIMON": {
+    "lat": 37.9755648,
+    "lon": 23.7348324,
+    "country": "Grecia"
+  },
+  "UNIVERSITY OF MACEDONIA": {
+    "lat": 40.6251376,
+    "lon": 22.9601033,
+    "country": "Grecia"
+  },
+  "UNIVERSITY OF PELOPONNESE": {
+    "lat": 38.2187045,
+    "lon": 21.7478949,
+    "country": "Grecia"
+  },
+  "UNIVERSITY OF PIRAEUS RESEARCH CENTER": {
+    "lat": null,
+    "lon": null,
+    "country": "Grecia"
+  },
+  "UNIVERSIDAD NACIONAL AUTÓNOMA DE HONDURAS": {
+    "lat": 14.0865701,
+    "lon": -87.1650486,
+    "country": "Honduras"
+  },
+  "UNIVERSIDAD PEDAGÓGICA NACIONAL FRANCISCO MORAZÁN": {
+    "lat": 14.0756796,
+    "lon": -87.187712,
+    "country": "Honduras"
+  },
+  "Budapest University of Economics and Business (BUEB)": {
+    "lat": 46.2513456,
+    "lon": 20.1434219,
+    "country": "Hungría"
+  },
+  "DEBRECENI EGYETEM": {
+    "lat": 47.5563146,
+    "lon": 21.6213552,
+    "country": "Hungría"
+  },
+  "Eötvös Loránd University": {
+    "lat": 47.4934799,
+    "lon": 19.0618993,
+    "country": "Hungría"
+  },
+  "KÁROLI GÁSPÁR UNIVERSITY OF THE REFORMED CHURCH IN HUNGARY": {
+    "lat": null,
+    "lon": null,
+    "country": "Hungría"
+  },
+  "MAGYAR KEPZOMUVESZETI EGYETEM": {
+    "lat": 47.5071743,
+    "lon": 19.0670281,
+    "country": "Hungría"
+  },
+  "MISKOLCI EGYETEM": {
+    "lat": 48.0787949,
+    "lon": 20.7663603,
+    "country": "Hungría"
+  },
+  "NEUMANN JANOS EGYETEM -John von Neumann University": {
+    "lat": 46.9074763,
+    "lon": 19.6920854,
+    "country": "Hungría"
+  },
+  "OBUDAI EGYETEM": {
+    "lat": 47.1915319,
+    "lon": 18.427578,
+    "country": "Hungría"
+  },
+  "PANNON EGYETEM - UNIVERSITY OF PANNONIA": {
+    "lat": 47.0883929,
+    "lon": 17.9084885,
+    "country": "Hungría"
+  },
+  "WESLEY JANOS LELKESZKEPZO FOISKOLA": {
+    "lat": 47.4813896,
+    "lon": 19.1457723,
+    "country": "Hungría"
+  },
+  "KALINGA INSTITUTE OF SOCIAL SCIENCES": {
+    "lat": 20.3630702,
+    "lon": 85.8106077,
+    "country": "India"
+  },
+  "UNIVERSITAS DARUSSALAM GONTOR": {
+    "lat": -7.9024761,
+    "lon": 111.4915201,
+    "country": "Indonesia"
+  },
+  "UNIVERSITAS GADJAH MADA": {
+    "lat": -7.7693966,
+    "lon": 110.3804236,
+    "country": "Indonesia"
+  },
+  "UNIVERSITAS MUHAMMADIYAH PONTIANAK": {
+    "lat": -0.0595836,
+    "lon": 109.3515982,
+    "country": "Indonesia"
+  },
+  "South East Technological University": {
+    "lat": 52.2514273,
+    "lon": -7.1794803,
+    "country": "Irlanda"
+  },
+  "Technological University Dublin": {
+    "lat": 53.3579326,
+    "lon": -6.287314,
+    "country": "Irlanda"
+  },
+  "UNIVERSITY OF GALWAY": {
+    "lat": 53.2936337,
+    "lon": -9.0750599,
+    "country": "Irlanda"
+  },
+  "University College Cork": {
+    "lat": 51.8947012,
+    "lon": -8.4903105,
+    "country": "Irlanda"
+  },
+  "HASKOLI ISLANDS": {
+    "lat": 64.1401832,
+    "lon": -21.9539633,
+    "country": "Islandia"
+  },
+  "ACCADEMIA DI BELLE ARTI - MACERATA": {
+    "lat": 43.3010295,
+    "lon": 13.4508955,
+    "country": "Italia"
+  },
+  "ACCADEMIA DI BELLE ARTI DI BRERA": {
+    "lat": 45.4719418,
+    "lon": 9.1878197,
+    "country": "Italia"
+  },
+  "ACCADEMIA DI BELLE ARTI L&#39;AQUILA": {
+    "lat": 42.3489203,
+    "lon": 13.3979672,
+    "country": "Italia"
+  },
+  "Accademia Albertina delle Belle Arti": {
+    "lat": 41.9184428,
+    "lon": 12.4730176,
+    "country": "Italia"
+  },
+  "Accademia Tiepolo SRL": {
+    "lat": null,
+    "lon": null,
+    "country": "Italia"
+  },
+  "Accademia di Belle Arti di Bari": {
+    "lat": 41.1111309,
+    "lon": 16.8763707,
+    "country": "Italia"
+  },
+  "Accademia di Belle Arti di Firenze": {
+    "lat": 43.7773203,
+    "lon": 11.2590554,
+    "country": "Italia"
+  },
+  "Accademia di Belle Arti di Frosinone": {
+    "lat": 41.7923453,
+    "lon": 13.2204424,
+    "country": "Italia"
+  },
+  "Accademia di Belle Arti di Palermo": {
+    "lat": 38.1156136,
+    "lon": 13.3527072,
+    "country": "Italia"
+  },
+  "Ca' Foscari University of Venice": {
+    "lat": 45.4046171,
+    "lon": 12.3105232,
+    "country": "Italia"
+  },
+  "LIBERA UNIVERSITA DEGLI STUDI DI ENNA KORE": {
+    "lat": 37.5398728,
+    "lon": 14.2841321,
+    "country": "Italia"
+  },
+  "LIBERA UNIVERSITA DI LINGUE E COMUNICAZIONE IULM": {
+    "lat": null,
+    "lon": null,
+    "country": "Italia"
+  },
+  "Libera Università degli Studi Maria SS.Assunta di Roma": {
+    "lat": null,
+    "lon": null,
+    "country": "Italia"
+  },
+  "POLITECNICO DI MILANO": {
+    "lat": 45.0468832,
+    "lon": 9.7030881,
+    "country": "Italia"
+  },
+  "Politecnico di BARI": {
+    "lat": 41.108887,
+    "lon": 16.8785859,
+    "country": "Italia"
+  },
+  "Politecnico di Torino": {
+    "lat": 45.0636974,
+    "lon": 7.6575263,
+    "country": "Italia"
+  },
+  "Roma Tre University - UNIVERSITA' DEGLI STUDI ROMA TRE": {
+    "lat": 41.9017963,
+    "lon": 12.5048463,
+    "country": "Italia"
+  },
+  "SCUOLA SUPERIORE PER MEDIATORI LINGUISTICI": {
+    "lat": 43.7214173,
+    "lon": 10.3969934,
+    "country": "Italia"
+  },
+  "SCUOLA SUPERIORE PER MEDIATORI LINGUISTICI DI PADOVA": {
+    "lat": 45.391408,
+    "lon": 11.8058487,
+    "country": "Italia"
+  },
+  "Sapienza University of Rome": {
+    "lat": 41.8933203,
+    "lon": 12.4829321,
+    "country": "Italia"
+  },
+  "Scuola Superiore Carolina Albasio": {
+    "lat": 45.9394759,
+    "lon": 9.1494101,
+    "country": "Italia"
+  },
+  "Scuola Superiore per Mediatori Linguistici Nelson Mandela e Istituto del Design - gestiti da IFOR S.": {
+    "lat": 40.4476419,
+    "lon": 16.4735738,
+    "country": "Italia"
+  },
+  "UNIVERSITA CAMPUS BIO MEDICO DI ROMA": {
+    "lat": 41.7673728,
+    "lon": 12.4695515,
+    "country": "Italia"
+  },
+  "UNIVERSITA CATTOLICA DEL SACRO CUORE": {
+    "lat": 45.4618543,
+    "lon": 9.1770563,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DELL&#39;AQUILA": {
+    "lat": null,
+    "lon": null,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DELL&#39;INSUBRIA": {
+    "lat": null,
+    "lon": null,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI": {
+    "lat": 41.0672235,
+    "lon": 14.3305232,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DI BARI ALDO MORO": {
+    "lat": 41.1094882,
+    "lon": 16.8816878,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DI CAGLIARI": {
+    "lat": 39.2218258,
+    "lon": 9.1106594,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DI FOGGIA": {
+    "lat": 41.460729,
+    "lon": 15.553949,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DI MACERATA": {
+    "lat": 43.3010154,
+    "lon": 13.4459678,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DI NAPOLI FEDERICO II": {
+    "lat": 40.847759,
+    "lon": 14.2566037,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DI NAPOLI L&#39;ORIENTALE": {
+    "lat": null,
+    "lon": null,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DI NAPOLI PARTHENOPE": {
+    "lat": 40.7594615,
+    "lon": 14.437219,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DI PALERMO": {
+    "lat": 38.0333906,
+    "lon": 12.5348262,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DI PERUGIA": {
+    "lat": 43.1163861,
+    "lon": 12.385316,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI DI TRENTO": {
+    "lat": 46.1029536,
+    "lon": 11.1297425,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI GABRIELE D&#39;ANNUNZIO DI CHIETI-PESCARA": {
+    "lat": null,
+    "lon": null,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI GUGLIELMO MARCONI - TELEMATICA": {
+    "lat": 45.5092535,
+    "lon": 11.4661916,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI MEDITERRANEA DI REGGIO CALABRIA": {
+    "lat": null,
+    "lon": null,
+    "country": "Italia"
+  },
+  "UNIVERSITA DEGLI STUDI SUOR ORSOLA BENINCASA": {
+    "lat": null,
+    "lon": null,
+    "country": "Italia"
+  },
+  "UNIVERSITA DELLA VALLE D'AOSTA": {
+    "lat": 45.7432171,
+    "lon": 7.3182244,
+    "country": "Italia"
+  },
+  "UNIVERSITA PER STRANIERI DI PERUGIA": {
+    "lat": 43.1148526,
+    "lon": 12.3895193,
+    "country": "Italia"
+  },
+  "UNIVERSITA PER STRANIERI DI SIENA": {
+    "lat": 43.3312172,
+    "lon": 11.3214578,
+    "country": "Italia"
+  },
+  "UNIVERSITA POLITECNICA DELLE MARCHE": {
+    "lat": 43.9206454,
+    "lon": 12.9088103,
+    "country": "Italia"
+  },
+  "UNIVERSITA TELEMATICA E-CAMPUS": {
+    "lat": 44.3968285,
+    "lon": 8.9853383,
+    "country": "Italia"
+  },
+  "UNIVERSITA' DEGLI STUDI DEL PIEMONTE ORIENTALE": {
+    "lat": 45.3290907,
+    "lon": 8.418485,
+    "country": "Italia"
+  },
+  "UNIVERSITA' DEGLI STUDI DI MILANO-BICOCCA": {
+    "lat": 45.5182761,
+    "lon": 9.2139042,
+    "country": "Italia"
+  },
+  "UNIVERSITA' DEGLI STUDI DI SALERNO": {
+    "lat": 40.7553681,
+    "lon": 14.7807307,
+    "country": "Italia"
+  },
+  "UNIVERSITA' DEGLI STUDI DI SASSARI": {
+    "lat": 40.7132133,
+    "lon": 8.55658,
+    "country": "Italia"
+  },
+  "UNIVERSITA' DEGLI STUDI DI SIENA": {
+    "lat": 40.8388865,
+    "lon": 14.2428255,
+    "country": "Italia"
+  },
+  "UNIVERSITA' DEGLI STUDI DI TORINO": {
+    "lat": 45.0733824,
+    "lon": 7.6994372,
+    "country": "Italia"
+  },
+  "UNIVERSITA' DEGLI STUDI DI VERONA": {
+    "lat": 45.4363395,
+    "lon": 11.0030301,
+    "country": "Italia"
+  },
+  "UNIVERSITA' DEGLI STUDI MAGNA GRAECIA DI CATANZARO": {
+    "lat": 38.8299603,
+    "lon": 16.4315569,
+    "country": "Italia"
+  },
+  "UNIVERSITA' DEL SALENTO": {
+    "lat": 40.3586434,
+    "lon": 18.165524,
+    "country": "Italia"
+  },
+  "UNIVERSITY OF BERGAMO": {
+    "lat": 45.7566557,
+    "lon": 9.7542192,
+    "country": "Italia"
+  },
+  "UNIVERSITY OF PARMA": {
+    "lat": 44.6952006,
+    "lon": 10.0979869,
+    "country": "Italia"
+  },
+  "UNIVERSITÀ DEGLI STUDI DI FERRARA": {
+    "lat": 44.8333777,
+    "lon": 11.6263972,
+    "country": "Italia"
+  },
+  "UNIVERSITÀ DEGLI STUDI DI PAVIA": {
+    "lat": 45.1869265,
+    "lon": 9.1568768,
+    "country": "Italia"
+  },
+  "Unicollege SSML": {
+    "lat": 45.1692628,
+    "lon": 10.6708365,
+    "country": "Italia"
+  },
+  "Uniformazione S.R.L.": {
+    "lat": 41.8933203,
+    "lon": 12.4829321,
+    "country": "Italia"
+  },
+  "University of Bologna": {
+    "lat": 44.4982886,
+    "lon": 11.354457,
+    "country": "Italia"
+  },
+  "University of Cassino": {
+    "lat": 41.2850019,
+    "lon": 13.2437939,
+    "country": "Italia"
+  },
+  "University of Catania": {
+    "lat": 37.5023612,
+    "lon": 15.0873718,
+    "country": "Italia"
+  },
+  "University of Genoa": {
+    "lat": 44.4148861,
+    "lon": 8.9266707,
+    "country": "Italia"
+  },
+  "University of Milan": {
+    "lat": 45.4757322,
+    "lon": 9.2282917,
+    "country": "Italia"
+  },
+  "University of Padova": {
+    "lat": 45.4066496,
+    "lon": 11.8774407,
+    "country": "Italia"
+  },
+  "University of Pisa": {
+    "lat": 43.4714722,
+    "lon": 10.6797912,
+    "country": "Italia"
+  },
+  "University of Rome \"Tor Vergata\"": {
+    "lat": 41.8477688,
+    "lon": 12.6046956,
+    "country": "Italia"
+  },
+  "University of Tuscia": {
+    "lat": 43.274627,
+    "lon": 11.9917694,
+    "country": "Italia"
+  },
+  "Università IUAV di Venezia": {
+    "lat": 45.4793901,
+    "lon": 12.2552612,
+    "country": "Italia"
+  },
+  "Università degli Studi Internazionali di ROMA (UNINT)": {
+    "lat": 41.8602583,
+    "lon": 12.4968425,
+    "country": "Italia"
+  },
+  "Università degli Studi di FIRENZE": {
+    "lat": 43.7922732,
+    "lon": 11.230495,
+    "country": "Italia"
+  },
+  "Università degli Studi di MESSINA": {
+    "lat": 38.2296362,
+    "lon": 15.5511037,
+    "country": "Italia"
+  },
+  "Università degli Studi di MODENA e REGGIO EMILIA": {
+    "lat": 44.751296,
+    "lon": 10.7841527,
+    "country": "Italia"
+  },
+  "Università degli Studi di TRIESTE": {
+    "lat": 45.660174,
+    "lon": 13.7947819,
+    "country": "Italia"
+  },
+  "Università degli Studi di UDINE": {
+    "lat": 46.0673056,
+    "lon": 13.2319945,
+    "country": "Italia"
+  },
+  "Università degli Studi di Urbino Carlo Bo": {
+    "lat": 43.7232299,
+    "lon": 12.6366992,
+    "country": "Italia"
+  },
+  "Università della CALABRIA": {
+    "lat": 39.3620867,
+    "lon": 16.2237085,
+    "country": "Italia"
+  },
+  "AICHI SHUKUTOKU UNIVERSITY": {
+    "lat": 35.1579953,
+    "lon": 137.0321591,
+    "country": "Japón"
+  },
+  "AKITA INTERNATIONAL UNIVERSITY": {
+    "lat": 39.6274282,
+    "lon": 140.1982904,
+    "country": "Japón"
+  },
+  "DOKKYO UNIVERSITY": {
+    "lat": 35.8396929,
+    "lon": 139.7948767,
+    "country": "Japón"
+  },
+  "INTERNATIONAL CHRISTIAN UNIVERSITY": {
+    "lat": 35.6871204,
+    "lon": 139.5296814,
+    "country": "Japón"
+  },
+  "KINDAI UNIVERSITY": {
+    "lat": 34.6517298,
+    "lon": 135.5913154,
+    "country": "Japón"
+  },
+  "MEIJI GAKUIN UNIVERSITY": {
+    "lat": 35.6375873,
+    "lon": 139.7307348,
+    "country": "Japón"
+  },
+  "NAGASAKI UNIVERSITY": {
+    "lat": 32.7861999,
+    "lon": 129.865345,
+    "country": "Japón"
+  },
+  "SAITAMA UNIVERSITY": {
+    "lat": 35.8619719,
+    "lon": 139.6075894,
+    "country": "Japón"
+  },
+  "M.KH. DULATY TARAZ STATE UNIVERSITY": {
+    "lat": 42.9015945,
+    "lon": 71.3769302,
+    "country": "Kazajistán"
+  },
+  "NARXOZ UNIVERSITY": {
+    "lat": 43.2149423,
+    "lon": 76.8705958,
+    "country": "Kazajistán"
+  },
+  "LATVIJAS BIOZINATNU UN TEHNOLOGIJU UNIVERSITATE": {
+    "lat": 56.6559319,
+    "lon": 23.7339145,
+    "country": "Letonia"
+  },
+  "LATVIJAS MAKSLAS AKADEMIJA": {
+    "lat": 56.9549684,
+    "lon": 24.1112239,
+    "country": "Letonia"
+  },
+  "P.Stradins Medical College of the University of Latvia": {
+    "lat": 56.9410379,
+    "lon": 24.0967724,
+    "country": "Letonia"
+  },
+  "RIGA STRADINS UNIVERSITY - RSU": {
+    "lat": 56.953708,
+    "lon": 24.0551476,
+    "country": "Letonia"
+  },
+  "RIGAS TEHNISKA UNIVERSITATE": {
+    "lat": 56.9526418,
+    "lon": 24.0806797,
+    "country": "Letonia"
+  },
+  "RIGAS ZIEMELVALSTU AUGSTSKOLA SIA - RIGA NORDIC UNIVERSITY": {
+    "lat": 56.9493977,
+    "lon": 24.1051846,
+    "country": "Letonia"
+  },
+  "BANI WALEED UNIVERSITY": {
+    "lat": 31.7478505,
+    "lon": 14.0511912,
+    "country": "Libia"
+  },
+  "KAUNO KOLEGIJA": {
+    "lat": 54.9210018,
+    "lon": 23.9845121,
+    "country": "Lituania"
+  },
+  "KLAIPEDOS UNIVERSITETAS": {
+    "lat": 55.7242556,
+    "lon": 21.1248893,
+    "country": "Lituania"
+  },
+  "Kaunas University of Technology": {
+    "lat": 54.8988053,
+    "lon": 23.9126526,
+    "country": "Lituania"
+  },
+  "LCC International University": {
+    "lat": 55.7310323,
+    "lon": 21.1336188,
+    "country": "Lituania"
+  },
+  "LIETUVOS SPORTO UNIVERSITETAS": {
+    "lat": 54.8983682,
+    "lon": 23.9346499,
+    "country": "Lituania"
+  },
+  "Lithuanian University of Health Sciences": {
+    "lat": 54.8943049,
+    "lon": 23.9163566,
+    "country": "Lituania"
+  },
+  "Mykolas Romeris University": {
+    "lat": null,
+    "lon": null,
+    "country": "Lituania"
+  },
+  "SIAULIU VALSTYBINE KOLEGIJA": {
+    "lat": 55.9336224,
+    "lon": 23.3178676,
+    "country": "Lituania"
+  },
+  "VILNIAUS UNIVERSITETAS": {
+    "lat": 54.6828203,
+    "lon": 25.2878334,
+    "country": "Lituania"
+  },
+  "VILNIUS GEDIMINAS TECHNICAL UNIVERSITY (VILNIUS TECH)": {
+    "lat": 54.7219118,
+    "lon": 25.3366162,
+    "country": "Lituania"
+  },
+  "Vytautas Magnus University": {
+    "lat": 54.8697097,
+    "lon": 23.9082135,
+    "country": "Lituania"
+  },
+  "UNIVERSITY OF MALAYA": {
+    "lat": 3.1257602,
+    "lon": 101.6558796,
+    "country": "Malasia"
+  },
+  "UNIVERSITA TA MALTA": {
+    "lat": 35.9020939,
+    "lon": 14.4834634,
+    "country": "Malta"
+  },
+  "Free International University of Moldova (ULIM)": {
+    "lat": 47.0232142,
+    "lon": 28.8366917,
+    "country": "Moldavia"
+  },
+  "BENEMERITA UNIVERSIDAD AUTONOMA DE PUEBLA": {
+    "lat": 18.9998493,
+    "lon": -98.1991511,
+    "country": "México"
+  },
+  "CENTRO MEXICANO UNIVERSITARIO DE CIENCIAS Y HUMANIDADES": {
+    "lat": 32.5308726,
+    "lon": -116.9639025,
+    "country": "México"
+  },
+  "INSTITUTO TECNOLOGICO DE ESTUDIOS SUPERIORES DE MONTERREY (ITESM)": {
+    "lat": 22.1262368,
+    "lon": -101.0391797,
+    "country": "México"
+  },
+  "INSTITUTO TECNOLOGICO Y DE ESTUDIOS SUPERIORES DE OCCIDENTE (ITESO)": {
+    "lat": 20.6720375,
+    "lon": -103.338396,
+    "country": "México"
+  },
+  "UNIVERSIDAD ANÁHUAC MAYAB": {
+    "lat": 21.1111984,
+    "lon": -89.6123783,
+    "country": "México"
+  },
+  "UNIVERSIDAD ANÁHUAC QUERÉTARO": {
+    "lat": 20.6809821,
+    "lon": -100.3138055,
+    "country": "México"
+  },
+  "UNIVERSIDAD AUTONOMA DE YUCATAN": {
+    "lat": 20.9695521,
+    "lon": -89.6230118,
+    "country": "México"
+  },
+  "UNIVERSIDAD AUTÓNOMA DE AGUASCALIENTES": {
+    "lat": 21.9141626,
+    "lon": -102.3158491,
+    "country": "México"
+  },
+  "UNIVERSIDAD AUTÓNOMA DE BAJA CALIFORNIA": {
+    "lat": 32.5330807,
+    "lon": -116.9643968,
+    "country": "México"
+  },
+  "UNIVERSIDAD AUTÓNOMA DE BAJA CALIFORNIA SUR": {
+    "lat": 22.8964937,
+    "lon": -109.9135797,
+    "country": "México"
+  },
+  "UNIVERSIDAD AUTÓNOMA DE GUADALAJARA": {
+    "lat": 20.6954234,
+    "lon": -103.4191743,
+    "country": "México"
+  },
+  "UNIVERSIDAD AUTÓNOMA DE SAN LUIS POTOSÍ": {
+    "lat": 22.1443382,
+    "lon": -101.0155732,
+    "country": "México"
+  },
+  "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MORELOS": {
+    "lat": 18.9821552,
+    "lon": -99.2351888,
+    "country": "México"
+  },
+  "UNIVERSIDAD AUTÓNOMA DEL ESTADO DE MÉXICO": {
+    "lat": 19.2783211,
+    "lon": -99.6567655,
+    "country": "México"
+  },
+  "UNIVERSIDAD AUTÓNOMA METROPOLITANA": {
+    "lat": 19.3620769,
+    "lon": -99.0728976,
+    "country": "México"
+  },
+  "UNIVERSIDAD CUAUHTEMOC SAN LUIS POTOSÍ": {
+    "lat": 22.1069269,
+    "lon": -100.974136,
+    "country": "México"
+  },
+  "UNIVERSIDAD DE COLIMA": {
+    "lat": 19.2493099,
+    "lon": -103.6988542,
+    "country": "México"
+  },
+  "UNIVERSIDAD DE GUADALAJARA": {
+    "lat": 19.7200085,
+    "lon": -101.251118,
+    "country": "México"
+  },
+  "UNIVERSIDAD DE GUANAJUATO": {
+    "lat": 28.6984944,
+    "lon": -106.1339118,
+    "country": "México"
+  },
+  "UNIVERSIDAD DE SAN MIGUEL": {
+    "lat": 24.8192039,
+    "lon": -107.4046672,
+    "country": "México"
+  },
+  "UNIVERSIDAD DE SONORA": {
+    "lat": 29.083525,
+    "lon": -110.9628871,
+    "country": "México"
+  },
+  "UNIVERSIDAD DEL VALLE DE ATEMAJAC (UNIVA)": {
+    "lat": 20.6596487,
+    "lon": -103.4192583,
+    "country": "México"
+  },
+  "UNIVERSIDAD IBEROAMERICANA CIUDAD DE MÉXICO": {
+    "lat": 19.3697398,
+    "lon": -99.2637907,
+    "country": "México"
+  },
+  "UNIVERSIDAD POPULAR AUTÓNOMA DEL ESTADO DE PUEBLA (UPAEP)": {
+    "lat": 19.0485386,
+    "lon": -98.2166069,
+    "country": "México"
+  },
+  "UNIVERSIDAD VASCO DE QUIROGA": {
+    "lat": 22.1333945,
+    "lon": -100.9695244,
+    "country": "México"
+  },
+  "KATHMANDU UNIVERSITY": {
+    "lat": 27.6200439,
+    "lon": 85.5359094,
+    "country": "Nepal"
+  },
+  "NATIONAL LAW COLLEGE PVT. LTD.": {
+    "lat": 27.680994,
+    "lon": 85.3164595,
+    "country": "Nepal"
+  },
+  "Faculty of Performing Arts, University of Stavanger": {
+    "lat": 58.9699675,
+    "lon": 5.7318101,
+    "country": "Noruega"
+  },
+  "HOGSKOLEN I MOLDE": {
+    "lat": 62.7364311,
+    "lon": 7.1085197,
+    "country": "Noruega"
+  },
+  "Høgskulen i Volda": {
+    "lat": 62.1483682,
+    "lon": 6.0822737,
+    "country": "Noruega"
+  },
+  "Norwegian University of Science and Technology": {
+    "lat": 63.4480239,
+    "lon": 10.4536394,
+    "country": "Noruega"
+  },
+  "UNIVERSITETET I AGDER": {
+    "lat": 58.1630985,
+    "lon": 8.0014426,
+    "country": "Noruega"
+  },
+  "UNIVERSITETET I OSLO": {
+    "lat": 59.9414173,
+    "lon": 10.7227683,
+    "country": "Noruega"
+  },
+  "UNIVERSITETET I TROMSOE - NORGES ARKTISKE UNIVERSITET": {
+    "lat": 69.6819069,
+    "lon": 18.9724906,
+    "country": "Noruega"
+  },
+  "University of Bergen": {
+    "lat": 60.3809342,
+    "lon": 5.3313021,
+    "country": "Noruega"
+  },
+  "VID Specialized University": {
+    "lat": 58.8534803,
+    "lon": 5.7392772,
+    "country": "Noruega"
+  },
+  "Western Norway University of Applied Sciences (HVL)": {
+    "lat": 60.3688758,
+    "lon": 5.3511115,
+    "country": "Noruega"
+  },
+  "UNIVERSIDAD DE PANAMÁ": {
+    "lat": 8.9845638,
+    "lon": -79.5329354,
+    "country": "Panamá"
+  },
+  "UNIVERSIDAD CATÓLICA NUESTRA SEÑORA DE LA ASUNCIÓN": {
+    "lat": -25.3259386,
+    "lon": -57.6380694,
+    "country": "Paraguay"
+  },
+  "Avans University of Applied Sciences - Avans Hogeschool": {
+    "lat": 51.6883178,
+    "lon": 5.2859379,
+    "country": "Países Bajos"
+  },
+  "BUAS - BREDA UNIVERSITY OF APPLIED SCIENCES": {
+    "lat": 51.5898343,
+    "lon": 4.7952401,
+    "country": "Países Bajos"
+  },
+  "EINDHOVEN UNIVERSITY OF TECHNOLOGY": {
+    "lat": 51.4486602,
+    "lon": 5.4903996,
+    "country": "Países Bajos"
+  },
+  "Erasmus Universiteit Rotterdam": {
+    "lat": 51.9176312,
+    "lon": 4.5259623,
+    "country": "Países Bajos"
+  },
+  "HU University of Applied Sciences Utrecht": {
+    "lat": 52.0840626,
+    "lon": 5.1684392,
+    "country": "Países Bajos"
+  },
+  "Hogeschool van Arnhem en Nijmegen": {
+    "lat": 51.8425749,
+    "lon": 5.8389606,
+    "country": "Países Bajos"
+  },
+  "Inholland University of Applied Sciences": {
+    "lat": 52.3889259,
+    "lon": 4.6124185,
+    "country": "Países Bajos"
+  },
+  "RADBOUD UNIVERSITY": {
+    "lat": 51.8215173,
+    "lon": 5.8634329,
+    "country": "Países Bajos"
+  },
+  "Rotterdam University of Applied Sciences": {
+    "lat": 52.0671409,
+    "lon": 4.3245363,
+    "country": "Países Bajos"
+  },
+  "STICHTING NHL STENDEN HOGESCHOOL": {
+    "lat": 53.2005936,
+    "lon": 5.7918548,
+    "country": "Países Bajos"
+  },
+  "Saxion University of Applied Sciences": {
+    "lat": 52.0671409,
+    "lon": 4.3245363,
+    "country": "Países Bajos"
+  },
+  "Stichting Hanzehogeschool Groningen": {
+    "lat": 53.2190652,
+    "lon": 6.5680077,
+    "country": "Países Bajos"
+  },
+  "The Hague University of Applied Sciences (THUAS)": {
+    "lat": 52.0671409,
+    "lon": 4.3245363,
+    "country": "Países Bajos"
+  },
+  "Tio Business School": {
+    "lat": 52.3730796,
+    "lon": 4.8924534,
+    "country": "Países Bajos"
+  },
+  "UNIVERSITY OF GRONINGEN": {
+    "lat": 53.2194416,
+    "lon": 6.5629863,
+    "country": "Países Bajos"
+  },
+  "University of Applied Sciences Hogeschool KPZ": {
+    "lat": 52.5058908,
+    "lon": 6.1071058,
+    "country": "Países Bajos"
+  },
+  "Windesheim University of Applied Sciences": {
+    "lat": 52.3715061,
+    "lon": 5.2189993,
+    "country": "Países Bajos"
+  },
+  "PONTIFICIA UNIVERSIDAD CATOLICA DEL PERU (PUCP)": {
+    "lat": -12.0691658,
+    "lon": -77.0799348,
+    "country": "Perú"
+  },
+  "UNIVERSIDAD CATÓLICA SANTO TORIBIO DE MOGROVEJO": {
+    "lat": -6.7606043,
+    "lon": -79.8632655,
+    "country": "Perú"
+  },
+  "UNIVERSIDAD CÉSAR VALLEJO": {
+    "lat": -11.9552465,
+    "lon": -77.0685188,
+    "country": "Perú"
+  },
+  "UNIVERSIDAD DE LIMA": {
+    "lat": -12.0855294,
+    "lon": -76.9707007,
+    "country": "Perú"
+  },
+  "UNIVERSIDAD DE SAN MARTIN DE PORRES": {
+    "lat": -12.0720304,
+    "lon": -76.9420544,
+    "country": "Perú"
+  },
+  "UNIVERSIDAD DEL PACÍFICO": {
+    "lat": -12.0838826,
+    "lon": -77.0483187,
+    "country": "Perú"
+  },
+  "UNIVERSIDAD NACIONAL DE TRUJILLO": {
+    "lat": -8.1146349,
+    "lon": -79.0385842,
+    "country": "Perú"
+  },
+  "UNIVERSIDAD NACIONAL MAYOR DE SAN MARCOS": {
+    "lat": -11.9546373,
+    "lon": -76.987467,
+    "country": "Perú"
+  },
+  "UNIVERSIDAD NACIONAL SANTIAGO ANTUNEZ DE MAYOLO": {
+    "lat": -9.5212375,
+    "lon": -77.5285854,
+    "country": "Perú"
+  },
+  "UNIVERSIDAD PERUANA CAYETANO HEREDIA": {
+    "lat": -12.0912436,
+    "lon": -77.0518665,
+    "country": "Perú"
+  },
+  "UNIVERSIDAD TECNOLÓGICA DEL PERÚ": {
+    "lat": -12.0228469,
+    "lon": -75.2340079,
+    "country": "Perú"
+  },
+  "AGH University of Krakow": {
+    "lat": 50.0657583,
+    "lon": 19.9192221,
+    "country": "Polonia"
+  },
+  "AKADEMIA SZTUK PIEKNYCH W GDANSKU": {
+    "lat": 54.3498079,
+    "lon": 18.6530094,
+    "country": "Polonia"
+  },
+  "AKADEMIA WYCHOWANIA FIZYCZNEGO I SPORTU IM JEDRZEJA SNIADECKIEGO W GDANSKU OLIWIE": {
+    "lat": 54.4109571,
+    "lon": 18.5587024,
+    "country": "Polonia"
+  },
+  "AKADEMIA WYCHOWANIA FIZYCZNEGO IM.POLSKICH  OLIMPIJCZYKOW WE WROCLAWI": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "Adam Mickiewicz University, Poznań": {
+    "lat": 52.2437235,
+    "lon": 21.0148322,
+    "country": "Polonia"
+  },
+  "Akademia Sztuk Pieknych im. Wladyslawa Strzeminskiego w Lodzi": {
+    "lat": 51.7886203,
+    "lon": 19.4827609,
+    "country": "Polonia"
+  },
+  "Akademia Techniczno-Artystyczna Nauk Stosowanych w Warszawie": {
+    "lat": 52.2090335,
+    "lon": 21.0203383,
+    "country": "Polonia"
+  },
+  "Bialystok University of Technology": {
+    "lat": 53.1175618,
+    "lon": 23.1493258,
+    "country": "Polonia"
+  },
+  "COLLEGIUM WITELONA UCZELNIA PANSTWOWA": {
+    "lat": 51.2050208,
+    "lon": 16.1487983,
+    "country": "Polonia"
+  },
+  "Czestochowa University of Technology": {
+    "lat": 50.8228524,
+    "lon": 19.1158073,
+    "country": "Polonia"
+  },
+  "DSW Ideis University": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "GDANSKI UNIWERSYTET MEDYCZNY": {
+    "lat": 54.3601742,
+    "lon": 18.6237828,
+    "country": "Polonia"
+  },
+  "INSTYTUT NAUK PRAWNYCH POLSKIEJ AKADEMII NAUK": {
+    "lat": 52.2319581,
+    "lon": 21.0067249,
+    "country": "Polonia"
+  },
+  "JOZEF PILSUDSKI UNIVERSITY OF PHYSICAL EDUCATION IN WARSAW": {
+    "lat": 52.0355326,
+    "lon": 23.1058839,
+    "country": "Polonia"
+  },
+  "Jagiellonian University in Kraków": {
+    "lat": 50.0604369,
+    "lon": 19.9236105,
+    "country": "Polonia"
+  },
+  "Jan Dlugosz University in Czestochowa": {
+    "lat": 50.8082073,
+    "lon": 19.1142972,
+    "country": "Polonia"
+  },
+  "KATOLICKI UNIWERSYTET LUBELSKI JANA PAWLA II": {
+    "lat": 51.2375261,
+    "lon": 22.5015709,
+    "country": "Polonia"
+  },
+  "Kazimierz Wielki University": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "Krakow University of Economics": {
+    "lat": 50.0685297,
+    "lon": 19.9555016,
+    "country": "Polonia"
+  },
+  "Lazarski University - UCZELNIA LAZARSKIEGO": {
+    "lat": 52.1777306,
+    "lon": 21.0162735,
+    "country": "Polonia"
+  },
+  "MEDICAL UNIVERSITY OF SILESIA": {
+    "lat": 50.2108673,
+    "lon": 18.998486,
+    "country": "Polonia"
+  },
+  "Maria Curie-Skłodowska University in Lublin": {
+    "lat": 51.2507307,
+    "lon": 22.534382,
+    "country": "Polonia"
+  },
+  "Nicolaus Copernicus University in Toruń": {
+    "lat": 53.01245,
+    "lon": 18.6075907,
+    "country": "Polonia"
+  },
+  "POLITECHNIKA GDANSKA": {
+    "lat": 54.3718684,
+    "lon": 18.6166793,
+    "country": "Polonia"
+  },
+  "POLITECHNIKA LODZKA": {
+    "lat": 51.752577,
+    "lon": 19.4529575,
+    "country": "Polonia"
+  },
+  "POLITECHNIKA LUBELSKA": {
+    "lat": 51.2351664,
+    "lon": 22.5495143,
+    "country": "Polonia"
+  },
+  "POLITECHNIKA WROCLAWSKA": {
+    "lat": 51.1058732,
+    "lon": 17.0631808,
+    "country": "Polonia"
+  },
+  "POMORSKI UNIWERSYTET MEDYCZNY W SZCZECINIE": {
+    "lat": 53.423058,
+    "lon": 14.5544014,
+    "country": "Polonia"
+  },
+  "Panstwowa Akademia Nauk Stosowanych w Nysie": {
+    "lat": 50.4813755,
+    "lon": 17.3197415,
+    "country": "Polonia"
+  },
+  "Poznan University of Technology": {
+    "lat": 52.3942703,
+    "lon": 16.9181304,
+    "country": "Polonia"
+  },
+  "SPOLECZNA AKADEMIA NAUK": {
+    "lat": 51.7610349,
+    "lon": 19.4502326,
+    "country": "Polonia"
+  },
+  "SZKOLA GLOWNA GOSPODARSTWA WIEJSKIEGO": {
+    "lat": 52.1610478,
+    "lon": 21.0445347,
+    "country": "Polonia"
+  },
+  "Sopocka Akademia Nauk Stosowanych": {
+    "lat": 54.4290207,
+    "lon": 18.5641341,
+    "country": "Polonia"
+  },
+  "Szkola Glowna Turystyki i Hotelarstwa Vistula": {
+    "lat": 52.2319581,
+    "lon": 21.0067249,
+    "country": "Polonia"
+  },
+  "The Karkonosze University of Applied Sciences in Jelenia Gora": {
+    "lat": 50.9032967,
+    "lon": 15.7342657,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET ARTYSTYCZNY W POZNANIU": {
+    "lat": 52.4099431,
+    "lon": 16.928429,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET EKONOMICZNY W KATOWICACH": {
+    "lat": 50.260426,
+    "lon": 19.0452091,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET KOMISJI EDUKACJI NARODOWEJ W KRAKOWIE": {
+    "lat": 50.0533917,
+    "lon": 19.9448114,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET MEDYCZNY IM KAROLA MARCINKOWSKIEGO W POZNANIU": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET POMORSKI W SLUPSKU": {
+    "lat": 54.4523089,
+    "lon": 17.0430837,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET RZESZOWSKI": {
+    "lat": 50.0297569,
+    "lon": 22.0146992,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET SWPS": {
+    "lat": 52.2483057,
+    "lon": 21.0653898,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET SZCZECINSKI": {
+    "lat": 53.4184065,
+    "lon": 14.5356853,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET W SIEDLCACH": {
+    "lat": 52.1756812,
+    "lon": 22.2684188,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET WARMINSKO MAZURSKI W OLSZTYNIE": {
+    "lat": 53.8217017,
+    "lon": 22.3576278,
+    "country": "Polonia"
+  },
+  "UNIWERSYTET ZIELONOGORSKI": {
+    "lat": 51.9510892,
+    "lon": 15.4939792,
+    "country": "Polonia"
+  },
+  "Uczelnia Techniczno-Handlowa im. Heleny Chodkowskiej": {
+    "lat": 52.271619,
+    "lon": 21.0193646,
+    "country": "Polonia"
+  },
+  "University of Bialystok,\nInternational Cooperation Office": {
+    "lat": 53.132398,
+    "lon": 23.1591679,
+    "country": "Polonia"
+  },
+  "University of Gdańsk": {
+    "lat": 54.396405,
+    "lon": 18.57401,
+    "country": "Polonia"
+  },
+  "University of Lodz": {
+    "lat": 51.7780992,
+    "lon": 19.4831395,
+    "country": "Polonia"
+  },
+  "University of Opole": {
+    "lat": 50.4813755,
+    "lon": 17.3197415,
+    "country": "Polonia"
+  },
+  "University of Physical Culture in Krakow": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "University of Silesia in Katowice": {
+    "lat": 50.2606627,
+    "lon": 19.0292035,
+    "country": "Polonia"
+  },
+  "University of Warsaw": {
+    "lat": 52.2216394,
+    "lon": 21.007377,
+    "country": "Polonia"
+  },
+  "University of Wrocław": {
+    "lat": 51.1058732,
+    "lon": 17.0631808,
+    "country": "Polonia"
+  },
+  "Uniwersytet Civitas": {
+    "lat": 52.2320052,
+    "lon": 21.0060465,
+    "country": "Polonia"
+  },
+  "Uniwersytet Kardynała Stefana Wyszyńskiego w Warszawie -  UKSW": {
+    "lat": 52.2956711,
+    "lon": 20.9602021,
+    "country": "Polonia"
+  },
+  "Uniwersytet WSB Merito we Wroclawiu": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "WARSZAWSKI UNIWERSYTET MEDYCZNY": {
+    "lat": 52.2242385,
+    "lon": 21.0016203,
+    "country": "Polonia"
+  },
+  "WOJSKOWA AKADEMIA TECHNICZNA - Military University of Technology in Warsaw": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "WROCLAWSKA AKADEMIA BIZNESU W NAUKACH STOSOWANYCH": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "WYZSZA SZKOLA PRZEDSIEBIORCZOSCII ADMINISTRACJI  W LUBLINIE": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "Warsaw University of Technology": {
+    "lat": 52.2216394,
+    "lon": 21.007377,
+    "country": "Polonia"
+  },
+  "Wroclaw Medical University  - UNIWERSYTET MEDYCZNY IM PIASTOW SLASKICH WE WROCLAWIU": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "Wroclaw University of Economics and Business": {
+    "lat": null,
+    "lon": null,
+    "country": "Polonia"
+  },
+  "Wschodnioeuropejska Akademia Nauk Stosowanych w Bialymstoku": {
+    "lat": 53.1059626,
+    "lon": 23.1492847,
+    "country": "Polonia"
+  },
+  "ZACHODNIOPOMORSKI UNIWERSYTET TECHNOLOGICZNY W SZCZECINIE": {
+    "lat": 53.4274785,
+    "lon": 14.520196,
+    "country": "Polonia"
+  },
+  "ATLÂNTICA - INSTITUTO UNIVERSITÁRIO  ESSATLA - ESCOLA SUPERIOR DE SAÚDE ATLÂNTIC": {
+    "lat": null,
+    "lon": null,
+    "country": "Portugal"
+  },
+  "C.E.U - COOPERATIVA DE ENSINO UNIVERSITARIO CRL": {
+    "lat": 40.5739707,
+    "lon": -7.9457143,
+    "country": "Portugal"
+  },
+  "CENIL CENTRO DE LÍNGUAS LDA  / ISAL - Instituto Superior de Administração e Línguas": {
+    "lat": 32.6496497,
+    "lon": -16.9086783,
+    "country": "Portugal"
+  },
+  "CRUZ VERMELHA PORTUGUESA": {
+    "lat": 41.5355659,
+    "lon": -8.4180155,
+    "country": "Portugal"
+  },
+  "Cooperativa de Ensino Superior Politécnico e Universitário, CRL. (CESPU)": {
+    "lat": 41.7810462,
+    "lon": -8.4978034,
+    "country": "Portugal"
+  },
+  "ESCOLA SUPERIOR DE ENFERMAGEM DO PORTO": {
+    "lat": 41.1821566,
+    "lon": -8.6033588,
+    "country": "Portugal"
+  },
+  "FACULTAS, SA entidade instituidora do ISCET - Instituto Superior de Ciências Empresariais e do Turis": {
+    "lat": 41.1502195,
+    "lon": -8.6103497,
+    "country": "Portugal"
+  },
+  "INSTITUTO EUROPEU DE ESTUDOS SUPERIORES IEES LDA": {
+    "lat": 41.1502195,
+    "lon": -8.6103497,
+    "country": "Portugal"
+  },
+  "INSTITUTO POLITECNICO DA GUARDA": {
+    "lat": 40.5411258,
+    "lon": -7.2835561,
+    "country": "Portugal"
+  },
+  "INSTITUTO POLITECNICO DE BRAGANCA": {
+    "lat": 41.4781783,
+    "lon": -7.1775382,
+    "country": "Portugal"
+  },
+  "INSTITUTO POLITECNICO DE LEIRIA": {
+    "lat": 39.7372845,
+    "lon": -8.8112835,
+    "country": "Portugal"
+  },
+  "INSTITUTO POLITECNICO DE SANTAREM": {
+    "lat": 39.2217089,
+    "lon": -8.6876128,
+    "country": "Portugal"
+  },
+  "INSTITUTO POLITECNICO DE SETUBAL": {
+    "lat": 38.5208724,
+    "lon": -8.8389454,
+    "country": "Portugal"
+  },
+  "INSTITUTO POLITECNICO DO CAVADO E DO AVE": {
+    "lat": 41.5365259,
+    "lon": -8.6270936,
+    "country": "Portugal"
+  },
+  "INSTITUTO POLITÉCNICO DE GESTÃO E TECNOLOGIA -- GAIA -- ENSIGAIA": {
+    "lat": 41.1292264,
+    "lon": -8.6057396,
+    "country": "Portugal"
+  },
+  "ISLA-Santarem, Educação e Cultura Unipessoal, Lda.": {
+    "lat": 39.2363637,
+    "lon": -8.6867081,
+    "country": "Portugal"
+  },
+  "ISPA CRL": {
+    "lat": 38.7077507,
+    "lon": -9.1365919,
+    "country": "Portugal"
+  },
+  "Instituto Politécnico de Coimbra": {
+    "lat": 40.2126739,
+    "lon": -8.4558872,
+    "country": "Portugal"
+  },
+  "Instituto Politécnico de Porto": {
+    "lat": 41.1804181,
+    "lon": -8.5969974,
+    "country": "Portugal"
+  },
+  "Iscte - Instituto Universitário de Lisboa": {
+    "lat": 38.7486143,
+    "lon": -9.1540202,
+    "country": "Portugal"
+  },
+  "Lisbon Polytechnic": {
+    "lat": 38.7077507,
+    "lon": -9.1365919,
+    "country": "Portugal"
+  },
+  "Lusófona University": {
+    "lat": 38.7581164,
+    "lon": -9.1520127,
+    "country": "Portugal"
+  },
+  "MAIEUTICA COOPERATIVA DE ENSINO SUPERIOR CRL": {
+    "lat": 41.1502195,
+    "lon": -8.6103497,
+    "country": "Portugal"
+  },
+  "NOVA University Lisbon": {
+    "lat": 38.7330911,
+    "lon": -9.1607543,
+    "country": "Portugal"
+  },
+  "Polytechnic Institute of Castelo Branco": {
+    "lat": null,
+    "lon": null,
+    "country": "Portugal"
+  },
+  "Polytechnic Institute of Viana do Castelo": {
+    "lat": null,
+    "lon": null,
+    "country": "Portugal"
+  },
+  "Polythecnic Institute of Viseu": {
+    "lat": null,
+    "lon": null,
+    "country": "Portugal"
+  },
+  "SINTDEI - SOCIEDADE INTERNACIONAL DE DESENVOLVIMENTO ENSINO E INVESTIGACAO LDA": {
+    "lat": 38.7077507,
+    "lon": -9.1365919,
+    "country": "Portugal"
+  },
+  "UNIVERSIDADE CATOLICA PORTUGUESA": {
+    "lat": 41.5546582,
+    "lon": -8.4208438,
+    "country": "Portugal"
+  },
+  "UNIVERSIDADE DE AVEIRO": {
+    "lat": 40.6320293,
+    "lon": -8.6597957,
+    "country": "Portugal"
+  },
+  "UNIVERSIDADE DE EVORA": {
+    "lat": 38.5679435,
+    "lon": -7.9106167,
+    "country": "Portugal"
+  },
+  "UNIVERSIDADE DE LISBOA": {
+    "lat": 38.7527961,
+    "lon": -9.1570276,
+    "country": "Portugal"
+  },
+  "UNIVERSIDADE DE TRAS-OS-MONTES E ALTO DOURO": {
+    "lat": 41.2866583,
+    "lon": -7.7396657,
+    "country": "Portugal"
+  },
+  "UNIVERSIDADE DO MINHO": {
+    "lat": 41.5584713,
+    "lon": -8.3979669,
+    "country": "Portugal"
+  },
+  "UNIVERSIDADE DOS ACORES": {
+    "lat": 37.7463159,
+    "lon": -25.6629189,
+    "country": "Portugal"
+  },
+  "UNIVERSIDADE LUSÍADA - FUNDAÇÃO MINERVA-CULTURA-ENSINO E INVESTIGAÇÃO CIENTÍFICA": {
+    "lat": 41.4102652,
+    "lon": -8.5216766,
+    "country": "Portugal"
+  },
+  "UNIVERSITAS COOPERATIVA DE ENSINO SUPERIOR E INVESTIGACAO CIENTIFICA CRL": {
+    "lat": null,
+    "lon": null,
+    "country": "Portugal"
+  },
+  "Universidade da Madeira": {
+    "lat": 32.6589053,
+    "lon": -16.9246509,
+    "country": "Portugal"
+  },
+  "University of Algarve": {
+    "lat": 37.2449218,
+    "lon": -8.1959563,
+    "country": "Portugal"
+  },
+  "University of Coimbra": {
+    "lat": 40.1861497,
+    "lon": -8.4152502,
+    "country": "Portugal"
+  },
+  "University of Porto": {
+    "lat": 41.1784933,
+    "lon": -8.5961974,
+    "country": "Portugal"
+  },
+  "UNIVERSIDAD ANA G. MENDEZ": {
+    "lat": 18.2408172,
+    "lon": -66.0055977,
+    "country": "Puerto Rico"
+  },
+  "CARDIFF Metropolitan University": {
+    "lat": 51.5102898,
+    "lon": -3.161161,
+    "country": "Reino Unido"
+  },
+  "CARDIFF UNIVERSITY": {
+    "lat": 51.5067253,
+    "lon": -3.1894874,
+    "country": "Reino Unido"
+  },
+  "Coventry University": {
+    "lat": 52.4056372,
+    "lon": -1.4997223,
+    "country": "Reino Unido"
+  },
+  "LIVERPOOL JOHN MOORES UNIVERSITY": {
+    "lat": 53.4037508,
+    "lon": -2.9726752,
+    "country": "Reino Unido"
+  },
+  "Middlesex University": {
+    "lat": 51.6591227,
+    "lon": -0.1333415,
+    "country": "Reino Unido"
+  },
+  "Newcastle University": {
+    "lat": 54.9801751,
+    "lon": -1.6146802,
+    "country": "Reino Unido"
+  },
+  "Northumbria University": {
+    "lat": 54.9787691,
+    "lon": -1.6096401,
+    "country": "Reino Unido"
+  },
+  "OXFORD BROOKES UNIVERSITY": {
+    "lat": 51.755223,
+    "lon": -1.230104,
+    "country": "Reino Unido"
+  },
+  "Queen Mary University of London": {
+    "lat": 51.5247403,
+    "lon": -0.0393136,
+    "country": "Reino Unido"
+  },
+  "ROYAL HOLLOWAY, UNIVERSITY OF LONDON": {
+    "lat": 51.5074456,
+    "lon": -0.1277653,
+    "country": "Reino Unido"
+  },
+  "THE NOTTINGHAM TRENT UNIVERSITY": {
+    "lat": 52.9534193,
+    "lon": -1.1496461,
+    "country": "Reino Unido"
+  },
+  "THE UNIVERSITY OF NOTTINGHAM": {
+    "lat": 52.8389737,
+    "lon": -1.249575,
+    "country": "Reino Unido"
+  },
+  "THE UNIVERSITY OF WARWICK": {
+    "lat": 52.2821379,
+    "lon": -1.5905593,
+    "country": "Reino Unido"
+  },
+  "The University of Stirling": {
+    "lat": 56.1181242,
+    "lon": -3.9360012,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF BATH": {
+    "lat": 51.3766938,
+    "lon": -2.3234206,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF BIRMINGHAM": {
+    "lat": 52.4522956,
+    "lon": -1.9312857,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF EDINBURGH": {
+    "lat": 55.9440765,
+    "lon": -3.1883736,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF EXETER": {
+    "lat": 50.7369372,
+    "lon": -3.5347349,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF GLASGOW": {
+    "lat": 55.8727036,
+    "lon": -4.2919966,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF LEEDS": {
+    "lat": 53.8057925,
+    "lon": -1.555111,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF LEICESTER": {
+    "lat": 52.6087005,
+    "lon": -1.114824,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF LINCOLN": {
+    "lat": 53.2263804,
+    "lon": -0.5461286,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF PORTSMOUTH": {
+    "lat": 50.795245,
+    "lon": -1.0935529,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF READING": {
+    "lat": 51.4404358,
+    "lon": -0.9417618,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF SALFORD": {
+    "lat": 53.4732204,
+    "lon": -2.2970993,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF SHEFFIELD": {
+    "lat": 53.3729622,
+    "lon": -1.5059315,
+    "country": "Reino Unido"
+  },
+  "UNIVERSITY OF SOUTHAMPTON": {
+    "lat": 50.9617568,
+    "lon": -1.4239975,
+    "country": "Reino Unido"
+  },
+  "University of Bradford (UoB)": {
+    "lat": 53.7944229,
+    "lon": -1.7519186,
+    "country": "Reino Unido"
+  },
+  "University of Cambridge": {
+    "lat": 52.1890916,
+    "lon": 0.1212977,
+    "country": "Reino Unido"
+  },
+  "University of Essex": {
+    "lat": 51.8773639,
+    "lon": 0.9498751,
+    "country": "Reino Unido"
+  },
+  "University of Strathclyde": {
+    "lat": 55.8618812,
+    "lon": -4.2419566,
+    "country": "Reino Unido"
+  },
+  "INSTITUTO TECNOLÓGICO DE SANTO DOMINGO - INTEC": {
+    "lat": 18.4713858,
+    "lon": -69.8918436,
+    "country": "República Dominicana"
+  },
+  "PONTIFICIA UNIVERSIDAD CATÓLICA MADRE Y MAESTRA": {
+    "lat": 19.4432844,
+    "lon": -70.6826157,
+    "country": "República Dominicana"
+  },
+  "UNIVERSIDAD APEC": {
+    "lat": 18.4734646,
+    "lon": -69.9137233,
+    "country": "República Dominicana"
+  },
+  "UNIVERSIDAD IBEROAMERICANA (UNIBE)": {
+    "lat": 18.4770006,
+    "lon": -69.8626018,
+    "country": "República Dominicana"
+  },
+  "UNIVERSIDAD NACIONAL PEDRO HENRÍQUEZ UREÑA": {
+    "lat": 19.2211295,
+    "lon": -70.5273219,
+    "country": "República Dominicana"
+  },
+  "P.A. COLLEGE LTD": {
+    "lat": 34.9236095,
+    "lon": 33.6236184,
+    "country": "República de Chipre"
+  },
+  "UNIVERSITY OF CYPRUS": {
+    "lat": 35.1439124,
+    "lon": 33.413932,
+    "country": "República de Chipre"
+  },
+  "Ss. CYRIL AND METHODIUS UNIVERSITY IN SKOPJE": {
+    "lat": 42.0035061,
+    "lon": 21.4345101,
+    "country": "República de Macedonia"
+  },
+  "ACADEMIA DE STUDII ECONOMICE DIN BUCURESTI": {
+    "lat": 44.4356445,
+    "lon": 26.1009263,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA CONSTANTIN BRANCUSI TARGU JIU": {
+    "lat": 45.0403078,
+    "lon": 23.2682328,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA DANUBIUS DIN GALATI": {
+    "lat": null,
+    "lon": null,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA DE ARTA SI DESIGN DINCLUJ-NAPOCA": {
+    "lat": null,
+    "lon": null,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA DE MEDICINĂ, FARMACIE, ȘTIINȚE ȘI TEHNOLOGIE „GEORGE EMIL PALADE” DIN TÂRGU MUREȘ": {
+    "lat": 45.7564238,
+    "lon": 21.2371677,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA DE VEST DIN TIMISOARA": {
+    "lat": 45.7473293,
+    "lon": 21.231261,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA DIN BUCURESTI": {
+    "lat": 44.4356445,
+    "lon": 26.1009263,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA DIN CRAIOVA": {
+    "lat": 44.3189723,
+    "lon": 23.8008069,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA DIN ORADEA": {
+    "lat": 47.0449334,
+    "lon": 21.9180637,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA DIN PETROSANI": {
+    "lat": null,
+    "lon": null,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA LUCIAN BLAGA DIN SIBIU": {
+    "lat": 45.7901452,
+    "lon": 24.1464641,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA NATIONALA DE ARTE GEORGE ENESCU DIN IASI": {
+    "lat": null,
+    "lon": null,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA NATIONALA DE EDUCATIE FIZICA SI SPORT DIN BUCURESTI": {
+    "lat": null,
+    "lon": null,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA NATIONALA DE STIINTASI TEHNOLOGIE POLITEHNICA BUCURESTI": {
+    "lat": null,
+    "lon": null,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA OVIDIUS DIN CONSTANTA": {
+    "lat": null,
+    "lon": null,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA POLITEHNICA TIMISOARA": {
+    "lat": 45.7461738,
+    "lon": 21.227536,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA STEFAN CEL MARE DIN SUCEAVA": {
+    "lat": null,
+    "lon": null,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA TEHNICA GHEORGHE ASACHI DIN IASI": {
+    "lat": 47.1542721,
+    "lon": 27.5970076,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA TRANSILVANIA DIN BRASOV": {
+    "lat": null,
+    "lon": null,
+    "country": "Rumanía"
+  },
+  "UNIVERSITATEA VASILE ALECSANDRI DIN BACAU": {
+    "lat": 46.5539919,
+    "lon": 26.9143287,
+    "country": "Rumanía"
+  },
+  "Universitatea &#34;APOLLONIA&#34; Din Iasi": {
+    "lat": null,
+    "lon": null,
+    "country": "Rumanía"
+  },
+  "Universitatea Babeș-Bolyai": {
+    "lat": 46.7677836,
+    "lon": 23.5919766,
+    "country": "Rumanía"
+  },
+  "Universitatea „Alexandru Ioan Cuza” din Iași": {
+    "lat": 47.1742067,
+    "lon": 27.5713755,
+    "country": "Rumanía"
+  },
+  "UNIVERZITET U NISU": {
+    "lat": 43.3229439,
+    "lon": 21.8934768,
+    "country": "Serbia"
+  },
+  "University of Belgrade": {
+    "lat": 44.8179654,
+    "lon": 20.4507765,
+    "country": "Serbia"
+  },
+  "UNIVERSITY OF PRETORIA": {
+    "lat": -25.7543354,
+    "lon": 28.2308578,
+    "country": "Sudáfrica"
+  },
+  "UNIVERSITY OF WESTERN CAPE": {
+    "lat": -33.9327302,
+    "lon": 18.62864,
+    "country": "Sudáfrica"
+  },
+  "Blekinge tekniska högskola": {
+    "lat": 56.1820102,
+    "lon": 15.5910079,
+    "country": "Suecia"
+  },
+  "HOEGSKOLAN KRISTIANSTAD": {
+    "lat": 56.0293778,
+    "lon": 14.1566859,
+    "country": "Suecia"
+  },
+  "HOGSKOLAN I SKOVDE": {
+    "lat": 58.3942082,
+    "lon": 13.8548852,
+    "country": "Suecia"
+  },
+  "Högskolan i Halmstad": {
+    "lat": 56.6634033,
+    "lon": 12.8792927,
+    "country": "Suecia"
+  },
+  "Karlstads universitet": {
+    "lat": 59.4065506,
+    "lon": 13.5823121,
+    "country": "Suecia"
+  },
+  "Konstfack": {
+    "lat": 59.2997731,
+    "lon": 17.9942096,
+    "country": "Suecia"
+  },
+  "Linköpings universitet": {
+    "lat": 58.3977911,
+    "lon": 15.5754544,
+    "country": "Suecia"
+  },
+  "Lund University": {
+    "lat": 55.7126504,
+    "lon": 13.2107587,
+    "country": "Suecia"
+  },
+  "MID SWEDEN UNIVERSITY": {
+    "lat": 63.177037,
+    "lon": 14.6505828,
+    "country": "Suecia"
+  },
+  "Malmö universitet": {
+    "lat": 55.6088853,
+    "lon": 12.9932225,
+    "country": "Suecia"
+  },
+  "Mälardalens universitet": {
+    "lat": 59.6182104,
+    "lon": 16.5416357,
+    "country": "Suecia"
+  },
+  "STIFTELSEN RODAKORSHEMMET - THE RED CROSS UNIVERSITY COLLEGE": {
+    "lat": null,
+    "lon": null,
+    "country": "Suecia"
+  },
+  "STOCKHOLM UNIVERSITY": {
+    "lat": 59.366141,
+    "lon": 18.059593,
+    "country": "Suecia"
+  },
+  "UNIVERSITY OF GOTHENBURG": {
+    "lat": 57.6864579,
+    "lon": 11.9589874,
+    "country": "Suecia"
+  },
+  "Umeå University": {
+    "lat": 63.8217763,
+    "lon": 20.3043163,
+    "country": "Suecia"
+  },
+  "Haute Ecole spécialisée de Suisse occidentale / Haute Ecole de  Travail social de Genève": {
+    "lat": 46.2017559,
+    "lon": 6.1466014,
+    "country": "Suiza"
+  },
+  "Interkantonale Hochschule für Heilpädagogik Zürich": {
+    "lat": 47.4030632,
+    "lon": 8.5467329,
+    "country": "Suiza"
+  },
+  "Pädagogische Hochschule Luzern": {
+    "lat": 47.051042,
+    "lon": 8.3023667,
+    "country": "Suiza"
+  },
+  "University of Fribourg": {
+    "lat": 46.793058,
+    "lon": 7.157106,
+    "country": "Suiza"
+  },
+  "University of Geneva - UNIVERSITÉ DE GENÈVE": {
+    "lat": 46.2017559,
+    "lon": 6.1466014,
+    "country": "Suiza"
+  },
+  "Universität Basel": {
+    "lat": 47.5585374,
+    "lon": 7.5826363,
+    "country": "Suiza"
+  },
+  "Universität Bern": {
+    "lat": 46.9509726,
+    "lon": 7.4386841,
+    "country": "Suiza"
+  },
+  "Universität Zürich": {
+    "lat": 47.3971752,
+    "lon": 8.5491779,
+    "country": "Suiza"
+  },
+  "ZHAW Zurich University of Applied Sciences": {
+    "lat": 47.4968435,
+    "lon": 8.7298072,
+    "country": "Suiza"
+  },
+  "CHIANG MAI UNIVERSITY": {
+    "lat": 18.8009264,
+    "lon": 98.9521552,
+    "country": "Tailandia"
+  },
+  "NATIONAL TAIWAN UNIVERSITY OF SCIENCES AND TECHNOLOGY": {
+    "lat": 25.013411,
+    "lon": 121.5416198,
+    "country": "Taiwán"
+  },
+  "TAMKANG UNIVERSITY": {
+    "lat": 25.1749822,
+    "lon": 121.4503498,
+    "country": "Taiwán"
+  },
+  "TAJIK STATE UNIVERSITY OF COMMERCE": {
+    "lat": 38.5319261,
+    "lon": 68.7582215,
+    "country": "Tayikistán"
+  },
+  "ALTINBAS UNIVERSITESI": {
+    "lat": 41.0573335,
+    "lon": 28.8206482,
+    "country": "Turquía"
+  },
+  "AYDIN ADNAN MENDERES UNIVERSITESI": {
+    "lat": 37.8582677,
+    "lon": 27.8530947,
+    "country": "Turquía"
+  },
+  "BAHCESEHIR UNIVERSITESI - BAU": {
+    "lat": 41.0418505,
+    "lon": 29.0096979,
+    "country": "Turquía"
+  },
+  "BASKENT UNIVERSITESI": {
+    "lat": 39.8875015,
+    "lon": 32.6548105,
+    "country": "Turquía"
+  },
+  "BOGAZICI UNIVERSITESI": {
+    "lat": 41.0844751,
+    "lon": 29.0535915,
+    "country": "Turquía"
+  },
+  "BURDUR MEHMET AKIF ERSOY UNIVERSITESI": {
+    "lat": 37.6846295,
+    "lon": 30.3371963,
+    "country": "Turquía"
+  },
+  "Bezmialem Vakif University": {
+    "lat": 41.0182144,
+    "lon": 28.9364944,
+    "country": "Turquía"
+  },
+  "Bilgi University": {
+    "lat": 41.0397899,
+    "lon": 28.9742941,
+    "country": "Turquía"
+  },
+  "CANAKKALE ONSEKIZ MART UNIVERSITESI": {
+    "lat": 40.1120066,
+    "lon": 26.4214648,
+    "country": "Turquía"
+  },
+  "CANKIRI KARATEKIN UNIVERSITY": {
+    "lat": 40.6225259,
+    "lon": 33.6192821,
+    "country": "Turquía"
+  },
+  "Cag University": {
+    "lat": 37.1666172,
+    "lon": 41.2609727,
+    "country": "Turquía"
+  },
+  "DOKUZ EYLUL UNIVERSITESI": {
+    "lat": 38.4305296,
+    "lon": 27.136965,
+    "country": "Turquía"
+  },
+  "DUZCE UNIVERSITESI": {
+    "lat": 40.9058073,
+    "lon": 31.1805369,
+    "country": "Turquía"
+  },
+  "ESKISEHIR OSMANGAZI UNIVERSITESI": {
+    "lat": 39.7485483,
+    "lon": 30.4761351,
+    "country": "Turquía"
+  },
+  "HACETTEPE UNIVERSITESI": {
+    "lat": 39.8688599,
+    "lon": 32.7356556,
+    "country": "Turquía"
+  },
+  "Halic University": {
+    "lat": 41.0885421,
+    "lon": 28.9523297,
+    "country": "Turquía"
+  },
+  "ISTANBUL AYDIN UNIVERSITESI VAKFI": {
+    "lat": 40.9916257,
+    "lon": 28.7967971,
+    "country": "Turquía"
+  },
+  "ISTANBUL TOPKAPI UNIVERSITESI": {
+    "lat": 41.0263994,
+    "lon": 28.9204661,
+    "country": "Turquía"
+  },
+  "Istanbul Galata University": {
+    "lat": 41.0241812,
+    "lon": 28.972617,
+    "country": "Turquía"
+  },
+  "Istanbul Gelisim Universitesi": {
+    "lat": 40.9938018,
+    "lon": 28.7000342,
+    "country": "Turquía"
+  },
+  "KADIR HAS UNIVERSITESI": {
+    "lat": 41.0520329,
+    "lon": 28.3805047,
+    "country": "Turquía"
+  },
+  "KOCAELI UNIVERSITY": {
+    "lat": 40.8187372,
+    "lon": 29.922908,
+    "country": "Turquía"
+  },
+  "MARMARA UNIVERSITY": {
+    "lat": 40.9872142,
+    "lon": 29.052956,
+    "country": "Turquía"
+  },
+  "MUGLA SITKI KOCMAN UNIVERSITY": {
+    "lat": 37.1670905,
+    "lon": 28.3744845,
+    "country": "Turquía"
+  },
+  "SAKARYA UNIVERSITESI": {
+    "lat": 40.7421339,
+    "lon": 30.331007,
+    "country": "Turquía"
+  },
+  "TURK HAVA KURUMU UNIVERSITESI VAKIF": {
+    "lat": 39.9207759,
+    "lon": 32.8540497,
+    "country": "Turquía"
+  },
+  "YASAR UNIVERSITESI": {
+    "lat": 38.4544343,
+    "lon": 27.2024535,
+    "country": "Turquía"
+  },
+  "YILDIZ TECHNICAL UNIVERSITY": {
+    "lat": 41.0522441,
+    "lon": 29.0105277,
+    "country": "Turquía"
+  },
+  "Yeditepe University": {
+    "lat": 40.971332,
+    "lon": 29.1506054,
+    "country": "Turquía"
+  },
+  "Yüzüncü Yıl Üniversitesi": {
+    "lat": 38.4485009,
+    "lon": 43.3249998,
+    "country": "Turquía"
+  },
+  "IVAN FRANKO NATIONAL UNIVERSITY OF LVIV": {
+    "lat": 49.8402167,
+    "lon": 24.0222881,
+    "country": "Ucrania"
+  },
+  "NATIONAL TECHNICAL UNIVERSITY OF UKRAINE \"IGOR SIKORSKY KYIV POLYTECHNIC INSTITUTE\"": {
+    "lat": 50.4492587,
+    "lon": 30.457754,
+    "country": "Ucrania"
+  },
+  "TARAS SHEVCHENKO NATIONAL UNIVERSITY OF KYIV": {
+    "lat": 50.3842474,
+    "lon": 30.4742873,
+    "country": "Ucrania"
+  },
+  "ZHYTOMYR POLYTECHNIC STATE UNIVERSITY": {
+    "lat": 50.244291,
+    "lon": 28.6368723,
+    "country": "Ucrania"
+  },
+  "UNIVERSIDAD CATÓLICA DEL URUGUAY": {
+    "lat": -34.9380976,
+    "lon": -54.9348762,
+    "country": "Uruguay"
+  },
+  "UNIVERSIDAD DE LA REPUBLICA": {
+    "lat": -34.8966381,
+    "lon": -56.1402992,
+    "country": "Uruguay"
+  },
+  "UNIVERSIDAD DE MONTEVIDEO": {
+    "lat": -34.9042621,
+    "lon": -56.1627343,
+    "country": "Uruguay"
+  },
+  "UNIVERSIDAD CENTROCCIDENTAL \"LISANDRO ALVARADO\"": {
+    "lat": 10.0661162,
+    "lon": -69.3624945,
+    "country": "Venezuela"
+  },
+  "UNIVERSIDAD METROPOLITANA": {
+    "lat": 10.4992125,
+    "lon": -66.7854651,
+    "country": "Venezuela"
+  },
+  "UNIVERSIDAD SIMÓN BOLÍVAR": {
+    "lat": 10.4119801,
+    "lon": -66.8865901,
+    "country": "Venezuela"
+  }
+}

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algoria Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; background: #f8fafc; }
+
+/* Top bar */
+#top-bar {
+    background: #1e293b;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    z-index: 1000;
+}
+#top-bar .logo {
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    white-space: nowrap;
+}
+#search-box {
+    flex: 1;
+    padding: 7px 12px;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    background: #334155;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+}
+#search-box::placeholder { color: #94a3b8; }
+#search-box:focus { border-color: #60a5fa; background: #3b4f6b; }
+#btn-search {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+#btn-search:hover { background: #1d4ed8; }
+.dropdown-btn {
+    background: none;
+    border: 1px solid #475569;
+    color: #94a3b8;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+}
+.dropdown-btn:hover { color: #fff; border-color: #60a5fa; }
+
+/* Filter bar */
+#filter-bar {
+    background: #f1f5f9;
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13px;
+    flex-wrap: wrap;
+}
+#filter-bar label { color: #64748b; font-weight: 600; }
+#filter-bar select {
+    padding: 3px 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 12px;
+    background: #fff;
+}
+#btn-clear {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    color: #64748b;
+}
+#btn-clear:hover { background: #e2e8f0; }
+#summary {
+    margin-left: auto;
+    color: #334155;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* Map */
+#map { flex: 1; }
+
+/* Dropdown menus */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    min-width: 280px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 2000;
+    margin-top: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.dropdown-menu.show { display: block; }
+.dropdown-item {
+    padding: 8px 12px;
+    color: #cbd5e1;
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 1px solid #334155;
+}
+.dropdown-item:hover { background: #334155; color: #fff; }
+.dropdown-item:last-child { border-bottom: none; }
+
+/* Popup styling */
+.leaflet-popup-content { overflow-y: auto; }
+.leaflet-popup-content-wrapper { border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<!-- Top bar with search -->
+<div id="top-bar">
+    <span class="logo" id="lbl-logo">Algoria Map</span>
+    <input id="search-box" type="text" placeholder="">
+    <button id="btn-search"></button>
+    <div style="position:relative;">
+        <button class="dropdown-btn" id="btn-examples"></button>
+        <div class="dropdown-menu" id="examples-menu"></div>
+    </div>
+    <div style="position:relative;">
+        <button class="dropdown-btn" id="btn-history"></button>
+        <div class="dropdown-menu" id="history-menu"></div>
+    </div>
+</div>
+
+<!-- Filter bar -->
+<div id="filter-bar">
+    <label id="lbl-continent"></label>
+    <select id="f-continent">
+        <option value="" id="opt-all-continent"></option>
+        <option>Europa</option><option>América</option><option>Asia</option><option>África</option><option>Oceanía</option>
+    </select>
+    <label id="lbl-country"></label>
+    <select id="f-country"><option value=""></option></select>
+    <label id="lbl-faculty"></label>
+    <select id="f-faculty">
+        <option value="">All</option>
+        <option>Escuela de Ingenierías Industriales</option>
+        <option>Escuela Técnica Superior de Arquitectura</option>
+        <option>Escuela Técnica Superior de Ingeniería de Telecomunicación</option>
+        <option>Escuela Técnica Superior de Ingeniería Informática</option>
+        <option>Facultad de Bellas Artes</option>
+        <option>Facultad de Ciencias</option>
+        <option>Facultad de Ciencias de la Comunicación</option>
+        <option>Facultad de Ciencias de la Educación</option>
+        <option>Facultad de Ciencias de la Salud</option>
+        <option>Facultad de Ciencias Económicas y Empresariales</option>
+        <option>Facultad de Derecho</option>
+        <option>Facultad de Estudios Sociales y del Trabajo</option>
+        <option>Facultad de Filosofía y Letras</option>
+        <option>Facultad de Marketing y Gestión</option>
+        <option>Facultad de Medicina</option>
+        <option>Facultad de Psicología y Logopedia</option>
+        <option>Facultad de Turismo</option>
+    </select>
+    <label id="lbl-language"></label>
+    <select id="f-lang">
+        <option value=""></option>
+        <option>INGLÉS</option><option>FRANCÉS</option><option>ALEMÁN</option>
+        <option>ITALIANO</option><option>PORTUGUÉS</option><option>ESPAÑOL</option>
+    </select>
+    <label id="lbl-level"></label>
+    <select id="f-level">
+        <option value=""></option>
+        <option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+        <input type="checkbox" id="f-uninovis"> <span id="lbl-uninovis">UNINOVIS</span>
+    </label>
+    <button id="btn-clear"></button>
+    <span id="summary"></span>
+</div>
+
+<!-- Map -->
+<div id="map"></div>
+
+<script>
+// ── Data ──
+const COUNTRIES = ["Albania","Alemania","Argelia","Argentina","Armenia","Australia","Austria","Azerbaiyán","Bolivia","Brasil","Bulgaria","Bélgica","Canadá","Chequia","Chile","Colombia","Corea del Sur","Costa Rica","Croacia","Dinamarca","Ecuador","Eslovaquia","Eslovenia","España","Estados Unidos","Estonia","Filipinas","Finlandia","Francia","Georgia","Grecia","Honduras","Hungría","India","Indonesia","Irlanda","Islandia","Italia","Japón","Kazajistán","Letonia","Libia","Lituania","Malasia","Malta","Moldavia","México","Nepal","Noruega","Panamá","Paraguay","Países Bajos","Perú","Polonia","Portugal","Puerto Rico","Reino Unido","República Dominicana","República de Chipre","República de Macedonia","Rumanía","Serbia","Sudáfrica","Suecia","Suiza","Tailandia","Taiwán","Tayikistán","Turquía","Ucrania","Uruguay","Venezuela"];
+
+const CONTINENT_COUNTRIES = {
+    "Europa": ["Albania","Alemania","Austria","Azerbaiyán","Bélgica","Bulgaria","Chequia","Croacia","Dinamarca","Eslovaquia","Eslovenia","España","Estonia","Finlandia","Francia","Georgia","Grecia","Hungría","Irlanda","Islandia","Italia","Kazajistán","Letonia","Lituania","Malta","Moldavia","Noruega","Países Bajos","Polonia","Portugal","Reino Unido","República de Chipre","República de Macedonia","Rumanía","Serbia","Suecia","Suiza","Turquía","Ucrania"],
+    "América": ["Argentina","Bolivia","Brasil","Canadá","Chile","Colombia","Costa Rica","Ecuador","Estados Unidos","Honduras","México","Panamá","Paraguay","Perú","Puerto Rico","República Dominicana","Uruguay","Venezuela"],
+    "Asia": ["Armenia","Corea del Sur","Filipinas","India","Indonesia","Japón","Kazajistán","Malasia","Nepal","Tailandia","Taiwán","Tayikistán"],
+    "África": ["Argelia","Libia","Sudáfrica"],
+    "Oceanía": ["Australia"]
+};
+
+const FACULTY_ALIASES = {
+    "letters": "Filosofía y Letras", "letras": "Filosofía y Letras",
+    "law": "Derecho", "derecho": "Derecho",
+    "medicine": "Medicina", "medicina": "Medicina",
+    "science": "Ciencias", "ciencias": "Ciencias",
+    "economics": "Económicas", "business": "Económicas", "económicas": "Económicas",
+    "education": "Educación", "educación": "Educación",
+    "engineering": "Ingenierías", "ingeniería": "Ingenierías",
+    "computer science": "Informática", "informática": "Informática",
+    "telecom": "Telecomunicación", "telecomunicación": "Telecomunicación",
+    "architecture": "Arquitectura", "arquitectura": "Arquitectura",
+    "fine arts": "Bellas Artes", "bellas artes": "Bellas Artes",
+    "communication": "Comunicación", "comunicación": "Comunicación",
+    "health": "Salud", "salud": "Salud",
+    "psychology": "Psicología", "psicología": "Psicología",
+    "tourism": "Turismo", "turismo": "Turismo",
+    "social work": "Sociales y del Trabajo", "trabajo social": "Sociales y del Trabajo",
+    "marketing": "Marketing",
+};
+
+const COUNTRY_ALIASES = {
+    "italy": "Italia", "germany": "Alemania", "france": "Francia",
+    "netherlands": "Países Bajos", "holland": "Países Bajos",
+    "uk": "Reino Unido", "united kingdom": "Reino Unido", "england": "Reino Unido",
+    "czech republic": "Chequia", "south korea": "Corea del Sur",
+    "belgium": "Bélgica", "usa": "Estados Unidos", "united states": "Estados Unidos",
+    "sweden": "Suecia", "switzerland": "Suiza", "norway": "Noruega",
+    "denmark": "Dinamarca", "finland": "Finlandia", "poland": "Polonia",
+    "romania": "Rumanía", "greece": "Grecia", "turkey": "Turquía",
+    "japan": "Japón", "mexico": "México", "brazil": "Brasil",
+    "chile": "Chile", "colombia": "Colombia", "argentina": "Argentina",
+    "portugal": "Portugal", "ireland": "Irlanda", "austria": "Austria",
+    "hungary": "Hungría", "croatia": "Croacia", "slovakia": "Eslovaquia",
+    "slovenia": "Eslovenia", "bulgaria": "Bulgaria", "estonia": "Estonia",
+    "latvia": "Letonia", "lithuania": "Lituania",
+    "europe": "_continent_Europa", "europa": "_continent_Europa",
+    "america": "_continent_América", "américas": "_continent_América", "americas": "_continent_América",
+    "asia": "_continent_Asia",
+    "africa": "_continent_África", "áfrica": "_continent_África",
+    "oceania": "_continent_Oceanía", "oceanía": "_continent_Oceanía",
+};
+
+// ── State ──
+let map, clusterGroup;
+let queryHistory = [];
+let detailData = {};
+let T = {}; // translations
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load config for translations
+    // Load translations — try the public agreements-config endpoint
+    try {
+        const cfgResp = await fetch('/api/agents/algoria_map/agreements-config');
+        if (cfgResp.ok) {
+            const cfg = await cfgResp.json();
+            const lang = cfg.language || 'en';
+            T = (cfg.translations && cfg.translations[lang]) || {};
+        }
+    } catch (e) { console.warn('Could not load config, using defaults'); }
+
+    // Apply translations
+    document.title = T.title || 'Algoria Map';
+    document.getElementById('lbl-logo').textContent = T.logo || 'Algoria Map';
+    document.getElementById('search-box').placeholder = T.search_placeholder || 'Search agreements...';
+    document.getElementById('btn-search').textContent = T.search_btn || 'Search';
+    document.getElementById('btn-examples').textContent = T.examples_btn || 'Examples ▾';
+    document.getElementById('btn-history').textContent = T.history_btn || 'History ▾';
+    document.getElementById('lbl-continent').textContent = (T.continent || 'Continent') + ':';
+    document.getElementById('lbl-country').textContent = (T.country || 'Country') + ':';
+    document.getElementById('lbl-faculty').textContent = (T.faculty || 'Faculty') + ':';
+    document.getElementById('lbl-language').textContent = (T.language || 'Language') + ':';
+    document.getElementById('lbl-level').textContent = (T.level || 'Level') + ':';
+    document.getElementById('lbl-uninovis').textContent = T.uninovis || 'UNINOVIS only';
+    document.getElementById('btn-clear').textContent = T.clear_filters || 'Clear filters';
+    document.getElementById('opt-all-continent').textContent = T.all || 'All';
+    // Set "All" for other selects' first option
+    ['f-country','f-faculty','f-lang','f-level'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (sel.options[0]) sel.options[0].textContent = T.all || 'All';
+    });
+
+    // Build examples menu from translations
+    const exMenu = document.getElementById('examples-menu');
+    const examples = T.example_queries || [
+        {label: 'Show all agreements', q: 'Show all agreements'},
+        {label: 'Agreements in Italy', q: 'Italy'},
+        {label: 'Agreements in Europe', q: 'Europe'}
+    ];
+    examples.forEach(ex => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        item.textContent = ex.label;
+        item.dataset.q = ex.q;
+        item.addEventListener('click', () => {
+            document.getElementById('search-box').value = ex.q;
+            exMenu.classList.remove('show');
+            doSearch();
+        });
+        exMenu.appendChild(item);
+    });
+
+    // Populate country dropdown
+    const sel = document.getElementById('f-country');
+    COUNTRIES.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+
+    // Init map
+    map = L.map('map', { zoomControl: true, attributionControl: false, minZoom: 2, maxZoom: 18 });
+    map.setView([25, 15], 2);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(map);
+    clusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 40,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        iconCreateFunction: function(cluster) {
+            const count = cluster.getChildCount();
+            let size = 36;
+            if (count >= 100) size = 52;
+            else if (count >= 20) size = 44;
+            return L.divIcon({
+                html: '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:rgba(37,99,235,0.7);border:2px solid #1e40af;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:'+(count>=100?15:13)+'px;text-shadow:0 1px 2px rgba(0,0,0,0.4);">'+count+'</div>',
+                className: 'marker-cluster',
+                iconSize: L.point(size, size)
+            });
+        }
+    });
+    map.addLayer(clusterGroup);
+
+    // Event handlers
+    document.getElementById('btn-search').addEventListener('click', doSearch);
+    document.getElementById('search-box').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+    document.getElementById('btn-clear').addEventListener('click', clearFilters);
+
+    // Filter dropdowns trigger search
+    ['f-continent','f-country','f-faculty','f-lang','f-level','f-uninovis'].forEach(id => {
+        document.getElementById(id).addEventListener('change', doFilterSearch);
+    });
+
+    // Continent filters country dropdown
+    document.getElementById('f-continent').addEventListener('change', filterCountryDropdown);
+
+    // Example dropdown
+    document.getElementById('btn-examples').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('examples-menu').classList.toggle('show');
+        document.getElementById('history-menu').classList.remove('show');
+    });
+    document.querySelectorAll('#examples-menu .dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.getElementById('search-box').value = item.dataset.q;
+            document.getElementById('examples-menu').classList.remove('show');
+            doSearch();
+        });
+    });
+
+    // History dropdown
+    document.getElementById('btn-history').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('history-menu').classList.toggle('show');
+        document.getElementById('examples-menu').classList.remove('show');
+    });
+
+    // Close dropdowns on click outside
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+    });
+
+    // Open detail window handler
+    window._algoriaOpenDetail = function(key) {
+        const data = detailData[key];
+        if (!data) return;
+        const w = window.open('', '_blank', 'width=700,height=600');
+        w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + data.title + '</title>' +
+            '<style>body{font-family:system-ui,sans-serif;margin:20px;color:#1a1a1a;line-height:1.6;}b{color:#334155;}</style></head><body>' +
+            '<h2>' + data.title + '</h2>' + data.html + '</body></html>');
+        w.document.close();
+    };
+
+    // Reset all dropdowns on load (prevent browser auto-fill)
+    document.getElementById('f-continent').value = '';
+    document.getElementById('f-country').value = '';
+    document.getElementById('f-faculty').value = '';
+    document.getElementById('f-lang').value = '';
+    document.getElementById('f-level').value = '';
+    document.getElementById('search-box').value = '';
+
+    // Load all agreements on start
+    fetchAndRender({});
+});
+
+// ── Search from text box ──
+function doSearch() {
+    const q = document.getElementById('search-box').value.trim();
+    if (!q) return;
+
+    // Add to history
+    if (!queryHistory.includes(q)) {
+        queryHistory.unshift(q);
+        if (queryHistory.length > 20) queryHistory.pop();
+        renderHistory();
+    }
+
+    // Parse query into filters
+    const filters = parseQuery(q);
+    setDropdownsFromFilters(filters);
+    fetchAndRender(filters);
+}
+
+// ── Search from filter dropdowns ──
+function doFilterSearch() {
+    const filters = {};
+    const continent = document.getElementById('f-continent').value;
+    const country = document.getElementById('f-country').value;
+    const faculty = document.getElementById('f-faculty').value;
+    const lang = document.getElementById('f-lang').value;
+    const level = document.getElementById('f-level').value;
+    const uninovis = document.getElementById('f-uninovis').checked;
+    if (continent) filters.continent = continent;
+    if (country) filters.country = country;
+    if (faculty) filters.faculty = faculty;
+    if (lang) filters.language = lang;
+    if (level) filters.language_level = level;
+    if (uninovis) filters.uninovis = true;
+    fetchAndRender(filters);
+}
+
+function clearFilters() {
+    document.getElementById('f-continent').value = '';
+    document.getElementById('f-country').value = '';
+    document.getElementById('f-faculty').value = '';
+    document.getElementById('f-lang').value = '';
+    document.getElementById('f-level').value = '';
+    document.getElementById('f-uninovis').checked = false;
+    document.getElementById('search-box').value = '';
+    filterCountryDropdown();
+    fetchAndRender({});
+}
+
+function filterCountryDropdown() {
+    const continent = document.getElementById('f-continent').value;
+    const sel = document.getElementById('f-country');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">All</option>';
+    const list = continent ? (CONTINENT_COUNTRIES[continent] || []) : COUNTRIES;
+    list.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+    if (list.includes(current)) sel.value = current;
+}
+
+// ── Parse free-text query into filters ──
+function parseQuery(q) {
+    const filters = {};
+    const lower = q.toLowerCase().trim();
+
+    // Check for "all" — no filters
+    if (/^(show )?(all|every|todos)/.test(lower)) return filters;
+
+    // Check for continent/country
+    for (const [alias, value] of Object.entries(COUNTRY_ALIASES)) {
+        if (lower.includes(alias)) {
+            if (value.startsWith('_continent_')) {
+                filters.continent = value.replace('_continent_', '');
+            } else {
+                filters.country = value;
+            }
+            break;
+        }
+    }
+    // Direct match against country list (Spanish names)
+    if (!filters.country && !filters.continent) {
+        for (const c of COUNTRIES) {
+            if (lower.includes(c.toLowerCase())) {
+                filters.country = c;
+                break;
+            }
+        }
+    }
+
+    // Faculty
+    for (const [alias, value] of Object.entries(FACULTY_ALIASES)) {
+        if (lower.includes(alias)) {
+            filters.faculty = value;
+            break;
+        }
+    }
+
+    // Language
+    const langs = {'english':'INGLÉS','french':'FRANCÉS','german':'ALEMÁN','italian':'ITALIANO','portuguese':'PORTUGUÉS','spanish':'ESPAÑOL',
+                    'inglés':'INGLÉS','francés':'FRANCÉS','alemán':'ALEMÁN','italiano':'ITALIANO','portugués':'PORTUGUÉS','español':'ESPAÑOL'};
+    for (const [alias, value] of Object.entries(langs)) {
+        if (lower.includes(alias)) { filters.language = value; break; }
+    }
+
+    // Language level
+    const levelMatch = lower.match(/\b([abc][12])\b/i);
+    if (levelMatch) filters.language_level = levelMatch[1].toUpperCase();
+
+    // UNINOVIS
+    if (lower.includes('uninovis') || lower.includes('partners') || lower.includes('socios') || lower.includes('alianza')) {
+        filters.uninovis = true;
+    }
+
+    // Program
+    if (lower.includes('erasmus') && lower.includes('131')) filters.mobility_program = 'ERASMUS+ KA131';
+    else if (lower.includes('erasmus') && lower.includes('171')) filters.mobility_program = 'ERASMUS+ KA171';
+    else if (lower.includes('erasmus')) filters.mobility_program = 'ERASMUS';
+    else if (lower.includes('isep')) filters.mobility_program = 'ISEP';
+    else if (lower.includes('movilidad internacional')) filters.mobility_program = 'MOVILIDAD INTERNACIONAL UMA';
+
+    return filters;
+}
+
+function setDropdownsFromFilters(filters) {
+    document.getElementById('f-continent').value = filters.continent || '';
+    filterCountryDropdown();
+    document.getElementById('f-country').value = filters.country || '';
+    // Faculty: find the option that contains the filter value
+    const facSel = document.getElementById('f-faculty');
+    facSel.value = '';
+    if (filters.faculty) {
+        for (const opt of facSel.options) {
+            if (opt.value.includes(filters.faculty)) { facSel.value = opt.value; break; }
+        }
+    }
+    document.getElementById('f-lang').value = filters.language || '';
+    document.getElementById('f-level').value = filters.language_level || '';
+}
+
+// ── Fetch data and render on map ──
+async function fetchAndRender(filters) {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => { if (v) params.append(k, v); });
+    const url = '/api/agents/algoria_map/agreements-search?' + params.toString();
+
+    document.getElementById('summary').textContent = T.loading || 'Loading...';
+
+    try {
+        const resp = await fetch(url);
+        if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            document.getElementById('summary').textContent = (T.error || 'Error') + ': ' + (errData.detail || resp.statusText);
+            return;
+        }
+        const data = await resp.json();
+        renderMarkers(data);
+    } catch (err) {
+        document.getElementById('summary').textContent = 'Error: ' + err.message;
+        console.error(err);
+    }
+}
+
+function renderMarkers(data) {
+    const markers = data.markers || [];
+    const hasGeo = data.has_geo_filter;
+    const center = data.center || [5, 15];
+    const zoom = data.zoom || 2;
+
+    // Clear existing markers
+    clusterGroup.clearLayers();
+    detailData = {};
+
+    // Add markers
+    markers.forEach(m => {
+        if (m.detail_key) {
+            detailData[m.detail_key] = { title: m.detail_title || '', html: m.detail_html || '' };
+        }
+        const radius = Math.max(6, Math.min(18, 6 + Math.sqrt(m.count) * 2));
+        const marker = L.circleMarker([m.lat, m.lon], {
+            radius: radius,
+            fillColor: '#2563eb',
+            color: '#1e40af',
+            weight: 1.5,
+            opacity: 0.9,
+            fillOpacity: 0.65
+        }).bindPopup(m.popup, { maxWidth: 500, maxHeight: 400, autoPan: true, autoPanPadding: L.point(20, 20) });
+        clusterGroup.addLayer(marker);
+    });
+
+    // Set view
+    if (hasGeo) {
+        map.setView(center, zoom);
+    } else {
+        map.setView([25, 15], 2);
+    }
+
+    // Update summary
+    const totalAgreements = markers.reduce((sum, m) => sum + m.count, 0);
+    const nCountries = new Set(markers.map(m => m.country)).size;
+    const agrWord = totalAgreements !== 1 ? (T.agreements || 'agreements') : (T.agreement || 'agreement');
+    const ctrWord = nCountries !== 1 ? (T.countries || 'countries') : (T.country_singular || 'country');
+    document.getElementById('summary').textContent =
+        totalAgreements + ' ' + agrWord + ' ' + (T.in || 'in') + ' ' + nCountries + ' ' + ctrWord;
+}
+
+// ── History ──
+function renderHistory() {
+    const menu = document.getElementById('history-menu');
+    menu.innerHTML = '';
+    if (queryHistory.length === 0) {
+        menu.innerHTML = '<div class="dropdown-item" style="color:#64748b;cursor:default;">' + (T.no_history || 'No history yet') + '</div>';
+        return;
+    }
+    queryHistory.forEach(q => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        item.textContent = q;
+        item.addEventListener('click', () => {
+            document.getElementById('search-box').value = q;
+            menu.classList.remove('show');
+            doSearch();
+        });
+        menu.appendChild(item);
+    });
+}
+renderHistory();
+</script>
+</body>
+</html>
