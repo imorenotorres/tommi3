@@ -13,7 +13,10 @@ import sqlite3
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "web"))
-from llm_client import LLMClient
+try:
+    from llm_client import LLMClient
+except Exception:
+    LLMClient = None
 
 
 # ---------------------------------------------------------------------------
@@ -266,12 +269,14 @@ class Agent:
         self._agent_dir = os.path.dirname(os.path.abspath(__file__))
         self._db_path = os.path.join(self._agent_dir, "data", "destinations.db")
         # LLM is optional — only needed for chat interface, not for the standalone map page
-        try:
-            self.client = LLMClient()
-            self.model = self._get_model()
-        except Exception:
-            self.client = None
-            self.model = None
+        self.client = None
+        self.model = None
+        if LLMClient:
+            try:
+                self.client = LLMClient()
+                self.model = self._get_model()
+            except Exception:
+                pass
         self._query_history = []
         self._uni_coords = self._load_university_coords()
         self._uni_websites = self._load_json("university_websites.json")
