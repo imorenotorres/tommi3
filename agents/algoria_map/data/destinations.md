@@ -1,1 +1,1 @@
-/Users/ignaciomoreno-torres/tommi3/agents/pisha5/data/destinations.md
+../../pisha5/data/destinations.md
