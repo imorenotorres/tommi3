@@ -265,8 +265,13 @@ class Agent:
     def __init__(self):
         self._agent_dir = os.path.dirname(os.path.abspath(__file__))
         self._db_path = os.path.join(self._agent_dir, "data", "destinations.db")
-        self.client = LLMClient()
-        self.model = self._get_model()
+        # LLM is optional — only needed for chat interface, not for the standalone map page
+        try:
+            self.client = LLMClient()
+            self.model = self._get_model()
+        except Exception:
+            self.client = None
+            self.model = None
         self._query_history = []
         self._uni_coords = self._load_university_coords()
         self._uni_websites = self._load_json("university_websites.json")
