@@ -3663,6 +3663,167 @@ class MetadataRAGMixin:
 
         return False
 
+    def _generate_map_link_programmatic(self, user_message: str, agent_id: str) -> str:
+        """Generate a map link programmatically without calling the LLM."""
+        msg_lower = user_message.lower()
+
+        # Detect if about projects or papers
+        is_project = any(kw in msg_lower for kw in ("project", "grant", "funding", "funded"))
+        is_collab = any(kw in msg_lower for kw in ("collaboration", "joint", "co-author"))
+
+        # Extract topic
+        topic = self._extract_topic(user_message)
+
+        # Extract year
+        year_match = re.search(r'\b(20\d{2})\b', user_message)
+        year = year_match.group(1) if year_match else None
+
+        # Build link
+        if is_collab:
+            url = f"/api/agents/{agent_id}/collaboration-map"
+            params = []
+            if topic: params.append(f"topic={topic}")
+            if year: params.append(f"year={year}")
+            if params: url += "?" + "&".join(params)
+            label = f"View collaboration map"
+            if topic: label += f' for "{topic}"'
+        elif is_project and topic:
+            from urllib.parse import quote
+            url = f"/api/agents/{agent_id}/project-topic-map?topic={quote(topic)}"
+            if year: url += f"&year={year}"
+            label = f'View projects map for "{topic}"'
+        elif is_project:
+            url = f"/api/agents/{agent_id}/projects-map"
+            if year: url += f"?year={year}"
+            label = "View projects map"
+        elif topic:
+            from urllib.parse import quote
+            url = f"/api/agents/{agent_id}/topic-map?topic={quote(topic)}"
+            label = f'View interactive map for "{topic}"'
+        else:
+            url = f"/api/agents/{agent_id}/publications-map"
+            if year: url += f"?year={year}"
+            label = "View publications map"
+
+        return f"[{label}]({url})"
+
+    def _format_glossary_response(self, user_message: str, glossary_ctx: str) -> str:
+        """Format glossary context as a user-facing response."""
+        if not glossary_ctx:
+            return ""
+        # The glossary context starts with "GLOSSARY CONTEXT — Definitions..."
+        # followed by "### ConceptName\n definition text"
+        lines = glossary_ctx.split('\n')
+        output = []
+        for line in lines:
+            # Skip the header line
+            if line.startswith("GLOSSARY CONTEXT"):
+                continue
+            if line.startswith("### "):
+                concept = line[4:].strip()
+                output.append(f"## {concept}\n")
+            elif line.strip():
+                output.append(line)
+        result = "\n".join(output).strip()
+        return result if result else ""
+
+    def _format_project_response(self, project_ctx: str) -> str:
+        """Convert internal project context into user-facing markdown response."""
+        if not project_ctx:
+            return ""
+        # The project context starts with "PROJECT SEARCH RESULTS..." followed by structured data.
+        # Convert it to clean markdown.
+        lines = project_ctx.split('\n')
+        output = []
+        # Extract the header line for count
+        header = lines[0] if lines else ""
+        count_match = re.search(r'\((\d+) project', header)
+        topic_match = re.search(r'on "(.+?)"', header)
+        count = count_match.group(1) if count_match else "?"
+        topic = topic_match.group(1) if topic_match else ""
+
+        if topic:
+            output.append(f"### Projects on \"{topic}\" ({count} project{'s' if count != '1' else ''})\n")
+        else:
+            output.append(f"### Research Projects ({count} project{'s' if count != '1' else ''})\n")
+
+        # Process the rest — skip the header and instruction lines
+        for line in lines[2:]:
+            line = line.strip()
+            if not line:
+                output.append("")
+                continue
+            # University headers: "UMA (Universidad de Málaga): 2 projects"
+            if re.match(r'^[A-Z]{2,}', line) and ': ' in line and 'project' in line:
+                output.append(f"\n**{line}**\n")
+            # Project detail lines starting with "  - "
+            elif line.startswith('- "') or line.startswith('  - "'):
+                # Extract project title
+                title_match = re.match(r'\s*-\s*"(.+?)"', line)
+                if title_match:
+                    output.append(f"1. **{title_match.group(1)}**")
+                    # Extract remaining details after the title
+                    rest = line[title_match.end():]
+                    if rest.strip():
+                        output.append(f"   {rest.strip()}")
+            elif line.startswith('    '):
+                # Indented detail lines (website, participants, etc.)
+                output.append(f"   {line.strip()}")
+            else:
+                output.append(line)
+
+        return "\n".join(output)
+
+    def _format_researcher_response(self, researcher_ctx: str) -> str:
+        """Convert internal researcher context into user-facing markdown response."""
+        if not researcher_ctx:
+            return ""
+        lines = researcher_ctx.split('\n')
+        output = []
+        # Extract header
+        header = lines[0] if lines else ""
+        count_match = re.search(r'\((\d+) match', header)
+        count = count_match.group(1) if count_match else "1"
+
+        # Skip the header and instruction lines
+        in_papers = False
+        for line in lines[2:]:
+            line_stripped = line.strip()
+            if not line_stripped:
+                output.append("")
+                continue
+            # Researcher name line: "Name -- ACRONYM (University) [status]"
+            if ' -- ' in line_stripped and not line_stripped.startswith('-') and not line_stripped.startswith('*'):
+                parts = line_stripped.split(' -- ')
+                name = parts[0].strip()
+                affil = parts[1].strip() if len(parts) > 1 else ""
+                output.append(f"\n### {name}")
+                if affil:
+                    output.append(f"*{affil}*\n")
+                in_papers = False
+            # Topics line
+            elif line_stripped.startswith('Topics:'):
+                output.append(f"**{line_stripped}**")
+            # Papers section
+            elif 'Verified papers' in line_stripped or 'papers:' in line_stripped.lower():
+                output.append(f"\n**{line_stripped}**\n")
+                in_papers = True
+            # Paper entries: "  - "Title" (year) by Authors ID"
+            elif line_stripped.startswith('- "') or line_stripped.startswith('✓') or line_stripped.startswith('⚠'):
+                # Clean up verification markers
+                clean = line_stripped.lstrip('✓⚠ ').strip()
+                if clean.startswith('- '):
+                    clean = clean[2:]
+                output.append(f"- {clean}")
+            # Project lines
+            elif line_stripped.startswith('- Project:') or line_stripped.startswith('Projects:'):
+                output.append(f"\n**{line_stripped}**")
+            else:
+                output.append(line_stripped)
+
+        result = "\n".join(output).strip()
+        return result if result else ""
+
     def _get_last_query(self) -> str:
         """Get the last query from history for web search expansion."""
         if self._query_history:
@@ -4561,15 +4722,16 @@ class MetadataRAGMixin:
             trace_step("Web expansion", bool(is_web_expand), "web search + RAG")
             trace_step("Follow-up", bool(is_followup), "conversation history")
             trace_step("Gap analysis", bool(is_gap_analysis), "reasoning about absence")
-            trace_step("Off-topic", is_off_topic_raw, "outside scope")
+            # Content queries checked before off-topic (they use agent features)
+            trace_step("Project query", bool(project_ctx), "project_docs/")
+            trace_step("Researcher lookup", bool(researcher_ctx), "researchers.json")
             trace_step("Conceptual (glossary)", bool(is_conceptual and glossary_ctx), "glossary definition found")
             trace_step("Conceptual (not in glossary)", bool(is_conceptual and not glossary_ctx), "general knowledge")
-            trace_step("Project query", bool(project_ctx), "project_docs/")
             trace_step("Affiliation listing", bool(affiliation_ctx), "researchers.json")
             trace_step("Shared topics", bool(shared_topics_ctx), "cross-university")
-            trace_step("University papers", bool(uni_papers_ctx), "papers.json")
             trace_step("Topic search", bool(topic_ctx), "search_papers_by_topic()")
-            trace_step("Researcher lookup", bool(researcher_ctx), "researchers.json")
+            trace_step("University papers", bool(uni_papers_ctx), "papers.json")
+            trace_step("Off-topic", is_off_topic_raw, "outside scope")
             if not found:
                 trace.step("Fallback: RAG retrieval", True, "keyword/vector search")
 
@@ -4578,6 +4740,39 @@ class MetadataRAGMixin:
             trace.reasoning_result = matched
 
         # --- Deterministic early returns (no LLM needed) ---
+
+        # Meta-question: programmatic response from config
+        is_meta = self._is_meta_question(user_message.lower())
+        if is_meta and not is_web_expand:
+            research_topic = self._config.get("research_topic", "this domain")
+            alliance_name = self._config.get("alliance", {}).get("name", "UNINOVIS")
+            agent_name = self._config.get("agent_name", "Research Assistant")
+            unis = self._config.get("universities", {})
+            uni_list = ", ".join(f"**{k}** ({v.get('name', k)})" for k, v in unis.items())
+
+            response = (
+                f"I am **{agent_name}**, a research assistant specialised in "
+                f"**{research_topic}** for the **{alliance_name}** European university alliance.\n\n"
+                f"**What I can do:**\n"
+                f"- Search research papers by topic, university, year, or author\n"
+                f"- Look up researchers and their publications\n"
+                f"- Explore funded research projects\n"
+                f"- Show glossary definitions of key concepts\n"
+                f"- Generate interactive maps and figures\n"
+                f"- Analyse research gaps\n\n"
+                f"**{alliance_name} universities:** {uni_list}\n\n"
+                f"**Example questions you can ask:**\n"
+            )
+            for eq in self._config.get("example_queries", [])[:5]:
+                response += f"- {eq}\n"
+
+            yield response
+            if trace:
+                trace.action = "meta-question (no LLM)"
+                trace.production = "programmatic description"
+                yield "\n\n" + trace.to_html()
+            self._query_history.append({"question": user_message, "response": response, "response_length": len(response)})
+            return
 
         # Non-research task: programmatic refusal
         is_non_research = self._is_non_research_task(user_message)
@@ -4598,6 +4793,34 @@ class MetadataRAGMixin:
                 yield "\n\n" + trace.to_html()
             self._query_history.append({"question": user_message, "response": refusal, "response_length": len(refusal)})
             return
+
+        # Project query: programmatic response from structured project data
+        if project_ctx and not is_web_expand and not is_conceptual:
+            # Format the project context as a user-facing response
+            response = self._format_project_response(project_ctx)
+            if response:
+                yield ("procedural_banner", self._banner_database(
+                    "The response below is generated directly from the UNINOVIS project database."
+                ))
+                yield response
+                if trace:
+                    trace.action = "project listing (no LLM)"
+                    trace.production = "programmatic project response"
+                    yield "\n\n" + trace.to_html()
+                self._query_history.append({"question": user_message, "response": response, "response_length": len(response)})
+                return
+
+        # Researcher lookup: programmatic response from structured researcher data
+        if researcher_ctx and "RESEARCHER DISAMBIGUATION" not in researcher_ctx and not is_web_expand:
+            response = self._format_researcher_response(researcher_ctx)
+            if response:
+                yield response
+                if trace:
+                    trace.action = "researcher listing (no LLM)"
+                    trace.production = "programmatic researcher response"
+                    yield "\n\n" + trace.to_html()
+                self._query_history.append({"question": user_message, "response": response, "response_length": len(response)})
+                return
 
         # Expand command: "expand 2", "expand #3", "more about 1"
         is_expand, expand_n = self._is_expand_command(user_message)
@@ -4623,6 +4846,61 @@ class MetadataRAGMixin:
                 if trace:
                     trace.action = f"expand #{expand_n} (not found)"
                     trace.production = "programmatic response"
+                    yield "\n\n" + trace.to_html()
+                self._query_history.append({"question": user_message, "response": response, "response_length": len(response)})
+                return
+
+        # Figure/map request: programmatic link generation (no LLM)
+        if is_figure_request and not is_web_expand:
+            agent_id = self._config.get("agent_id", "unknown")
+            map_link = self._generate_map_link_programmatic(user_message, agent_id)
+            if map_link:
+                yield ("procedural_banner", self._banner_verified(
+                    "This figure is generated directly from the UNINOVIS database (no AI involved)."
+                ))
+                yield map_link
+                if trace:
+                    trace.action = "figure/map (no LLM)"
+                    trace.production = "programmatic map link"
+                    yield "\n\n" + trace.to_html()
+                self._query_history.append({"question": user_message, "response": map_link, "response_length": len(map_link)})
+                return
+
+        # Off-topic: programmatic refusal with scope suggestions (no LLM)
+        if not is_web_expand and not is_conceptual and not is_figure_request and not is_gap_analysis:
+            if not any([project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx]):
+                if not self._is_in_topical_scope(user_message):
+                    research_topic = self._config.get("research_topic", "this domain")
+                    scope_terms = self._config.get("extra_scope_terms", [])[:8]
+                    response = (
+                        f"This question appears to be outside my scope. I am specialised in "
+                        f"**{research_topic}**.\n\n"
+                    )
+                    if scope_terms:
+                        response += "**Topics I can help with include:** " + ", ".join(scope_terms[:8])
+                        if len(self._config.get("extra_scope_terms", [])) > 8:
+                            response += f", and {len(self._config.get('extra_scope_terms', [])) - 8} more"
+                        response += ".\n\n"
+                    response += "Try asking about a specific topic, researcher, project, or concept within my domain."
+                    yield response
+                    if trace:
+                        trace.action = "off-topic refusal (no LLM)"
+                        trace.production = "programmatic refusal with suggestions"
+                        yield "\n\n" + trace.to_html()
+                    self._query_history.append({"question": user_message, "response": response, "response_length": len(response)})
+                    return
+
+        # Conceptual (glossary): programmatic response from glossary text (no LLM)
+        if is_conceptual and glossary_ctx and not is_web_expand:
+            response = self._format_glossary_response(user_message, glossary_ctx)
+            if response:
+                yield ("procedural_banner", self._banner_database(
+                    "This response is based on the curated glossary definitions."
+                ))
+                yield response
+                if trace:
+                    trace.action = "glossary definition (no LLM)"
+                    trace.production = "programmatic glossary response"
                     yield "\n\n" + trace.to_html()
                 self._query_history.append({"question": user_message, "response": response, "response_length": len(response)})
                 return
