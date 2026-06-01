@@ -410,7 +410,10 @@ class Agent:
         from urllib.parse import urlencode
 
         filter_desc = self._describe_filters(filters)
-        summary = f"{total} agreement{'s' if total != 1 else ''} in {n_countries} countr{'ies' if n_countries != 1 else 'y'}"
+        agr_w = self._t.get('agreements', 'agreements') if total != 1 else self._t.get('agreement', 'agreement')
+        ctr_w = self._t.get('countries', 'countries') if n_countries != 1 else self._t.get('country_singular', 'country')
+        in_w = self._t.get('in', 'in')
+        summary = f"{total} {agr_w} {in_w} {n_countries} {ctr_w}"
         if filter_desc:
             summary += f" — {filter_desc}"
 
@@ -484,8 +487,9 @@ class Agent:
             for uni, uni_agr in sorted(by_uni.items()):
                 fac_str = f" ({len(uni_agr)} agr.)" if len(uni_agr) > 1 else ""
                 uni_lines.append(f"<b>{_display_name(uni)}</b>{fac_str}")
+            agr_word = self._t.get('agreements', 'agreements') if count != 1 else self._t.get('agreement', 'agreement')
             popup = (
-                f"<b>{country}</b> &mdash; {count} agreement{'s' if count != 1 else ''}<br>"
+                f"<b>{country}</b> &mdash; {count} {agr_word}<br>"
                 f"<div style='max-height:200px;overflow-y:auto;margin-top:4px;font-size:12px;'>"
                 + "<br>".join(uni_lines[:20])
                 + (f"<br><i>... and {len(uni_lines)-20} more</i>" if len(uni_lines) > 20 else "")
@@ -527,7 +531,7 @@ class Agent:
                 f"<div style='min-width:320px;'>"
                 f"<b style='font-size:13px;'>{_display_name(uni)}</b><br>"
                 f"<span style='color:#64748b;'>{agreements[0]['destination_country']}</span> "
-                f"&mdash; {count} agreement{'s' if count != 1 else ''}"
+                f"&mdash; {count} {self._t.get('agreements', 'agreements') if count != 1 else self._t.get('agreement', 'agreement')}"
                 f"<div style='margin:6px 0;'>"
                 f"<button onclick=\"window._algoriaOpenDetail('{data_key}')\" "
                 f"style='background:#2563eb;color:#fff;border:none;border-radius:4px;"
@@ -601,7 +605,7 @@ class Agent:
     def _build_list_html(self, results: list[dict]) -> str:
         """Build an HTML list with expandable agreement details."""
         if not results:
-            return "<p>No agreements found matching your criteria.</p>"
+            return f"<p>{self._t.get('no_results', 'No agreements found matching your criteria.')}</p>"
 
         th = 'style="padding:5px 8px;text-align:left;border-bottom:2px solid #e2e8f0;"'
         td = 'style="padding:5px 8px;vertical-align:top;"'
