@@ -531,7 +531,7 @@ class Agent:
                 f"<div style='margin:6px 0;'>"
                 f"<button onclick=\"window._algoriaOpenDetail('{data_key}')\" "
                 f"style='background:#2563eb;color:#fff;border:none;border-radius:4px;"
-                f"padding:4px 10px;font-size:11px;cursor:pointer;'>Open in new window</button>"
+                f"padding:4px 10px;font-size:11px;cursor:pointer;'>{self._t.get('open_new_window', 'Open in new window')}</button>"
                 f"</div>"
                 f"<div style='max-height:300px;overflow-y:auto;'>"
             )
