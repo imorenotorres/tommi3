@@ -113,6 +113,7 @@ const elements = {
     llmProviderIcon: document.getElementById('llm-provider-icon'),
     llmProviderLabel: document.getElementById('llm-provider-label'),
     transparencyLevelIcon: document.getElementById('transparency-level-icon'),
+    agentTransparencyIcon: document.getElementById('agent-transparency-icon'),
     promptLevelIcon: document.getElementById('prompt-level-icon'),
     btnAgentConfig: document.getElementById('btn-agent-config'),
     exampleQueries: document.getElementById('example-queries'),
@@ -578,7 +579,7 @@ function updateIconTooltips() {
     // Reliability cues icon tooltip
     if (elements.transparencyLevelIcon) {
         const cues = (state.currentAgent && state.currentAgent.reliability_cues) || 'shown';
-        const s = TRANSPARENCY_STYLES[cues] || TRANSPARENCY_STYLES.shown;
+        const s = RELIABILITY_STYLES[cues] || RELIABILITY_STYLES.shown;
         elements.transparencyLevelIcon.title = s.label;
     }
 
@@ -586,7 +587,7 @@ function updateIconTooltips() {
     if (elements.promptLevelIcon) {
         const level = state.currentAgent.prompt_level || '';
         const s = SUPERVISION_STYLES[level] || SUPERVISION_STYLES.stringent;
-        elements.promptLevelIcon.title = `Prompt: ${s.label}`;
+        elements.promptLevelIcon.title = `System prompt: ${s.label}`;
     }
 }
 
@@ -651,7 +652,7 @@ function showAgentInfo() {
     // Show reliability cues icon in the info row
     if (elements.transparencyLevelIcon) {
         const cues = state.currentAgent.reliability_cues || 'shown';
-        const s = TRANSPARENCY_STYLES[cues];
+        const s = RELIABILITY_STYLES[cues];
         if (s) {
             elements.transparencyLevelIcon.src = s.icon;
             elements.transparencyLevelIcon.alt = s.label;
@@ -659,6 +660,16 @@ function showAgentInfo() {
         } else {
             elements.transparencyLevelIcon.classList.add('hidden');
         }
+    }
+
+    // Show agent transparency icon in the info row
+    if (elements.agentTransparencyIcon) {
+        const trace = state.currentAgent.decision_trace || state.currentAgent.transparency_level || 'black_box';
+        const isCrystal = trace === 'crystal_box' || trace === 'crystal_box_testers';
+        elements.agentTransparencyIcon.src = isCrystal ? '/static/icon_crystal_box.svg' : '/static/icon_black_box.svg';
+        elements.agentTransparencyIcon.alt = isCrystal ? 'Agent transparency: Crystal box' : 'Agent transparency: Black box';
+        elements.agentTransparencyIcon.title = isCrystal ? 'Agent transparency: Crystal box' : 'Agent transparency: Black box';
+        elements.agentTransparencyIcon.classList.remove('hidden');
     }
 
     // Show prompt level icon in the info row
@@ -712,6 +723,7 @@ function hideAgentInfo() {
     elements.agentInfoSection.classList.add('hidden');
     elements.agentDescription.classList.add('hidden');
     if (elements.transparencyLevelIcon) elements.transparencyLevelIcon.classList.add('hidden');
+    if (elements.agentTransparencyIcon) elements.agentTransparencyIcon.classList.add('hidden');
     if (elements.promptLevelIcon) elements.promptLevelIcon.classList.add('hidden');
     if (elements.btnAgentConfig) elements.btnAgentConfig.classList.add('hidden');
     elements.exampleQueries.classList.add('hidden');
@@ -720,13 +732,14 @@ function hideAgentInfo() {
 // Transparency badge rendering and cycling
 const TRANSPARENCY_LEVELS = ['crystal_box', 'grey_box', 'black_box'];
 const SCAFFOLDING_LEVELS = ['shown', 'hidden'];
-const TRANSPARENCY_STYLES = {
-    crystal_box:   { label: 'Transparency: Full',   icon: '/static/icon_crystal_box.svg', color: '#000000', bg: '#ffffff' },
-    grey_box:      { label: 'Transparency: Partial', icon: '/static/icon_grey_box.svg',    color: '#000000', bg: '#ffffff' },
-    black_box:     { label: 'Hidden',                icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
-    shown:         { label: 'Reliability cues: Shown', icon: '/static/icon_crystal_box.svg', color: '#000000', bg: '#ffffff' },
-    hidden:        { label: 'Reliability cues: Hidden', icon: '/static/icon_black_box.svg',   color: '#000000', bg: '#ffffff' },
+// Reliability cue icon styles (green checkmark = on, grey = off)
+const RELIABILITY_STYLES = {
+    shown:  { label: 'Reliability cues: Shown', icon: '/static/icon_reliability_on.svg' },
+    hidden: { label: 'Reliability cues: Hidden', icon: '/static/icon_reliability_off.svg' },
 };
+
+// Kept for backward compatibility with transparency level references
+const TRANSPARENCY_STYLES = RELIABILITY_STYLES;
 
 
 function cycleTransparency() {
@@ -739,7 +752,7 @@ function cycleTransparency() {
     state.currentAgent.reliability_cues = next;
     // Update the icon in the info row
     if (elements.transparencyLevelIcon) {
-        const s = TRANSPARENCY_STYLES[next] || TRANSPARENCY_STYLES.shown;
+        const s = RELIABILITY_STYLES[next] || RELIABILITY_STYLES.shown;
         elements.transparencyLevelIcon.src = s.icon;
         elements.transparencyLevelIcon.alt = s.label;
         elements.transparencyLevelIcon.title = s.label;
@@ -768,7 +781,7 @@ function cyclePromptLevel() {
     if (elements.promptLevelIcon) {
         const s = SUPERVISION_STYLES[next] || SUPERVISION_STYLES.stringent;
         elements.promptLevelIcon.textContent = s.dot;
-        elements.promptLevelIcon.title = `Prompt: ${s.label}`;
+        elements.promptLevelIcon.title = `System prompt: ${s.label}`;
     }
     // Reset session so previous conversation history (from a different
     // prompt level) does not contaminate the new prompt behaviour.
@@ -837,168 +850,6 @@ async function loadPdfList(agentId) {
  * Finds existing [PDF] links (from LLM) and fixes them,
  * and also detects paper ID patterns (W followed by digits) to add new links.
  */
-/**
- * Apply inline claim highlights to rendered HTML.
- * Walks text nodes and wraps matching claims with styled spans.
- * @param {HTMLElement} container - the rendered response div
- * @param {Object} data - {grounded: [...], ungrounded: [...], grounded_style, ungrounded_style}
- */
-function applyClaimHighlights(container, data) {
-    if (!data) return;
-
-    // Build list of (claim, style, tooltip) sorted longest-first to avoid partial matches.
-    // Supports both 2-tier (grounded/ungrounded) and 3-tier (metadata/database/llm) formats.
-    const items = [];
-    if (data.metadata || data.database || data.llm) {
-        // 3/4-tier format (RAG+Metadata agents, optionally with web tier)
-        const isGap = data.gap_analysis === true;
-        (data.metadata || []).forEach(c => items.push({
-            text: c, style: data.metadata_style,
-            tip: isGap ? 'Found in database (may already be studied)' : 'Source: structured metadata'
-        }));
-        (data.database || []).forEach(c => items.push({
-            text: c, style: data.database_style,
-            tip: isGap ? 'Found in database (may already be studied)' : 'Source: document database (RAG)'
-        }));
-        (data.web || []).forEach(c => items.push({
-            text: c, style: data.web_style || 'background-color:#cce5ff;padding:1px 3px;border-radius:3px;border-bottom:2px solid #004085;',
-            tip: 'Source: web search (external)'
-        }));
-        (data.llm || []).forEach(c => items.push({
-            text: c, style: data.llm_style,
-            tip: isGap ? 'Not found in database (likely a true gap)' : 'LLM refinement / interpretation'
-        }));
-    } else {
-        // 2-tier format (RAG agents)
-        (data.grounded || []).forEach(c => items.push({ text: c, style: data.grounded_style, tip: 'Grounded in documents' }));
-        (data.ungrounded || []).forEach(c => items.push({ text: c, style: data.ungrounded_style, tip: 'LLM interpretation' }));
-    }
-    items.sort((a, b) => b.text.length - a.text.length);
-
-    if (items.length === 0) return;
-
-    console.log('[claim_highlights] Applying highlights for', items.length, 'claims');
-
-    // Track which claims have already been highlighted (first occurrence only)
-    const highlighted = new Set();
-
-    // Pass 1: innerHTML replacement for claims containing & (must run FIRST).
-    // These can't be matched via DOM text nodes because markdown renders & as &amp;.
-    // If done after the text-node pass, shorter claims like "AI" would split
-    // the text node and make "AI & Responsibility" unfindable.
-    for (const item of items) {
-        if (!item.text.includes('&')) continue;
-        if (highlighted.has(item.text)) continue;
-
-        const searchText = item.text.replace(/&/g, '&amp;');
-        const escapedStyle = item.style.replace(/"/g, '&quot;');
-        const escapedTip = (item.tip || '').replace(/"/g, '&quot;');
-        const spanHtml = `<span style="${escapedStyle}" title="${escapedTip}">${searchText}</span>`;
-
-        // Search all elements that could contain response text.
-        // Also search strong/em elements directly for bold/italic text.
-        const candidates = container.querySelectorAll('p, li, td, dd, blockquote, strong, em, span:not([style])');
-        let found = false;
-        for (const el of candidates) {
-            if (el.closest('.claim-badge-area')) continue;
-            if (el.closest('a')) continue;
-            // Only replace in leaf-level elements (avoid double replacement in parent+child)
-            if (el.querySelector('p, li, td')) continue;
-            // Skip if the claim appears inside an href or src attribute
-            if (el.innerHTML.includes(searchText) && !el.innerHTML.match(new RegExp('(?:href|src)="[^"]*' + searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))) {
-                el.innerHTML = el.innerHTML.replace(searchText, spanHtml);
-                highlighted.add(item.text);
-                found = true;
-                break;
-            }
-        }
-        // Ultimate fallback: search the entire container (minus badge).
-        // Only replace if the match is NOT inside an HTML attribute (href, src, etc.)
-        if (!found) {
-            const badgeEl = container.querySelector('.claim-badge-area');
-            const badgeHtml = badgeEl ? badgeEl.outerHTML : '';
-            let html = container.innerHTML;
-            if (badgeEl) html = html.replace(badgeHtml, '<!--BADGE-->');
-            const idx = html.indexOf(searchText);
-            if (idx !== -1) {
-                // Check that the match is not inside an HTML tag attribute
-                // by verifying we're not between < and > at the match position
-                const beforeMatch = html.substring(Math.max(0, idx - 200), idx);
-                const insideTag = (beforeMatch.lastIndexOf('<') > beforeMatch.lastIndexOf('>'));
-                if (!insideTag) {
-                    html = html.substring(0, idx) + spanHtml + html.substring(idx + searchText.length);
-                    if (badgeEl) html = html.replace('<!--BADGE-->', badgeHtml);
-                    container.innerHTML = html;
-                    highlighted.add(item.text);
-                }
-            }
-        }
-    }
-
-    // Pass 2: DOM text-node walking for all remaining claims
-    for (const item of items) {
-        if (highlighted.has(item.text)) continue;
-
-        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
-        let node;
-        let found = false;
-
-        while ((node = walker.nextNode())) {
-            if (node.parentElement && node.parentElement.closest('.claim-badge-area')) continue;
-            // Skip text inside links to avoid breaking URLs
-            if (node.parentElement && node.parentElement.closest('a')) continue;
-
-            const text = node.nodeValue;
-            const idx = text.indexOf(item.text);
-            if (idx === -1) continue;
-
-            const matchLen = item.text.length;
-            const before = text.substring(0, idx);
-            const match = text.substring(idx, idx + matchLen);
-            const after = text.substring(idx + matchLen);
-
-            const span = document.createElement('span');
-            span.setAttribute('style', item.style);
-            span.setAttribute('title', item.tip);
-            span.textContent = match;
-
-            const frag = document.createDocumentFragment();
-            if (before) frag.appendChild(document.createTextNode(before));
-            frag.appendChild(span);
-            if (after) frag.appendChild(document.createTextNode(after));
-
-            node.parentNode.replaceChild(frag, node);
-            highlighted.add(item.text);
-            found = true;
-            break;
-        }
-
-        if (!found) {
-            // Fallback: try innerHTML replacement for any remaining unhighlighted claims.
-            // Skip if the claim text appears inside an href attribute to avoid breaking links.
-            const searchText = item.text.replace(/&/g, '&amp;');
-            const escapedStyle = item.style.replace(/"/g, '&quot;');
-            const escapedTip = (item.tip || '').replace(/"/g, '&quot;');
-            const spanHtml = `<span style="${escapedStyle}" title="${escapedTip}">${searchText}</span>`;
-
-            const candidates = container.querySelectorAll('p, li, td, dd, blockquote, strong, em, span:not([style])');
-            for (const el of candidates) {
-                if (el.closest('.claim-badge-area')) continue;
-                if (el.closest('a')) continue;
-                if (el.querySelector('p, li, td')) continue;
-                // Skip if the claim appears inside an href or src attribute
-                if (el.innerHTML.includes(searchText) && !el.innerHTML.match(new RegExp('(?:href|src)="[^"]*' + searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))) {
-                    el.innerHTML = el.innerHTML.replace(searchText, spanHtml);
-                    highlighted.add(item.text);
-                    break;
-                }
-            }
-        }
-    }
-
-    console.log('[claim_highlights] Highlighted', highlighted.size, 'of', items.length, 'claims');
-}
-
 /**
  * Clean up malformed PDF links generated by the LLM before markdown parsing.
  * Replaces broken markdown/HTML link patterns containing /pdf/W... with just the paper ID.
@@ -1583,7 +1434,12 @@ function renderInlineMapPlaceholders(container) {
                         weight: 1.5,
                         opacity: 0.9,
                         fillOpacity: 0.65
-                    }).bindPopup(m.popup, { maxWidth: 500, maxHeight: 400, autoPan: true, autoPanPadding: L.point(20, 20) });
+                    }).bindPopup(m.popup, { maxWidth: 500, maxHeight: 350, autoPan: false });
+                    marker.on('click', function(e) {
+                        var px = map.latLngToContainerPoint(e.latlng);
+                        var offsetY = px.y - map.getSize().y * 0.7;
+                        if (offsetY < 0) map.panBy([0, offsetY], { animate: true, duration: 0.3 });
+                    });
                     clusterGroup.addLayer(marker);
                 });
 
@@ -1762,6 +1618,7 @@ async function sendMessage(message) {
 
         let streamDone = false;
         let badgeHtml = '';
+        let bannerHtml = '';  // procedural banner (reliability cue) — persists through replace events
         let hasReceivedContent = false;
         let hasScrolledToResponse = false;
 
@@ -1779,7 +1636,14 @@ async function sendMessage(message) {
         eventSource.addEventListener('badge', (event) => {
             // Reliability badge — render once, not accumulated in responseText
             badgeHtml = event.data.replace(/\\n/g, '\n');
-            responseDiv.innerHTML = badgeHtml;
+            responseDiv.innerHTML = bannerHtml + badgeHtml;
+            scrollToUserMessage();
+        });
+
+        eventSource.addEventListener('procedural_banner', (event) => {
+            // Procedural banner (reliability cue) — persists through all replace events
+            bannerHtml = event.data.replace(/\\n/g, '\n');
+            responseDiv.innerHTML = bannerHtml;
             scrollToUserMessage();
         });
 
@@ -1794,34 +1658,38 @@ async function sendMessage(message) {
             const waiting = (!hasReceivedContent)
                 ? '<span class="loading" style="display:block;margin-top:8px;">Generating response…</span>'
                 : '';
-            responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText)) + waiting;
+            responseDiv.innerHTML = bannerHtml + badgeHtml + marked.parse(cleanPdfLinks(responseText)) + waiting;
             scrollToUserMessage();
         };
-
-        let claimHighlights = null;
-
-        eventSource.addEventListener('claim_highlights', (event) => {
-            // Store claim highlight data for post-render application
-            try {
-                claimHighlights = JSON.parse(event.data);
-                console.log('[claim_highlights] Received:', claimHighlights);
-            } catch (e) {
-                console.warn('[claim_highlights] Failed to parse:', e, event.data);
-            }
-        });
 
         let editorHtml = '';
 
         eventSource.addEventListener('replace', (event) => {
             // Server stripped map links — replace the full response text
             responseText = event.data.replace(/\\n/g, '\n');
-            responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText)) + editorHtml;
+            responseDiv.innerHTML = bannerHtml + badgeHtml + marked.parse(cleanPdfLinks(responseText)) + editorHtml;
+        });
+
+        let traceHtml = '';
+        eventSource.addEventListener('trace', (event) => {
+            // Decision trace — raw HTML, appended after response
+            const traceConfig = state.currentAgent && state.currentAgent.decision_trace;
+            const role = state._userRole || 'user';
+            console.log('[TRACE] Received trace event. traceConfig:', traceConfig, 'role:', role, 'data length:', event.data.length);
+            // Show if: crystal_box (everyone), or crystal_box_testers and user is tester/superuser
+            if (traceConfig === 'crystal_box' || (traceConfig === 'crystal_box_testers' && (role === 'tester' || role === 'superuser'))) {
+                traceHtml = event.data.replace(/\\n/g, '\n');
+                responseDiv.innerHTML = bannerHtml + badgeHtml + marked.parse(cleanPdfLinks(responseText)) + editorHtml + traceHtml;
+                console.log('[TRACE] Trace rendered');
+            } else {
+                console.log('[TRACE] Trace NOT rendered — condition not met');
+            }
         });
 
         eventSource.addEventListener('editor', (event) => {
             // Raw HTML editor widget — appended after markdown, not parsed
             editorHtml = event.data.replace(/\\n/g, '\n');
-            responseDiv.innerHTML = badgeHtml + marked.parse(cleanPdfLinks(responseText)) + editorHtml;
+            responseDiv.innerHTML = bannerHtml + badgeHtml + marked.parse(cleanPdfLinks(responseText)) + editorHtml + traceHtml;
             // Populate textarea from base64 data attribute (avoids SSE escaping corruption)
             const editorDiv = responseDiv.querySelector('.prompt-editor[data-json]');
             if (editorDiv) {
@@ -1842,7 +1710,7 @@ async function sendMessage(message) {
             elements.messageInput.focus();
             // Final render — clean PDF links and replace map markdown links before parsing
             const processedText = replaceMapLinksWithPlaceholders(cleanPdfLinks(responseText));
-            responseDiv.innerHTML = badgeHtml + marked.parse(processedText) + editorHtml;
+            responseDiv.innerHTML = bannerHtml + badgeHtml + marked.parse(processedText) + editorHtml + traceHtml;
             // Populate editor textarea from base64 if present
             const editorDiv = responseDiv.querySelector('.prompt-editor[data-json]');
             if (editorDiv) {
@@ -1856,10 +1724,6 @@ async function sendMessage(message) {
             // Add PDF links and make them open in new tab
             addPdfLinks(responseDiv);
             renderInlineMapPlaceholders(responseDiv);
-            // Apply inline claim highlights after markdown rendering
-            if (claimHighlights) {
-                applyClaimHighlights(responseDiv, claimHighlights);
-            }
             // Update query history after each message (if enabled)
             if (state.currentAgent && state.currentAgent.show_history !== false) {
                 loadQueryHistory();
@@ -1883,7 +1747,7 @@ async function sendMessage(message) {
         eventSource.addEventListener('error', (event) => {
             // Preserve any banners/content already rendered before showing the error
             const processed = responseText ? replaceMapLinksWithPlaceholders(cleanPdfLinks(responseText)) : '';
-            const existing = badgeHtml + (processed ? marked.parse(processed) : '');
+            const existing = bannerHtml + badgeHtml + (processed ? marked.parse(processed) : '');
             if (event.data) {
                 // Try to parse as JSON (structured error)
                 try {
@@ -1906,7 +1770,7 @@ async function sendMessage(message) {
         eventSource.onerror = () => {
             eventSource.close();
             const processed = responseText ? replaceMapLinksWithPlaceholders(cleanPdfLinks(responseText)) : '';
-            const existing = badgeHtml + (processed ? marked.parse(processed) : '');
+            const existing = bannerHtml + badgeHtml + (processed ? marked.parse(processed) : '');
             responseDiv.innerHTML = existing + (existing.trim() ? '' : '<span class="error">Connection error</span>');
             state.isLoading = false;
             elements.sendButton.disabled = false;
@@ -3326,15 +3190,10 @@ function _renderConfigForm(config, prompts, role) {
             <option value="">Loading...</option>
         </select>
     </div>`;
-    const isText2SQL = c.agent_type === 'text2sql';
-    // Row 3: Prompt level | Transparency (only for Text2SQL)
+    // Row 3: Prompt level | Agent transparency
     html += _cfgField('Prompt level', 'cfg-prompt-level', 'select', c.prompt_level || 'stringent', ['stringent', 'tolerant', 'lax']);
-    html += `<div class="cfg-field" style="margin-bottom:0.6rem;">
-        <label style="display:block;font-size:0.8rem;font-weight:600;color:#334155;margin-bottom:2px;">Transparency (only for Text2SQL)</label>
-        <select id="cfg-transparency-level" style="width:100%;padding:0.35rem 0.5rem;border:1px solid #e2e8f0;border-radius:5px;font-size:0.85rem;"${isText2SQL ? '' : ' disabled'}>
-            ${['crystal_box', 'black_box'].map(v => `<option value="${v}"${v === (c.transparency_level || 'black_box') ? ' selected' : ''}>${v}</option>`).join('')}
-        </select>
-    </div>`;
+    const currentTransparency = c.decision_trace || c.transparency_level || 'black_box';
+    html += _cfgField('Agent transparency', 'cfg-transparent-decisions', 'select', currentTransparency, ['black_box', 'crystal_box_testers', 'crystal_box']);
     // Row 4: Reliability cues | Humility (system prompt)
     html += _cfgField('Reliability cues', 'cfg-reliability-cues', 'select', c.reliability_cues || 'shown', ['shown', 'hidden']);
     html += _cfgField('Humility (system prompt)', 'cfg-humility-prompt', 'select', c.humility_prompt || 'off', ['on', 'off']);
@@ -3442,7 +3301,9 @@ async function saveAgentConfig(agentId) {
     // Fields available to all roles
     config.prompt_level = document.getElementById('cfg-prompt-level').value;
     config.reliability_cues = document.getElementById('cfg-reliability-cues').value;
-    config.transparency_level = document.getElementById('cfg-transparency-level').value;
+    const transparentDecisions = document.getElementById('cfg-transparent-decisions').value;
+    config.decision_trace = transparentDecisions;
+    config.transparency_level = transparentDecisions;
     config.humility_prompt = document.getElementById('cfg-humility-prompt').value;
 
     // Save LLM provider + model to agent .env
@@ -3511,6 +3372,7 @@ async function saveAgentConfig(agentId) {
         // Update state so icons refresh immediately
         state.currentAgent.reliability_cues = config.reliability_cues;
         state.currentAgent.transparency_level = config.transparency_level;
+        state.currentAgent.decision_trace = config.decision_trace;
         state.currentAgent.prompt_level = config.prompt_level;
         state.currentAgent.description = config.description;
         state.currentAgent.agent_name = config.agent_name;
@@ -3519,7 +3381,7 @@ async function saveAgentConfig(agentId) {
         // Refresh reliability cues icon
         if (elements.transparencyLevelIcon) {
             const cues = config.reliability_cues || 'shown';
-            const s = TRANSPARENCY_STYLES[cues] || TRANSPARENCY_STYLES.shown;
+            const s = RELIABILITY_STYLES[cues] || RELIABILITY_STYLES.shown;
             elements.transparencyLevelIcon.src = s.icon;
             elements.transparencyLevelIcon.alt = s.label;
         }

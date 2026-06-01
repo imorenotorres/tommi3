@@ -902,6 +902,7 @@ class AgentResponse(BaseModel):
     transparency_level: str = "black_box"
     transparency_type: str = ""
     prompt_level: str = "stringent"
+    decision_trace: str = "black_box"
 
 
 @app.get("/")
@@ -1494,7 +1495,8 @@ async def list_agents(request: Request, mode: Optional[str] = Query(None)):
             show_description=a.show_description,
             transparency_level=a.transparency_level,
             transparency_type=a.transparency_type,
-            prompt_level=a.prompt_level
+            prompt_level=a.prompt_level,
+            decision_trace=a.decision_trace
         )
         for a in agents
     ]
@@ -1664,7 +1666,7 @@ async def set_agent_config(agent_id: str, request: Request, session: dict = Depe
         if role_level >= 4:  # superuser — full access
             merged = new_config
         else:  # tester — only immediate-effect settings (no restart needed)
-            TESTER_FIELDS = {"prompt_level", "transparency_level", "reliability_cues", "humility_prompt", "humility_postprocessing"}
+            TESTER_FIELDS = {"prompt_level", "transparency_level", "reliability_cues", "humility_prompt", "humility_postprocessing", "decision_trace"}
             merged = {**current}
             for key in TESTER_FIELDS:
                 if key in new_config:
@@ -2533,17 +2535,18 @@ async def chat_stream(
                     # Enviar badge de fiabilidad como evento separado (no se acumula en el texto)
                     escaped = content.replace("\n", "\\n")
                     yield f"event: badge\ndata: {escaped}\n\n"
-                elif event_type == "claim_highlights":
-                    # Send claim classification data for client-side highlighting
-                    yield f"event: claim_highlights\ndata: {content}\n\n"
+                elif event_type == "trace":
+                    # Decision trace — raw HTML, bypasses markdown
+                    escaped = content.replace("\n", "\\n")
+                    yield f"event: trace\ndata: {escaped}\n\n"
                 elif event_type == "editor":
                     # Raw HTML editor widget — sent as-is, bypasses markdown
                     escaped = content.replace("\n", "\\n")
                     yield f"event: editor\ndata: {escaped}\n\n"
                 elif event_type == "procedural_banner":
-                    # Procedural banner — display as content but do NOT save to history
+                    # Procedural banner — separate event, persists through replace events
                     escaped = content.replace("\n", "\\n")
-                    yield f"data: {escaped}\n\n"
+                    yield f"event: procedural_banner\ndata: {escaped}\n\n"
                 elif event_type == "replace":
                     # Replace full response (e.g. after stripping map links)
                     full_response = content

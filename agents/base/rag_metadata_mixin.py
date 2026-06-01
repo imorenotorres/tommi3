@@ -84,6 +84,62 @@ def _web_search(query: str, api_key: str, cx: str, num_results: int = 5) -> str:
 from .badges import ReliabilityBadge, AuditLogger, StudyLogger
 
 
+class DecisionTrace:
+    """Collects the decision path during query processing for transparency."""
+
+    def __init__(self):
+        self.perception = ""
+        self.reasoning_steps = []
+        self.reasoning_result = ""
+        self.action = ""
+        self.production = ""
+
+    def step(self, name, matched, detail=""):
+        """Record a reasoning step. matched=True means this step was selected."""
+        self.reasoning_steps.append({
+            "name": name,
+            "matched": matched,
+            "detail": detail,
+        })
+
+    def to_html(self):
+        """Render the trace as a collapsible HTML panel."""
+        lines = []
+        lines.append('<details class="decision-trace" style="margin-top:8px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;font-size:12px;">')
+        lines.append('<summary style="padding:6px 10px;cursor:pointer;font-weight:600;color:#64748b;">Decision Trace</summary>')
+        lines.append('<div style="padding:8px 10px;">')
+
+        # Perception
+        lines.append(f'<div style="margin-bottom:6px;"><span style="color:#0284c7;font-weight:600;">Perception:</span> {self.perception}</div>')
+
+        # Reasoning
+        lines.append('<div style="margin-bottom:6px;"><span style="color:#d97706;font-weight:600;">Reasoning:</span></div>')
+        lines.append('<div style="margin-left:12px;">')
+        for s in self.reasoning_steps:
+            if s["matched"]:
+                icon = '✓'
+                style = 'color:#16a34a;font-weight:600;'
+            else:
+                icon = '✗'
+                style = 'color:#94a3b8;'
+            detail = f' — <span style="color:#64748b;">{s["detail"]}</span>' if s["detail"] else ""
+            lines.append(f'<div style="{style}">{icon} {s["name"]}{detail}</div>')
+        if self.reasoning_result:
+            lines.append(f'<div style="color:#d97706;font-weight:600;margin-top:4px;">→ {self.reasoning_result}</div>')
+        lines.append('</div>')
+
+        # Action
+        if self.action:
+            lines.append(f'<div style="margin-bottom:6px;"><span style="color:#16a34a;font-weight:600;">Action:</span> {self.action}</div>')
+
+        # Production
+        if self.production:
+            lines.append(f'<div><span style="color:#9333ea;font-weight:600;">Production:</span> {self.production}</div>')
+
+        lines.append('</div></details>')
+        return '\n'.join(lines)
+
+
 class MetadataRAGMixin:
     """Mixin providing chat()/chat_stream() and metadata features for RAG+Metadata agents.
 
@@ -909,6 +965,14 @@ class MetadataRAGMixin:
             short = re.sub(r'\bartificial intelligence\b', 'ai', clean.lower())
             if short != clean.lower():
                 aliases[short] = concept_name
+            # Match "X vs. Y" as "X and Y" or "X vs Y"
+            if ' vs. ' in clean.lower() or ' vs ' in clean.lower():
+                vs_alt = clean.lower().replace(' vs. ', ' and ').replace(' vs ', ' and ')
+                aliases[vs_alt] = concept_name
+            # Match "X in AI" / "X in Y" — also match standalone first word if it's distinctive (≥6 chars)
+            parts = clean.lower().split(' in ')
+            if len(parts) == 2 and len(parts[0]) >= 6:
+                aliases[parts[0].strip()] = concept_name
 
         # Find concepts mentioned in the question
         for alias, concept_name in aliases.items():
@@ -1329,7 +1393,7 @@ class MetadataRAGMixin:
         named_matches = self._find_project_by_name(user_message)
         if named_matches:
             lines = [f"PROJECT SEARCH RESULTS ({len(named_matches)} project(s) matching query):"]
-            lines.append("This data is authoritative -- use it as-is. These are PROJECTS (funded research), NOT papers/publications.")
+            lines.append("IMPORTANT: These projects WERE FOUND in the database. Present them to the user. Do NOT say 'I could not find'. This data is authoritative. These are PROJECTS (funded research), NOT papers/publications.")
             for proj, uni_acronym in named_matches:
                 lines.append(self._format_project_detail(self._format_project(proj), uni_acronym))
             return "\n".join(lines)
@@ -1765,7 +1829,6 @@ class MetadataRAGMixin:
 
         # Check if this is a disambiguation follow-up (user replied with a number)
         if hasattr(self, '_disambiguation_candidates') and self._disambiguation_candidates:
-            import re
             num_match = re.match(r'^(\d+)\.?$', msg_lower)
             if num_match:
                 idx = int(num_match.group(1)) - 1
@@ -1801,8 +1864,9 @@ class MetadataRAGMixin:
                     continue
 
                 # Partial matches: surname, first+any-surname combos, or first name alone
+                # Use word boundary regex to avoid matching within words (e.g., "pons" in "responsible")
                 is_partial = False
-                if len(surname) > 3 and surname.lower() in msg_lower:
+                if len(surname) > 3 and re.search(r'\b' + re.escape(surname.lower()) + r'\b', msg_lower):
                     is_partial = True
                 if not is_partial and len(name_parts) >= 2:
                     for i in range(1, len(name_parts)):
@@ -1813,7 +1877,7 @@ class MetadataRAGMixin:
                 # First name only (≥5 chars to avoid "Ana", "Eva" false matches)
                 if not is_partial and len(name_parts) >= 2:
                     first = name_parts[0].lower()
-                    if len(first) >= 5 and first in msg_lower:
+                    if len(first) >= 5 and re.search(r'\b' + re.escape(first) + r'\b', msg_lower):
                         is_partial = True
                 if is_partial:
                     partial_matches_list.append(match_entry)
@@ -3353,6 +3417,12 @@ class MetadataRAGMixin:
             r'\bis\b.+\b(?:part|subset|component|aspect|pillar|dimension)\s+of\b',
             # "what is the connection between"
             r'\bconnection\s+between\b',
+            # "explain X" (broad — catches "explain predictive policing")
+            r'^explain\b',
+            # "is X dangerous/safe/trustworthy/reliable" — opinion/conceptual questions about AI
+            r'\bis\s+(?:ai|artificial intelligence)\s+(?:dangerous|safe|trustworthy|reliable|ethical|biased)\b',
+            # "can AI be trusted/make decisions" — conceptual questions about AI capabilities
+            r'\bcan\s+(?:ai|artificial intelligence)\s+(?:be\s+trusted|make\s+decisions|think|feel|be\s+fair|be\s+ethical)\b',
         ]
         return any(re.search(p, msg_lower) for p in conceptual_patterns)
 
@@ -3374,7 +3444,8 @@ class MetadataRAGMixin:
         """
         msg_lower = user_message.lower().strip()
         task_patterns = [
-            r'^write\s+(?:me\s+)?(?:an?\s+)?(?:essay|report|letter|poem|story|code)',
+            r'^write\s+(?:me\s+)?(?:an?\s+)?(?:essay|report|letter|poem|story|code|summary)',
+            r'\bsummary\b.*\b(?:essay|report|homework|assignment|coursework)\b',
             r'^translate\b',
             r'\btranslate\s+(?:this|the|my|following)\b',
             r'\bbook\s+(?:me|a|my)\s+(?:a\s+)?(?:flight|hotel|ticket|room)',
@@ -3382,7 +3453,7 @@ class MetadataRAGMixin:
             r'\bwho\s+won\s+(?:the|last)\b',
             r'\bwhat\s+is\s+the\s+(?:weather|temperature|time|capital|population)\b',
             r'\bwhat\s+(?:is|was)\s+the\s+score\b',
-            r'\brecipe\s+for\b',
+            r'\brecipe\b',
             r'\bhow\s+(?:do|can)\s+(?:i|you)\s+(?:cook|make|bake|prepare)\b',
         ]
         return any(re.search(p, msg_lower) for p in task_patterns)
@@ -3432,7 +3503,6 @@ class MetadataRAGMixin:
             return False
         msg_lower = user_message.lower()
         # Also detect "papers by X" or "publications by X" patterns
-        import re
         if re.search(r'\b(?:papers?|publications?|research|works?)\s+(?:by|from|of)\s+[A-ZÀ-Ü]', user_message):
             return True
         for researchers in self._researchers_by_uni.values():
@@ -3440,19 +3510,19 @@ class MetadataRAGMixin:
                 name = r["name"]
                 name_parts = name.split()
                 surname = name_parts[-1] if name_parts else ""
-                candidates = [name.lower()]
-                if len(surname) > 3:
-                    candidates.append(surname.lower())
+                # Use word boundaries to avoid matching within words (e.g., "pons" in "responsible")
+                if name.lower() in msg_lower:
+                    return True
+                if len(surname) > 3 and re.search(r'\b' + re.escape(surname.lower()) + r'\b', msg_lower):
+                    return True
                 if len(name_parts) >= 2:
                     for i in range(1, len(name_parts)):
                         combo = f"{name_parts[0]} {name_parts[i]}".lower()
-                        if len(combo) > 8:
-                            candidates.append(combo)
+                        if len(combo) > 8 and combo in msg_lower:
+                            return True
                     first = name_parts[0].lower()
-                    if len(first) >= 5:
-                        candidates.append(first)
-                if any(pm in msg_lower for pm in candidates):
-                    return True
+                    if len(first) >= 5 and re.search(r'\b' + re.escape(first) + r'\b', msg_lower):
+                        return True
         return False
 
     @staticmethod
@@ -3597,6 +3667,40 @@ class MetadataRAGMixin:
         """Get the last query from history for web search expansion."""
         if self._query_history:
             return self._query_history[-1].get("question", "")
+        return ""
+
+    def _get_last_response(self) -> str:
+        """Get the last response from history."""
+        if self._query_history:
+            return self._query_history[-1].get("response", "")
+        return ""
+
+    @staticmethod
+    def _is_expand_command(user_message: str) -> tuple:
+        """Detect 'expand N', 'expand #N', 'expand on N', 'more about N', 'details on N'.
+        Returns (True, N) if matched, (False, 0) otherwise."""
+        msg = user_message.strip().lower()
+        m = re.match(r'^(?:expand|details|more)\s+(?:on\s+|about\s+)?#?(\d+)$', msg)
+        if m:
+            return True, int(m.group(1))
+        m = re.match(r'^#?(\d+)\s*$', msg)  # just a number
+        if m:
+            return True, int(m.group(1))
+        return False, 0
+
+    def _extract_numbered_item(self, n: int) -> str:
+        """Extract the Nth numbered item from the last response."""
+        last = self._get_last_response()
+        if not last:
+            return ""
+        # Match numbered items: "1. Title..." or "1) Title..."
+        items = re.findall(r'(?:^|\n)\s*(?:' + str(n) + r'[\.\)]\s+)(.+?)(?=\n\s*\d+[\.\)]|\n\n|\Z)', last, re.DOTALL)
+        if items:
+            return items[0].strip()
+        # Also try matching bold numbered items: "**1.** Title" or "1. **Title**"
+        items = re.findall(r'(?:^|\n)\s*\*?\*?' + str(n) + r'[\.\)]\*?\*?\s+(.+?)(?=\n\s*\*?\*?\d+[\.\)]|\n\n|\Z)', last, re.DOTALL)
+        if items:
+            return items[0].strip()
         return ""
 
     @staticmethod
@@ -3969,12 +4073,10 @@ class MetadataRAGMixin:
 
     def chat(self, user_message: str, history: list = None, username: str = None, **kwargs) -> str:
         """Send a message with RAG+Metadata context and return the response."""
-        # Use per-request overrides or fall back to instance defaults
         transparency = kwargs.get('transparency_override') or self._transparency
         model = kwargs.get('model_override') or self.model
         prompt_level = kwargs.get('prompt_level_override') or self._prompt_level
 
-        # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
             self._init_chromadb()
 
@@ -3984,7 +4086,8 @@ class MetadataRAGMixin:
 
         university_acronyms = list(self._config.get("universities", {}).keys())
 
-        # --- Web search expansion: user accepted the offer ---
+        # -- Stage 1: Perception (receive user input and session context) --
+        # -- Stage 2: Reasoning (classify query, select data source, build context) --
         is_web_expand = self._is_web_expand_request(user_message) and history
         web_ctx = ""
         if is_web_expand:
@@ -4108,7 +4211,7 @@ class MetadataRAGMixin:
         skip_claims = getattr(self, '_skip_claim_classification', False)
         detect_hallucinations = not skip_claims or transparency == "shown"
 
-        # --- Approach D: Programmatic facts + LLM commentary (AI3 only) ---
+        # -- Stage 3: Action (LLM call and/or programmatic data) --
         factual_section = ""
         if use_procedural and not is_figure_request and not is_gap_analysis and not is_web_expand:
             if shared_topics_ctx:
@@ -4235,6 +4338,8 @@ class MetadataRAGMixin:
             )
 
             llm_content = response.choices[0].message.content
+
+            # -- Stage 4: Production (post-processing, banners, badge, audit) --
             llm_content = self._sanitize_authority(llm_content)
             if not is_figure_request:
                 llm_content = self._strip_map_links(llm_content)
@@ -4278,8 +4383,6 @@ class MetadataRAGMixin:
         structured_ctx = " ".join(filter(None, [
             project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx, glossary_ctx
         ]))
-
-        highlight_cfg = self._config.get("inline_claim_highlights")
 
         # Procedural badge: agent tuning info, banners handle reliability
         reliability_label = "none"
@@ -4352,6 +4455,7 @@ class MetadataRAGMixin:
 
         self._query_history.append({
             'question': self._get_last_query() if is_web_expand else user_message,
+            'response': response_content,
             'response_length': len(response_content)
         })
 
@@ -4359,12 +4463,10 @@ class MetadataRAGMixin:
 
     async def chat_stream(self, user_message: str, history: list = None, username: str = None, study_info: dict = None, **kwargs):
         """Send a message with RAG+Metadata context and stream the response."""
-        # Use per-request overrides or fall back to instance defaults
         transparency = kwargs.get('transparency_override') or self._transparency
         model = kwargs.get('model_override') or self.model
         prompt_level = kwargs.get('prompt_level_override') or self._prompt_level
 
-        # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
             init_msg = getattr(self, '_init_status_message', "Creating ChromaDB for the agent...")
             yield ("status", init_msg)
@@ -4379,7 +4481,8 @@ class MetadataRAGMixin:
 
         university_acronyms = list(self._config.get("universities", {}).keys())
 
-        # --- Web search expansion: user accepted the offer ---
+        # -- Stage 1: Perception (receive user input and session context) --
+        # -- Stage 2: Reasoning (classify query, select data source, build context) --
         is_web_expand = self._is_web_expand_request(user_message) and history
         web_ctx = ""
         if is_web_expand:
@@ -4423,6 +4526,106 @@ class MetadataRAGMixin:
 
         # Gap analysis queries use metadata + LLM reasoning, not RAG
         is_gap_analysis = False if is_web_expand else self._is_gap_analysis_query(user_message)
+
+        # --- Build decision trace (follows actual priority chain) ---
+        trace_setting = self._config.get("decision_trace", "black_box")
+        trace = None
+        if trace_setting in ("crystal_box", "crystal_box_testers"):
+            trace = DecisionTrace()
+            trace.perception = user_message[:120] + ("..." if len(user_message) > 120 else "")
+
+            # Determine classifications (same logic as the actual code, in priority order)
+            is_meta = self._is_meta_question(user_message.lower())
+            is_non_research = self._is_non_research_task(user_message)
+            has_disambiguation = hasattr(self, '_disambiguation_candidates') and self._disambiguation_candidates and re.match(r'^\d+\.?$', user_message.strip())
+            # Figure/map request is checked BEFORE off-topic (asking for a figure is never off-topic)
+            is_off_topic_raw = not self._is_in_topical_scope(user_message) if not (is_meta or is_non_research or is_figure_request) else False
+
+            # Record steps in priority order — once a step matches, later steps don't fire
+            found = False
+            def trace_step(name, matched, detail=""):
+                nonlocal found
+                if found:
+                    trace.step(name, False, "")
+                else:
+                    trace.step(name, matched, detail if matched else "")
+                    if matched:
+                        found = True
+
+            trace_step("Meta-question", is_meta, "agent description")
+            trace_step("Non-research task", is_non_research, "refused")
+            is_expand_cmd, expand_num = self._is_expand_command(user_message)
+            trace_step("Expand command", is_expand_cmd and bool(self._get_last_response()), f"expand #{expand_num}")
+            trace_step("Disambiguation follow-up", has_disambiguation, "number reply")
+            trace_step("Figure/map request", bool(is_figure_request), "map link generation")
+            trace_step("Web expansion", bool(is_web_expand), "web search + RAG")
+            trace_step("Follow-up", bool(is_followup), "conversation history")
+            trace_step("Gap analysis", bool(is_gap_analysis), "reasoning about absence")
+            trace_step("Off-topic", is_off_topic_raw, "outside scope")
+            trace_step("Conceptual (glossary)", bool(is_conceptual and glossary_ctx), "glossary definition found")
+            trace_step("Conceptual (not in glossary)", bool(is_conceptual and not glossary_ctx), "general knowledge")
+            trace_step("Project query", bool(project_ctx), "project_docs/")
+            trace_step("Affiliation listing", bool(affiliation_ctx), "researchers.json")
+            trace_step("Shared topics", bool(shared_topics_ctx), "cross-university")
+            trace_step("University papers", bool(uni_papers_ctx), "papers.json")
+            trace_step("Topic search", bool(topic_ctx), "search_papers_by_topic()")
+            trace_step("Researcher lookup", bool(researcher_ctx), "researchers.json")
+            if not found:
+                trace.step("Fallback: RAG retrieval", True, "keyword/vector search")
+
+            # Determine which matched
+            matched = next((s["name"] for s in trace.reasoning_steps if s["matched"]), "Fallback: RAG retrieval")
+            trace.reasoning_result = matched
+
+        # --- Deterministic early returns (no LLM needed) ---
+
+        # Non-research task: programmatic refusal
+        is_non_research = self._is_non_research_task(user_message)
+        if is_non_research:
+            research_topic = self._config.get("research_topic", "this domain")
+            alliance_name = self._config.get("alliance", {}).get("name", "UNINOVIS")
+            refusal = (
+                f"I cannot help with that request. I am a research assistant specialised in "
+                f"{research_topic} for the {alliance_name} "
+                f"European university alliance. I can help you search research papers, look up "
+                f"researchers, explore funded projects, show glossary definitions, generate "
+                f"interactive maps and figures, and analyse research gaps — all within my domain."
+            )
+            yield refusal
+            if trace:
+                trace.action = "refused (no LLM)"
+                trace.production = "programmatic refusal"
+                yield "\n\n" + trace.to_html()
+            self._query_history.append({"question": user_message, "response": refusal, "response_length": len(refusal)})
+            return
+
+        # Expand command: "expand 2", "expand #3", "more about 1"
+        is_expand, expand_n = self._is_expand_command(user_message)
+        if is_expand and self._get_last_response():
+            item_text = self._extract_numbered_item(expand_n)
+            if item_text:
+                # Ask the LLM to expand on this specific item with the previous context
+                expand_prompt = (
+                    f"The user previously asked: \"{self._get_last_query()}\"\n"
+                    f"From the response, they want more details about item #{expand_n}:\n"
+                    f"\"{item_text}\"\n\n"
+                    f"Provide detailed information about this specific item. "
+                    f"Use ONLY the data from the database context provided."
+                )
+                # Use the expand prompt as the user message, with history for context
+                user_message = expand_prompt
+                # Update trace
+                if trace:
+                    trace.reasoning_result = f"Expand #{expand_n}"
+            else:
+                response = f"I could not find item #{expand_n} in my previous response. Please try a number from the list above."
+                yield response
+                if trace:
+                    trace.action = f"expand #{expand_n} (not found)"
+                    trace.production = "programmatic response"
+                    yield "\n\n" + trace.to_html()
+                self._query_history.append({"question": user_message, "response": response, "response_length": len(response)})
+                return
 
         # When structured context is available, use it instead of RAG
         if is_web_expand:
@@ -4503,7 +4706,7 @@ class MetadataRAGMixin:
         skip_claims = getattr(self, '_skip_claim_classification', False)
         detect_hallucinations = not skip_claims or transparency == "shown"
 
-        # --- Approach D: Programmatic facts + LLM commentary (AI3 only) ---
+        # -- Stage 3: Action (LLM streaming and/or programmatic data) --
         factual_section = ""
         if use_procedural and not is_figure_request and not is_gap_analysis and not is_web_expand:
             if shared_topics_ctx:
@@ -4547,7 +4750,7 @@ class MetadataRAGMixin:
                     else:
                         raise
 
-            # Post-process: sanitize authoritative phrases in commentary
+            # -- Stage 4: Production (post-processing, banners, badge, audit) --
             sanitized = self._sanitize_authority(full_response)
             if sanitized != full_response:
                 full_response = sanitized
@@ -4674,7 +4877,7 @@ class MetadataRAGMixin:
                     else:
                         raise
 
-            # Post-process: sanitize authoritative phrases
+            # -- Stage 4: Production (post-processing, banners, badge, audit) --
             sanitized = self._sanitize_authority(full_response)
             if sanitized != full_response:
                 full_response = sanitized
@@ -4734,8 +4937,6 @@ class MetadataRAGMixin:
             project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx, metadata_ctx, glossary_ctx
         ]))
 
-        highlight_cfg = self._config.get("inline_claim_highlights")
-
         # Procedural badge: agent tuning info, banners handle reliability
         reliability_label = "none"
         if self._should_show_visual_badge():
@@ -4790,6 +4991,23 @@ class MetadataRAGMixin:
         if context:         ctx_sources.append("rag")
         if web_ctx:         ctx_sources.append("web")
 
+        # Emit decision trace (if enabled)
+        if trace:
+            trace.action = query_type
+            prod_parts = []
+            _pre = locals().get('pre_banner', '')
+            _hall = locals().get('hallucination_count', 0)
+            _humbled = locals().get('humbled', full_response)
+            if _pre: prod_parts.append("reliability cue")
+            if _hall > 0: prod_parts.append(f"{_hall} paper(s) flagged")
+            if _humbled != full_response: prod_parts.append("humility hedging")
+            if factual_section: prod_parts.append("programmatic factual section")
+            trace.production = ", ".join(prod_parts) if prod_parts else "direct output"
+            trace_html = trace.to_html()
+            # Append trace to response via replace (avoids duplication from done handler)
+            full_response += "\n\n" + trace_html
+            yield ("replace", full_response)
+
         # Write audit log
         AuditLogger.log(
             audit_path=self._audit_path,
@@ -4825,6 +5043,7 @@ class MetadataRAGMixin:
 
         self._query_history.append({
             'question': self._get_last_query() if is_web_expand else user_message,
+            'response': full_response,
             'response_length': len(full_response)
         })
 

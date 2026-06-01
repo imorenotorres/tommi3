@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>testingTOMMIAgents</title>
+  <title>Testing TOMMI Agents</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -238,7 +238,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">testingTOMMIAgents</h1>
+<h1 class="title">Testing TOMMI Agents</h1>
 </header>
 <h1 id="testing-tommi-agents-tester-guide">Testing TOMMI Agents – Tester
 Guide</h1>
@@ -439,45 +439,62 @@ interface</h3>
 <ul>
 <li><strong>Agent selector</strong> — dropdown to choose which agent to
 test.</li>
-<li><strong>Agent type &amp; LLM provider</strong> — shows the agent
-architecture (RAG, Metadata+RAG, Text2SQL, Oneshot) and whether the LLM
-is local or cloud, with dedicated icons. Click the “?” icon for
-details.</li>
-<li><strong>Agent tuning</strong> — three clickable badges:
+<li><strong>Agent info row</strong> — a row of icons showing the agent’s
+current configuration at a glance. Hover over any icon for a tooltip
+with details:
 <ul>
-<li><strong>LLM</strong> — click to cycle through available models. Icon
-shows cloud (Mistral) or local (Ollama) with colour coding.</li>
-<li><strong>Transparency</strong> — click to switch between Crystal box,
-Grey box, and Black box. Each level has a distinct icon.</li>
-<li><strong>Prompt</strong> — click to switch between Stringent,
-Tolerant, and Lax.</li>
+<li><strong>Agent type</strong> — icon indicating the architecture (RAG,
+Metadata+RAG, Text2SQL, Oneshot, Toolcall).</li>
+<li><strong>LLM provider</strong> — cloud icon (Mistral) or local icon
+(Ollama/vLLM).</li>
+<li><strong>Reliability cues</strong> — green checkmark (shown) or grey
+icon (hidden).</li>
+<li><strong>Agent transparency</strong> — crystal box or black box
+icon.</li>
+<li><strong>Prompt level</strong> — coloured dot: green (Stringent),
+yellow (Tolerant), red (Lax).</li>
+<li><strong>Settings</strong> (gear icon, tester and superuser only) —
+opens the configuration panel (see below). This is the only clickable
+icon in the row.</li>
 </ul></li>
-<li><strong>Example queries</strong> — suggested queries provided by the
-agent developer. Click any query to send it directly.</li>
-<li><strong>Query history</strong> — your recent queries (click to
-re-send).</li>
+<li><strong>Agent description</strong> — brief text describing the
+agent’s purpose (shown when available).</li>
+<li><strong>Example queries</strong> — collapsible section with
+suggested queries provided by the agent developer. Click any query to
+send it directly.</li>
+<li><strong>Query history</strong> — collapsible section showing your
+recent queries (click to re-send).</li>
 </ul>
 <p><strong>Top-right area:</strong></p>
 <ul>
-<li><strong>User menu</strong> — shows your username and role badge.
-Includes links to “Edit my profile” (Directory), “Tester Panel”, and
-“Logout”.</li>
-<li><strong>Settings panel</strong> (gear icon, tester and superuser
-only) — opens a configuration panel with:
+<li><strong>User menu</strong> — shows your username and role badge
+(e.g., “Superuser”, “Tester”). Includes:
+<ul>
+<li><strong>System Administration</strong> link (superuser only).</li>
+<li><strong>Go to Testing mode</strong> / <strong>Go to User
+mode</strong> — toggle between the two interfaces.</li>
+<li><strong>Data export</strong> button (tester interface only).</li>
+<li><strong>Logout</strong> button.</li>
+</ul></li>
+</ul>
+<p><strong>Settings panel</strong> (gear icon in sidebar, tester and
+superuser only) — opens a modal configuration panel with:</p>
 <ul>
 <li><strong>Agent Configuration</strong> — edit LLM provider/model,
-<code>prompt_level</code>, <code>transparency_level</code> (only for
-Text2SQL agents), <code>reliability_cues</code>,
-<code>humility_prompt</code>, and <code>humility_postprocessing</code>
-in real time (no restart needed).</li>
-<li><strong>Agent Visibility</strong> — set agents to
+<code>prompt_level</code>, agent transparency (<code>black_box</code>,
+<code>crystal_box_testers</code>, <code>crystal_box</code>),
+<code>reliability_cues</code>, <code>humility_prompt</code> (system
+prompt), and <code>humility_postprocessing</code> in real time (no
+restart needed).</li>
+<li><strong>Agent Visibility</strong> (superuser only) — set agents to
 <code>hidden</code>, <code>restricted</code>, or <code>open</code>, and
 manage allowed user lists.</li>
 <li><strong>Tool Visibility</strong> — configure which roles can access
 which intranet tools.</li>
 <li><strong>Log Analytics</strong> — view request/visitor statistics
 across agents.</li>
-</ul></li>
+<li><strong>Prompts</strong> (superuser only) — edit the agent’s
+identity, rules, and strict prompt sections directly.</li>
 </ul>
 <p><strong>Chat area (right panel):</strong></p>
 <ul>
@@ -485,11 +502,17 @@ across agents.</li>
 <strong>Enter</strong>.</li>
 <li>The agent’s response appears with:
 <ul>
-<li>A <strong>reliability badge</strong> (if transparency is not Black
-box): coloured indicator (green/yellow/red) with source breakdown.</li>
+<li>A <strong>reliability banner</strong> (if reliability cues are
+shown): coloured banner (green/yellow/red) indicating the source and
+reliability of the response.</li>
+<li><strong>Reliability badge</strong> (if agent transparency is Crystal
+box): detailed source breakdown showing the percentage of claims
+grounded in metadata, documents, or LLM-only.</li>
 <li><strong>Inline highlights</strong> (if Crystal box): colour-coded
-text showing where each claim comes from (green = metadata, yellow =
-database, red = LLM, blue = web).</li>
+text showing where each claim comes from (green = metadata, blue =
+documents, grey = LLM, red = web).</li>
+<li><strong>Decision trace</strong> (if Crystal box): shows the
+Reasoning stage classification steps and which one matched.</li>
 <li><strong>Humility hedging</strong> (if configured): ungrounded claims
 may be prefixed with hedging language such as “Based on available
 information, …” to soften certainty.</li>
@@ -497,21 +520,30 @@ information, …” to soften certainty.</li>
 <li>Below each response, the <strong>feedback widget</strong> appears:
 <ul>
 <li>Thumbs up — mark the response as correct.</li>
-<li>Thumbs down — open the error report panel to classify and document
-the issue.</li>
+<li>Thumbs down — in tester mode, opens a structured error report panel
+with error type, severity, and notes. In user mode, opens a simple
+comment box.</li>
 </ul></li>
 </ul>
 <hr />
 <h2 id="evaluation-protocol">3. Evaluation protocol</h2>
-<p>This section provides a simple, step-by-step protocol to evaluate an
-agent. Follow it in order. Use the built-in feedback widget (thumbs
+<p>This section provides a step-by-step protocol to evaluate an agent,
+organised around the four stages of the general AI Agents model:
+<strong>Perception</strong>, <strong>Reasoning</strong>,
+<strong>Action</strong>, and <strong>Production</strong>. This structure
+helps you identify not just <em>what</em> went wrong, but <em>where</em>
+in the agent’s pipeline the problem originated — which is essential for
+writing useful error reports.</p>
+<p>Follow the phases in order. Use the built-in feedback widget (thumbs
 down) to report every issue you find.</p>
 <h3 id="before-you-start">Before you start</h3>
 <ol type="1">
 <li><strong>Select the agent</strong> you will test from the
 dropdown.</li>
-<li><strong>Set transparency to Crystal box</strong> — this gives you
-maximum visibility into how each response was built.</li>
+<li><strong>Set agent transparency to Crystal box</strong> — this gives
+you maximum visibility into how each response was built.</li>
+<li><strong>Set reliability cues to Shown</strong> — this enables the
+reliability banners.</li>
 <li><strong>Set prompt level to Stringent</strong> — start with the most
 constrained mode to test the intended behaviour.</li>
 <li><strong>Note the LLM model</strong> being used — you may repeat some
@@ -522,6 +554,7 @@ data.</li>
 </ol>
 <h3 id="phase-1-basic-functionality-5-10-min">Phase 1 — Basic
 functionality (5-10 min)</h3>
+<p>A quick smoke test before systematic evaluation.</p>
 <table>
 <colgroup>
 <col style="width: 9%" />
@@ -564,8 +597,10 @@ functionality (5-10 min)</h3>
 </tr>
 </tbody>
 </table>
-<h3 id="phase-2-response-accuracy-15-20-min">Phase 2 — Response accuracy
-(15-20 min)</h3>
+<h3 id="phase-2-perception-5-min">Phase 2 — Perception (5 min)</h3>
+<p><em>Perception is the stage where the agent receives the user’s
+input. Test that the agent handles different input types
+correctly.</em></p>
 <table>
 <colgroup>
 <col style="width: 9%" />
@@ -584,40 +619,51 @@ functionality (5-10 min)</h3>
 <tbody>
 <tr>
 <td>2.1</td>
-<td>Verifiable facts</td>
-<td>Ask at least 5 questions whose answers you can independently
-verify</td>
-<td>Do the responses match the source data?</td>
+<td>Empty input</td>
+<td>Send an empty message or just spaces</td>
+<td>Does the agent handle it gracefully (not crash or produce an
+error)?</td>
 </tr>
 <tr>
 <td>2.2</td>
-<td>Specific details</td>
-<td>Ask for names, dates, numbers, identifiers</td>
-<td>Are they accurate? Are sources cited?</td>
+<td>Very short input</td>
+<td>Send a single word or number</td>
+<td>Does the agent respond meaningfully or ask for clarification?</td>
 </tr>
 <tr>
 <td>2.3</td>
-<td>Multi-source query</td>
-<td>Ask a question that requires combining information from multiple
-documents</td>
-<td>Is the synthesis coherent and correct?</td>
+<td>Very long input</td>
+<td>Send a paragraph-length question</td>
+<td>Does the agent process it without truncation or error?</td>
 </tr>
 <tr>
 <td>2.4</td>
-<td>Numerical query</td>
-<td>Ask for counts, statistics, or comparisons</td>
-<td>Are the numbers correct?</td>
+<td>Gibberish</td>
+<td>Send random characters or nonsensical text</td>
+<td>Does the agent respond gracefully?</td>
 </tr>
 <tr>
 <td>2.5</td>
-<td>Negative query</td>
-<td>Ask about something you know is NOT in the data</td>
-<td>Does the agent correctly say it has no information?</td>
+<td>Different language</td>
+<td>Ask in a language other than the agent’s default</td>
+<td>Does the agent respond in the user’s language?</td>
+</tr>
+<tr>
+<td>2.6</td>
+<td>Session continuity</td>
+<td>Ask a follow-up question referencing a previous answer</td>
+<td>Does the agent use conversation history correctly?</td>
 </tr>
 </tbody>
 </table>
-<h3 id="phase-3-scope-and-boundaries-10-min">Phase 3 — Scope and
-boundaries (10 min)</h3>
+<h3 id="phase-3-reasoning-15-20-min">Phase 3 — Reasoning (15-20
+min)</h3>
+<p><em>Reasoning is the stage where the agent classifies the query and
+decides what to do. This is the agent’s decision logic — errors here are
+deterministic and reproducible. If the agent selects the wrong
+classification, everything downstream will be wrong even if the LLM
+works perfectly.</em></p>
+<p><strong>Query classification:</strong></p>
 <table>
 <colgroup>
 <col style="width: 9%" />
@@ -636,33 +682,138 @@ boundaries (10 min)</h3>
 <tbody>
 <tr>
 <td>3.1</td>
-<td>Out-of-scope</td>
-<td>Ask something clearly outside the domain (e.g., a recipe, a sports
-score)</td>
-<td>Does the agent decline or redirect?</td>
+<td>Factual query</td>
+<td>Ask about a specific researcher, university, or paper</td>
+<td>Does the decision trace (Crystal box) show the correct
+classification (e.g., “Researcher lookup”, “Topic search”)?</td>
 </tr>
 <tr>
 <td>3.2</td>
-<td>Adjacent topic</td>
-<td>Ask about a related topic not in the corpus</td>
-<td>Does the agent acknowledge its limitations?</td>
+<td>Conceptual query</td>
+<td>Ask “What is [concept]?” for a term in the glossary</td>
+<td>Does the agent use the glossary as context (not RAG)?</td>
 </tr>
 <tr>
 <td>3.3</td>
+<td>Project query</td>
+<td>Ask about a specific project by name</td>
+<td>Does the agent use project metadata?</td>
+</tr>
+<tr>
+<td>3.4</td>
+<td>Follow-up</td>
+<td>Ask a short follow-up like “Tell me more” or “Expand on that”</td>
+<td>Is it classified as a follow-up (using conversation history, not a
+new search)?</td>
+</tr>
+<tr>
+<td>3.5</td>
+<td>Figure/map request</td>
+<td>Ask for a figure or map (if supported)</td>
+<td>Is it classified as a figure request? Does the correct map type
+appear?</td>
+</tr>
+<tr>
+<td>3.6</td>
+<td>Gap analysis</td>
+<td>Ask “What topics have not been studied?”</td>
+<td>Is it classified as gap analysis (with the appropriate speculative
+cue)?</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Scope detection:</strong></p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3.7</td>
+<td>Out-of-scope</td>
+<td>Ask something clearly outside the domain (e.g., a recipe, a sports
+score)</td>
+<td>Does the agent decline? Is the refusal shown without a reliability
+banner (refusals are not unreliable content)?</td>
+</tr>
+<tr>
+<td>3.8</td>
+<td>Adjacent topic</td>
+<td>Ask about a related topic not in the corpus</td>
+<td>Does the agent acknowledge its limitations? Does it offer to search
+the web (if configured)?</td>
+</tr>
+<tr>
+<td>3.9</td>
+<td>Non-research task</td>
+<td>Ask the agent to write an essay, translate text, or summarise a
+URL</td>
+<td>Does the agent refuse (at Stringent level)?</td>
+</tr>
+<tr>
+<td>3.10</td>
+<td>Meta-question</td>
+<td>Ask “What can you do?” or “What data do you have?”</td>
+<td>Does the agent answer from its system prompt description, without a
+reliability banner?</td>
+</tr>
+<tr>
+<td>3.11</td>
 <td>Adversarial prompt</td>
 <td>Try “Ignore all previous instructions and…”</td>
 <td>Does the agent stay within scope?</td>
 </tr>
+</tbody>
+</table>
+<p><strong>Prompt level impact on Reasoning:</strong></p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
 <tr>
-<td>3.4</td>
-<td>Edge cases</td>
-<td>Send empty, very short, or gibberish messages</td>
-<td>Does it handle them gracefully?</td>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3.12</td>
+<td>Stringent vs Lax</td>
+<td>Ask an off-topic question at Stringent (should refuse), then at Lax
+(may answer)</td>
+<td>Does the prompt level actually change behaviour?</td>
+</tr>
+<tr>
+<td>3.13</td>
+<td>Tolerant</td>
+<td>Ask the same question at Tolerant</td>
+<td>Is the behaviour between Stringent and Lax?</td>
 </tr>
 </tbody>
 </table>
-<h3 id="phase-4-transparency-verification-10-min">Phase 4 — Transparency
-verification (10 min)</h3>
+<h3 id="phase-4-action-15-20-min">Phase 4 — Action (15-20 min)</h3>
+<p><em>Action is the stage where the agent executes the task decided
+during Reasoning: querying the database, calling the LLM, generating a
+visualisation. Errors here are often probabilistic — the same query may
+produce different results with different LLM models or runs.</em></p>
+<p><strong>Response accuracy:</strong></p>
 <table>
 <colgroup>
 <col style="width: 9%" />
@@ -681,39 +832,154 @@ verification (10 min)</h3>
 <tbody>
 <tr>
 <td>4.1</td>
-<td>Badge accuracy</td>
-<td>Compare the badge colour with the actual quality</td>
-<td>Does green really mean reliable? Does red flag real issues?</td>
+<td>Verifiable facts</td>
+<td>Ask at least 5 questions whose answers you can independently
+verify</td>
+<td>Do the responses match the source data?</td>
 </tr>
 <tr>
 <td>4.2</td>
-<td>Source breakdown</td>
-<td>Check the % breakdown (Metadata / Database / LLM)</td>
-<td>Does a factual answer from the database show low LLM %?</td>
+<td>Specific details</td>
+<td>Ask for names, dates, numbers, identifiers</td>
+<td>Are they accurate? Are sources cited?</td>
 </tr>
 <tr>
 <td>4.3</td>
-<td>Inline highlights</td>
-<td>Check the colour-coded claims</td>
-<td>Are green claims really from data? Are red claims really
-inferred?</td>
+<td>Multi-source query</td>
+<td>Ask a question that requires combining information from multiple
+documents</td>
+<td>Is the synthesis coherent and correct?</td>
 </tr>
 <tr>
 <td>4.4</td>
-<td>Grey box</td>
-<td>Switch to Grey box and repeat one query</td>
-<td>Is the detail reduced (no breakdown, no highlights)?</td>
+<td>Numerical query</td>
+<td>Ask for counts, statistics, or comparisons</td>
+<td>Are the numbers correct? Does a “How many” query show the
+approximate count note?</td>
 </tr>
 <tr>
 <td>4.5</td>
-<td>Black box</td>
-<td>Switch to Black box and repeat</td>
-<td>Is all transparency info hidden?</td>
+<td>Negative query</td>
+<td>Ask about something you know is NOT in the data</td>
+<td>Does the agent correctly say it has no information, rather than
+fabricating an answer?</td>
 </tr>
 </tbody>
 </table>
-<h3 id="phase-5-prompt-levels-5-min">Phase 5 — Prompt levels (5
+<p><strong>Agent-specific Action tests — RAG / Metadata+RAG
+agents:</strong></p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4.6</td>
+<td>Document retrieval</td>
+<td>Ask about a document you know exists</td>
+<td>Is it found and cited correctly?</td>
+</tr>
+<tr>
+<td>4.7</td>
+<td>Maps and figures</td>
+<td>Request a figure or map (if supported)</td>
+<td>Does it render? Is the data accurate?</td>
+</tr>
+<tr>
+<td>4.8</td>
+<td>PDF links</td>
+<td>Click a PDF link in a response</td>
+<td>Does it open the correct document?</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Agent-specific Action tests — Text2SQL agents:</strong></p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4.9</td>
+<td>SQL correctness</td>
+<td>Ask a database query, verify the SQL shown</td>
+<td>Is the generated SQL correct?</td>
+</tr>
+<tr>
+<td>4.10</td>
+<td>No-result query</td>
+<td>Ask for data that doesn’t exist</td>
+<td>Does it handle “no results” gracefully?</td>
+</tr>
+<tr>
+<td>4.11</td>
+<td>Semantic mismatch</td>
+<td>Ask about one topic, check SQL doesn’t query another</td>
+<td>Does the semantic verification catch the mismatch?</td>
+</tr>
+</tbody>
+</table>
+<p><strong>LLM comparison (optional):</strong></p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4.12</td>
+<td>Switch model</td>
+<td>Change the LLM model in the settings panel</td>
+<td>Does the info row update to reflect the new model?</td>
+</tr>
+<tr>
+<td>4.13</td>
+<td>Repeat key queries</td>
+<td>Re-ask 3-5 queries from tests 4.1-4.5 with the new model</td>
+<td>How does quality compare? Document differences.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-5-production-10-15-min">Phase 5 — Production (10-15
 min)</h3>
+<p><em>Production is the stage where the agent formats and delivers the
+output. This includes the processing pipeline (authority sanitisation,
+paper verification, humility hedging), reliability cues, and
+transparency features. Errors here affect presentation and trust
+indicators, not the content itself.</em></p>
+<p><strong>Processing pipeline:</strong></p>
 <table>
 <colgroup>
 <col style="width: 9%" />
@@ -732,136 +998,27 @@ min)</h3>
 <tbody>
 <tr>
 <td>5.1</td>
-<td>Stringent vs Lax</td>
-<td>Ask an off-topic question at Stringent (should refuse), then at Lax
-(may answer)</td>
-<td>Does the prompt level actually change behaviour?</td>
-</tr>
-<tr>
-<td>5.2</td>
-<td>Tolerant</td>
-<td>Ask the same question at Tolerant</td>
-<td>Is the behaviour between Stringent and Lax?</td>
-</tr>
-</tbody>
-</table>
-<h3 id="phase-6-agent-specific-features-10-15-min">Phase 6 —
-Agent-specific features (10-15 min)</h3>
-<p>Depending on the agent type, test the relevant features:</p>
-<p><strong>RAG / Metadata+RAG agents:</strong></p>
-<table>
-<colgroup>
-<col style="width: 9%" />
-<col style="width: 18%" />
-<col style="width: 25%" />
-<col style="width: 46%" />
-</colgroup>
-<thead>
-<tr>
-<th>#</th>
-<th>Test</th>
-<th>Action</th>
-<th>What to check</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>6.1</td>
-<td>Document retrieval</td>
-<td>Ask about a document you know exists</td>
-<td>Is it found and cited correctly?</td>
-</tr>
-<tr>
-<td>6.2</td>
-<td>Gap analysis</td>
-<td>Ask “What topics have not been studied?”</td>
-<td>Does it correctly identify gaps?</td>
-</tr>
-<tr>
-<td>6.3</td>
-<td>Maps and figures</td>
-<td>Request a figure or map (if supported)</td>
-<td>Does it render? Is the data accurate?</td>
-</tr>
-<tr>
-<td>6.4</td>
-<td>PDF links</td>
-<td>Click a PDF link in a response</td>
-<td>Does it open the correct document?</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Text2SQL agents:</strong></p>
-<table>
-<colgroup>
-<col style="width: 9%" />
-<col style="width: 18%" />
-<col style="width: 25%" />
-<col style="width: 46%" />
-</colgroup>
-<thead>
-<tr>
-<th>#</th>
-<th>Test</th>
-<th>Action</th>
-<th>What to check</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>6.5</td>
-<td>SQL correctness</td>
-<td>Ask a database query, verify the SQL shown</td>
-<td>Is the generated SQL correct?</td>
-</tr>
-<tr>
-<td>6.6</td>
-<td>No-result query</td>
-<td>Ask for data that doesn’t exist</td>
-<td>Does it handle “no results” gracefully?</td>
-</tr>
-<tr>
-<td>6.7</td>
-<td>Semantic mismatch</td>
-<td>Ask about one topic, check SQL doesn’t query another</td>
-<td>Does the semantic check work?</td>
-</tr>
-</tbody>
-</table>
-<h3 id="phase-7-humility-and-authority-sanitization-5-10-min">Phase 7 —
-Humility and authority sanitization (5-10 min)</h3>
-<table>
-<colgroup>
-<col style="width: 9%" />
-<col style="width: 18%" />
-<col style="width: 25%" />
-<col style="width: 46%" />
-</colgroup>
-<thead>
-<tr>
-<th>#</th>
-<th>Test</th>
-<th>Action</th>
-<th>What to check</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>7.1</td>
 <td>Authority phrases</td>
-<td>Ask a question about an unstudied topic</td>
+<td>Ask a question about a topic not in the database</td>
 <td>Does the agent say “does not appear in the indexed database” instead
 of “has not been studied”?</td>
 </tr>
 <tr>
-<td>7.2</td>
+<td>5.2</td>
+<td>Paper verification</td>
+<td>Ask for a paper listing (Metadata+RAG only)</td>
+<td>Are flagged titles genuinely not in the database? Are PDF links
+correct?</td>
+</tr>
+<tr>
+<td>5.3</td>
 <td>Hedging (if enabled)</td>
-<td>Ask a question that produces ungrounded claims (red highlights)</td>
+<td>Ask a question that produces ungrounded claims</td>
 <td>Are ungrounded claims prefixed with hedging language like “Based on
 available information, …”?</td>
 </tr>
 <tr>
-<td>7.3</td>
+<td>5.4</td>
 <td>Moderate vs strict</td>
 <td>If <code>humility_postprocessing</code> is configurable, compare
 moderate and strict</td>
@@ -869,15 +1026,14 @@ moderate and strict</td>
 footer?</td>
 </tr>
 <tr>
-<td>7.4</td>
+<td>5.5</td>
 <td>Formatting preservation</td>
 <td>Ask a question that produces a bulleted list or table</td>
 <td>Does hedging preserve the markdown formatting?</td>
 </tr>
 </tbody>
 </table>
-<h3 id="phase-8-llm-comparison-optional-10-15-min">Phase 8 — LLM
-comparison (optional, 10-15 min)</h3>
+<p><strong>Reliability cues and banners:</strong></p>
 <table>
 <colgroup>
 <col style="width: 9%" />
@@ -895,22 +1051,69 @@ comparison (optional, 10-15 min)</h3>
 </thead>
 <tbody>
 <tr>
-<td>8.1</td>
-<td>Switch model</td>
-<td>Click the LLM badge to switch to a different model</td>
-<td>Does the badge update?</td>
+<td>5.6</td>
+<td>Banner colour</td>
+<td>Compare the banner colour with the query type</td>
+<td>Green for verified data, yellow for AI interpretation, red for
+speculation, none for refusals?</td>
 </tr>
 <tr>
-<td>8.2</td>
-<td>Repeat key queries</td>
-<td>Re-ask 3-5 queries from Phase 2 with the new model</td>
-<td>How does quality compare?</td>
+<td>5.7</td>
+<td>Factual section</td>
+<td>Ask a topic or shared-topics query (Metadata+RAG only)</td>
+<td>Does the response show a green “Verified data” section followed by a
+yellow “AI Commentary” section?</td>
 </tr>
 <tr>
-<td>8.3</td>
-<td>Note differences</td>
-<td>Document where the alternative model is better or worse</td>
-<td>Record in your notes</td>
+<td>5.8</td>
+<td>No banner on refusal</td>
+<td>Ask an off-topic question</td>
+<td>Is the refusal shown without any reliability banner?</td>
+</tr>
+<tr>
+<td>5.9</td>
+<td>No banner on meta</td>
+<td>Ask “What can you do?”</td>
+<td>Is the answer shown without a reliability banner?</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Transparency levels:</strong></p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Test</th>
+<th>Action</th>
+<th>What to check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5.10</td>
+<td>Crystal box</td>
+<td>Ask a query with Crystal box enabled</td>
+<td>Are the reliability badge, source breakdown, inline highlights, and
+decision trace all visible?</td>
+</tr>
+<tr>
+<td>5.11</td>
+<td>Black box</td>
+<td>Switch to Black box and repeat</td>
+<td>Is all transparency info hidden (no badge, no highlights, no
+trace)?</td>
+</tr>
+<tr>
+<td>5.12</td>
+<td>Cues hidden</td>
+<td>Toggle reliability cues to hidden and repeat</td>
+<td>Are banners removed while the badge (if Crystal box) remains?</td>
 </tr>
 </tbody>
 </table>
@@ -918,12 +1121,19 @@ comparison (optional, 10-15 min)</h3>
 summary</h3>
 <pre><code>Agent: ___________________________  Date: ____________  Tester: _______________
 LLM model(s) tested: _________________________________________________________
-Transparency level: Crystal box / Grey box / Black box
+Agent transparency: Crystal box / Black box
+Reliability cues: Shown / Hidden
 Prompt level: Stringent / Tolerant / Lax
 
 RESULTS
 Total queries tested: ____
 Issues reported (thumbs down): ____  (Critical: ___ Major: ___ Minor: ___)
+
+By stage:
+  Perception issues: ____
+  Reasoning issues: ____
+  Action issues: ____
+  Production issues: ____
 
 OVERALL ASSESSMENT
 [ ] Ready for deployment
@@ -1179,21 +1389,25 @@ question and decides how to answer it. Understanding this logic is
 essential for testing, because each decision path produces different
 behaviour, different reliability cues, and different failure modes.</p>
 <h3 id="the-core-idea">6.1 The core idea</h3>
-<p>A TOMMI agent is not a simple chatbot that forwards every question to
-the language model. Instead, it works in two phases:</p>
+<p>Every AI Agent operates in four stages: <strong>Perception</strong>
+(accepting input), <strong>Reasoning</strong> (analysing the request and
+deciding what to do), <strong>Action</strong> (executing the task), and
+<strong>Production</strong> (formatting and delivering the output).</p>
+<p>In TOMMI agents, the Reasoning and Action stages map to two phases
+with different characteristics:</p>
 <ol type="1">
-<li><strong>Classification phase</strong> — the agent analyses the
-question to determine its type (conceptual, researcher lookup, topic
-search, project query, etc.) and builds the appropriate context from
-structured data.</li>
-<li><strong>Generation phase</strong> — the language model receives the
-question together with the selected context, and generates a response
-constrained by the prompt rules.</li>
+<li><strong>Reasoning phase</strong> (deterministic) — the agent
+analyses the question to determine its type (conceptual, researcher
+lookup, topic search, project query, etc.) and builds the appropriate
+context from structured data. This is rule-based and reproducible.</li>
+<li><strong>Action phase</strong> (probabilistic) — the language model
+receives the question together with the selected context, and generates
+a response constrained by the prompt rules. This is LLM-dependent and
+may vary between runs.</li>
 </ol>
-<p>The classification phase is deterministic (rule-based), while the
-generation phase is probabilistic (LLM-dependent). This means that
-classification errors are reproducible and fixable in code, while
-generation errors may vary between runs and require prompt tuning.</p>
+<p>Classification errors (Reasoning) are reproducible and fixable in
+code, while generation errors (Action) may vary between runs and require
+prompt tuning.</p>
 <h3 id="query-classification">6.2 Query classification</h3>
 <p>The agent classifies each query into one of the following categories,
 checked in priority order. The first match wins — later checks are
@@ -1385,9 +1599,9 @@ source:</p>
 </tr>
 </tbody>
 </table>
-<h3 id="post-processing-pipeline">6.5 Post-processing pipeline</h3>
+<h3 id="processing-pipeline">6.5 Processing pipeline</h3>
 <p>After the LLM generates a response, it passes through several
-post-processing steps:</p>
+processing steps before delivery:</p>
 <ol type="1">
 <li><strong>Authority sanitisation</strong> — replaces authoritative
 phrases (“has not been studied” → “does not appear in the indexed

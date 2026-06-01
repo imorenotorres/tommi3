@@ -68,7 +68,7 @@ Type your question in the text box at the bottom of the screen and click **Send*
 
 ### 3.1 How the Agent Processes Your Question
 
-When you ask a question, the agent does not simply forward it to the AI language model. Instead, it first analyses your question to determine the best way to answer it — much like a librarian who first decides whether to look in the catalogue, the encyclopaedia, or the archives before answering.
+Every AI Agent operates in four stages: **Perception** (accepting your input), **Reasoning** (analysing your question and deciding what to do), **Action** (executing the task), and **Production** (formatting and delivering the result). When you type a question, the agent does not simply forward it to the AI language model — it first reasons about your question to determine the best way to answer it, much like a librarian who decides whether to look in the catalogue, the encyclopaedia, or the archives before answering.
 
 Depending on what you ask, the agent may:
 

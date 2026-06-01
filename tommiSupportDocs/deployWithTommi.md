@@ -1040,14 +1040,14 @@ The JSONL format is append-only and processable with standard tools (`jq`, `grep
 
 ### Agent Decision Logic (Metadata+RAG agents)
 
-Metadata+RAG agents (the most complex agent type) use a two-phase architecture to answer queries:
+Metadata+RAG agents (the most complex agent type) follow the four-stage Perception → Reasoning → Action → Production architecture. The Reasoning and Action stages are the most significant:
 
-**Phase 1 — Query classification and context building (deterministic)**
+**Reasoning stage — Query classification and context building (deterministic)**
 
-Before the LLM is called, the agent classifies the query and selects the appropriate data source. This phase is implemented in `rag_metadata_mixin.py` and is entirely rule-based:
+Before the LLM is called, the agent classifies the query and selects the appropriate data source. This stage is implemented in `rag_metadata_mixin.py` and is entirely rule-based:
 
 ```
-User query → classify → build context → pass to LLM with context
+Perception → Reasoning (classify + build context) → Action (LLM / DB) → Production (format + cues)
 ```
 
 The classification is a priority chain — the first match wins:
@@ -1067,11 +1067,15 @@ The classification is a priority chain — the first match wins:
 | 11 | Researcher lookup | `_build_researcher_context()` | researchers.json | None |
 | 12 | Fallback: RAG | `_retrieve_context()` | BM25 / ChromaDB chunks | 🟡 |
 
-The context built in Phase 1 is injected into the system prompt before the LLM call. This means the LLM only sees data relevant to the query type, which reduces hallucination and improves response quality.
+The context built in the Reasoning stage is injected into the system prompt before the LLM call. This means the LLM only sees data relevant to the query type, which reduces hallucination and improves response quality.
 
-**Phase 2 — LLM generation and post-processing (probabilistic)**
+**Action stage — LLM generation (probabilistic)**
 
-The LLM generates a response from the system prompt + selected context + conversation history. After generation, the response passes through a post-processing pipeline:
+The LLM generates a response from the system prompt + selected context + conversation history.
+
+**Production stage — Processing and delivery**
+
+After generation, the response passes through a processing pipeline before being delivered to the user:
 
 1. `_sanitize_authority()` — replaces authoritative phrases with humble alternatives
 2. Alliance name correction — fixes common LLM misspellings
@@ -1079,7 +1083,7 @@ The LLM generates a response from the system prompt + selected context + convers
 4. `_inject_unsolicited_gap_banner()` — detects and flags unrequested gap analysis
 5. `HumilityRewriter.rewrite()` — adds hedging prefixes to ungrounded claims (if enabled)
 
-**Reliability cue assignment** happens between Phase 1 and Phase 2. The cue is determined by the query classification and context source (see table above). Special cases:
+**Reliability cue assignment** happens between the Reasoning and Production stages. The cue is determined by the query classification and context source (see table above). Special cases:
 
 - Queries asking "how many" get an additional note about approximate counts
 - Researcher queries with unverified paper attributions get a warning banner

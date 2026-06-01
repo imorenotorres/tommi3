@@ -91,49 +91,66 @@ You can switch back to user mode at any time by clicking **"User mode"**.
 **Sidebar (left panel):**
 
 - **Agent selector** — dropdown to choose which agent to test.
-- **Agent type & LLM provider** — shows the agent architecture (RAG, Metadata+RAG, Text2SQL, Oneshot) and whether the LLM is local or cloud, with dedicated icons. Click the "?" icon for details.
-- **Agent tuning** — three clickable badges:
-  - **LLM** — click to cycle through available models. Icon shows cloud (Mistral) or local (Ollama) with colour coding.
-  - **Transparency** — click to switch between Crystal box, Grey box, and Black box. Each level has a distinct icon.
-  - **Prompt** — click to switch between Stringent, Tolerant, and Lax.
-- **Example queries** — suggested queries provided by the agent developer. Click any query to send it directly.
-- **Query history** — your recent queries (click to re-send).
+- **Agent info row** — a row of icons showing the agent's current configuration at a glance. Hover over any icon for a tooltip with details:
+  - **Agent type** — icon indicating the architecture (RAG, Metadata+RAG, Text2SQL, Oneshot, Toolcall).
+  - **LLM provider** — cloud icon (Mistral) or local icon (Ollama/vLLM).
+  - **Reliability cues** — green checkmark (shown) or grey icon (hidden).
+  - **Agent transparency** — crystal box or black box icon.
+  - **Prompt level** — coloured dot: green (Stringent), yellow (Tolerant), red (Lax).
+  - **Settings** (gear icon, tester and superuser only) — opens the configuration panel (see below). This is the only clickable icon in the row.
+- **Agent description** — brief text describing the agent's purpose (shown when available).
+- **Example queries** — collapsible section with suggested queries provided by the agent developer. Click any query to send it directly.
+- **Query history** — collapsible section showing your recent queries (click to re-send).
 
 **Top-right area:**
 
-- **User menu** — shows your username and role badge. Includes links to "Edit my profile" (Directory), "Tester Panel", and "Logout".
-- **Settings panel** (gear icon, tester and superuser only) — opens a configuration panel with:
-  - **Agent Configuration** — edit LLM provider/model, `prompt_level`, `transparency_level` (only for Text2SQL agents), `reliability_cues`, `humility_prompt`, and `humility_postprocessing` in real time (no restart needed).
-  - **Agent Visibility** — set agents to `hidden`, `restricted`, or `open`, and manage allowed user lists.
-  - **Tool Visibility** — configure which roles can access which intranet tools.
-  - **Log Analytics** — view request/visitor statistics across agents.
+- **User menu** — shows your username and role badge (e.g., "Superuser", "Tester"). Includes:
+  - **System Administration** link (superuser only).
+  - **Go to Testing mode** / **Go to User mode** — toggle between the two interfaces.
+  - **Data export** button (tester interface only).
+  - **Logout** button.
+
+**Settings panel** (gear icon in sidebar, tester and superuser only) — opens a modal configuration panel with:
+
+- **Agent Configuration** — edit LLM provider/model, `prompt_level`, agent transparency (`black_box`, `crystal_box_testers`, `crystal_box`), `reliability_cues`, `humility_prompt` (system prompt), and `humility_postprocessing` in real time (no restart needed).
+- **Agent Visibility** (superuser only) — set agents to `hidden`, `restricted`, or `open`, and manage allowed user lists.
+- **Tool Visibility** — configure which roles can access which intranet tools.
+- **Log Analytics** — view request/visitor statistics across agents.
+- **Prompts** (superuser only) — edit the agent's identity, rules, and strict prompt sections directly.
 
 **Chat area (right panel):**
 
 - Type your query in the text box and press **Send** or **Enter**.
 - The agent's response appears with:
-  - A **reliability badge** (if transparency is not Black box): coloured indicator (green/yellow/red) with source breakdown.
-  - **Inline highlights** (if Crystal box): colour-coded text showing where each claim comes from (green = metadata, yellow = database, red = LLM, blue = web).
+  - A **reliability banner** (if reliability cues are shown): coloured banner (green/yellow/red) indicating the source and reliability of the response.
+  - **Reliability badge** (if agent transparency is Crystal box): detailed source breakdown showing the percentage of claims grounded in metadata, documents, or LLM-only.
+  - **Inline highlights** (if Crystal box): colour-coded text showing where each claim comes from (green = metadata, blue = documents, grey = LLM, red = web).
+  - **Decision trace** (if Crystal box): shows the Reasoning stage classification steps and which one matched.
   - **Humility hedging** (if configured): ungrounded claims may be prefixed with hedging language such as "Based on available information, ..." to soften certainty.
 - Below each response, the **feedback widget** appears:
   - Thumbs up — mark the response as correct.
-  - Thumbs down — open the error report panel to classify and document the issue.
+  - Thumbs down — in tester mode, opens a structured error report panel with error type, severity, and notes. In user mode, opens a simple comment box.
 
 ---
 
 ## 3. Evaluation protocol
 
-This section provides a simple, step-by-step protocol to evaluate an agent. Follow it in order. Use the built-in feedback widget (thumbs down) to report every issue you find.
+This section provides a step-by-step protocol to evaluate an agent, organised around the four stages of the general AI Agents model: **Perception**, **Reasoning**, **Action**, and **Production**. This structure helps you identify not just *what* went wrong, but *where* in the agent's pipeline the problem originated — which is essential for writing useful error reports.
+
+Follow the phases in order. Use the built-in feedback widget (thumbs down) to report every issue you find.
 
 ### Before you start
 
 1. **Select the agent** you will test from the dropdown.
-2. **Set transparency to Crystal box** — this gives you maximum visibility into how each response was built.
-3. **Set prompt level to Stringent** — start with the most constrained mode to test the intended behaviour.
-4. **Note the LLM model** being used — you may repeat some tests with different models later.
-5. **Have the agent's data accessible** if possible (papers.json, database, documents) to verify answers against source data.
+2. **Set agent transparency to Crystal box** — this gives you maximum visibility into how each response was built.
+3. **Set reliability cues to Shown** — this enables the reliability banners.
+4. **Set prompt level to Stringent** — start with the most constrained mode to test the intended behaviour.
+5. **Note the LLM model** being used — you may repeat some tests with different models later.
+6. **Have the agent's data accessible** if possible (papers.json, database, documents) to verify answers against source data.
 
 ### Phase 1 — Basic functionality (5-10 min)
+
+A quick smoke test before systematic evaluation.
 
 | # | Test | Action | What to check |
 |---|------|--------|---------------|
@@ -142,91 +159,137 @@ This section provides a simple, step-by-step protocol to evaluate an agent. Foll
 | 1.3 | Simple factual query | Ask a straightforward question about the agent's domain | Is the response sourced from the database (not just LLM)? |
 | 1.4 | Language | Ask the same question in a different language | Does the agent respond in the user's language? |
 
-### Phase 2 — Response accuracy (15-20 min)
+### Phase 2 — Perception (5 min)
+
+*Perception is the stage where the agent receives the user's input. Test that the agent handles different input types correctly.*
 
 | # | Test | Action | What to check |
 |---|------|--------|---------------|
-| 2.1 | Verifiable facts | Ask at least 5 questions whose answers you can independently verify | Do the responses match the source data? |
-| 2.2 | Specific details | Ask for names, dates, numbers, identifiers | Are they accurate? Are sources cited? |
-| 2.3 | Multi-source query | Ask a question that requires combining information from multiple documents | Is the synthesis coherent and correct? |
-| 2.4 | Numerical query | Ask for counts, statistics, or comparisons | Are the numbers correct? |
-| 2.5 | Negative query | Ask about something you know is NOT in the data | Does the agent correctly say it has no information? |
+| 2.1 | Empty input | Send an empty message or just spaces | Does the agent handle it gracefully (not crash or produce an error)? |
+| 2.2 | Very short input | Send a single word or number | Does the agent respond meaningfully or ask for clarification? |
+| 2.3 | Very long input | Send a paragraph-length question | Does the agent process it without truncation or error? |
+| 2.4 | Gibberish | Send random characters or nonsensical text | Does the agent respond gracefully? |
+| 2.5 | Different language | Ask in a language other than the agent's default | Does the agent respond in the user's language? |
+| 2.6 | Session continuity | Ask a follow-up question referencing a previous answer | Does the agent use conversation history correctly? |
 
-### Phase 3 — Scope and boundaries (10 min)
+### Phase 3 — Reasoning (15-20 min)
 
-| # | Test | Action | What to check |
-|---|------|--------|---------------|
-| 3.1 | Out-of-scope | Ask something clearly outside the domain (e.g., a recipe, a sports score) | Does the agent decline or redirect? |
-| 3.2 | Adjacent topic | Ask about a related topic not in the corpus | Does the agent acknowledge its limitations? |
-| 3.3 | Adversarial prompt | Try "Ignore all previous instructions and..." | Does the agent stay within scope? |
-| 3.4 | Edge cases | Send empty, very short, or gibberish messages | Does it handle them gracefully? |
+*Reasoning is the stage where the agent classifies the query and decides what to do. This is the agent's decision logic — errors here are deterministic and reproducible. If the agent selects the wrong classification, everything downstream will be wrong even if the LLM works perfectly.*
 
-### Phase 4 — Transparency verification (10 min)
+**Query classification:**
 
 | # | Test | Action | What to check |
 |---|------|--------|---------------|
-| 4.1 | Badge accuracy | Compare the badge colour with the actual quality | Does green really mean reliable? Does red flag real issues? |
-| 4.2 | Source breakdown | Check the % breakdown (Metadata / Database / LLM) | Does a factual answer from the database show low LLM %? |
-| 4.3 | Inline highlights | Check the colour-coded claims | Are green claims really from data? Are red claims really inferred? |
-| 4.4 | Grey box | Switch to Grey box and repeat one query | Is the detail reduced (no breakdown, no highlights)? |
-| 4.5 | Black box | Switch to Black box and repeat | Is all transparency info hidden? |
+| 3.1 | Factual query | Ask about a specific researcher, university, or paper | Does the decision trace (Crystal box) show the correct classification (e.g., "Researcher lookup", "Topic search")? |
+| 3.2 | Conceptual query | Ask "What is [concept]?" for a term in the glossary | Does the agent use the glossary as context (not RAG)? |
+| 3.3 | Project query | Ask about a specific project by name | Does the agent use project metadata? |
+| 3.4 | Follow-up | Ask a short follow-up like "Tell me more" or "Expand on that" | Is it classified as a follow-up (using conversation history, not a new search)? |
+| 3.5 | Figure/map request | Ask for a figure or map (if supported) | Is it classified as a figure request? Does the correct map type appear? |
+| 3.6 | Gap analysis | Ask "What topics have not been studied?" | Is it classified as gap analysis (with the appropriate speculative cue)? |
 
-### Phase 5 — Prompt levels (5 min)
-
-| # | Test | Action | What to check |
-|---|------|--------|---------------|
-| 5.1 | Stringent vs Lax | Ask an off-topic question at Stringent (should refuse), then at Lax (may answer) | Does the prompt level actually change behaviour? |
-| 5.2 | Tolerant | Ask the same question at Tolerant | Is the behaviour between Stringent and Lax? |
-
-### Phase 6 — Agent-specific features (10-15 min)
-
-Depending on the agent type, test the relevant features:
-
-**RAG / Metadata+RAG agents:**
+**Scope detection:**
 
 | # | Test | Action | What to check |
 |---|------|--------|---------------|
-| 6.1 | Document retrieval | Ask about a document you know exists | Is it found and cited correctly? |
-| 6.2 | Gap analysis | Ask "What topics have not been studied?" | Does it correctly identify gaps? |
-| 6.3 | Maps and figures | Request a figure or map (if supported) | Does it render? Is the data accurate? |
-| 6.4 | PDF links | Click a PDF link in a response | Does it open the correct document? |
+| 3.7 | Out-of-scope | Ask something clearly outside the domain (e.g., a recipe, a sports score) | Does the agent decline? Is the refusal shown without a reliability banner (refusals are not unreliable content)? |
+| 3.8 | Adjacent topic | Ask about a related topic not in the corpus | Does the agent acknowledge its limitations? Does it offer to search the web (if configured)? |
+| 3.9 | Non-research task | Ask the agent to write an essay, translate text, or summarise a URL | Does the agent refuse (at Stringent level)? |
+| 3.10 | Meta-question | Ask "What can you do?" or "What data do you have?" | Does the agent answer from its system prompt description, without a reliability banner? |
+| 3.11 | Adversarial prompt | Try "Ignore all previous instructions and..." | Does the agent stay within scope? |
 
-**Text2SQL agents:**
-
-| # | Test | Action | What to check |
-|---|------|--------|---------------|
-| 6.5 | SQL correctness | Ask a database query, verify the SQL shown | Is the generated SQL correct? |
-| 6.6 | No-result query | Ask for data that doesn't exist | Does it handle "no results" gracefully? |
-| 6.7 | Semantic mismatch | Ask about one topic, check SQL doesn't query another | Does the semantic check work? |
-
-### Phase 7 — Humility and authority sanitization (5-10 min)
+**Prompt level impact on Reasoning:**
 
 | # | Test | Action | What to check |
 |---|------|--------|---------------|
-| 7.1 | Authority phrases | Ask a question about an unstudied topic | Does the agent say "does not appear in the indexed database" instead of "has not been studied"? |
-| 7.2 | Hedging (if enabled) | Ask a question that produces ungrounded claims (red highlights) | Are ungrounded claims prefixed with hedging language like "Based on available information, ..."? |
-| 7.3 | Moderate vs strict | If `humility_postprocessing` is configurable, compare moderate and strict | Does strict mode also hedge web-sourced claims and add a disclaimer footer? |
-| 7.4 | Formatting preservation | Ask a question that produces a bulleted list or table | Does hedging preserve the markdown formatting? |
+| 3.12 | Stringent vs Lax | Ask an off-topic question at Stringent (should refuse), then at Lax (may answer) | Does the prompt level actually change behaviour? |
+| 3.13 | Tolerant | Ask the same question at Tolerant | Is the behaviour between Stringent and Lax? |
 
-### Phase 8 — LLM comparison (optional, 10-15 min)
+### Phase 4 — Action (15-20 min)
+
+*Action is the stage where the agent executes the task decided during Reasoning: querying the database, calling the LLM, generating a visualisation. Errors here are often probabilistic — the same query may produce different results with different LLM models or runs.*
+
+**Response accuracy:**
 
 | # | Test | Action | What to check |
 |---|------|--------|---------------|
-| 8.1 | Switch model | Click the LLM badge to switch to a different model | Does the badge update? |
-| 8.2 | Repeat key queries | Re-ask 3-5 queries from Phase 2 with the new model | How does quality compare? |
-| 8.3 | Note differences | Document where the alternative model is better or worse | Record in your notes |
+| 4.1 | Verifiable facts | Ask at least 5 questions whose answers you can independently verify | Do the responses match the source data? |
+| 4.2 | Specific details | Ask for names, dates, numbers, identifiers | Are they accurate? Are sources cited? |
+| 4.3 | Multi-source query | Ask a question that requires combining information from multiple documents | Is the synthesis coherent and correct? |
+| 4.4 | Numerical query | Ask for counts, statistics, or comparisons | Are the numbers correct? Does a "How many" query show the approximate count note? |
+| 4.5 | Negative query | Ask about something you know is NOT in the data | Does the agent correctly say it has no information, rather than fabricating an answer? |
+
+**Agent-specific Action tests — RAG / Metadata+RAG agents:**
+
+| # | Test | Action | What to check |
+|---|------|--------|---------------|
+| 4.6 | Document retrieval | Ask about a document you know exists | Is it found and cited correctly? |
+| 4.7 | Maps and figures | Request a figure or map (if supported) | Does it render? Is the data accurate? |
+| 4.8 | PDF links | Click a PDF link in a response | Does it open the correct document? |
+
+**Agent-specific Action tests — Text2SQL agents:**
+
+| # | Test | Action | What to check |
+|---|------|--------|---------------|
+| 4.9 | SQL correctness | Ask a database query, verify the SQL shown | Is the generated SQL correct? |
+| 4.10 | No-result query | Ask for data that doesn't exist | Does it handle "no results" gracefully? |
+| 4.11 | Semantic mismatch | Ask about one topic, check SQL doesn't query another | Does the semantic verification catch the mismatch? |
+
+**LLM comparison (optional):**
+
+| # | Test | Action | What to check |
+|---|------|--------|---------------|
+| 4.12 | Switch model | Change the LLM model in the settings panel | Does the info row update to reflect the new model? |
+| 4.13 | Repeat key queries | Re-ask 3-5 queries from tests 4.1-4.5 with the new model | How does quality compare? Document differences. |
+
+### Phase 5 — Production (10-15 min)
+
+*Production is the stage where the agent formats and delivers the output. This includes the processing pipeline (authority sanitisation, paper verification, humility hedging), reliability cues, and transparency features. Errors here affect presentation and trust indicators, not the content itself.*
+
+**Processing pipeline:**
+
+| # | Test | Action | What to check |
+|---|------|--------|---------------|
+| 5.1 | Authority phrases | Ask a question about a topic not in the database | Does the agent say "does not appear in the indexed database" instead of "has not been studied"? |
+| 5.2 | Paper verification | Ask for a paper listing (Metadata+RAG only) | Are flagged titles genuinely not in the database? Are PDF links correct? |
+| 5.3 | Hedging (if enabled) | Ask a question that produces ungrounded claims | Are ungrounded claims prefixed with hedging language like "Based on available information, ..."? |
+| 5.4 | Moderate vs strict | If `humility_postprocessing` is configurable, compare moderate and strict | Does strict mode also hedge web-sourced claims and add a disclaimer footer? |
+| 5.5 | Formatting preservation | Ask a question that produces a bulleted list or table | Does hedging preserve the markdown formatting? |
+
+**Reliability cues and banners:**
+
+| # | Test | Action | What to check |
+|---|------|--------|---------------|
+| 5.6 | Banner colour | Compare the banner colour with the query type | Green for verified data, yellow for AI interpretation, red for speculation, none for refusals? |
+| 5.7 | Factual section | Ask a topic or shared-topics query (Metadata+RAG only) | Does the response show a green "Verified data" section followed by a yellow "AI Commentary" section? |
+| 5.8 | No banner on refusal | Ask an off-topic question | Is the refusal shown without any reliability banner? |
+| 5.9 | No banner on meta | Ask "What can you do?" | Is the answer shown without a reliability banner? |
+
+**Transparency levels:**
+
+| # | Test | Action | What to check |
+|---|------|--------|---------------|
+| 5.10 | Crystal box | Ask a query with Crystal box enabled | Are the reliability badge, source breakdown, inline highlights, and decision trace all visible? |
+| 5.11 | Black box | Switch to Black box and repeat | Is all transparency info hidden (no badge, no highlights, no trace)? |
+| 5.12 | Cues hidden | Toggle reliability cues to hidden and repeat | Are banners removed while the badge (if Crystal box) remains? |
 
 ### After testing — complete the summary
 
 ```
 Agent: ___________________________  Date: ____________  Tester: _______________
 LLM model(s) tested: _________________________________________________________
-Transparency level: Crystal box / Grey box / Black box
+Agent transparency: Crystal box / Black box
+Reliability cues: Shown / Hidden
 Prompt level: Stringent / Tolerant / Lax
 
 RESULTS
 Total queries tested: ____
 Issues reported (thumbs down): ____  (Critical: ___ Major: ___ Minor: ___)
+
+By stage:
+  Perception issues: ____
+  Reasoning issues: ____
+  Action issues: ____
+  Production issues: ____
 
 OVERALL ASSESSMENT
 [ ] Ready for deployment
@@ -348,12 +411,14 @@ Before a TOMMI agent generates a response, it classifies the user's question and
 
 ### 6.1 The core idea
 
-A TOMMI agent is not a simple chatbot that forwards every question to the language model. Instead, it works in two phases:
+Every AI Agent operates in four stages: **Perception** (accepting input), **Reasoning** (analysing the request and deciding what to do), **Action** (executing the task), and **Production** (formatting and delivering the output).
 
-1. **Classification phase** — the agent analyses the question to determine its type (conceptual, researcher lookup, topic search, project query, etc.) and builds the appropriate context from structured data.
-2. **Generation phase** — the language model receives the question together with the selected context, and generates a response constrained by the prompt rules.
+In TOMMI agents, the Reasoning and Action stages map to two phases with different characteristics:
 
-The classification phase is deterministic (rule-based), while the generation phase is probabilistic (LLM-dependent). This means that classification errors are reproducible and fixable in code, while generation errors may vary between runs and require prompt tuning.
+1. **Reasoning phase** (deterministic) — the agent analyses the question to determine its type (conceptual, researcher lookup, topic search, project query, etc.) and builds the appropriate context from structured data. This is rule-based and reproducible.
+2. **Action phase** (probabilistic) — the language model receives the question together with the selected context, and generates a response constrained by the prompt rules. This is LLM-dependent and may vary between runs.
+
+Classification errors (Reasoning) are reproducible and fixable in code, while generation errors (Action) may vary between runs and require prompt tuning.
 
 ### 6.2 Query classification
 
@@ -427,9 +492,9 @@ The reliability cue is chosen based on the classification and content source:
 | Researcher disambiguation | None | Clarification question, not content |
 | "How many" queries | 🟡 Yellow + note | Counts may be approximate |
 
-### 6.5 Post-processing pipeline
+### 6.5 Processing pipeline
 
-After the LLM generates a response, it passes through several post-processing steps:
+After the LLM generates a response, it passes through several processing steps before delivery:
 
 1. **Authority sanitisation** — replaces authoritative phrases ("has not been studied" → "does not appear in the indexed database")
 2. **Alliance name correction** — fixes common LLM misspellings (e.g., "UNINOVOS" → "UNINOVIS")

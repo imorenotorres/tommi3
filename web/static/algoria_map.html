@@ -591,7 +591,13 @@ function renderMarkers(data) {
             weight: 1.5,
             opacity: 0.9,
             fillOpacity: 0.65
-        }).bindPopup(m.popup, { maxWidth: 500, maxHeight: 400, autoPan: true, autoPanPadding: L.point(20, 20) });
+        }).bindPopup(m.popup, { maxWidth: 500, maxHeight: 350, autoPan: false });
+        marker.on('click', function(e) {
+            // Pan map so marker is in the lower third — leaves space for popup above
+            var px = map.latLngToContainerPoint(e.latlng);
+            var offsetY = px.y - map.getSize().y * 0.7;
+            if (offsetY < 0) map.panBy([0, offsetY], { animate: true, duration: 0.3 });
+        });
         clusterGroup.addLayer(marker);
     });
 

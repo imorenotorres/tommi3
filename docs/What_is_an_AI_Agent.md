@@ -4,13 +4,13 @@
 
 An AI Agent is a software program that interacts with a user to accomplish tasks. At its core, every AI Agent follows four steps:
 
-1. **Receive** — The agent receives a request from the user, typically in natural language ("Show me agreements in Italy") but also through clicks, form selections, or other interactions.
+1. **Perception** — The agent receives a request from the user, typically in natural language ("Show me agreements in Italy") but also through clicks, form selections, or other interactions.
 
-2. **Interpret** — The agent analyses the request to understand what the user wants. This is the agent's *decision logic* — it classifies the request and decides which action to take.
+2. **Reasoning** — The agent analyses the request to understand what the user wants. This is the agent's *decision logic* — it classifies the request and decides which action to take.
 
-3. **Act** — The agent performs one or more actions: querying a database, searching documents, calling a language model, generating a visualisation, or simply declining a request that is outside its scope.
+3. **Action** — The agent performs one or more actions: querying a database, searching documents, calling a language model, generating a visualisation, or simply declining a request that is outside its scope.
 
-4. **Respond** — The agent formats the result and delivers it to the user: a text answer, a table, a map, a chart, or a message explaining why it cannot help.
+4. **Production** — The agent formats the result and delivers it to the user: a text answer, a table, a map, a chart, or a message explaining why it cannot help.
 
 ```
           ┌──────────┐
@@ -18,24 +18,24 @@ An AI Agent is a software program that interacts with a user to accomplish tasks
           └────┬─────┘
                │ question, click, or selection
                ▼
-        ┌─────────────┐
-        │  1. Receive  │
-        └──────┬──────┘
-               │
-               ▼
-        ┌──────────────┐
-        │ 2. Interpret  │  ◄── The agent's decision logic
-        └──────┬───────┘
-               │
-               ▼
-        ┌──────────────┐
-        │   3. Act      │  ◄── Query DB, call LLM, generate map...
-        └──────┬───────┘
-               │
-               ▼
-        ┌──────────────┐
-        │  4. Respond   │  ◄── Text, table, map, refusal...
-        └──────┬───────┘
+        ┌────────────────┐
+        │ 1. Perception  │
+        └───────┬────────┘
+                │
+                ▼
+        ┌────────────────┐
+        │  2. Reasoning   │  ◄── The agent's decision logic
+        └───────┬────────┘
+                │
+                ▼
+        ┌────────────────┐
+        │   3. Action     │  ◄── Query DB, call LLM, generate map...
+        └───────┬────────┘
+                │
+                ▼
+        ┌────────────────┐
+        │ 4. Production   │  ◄── Text, table, map, refusal...
+        └───────┬────────┘
                │
                ▼
           ┌──────────┐
@@ -43,7 +43,7 @@ An AI Agent is a software program that interacts with a user to accomplish tasks
           └──────────┘
 ```
 
-Not every agent needs artificial intelligence in every step. Some agents use AI only for interpretation (understanding the question), others use it only for action (generating text), and some use no AI at all — relying instead on rules and structured data.
+Not every agent needs artificial intelligence in every step. Some agents use AI only for reasoning (understanding the question), others use it only for action (generating text), and some use no AI at all — relying instead on rules and structured data.
 
 ---
 
@@ -54,26 +54,26 @@ The simplest possible agent. It receives a mathematical expression, evaluates it
 ```
 User: "What is 15% of 230?"
 
-  ┌──────────┐
-  │ Receive   │  "What is 15% of 230?"
-  └─────┬─────┘
+  ┌────────────┐
+  │ Perception  │  "What is 15% of 230?"
+  └─────┬──────┘
         │
-  ┌─────▼─────┐
-  │ Interpret  │  Parse: operation = percentage, values = 15, 230
-  │            │  (rule-based parsing, no AI)
-  └─────┬─────┘
+  ┌─────▼──────┐
+  │ Reasoning   │  Parse: operation = percentage, values = 15, 230
+  │             │  (rule-based parsing, no AI)
+  └─────┬──────┘
         │
-  ┌─────▼─────┐
-  │ Act        │  Calculate: 230 × 0.15 = 34.5
-  │            │  (arithmetic, no AI)
-  └─────┬─────┘
+  ┌─────▼──────┐
+  │ Action      │  Calculate: 230 × 0.15 = 34.5
+  │             │  (arithmetic, no AI)
+  └─────┬──────┘
         │
-  ┌─────▼─────┐
-  │ Respond    │  "15% of 230 is 34.5"
+  ┌─────▼──────┐
+  │ Production  │  "15% of 230 is 34.5"
   └────────────┘
 ```
 
-**Key point:** This agent has logic (it must parse "15% of 230" into a calculation), but no AI. The interpretation is rule-based.
+**Key point:** This agent has logic (it must parse "15% of 230" into a calculation), but no AI. The reasoning is rule-based.
 
 ---
 
@@ -84,74 +84,74 @@ A slightly more complex agent. It receives a question, finds the most relevant a
 ```
 User: "What are your opening hours?"
 
-  ┌──────────┐
-  │ Receive   │  "What are your opening hours?"
-  └─────┬─────┘
+  ┌────────────┐
+  │ Perception  │  "What are your opening hours?"
+  └─────┬──────┘
         │
-  ┌─────▼─────┐
-  │ Interpret  │  Match question against FAQ database
-  │            │  using keyword similarity
-  │            │  Best match: "Opening hours" → answer #12
-  └─────┬─────┘
+  ┌─────▼──────┐
+  │ Reasoning   │  Match question against FAQ database
+  │             │  using keyword similarity
+  │             │  Best match: "Opening hours" → answer #12
+  └─────┬──────┘
         │
-  ┌─────▼─────┐
-  │ Act        │  Retrieve answer #12 from FAQ database
-  │            │  (database lookup, no AI)
-  └─────┬─────┘
+  ┌─────▼──────┐
+  │ Action      │  Retrieve answer #12 from FAQ database
+  │             │  (database lookup, no AI)
+  └─────┬──────┘
         │
-  ┌─────▼─────┐
-  │ Respond    │  "We are open Monday to Friday,
-  │            │   9:00 to 17:00."
-  └────────────┘
+  ┌─────▼──────┐
+  │ Production  │  "We are open Monday to Friday,
+  │             │   9:00 to 17:00."
+  └─────────────┘
 ```
 
-**Key point:** The interpretation uses keyword matching (simple AI or just text similarity). The action is a database lookup. The response is a pre-written answer — no text generation.
+**Key point:** The reasoning uses keyword matching (simple AI or just text similarity). The action is a database lookup. The production is a pre-written answer — no text generation.
 
 ---
 
 ## Example 3: Algoria Map (Mobility Agreements Explorer)
 
-A real TOMMI agent that helps users explore university mobility agreements on an interactive map. It uses AI for interpretation (understanding the query) but not for the action (data comes directly from the database).
+A real TOMMI agent that helps users explore university mobility agreements on an interactive map. It uses AI for reasoning (understanding the query) but not for the action (data comes directly from the database).
 
 ### Via the standalone web page (no AI at all):
 
 ```
 User: selects "Italia" from Country dropdown
 
-  ┌──────────┐
-  │ Receive   │  Form selection: country = Italia
-  └─────┬─────┘
+  ┌────────────┐
+  │ Perception  │  Form selection: country = Italia
+  └─────┬──────┘
         │
   ┌─────▼──────────┐
-  │ Interpret       │  Extract filter: {country: "Italia"}
+  │ Reasoning       │  Extract filter: {country: "Italia"}
   │                 │  (client-side code, no AI)
   └─────┬──────────┘
         │
   ┌─────▼──────────┐
-  │ Act             │  Query SQLite: SELECT ... WHERE
+  │ Action          │  Query SQLite: SELECT ... WHERE
   │                 │    destination_country = 'Italia'
   │                 │  Build map markers with coordinates
   │                 │  (database + geocoding, no AI)
   └─────┬──────────┘
         │
   ┌─────▼──────────┐
-  │ Respond         │  Render Leaflet map zoomed to Italy
+  │ Production      │  Render Leaflet map zoomed to Italy
   │                 │  with clustered university markers
   │                 │  (visualisation, no AI)
   └────────────────┘
 ```
 
-### Via the chat interface (AI for interpretation only):
+### Via the chat interface (AI for reasoning only):
 
 ```
 User: "Show agreements in Italy for Engineering"
 
-  ┌──────────┐
-  │ Receive   │  "Show agreements in Italy for Engineering"
-  └─────┬─────┘
+  ┌────────────┐
+  │ Perception  │  "Show agreements in Italy for Engineering"
+  └─────┬──────┘
         │
   ┌─────▼──────────┐
-  │ Interpret       │  LLM extracts filters using tool calling:
+  │ Reasoning       │  LLM extracts filters using tool calling:
   │                 │  {country: "Italia",
   │   ┌─────────┐  │   faculty: "Ingenierías Industriales"}
   │   │   LLM   │  │
@@ -159,34 +159,34 @@ User: "Show agreements in Italy for Engineering"
   └─────┬──────────┘
         │
   ┌─────▼──────────┐
-  │ Act             │  Query SQLite with filters
+  │ Action          │  Query SQLite with filters
   │                 │  Build map markers
   │                 │  (database, no AI)
   └─────┬──────────┘
         │
   ┌─────▼──────────┐
-  │ Respond         │  Render map + summary text
+  │ Production      │  Render map + summary text
   │                 │  (visualisation, no AI)
   └────────────────┘
 ```
 
-**Key point:** The same agent can work with or without AI. The standalone page uses form-based interpretation (no AI), while the chat interface uses an LLM to understand natural language. In both cases, the data comes directly from the database — the AI never touches the results.
+**Key point:** The same agent can work with or without AI. The standalone page uses form-based reasoning (no AI), while the chat interface uses an LLM to understand natural language. In both cases, the data comes directly from the database — the AI never touches the results.
 
 ---
 
 ## Example 4: A Course Tutor Agent
 
-An educational agent that answers student questions from course materials. It uses AI for both interpretation and action.
+An educational agent that answers student questions from course materials. It uses AI for both reasoning and action.
 
 ```
 User: "Explain the difference between TCP and UDP"
 
-  ┌──────────┐
-  │ Receive   │  "Explain the difference between TCP and UDP"
-  └─────┬─────┘
+  ┌────────────┐
+  │ Perception  │  "Explain the difference between TCP and UDP"
+  └─────┬──────┘
         │
   ┌─────▼──────────┐
-  │ Interpret       │  Classify: conceptual question
+  │ Reasoning       │  Classify: conceptual question
   │                 │  Search course materials for
   │                 │  "TCP" and "UDP"
   │                 │  Found: Lecture 5 slides, Chapter 3
@@ -194,7 +194,7 @@ User: "Explain the difference between TCP and UDP"
   └─────┬──────────┘
         │
   ┌─────▼──────────┐
-  │ Act             │  Send to LLM:
+  │ Action          │  Send to LLM:
   │                 │    System: "You are a course tutor..."
   │   ┌─────────┐  │    Context: [Lecture 5 + Chapter 3]
   │   │   LLM   │  │    Question: "Explain the difference..."
@@ -205,7 +205,7 @@ User: "Explain the difference between TCP and UDP"
   └─────┬──────────┘
         │
   ┌─────▼──────────┐
-  │ Respond         │  "Based on your course materials:
+  │ Production      │  "Based on your course materials:
   │                 │   TCP is a connection-oriented protocol
   │                 │   that guarantees delivery, while UDP
   │                 │   is connectionless and faster but
@@ -215,7 +215,7 @@ User: "Explain the difference between TCP and UDP"
   └────────────────┘
 ```
 
-**Key point:** The interpretation is rule-based (keyword search in course materials), but the action requires AI — the LLM reads the relevant slides and generates a human-readable explanation. The reliability cue (yellow) tells the student that the answer is an AI interpretation of real course content.
+**Key point:** The reasoning is rule-based (keyword search in course materials), but the action requires AI — the LLM reads the relevant slides and generates a human-readable explanation. The reliability cue (yellow) tells the student that the answer is an AI interpretation of real course content.
 
 ---
 
@@ -228,12 +228,12 @@ The most complex TOMMI agent. It combines multiple data sources, a sophisticated
 ```
 User: "Papers on AI ethics from UMA"
 
-  ┌──────────┐
-  │ Receive   │  "Papers on AI ethics from UMA"
-  └─────┬─────┘
+  ┌────────────┐
+  │ Perception  │  "Papers on AI ethics from UMA"
+  └─────┬──────┘
         │
   ┌─────▼───────────────┐
-  │ Interpret            │
+  │ Reasoning            │
   │                      │
   │  Classification:     │
   │  ✗ Meta-question?    │  No
@@ -247,7 +247,7 @@ User: "Papers on AI ethics from UMA"
   └─────┬───────────────┘
         │
   ┌─────▼───────────────┐
-  │ Act                  │
+  │ Action               │
   │                      │
   │  1. Search papers.json for "AI ethics"
   │     filtered by UMA
@@ -265,7 +265,7 @@ User: "Papers on AI ethics from UMA"
   └─────┬───────────────┘
         │
   ┌─────▼───────────────┐
-  │ Respond              │
+  │ Production           │
   │                      │
   │  🟢 Verified data:   │
   │  8 papers from UMA   │
@@ -282,12 +282,12 @@ User: "Papers on AI ethics from UMA"
 ```
 User: "What is the weather today?"
 
-  ┌──────────┐
-  │ Receive   │  "What is the weather today?"
-  └─────┬─────┘
+  ┌────────────┐
+  │ Perception  │  "What is the weather today?"
+  └─────┬──────┘
         │
   ┌─────▼───────────────┐
-  │ Interpret            │
+  │ Reasoning            │
   │                      │
   │  Classification:     │
   │  ✗ Meta-question?    │  No
@@ -297,7 +297,7 @@ User: "What is the weather today?"
   └─────┬───────────────┘
         │
   ┌─────▼───────────────┐
-  │ Act                  │
+  │ Action               │
   │                      │
   │  Action: Refuse      │
   │  (no database query, │
@@ -305,7 +305,7 @@ User: "What is the weather today?"
   └─────┬───────────────┘
         │
   ┌─────▼───────────────┐
-  │ Respond              │
+  │ Production           │
   │                      │
   │  "This question is   │
   │  outside my scope.   │
@@ -324,17 +324,17 @@ User: "What is the weather today?"
 
 ## Example 6: A Text-to-SQL Agent
 
-An agent that translates natural language questions into database queries. The AI is used for translation (interpretation), but the data comes directly from the database (action).
+An agent that translates natural language questions into database queries. The AI is used for translation (reasoning), but the data comes directly from the database (action).
 
 ```
 User: "How many agreements require English B2?"
 
-  ┌──────────┐
-  │ Receive   │  "How many agreements require English B2?"
-  └─────┬─────┘
+  ┌────────────┐
+  │ Perception  │  "How many agreements require English B2?"
+  └─────┬──────┘
         │
   ┌─────▼───────────────┐
-  │ Interpret            │
+  │ Reasoning            │
   │                      │
   │  Translate to SQL:   │
   │   ┌─────────┐       │
@@ -355,7 +355,7 @@ User: "How many agreements require English B2?"
   └─────┬───────────────┘
         │
   ┌─────▼───────────────┐
-  │ Act                  │
+  │ Action               │
   │                      │
   │  Execute SQL against │
   │  SQLite database     │
@@ -364,7 +364,7 @@ User: "How many agreements require English B2?"
   └─────┬───────────────┘
         │
   ┌─────▼───────────────┐
-  │ Respond              │
+  │ Production           │
   │                      │
   │  🟡 AI interpretation│
   │  (the translation    │
@@ -376,14 +376,14 @@ User: "How many agreements require English B2?"
   └─────────────────────┘
 ```
 
-**Key point:** The AI is in the *interpretation* step (translating English to SQL), not in the data. The result (522) comes directly from the database. The reliability cues reflect this split: yellow for the AI translation risk, green for the verified database result. If the AI mistranslates the question, the SQL verification step catches the error.
+**Key point:** The AI is in the *reasoning* step (translating English to SQL), not in the data. The result (522) comes directly from the database. The reliability cues reflect this split: yellow for the AI translation risk, green for the verified database result. If the AI mistranslates the question, the SQL verification step catches the error.
 
 ---
 
 ## Summary: Where does AI appear in each example?
 
-| Agent | Receive | Interpret | Act | Respond |
-|-------|---------|-----------|-----|---------|
+| Agent | Perception | Reasoning | Action | Production |
+|-------|------------|-----------|--------|------------|
 | Calculator | Text | Rules | Arithmetic | Text |
 | FAQ Chatbot | Text | Keywords | DB lookup | Pre-written |
 | Algoria Map (standalone) | Form | Rules | DB + map | Visualisation |
@@ -392,7 +392,7 @@ User: "How many agreements require English B2?"
 | Research Assistant | Text | Rules | DB + **LLM** | Text + cues |
 | Text-to-SQL | Text | **LLM** + verify | DB | Text + cues |
 
-The table shows that AI is a tool used in specific steps — not a blanket requirement. An agent's intelligence comes from its *decision logic* (the Interpret step), which can be rule-based, AI-based, or a combination of both. The more complex the agent, the more steps may involve AI — but even the most complex agents use direct database access (no AI) for their most reliable outputs.
+The table shows that AI is a tool used in specific steps — not a blanket requirement. An agent's intelligence comes from its *decision logic* (the Reasoning step), which can be rule-based, AI-based, or a combination of both. The more complex the agent, the more steps may involve AI — but even the most complex agents use direct database access (no AI) for their most reliable outputs.
 
 ---
 
@@ -404,7 +404,7 @@ A well-designed agent:
 
 2. **Is transparent about its sources.** When the answer comes from the database, say so (green). When AI interprets the data, say so (yellow). When AI speculates, say so (red). When the agent cannot help, say so with no misleading cue.
 
-3. **Has clear decision logic.** The interpretation step should be predictable: the same question should always be routed to the same action. If the logic is unpredictable, the agent is unreliable.
+3. **Has clear decision logic.** The reasoning step should be predictable: the same question should always be routed to the same action. If the logic is unpredictable, the agent is unreliable.
 
 4. **Fails gracefully.** When the agent does not know the answer, it should say so honestly — not fabricate information. A good refusal is more valuable than a confident hallucination.
 

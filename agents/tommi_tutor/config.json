@@ -14,7 +14,7 @@
     "How do I configure Ollama as the LLM provider?"
   ],
   "prompt_level": "stringent",
-  "transparency_level": "black_box",
+  "transparency_level": "crystal_box_testers",
   "audit_log_enabled": true,
   "_audit_log_comment": "Logs decision events to data/audit_log.jsonl. Each query records: timestamp, query, source type, context sources used.",
   "reliability_green_max_llm": 20,
@@ -33,5 +33,6 @@
   "reliability_cues": "shown",
   "humility_prompt": "on",
   "humility_postprocessing": "moderate",
-  "extra_scope_terms": []
+  "extra_scope_terms": [],
+  "decision_trace": "crystal_box_testers"
 }

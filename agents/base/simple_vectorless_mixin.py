@@ -79,13 +79,14 @@ class SimpleVectorlessMixin(VectorlessMixin):
         if not self._chromadb_initialized:
             self._init_chromadb()
 
+        # -- Stage 1: Perception (receive user input and session context) --
+        # -- Stage 2: Reasoning (retrieve context, build prompt) --
         context = self._retrieve_context(user_message)
 
         system_with_context = self._build_system_prompt()
         if context:
             system_with_context += f"\n\nRelevant context from the knowledge base:\n{context}"
 
-        # Reliability text style: inject hedging instructions based on context quality
         if self._should_use_text_style():
             quality = self._estimate_context_quality(context)
             system_with_context += self._get_style_instruction(quality)
@@ -95,9 +96,11 @@ class SimpleVectorlessMixin(VectorlessMixin):
             messages.extend(history)
         messages.append({"role": "user", "content": user_message})
 
+        # -- Stage 3: Action (LLM call) --
         response = self.client.chat.complete(model=model, messages=messages)
         llm_content = response.choices[0].message.content
 
+        # -- Stage 4: Production (banner, formatting) --
         # Procedural banner (only if visual display is enabled)
         if self._should_show_visual_badge() and transparency not in ("black_box", "hidden"):
             if _is_off_topic(llm_content):
@@ -131,6 +134,8 @@ class SimpleVectorlessMixin(VectorlessMixin):
 
         yield ("status", "Thinking...")
 
+        # -- Stage 1: Perception (receive user input and session context) --
+        # -- Stage 2: Reasoning (retrieve context, build prompt) --
         context = self._retrieve_context(user_message)
 
         system_with_context = self._build_system_prompt()
@@ -147,6 +152,7 @@ class SimpleVectorlessMixin(VectorlessMixin):
             messages.extend(history)
         messages.append({"role": "user", "content": user_message})
 
+        # -- Stage 3: Action (LLM streaming) --
         # Start with AI Commentary banner (only if visual display is enabled)
         if self._should_show_visual_badge() and transparency not in ("black_box", "hidden"):
             yield ("procedural_banner", _banner_database())
@@ -158,6 +164,7 @@ class SimpleVectorlessMixin(VectorlessMixin):
                 full_response += chunk.data.choices[0].delta.content
                 yield chunk.data.choices[0].delta.content
 
+        # -- Stage 4: Production (off-topic check, history) --
         # If off-topic, remove the banner (refusals don't need reliability cues)
         if self._should_show_visual_badge() and transparency not in ("black_box", "hidden") and _is_off_topic(full_response):
             yield ("replace", full_response)

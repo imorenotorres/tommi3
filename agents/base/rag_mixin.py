@@ -7,12 +7,10 @@ class SimpleRAGMixin:
 
     def chat(self, user_message: str, history: list = None, **kwargs) -> str:
         """Send a message with RAG context and return the response."""
-        # Use per-request overrides or fall back to instance defaults
         transparency = kwargs.get('transparency_override') or self._transparency
         model = kwargs.get('model_override') or self.model
         prompt_level = kwargs.get('prompt_level_override') or self._prompt_level
 
-        # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
             self._init_chromadb()
 
@@ -20,6 +18,8 @@ class SimpleRAGMixin:
             err = self._chromadb_error
             return f"**Error {err['error_code']}:** {err['error']}\n\n{err.get('instructions', '')}"
 
+        # -- Stage 1: Perception (receive user input and session context) --
+        # -- Stage 2: Reasoning (retrieve context, build prompt) --
         context = self._retrieve_context(user_message)
 
         system_with_context = self._build_system_prompt()
@@ -36,6 +36,7 @@ class SimpleRAGMixin:
             messages.extend(history)
         messages.append({"role": "user", "content": user_message})
 
+        # -- Stage 3: Action (LLM call) --
         response = self.client.chat.complete(
             model=model,
             messages=messages
@@ -43,6 +44,7 @@ class SimpleRAGMixin:
 
         llm_content = response.choices[0].message.content
 
+        # -- Stage 4: Production (post-processing, badge, humility, audit) --
         # Post-process: convert PDF filename mentions into clickable links
         if hasattr(self, '_linkify_pdf_sources'):
             llm_content = self._linkify_pdf_sources(llm_content)
@@ -93,12 +95,10 @@ class SimpleRAGMixin:
 
     async def chat_stream(self, user_message: str, history: list = None, **kwargs):
         """Send a message with RAG context and stream the response."""
-        # Use per-request overrides or fall back to instance defaults
         transparency = kwargs.get('transparency_override') or self._transparency
         model = kwargs.get('model_override') or self.model
         prompt_level = kwargs.get('prompt_level_override') or self._prompt_level
 
-        # Ensure ChromaDB is initialized (lazy)
         if not self._chromadb_initialized:
             init_msg = getattr(self, '_init_status_message', "Creating ChromaDB for the agent...")
             yield ("status", init_msg)
@@ -111,6 +111,8 @@ class SimpleRAGMixin:
             yield f"**Error {err['error_code']}:** {err['error']}\n\n{err.get('instructions', '')}"
             return
 
+        # -- Stage 1: Perception (receive user input and session context) --
+        # -- Stage 2: Reasoning (retrieve context, build prompt) --
         context = self._retrieve_context(user_message)
 
         system_with_context = self._build_system_prompt()
@@ -127,7 +129,7 @@ class SimpleRAGMixin:
             messages.extend(history)
         messages.append({"role": "user", "content": user_message})
 
-        # Stream response
+        # -- Stage 3: Action (LLM streaming) --
         full_response = ""
         async for chunk in await self.client.chat.stream_async(
             model=model,
@@ -137,7 +139,7 @@ class SimpleRAGMixin:
                 full_response += chunk.data.choices[0].delta.content
                 yield chunk.data.choices[0].delta.content
 
-        # Post-process: convert PDF filename mentions into clickable links
+        # -- Stage 4: Production (post-processing, badge, humility, audit) --
         if hasattr(self, '_linkify_pdf_sources'):
             linkified = self._linkify_pdf_sources(full_response)
             if linkified != full_response:

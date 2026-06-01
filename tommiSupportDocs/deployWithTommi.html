@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>deployWithTommi</title>
+  <title>Deploy with TOMMI</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -238,7 +238,7 @@
 </head>
 <body>
 <header id="title-block-header">
-<h1 class="title">deployWithTommi</h1>
+<h1 class="title">Deploy with TOMMI</h1>
 </header>
 <h1 id="deploying-with-tommi-developer-guide">Deploying with TOMMI –
 Developer Guide</h1>
@@ -2024,14 +2024,15 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href=
 standard log rotation (e.g., <code>logrotate</code>).</p>
 <h3 id="agent-decision-logic-metadatarag-agents">Agent Decision Logic
 (Metadata+RAG agents)</h3>
-<p>Metadata+RAG agents (the most complex agent type) use a two-phase
-architecture to answer queries:</p>
-<p><strong>Phase 1 — Query classification and context building
+<p>Metadata+RAG agents (the most complex agent type) follow the
+four-stage Perception → Reasoning → Action → Production architecture.
+The Reasoning and Action stages are the most significant:</p>
+<p><strong>Reasoning stage — Query classification and context building
 (deterministic)</strong></p>
 <p>Before the LLM is called, the agent classifies the query and selects
-the appropriate data source. This phase is implemented in
+the appropriate data source. This stage is implemented in
 <code>rag_metadata_mixin.py</code> and is entirely rule-based:</p>
-<pre><code>User query → classify → build context → pass to LLM with context</code></pre>
+<pre><code>Perception → Reasoning (classify + build context) → Action (LLM / DB) → Production (format + cues)</code></pre>
 <p>The classification is a priority chain — the first match wins:</p>
 <table>
 <colgroup>
@@ -2137,15 +2138,16 @@ the appropriate data source. This phase is implemented in
 </tr>
 </tbody>
 </table>
-<p>The context built in Phase 1 is injected into the system prompt
-before the LLM call. This means the LLM only sees data relevant to the
-query type, which reduces hallucination and improves response
+<p>The context built in the Reasoning stage is injected into the system
+prompt before the LLM call. This means the LLM only sees data relevant
+to the query type, which reduces hallucination and improves response
 quality.</p>
-<p><strong>Phase 2 — LLM generation and post-processing
-(probabilistic)</strong></p>
+<p><strong>Action stage — LLM generation (probabilistic)</strong></p>
 <p>The LLM generates a response from the system prompt + selected
-context + conversation history. After generation, the response passes
-through a post-processing pipeline:</p>
+context + conversation history.</p>
+<p><strong>Production stage — Processing and delivery</strong></p>
+<p>After generation, the response passes through a processing pipeline
+before being delivered to the user:</p>
 <ol type="1">
 <li><code>_sanitize_authority()</code> — replaces authoritative phrases
 with humble alternatives</li>
@@ -2157,9 +2159,9 @@ unrequested gap analysis</li>
 <li><code>HumilityRewriter.rewrite()</code> — adds hedging prefixes to
 ungrounded claims (if enabled)</li>
 </ol>
-<p><strong>Reliability cue assignment</strong> happens between Phase 1
-and Phase 2. The cue is determined by the query classification and
-context source (see table above). Special cases:</p>
+<p><strong>Reliability cue assignment</strong> happens between the
+Reasoning and Production stages. The cue is determined by the query
+classification and context source (see table above). Special cases:</p>
 <ul>
 <li>Queries asking “how many” get an additional note about approximate
 counts</li>
