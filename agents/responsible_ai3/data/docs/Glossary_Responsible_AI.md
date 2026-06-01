@@ -116,6 +116,24 @@ In the context of Responsible AI, red-teaming is used to surface risks, includin
 
 ## ---
 
+## AI Alignment
+
+Alignment in AI refers to the process of encoding human values and goals into AI models to make them as helpful, safe and reliable as possible. Its goal is to make AI systems behave in line with human intentions and values, to ensure that AI produces intended outcomes without undesirable side effects. The four principles of AI alignment are: Robustness, Interpretability, Controllability, and Ethicality. 
+
+The motivation for alignment is a three-fold: Deep learning based systems (or applications) have an increasingly large impact on society and bring significant risks; misalignment represents a significant source of risks; and alignment research and practice address risks stemming from misaligned systems such as untruthful answers and misinformation, sycophancy, and deception. 
+
+The two main challenges to achieving aligned AI are the intrinsic subjectivity of human ethics and morality; and the “alignment problem”, which is the idea that as AI systems become even more complex and powerful, anticipating and aligning their outcomes to human goals becomes increasingly difficult.
+
+**Related concepts:** 
+
+**References:**
+
+- Terry, M., Kulkarni, C., Watternberg, M, Dixon, L., & Morris, M. (2024). Interactive AI Alignment: Specification, Process, and Evaluation Alignment. https://doi.org/10.48550/arXiv.2311.00710  
+- Ji, J., Qiu, T., Chen. B., Zhang, B., et al. (2025). *AI Alignment: A Comprehensive Survey.* https://doi.org/10.48550/arXiv.2310.19852  
+- Jonker, A., Gomstyn, A. (2026). *What is AI alignment?*. IBM Think. https://www.ibm.com/think/topics/ai-alignment
+
+## ---
+
 ## Algorithmic Auditing
 
 Algorithmic auditing is the systematic evaluation of AI systems to assess their compliance with policy, industry standards or regulations. It is done by repeatedly and systematically querying an algorithm with inputs and observing the corresponding outputs in order to draw inferences about its opaque inner workings.  Audits may examine bias, data quality, model fairness, transparency, security, and societal impact. Auditing can be internal (conducted by the developing organisation) or external (conducted by independent third parties or regulators).
@@ -260,6 +278,19 @@ Explainability refers to the ability to provide post-hoc explanations that allow
 
 ---
 
+## NIST AI Risk Management Framework (AI RMF)
+
+The AI RMF is an AI risk management framework developed by the National Institute of Standars and Technology (NIST) of the United States Department of Commerce. The Framework was designed to equip organizations and individuals with approaches that increase the trustworthiness of AI systems, and to help foster the responsible design, development, deployment, and use of AI systems over time. The goal of the AI RMF is to offer a resource to the organizations designing, developing, deploying, or using AI systems to help manage the many risks of AI and promote trustworthy and responsible development and use of AI systems.
+
+**Related concepts:** Risk management; AI governance; Trustworthy AI; Transparent AI; Explainability in AI; Bias mitigation; Lifecycle assessment; AI Audit
+
+**References:**
+
+- NIST. (2026). *NIST AI RMF Playbook.* https://www.nist.gov/itl/ai-risk-management-framework/nist-ai-rmf-playbook  
+- NIST. (2023). Artificial Intelligence Risk Management Framework (*AI RMF 1.0)*. https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf
+
+---
+
 ## Privacy and Data Governance in AI
 
 Privacy in AI involves protecting personal and sensitive information from unauthorized access and ensuring that data is used by AI systems responsibly throughout the AI lifecycle, including data collection, storage, processing, and model deployment. Regulations and standards, such as the General Data Protection Regulation (GDPR) in the European Union, play a significant role in shaping AI ethics by setting strict guidelines for data use.
@@ -359,4 +390,3 @@ As defined by the European Parliament, transparency in AI is what enables approp
 - European Parliament and Council (2024). *Regulation (EU) 2024/1689 (AI Act)*, Articles 13–14 on transparency obligations. [https://eur-lex.europa.eu/eli/reg/2024/1689/oj](https://eur-lex.europa.eu/eli/reg/2024/1689/oj)
 
 ---
-

@@ -1916,13 +1916,17 @@ contain approximate groupings)</td>
 <td>Topic is within the agent’s domain but not yet covered by specific
 papers in the database</td>
 </tr>
-<tr>
-<td>🔴 <strong>Unverified</strong></td>
-<td>Red</td>
-<td>Question is outside the scope of the research database</td>
-</tr>
 </tbody>
 </table>
+<p><strong>Out-of-scope responses do not show any reliability
+cue.</strong> When the agent recognises that a question is outside its
+scope and refuses to answer, this is an honest acknowledgement of
+limitations — not unreliable content. Showing a green banner would be
+redundant (the refusal is obviously correct), and showing a red banner
+would be misleading (it would suggest the response is untrustworthy,
+when in fact the agent is behaving correctly). Reliability cues are
+therefore reserved for responses where the user needs to assess the
+trustworthiness of actual content.</p>
 <p><strong>Configuration:</strong> Set
 <code>reliability_cues: "shown"</code> in <code>config.json</code>. Set
 to <code>"hidden"</code> to disable banners.</p>
@@ -2018,14 +2022,201 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href=
 <p>The JSONL format is append-only and processable with standard tools
 (<code>jq</code>, <code>grep</code>, pandas). For production, use
 standard log rotation (e.g., <code>logrotate</code>).</p>
+<h3 id="agent-decision-logic-metadatarag-agents">Agent Decision Logic
+(Metadata+RAG agents)</h3>
+<p>Metadata+RAG agents (the most complex agent type) use a two-phase
+architecture to answer queries:</p>
+<p><strong>Phase 1 — Query classification and context building
+(deterministic)</strong></p>
+<p>Before the LLM is called, the agent classifies the query and selects
+the appropriate data source. This phase is implemented in
+<code>rag_metadata_mixin.py</code> and is entirely rule-based:</p>
+<pre><code>User query → classify → build context → pass to LLM with context</code></pre>
+<p>The classification is a priority chain — the first match wins:</p>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 27%" />
+<col style="width: 14%" />
+<col style="width: 29%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Classification</th>
+<th>Method</th>
+<th>Context source</th>
+<th>Cue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Meta-question</td>
+<td><code>_is_meta_question()</code></td>
+<td>System prompt</td>
+<td>None</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Non-research task</td>
+<td><code>_is_non_research_task()</code></td>
+<td>None</td>
+<td>None</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Off-topic</td>
+<td><code>_is_in_topical_scope()</code> → False</td>
+<td>None</td>
+<td>None</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Disambiguation follow-up</td>
+<td>Number reply + <code>_disambiguation_candidates</code></td>
+<td>Stored match</td>
+<td>None</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Conceptual</td>
+<td><code>_is_conceptual_question()</code></td>
+<td><code>_build_glossary_context()</code></td>
+<td>🟡</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Project query</td>
+<td><code>_build_project_context()</code></td>
+<td>project_docs/*.md</td>
+<td>🟡</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Affiliation listing</td>
+<td><code>_build_affiliation_context()</code></td>
+<td>researchers.json</td>
+<td>🟡</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Shared topics</td>
+<td><code>_build_shared_topics_context()</code></td>
+<td>papers.json cross-ref</td>
+<td>🟢</td>
+</tr>
+<tr>
+<td>9</td>
+<td>University papers</td>
+<td><code>_build_university_papers_context()</code></td>
+<td>*_papers.json</td>
+<td>🟢</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Topic search</td>
+<td><code>_build_topic_context()</code></td>
+<td><code>search_papers_by_topic()</code></td>
+<td>🟢+🟡</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Researcher lookup</td>
+<td><code>_build_researcher_context()</code></td>
+<td>researchers.json</td>
+<td>None</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Fallback: RAG</td>
+<td><code>_retrieve_context()</code></td>
+<td>BM25 / ChromaDB chunks</td>
+<td>🟡</td>
+</tr>
+</tbody>
+</table>
+<p>The context built in Phase 1 is injected into the system prompt
+before the LLM call. This means the LLM only sees data relevant to the
+query type, which reduces hallucination and improves response
+quality.</p>
+<p><strong>Phase 2 — LLM generation and post-processing
+(probabilistic)</strong></p>
+<p>The LLM generates a response from the system prompt + selected
+context + conversation history. After generation, the response passes
+through a post-processing pipeline:</p>
+<ol type="1">
+<li><code>_sanitize_authority()</code> — replaces authoritative phrases
+with humble alternatives</li>
+<li>Alliance name correction — fixes common LLM misspellings</li>
+<li><code>_verify_paper_references()</code> — checks cited paper
+titles/IDs against the database</li>
+<li><code>_inject_unsolicited_gap_banner()</code> — detects and flags
+unrequested gap analysis</li>
+<li><code>HumilityRewriter.rewrite()</code> — adds hedging prefixes to
+ungrounded claims (if enabled)</li>
+</ol>
+<p><strong>Reliability cue assignment</strong> happens between Phase 1
+and Phase 2. The cue is determined by the query classification and
+context source (see table above). Special cases:</p>
+<ul>
+<li>Queries asking “how many” get an additional note about approximate
+counts</li>
+<li>Researcher queries with unverified paper attributions get a warning
+banner</li>
+<li>Gap analysis queries always get a red (speculative) banner</li>
+<li>Off-topic refusals, meta-questions, non-research tasks, and
+researcher disambiguations get no banner</li>
+</ul>
+<p><strong>Configuration affecting the decision logic:</strong></p>
+<table>
+<colgroup>
+<col style="width: 61%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr>
+<th>Config field</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>prompt_level</code></td>
+<td>Controls which prompt sections are active
+(stringent/tolerant/lax)</td>
+</tr>
+<tr>
+<td><code>reliability_cues</code></td>
+<td>“shown”/“hidden” — master toggle for all banners</td>
+</tr>
+<tr>
+<td><code>humility_prompt</code></td>
+<td>“on”/“off” — pre-generation hedging instructions</td>
+</tr>
+<tr>
+<td><code>humility_postprocessing</code></td>
+<td>“off”/“moderate”/“strict” — post-generation hedging</td>
+</tr>
+<tr>
+<td><code>extra_scope_terms</code></td>
+<td>Extends the topical scope for in-scope detection</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Simple RAG agents</strong> (e.g., Tommi Tutor) use a much
+simpler logic: BM25 retrieval → LLM generation → off-topic detection →
+banner (yellow for on-topic, none for refusals). They skip the 12-step
+classification chain entirely.</p>
 <hr />
 <h2 id="llm-configuration">10. LLM Configuration</h2>
 <h3 id="mistral-cloud">10.1 Mistral Cloud</h3>
 <p>Set in <code>web/.env</code>:</p>
-<div class="sourceCode" id="cb27"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>mistral</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_API_KEY</span><span class="op">=</span>your_api_key_here</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_MODEL</span><span class="op">=</span>mistral-large-latest</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>mistral</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_API_KEY</span><span class="op">=</span>your_api_key_here</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="va">MISTRAL_MODEL</span><span class="op">=</span>mistral-large-latest</span></code></pre></div>
 <p>Available models:</p>
 <table>
 <thead>
@@ -2057,23 +2248,23 @@ href="https://ollama.com">ollama.com</a>.</li>
 <li>Ensure Ollama is running: <code>ollama serve</code></li>
 <li>Configure <code>web/.env</code>:</li>
 </ol>
-<div class="sourceCode" id="cb28"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span></code></pre></div>
-<p>For better local quality, try larger models:</p>
 <div class="sourceCode" id="cb29"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Then set OLLAMA_MODEL=mixtral:8x7b in .env</span></span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span></code></pre></div>
+<p>For better local quality, try larger models:</p>
+<div class="sourceCode" id="cb30"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> pull mixtral:8x7b</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Then set OLLAMA_MODEL=mixtral:8x7b in .env</span></span></code></pre></div>
 <h3 id="per-agent-llm-override">10.3 Per-Agent LLM Override</h3>
 <p>Keep Mistral as the default in <code>web/.env</code>, and override
 for specific agents by creating
 <code>agents/{your_agent}/.env</code>:</p>
-<div class="sourceCode" id="cb30"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This agent uses Ollama instead of the default Mistral</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This agent uses Ollama instead of the default Mistral</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="va">LLM_PROVIDER</span><span class="op">=</span>ollama</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_BASE_URL</span><span class="op">=</span>http://localhost:11434</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="va">OLLAMA_MODEL</span><span class="op">=</span>mistral</span></code></pre></div>
 <p>An agent’s <code>.env</code> only overrides the default if it
 contains <code>LLM_PROVIDER</code>. If <code>LLM_PROVIDER</code> is
 absent or commented out, the agent falls back to
@@ -2115,15 +2306,15 @@ server.</p>
 <hr />
 <h2 id="running-the-service">11. Running the Service</h2>
 <p>Start the web hub:</p>
-<div class="sourceCode" id="cb31"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Linux/macOS</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./web/run_html_server.sh</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Windows</span></span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="ex">web\run_html_server.bat</span></span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Or manually with auto-reload (development)</span></span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span> <span class="at">--host</span> 0.0.0.0 <span class="at">--port</span> 8000</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Linux/macOS</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./web/run_html_server.sh</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Windows</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="ex">web\run_html_server.bat</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Or manually with auto-reload (development)</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span> <span class="at">--host</span> 0.0.0.0 <span class="at">--port</span> 8000</span></code></pre></div>
 <p>Default address: <code>http://localhost:8000</code></p>
 <p><strong>API endpoints (all agents):</strong></p>
 <table>
@@ -2415,25 +2606,25 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href=
 </tbody>
 </table>
 <p><strong>Testing with curl:</strong></p>
-<div class="sourceCode" id="cb32"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List agents</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Chat with an agent</span></span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;your_agent&quot;, &quot;message&quot;: &quot;Hello&quot;}&#39;</span></span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Reindex</span></span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/agents/your_agent/reindex</span></code></pre></div>
-<p><strong>Freeing a port in use:</strong></p>
 <div class="sourceCode" id="cb33"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find and kill the process using the port</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="ex">lsof</span> <span class="at">-i</span> :8000                <span class="co"># Linux/macOS — find the PID</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="bu">kill</span> <span class="op">&lt;</span>PID<span class="op">&gt;</span>                   <span class="co"># Then kill it</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="ex">findstr</span> :8000  <span class="co"># Windows — find the PID</span></span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="ex">taskkill</span> /PID <span class="op">&lt;</span>PID<span class="op">&gt;</span> /F       <span class="co"># Then kill it</span></span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List agents</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> http://localhost:8000/api/agents</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Chat with an agent</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/chat <span class="dt">\</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;agent_id&quot;: &quot;your_agent&quot;, &quot;message&quot;: &quot;Hello&quot;}&#39;</span></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Reindex</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/agents/your_agent/reindex</span></code></pre></div>
+<p><strong>Freeing a port in use:</strong></p>
+<div class="sourceCode" id="cb34"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find and kill the process using the port</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="ex">lsof</span> <span class="at">-i</span> :8000                <span class="co"># Linux/macOS — find the PID</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="bu">kill</span> <span class="op">&lt;</span>PID<span class="op">&gt;</span>                   <span class="co"># Then kill it</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="ex">findstr</span> :8000  <span class="co"># Windows — find the PID</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="ex">taskkill</span> /PID <span class="op">&lt;</span>PID<span class="op">&gt;</span> /F       <span class="co"># Then kill it</span></span></code></pre></div>
 <hr />
 <h2 id="access-control-and-roles">12. Access Control and Roles</h2>
 <p>TOMMI implements a role-based access control system. Each user is
@@ -2489,13 +2680,13 @@ tools</td>
 <h3 id="tool-access-configuration">Tool Access Configuration</h3>
 <p>Tool access is configured in <code>web/data/tool_access.json</code>.
 This file maps tool IDs to the roles that can access them. Example:</p>
-<div class="sourceCode" id="cb34"><pre
-class="sourceCode json"><code class="sourceCode json"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;directory&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;admin_staff&quot;</span><span class="ot">,</span> <span class="st">&quot;teaching_staff&quot;</span><span class="ot">,</span> <span class="st">&quot;tester&quot;</span><span class="ot">,</span> <span class="st">&quot;superuser&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tommi_agents&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;teaching_staff&quot;</span><span class="ot">,</span> <span class="st">&quot;tester&quot;</span><span class="ot">,</span> <span class="st">&quot;superuser&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;student_admin&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;student&quot;</span><span class="ot">,</span> <span class="st">&quot;tester&quot;</span><span class="ot">,</span> <span class="st">&quot;superuser&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;virtual_campus&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;student&quot;</span><span class="ot">,</span> <span class="st">&quot;teaching_staff&quot;</span><span class="ot">,</span> <span class="st">&quot;superuser&quot;</span><span class="ot">]</span></span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;directory&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;admin_staff&quot;</span><span class="ot">,</span> <span class="st">&quot;teaching_staff&quot;</span><span class="ot">,</span> <span class="st">&quot;tester&quot;</span><span class="ot">,</span> <span class="st">&quot;superuser&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tommi_agents&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;teaching_staff&quot;</span><span class="ot">,</span> <span class="st">&quot;tester&quot;</span><span class="ot">,</span> <span class="st">&quot;superuser&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;student_admin&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;student&quot;</span><span class="ot">,</span> <span class="st">&quot;tester&quot;</span><span class="ot">,</span> <span class="st">&quot;superuser&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;virtual_campus&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;student&quot;</span><span class="ot">,</span> <span class="st">&quot;teaching_staff&quot;</span><span class="ot">,</span> <span class="st">&quot;superuser&quot;</span><span class="ot">]</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
 <p>Tool access can also be managed at runtime through the web interface
 settings panel (superuser only) or via the <code>/api/tool-access</code>
 API endpoint.</p>
@@ -2761,26 +2952,26 @@ to <code>data/docs/</code></td>
 </tbody>
 </table>
 <h3 id="general-debugging">General Debugging</h3>
-<div class="sourceCode" id="cb35"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check Python version (must be 3.11-3.13 for RAG)</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">--version</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify virtual environment is active</span></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate    <span class="co"># Linux/macOS</span></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>       <span class="co"># Windows</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Test Ollama</span></span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> list</span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> run mistral <span class="st">&quot;Hello&quot;</span></span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Test agent via CLI before web interface</span></span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">python</span> cli.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span></span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Check which process uses a port</span></span>
-<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a><span class="ex">lsof</span> <span class="at">-i</span> :8000                <span class="co"># Linux/macOS</span></span>
-<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a><span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="ex">findstr</span> :8000  <span class="co"># Windows</span></span>
-<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a><span class="co"># View server logs with auto-reload</span></span>
-<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span></span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check Python version (must be 3.11-3.13 for RAG)</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">--version</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify virtual environment is active</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate    <span class="co"># Linux/macOS</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv\Scripts\activate</span>       <span class="co"># Windows</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Test Ollama</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> list</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a><span class="ex">ollama</span> run mistral <span class="st">&quot;Hello&quot;</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Test agent via CLI before web interface</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">python</span> cli.py <span class="op">&lt;</span>agent_id<span class="op">&gt;</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Check which process uses a port</span></span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a><span class="ex">lsof</span> <span class="at">-i</span> :8000                <span class="co"># Linux/macOS</span></span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a><span class="fu">netstat</span> <span class="at">-ano</span> <span class="kw">|</span> <span class="ex">findstr</span> :8000  <span class="co"># Windows</span></span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a><span class="co"># View server logs with auto-reload</span></span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">uvicorn</span> app:app <span class="at">--reload</span></span></code></pre></div>
 </body>
 </html>

@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOMMI Agent Decision Logic</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+
+header {
+    background: #1e293b;
+    color: #fff;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+header h1 { font-size: 18px; font-weight: 700; }
+header select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+    background: #334155;
+    color: #fff;
+    font-size: 13px;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 28px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.intro {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #475569;
+}
+
+/* Flow diagram */
+.flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 16px 0;
+}
+.flow-step {
+    display: flex;
+    align-items: stretch;
+    min-height: 48px;
+}
+.flow-arrow {
+    width: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.flow-arrow .line { width: 2px; flex: 1; background: #cbd5e1; }
+.flow-arrow .dot { width: 10px; height: 10px; border-radius: 50%; background: #2563eb; flex-shrink: 0; }
+.flow-card {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 4px 0;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.flow-card:hover { border-color: #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,0.1); }
+.flow-card.active { border-color: #2563eb; background: #eff6ff; }
+.flow-card .title { font-weight: 600; font-size: 13px; }
+.flow-card .desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+.flow-card .example { font-size: 11px; color: #94a3b8; margin-top: 4px; font-style: italic; }
+.flow-card .badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+.badge-green { background: #d4edda; color: #155724; }
+.badge-yellow { background: #fff3cd; color: #856404; }
+.badge-red { background: #f8d7da; color: #721c24; }
+.badge-none { background: #e2e8f0; color: #64748b; }
+
+/* Detail panel */
+.detail-panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    display: none;
+    font-size: 13px;
+    line-height: 1.6;
+}
+.detail-panel.show { display: block; }
+.detail-panel h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #1e293b; }
+.detail-panel table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+.detail-panel th { text-align: left; padding: 4px 8px; background: #f1f5f9; font-size: 12px; border-bottom: 2px solid #e2e8f0; }
+.detail-panel td { padding: 4px 8px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+
+/* Post-processing pipeline */
+.pipeline {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+}
+.pipe-step {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+}
+.pipe-step .num {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #fff;
+    font-size: 11px;
+    line-height: 20px;
+    text-align: center;
+    margin-right: 4px;
+}
+.pipe-arrow { color: #cbd5e1; font-size: 18px; display: flex; align-items: center; }
+
+/* Agent type tabs */
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+}
+.tab {
+    padding: 6px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+.tab:hover:not(.active) { border-color: #2563eb; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Cue legend */
+.cue-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+    font-size: 12px;
+}
+.cue-item { display: flex; align-items: center; gap: 4px; }
+.cue-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+/* Simple agent flow */
+.simple-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+}
+.simple-box {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
+    text-align: center;
+}
+.simple-arrow { color: #cbd5e1; font-size: 18px; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>TOMMI Agent Decision Logic</h1>
+</header>
+
+<div class="container">
+
+<div class="intro">
+    When a user asks a question, a TOMMI agent does <strong>not</strong> simply forward it to the language model. Instead, it first classifies the question and selects the right data source. This page visualises the decision logic, reliability cue assignment, and post-processing pipeline.
+</div>
+
+<div class="tabs">
+    <div class="tab active" onclick="showTab('overview')">Overview</div>
+    <div class="tab" onclick="showTab('oneshot')">Oneshot Agents</div>
+    <div class="tab" onclick="showTab('rag')">RAG Agents</div>
+    <div class="tab" onclick="showTab('simple')">RAG Vectorless Agents</div>
+    <div class="tab" onclick="showTab('text2sql')">Text2SQL Agents</div>
+    <div class="tab" onclick="showTab('metadata')">Metadata+RAG Agents (EH)</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- OVERVIEW -->
+<!-- ============================================================ -->
+<div class="tab-content active" id="tab-overview">
+
+<h2>The Four Stages of Every Agent</h2>
+<p style="font-size:13px;color:#475569;margin-bottom:12px;">Every TOMMI agent — regardless of type — follows the same four stages when processing a user request:</p>
+
+<div class="simple-flow" style="justify-content:center;">
+    <div class="simple-box" style="background:#e0f2fe;border-color:#0284c7;min-width:120px;"><strong>1. Receive</strong><br><span style="font-size:11px;color:#64748b;">The user's input</span></div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box" style="background:#fef3c7;border-color:#d97706;min-width:120px;"><strong>2. Interpret</strong><br><span style="font-size:11px;color:#64748b;">Understand the request</span></div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box" style="background:#dcfce7;border-color:#16a34a;min-width:120px;"><strong>3. Act</strong><br><span style="font-size:11px;color:#64748b;">Execute the action</span></div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box" style="background:#f3e8ff;border-color:#9333ea;min-width:120px;"><strong>4. Respond</strong><br><span style="font-size:11px;color:#64748b;">Deliver the output</span></div>
+</div>
+
+<h2>Common Vocabulary</h2>
+
+<div class="detail-panel show">
+<table>
+    <tr><th style="width:160px;">Term</th><th>Definition</th></tr>
+    <tr><td><strong>Receive</strong></td><td>The agent accepts the user's input. This can be natural language text, a form selection, a button click, or a follow-up to a previous conversation.</td></tr>
+    <tr><td><strong>Interpret</strong></td><td>The agent analyses the input to decide <em>what to do</em>. This is the agent's <strong>decision logic</strong>. Depending on the agent type, interpretation can range from purely mechanical (pass everything to the LLM) to a sophisticated multi-step classification that routes different questions to different actions. See the comparison below.</td></tr>
+    <tr><td><strong>Act</strong></td><td>The agent executes one or more actions: query a database, search documents, call a language model, generate a visualisation, or refuse a request. An agent may combine several actions in a single response (e.g., retrieve data from the database AND ask the LLM to comment on it).</td></tr>
+    <tr><td><strong>Respond</strong></td><td>The agent formats the result and delivers it to the user: text, a table, a map, a chart, or a message explaining why it cannot help. A <strong>reliability cue</strong> (coloured banner) may be added to indicate how trustworthy the response is.</td></tr>
+    <tr><td><strong>System prompt</strong></td><td>Instructions given to the LLM that define the agent's identity, rules, and constraints. Only relevant when the Act stage involves an LLM call.</td></tr>
+    <tr><td><strong>Context</strong></td><td>Data retrieved from the knowledge base (documents, metadata, glossary) and injected into the LLM prompt. The LLM can only "see" what the context provides — it does not access the database directly.</td></tr>
+    <tr><td><strong>Reliability cue</strong></td><td>A coloured banner (🟢 green, 🟡 yellow, 🔴 red, or none) that indicates the source and trustworthiness of the response. Assigned based on how the response was generated.</td></tr>
+    <tr><td><strong>Post-processing</strong></td><td>Steps applied to the LLM output before delivering it to the user: authority sanitisation, paper verification, humility hedging, etc.</td></tr>
+</table>
+</div>
+
+<h2>What Does "Interpret" Mean in Practice?</h2>
+<p style="font-size:13px;color:#475569;margin-bottom:12px;">The Interpret stage varies dramatically across agent types. In simple agents, it is mechanical — the agent does very little analysis before acting. In complex agents, interpretation is a multi-step decision process that determines which data sources to use and which actions to perform.</p>
+
+<div class="detail-panel show">
+<table>
+    <tr><th style="width:180px;">Agent type</th><th>Interpretation</th><th>Complexity</th></tr>
+    <tr>
+        <td><strong>Oneshot</strong></td>
+        <td><strong>None.</strong> The query is passed directly to the LLM with the system prompt. No classification, no retrieval, no decision-making. Every query follows the same path.</td>
+        <td style="text-align:center;">⬜</td>
+    </tr>
+    <tr>
+        <td><strong>RAG</strong></td>
+        <td><strong>Mechanical.</strong> The query is converted to a vector embedding and used to find similar document chunks. The retrieval is automatic — there is no decision about <em>what kind</em> of question it is.</td>
+        <td style="text-align:center;">⬜⬜</td>
+    </tr>
+    <tr>
+        <td><strong>RAG Vectorless</strong></td>
+        <td><strong>Mechanical.</strong> Same as RAG but uses BM25 keyword matching instead of vectors. The only decision is a post-hoc check: was the response off-topic? If so, remove the banner.</td>
+        <td style="text-align:center;">⬜⬜</td>
+    </tr>
+    <tr>
+        <td><strong>Text2SQL</strong></td>
+        <td><strong>Intent detection.</strong> The agent first checks whether the user is navigating existing results (show more, sort, go back, expand a row) or asking a new question. Navigation intents are handled without the LLM. New questions go through SQL translation and verification.</td>
+        <td style="text-align:center;">⬜⬜⬜</td>
+    </tr>
+    <tr>
+        <td><strong>Metadata+RAG (EH)</strong></td>
+        <td><strong>Multi-step classification.</strong> The agent runs a priority chain of 12 checks to determine the query type: meta-question, off-topic, conceptual, project, researcher, topic search, gap analysis, figure request, etc. Each type is routed to a different data source and action. This is the most sophisticated interpretation in TOMMI.</td>
+        <td style="text-align:center;">⬜⬜⬜⬜⬜</td>
+    </tr>
+</table>
+</div>
+
+<h2>Comparison Across Agent Types</h2>
+
+<div class="detail-panel show">
+<table>
+    <tr>
+        <th style="width:150px;">Stage</th>
+        <th>Oneshot</th>
+        <th>RAG</th>
+        <th>RAG Vectorless</th>
+        <th>Text2SQL</th>
+        <th>Metadata+RAG (EH)</th>
+    </tr>
+    <tr>
+        <td><strong>Receive</strong></td>
+        <td>Text</td>
+        <td>Text</td>
+        <td>Text</td>
+        <td>Text</td>
+        <td>Text</td>
+    </tr>
+    <tr>
+        <td><strong>Interpret</strong></td>
+        <td>None</td>
+        <td>Vector embed</td>
+        <td>Tokenise</td>
+        <td>Intent detection (7 types)</td>
+        <td>Classification chain (12 steps)</td>
+    </tr>
+    <tr>
+        <td><strong>Act</strong></td>
+        <td>LLM only</td>
+        <td>ChromaDB → LLM</td>
+        <td>BM25 → LLM</td>
+        <td>LLM → SQL → DB</td>
+        <td>DB / glossary / LLM / maps (varies)</td>
+    </tr>
+    <tr>
+        <td><strong>Respond</strong></td>
+        <td>Text</td>
+        <td>Text + cues</td>
+        <td>Text + cues</td>
+        <td>Text + table + cues</td>
+        <td>Text + lists + maps + cues</td>
+    </tr>
+    <tr>
+        <td><strong>Uses LLM?</strong></td>
+        <td>Always</td>
+        <td>Always</td>
+        <td>Always</td>
+        <td>For new queries only</td>
+        <td>For some query types only</td>
+    </tr>
+    <tr>
+        <td><strong>Reliability cues</strong></td>
+        <td>Hidden</td>
+        <td>High / Good / Poor</td>
+        <td>Yellow / None</td>
+        <td>Yellow + Green</td>
+        <td>Green / Yellow / Red / None</td>
+    </tr>
+</table>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- METADATA+RAG AGENTS -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-metadata">
+
+<h2>Metadata+RAG Agents (Excellence Hubs)</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The most complex TOMMI agent type, used for the UNINOVIS Excellence Hubs. Combines structured metadata (papers, researchers, projects, glossary) with document retrieval, interactive maps, and a multi-step decision logic.</p>
+
+<h2>Phase 1 — Query Classification</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The agent checks each category in priority order. The first match wins — later checks are skipped. Click any step for details.</p>
+
+<div class="cue-legend">
+    <div class="cue-item"><div class="cue-dot" style="background:#28a745;"></div> Green (verified data)</div>
+    <div class="cue-item"><div class="cue-dot" style="background:#ffc107;"></div> Yellow (AI interpretation)</div>
+    <div class="cue-item"><div class="cue-dot" style="background:#dc3545;"></div> Red (speculation)</div>
+    <div class="cue-item"><div class="cue-dot" style="background:#cbd5e1;"></div> No cue</div>
+</div>
+
+<div class="flow" id="classification-flow">
+    <!-- Steps injected by JS -->
+</div>
+
+<div class="detail-panel" id="detail-panel">
+    <!-- Filled by JS on click -->
+</div>
+
+<h2>Phase 1b — Content Query Context Chain</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">If the query is a content query (not caught by steps 1-6 above), the agent builds context using this priority chain:</p>
+
+<div class="flow" id="context-chain">
+    <!-- Steps injected by JS -->
+</div>
+
+<h2>Phase 2 — Post-Processing Pipeline</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">After the LLM generates a response, it passes through these steps before reaching the user:</p>
+
+<div class="pipeline" id="pipeline">
+    <!-- Steps injected by JS -->
+</div>
+
+<h2>Reliability Cue Assignment</h2>
+<div class="detail-panel show">
+    <table>
+        <tr><th>Response type</th><th>Cue</th><th>Rationale</th></tr>
+        <tr><td>Programmatic data (structured DB)</td><td><span class="badge badge-green">Green</span></td><td>Data comes directly from the database, no AI involved</td></tr>
+        <tr><td>AI interprets database content</td><td><span class="badge badge-yellow">Yellow</span></td><td>LLM summarises or formats real data</td></tr>
+        <tr><td>AI uses general knowledge (in-scope)</td><td><span class="badge badge-yellow">Yellow</span></td><td>Topic is within scope but not in the database</td></tr>
+        <tr><td>AI reasons about absence (gaps)</td><td><span class="badge badge-red">Red</span></td><td>Speculative — verify independently</td></tr>
+        <tr><td>Honest refusal (off-topic, meta, non-research)</td><td><span class="badge badge-none">None</span></td><td>Refusal is not unreliable content</td></tr>
+        <tr><td>Researcher disambiguation</td><td><span class="badge badge-none">None</span></td><td>Clarification question, not content</td></tr>
+        <tr><td>Researcher lookup (definitive match)</td><td><span class="badge badge-none">None</span></td><td>Data from structured database</td></tr>
+        <tr><td>"How many" queries</td><td><span class="badge badge-yellow">Yellow + note</span></td><td>Counts may be approximate</td></tr>
+    </table>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- SIMPLE RAG AGENTS -->
+<!-- ============================================================ -->
+<!-- ============================================================ -->
+<!-- RAG AGENTS (Vector) -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-rag">
+
+<h2>RAG Agents Flow (Vector-based retrieval)</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">RAG agents use ChromaDB vector embeddings to find semantically similar document chunks. Unlike BM25 (keyword matching), vector retrieval can find relevant content even when the exact words differ — e.g., "adversarial testing" matches "red-teaming".</p>
+
+<div class="simple-flow">
+    <div class="simple-box"><strong>User Query</strong></div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>Embed Query</strong><br>Convert to vector</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>ChromaDB Search</strong><br>Find similar chunks</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>LLM Generation</strong><br>System prompt + context</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>Post-processing</strong><br>Humility + badges</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>Response</strong></div>
+</div>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>RAG vs RAG Vectorless</h3>
+    <table>
+        <tr><th>Feature</th><th>RAG (Vector)</th><th>RAG Vectorless (BM25)</th></tr>
+        <tr><td>Retrieval method</td><td>Vector similarity (ChromaDB)</td><td>BM25 keyword matching</td></tr>
+        <tr><td>Semantic matching</td><td>Yes — "adversarial testing" finds "red-teaming"</td><td>No — exact words only</td></tr>
+        <tr><td>Setup</td><td>Requires ChromaDB + embedding model</td><td>No dependencies — pure Python</td></tr>
+        <tr><td>Indexing</td><td>Embedding computation (slower)</td><td>Keyword extraction (fast)</td></tr>
+        <tr><td>Index storage</td><td><code>data/chroma_db/</code> (vector database)</td><td><code>data/chunk_db.json</code> (JSON file)</td></tr>
+        <tr><td>Best for</td><td>Large corpora, semantic queries</td><td>Small corpora, keyword-rich queries</td></tr>
+    </table>
+
+    <h3 style="margin-top:12px;">Reliability Cues</h3>
+    <table>
+        <tr><th>Condition</th><th>Cue</th></tr>
+        <tr><td>Response grounded in retrieved documents</td><td><span class="badge badge-yellow">Yellow</span> AI interpretation of database content</td></tr>
+        <tr><td>High grounding confidence (claim-level analysis)</td><td><span class="badge badge-green">Green</span> High reliability</td></tr>
+        <tr><td>Low grounding confidence</td><td><span class="badge badge-red">Red</span> Poor reliability</td></tr>
+        <tr><td>Off-topic refusal</td><td><span class="badge badge-none">None</span></td></tr>
+    </table>
+    <p style="margin-top:8px;color:#64748b;font-size:12px;">RAG (Vector) agents use claim-level grounding analysis: each claim in the response is checked against the retrieved context and scored. This produces reliability labels (High / Good / Poor) rather than the procedural banners (Verified / AI Commentary / Unverified) used by Vectorless agents.</p>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- RAG VECTORLESS AGENTS -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-simple">
+
+<h2>RAG Vectorless Agents Flow (Tommi Tutor, Proyectos Europeos)</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">RAG Vectorless agents use BM25 keyword retrieval (no vector embeddings) and procedural banner logic. They skip the 12-step classification chain used by Metadata+RAG agents:</p>
+
+<div class="simple-flow">
+    <div class="simple-box"><strong>User Query</strong></div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>BM25 Retrieval</strong><br>Search chunk_db.json</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>LLM Generation</strong><br>System prompt + context</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>Off-topic Check</strong><br>First 300 chars</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>Banner</strong></div>
+</div>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>Banner Logic</h3>
+    <table>
+        <tr><th>Condition</th><th>Banner</th></tr>
+        <tr><td>On-topic response (context found)</td><td><span class="badge badge-yellow">Yellow</span> AI Commentary</td></tr>
+        <tr><td>Off-topic refusal detected</td><td><span class="badge badge-none">None</span></td></tr>
+    </table>
+    <p style="margin-top:8px;color:#64748b;">Simple agents do not use green banners (no structured metadata) or red banners (no gap analysis). The off-topic detector scans only the first 300 characters to avoid false positives when the response quotes off-topic phrases in explanations.</p>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- TEXT2SQL AGENTS -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-text2sql">
+
+<h2>Text2SQL Agents Flow (Pisha, Algoria)</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">Text2SQL agents convert natural language to SQL queries. Before calling the LLM, they first check if the user is navigating existing results:</p>
+
+<div class="simple-flow">
+    <div class="simple-box"><strong>User Query</strong></div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>Intent Detection</strong><br>(see table below)</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>Text-to-SQL</strong><br>LLM converts to SQL</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>SQL Verification</strong><br>Tables, columns, semantics</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>Execute</strong><br>Run against SQLite</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>Format Results</strong></div>
+</div>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>Intent Detection</h3>
+    <p style="font-size:13px;color:#64748b;margin-bottom:8px;">Before converting a query to SQL, the agent checks whether the user is navigating or refining previous results. If so, it handles the action directly without calling the LLM:</p>
+    <table>
+        <tr><th>Intent</th><th>Example</th><th>Action</th><th>Needs LLM?</th></tr>
+        <tr><td><strong>Show more</strong></td><td>"Show me more", "next results"</td><td>Display next page of previous results</td><td>No</td></tr>
+        <tr><td><strong>Detail request</strong></td><td>"Show details of #3", "expand #5"</td><td>Show full details of a specific result</td><td>No</td></tr>
+        <tr><td><strong>Sort</strong></td><td>"Sort by country A-Z", "order by date"</td><td>Re-sort and re-display current results</td><td>No</td></tr>
+        <tr><td><strong>Show field</strong></td><td>"Show language requirements"</td><td>Add a column to current results</td><td>No</td></tr>
+        <tr><td><strong>Back</strong></td><td>"Go back", "previous search"</td><td>Restore previous result set</td><td>No</td></tr>
+        <tr><td><strong>Refinement</strong></td><td>"Only those in Italy", "only with B2"</td><td>Add WHERE clause to previous SQL</td><td>Partial (modifies SQL)</td></tr>
+        <tr><td><strong>New query</strong></td><td>"Show agreements with The Hague"</td><td>Full Text-to-SQL conversion</td><td>Yes</td></tr>
+    </table>
+    <p style="margin-top:8px;color:#64748b;font-size:12px;">This intent detection avoids unnecessary LLM calls for navigation actions, making the agent faster and more responsive. Only genuinely new queries or refinements require the LLM.</p>
+
+    <h3 style="margin-top:12px;">Transparency Levels</h3>
+    <table>
+        <tr><th>Level</th><th>Shows</th></tr>
+        <tr><td>Crystal box</td><td>SQL query + plain-language explanation + verification badges</td></tr>
+        <tr><td>Black box</td><td>Results only</td></tr>
+    </table>
+    <h3 style="margin-top:12px;">Banner Logic</h3>
+    <table>
+        <tr><th>Condition</th><th>Banner</th></tr>
+        <tr><td>Query translated and executed successfully</td><td><span class="badge badge-yellow">Yellow</span> AI interpretation (translation risk)</td></tr>
+        <tr><td>Results from database (no AI)</td><td><span class="badge badge-green">Green</span> Verified data</td></tr>
+        <tr><td>Semantic mismatch detected</td><td>Blocked (stringent) or warning (tolerant)</td></tr>
+    </table>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- ONESHOT AGENTS -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-oneshot">
+
+<h2>Oneshot Flow (Prompt Assistant)</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">Oneshot agents process each query independently with no conversation memory, no document retrieval, and no structured data. They rely entirely on the system prompt and the LLM.</p>
+
+<div class="simple-flow">
+    <div class="simple-box"><strong>User Query</strong></div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>System Prompt</strong><br>Identity + rules</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>LLM Generation</strong><br>Single-turn response</div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box"><strong>Response</strong></div>
+</div>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>Characteristics</h3>
+    <table>
+        <tr><th>Feature</th><th>Oneshot</th><th>RAG / Metadata+RAG</th></tr>
+        <tr><td>Conversation memory</td><td>No — each query is independent</td><td>Yes — follow-up queries use history</td></tr>
+        <tr><td>Document retrieval</td><td>No — no knowledge base</td><td>Yes — searches documents or metadata</td></tr>
+        <tr><td>Decision logic</td><td>Minimal — everything goes to the LLM</td><td>Complex — 12-step classification chain</td></tr>
+        <tr><td>Reliability cues</td><td>Typically hidden</td><td>Green / Yellow / Red / None</td></tr>
+        <tr><td>Grounding</td><td>LLM general knowledge only</td><td>Grounded in database content</td></tr>
+        <tr><td>Use case</td><td>Creative tasks, prompt design, general assistance</td><td>Research, data exploration, institutional knowledge</td></tr>
+    </table>
+
+    <h3 style="margin-top:12px;">When to use Oneshot</h3>
+    <p>Oneshot agents are appropriate when:</p>
+    <ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
+        <li>The task does not require a knowledge base (e.g., prompt writing, brainstorming)</li>
+        <li>Each query is self-contained — no follow-up needed</li>
+        <li>The LLM's general knowledge is sufficient</li>
+        <li>Speed is important (no retrieval overhead)</li>
+    </ul>
+    <p style="margin-top:8px;">For tasks requiring grounded, verifiable answers from specific data, use RAG or Metadata+RAG agents instead.</p>
+</div>
+
+</div>
+
+</div>
+
+<script>
+// ── Classification steps data ──
+const classificationSteps = [
+    {
+        title: "1. Meta-question",
+        desc: "About the agent itself",
+        example: '"What can you do?", "What is UNINOVIS?"',
+        badge: "none", badgeLabel: "None",
+        detail: "The agent answers from its system prompt description. No database query, no LLM interpretation of data. Examples: capabilities, alliance info, banner explanations.",
+        method: "_is_meta_question()",
+        source: "System prompt"
+    },
+    {
+        title: "2. Non-research task",
+        desc: "Essay, translation, creative content",
+        example: '"Write me an essay", "Translate this to French"',
+        badge: "none", badgeLabel: "None",
+        detail: "The agent politely refuses tasks outside its research assistant role. The refusal is correct behaviour, not unreliable content.",
+        method: "_is_non_research_task()",
+        source: "None (refusal)"
+    },
+    {
+        title: "3. Off-topic",
+        desc: "Outside the agent's domain",
+        example: '"What is the weather?", "Book me a flight"',
+        badge: "none", badgeLabel: "None",
+        detail: "The agent detects the question is outside its topical scope, refuses, and suggests in-scope alternatives. No banner because an honest refusal is not unreliable.",
+        method: "_is_in_topical_scope() → False",
+        source: "None (refusal + suggestions)"
+    },
+    {
+        title: "4. Disambiguation follow-up",
+        desc: "User replied with a number",
+        example: '"1" (after seeing a list of researchers)',
+        badge: "none", badgeLabel: "None",
+        detail: "When a previous response showed a numbered disambiguation list, the agent detects the number reply, looks up the stored candidate, and builds full context for that researcher.",
+        method: "_disambiguation_candidates",
+        source: "Stored from previous turn"
+    },
+    {
+        title: "5. Figure / Map request",
+        desc: 'Query contains "figure" or "map"',
+        example: '"Show a figure of papers on AI ethics"',
+        badge: "green", badgeLabel: "Green",
+        detail: "The agent generates a map link. The interactive map renders data directly from the structured database (no LLM interpretation of data). The LLM only generates the link URL.",
+        method: "_is_figure_request()",
+        source: "Map endpoint (structured data)"
+    },
+    {
+        title: "6. Gap analysis",
+        desc: "Topics not studied, research gaps",
+        example: '"Which topics are least studied?"',
+        badge: "red", badgeLabel: "Red",
+        detail: "The agent reasons about what is ABSENT from the database. This is inherently speculative — topics may exist under different names or not be indexed. Always verify.",
+        method: "_is_gap_analysis_query()",
+        source: "LLM reasoning about absence"
+    },
+    {
+        title: "7. Conceptual (glossary match)",
+        desc: "Definition found in curated glossary",
+        example: '"What is explainable AI?"',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "The agent finds the term in its curated glossary and provides the definition. The LLM formats and contextualises the glossary entry.",
+        method: "_is_conceptual_question() + _build_glossary_context()",
+        source: "Glossary definitions"
+    },
+    {
+        title: "8. Conceptual (not in glossary)",
+        desc: "In-scope concept but no glossary entry",
+        example: '"What is predictive policing?"',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "The term is within the agent's domain but not defined in the glossary. The agent states this and answers from paper content or general knowledge within scope.",
+        method: "_is_conceptual_question() + empty glossary",
+        source: "LLM general knowledge (in-scope)"
+    },
+    {
+        title: "9. Follow-up",
+        desc: "Continues previous conversation",
+        example: '"Expand on point 1", "Tell me more"',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "The agent uses conversation history to continue the discussion. No new data retrieval — the LLM synthesises from prior context.",
+        method: "_is_followup_query()",
+        source: "Conversation history"
+    },
+    {
+        title: "10. Content query",
+        desc: "Research papers, projects, researchers",
+        example: '"Papers on AI ethics from UMA"',
+        badge: "yellow", badgeLabel: "Varies",
+        detail: "The most common query type. The agent builds context from structured data using the Content Query Context Chain (see below). The cue depends on the data source.",
+        method: "See context chain below",
+        source: "papers.json, researchers.json, project_docs/"
+    },
+];
+
+const contextChainSteps = [
+    {
+        title: "1. Project query",
+        desc: "Specific project by name or topic",
+        example: '"What is the TAILOR project?"',
+        badge: "yellow", badgeLabel: "Yellow",
+        method: "_build_project_context()",
+        source: "project_docs/*.md"
+    },
+    {
+        title: "2. Affiliation listing",
+        desc: "Researchers from a specific university",
+        example: '"List researchers from THUAS"',
+        badge: "yellow", badgeLabel: "Yellow",
+        method: "_build_affiliation_context()",
+        source: "researchers.json"
+    },
+    {
+        title: "3. Shared topics",
+        desc: "Cross-university topic comparison",
+        example: '"Topics shared by UMA and USPN"',
+        badge: "green", badgeLabel: "Green",
+        method: "_build_shared_topics_context()",
+        source: "papers.json (cross-ref)"
+    },
+    {
+        title: "4. University paper listing",
+        desc: "All papers from a university (no topic)",
+        example: '"List papers from UMA"',
+        badge: "green", badgeLabel: "Green",
+        method: "_build_university_papers_context()",
+        source: "*_papers.json"
+    },
+    {
+        title: "5. Topic search",
+        desc: "Papers matching a research topic",
+        example: '"Papers on AI ethics"',
+        badge: "green", badgeLabel: "Green + Yellow",
+        method: "search_papers_by_topic()",
+        source: "papers.json (topic matching)"
+    },
+    {
+        title: "6. Researcher lookup",
+        desc: "Papers by a specific researcher",
+        example: '"Papers by Rubén González"',
+        badge: "none", badgeLabel: "None / Disambig",
+        method: "_build_researcher_context()",
+        source: "researchers.json"
+    },
+    {
+        title: "7. Fallback: RAG retrieval",
+        desc: "Keyword search in document chunks",
+        example: '(any query not caught above)',
+        badge: "yellow", badgeLabel: "Yellow",
+        method: "_retrieve_context()",
+        source: "BM25 / ChromaDB"
+    },
+];
+
+const pipelineSteps = [
+    { num: 1, title: "Authority sanitisation", desc: "Replace authoritative phrases with humble alternatives" },
+    { num: 2, title: "Name correction", desc: "Fix LLM misspellings (UNINOVOS → UNINOVIS)" },
+    { num: 3, title: "Paper verification", desc: "Check cited titles/IDs against papers.json" },
+    { num: 4, title: "Unsolicited gap detection", desc: "Flag unrequested gap analysis with red banner" },
+    { num: 5, title: "Humility rewriting", desc: "Add hedging to ungrounded claims (if enabled)" },
+];
+
+// ── Render functions ──
+function renderFlow(containerId, steps) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    steps.forEach((step, i) => {
+        const badgeClass = 'badge-' + step.badge;
+        const html = `
+            <div class="flow-step">
+                <div class="flow-arrow">
+                    ${i > 0 ? '<div class="line"></div>' : '<div style="flex:1;"></div>'}
+                    <div class="dot"></div>
+                    ${i < steps.length - 1 ? '<div class="line"></div>' : '<div style="flex:1;"></div>'}
+                </div>
+                <div class="flow-card" data-index="${i}" data-flow="${containerId}">
+                    <div class="title">${step.title} <span class="badge ${badgeClass}">${step.badgeLabel}</span></div>
+                    <div class="desc">${step.desc}</div>
+                    <div class="example">${step.example}</div>
+                </div>
+            </div>
+        `;
+        container.innerHTML += html;
+    });
+
+    container.querySelectorAll('.flow-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const idx = parseInt(card.dataset.index);
+            const flowId = card.dataset.flow;
+            const data = flowId === 'classification-flow' ? classificationSteps : contextChainSteps;
+            const step = data[idx];
+
+            // Toggle active
+            container.querySelectorAll('.flow-card').forEach(c => c.classList.remove('active'));
+            card.classList.toggle('active');
+
+            const panel = document.getElementById('detail-panel');
+            panel.innerHTML = `
+                <h3>${step.title}</h3>
+                <p>${step.detail || step.desc}</p>
+                <table>
+                    <tr><th>Method</th><td><code>${step.method}</code></td></tr>
+                    <tr><th>Data source</th><td>${step.source}</td></tr>
+                    <tr><th>Reliability cue</th><td><span class="badge badge-${step.badge}">${step.badgeLabel}</span></td></tr>
+                </table>
+            `;
+            panel.classList.add('show');
+        });
+    });
+}
+
+function renderPipeline() {
+    const container = document.getElementById('pipeline');
+    container.innerHTML = '';
+    pipelineSteps.forEach((step, i) => {
+        if (i > 0) container.innerHTML += '<div class="pipe-arrow">&#10132;</div>';
+        container.innerHTML += `
+            <div class="pipe-step">
+                <span class="num">${step.num}</span>
+                <strong>${step.title}</strong><br>
+                <span style="color:#64748b;">${step.desc}</span>
+            </div>
+        `;
+    });
+}
+
+function showTab(id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab-content#tab-${id}`).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// ── Init ──
+renderFlow('classification-flow', classificationSteps);
+renderFlow('context-chain', contextChainSteps);
+renderPipeline();
+</script>
+</body>
+</html>

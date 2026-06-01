@@ -237,6 +237,18 @@ class MetadataRAGMixin:
             print(f"Topical scope built: {len(scope)} terms")
         return scope
 
+    @staticmethod
+    def _is_meta_question(msg_lower: str) -> bool:
+        """Check if the question is about the agent itself (not about content)."""
+        meta_patterns = [
+            "what can you do", "how does this work", "how do you work",
+            "what kind of questions", "what do the", "what are the banners",
+            "what is uninovis", "which universities", "who are you",
+            "what are you", "how can you help", "what do you know",
+            "what is your", "tell me about yourself",
+        ]
+        return any(p in msg_lower for p in meta_patterns)
+
     def _is_in_topical_scope(self, user_message: str) -> bool:
         """Check if the user's question falls within the agent's topical scope.
 
@@ -264,12 +276,7 @@ class MetadataRAGMixin:
             return False
 
         # Meta-questions about the agent itself are always in scope
-        meta_patterns = [
-            "what can you do", "how does this work", "how do you work",
-            "what kind of questions", "what do the", "what are the banners",
-            "what is uninovis", "which universities",
-        ]
-        if any(p in msg_lower for p in meta_patterns):
+        if self._is_meta_question(msg_lower):
             return True
 
         for term in self._topical_scope:
@@ -941,6 +948,10 @@ class MetadataRAGMixin:
         from search_papers_by_topic so that text responses and figures use the same source.
         Returns context even when 0 results are found (confirmed absence is authoritative)."""
 
+        # Skip topic search for researcher queries — let the researcher metadata handle it
+        if self._query_mentions_researcher(user_message):
+            return ""
+
         topic = self._extract_topic(user_message)
         if not topic:
             return ""
@@ -1016,6 +1027,11 @@ class MetadataRAGMixin:
         (no LLM involved).  Every claim is directly traceable to papers.json.
         Returns "" if no topic is detected or no results found.
         """
+        # Skip topic search for researcher queries — let the LLM use researcher metadata
+        if self._query_mentions_researcher(user_message):
+            print(f"[DEBUG] _build_topic_factual_section SKIPPED for researcher query: {user_message[:50]}")
+            return ""
+
         topic = self._extract_topic(user_message)
         if not topic:
             return ""
@@ -1044,6 +1060,10 @@ class MetadataRAGMixin:
         for acronym, researchers in self._researchers_by_uni.items():
             uninovis_researchers[acronym] = {r["name"] for r in researchers}
 
+        # Cap: if too many results, show summary per university with top papers only
+        MAX_DETAILED_PAPERS = 30
+        show_full_list = (total <= MAX_DETAILED_PAPERS)
+
         lines = []
         if show_banners:
             lines.append(self._banner_verified(f"{total} papers from the UNINOVIS database (no AI involved)."))
@@ -1051,6 +1071,13 @@ class MetadataRAGMixin:
             f'### Papers on "{topic}" ({total} papers)',
             '',
         ])
+
+        if not show_full_list:
+            lines.append(
+                f"There are {total} papers on this topic. Showing a summary per university "
+                f"with the top papers. To see all papers, narrow your search by adding a "
+                f"**university** (e.g. 'papers on {topic} from UMA'), a **year**, or a more specific topic.\n"
+            )
 
         paper_num = 0
         for acronym, uni in sorted(results.items(), key=lambda x: x[1]["count"], reverse=True):
@@ -1090,7 +1117,22 @@ class MetadataRAGMixin:
             if paper_authors:
                 lines.append(f"*Researchers: {', '.join(sorted(paper_authors))}*")
             lines.append("")
-            lines.extend(paper_lines)
+
+            if show_full_list:
+                lines.extend(paper_lines)
+            else:
+                # Show only top 3 most cited papers per university
+                sorted_papers = sorted(uni["papers"], key=lambda p: p.get("cited_by_count", 0), reverse=True)
+                for p in sorted_papers[:3]:
+                    authors_str = ", ".join(p["authors"][:4])
+                    if len(p["authors"]) > 4:
+                        authors_str += " et al."
+                    year_str = f" ({p['year']})" if p.get("year") else ""
+                    cited = f" (Cited: {p['cited_by_count']})" if p.get("cited_by_count") else ""
+                    pdf = self._pdf_link(p.get("id", ""), p.get("doi", ""))
+                    lines.append(f"- \"{p['title']}\"{year_str} — {authors_str}{cited}{pdf}")
+                if uni["count"] > 3:
+                    lines.append(f"- *... and {uni['count'] - 3} more papers*")
             lines.append("")
 
         return "\n".join(lines)
@@ -1125,12 +1167,9 @@ class MetadataRAGMixin:
         text = "The response below is generated by the AI model based on research documents from the UNINOVIS database."
         if detail:
             text = detail
-        note = (' <em style="font-weight:normal;font-size:0.9em;">'
-                'Note: paper counts in AI-generated summaries are approximate groupings '
-                'and may differ from exact database queries on the same topic.</em>')
         return (
             f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{cls._BANNER_STYLE}">'
-            f'\U0001F7E1 <strong>AI interpretation of database content</strong> — {text}{note}'
+            f'\U0001F7E1 <strong>AI interpretation of database content</strong> — {text}'
             '</div>\n\n'
         )
 
@@ -1712,35 +1751,100 @@ class MetadataRAGMixin:
 
     def _build_researcher_context(self, user_message: str) -> str:
         """Search researchers.json for names mentioned in the query.
-        Returns structured data about matching UNINOVIS researchers."""
+        Returns structured data about matching UNINOVIS researchers.
+
+        Matching strategy:
+        1. Exact full name match → return that researcher's data
+        2. Partial match (surname, first+surname) → if exactly one match, use it
+        3. Multiple partial matches → return disambiguation list for the LLM to present
+        """
         if not self._researchers_by_uni:
             return ""
 
-        msg_lower = user_message.lower()
-        matches = []
+        msg_lower = user_message.lower().strip()
+
+        # Check if this is a disambiguation follow-up (user replied with a number)
+        if hasattr(self, '_disambiguation_candidates') and self._disambiguation_candidates:
+            import re
+            num_match = re.match(r'^(\d+)\.?$', msg_lower)
+            if num_match:
+                idx = int(num_match.group(1)) - 1
+                if 0 <= idx < len(self._disambiguation_candidates):
+                    chosen = self._disambiguation_candidates[idx]
+                    matches = [chosen]
+                    self._disambiguation_candidates = None
+                    # Jump to building full context
+                    return self._build_researcher_detail_context(matches)
+
+        exact_matches = []
+        partial_matches_list = []
 
         for acronym, researchers in self._researchers_by_uni.items():
             for r in researchers:
                 name = r["name"]
-                # Match full name or surname (last word of name)
+                name_lower = name.lower()
                 name_parts = name.split()
                 surname = name_parts[-1] if name_parts else ""
-                if (name.lower() in msg_lower or
-                        (len(surname) > 3 and surname.lower() in msg_lower)):
-                    uni_info = self._config.get("universities", {}).get(acronym, {})
-                    matches.append({
-                        "name": name,
-                        "acronym": acronym,
-                        "university": uni_info.get("name", acronym),
-                        "paper_count": r["paper_count"],
-                        "papers": r["papers"],
-                        "topics": r["topics"],
-                        "affiliations": r.get("affiliations", []),
-                        "affiliation_status": r.get("affiliation_status", "confirmed"),
-                    })
+                uni_info = self._config.get("universities", {}).get(acronym, {})
+                match_entry = {
+                    "name": name, "acronym": acronym,
+                    "university": uni_info.get("name", acronym),
+                    "paper_count": r["paper_count"], "papers": r["papers"],
+                    "topics": r["topics"],
+                    "affiliations": r.get("affiliations", []),
+                    "affiliation_status": r.get("affiliation_status", "confirmed"),
+                }
 
-        if not matches:
+                # Exact full name match
+                if name_lower in msg_lower:
+                    exact_matches.append(match_entry)
+                    continue
+
+                # Partial matches: surname, first+any-surname combos, or first name alone
+                is_partial = False
+                if len(surname) > 3 and surname.lower() in msg_lower:
+                    is_partial = True
+                if not is_partial and len(name_parts) >= 2:
+                    for i in range(1, len(name_parts)):
+                        combo = f"{name_parts[0]} {name_parts[i]}".lower()
+                        if len(combo) > 8 and combo in msg_lower:
+                            is_partial = True
+                            break
+                # First name only (≥5 chars to avoid "Ana", "Eva" false matches)
+                if not is_partial and len(name_parts) >= 2:
+                    first = name_parts[0].lower()
+                    if len(first) >= 5 and first in msg_lower:
+                        is_partial = True
+                if is_partial:
+                    partial_matches_list.append(match_entry)
+
+        # Decide what to return
+        if exact_matches:
+            matches = exact_matches
+        elif len(partial_matches_list) == 1:
+            matches = partial_matches_list
+        elif len(partial_matches_list) > 1:
+            # Multiple partial matches → return disambiguation list
+            lines = [f"RESEARCHER DISAMBIGUATION ({len(partial_matches_list)} possible matches):"]
+            lines.append("The user's query matched multiple researchers. Present this numbered list and ask the user to choose:")
+            for i, m in enumerate(partial_matches_list, 1):
+                lines.append(f"  {i}. {m['name']} — {m['acronym']} ({m['university']}) — {m['paper_count']} papers")
+                if m['topics']:
+                    lines.append(f"     Topics: {', '.join(m['topics'][:5])}")
+            lines.append("")
+            lines.append("Ask: \"Did you mean one of these researchers? Please reply with the number.\"")
+            # Store candidates for follow-up
+            self._disambiguation_candidates = partial_matches_list
+            return "\n".join(lines)
+        else:
             return ""
+
+        # From here: we have definitive matches — proceed to build full context
+        self._disambiguation_candidates = None  # clear any pending disambiguation
+        return self._build_researcher_detail_context(matches)
+
+    def _build_researcher_detail_context(self, matches: list) -> str:
+        """Build full researcher context from a list of matched researcher entries."""
 
         # Build project lookup: search project_docs for researcher names
         project_docs_dir = os.path.join(self._agent_dir, "data", "project_docs")
@@ -1787,8 +1891,8 @@ class MetadataRAGMixin:
                             authors.add(aname.lower())
                     paper_authors[pid] = authors
 
-        lines = [f"RESEARCHER LOOKUP RESULTS ({len(matches)} match(es)):"]
-        lines.append("This data is authoritative. Use ONLY this information when answering about these researchers. Do NOT invent or reassign papers or projects.")
+        lines = [f"RESEARCHER LOOKUP RESULTS ({len(matches)} match(es)) — FOUND IN DATABASE:"]
+        lines.append("IMPORTANT: This researcher WAS FOUND in the database. The data below is authoritative. Present these papers and topics to the user. Do NOT say 'I could not find' — the data is right here. Do NOT invent or reassign papers or projects.")
         for m in matches:
             status_tag = " [unconfirmed affiliation]" if m.get("affiliation_status") == "unconfirmed" else ""
             lines.append(f"\n{m['name']} -- {m['acronym']} ({m['university']}){status_tag}")
@@ -3293,6 +3397,8 @@ class MetadataRAGMixin:
             "has not been", "missing", "gaps", "unstudied",
             "not covered", "not researched", "not explored",
             "not addressed", "not investigated",
+            "least studied", "underrepresented", "under-represented",
+            "least explored", "least researched", "least covered",
         ]
         return any(phrase in msg_lower for phrase in gap_phrases)
 
@@ -3312,55 +3418,40 @@ class MetadataRAGMixin:
 
     @classmethod
     def _split_off_topic_banners(cls, text: str) -> str:
-        """Split an off-topic response into verified refusal + unverified suggestions.
+        """Return off-topic response without any reliability cue.
 
-        The refusal part (correctly identifying the question as off-topic) gets a
-        green Verified banner. The suggestions part (AI-generated topic ideas) gets
-        a red Unverified banner since they may not correspond to actual database content.
+        Out-of-scope refusals are honest acknowledgements of limitations,
+        not unreliable content. Reliability cues are irrelevant here:
+        green would be redundant, red would be wrong.
         """
-        import re
-        # Find where suggestions begin — match both newline-separated and mid-sentence
-        split_patterns = [
-            r'(?:However|That said|Instead),?\s+I can suggest',
-            r'(?:However|That said|Instead),?\s+(?:here are|you might|let me)',
-            r'\n\s*(?:However|That said|Instead|But),?\s',
-            r'\n\s*(?:I can suggest|Here are some|You might|Let me suggest)',
-            r'(?:I can suggest|Here are some|You might find)',
-            r'(?:such as:|for example:)',
-            r'\n\s*(?:related topics|suggest.*topics|topics.*interest)',
-        ]
-        split_pos = None
-        for pattern in split_patterns:
-            m = re.search(pattern, text, re.IGNORECASE)
-            if m:
-                if split_pos is None or m.start() < split_pos:
-                    split_pos = m.start()
-
-        if split_pos and split_pos > 10:
-            refusal = text[:split_pos].strip()
-            suggestions = text[split_pos:].strip()
-            return (
-                cls._banner_verified("This question is outside the scope of this agent.")
-                + refusal + "\n\n"
-                + cls._banner_speculation("The topic suggestions below are generated by the AI model and may not correspond to actual content in the database.")
-                + suggestions
-            )
-        else:
-            # Can't split — use verified banner for the whole refusal
-            return cls._banner_verified("This question is outside the scope of this agent.") + text
+        return text
 
     def _query_mentions_researcher(self, user_message: str) -> bool:
-        """Check if the user's query mentions a known researcher name."""
+        """Check if the user's query mentions a known researcher name (exact or partial)."""
         if not self._researchers_by_uni:
             return False
         msg_lower = user_message.lower()
+        # Also detect "papers by X" or "publications by X" patterns
+        import re
+        if re.search(r'\b(?:papers?|publications?|research|works?)\s+(?:by|from|of)\s+[A-ZÀ-Ü]', user_message):
+            return True
         for researchers in self._researchers_by_uni.values():
             for r in researchers:
                 name = r["name"]
                 name_parts = name.split()
                 surname = name_parts[-1] if name_parts else ""
-                if (name.lower() in msg_lower or
-                        (len(surname) > 3 and surname.lower() in msg_lower)):
+                candidates = [name.lower()]
+                if len(surname) > 3:
+                    candidates.append(surname.lower())
+                if len(name_parts) >= 2:
+                    for i in range(1, len(name_parts)):
+                        combo = f"{name_parts[0]} {name_parts[i]}".lower()
+                        if len(combo) > 8:
+                            candidates.append(combo)
+                    first = name_parts[0].lower()
+                    if len(first) >= 5:
+                        candidates.append(first)
+                if any(pm in msg_lower for pm in candidates):
                     return True
         return False
 
@@ -3639,7 +3730,8 @@ class MetadataRAGMixin:
             # These typically start with interrogative/imperative words.
             if re.match(
                 r'^(what|who|how|why|when|where|which|can|do|does|is|are|'
-                r'show|list|tell|describe|explain|find|give|compare)',
+                r'show|list|tell|describe|explain|find|give|compare|'
+                r'figure|map|search|look|identify|define)',
                 t_lower,
             ):
                 continue
@@ -4076,29 +4168,25 @@ class MetadataRAGMixin:
                 elif project_ctx:
                     # LLM interprets project data → yellow
                     if self._query_mentions_researcher(user_message):
-                        pre_banner = self._banner_database(
-                            "Papers and projects come from the database, but links to "
-                            "specific researchers may contain errors due to name disambiguation. "
-                            "Verify authorship and participation before use."
-                        )
+                        # Researcher data comes from structured database — no banner needed
+                        # unless it's a disambiguation (handled separately)
+                        pre_banner = ""
                     else:
                         pre_banner = self._banner_database(
                             "The response below is generated by the AI model based on "
                             "research project data from the UNINOVIS database."
                         )
                 elif researcher_ctx:
-                    if "ATTRIBUTION NOT VERIFIED" in researcher_ctx:
+                    if "RESEARCHER DISAMBIGUATION" in researcher_ctx:
+                        pre_banner = ""  # disambiguation is a clarification, not content
+                    elif "ATTRIBUTION NOT VERIFIED" in researcher_ctx:
                         pre_banner = self._banner_database(
                             "Some papers attributed to this researcher could not be "
                             "verified against the database author lists. "
                             "Items marked with \u26A0\uFE0F should be checked."
                         )
                     else:
-                        pre_banner = self._banner_database(
-                            "Papers and projects come from the database, but links to "
-                            "specific researchers may contain errors due to name disambiguation. "
-                            "Verify authorship and participation before use."
-                        )
+                        pre_banner = ""  # researcher data is from structured database
                 elif has_structured_data:
                     pre_banner = self._banner_verified()
                 elif not context and not web_ctx:
@@ -4107,13 +4195,28 @@ class MetadataRAGMixin:
                         pre_banner = self._banner_undefined()
                         self._log_undefined_topic(user_message)
                     else:
-                        pre_banner = self._banner_creative()
+                        # Out-of-scope: no reliability cue (refusal is not unreliable)
+                        pre_banner = ""
                 elif context:
                     pre_banner = self._banner_database()
+                    # Add count approximation note only for queries asking for numbers
+                    if re.search(r'\bhow many\b|\bcuánto|cuánta|cuántos|cuántas\b|\bcount\b|\bnumber of\b|\btotal\b', user_message, re.IGNORECASE):
+                        pre_banner = self._banner_database(
+                            "The response below is generated by the AI model based on research documents. "
+                            "Note: counts in AI-generated summaries are approximate and may differ from exact database queries."
+                        )
 
-                # Override: non-research task requests always get a red banner
-                if pre_banner and self._is_non_research_task(user_message):
-                    pre_banner = self._banner_creative()
+                # Non-research tasks: no reliability cue (refusal is not unreliable)
+                if self._is_non_research_task(user_message):
+                    pre_banner = ""
+
+                # Meta-questions: no reliability cue (answer comes from system prompt)
+                if self._is_meta_question(user_message.lower()):
+                    pre_banner = ""
+
+                # Researcher disambiguation: no reliability cue (it's a clarification, not content)
+                if researcher_ctx and "RESEARCHER DISAMBIGUATION" in researcher_ctx:
+                    pre_banner = ""
 
             messages = [{"role": "system", "content": system_with_context}]
 
@@ -4141,7 +4244,7 @@ class MetadataRAGMixin:
                 project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
                 metadata_ctx, context, web_ctx
             ]))
-            if detect_hallucinations:
+            if detect_hallucinations and not self._is_meta_question(user_message.lower()) and not self._is_off_topic_response(llm_content):
                 llm_content, hallucination_count = self._verify_paper_references(llm_content, combined_ctx, transparency)
             else:
                 hallucination_count = 0
@@ -4160,8 +4263,9 @@ class MetadataRAGMixin:
                     )
 
             # Prepend banner (AI3 only)
-            # If the LLM refused as off-topic, split into verified refusal + unverified suggestions
-            if show_banners and self._is_off_topic_response(llm_content):
+            # If the LLM refused as off-topic, remove banner
+            # But NOT for conceptual questions — those are in-scope even without glossary match
+            if show_banners and not is_conceptual and self._is_off_topic_response(llm_content):
                 llm_content = self._split_off_topic_banners(llm_content)
             elif pre_banner:
                 llm_content = pre_banner + llm_content
@@ -4485,29 +4589,25 @@ class MetadataRAGMixin:
                 elif project_ctx:
                     # LLM interprets project data → yellow
                     if self._query_mentions_researcher(user_message):
-                        pre_banner = self._banner_database(
-                            "Papers and projects come from the database, but links to "
-                            "specific researchers may contain errors due to name disambiguation. "
-                            "Verify authorship and participation before use."
-                        )
+                        # Researcher data comes from structured database — no banner needed
+                        # unless it's a disambiguation (handled separately)
+                        pre_banner = ""
                     else:
                         pre_banner = self._banner_database(
                             "The response below is generated by the AI model based on "
                             "research project data from the UNINOVIS database."
                         )
                 elif researcher_ctx:
-                    if "ATTRIBUTION NOT VERIFIED" in researcher_ctx:
+                    if "RESEARCHER DISAMBIGUATION" in researcher_ctx:
+                        pre_banner = ""  # disambiguation is a clarification, not content
+                    elif "ATTRIBUTION NOT VERIFIED" in researcher_ctx:
                         pre_banner = self._banner_database(
                             "Some papers attributed to this researcher could not be "
                             "verified against the database author lists. "
                             "Items marked with \u26A0\uFE0F should be checked."
                         )
                     else:
-                        pre_banner = self._banner_database(
-                            "Papers and projects come from the database, but links to "
-                            "specific researchers may contain errors due to name disambiguation. "
-                            "Verify authorship and participation before use."
-                        )
+                        pre_banner = ""  # researcher data is from structured database
                 elif has_structured_data:
                     pre_banner = self._banner_verified()
                 elif not context and not web_ctx:
@@ -4516,13 +4616,28 @@ class MetadataRAGMixin:
                         pre_banner = self._banner_undefined()
                         self._log_undefined_topic(user_message)
                     else:
-                        pre_banner = self._banner_creative()
+                        # Out-of-scope: no reliability cue (refusal is not unreliable)
+                        pre_banner = ""
                 elif context:
                     pre_banner = self._banner_database()
+                    # Add count approximation note only for queries asking for numbers
+                    if re.search(r'\bhow many\b|\bcuánto|cuánta|cuántos|cuántas\b|\bcount\b|\bnumber of\b|\btotal\b', user_message, re.IGNORECASE):
+                        pre_banner = self._banner_database(
+                            "The response below is generated by the AI model based on research documents. "
+                            "Note: counts in AI-generated summaries are approximate and may differ from exact database queries."
+                        )
 
-                # Override: non-research task requests always get a red banner
-                if pre_banner and self._is_non_research_task(user_message):
-                    pre_banner = self._banner_creative()
+                # Non-research tasks: no reliability cue (refusal is not unreliable)
+                if self._is_non_research_task(user_message):
+                    pre_banner = ""
+
+                # Meta-questions: no reliability cue (answer comes from system prompt)
+                if self._is_meta_question(user_message.lower()):
+                    pre_banner = ""
+
+                # Researcher disambiguation: no reliability cue (it's a clarification, not content)
+                if researcher_ctx and "RESEARCHER DISAMBIGUATION" in researcher_ctx:
+                    pre_banner = ""
 
             messages = [{"role": "system", "content": system_with_context}]
 
@@ -4572,8 +4687,9 @@ class MetadataRAGMixin:
                     full_response = cleaned
                     yield ("replace", cleaned)
 
-            # If the LLM refused as off-topic, split into verified refusal + unverified suggestions
-            if show_banners and self._is_off_topic_response(full_response):
+            # If the LLM refused as off-topic, remove banner
+            # But NOT for conceptual questions — those are in-scope even without glossary match
+            if show_banners and not is_conceptual and self._is_off_topic_response(full_response):
                 corrected = self._split_off_topic_banners(full_response)
                 full_response = corrected
                 yield ("replace", corrected)
@@ -4590,7 +4706,7 @@ class MetadataRAGMixin:
                 project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
                 metadata_ctx, context, web_ctx
             ]))
-            if detect_hallucinations:
+            if detect_hallucinations and not self._is_meta_question(user_message.lower()) and not self._is_off_topic_response(full_response):
                 verified, hallucination_count = self._verify_paper_references(full_response, combined_ctx, transparency)
                 if verified != full_response:
                     full_response = verified

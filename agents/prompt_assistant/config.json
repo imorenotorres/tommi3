@@ -8,7 +8,8 @@
     "**List my agents**",
     "Review this prompt and suggest improvements: [paste prompt]",
     "Write a prompt for a customer support agent",
-    "What should go in Identity vs Rules vs Strict?"
+    "What should go in Identity vs Rules vs Strict?",
+    "[Show agent decision logic](/static/agent_logic.html)"
   ],
   "show_history": true,
   "prompt_level": "stringent",

@@ -101,7 +101,7 @@ class SimpleVectorlessMixin(VectorlessMixin):
         # Procedural banner (only if visual display is enabled)
         if self._should_show_visual_badge() and transparency not in ("black_box", "hidden"):
             if _is_off_topic(llm_content):
-                llm_content = _banner_unverified() + llm_content
+                pass  # No banner for out-of-scope refusals — they are honest, not unreliable
             else:
                 llm_content = _banner_database() + llm_content
 
@@ -158,9 +158,9 @@ class SimpleVectorlessMixin(VectorlessMixin):
                 full_response += chunk.data.choices[0].delta.content
                 yield chunk.data.choices[0].delta.content
 
-        # If off-topic, replace the banner (only if visual display is enabled)
+        # If off-topic, remove the banner (refusals don't need reliability cues)
         if self._should_show_visual_badge() and transparency not in ("black_box", "hidden") and _is_off_topic(full_response):
-            yield ("replace", _banner_unverified() + full_response)
+            yield ("replace", full_response)
 
         # Save to query history
         self._query_history.append({

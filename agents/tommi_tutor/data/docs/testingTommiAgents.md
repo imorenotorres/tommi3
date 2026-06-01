@@ -342,133 +342,119 @@ Click the **prompt badge** to cycle through levels. The prompt level controls ho
 
 ---
 
-## 6. The Transparency Pipeline
+## 6. The Agent Decision Logic
 
-The transparency system works as a three-step pipeline. Each step can succeed or fail independently, and testers should evaluate each one separately.
+Before a TOMMI agent generates a response, it classifies the user's question and decides how to answer it. Understanding this logic is essential for testing, because each decision path produces different behaviour, different reliability cues, and different failure modes.
 
-```
-Response text
-     |
-     v
-+-------------------+     +-------------------+     +-------------------+
-| Step 1:           |     | Step 2:           |     | Step 3:           |
-| Claim             |---->| Claim             |---->| Confidence        |
-| Identification    |     | Categorization    |     | Computation       |
-+-------------------+     +-------------------+     +-------------------+
-  "What are the           "Where does each       "How reliable is
-   verifiable facts?"      claim come from?"       the response?"
-```
+### 6.1 The core idea
 
-### 6.1 Step 1 — Claim Identification
+A TOMMI agent is not a simple chatbot that forwards every question to the language model. Instead, it works in two phases:
 
-**Goal:** Extract verifiable factual claims from the LLM response.
+1. **Classification phase** — the agent analyses the question to determine its type (conceptual, researcher lookup, topic search, project query, etc.) and builds the appropriate context from structured data.
+2. **Generation phase** — the language model receives the question together with the selected context, and generates a response constrained by the prompt rules.
 
-Claim identification uses a **bidirectional approach** that combines two complementary techniques:
+The classification phase is deterministic (rule-based), while the generation phase is probabilistic (LLM-dependent). This means that classification errors are reproducible and fixable in code, while generation errors may vary between runs and require prompt tuning.
 
-#### Phase A — Response-driven extraction (regex patterns)
+### 6.2 Query classification
 
-The system scans the response text using pattern matching to identify fragments that look like verifiable facts. The following patterns are recognized, in order:
+The agent classifies each query into one of the following categories, checked in priority order. The first match wins — later checks are skipped.
 
-| # | Pattern | Example | Minimum length |
-|---|---------|---------|----------------|
-| 1 | Quoted strings | "Explainable AI in Healthcare" | 10 characters |
-| 2 | Bold markdown text | **AI Ethics** | 5 characters |
-| 3 | Parenthetical identifiers | (DOI: 10.xxxx, ORCID: 0000-xxxx) | 5 characters |
-| 4 | Year ranges and date references | (2020-2024), published in 2023 | -- |
-| 5 | Structured data | email addresses, numerical values with units | 5 characters |
-| 6 | Named entities (NER-like) | University of Malaga, Dr. Smith | 5 characters |
+| Priority | Category | Example query | How the agent answers | Reliability cue |
+|----------|----------|---------------|----------------------|-----------------|
+| 1 | **Meta-question** | "What can you do?" | From system prompt (agent description) | None |
+| 2 | **Non-research task** | "Write an essay", "Translate this" | Polite refusal | None |
+| 3 | **Off-topic** | "What's the weather?" | Refusal + in-scope suggestions | None |
+| 4 | **Disambiguation follow-up** | "1" (after a researcher list) | Looks up stored candidate | None |
+| 5 | **Figure/map request** | "Show a figure of papers on AI ethics" | Generates map link | 🟢 Green |
+| 6 | **Gap analysis** | "Which topics are least studied?" | LLM reasons about absence | 🔴 Red |
+| 7 | **Conceptual (glossary)** | "What is explainable AI?" | From glossary definitions | 🟡 Yellow |
+| 8 | **Conceptual (not in glossary)** | "What is predictive policing?" | LLM general knowledge, within scope | 🟡 Yellow |
+| 9 | **Follow-up** | "Expand on point 1" | Uses conversation history | 🟡 Yellow |
+| 10 | **Content query** | "Papers on AI ethics from UMA" | See Section 6.3 | Varies |
 
-These patterns focus on **precision over recall** — they aim to avoid false claims rather than catch every possible fact.
+### 6.3 Content query — the context chain
 
-#### Phase B — Context-driven verification
-
-After extracting candidate claims from the response, the system checks them against the actual data sources:
-
-1. **Metadata matching:** Each claim is compared against structured fields in `papers.json`, `researchers.json`, and `metadata.json`. This includes paper titles, author names, university names, DOIs, topics, and years.
-2. **RAG chunk matching:** Claims are compared against the text chunks retrieved from ChromaDB during the RAG step.
-3. **Overlap scoring:** A claim is considered "grounded" if it matches a data source above a similarity threshold.
-
-#### What testers should check
-
-- **Missing claims (Error 1.1):** Look for obvious factual statements in the response that are NOT highlighted. Example: the response says "published in Nature in 2023" but this is not identified as a claim.
-- **False claims:** Less common with the regex approach, but check if non-factual text (opinions, transitions) is incorrectly marked as a claim.
-
-### 6.2 Step 2 — Claim Categorization
-
-**Goal:** Determine the source of each claim (metadata, database, LLM, or web).
-
-Each identified claim is classified into one of four categories based on where matching evidence was found:
-
-| Category | Colour (inline) | Meaning | Source |
-|----------|:---------------:|---------|--------|
-| **Metadata** | Green | Verified against structured data | papers.json, researchers.json |
-| **Database** | Yellow | Found in RAG-retrieved documents | ChromaDB chunks from PDFs |
-| **Web** | Blue | Found in web search results | Google Custom Search (if enabled) |
-| **LLM** | Red | Not found in any data source — generated by the model | LLM inference |
-
-#### What testers should check
-
-- **False positive (Error 1.2.1):** A claim is coloured red (LLM) but it IS actually in the data. This means the matching algorithm failed to find it.
-- **False negative (Error 1.2.2):** A claim is coloured green (metadata) or yellow (database) but the information is WRONG. This means the matching produced a spurious match.
-- **Correct classification:** Spot-check several claims of each colour. Verify that green claims really come from metadata, yellow from documents, and red claims are truly inferred by the model.
-
-### 6.3 Step 3 — Confidence Computation
-
-**Goal:** Produce a single reliability score and breakdown for the response.
-
-The confidence score is calculated from the source distribution of all claims:
+For content queries (the most common type), the agent builds context from structured data using a priority chain. Each step is tried in order; the first step that produces results is used:
 
 ```
-Confidence = (metadata_claims + database_claims) / total_claims * 100
+Content Query
+│
+├─ 1. Project query? ("What is the TAILOR project?")
+│     → Search project documents
+│     → 🟡 Yellow
+│
+├─ 2. Affiliation listing? ("List researchers from THUAS")
+│     → List from researchers.json
+│     → 🟡 Yellow
+│
+├─ 3. Shared topics? ("Topics shared by UMA and USPN")
+│     → Cross-university topic comparison
+│     → 🟢 Green (programmatic)
+│
+├─ 4. University paper listing? ("List papers from UMA")
+│     → Full list from papers.json
+│     → 🟢 Green (programmatic)
+│
+├─ 5. Topic search? ("Papers on AI ethics")
+│     → search_papers_by_topic()
+│     → 🟢 Green (factual list) + 🟡 Yellow (LLM commentary)
+│
+├─ 6. Researcher lookup? ("Papers by Rubén González")
+│     → Match in researchers.json
+│     ├─ Exact match → show papers (no banner)
+│     ├─ Single partial match → show papers (no banner)
+│     ├─ Multiple matches → disambiguation list (no banner)
+│     └─ No match → fall through to RAG
+│
+└─ 7. Fallback: RAG retrieval
+      → Retrieve document chunks by keyword similarity
+      → 🟡 Yellow
 ```
 
-The reliability label is determined by the LLM percentage:
+**Why this matters for testing:** If you ask "Papers by Rubén González" and the agent returns a topic search instead of a researcher lookup, the classification chain has a bug — the researcher detection failed, and the query fell through to step 5 (topic search) instead of step 6 (researcher lookup).
 
-| LLM % | Label | Badge colour |
-|-------|-------|:------------:|
-| <= 20% | High | Green |
-| 20-50% | Good | Yellow |
-| >= 50% | Poor | Red |
+### 6.4 Reliability cue logic (summary)
 
-These thresholds are configurable per agent in `config.json` → `reliability_thresholds`.
+The reliability cue is chosen based on the classification and content source:
 
-#### What testers should check
+| Response type | Banner | Rationale |
+|--------------|--------|-----------|
+| Programmatic data (structured DB, no AI) | 🟢 Green | Data comes directly from the database |
+| AI interprets database content | 🟡 Yellow | LLM summarises or formats real data |
+| AI uses general knowledge (in-scope) | 🟡 Yellow | Topic is within scope but not in the database |
+| AI reasons about absence (gaps) | 🔴 Red | Speculative — verify independently |
+| Honest refusal (off-topic, meta, non-research) | None | Refusal is not unreliable content |
+| Researcher disambiguation | None | Clarification question, not content |
+| "How many" queries | 🟡 Yellow + note | Counts may be approximate |
 
-- **Badge vs reality (Error 1.4):** A green badge should mean most claims are verified. If you see a green badge but many claims look wrong, the confidence computation may be inaccurate.
-- **Distribution sanity:** After testing several queries, the badge distribution should make sense:
-  - Metadata queries (e.g., "list all papers") → should tend toward High
-  - Open-ended questions → may show Good or Poor
-  - If ALL queries show the same label, the thresholds may need adjustment
+### 6.5 Post-processing pipeline
 
-### 6.4 Full pipeline example
+After the LLM generates a response, it passes through several post-processing steps:
 
-**Query:** "List researchers from UMA working on AI Ethics"
+1. **Authority sanitisation** — replaces authoritative phrases ("has not been studied" → "does not appear in the indexed database")
+2. **Alliance name correction** — fixes common LLM misspellings (e.g., "UNINOVOS" → "UNINOVIS")
+3. **Paper verification** — checks quoted titles against the paper database, flags unrecognised ones with ⚠️
+4. **Unsolicited gap detection** — if the LLM volunteers gap analysis that wasn't requested, injects a red banner
+5. **Humility rewriting** — if enabled, adds hedging prefixes to ungrounded claims
 
-```
-Step 1 — Claim identification:
-  Extracted claims: "Dr. García", "AI Ethics", "UMA", "2023", "Explainable AI"
+### 6.6 Testing the decision logic
 
-Step 2 — Claim categorization:
-  "Dr. García"      → Green  (found in researchers.json)
-  "AI Ethics"       → Green  (topic in metadata)
-  "UMA"             → Green  (institution in metadata)
-  "2023"            → Yellow (found in RAG document)
-  "Explainable AI"  → Green  (concept in papers.json)
+To verify the classification works correctly, use these test patterns:
 
-Step 3 — Confidence:
-  Metadata: 60% | Database: 20% | LLM: 20%
-  Label: Good (yellow badge)
-```
-
-### 6.5 Special cases
-
-**Gap analysis responses:** When the agent performs a gap analysis ("What topics have NOT been studied?"), the colour interpretation is **reversed**:
-- Green = the topic WAS found in the database (not a gap)
-- Red = the topic was NOT found (true gap — this is actually the desired result)
-
-Testers should be aware that a red-heavy response in gap analysis mode is **correct behaviour**, not an error.
-
-**Follow-up queries:** When a user sends a follow-up ("tell me more about point 2"), the agent uses conversation history. The badge should still appear, but the source distribution may shift toward LLM since the follow-up is synthesised from prior context.
+| Test | Expected classification | What to check |
+|------|------------------------|---------------|
+| "What can you do?" | Meta-question | No banner, describes capabilities |
+| "Write me an essay" | Non-research task | No banner, polite refusal |
+| "What is the weather?" | Off-topic | No banner, suggests in-scope topics |
+| "What is fairness in AI?" | Conceptual (glossary) | Yellow banner, cites glossary definition |
+| "What is predictive policing?" | Conceptual (not in glossary) | Yellow banner, says "not in glossary" |
+| "Papers on AI ethics from UMA" | Topic search | Green banner with paper list |
+| "List researchers from THUAS" | Affiliation listing | Yellow banner with researcher list |
+| "Papers by Rubén González" | Researcher lookup | No banner if found; disambiguation if ambiguous |
+| "What is the TAILOR project?" | Project query | Yellow banner with project details |
+| "Topics not studied in UNINOVIS" | Gap analysis | Red banner, speculative content |
+| "Show a figure of publications" | Figure request | Green banner, interactive map |
+| "How many papers in 2024?" | Content + count | Yellow banner with count note |
 
 ---
 
@@ -481,11 +467,11 @@ Before deploying an agent, verify each item:
 - [ ] **Crystal box detail:** In Crystal box mode, verify the full badge appears with source breakdown percentages, confidence score, claim count, inline highlights, and colour legend.
 - [ ] **Grey box minimal:** In Grey box mode, verify only the reliability label and confidence percentage appear. No breakdown, no highlights, no legend.
 - [ ] **Black box suppression:** In Black box mode, verify no reliability information is shown at all. The response should appear clean, with no badge or indicators.
-- [ ] **Stringent prompt:** Ask an off-topic question (e.g., "What is the weather today?"). The agent should refuse or redirect.
+- [ ] **Stringent prompt:** Ask an off-topic question (e.g., "What is the weather today?"). The agent should refuse or redirect. Verify that **no reliability cue** (green, yellow, or red) is shown for the refusal — reliability cues are only for responses where the user needs to assess content trustworthiness, not for honest scope acknowledgements.
 - [ ] **Lax prompt:** Ask the same off-topic question. The agent should answer more freely, confirming that prompt constraints are actually effective at the Stringent level.
 - [ ] **Tolerant prompt:** Verify behaviour falls between Stringent and Lax.
 - [ ] **LLM switching:** Switch between available LLMs and compare response quality. Verify the LLM badge updates correctly (colour and label).
-- [ ] **Coverage warnings:** Ask an off-topic question in Lax mode (e.g., "recipe for chocolate cake" to a research agent). Verify the badge shows "No verifiable claims found" or "Low verifiability." Then ask an on-topic question and confirm the coverage warning disappears.
+- [ ] **Coverage warnings:** Ask an off-topic question in Lax mode (e.g., "recipe for chocolate cake" to a research agent). Verify that **no reliability cue is shown** for the refusal — out-of-scope responses are honest acknowledgements of limitations, not unreliable content. Then ask an on-topic question and confirm that reliability cues appear normally.
 - [ ] **Gap analysis (RAG+Metadata only):** Ask a gap analysis question (e.g., "What topics have not been studied?"). Verify the badge shows Poor/LLM: 100% and the inline highlights use the reversed colour interpretation (green = found in DB, red = true gap).
 - [ ] **Follow-up queries:** After a normal query, send a follow-up ("expand on point 1"). Verify the agent responds using conversation history and that a reliability badge still appears.
 - [ ] **Audit log:** Check `agents/{agent_id}/data/audit_log.jsonl` after several queries. Verify entries are being recorded with correct fields.

@@ -66,6 +66,20 @@ Type your question in the text box at the bottom of the screen and click **Send*
 - **For maps or figures** (Metadata+RAG agents only), include the word "figure" or "map" in your question – for example, "Show me a figure of papers by country."
 - **For database agents (Text2SQL)**, you can use commands like "show me more," "sort by country," "only France," or "expand #3" to navigate and refine results. If the system detects that the generated SQL doesn't match your question, it will block the query and ask you to rephrase — this prevents the AI from returning unrelated results.
 
+### 3.1 How the Agent Processes Your Question
+
+When you ask a question, the agent does not simply forward it to the AI language model. Instead, it first analyses your question to determine the best way to answer it — much like a librarian who first decides whether to look in the catalogue, the encyclopaedia, or the archives before answering.
+
+Depending on what you ask, the agent may:
+
+- **Look up structured data** — if you ask about a specific researcher, university, or topic, the agent searches the database directly and gives you verified facts (green banner).
+- **Consult the glossary** — if you ask "What is explainable AI?", the agent checks its curated glossary of concepts and definitions.
+- **Search research documents** — if your question requires interpretation of papers or projects, the agent retrieves relevant documents and asks the AI model to synthesise an answer (yellow banner).
+- **Identify research gaps** — if you ask about topics not yet studied, the agent reasons about what is absent from the database (red banner, since this is speculative).
+- **Decline politely** — if your question is outside the agent's domain (e.g., a recipe, a translation request), the agent tells you so — with no banner, because an honest refusal is not unreliable content.
+
+This means that different questions get different levels of reliability, and the coloured banners help you understand which type of answer you are receiving.
+
 ---
 
 ## 4. Understanding Responses
@@ -78,7 +92,9 @@ When reliability cues are enabled, a coloured banner appears at the top of each 
 
 - **🟢 Verified data** (green) – This content comes directly from the database with no AI involvement. You can trust this information.
 - **🟡 AI Commentary** (yellow) – The AI model interprets or presents verified data. The underlying data is real, but the presentation involves AI selection and inference. Check important details.
-- **🔴 Unverified** (red) – The AI output cannot be directly verified against the database. This includes gap analysis, off-topic suggestions, and AI reasoning beyond the data. Verify independently.
+- **🔴 Unverified** (red) – The AI output cannot be directly verified against the database. This includes gap analysis and AI reasoning beyond the data. Verify independently.
+
+**No banner** – When the agent recognises that a question is outside its scope and declines to answer, no reliability cue is shown. This is intentional: an honest refusal is not unreliable content, so a banner would be misleading. Reliability cues are reserved for responses where you need to assess the trustworthiness of actual content.
 
 ### 4.2 Content Transparency for Text2SQL (Text-to-SQL) Agents
 
@@ -152,7 +168,7 @@ The sidebar includes a **Query history** panel that lists your previous question
 
 **Why does the agent say it cannot find information?** The agent only answers from its own document database, not from general knowledge. If your question is outside the scope of the documents it was given, it will tell you it cannot find relevant information. This is actually a good sign – it means the agent is not making things up.
 
-**What do I do if I think the agent gave a wrong answer?** Look at the reliability cues first. If a section has a 🔴 (red) banner, the content is unverified. If it has a 🟡 (yellow) banner, the AI is interpreting database content — check important details. You can report errors through the feedback link shown at the top of the chat area. Your reports help improve the agent.
+**What do I do if I think the agent gave a wrong answer?** Look at the reliability cues first. If a section has a 🔴 (red) banner, the content is unverified. If it has a 🟡 (yellow) banner, the AI is interpreting database content — check important details. If there is no banner, the agent is either refusing an out-of-scope question (which is correct behaviour) or reliability cues are disabled. You can report errors through the feedback link shown at the top of the chat area. Your reports help improve the agent.
 
 **Can I use this on my phone?** Yes. The web interface works on mobile browsers, though the experience is better on a larger screen.
 

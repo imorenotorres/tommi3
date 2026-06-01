@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>What is an AI Agent?</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">What is an AI Agent?</h1>
+</header>
+<h1 id="what-is-an-ai-agent">What is an AI Agent?</h1>
+<h2 id="a-simple-definition">A simple definition</h2>
+<p>An AI Agent is a software program that interacts with a user to
+accomplish tasks. At its core, every AI Agent follows four steps:</p>
+<ol type="1">
+<li><p><strong>Receive</strong> — The agent receives a request from the
+user, typically in natural language (“Show me agreements in Italy”) but
+also through clicks, form selections, or other interactions.</p></li>
+<li><p><strong>Interpret</strong> — The agent analyses the request to
+understand what the user wants. This is the agent’s <em>decision
+logic</em> — it classifies the request and decides which action to
+take.</p></li>
+<li><p><strong>Act</strong> — The agent performs one or more actions:
+querying a database, searching documents, calling a language model,
+generating a visualisation, or simply declining a request that is
+outside its scope.</p></li>
+<li><p><strong>Respond</strong> — The agent formats the result and
+delivers it to the user: a text answer, a table, a map, a chart, or a
+message explaining why it cannot help.</p></li>
+</ol>
+<pre><code>          ┌──────────┐
+          │   User   │
+          └────┬─────┘
+               │ question, click, or selection
+               ▼
+        ┌─────────────┐
+        │  1. Receive  │
+        └──────┬──────┘
+               │
+               ▼
+        ┌──────────────┐
+        │ 2. Interpret  │  ◄── The agent&#39;s decision logic
+        └──────┬───────┘
+               │
+               ▼
+        ┌──────────────┐
+        │   3. Act      │  ◄── Query DB, call LLM, generate map...
+        └──────┬───────┘
+               │
+               ▼
+        ┌──────────────┐
+        │  4. Respond   │  ◄── Text, table, map, refusal...
+        └──────┬───────┘
+               │
+               ▼
+          ┌──────────┐
+          │   User   │
+          └──────────┘</code></pre>
+<p>Not every agent needs artificial intelligence in every step. Some
+agents use AI only for interpretation (understanding the question),
+others use it only for action (generating text), and some use no AI at
+all — relying instead on rules and structured data.</p>
+<hr />
+<h2 id="example-1-a-calculator-agent">Example 1: A Calculator Agent</h2>
+<p>The simplest possible agent. It receives a mathematical expression,
+evaluates it, and returns the result. No AI is involved at any
+stage.</p>
+<pre><code>User: &quot;What is 15% of 230?&quot;
+
+  ┌──────────┐
+  │ Receive   │  &quot;What is 15% of 230?&quot;
+  └─────┬─────┘
+        │
+  ┌─────▼─────┐
+  │ Interpret  │  Parse: operation = percentage, values = 15, 230
+  │            │  (rule-based parsing, no AI)
+  └─────┬─────┘
+        │
+  ┌─────▼─────┐
+  │ Act        │  Calculate: 230 × 0.15 = 34.5
+  │            │  (arithmetic, no AI)
+  └─────┬─────┘
+        │
+  ┌─────▼─────┐
+  │ Respond    │  &quot;15% of 230 is 34.5&quot;
+  └────────────┘</code></pre>
+<p><strong>Key point:</strong> This agent has logic (it must parse “15%
+of 230” into a calculation), but no AI. The interpretation is
+rule-based.</p>
+<hr />
+<h2 id="example-2-a-faq-chatbot">Example 2: A FAQ Chatbot</h2>
+<p>A slightly more complex agent. It receives a question, finds the most
+relevant answer from a list of predefined Q&amp;A pairs, and returns
+it.</p>
+<pre><code>User: &quot;What are your opening hours?&quot;
+
+  ┌──────────┐
+  │ Receive   │  &quot;What are your opening hours?&quot;
+  └─────┬─────┘
+        │
+  ┌─────▼─────┐
+  │ Interpret  │  Match question against FAQ database
+  │            │  using keyword similarity
+  │            │  Best match: &quot;Opening hours&quot; → answer #12
+  └─────┬─────┘
+        │
+  ┌─────▼─────┐
+  │ Act        │  Retrieve answer #12 from FAQ database
+  │            │  (database lookup, no AI)
+  └─────┬─────┘
+        │
+  ┌─────▼─────┐
+  │ Respond    │  &quot;We are open Monday to Friday,
+  │            │   9:00 to 17:00.&quot;
+  └────────────┘</code></pre>
+<p><strong>Key point:</strong> The interpretation uses keyword matching
+(simple AI or just text similarity). The action is a database lookup.
+The response is a pre-written answer — no text generation.</p>
+<hr />
+<h2 id="example-3-algoria-map-mobility-agreements-explorer">Example 3:
+Algoria Map (Mobility Agreements Explorer)</h2>
+<p>A real TOMMI agent that helps users explore university mobility
+agreements on an interactive map. It uses AI for interpretation
+(understanding the query) but not for the action (data comes directly
+from the database).</p>
+<h3 id="via-the-standalone-web-page-no-ai-at-all">Via the standalone web
+page (no AI at all):</h3>
+<pre><code>User: selects &quot;Italia&quot; from Country dropdown
+
+  ┌──────────┐
+  │ Receive   │  Form selection: country = Italia
+  └─────┬─────┘
+        │
+  ┌─────▼──────────┐
+  │ Interpret       │  Extract filter: {country: &quot;Italia&quot;}
+  │                 │  (client-side code, no AI)
+  └─────┬──────────┘
+        │
+  ┌─────▼──────────┐
+  │ Act             │  Query SQLite: SELECT ... WHERE
+  │                 │    destination_country = &#39;Italia&#39;
+  │                 │  Build map markers with coordinates
+  │                 │  (database + geocoding, no AI)
+  └─────┬──────────┘
+        │
+  ┌─────▼──────────┐
+  │ Respond         │  Render Leaflet map zoomed to Italy
+  │                 │  with clustered university markers
+  │                 │  (visualisation, no AI)
+  └────────────────┘</code></pre>
+<h3 id="via-the-chat-interface-ai-for-interpretation-only">Via the chat
+interface (AI for interpretation only):</h3>
+<pre><code>User: &quot;Show agreements in Italy for Engineering&quot;
+
+  ┌──────────┐
+  │ Receive   │  &quot;Show agreements in Italy for Engineering&quot;
+  └─────┬─────┘
+        │
+  ┌─────▼──────────┐
+  │ Interpret       │  LLM extracts filters using tool calling:
+  │                 │  {country: &quot;Italia&quot;,
+  │   ┌─────────┐  │   faculty: &quot;Ingenierías Industriales&quot;}
+  │   │   LLM   │  │
+  │   └─────────┘  │  (AI used here)
+  └─────┬──────────┘
+        │
+  ┌─────▼──────────┐
+  │ Act             │  Query SQLite with filters
+  │                 │  Build map markers
+  │                 │  (database, no AI)
+  └─────┬──────────┘
+        │
+  ┌─────▼──────────┐
+  │ Respond         │  Render map + summary text
+  │                 │  (visualisation, no AI)
+  └────────────────┘</code></pre>
+<p><strong>Key point:</strong> The same agent can work with or without
+AI. The standalone page uses form-based interpretation (no AI), while
+the chat interface uses an LLM to understand natural language. In both
+cases, the data comes directly from the database — the AI never touches
+the results.</p>
+<hr />
+<h2 id="example-4-a-course-tutor-agent">Example 4: A Course Tutor
+Agent</h2>
+<p>An educational agent that answers student questions from course
+materials. It uses AI for both interpretation and action.</p>
+<pre><code>User: &quot;Explain the difference between TCP and UDP&quot;
+
+  ┌──────────┐
+  │ Receive   │  &quot;Explain the difference between TCP and UDP&quot;
+  └─────┬─────┘
+        │
+  ┌─────▼──────────┐
+  │ Interpret       │  Classify: conceptual question
+  │                 │  Search course materials for
+  │                 │  &quot;TCP&quot; and &quot;UDP&quot;
+  │                 │  Found: Lecture 5 slides, Chapter 3
+  │                 │  (keyword search, no AI)
+  └─────┬──────────┘
+        │
+  ┌─────▼──────────┐
+  │ Act             │  Send to LLM:
+  │                 │    System: &quot;You are a course tutor...&quot;
+  │   ┌─────────┐  │    Context: [Lecture 5 + Chapter 3]
+  │   │   LLM   │  │    Question: &quot;Explain the difference...&quot;
+  │   └─────────┘  │
+  │                 │  LLM generates explanation from
+  │                 │  course materials
+  │                 │  (AI used here)
+  └─────┬──────────┘
+        │
+  ┌─────▼──────────┐
+  │ Respond         │  &quot;Based on your course materials:
+  │                 │   TCP is a connection-oriented protocol
+  │                 │   that guarantees delivery, while UDP
+  │                 │   is connectionless and faster but
+  │                 │   does not guarantee delivery...&quot;
+  │                 │
+  │                 │  🟡 AI interpretation of course content
+  └────────────────┘</code></pre>
+<p><strong>Key point:</strong> The interpretation is rule-based (keyword
+search in course materials), but the action requires AI — the LLM reads
+the relevant slides and generates a human-readable explanation. The
+reliability cue (yellow) tells the student that the answer is an AI
+interpretation of real course content.</p>
+<hr />
+<h2 id="example-5-tommi-research-assistant-metadatarag">Example 5: TOMMI
+Research Assistant (Metadata+RAG)</h2>
+<p>The most complex TOMMI agent. It combines multiple data sources, a
+sophisticated decision logic, and different response types depending on
+the question.</p>
+<h3 id="query-papers-on-ai-ethics-from-uma">Query: “Papers on AI ethics
+from UMA”</h3>
+<pre><code>User: &quot;Papers on AI ethics from UMA&quot;
+
+  ┌──────────┐
+  │ Receive   │  &quot;Papers on AI ethics from UMA&quot;
+  └─────┬─────┘
+        │
+  ┌─────▼───────────────┐
+  │ Interpret            │
+  │                      │
+  │  Classification:     │
+  │  ✗ Meta-question?    │  No
+  │  ✗ Off-topic?        │  No
+  │  ✗ Conceptual?       │  No
+  │  ✗ Project query?    │  No
+  │  ✓ Topic search?     │  Yes! topic=&quot;AI ethics&quot;
+  │                      │         university=UMA
+  │  (rule-based chain,  │
+  │   no AI)             │
+  └─────┬───────────────┘
+        │
+  ┌─────▼───────────────┐
+  │ Act                  │
+  │                      │
+  │  1. Search papers.json for &quot;AI ethics&quot;
+  │     filtered by UMA
+  │     → Found 8 papers (no AI)
+  │                      │
+  │  2. Build factual section with
+  │     paper titles, authors, years
+  │     → 🟢 Green banner (no AI)
+  │                      │
+  │  3. Send to LLM for commentary:
+  │   ┌─────────┐       │
+  │   │   LLM   │       │  &quot;Analyse these 8 papers...&quot;
+  │   └─────────┘       │
+  │     → 🟡 Yellow banner (AI)
+  └─────┬───────────────┘
+        │
+  ┌─────▼───────────────┐
+  │ Respond              │
+  │                      │
+  │  🟢 Verified data:   │
+  │  8 papers from UMA   │
+  │  on AI ethics...     │
+  │                      │
+  │  🟡 AI Commentary:   │
+  │  &quot;The data suggests  │
+  │  UMA focuses on...&quot;  │
+  └─────────────────────┘</code></pre>
+<h3 id="query-what-is-the-weather-today">Query: “What is the weather
+today?”</h3>
+<pre><code>User: &quot;What is the weather today?&quot;
+
+  ┌──────────┐
+  │ Receive   │  &quot;What is the weather today?&quot;
+  └─────┬─────┘
+        │
+  ┌─────▼───────────────┐
+  │ Interpret            │
+  │                      │
+  │  Classification:     │
+  │  ✗ Meta-question?    │  No
+  │  ✓ Off-topic?        │  Yes!
+  │                      │
+  │  (rule-based, no AI) │
+  └─────┬───────────────┘
+        │
+  ┌─────▼───────────────┐
+  │ Act                  │
+  │                      │
+  │  Action: Refuse      │
+  │  (no database query, │
+  │   no LLM call)       │
+  └─────┬───────────────┘
+        │
+  ┌─────▼───────────────┐
+  │ Respond              │
+  │                      │
+  │  &quot;This question is   │
+  │  outside my scope.   │
+  │  I can help with     │
+  │  AI ethics research.&quot;│
+  │                      │
+  │  (no reliability cue │
+  │   — refusal is not   │
+  │   unreliable content)│
+  └─────────────────────┘</code></pre>
+<p><strong>Key point:</strong> The same agent handles both queries, but
+the decision logic routes them to completely different actions. The
+topic search uses the database and the LLM. The off-topic query uses
+neither — just a polite refusal. The reliability cues reflect this:
+green for verified data, yellow for AI interpretation, nothing for a
+refusal.</p>
+<hr />
+<h2 id="example-6-a-text-to-sql-agent">Example 6: A Text-to-SQL
+Agent</h2>
+<p>An agent that translates natural language questions into database
+queries. The AI is used for translation (interpretation), but the data
+comes directly from the database (action).</p>
+<pre><code>User: &quot;How many agreements require English B2?&quot;
+
+  ┌──────────┐
+  │ Receive   │  &quot;How many agreements require English B2?&quot;
+  └─────┬─────┘
+        │
+  ┌─────▼───────────────┐
+  │ Interpret            │
+  │                      │
+  │  Translate to SQL:   │
+  │   ┌─────────┐       │
+  │   │   LLM   │       │
+  │   └─────────┘       │
+  │  → SELECT COUNT(*)   │
+  │    FROM destinations │
+  │    WHERE lang_1_name │
+  │    = &#39;INGLÉS&#39;        │
+  │    AND lang_1_level  │
+  │    = &#39;B2&#39;            │
+  │                      │
+  │  Verify SQL:         │
+  │  ✓ Tables exist      │
+  │  ✓ Columns valid     │
+  │  ✓ Semantics match   │
+  │  (AI + verification) │
+  └─────┬───────────────┘
+        │
+  ┌─────▼───────────────┐
+  │ Act                  │
+  │                      │
+  │  Execute SQL against │
+  │  SQLite database     │
+  │  → Result: 522       │
+  │  (database, no AI)   │
+  └─────┬───────────────┘
+        │
+  ┌─────▼───────────────┐
+  │ Respond              │
+  │                      │
+  │  🟡 AI interpretation│
+  │  (the translation    │
+  │   step used AI)      │
+  │                      │
+  │  🟢 Verified data    │
+  │  &quot;522 agreements     │
+  │   require English B2&quot;│
+  └─────────────────────┘</code></pre>
+<p><strong>Key point:</strong> The AI is in the <em>interpretation</em>
+step (translating English to SQL), not in the data. The result (522)
+comes directly from the database. The reliability cues reflect this
+split: yellow for the AI translation risk, green for the verified
+database result. If the AI mistranslates the question, the SQL
+verification step catches the error.</p>
+<hr />
+<h2 id="summary-where-does-ai-appear-in-each-example">Summary: Where
+does AI appear in each example?</h2>
+<table>
+<thead>
+<tr>
+<th>Agent</th>
+<th>Receive</th>
+<th>Interpret</th>
+<th>Act</th>
+<th>Respond</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Calculator</td>
+<td>Text</td>
+<td>Rules</td>
+<td>Arithmetic</td>
+<td>Text</td>
+</tr>
+<tr>
+<td>FAQ Chatbot</td>
+<td>Text</td>
+<td>Keywords</td>
+<td>DB lookup</td>
+<td>Pre-written</td>
+</tr>
+<tr>
+<td>Algoria Map (standalone)</td>
+<td>Form</td>
+<td>Rules</td>
+<td>DB + map</td>
+<td>Visualisation</td>
+</tr>
+<tr>
+<td>Algoria Map (chat)</td>
+<td>Text</td>
+<td><strong>LLM</strong></td>
+<td>DB + map</td>
+<td>Visualisation</td>
+</tr>
+<tr>
+<td>Course Tutor</td>
+<td>Text</td>
+<td>Keywords</td>
+<td><strong>LLM</strong></td>
+<td>Text + cue</td>
+</tr>
+<tr>
+<td>Research Assistant</td>
+<td>Text</td>
+<td>Rules</td>
+<td>DB + <strong>LLM</strong></td>
+<td>Text + cues</td>
+</tr>
+<tr>
+<td>Text-to-SQL</td>
+<td>Text</td>
+<td><strong>LLM</strong> + verify</td>
+<td>DB</td>
+<td>Text + cues</td>
+</tr>
+</tbody>
+</table>
+<p>The table shows that AI is a tool used in specific steps — not a
+blanket requirement. An agent’s intelligence comes from its <em>decision
+logic</em> (the Interpret step), which can be rule-based, AI-based, or a
+combination of both. The more complex the agent, the more steps may
+involve AI — but even the most complex agents use direct database access
+(no AI) for their most reliable outputs.</p>
+<hr />
+<h2 id="what-makes-a-good-ai-agent">What makes a good AI Agent?</h2>
+<p>A well-designed agent:</p>
+<ol type="1">
+<li><p><strong>Uses AI only where needed.</strong> Direct database
+access is faster, cheaper, and more reliable than AI generation. Use AI
+for interpretation and synthesis, not for data retrieval.</p></li>
+<li><p><strong>Is transparent about its sources.</strong> When the
+answer comes from the database, say so (green). When AI interprets the
+data, say so (yellow). When AI speculates, say so (red). When the agent
+cannot help, say so with no misleading cue.</p></li>
+<li><p><strong>Has clear decision logic.</strong> The interpretation
+step should be predictable: the same question should always be routed to
+the same action. If the logic is unpredictable, the agent is
+unreliable.</p></li>
+<li><p><strong>Fails gracefully.</strong> When the agent does not know
+the answer, it should say so honestly — not fabricate information. A
+good refusal is more valuable than a confident hallucination.</p></li>
+<li><p><strong>Separates concerns.</strong> The decision logic, the
+actions, the prompts, and the data should be independent components that
+can be tested, replaced, and improved separately.</p></li>
+</ol>
+</body>
+</html>

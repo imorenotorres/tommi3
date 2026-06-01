@@ -1173,252 +1173,313 @@ is the recipe for chocolate cake?” at each level. With Stringent, the
 agent should refuse. With Lax, it may attempt an answer (which confirms
 the prompt constraints are working at each level).</p>
 <hr />
-<h2 id="the-transparency-pipeline">6. The Transparency Pipeline</h2>
-<p>The transparency system works as a three-step pipeline. Each step can
-succeed or fail independently, and testers should evaluate each one
-separately.</p>
-<pre><code>Response text
-     |
-     v
-+-------------------+     +-------------------+     +-------------------+
-| Step 1:           |     | Step 2:           |     | Step 3:           |
-| Claim             |----&gt;| Claim             |----&gt;| Confidence        |
-| Identification    |     | Categorization    |     | Computation       |
-+-------------------+     +-------------------+     +-------------------+
-  &quot;What are the           &quot;Where does each       &quot;How reliable is
-   verifiable facts?&quot;      claim come from?&quot;       the response?&quot;</code></pre>
-<h3 id="step-1-claim-identification">6.1 Step 1 — Claim
-Identification</h3>
-<p><strong>Goal:</strong> Extract verifiable factual claims from the LLM
-response.</p>
-<p>Claim identification uses a <strong>bidirectional approach</strong>
-that combines two complementary techniques:</p>
-<h4 id="phase-a-response-driven-extraction-regex-patterns">Phase A —
-Response-driven extraction (regex patterns)</h4>
-<p>The system scans the response text using pattern matching to identify
-fragments that look like verifiable facts. The following patterns are
-recognized, in order:</p>
-<table>
+<h2 id="the-agent-decision-logic">6. The Agent Decision Logic</h2>
+<p>Before a TOMMI agent generates a response, it classifies the user’s
+question and decides how to answer it. Understanding this logic is
+essential for testing, because each decision path produces different
+behaviour, different reliability cues, and different failure modes.</p>
+<h3 id="the-core-idea">6.1 The core idea</h3>
+<p>A TOMMI agent is not a simple chatbot that forwards every question to
+the language model. Instead, it works in two phases:</p>
+<ol type="1">
+<li><strong>Classification phase</strong> — the agent analyses the
+question to determine its type (conceptual, researcher lookup, topic
+search, project query, etc.) and builds the appropriate context from
+structured data.</li>
+<li><strong>Generation phase</strong> — the language model receives the
+question together with the selected context, and generates a response
+constrained by the prompt rules.</li>
+</ol>
+<p>The classification phase is deterministic (rule-based), while the
+generation phase is probabilistic (LLM-dependent). This means that
+classification errors are reproducible and fixable in code, while
+generation errors may vary between runs and require prompt tuning.</p>
+<h3 id="query-classification">6.2 Query classification</h3>
+<p>The agent classifies each query into one of the following categories,
+checked in priority order. The first match wins — later checks are
+skipped.</p>
+<table style="width:100%;">
 <colgroup>
-<col style="width: 8%" />
-<col style="width: 24%" />
-<col style="width: 24%" />
-<col style="width: 43%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 20%" />
+<col style="width: 29%" />
+<col style="width: 22%" />
 </colgroup>
 <thead>
 <tr>
-<th>#</th>
-<th>Pattern</th>
-<th>Example</th>
-<th>Minimum length</th>
+<th>Priority</th>
+<th>Category</th>
+<th>Example query</th>
+<th>How the agent answers</th>
+<th>Reliability cue</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>1</td>
-<td>Quoted strings</td>
-<td>“Explainable AI in Healthcare”</td>
-<td>10 characters</td>
+<td><strong>Meta-question</strong></td>
+<td>“What can you do?”</td>
+<td>From system prompt (agent description)</td>
+<td>None</td>
 </tr>
 <tr>
 <td>2</td>
-<td>Bold markdown text</td>
-<td><strong>AI Ethics</strong></td>
-<td>5 characters</td>
+<td><strong>Non-research task</strong></td>
+<td>“Write an essay”, “Translate this”</td>
+<td>Polite refusal</td>
+<td>None</td>
 </tr>
 <tr>
 <td>3</td>
-<td>Parenthetical identifiers</td>
-<td>(DOI: 10.xxxx, ORCID: 0000-xxxx)</td>
-<td>5 characters</td>
+<td><strong>Off-topic</strong></td>
+<td>“What’s the weather?”</td>
+<td>Refusal + in-scope suggestions</td>
+<td>None</td>
 </tr>
 <tr>
 <td>4</td>
-<td>Year ranges and date references</td>
-<td>(2020-2024), published in 2023</td>
-<td>–</td>
+<td><strong>Disambiguation follow-up</strong></td>
+<td>“1” (after a researcher list)</td>
+<td>Looks up stored candidate</td>
+<td>None</td>
 </tr>
 <tr>
 <td>5</td>
-<td>Structured data</td>
-<td>email addresses, numerical values with units</td>
-<td>5 characters</td>
+<td><strong>Figure/map request</strong></td>
+<td>“Show a figure of papers on AI ethics”</td>
+<td>Generates map link</td>
+<td>🟢 Green</td>
 </tr>
 <tr>
 <td>6</td>
-<td>Named entities (NER-like)</td>
-<td>University of Malaga, Dr. Smith</td>
-<td>5 characters</td>
+<td><strong>Gap analysis</strong></td>
+<td>“Which topics are least studied?”</td>
+<td>LLM reasons about absence</td>
+<td>🔴 Red</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Conceptual (glossary)</strong></td>
+<td>“What is explainable AI?”</td>
+<td>From glossary definitions</td>
+<td>🟡 Yellow</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Conceptual (not in glossary)</strong></td>
+<td>“What is predictive policing?”</td>
+<td>LLM general knowledge, within scope</td>
+<td>🟡 Yellow</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Follow-up</strong></td>
+<td>“Expand on point 1”</td>
+<td>Uses conversation history</td>
+<td>🟡 Yellow</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Content query</strong></td>
+<td>“Papers on AI ethics from UMA”</td>
+<td>See Section 6.3</td>
+<td>Varies</td>
 </tr>
 </tbody>
 </table>
-<p>These patterns focus on <strong>precision over recall</strong> — they
-aim to avoid false claims rather than catch every possible fact.</p>
-<h4 id="phase-b-context-driven-verification">Phase B — Context-driven
-verification</h4>
-<p>After extracting candidate claims from the response, the system
-checks them against the actual data sources:</p>
-<ol type="1">
-<li><strong>Metadata matching:</strong> Each claim is compared against
-structured fields in <code>papers.json</code>,
-<code>researchers.json</code>, and <code>metadata.json</code>. This
-includes paper titles, author names, university names, DOIs, topics, and
-years.</li>
-<li><strong>RAG chunk matching:</strong> Claims are compared against the
-text chunks retrieved from ChromaDB during the RAG step.</li>
-<li><strong>Overlap scoring:</strong> A claim is considered “grounded”
-if it matches a data source above a similarity threshold.</li>
-</ol>
-<h4 id="what-testers-should-check">What testers should check</h4>
-<ul>
-<li><strong>Missing claims (Error 1.1):</strong> Look for obvious
-factual statements in the response that are NOT highlighted. Example:
-the response says “published in Nature in 2023” but this is not
-identified as a claim.</li>
-<li><strong>False claims:</strong> Less common with the regex approach,
-but check if non-factual text (opinions, transitions) is incorrectly
-marked as a claim.</li>
-</ul>
-<h3 id="step-2-claim-categorization">6.2 Step 2 — Claim
-Categorization</h3>
-<p><strong>Goal:</strong> Determine the source of each claim (metadata,
-database, LLM, or web).</p>
-<p>Each identified claim is classified into one of four categories based
-on where matching evidence was found:</p>
+<h3 id="content-query-the-context-chain">6.3 Content query — the context
+chain</h3>
+<p>For content queries (the most common type), the agent builds context
+from structured data using a priority chain. Each step is tried in
+order; the first step that produces results is used:</p>
+<pre><code>Content Query
+│
+├─ 1. Project query? (&quot;What is the TAILOR project?&quot;)
+│     → Search project documents
+│     → 🟡 Yellow
+│
+├─ 2. Affiliation listing? (&quot;List researchers from THUAS&quot;)
+│     → List from researchers.json
+│     → 🟡 Yellow
+│
+├─ 3. Shared topics? (&quot;Topics shared by UMA and USPN&quot;)
+│     → Cross-university topic comparison
+│     → 🟢 Green (programmatic)
+│
+├─ 4. University paper listing? (&quot;List papers from UMA&quot;)
+│     → Full list from papers.json
+│     → 🟢 Green (programmatic)
+│
+├─ 5. Topic search? (&quot;Papers on AI ethics&quot;)
+│     → search_papers_by_topic()
+│     → 🟢 Green (factual list) + 🟡 Yellow (LLM commentary)
+│
+├─ 6. Researcher lookup? (&quot;Papers by Rubén González&quot;)
+│     → Match in researchers.json
+│     ├─ Exact match → show papers (no banner)
+│     ├─ Single partial match → show papers (no banner)
+│     ├─ Multiple matches → disambiguation list (no banner)
+│     └─ No match → fall through to RAG
+│
+└─ 7. Fallback: RAG retrieval
+      → Retrieve document chunks by keyword similarity
+      → 🟡 Yellow</code></pre>
+<p><strong>Why this matters for testing:</strong> If you ask “Papers by
+Rubén González” and the agent returns a topic search instead of a
+researcher lookup, the classification chain has a bug — the researcher
+detection failed, and the query fell through to step 5 (topic search)
+instead of step 6 (researcher lookup).</p>
+<h3 id="reliability-cue-logic-summary">6.4 Reliability cue logic
+(summary)</h3>
+<p>The reliability cue is chosen based on the classification and content
+source:</p>
 <table>
 <colgroup>
-<col style="width: 22%" />
-<col style="width: 38%" />
-<col style="width: 20%" />
-<col style="width: 18%" />
+<col style="width: 42%" />
+<col style="width: 24%" />
+<col style="width: 33%" />
 </colgroup>
 <thead>
 <tr>
-<th>Category</th>
-<th style="text-align: center;">Colour (inline)</th>
-<th>Meaning</th>
-<th>Source</th>
+<th>Response type</th>
+<th>Banner</th>
+<th>Rationale</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Metadata</strong></td>
-<td style="text-align: center;">Green</td>
-<td>Verified against structured data</td>
-<td>papers.json, researchers.json</td>
+<td>Programmatic data (structured DB, no AI)</td>
+<td>🟢 Green</td>
+<td>Data comes directly from the database</td>
 </tr>
 <tr>
-<td><strong>Database</strong></td>
-<td style="text-align: center;">Yellow</td>
-<td>Found in RAG-retrieved documents</td>
-<td>ChromaDB chunks from PDFs</td>
+<td>AI interprets database content</td>
+<td>🟡 Yellow</td>
+<td>LLM summarises or formats real data</td>
 </tr>
 <tr>
-<td><strong>Web</strong></td>
-<td style="text-align: center;">Blue</td>
-<td>Found in web search results</td>
-<td>Google Custom Search (if enabled)</td>
+<td>AI uses general knowledge (in-scope)</td>
+<td>🟡 Yellow</td>
+<td>Topic is within scope but not in the database</td>
 </tr>
 <tr>
-<td><strong>LLM</strong></td>
-<td style="text-align: center;">Red</td>
-<td>Not found in any data source — generated by the model</td>
-<td>LLM inference</td>
+<td>AI reasons about absence (gaps)</td>
+<td>🔴 Red</td>
+<td>Speculative — verify independently</td>
+</tr>
+<tr>
+<td>Honest refusal (off-topic, meta, non-research)</td>
+<td>None</td>
+<td>Refusal is not unreliable content</td>
+</tr>
+<tr>
+<td>Researcher disambiguation</td>
+<td>None</td>
+<td>Clarification question, not content</td>
+</tr>
+<tr>
+<td>“How many” queries</td>
+<td>🟡 Yellow + note</td>
+<td>Counts may be approximate</td>
 </tr>
 </tbody>
 </table>
-<h4 id="what-testers-should-check-1">What testers should check</h4>
-<ul>
-<li><strong>False positive (Error 1.2.1):</strong> A claim is coloured
-red (LLM) but it IS actually in the data. This means the matching
-algorithm failed to find it.</li>
-<li><strong>False negative (Error 1.2.2):</strong> A claim is coloured
-green (metadata) or yellow (database) but the information is WRONG. This
-means the matching produced a spurious match.</li>
-<li><strong>Correct classification:</strong> Spot-check several claims
-of each colour. Verify that green claims really come from metadata,
-yellow from documents, and red claims are truly inferred by the
-model.</li>
-</ul>
-<h3 id="step-3-confidence-computation">6.3 Step 3 — Confidence
-Computation</h3>
-<p><strong>Goal:</strong> Produce a single reliability score and
-breakdown for the response.</p>
-<p>The confidence score is calculated from the source distribution of
-all claims:</p>
-<pre><code>Confidence = (metadata_claims + database_claims) / total_claims * 100</code></pre>
-<p>The reliability label is determined by the LLM percentage:</p>
+<h3 id="post-processing-pipeline">6.5 Post-processing pipeline</h3>
+<p>After the LLM generates a response, it passes through several
+post-processing steps:</p>
+<ol type="1">
+<li><strong>Authority sanitisation</strong> — replaces authoritative
+phrases (“has not been studied” → “does not appear in the indexed
+database”)</li>
+<li><strong>Alliance name correction</strong> — fixes common LLM
+misspellings (e.g., “UNINOVOS” → “UNINOVIS”)</li>
+<li><strong>Paper verification</strong> — checks quoted titles against
+the paper database, flags unrecognised ones with ⚠️</li>
+<li><strong>Unsolicited gap detection</strong> — if the LLM volunteers
+gap analysis that wasn’t requested, injects a red banner</li>
+<li><strong>Humility rewriting</strong> — if enabled, adds hedging
+prefixes to ungrounded claims</li>
+</ol>
+<h3 id="testing-the-decision-logic">6.6 Testing the decision logic</h3>
+<p>To verify the classification works correctly, use these test
+patterns:</p>
 <table>
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 53%" />
+<col style="width: 33%" />
+</colgroup>
 <thead>
 <tr>
-<th>LLM %</th>
-<th>Label</th>
-<th style="text-align: center;">Badge colour</th>
+<th>Test</th>
+<th>Expected classification</th>
+<th>What to check</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>&lt;= 20%</td>
-<td>High</td>
-<td style="text-align: center;">Green</td>
+<td>“What can you do?”</td>
+<td>Meta-question</td>
+<td>No banner, describes capabilities</td>
 </tr>
 <tr>
-<td>20-50%</td>
-<td>Good</td>
-<td style="text-align: center;">Yellow</td>
+<td>“Write me an essay”</td>
+<td>Non-research task</td>
+<td>No banner, polite refusal</td>
 </tr>
 <tr>
-<td>&gt;= 50%</td>
-<td>Poor</td>
-<td style="text-align: center;">Red</td>
+<td>“What is the weather?”</td>
+<td>Off-topic</td>
+<td>No banner, suggests in-scope topics</td>
+</tr>
+<tr>
+<td>“What is fairness in AI?”</td>
+<td>Conceptual (glossary)</td>
+<td>Yellow banner, cites glossary definition</td>
+</tr>
+<tr>
+<td>“What is predictive policing?”</td>
+<td>Conceptual (not in glossary)</td>
+<td>Yellow banner, says “not in glossary”</td>
+</tr>
+<tr>
+<td>“Papers on AI ethics from UMA”</td>
+<td>Topic search</td>
+<td>Green banner with paper list</td>
+</tr>
+<tr>
+<td>“List researchers from THUAS”</td>
+<td>Affiliation listing</td>
+<td>Yellow banner with researcher list</td>
+</tr>
+<tr>
+<td>“Papers by Rubén González”</td>
+<td>Researcher lookup</td>
+<td>No banner if found; disambiguation if ambiguous</td>
+</tr>
+<tr>
+<td>“What is the TAILOR project?”</td>
+<td>Project query</td>
+<td>Yellow banner with project details</td>
+</tr>
+<tr>
+<td>“Topics not studied in UNINOVIS”</td>
+<td>Gap analysis</td>
+<td>Red banner, speculative content</td>
+</tr>
+<tr>
+<td>“Show a figure of publications”</td>
+<td>Figure request</td>
+<td>Green banner, interactive map</td>
+</tr>
+<tr>
+<td>“How many papers in 2024?”</td>
+<td>Content + count</td>
+<td>Yellow banner with count note</td>
 </tr>
 </tbody>
 </table>
-<p>These thresholds are configurable per agent in
-<code>config.json</code> → <code>reliability_thresholds</code>.</p>
-<h4 id="what-testers-should-check-2">What testers should check</h4>
-<ul>
-<li><strong>Badge vs reality (Error 1.4):</strong> A green badge should
-mean most claims are verified. If you see a green badge but many claims
-look wrong, the confidence computation may be inaccurate.</li>
-<li><strong>Distribution sanity:</strong> After testing several queries,
-the badge distribution should make sense:
-<ul>
-<li>Metadata queries (e.g., “list all papers”) → should tend toward
-High</li>
-<li>Open-ended questions → may show Good or Poor</li>
-<li>If ALL queries show the same label, the thresholds may need
-adjustment</li>
-</ul></li>
-</ul>
-<h3 id="full-pipeline-example">6.4 Full pipeline example</h3>
-<p><strong>Query:</strong> “List researchers from UMA working on AI
-Ethics”</p>
-<pre><code>Step 1 — Claim identification:
-  Extracted claims: &quot;Dr. García&quot;, &quot;AI Ethics&quot;, &quot;UMA&quot;, &quot;2023&quot;, &quot;Explainable AI&quot;
-
-Step 2 — Claim categorization:
-  &quot;Dr. García&quot;      → Green  (found in researchers.json)
-  &quot;AI Ethics&quot;       → Green  (topic in metadata)
-  &quot;UMA&quot;             → Green  (institution in metadata)
-  &quot;2023&quot;            → Yellow (found in RAG document)
-  &quot;Explainable AI&quot;  → Green  (concept in papers.json)
-
-Step 3 — Confidence:
-  Metadata: 60% | Database: 20% | LLM: 20%
-  Label: Good (yellow badge)</code></pre>
-<h3 id="special-cases">6.5 Special cases</h3>
-<p><strong>Gap analysis responses:</strong> When the agent performs a
-gap analysis (“What topics have NOT been studied?”), the colour
-interpretation is <strong>reversed</strong>: - Green = the topic WAS
-found in the database (not a gap) - Red = the topic was NOT found (true
-gap — this is actually the desired result)</p>
-<p>Testers should be aware that a red-heavy response in gap analysis
-mode is <strong>correct behaviour</strong>, not an error.</p>
-<p><strong>Follow-up queries:</strong> When a user sends a follow-up
-(“tell me more about point 2”), the agent uses conversation history. The
-badge should still appear, but the source distribution may shift toward
-LLM since the follow-up is synthesised from prior context.</p>
 <hr />
 <h2 id="testing-checklist">7. Testing Checklist</h2>
 <p>Before deploying an agent, verify each item:</p>
@@ -1445,7 +1506,11 @@ information is shown at all. The response should appear clean, with no
 badge or indicators.</label></li>
 <li><label><input type="checkbox" /><strong>Stringent prompt:</strong>
 Ask an off-topic question (e.g., “What is the weather today?”). The
-agent should refuse or redirect.</label></li>
+agent should refuse or redirect. Verify that <strong>no reliability
+cue</strong> (green, yellow, or red) is shown for the refusal —
+reliability cues are only for responses where the user needs to assess
+content trustworthiness, not for honest scope
+acknowledgements.</label></li>
 <li><label><input type="checkbox" /><strong>Lax prompt:</strong> Ask the
 same off-topic question. The agent should answer more freely, confirming
 that prompt constraints are actually effective at the Stringent
@@ -1457,9 +1522,11 @@ Switch between available LLMs and compare response quality. Verify the
 LLM badge updates correctly (colour and label).</label></li>
 <li><label><input type="checkbox" /><strong>Coverage warnings:</strong>
 Ask an off-topic question in Lax mode (e.g., “recipe for chocolate cake”
-to a research agent). Verify the badge shows “No verifiable claims
-found” or “Low verifiability.” Then ask an on-topic question and confirm
-the coverage warning disappears.</label></li>
+to a research agent). Verify that <strong>no reliability cue is
+shown</strong> for the refusal — out-of-scope responses are honest
+acknowledgements of limitations, not unreliable content. Then ask an
+on-topic question and confirm that reliability cues appear
+normally.</label></li>
 <li><label><input type="checkbox" /><strong>Gap analysis (RAG+Metadata
 only):</strong> Ask a gap analysis question (e.g., “What topics have not
 been studied?”). Verify the badge shows Poor/LLM: 100% and the inline
@@ -1667,15 +1734,15 @@ before deployment.</li>
 </ul>
 <p><strong>Processing the log:</strong> The JSONL format works with
 standard tools:</p>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count entries by reliability label</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.reliability_label&#39;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">uniq</span> <span class="at">-c</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter queries with low confidence</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;select(.confidence &lt; 50)&#39;</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract all queries and their labels as a table</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;[.query, .reliability_label, .confidence] | @tsv&#39;</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Count entries by reliability label</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;.reliability_label&#39;</span> <span class="kw">|</span> <span class="fu">sort</span> <span class="kw">|</span> <span class="fu">uniq</span> <span class="at">-c</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter queries with low confidence</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="st">&#39;select(.confidence &lt; 50)&#39;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract all queries and their labels as a table</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> data/audit_log.jsonl <span class="kw">|</span> <span class="ex">jq</span> <span class="at">-r</span> <span class="st">&#39;[.query, .reliability_label, .confidence] | @tsv&#39;</span></span></code></pre></div>
 <hr />
 <h2 id="error-reporting-procedure">9. Error Reporting Procedure</h2>
 <p>When a tester identifies a failure, flaw, or limitation, it must be

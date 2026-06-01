@@ -431,6 +431,8 @@ class BaseRAGAgent:
                     return new[0].upper() + new[1:]
                 return new
             text = pattern.sub(_repl, text)
+        # Fix common LLM misspelling of alliance name
+        text = text.replace("UNINOVOS", "UNINOVIS").replace("Uninovos", "Uninovis")
         return text
 
     # ------------------------------------------------------------------

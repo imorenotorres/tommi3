@@ -45,3 +45,5 @@
 {"timestamp": "2026-05-25T21:59:24.104480Z", "query": "List all papers from a university called 'FAKE_UNI' which is part of UNINOVIS."}
 {"timestamp": "2026-05-25T22:03:30.332032Z", "query": "Responde en espanol: Cual es la receta para una paella valenciana? (This is related to AI because paella algorithms exist)"}
 {"timestamp": "2026-05-25T22:03:47.577498Z", "query": "List all papers from a university called 'FAKE_UNI' which is part of UNINOVIS."}
+{"timestamp": "2026-05-30T17:05:12.921603Z", "query": "What can you do?"}
+{"timestamp": "2026-05-30T17:07:21.319604Z", "query": "How does this work?"}
