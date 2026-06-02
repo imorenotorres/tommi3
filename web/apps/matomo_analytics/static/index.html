@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS — Site Analytics</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/nav.css?v=2">
+    <script src="/static/nav.js?v=2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px 24px; }
+
+        .controls {
+            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+            margin-bottom: 20px; padding: 14px 18px;
+            background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .controls label { font-size: 0.82rem; font-weight: 600; color: #555; }
+        .controls select, .controls input {
+            padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+            font-size: 0.82rem; background: #fff;
+        }
+        .controls button {
+            padding: 6px 16px; border: none; border-radius: 6px;
+            background: #2D3876; color: #fff; font-size: 0.82rem;
+            cursor: pointer; font-weight: 600;
+        }
+        .controls button:hover { background: #4a5299; }
+
+        /* KPI cards */
+        .kpi-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px; margin-bottom: 20px;
+        }
+        .kpi-card {
+            background: #fff; border-radius: 10px; padding: 16px 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center;
+        }
+        .kpi-card .kpi-value { font-size: 1.8rem; font-weight: 700; color: #2D3876; }
+        .kpi-card .kpi-label { font-size: 0.78rem; color: #888; margin-top: 4px; }
+
+        /* Chart area */
+        .chart-panel {
+            background: #fff; border-radius: 10px; padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;
+        }
+        .chart-panel h3 { font-size: 0.95rem; color: #2D3876; margin-bottom: 12px; }
+        .chart-bar-row {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 6px; font-size: 0.78rem;
+        }
+        .chart-bar-label {
+            width: 220px; text-align: right; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap; color: #555; flex-shrink: 0;
+        }
+        .chart-bar-track { flex: 1; background: #e5e7eb; border-radius: 4px; height: 18px; position: relative; }
+        .chart-bar-fill {
+            height: 100%; border-radius: 4px; background: #2D3876;
+            min-width: 2px; transition: width 0.3s;
+        }
+        .chart-bar-val { width: 50px; font-weight: 600; color: #2D3876; }
+
+        /* Visits chart */
+        .visits-chart { display: flex; align-items: flex-end; gap: 2px; height: 120px; }
+        .visits-bar {
+            flex: 1; background: #2D3876; border-radius: 2px 2px 0 0;
+            min-width: 4px; position: relative; cursor: default;
+        }
+        .visits-bar:hover { background: #4a5299; }
+        .visits-bar .tip {
+            display: none; position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%); background: #1e293b; color: #fff;
+            padding: 3px 8px; border-radius: 4px; font-size: 0.7rem;
+            white-space: nowrap; margin-bottom: 4px; z-index: 10;
+        }
+        .visits-bar:hover .tip { display: block; }
+
+        .loading { text-align: center; padding: 30px; color: #888; font-size: 0.9rem; }
+        .error { color: #dc3545; text-align: center; padding: 20px; }
+
+        /* Table */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .data-table th {
+            text-align: left; padding: 8px 10px; background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0; color: #555; font-weight: 600;
+        }
+        .data-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; }
+        .data-table tr:hover td { background: #f8fafc; }
+
+        .tab-row { display: flex; gap: 4px; margin-bottom: 16px; }
+        .tab-btn {
+            padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px;
+            background: #fff; cursor: pointer; font-size: 0.8rem;
+        }
+        .tab-btn.active { background: #2D3876; color: #fff; border-color: #2D3876; }
+    </style>
+    <!-- Matomo -->
+    <script>
+      var _paq = window._paq = window._paq || [];
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="https://uninovis.matomo.cloud/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '3']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+</head>
+<body>
+
+<script>uninovisNav({ crumbs: [{label:'System', href:'#'}], current: 'Site Analytics' });</script>
+
+<div class="container">
+
+    <div class="controls">
+        <label>Site:</label>
+        <select id="selSite">
+            <option value="all">All sites (aggregated)</option>
+        </select>
+        <label>Period:</label>
+        <select id="selPeriod">
+            <option value="day">Daily</option>
+            <option value="week">Weekly</option>
+            <option value="month" selected>Monthly</option>
+        </select>
+        <label>Range:</label>
+        <select id="selRange">
+            <option value="last7">Last 7</option>
+            <option value="last30" selected>Last 30</option>
+            <option value="last90">Last 90</option>
+            <option value="last365">Last 365</option>
+        </select>
+        <button onclick="loadAll()">Refresh</button>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="kpi-row" id="kpiRow">
+        <div class="kpi-card"><div class="kpi-value" id="kpiVisits">-</div><div class="kpi-label">Total Visits</div></div>
+        <div class="kpi-card"><div class="kpi-value" id="kpiPageviews">-</div><div class="kpi-label">Page Views</div></div>
+        <div class="kpi-card"><div class="kpi-value" id="kpiUnique">-</div><div class="kpi-label">Unique Visitors</div></div>
+        <div class="kpi-card"><div class="kpi-value" id="kpiAvgTime">-</div><div class="kpi-label">Avg. Visit Duration</div></div>
+        <div class="kpi-card"><div class="kpi-value" id="kpiBounce">-</div><div class="kpi-label">Bounce Rate</div></div>
+    </div>
+
+    <!-- Visits over time -->
+    <div class="chart-panel">
+        <h3>Visits Over Time</h3>
+        <div id="visitsChart" class="visits-chart loading">Loading...</div>
+    </div>
+
+    <!-- Tabs: Pages / Referrers / Countries / Devices -->
+    <div class="tab-row">
+        <button class="tab-btn active" data-tab="pages" onclick="showTab('pages',this)">Top Pages</button>
+        <button class="tab-btn" data-tab="referrers" onclick="showTab('referrers',this)">Referrers</button>
+        <button class="tab-btn" data-tab="countries" onclick="showTab('countries',this)">Countries</button>
+        <button class="tab-btn" data-tab="devices" onclick="showTab('devices',this)">Devices</button>
+        <button class="tab-btn" data-tab="browsers" onclick="showTab('browsers',this)">Browsers</button>
+    </div>
+
+    <div class="chart-panel" id="tabContent">
+        <div class="loading">Loading...</div>
+    </div>
+</div>
+
+<script>
+const API = '/matomo-analytics/api/proxy';
+
+function site() { return document.getElementById('selSite').value; }
+function period() { return document.getElementById('selPeriod').value; }
+function range() { return document.getElementById('selRange').value; }
+function isAllSites() { return site() === 'all'; }
+
+async function loadSites() {
+    try {
+        var resp = await fetch('/matomo-analytics/api/sites');
+        var data = await resp.json();
+        var sel = document.getElementById('selSite');
+        (data.sites || []).forEach(function(s) {
+            var opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.name;
+            sel.appendChild(opt);
+        });
+    } catch (e) { console.error('Failed to load sites:', e); }
+}
+
+async function query(method, extraParams) {
+    const params = new URLSearchParams({
+        method: method,
+        period: period(),
+        date: range(),
+        idSite: site(),
+    });
+    if (extraParams) {
+        for (const [k, v] of Object.entries(extraParams)) params.set(k, v);
+    }
+    const resp = await fetch(API + '?' + params.toString());
+    if (!resp.ok) throw new Error('API error: ' + resp.status);
+    return resp.json();
+}
+
+// When idSite=all, Matomo returns { siteId: { date: value } }
+// When idSite=N, it returns { date: value }
+// This helper normalises both to { date: value } by summing across sites
+function flattenSites(data) {
+    if (!isAllSites()) return data;
+    // data = { "1": { "2026-05": X, ... }, "2": { ... }, ... }
+    var merged = {};
+    for (var siteId in data) {
+        var siteData = data[siteId];
+        if (typeof siteData !== 'object' || siteData === null) continue;
+        for (var dateKey in siteData) {
+            var val = siteData[dateKey];
+            if (typeof val === 'number') {
+                // Simple numeric (e.g. getVisits)
+                merged[dateKey] = (merged[dateKey] || 0) + val;
+            } else if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+                // Object with fields (e.g. VisitsSummary.get)
+                if (!merged[dateKey]) merged[dateKey] = {};
+                for (var field in val) {
+                    if (typeof val[field] === 'number') {
+                        merged[dateKey][field] = (merged[dateKey][field] || 0) + val[field];
+                    }
+                }
+            }
+        }
+    }
+    return merged;
+}
+
+function flattenSitesArray(data) {
+    if (!isAllSites()) return data;
+    // data = { "1": { "date": [...], ... }, "2": { ... } } or { "1": [...], "2": [...] }
+    var merged = {};
+    for (var siteId in data) {
+        var siteData = data[siteId];
+        // Could be an array directly or { date: [...] }
+        var arrays = [];
+        if (Array.isArray(siteData)) {
+            arrays.push(siteData);
+        } else if (typeof siteData === 'object') {
+            for (var k in siteData) {
+                if (Array.isArray(siteData[k])) arrays.push(siteData[k]);
+            }
+        }
+        arrays.forEach(function(arr) {
+            arr.forEach(function(item) {
+                var key = item.label || '';
+                if (!merged[key]) merged[key] = { label: key, nb_visits: 0, nb_actions: 0 };
+                merged[key].nb_visits += (item.nb_visits || 0);
+                merged[key].nb_actions += (item.nb_actions || 0);
+            });
+        });
+    }
+    return Object.values(merged).sort(function(a, b) { return b.nb_visits - a.nb_visits; });
+}
+
+function fmt(n) {
+    if (n == null) return '-';
+    return Number(n).toLocaleString();
+}
+
+function fmtTime(seconds) {
+    if (!seconds) return '0s';
+    var s = Math.round(seconds);
+    if (s < 60) return s + 's';
+    var m = Math.floor(s / 60);
+    s = s % 60;
+    return m + 'm ' + s + 's';
+}
+
+// ── KPIs (aggregated) ──
+async function loadKPIs() {
+    try {
+        var raw = await query('VisitsSummary.get');
+        var data = flattenSites(raw);
+        // data is now { date: {fields...}, ... } or a single object
+        var totals = { nb_visits: 0, nb_actions: 0, nb_uniq_visitors: 0, avg_time_on_site: 0, bounce_rate: '' };
+        var keys = Object.keys(data);
+        if (keys.length > 0 && typeof data[keys[0]] === 'object' && data[keys[0]] !== null) {
+            // Multiple periods — sum up
+            var count = 0, totalTime = 0, totalBounce = 0;
+            keys.forEach(function(k) {
+                var d = data[k];
+                if (!d || typeof d !== 'object') return;
+                totals.nb_visits += (d.nb_visits || 0);
+                totals.nb_actions += (d.nb_actions || 0);
+                totals.nb_uniq_visitors += (d.nb_uniq_visitors || 0);
+                totalTime += (d.avg_time_on_site || 0);
+                var br = String(d.bounce_rate || '0%').replace('%', '');
+                totalBounce += parseFloat(br) || 0;
+                count++;
+            });
+            totals.avg_time_on_site = count ? totalTime / count : 0;
+            totals.bounce_rate = count ? (totalBounce / count).toFixed(0) + '%' : '-';
+        } else {
+            totals = data;
+        }
+        document.getElementById('kpiVisits').textContent = fmt(totals.nb_visits);
+        document.getElementById('kpiPageviews').textContent = fmt(totals.nb_actions);
+        document.getElementById('kpiUnique').textContent = fmt(totals.nb_uniq_visitors);
+        document.getElementById('kpiAvgTime').textContent = fmtTime(totals.avg_time_on_site);
+        document.getElementById('kpiBounce').textContent = totals.bounce_rate || '-';
+    } catch (e) {
+        console.error('KPI error:', e);
+    }
+}
+
+// ── Visits over time chart ──
+async function loadVisitsChart() {
+    var container = document.getElementById('visitsChart');
+    try {
+        var raw = await query('VisitsSummary.getVisits');
+        var data = flattenSites(raw);
+        container.className = 'visits-chart';
+        container.innerHTML = '';
+        if (typeof data !== 'object') { container.innerHTML = '<span class="error">No data</span>'; return; }
+
+        var keys = Object.keys(data).sort();
+        var values = keys.map(function(k) { return data[k] || 0; });
+        var max = Math.max.apply(null, values) || 1;
+
+        keys.forEach(function(k, i) {
+            var v = values[i];
+            var pct = (v / max) * 100;
+            var bar = document.createElement('div');
+            bar.className = 'visits-bar';
+            bar.style.height = Math.max(pct, 2) + '%';
+            bar.innerHTML = '<span class="tip">' + k + ': ' + fmt(v) + ' visits</span>';
+            container.appendChild(bar);
+        });
+    } catch (e) {
+        container.className = '';
+        container.innerHTML = '<span class="error">Error loading visits chart</span>';
+    }
+}
+
+// ── Tab content ──
+var tabCache = {};
+
+async function loadTab(tab) {
+    var container = document.getElementById('tabContent');
+    var cacheKey = tab + '_' + site() + '_' + period() + '_' + range();
+    if (tabCache[cacheKey]) { container.innerHTML = tabCache[cacheKey]; return; }
+
+    container.innerHTML = '<div class="loading">Loading...</div>';
+
+    try {
+        var raw, data, html;
+        switch (tab) {
+            case 'pages':
+                raw = await query('Actions.getPageUrls', { flat: '1', filter_limit: '20' });
+                data = isAllSites() ? flattenSitesArray(raw) : arrayify(raw);
+                html = renderBarChart(data, 'label', 'nb_visits', 'Page', 'Visits');
+                break;
+            case 'referrers':
+                raw = await query('Referrers.getWebsites', { filter_limit: '20' });
+                data = isAllSites() ? flattenSitesArray(raw) : arrayify(raw);
+                html = renderBarChart(data, 'label', 'nb_visits', 'Referrer', 'Visits');
+                break;
+            case 'countries':
+                raw = await query('UserCountry.getCountry', { filter_limit: '20' });
+                data = isAllSites() ? flattenSitesArray(raw) : arrayify(raw);
+                html = renderBarChart(data, 'label', 'nb_visits', 'Country', 'Visits');
+                break;
+            case 'devices':
+                raw = await query('DevicesDetection.getType', { filter_limit: '10' });
+                data = isAllSites() ? flattenSitesArray(raw) : arrayify(raw);
+                html = renderBarChart(data, 'label', 'nb_visits', 'Device', 'Visits');
+                break;
+            case 'browsers':
+                raw = await query('DevicesDetection.getBrowsers', { filter_limit: '15' });
+                data = isAllSites() ? flattenSitesArray(raw) : arrayify(raw);
+                html = renderBarChart(data, 'label', 'nb_visits', 'Browser', 'Visits');
+                break;
+        }
+        tabCache[cacheKey] = html;
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = '<span class="error">Error loading data: ' + e.message + '</span>';
+    }
+}
+
+function arrayify(data) {
+    // Matomo may return {date: [...]} for multi-period; merge into flat array
+    if (Array.isArray(data)) return data;
+    if (typeof data === 'object') {
+        var merged = {};
+        Object.values(data).forEach(function(arr) {
+            if (!Array.isArray(arr)) return;
+            arr.forEach(function(item) {
+                var key = item.label || '';
+                if (!merged[key]) merged[key] = { label: key, nb_visits: 0, nb_actions: 0 };
+                merged[key].nb_visits += (item.nb_visits || 0);
+                merged[key].nb_actions += (item.nb_actions || 0);
+            });
+        });
+        return Object.values(merged).sort(function(a, b) { return b.nb_visits - a.nb_visits; });
+    }
+    return [];
+}
+
+function renderBarChart(items, labelKey, valueKey, labelTitle, valueTitle) {
+    if (!items || items.length === 0) return '<p style="color:#888;font-size:0.85rem;">No data for this period.</p>';
+    var max = Math.max.apply(null, items.map(function(r) { return r[valueKey] || 0; })) || 1;
+
+    var html = '';
+    items.forEach(function(row) {
+        var label = row[labelKey] || '(unknown)';
+        var val = row[valueKey] || 0;
+        var pct = (val / max) * 100;
+        html += '<div class="chart-bar-row">'
+            + '<div class="chart-bar-label" title="' + label.replace(/"/g, '&quot;') + '">' + label + '</div>'
+            + '<div class="chart-bar-track"><div class="chart-bar-fill" style="width:' + pct + '%"></div></div>'
+            + '<div class="chart-bar-val">' + fmt(val) + '</div>'
+            + '</div>';
+    });
+    return html;
+}
+
+function showTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    loadTab(tab);
+}
+
+async function loadAll() {
+    tabCache = {};
+    loadKPIs();
+    loadVisitsChart();
+    var activeTab = document.querySelector('.tab-btn.active');
+    loadTab(activeTab ? activeTab.dataset.tab : 'pages');
+}
+
+loadSites().then(function() { loadAll(); });
+</script>
+</body>
+</html>

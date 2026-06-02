@@ -598,7 +598,11 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/ /g, '_');
     canEdit = false;
   }
 
-  await loadData();
+  try {
+    await loadData();
+  } catch (e) {
+    console.error('loadData failed:', e);
+  }
   render();
 
   document.getElementById('btnPrev').onclick = () => { navigate(-1); };

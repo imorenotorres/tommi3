@@ -134,6 +134,7 @@ var TOOL_ACCESS = {
     'agent_management':   ['superuser'],
     'tool_visibility':    ['superuser'],
     'log_analytics':      ['superuser'],
+    'matomo_analytics':   ['superuser'],
     'research_proposals': ['teaching_staff', 'tester', 'superuser'],
     'tommi_testing':      ['tester', 'superuser'],
 };
@@ -188,6 +189,7 @@ var SECTIONS = [
             { id: 'agent_management', name: 'Agent Management', icon: '\u2699\uFE0F', desc: 'Agent visibility, access control, data export, and log management.', url: '#', status: 'active', action: 'openAgentManagement' },
             { id: 'tool_visibility', name: 'Tool Visibility', icon: '\uD83D\uDC41', desc: 'Configure which intranet tools are visible to each role.', url: '#', status: 'active', action: 'openToolVisibility' },
             { id: 'log_analytics', name: 'Agents Analytics', icon: '\uD83D\uDCCA', desc: 'View request summaries, visitor stats, and manage agent log files.', url: '#', status: 'active', action: 'openLogAnalytics' },
+            { id: 'matomo_analytics', name: 'Site Analytics', icon: '\uD83D\uDCC8', desc: 'Website traffic, page views, visitors, and referrers from Matomo.', url: '/matomo-analytics/', status: 'active' },
         ]
     },
 ];
@@ -864,6 +866,7 @@ var TOOL_LABELS = {
     virtual_campus: 'Virtual Campus',
     student_admin: 'Student Administration',
     log_analytics: 'Agents Analytics',
+    matomo_analytics: 'Site Analytics',
 };
 
 function openToolVisibility() {
