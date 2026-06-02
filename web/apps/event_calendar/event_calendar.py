@@ -46,11 +46,11 @@ def _get_token(request: Request) -> str | None:
 def _require_auth(request: Request) -> dict:
     token = _get_token(request)
     if not token:
-        # Allow public (read-only) access with a guest session
         return {"username": "guest", "role": "public", "roles": ["public"]}
     session = get_session(token)
     if not session:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
+        # Invalid/expired token — fall back to guest instead of blocking
+        return {"username": "guest", "role": "public", "roles": ["public"]}
     return session
 
 

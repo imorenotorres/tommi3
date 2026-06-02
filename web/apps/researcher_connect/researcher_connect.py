@@ -39,7 +39,7 @@ def _require_auth(request: Request) -> dict:
         return {"username": "guest", "role": "public", "roles": ["public"]}
     session = get_session(token)
     if not session:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
+        return {"username": "guest", "role": "public", "roles": ["public"]}
     return session
 
 
