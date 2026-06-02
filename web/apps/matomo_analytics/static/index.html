@@ -13,89 +13,88 @@
 
         .container { max-width: 1100px; margin: 0 auto; padding: 20px 24px; }
 
+        /* Controls */
         .controls {
             display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-            margin-bottom: 20px; padding: 14px 18px;
+            margin-bottom: 16px; padding: 14px 18px;
             background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .controls label { font-size: 0.82rem; font-weight: 600; color: #555; }
-        .controls select, .controls input {
+        .controls select, .controls input[type=text] {
             padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
             font-size: 0.82rem; background: #fff;
         }
+        .controls input[type=text] { width: 180px; }
         .controls button {
             padding: 6px 16px; border: none; border-radius: 6px;
             background: #2D3876; color: #fff; font-size: 0.82rem;
             cursor: pointer; font-weight: 600;
         }
         .controls button:hover { background: #4a5299; }
+        .controls .sep { width: 1px; height: 24px; background: #e2e8f0; }
 
         /* KPI cards */
         .kpi-row {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px; margin-bottom: 20px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px; margin-bottom: 16px;
         }
         .kpi-card {
-            background: #fff; border-radius: 10px; padding: 16px 18px;
+            background: #fff; border-radius: 10px; padding: 14px 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center;
         }
-        .kpi-card .kpi-value { font-size: 1.8rem; font-weight: 700; color: #2D3876; }
-        .kpi-card .kpi-label { font-size: 0.78rem; color: #888; margin-top: 4px; }
+        .kpi-card .kpi-value { font-size: 1.6rem; font-weight: 700; color: #2D3876; }
+        .kpi-card .kpi-label { font-size: 0.75rem; color: #888; margin-top: 3px; }
 
-        /* Chart area */
+        /* Chart panels */
         .chart-panel {
-            background: #fff; border-radius: 10px; padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;
+            background: #fff; border-radius: 10px; padding: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 16px;
         }
-        .chart-panel h3 { font-size: 0.95rem; color: #2D3876; margin-bottom: 12px; }
-        .chart-bar-row {
-            display: flex; align-items: center; gap: 8px;
-            margin-bottom: 6px; font-size: 0.78rem;
-        }
-        .chart-bar-label {
-            width: 220px; text-align: right; overflow: hidden;
-            text-overflow: ellipsis; white-space: nowrap; color: #555; flex-shrink: 0;
-        }
-        .chart-bar-track { flex: 1; background: #e5e7eb; border-radius: 4px; height: 18px; position: relative; }
-        .chart-bar-fill {
-            height: 100%; border-radius: 4px; background: #2D3876;
-            min-width: 2px; transition: width 0.3s;
-        }
-        .chart-bar-val { width: 50px; font-weight: 600; color: #2D3876; }
+        .chart-panel h3 { font-size: 0.9rem; color: #2D3876; margin-bottom: 10px; }
 
-        /* Visits chart */
-        .visits-chart { display: flex; align-items: flex-end; gap: 2px; height: 120px; }
-        .visits-bar {
-            flex: 1; background: #2D3876; border-radius: 2px 2px 0 0;
-            min-width: 4px; position: relative; cursor: default;
+        /* Bar charts */
+        .bar-chart { display: flex; align-items: flex-end; gap: 1px; height: 140px; }
+        .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 4px; }
+        .bar-rect {
+            width: 100%; border-radius: 2px 2px 0 0; min-height: 2px;
+            position: relative; cursor: default;
         }
-        .visits-bar:hover { background: #4a5299; }
-        .visits-bar .tip {
+        .bar-rect .tip {
             display: none; position: absolute; bottom: 100%; left: 50%;
             transform: translateX(-50%); background: #1e293b; color: #fff;
-            padding: 3px 8px; border-radius: 4px; font-size: 0.7rem;
+            padding: 3px 8px; border-radius: 4px; font-size: 0.68rem;
             white-space: nowrap; margin-bottom: 4px; z-index: 10;
         }
-        .visits-bar:hover .tip { display: block; }
-
-        .loading { text-align: center; padding: 30px; color: #888; font-size: 0.9rem; }
-        .error { color: #dc3545; text-align: center; padding: 20px; }
-
-        /* Table */
-        .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-        .data-table th {
-            text-align: left; padding: 8px 10px; background: #f8fafc;
-            border-bottom: 2px solid #e2e8f0; color: #555; font-weight: 600;
+        .bar-rect:hover .tip { display: block; }
+        .bar-label {
+            font-size: 0.58rem; color: #94a3b8; margin-top: 3px;
+            writing-mode: vertical-rl; text-orientation: mixed; max-height: 50px;
+            overflow: hidden;
         }
-        .data-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; }
-        .data-table tr:hover td { background: #f8fafc; }
 
-        .tab-row { display: flex; gap: 4px; margin-bottom: 16px; }
+        /* Stacked legend */
+        .legend { display: flex; gap: 14px; margin-bottom: 8px; font-size: 0.75rem; }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+        /* Horizontal bar chart */
+        .hbar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.78rem; }
+        .hbar-label { width: 220px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #555; flex-shrink: 0; }
+        .hbar-track { flex: 1; background: #e5e7eb; border-radius: 4px; height: 18px; }
+        .hbar-fill { height: 100%; border-radius: 4px; min-width: 2px; transition: width 0.3s; }
+        .hbar-val { width: 50px; font-weight: 600; color: #2D3876; }
+
+        /* Tabs */
+        .tab-row { display: flex; gap: 4px; margin-bottom: 14px; }
         .tab-btn {
             padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px;
-            background: #fff; cursor: pointer; font-size: 0.8rem;
+            background: #fff; cursor: pointer; font-size: 0.78rem;
         }
         .tab-btn.active { background: #2D3876; color: #fff; border-color: #2D3876; }
+
+        .loading { text-align: center; padding: 30px; color: #888; font-size: 0.85rem; }
+        .error { color: #dc3545; text-align: center; padding: 16px; font-size: 0.85rem; }
+        .note { font-size: 0.72rem; color: #94a3b8; margin-top: 6px; }
     </style>
     <!-- Matomo -->
     <script>
@@ -117,43 +116,61 @@
 
 <div class="container">
 
+    <!-- Controls row 1: Site + Period -->
     <div class="controls">
         <label>Site:</label>
         <select id="selSite">
             <option value="all">All sites (aggregated)</option>
         </select>
+        <div class="sep"></div>
         <label>Period:</label>
         <select id="selPeriod">
-            <option value="day">Daily</option>
+            <option value="day" selected>Daily</option>
             <option value="week">Weekly</option>
-            <option value="month" selected>Monthly</option>
+            <option value="month">Monthly</option>
         </select>
         <label>Range:</label>
         <select id="selRange">
             <option value="last7">Last 7</option>
+            <option value="last14">Last 14</option>
             <option value="last30" selected>Last 30</option>
             <option value="last90">Last 90</option>
             <option value="last365">Last 365</option>
         </select>
-        <button onclick="loadAll()">Refresh</button>
+        <div class="sep"></div>
+        <label>Page filter:</label>
+        <input type="text" id="txtPageFilter" placeholder="e.g. /agents, /event-calendar">
+        <button onclick="loadAll()">Apply</button>
     </div>
 
     <!-- KPI cards -->
     <div class="kpi-row" id="kpiRow">
-        <div class="kpi-card"><div class="kpi-value" id="kpiVisits">-</div><div class="kpi-label">Total Visits</div></div>
-        <div class="kpi-card"><div class="kpi-value" id="kpiPageviews">-</div><div class="kpi-label">Page Views</div></div>
+        <div class="kpi-card"><div class="kpi-value" id="kpiVisits">-</div><div class="kpi-label">Visits</div></div>
         <div class="kpi-card"><div class="kpi-value" id="kpiUnique">-</div><div class="kpi-label">Unique Visitors</div></div>
-        <div class="kpi-card"><div class="kpi-value" id="kpiAvgTime">-</div><div class="kpi-label">Avg. Visit Duration</div></div>
+        <div class="kpi-card"><div class="kpi-value" id="kpiPageviews">-</div><div class="kpi-label">Page Views</div></div>
+        <div class="kpi-card"><div class="kpi-value" id="kpiAvgTime">-</div><div class="kpi-label">Avg. Duration</div></div>
         <div class="kpi-card"><div class="kpi-value" id="kpiBounce">-</div><div class="kpi-label">Bounce Rate</div></div>
+        <div class="kpi-card"><div class="kpi-value" id="kpiActions">-</div><div class="kpi-label">Actions / Visit</div></div>
     </div>
 
-    <!-- Visits over time -->
+    <!-- Main chart: Visits + Unique visitors over time -->
     <div class="chart-panel">
-        <h3>Visits Over Time</h3>
-        <div id="visitsChart" class="visits-chart loading">Loading...</div>
+        <h3 id="chartTitle">Visitors Over Time</h3>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#2D3876;"></div> Visits</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#60a5fa;"></div> Unique Visitors</div>
+        </div>
+        <div id="mainChart" class="bar-chart loading">Loading...</div>
+        <div class="note" id="chartNote"></div>
     </div>
 
-    <!-- Tabs: Pages / Referrers / Countries / Devices -->
+    <!-- Per-site breakdown (only when "All sites" selected) -->
+    <div class="chart-panel" id="siteBreakdownPanel" style="display:none;">
+        <h3>Breakdown by Site</h3>
+        <div id="siteBreakdown"></div>
+    </div>
+
+    <!-- Tabs -->
     <div class="tab-row">
         <button class="tab-btn active" data-tab="pages" onclick="showTab('pages',this)">Top Pages</button>
         <button class="tab-btn" data-tab="referrers" onclick="showTab('referrers',this)">Referrers</button>
@@ -161,182 +178,253 @@
         <button class="tab-btn" data-tab="devices" onclick="showTab('devices',this)">Devices</button>
         <button class="tab-btn" data-tab="browsers" onclick="showTab('browsers',this)">Browsers</button>
     </div>
-
-    <div class="chart-panel" id="tabContent">
-        <div class="loading">Loading...</div>
-    </div>
+    <div class="chart-panel" id="tabContent"><div class="loading">Loading...</div></div>
 </div>
 
 <script>
-const API = '/matomo-analytics/api/proxy';
+var API = '/matomo-analytics/api/proxy';
+var SITE_NAMES = {};
 
 function site() { return document.getElementById('selSite').value; }
 function period() { return document.getElementById('selPeriod').value; }
-function range() { return document.getElementById('selRange').value; }
-function isAllSites() { return site() === 'all'; }
+function dateRange() { return document.getElementById('selRange').value; }
+function pageFilter() { return document.getElementById('txtPageFilter').value.trim(); }
+function isAll() { return site() === 'all'; }
 
+// ── Init: load sites ──
 async function loadSites() {
     try {
         var resp = await fetch('/matomo-analytics/api/sites');
         var data = await resp.json();
         var sel = document.getElementById('selSite');
         (data.sites || []).forEach(function(s) {
+            SITE_NAMES[s.id] = s.name;
             var opt = document.createElement('option');
             opt.value = s.id;
             opt.textContent = s.name;
             sel.appendChild(opt);
         });
-    } catch (e) { console.error('Failed to load sites:', e); }
+    } catch (e) { console.error('Sites:', e); }
 }
 
-async function query(method, extraParams) {
-    const params = new URLSearchParams({
+// ── API helper ──
+async function query(method, extra) {
+    var params = new URLSearchParams({
         method: method,
         period: period(),
-        date: range(),
+        date: dateRange(),
         idSite: site(),
     });
-    if (extraParams) {
-        for (const [k, v] of Object.entries(extraParams)) params.set(k, v);
+    if (extra) { for (var k in extra) params.set(k, extra[k]); }
+    var pf = pageFilter();
+    if (pf && !extra?.skipSegment) {
+        params.set('segment', 'pageUrl=@' + pf);
     }
-    const resp = await fetch(API + '?' + params.toString());
-    if (!resp.ok) throw new Error('API error: ' + resp.status);
+    var resp = await fetch(API + '?' + params.toString());
+    if (!resp.ok) throw new Error('API ' + resp.status);
     return resp.json();
 }
 
-// When idSite=all, Matomo returns { siteId: { date: value } }
-// When idSite=N, it returns { date: value }
-// This helper normalises both to { date: value } by summing across sites
-function flattenSites(data) {
-    if (!isAllSites()) return data;
-    // data = { "1": { "2026-05": X, ... }, "2": { ... }, ... }
-    var merged = {};
-    for (var siteId in data) {
-        var siteData = data[siteId];
-        if (typeof siteData !== 'object' || siteData === null) continue;
-        for (var dateKey in siteData) {
-            var val = siteData[dateKey];
-            if (typeof val === 'number') {
-                // Simple numeric (e.g. getVisits)
-                merged[dateKey] = (merged[dateKey] || 0) + val;
-            } else if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
-                // Object with fields (e.g. VisitsSummary.get)
-                if (!merged[dateKey]) merged[dateKey] = {};
-                for (var field in val) {
-                    if (typeof val[field] === 'number') {
-                        merged[dateKey][field] = (merged[dateKey][field] || 0) + val[field];
-                    }
-                }
+function fmt(n) { return n == null ? '-' : Number(n).toLocaleString(); }
+function fmtTime(s) {
+    if (!s) return '0s';
+    s = Math.round(s);
+    return s < 60 ? s + 's' : Math.floor(s/60) + 'm ' + (s%60) + 's';
+}
+
+// ── Flatten multi-site data ──
+function flattenNum(data) {
+    if (!isAll()) return data;
+    var m = {};
+    for (var sid in data) {
+        var sd = data[sid];
+        if (typeof sd !== 'object' || sd === null) continue;
+        for (var dk in sd) {
+            var v = sd[dk];
+            if (typeof v === 'number') m[dk] = (m[dk]||0) + v;
+            else if (typeof v === 'object' && v && !Array.isArray(v)) {
+                if (!m[dk]) m[dk] = {};
+                for (var f in v) if (typeof v[f] === 'number') m[dk][f] = (m[dk][f]||0) + v[f];
             }
         }
     }
-    return merged;
+    return m;
 }
-
-function flattenSitesArray(data) {
-    if (!isAllSites()) return data;
-    // data = { "1": { "date": [...], ... }, "2": { ... } } or { "1": [...], "2": [...] }
-    var merged = {};
-    for (var siteId in data) {
-        var siteData = data[siteId];
-        // Could be an array directly or { date: [...] }
-        var arrays = [];
-        if (Array.isArray(siteData)) {
-            arrays.push(siteData);
-        } else if (typeof siteData === 'object') {
-            for (var k in siteData) {
-                if (Array.isArray(siteData[k])) arrays.push(siteData[k]);
-            }
-        }
-        arrays.forEach(function(arr) {
-            arr.forEach(function(item) {
-                var key = item.label || '';
-                if (!merged[key]) merged[key] = { label: key, nb_visits: 0, nb_actions: 0 };
-                merged[key].nb_visits += (item.nb_visits || 0);
-                merged[key].nb_actions += (item.nb_actions || 0);
-            });
+function flattenArr(data) {
+    if (!isAll()) return data;
+    var m = {};
+    for (var sid in data) {
+        var sd = data[sid];
+        var arrs = [];
+        if (Array.isArray(sd)) arrs.push(sd);
+        else if (typeof sd === 'object') for (var k in sd) if (Array.isArray(sd[k])) arrs.push(sd[k]);
+        arrs.forEach(function(a) { a.forEach(function(item) {
+            var key = item.label || '';
+            if (!m[key]) m[key] = {label:key, nb_visits:0, nb_hits:0, nb_uniq_visitors:0};
+            m[key].nb_visits += (item.nb_visits||0);
+            m[key].nb_hits += (item.nb_hits||0);
+            m[key].nb_uniq_visitors += (item.nb_uniq_visitors||0);
+        }); });
+    }
+    return Object.values(m).sort(function(a,b){return b.nb_visits - a.nb_visits;});
+}
+// For single-site multi-period arrays
+function arrayify(data) {
+    if (Array.isArray(data)) return data;
+    if (typeof data !== 'object') return [];
+    var m = {};
+    Object.values(data).forEach(function(arr) {
+        if (!Array.isArray(arr)) return;
+        arr.forEach(function(item) {
+            var key = item.label || '';
+            if (!m[key]) m[key] = {label:key, nb_visits:0, nb_hits:0, nb_uniq_visitors:0};
+            m[key].nb_visits += (item.nb_visits||0);
+            m[key].nb_hits += (item.nb_hits||0);
+            m[key].nb_uniq_visitors += (item.nb_uniq_visitors||0);
         });
-    }
-    return Object.values(merged).sort(function(a, b) { return b.nb_visits - a.nb_visits; });
+    });
+    return Object.values(m).sort(function(a,b){return b.nb_visits - a.nb_visits;});
 }
 
-function fmt(n) {
-    if (n == null) return '-';
-    return Number(n).toLocaleString();
-}
-
-function fmtTime(seconds) {
-    if (!seconds) return '0s';
-    var s = Math.round(seconds);
-    if (s < 60) return s + 's';
-    var m = Math.floor(s / 60);
-    s = s % 60;
-    return m + 'm ' + s + 's';
-}
-
-// ── KPIs (aggregated) ──
+// ── KPIs ──
 async function loadKPIs() {
     try {
         var raw = await query('VisitsSummary.get');
-        var data = flattenSites(raw);
-        // data is now { date: {fields...}, ... } or a single object
-        var totals = { nb_visits: 0, nb_actions: 0, nb_uniq_visitors: 0, avg_time_on_site: 0, bounce_rate: '' };
+        var data = flattenNum(raw);
+        var t = {nb_visits:0, nb_actions:0, nb_uniq_visitors:0, avg_time_on_site:0, bounce_rate:'', nb_actions_per_visit:0};
         var keys = Object.keys(data);
-        if (keys.length > 0 && typeof data[keys[0]] === 'object' && data[keys[0]] !== null) {
-            // Multiple periods — sum up
-            var count = 0, totalTime = 0, totalBounce = 0;
+        if (keys.length && typeof data[keys[0]] === 'object' && data[keys[0]] !== null) {
+            var n = 0;
             keys.forEach(function(k) {
-                var d = data[k];
-                if (!d || typeof d !== 'object') return;
-                totals.nb_visits += (d.nb_visits || 0);
-                totals.nb_actions += (d.nb_actions || 0);
-                totals.nb_uniq_visitors += (d.nb_uniq_visitors || 0);
-                totalTime += (d.avg_time_on_site || 0);
-                var br = String(d.bounce_rate || '0%').replace('%', '');
-                totalBounce += parseFloat(br) || 0;
-                count++;
+                var d = data[k]; if (!d || typeof d !== 'object') return;
+                t.nb_visits += (d.nb_visits||0);
+                t.nb_actions += (d.nb_actions||0);
+                t.nb_uniq_visitors += (d.nb_uniq_visitors||0);
+                t.avg_time_on_site += (d.avg_time_on_site||0);
+                t.nb_actions_per_visit += (d.nb_actions_per_visit||0);
+                var br = String(d.bounce_rate||'0%').replace('%','');
+                t.bounce_rate = (parseFloat(t.bounce_rate)||0) + (parseFloat(br)||0);
+                n++;
             });
-            totals.avg_time_on_site = count ? totalTime / count : 0;
-            totals.bounce_rate = count ? (totalBounce / count).toFixed(0) + '%' : '-';
-        } else {
-            totals = data;
+            if (n) { t.avg_time_on_site /= n; t.bounce_rate = (t.bounce_rate/n).toFixed(0)+'%'; t.nb_actions_per_visit = (t.nb_actions_per_visit/n).toFixed(1); }
+        } else { t = data; }
+        document.getElementById('kpiVisits').textContent = fmt(t.nb_visits);
+        document.getElementById('kpiUnique').textContent = fmt(t.nb_uniq_visitors);
+        document.getElementById('kpiPageviews').textContent = fmt(t.nb_actions);
+        document.getElementById('kpiAvgTime').textContent = fmtTime(t.avg_time_on_site);
+        document.getElementById('kpiBounce').textContent = t.bounce_rate || '-';
+        document.getElementById('kpiActions').textContent = t.nb_actions_per_visit || '-';
+    } catch (e) { console.error('KPIs:', e); }
+}
+
+// ── Main chart: Visits + Unique visitors ──
+async function loadMainChart() {
+    var el = document.getElementById('mainChart');
+    var noteEl = document.getElementById('chartNote');
+    var p = period();
+    var uniqueAvailable = (p === 'day' || p === 'week');
+
+    try {
+        var rawVisits = await query('VisitsSummary.getVisits');
+        var visits = flattenNum(rawVisits);
+        var uniques = {};
+        if (uniqueAvailable) {
+            try {
+                var rawUniq = await query('VisitsSummary.getUniqueVisitors');
+                uniques = flattenNum(rawUniq);
+            } catch(e) { /* unique not available */ }
         }
-        document.getElementById('kpiVisits').textContent = fmt(totals.nb_visits);
-        document.getElementById('kpiPageviews').textContent = fmt(totals.nb_actions);
-        document.getElementById('kpiUnique').textContent = fmt(totals.nb_uniq_visitors);
-        document.getElementById('kpiAvgTime').textContent = fmtTime(totals.avg_time_on_site);
-        document.getElementById('kpiBounce').textContent = totals.bounce_rate || '-';
+
+        el.className = 'bar-chart';
+        el.innerHTML = '';
+        noteEl.textContent = uniqueAvailable ? '' : 'Note: Unique visitors are only available for daily and weekly periods on Matomo Cloud.';
+
+        var keys = Object.keys(visits).sort();
+        if (!keys.length) { el.innerHTML = '<span class="error">No data for this period.</span>'; return; }
+
+        var maxV = 0;
+        keys.forEach(function(k) { var v = visits[k]||0; if (v > maxV) maxV = v; });
+        if (!maxV) maxV = 1;
+
+        keys.forEach(function(k) {
+            var v = visits[k] || 0;
+            var u = uniques[k] || 0;
+            var pctV = (v / maxV) * 100;
+            var pctU = uniqueAvailable ? (u / maxV) * 100 : 0;
+
+            var col = document.createElement('div');
+            col.className = 'bar-col';
+
+            // Short date label
+            var lbl = k;
+            if (lbl.length === 10) lbl = lbl.substring(5); // 2026-05-27 → 05-27
+            if (lbl.indexOf(',') > -1) lbl = lbl.split(',')[0].substring(5); // week range
+
+            if (uniqueAvailable && u > 0) {
+                // Stacked: unique (front) + remaining visits (back)
+                var remaining = Math.max(0, pctV - pctU);
+                col.innerHTML =
+                    '<div style="width:100%;display:flex;flex-direction:column;align-items:stretch;height:100%;justify-content:flex-end;">' +
+                    '<div class="bar-rect" style="height:' + Math.max(remaining, 0) + '%;background:#2D3876;"><span class="tip">' + k + '\nVisits: ' + v + '\nUnique: ' + u + '</span></div>' +
+                    '<div class="bar-rect" style="height:' + Math.max(pctU, 2) + '%;background:#60a5fa;"><span class="tip">' + k + '\nUnique Visitors: ' + u + '</span></div>' +
+                    '</div>';
+            } else {
+                col.innerHTML = '<div class="bar-rect" style="height:' + Math.max(pctV, 2) + '%;background:#2D3876;"><span class="tip">' + k + ': ' + v + ' visits</span></div>';
+            }
+            col.innerHTML += '<div class="bar-label">' + lbl + '</div>';
+            el.appendChild(col);
+        });
+
+        // Update chart title
+        var pf = pageFilter();
+        document.getElementById('chartTitle').textContent = 'Visitors Over Time' + (pf ? ' — filtered by "' + pf + '"' : '');
+
     } catch (e) {
-        console.error('KPI error:', e);
+        el.className = '';
+        el.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
     }
 }
 
-// ── Visits over time chart ──
-async function loadVisitsChart() {
-    var container = document.getElementById('visitsChart');
+// ── Per-site breakdown (when "All sites") ──
+async function loadSiteBreakdown() {
+    var panel = document.getElementById('siteBreakdownPanel');
+    if (!isAll()) { panel.style.display = 'none'; return; }
+    panel.style.display = '';
+
+    var el = document.getElementById('siteBreakdown');
     try {
-        var raw = await query('VisitsSummary.getVisits');
-        var data = flattenSites(raw);
-        container.className = 'visits-chart';
-        container.innerHTML = '';
-        if (typeof data !== 'object') { container.innerHTML = '<span class="error">No data</span>'; return; }
+        var raw = await query('VisitsSummary.get');
+        // raw = { siteId: { date: {fields} } }
+        var siteStats = [];
+        for (var sid in raw) {
+            var sd = raw[sid];
+            if (typeof sd !== 'object') continue;
+            var visits = 0, uniq = 0, actions = 0;
+            for (var dk in sd) {
+                var d = sd[dk];
+                if (typeof d === 'object' && d) {
+                    visits += (d.nb_visits||0);
+                    uniq += (d.nb_uniq_visitors||0);
+                    actions += (d.nb_actions||0);
+                }
+            }
+            siteStats.push({ id: sid, name: SITE_NAMES[sid] || ('Site ' + sid), visits: visits, uniq: uniq, actions: actions });
+        }
+        siteStats.sort(function(a,b) { return b.visits - a.visits; });
 
-        var keys = Object.keys(data).sort();
-        var values = keys.map(function(k) { return data[k] || 0; });
-        var max = Math.max.apply(null, values) || 1;
-
-        keys.forEach(function(k, i) {
-            var v = values[i];
-            var pct = (v / max) * 100;
-            var bar = document.createElement('div');
-            bar.className = 'visits-bar';
-            bar.style.height = Math.max(pct, 2) + '%';
-            bar.innerHTML = '<span class="tip">' + k + ': ' + fmt(v) + ' visits</span>';
-            container.appendChild(bar);
+        var max = siteStats.length ? siteStats[0].visits : 1;
+        var html = '';
+        siteStats.forEach(function(s) {
+            var pct = (s.visits / max) * 100;
+            html += '<div class="hbar-row">'
+                + '<div class="hbar-label">' + s.name + '</div>'
+                + '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%;background:#2D3876;"></div></div>'
+                + '<div class="hbar-val" title="Visits: ' + fmt(s.visits) + ' | Unique: ' + fmt(s.uniq) + ' | Pages: ' + fmt(s.actions) + '">' + fmt(s.visits) + '</div>'
+                + '</div>';
         });
+        el.innerHTML = html;
     } catch (e) {
-        container.className = '';
-        container.innerHTML = '<span class="error">Error loading visits chart</span>';
+        el.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
     }
 }
 
@@ -345,86 +433,64 @@ var tabCache = {};
 
 async function loadTab(tab) {
     var container = document.getElementById('tabContent');
-    var cacheKey = tab + '_' + site() + '_' + period() + '_' + range();
+    var cacheKey = tab + '_' + site() + '_' + period() + '_' + dateRange() + '_' + pageFilter();
     if (tabCache[cacheKey]) { container.innerHTML = tabCache[cacheKey]; return; }
-
     container.innerHTML = '<div class="loading">Loading...</div>';
 
     try {
-        var raw, data, html;
+        var raw, items, html;
         switch (tab) {
             case 'pages':
-                raw = await query('Actions.getPageUrls', { flat: '1', filter_limit: '20' });
-                data = isAllSites() ? flattenSitesArray(raw) : arrayify(raw);
-                html = renderBarChart(data, 'label', 'nb_visits', 'Page', 'Visits');
+                raw = await query('Actions.getPageUrls', { flat:'1', filter_limit:'25' });
+                items = isAll() ? flattenArr(raw) : arrayify(raw);
+                html = renderHBar(items, 'nb_visits', 'Visits');
                 break;
             case 'referrers':
-                raw = await query('Referrers.getWebsites', { filter_limit: '20' });
-                data = isAllSites() ? flattenSitesArray(raw) : arrayify(raw);
-                html = renderBarChart(data, 'label', 'nb_visits', 'Referrer', 'Visits');
+                raw = await query('Referrers.getWebsites', { filter_limit:'20' });
+                items = isAll() ? flattenArr(raw) : arrayify(raw);
+                html = renderHBar(items, 'nb_visits', 'Visits');
                 break;
             case 'countries':
-                raw = await query('UserCountry.getCountry', { filter_limit: '20' });
-                data = isAllSites() ? flattenSitesArray(raw) : arrayify(raw);
-                html = renderBarChart(data, 'label', 'nb_visits', 'Country', 'Visits');
+                raw = await query('UserCountry.getCountry', { filter_limit:'20' });
+                items = isAll() ? flattenArr(raw) : arrayify(raw);
+                html = renderHBar(items, 'nb_visits', 'Visits');
                 break;
             case 'devices':
-                raw = await query('DevicesDetection.getType', { filter_limit: '10' });
-                data = isAllSites() ? flattenSitesArray(raw) : arrayify(raw);
-                html = renderBarChart(data, 'label', 'nb_visits', 'Device', 'Visits');
+                raw = await query('DevicesDetection.getType', { filter_limit:'10' });
+                items = isAll() ? flattenArr(raw) : arrayify(raw);
+                html = renderHBar(items, 'nb_visits', 'Visits');
                 break;
             case 'browsers':
-                raw = await query('DevicesDetection.getBrowsers', { filter_limit: '15' });
-                data = isAllSites() ? flattenSitesArray(raw) : arrayify(raw);
-                html = renderBarChart(data, 'label', 'nb_visits', 'Browser', 'Visits');
+                raw = await query('DevicesDetection.getBrowsers', { filter_limit:'15' });
+                items = isAll() ? flattenArr(raw) : arrayify(raw);
+                html = renderHBar(items, 'nb_visits', 'Visits');
                 break;
         }
         tabCache[cacheKey] = html;
         container.innerHTML = html;
     } catch (e) {
-        container.innerHTML = '<span class="error">Error loading data: ' + e.message + '</span>';
+        container.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
     }
 }
 
-function arrayify(data) {
-    // Matomo may return {date: [...]} for multi-period; merge into flat array
-    if (Array.isArray(data)) return data;
-    if (typeof data === 'object') {
-        var merged = {};
-        Object.values(data).forEach(function(arr) {
-            if (!Array.isArray(arr)) return;
-            arr.forEach(function(item) {
-                var key = item.label || '';
-                if (!merged[key]) merged[key] = { label: key, nb_visits: 0, nb_actions: 0 };
-                merged[key].nb_visits += (item.nb_visits || 0);
-                merged[key].nb_actions += (item.nb_actions || 0);
-            });
-        });
-        return Object.values(merged).sort(function(a, b) { return b.nb_visits - a.nb_visits; });
-    }
-    return [];
-}
-
-function renderBarChart(items, labelKey, valueKey, labelTitle, valueTitle) {
-    if (!items || items.length === 0) return '<p style="color:#888;font-size:0.85rem;">No data for this period.</p>';
-    var max = Math.max.apply(null, items.map(function(r) { return r[valueKey] || 0; })) || 1;
-
+function renderHBar(items, valueKey, valueLabel) {
+    if (!items || !items.length) return '<p style="color:#888;font-size:0.85rem;">No data for this period.</p>';
+    var max = Math.max.apply(null, items.map(function(r){return r[valueKey]||0;})) || 1;
     var html = '';
     items.forEach(function(row) {
-        var label = row[labelKey] || '(unknown)';
+        var label = row.label || '(unknown)';
         var val = row[valueKey] || 0;
         var pct = (val / max) * 100;
-        html += '<div class="chart-bar-row">'
-            + '<div class="chart-bar-label" title="' + label.replace(/"/g, '&quot;') + '">' + label + '</div>'
-            + '<div class="chart-bar-track"><div class="chart-bar-fill" style="width:' + pct + '%"></div></div>'
-            + '<div class="chart-bar-val">' + fmt(val) + '</div>'
-            + '</div>';
+        html += '<div class="hbar-row">'
+            + '<div class="hbar-label" title="' + label.replace(/"/g,'&quot;') + '">' + label + '</div>'
+            + '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%;background:#2D3876;"></div></div>'
+            + '<div class="hbar-val">' + fmt(val) + '</div></div>';
     });
     return html;
 }
 
 function showTab(tab, btn) {
-    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
     if (btn) btn.classList.add('active');
     loadTab(tab);
 }
@@ -432,12 +498,13 @@ function showTab(tab, btn) {
 async function loadAll() {
     tabCache = {};
     loadKPIs();
-    loadVisitsChart();
-    var activeTab = document.querySelector('.tab-btn.active');
-    loadTab(activeTab ? activeTab.dataset.tab : 'pages');
+    loadMainChart();
+    loadSiteBreakdown();
+    var active = document.querySelector('.tab-btn.active');
+    loadTab(active ? active.dataset.tab : 'pages');
 }
 
-loadSites().then(function() { loadAll(); });
+loadSites().then(function(){ loadAll(); });
 </script>
 </body>
 </html>
