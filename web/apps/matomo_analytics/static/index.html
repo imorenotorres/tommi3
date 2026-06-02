@@ -10,91 +10,75 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
-
         .container { max-width: 1100px; margin: 0 auto; padding: 20px 24px; }
 
-        /* Controls */
         .controls {
-            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-            margin-bottom: 16px; padding: 14px 18px;
+            display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+            margin-bottom: 16px; padding: 12px 16px;
             background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .controls label { font-size: 0.82rem; font-weight: 600; color: #555; }
+        .controls label { font-size: 0.78rem; font-weight: 600; color: #555; }
         .controls select, .controls input[type=text] {
-            padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
-            font-size: 0.82rem; background: #fff;
+            padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 6px;
+            font-size: 0.78rem; background: #fff;
         }
-        .controls input[type=text] { width: 180px; }
+        .controls input[type=text] { width: 160px; }
         .controls button {
-            padding: 6px 16px; border: none; border-radius: 6px;
-            background: #2D3876; color: #fff; font-size: 0.82rem;
+            padding: 5px 14px; border: none; border-radius: 6px;
+            background: #2D3876; color: #fff; font-size: 0.78rem;
             cursor: pointer; font-weight: 600;
         }
         .controls button:hover { background: #4a5299; }
-        .controls .sep { width: 1px; height: 24px; background: #e2e8f0; }
+        .controls .sep { width: 1px; height: 22px; background: #e2e8f0; }
 
-        /* KPI cards */
         .kpi-row {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px; margin-bottom: 16px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px; margin-bottom: 16px;
         }
         .kpi-card {
-            background: #fff; border-radius: 10px; padding: 14px 16px;
+            background: #fff; border-radius: 10px; padding: 12px 14px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center;
         }
-        .kpi-card .kpi-value { font-size: 1.6rem; font-weight: 700; color: #2D3876; }
-        .kpi-card .kpi-label { font-size: 0.75rem; color: #888; margin-top: 3px; }
+        .kpi-card .kv { font-size: 1.5rem; font-weight: 700; color: #2D3876; }
+        .kpi-card .kl { font-size: 0.72rem; color: #888; margin-top: 2px; }
 
-        /* Chart panels */
-        .chart-panel {
-            background: #fff; border-radius: 10px; padding: 18px;
+        .panel {
+            background: #fff; border-radius: 10px; padding: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 16px;
         }
-        .chart-panel h3 { font-size: 0.9rem; color: #2D3876; margin-bottom: 10px; }
+        .panel h3 { font-size: 0.88rem; color: #2D3876; margin-bottom: 8px; }
 
-        /* Bar charts */
-        .bar-chart { display: flex; align-items: flex-end; gap: 1px; height: 140px; }
-        .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 4px; }
-        .bar-rect {
-            width: 100%; border-radius: 2px 2px 0 0; min-height: 2px;
-            position: relative; cursor: default;
-        }
-        .bar-rect .tip {
+        /* Bar chart */
+        .bchart { display: flex; align-items: flex-end; gap: 1px; height: 160px; }
+        .bcol { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 6px; }
+        .brect { width: 100%; border-radius: 2px 2px 0 0; min-height: 2px; position: relative; cursor: default; }
+        .brect .tip {
             display: none; position: absolute; bottom: 100%; left: 50%;
             transform: translateX(-50%); background: #1e293b; color: #fff;
-            padding: 3px 8px; border-radius: 4px; font-size: 0.68rem;
-            white-space: nowrap; margin-bottom: 4px; z-index: 10;
+            padding: 4px 10px; border-radius: 4px; font-size: 0.7rem;
+            white-space: pre; margin-bottom: 4px; z-index: 10; line-height: 1.4;
         }
-        .bar-rect:hover .tip { display: block; }
-        .bar-label {
-            font-size: 0.58rem; color: #94a3b8; margin-top: 3px;
-            writing-mode: vertical-rl; text-orientation: mixed; max-height: 50px;
-            overflow: hidden;
-        }
+        .brect:hover .tip { display: block; }
+        .blbl { font-size: 0.6rem; color: #94a3b8; margin-top: 3px; writing-mode: vertical-rl; max-height: 50px; overflow: hidden; }
 
-        /* Stacked legend */
-        .legend { display: flex; gap: 14px; margin-bottom: 8px; font-size: 0.75rem; }
+        .legend { display: flex; gap: 14px; margin-bottom: 6px; font-size: 0.72rem; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
-        .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+        .ldot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 
-        /* Horizontal bar chart */
-        .hbar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.78rem; }
-        .hbar-label { width: 220px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #555; flex-shrink: 0; }
-        .hbar-track { flex: 1; background: #e5e7eb; border-radius: 4px; height: 18px; }
-        .hbar-fill { height: 100%; border-radius: 4px; min-width: 2px; transition: width 0.3s; }
-        .hbar-val { width: 50px; font-weight: 600; color: #2D3876; }
+        /* Horizontal bar */
+        .hrow { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.78rem; }
+        .hlbl { width: 200px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #555; flex-shrink: 0; }
+        .htrack { flex: 1; background: #e5e7eb; border-radius: 4px; height: 18px; }
+        .hfill { height: 100%; border-radius: 4px; min-width: 2px; background: #2D3876; }
+        .hval { width: 50px; font-weight: 600; color: #2D3876; font-size: 0.78rem; }
 
-        /* Tabs */
-        .tab-row { display: flex; gap: 4px; margin-bottom: 14px; }
-        .tab-btn {
-            padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 6px;
-            background: #fff; cursor: pointer; font-size: 0.78rem;
-        }
+        .tab-row { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
+        .tab-btn { padding: 5px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; font-size: 0.75rem; }
         .tab-btn.active { background: #2D3876; color: #fff; border-color: #2D3876; }
 
-        .loading { text-align: center; padding: 30px; color: #888; font-size: 0.85rem; }
-        .error { color: #dc3545; text-align: center; padding: 16px; font-size: 0.85rem; }
-        .note { font-size: 0.72rem; color: #94a3b8; margin-top: 6px; }
+        .loading { text-align: center; padding: 24px; color: #888; font-size: 0.85rem; }
+        .error { color: #dc3545; text-align: center; padding: 16px; font-size: 0.82rem; }
+        .note { font-size: 0.7rem; color: #94a3b8; margin-top: 4px; }
     </style>
     <!-- Matomo -->
     <script>
@@ -111,63 +95,57 @@
     </script>
 </head>
 <body>
-
 <script>uninovisNav({ crumbs: [{label:'System', href:'#'}], current: 'Site Analytics' });</script>
 
 <div class="container">
-
-    <!-- Controls row 1: Site + Period -->
     <div class="controls">
         <label>Site:</label>
-        <select id="selSite">
-            <option value="all">All sites (aggregated)</option>
-        </select>
+        <select id="selSite"><option value="all">All sites</option></select>
+        <div class="sep"></div>
+        <label>Country:</label>
+        <select id="selCountry"><option value="all">All countries</option></select>
         <div class="sep"></div>
         <label>Period:</label>
         <select id="selPeriod">
-            <option value="day" selected>Daily</option>
-            <option value="week">Weekly</option>
+            <option value="day">Daily</option>
+            <option value="week" selected>Weekly</option>
             <option value="month">Monthly</option>
         </select>
         <label>Range:</label>
         <select id="selRange">
-            <option value="last7">Last 7</option>
-            <option value="last14">Last 14</option>
-            <option value="last30" selected>Last 30</option>
-            <option value="last90">Last 90</option>
-            <option value="last365">Last 365</option>
+            <option value="last4">Last 4</option>
+            <option value="last8" selected>Last 8</option>
+            <option value="last12">Last 12</option>
+            <option value="last26">Last 26</option>
+            <option value="last52">Last 52</option>
         </select>
         <div class="sep"></div>
-        <label>Page filter:</label>
-        <input type="text" id="txtPageFilter" placeholder="e.g. /agents, /event-calendar">
+        <label>Page:</label>
+        <input type="text" id="txtPage" placeholder="/agents, /event-calendar...">
         <button onclick="loadAll()">Apply</button>
     </div>
 
-    <!-- KPI cards -->
-    <div class="kpi-row" id="kpiRow">
-        <div class="kpi-card"><div class="kpi-value" id="kpiVisits">-</div><div class="kpi-label">Visits</div></div>
-        <div class="kpi-card"><div class="kpi-value" id="kpiUnique">-</div><div class="kpi-label">Unique Visitors</div></div>
-        <div class="kpi-card"><div class="kpi-value" id="kpiPageviews">-</div><div class="kpi-label">Page Views</div></div>
-        <div class="kpi-card"><div class="kpi-value" id="kpiAvgTime">-</div><div class="kpi-label">Avg. Duration</div></div>
-        <div class="kpi-card"><div class="kpi-value" id="kpiBounce">-</div><div class="kpi-label">Bounce Rate</div></div>
-        <div class="kpi-card"><div class="kpi-value" id="kpiActions">-</div><div class="kpi-label">Actions / Visit</div></div>
+    <!-- KPIs -->
+    <div class="kpi-row">
+        <div class="kpi-card"><div class="kv" id="kvVisits">-</div><div class="kl">Visits</div></div>
+        <div class="kpi-card"><div class="kv" id="kvUniq">-</div><div class="kl">Unique Visitors</div></div>
+        <div class="kpi-card"><div class="kv" id="kvPages">-</div><div class="kl">Page Views</div></div>
+        <div class="kpi-card"><div class="kv" id="kvTime">-</div><div class="kl">Avg. Duration</div></div>
+        <div class="kpi-card"><div class="kv" id="kvBounce">-</div><div class="kl">Bounce Rate</div></div>
     </div>
 
-    <!-- Main chart: Visits + Unique visitors over time -->
-    <div class="chart-panel">
+    <!-- Main chart -->
+    <div class="panel">
         <h3 id="chartTitle">Visitors Over Time</h3>
-        <div class="legend">
-            <div class="legend-item"><div class="legend-dot" style="background:#2D3876;"></div> Visits</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#60a5fa;"></div> Unique Visitors</div>
-        </div>
-        <div id="mainChart" class="bar-chart loading">Loading...</div>
+        <div class="legend" id="chartLegend"></div>
+        <div id="chart" class="bchart loading">Loading...</div>
         <div class="note" id="chartNote"></div>
     </div>
 
-    <!-- Per-site breakdown (only when "All sites" selected) -->
-    <div class="chart-panel" id="siteBreakdownPanel" style="display:none;">
+    <!-- Site breakdown -->
+    <div class="panel" id="breakdownPanel" style="display:none;">
         <h3>Breakdown by Site</h3>
-        <div id="siteBreakdown"></div>
+        <div id="breakdown"></div>
     </div>
 
     <!-- Tabs -->
@@ -176,71 +154,117 @@
         <button class="tab-btn" data-tab="referrers" onclick="showTab('referrers',this)">Referrers</button>
         <button class="tab-btn" data-tab="countries" onclick="showTab('countries',this)">Countries</button>
         <button class="tab-btn" data-tab="devices" onclick="showTab('devices',this)">Devices</button>
-        <button class="tab-btn" data-tab="browsers" onclick="showTab('browsers',this)">Browsers</button>
     </div>
-    <div class="chart-panel" id="tabContent"><div class="loading">Loading...</div></div>
+    <div class="panel" id="tabContent"><div class="loading">Loading...</div></div>
 </div>
 
 <script>
 var API = '/matomo-analytics/api/proxy';
-var SITE_NAMES = {};
+var SITES = {};
+var COLORS = { visits: '#2D3876', uniq: '#60a5fa' };
+var countryListLoaded = false;
 
-function site() { return document.getElementById('selSite').value; }
-function period() { return document.getElementById('selPeriod').value; }
-function dateRange() { return document.getElementById('selRange').value; }
-function pageFilter() { return document.getElementById('txtPageFilter').value.trim(); }
+function $$(id) { return document.getElementById(id); }
+function site() { return $$('selSite').value; }
+function country() { return $$('selCountry').value; }
+function per() { return $$('selPeriod').value; }
+function rng() { return $$('selRange').value; }
+function pg() { return $$('txtPage').value.trim(); }
 function isAll() { return site() === 'all'; }
+function isAllCountry() { return country() === 'all'; }
+function fmt(n) { return n == null ? '-' : Number(n).toLocaleString(); }
+function fmtT(s) { s = Math.round(s||0); return s < 60 ? s+'s' : Math.floor(s/60)+'m '+(s%60)+'s'; }
 
-// ── Init: load sites ──
+// Short label for date keys
+function shortDate(k) {
+    if (k.length === 10) return k.substring(5);
+    if (k.indexOf(',') > -1) return k.split(',')[0].substring(5);
+    return k.length > 7 ? k.substring(0,7) : k;
+}
+
 async function loadSites() {
     try {
-        var resp = await fetch('/matomo-analytics/api/sites');
-        var data = await resp.json();
-        var sel = document.getElementById('selSite');
-        (data.sites || []).forEach(function(s) {
-            SITE_NAMES[s.id] = s.name;
-            var opt = document.createElement('option');
-            opt.value = s.id;
-            opt.textContent = s.name;
-            sel.appendChild(opt);
+        var r = await (await fetch('/matomo-analytics/api/sites')).json();
+        var sel = $$('selSite');
+        (r.sites||[]).forEach(function(s) {
+            SITES[s.id] = s.name;
+            var o = document.createElement('option');
+            o.value = s.id; o.textContent = s.name;
+            sel.appendChild(o);
         });
-    } catch (e) { console.error('Sites:', e); }
+    } catch(e) {}
 }
 
-// ── API helper ──
-async function query(method, extra) {
-    var params = new URLSearchParams({
-        method: method,
-        period: period(),
-        date: dateRange(),
-        idSite: site(),
-    });
-    if (extra) { for (var k in extra) params.set(k, extra[k]); }
-    var pf = pageFilter();
-    if (pf && !extra?.skipSegment) {
-        params.set('segment', 'pageUrl=@' + pf);
+async function q(method, extra) {
+    var p = new URLSearchParams({ method:method, period:per(), date:rng(), idSite:site() });
+    if (extra) for (var k in extra) p.set(k, extra[k]);
+    var pf = pg();
+    if (pf && method.indexOf('Actions.') === -1) p.set('segment', 'pageUrl=@'+pf);
+    var r = await fetch(API+'?'+p.toString());
+    if (!r.ok) throw new Error('API '+r.status);
+    return r.json();
+}
+
+// ── Country list ──
+async function loadCountries() {
+    if (countryListLoaded) return;
+    try {
+        var raw = await q('UserCountry.getCountry', { period:'month', date:'last6', filter_limit:'-1' });
+        var countries = {};
+        var process = function(arr) {
+            if (!Array.isArray(arr)) return;
+            arr.forEach(function(c) {
+                var code = c.code;
+                if (!code || code === 'xx') return;
+                if (!countries[code]) countries[code] = { code: code, label: c.label, visits: 0 };
+                countries[code].visits += (c.nb_visits||0);
+            });
+        };
+        if (isAll()) {
+            for (var sid in raw) { var sd = raw[sid]; for (var dk in sd) process(sd[dk]); }
+        } else {
+            for (var dk in raw) process(raw[dk]);
+        }
+        var sorted = Object.values(countries).sort(function(a,b){ return b.visits - a.visits; });
+        var sel = $$('selCountry');
+        // Keep current selection
+        var cur = sel.value;
+        sel.innerHTML = '<option value="all">All countries</option>';
+        sorted.forEach(function(c) {
+            var o = document.createElement('option');
+            o.value = c.code; o.textContent = c.label + ' (' + fmt(c.visits) + ')';
+            sel.appendChild(o);
+        });
+        sel.value = cur || 'all';
+        countryListLoaded = true;
+    } catch(e) { console.error('Countries:', e); }
+}
+
+// Unwrap values that Matomo may return as [{nb_visits:N}] instead of N
+function unwrap(v) {
+    if (Array.isArray(v) && v.length === 1 && typeof v[0] === 'object') return v[0].nb_visits || v[0].nb_uniq_visitors || 0;
+    if (Array.isArray(v) && v.length === 0) return 0;
+    return v;
+}
+
+// Normalise a date-keyed object: unwrap arrays to plain values
+function norm(data) {
+    var out = {};
+    for (var k in data) {
+        var v = data[k];
+        out[k] = unwrap(v);
     }
-    var resp = await fetch(API + '?' + params.toString());
-    if (!resp.ok) throw new Error('API ' + resp.status);
-    return resp.json();
+    return out;
 }
 
-function fmt(n) { return n == null ? '-' : Number(n).toLocaleString(); }
-function fmtTime(s) {
-    if (!s) return '0s';
-    s = Math.round(s);
-    return s < 60 ? s + 's' : Math.floor(s/60) + 'm ' + (s%60) + 's';
-}
-
-// ── Flatten multi-site data ──
-function flattenNum(data) {
-    if (!isAll()) return data;
+// ── Flatten multi-site data (numeric) ──
+function flatN(data) {
+    if (!isAll()) return norm(data);
     var m = {};
     for (var sid in data) {
-        var sd = data[sid];
-        if (typeof sd !== 'object' || sd === null) continue;
+        var sd = data[sid]; if (typeof sd !== 'object' || !sd) continue;
         for (var dk in sd) {
-            var v = sd[dk];
+            var v = unwrap(sd[dk]);
             if (typeof v === 'number') m[dk] = (m[dk]||0) + v;
             else if (typeof v === 'object' && v && !Array.isArray(v)) {
                 if (!m[dk]) m[dk] = {};
@@ -250,48 +274,87 @@ function flattenNum(data) {
     }
     return m;
 }
-function flattenArr(data) {
+
+// ── Flatten multi-site arrays (pages, referrers, etc.) ──
+function flatA(data) {
     if (!isAll()) return data;
     var m = {};
     for (var sid in data) {
-        var sd = data[sid];
-        var arrs = [];
+        var sd = data[sid]; var arrs = [];
         if (Array.isArray(sd)) arrs.push(sd);
         else if (typeof sd === 'object') for (var k in sd) if (Array.isArray(sd[k])) arrs.push(sd[k]);
-        arrs.forEach(function(a) { a.forEach(function(item) {
-            var key = item.label || '';
-            if (!m[key]) m[key] = {label:key, nb_visits:0, nb_hits:0, nb_uniq_visitors:0};
-            m[key].nb_visits += (item.nb_visits||0);
-            m[key].nb_hits += (item.nb_hits||0);
-            m[key].nb_uniq_visitors += (item.nb_uniq_visitors||0);
+        arrs.forEach(function(a) { a.forEach(function(i) {
+            var key = i.label||'';
+            if (!m[key]) m[key] = {label:key,nb_visits:0,nb_hits:0};
+            m[key].nb_visits += (i.nb_visits||0);
+            m[key].nb_hits += (i.nb_hits||0);
         }); });
     }
-    return Object.values(m).sort(function(a,b){return b.nb_visits - a.nb_visits;});
+    return Object.values(m).sort(function(a,b){return b.nb_visits-a.nb_visits;});
 }
-// For single-site multi-period arrays
-function arrayify(data) {
+
+// Arrayify single-site multi-period
+function arrify(data) {
     if (Array.isArray(data)) return data;
-    if (typeof data !== 'object') return [];
     var m = {};
+    if (typeof data !== 'object') return [];
     Object.values(data).forEach(function(arr) {
         if (!Array.isArray(arr)) return;
-        arr.forEach(function(item) {
-            var key = item.label || '';
-            if (!m[key]) m[key] = {label:key, nb_visits:0, nb_hits:0, nb_uniq_visitors:0};
-            m[key].nb_visits += (item.nb_visits||0);
-            m[key].nb_hits += (item.nb_hits||0);
-            m[key].nb_uniq_visitors += (item.nb_uniq_visitors||0);
+        arr.forEach(function(i) {
+            var k = i.label||'';
+            if (!m[k]) m[k] = {label:k,nb_visits:0,nb_hits:0};
+            m[k].nb_visits += (i.nb_visits||0);
+            m[k].nb_hits += (i.nb_hits||0);
         });
     });
-    return Object.values(m).sort(function(a,b){return b.nb_visits - a.nb_visits;});
+    return Object.values(m).sort(function(a,b){return b.nb_visits-a.nb_visits;});
+}
+
+// ── Extract per-country time series from UserCountry.getCountry ──
+function extractCountrySeries(countryData, code) {
+    // countryData: { date: [ {code, nb_visits, nb_uniq_visitors, ...}, ... ] }
+    // or multi-site: { siteId: { date: [...] } }
+    var series = {};
+
+    function processDateMap(dateMap) {
+        for (var dk in dateMap) {
+            if (!Array.isArray(dateMap[dk])) continue;
+            var match = dateMap[dk].filter(function(c) { return c.code === code; });
+            var visits = 0, uniq = 0;
+            match.forEach(function(c) { visits += (c.nb_visits||0); uniq += (c.nb_uniq_visitors||0); });
+            if (!series[dk]) series[dk] = { visits: 0, uniq: 0 };
+            series[dk].visits += visits;
+            series[dk].uniq += uniq;
+        }
+    }
+
+    if (isAll()) {
+        for (var sid in countryData) processDateMap(countryData[sid]);
+    } else {
+        processDateMap(countryData);
+    }
+    return series;
 }
 
 // ── KPIs ──
 async function loadKPIs() {
     try {
-        var raw = await query('VisitsSummary.get');
-        var data = flattenNum(raw);
-        var t = {nb_visits:0, nb_actions:0, nb_uniq_visitors:0, avg_time_on_site:0, bounce_rate:'', nb_actions_per_visit:0};
+        if (!isAllCountry()) {
+            // Country-filtered: use UserCountry data
+            var raw = await q('UserCountry.getCountry', { filter_limit: '-1' });
+            var series = extractCountrySeries(raw, country());
+            var totV = 0, totU = 0;
+            for (var dk in series) { totV += series[dk].visits; totU += series[dk].uniq; }
+            $$('kvVisits').textContent = fmt(totV);
+            $$('kvUniq').textContent = fmt(totU);
+            $$('kvPages').textContent = '-';
+            $$('kvTime').textContent = '-';
+            $$('kvBounce').textContent = '-';
+            return;
+        }
+        var raw = await q('VisitsSummary.get');
+        var data = flatN(raw);
+        var t = {nb_visits:0,nb_actions:0,nb_uniq_visitors:0,avg_time_on_site:0,bounce_rate:''};
         var keys = Object.keys(data);
         if (keys.length && typeof data[keys[0]] === 'object' && data[keys[0]] !== null) {
             var n = 0;
@@ -301,192 +364,180 @@ async function loadKPIs() {
                 t.nb_actions += (d.nb_actions||0);
                 t.nb_uniq_visitors += (d.nb_uniq_visitors||0);
                 t.avg_time_on_site += (d.avg_time_on_site||0);
-                t.nb_actions_per_visit += (d.nb_actions_per_visit||0);
-                var br = String(d.bounce_rate||'0%').replace('%','');
-                t.bounce_rate = (parseFloat(t.bounce_rate)||0) + (parseFloat(br)||0);
+                var br = parseFloat(String(d.bounce_rate||'0').replace('%',''))||0;
+                t.bounce_rate = (parseFloat(t.bounce_rate)||0) + br;
                 n++;
             });
-            if (n) { t.avg_time_on_site /= n; t.bounce_rate = (t.bounce_rate/n).toFixed(0)+'%'; t.nb_actions_per_visit = (t.nb_actions_per_visit/n).toFixed(1); }
+            if (n) { t.avg_time_on_site /= n; t.bounce_rate = (t.bounce_rate/n).toFixed(0)+'%'; }
         } else { t = data; }
-        document.getElementById('kpiVisits').textContent = fmt(t.nb_visits);
-        document.getElementById('kpiUnique').textContent = fmt(t.nb_uniq_visitors);
-        document.getElementById('kpiPageviews').textContent = fmt(t.nb_actions);
-        document.getElementById('kpiAvgTime').textContent = fmtTime(t.avg_time_on_site);
-        document.getElementById('kpiBounce').textContent = t.bounce_rate || '-';
-        document.getElementById('kpiActions').textContent = t.nb_actions_per_visit || '-';
-    } catch (e) { console.error('KPIs:', e); }
+        $$('kvVisits').textContent = fmt(t.nb_visits);
+        $$('kvUniq').textContent = fmt(t.nb_uniq_visitors);
+        $$('kvPages').textContent = fmt(t.nb_actions);
+        $$('kvTime').textContent = fmtT(t.avg_time_on_site);
+        $$('kvBounce').textContent = t.bounce_rate || '-';
+    } catch(e) { console.error('KPIs:', e); }
 }
 
-// ── Main chart: Visits + Unique visitors ──
-async function loadMainChart() {
-    var el = document.getElementById('mainChart');
-    var noteEl = document.getElementById('chartNote');
-    var p = period();
-    var uniqueAvailable = (p === 'day' || p === 'week');
+// ── Main chart ──
+async function loadChart() {
+    var el = $$('chart');
+    var noteEl = $$('chartNote');
+    var legendEl = $$('chartLegend');
+    var p = per();
+    var uniqAvail = (p === 'day' || p === 'week');
 
     try {
-        var rawVisits = await query('VisitsSummary.getVisits');
-        var visits = flattenNum(rawVisits);
-        var uniques = {};
-        if (uniqueAvailable) {
-            try {
-                var rawUniq = await query('VisitsSummary.getUniqueVisitors');
-                uniques = flattenNum(rawUniq);
-            } catch(e) { /* unique not available */ }
+        var visits = {}, uniques = {};
+
+        if (!isAllCountry()) {
+            // Country filter: extract from UserCountry.getCountry
+            var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
+            var series = extractCountrySeries(rawC, country());
+            for (var dk in series) { visits[dk] = series[dk].visits; uniques[dk] = series[dk].uniq; }
+            uniqAvail = true;
+        } else {
+            // Use VisitsSummary.get which returns both visits and unique visitors
+            var rawS = await q('VisitsSummary.get');
+            var summary = flatN(rawS);
+            for (var dk in summary) {
+                var val = summary[dk];
+                if (typeof val === 'object' && val !== null) {
+                    visits[dk] = val.nb_visits || 0;
+                    uniques[dk] = val.nb_uniq_visitors || 0;
+                } else if (typeof val === 'number') {
+                    visits[dk] = val;
+                }
+            }
         }
 
-        el.className = 'bar-chart';
-        el.innerHTML = '';
-        noteEl.textContent = uniqueAvailable ? '' : 'Note: Unique visitors are only available for daily and weekly periods on Matomo Cloud.';
+        el.className = 'bchart'; el.innerHTML = '';
+        var hasUniqData = false;
+        for (var _k in uniques) { if (uniques[_k] > 0) { hasUniqData = true; break; } }
+        noteEl.textContent = hasUniqData ? '' :
+            (uniqAvail ? '' : 'Unique visitors are only available for daily and weekly periods on Matomo Cloud. Switch to Daily or Weekly to see them.');
+
+        var hasUniq = Object.keys(uniques).length > 0;
+        legendEl.innerHTML =
+            '<div class="legend-item"><div class="ldot" style="background:'+COLORS.visits+';"></div> Visits</div>' +
+            (hasUniq ? '<div class="legend-item"><div class="ldot" style="background:'+COLORS.uniq+';"></div> Unique Visitors</div>' : '');
 
         var keys = Object.keys(visits).sort();
-        if (!keys.length) { el.innerHTML = '<span class="error">No data for this period.</span>'; return; }
+        if (!keys.length) { el.innerHTML = '<span class="error">No data for this selection.</span>'; return; }
 
         var maxV = 0;
         keys.forEach(function(k) { var v = visits[k]||0; if (v > maxV) maxV = v; });
         if (!maxV) maxV = 1;
 
         keys.forEach(function(k) {
-            var v = visits[k] || 0;
-            var u = uniques[k] || 0;
-            var pctV = (v / maxV) * 100;
-            var pctU = uniqueAvailable ? (u / maxV) * 100 : 0;
+            var v = visits[k]||0, u = uniques[k]||0;
+            var pctV = (v/maxV)*100, pctU = (u/maxV)*100;
+            var col = document.createElement('div'); col.className = 'bcol';
+            var lbl = shortDate(k);
 
-            var col = document.createElement('div');
-            col.className = 'bar-col';
-
-            // Short date label
-            var lbl = k;
-            if (lbl.length === 10) lbl = lbl.substring(5); // 2026-05-27 → 05-27
-            if (lbl.indexOf(',') > -1) lbl = lbl.split(',')[0].substring(5); // week range
-
-            if (uniqueAvailable && u > 0) {
-                // Stacked: unique (front) + remaining visits (back)
-                var remaining = Math.max(0, pctV - pctU);
+            if (hasUniq && u > 0) {
+                var rem = Math.max(0, pctV - pctU);
                 col.innerHTML =
-                    '<div style="width:100%;display:flex;flex-direction:column;align-items:stretch;height:100%;justify-content:flex-end;">' +
-                    '<div class="bar-rect" style="height:' + Math.max(remaining, 0) + '%;background:#2D3876;"><span class="tip">' + k + '\nVisits: ' + v + '\nUnique: ' + u + '</span></div>' +
-                    '<div class="bar-rect" style="height:' + Math.max(pctU, 2) + '%;background:#60a5fa;"><span class="tip">' + k + '\nUnique Visitors: ' + u + '</span></div>' +
-                    '</div>';
+                    '<div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:100%;">' +
+                    '<div class="brect" style="height:'+rem+'%;background:'+COLORS.visits+';"><span class="tip">'+k+'\nVisits: '+v+'\nUnique: '+u+'</span></div>' +
+                    '<div class="brect" style="height:'+Math.max(pctU,2)+'%;background:'+COLORS.uniq+';"><span class="tip">'+k+'\nUnique: '+u+'</span></div></div>';
             } else {
-                col.innerHTML = '<div class="bar-rect" style="height:' + Math.max(pctV, 2) + '%;background:#2D3876;"><span class="tip">' + k + ': ' + v + ' visits</span></div>';
+                col.innerHTML = '<div class="brect" style="height:'+Math.max(pctV,2)+'%;background:'+COLORS.visits+';"><span class="tip">'+k+'\nVisits: '+v+'</span></div>';
             }
-            col.innerHTML += '<div class="bar-label">' + lbl + '</div>';
+            col.innerHTML += '<div class="blbl">'+lbl+'</div>';
             el.appendChild(col);
         });
 
-        // Update chart title
-        var pf = pageFilter();
-        document.getElementById('chartTitle').textContent = 'Visitors Over Time' + (pf ? ' — filtered by "' + pf + '"' : '');
+        // Title
+        var parts = ['Visitors Over Time'];
+        var countryName = $$('selCountry').selectedOptions[0]?.textContent;
+        if (!isAllCountry()) parts.push(countryName.split(' (')[0]);
+        if (pg()) parts.push('"'+pg()+'"');
+        $$('chartTitle').textContent = parts.join(' — ');
 
-    } catch (e) {
+    } catch(e) {
         el.className = '';
-        el.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
+        el.innerHTML = '<span class="error">Error: '+e.message+'</span>';
     }
 }
 
-// ── Per-site breakdown (when "All sites") ──
-async function loadSiteBreakdown() {
-    var panel = document.getElementById('siteBreakdownPanel');
+// ── Site breakdown ──
+async function loadBreakdown() {
+    var panel = $$('breakdownPanel');
     if (!isAll()) { panel.style.display = 'none'; return; }
     panel.style.display = '';
-
-    var el = document.getElementById('siteBreakdown');
+    var el = $$('breakdown');
     try {
-        var raw = await query('VisitsSummary.get');
-        // raw = { siteId: { date: {fields} } }
-        var siteStats = [];
+        var raw = await q('VisitsSummary.get');
+        var stats = [];
         for (var sid in raw) {
-            var sd = raw[sid];
-            if (typeof sd !== 'object') continue;
-            var visits = 0, uniq = 0, actions = 0;
+            var sd = raw[sid]; if (typeof sd !== 'object') continue;
+            var v = 0, u = 0, a = 0;
             for (var dk in sd) {
                 var d = sd[dk];
-                if (typeof d === 'object' && d) {
-                    visits += (d.nb_visits||0);
-                    uniq += (d.nb_uniq_visitors||0);
-                    actions += (d.nb_actions||0);
+                if (d && typeof d === 'object' && !Array.isArray(d)) {
+                    v += (d.nb_visits||0);
+                    u += (d.nb_uniq_visitors||0);
+                    a += (d.nb_actions||0);
                 }
             }
-            siteStats.push({ id: sid, name: SITE_NAMES[sid] || ('Site ' + sid), visits: visits, uniq: uniq, actions: actions });
+            stats.push({ name: SITES[sid]||('Site '+sid), visits: v, uniq: u, actions: a });
         }
-        siteStats.sort(function(a,b) { return b.visits - a.visits; });
-
-        var max = siteStats.length ? siteStats[0].visits : 1;
-        var html = '';
-        siteStats.forEach(function(s) {
-            var pct = (s.visits / max) * 100;
-            html += '<div class="hbar-row">'
-                + '<div class="hbar-label">' + s.name + '</div>'
-                + '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%;background:#2D3876;"></div></div>'
-                + '<div class="hbar-val" title="Visits: ' + fmt(s.visits) + ' | Unique: ' + fmt(s.uniq) + ' | Pages: ' + fmt(s.actions) + '">' + fmt(s.visits) + '</div>'
+        stats.sort(function(a,b){return b.visits-a.visits;});
+        var max = stats.length ? stats[0].visits : 1;
+        el.innerHTML = stats.map(function(s) {
+            var pct = (s.visits/max*100);
+            var pctU = max ? (s.uniq/max*100) : 0;
+            return '<div class="hrow">'
+                + '<div class="hlbl">'+s.name+'</div>'
+                + '<div class="htrack" style="position:relative;">'
+                + '<div class="hfill" style="width:'+pct+'%;background:'+COLORS.visits+';position:absolute;top:0;left:0;"></div>'
+                + '<div class="hfill" style="width:'+pctU+'%;background:'+COLORS.uniq+';position:absolute;top:0;left:0;"></div>'
+                + '</div>'
+                + '<div class="hval" title="Visits: '+fmt(s.visits)+' | Unique: '+fmt(s.uniq)+'">'+fmt(s.visits)+' / '+fmt(s.uniq)+'</div>'
                 + '</div>';
-        });
-        el.innerHTML = html;
-    } catch (e) {
-        el.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
-    }
+        }).join('')
+        + '<div class="note" style="margin-top:8px;">Values: Visits / Unique Visitors. '
+        + (per()==='day'||per()==='week' ? '' : 'Unique visitors only available for daily/weekly periods.')
+        + '</div>';
+    } catch(e) { el.innerHTML = '<span class="error">Error</span>'; }
 }
 
-// ── Tab content ──
+// ── Tabs ──
 var tabCache = {};
-
 async function loadTab(tab) {
-    var container = document.getElementById('tabContent');
-    var cacheKey = tab + '_' + site() + '_' + period() + '_' + dateRange() + '_' + pageFilter();
-    if (tabCache[cacheKey]) { container.innerHTML = tabCache[cacheKey]; return; }
-    container.innerHTML = '<div class="loading">Loading...</div>';
-
+    var el = $$('tabContent');
+    var ck = [tab,site(),country(),per(),rng(),pg()].join('_');
+    if (tabCache[ck]) { el.innerHTML = tabCache[ck]; return; }
+    el.innerHTML = '<div class="loading">Loading...</div>';
     try {
         var raw, items, html;
         switch (tab) {
             case 'pages':
-                raw = await query('Actions.getPageUrls', { flat:'1', filter_limit:'25' });
-                items = isAll() ? flattenArr(raw) : arrayify(raw);
-                html = renderHBar(items, 'nb_visits', 'Visits');
-                break;
+                raw = await q('Actions.getPageUrls', {flat:'1',filter_limit:'25'});
+                items = isAll() ? flatA(raw) : arrify(raw); break;
             case 'referrers':
-                raw = await query('Referrers.getWebsites', { filter_limit:'20' });
-                items = isAll() ? flattenArr(raw) : arrayify(raw);
-                html = renderHBar(items, 'nb_visits', 'Visits');
-                break;
+                raw = await q('Referrers.getWebsites', {filter_limit:'20'});
+                items = isAll() ? flatA(raw) : arrify(raw); break;
             case 'countries':
-                raw = await query('UserCountry.getCountry', { filter_limit:'20' });
-                items = isAll() ? flattenArr(raw) : arrayify(raw);
-                html = renderHBar(items, 'nb_visits', 'Visits');
-                break;
+                raw = await q('UserCountry.getCountry', {filter_limit:'20'});
+                items = isAll() ? flatA(raw) : arrify(raw); break;
             case 'devices':
-                raw = await query('DevicesDetection.getType', { filter_limit:'10' });
-                items = isAll() ? flattenArr(raw) : arrayify(raw);
-                html = renderHBar(items, 'nb_visits', 'Visits');
-                break;
-            case 'browsers':
-                raw = await query('DevicesDetection.getBrowsers', { filter_limit:'15' });
-                items = isAll() ? flattenArr(raw) : arrayify(raw);
-                html = renderHBar(items, 'nb_visits', 'Visits');
-                break;
+                raw = await q('DevicesDetection.getType', {filter_limit:'10'});
+                items = isAll() ? flatA(raw) : arrify(raw); break;
         }
-        tabCache[cacheKey] = html;
-        container.innerHTML = html;
-    } catch (e) {
-        container.innerHTML = '<span class="error">Error: ' + e.message + '</span>';
-    }
+        html = renderH(items);
+        tabCache[ck] = html;
+        el.innerHTML = html;
+    } catch(e) { el.innerHTML = '<span class="error">Error: '+e.message+'</span>'; }
 }
 
-function renderHBar(items, valueKey, valueLabel) {
-    if (!items || !items.length) return '<p style="color:#888;font-size:0.85rem;">No data for this period.</p>';
-    var max = Math.max.apply(null, items.map(function(r){return r[valueKey]||0;})) || 1;
-    var html = '';
-    items.forEach(function(row) {
-        var label = row.label || '(unknown)';
-        var val = row[valueKey] || 0;
-        var pct = (val / max) * 100;
-        html += '<div class="hbar-row">'
-            + '<div class="hbar-label" title="' + label.replace(/"/g,'&quot;') + '">' + label + '</div>'
-            + '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%;background:#2D3876;"></div></div>'
-            + '<div class="hbar-val">' + fmt(val) + '</div></div>';
-    });
-    return html;
+function renderH(items) {
+    if (!items || !items.length) return '<p style="color:#888;font-size:0.85rem;">No data.</p>';
+    var max = Math.max.apply(null, items.map(function(r){return r.nb_visits||0;}))||1;
+    return items.map(function(r) {
+        var l = r.label||'?', v = r.nb_visits||0;
+        return '<div class="hrow"><div class="hlbl" title="'+l.replace(/"/g,'&quot;')+'">'+l+'</div><div class="htrack"><div class="hfill" style="width:'+(v/max*100)+'%;"></div></div><div class="hval">'+fmt(v)+'</div></div>';
+    }).join('');
 }
 
 function showTab(tab, btn) {
@@ -495,13 +546,17 @@ function showTab(tab, btn) {
     loadTab(tab);
 }
 
+// Reset country list when site changes
+$$('selSite').addEventListener('change', function() { countryListLoaded = false; });
+
 async function loadAll() {
     tabCache = {};
+    await loadCountries();
     loadKPIs();
-    loadMainChart();
-    loadSiteBreakdown();
-    var active = document.querySelector('.tab-btn.active');
-    loadTab(active ? active.dataset.tab : 'pages');
+    loadChart();
+    loadBreakdown();
+    var act = document.querySelector('.tab-btn.active');
+    loadTab(act ? act.dataset.tab : 'pages');
 }
 
 loadSites().then(function(){ loadAll(); });

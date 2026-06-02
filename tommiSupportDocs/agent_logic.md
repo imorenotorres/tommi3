@@ -1,4 +1,4 @@
-# AI Agent Decision Logic
+# Quick Introduction to AI Agents and Agent Workflows
 
 An **AI Agent** is a flexible, autonomous software system that facilitates the interaction between users and computer systems. Unlike traditional applications with rigid interfaces, AI Agents may accept different input types, including natural language, interpret the user's intent, execute the appropriate actions, and deliver results — adapting their behaviour to each situation.
 

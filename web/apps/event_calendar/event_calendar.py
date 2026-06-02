@@ -257,7 +257,9 @@ class EventBody(BaseModel):
     name: str
     description: str = ""
     category: str
-    university: str = ""
+    university: str = ""           # Legacy: single university (still accepted)
+    universities: list[str] = []   # Multiple organizing partners
+    uninovis_group: str = ""       # UNINOVIS internal group (WP1, WP2, etc.)
     event_type: str = "Physical"
     place: str = ""
     meeting_url: str = ""
@@ -273,15 +275,28 @@ class EventBody(BaseModel):
     date_tbc_label: str = ""  # Original text hint, e.g. "October 2026", "TBC"
     recurrence: Optional[dict] = None  # {type, weekday, nth, until}
     series_id: Optional[str] = None
+    # Virtual components (pre/post event)
+    virtual_pre_name: str = ""
+    virtual_pre_start: str = ""
+    virtual_pre_end: str = ""
+    virtual_pre_url: str = ""
+    virtual_post_name: str = ""
+    virtual_post_start: str = ""
+    virtual_post_end: str = ""
+    virtual_post_url: str = ""
 
 
 def _build_event(body: EventBody, start_date: str, end_date: str, series_id: str, username: str) -> dict:
+    # Support both legacy single university and new multi-university
+    unis = body.universities if body.universities else ([body.university] if body.university else [])
     return {
         "id": "evt" + str(uuid.uuid4())[:8],
         "name": body.name,
         "description": body.description,
         "category": body.category,
-        "university": body.university,
+        "university": unis[0] if unis else "",         # Legacy compat: first university
+        "universities": unis,                           # All organizing partners
+        "uninovis_group": body.uninovis_group,          # Internal group (WP1, WP2, etc.)
         "event_type": body.event_type,
         "place": body.place,
         "meeting_url": body.meeting_url,
@@ -298,6 +313,66 @@ def _build_event(body: EventBody, start_date: str, end_date: str, series_id: str
         "series_id": series_id,
         "created_by": username,
     }
+
+
+def _build_virtual_components(body: EventBody, parent_id: str, username: str) -> list:
+    """Create separate calendar events for virtual pre/post components."""
+    components = []
+    if body.virtual_pre_name and body.virtual_pre_start:
+        unis = body.universities if body.universities else ([body.university] if body.university else [])
+        components.append({
+            "id": "evt" + str(uuid.uuid4())[:8],
+            "name": body.virtual_pre_name,
+            "description": f"Virtual component (before {body.name})",
+            "category": body.category,
+            "university": unis[0] if unis else "",
+            "universities": unis,
+            "event_type": "Virtual",
+            "place": "",
+            "meeting_url": body.virtual_pre_url,
+            "timezone": body.timezone,
+            "start_date": body.virtual_pre_start,
+            "end_date": body.virtual_pre_end or body.virtual_pre_start,
+            "registration_link": body.registration_link,
+            "image": "",
+            "visibility": body.visibility,
+            "date_tbc": False,
+            "date_tbc_label": "",
+            "participants": body.participants,
+            "participant_groups": body.participant_groups,
+            "series_id": "",
+            "created_by": username,
+            "linked_event": parent_id,
+            "component_type": "pre",
+        })
+    if body.virtual_post_name and body.virtual_post_start:
+        unis = body.universities if body.universities else ([body.university] if body.university else [])
+        components.append({
+            "id": "evt" + str(uuid.uuid4())[:8],
+            "name": body.virtual_post_name,
+            "description": f"Virtual component (after {body.name})",
+            "category": body.category,
+            "university": unis[0] if unis else "",
+            "universities": unis,
+            "event_type": "Virtual",
+            "place": "",
+            "meeting_url": body.virtual_post_url,
+            "timezone": body.timezone,
+            "start_date": body.virtual_post_start,
+            "end_date": body.virtual_post_end or body.virtual_post_start,
+            "registration_link": body.registration_link,
+            "image": "",
+            "visibility": body.visibility,
+            "date_tbc": False,
+            "date_tbc_label": "",
+            "participants": body.participants,
+            "participant_groups": body.participant_groups,
+            "series_id": "",
+            "created_by": username,
+            "linked_event": parent_id,
+            "component_type": "post",
+        })
+    return components
 
 
 def _validate_event(body: EventBody, data: dict):
@@ -372,6 +447,10 @@ def create_event(body: EventBody, session: dict = Depends(_require_auth)):
     else:
         ev = _build_event(body, body.start_date, body.end_date, "", session["username"])
         _store_event(ev, session["username"])
+        # Create virtual components as separate events
+        components = _build_virtual_components(body, ev["id"], session["username"])
+        for comp in components:
+            _store_event(comp, session["username"])
         return ev
 
 
@@ -379,7 +458,10 @@ def _update_ev_fields(ev: dict, body: EventBody):
     ev["name"] = body.name
     ev["description"] = body.description
     ev["category"] = body.category
-    ev["university"] = body.university
+    unis = body.universities if body.universities else ([body.university] if body.university else [])
+    ev["university"] = unis[0] if unis else ""
+    ev["universities"] = unis
+    ev["uninovis_group"] = body.uninovis_group
     ev["event_type"] = body.event_type
     ev["place"] = body.place
     ev["meeting_url"] = body.meeting_url

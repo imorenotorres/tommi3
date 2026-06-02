@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Introduction to AI Agents and Agent Workflows</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+
+header {
+    background: #1e293b;
+    color: #fff;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+header h1 { font-size: 18px; font-weight: 700; }
+header select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+    background: #334155;
+    color: #fff;
+    font-size: 13px;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 28px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.intro {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #475569;
+}
+
+/* Flow diagram */
+.flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 16px 0;
+}
+.flow-step {
+    display: flex;
+    align-items: stretch;
+    min-height: 48px;
+}
+.flow-arrow {
+    width: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.flow-arrow .line { width: 2px; flex: 1; background: #cbd5e1; }
+.flow-arrow .dot { width: 10px; height: 10px; border-radius: 50%; background: #2563eb; flex-shrink: 0; }
+.flow-card {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 4px 0;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.flow-card:hover { border-color: #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,0.1); }
+.flow-card.active { border-color: #2563eb; background: #eff6ff; }
+.flow-card .title { font-weight: 600; font-size: 13px; }
+.flow-card .desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+.flow-card .example { font-size: 11px; color: #94a3b8; margin-top: 4px; font-style: italic; }
+.flow-card .badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+.badge-green { background: #d4edda; color: #155724; }
+.badge-yellow { background: #fff3cd; color: #856404; }
+.badge-red { background: #f8d7da; color: #721c24; }
+.badge-none { background: #e2e8f0; color: #64748b; }
+
+/* Detail panel */
+.detail-panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    display: none;
+    font-size: 13px;
+    line-height: 1.6;
+}
+.detail-panel.show { display: block; }
+.detail-panel h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #1e293b; }
+.detail-panel table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+.detail-panel th { text-align: left; padding: 4px 8px; background: #f1f5f9; font-size: 12px; border-bottom: 2px solid #e2e8f0; }
+.detail-panel td { padding: 4px 8px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+
+/* Post-processing pipeline */
+.pipeline {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+}
+.pipe-step {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+}
+.pipe-step .num {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #fff;
+    font-size: 11px;
+    line-height: 20px;
+    text-align: center;
+    margin-right: 4px;
+}
+.pipe-arrow { color: #cbd5e1; font-size: 18px; display: flex; align-items: center; }
+
+/* Agent type tabs */
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+}
+.tab {
+    padding: 6px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+.tab:hover:not(.active) { border-color: #2563eb; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Cue legend */
+.cue-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+    font-size: 12px;
+}
+.cue-item { display: flex; align-items: center; gap: 4px; }
+.cue-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+/* Simple agent flow */
+.simple-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+}
+.simple-box {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
+    text-align: center;
+}
+.simple-arrow { color: #cbd5e1; font-size: 18px; }
+
+/* Source code block */
+.code-toggle { color: #2563eb; cursor: pointer; font-size: 11px; font-weight: 600; margin-top: 6px; display: inline-block; }
+.code-toggle:hover { text-decoration: underline; }
+.code-block {
+    display: none; margin-top: 6px; padding: 10px 12px;
+    background: #1e293b; color: #e2e8f0; border-radius: 6px;
+    font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
+    font-size: 11px; line-height: 1.5; overflow-x: auto;
+    white-space: pre; max-height: 400px; overflow-y: auto;
+}
+.code-block .kw { color: #c084fc; }
+.code-block .str { color: #86efac; }
+.code-block .cmt { color: #64748b; font-style: italic; }
+.code-block .fn { color: #60a5fa; }
+
+/* Branching flow diagram */
+.branch-flow {
+    display: grid;
+    grid-template-columns: 110px 32px 1fr 32px 1fr 32px 1fr;
+    gap: 3px 0;
+    margin: 16px 0;
+    font-size: 11px;
+    line-height: 1.35;
+}
+.bf-header {
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    text-align: center;
+    padding: 2px 4px 6px;
+}
+.bf-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 28px;
+    font-weight: 700;
+}
+.bf-box {
+    padding: 7px 8px;
+    border-radius: 6px;
+    border: 2px solid;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.bf-perc { background: #e0f2fe; border-color: #0284c7; font-weight: 600; }
+.bf-reason { background: #fef9c3; border-color: #ca8a04; }
+.bf-reason-llm { background: #fef3c7; border-color: #d97706; }
+.bf-action-green { background: #dcfce7; border-color: #16a34a; }
+.bf-action-yellow { background: #fef3c7; border-color: #d97706; }
+.bf-prod-none { background: #f1f5f9; border-color: #94a3b8; }
+.bf-prod-yellow { background: #fef3c7; border-color: #d97706; }
+.bf-group-label {
+    font-size: 9px;
+    color: #64748b;
+    text-align: center;
+    padding: 2px 4px 0;
+    font-style: italic;
+}
+.bf-box small { font-size: 10px; color: #64748b; display: block; margin-top: 2px; }
+.bf-box b { font-weight: 700; }
+.bf-separator {
+    grid-column: 1 / -1;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 4px 0;
+}
+</style>
+    <!-- Matomo -->
+    <script>
+      var _paq = window._paq = window._paq || [];
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="https://uninovis.matomo.cloud/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '3']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+</head>
+<body>
+
+<header>
+    <h1>Quick Introduction to AI Agents and Agent Workflows</h1>
+</header>
+
+<div class="container">
+
+<div class="intro">
+    <p>An <strong>AI Agent</strong> is a flexible, autonomous software system that facilitates the interaction between users and computer systems. Unlike traditional applications with rigid interfaces, AI Agents may accept different input types, including natural language, interpret the user's intent, execute the appropriate actions, and deliver results — adapting their behaviour to each situation.</p>
+    <p style="margin-top:8px;">This document first presents a general model for AI Agents. It then shows how each stage of the model is implemented as code components in the <strong>TOMMI Agentic Platform</strong>. Finally, it describes the different types of agents available in the platform.</p>
+</div>
+
+<div class="tabs">
+    <div class="tab active" onclick="showTab('overview')">Overview</div>
+    <div class="tab" onclick="showTab('oneshot')">Oneshot Agents</div>
+    <div class="tab" onclick="showTab('rag')">RAG Agents</div>
+    <div class="tab" onclick="showTab('simple')">RAG Vectorless Agents</div>
+    <div class="tab" onclick="showTab('text2sql')">Text2SQL Agents</div>
+    <div class="tab" onclick="showTab('metadata')">Metadata+RAG Agents (EH)</div>
+    <div class="tab" onclick="showTab('references')">References</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- OVERVIEW -->
+<!-- ============================================================ -->
+<div class="tab-content active" id="tab-overview">
+
+<!-- =============================== -->
+<!-- PART 1: A GENERAL MODEL FOR AI AGENTS -->
+<!-- =============================== -->
+
+<h2 style="color:#0284c7;border-bottom:3px solid #0284c7;">Part 1 — A General Model for AI Agents</h2>
+
+<h2>How do AI Agents work?</h2>
+<p style="font-size:13px;color:#475569;margin-bottom:12px;">According to the classic AI agent framework (Russell &amp; Norvig, 1995) <a href="#references">[2]</a>, every agent follows three basic stages: Perception → Reasoning → Action. Here, we add a fourth stage — <strong>Production</strong> — to distinguish executing the task (e.g., querying a database, calling a language model) from producing the output (e.g., rendering a map, formatting a table, adding reliability indicators). Thus, according to this proposal, the stages of every AI agent are the following:</p>
+
+<div class="simple-flow" style="justify-content:center;">
+    <div class="simple-box" style="background:#e0f2fe;border-color:#0284c7;min-width:120px;"><strong>1. Perception</strong><br><span style="font-size:11px;color:#64748b;">The user's input</span></div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box" style="background:#fef3c7;border-color:#d97706;min-width:120px;"><strong>2. Reasoning</strong><br><span style="font-size:11px;color:#64748b;">Understand the request</span></div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box" style="background:#dcfce7;border-color:#16a34a;min-width:120px;"><strong>3. Action</strong><br><span style="font-size:11px;color:#64748b;">Execute the action</span></div>
+    <div class="simple-arrow">&#10132;</div>
+    <div class="simple-box" style="background:#f3e8ff;border-color:#9333ea;min-width:120px;"><strong>4. Production</strong><br><span style="font-size:11px;color:#64748b;">Produce the output</span></div>
+</div>
+
+<h2>Intuitive Examples of Each Stage</h2>
+
+<div class="detail-panel show">
+<table>
+    <tr><th style="width:120px;">Stage</th><th>What happens</th><th>Everyday analogy</th></tr>
+    <tr>
+        <td style="background:#e0f2fe;"><strong>1. Perception</strong></td>
+        <td>The agent accepts the user's input: a typed question, a button click, a form selection, or a voice command.</td>
+        <td>A librarian hears your question at the desk.</td>
+    </tr>
+    <tr>
+        <td style="background:#fef3c7;"><strong>2. Reasoning</strong></td>
+        <td>The agent analyses the input to understand what the user wants and decides which action to take. This may be trivial (pass to the LLM) or complex (classify the query type, select data sources, detect intent).</td>
+        <td>The librarian decides whether to look in the catalogue, the encyclopaedia, the archives, or simply answer from memory.</td>
+    </tr>
+    <tr>
+        <td style="background:#dcfce7;"><strong>3. Action</strong></td>
+        <td>The agent executes one or more actions: query a database, search documents, call a language model, generate a chart, compute a result, or decline a request.</td>
+        <td>The librarian walks to the shelf, finds the book, and reads the relevant passage.</td>
+    </tr>
+    <tr>
+        <td style="background:#f3e8ff;"><strong>4. Production</strong></td>
+        <td>The agent produces the output for the user: text, a table, a map, a chart, or a polite explanation of why it cannot help. A reliability indicator may be added. The output format depends on the interface and the type of result.</td>
+        <td>The librarian returns to the desk and gives you the answer, noting whether it came from a trusted reference or a less reliable source.</td>
+    </tr>
+</table>
+</div>
+
+<p style="font-size:13px;color:#475569;margin:16px 0;">Not every agent uses artificial intelligence in every stage. Some agents use AI only for Reasoning (understanding the question), others use it only for Action (generating text), and some use no AI at all — relying on rules and structured data throughout.</p>
+
+<p style="font-size:13px;color:#475569;margin:16px 0;"><strong>Note:</strong> This four-stage model is a conceptual abstraction for understanding agent behaviour. In practice, the boundaries between stages may overlap — for example, context retrieval serves both Reasoning (deciding what is relevant) and Action (querying a data store). Simpler agents may have minimal Reasoning, while complex agents may interleave multiple stages. The model is most useful as a framework for <em>explaining</em> what an agent does, not as a rigid architectural blueprint.</p>
+
+<!-- =============================== -->
+<!-- PART 2: TECHNICAL IMPLEMENTATION -->
+<!-- =============================== -->
+
+<h2 style="color:#0284c7;border-bottom:3px solid #0284c7;">Part 2 — Technical Implementation in TOMMI</h2>
+
+<p style="font-size:13px;color:#475569;margin-bottom:16px;">Each stage of the general model maps to specific technical components in the TOMMI platform. This section describes how the four stages are implemented in code.</p>
+
+<h2>From General Model to Code</h2>
+
+<div class="detail-panel show">
+<table>
+    <tr><th style="width:130px;">Stage</th><th>Role</th><th>Technical implementation</th><th>Key files / components</th></tr>
+    <tr>
+        <td style="background:#e0f2fe;"><strong>Perception</strong></td>
+        <td>Accept and parse user input</td>
+        <td>The web server receives the HTTP request (text query, session ID, model preference) and routes it to the appropriate agent module.</td>
+        <td><code>web/app.py</code> (SSE endpoint)<br><code>web/static/app.js</code> (frontend)</td>
+    </tr>
+    <tr>
+        <td style="background:#fef3c7;"><strong>Reasoning</strong></td>
+        <td>Analyse, classify, decide</td>
+        <td>The agent classifies the query and builds context from the appropriate data source. Ranges from no reasoning (Oneshot) to a 12-step classification chain (Metadata+RAG). This is the agent's <strong>decision logic</strong> — entirely rule-based and deterministic.</td>
+        <td><code>agents/base/rag_metadata_mixin.py</code><br><code>agents/base/vectorless_mixin.py</code><br><code>config.json</code> (scope terms, thresholds)</td>
+    </tr>
+    <tr>
+        <td style="background:#dcfce7;"><strong>Action</strong></td>
+        <td>Execute the task</td>
+        <td>Depending on the Reasoning outcome: query SQLite, search papers.json, call the LLM with system prompt + context, generate a map link, or refuse. The LLM call uses the <strong>system prompt</strong> (<code>prompts.json</code>) and the <strong>context</strong> built during Reasoning.</td>
+        <td><code>web/llm_client.py</code> (LLM calls)<br><code>prompts.json</code> (system prompt)<br><code>agents/base/base_RAGagent.py</code></td>
+    </tr>
+    <tr>
+        <td style="background:#f3e8ff;"><strong>Production</strong></td>
+        <td>Produce and deliver output</td>
+        <td>Post-process the LLM response (authority sanitisation, paper verification, humility hedging), assign reliability cues, format for the interface (markdown text, HTML table, Leaflet map, interactive figure), and stream to the user via SSE.</td>
+        <td><code>agents/base/humility.py</code><br><code>agents/base/badges.py</code><br><code>web/static/app.js</code> (rendering)</td>
+    </tr>
+</table>
+</div>
+
+<h2>Key Technical Concepts</h2>
+
+<div class="detail-panel show">
+<table>
+    <tr><th style="width:160px;">Concept</th><th>Stage</th><th>What it is</th></tr>
+    <tr><td><strong>System prompt</strong></td><td>Action</td><td>Instructions given to the LLM that define the agent's identity, rules, and constraints. Stored in <code>prompts.json</code> as three sections: <em>identity</em>, <em>rules</em>, and <em>strict</em>. Only used when the Action stage involves an LLM call.</td></tr>
+    <tr><td><strong>Context</strong></td><td>Reasoning → Action</td><td>Data retrieved from the knowledge base (documents, metadata, glossary) during Reasoning and injected into the LLM prompt during Action. The LLM can only "see" what the context provides — it does not access the database directly.</td></tr>
+    <tr><td><strong>Classification chain</strong></td><td>Reasoning</td><td>A priority-ordered list of checks that the agent runs to determine the query type. Each check tests for a specific pattern (meta-question, topic search, researcher lookup, etc.). The first match wins. Implemented in <code>rag_metadata_mixin.py</code>.</td></tr>
+    <tr><td><strong>Reliability cue</strong></td><td>Production</td><td>A coloured banner (🟢 green, 🟡 yellow, 🔴 red, or none) added to the response to indicate the source and trustworthiness of the content. Determined by the query type identified during Reasoning.</td></tr>
+    <tr><td><strong>Post-processing</strong></td><td>Production</td><td>A pipeline of transformations applied to the LLM output before delivery: authority sanitisation (replacing overconfident phrases), paper verification (checking cited titles against the database), humility hedging (softening ungrounded claims), and alliance name correction.</td></tr>
+    <tr><td><strong>Prompt level</strong></td><td>Reasoning + Action</td><td>Controls how many prompt sections are active: <em>stringent</em> (identity + rules + strict), <em>tolerant</em> (identity + rules), or <em>lax</em> (identity only). Affects both the Reasoning (scope enforcement) and Action (LLM constraints) stages.</td></tr>
+</table>
+</div>
+
+<h2>Design Insight: Handling Reliability</h2>
+
+<div class="detail-panel show">
+<p>Reliability is a central challenge in AI agent design. As Rabanser et al. (2025) argue, <em>"reliability is not a single property but a multidimensional concept"</em> that encompasses correctness, consistency, robustness, and transparency <a href="#references">[1]</a>. An agent may produce a correct answer for one query and hallucinate on a similar one — and the user has no way to tell the difference unless the system provides <strong>reliability signals</strong>.</p>
+
+<p style="margin-top:8px;">In the TOMMI platform, reliability is addressed through two complementary mechanisms: (1) <strong>minimising LLM dependence</strong> by routing queries to programmatic, deterministic response paths whenever possible, and (2) <strong>reliability cues</strong> — visual indicators that communicate to the user how much the response depends on AI interpretation vs. verified data. The cue colour reflects the <em>structural grounding</em> of the response path, not a confidence score.</p>
+
+<p style="margin-top:8px;">The reliability of an AI agent's response correlates with the <strong>amount of relevant, controlled context</strong> provided to the LLM. Three factors determine this:</p>
+
+<table>
+    <tr><th style="width:160px;">Factor</th><th>Description</th><th>Effect on reliability</th></tr>
+    <tr><td><strong>Context relevance</strong></td><td>Does the injected context (retrieved chunks, glossary entries, paper data) match the user's query?</td><td>High relevance → LLM is constrained to accurate information → lower hallucination risk</td></tr>
+    <tr><td><strong>Context volume</strong></td><td>How much relevant data is injected into the LLM prompt?</td><td>More relevant context → LLM has more material to draw from → less need to invent</td></tr>
+    <tr><td><strong>Instruction quality</strong></td><td>How well do the system prompt rules constrain the LLM? (e.g., "only answer from provided context", "say you don't know if uncertain")</td><td>Stricter rules → LLM less likely to hallucinate beyond the context</td></tr>
+</table>
+
+<p style="margin-top:12px;">This suggests a spectrum from green (fully grounded) to red (poorly grounded):</p>
+
+<table>
+    <tr><th style="width:60px;">Cue</th><th style="width:30%;">Grounding level</th><th>Examples</th></tr>
+    <tr><td><span class="badge badge-green">Green</span></td><td><strong>Programmatic.</strong> The response is built directly from structured data files, without involving the LLM. The agent reads the data, formats it, and presents it to the user. Since no AI interpretation is involved, the response is 100% faithful to the source data.</td><td><em>"Papers by Rubén González"</em> → the agent looks up the name in a researchers file and returns the exact list of papers, affiliations, and topics stored there.<br><br><em>"What is the TAILOR project?"</em> → the agent finds the project in a structured file and returns its title, grant ID, funder, budget, and participants exactly as recorded.<br><br><em>"What is explainable AI?"</em> → the agent finds the term in a curated glossary and returns the expert-written definition verbatim.</td></tr>
+    <tr><td><span class="badge badge-yellow">Yellow</span></td><td><strong>LLM well-grounded.</strong> The LLM generates the response, but it has been given relevant data as context (retrieved document chunks, paper lists, or a detailed system prompt). The AI interprets and summarises this data, so the response is informed but may not be perfectly faithful to the source.</td><td><em>"What are the main research topics at THUAS?"</em> → the agent retrieves relevant papers and provides them to the LLM, which writes a summary. The paper list is real, but the summary is AI interpretation.<br><br><em>"Improve this prompt: You are a helpful assistant"</em> (Oneshot) → the LLM has a detailed system prompt that guides its response, but no external data. The quality depends on the prompt.</td></tr>
+    <tr><td><span class="badge badge-red">Red</span></td><td><strong>LLM poorly grounded.</strong> The topic has little or no representation in the available data. The LLM must reason from its own general knowledge or infer what is <em>absent</em> from the database — both are inherently speculative.</td><td><em>"What responsible AI topics have not been studied?"</em> → the agent provides the list of known topics, and the LLM must reason about what is <em>missing</em> — a speculative task with high hallucination risk.<br><br><em>"What is predictive policing?"</em> → the term is not in the glossary or database, so the LLM answers from general knowledge without any grounding data.</td></tr>
+</table>
+
+<h3 style="margin-top:16px;">A note on dynamic scoring</h3>
+<p>At least theoretically, reliability could be computed dynamically — for example, based on the number of retrieved chunks or their relevance scores. However, this would introduce instability (the same query could get different cues each time), arbitrary thresholds, and user confusion. It would also create a transparency paradox: a black-box estimation inside the transparency system itself. Instead, TOMMI assigns cues based on <strong>query type</strong>, which is determined by the deterministic classification chain — making the cue predictable, explainable, and stable.</p>
+
+<h3 style="margin-top:16px;">Implications for agent design</h3>
+<p>When designing a new agent, developers should consider how each response path is grounded:</p>
+<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
+    <li>Maximise <strong>programmatic responses</strong> (green) for queries that can be answered from structured data — these are 100% reliable and fast.</li>
+    <li>Ensure the <strong>system prompt rules</strong> are specific and constraining — generic prompts lead to more hallucination.</li>
+    <li>For <strong>RAG agents</strong>, the quality of the knowledge base and the retrieval method (BM25 vs vector) directly affect response reliability.</li>
+    <li>Assign <strong>red cues</strong> to response paths where the LLM must reason beyond the available data (gap analysis, out-of-glossary concepts).</li>
+    <li>Never show a reliability cue for <strong>honest refusals</strong> (off-topic, non-research) — a refusal is not unreliable content.</li>
+</ul>
+
+<h3 style="margin-top:16px;">The four dimensions of reliability in TOMMI</h3>
+<p>Rabanser et al. <a href="#references">[1]</a> identify four dimensions of AI agent reliability. The following table analyses how each dimension is currently addressed in TOMMI and where improvements could be made:</p>
+
+<table>
+    <tr><th style="width:120px;">Dimension</th><th>Definition</th><th>How TOMMI addresses it</th><th>Limitations &amp; opportunities</th></tr>
+    <tr>
+        <td><strong>Correctness</strong></td>
+        <td>Is the response factually accurate?</td>
+        <td>
+            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
+                <li><b>Programmatic paths</b> (8 of 13 in Metadata+RAG) are correct by construction — the data comes directly from curated files, with no LLM interpretation.</li>
+                <li><b>Paper verification</b> in post-processing checks every cited title and ID against papers.json, flagging unrecognised references.</li>
+                <li><b>SQL verification</b> in Text2SQL checks table/column existence and semantic alignment before executing any query.</li>
+                <li><b>Authority sanitisation</b> replaces overconfident LLM phrases ("has not been studied") with accurate ones ("does not appear in the indexed database").</li>
+            </ul>
+        </td>
+        <td style="font-size:12px;">Correctness is strongest on programmatic paths and weakest on gap analysis (red cue). A remaining challenge is verifying correctness of LLM-generated <em>commentary</em> on topic searches — the paper list is verified but the summary is not.</td>
+    </tr>
+    <tr>
+        <td><strong>Consistency</strong></td>
+        <td>Does the same query always produce the same answer?</td>
+        <td>
+            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
+                <li><b>Programmatic paths</b> are perfectly consistent — the same query always produces the identical response (deterministic code, no randomness).</li>
+                <li><b>Classification chain</b> is rule-based: the same query always follows the same response path.</li>
+                <li><b>Reliability cues</b> are determined by query type, not by LLM output — so the same query always gets the same cue.</li>
+            </ul>
+        </td>
+        <td style="font-size:12px;">LLM paths are inherently inconsistent — the same question may get different wording each time due to sampling. This could be mitigated by setting temperature=0 or by caching LLM responses for repeated queries. The more response paths are programmatic, the more consistent the agent is overall.</td>
+    </tr>
+    <tr>
+        <td><strong>Robustness</strong></td>
+        <td>Does the agent handle rephrased queries, edge cases, and unexpected inputs correctly?</td>
+        <td>
+            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
+                <li><b>Pattern-based detection</b> uses multiple variants per intent (e.g., researcher lookup matches full name, surname, first+surname, with word boundaries to avoid false positives like "pons" in "responsible").</li>
+                <li><b>Bilingual patterns</b> in Text2SQL handle both Spanish and English inputs for every intent.</li>
+                <li><b>Decision logic benchmark</b> (56 test cases) verifies that the classification chain correctly routes queries.</li>
+                <li><b>Off-topic detection</b> is placed last in the priority chain so that legitimate queries (projects, researchers) are never misclassified.</li>
+            </ul>
+        </td>
+        <td style="font-size:12px;">Pattern-based detection can miss novel phrasings — e.g., "Give me the bibliography of professor Smith" might not match researcher patterns. This could be improved with broader pattern sets or a lightweight intent classifier. The benchmark should be expanded with adversarial examples.</td>
+    </tr>
+    <tr>
+        <td><strong>Transparency</strong></td>
+        <td>Can the user understand how trustworthy the response is?</td>
+        <td>
+            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
+                <li><b>Reliability cues</b> (green/yellow/red/none) signal the trustworthiness of each response based on its source — whether it comes from verified data, AI interpretation, or speculation.</li>
+                <li><b>Crystal box mode</b> in Text2SQL shows the generated SQL query and a plain-language explanation, so the user can verify the AI translation.</li>
+                <li><b>Open documentation</b> of the agent's internal logic (this document) makes the decision process publicly visible and auditable.</li>
+            </ul>
+        </td>
+        <td style="font-size:12px;">Transparency could be deepened by indicating which specific data sources contributed to each response, and by showing the retrieved chunks alongside RAG responses so users can verify grounding directly.</td>
+    </tr>
+</table>
+
+<p style="margin-top:12px;">The key architectural insight is that <strong>programmatic response paths score high on all four dimensions simultaneously</strong>: they are correct (data from source), consistent (deterministic), robust (pattern-based classification is testable), and transparent (the response path is visible). Each query type moved from an LLM path to a programmatic path improves reliability across all four dimensions at once.</p>
+
+</div>
+
+<h2>Response Paths: A Methodology for Agent Development</h2>
+
+<div class="detail-panel show">
+<p>A <strong>response path</strong> is the complete route a query takes through the four stages (Perception → Reasoning → Action → Production). Each agent type can be characterised by the number and kind of response paths it supports. This offers a practical methodology for developing a new agent: <strong>start with the simplest response paths and progressively add more complex ones</strong>.</p>
+
+<h3 style="margin-top:16px;">Phase 1 — Single path (Oneshot)</h3>
+<p>Begin with a single response path: every query goes directly to the LLM with a system prompt. This is the fastest way to get a working agent. Focus on:</p>
+<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
+    <li>Writing a clear, constraining <strong>system prompt</strong> (identity, rules, scope)</li>
+    <li>Testing with representative queries to verify the LLM stays on topic</li>
+    <li>All responses get the same reliability cue (yellow) — or hide cues entirely</li>
+</ul>
+<div style="font-size:12px;color:#64748b;margin:8px 0 4px;"><b>Result:</b> 1 response path. Reliability: <span class="badge badge-yellow">Yellow</span> (all LLM).</div>
+
+<h3 style="margin-top:16px;">Phase 2 — Add retrieval (RAG)</h3>
+<p>Add a knowledge base (documents, markdown files) and a retrieval mechanism (BM25 keyword search or ChromaDB vector search). Now the LLM receives relevant context alongside the system prompt. Focus on:</p>
+<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
+    <li>Preparing and chunking the <strong>knowledge base</strong></li>
+    <li>Tuning the <strong>number of retrieved chunks</strong> (too few = hallucination, too many = noise)</li>
+    <li>Adding an <strong>off-topic check</strong> in Production to detect refusals and suppress cues for them</li>
+</ul>
+<div style="font-size:12px;color:#64748b;margin:8px 0 4px;"><b>Result:</b> 2 response paths (on-topic → <span class="badge badge-yellow">Yellow</span>, off-topic refusal → <span class="badge badge-none">None</span>).</div>
+
+<h3 style="margin-top:16px;">Phase 3 — Add programmatic early returns</h3>
+<p>Identify query types that can be answered <strong>without the LLM</strong> — these are faster, cheaper, and 100% reliable. Typical early returns:</p>
+<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
+    <li><strong>Meta-questions</strong> ("What can you do?") → build response from config.json</li>
+    <li><strong>Non-research tasks</strong> ("Write me an essay") → fixed refusal message</li>
+    <li><strong>Off-topic queries</strong> ("What is the weather?") → programmatic refusal listing in-scope topics</li>
+</ul>
+<p style="margin-top:6px;">Each early return adds a new response path with its own reliability cue (typically none, since refusals and meta-responses are not content claims).</p>
+<div style="font-size:12px;color:#64748b;margin:8px 0 4px;"><b>Result:</b> 4–5 response paths. New paths are <span class="badge badge-none">None</span> (no cue for honest responses).</div>
+
+<h3 style="margin-top:16px;">Phase 4 — Add structured data paths</h3>
+<p>If the agent has access to structured data (JSON files, databases, glossaries), add programmatic response paths that format this data directly — bypassing the LLM entirely. Examples:</p>
+<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
+    <li><strong>Researcher lookup</strong> → format papers, topics, affiliations from researchers.json</li>
+    <li><strong>Project queries</strong> → format title, grant ID, funder, budget from project_docs/</li>
+    <li><strong>Glossary definitions</strong> → return expert-written text from markdown</li>
+    <li><strong>Figure/map requests</strong> → build visualisation link from regex extraction</li>
+</ul>
+<p style="margin-top:6px;">These are the most valuable paths to add: they produce <span class="badge badge-green">Green</span> (verified data) responses and eliminate hallucination risk for common queries. Each path requires a <strong>detection function</strong> (pattern matching in the Reasoning stage) and a <strong>formatting function</strong> (data presentation in Production).</p>
+<div style="font-size:12px;color:#64748b;margin:8px 0 4px;"><b>Result:</b> 8–10 response paths. New paths are <span class="badge badge-green">Green</span> (programmatic).</div>
+
+<h3 style="margin-top:16px;">Phase 5 — Add mixed paths and navigation</h3>
+<p>For more complex agents, add paths that combine programmatic data with LLM interpretation, and navigation features for result sets:</p>
+<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
+    <li><strong>Topic search</strong> → programmatic paper list (<span class="badge badge-green">Green</span>) + LLM analytical commentary (<span class="badge badge-yellow">Yellow</span>)</li>
+    <li><strong>Gap analysis</strong> → LLM reasons about absences in the data (<span class="badge badge-red">Red</span>)</li>
+    <li><strong>Result navigation</strong> → show more, sort, filter, expand detail (no LLM, <span class="badge badge-none">None</span>)</li>
+    <li><strong>Query refinement</strong> → LLM modifies previous SQL/search (<span class="badge badge-yellow">Yellow</span>)</li>
+</ul>
+<div style="font-size:12px;color:#64748b;margin:8px 0 4px;"><b>Result:</b> 13+ response paths. Full spectrum of reliability cues.</div>
+
+<h3 style="margin-top:16px;">Summary: progressive path development</h3>
+<table>
+    <tr><th>Phase</th><th>Agent type</th><th>Paths</th><th>Key addition</th><th>Cues used</th></tr>
+    <tr><td>1</td><td>Oneshot</td><td>1</td><td>System prompt + LLM</td><td><span class="badge badge-yellow">Y</span></td></tr>
+    <tr><td>2</td><td>RAG</td><td>2</td><td>Knowledge base + retrieval</td><td><span class="badge badge-yellow">Y</span> <span class="badge badge-none">—</span></td></tr>
+    <tr><td>3</td><td>RAG + early returns</td><td>4–5</td><td>Programmatic refusals</td><td><span class="badge badge-yellow">Y</span> <span class="badge badge-none">—</span></td></tr>
+    <tr><td>4</td><td>Metadata+RAG</td><td>8–10</td><td>Structured data formatting</td><td><span class="badge badge-green">G</span> <span class="badge badge-yellow">Y</span> <span class="badge badge-none">—</span></td></tr>
+    <tr><td>5</td><td>Metadata+RAG (full)</td><td>13+</td><td>Mixed paths, navigation, gaps</td><td><span class="badge badge-green">G</span> <span class="badge badge-yellow">Y</span> <span class="badge badge-red">R</span> <span class="badge badge-none">—</span></td></tr>
+</table>
+
+<p style="margin-top:12px;">This progression reflects a fundamental trade-off: <strong>more response paths mean more development effort, but also higher reliability and lower LLM costs</strong>. Each programmatic path added is one fewer query that needs the LLM — making the agent faster, cheaper, and more trustworthy.</p>
+</div>
+
+<h2>How Reasoning Varies Across Agent Types</h2>
+<p style="font-size:13px;color:#475569;margin-bottom:12px;">The Reasoning stage is where the most significant architectural differences between agent types emerge. In simple agents, it is mechanical — the agent does very little analysis before acting. In complex agents, reasoning is a multi-step decision process that determines which data sources to use and which actions to perform.</p>
+
+<div class="detail-panel show">
+<table>
+    <tr><th style="width:180px;">Agent type</th><th>Reasoning implementation</th><th>Complexity</th></tr>
+    <tr>
+        <td><strong>Oneshot</strong></td>
+        <td><strong>None.</strong> The query is passed directly to the LLM with the system prompt. No classification, no retrieval, no decision-making. Every query follows the same path.</td>
+        <td style="text-align:center;">⬜</td>
+    </tr>
+    <tr>
+        <td><strong>RAG</strong></td>
+        <td><strong>Mechanical retrieval.</strong> The query is converted to a vector embedding and used to find similar document chunks in ChromaDB. The retrieval is automatic — there is no decision about <em>what kind</em> of question it is.</td>
+        <td style="text-align:center;">⬜⬜</td>
+    </tr>
+    <tr>
+        <td><strong>RAG Vectorless</strong></td>
+        <td><strong>Keyword retrieval.</strong> Same as RAG but uses BM25 keyword matching instead of vector similarity. The only decision is a post-hoc check: was the response off-topic?</td>
+        <td style="text-align:center;">⬜⬜</td>
+    </tr>
+    <tr>
+        <td><strong>Text2SQL</strong></td>
+        <td><strong>Intent detection.</strong> The agent first checks whether the user is navigating existing results (show more, sort, go back, expand a row) or asking a new question. Navigation intents are handled directly without the LLM. New questions go through SQL translation and verification.</td>
+        <td style="text-align:center;">⬜⬜⬜</td>
+    </tr>
+    <tr>
+        <td><strong>Metadata+RAG (EH)</strong></td>
+        <td><strong>Multi-step classification.</strong> The agent runs a priority chain of 12 checks to determine the query type: meta-question, off-topic, conceptual, project, researcher, topic search, gap analysis, figure request, etc. Each type is routed to a different data source and action. This is the most sophisticated reasoning in TOMMI.</td>
+        <td style="text-align:center;">⬜⬜⬜⬜⬜</td>
+    </tr>
+</table>
+</div>
+
+<h2>Comparison Across TOMMI Agent Types</h2>
+
+<div class="detail-panel show">
+<table>
+    <tr>
+        <th style="width:150px;">Stage</th>
+        <th>Oneshot</th>
+        <th>RAG</th>
+        <th>RAG Vectorless</th>
+        <th>Text2SQL</th>
+        <th>Metadata+RAG (EH)</th>
+    </tr>
+    <tr>
+        <td><strong>Perception</strong></td>
+        <td>Text</td>
+        <td>Text</td>
+        <td>Text</td>
+        <td>Text</td>
+        <td>Text</td>
+    </tr>
+    <tr>
+        <td><strong>Reasoning</strong></td>
+        <td>None</td>
+        <td>Vector embed</td>
+        <td>BM25 tokenise</td>
+        <td>Intent detection (7 types)</td>
+        <td>Classification chain (12 steps)</td>
+    </tr>
+    <tr>
+        <td><strong>Action</strong></td>
+        <td>LLM only</td>
+        <td>ChromaDB → LLM</td>
+        <td>BM25 → LLM</td>
+        <td>LLM → SQL → DB</td>
+        <td>DB / glossary / LLM / maps (varies)</td>
+    </tr>
+    <tr>
+        <td><strong>Production</strong></td>
+        <td>Text</td>
+        <td>Text + cues</td>
+        <td>Text + cues</td>
+        <td>Text + table + cues</td>
+        <td>Text + lists + maps + cues</td>
+    </tr>
+    <tr>
+        <td><strong>Uses LLM?</strong></td>
+        <td>Always (100%)</td>
+        <td>Always (100%)</td>
+        <td>Always (100%)</td>
+        <td>New queries only (~40%)</td>
+        <td>5 of 13 query types (~38%)</td>
+    </tr>
+    <tr>
+        <td><strong>Reliability cues</strong></td>
+        <td>Hidden</td>
+        <td>High / Good / Poor</td>
+        <td>Yellow / None</td>
+        <td>Yellow + Green</td>
+        <td>Green / Yellow / Red / None</td>
+    </tr>
+</table>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- METADATA+RAG AGENTS -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-metadata">
+
+<h2>Metadata+RAG Agents (Excellence Hubs)</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The most complex TOMMI agent type, used for the UNINOVIS Excellence Hubs. Combines structured metadata (papers, researchers, projects, glossary) with document retrieval, interactive maps, and a multi-step decision logic. Unlike simpler agents (which have 1–2 response paths), Metadata+RAG agents have <strong>6 distinct response paths</strong>, each with different actions, production outputs, and reliability cues.</p>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>1. Perception</h3>
+    <p>The agent receives the user's text query via the chat interface. It also receives session context: conversation history, session ID, model preference, and transparency level. <b>LLM: Not used.</b></p>
+
+    <h3 style="margin-top:12px;">2. Reasoning</h3>
+    <p>A priority chain of 13 classification checks identifies which response path the query should follow. The first match wins. This is where the agent's intelligence resides — it determines not just the answer, but the entire processing path (which data source to use, whether the LLM is needed, and which reliability cue to assign). The entire classification chain is rule-based and deterministic. <b>LLM: Not used.</b></p>
+
+    <h3 style="margin-top:12px;">3. Action &amp; 4. Production (path-specific)</h3>
+    <p>Each response path has its own action and production. This is the key architectural difference from simpler agent types:</p>
+    <table>
+        <tr><th>Response path</th><th>Reasoning (steps)</th><th>Action</th><th>Production</th></tr>
+        <tr>
+            <td><strong>Programmatic refusal/info</strong></td>
+            <td>1. Meta, 2. Non-research, 3. Disambiguation, 4. Off-topic</td>
+            <td>Return fixed text from <b>config.json</b> or code</td>
+            <td>Direct text. <span class="badge badge-none">No cue</span></td>
+        </tr>
+        <tr>
+            <td><strong>Figure / Map</strong></td>
+            <td>5. Figure request</td>
+            <td>Build map link from <b>regex extraction</b></td>
+            <td>Interactive Leaflet map. <span class="badge badge-green">Green</span></td>
+        </tr>
+        <tr>
+            <td><strong>Structured data</strong></td>
+            <td>6. Project, 7. Researcher, 8. Glossary</td>
+            <td>Format data from <b>project_docs/</b>, <b>researchers.json</b>, <b>Glossary.md</b></td>
+            <td>Formatted response. <span class="badge badge-yellow">Yellow</span> or <span class="badge badge-none">None</span></td>
+        </tr>
+        <tr>
+            <td><strong>LLM elaboration</strong></td>
+            <td>9. Expand command</td>
+            <td>Extract item #N, then <b>LLM elaborates</b></td>
+            <td>Elaborated text. <span class="badge badge-none">No cue</span></td>
+        </tr>
+        <tr>
+            <td><strong>LLM generation</strong></td>
+            <td>10. Gap analysis, 11. Conceptual, 12. Follow-up</td>
+            <td><b>LLM generates</b> from metadata, knowledge, or history</td>
+            <td>Post-processed text. <span class="badge badge-yellow">Yellow</span> / <span class="badge badge-red">Red</span></td>
+        </tr>
+        <tr>
+            <td><strong>Content query</strong></td>
+            <td>13. Topic search, affiliation, university papers, RAG fallback</td>
+            <td>Factual list from <b>papers.json</b> + <b>LLM</b> commentary</td>
+            <td>Data <span class="badge badge-green">Green</span> + commentary <span class="badge badge-yellow">Yellow</span></td>
+        </tr>
+    </table>
+    <p style="margin-top:8px;color:#64748b;font-size:12px;">The Reasoning stage selects the entire response path — determining which Action to perform, which data sources to use, whether the LLM is called, and which reliability cue to assign in Production.</p>
+</div>
+
+<p style="font-size:13px;color:#64748b;margin:16px 0 12px;">The diagram below summarises all six response paths through the four stages:</p>
+
+<!-- ── Branching flow diagram for Metadata+RAG ── -->
+<div class="branch-flow" style="grid-template-rows: auto repeat(13, auto);">
+    <!-- Row 1: Headers -->
+    <div class="bf-header" style="grid-row:1;grid-column:1;">Perception</div>
+    <div style="grid-row:1;grid-column:2;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:3;">Reasoning</div>
+    <div style="grid-row:1;grid-column:4;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:5;">Action</div>
+    <div style="grid-row:1;grid-column:6;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:7;">Production</div>
+
+    <!-- Perception: spans all 13 rows -->
+    <div class="bf-box bf-perc" style="grid-row:2/15;grid-column:1;">
+        User query<br>+ conversation<br>history
+    </div>
+    <div class="bf-arrow" style="grid-row:2/15;grid-column:2;">▸</div>
+
+    <!-- ── Group A: Programmatic, no cues (rows 2–5) ── -->
+    <div class="bf-box bf-reason" style="grid-row:2;grid-column:3;">1. Meta-question</div>
+    <div class="bf-box bf-reason" style="grid-row:3;grid-column:3;">2. Non-research</div>
+    <div class="bf-box bf-reason" style="grid-row:4;grid-column:3;">3. Disambiguation</div>
+    <div class="bf-box bf-reason" style="grid-row:5;grid-column:3;">4. Off-topic</div>
+
+    <div class="bf-arrow" style="grid-row:2/6;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-green" style="grid-row:2/6;grid-column:5;">
+        <b>Return fixed /<br>programmatic text</b><small>from config.json,<br>researchers.json, scope</small>
+    </div>
+    <div class="bf-arrow" style="grid-row:2/6;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-none" style="grid-row:2/6;grid-column:7;">
+        Direct text<small>No reliability cues</small>
+    </div>
+
+    <!-- ── Group B: Figure/Map, green cue (row 6) ── -->
+    <div class="bf-box bf-reason" style="grid-row:6;grid-column:3;">5. Figure / Map</div>
+
+    <div class="bf-arrow" style="grid-row:6;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-green" style="grid-row:6;grid-column:5;">
+        <b>Build map link</b><small>from regex extraction<br>+ structured DB</small>
+    </div>
+    <div class="bf-arrow" style="grid-row:6;grid-column:6;">▸</div>
+    <div class="bf-box" style="grid-row:6;grid-column:7;background:#dcfce7;border:2px solid #16a34a;">
+        Interactive map<br>+ <span class="badge badge-green">Green</span> cue
+    </div>
+
+    <!-- ── Group C: Programmatic structured data, yellow/none (rows 7–9) ── -->
+    <div class="bf-box bf-reason" style="grid-row:7;grid-column:3;">6. Project query</div>
+    <div class="bf-box bf-reason" style="grid-row:8;grid-column:3;">7. Researcher</div>
+    <div class="bf-box bf-reason" style="grid-row:9;grid-column:3;">8. Glossary</div>
+
+
+    <div class="bf-arrow" style="grid-row:7/10;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-green" style="grid-row:7/10;grid-column:5;">
+        <b>Format structured<br>data</b><small>from project_docs/,<br>researchers.json,<br>Glossary.md</small>
+    </div>
+    <div class="bf-arrow" style="grid-row:7/10;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-yellow" style="grid-row:7/10;grid-column:7;">
+        Formatted response<br><span class="badge badge-yellow">Yellow</span> or <span class="badge badge-none">None</span>
+    </div>
+
+    <!-- ── Group D: Expand (partial LLM) (row 10) ── -->
+    <div class="bf-box bf-reason-llm" style="grid-row:10;grid-column:3;">9. Expand</div>
+    <div class="bf-arrow" style="grid-row:10;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-yellow" style="grid-row:10;grid-column:5;">
+        <b>Extract item #N</b><br>then <b>LLM elaborates</b><small>from previous response</small>
+    </div>
+    <div class="bf-arrow" style="grid-row:10;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-none" style="grid-row:10;grid-column:7;">
+        Elaborated text<small>No reliability cues</small>
+    </div>
+
+    <!-- ── Group E: LLM required (rows 11–13) ── -->
+    <div class="bf-box bf-reason-llm" style="grid-row:11;grid-column:3;">10. Gap analysis</div>
+    <div class="bf-box bf-reason-llm" style="grid-row:12;grid-column:3;">11. Conceptual</div>
+    <div class="bf-box bf-reason-llm" style="grid-row:13;grid-column:3;">12. Follow-up</div>
+
+    <div class="bf-arrow" style="grid-row:11/14;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-yellow" style="grid-row:11/14;grid-column:5;">
+        <b>LLM generates</b><br>from metadata,<br>knowledge, or history
+    </div>
+    <div class="bf-arrow" style="grid-row:11/14;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-yellow" style="grid-row:11/14;grid-column:7;">
+        LLM text +<br>post-processing<br><span class="badge badge-yellow">Yellow</span> / <span class="badge badge-red">Red</span>
+    </div>
+
+    <!-- ── Group F: Content queries (row 14) ── -->
+    <div class="bf-box bf-reason-llm" style="grid-row:14;grid-column:3;">13. Content query</div>
+    <div class="bf-arrow" style="grid-row:14;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-yellow" style="grid-row:14;grid-column:5;">
+        <b>Factual list</b> from<br>papers.json + <b>LLM</b><br>commentary
+    </div>
+    <div class="bf-arrow" style="grid-row:14;grid-column:6;">▸</div>
+    <div class="bf-box" style="grid-row:14;grid-column:7;background:#dcfce7;border:2px solid #16a34a;">
+        Data <span class="badge badge-green">Green</span><br>+ commentary <span class="badge badge-yellow">Yellow</span>
+    </div>
+</div>
+
+<p style="font-size:12px;color:#64748b;margin:8px 0 16px;">Steps in <span style="background:#fef9c3;padding:1px 4px;border-radius:3px;">yellow</span> bypass the LLM entirely — responses come from structured data files. Steps in <span style="background:#fef3c7;padding:1px 4px;border-radius:3px;border:1px solid #d97706;">orange</span> use the LLM for generation or elaboration. Note: step numbers reflect the classification priority order (see detailed flow below).</p>
+
+<h2>Step-by-step detail</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The diagram above shows the 6 groups of paths through the agent. Below, each of the 13 reasoning steps is listed in classification priority order (first match wins). Click any step to see the detection method, data source, and technical details.</p>
+
+<div class="cue-legend">
+    <div class="cue-item"><div class="cue-dot" style="background:#28a745;"></div> Green (verified data)</div>
+    <div class="cue-item"><div class="cue-dot" style="background:#ffc107;"></div> Yellow (AI interpretation)</div>
+    <div class="cue-item"><div class="cue-dot" style="background:#dc3545;"></div> Red (speculation)</div>
+    <div class="cue-item"><div class="cue-dot" style="background:#cbd5e1;"></div> No cue</div>
+</div>
+
+<div class="flow" id="classification-flow">
+    <!-- Steps injected by JS -->
+</div>
+
+<!-- Detail now shown inline within each card -->
+
+<p style="margin-top:24px;font-size:14px;font-weight:600;color:#334155;">Content Query Context Chain</p>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">When the classification above reaches step 13 (Content query), the agent needs to decide <em>which data source</em> to use. It runs a second priority chain — the first match wins:</p>
+
+<div class="flow" id="context-chain">
+    <!-- Steps injected by JS -->
+</div>
+
+<h2>Production</h2>
+
+<h3 style="margin-top:12px;">Post-Processing Pipeline</h3>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">When the output involves LLM-generated text, it passes through a rule-based post-processing pipeline before delivery. No LLM is used in this stage.</p>
+
+<div class="pipeline" id="pipeline">
+    <!-- Steps injected by JS -->
+</div>
+
+<p style="margin-top:16px;font-size:13px;color:#64748b;">Each step in detail:</p>
+<div class="detail-panel show">
+<table>
+    <tr><th style="width:40px;">#</th><th style="width:180px;">Step</th><th>What it does</th><th>When active</th></tr>
+    <tr><td>1</td><td><strong>Authority sanitisation</strong></td><td>Replaces overconfident phrases: "has not been studied" → "does not appear in the indexed database"; "well-known" → "commonly discussed"</td><td>Always</td></tr>
+    <tr><td>2</td><td><strong>Alliance name correction</strong></td><td>Fixes common LLM misspellings (e.g., "UNINOVOS" → "UNINOVIS")</td><td>Always</td></tr>
+    <tr><td>3</td><td><strong>Paper verification</strong></td><td>Checks quoted paper titles against papers.json. Flags unrecognised titles with ⚠️. Verifies that paper IDs match their titles.</td><td>Not for meta-questions or off-topic</td></tr>
+    <tr><td>4</td><td><strong>Unsolicited gap detection</strong></td><td>Detects when the LLM volunteers gap analysis the user didn't ask for. Injects a red banner before the speculative section.</td><td>When user didn't ask about gaps</td></tr>
+    <tr><td>5</td><td><strong>Off-topic detection</strong></td><td>Checks first 300 characters for refusal phrases. If detected, removes any banner (honest refusal needs no reliability cue).</td><td>Always (except conceptual queries)</td></tr>
+    <tr><td>6</td><td><strong>Humility rewriting</strong></td><td>Adds hedging prefixes to ungrounded claims. Moderate: hedge LLM-only claims. Strict: hedge LLM + web claims, add disclaimer footer.</td><td>If humility_postprocessing ≠ "off"</td></tr>
+</table>
+</div>
+
+<h3 style="margin-top:16px;">Reliability Cue Assignment</h3>
+<p style="font-size:13px;color:#64748b;margin-bottom:8px;">The reliability cue is determined by the query type (decided during Reasoning) and displayed as a coloured banner at the top of the response:</p>
+<div class="detail-panel show">
+    <table>
+        <tr><th>Response type</th><th>Cue</th><th>Rationale</th></tr>
+        <tr><td>Programmatic data (structured DB)</td><td><span class="badge badge-green">Green</span></td><td>Data comes directly from the database, no AI involved</td></tr>
+        <tr><td>AI interprets database content</td><td><span class="badge badge-yellow">Yellow</span></td><td>LLM summarises or formats real data</td></tr>
+        <tr><td>AI uses general knowledge (in-scope)</td><td><span class="badge badge-yellow">Yellow</span></td><td>Topic is within scope but not in the database</td></tr>
+        <tr><td>AI reasons about absence (gaps)</td><td><span class="badge badge-red">Red</span></td><td>Speculative — verify independently</td></tr>
+        <tr><td>Honest refusal (off-topic, meta, non-research)</td><td><span class="badge badge-none">None</span></td><td>Refusal is not unreliable content</td></tr>
+        <tr><td>Researcher disambiguation / lookup</td><td><span class="badge badge-none">None</span></td><td>Data from structured database or clarification</td></tr>
+        <tr><td>"How many" queries</td><td><span class="badge badge-yellow">Yellow + note</span></td><td>Counts may be approximate</td></tr>
+    </table>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- RAG AGENTS (Vector) -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-rag">
+
+<h2>RAG Agents (Vector-based retrieval)</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">RAG agents use ChromaDB vector embeddings to find semantically similar document chunks. Unlike BM25 (keyword matching), vector retrieval can find relevant content even when the exact words differ — e.g., "adversarial testing" matches "red-teaming".</p>
+
+<div class="branch-flow" style="grid-template-rows: auto auto;">
+    <div class="bf-header" style="grid-row:1;grid-column:1;">Perception</div>
+    <div style="grid-row:1;grid-column:2;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:3;">Reasoning</div>
+    <div style="grid-row:1;grid-column:4;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:5;">Action</div>
+    <div style="grid-row:1;grid-column:6;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:7;">Production</div>
+
+    <div class="bf-box bf-perc" style="grid-row:2;grid-column:1;">User query</div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:2;">▸</div>
+    <div class="bf-box bf-reason" style="grid-row:2;grid-column:3;"><b>ChromaDB</b><br>vector search<small>Semantic matching</small></div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-yellow" style="grid-row:2;grid-column:5;"><b>LLM generates</b><br>from system prompt<br>+ chunks + user query<small>Always used</small></div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-yellow" style="grid-row:2;grid-column:7;">Post-processing<br>+ reliability cue<small><span class="badge badge-yellow">Yellow</span> or <span class="badge badge-none">None</span></small></div>
+</div>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>1. Perception</h3>
+    <p>The agent receives the user's text query via the chat interface.</p>
+
+    <h3 style="margin-top:12px;">2. Reasoning</h3>
+    <p>The query is converted into a vector embedding and used to search ChromaDB for semantically similar document chunks. This is mechanical — no classification of query type, no decision-making. <b>LLM: Not used</b> (embedding model is separate from the generative LLM).</p>
+
+    <h3 style="margin-top:12px;">3. Action</h3>
+    <p><b>LLM: Always used.</b> The LLM receives three inputs combined into a single prompt: the system prompt (agent identity and rules), the retrieved document chunks (context), and the user's query. The LLM generates an answer constrained to this context. Every query goes to the LLM — there is no programmatic path.</p>
+
+    <h3 style="margin-top:12px;">Example: what the LLM receives</h3>
+    <p style="font-size:12px;color:#64748b;margin-bottom:6px;">For a query like <em>"What is explainable AI?"</em> on a Responsible AI agent, the LLM prompt is assembled as follows:</p>
+    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:12px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:12px;">
+<span style="color:#64748b;">── System prompt (from prompts.json) ──────────────</span>
+<span style="color:#c084fc;">You are a research assistant for the UNINOVIS
+Excellence Hub on Responsible AI. Answer only from
+the provided context. If the answer is not in the
+context, say so.</span>
+
+<span style="color:#64748b;">── Retrieved chunks (from ChromaDB / BM25) ────────</span>
+<span style="color:#86efac;">--- Chunk 1 ---
+Explainable AI (XAI) refers to methods and techniques
+that make the outputs of AI systems understandable
+to humans. The EU AI Act requires high-risk AI systems
+to provide explanations of their decisions...
+
+--- Chunk 2 ---
+Key XAI techniques include LIME (Local Interpretable
+Model-agnostic Explanations), SHAP (SHapley Additive
+exPlanations), and attention visualisation...
+
+--- Chunk 3 ---
+The relationship between explainability and trust is
+well documented. Users who understand why an AI system
+made a decision are more likely to trust it...</span>
+
+<span style="color:#64748b;">── User query ──────────────────────────────────────</span>
+<span style="color:#60a5fa;">What is explainable AI?</span>
+    </div>
+    <p style="font-size:12px;color:#64748b;">The LLM can only "see" the content above. It cannot access the database, the internet, or any other data. The quality of the response depends entirely on whether the retrieved chunks contain relevant information.</p>
+
+    <h3 style="margin-top:12px;">4. Production</h3>
+    <p>The LLM response is post-processed (humility hedging, authority sanitisation) and delivered with a reliability cue. <b>LLM: Not used</b> — post-processing is rule-based.</p>
+
+    <h3 style="margin-top:12px;">Reliability Cues</h3>
+    <table>
+        <tr><th>Response type</th><th>Cue</th><th>Rationale</th></tr>
+        <tr><td>On-topic response (LLM interprets retrieved chunks)</td><td><span class="badge badge-yellow">Yellow</span></td><td>AI interpretation — the LLM generates from retrieved context, which may be incomplete or misinterpreted</td></tr>
+        <tr><td>Off-topic refusal</td><td><span class="badge badge-none">None</span></td><td>Honest refusal is not unreliable content</td></tr>
+    </table>
+    <p style="margin-top:8px;color:#64748b;font-size:12px;">Since all RAG responses pass through the LLM, the cue is always yellow. There is no programmatic path that would produce a green cue.</p>
+</div>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>RAG vs RAG Vectorless</h3>
+    <table>
+        <tr><th>Feature</th><th>RAG (Vector)</th><th>RAG Vectorless (BM25)</th></tr>
+        <tr><td>Retrieval method</td><td>Vector similarity (ChromaDB)</td><td>BM25 keyword matching</td></tr>
+        <tr><td>Semantic matching</td><td>Yes — "adversarial testing" finds "red-teaming"</td><td>No — exact words only</td></tr>
+        <tr><td>Setup</td><td>Requires ChromaDB + embedding model</td><td>No dependencies — pure Python</td></tr>
+        <tr><td>Indexing</td><td>Embedding computation (slower)</td><td>Keyword extraction (fast)</td></tr>
+        <tr><td>Index storage</td><td><code>data/chroma_db/</code> (vector database)</td><td><code>data/chunk_db.json</code> (JSON file)</td></tr>
+        <tr><td>Best for</td><td>Large corpora, semantic queries</td><td>Small corpora, keyword-rich queries</td></tr>
+    </table>
+
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- RAG VECTORLESS AGENTS -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-simple">
+
+<h2>RAG Vectorless Agents (Tommi Tutor, Proyectos Europeos)</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">RAG Vectorless agents use BM25 keyword retrieval (no vector embeddings) and procedural banner logic. They skip the 12-step classification chain used by Metadata+RAG agents:</p>
+
+<div class="branch-flow" style="grid-template-rows: auto auto;">
+    <div class="bf-header" style="grid-row:1;grid-column:1;">Perception</div>
+    <div style="grid-row:1;grid-column:2;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:3;">Reasoning</div>
+    <div style="grid-row:1;grid-column:4;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:5;">Action</div>
+    <div style="grid-row:1;grid-column:6;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:7;">Production</div>
+
+    <div class="bf-box bf-perc" style="grid-row:2;grid-column:1;">User query</div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:2;">▸</div>
+    <div class="bf-box bf-reason" style="grid-row:2;grid-column:3;"><b>BM25</b><br>keyword search<small>in chunk_db.json</small></div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-yellow" style="grid-row:2;grid-column:5;"><b>LLM generates</b><br>from system prompt<br>+ chunks + user query<small>Always used</small></div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-yellow" style="grid-row:2;grid-column:7;">Off-topic check<br>+ procedural banner<small><span class="badge badge-yellow">Y</span> or <span class="badge badge-none">None</span></small></div>
+</div>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>1. Perception</h3>
+    <p>The agent receives the user's text query via the chat interface.</p>
+
+    <h3 style="margin-top:12px;">2. Reasoning</h3>
+    <p>The query is tokenised (split into words, stop words removed) and scored against all document chunks using BM25 keyword matching. The top N chunks with the highest scores are selected as context. This is mechanical — no classification of query type. <b>LLM: Not used.</b></p>
+
+    <h3 style="margin-top:12px;">3. Action</h3>
+    <p><b>LLM: Always used.</b> The LLM receives three inputs combined into a single prompt: the system prompt (agent identity and rules), the retrieved document chunks (context found by BM25 keyword matching), and the user's query. The LLM generates an answer constrained to this context. Every query goes to the LLM — there is no programmatic path.</p>
+
+    <h3 style="margin-top:12px;">Example: what the LLM receives</h3>
+    <p style="font-size:12px;color:#64748b;margin-bottom:6px;">For a query like <em>"How do I deploy an agent?"</em> on the Tommi Tutor agent, the LLM prompt is assembled as follows:</p>
+    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:12px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:12px;">
+<span style="color:#64748b;">── System prompt (from prompts.json) ──────────────</span>
+<span style="color:#c084fc;">You are Tommi Tutor, a support assistant for the
+TOMMI Agentic Platform. Answer questions about
+deploying, configuring, and testing AI agents.
+Use only the provided context.</span>
+
+<span style="color:#64748b;">── Retrieved chunks (BM25 keyword match) ──────────</span>
+<span style="color:#86efac;">--- Chunk 1 (score: 8.4) ---
+To deploy an agent, create a directory under agents/
+with agent.py, app.py, config.json, and prompts.json.
+The config.json file defines the agent's name, type,
+LLM provider, and data sources...
+
+--- Chunk 2 (score: 6.1) ---
+After creating the agent files, register it in the
+web server by adding an import and mount statement
+in web/app.py. Restart the server to load the new
+agent...
+
+--- Chunk 3 (score: 4.7) ---
+Agent types available: rag_vectorless (BM25 keyword
+retrieval), rag_metadata_vectorless (structured
+metadata + BM25), text2sql (natural language to SQL),
+oneshot (no retrieval)...</span>
+
+<span style="color:#64748b;">── User query ──────────────────────────────────────</span>
+<span style="color:#60a5fa;">How do I deploy an agent?</span>
+    </div>
+    <p style="font-size:12px;color:#64748b;">Unlike ChromaDB (vector search), BM25 matches chunks by keyword overlap — the query words "deploy" and "agent" match directly against the chunk text. Chunks are ranked by BM25 score and the top N are selected. The LLM can only "see" these chunks and must answer from them.</p>
+
+    <h3 style="margin-top:12px;">4. Production</h3>
+    <p>The first 300 characters of the response are checked for off-topic refusal phrases. If detected, no banner is shown (honest refusal). Otherwise, a yellow "AI Commentary" banner is added. <b>LLM: Not used</b> — post-processing is rule-based.</p>
+
+    <h3 style="margin-top:12px;">Reliability Cues</h3>
+    <table>
+        <tr><th>Response type</th><th>Cue</th><th>Rationale</th></tr>
+        <tr><td>On-topic response (LLM interprets retrieved chunks)</td><td><span class="badge badge-yellow">Yellow</span></td><td>AI interpretation — the LLM generates from retrieved context, which may be incomplete or misinterpreted</td></tr>
+        <tr><td>Off-topic refusal (detected in first 300 chars)</td><td><span class="badge badge-none">None</span></td><td>Honest refusal is not unreliable content</td></tr>
+    </table>
+    <p style="margin-top:8px;color:#64748b;font-size:12px;">RAG Vectorless agents do not use green cues (no structured metadata to serve programmatically) or red cues (no gap analysis capability). The off-topic detector scans only the first 300 characters to avoid false positives when the response quotes off-topic phrases in explanations.</p>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- TEXT2SQL AGENTS -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-text2sql">
+
+<h2>Text2SQL Agents (Pisha, Algoria)</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">Text2SQL agents convert natural language to SQL queries. Unlike Oneshot and RAG agents (which have a single response path), Text2SQL agents have <strong>three distinct response paths</strong>, each with different actions and production outputs. The Reasoning stage determines which path the query follows.</p>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>1. Perception</h3>
+    <p>The agent receives the user's text query. It also maintains session state: previous SQL query, previous results, operations history, and shown fields. <b>LLM: Not used.</b></p>
+
+    <h3 style="margin-top:12px;">2. Reasoning</h3>
+    <p>An 8-step intent detection chain identifies which response path the query should follow. The first match wins. This is where the agent's decision logic resides — it determines not just the answer, but the entire processing path. <b>LLM: Not used</b> — intent detection is pattern-based.</p>
+
+    <h3 style="margin-top:12px;">3. Action &amp; 4. Production (path-specific)</h3>
+    <p>Unlike simpler agents where every query follows the same action and production, here each response path has its own action and production:</p>
+    <table>
+        <tr><th>Response path</th><th>Reasoning</th><th>Action</th><th>Production</th></tr>
+        <tr>
+            <td><strong>New query</strong></td>
+            <td>No navigation or refinement pattern detected</td>
+            <td><b>LLM generates</b> SQL from DB schema + user query → verify → execute on SQLite DB</td>
+            <td>HTML table + <span class="badge badge-yellow">Yellow</span> cue + SQL display (crystal box)</td>
+        </tr>
+        <tr>
+            <td><strong>Refinement</strong></td>
+            <td>Refinement pattern detected + previous SQL exists</td>
+            <td><b>LLM modifies</b> previous SQL → verify → execute on SQLite DB</td>
+            <td>HTML table + <span class="badge badge-yellow">Yellow</span> cue + SQL display (crystal box)</td>
+        </tr>
+        <tr>
+            <td><strong>Navigation</strong></td>
+            <td>Show more, detail, back, history, show field, or sort detected</td>
+            <td>Read from <b>session state</b> — no DB access, no LLM</td>
+            <td>Re-render table or detail card. <span class="badge badge-none">No cue</span></td>
+        </tr>
+    </table>
+    <p style="margin-top:8px;color:#64748b;font-size:12px;">This is the key architectural difference from simpler agent types: the Reasoning stage does not just classify the query — it selects the entire response path, including which Action to perform and which Production output to generate.</p>
+
+    <h3 style="margin-top:16px;">Action detail: New query path (step 8)</h3>
+    <p style="font-size:12px;color:#64748b;margin-bottom:6px;">Unlike RAG agents (where the LLM generates a text answer), the Text2SQL Action stage involves <strong>two sub-steps</strong>: first the LLM translates the question to SQL, then the SQL is executed on the database. The LLM never sees the data — it only sees the schema.</p>
+
+    <p style="font-size:12px;font-weight:600;color:#334155;margin:10px 0 4px;">Sub-step 1: LLM translates question → SQL</p>
+    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:12px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:10px;">
+<span style="color:#64748b;">── System prompt ───────────────────────────────────</span>
+<span style="color:#c084fc;">You are a SQL expert. Convert the user's question
+into a SQLite SELECT query. Use only the tables and
+columns described in the schema below.</span>
+
+<span style="color:#64748b;">── Database schema (injected as context) ───────────</span>
+<span style="color:#86efac;">TABLE: destinations
+  host_institution      TEXT    -- University name
+  destination_country   TEXT    -- Country name
+  lang_1_name           TEXT    -- Required language
+  lang_1_cert_level     TEXT    -- Language level (B1, B2...)
+  student_vacancies     INTEGER -- Number of places
+  mobility_program      TEXT    -- Erasmus+, bilateral...
+  uma_faculties         TEXT    -- Faculty at UMA
+  uma_degrees           TEXT    -- Degree programme</span>
+
+<span style="color:#64748b;">── User query ──────────────────────────────────────</span>
+<span style="color:#60a5fa;">Agreements with universities in Germany that
+require English B2</span>
+    </div>
+
+    <p style="font-size:12px;color:#64748b;margin-bottom:4px;">The LLM responds with:</p>
+    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:10px;">
+<span style="color:#60a5fa;">SELECT</span> * <span style="color:#60a5fa;">FROM</span> destinations
+<span style="color:#60a5fa;">WHERE</span> destination_country = <span style="color:#86efac;">'Germany'</span>
+  <span style="color:#60a5fa;">AND</span> lang_1_name = <span style="color:#86efac;">'English'</span>
+  <span style="color:#60a5fa;">AND</span> lang_1_cert_level = <span style="color:#86efac;">'B2'</span>
+<span style="color:#60a5fa;">ORDER BY</span> host_institution;
+    </div>
+
+    <p style="font-size:12px;font-weight:600;color:#334155;margin:10px 0 4px;">Sub-step 2: Verify SQL → Execute on SQLite database</p>
+    <p style="font-size:12px;color:#64748b;margin-bottom:6px;">The generated SQL is verified (table/column existence, semantic alignment with the question) and then executed directly on the SQLite database. The results come from the DB, not from the LLM — the LLM was only used as a translator.</p>
+    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:10px;">
+<span style="color:#64748b;">── Verification ────────────────────────────────────</span>
+<span style="color:#86efac;">✓ Table "destinations" exists
+✓ Columns "destination_country", "lang_1_name",
+  "lang_1_cert_level" exist
+✓ Semantic check: "Germany" → destination_country ✓
+                   "English B2" → lang_1_name + level ✓</span>
+
+<span style="color:#64748b;">── Execution on SQLite DB ──────────────────────────</span>
+<span style="color:#60a5fa;">→ 12 rows returned</span>
+    </div>
+
+    <p style="font-size:12px;color:#64748b;">This is why the reliability cue is <span class="badge badge-yellow">Yellow</span>: the <b>data is real</b> (from the database), but the <b>translation is AI</b> — the LLM may have misunderstood the question. In Crystal box mode, the SQL and a plain-language explanation are shown so the user can verify the translation.</p>
+</div>
+
+<p style="font-size:13px;color:#64748b;margin:16px 0 12px;">The diagram below summarises all three response paths through the four stages:</p>
+
+<!-- ── Branching flow diagram ── -->
+<div class="branch-flow">
+    <!-- Row 1: Headers -->
+    <div class="bf-header" style="grid-row:1;grid-column:1;">Perception</div>
+    <div style="grid-row:1;grid-column:2;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:3;">Reasoning</div>
+    <div style="grid-row:1;grid-column:4;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:5;">Action</div>
+    <div style="grid-row:1;grid-column:6;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:7;">Production</div>
+
+    <!-- Perception: spans rows 2–9 -->
+    <div class="bf-box bf-perc" style="grid-row:2/10;grid-column:1;">
+        User query<br>+ session state
+    </div>
+
+    <!-- Arrow perception→reasoning: spans rows 2–9 -->
+    <div class="bf-arrow" style="grid-row:2/10;grid-column:2;">▸</div>
+
+    <!-- ── New query (row 2) ── -->
+    <div class="bf-box bf-reason-llm" style="grid-row:2;grid-column:3;">1. New query</div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-yellow" style="grid-row:2;grid-column:5;">
+        <b>LLM generates SQL</b><br>from DB schema<br>→ verify → execute
+    </div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-yellow" style="grid-row:2;grid-column:7;">
+        HTML table<br>+ <span class="badge badge-yellow">Yellow</span> cue<small>+ SQL (crystal box)</small>
+    </div>
+
+    <!-- ── Refinement (row 3) ── -->
+    <div class="bf-box bf-reason-llm" style="grid-row:3;grid-column:3;">2. Refinement</div>
+    <div class="bf-arrow" style="grid-row:3;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-yellow" style="grid-row:3;grid-column:5;">
+        <b>LLM modifies SQL</b><br>→ verify → execute<br>on SQLite DB
+    </div>
+    <div class="bf-arrow" style="grid-row:3;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-yellow" style="grid-row:3;grid-column:7;">
+        HTML table<br>+ <span class="badge badge-yellow">Yellow</span> cue<small>+ SQL (crystal box)</small>
+    </div>
+
+    <!-- Navigation reasoning boxes (rows 4–9) -->
+    <div class="bf-box bf-reason" style="grid-row:4;grid-column:3;">3. Show more</div>
+    <div class="bf-box bf-reason" style="grid-row:5;grid-column:3;">4. Detail request</div>
+    <div class="bf-box bf-reason" style="grid-row:6;grid-column:3;">5. Back</div>
+    <div class="bf-box bf-reason" style="grid-row:7;grid-column:3;">6. History</div>
+    <div class="bf-box bf-reason" style="grid-row:8;grid-column:3;">7. Show field</div>
+    <div class="bf-box bf-reason" style="grid-row:9;grid-column:3;">8. Sort</div>
+
+    <!-- Arrow reasoning→action: spans nav group -->
+    <div class="bf-arrow" style="grid-row:4/10;grid-column:4;">▸</div>
+
+    <!-- Action: session state, spans nav group -->
+    <div class="bf-box bf-action-green" style="grid-row:4/10;grid-column:5;">
+        <b>Read from<br>session state</b><small>No DB access, no LLM</small>
+    </div>
+
+    <!-- Arrow action→production: spans nav group -->
+    <div class="bf-arrow" style="grid-row:4/10;grid-column:6;">▸</div>
+
+    <!-- Production: no cues, spans nav group -->
+    <div class="bf-box bf-prod-none" style="grid-row:4/10;grid-column:7;">
+        Re-render table<br>or detail card<small>No reliability cues</small>
+    </div>
+</div>
+
+<p style="font-size:12px;color:#64748b;margin:8px 0 16px;">Steps 1–6 (navigation) require <b style="color:#16a34a;">no LLM</b> — data comes from session state. Steps 7–8 use the <b style="color:#d97706;">LLM</b> to generate or modify SQL, which is then verified and executed on the SQLite database.</p>
+
+<h2>Step-by-step detail</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The diagram above shows the 8 possible paths. Below, each reasoning step is listed in priority order (first match wins). Click any step to see the detection method, data source, and technical details.</p>
+
+<div class="flow" id="text2sql-flow">
+    <!-- Steps injected by JS -->
+</div>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>Production</h3>
+
+    <h3 style="margin-top:12px;">Reliability Cues</h3>
+    <table>
+        <tr><th>Response type</th><th>Cue</th><th>Rationale</th></tr>
+        <tr><td>Navigation (show more, sort, back, detail, field, history)</td><td><span class="badge badge-none">None</span></td><td>No AI involved — re-displaying data from session state</td></tr>
+        <tr><td>Query translated and executed successfully</td><td><span class="badge badge-yellow">Yellow</span></td><td>AI translation risk — the SQL may not match the intent</td></tr>
+        <tr><td>Semantic mismatch detected</td><td>Blocked / Warning</td><td>Stringent: blocked. Tolerant: warning shown but query executes</td></tr>
+    </table>
+
+    <h3 style="margin-top:12px;">Transparency Levels</h3>
+    <table>
+        <tr><th>Level</th><th>Shows</th></tr>
+        <tr><td>Crystal box</td><td>SQL query + plain-language explanation + verification badges</td></tr>
+        <tr><td>Black box</td><td>Results only</td></tr>
+    </table>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- ONESHOT AGENTS -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-oneshot">
+
+<h2>Oneshot Agents (Prompt Assistant)</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">Oneshot agents process each query independently with no conversation memory, no document retrieval, and no structured data. They rely entirely on the system prompt and the LLM.</p>
+
+<div class="branch-flow" style="grid-template-rows: auto auto;">
+    <div class="bf-header" style="grid-row:1;grid-column:1;">Perception</div>
+    <div style="grid-row:1;grid-column:2;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:3;">Reasoning</div>
+    <div style="grid-row:1;grid-column:4;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:5;">Action</div>
+    <div style="grid-row:1;grid-column:6;"></div>
+    <div class="bf-header" style="grid-row:1;grid-column:7;">Production</div>
+
+    <div class="bf-box bf-perc" style="grid-row:2;grid-column:1;">User query</div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:2;">▸</div>
+    <div class="bf-box bf-reason-llm" style="grid-row:2;grid-column:3;">None<small>Pass-through</small></div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-yellow" style="grid-row:2;grid-column:5;"><b>LLM generates</b><br>from system prompt<br>+ user query<small>Always used</small></div>
+    <div class="bf-arrow" style="grid-row:2;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-none" style="grid-row:2;grid-column:7;">Deliver text<small>Cues if enabled<br>in settings</small></div>
+</div>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>1. Perception</h3>
+    <p>The agent receives the user's text query via the chat interface. Each query is independent — there is no conversation memory.</p>
+
+    <h3 style="margin-top:12px;">2. Reasoning</h3>
+    <p>None. The query is passed directly to the LLM without any classification, retrieval, or decision-making. Every query follows exactly the same path. <b>LLM: Not used in this stage.</b></p>
+
+    <h3 style="margin-top:12px;">3. Action</h3>
+    <p><b>LLM: Always used.</b> The LLM generates a response using only the system prompt (identity + rules) and the user's query. No documents, no database, no external data. This is the simplest possible agent — every query goes to the LLM.</p>
+
+    <h3 style="margin-top:12px;">Example: what the LLM receives</h3>
+    <p style="font-size:12px;color:#64748b;margin-bottom:6px;">For a query like <em>"Improve this prompt: You are a helpful assistant that answers questions"</em> on the Prompt Assistant agent, the LLM receives:</p>
+    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:12px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:12px;">
+<span style="color:#64748b;">── System prompt (from prompts.json) ──────────────</span>
+<span style="color:#c084fc;">You are PROMPT Assistant, a specialist in writing
+and improving system prompts for AI agents running
+on TOMMI.
+
+Your sole purpose is to help users craft prompts
+that make their agents clearer, more focused, and
+more effective. When given a prompt to review, you
+diagnose specific weaknesses and deliver a concrete
+rewrite.
+
+GUIDELINES:
+1. When reviewing a prompt, start with what works
+   before listing problems.
+2. Always deliver a rewritten version — diagnosis
+   without a fix is not enough.
+3. Structure rewrites using the Identity / Rules /
+   Strict format whenever it fits.
+...</span>
+
+<span style="color:#64748b;">── No retrieved chunks ─────────────────────────────</span>
+<span style="color:#94a3b8;">(Oneshot agents have no knowledge base —
+ the LLM relies entirely on the system prompt
+ and its own general knowledge)</span>
+
+<span style="color:#64748b;">── User query ──────────────────────────────────────</span>
+<span style="color:#60a5fa;">Improve this prompt: You are a helpful assistant
+that answers questions</span>
+    </div>
+    <p style="font-size:12px;color:#64748b;">Note the contrast with RAG agents: there are <b>no retrieved chunks</b>. The LLM has only the system prompt to guide its behaviour. The quality of the response depends entirely on how well the system prompt constrains the LLM and on the LLM's own general knowledge.</p>
+
+    <h3 style="margin-top:12px;">4. Production</h3>
+    <p>The LLM's text response is delivered directly to the user. No post-processing pipeline. <b>LLM: Not used in this stage.</b></p>
+
+    <h3 style="margin-top:12px;">Reliability Cues</h3>
+    <table>
+        <tr><th>Response type</th><th>Cue</th><th>Rationale</th></tr>
+        <tr><td>All responses (LLM from general knowledge)</td><td><span class="badge badge-yellow">Yellow</span> (if enabled)</td><td>No grounding data — the LLM uses only its general knowledge, so all responses are AI interpretation</td></tr>
+    </table>
+    <p style="margin-top:6px;color:#64748b;font-size:12px;">Controlled by the <code>reliability_cues</code> setting in config.json (<code>"shown"</code> / <code>"hidden"</code>). Since Oneshot agents have no database or document retrieval, the cue is always yellow. Most deployments set it to hidden to avoid redundancy.</p>
+</div>
+
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>Characteristics</h3>
+    <table>
+        <tr><th>Feature</th><th>Oneshot</th><th>RAG / Metadata+RAG</th></tr>
+        <tr><td>Conversation memory</td><td>No — each query is independent</td><td>Yes — follow-up queries use history</td></tr>
+        <tr><td>Document retrieval</td><td>No — no knowledge base</td><td>Yes — searches documents or metadata</td></tr>
+        <tr><td>Decision logic</td><td>Minimal — everything goes to the LLM</td><td>Complex — 12-step classification chain</td></tr>
+        <tr><td>Reliability cues</td><td>Typically hidden</td><td>Green / Yellow / Red / None</td></tr>
+        <tr><td>Grounding</td><td>LLM general knowledge only</td><td>Grounded in database content</td></tr>
+        <tr><td>Use case</td><td>Creative tasks, prompt design, general assistance</td><td>Research, data exploration, institutional knowledge</td></tr>
+    </table>
+
+    <h3 style="margin-top:12px;">When to use Oneshot</h3>
+    <p>Oneshot agents are appropriate when:</p>
+    <ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
+        <li>The task does not require a knowledge base (e.g., prompt writing, brainstorming)</li>
+        <li>Each query is self-contained — no follow-up needed</li>
+        <li>The LLM's general knowledge is sufficient</li>
+        <li>Speed is important (no retrieval overhead)</li>
+    </ul>
+    <p style="margin-top:8px;">For tasks requiring grounded, verifiable answers from specific data, use RAG or Metadata+RAG agents instead.</p>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- REFERENCES -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-references">
+
+<h2 id="references">References</h2>
+
+<div class="detail-panel show">
+<table>
+    <tr><th style="width:30px;">#</th><th>Reference</th></tr>
+    <tr>
+        <td>[1]</td>
+        <td>Rabanser, S., Kapoor, S., Kirgis, P., Liu, K., Utpala, S., &amp; Narayanan, A. (2025). <strong>Towards a Science of AI Agent Reliability.</strong> Preprint, Princeton University. <a href="https://arxiv.org/abs/2602.16666" target="_blank" style="color:#2563eb;">arxiv.org/abs/2602.16666</a><br><span style="color:#64748b;font-size:0.85em;">Proposes a multidimensional framework for AI agent reliability encompassing correctness, consistency, robustness, and transparency. Argues that reliability must be measured across the full agent pipeline, not just the LLM output.</span></td>
+    </tr>
+    <tr>
+        <td>[2]</td>
+        <td>Russell, S. &amp; Norvig, P. (1995). <strong>Artificial Intelligence: A Modern Approach.</strong> Prentice Hall. (4th edition, 2020).<br><span style="color:#64748b;font-size:0.85em;">Classic textbook that defines the AI agent framework as a Perception → Reasoning → Action cycle. The TOMMI platform extends this with a fourth stage (Production) to separate task execution from output formatting and reliability signalling.</span></td>
+    </tr>
+</table>
+</div>
+
+</div>
+
+</div>
+
+<script>
+// ── Classification steps data ──
+const classificationSteps = [
+    {
+        title: "1. Meta-question",
+        desc: "Response built from <b>config.json</b> (name, scope, examples) — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"What can you do?", "What is UNINOVIS?"',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: No.</b> The agent returns a programmatic description built from config.json (agent name, research topic, capabilities, university list, example queries). Instant and 100% consistent.",
+        method: "_is_meta_question()",
+        source: "config.json (programmatic)",
+        code: '<span class="kw">def</span> <span class="fn">_is_meta_question</span>(msg_lower: str) -&gt; bool:\n    <span class="str">"""Check if the question is about the agent itself."""</span>\n    meta_patterns = [\n        <span class="str">"what can you do"</span>, <span class="str">"how does this work"</span>,\n        <span class="str">"how do you work"</span>, <span class="str">"what kind of questions"</span>,\n        <span class="str">"what is uninovis"</span>, <span class="str">"which universities"</span>,\n        <span class="str">"who are you"</span>, <span class="str">"what are you"</span>,\n        <span class="str">"how can you help"</span>, <span class="str">"what do you know"</span>,\n        <span class="str">"what is your"</span>, <span class="str">"tell me about yourself"</span>,\n    ]\n    <span class="kw">return</span> <span class="fn">any</span>(p <span class="kw">in</span> msg_lower <span class="kw">for</span> p <span class="kw">in</span> meta_patterns)'
+    },
+    {
+        title: "2. Non-research task",
+        desc: "Fixed refusal message from <b>code</b> — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"Write me an essay", "Give me a recipe", "Translate this"',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: No.</b> The agent returns a fixed programmatic refusal message describing its capabilities and scope. The LLM is never called, preventing security rule false positives.",
+        method: "_is_non_research_task()",
+        source: "Fixed message (programmatic)",
+        code: '<span class="kw">def</span> <span class="fn">_is_non_research_task</span>(user_message: str) -&gt; bool:\n    <span class="str">"""Detect non-research task requests."""</span>\n    msg_lower = user_message.lower().strip()\n    task_patterns = [\n        r<span class="str">\'^write\\s+(?:me\\s+)?(?:an?\\s+)?(?:essay|report|letter|poem|story|code|summary)\'</span>,\n        r<span class="str">\'\\bsummary\\b.*\\b(?:essay|report|homework|assignment)\\b\'</span>,\n        r<span class="str">\'^translate\\b\'</span>,\n        r<span class="str">\'\\btranslate\\s+(?:this|the|my|following)\\b\'</span>,\n        r<span class="str">\'\\bbook\\s+(?:me|a|my)\\s+(?:a\\s+)?(?:flight|hotel|ticket)\'</span>,\n        r<span class="str">\'\\bwho\\s+won\\s+(?:the|last)\\b\'</span>,\n        r<span class="str">\'\\bwhat\\s+is\\s+the\\s+(?:weather|temperature|time|capital)\\b\'</span>,\n        r<span class="str">\'\\brecipe\\b\'</span>,\n    ]\n    <span class="kw">return</span> <span class="fn">any</span>(re.search(p, msg_lower) <span class="kw">for</span> p <span class="kw">in</span> task_patterns)'
+    },
+    {
+        title: "3. Expand command",
+        desc: "Item #N extracted from <b>previous response</b>, then <b>LLM</b> elaborates — <b style='color:#d97706;'>Partial LLM</b>",
+        example: '"Expand 2", "expand #3", "more about 1"',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: Partial.</b> The agent extracts item #N from the previous response programmatically, then asks the LLM to elaborate on that specific item with the original context.",
+        method: "_is_expand_command()",
+        source: "Previous response + LLM elaboration",
+        code: '<span class="kw">def</span> <span class="fn">_is_expand_command</span>(user_message: str) -&gt; tuple:\n    <span class="str">"""Detect \'expand N\', \'expand #N\', \'more about N\'.\n    Returns (True, N) if matched, (False, 0) otherwise."""</span>\n    msg = user_message.strip().lower()\n    m = re.match(r<span class="str">\'^(?:expand|details|more)\\s+(?:on\\s+|about\\s+)?#?(\\d+)$\'</span>, msg)\n    <span class="kw">if</span> m:\n        <span class="kw">return</span> True, int(m.group(1))\n    m = re.match(r<span class="str">\'^#?(\\d+)\\s*$\'</span>, msg)  <span class="cmt"># just a number</span>\n    <span class="kw">if</span> m:\n        <span class="kw">return</span> True, int(m.group(1))\n    <span class="kw">return</span> False, 0'
+    },
+    {
+        title: "4. Disambiguation follow-up",
+        desc: "Researcher data from <b>researchers.json</b> — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"1" (after seeing a list of researchers)',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: No.</b> The agent looks up the stored candidate from the previous disambiguation list and returns the researcher's papers, topics, and affiliations programmatically from researchers.json.",
+        method: "_disambiguation_candidates",
+        source: "researchers.json (programmatic)",
+        code: '<span class="cmt"># In the main chat flow, before other checks:</span>\n<span class="kw">if</span> hasattr(agent, <span class="str">\'_disambiguation_candidates\'</span>) <span class="kw">and</span> agent._disambiguation_candidates:\n    <span class="kw">if</span> re.match(r<span class="str">\'^\\d+\\.?$\'</span>, msg.strip()):\n        <span class="cmt"># User picked a number from the disambiguation list</span>\n        idx = int(msg.strip().rstrip(<span class="str">\'.\'</span>)) - 1\n        chosen = agent._disambiguation_candidates[idx]\n        <span class="kw">return</span> agent._format_researcher_response(chosen)'
+    },
+    {
+        title: "5. Figure / Map request",
+        desc: "Map link built from <b>regex extraction</b>, rendered from <b>structured DB</b> — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"Show a figure of papers on AI ethics"',
+        badge: "green", badgeLabel: "Green",
+        detail: '<b>LLM: No.</b> The agent extracts the topic and year from the query using regex, builds the map link programmatically, and returns it. The map type is selected based on the query content:<br><table style="width:100%;font-size:11px;margin-top:6px;"><tr><th>Decision</th><th>Map type</th></tr><tr><td>About <b>projects</b> + topic</td><td>PROJECT-TOPIC map</td></tr><tr><td>About <b>projects</b>, no topic</td><td>PROJECTS map</td></tr><tr><td>About <b>collaborations</b></td><td>COLLABORATION map</td></tr><tr><td>About <b>papers</b> + topic</td><td>TOPIC map</td></tr><tr><td>About <b>papers</b>, no topic</td><td>PUBLICATIONS map</td></tr></table><span style="font-size:10px;color:#64748b;">All maps support <code>?year=</code> and <code>?topic=</code> filters. Rendered as interactive Leaflet visualisation.</span>',
+        method: "_is_figure_request() + _generate_map_link_programmatic()",
+        source: "Map endpoint (programmatic)",
+        code: '<span class="kw">def</span> <span class="fn">_is_figure_request</span>(user_message: str) -&gt; bool:\n    <span class="str">"""Detect if the user is asking for a figure or map."""</span>\n    msg_lower = user_message.lower()\n    <span class="kw">return</span> <span class="fn">any</span>(kw <span class="kw">in</span> msg_lower <span class="kw">for</span> kw <span class="kw">in</span> (<span class="str">"figure"</span>, <span class="str">"map"</span>))'
+    },
+    {
+        title: "6. Project query",
+        desc: "Project data from <b>project_docs/</b> (title, grant, funder, budget) — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"What is the TAILOR project?", "List projects on trustworthy AI"',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "<b>LLM: No.</b> The agent searches project_docs/ for matching projects and formats the results programmatically (title, grant ID, funder, budget, duration, participants). 100% reliable.",
+        method: "_build_project_context() + _format_project_response()",
+        source: "project_docs/ (programmatic)",
+        code: '<span class="cmt"># Step 1: Detect if this is a project query</span>\n<span class="kw">def</span> <span class="fn">_is_project_query</span>(user_message: str) -&gt; bool:\n    <span class="str">"""Detect if the user is asking about research projects."""</span>\n    msg_lower = user_message.lower()\n    project_phrases = [\n        <span class="str">"project"</span>, <span class="str">"projects"</span>, <span class="str">"grant"</span>, <span class="str">"grants"</span>,\n        <span class="str">"funding"</span>, <span class="str">"funded"</span>, <span class="str">"consortium"</span>,\n    ]\n    <span class="kw">return</span> <span class="fn">any</span>(phrase <span class="kw">in</span> msg_lower <span class="kw">for</span> phrase <span class="kw">in</span> project_phrases)\n\n<span class="cmt"># Step 2: Try to match a specific project by name/acronym</span>\n<span class="kw">def</span> <span class="fn">_find_project_by_name</span>(self, user_message):\n    <span class="str">"""Find projects whose acronym or title appears in the message."""</span>\n    msg_lower = user_message.lower()\n    matches = []\n    <span class="kw">for</span> acronym, projects <span class="kw">in</span> self._all_uni_projects.items():\n        <span class="kw">for</span> proj <span class="kw">in</span> projects:\n            title = proj.get(<span class="str">"title"</span>, <span class="str">""</span>)\n            <span class="cmt"># Extract acronym: \"InnoGuard: Hybrid...\" → \"InnoGuard\"</span>\n            proj_acronym = title.split(<span class="str">":"</span>)[0].strip()\n            <span class="kw">if</span> proj_acronym.lower() <span class="kw">in</span> msg_lower:\n                matches.append((proj, acronym))\n    <span class="kw">return</span> matches'
+    },
+    {
+        title: "7. Researcher lookup",
+        desc: "Papers, topics, affiliations from <b>researchers.json</b> — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"Papers by Rubén González", "What has Schleif published?"',
+        badge: "none", badgeLabel: "None",
+        detail: '<b>LLM: No.</b> The agent matches the researcher name using a multi-level strategy:<br><table style="width:100%;font-size:11px;margin-top:6px;"><tr><th>Level</th><th>Condition</th><th>Example</th></tr><tr><td><b>Exact</b></td><td>Full name in query</td><td>"Rubén González Vallejo"</td></tr><tr><td><b>Surname</b></td><td>Last name (≥4 chars), word boundary</td><td>"Schleif"</td></tr><tr><td><b>First+surname</b></td><td>First + any surname (≥9 chars)</td><td>"Rubén González"</td></tr><tr><td><b>First only</b></td><td>First name (≥5 chars)</td><td>"Frank-Michael"</td></tr></table><span style="font-size:10px;color:#64748b;"><b>1 match</b> → show papers directly. <b>Multiple</b> → disambiguation list. <b>None</b> → fall through to RAG.</span>',
+        method: "_build_researcher_context() + _format_researcher_response()",
+        source: "researchers.json (programmatic)",
+        code: '<span class="kw">def</span> <span class="fn">_query_mentions_researcher</span>(self, user_message):\n    <span class="str">"""Check if query mentions a known researcher name."""</span>\n    msg_lower = user_message.lower()\n    <span class="cmt"># Detect \"papers by X\" pattern</span>\n    <span class="kw">if</span> re.search(r<span class="str">\'\\b(?:papers?|publications?)\\s+(?:by|from|of)\\s+[A-Z]\'</span>, user_message):\n        <span class="kw">return</span> True\n    <span class="kw">for</span> researchers <span class="kw">in</span> self._researchers_by_uni.values():\n        <span class="kw">for</span> r <span class="kw">in</span> researchers:\n            name = r[<span class="str">"name"</span>]\n            name_parts = name.split()\n            surname = name_parts[-1]\n            <span class="cmt"># Full name match</span>\n            <span class="kw">if</span> name.lower() <span class="kw">in</span> msg_lower: <span class="kw">return</span> True\n            <span class="cmt"># Surname with word boundaries (avoids \"pons\" in \"responsible\")</span>\n            <span class="kw">if</span> len(surname) &gt; 3 <span class="kw">and</span> re.search(\n                r<span class="str">\'\\b\'</span> + re.escape(surname.lower()) + r<span class="str">\'\\b\'</span>, msg_lower):\n                <span class="kw">return</span> True\n    <span class="kw">return</span> False'
+    },
+    {
+        title: "8. Conceptual (glossary)",
+        desc: "Expert-written definition from <b>Glossary markdown</b> — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"What is explainable AI?", "What is the EU AI Act?"',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "<b>LLM: No.</b> The agent finds the term in its curated glossary (markdown file with 25+ entries) and returns the definition, related concepts, and references directly. Expert-written text presented as-is.",
+        method: "_is_conceptual_question() + _format_glossary_response()",
+        source: "Glossary_Responsible_AI.md (programmatic)",
+        code: '<span class="kw">def</span> <span class="fn">_is_conceptual_question</span>(user_message: str) -&gt; bool:\n    <span class="str">"""Detect questions about concept definitions or relationships."""</span>\n    msg_lower = user_message.lower().strip().rstrip(<span class="str">"?!."</span>)\n    <span class="cmt"># Exclude project/researcher queries</span>\n    <span class="kw">if</span> <span class="fn">any</span>(kw <span class="kw">in</span> msg_lower <span class="kw">for</span> kw <span class="kw">in</span> (<span class="str">"project"</span>, <span class="str">"grant"</span>, <span class="str">"funding"</span>)):\n        <span class="kw">return</span> False\n    conceptual_patterns = [\n        r<span class="str">\'\\bis\\b.+\\brelated\\s+(?:to|with)\\b\'</span>,\n        r<span class="str">\'^what\\s+(?:is|are)\\b\'</span>,\n        r<span class="str">\'\\bdefin(?:e|ition\\s+of)\\b\'</span>,\n        r<span class="str">\'\\bdifference\\s+between\\b\'</span>,\n        r<span class="str">\'\\bhow\\s+(?:does|do|is|are)\\b.+\\brelate\'</span>,\n        r<span class="str">\'\\bwhat\\s+does\\b.+\\bmean\\b\'</span>,\n        r<span class="str">\'^explain\\b\'</span>,\n        r<span class="str">\'\\bis\\s+(?:ai)\\s+(?:dangerous|safe|trustworthy)\\b\'</span>,\n        r<span class="str">\'\\bcan\\s+(?:ai)\\s+(?:be\\s+trusted|make\\s+decisions)\\b\'</span>,\n    ]\n    <span class="kw">return</span> <span class="fn">any</span>(re.search(p, msg_lower) <span class="kw">for</span> p <span class="kw">in</span> conceptual_patterns)'
+    },
+    {
+        title: "9. Gap analysis",
+        desc: "<b>LLM</b> reasons about absences using <b>metadata</b> (topic list, scope) — <b style='color:#dc3545;'>LLM required</b>",
+        example: '"Which topics are least studied?", "What gaps exist?"',
+        badge: "red", badgeLabel: "Red",
+        detail: "<b>LLM: Yes.</b> The agent provides metadata (top topics list, scope terms) as context, and the LLM reasons about what is ABSENT from the database. Inherently speculative — the LLM infers gaps from what it does not see.",
+        method: "_is_gap_analysis_query()",
+        source: "Metadata context + LLM reasoning",
+        code: '<span class="kw">def</span> <span class="fn">_is_gap_analysis_query</span>(user_message: str) -&gt; bool:\n    <span class="str">"""Detect queries about topics NOT studied or research gaps."""</span>\n    msg_lower = user_message.lower()\n    gap_phrases = [\n        <span class="str">"not been studied"</span>, <span class="str">"not studied"</span>,\n        <span class="str">"missing"</span>, <span class="str">"gaps"</span>, <span class="str">"unstudied"</span>,\n        <span class="str">"not covered"</span>, <span class="str">"not researched"</span>,\n        <span class="str">"not explored"</span>, <span class="str">"not addressed"</span>,\n        <span class="str">"least studied"</span>, <span class="str">"underrepresented"</span>,\n        <span class="str">"least explored"</span>, <span class="str">"least researched"</span>,\n    ]\n    <span class="kw">return</span> <span class="fn">any</span>(phrase <span class="kw">in</span> msg_lower <span class="kw">for</span> phrase <span class="kw">in</span> gap_phrases)'
+    },
+    {
+        title: "10. Conceptual (not in glossary)",
+        desc: "<b>LLM</b> answers from general knowledge, constrained to domain — <b style='color:#dc3545;'>LLM required</b>",
+        example: '"What is predictive policing?", "Is AI dangerous?"',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "<b>LLM: Yes.</b> The term is within scope but not in the glossary. The LLM answers from its own general knowledge, constrained by the system prompt to the agent's domain.",
+        method: "_is_conceptual_question() + empty glossary",
+        source: "LLM general knowledge (in-scope)",
+        code: '<span class="cmt"># Same _is_conceptual_question() returns True,</span>\n<span class="cmt"># but _build_glossary_context() returns empty string</span>\n<span class="cmt"># → no glossary match → LLM answers from general knowledge</span>\n\nis_conceptual = agent._is_conceptual_question(msg)\n<span class="kw">if</span> is_conceptual:\n    glossary_ctx = agent._build_glossary_context(msg)\n    <span class="kw">if</span> glossary_ctx:\n        <span class="kw">return</span> <span class="str">"conceptual_gloss"</span>   <span class="cmt"># → step 8 (no LLM)</span>\n    <span class="kw">else</span>:\n        <span class="kw">return</span> <span class="str">"conceptual_no"</span>     <span class="cmt"># → this step (LLM)</span>'
+    },
+    {
+        title: "11. Follow-up",
+        desc: "<b>LLM</b> synthesises from <b>conversation history</b> — <b style='color:#dc3545;'>LLM required</b>",
+        example: '"Tell me more", "And what about THUAS?"',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "<b>LLM: Yes.</b> The agent passes conversation history as context. The LLM synthesises from prior exchanges to continue the discussion.",
+        method: "_is_followup_query()",
+        source: "Conversation history + LLM",
+        code: '<span class="kw">def</span> <span class="fn">_is_followup_query</span>(user_message: str) -&gt; bool:\n    <span class="str">"""Detect short follow-up queries that refer to previous context."""</span>\n    msg = user_message.strip().lower()\n    <span class="kw">if</span> len(msg) &lt; 60:\n        followup_patterns = [\n            r<span class="str">\'^(expand|elaborate|more|details|explain|continue|go on|yes|no|ok)\'</span>,\n            r<span class="str">\'^\\d+$\'</span>,                        <span class="cmt"># just a number</span>\n            r<span class="str">\'^(tell me )?more (about|on|details)\'</span>,\n            r<span class="str">\'^what about\'</span>,\n            r<span class="str">\'^(and|but) \'</span>,\n            r<span class="str">\'^can you (expand|elaborate|explain)\'</span>,\n        ]\n        <span class="kw">return</span> <span class="fn">any</span>(re.match(p, msg) <span class="kw">for</span> p <span class="kw">in</span> followup_patterns)\n    <span class="kw">return</span> False'
+    },
+    {
+        title: "12. Off-topic",
+        desc: "Fixed refusal from <b>config.json</b> scope terms — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"What is quantum computing?" (for a Responsible AI agent)',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: No.</b> Programmatic refusal listing in-scope topics from config.json. Checked last so researcher/project queries are never misclassified as off-topic.",
+        method: "_is_in_topical_scope() → False",
+        source: "config.json scope terms (programmatic)",
+        code: '<span class="kw">def</span> <span class="fn">_is_in_topical_scope</span>(self, user_message):\n    <span class="str">"""Check if the query falls within the agent\'s topical scope.</span>\n    <span class="str">Returns True if message mentions any term from the scope set</span>\n    <span class="str">(glossary concepts, paper topics, researcher topics)."""</span>\n    <span class="kw">if not</span> self._topical_scope: <span class="kw">return</span> False\n    msg_lower = user_message.lower()\n\n    <span class="cmt"># Non-research requests are out of scope regardless</span>\n    task_patterns = [\n        r<span class="str">\'^write\\b.*\\b(?:essay|report|letter)\\b\'</span>,\n        r<span class="str">\'^translate\\b\'</span>,\n        r<span class="str">\'\\bbook\\s+(?:me|a|my)\\b\'</span>,\n    ]\n    <span class="kw">if</span> <span class="fn">any</span>(re.search(p, msg_lower) <span class="kw">for</span> p <span class="kw">in</span> task_patterns):\n        <span class="kw">return</span> False\n\n    <span class="cmt"># Check against scope terms from config + data</span>\n    <span class="kw">for</span> term <span class="kw">in</span> self._topical_scope:\n        <span class="kw">if</span> term <span class="kw">in</span> msg_lower: <span class="kw">return</span> True\n    <span class="kw">return</span> False'
+    },
+    {
+        title: "13. Content query (fallback)",
+        desc: "Factual list from <b>papers.json</b> + optional <b>LLM</b> commentary — <b style='color:#d97706;'>Partial LLM</b>",
+        example: '"Papers on AI ethics from UMA"',
+        badge: "yellow", badgeLabel: "Varies",
+        detail: "<b>LLM: Partial.</b> Programmatic factual section from structured data (🟢 green, no LLM) + optional LLM commentary (🟡 yellow). The paper list is 100% reliable; the commentary is AI interpretation.",
+        method: "See content query context chain below",
+        source: "papers.json + LLM commentary"
+    },
+];
+
+const contextChainSteps = [
+    {
+        title: "13.1. Affiliation listing",
+        desc: "Researcher list from <b>researchers.json</b>, formatted by <b>LLM</b>",
+        example: '"List researchers from THUAS"',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "<b>LLM: Yes.</b> The agent retrieves the researcher list from researchers.json programmatically, but the LLM formats the response. Note: direct researcher lookups ('Papers by X') are handled as early returns (step 7) before reaching this chain.",
+        method: "_build_affiliation_context()",
+        source: "researchers.json + LLM formatting",
+        code: '<span class="kw">def</span> <span class="fn">_build_affiliation_context</span>(self, user_message):\n    <span class="str">"""Detect queries for researchers at a specific institution."""</span>\n    msg_lower = user_message.lower()\n    affiliation_keywords = [<span class="str">"affiliated"</span>, <span class="str">"work at"</span>, <span class="str">"member of"</span>]\n    researcher_keywords = [<span class="str">"researcher"</span>, <span class="str">"author"</span>, <span class="str">"professor"</span>]\n\n    has_affiliation = <span class="fn">any</span>(kw <span class="kw">in</span> msg_lower <span class="kw">for</span> kw <span class="kw">in</span> affiliation_keywords)\n    has_researcher = <span class="fn">any</span>(kw <span class="kw">in</span> msg_lower <span class="kw">for</span> kw <span class="kw">in</span> researcher_keywords)\n\n    <span class="cmt"># Detect which university</span>\n    target_acronym = None\n    <span class="kw">for</span> acronym, info <span class="kw">in</span> self._config[<span class="str">"universities"</span>].items():\n        <span class="kw">if</span> info[<span class="str">"name"</span>].lower() <span class="kw">in</span> msg_lower:\n            target_acronym = acronym; <span class="kw">break</span>\n        <span class="kw">if</span> re.search(r<span class="str">\'\\b\'</span> + acronym + r<span class="str">\'\\b\'</span>, msg_lower, re.I):\n            target_acronym = acronym; <span class="kw">break</span>\n\n    <span class="cmt"># Trigger if affiliation kw OR (researcher kw + university)</span>\n    <span class="kw">if not</span> has_affiliation <span class="kw">and not</span> (has_researcher <span class="kw">and</span> target_acronym):\n        <span class="kw">return</span> <span class="str">""</span>\n    <span class="cmt"># ... build researcher list from researchers.json</span>'
+    },
+    {
+        title: "13.2. Shared topics",
+        desc: "Cross-university comparison from <b>papers.json</b> + <b>LLM</b> commentary",
+        example: '"Topics shared by UMA and USPN"',
+        badge: "green", badgeLabel: "Green",
+        detail: "<b>LLM: Partial.</b> The factual comparison is built programmatically by cross-referencing papers.json across universities (🟢 green). The LLM adds a brief interpretive commentary (🟡 yellow).",
+        method: "_build_shared_topics_context()",
+        source: "papers.json cross-ref (programmatic + LLM commentary)",
+        code: '<span class="kw">def</span> <span class="fn">_is_shared_topics_query</span>(self, user_message):\n    <span class="str">"""Detect queries about shared topics between universities."""</span>\n    uni_filter = self._detect_university_filter(user_message)\n    <span class="kw">if not</span> uni_filter: <span class="kw">return</span> False\n    val = uni_filter.get(<span class="str">"university_acronym"</span>)\n    <span class="cmt"># Need 2+ universities</span>\n    <span class="kw">if not</span> (isinstance(val, dict) <span class="kw">and</span> <span class="str">"$in"</span> <span class="kw">in</span> val\n           <span class="kw">and</span> len(val[<span class="str">"$in"</span>]) &gt;= 2):\n        <span class="kw">return</span> False\n    msg_lower = user_message.lower()\n    comparison_words = [\n        <span class="str">"shared"</span>, <span class="str">"common"</span>, <span class="str">"in common"</span>, <span class="str">"both"</span>,\n        <span class="str">"compare"</span>, <span class="str">"overlap"</span>, <span class="str">"similar"</span>,\n    ]\n    topic_words = [\n        <span class="str">"topic"</span>, <span class="str">"interest"</span>, <span class="str">"area"</span>, <span class="str">"field"</span>,\n        <span class="str">"theme"</span>, <span class="str">"research area"</span>,\n    ]\n    has_comparison = <span class="fn">any</span>(w <span class="kw">in</span> msg_lower <span class="kw">for</span> w <span class="kw">in</span> comparison_words)\n    has_topic = <span class="fn">any</span>(w <span class="kw">in</span> msg_lower <span class="kw">for</span> w <span class="kw">in</span> topic_words)\n    <span class="kw">return</span> has_comparison <span class="kw">or</span> has_topic'
+    },
+    {
+        title: "13.3. Topic search",
+        desc: "Paper list from <b>papers.json</b> via search_papers_by_topic() + <b>LLM</b> commentary",
+        example: '"Papers on AI ethics"',
+        badge: "green", badgeLabel: "Green + Yellow",
+        detail: "<b>LLM: Partial.</b> The paper list is built programmatically from papers.json with search_papers_by_topic() (🟢 green, ≤30 papers: full list, >30: top 3 per university). The LLM adds a brief analytical commentary (🟡 yellow).",
+        method: "search_papers_by_topic() + _build_topic_factual_section()",
+        source: "papers.json (programmatic list + LLM commentary)",
+        code: '<span class="kw">def</span> <span class="fn">_build_topic_context</span>(self, user_message):\n    <span class="str">"""Extract topic and return structured paper data."""</span>\n    <span class="cmt"># Skip if this is a researcher query</span>\n    <span class="kw">if</span> self._query_mentions_researcher(user_message):\n        <span class="kw">return</span> <span class="str">""</span>\n\n    topic = self._extract_topic(user_message)\n    <span class="kw">if not</span> topic: <span class="kw">return</span> <span class="str">""</span>\n\n    results = self.search_papers_by_topic(topic)\n\n    <span class="cmt"># If user asked about a specific university, filter</span>\n    uni_filter = self._detect_university_filter(user_message)\n    <span class="kw">if</span> uni_filter:\n        allowed = ...  <span class="cmt"># extract acronym(s)</span>\n        results = {k: v <span class="kw">for</span> k, v <span class="kw">in</span> results.items()\n                   <span class="kw">if</span> k <span class="kw">in</span> allowed}\n\n    total = sum(uni[<span class="str">"count"</span>] <span class="kw">for</span> uni <span class="kw">in</span> results.values())\n    <span class="kw">if</span> total == 0:\n        <span class="kw">return</span> f<span class="str">\'TOPIC SEARCH: 0 papers on \"{topic}\"\'</span>\n    <span class="cmt"># Build authoritative paper list per university...</span>'
+    },
+    {
+        title: "13.4. University paper listing",
+        desc: "All papers from <b>*_papers.json</b> for detected university + <b>LLM</b> summary",
+        example: '"List papers from UMA"',
+        badge: "green", badgeLabel: "Green",
+        detail: "<b>LLM: Partial.</b> The authoritative paper list is built programmatically from the university's *_papers.json file (🟢 green). The LLM may add a brief summary (🟡 yellow).",
+        method: "_build_university_papers_context()",
+        source: "*_papers.json (programmatic + LLM summary)",
+        code: '<span class="kw">def</span> <span class="fn">_build_university_papers_context</span>(self, user_message):\n    <span class="str">"""When a university is mentioned but no topic detected,\n    return the authoritative paper list from *_papers.json."""</span>\n    <span class="cmt"># Detect university</span>\n    uni_filter = self._detect_university_filter(user_message)\n    <span class="kw">if not</span> uni_filter: <span class="kw">return</span> <span class="str">""</span>\n\n    <span class="cmt"># Extract target acronym(s)</span>\n    val = uni_filter.get(<span class="str">"university_acronym"</span>)\n    <span class="kw">if</span> isinstance(val, str):\n        target_acronyms = {val}\n    <span class="kw">elif</span> isinstance(val, dict) <span class="kw">and</span> <span class="str">"$in"</span> <span class="kw">in</span> val:\n        target_acronyms = set(val[<span class="str">"$in"</span>])\n    <span class="kw">else</span>: <span class="kw">return</span> <span class="str">""</span>\n\n    <span class="cmt"># If a topic was extracted, skip (handled by 13.3)</span>\n    topic = self._extract_topic(user_message)\n    <span class="kw">if</span> topic: <span class="kw">return</span> <span class="str">""</span>\n\n    <span class="cmt"># Get all papers for the target universities</span>\n    all_results = self.get_all_papers_by_university()\n    results = {k: v <span class="kw">for</span> k, v <span class="kw">in</span> all_results.items()\n               <span class="kw">if</span> k <span class="kw">in</span> target_acronyms}\n    <span class="cmt"># ... format paper list</span>'
+    },
+    {
+        title: "13.5. Fallback: RAG retrieval",
+        desc: "<b>BM25 keyword search</b> in document chunks, answer generated by <b>LLM</b>",
+        example: '(any query not caught by earlier steps)',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "<b>LLM: Yes.</b> The agent retrieves document chunks via BM25 keyword matching (or ChromaDB vectors for RAG agents). The LLM generates an answer grounded in the retrieved chunks. This is the least deterministic path — both retrieval quality and LLM interpretation can vary.",
+        method: "_retrieve_context()",
+        source: "BM25 / ChromaDB chunks + LLM",
+        code: '<span class="kw">def</span> <span class="fn">_retrieve_context</span>(self, query, n_results=None):\n    <span class="str">"""Retrieve relevant document chunks via keyword or vector search."""</span>\n    <span class="kw">if</span> self._use_bm25:\n        <span class="cmt"># BM25 keyword matching (RAG Vectorless)</span>\n        chunks = self._bm25_search(query, top_k=n_results)\n    <span class="kw">else</span>:\n        <span class="cmt"># ChromaDB vector similarity (RAG)</span>\n        results = self._collection.query(\n            query_texts=[query],\n            n_results=n_results,\n        )\n        chunks = results[<span class="str">"documents"</span>][0]\n\n    <span class="cmt"># Format as context for the LLM</span>\n    context = <span class="str">"\\n\\n"</span>.join(\n        f<span class="str">"--- Chunk {i+1} ---\\n{chunk}"</span>\n        <span class="kw">for</span> i, chunk <span class="kw">in</span> enumerate(chunks)\n    )\n    <span class="kw">return</span> context'
+    },
+];
+
+// ── Text2SQL intent detection steps ──
+const text2sqlSteps = [
+    {
+        title: "1. New query",
+        desc: "LLM translates question to SQL using <b>DB schema</b>, executes on <b>SQLite DB</b> — <b style='color:#dc3545;'>LLM required</b>",
+        example: '"Agreements with universities in Germany", "Acuerdos con plazas en Francia"',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "<b>LLM: Yes.</b> The agent sends the user's question plus the full database schema (table names, column names, types) to the LLM, which generates a SQL SELECT query. The SQL is then verified (table/column existence check, semantic alignment between question and SQL) and executed against the SQLite database. Results come from the DB, but the translation step introduces AI interpretation risk.",
+        method: "_text_to_sql()",
+        source: "DB schema context → LLM SQL generation → SQL verification → SQLite DB execution"
+    },
+    {
+        title: "2. Refinement",
+        desc: "LLM adds WHERE clauses to <b>previous SQL</b>, executes on <b>SQLite DB</b> — <b style='color:#d97706;'>LLM modifies SQL</b>",
+        example: '"Only the ones in France", "De esos, los de inglés B2"',
+        badge: "yellow", badgeLabel: "Yellow",
+        detail: "<b>LLM: Yes.</b> The agent detects refinement patterns (e.g. 'de esos', 'solo los', 'but only') and sends both the new question AND the previous SQL to the LLM. The LLM modifies the SQL (typically adding WHERE clauses). The modified SQL is verified against the DB schema (table/column existence, semantic alignment) and then executed on the SQLite database.",
+        method: "_is_refinement_query()",
+        source: "Previous SQL + LLM modification + SQLite DB execution",
+        code: '<span class="kw">def</span> <span class="fn">_is_refinement_query</span>(self, session_id, question):\n    <span class="str">"""Detect if the question refines the previous query."""</span>\n    state = self._get_session_state(session_id)\n    <span class="kw">if not</span> state[<span class="str">\'last_sql_query\'</span>]: <span class="kw">return</span> False\n    q = question.lower().strip()\n    refinement_patterns = [\n        <span class="cmt"># References to previous results</span>\n        <span class="str">"de esos"</span>, <span class="str">"de estos"</span>, <span class="str">"solo los"</span>, <span class="str">"solo las"</span>,\n        <span class="str">"muéstrame los"</span>, <span class="str">"muéstrame solo"</span>,\n        <span class="cmt"># Filters</span>\n        <span class="str">"filtra por"</span>, <span class="str">"los que"</span>, <span class="str">"las que"</span>,\n        <span class="str">"pero solo"</span>, <span class="str">"pero que"</span>,\n        <span class="cmt"># English</span>\n        <span class="str">"only the"</span>, <span class="str">"but only"</span>, <span class="str">"filter by"</span>,\n        <span class="str">"those with"</span>, <span class="str">"those in"</span>,\n    ]\n    <span class="kw">return</span> <span class="fn">any</span>(p <span class="kw">in</span> q <span class="kw">for</span> p <span class="kw">in</span> refinement_patterns)'
+    },
+    {
+        title: "3. Show more",
+        desc: "Next page from <b>session state</b> — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"Show more", "Next", "See all", "Muéstrame más"',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: No.</b> The agent displays the next batch of results already stored in session state from the previous SQL execution. Pure pagination — no query re-execution, no database access.",
+        method: "_is_show_more_query()",
+        source: "Session state (programmatic)",
+        code: '<span class="kw">def</span> <span class="fn">_is_show_more_query</span>(self, question):\n    <span class="str">"""Detect if the user wants to see more results."""</span>\n    q = question.lower().strip()\n    show_more_patterns = [\n        <span class="cmt"># Spanish</span>\n        <span class="str">"muéstrame más"</span>, <span class="str">"ver más"</span>, <span class="str">"mostrar más"</span>,\n        <span class="str">"siguientes"</span>, <span class="str">"más resultados"</span>, <span class="str">"continuar"</span>,\n        <span class="str">"muéstrame todos"</span>, <span class="str">"ver todos"</span>,\n        <span class="cmt"># English</span>\n        <span class="str">"show me more"</span>, <span class="str">"show more"</span>, <span class="str">"see more"</span>,\n        <span class="str">"next"</span>, <span class="str">"continue"</span>, <span class="str">"show all"</span>,\n        <span class="str">"all results"</span>, <span class="str">"full list"</span>,\n    ]\n    <span class="kw">return</span> <span class="fn">any</span>(p <span class="kw">in</span> q <span class="kw">for</span> p <span class="kw">in</span> show_more_patterns)'
+    },
+    {
+        title: "4. Detail request",
+        desc: "All fields for row #N from <b>session state</b> — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"Expand #3", "Amplía el 2", "Details of 5"',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: No.</b> Regex extracts the number from the user's message. The agent retrieves all database fields for that row from the results already stored in session state, and displays a detailed card.",
+        method: "_is_detail_request()",
+        source: "Session state (programmatic)",
+        code: '<span class="kw">def</span> <span class="fn">_is_detail_request</span>(self, question):\n    <span class="str">"""Detect if user asks for details of a specific result.\n    Returns (True, number) or (False, None)."""</span>\n    q = question.lower().strip()\n    detail_patterns = [\n        r<span class="str">"ampl[ií]a.*?(\\d+)"</span>,\n        r<span class="str">"expand.*?(\\d+)"</span>,\n        r<span class="str">"detalle[s]?.*?(\\d+)"</span>,\n        r<span class="str">"m[aá]s info.*?(\\d+)"</span>,\n        r<span class="str">"(?:el|del|número)\\s*(\\d+)(?!(?:er|do|ro))"</span>,\n        r<span class="str">"#(\\d+)"</span>,\n    ]\n    <span class="kw">for</span> pattern <span class="kw">in</span> detail_patterns:\n        match = re.search(pattern, q)\n        <span class="kw">if</span> match:\n            <span class="kw">return</span> (True, int(match.group(1)))\n    <span class="kw">return</span> (False, None)'
+    },
+    {
+        title: "5. Back request",
+        desc: "Restores previous query + results from <b>operations history</b> — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"Go back", "Undo", "Previous search", "Volver atrás"',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: No.</b> The agent pops the previous SQL query and its results from the operations history stack and re-displays them. No new database query is executed.",
+        method: "_is_back_request()",
+        source: "Operations history stack (programmatic)"
+    },
+    {
+        title: "6. History request",
+        desc: "Formatted log from <b>operations history</b> — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"History", "My queries", "Show SQL", "Historial"',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: No.</b> The agent formats each entry in the session's operations log (user question → generated SQL → result count) into a readable list.",
+        method: "_is_history_request()",
+        source: "Operations history log (programmatic)"
+    },
+    {
+        title: "7. Show field",
+        desc: "Re-renders <b>session results</b> with extra DB column — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"Show me the language", "Add the faculty", "Muéstrame el idioma"',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: No.</b> The agent maps the user's field name to a database column via a hardcoded dictionary (e.g. 'idioma' → lang_1_name, 'faculty' → uma_faculties). It then re-renders the existing results table with the extra column. Filter indicators like 'solo los de derecho' are excluded to avoid confusion with refinements.",
+        method: "_is_show_field_request()",
+        source: "Session state + field_mapping dictionary (programmatic)"
+    },
+    {
+        title: "8. Sort request",
+        desc: "Reorders <b>session results</b> by mapped DB column — <b style='color:#16a34a;'>No LLM</b>",
+        example: '"Sort by country", "Alphabetically", "Ordena por universidad"',
+        badge: "none", badgeLabel: "None",
+        detail: "<b>LLM: No.</b> The agent maps the user's sort criterion to a database column via a hardcoded dictionary (e.g. 'country' → destination_country, 'universidad' → host_institution). It reorders the stored results in memory. Ascending/descending is detected from keywords like 'z to a' or 'mayor a menor'.",
+        method: "_is_sort_request()",
+        source: "Session state + sort_mapping dictionary (programmatic)",
+        code: '<span class="kw">def</span> <span class="fn">_is_sort_request</span>(self, question):\n    <span class="str">"""Detect sort request. Returns (True, field, ascending) or (False, None, None)."""</span>\n    q = question.lower().strip()\n    sort_mapping = {\n        <span class="str">\'country\'</span>: <span class="str">\'destination_country\'</span>,\n        <span class="str">\'university\'</span>: <span class="str">\'host_institution\'</span>,\n        <span class="str">\'language\'</span>: <span class="str">\'lang_1_name\'</span>,\n        <span class="str">\'alphabetically\'</span>: <span class="str">\'host_institution\'</span>,\n        <span class="str">\'país\'</span>: <span class="str">\'destination_country\'</span>,\n        <span class="str">\'universidad\'</span>: <span class="str">\'host_institution\'</span>,\n        <span class="str">\'idioma\'</span>: <span class="str">\'lang_1_name\'</span>,\n    }\n    sort_patterns = [\n        r<span class="str">\'sort\\s+(?:by|them\\s+by)?\\s*(.+)\'</span>,\n        r<span class="str">\'ordena(?:r|los)?\\s+(?:por|según)?\\s*(.+)\'</span>,\n    ]\n    ascending = <span class="str">\'z to a\'</span> <span class="kw">not in</span> q\n    <span class="kw">for</span> pattern <span class="kw">in</span> sort_patterns:\n        match = re.search(pattern, q)\n        <span class="kw">if</span> match:\n            <span class="kw">for</span> term, field <span class="kw">in</span> sort_mapping.items():\n                <span class="kw">if</span> term <span class="kw">in</span> match.group(1):\n                    <span class="kw">return</span> (True, field, ascending)\n    <span class="kw">return</span> (False, None, None)'
+    },
+];
+
+const pipelineSteps = [
+    { num: 1, title: "Authority sanitisation", desc: "Replace authoritative phrases with humble alternatives" },
+    { num: 2, title: "Name correction", desc: "Fix LLM misspellings (UNINOVOS → UNINOVIS)" },
+    { num: 3, title: "Paper verification", desc: "Check cited titles/IDs against papers.json" },
+    { num: 4, title: "Unsolicited gap detection", desc: "Flag unrequested gap analysis with red banner" },
+    { num: 5, title: "Humility rewriting", desc: "Add hedging to ungrounded claims (if enabled)" },
+];
+
+// ── Render functions ──
+function renderFlow(containerId, steps) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    steps.forEach((step, i) => {
+        const badgeClass = 'badge-' + step.badge;
+        const html = `
+            <div class="flow-step">
+                <div class="flow-arrow">
+                    ${i > 0 ? '<div class="line"></div>' : '<div style="flex:1;"></div>'}
+                    <div class="dot"></div>
+                    ${i < steps.length - 1 ? '<div class="line"></div>' : '<div style="flex:1;"></div>'}
+                </div>
+                <div class="flow-card" data-index="${i}" data-flow="${containerId}">
+                    <div class="title">${step.title} <span class="badge ${badgeClass}">${step.badgeLabel}</span></div>
+                    <div class="desc">${step.desc}</div>
+                    <div class="example">${step.example}</div>
+                    <div class="card-detail" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:12px;">
+                        <p style="margin:0 0 6px;">${step.detail || ''}</p>
+                        <table style="width:100%;font-size:11px;">
+                            <tr><td style="color:#64748b;width:80px;">Method:</td><td><code>${step.method}</code></td></tr>
+                            <tr><td style="color:#64748b;">Source:</td><td>${step.source}</td></tr>
+                        </table>
+                        ${step.code ? '<span class="code-toggle" onclick="event.stopPropagation();var b=this.nextElementSibling;b.style.display=b.style.display===\'none\'?\'block\':\'none\';this.textContent=b.style.display===\'none\'?\'▶ Show source code\':\'▼ Hide source code\';">▶ Show source code</span><div class="code-block" style="display:none;">' + step.code + '</div>' : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+        container.innerHTML += html;
+    });
+
+    container.querySelectorAll('.flow-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const detail = card.querySelector('.card-detail');
+            const isVisible = detail.style.display !== 'none';
+            // Close all others in this container
+            container.querySelectorAll('.flow-card').forEach(c => {
+                c.classList.remove('active');
+                c.querySelector('.card-detail').style.display = 'none';
+            });
+            // Toggle this one
+            if (!isVisible) {
+                card.classList.add('active');
+                detail.style.display = 'block';
+            }
+        });
+    });
+}
+
+function renderPipeline() {
+    const container = document.getElementById('pipeline');
+    container.innerHTML = '';
+    pipelineSteps.forEach((step, i) => {
+        if (i > 0) container.innerHTML += '<div class="pipe-arrow">&#10132;</div>';
+        container.innerHTML += `
+            <div class="pipe-step">
+                <span class="num">${step.num}</span>
+                <strong>${step.title}</strong><br>
+                <span style="color:#64748b;">${step.desc}</span>
+            </div>
+        `;
+    });
+}
+
+function showTab(id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab-content#tab-${id}`).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// ── Init ──
+renderFlow('classification-flow', classificationSteps);
+renderFlow('context-chain', contextChainSteps);
+renderFlow('text2sql-flow', text2sqlSteps);
+renderPipeline();
+</script>
+</body>
+</html>

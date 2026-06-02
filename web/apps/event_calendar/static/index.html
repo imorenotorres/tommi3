@@ -100,6 +100,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 /* TBC badge */
 .tbc-badge { display: inline-block; background: #ff9800; color: #fff; font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; font-weight: 600; vertical-align: middle; margin-left: 4px; }
 .event-chip .tbc-badge { font-size: 0.6rem; padding: 0 4px; margin-left: 2px; }
+.event-chip.tbc, .wg-event.tbc, .dv-event.tbc { border: 2px dashed rgba(0,0,0,0.3); opacity: 0.75; }
 
 /* Category colors */
 /* List view */
@@ -124,6 +125,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .cat-BIP { background: #4285f4; }
 .cat-Hackathon { background: #ea4335; }
 .cat-Other_public_events { background: #00897b; }
+.cat-Conference { background: #1565c0; }
+.cat-Consortium_board_meeting { background: #6a1b9a; }
+.cat-Exhibition { background: #00838f; }
+.cat-General_Assembly { background: #ad1457; }
+.cat-Project_meeting { background: #4e342e; }
+.cat-Staff_Week { background: #2e7d32; }
+.cat-Summer_School { background: #e65100; }
+.cat-Workshop { background: #0277bd; }
 .event-chip.personal { border: 2px dashed #fff; opacity: 0.9; }
 .personal-badge { display: inline-block; font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; background: #ffe0b2; color: #e65100; margin-left: 4px; }
 
@@ -445,8 +454,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <input type="text" id="editName" required>
       <label>Category *</label>
       <select id="editCategory"></select>
-      <label>Organizing University *</label>
-      <select id="editUniversity"></select>
+      <label>UNINOVIS Group</label>
+      <select id="editUninovisGroup" onchange="toggleParticipantsByGroup()">
+        <option value="">— None —</option>
+      </select>
+      <label>Organizing University/ies *</label>
+      <div id="editUniversities" style="display:flex;flex-wrap:wrap;gap:6px 12px;margin-bottom:8px;"></div>
+      <input type="hidden" id="editUniversity">
       <label>Type *</label>
       <select id="editType" onchange="toggleTypeFields()">
         <option value="Physical">Physical</option>
@@ -528,6 +542,29 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       </div>
       <label>Registration Link</label>
       <input type="url" id="editLink" placeholder="https://...">
+
+      <!-- Virtual components -->
+      <details id="virtualComponentsSection" style="margin:12px 0;border:1px solid #e2e8f0;border-radius:6px;padding:8px 12px;">
+        <summary style="cursor:pointer;font-weight:600;font-size:0.85rem;color:#2D3876;">Virtual Components (pre/post event)</summary>
+        <div style="margin-top:8px;">
+          <label style="font-size:0.82rem;font-weight:600;">Pre-event virtual component</label>
+          <input type="text" id="editVirtualPreName" placeholder="Name, e.g. 'Online preparation session'">
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;"><label style="font-size:0.75rem;">Start</label><input type="datetime-local" id="editVirtualPreStart"></div>
+            <div style="flex:1;"><label style="font-size:0.75rem;">End</label><input type="datetime-local" id="editVirtualPreEnd"></div>
+          </div>
+          <input type="url" id="editVirtualPreUrl" placeholder="Meeting URL">
+          <hr style="margin:10px 0;border:none;border-top:1px solid #e2e8f0;">
+          <label style="font-size:0.82rem;font-weight:600;">Post-event virtual component</label>
+          <input type="text" id="editVirtualPostName" placeholder="Name, e.g. 'Follow-up discussion'">
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;"><label style="font-size:0.75rem;">Start</label><input type="datetime-local" id="editVirtualPostStart"></div>
+            <div style="flex:1;"><label style="font-size:0.75rem;">End</label><input type="datetime-local" id="editVirtualPostEnd"></div>
+          </div>
+          <input type="url" id="editVirtualPostUrl" placeholder="Meeting URL">
+        </div>
+      </details>
+
       <div id="participantsSection" class="participants-section" style="display:none;">
         <h4>Participants (from Directory)</h4>
         <div class="part-add-row">
@@ -725,7 +762,8 @@ function filteredEvents() {
     else if (activeCatFilter === 'all_external') catOk = EXTERNAL_CATS.includes(e.category);
     else catOk = e.category === activeCatFilter;
 
-    let uniOk = activeUniFilter === 'all' || e.university === activeUniFilter;
+    let evUnis = e.universities || (e.university ? [e.university] : []);
+    let uniOk = activeUniFilter === 'all' || evUnis.includes(activeUniFilter);
 
     // Hide past events unless checkbox is checked
     if (!showPast && e.end_date) {
@@ -826,11 +864,13 @@ function chipHTML(ev) {
   const t = ev.start_date ? fmtTime(ev.start_date) : '';
   const tz = evTZ(ev);
   const icon = ev.visibility === 'personal' ? '&#128274; ' : '';
-  const tbcPrefix = ev.date_tbc ? '<span class="tbc-badge">Date TBC</span> ' : '';
-  const timeLabel = ev.date_tbc ? '' : t + ' ';
-  const uni = ev.university ? ' (' + ev.university + ')' : '';
+  const timeLabel = ev.date_tbc ? '' : (t ? t + ' ' : '');
+  const uniList = ev.universities || (ev.university ? [ev.university] : []);
+  const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
   const shortName = ev.name.length > 22 ? ev.name.slice(0, 20) + '...' : ev.name;
-  return `<div class="event-chip ${cls}${personal}" onclick="showDetail('${ev.id}')" title="${ev.name}${uni} - ${ev.date_tbc ? 'Date TBC' : t + ' ' + tz}${ev.visibility === 'personal' ? ' (personal)' : ''}">${icon}${tbcPrefix}${timeLabel}${shortName}${uni}</div>`;
+  const tbcCls = ev.date_tbc ? ' tbc' : '';
+  const tbcPrefix = ev.date_tbc ? '<span style="font-size:0.6rem;opacity:0.85;">TBC</span> ' : '';
+  return `<div class="event-chip ${cls}${personal}${tbcCls}" onclick="showDetail('${ev.id}')" title="${ev.name}${uni} — ${ev.date_tbc ? 'Date TBC' + (ev.date_tbc_label ? ' (' + ev.date_tbc_label + ')' : '') : t + ' ' + tz}${ev.visibility === 'personal' ? ' (personal)' : ''}">${icon}${tbcPrefix}${timeLabel}${shortName}</div>`;
 }
 
 function evTZ(ev) { return ev.timezone || 'CEST'; }
@@ -888,10 +928,12 @@ function renderWeek() {
       });
       html += `<div class="wg-cell${isToday ? ' today-col' : ''}">`;
       dayEvents.forEach(ev => {
-        const wgUni = ev.university ? ' (' + ev.university + ')' : '';
+        const wgUniList = ev.universities || (ev.university ? [ev.university] : []);
+        const wgUni = wgUniList.length ? ' (' + wgUniList.join(', ') + ')' : '';
         const wgName = ev.name.length > 18 ? ev.name.slice(0, 16) + '...' : ev.name;
-        const wgTbc = ev.date_tbc ? '<span class="tbc-badge">Date TBC</span> ' : '';
-        html += `<div class="wg-event ${CAT_CSS_CLASS(ev.category)}" onclick="showDetail('${ev.id}')" title="${ev.name}${wgUni}">${wgTbc}${fmtTime(ev.start_date)} ${wgName}${wgUni}</div>`;
+        const wgTbcCls = ev.date_tbc ? ' tbc' : '';
+        const wgTime = ev.date_tbc ? '' : fmtTime(ev.start_date) + ' ';
+        html += `<div class="wg-event ${CAT_CSS_CLASS(ev.category)}${wgTbcCls}" onclick="showDetail('${ev.id}')" title="${ev.name}${wgUni}${ev.date_tbc ? ' — Date TBC' : ''}">${wgTime}${wgName}${wgUni}</div>`;
       });
       html += '</div>';
     }
@@ -916,9 +958,12 @@ function renderDay() {
     html += `<div class="dv-time">${String(h).padStart(2,'0')}:00</div>`;
     html += '<div class="dv-cell">';
     dayEvents.forEach(ev => {
-      const dvUni = ev.university ? ' (' + ev.university + ')' : '';
-      const dvTbc = ev.date_tbc ? '<span class="tbc-badge">Date TBC</span> ' : '';
-      html += `<div class="dv-event ${CAT_CSS_CLASS(ev.category)}" onclick="showDetail('${ev.id}')">${dvTbc}${fmtTime(ev.start_date)} ${ev.name}${dvUni}</div>`;
+      const dvUniList = ev.universities || (ev.university ? [ev.university] : []);
+      const dvUni = dvUniList.length ? ' (' + dvUniList.join(', ') + ')' : '';
+      const dvTbcCls = ev.date_tbc ? ' tbc' : '';
+      const dvTime = ev.date_tbc ? '' : fmtTime(ev.start_date) + ' ';
+      const dvTbcNote = ev.date_tbc ? ' <span class="tbc-badge" style="font-size:0.65rem;">TBC</span>' : '';
+      html += `<div class="dv-event ${CAT_CSS_CLASS(ev.category)}${dvTbcCls}" onclick="showDetail('${ev.id}')">${dvTime}${ev.name}${dvUni}${dvTbcNote}</div>`;
     });
     html += '</div></div>';
   });
@@ -1024,7 +1069,7 @@ function renderList() {
     html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.end_date ? '—' : fmtShort(ev.end_date)}</td>`;
     html += `<td>${ev.date_tbc ? '<span class="tbc-badge">Date TBC</span> ' : ''}<strong>${esc(ev.name)}</strong></td>`;
     html += `<td><span class="cat-badge ${catCls}">${ev.category}</span></td>`;
-    html += `<td>${ev.university || ''}</td>`;
+    html += `<td>${(ev.universities || (ev.university ? [ev.university] : [])).join(', ')}</td>`;
     html += `<td><span class="${typeCls}">${eType}</span></td>`;
     html += `<td style="font-size:0.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(loc)}">${esc(locDisplay)}</td>`;
     html += '</tr>';
@@ -1105,9 +1150,16 @@ function showDetail(id) {
   const typeIcon = eType === 'Virtual' ? '&#128187; Virtual' : '&#127970; Physical';
   let html = `
     <div class="detail-field"><div class="dl">Category</div><div class="dv"><span class="event-chip ${CAT_CSS_CLASS(ev.category)}" style="display:inline-block;cursor:default;">${ev.category}</span></div></div>
-    <div class="detail-field"><div class="dl">Organizing University</div><div class="dv">${ev.university || '<em>Not specified</em>'}</div></div>
+    ${ev.uninovis_group ? '<div class="detail-field"><div class="dl">UNINOVIS Group</div><div class="dv">' + ev.uninovis_group + '</div></div>' : ''}
+    <div class="detail-field"><div class="dl">Organizing University/ies</div><div class="dv">${(ev.universities || (ev.university ? [ev.university] : [])).join(', ') || '<em>Not specified</em>'}</div></div>
     <div class="detail-field"><div class="dl">Type</div><div class="dv">${typeIcon}</div></div>
   `;
+  if (ev.component_type) {
+    const compLabel = ev.component_type === 'pre' ? 'Pre-event virtual component' : 'Post-event virtual component';
+    const parentEv = events.find(e => e.id === ev.linked_event);
+    const parentName = parentEv ? parentEv.name : ev.linked_event;
+    html += `<div class="detail-field"><div class="dl">Component</div><div class="dv">${compLabel} of <strong>${parentName}</strong></div></div>`;
+  }
   if (eType === 'Physical' && ev.place) {
     html += `<div class="detail-field"><div class="dl">Place</div><div class="dv">${ev.place}</div></div>`;
   }
@@ -1209,6 +1261,16 @@ function showParticipantsSection(show) {
   document.getElementById('participantsSection').style.display = show ? '' : 'none';
 }
 
+function shouldShowParticipants() {
+  const cat = document.getElementById('editCategory').value;
+  const group = document.getElementById('editUninovisGroup').value;
+  return isInternal(cat) || !!group;
+}
+
+function toggleParticipantsByGroup() {
+  showParticipantsSection(shouldShowParticipants());
+}
+
 function populateGroupSelect() {
   const sel = document.getElementById('partGroupSelect');
   let opts = '<option value="">-- Add group / subgroup --</option>';
@@ -1304,8 +1366,14 @@ function openEdit(id, defaultVisibility) {
   const modal = document.getElementById('editModal');
   const catSel = document.getElementById('editCategory');
   catSel.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
-  const uniSel = document.getElementById('editUniversity');
-  uniSel.innerHTML = '<option value="">-- Select --</option>' + universities.map(u => `<option value="${u}">${u}</option>`).join('');
+  // Populate UNINOVIS Group select from Directory groups
+  const grpSel = document.getElementById('editUninovisGroup');
+  grpSel.innerHTML = '<option value="">— None —</option>' + dirGroups.map(g => `<option value="${g.name}">${g.name}</option>`).join('');
+  // Build university checkboxes
+  const uniContainer = document.getElementById('editUniversities');
+  uniContainer.innerHTML = universities.map(u =>
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;cursor:pointer;"><input type="checkbox" class="uni-cb" value="${u}"> ${u}</label>`
+  ).join('');
   populateGroupSelect();
 
   if (id) {
@@ -1316,7 +1384,10 @@ function openEdit(id, defaultVisibility) {
     document.getElementById('editName').value = ev.name;
     document.getElementById('editDesc').value = ev.description;
     catSel.value = ev.category;
-    uniSel.value = ev.university || '';
+    grpSel.value = ev.uninovis_group || '';
+    // Check the appropriate university checkboxes
+    const evUnis = ev.universities || (ev.university ? [ev.university] : []);
+    uniContainer.querySelectorAll('.uni-cb').forEach(cb => { cb.checked = evUnis.includes(cb.value); });
     document.getElementById('editType').value = ev.event_type || 'Physical';
     document.getElementById('editTimezone').value = ev.timezone || 'CEST';
     document.getElementById('editPlace').value = ev.place || '';
@@ -1342,6 +1413,7 @@ function openEdit(id, defaultVisibility) {
     document.getElementById('editId').value = '';
     document.getElementById('editName').value = '';
     document.getElementById('editDesc').value = '';
+    grpSel.value = '';
     document.getElementById('editType').value = 'Physical';
     document.getElementById('editTimezone').value = 'CEST';
     document.getElementById('editPlace').value = '';
@@ -1352,6 +1424,17 @@ function openEdit(id, defaultVisibility) {
     document.getElementById('editDateTbc').checked = false;
     document.getElementById('editDateTbcLabel').value = '';
     toggleDateTbc();
+    // Clear university checkboxes
+    uniContainer.querySelectorAll('.uni-cb').forEach(cb => { cb.checked = false; });
+    // Clear virtual component fields
+    document.getElementById('editVirtualPreName').value = '';
+    document.getElementById('editVirtualPreStart').value = '';
+    document.getElementById('editVirtualPreEnd').value = '';
+    document.getElementById('editVirtualPreUrl').value = '';
+    document.getElementById('editVirtualPostName').value = '';
+    document.getElementById('editVirtualPostStart').value = '';
+    document.getElementById('editVirtualPostEnd').value = '';
+    document.getElementById('editVirtualPostUrl').value = '';
     editParticipants = [];
     editPartGroups = [];
     // Show recurrence for new events
@@ -1370,12 +1453,12 @@ function openEdit(id, defaultVisibility) {
   }
   toggleTypeFields();
   const cat = catSel.value;
-  showParticipantsSection(isInternal(cat));
+  showParticipantsSection(shouldShowParticipants());
   renderPartGroupTags();
   renderPartPersonList();
 
   // Toggle participants when category changes
-  catSel.onchange = () => showParticipantsSection(isInternal(catSel.value));
+  catSel.onchange = () => showParticipantsSection(shouldShowParticipants());
 
   modal.classList.add('open');
 }
@@ -1389,7 +1472,8 @@ async function saveEvent() {
     name: document.getElementById('editName').value.trim(),
     description: document.getElementById('editDesc').value.trim(),
     category: cat,
-    university: document.getElementById('editUniversity').value,
+    universities: [...document.querySelectorAll('#editUniversities .uni-cb:checked')].map(cb => cb.value),
+    university: '',  // legacy, server derives from universities
     event_type: document.getElementById('editType').value,
     visibility: document.getElementById('editVisibility').value,
     timezone: document.getElementById('editTimezone').value,
@@ -1400,8 +1484,17 @@ async function saveEvent() {
     registration_link: document.getElementById('editLink').value.trim(),
     date_tbc: document.getElementById('editDateTbc').checked,
     date_tbc_label: document.getElementById('editDateTbcLabel').value.trim(),
-    participants: isInternal(cat) ? editParticipants : [],
-    participant_groups: isInternal(cat) ? editPartGroups : [],
+    uninovis_group: document.getElementById('editUninovisGroup').value,
+    participants: shouldShowParticipants() ? editParticipants : [],
+    participant_groups: shouldShowParticipants() ? editPartGroups : [],
+    virtual_pre_name: document.getElementById('editVirtualPreName').value.trim(),
+    virtual_pre_start: document.getElementById('editVirtualPreStart').value ? document.getElementById('editVirtualPreStart').value + ':00' : '',
+    virtual_pre_end: document.getElementById('editVirtualPreEnd').value ? document.getElementById('editVirtualPreEnd').value + ':00' : '',
+    virtual_pre_url: document.getElementById('editVirtualPreUrl').value.trim(),
+    virtual_post_name: document.getElementById('editVirtualPostName').value.trim(),
+    virtual_post_start: document.getElementById('editVirtualPostStart').value ? document.getElementById('editVirtualPostStart').value + ':00' : '',
+    virtual_post_end: document.getElementById('editVirtualPostEnd').value ? document.getElementById('editVirtualPostEnd').value + ':00' : '',
+    virtual_post_url: document.getElementById('editVirtualPostUrl').value.trim(),
   };
   if (!body.name) { alert('Name is required.'); return; }
 
@@ -1498,10 +1591,10 @@ function editSeries(seriesId, evId) {
 
   toggleTypeFields();
   const cat = catSel.value;
-  showParticipantsSection(isInternal(cat));
+  showParticipantsSection(shouldShowParticipants());
   renderPartGroupTags();
   renderPartPersonList();
-  catSel.onchange = () => showParticipantsSection(isInternal(catSel.value));
+  catSel.onchange = () => showParticipantsSection(shouldShowParticipants());
 
   modal.classList.add('open');
 }

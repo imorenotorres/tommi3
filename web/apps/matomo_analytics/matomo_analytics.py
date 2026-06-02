@@ -43,7 +43,7 @@ def matomo_proxy(
     period: str = Query("day"),
     date: str = Query("last30"),
     segment: str = Query(""),
-    flat: str = Query("1"),
+    flat: str = Query(""),
     filter_limit: str = Query("100"),
     idSite: str = Query(MATOMO_SITE_ID),
 ):
@@ -56,9 +56,10 @@ def matomo_proxy(
         "date": date,
         "format": "JSON",
         "token_auth": MATOMO_TOKEN,
-        "flat": flat,
         "filter_limit": filter_limit,
     }
+    if flat:
+        params["flat"] = flat
     if segment:
         params["segment"] = segment
 
