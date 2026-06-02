@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS Intranet Apps — Piloting</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; }
+
+        .topbar {
+            background: #1a2255; color: #fff; padding: 14px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .topbar h1 { font-size: 1.2em; font-weight: 600; }
+        .topbar .subtitle { font-size: 0.82em; opacity: 0.8; }
+
+        .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+        .intro {
+            background: #fff; border-radius: 10px; padding: 20px 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 28px;
+            font-size: 0.9rem; line-height: 1.6; color: #555;
+        }
+        .intro strong { color: #2D3876; }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .tool-card {
+            background: #fff; border-radius: 10px; padding: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            display: flex; flex-direction: column; gap: 8px;
+            transition: box-shadow 0.15s, transform 0.15s;
+            text-decoration: none; color: inherit; cursor: pointer;
+        }
+        .tool-card:hover {
+            box-shadow: 0 4px 20px rgba(45,56,118,0.15);
+            transform: translateY(-2px);
+        }
+        .tool-card .card-header {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .tool-card .card-icon {
+            font-size: 1.8rem; width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            background: #f0f2f5; border-radius: 10px; flex-shrink: 0;
+        }
+        .tool-card .card-name {
+            font-weight: 600; font-size: 1rem; color: #2D3876;
+        }
+        .tool-card .card-desc {
+            font-size: 0.82rem; color: #666; line-height: 1.5; flex: 1;
+        }
+        .tool-card .card-status {
+            font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.5px; padding: 3px 8px; border-radius: 4px;
+            align-self: flex-start;
+        }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-soon { background: #fef3c7; color: #92400e; }
+
+        .empty-state {
+            text-align: center; padding: 60px 20px; color: #888;
+        }
+        .empty-state p { font-size: 1.1rem; margin-bottom: 8px; }
+        .empty-state small { font-size: 0.85rem; }
+
+        .loading { text-align: center; padding: 40px; color: #888; font-size: 0.95rem; }
+
+        .logo-footer {
+            text-align: center; margin-top: 40px; padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .logo-footer img { height: 80px; opacity: 0.7; }
+    </style>
+    <!-- Matomo -->
+    <script>
+      var _paq = window._paq = window._paq || [];
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="https://uninovis.matomo.cloud/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '3']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+</head>
+<body>
+
+<div class="topbar">
+    <div>
+        <h1>UNINOVIS Intranet Apps</h1>
+        <div class="subtitle">Piloting — Public Access</div>
+    </div>
+    <a href="/intranet" style="color:#fff;font-size:0.82em;opacity:0.7;text-decoration:none;">Staff login</a>
+</div>
+
+<div class="container">
+    <div class="intro">
+        <p>Welcome to the <strong>UNINOVIS Intranet Apps</strong> piloting page. The tools listed below are publicly available for testing and evaluation. No login is required.</p>
+    </div>
+
+    <div id="tools-container" class="loading">Loading public tools...</div>
+
+    <div class="logo-footer">
+        <img src="/static/logo_uninovis.png" alt="UNINOVIS">
+    </div>
+</div>
+
+<script>
+// Full tool catalogue (same as intranet.html)
+var ALL_TOOLS = {
+    directory:          { name: 'Directory',            icon: '\uD83D\uDCCB',     desc: 'Staff directory, groups, and org charts.',                       url: '/directory/',          status: 'active' },
+    event_calendar:     { name: 'Event Tracker',        icon: '\uD83D\uDCC5',     desc: 'Event calendar with filters and iCal sync.',                     url: '/event-calendar/',     status: 'active' },
+    mobility_planner:   { name: 'Mobility Planner',     icon: '\u2708\uFE0F',     desc: 'Call opening dates for mobility activities.',                    url: '/mobility_planner/',   status: 'active' },
+    intranet_services:  { name: 'Services Catalogue',   icon: '\uD83D\uDDA5\uFE0F', desc: 'All UNINOVIS digital services and tools.',                   url: '/uninovis/services',   status: 'active' },
+    unigracon:          { name: 'UNIGRACON',            icon: '\uD83C\uDF93',     desc: 'Grade converter between partner universities.',                  url: '/unigracon/',          status: 'active' },
+    researcher_connect: { name: 'Researcher Connect',   icon: '\uD83D\uDD2C',     desc: 'Find and connect with researchers across UNINOVIS.',             url: '/researcher_connect/', status: 'active' },
+    research_proposals: { name: 'Research Proposals',   icon: '\uD83D\uDCDD',     desc: 'Post and discover research collaboration opportunities.',        url: '/research_proposals/', status: 'active' },
+    tommi_agents:       { name: 'TOMMI Agents',         icon: '\uD83E\uDD16',     desc: 'Chat with AI agents for research and admin support.',            url: '/agents',              status: 'active' },
+    tommi_testing:      { name: 'Agent Testing',        icon: '\uD83E\uDDEA',     desc: 'Testing and development interface for AI agents.',               url: '/testing',             status: 'active' },
+    virtual_campus:     { name: 'Virtual Campus',       icon: '\uD83C\uDFEB',     desc: 'Courses, learning materials, and virtual classrooms.',           url: '#',                    status: 'soon' },
+    student_admin:      { name: 'Student Administration', icon: '\uD83D\uDCDD',   desc: 'Grades, curriculum, enrolment, and academic records.',           url: '#',                    status: 'soon' },
+    log_analytics:      { name: 'Agents Analytics',     icon: '\uD83D\uDCCA',     desc: 'View request summaries, visitor stats, and manage agent logs.',  url: '#',                    status: 'active' },
+};
+
+async function loadPublicTools() {
+    var container = document.getElementById('tools-container');
+    try {
+        var res = await fetch('/api/public-tools');
+        if (!res.ok) throw new Error('API error: ' + res.status);
+        var data = await res.json();
+        var publicIds = data.public_tools || [];
+
+        if (publicIds.length === 0) {
+            container.className = 'empty-state';
+            container.innerHTML = '<p>No public tools available yet.</p>'
+                + '<small>Tools can be made public from the Tool Visibility panel in the intranet.</small>';
+            return;
+        }
+
+        // Sort by name
+        publicIds.sort(function(a, b) {
+            var na = (ALL_TOOLS[a] || {}).name || a;
+            var nb = (ALL_TOOLS[b] || {}).name || b;
+            return na.localeCompare(nb);
+        });
+
+        var html = '';
+        publicIds.forEach(function(id) {
+            var tool = ALL_TOOLS[id];
+            if (!tool) return;
+            var statusClass = tool.status === 'active' ? 'status-active' : 'status-soon';
+            var statusLabel = tool.status === 'active' ? 'Active' : 'Coming soon';
+            var href = tool.status === 'active' && tool.url !== '#' ? tool.url : '#';
+            var tag = href !== '#' ? 'a' : 'div';
+            var hrefAttr = tag === 'a' ? ' href="' + href + '"' : '';
+
+            html += '<' + tag + ' class="tool-card"' + hrefAttr + '>'
+                + '<div class="card-header">'
+                + '<div class="card-icon">' + tool.icon + '</div>'
+                + '<div class="card-name">' + tool.name + '</div>'
+                + '</div>'
+                + '<div class="card-desc">' + tool.desc + '</div>'
+                + '<div class="card-status ' + statusClass + '">' + statusLabel + '</div>'
+                + '</' + tag + '>';
+        });
+
+        container.className = 'tools-grid';
+        container.innerHTML = html;
+    } catch (e) {
+        container.className = 'empty-state';
+        container.innerHTML = '<p>Could not load public tools.</p>'
+            + '<small>' + e.message + '</small>';
+    }
+}
+
+loadPublicTools();
+</script>
+
+</body>
+</html>

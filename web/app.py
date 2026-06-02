@@ -159,7 +159,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # PDF endpoints are public (academic documents, not personal data)
         # Study app routes are public (participants don't need TOMMI accounts)
         is_study = path.startswith("/study/api/") or path.startswith("/rag-study/api/") or path.startswith("/sql-study/api/")
-        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and not is_study:
+        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/public-tools" not in path and not is_study:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
                 token = request.query_params.get("token", "")
@@ -1564,7 +1564,7 @@ async def set_tool_access(request: Request, session: dict = Depends(require_role
     if not isinstance(new_access, dict):
         raise HTTPException(status_code=400, detail="tool_access must be a dict")
     # Validate: values must be lists of known role strings
-    valid_roles = {"student", "admin_staff", "teaching_staff", "tester", "superuser"}
+    valid_roles = {"public", "student", "admin_staff", "teaching_staff", "tester", "superuser"}
     for tool_id, roles in new_access.items():
         if not isinstance(roles, list):
             raise HTTPException(status_code=400, detail=f"Roles for {tool_id} must be a list")
@@ -1576,6 +1576,14 @@ async def set_tool_access(request: Request, session: dict = Depends(require_role
     TOOL_ACCESS.update(new_access)
     save_tool_access(new_access)
     return {"ok": True}
+
+
+@app.get("/api/public-tools")
+async def get_public_tools():
+    """Return tools marked as public (no auth required)."""
+    public = [tool_id for tool_id, roles in TOOL_ACCESS.items()
+              if "public" in roles]
+    return {"public_tools": public}
 
 
 # ---------------------------------------------------------------------------

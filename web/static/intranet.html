@@ -194,6 +194,7 @@ var SECTIONS = [
 
 function canAccess(toolId, roles) {
     if (!TOOL_ACCESS[toolId]) return true;
+    if (TOOL_ACCESS[toolId].indexOf('public') !== -1) return true;
     for (var i = 0; i < roles.length; i++) {
         if (TOOL_ACCESS[toolId].indexOf(roles[i]) !== -1) return true;
     }
@@ -847,7 +848,7 @@ async function amResetLogs(agentId) {
 
 // ── Tool Visibility Panel ───────────────────────────────────────
 var _tvData = {};
-var ALL_ROLES = ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'];
+var ALL_ROLES = ['public', 'student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'];
 
 // Readable labels for tool IDs
 var TOOL_LABELS = {
@@ -880,7 +881,7 @@ function openToolVisibility() {
         + '<button onclick="closeToolVisibility()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
         + '</div>'
         + '<div id="tv-message" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
-        + '<p style="font-size:0.78rem;color:#666;margin-bottom:12px;">Select which roles can access each intranet tool. Superuser always has access. Changes take effect immediately for all users.</p>'
+        + '<p style="font-size:0.78rem;color:#666;margin-bottom:12px;">Select which roles can access each intranet tool. <b>Public</b> makes the tool accessible without login. Superuser always has access. Changes take effect immediately for all users.</p>'
         + '<div id="tv-grid" style="font-size:0.85rem;">Loading...</div>'
         + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
         + '<button onclick="tvSave()" style="background:#2D3876;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:0.9rem;">Save</button>'
@@ -926,15 +927,16 @@ function tvRender() {
     if (!container) return;
 
     var roleLabels = {
-        student: 'Student', admin_staff: 'Admin staff',
+        public: 'Public', student: 'Student', admin_staff: 'Admin staff',
         teaching_staff: 'Teaching staff', tester: 'Tester', superuser: 'Superuser'
     };
 
     var html = '<table style="width:100%;border-collapse:collapse;">'
         + '<tr style="border-bottom:2px solid #e2e8f0;"><th style="text-align:left;padding:6px 8px;">Tool</th>';
     ALL_ROLES.forEach(function(r) {
-        var disabled = r === 'superuser' ? ' <span style="font-size:0.65rem;color:#888;">(always)</span>' : '';
-        html += '<th style="text-align:center;padding:6px 4px;font-size:0.78rem;">' + roleLabels[r] + disabled + '</th>';
+        var extra = r === 'superuser' ? ' <span style="font-size:0.65rem;color:#888;">(always)</span>'
+                 : r === 'public' ? ' <span style="font-size:0.65rem;color:#888;">(no login)</span>' : '';
+        html += '<th style="text-align:center;padding:6px 4px;font-size:0.78rem;">' + roleLabels[r] + extra + '</th>';
     });
     html += '</tr>';
 
