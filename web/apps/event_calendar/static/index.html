@@ -580,7 +580,6 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/ /g, '_');
 // -- Init --------------------------------------------------------------------
 (async function init() {
   TOKEN = localStorage.getItem('tommi_token') || new URLSearchParams(location.search).get('token') || '';
-  if (!TOKEN) { location.href = '/intranet?redirect=' + encodeURIComponent(location.pathname); return; }
 
   try {
     const auth = await api('GET', '/api/auth-check');
@@ -588,14 +587,15 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/ /g, '_');
     if (userInfoEl) userInfoEl.textContent = auth.username + ' (' + auth.role + ')';
     authUsername = auth.username;
     canEdit = auth.can_edit;
-    document.getElementById('btnPersonal').style.display = '';
+    if (auth.role !== 'public') document.getElementById('btnPersonal').style.display = '';
     if (canEdit) {
       document.getElementById('btnAdd').style.display = '';
       document.getElementById('ioGroup').style.display = '';
     }
   } catch {
-    location.href = '/intranet?redirect=' + encodeURIComponent(location.pathname);
-    return;
+    // Continue in read-only mode
+    authUsername = 'guest';
+    canEdit = false;
   }
 
   await loadData();
