@@ -36,7 +36,7 @@ def _get_token(request: Request) -> str | None:
 def _require_auth(request: Request) -> dict:
     token = _get_token(request)
     if not token:
-        raise HTTPException(status_code=401, detail="Authentication required")
+        return {"username": "guest", "role": "public", "roles": ["public"]}
     session = get_session(token)
     if not session:
         raise HTTPException(status_code=401, detail="Invalid or expired session")
