@@ -63,7 +63,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 /* Month grid */
 .month-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; background: var(--border); margin: 0 24px 24px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
 .month-grid .day-header { background: var(--primary); color: #fff; text-align: center; padding: 8px; font-size: 0.8rem; font-weight: 600; }
-.month-grid .day-cell { background: var(--card); min-height: 100px; padding: 6px; position: relative; vertical-align: top; }
+.month-grid .day-cell { background: var(--card); min-height: 100px; max-height: 130px; padding: 6px; position: relative; vertical-align: top; overflow: hidden; }
 .month-grid .day-cell.other-month { background: #f9f9fb; }
 .month-grid .day-cell.today { background: #e8f0fe; }
 .day-num { font-size: 0.8rem; font-weight: 600; color: var(--text-light); margin-bottom: 4px; }
@@ -85,6 +85,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .day-view .dv-time { padding: 8px; font-size: 0.75rem; color: var(--text-light); text-align: right; padding-right: 12px; background: #f9f9fb; }
 .day-view .dv-cell { padding: 4px 8px; min-height: 48px; position: relative; }
 .dv-event { font-size: 0.8rem; padding: 4px 8px; margin-bottom: 2px; border-radius: 4px; color: #fff; cursor: pointer; }
+
+/* KPI table */
+.kpi-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.kpi-table th { background: var(--primary); color: #fff; padding: 6px 10px; text-align: left; font-size: 0.75rem; white-space: nowrap; position: sticky; top: 0; }
+.kpi-table td { padding: 5px 10px; border-bottom: 1px solid var(--border); }
+.kpi-table tr:hover { background: #f5f7ff; }
+.kpi-table .kpi-total { font-weight: 700; background: #f0f1f5; }
+.kpi-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* TBC badge */
+.tbc-badge { display: inline-block; background: #ff9800; color: #fff; font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; font-weight: 600; vertical-align: middle; margin-left: 4px; }
+.event-chip .tbc-badge { font-size: 0.6rem; padding: 0 4px; margin-left: 2px; }
 
 /* Category colors */
 /* List view */
@@ -198,6 +210,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <div class="filters-bar">
   <div class="filter-row" id="categoryFilters"></div>
   <div class="filter-row" id="universityFilters"></div>
+  <div class="filter-row" style="margin-top:4px;">
+    <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--text-light);">
+      <input type="checkbox" id="showPastEvents" onchange="render()"> Show past events
+    </label>
+  </div>
 </div>
 
 <!-- Stats -->
@@ -225,6 +242,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <div class="io-group" id="ioGroup" style="display:none;">
       <button class="nav-btn" onclick="openExportModal()" title="Export events with filters">Export</button>
       <button class="nav-btn" onclick="document.getElementById('importModal').classList.add('open')" title="Import events">Import</button>
+      <button class="nav-btn" onclick="openKpiModal()" title="Export KPI report" style="font-weight:600;">Export KPIs</button>
     </div>
     <span style="width:1px;height:24px;background:var(--border);"></span>
     <button class="nav-btn" onclick="showSubscribe()" title="Subscribe from Apple Calendar, Google Calendar, Outlook...">Subscribe / .ics</button>
@@ -283,6 +301,66 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <button class="btn" onclick="document.getElementById('exportModal').classList.remove('open')">Cancel</button>
       <button class="btn btn-primary" onclick="doExport('json')">Export JSON</button>
       <button class="btn btn-primary" onclick="doExport('tsv')">Export TSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- KPI Report modal -->
+<div class="modal-overlay" id="kpiModal">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-header">
+      <h2>Export KPIs</h2>
+      <button class="modal-close" onclick="document.getElementById('kpiModal').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label>Period from</label>
+          <input type="date" id="kpiFrom">
+        </div>
+        <div>
+          <label>Period to</label>
+          <input type="date" id="kpiTo">
+        </div>
+      </div>
+
+      <label>Group by (rows)</label>
+      <select id="kpiRowDim" onchange="updateKpiPreview()">
+        <option value="category">Activity type</option>
+        <option value="university">Partner university</option>
+        <option value="event_type">Format (Physical / Virtual)</option>
+        <option value="status">Status (Past / Upcoming / TBC)</option>
+        <option value="month">Month</option>
+      </select>
+
+      <label>Split by (columns) <small style="color:var(--text-light);">(optional)</small></label>
+      <select id="kpiColDim" onchange="updateKpiPreview()">
+        <option value="">(none — totals only)</option>
+        <option value="university">Partner university</option>
+        <option value="category">Activity type</option>
+        <option value="event_type">Format (Physical / Virtual)</option>
+        <option value="status">Status (Past / Upcoming / TBC)</option>
+      </select>
+
+      <label>Metrics</label>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+        <label style="display:inline-flex;align-items:center;gap:4px;font-size:0.82rem;margin:0;">
+          <input type="checkbox" id="kpiMetricCount" checked onchange="updateKpiPreview()"> Number of events
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:4px;font-size:0.82rem;margin:0;">
+          <input type="checkbox" id="kpiMetricDays" onchange="updateKpiPreview()"> Total days
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:4px;font-size:0.82rem;margin:0;">
+          <input type="checkbox" id="kpiMetricParticipants" onchange="updateKpiPreview()"> Total participants
+        </label>
+      </div>
+
+      <div id="kpiPreview" style="margin-top:16px;max-height:340px;overflow:auto;border:1px solid var(--border);border-radius:var(--radius);"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('kpiModal').classList.remove('open')">Close</button>
+      <button class="btn btn-primary" onclick="exportKpi('csv')">Export CSV</button>
+      <button class="btn btn-primary" onclick="exportKpi('html')">Export HTML</button>
     </div>
   </div>
 </div>
@@ -392,9 +470,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <option value="GMT">GMT (UTC+0)</option>
         <option value="UTC">UTC</option>
       </select>
-      <label>Start Date *</label>
+      <div style="margin-bottom:8px;">
+        <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:500;">
+          <input type="checkbox" id="editDateTbc" onchange="toggleDateTbc()"> Date to be confirmed (TBC)
+        </label>
+      </div>
+      <div id="dateTbcLabelRow" style="display:none;margin-bottom:8px;">
+        <label>Approximate date hint <small style="color:var(--text-light);">(e.g. "October 2026", "TBC")</small></label>
+        <input type="text" id="editDateTbcLabel" placeholder="e.g. October 2026">
+      </div>
+      <label id="labelStart">Start Date *</label>
       <input type="datetime-local" id="editStart">
-      <label>End Date *</label>
+      <label id="labelEnd">End Date *</label>
       <input type="datetime-local" id="editEnd">
       <div id="recurrenceSection">
         <label>Recurrence</label>
@@ -622,6 +709,8 @@ function refreshFilterUI() {
 }
 
 function filteredEvents() {
+  const showPast = document.getElementById('showPastEvents') && document.getElementById('showPastEvents').checked;
+  const now = new Date(); now.setHours(0,0,0,0);
   return events.filter(e => {
     let catOk = false;
     if (activeCatFilter === 'all') catOk = true;
@@ -630,18 +719,23 @@ function filteredEvents() {
     else catOk = e.category === activeCatFilter;
 
     let uniOk = activeUniFilter === 'all' || e.university === activeUniFilter;
+
+    // Hide past events unless checkbox is checked
+    if (!showPast && e.end_date) {
+      const end = new Date(e.end_date); end.setHours(23,59,59,999);
+      if (end < now) return false;
+    }
+
     return catOk && uniOk;
   });
 }
 
 function updateStats() {
   const f = filteredEvents();
-  const internal = events.filter(e => INTERNAL_CATS.includes(e.category));
-  const external = events.filter(e => EXTERNAL_CATS.includes(e.category));
+  const tbcCount = f.filter(e => e.date_tbc).length;
   document.getElementById('statsBar').innerHTML =
     `Showing <span>${f.length}</span> of <span>${events.length}</span> events` +
-    ` &middot; All Internal: <span>${internal.length}</span>` +
-    ` &middot; All External: <span>${external.length}</span>` +
+    (tbcCount ? ` &middot; <span style="color:#ff9800;">${tbcCount} TBC</span>` : '') +
     ` &middot; Total: <span>${events.length}</span>`;
 }
 
@@ -705,6 +799,7 @@ function weekStart(d) { const s = new Date(d); s.setDate(s.getDate() - ((s.getDa
 
 function eventsOnDate(date) {
   return filteredEvents().filter(e => {
+    if (!e.start_date || !e.end_date) return false;
     const s = new Date(e.start_date); s.setHours(0,0,0,0);
     const en = new Date(e.end_date); en.setHours(23,59,59,999);
     const d = new Date(date); d.setHours(12,0,0,0);
@@ -713,6 +808,7 @@ function eventsOnDate(date) {
 }
 
 function fmtTime(isoStr) {
+  if (!isoStr) return '';
   const d = new Date(isoStr);
   return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
@@ -720,10 +816,14 @@ function fmtTime(isoStr) {
 function chipHTML(ev) {
   const cls = CAT_CSS_CLASS(ev.category);
   const personal = ev.visibility === 'personal' ? ' personal' : '';
-  const t = fmtTime(ev.start_date);
+  const t = ev.start_date ? fmtTime(ev.start_date) : '';
   const tz = evTZ(ev);
   const icon = ev.visibility === 'personal' ? '&#128274; ' : '';
-  return `<div class="event-chip ${cls}${personal}" onclick="showDetail('${ev.id}')" title="${ev.name} - ${t} ${tz}${ev.visibility === 'personal' ? ' (personal)' : ''}">${icon}${t} ${ev.name}</div>`;
+  const tbcPrefix = ev.date_tbc ? '<span class="tbc-badge">Date TBC</span> ' : '';
+  const timeLabel = ev.date_tbc ? '' : t + ' ';
+  const uni = ev.university ? ' (' + ev.university + ')' : '';
+  const shortName = ev.name.length > 22 ? ev.name.slice(0, 20) + '...' : ev.name;
+  return `<div class="event-chip ${cls}${personal}" onclick="showDetail('${ev.id}')" title="${ev.name}${uni} - ${ev.date_tbc ? 'Date TBC' : t + ' ' + tz}${ev.visibility === 'personal' ? ' (personal)' : ''}">${icon}${tbcPrefix}${timeLabel}${shortName}${uni}</div>`;
 }
 
 function evTZ(ev) { return ev.timezone || 'CEST'; }
@@ -781,7 +881,10 @@ function renderWeek() {
       });
       html += `<div class="wg-cell${isToday ? ' today-col' : ''}">`;
       dayEvents.forEach(ev => {
-        html += `<div class="wg-event ${CAT_CSS_CLASS(ev.category)}" onclick="showDetail('${ev.id}')">${fmtTime(ev.start_date)} ${ev.name}</div>`;
+        const wgUni = ev.university ? ' (' + ev.university + ')' : '';
+        const wgName = ev.name.length > 18 ? ev.name.slice(0, 16) + '...' : ev.name;
+        const wgTbc = ev.date_tbc ? '<span class="tbc-badge">Date TBC</span> ' : '';
+        html += `<div class="wg-event ${CAT_CSS_CLASS(ev.category)}" onclick="showDetail('${ev.id}')" title="${ev.name}${wgUni}">${wgTbc}${fmtTime(ev.start_date)} ${wgName}${wgUni}</div>`;
       });
       html += '</div>';
     }
@@ -806,7 +909,9 @@ function renderDay() {
     html += `<div class="dv-time">${String(h).padStart(2,'0')}:00</div>`;
     html += '<div class="dv-cell">';
     dayEvents.forEach(ev => {
-      html += `<div class="dv-event ${CAT_CSS_CLASS(ev.category)}" onclick="showDetail('${ev.id}')">${fmtTime(ev.start_date)} ${ev.name}</div>`;
+      const dvUni = ev.university ? ' (' + ev.university + ')' : '';
+      const dvTbc = ev.date_tbc ? '<span class="tbc-badge">Date TBC</span> ' : '';
+      html += `<div class="dv-event ${CAT_CSS_CLASS(ev.category)}" onclick="showDetail('${ev.id}')">${dvTbc}${fmtTime(ev.start_date)} ${ev.name}${dvUni}</div>`;
     });
     html += '</div></div>';
   });
@@ -856,8 +961,9 @@ let listSortAsc = true;
 function eventsInPeriod(evtList) {
   const period = currentView === 'list' ? listPeriod : currentView;
   return evtList.filter(e => {
-    const s = new Date(e.start_date);
-    const en = new Date(e.end_date);
+    if (!e.start_date && !e.end_date) return currentView === 'list'; // TBC events only in list view
+    const s = new Date(e.start_date || e.end_date);
+    const en = new Date(e.end_date || e.start_date);
     if (period === 'year') {
       return s.getFullYear() === currentDate.getFullYear() || en.getFullYear() === currentDate.getFullYear();
     } else if (period === 'month') {
@@ -878,6 +984,10 @@ function eventsInPeriod(evtList) {
 
 function renderList() {
   const evts = eventsInPeriod(filteredEvents()).slice().sort((a, b) => {
+    // Events with no date always go last
+    const aNoDate = !a.start_date && !a.end_date;
+    const bNoDate = !b.start_date && !b.end_date;
+    if (aNoDate !== bNoDate) return aNoDate ? 1 : -1;
     let va, vb;
     if (listSortCol === 'start_date' || listSortCol === 'end_date') {
       va = a[listSortCol] || ''; vb = b[listSortCol] || '';
@@ -903,9 +1013,9 @@ function renderList() {
     const locDisplay = loc.length > 40 ? loc.slice(0, 40) + '...' : loc;
     html += `<tr onclick="showDetail('${ev.id}')">`;
     const tz = evTZ(ev);
-    html += `<td style="white-space:nowrap;">${fmtShort(ev.start_date)} <small style="color:var(--text-light);">${tz}</small></td>`;
-    html += `<td style="white-space:nowrap;">${fmtShort(ev.end_date)}</td>`;
-    html += `<td><strong>${esc(ev.name)}</strong></td>`;
+    html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.start_date ? '<span class="tbc-badge">' + esc(ev.date_tbc_label || 'TBC') + '</span>' : fmtShort(ev.start_date) + ' <small style="color:var(--text-light);">' + tz + '</small>'}</td>`;
+    html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.end_date ? '—' : fmtShort(ev.end_date)}</td>`;
+    html += `<td>${ev.date_tbc ? '<span class="tbc-badge">Date TBC</span> ' : ''}<strong>${esc(ev.name)}</strong></td>`;
     html += `<td><span class="cat-badge ${catCls}">${ev.category}</span></td>`;
     html += `<td>${ev.university || ''}</td>`;
     html += `<td><span class="${typeCls}">${eType}</span></td>`;
@@ -925,6 +1035,7 @@ function listSort(col) {
 }
 
 function fmtShort(isoStr) {
+  if (!isoStr) return '—';
   const d = new Date(isoStr);
   const dd = String(d.getDate()).padStart(2,'0');
   const mm = d.toLocaleDateString(undefined, { month: 'short' });
@@ -938,10 +1049,19 @@ function esc(s) { const d = document.createElement('div'); d.textContent = s; re
 
 // -- Time formatting with timezone -------------------------------------------
 function fmtDateTZ(isoStr, tz) {
+  if (!isoStr) return '<em>Not set</em>';
   const d = new Date(isoStr);
   const date = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
   const time = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
   return date + ' ' + time + ' ' + (tz || 'CEST');
+}
+
+function tbcDateDisplay(ev) {
+  const label = ev.date_tbc_label || 'TBC';
+  if (ev.start_date) {
+    return fmtDateTZ(ev.start_date, evTZ(ev)) + ' <span class="tbc-badge">TBC — ' + esc(label) + '</span>';
+  }
+  return '<span class="tbc-badge">TBC — ' + esc(label) + '</span>';
 }
 
 // -- Participant helpers -----------------------------------------------------
@@ -989,8 +1109,8 @@ function showDetail(id) {
   }
   html += `
     <div class="detail-field"><div class="dl">Description</div><div class="dv">${ev.description || '<em>No description</em>'}</div></div>
-    <div class="detail-field"><div class="dl">Start</div><div class="dv">${fmtDateTZ(ev.start_date, evTZ(ev))}</div></div>
-    <div class="detail-field"><div class="dl">End</div><div class="dv">${fmtDateTZ(ev.end_date, evTZ(ev))}</div></div>
+    <div class="detail-field"><div class="dl">Start</div><div class="dv">${ev.date_tbc ? tbcDateDisplay(ev) : fmtDateTZ(ev.start_date, evTZ(ev))}</div></div>
+    <div class="detail-field"><div class="dl">End</div><div class="dv">${ev.date_tbc ? (ev.end_date ? fmtDateTZ(ev.end_date, evTZ(ev)) + ' <span class="tbc-badge">TBC</span>' : '<span class="tbc-badge">TBC</span>') : fmtDateTZ(ev.end_date, evTZ(ev))}</div></div>
   `;
   if (ev.registration_link) {
     html += `<div class="detail-field"><div class="dl">Registration</div><div class="dv"><a href="${ev.registration_link}" target="_blank" rel="noopener">${ev.registration_link}</a></div></div>`;
@@ -1069,6 +1189,13 @@ function toggleRecurrenceFields() {
   const rtype = document.getElementById('editRecurrenceType').value;
   document.getElementById('recurrenceDetails').style.display = rtype ? '' : 'none';
   document.getElementById('recMonthlyNthGroup').style.display = rtype === 'monthly_nth' ? '' : 'none';
+}
+
+function toggleDateTbc() {
+  const tbc = document.getElementById('editDateTbc').checked;
+  document.getElementById('dateTbcLabelRow').style.display = tbc ? '' : 'none';
+  document.getElementById('labelStart').textContent = tbc ? 'Approximate Start (optional)' : 'Start Date *';
+  document.getElementById('labelEnd').textContent = tbc ? 'Approximate End (optional)' : 'End Date *';
 }
 
 function showParticipantsSection(show) {
@@ -1187,9 +1314,12 @@ function openEdit(id, defaultVisibility) {
     document.getElementById('editTimezone').value = ev.timezone || 'CEST';
     document.getElementById('editPlace').value = ev.place || '';
     document.getElementById('editMeetingUrl').value = ev.meeting_url || '';
-    document.getElementById('editStart').value = ev.start_date.slice(0, 16);
-    document.getElementById('editEnd').value = ev.end_date.slice(0, 16);
+    document.getElementById('editStart').value = ev.start_date ? ev.start_date.slice(0, 16) : '';
+    document.getElementById('editEnd').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
     document.getElementById('editLink').value = ev.registration_link || '';
+    document.getElementById('editDateTbc').checked = !!ev.date_tbc;
+    document.getElementById('editDateTbcLabel').value = ev.date_tbc_label || '';
+    toggleDateTbc();
     editParticipants = [...(ev.participants || [])];
     editPartGroups = [...(ev.participant_groups || [])];
     const vis = ev.visibility || 'shared';
@@ -1212,6 +1342,9 @@ function openEdit(id, defaultVisibility) {
     document.getElementById('editStart').value = '';
     document.getElementById('editEnd').value = '';
     document.getElementById('editLink').value = '';
+    document.getElementById('editDateTbc').checked = false;
+    document.getElementById('editDateTbcLabel').value = '';
+    toggleDateTbc();
     editParticipants = [];
     editPartGroups = [];
     // Show recurrence for new events
@@ -1255,9 +1388,11 @@ async function saveEvent() {
     timezone: document.getElementById('editTimezone').value,
     place: document.getElementById('editPlace').value.trim(),
     meeting_url: document.getElementById('editMeetingUrl').value.trim(),
-    start_date: document.getElementById('editStart').value + ':00',
-    end_date: document.getElementById('editEnd').value + ':00',
+    start_date: document.getElementById('editStart').value ? document.getElementById('editStart').value + ':00' : '',
+    end_date: document.getElementById('editEnd').value ? document.getElementById('editEnd').value + ':00' : '',
     registration_link: document.getElementById('editLink').value.trim(),
+    date_tbc: document.getElementById('editDateTbc').checked,
+    date_tbc_label: document.getElementById('editDateTbcLabel').value.trim(),
     participants: isInternal(cat) ? editParticipants : [],
     participant_groups: isInternal(cat) ? editPartGroups : [],
   };
@@ -1272,12 +1407,12 @@ async function saveEvent() {
     }
     // Edit existing single event
     else if (id) {
-      if (!body.start_date || !body.end_date) { alert('Start and end dates are required.'); return; }
+      if (!body.date_tbc && (!body.start_date || !body.end_date)) { alert('Start and end dates are required (or check "Date TBC").'); return; }
       await api('PUT', '/api/events/' + id, body);
     }
     // New event (possibly recurring)
     else {
-      if (!body.start_date || !body.end_date) { alert('Start and end dates are required.'); return; }
+      if (!body.date_tbc && (!body.start_date || !body.end_date)) { alert('Start and end dates are required (or check "Date TBC").'); return; }
       const rtype = document.getElementById('editRecurrenceType').value;
       if (rtype) {
         const until = document.getElementById('editRecUntil').value;
@@ -1344,9 +1479,12 @@ function editSeries(seriesId, evId) {
   document.getElementById('editTimezone').value = ev.timezone || 'CEST';
   document.getElementById('editPlace').value = ev.place || '';
   document.getElementById('editMeetingUrl').value = ev.meeting_url || '';
-  document.getElementById('editStart').value = ev.start_date.slice(0, 16);
-  document.getElementById('editEnd').value = ev.end_date.slice(0, 16);
+  document.getElementById('editStart').value = ev.start_date ? ev.start_date.slice(0, 16) : '';
+  document.getElementById('editEnd').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
   document.getElementById('editLink').value = ev.registration_link || '';
+  document.getElementById('editDateTbc').checked = !!ev.date_tbc;
+  document.getElementById('editDateTbcLabel').value = ev.date_tbc_label || '';
+  toggleDateTbc();
   editParticipants = [...(ev.participants || [])];
   editPartGroups = [...(ev.participant_groups || [])];
   document.getElementById('recurrenceSection').style.display = 'none';
@@ -1432,6 +1570,251 @@ function doExport(format) {
   const params = getExportParams();
   window.location.href = '/event-calendar/api/export/' + format + '?' + params.toString();
   document.getElementById('exportModal').classList.remove('open');
+}
+
+// -- KPI Report ---------------------------------------------------------------
+
+function openKpiModal() {
+  document.getElementById('kpiFrom').value = '';
+  document.getElementById('kpiTo').value = '';
+  document.getElementById('kpiFrom').onchange = updateKpiPreview;
+  document.getElementById('kpiTo').onchange = updateKpiPreview;
+  updateKpiPreview();
+  document.getElementById('kpiModal').classList.add('open');
+}
+
+function kpiFilteredEvents() {
+  const from = document.getElementById('kpiFrom').value;
+  const to = document.getElementById('kpiTo').value;
+  return events.filter(e => {
+    if ((e.visibility || 'shared') !== 'shared') return false;
+    if (from && (e.start_date || '') < from) return false;
+    if (to && (e.start_date || '') > to + 'T23:59:59') return false;
+    return true;
+  });
+}
+
+function eventStatus(ev) {
+  if (ev.date_tbc) return 'TBC';
+  if (!ev.end_date) return 'TBC';
+  const now = new Date(); now.setHours(0,0,0,0);
+  const end = new Date(ev.end_date); end.setHours(23,59,59,999);
+  return end < now ? 'Past' : 'Upcoming';
+}
+
+function eventMonth(ev) {
+  if (!ev.start_date) return 'No date';
+  const d = new Date(ev.start_date);
+  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+}
+
+function eventDays(ev) {
+  if (!ev.start_date || !ev.end_date) return 0;
+  const s = new Date(ev.start_date);
+  const e = new Date(ev.end_date);
+  return Math.max(1, Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1);
+}
+
+function eventParticipantCount(ev) {
+  const ids = new Set(ev.participants || []);
+  (ev.participant_groups || []).forEach(gid => {
+    dirUsers.forEach(u => {
+      if (u.groups.includes(gid) || u.subgroups.includes(gid)) ids.add(u.id);
+    });
+  });
+  return ids.size;
+}
+
+function dimValue(ev, dim) {
+  if (dim === 'category') return ev.category || '(none)';
+  if (dim === 'university') return ev.university || '(none)';
+  if (dim === 'event_type') return ev.event_type || 'Physical';
+  if (dim === 'status') return eventStatus(ev);
+  if (dim === 'month') return eventMonth(ev);
+  return '';
+}
+
+function buildKpiData() {
+  const evts = kpiFilteredEvents();
+  const rowDim = document.getElementById('kpiRowDim').value;
+  const colDim = document.getElementById('kpiColDim').value;
+  const wantCount = document.getElementById('kpiMetricCount').checked;
+  const wantDays = document.getElementById('kpiMetricDays').checked;
+  const wantPart = document.getElementById('kpiMetricParticipants').checked;
+
+  // Gather unique values
+  const rowVals = [...new Set(evts.map(e => dimValue(e, rowDim)))].sort();
+  const colVals = colDim ? [...new Set(evts.map(e => dimValue(e, colDim)))].sort() : ['Total'];
+
+  // Build matrix: rows[rowVal][colVal] = { count, days, participants }
+  const rows = {};
+  rowVals.forEach(r => {
+    rows[r] = {};
+    colVals.forEach(c => { rows[r][c] = { count: 0, days: 0, participants: 0 }; });
+  });
+  const totals = {};
+  colVals.forEach(c => { totals[c] = { count: 0, days: 0, participants: 0 }; });
+
+  evts.forEach(ev => {
+    const r = dimValue(ev, rowDim);
+    const c = colDim ? dimValue(ev, colDim) : 'Total';
+    const d = eventDays(ev);
+    const p = eventParticipantCount(ev);
+    if (rows[r] && rows[r][c]) {
+      rows[r][c].count++;
+      rows[r][c].days += d;
+      rows[r][c].participants += p;
+    }
+    if (totals[c]) {
+      totals[c].count++;
+      totals[c].days += d;
+      totals[c].participants += p;
+    }
+  });
+
+  return { rowVals, colVals, rows, totals, wantCount, wantDays, wantPart, rowDim, colDim, total: evts.length };
+}
+
+function metricHeaders(wantCount, wantDays, wantPart) {
+  const h = [];
+  if (wantCount) h.push('Events');
+  if (wantDays) h.push('Days');
+  if (wantPart) h.push('Participants');
+  return h.length ? h : ['Events'];  // fallback
+}
+
+function metricCells(m, wantCount, wantDays, wantPart) {
+  const cells = [];
+  if (wantCount || (!wantDays && !wantPart)) cells.push(m.count);
+  if (wantDays) cells.push(m.days);
+  if (wantPart) cells.push(m.participants);
+  return cells;
+}
+
+const DIM_LABELS = { category: 'Activity Type', university: 'Partner', event_type: 'Format', status: 'Status', month: 'Month' };
+
+function updateKpiPreview() {
+  const data = buildKpiData();
+  const mh = metricHeaders(data.wantCount, data.wantDays, data.wantPart);
+  const metricsPerCol = mh.length;
+
+  let html = '<table class="kpi-table"><thead><tr>';
+  html += `<th>${DIM_LABELS[data.rowDim] || data.rowDim}</th>`;
+  data.colVals.forEach(c => {
+    if (metricsPerCol === 1) {
+      html += `<th>${data.colDim ? c : mh[0]}</th>`;
+    } else {
+      html += `<th colspan="${metricsPerCol}">${data.colDim ? c : ''}</th>`;
+    }
+  });
+  html += '</tr>';
+  // Sub-header for metrics if more than 1
+  if (metricsPerCol > 1) {
+    html += '<tr><th></th>';
+    data.colVals.forEach(() => {
+      mh.forEach(h => { html += `<th>${h}</th>`; });
+    });
+    html += '</tr>';
+  }
+  html += '</thead><tbody>';
+
+  data.rowVals.forEach(r => {
+    html += `<tr><td><strong>${r}</strong></td>`;
+    data.colVals.forEach(c => {
+      metricCells(data.rows[r][c], data.wantCount, data.wantDays, data.wantPart).forEach(v => {
+        html += `<td class="num">${v}</td>`;
+      });
+    });
+    html += '</tr>';
+  });
+
+  // Totals row
+  html += '<tr class="kpi-total"><td><strong>TOTAL</strong></td>';
+  data.colVals.forEach(c => {
+    metricCells(data.totals[c], data.wantCount, data.wantDays, data.wantPart).forEach(v => {
+      html += `<td class="num">${v}</td>`;
+    });
+  });
+  html += '</tr></tbody></table>';
+  html += `<div style="padding:6px 10px;font-size:0.78rem;color:var(--text-light);">${data.total} events in report</div>`;
+
+  document.getElementById('kpiPreview').innerHTML = html;
+}
+
+function exportKpi(format) {
+  const data = buildKpiData();
+  const mh = metricHeaders(data.wantCount, data.wantDays, data.wantPart);
+
+  // Build header row
+  const headerRow = [DIM_LABELS[data.rowDim] || data.rowDim];
+  data.colVals.forEach(c => {
+    const prefix = data.colDim ? c + ' — ' : '';
+    mh.forEach(h => { headerRow.push(prefix + h); });
+  });
+
+  // Build data rows
+  const rows = [];
+  data.rowVals.forEach(r => {
+    const row = [r];
+    data.colVals.forEach(c => {
+      metricCells(data.rows[r][c], data.wantCount, data.wantDays, data.wantPart).forEach(v => row.push(v));
+    });
+    rows.push(row);
+  });
+  // Totals
+  const totalRow = ['TOTAL'];
+  data.colVals.forEach(c => {
+    metricCells(data.totals[c], data.wantCount, data.wantDays, data.wantPart).forEach(v => totalRow.push(v));
+  });
+  rows.push(totalRow);
+
+  const from = document.getElementById('kpiFrom').value;
+  const to = document.getElementById('kpiTo').value;
+  const periodLabel = (from || to) ? `Period: ${from || '...'} to ${to || '...'}` : 'All periods';
+
+  if (format === 'csv') {
+    let csv = '# UNINOVIS Event KPI Report\n';
+    csv += '# ' + periodLabel + '\n';
+    csv += '# Generated: ' + new Date().toISOString().slice(0, 10) + '\n';
+    csv += headerRow.map(h => '"' + String(h).replace(/"/g, '""') + '"').join(',') + '\n';
+    rows.forEach(r => {
+      csv += r.map(v => typeof v === 'number' ? v : '"' + String(v).replace(/"/g, '""') + '"').join(',') + '\n';
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'uninovis_kpi_report.csv'; a.click();
+    URL.revokeObjectURL(url);
+  } else {
+    let html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>UNINOVIS KPI Report</title>';
+    html += '<style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin:24px;color:#333;}';
+    html += 'h1{color:#2D3876;font-size:1.3rem;}';
+    html += 'table{border-collapse:collapse;width:100%;margin-top:16px;}';
+    html += 'th{background:#2D3876;color:#fff;padding:8px 12px;text-align:left;font-size:0.85rem;}';
+    html += 'td{padding:6px 12px;border-bottom:1px solid #e0e0e0;}';
+    html += 'tr:hover{background:#f5f7ff;}';
+    html += '.num{text-align:right;font-variant-numeric:tabular-nums;}';
+    html += '.total{font-weight:700;background:#f0f1f5;}';
+    html += '.meta{color:#666;font-size:0.85rem;margin-top:8px;}</style></head><body>';
+    html += '<h1>UNINOVIS Event KPI Report</h1>';
+    html += '<p class="meta">' + periodLabel + ' &mdash; Generated: ' + new Date().toISOString().slice(0, 10) + '</p>';
+    html += '<table><thead><tr>';
+    headerRow.forEach(h => { html += '<th>' + h + '</th>'; });
+    html += '</tr></thead><tbody>';
+    rows.forEach((r, i) => {
+      const cls = i === rows.length - 1 ? ' class="total"' : '';
+      html += '<tr' + cls + '>';
+      r.forEach((v, j) => {
+        const numCls = j > 0 ? ' class="num"' : '';
+        html += '<td' + numCls + '>' + v + '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></body></html>';
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'uninovis_kpi_report.html'; a.click();
+    URL.revokeObjectURL(url);
+  }
 }
 
 function showSubscribe() {

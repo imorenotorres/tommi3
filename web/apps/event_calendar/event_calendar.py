@@ -261,13 +261,15 @@ class EventBody(BaseModel):
     place: str = ""
     meeting_url: str = ""
     timezone: str = "CEST"
-    start_date: str
-    end_date: str
+    start_date: str = ""
+    end_date: str = ""
     registration_link: str = ""
     image: str = ""
     participants: list[str] = []
     participant_groups: list[str] = []
     visibility: str = "shared"  # "shared" or "personal"
+    date_tbc: bool = False  # True = date is tentative / to be confirmed
+    date_tbc_label: str = ""  # Original text hint, e.g. "October 2026", "TBC"
     recurrence: Optional[dict] = None  # {type, weekday, nth, until}
     series_id: Optional[str] = None
 
@@ -288,6 +290,8 @@ def _build_event(body: EventBody, start_date: str, end_date: str, series_id: str
         "registration_link": body.registration_link,
         "image": body.image,
         "visibility": body.visibility,
+        "date_tbc": body.date_tbc,
+        "date_tbc_label": body.date_tbc_label,
         "participants": body.participants,
         "participant_groups": body.participant_groups,
         "series_id": series_id,
@@ -302,6 +306,8 @@ def _validate_event(body: EventBody, data: dict):
         raise HTTPException(400, f"Unknown university: {body.university}")
     if body.event_type not in ("Virtual", "Physical"):
         raise HTTPException(400, "event_type must be 'Virtual' or 'Physical'")
+    if not body.date_tbc and (not body.start_date or not body.end_date):
+        raise HTTPException(400, "Start and end dates are required unless date_tbc is true")
 
 
 def _require_auth_or_editor(body_visibility: str, session: dict):
@@ -384,6 +390,8 @@ def _update_ev_fields(ev: dict, body: EventBody):
     ev["participants"] = body.participants
     ev["participant_groups"] = body.participant_groups
     ev["visibility"] = body.visibility
+    ev["date_tbc"] = body.date_tbc
+    ev["date_tbc_label"] = body.date_tbc_label
 
 
 @router.put("/api/events/{event_id}")
@@ -477,7 +485,7 @@ def delete_series(series_id: str, session: dict = Depends(_require_editor)):
 TSV_FIELDS = [
     "id", "name", "description", "category", "university", "event_type",
     "timezone", "place", "meeting_url", "start_date", "end_date",
-    "registration_link", "series_id", "created_by",
+    "registration_link", "date_tbc", "date_tbc_label", "series_id", "created_by",
 ]
 
 
@@ -511,14 +519,19 @@ def _generate_ics(events_list: list) -> str:
         "X-WR-TIMEZONE:Europe/Berlin",
     ]
     for ev in events_list:
+        if not ev.get("start_date") or not ev.get("end_date"):
+            continue  # Skip TBC events without dates
         tz = ev.get("timezone", "CEST")
         tzid = "Europe/Berlin"  # Default TZID for most UNINOVIS partners
+        tbc_prefix = "[TBC] " if ev.get("date_tbc") else ""
         lines.append("BEGIN:VEVENT")
         lines.append(f"UID:{ev['id']}@uninovis.event-calendar")
         lines.append(f"DTSTART;TZID={tzid}:{_to_ical_dt(ev['start_date'])}")
         lines.append(f"DTEND;TZID={tzid}:{_to_ical_dt(ev['end_date'])}")
-        lines.append(f"SUMMARY:{_ical_escape(ev['name'])}")
+        lines.append(f"SUMMARY:{_ical_escape(tbc_prefix + ev['name'])}")
         desc_parts = []
+        if ev.get("date_tbc"):
+            desc_parts.append(f"Date: To Be Confirmed ({ev.get('date_tbc_label', 'TBC')})")
         if ev.get("description"):
             desc_parts.append(ev["description"])
         if ev.get("category"):
@@ -686,7 +699,7 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
                     for k in ["name", "description", "category", "university",
                               "event_type", "timezone", "place", "meeting_url",
                               "start_date", "end_date", "registration_link",
-                              "series_id"]:
+                              "date_tbc", "date_tbc_label", "series_id"]:
                         if k in item:
                             ev[k] = item[k]
                     break
@@ -707,6 +720,8 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
                 "end_date": item.get("end_date", ""),
                 "registration_link": item.get("registration_link", ""),
                 "image": item.get("image", ""),
+                "date_tbc": item.get("date_tbc", False),
+                "date_tbc_label": item.get("date_tbc_label", ""),
                 "participants": item.get("participants", []),
                 "participant_groups": item.get("participant_groups", []),
                 "series_id": item.get("series_id", ""),
@@ -764,6 +779,8 @@ async def import_tsv(file: UploadFile = File(...), session: dict = Depends(_requ
                 "end_date": row.get("end_date", ""),
                 "registration_link": row.get("registration_link", ""),
                 "image": "",
+                "date_tbc": row.get("date_tbc", "").lower() in ("true", "1", "yes"),
+                "date_tbc_label": row.get("date_tbc_label", ""),
                 "participants": [],
                 "participant_groups": [],
                 "series_id": row.get("series_id", ""),

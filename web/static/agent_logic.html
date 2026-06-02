@@ -520,8 +520,8 @@ h2 {
     <!-- ── Group A: Programmatic, no cues (rows 2–5) ── -->
     <div class="bf-box bf-reason" style="grid-row:2;grid-column:3;">1. Meta-question</div>
     <div class="bf-box bf-reason" style="grid-row:3;grid-column:3;">2. Non-research</div>
-    <div class="bf-box bf-reason" style="grid-row:4;grid-column:3;">4. Disambiguation</div>
-    <div class="bf-box bf-reason" style="grid-row:5;grid-column:3;">12. Off-topic</div>
+    <div class="bf-box bf-reason" style="grid-row:4;grid-column:3;">3. Disambiguation</div>
+    <div class="bf-box bf-reason" style="grid-row:5;grid-column:3;">4. Off-topic</div>
 
     <div class="bf-arrow" style="grid-row:2/6;grid-column:4;">▸</div>
     <div class="bf-box bf-action-green" style="grid-row:2/6;grid-column:5;">
@@ -534,6 +534,7 @@ h2 {
 
     <!-- ── Group B: Figure/Map, green cue (row 6) ── -->
     <div class="bf-box bf-reason" style="grid-row:6;grid-column:3;">5. Figure / Map</div>
+
     <div class="bf-arrow" style="grid-row:6;grid-column:4;">▸</div>
     <div class="bf-box bf-action-green" style="grid-row:6;grid-column:5;">
         <b>Build map link</b><small>from regex extraction<br>+ structured DB</small>
@@ -548,6 +549,7 @@ h2 {
     <div class="bf-box bf-reason" style="grid-row:8;grid-column:3;">7. Researcher</div>
     <div class="bf-box bf-reason" style="grid-row:9;grid-column:3;">8. Glossary</div>
 
+
     <div class="bf-arrow" style="grid-row:7/10;grid-column:4;">▸</div>
     <div class="bf-box bf-action-green" style="grid-row:7/10;grid-column:5;">
         <b>Format structured<br>data</b><small>from project_docs/,<br>researchers.json,<br>Glossary.md</small>
@@ -558,7 +560,7 @@ h2 {
     </div>
 
     <!-- ── Group D: Expand (partial LLM) (row 10) ── -->
-    <div class="bf-box bf-reason-llm" style="grid-row:10;grid-column:3;">3. Expand</div>
+    <div class="bf-box bf-reason-llm" style="grid-row:10;grid-column:3;">9. Expand</div>
     <div class="bf-arrow" style="grid-row:10;grid-column:4;">▸</div>
     <div class="bf-box bf-action-yellow" style="grid-row:10;grid-column:5;">
         <b>Extract item #N</b><br>then <b>LLM elaborates</b><small>from previous response</small>
@@ -569,9 +571,9 @@ h2 {
     </div>
 
     <!-- ── Group E: LLM required (rows 11–13) ── -->
-    <div class="bf-box bf-reason-llm" style="grid-row:11;grid-column:3;">9. Gap analysis</div>
-    <div class="bf-box bf-reason-llm" style="grid-row:12;grid-column:3;">10. Conceptual</div>
-    <div class="bf-box bf-reason-llm" style="grid-row:13;grid-column:3;">11. Follow-up</div>
+    <div class="bf-box bf-reason-llm" style="grid-row:11;grid-column:3;">10. Gap analysis</div>
+    <div class="bf-box bf-reason-llm" style="grid-row:12;grid-column:3;">11. Conceptual</div>
+    <div class="bf-box bf-reason-llm" style="grid-row:13;grid-column:3;">12. Follow-up</div>
 
     <div class="bf-arrow" style="grid-row:11/14;grid-column:4;">▸</div>
     <div class="bf-box bf-action-yellow" style="grid-row:11/14;grid-column:5;">
@@ -596,22 +598,8 @@ h2 {
 
 <p style="font-size:12px;color:#64748b;margin:8px 0 16px;">Steps in <span style="background:#fef9c3;padding:1px 4px;border-radius:3px;">yellow</span> bypass the LLM entirely — responses come from structured data files. Steps in <span style="background:#fef3c7;padding:1px 4px;border-radius:3px;border:1px solid #d97706;">orange</span> use the LLM for generation or elaboration. Note: step numbers reflect the classification priority order (see detailed flow below).</p>
 
-<div class="detail-panel show" style="margin-top:16px;">
-    <h3>1. Perception</h3>
-    <p>The agent receives the user's text query via the chat interface. It also receives session context (conversation history, session ID, model preference, transparency level). <b>LLM: Not used.</b></p>
-
-    <h3 style="margin-top:12px;">2. Reasoning</h3>
-    <p>This is where the agent's intelligence resides. A priority chain of 13 classification checks determines the query type. The first match wins. Based on the classification, the agent selects the appropriate data source and builds context. <b>LLM: Not used</b> — the entire classification chain is rule-based and deterministic. See the detailed classification below.</p>
-
-    <h3 style="margin-top:12px;">3. Action</h3>
-    <p><b>LLM: Depends on the query type.</b> Of the 13 query types, <b>8 bypass the LLM entirely</b> (meta-question, non-research, disambiguation, figure/map, project, researcher, glossary, off-topic) and return programmatic responses from structured data. The remaining <b>5 use the LLM</b>: expand commands (partially), gap analysis, conceptual (not in glossary), follow-up, and content queries (for commentary). Some responses combine programmatic data (green banner, no LLM) with LLM commentary (yellow banner).</p>
-
-    <h3 style="margin-top:12px;">4. Production</h3>
-    <p>The output depends on the query type: it may be a formatted text response, an interactive map, a structured list, or a polite refusal. When the output involves LLM-generated text, it passes through a processing pipeline: authority sanitisation, paper title verification, unsolicited gap detection, and humility hedging. <b>LLM: Not used</b> — post-processing is rule-based. The reliability cue (green, yellow, red, or none) is determined during Reasoning and displayed as a coloured banner.</p>
-</div>
-
-<h2>2. Reasoning — Query Classification (detail)</h2>
-<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The agent checks each category in priority order. The first match wins — later checks are skipped. Click any step for details.</p>
+<h2>Step-by-step detail</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The diagram above shows the 6 groups of paths through the agent. Below, each of the 13 reasoning steps is listed in classification priority order (first match wins). Click any step to see the detection method, data source, and technical details.</p>
 
 <div class="cue-legend">
     <div class="cue-item"><div class="cue-dot" style="background:#28a745;"></div> Green (verified data)</div>
@@ -897,11 +885,8 @@ h2 {
 
 <p style="font-size:12px;color:#64748b;margin:8px 0 16px;">Steps 1–6 (navigation) require <b style="color:#16a34a;">no LLM</b> — data comes from session state. Steps 7–8 use the <b style="color:#d97706;">LLM</b> to generate or modify SQL, which is then verified and executed on the SQLite database.</p>
 
-<!-- ── Detailed interactive flow ── -->
-<div class="detail-panel show" style="margin-top:16px;">
-    <h3>Reasoning — Intent Detection (click for details)</h3>
-    <p style="font-size:13px;color:#64748b;margin-bottom:8px;">The agent checks each intent in priority order. The first match wins.</p>
-</div>
+<h2>Step-by-step detail</h2>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The diagram above shows the 8 possible paths. Below, each reasoning step is listed in priority order (first match wins). Click any step to see the detection method, data source, and technical details.</p>
 
 <div class="flow" id="text2sql-flow">
     <!-- Steps injected by JS -->
