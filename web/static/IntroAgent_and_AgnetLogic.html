@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quick Introduction to AI Agents and Agent Workflows</title>
+<title>Understanding AI Agents and Agent Workflows</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
@@ -292,7 +292,7 @@ h2 {
 <body>
 
 <header>
-    <h1>Quick Introduction to AI Agents and Agent Workflows</h1>
+    <h1>Understanding AI Agents and Agent Workflows</h1>
 </header>
 
 <div class="container">
@@ -309,6 +309,7 @@ h2 {
     <div class="tab" onclick="showTab('simple')">RAG Vectorless Agents</div>
     <div class="tab" onclick="showTab('text2sql')">Text2SQL Agents</div>
     <div class="tab" onclick="showTab('metadata')">Metadata+RAG Agents (EH)</div>
+    <div class="tab" onclick="showTab('insights')">Key Insights</div>
     <div class="tab" onclick="showTab('references')">References</div>
 </div>
 
@@ -422,206 +423,6 @@ h2 {
 </table>
 </div>
 
-<h2>Design Insight: Handling Reliability</h2>
-
-<div class="detail-panel show">
-<p>Reliability is a central challenge in AI agent design. As Rabanser et al. (2025) argue, <em>"reliability is not a single property but a multidimensional concept"</em> that encompasses correctness, consistency, robustness, and transparency <a href="#references">[1]</a>. An agent may produce a correct answer for one query and hallucinate on a similar one — and the user has no way to tell the difference unless the system provides <strong>reliability signals</strong>.</p>
-
-<p style="margin-top:8px;">In the TOMMI platform, reliability is addressed through two complementary mechanisms: (1) <strong>minimising LLM dependence</strong> by routing queries to programmatic, deterministic response paths whenever possible, and (2) <strong>reliability cues</strong> — visual indicators that communicate to the user how much the response depends on AI interpretation vs. verified data. The cue colour reflects the <em>structural grounding</em> of the response path, not a confidence score.</p>
-
-<p style="margin-top:8px;">The reliability of an AI agent's response correlates with the <strong>amount of relevant, controlled context</strong> provided to the LLM. Three factors determine this:</p>
-
-<table>
-    <tr><th style="width:160px;">Factor</th><th>Description</th><th>Effect on reliability</th></tr>
-    <tr><td><strong>Context relevance</strong></td><td>Does the injected context (retrieved chunks, glossary entries, paper data) match the user's query?</td><td>High relevance → LLM is constrained to accurate information → lower hallucination risk</td></tr>
-    <tr><td><strong>Context volume</strong></td><td>How much relevant data is injected into the LLM prompt?</td><td>More relevant context → LLM has more material to draw from → less need to invent</td></tr>
-    <tr><td><strong>Instruction quality</strong></td><td>How well do the system prompt rules constrain the LLM? (e.g., "only answer from provided context", "say you don't know if uncertain")</td><td>Stricter rules → LLM less likely to hallucinate beyond the context</td></tr>
-</table>
-
-<p style="margin-top:12px;">This suggests a spectrum from green (fully grounded) to red (poorly grounded):</p>
-
-<table>
-    <tr><th style="width:60px;">Cue</th><th style="width:30%;">Grounding level</th><th>Examples</th></tr>
-    <tr><td><span class="badge badge-green">Green</span></td><td><strong>Programmatic.</strong> The response is built directly from structured data files, without involving the LLM. The agent reads the data, formats it, and presents it to the user. Since no AI interpretation is involved, the response is 100% faithful to the source data.</td><td><em>"Papers by Rubén González"</em> → the agent looks up the name in a researchers file and returns the exact list of papers, affiliations, and topics stored there.<br><br><em>"What is the TAILOR project?"</em> → the agent finds the project in a structured file and returns its title, grant ID, funder, budget, and participants exactly as recorded.<br><br><em>"What is explainable AI?"</em> → the agent finds the term in a curated glossary and returns the expert-written definition verbatim.</td></tr>
-    <tr><td><span class="badge badge-yellow">Yellow</span></td><td><strong>LLM well-grounded.</strong> The LLM generates the response, but it has been given relevant data as context (retrieved document chunks, paper lists, or a detailed system prompt). The AI interprets and summarises this data, so the response is informed but may not be perfectly faithful to the source.</td><td><em>"What are the main research topics at THUAS?"</em> → the agent retrieves relevant papers and provides them to the LLM, which writes a summary. The paper list is real, but the summary is AI interpretation.<br><br><em>"Improve this prompt: You are a helpful assistant"</em> (Oneshot) → the LLM has a detailed system prompt that guides its response, but no external data. The quality depends on the prompt.</td></tr>
-    <tr><td><span class="badge badge-red">Red</span></td><td><strong>LLM poorly grounded.</strong> The topic has little or no representation in the available data. The LLM must reason from its own general knowledge or infer what is <em>absent</em> from the database — both are inherently speculative.</td><td><em>"What responsible AI topics have not been studied?"</em> → the agent provides the list of known topics, and the LLM must reason about what is <em>missing</em> — a speculative task with high hallucination risk.<br><br><em>"What is predictive policing?"</em> → the term is not in the glossary or database, so the LLM answers from general knowledge without any grounding data.</td></tr>
-</table>
-
-<h3 style="margin-top:16px;">A note on dynamic scoring</h3>
-<p>At least theoretically, reliability could be computed dynamically — for example, based on the number of retrieved chunks or their relevance scores. However, this would introduce instability (the same query could get different cues each time), arbitrary thresholds, and user confusion. It would also create a transparency paradox: a black-box estimation inside the transparency system itself. Instead, TOMMI assigns cues based on <strong>query type</strong>, which is determined by the deterministic classification chain — making the cue predictable, explainable, and stable.</p>
-
-<h3 style="margin-top:16px;">Implications for agent design</h3>
-<p>When designing a new agent, developers should consider how each response path is grounded:</p>
-<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
-    <li>Maximise <strong>programmatic responses</strong> (green) for queries that can be answered from structured data — these are 100% reliable and fast.</li>
-    <li>Ensure the <strong>system prompt rules</strong> are specific and constraining — generic prompts lead to more hallucination.</li>
-    <li>For <strong>RAG agents</strong>, the quality of the knowledge base and the retrieval method (BM25 vs vector) directly affect response reliability.</li>
-    <li>Assign <strong>red cues</strong> to response paths where the LLM must reason beyond the available data (gap analysis, out-of-glossary concepts).</li>
-    <li>Never show a reliability cue for <strong>honest refusals</strong> (off-topic, non-research) — a refusal is not unreliable content.</li>
-</ul>
-
-<h3 style="margin-top:16px;">The four dimensions of reliability in TOMMI</h3>
-<p>Rabanser et al. <a href="#references">[1]</a> identify four dimensions of AI agent reliability. The following table analyses how each dimension is currently addressed in TOMMI and where improvements could be made:</p>
-
-<table>
-    <tr><th style="width:120px;">Dimension</th><th>Definition</th><th>How TOMMI addresses it</th><th>Limitations &amp; opportunities</th></tr>
-    <tr>
-        <td><strong>Correctness</strong></td>
-        <td>Is the response factually accurate?</td>
-        <td>
-            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
-                <li><b>Programmatic paths</b> (8 of 13 in Metadata+RAG) are correct by construction — the data comes directly from curated files, with no LLM interpretation.</li>
-                <li><b>Paper verification</b> in post-processing checks every cited title and ID against papers.json, flagging unrecognised references.</li>
-                <li><b>SQL verification</b> in Text2SQL checks table/column existence and semantic alignment before executing any query.</li>
-                <li><b>Authority sanitisation</b> replaces overconfident LLM phrases ("has not been studied") with accurate ones ("does not appear in the indexed database").</li>
-            </ul>
-        </td>
-        <td style="font-size:12px;">Correctness is strongest on programmatic paths and weakest on gap analysis (red cue). A remaining challenge is verifying correctness of LLM-generated <em>commentary</em> on topic searches — the paper list is verified but the summary is not.</td>
-    </tr>
-    <tr>
-        <td><strong>Consistency</strong></td>
-        <td>Does the same query always produce the same answer?</td>
-        <td>
-            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
-                <li><b>Programmatic paths</b> are perfectly consistent — the same query always produces the identical response (deterministic code, no randomness).</li>
-                <li><b>Classification chain</b> is rule-based: the same query always follows the same response path.</li>
-                <li><b>Reliability cues</b> are determined by query type, not by LLM output — so the same query always gets the same cue.</li>
-            </ul>
-        </td>
-        <td style="font-size:12px;">LLM paths are inherently inconsistent — the same question may get different wording each time due to sampling. This could be mitigated by setting temperature=0 or by caching LLM responses for repeated queries. The more response paths are programmatic, the more consistent the agent is overall.</td>
-    </tr>
-    <tr>
-        <td><strong>Robustness</strong></td>
-        <td>Does the agent handle rephrased queries, edge cases, and unexpected inputs correctly?</td>
-        <td>
-            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
-                <li><b>Pattern-based detection</b> uses multiple variants per intent (e.g., researcher lookup matches full name, surname, first+surname, with word boundaries to avoid false positives like "pons" in "responsible").</li>
-                <li><b>Bilingual patterns</b> in Text2SQL handle both Spanish and English inputs for every intent.</li>
-                <li><b>Decision logic benchmark</b> (56 test cases) verifies that the classification chain correctly routes queries.</li>
-                <li><b>Off-topic detection</b> is placed last in the priority chain so that legitimate queries (projects, researchers) are never misclassified.</li>
-            </ul>
-        </td>
-        <td style="font-size:12px;">Pattern-based detection can miss novel phrasings — e.g., "Give me the bibliography of professor Smith" might not match researcher patterns. This could be improved with broader pattern sets or a lightweight intent classifier. The benchmark should be expanded with adversarial examples.</td>
-    </tr>
-    <tr>
-        <td><strong>Transparency</strong></td>
-        <td>Can the user understand how trustworthy the response is?</td>
-        <td>
-            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
-                <li><b>Reliability cues</b> (green/yellow/red/none) signal the trustworthiness of each response based on its source — whether it comes from verified data, AI interpretation, or speculation.</li>
-                <li><b>Crystal box mode</b> in Text2SQL shows the generated SQL query and a plain-language explanation, so the user can verify the AI translation.</li>
-                <li><b>Open documentation</b> of the agent's internal logic (this document) makes the decision process publicly visible and auditable.</li>
-            </ul>
-        </td>
-        <td style="font-size:12px;">Transparency could be deepened by indicating which specific data sources contributed to each response, and by showing the retrieved chunks alongside RAG responses so users can verify grounding directly.</td>
-    </tr>
-</table>
-
-<p style="margin-top:12px;">The key architectural insight is that <strong>programmatic response paths score high on all four dimensions simultaneously</strong>: they are correct (data from source), consistent (deterministic), robust (pattern-based classification is testable), and transparent (the response path is visible). Each query type moved from an LLM path to a programmatic path improves reliability across all four dimensions at once.</p>
-
-</div>
-
-<h2>Response Paths: A Methodology for Agent Development</h2>
-
-<div class="detail-panel show">
-<p>A <strong>response path</strong> is the complete route a query takes through the four stages (Perception → Reasoning → Action → Production). Each agent type can be characterised by the number and kind of response paths it supports. This offers a practical methodology for developing a new agent: <strong>start with the simplest response paths and progressively add more complex ones</strong>.</p>
-
-<h3 style="margin-top:16px;">Phase 1 — Single path (Oneshot)</h3>
-<p>Begin with a single response path: every query goes directly to the LLM with a system prompt. This is the fastest way to get a working agent. Focus on:</p>
-<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
-    <li>Writing a clear, constraining <strong>system prompt</strong> (identity, rules, scope)</li>
-    <li>Testing with representative queries to verify the LLM stays on topic</li>
-    <li>All responses get the same reliability cue (yellow) — or hide cues entirely</li>
-</ul>
-<div style="font-size:12px;color:#64748b;margin:8px 0 4px;"><b>Result:</b> 1 response path. Reliability: <span class="badge badge-yellow">Yellow</span> (all LLM).</div>
-
-<h3 style="margin-top:16px;">Phase 2 — Add retrieval (RAG)</h3>
-<p>Add a knowledge base (documents, markdown files) and a retrieval mechanism (BM25 keyword search or ChromaDB vector search). Now the LLM receives relevant context alongside the system prompt. Focus on:</p>
-<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
-    <li>Preparing and chunking the <strong>knowledge base</strong></li>
-    <li>Tuning the <strong>number of retrieved chunks</strong> (too few = hallucination, too many = noise)</li>
-    <li>Adding an <strong>off-topic check</strong> in Production to detect refusals and suppress cues for them</li>
-</ul>
-<div style="font-size:12px;color:#64748b;margin:8px 0 4px;"><b>Result:</b> 2 response paths (on-topic → <span class="badge badge-yellow">Yellow</span>, off-topic refusal → <span class="badge badge-none">None</span>).</div>
-
-<h3 style="margin-top:16px;">Phase 3 — Add programmatic early returns</h3>
-<p>Identify query types that can be answered <strong>without the LLM</strong> — these are faster, cheaper, and 100% reliable. Typical early returns:</p>
-<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
-    <li><strong>Meta-questions</strong> ("What can you do?") → build response from config.json</li>
-    <li><strong>Non-research tasks</strong> ("Write me an essay") → fixed refusal message</li>
-    <li><strong>Off-topic queries</strong> ("What is the weather?") → programmatic refusal listing in-scope topics</li>
-</ul>
-<p style="margin-top:6px;">Each early return adds a new response path with its own reliability cue (typically none, since refusals and meta-responses are not content claims).</p>
-<div style="font-size:12px;color:#64748b;margin:8px 0 4px;"><b>Result:</b> 4–5 response paths. New paths are <span class="badge badge-none">None</span> (no cue for honest responses).</div>
-
-<h3 style="margin-top:16px;">Phase 4 — Add structured data paths</h3>
-<p>If the agent has access to structured data (JSON files, databases, glossaries), add programmatic response paths that format this data directly — bypassing the LLM entirely. Examples:</p>
-<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
-    <li><strong>Researcher lookup</strong> → format papers, topics, affiliations from researchers.json</li>
-    <li><strong>Project queries</strong> → format title, grant ID, funder, budget from project_docs/</li>
-    <li><strong>Glossary definitions</strong> → return expert-written text from markdown</li>
-    <li><strong>Figure/map requests</strong> → build visualisation link from regex extraction</li>
-</ul>
-<p style="margin-top:6px;">These are the most valuable paths to add: they produce <span class="badge badge-green">Green</span> (verified data) responses and eliminate hallucination risk for common queries. Each path requires a <strong>detection function</strong> (pattern matching in the Reasoning stage) and a <strong>formatting function</strong> (data presentation in Production).</p>
-<div style="font-size:12px;color:#64748b;margin:8px 0 4px;"><b>Result:</b> 8–10 response paths. New paths are <span class="badge badge-green">Green</span> (programmatic).</div>
-
-<h3 style="margin-top:16px;">Phase 5 — Add mixed paths and navigation</h3>
-<p>For more complex agents, add paths that combine programmatic data with LLM interpretation, and navigation features for result sets:</p>
-<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
-    <li><strong>Topic search</strong> → programmatic paper list (<span class="badge badge-green">Green</span>) + LLM analytical commentary (<span class="badge badge-yellow">Yellow</span>)</li>
-    <li><strong>Gap analysis</strong> → LLM reasons about absences in the data (<span class="badge badge-red">Red</span>)</li>
-    <li><strong>Result navigation</strong> → show more, sort, filter, expand detail (no LLM, <span class="badge badge-none">None</span>)</li>
-    <li><strong>Query refinement</strong> → LLM modifies previous SQL/search (<span class="badge badge-yellow">Yellow</span>)</li>
-</ul>
-<div style="font-size:12px;color:#64748b;margin:8px 0 4px;"><b>Result:</b> 13+ response paths. Full spectrum of reliability cues.</div>
-
-<h3 style="margin-top:16px;">Summary: progressive path development</h3>
-<table>
-    <tr><th>Phase</th><th>Agent type</th><th>Paths</th><th>Key addition</th><th>Cues used</th></tr>
-    <tr><td>1</td><td>Oneshot</td><td>1</td><td>System prompt + LLM</td><td><span class="badge badge-yellow">Y</span></td></tr>
-    <tr><td>2</td><td>RAG</td><td>2</td><td>Knowledge base + retrieval</td><td><span class="badge badge-yellow">Y</span> <span class="badge badge-none">—</span></td></tr>
-    <tr><td>3</td><td>RAG + early returns</td><td>4–5</td><td>Programmatic refusals</td><td><span class="badge badge-yellow">Y</span> <span class="badge badge-none">—</span></td></tr>
-    <tr><td>4</td><td>Metadata+RAG</td><td>8–10</td><td>Structured data formatting</td><td><span class="badge badge-green">G</span> <span class="badge badge-yellow">Y</span> <span class="badge badge-none">—</span></td></tr>
-    <tr><td>5</td><td>Metadata+RAG (full)</td><td>13+</td><td>Mixed paths, navigation, gaps</td><td><span class="badge badge-green">G</span> <span class="badge badge-yellow">Y</span> <span class="badge badge-red">R</span> <span class="badge badge-none">—</span></td></tr>
-</table>
-
-<p style="margin-top:12px;">This progression reflects a fundamental trade-off: <strong>more response paths mean more development effort, but also higher reliability and lower LLM costs</strong>. Each programmatic path added is one fewer query that needs the LLM — making the agent faster, cheaper, and more trustworthy.</p>
-</div>
-
-<h2>How Reasoning Varies Across Agent Types</h2>
-<p style="font-size:13px;color:#475569;margin-bottom:12px;">The Reasoning stage is where the most significant architectural differences between agent types emerge. In simple agents, it is mechanical — the agent does very little analysis before acting. In complex agents, reasoning is a multi-step decision process that determines which data sources to use and which actions to perform.</p>
-
-<div class="detail-panel show">
-<table>
-    <tr><th style="width:180px;">Agent type</th><th>Reasoning implementation</th><th>Complexity</th></tr>
-    <tr>
-        <td><strong>Oneshot</strong></td>
-        <td><strong>None.</strong> The query is passed directly to the LLM with the system prompt. No classification, no retrieval, no decision-making. Every query follows the same path.</td>
-        <td style="text-align:center;">⬜</td>
-    </tr>
-    <tr>
-        <td><strong>RAG</strong></td>
-        <td><strong>Mechanical retrieval.</strong> The query is converted to a vector embedding and used to find similar document chunks in ChromaDB. The retrieval is automatic — there is no decision about <em>what kind</em> of question it is.</td>
-        <td style="text-align:center;">⬜⬜</td>
-    </tr>
-    <tr>
-        <td><strong>RAG Vectorless</strong></td>
-        <td><strong>Keyword retrieval.</strong> Same as RAG but uses BM25 keyword matching instead of vector similarity. The only decision is a post-hoc check: was the response off-topic?</td>
-        <td style="text-align:center;">⬜⬜</td>
-    </tr>
-    <tr>
-        <td><strong>Text2SQL</strong></td>
-        <td><strong>Intent detection.</strong> The agent first checks whether the user is navigating existing results (show more, sort, go back, expand a row) or asking a new question. Navigation intents are handled directly without the LLM. New questions go through SQL translation and verification.</td>
-        <td style="text-align:center;">⬜⬜⬜</td>
-    </tr>
-    <tr>
-        <td><strong>Metadata+RAG (EH)</strong></td>
-        <td><strong>Multi-step classification.</strong> The agent runs a priority chain of 12 checks to determine the query type: meta-question, off-topic, conceptual, project, researcher, topic search, gap analysis, figure request, etc. Each type is routed to a different data source and action. This is the most sophisticated reasoning in TOMMI.</td>
-        <td style="text-align:center;">⬜⬜⬜⬜⬜</td>
-    </tr>
-</table>
-</div>
-
 <h2>Comparison Across TOMMI Agent Types</h2>
 
 <div class="detail-panel show">
@@ -693,60 +494,7 @@ h2 {
 <div class="tab-content" id="tab-metadata">
 
 <h2>Metadata+RAG Agents (Excellence Hubs)</h2>
-<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The most complex TOMMI agent type, used for the UNINOVIS Excellence Hubs. Combines structured metadata (papers, researchers, projects, glossary) with document retrieval, interactive maps, and a multi-step decision logic. Unlike simpler agents (which have 1–2 response paths), Metadata+RAG agents have <strong>6 distinct response paths</strong>, each with different actions, production outputs, and reliability cues.</p>
-
-<div class="detail-panel show" style="margin-top:16px;">
-    <h3>1. Perception</h3>
-    <p>The agent receives the user's text query via the chat interface. It also receives session context: conversation history, session ID, model preference, and transparency level. <b>LLM: Not used.</b></p>
-
-    <h3 style="margin-top:12px;">2. Reasoning</h3>
-    <p>A priority chain of 13 classification checks identifies which response path the query should follow. The first match wins. This is where the agent's intelligence resides — it determines not just the answer, but the entire processing path (which data source to use, whether the LLM is needed, and which reliability cue to assign). The entire classification chain is rule-based and deterministic. <b>LLM: Not used.</b></p>
-
-    <h3 style="margin-top:12px;">3. Action &amp; 4. Production (path-specific)</h3>
-    <p>Each response path has its own action and production. This is the key architectural difference from simpler agent types:</p>
-    <table>
-        <tr><th>Response path</th><th>Reasoning (steps)</th><th>Action</th><th>Production</th></tr>
-        <tr>
-            <td><strong>Programmatic refusal/info</strong></td>
-            <td>1. Meta, 2. Non-research, 3. Disambiguation, 4. Off-topic</td>
-            <td>Return fixed text from <b>config.json</b> or code</td>
-            <td>Direct text. <span class="badge badge-none">No cue</span></td>
-        </tr>
-        <tr>
-            <td><strong>Figure / Map</strong></td>
-            <td>5. Figure request</td>
-            <td>Build map link from <b>regex extraction</b></td>
-            <td>Interactive Leaflet map. <span class="badge badge-green">Green</span></td>
-        </tr>
-        <tr>
-            <td><strong>Structured data</strong></td>
-            <td>6. Project, 7. Researcher, 8. Glossary</td>
-            <td>Format data from <b>project_docs/</b>, <b>researchers.json</b>, <b>Glossary.md</b></td>
-            <td>Formatted response. <span class="badge badge-yellow">Yellow</span> or <span class="badge badge-none">None</span></td>
-        </tr>
-        <tr>
-            <td><strong>LLM elaboration</strong></td>
-            <td>9. Expand command</td>
-            <td>Extract item #N, then <b>LLM elaborates</b></td>
-            <td>Elaborated text. <span class="badge badge-none">No cue</span></td>
-        </tr>
-        <tr>
-            <td><strong>LLM generation</strong></td>
-            <td>10. Gap analysis, 11. Conceptual, 12. Follow-up</td>
-            <td><b>LLM generates</b> from metadata, knowledge, or history</td>
-            <td>Post-processed text. <span class="badge badge-yellow">Yellow</span> / <span class="badge badge-red">Red</span></td>
-        </tr>
-        <tr>
-            <td><strong>Content query</strong></td>
-            <td>13. Topic search, affiliation, university papers, RAG fallback</td>
-            <td>Factual list from <b>papers.json</b> + <b>LLM</b> commentary</td>
-            <td>Data <span class="badge badge-green">Green</span> + commentary <span class="badge badge-yellow">Yellow</span></td>
-        </tr>
-    </table>
-    <p style="margin-top:8px;color:#64748b;font-size:12px;">The Reasoning stage selects the entire response path — determining which Action to perform, which data sources to use, whether the LLM is called, and which reliability cue to assign in Production.</p>
-</div>
-
-<p style="font-size:13px;color:#64748b;margin:16px 0 12px;">The diagram below summarises all six response paths through the four stages:</p>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The most complex TOMMI agent type, used for the UNINOVIS Excellence Hubs. Combines structured metadata (papers, researchers, projects, glossary) with document retrieval, interactive maps, and a multi-step decision logic. Unlike simpler agents (which have 1–2 response paths), Metadata+RAG agents have <strong>18 distinct response paths</strong> (13 classification steps + 5 content query sub-steps, grouped into 6 categories), each with different actions, production outputs, and reliability cues.</p>
 
 <!-- ── Branching flow diagram for Metadata+RAG ── -->
 <div class="branch-flow" style="grid-template-rows: auto repeat(13, auto);">
@@ -782,7 +530,6 @@ h2 {
 
     <!-- ── Group B: Figure/Map, green cue (row 6) ── -->
     <div class="bf-box bf-reason" style="grid-row:6;grid-column:3;">5. Figure / Map</div>
-
     <div class="bf-arrow" style="grid-row:6;grid-column:4;">▸</div>
     <div class="bf-box bf-action-green" style="grid-row:6;grid-column:5;">
         <b>Build map link</b><small>from regex extraction<br>+ structured DB</small>
@@ -792,19 +539,28 @@ h2 {
         Interactive map<br>+ <span class="badge badge-green">Green</span> cue
     </div>
 
-    <!-- ── Group C: Programmatic structured data, yellow/none (rows 7–9) ── -->
+    <!-- ── Group C1: Project + Glossary (rows 7–8) → Yellow ── -->
     <div class="bf-box bf-reason" style="grid-row:7;grid-column:3;">6. Project query</div>
-    <div class="bf-box bf-reason" style="grid-row:8;grid-column:3;">7. Researcher</div>
-    <div class="bf-box bf-reason" style="grid-row:9;grid-column:3;">8. Glossary</div>
+    <div class="bf-box bf-reason" style="grid-row:8;grid-column:3;">8. Glossary</div>
 
-
-    <div class="bf-arrow" style="grid-row:7/10;grid-column:4;">▸</div>
-    <div class="bf-box bf-action-green" style="grid-row:7/10;grid-column:5;">
-        <b>Format structured<br>data</b><small>from project_docs/,<br>researchers.json,<br>Glossary.md</small>
+    <div class="bf-arrow" style="grid-row:7/9;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-green" style="grid-row:7/9;grid-column:5;">
+        <b>Format structured<br>data</b><small>from project_docs/,<br>Glossary.md</small>
     </div>
-    <div class="bf-arrow" style="grid-row:7/10;grid-column:6;">▸</div>
-    <div class="bf-box bf-prod-yellow" style="grid-row:7/10;grid-column:7;">
-        Formatted response<br><span class="badge badge-yellow">Yellow</span> or <span class="badge badge-none">None</span>
+    <div class="bf-arrow" style="grid-row:7/9;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-yellow" style="grid-row:7/9;grid-column:7;">
+        Formatted response<small><span class="badge badge-yellow">Yellow</span></small>
+    </div>
+
+    <!-- ── Group C2: Researcher (row 9) → None ── -->
+    <div class="bf-box bf-reason" style="grid-row:9;grid-column:3;">7. Researcher</div>
+    <div class="bf-arrow" style="grid-row:9;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-green" style="grid-row:9;grid-column:5;">
+        <b>Format researcher<br>data</b><small>from researchers.json</small>
+    </div>
+    <div class="bf-arrow" style="grid-row:9;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-none" style="grid-row:9;grid-column:7;">
+        Papers + affiliations<small><span class="badge badge-none">No cue</span></small>
     </div>
 
     <!-- ── Group D: Expand (partial LLM) (row 10) ── -->
@@ -815,21 +571,31 @@ h2 {
     </div>
     <div class="bf-arrow" style="grid-row:10;grid-column:6;">▸</div>
     <div class="bf-box bf-prod-none" style="grid-row:10;grid-column:7;">
-        Elaborated text<small>No reliability cues</small>
+        Elaborated text<small><span class="badge badge-none">No cue</span></small>
     </div>
 
-    <!-- ── Group E: LLM required (rows 11–13) ── -->
+    <!-- ── Group E1: Gap analysis (row 11) → Red ── -->
     <div class="bf-box bf-reason-llm" style="grid-row:11;grid-column:3;">10. Gap analysis</div>
+    <div class="bf-arrow" style="grid-row:11;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-yellow" style="grid-row:11;grid-column:5;">
+        <b>LLM reasons</b><br>about absences<small>from metadata context</small>
+    </div>
+    <div class="bf-arrow" style="grid-row:11;grid-column:6;">▸</div>
+    <div class="bf-box" style="grid-row:11;grid-column:7;background:#f8d7da;border:2px solid #dc3545;">
+        Speculative text<small><span class="badge badge-red">Red</span></small>
+    </div>
+
+    <!-- ── Group E2: Conceptual + Follow-up (rows 12–13) → Yellow ── -->
     <div class="bf-box bf-reason-llm" style="grid-row:12;grid-column:3;">11. Conceptual</div>
     <div class="bf-box bf-reason-llm" style="grid-row:13;grid-column:3;">12. Follow-up</div>
 
-    <div class="bf-arrow" style="grid-row:11/14;grid-column:4;">▸</div>
-    <div class="bf-box bf-action-yellow" style="grid-row:11/14;grid-column:5;">
-        <b>LLM generates</b><br>from metadata,<br>knowledge, or history
+    <div class="bf-arrow" style="grid-row:12/14;grid-column:4;">▸</div>
+    <div class="bf-box bf-action-yellow" style="grid-row:12/14;grid-column:5;">
+        <b>LLM generates</b><br>from knowledge<br>or history
     </div>
-    <div class="bf-arrow" style="grid-row:11/14;grid-column:6;">▸</div>
-    <div class="bf-box bf-prod-yellow" style="grid-row:11/14;grid-column:7;">
-        LLM text +<br>post-processing<br><span class="badge badge-yellow">Yellow</span> / <span class="badge badge-red">Red</span>
+    <div class="bf-arrow" style="grid-row:12/14;grid-column:6;">▸</div>
+    <div class="bf-box bf-prod-yellow" style="grid-row:12/14;grid-column:7;">
+        Post-processed text<small><span class="badge badge-yellow">Yellow</span></small>
     </div>
 
     <!-- ── Group F: Content queries (row 14) ── -->
@@ -844,10 +610,14 @@ h2 {
     </div>
 </div>
 
-<p style="font-size:12px;color:#64748b;margin:8px 0 16px;">Steps in <span style="background:#fef9c3;padding:1px 4px;border-radius:3px;">yellow</span> bypass the LLM entirely — responses come from structured data files. Steps in <span style="background:#fef3c7;padding:1px 4px;border-radius:3px;border:1px solid #d97706;">orange</span> use the LLM for generation or elaboration. Note: step numbers reflect the classification priority order (see detailed flow below).</p>
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>1. Perception</h3>
+    <p>The agent receives the user's text query via the chat interface. It also receives session context: conversation history, session ID, model preference, and transparency level. <b>LLM: Not used.</b></p>
 
-<h2>Step-by-step detail</h2>
-<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The diagram above shows the 6 groups of paths through the agent. Below, each of the 13 reasoning steps is listed in classification priority order (first match wins). Click any step to see the detection method, data source, and technical details.</p>
+    <h3 style="margin-top:12px;">2. Reasoning</h3>
+    <p>A priority chain of 13 classification checks identifies which response path the query should follow. The first match wins. This is where the agent's intelligence resides — it determines the entire processing path: which data source to use, whether the LLM is needed, and which reliability cue to assign. The entire classification chain is rule-based and deterministic. <b>LLM: Not used.</b></p>
+    <p style="margin-top:8px;font-size:13px;color:#64748b;">Each of the 13 steps is listed below in classification priority order (first match wins). Click any step to see the detection method, data source, and source code.</p>
+</div>
 
 <div class="cue-legend">
     <div class="cue-item"><div class="cue-dot" style="background:#28a745;"></div> Green (verified data)</div>
@@ -860,49 +630,34 @@ h2 {
     <!-- Steps injected by JS -->
 </div>
 
-<!-- Detail now shown inline within each card -->
-
-<p style="margin-top:24px;font-size:14px;font-weight:600;color:#334155;">Content Query Context Chain</p>
-<p style="font-size:13px;color:#64748b;margin-bottom:12px;">When the classification above reaches step 13 (Content query), the agent needs to decide <em>which data source</em> to use. It runs a second priority chain — the first match wins:</p>
+<p style="margin-top:24px;font-size:14px;font-weight:600;color:#334155;">Content Query Context Chain (step 13)</p>
+<p style="font-size:13px;color:#64748b;margin-bottom:12px;">When the classification reaches step 13, the agent runs a second priority chain to decide <em>which data source</em> to use. The first match wins:</p>
 
 <div class="flow" id="context-chain">
     <!-- Steps injected by JS -->
 </div>
 
-<h2>Production</h2>
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>3. Action</h3>
+    <p>Depends on the response path selected during Reasoning. Of the 13 query types, <b>8 bypass the LLM entirely</b> and return programmatic responses from structured data. The remaining <b>5 use the LLM</b>: expand commands (partially), gap analysis, conceptual (not in glossary), follow-up, and content queries (for commentary). See the path table in the diagram above.</p>
 
-<h3 style="margin-top:12px;">Post-Processing Pipeline</h3>
-<p style="font-size:13px;color:#64748b;margin-bottom:12px;">When the output involves LLM-generated text, it passes through a rule-based post-processing pipeline before delivery. No LLM is used in this stage.</p>
+    <h3 style="margin-top:12px;">4. Production</h3>
+    <p>When the output involves LLM-generated text, it passes through a rule-based post-processing pipeline before delivery. A reliability cue (visible in the diagram above) is assigned based on the query type. <b>LLM: Not used.</b></p>
 
-<div class="pipeline" id="pipeline">
-    <!-- Steps injected by JS -->
-</div>
+    <p style="margin-top:10px;font-size:13px;font-weight:600;color:#334155;">Post-processing pipeline:</p>
 
-<p style="margin-top:16px;font-size:13px;color:#64748b;">Each step in detail:</p>
-<div class="detail-panel show">
-<table>
-    <tr><th style="width:40px;">#</th><th style="width:180px;">Step</th><th>What it does</th><th>When active</th></tr>
-    <tr><td>1</td><td><strong>Authority sanitisation</strong></td><td>Replaces overconfident phrases: "has not been studied" → "does not appear in the indexed database"; "well-known" → "commonly discussed"</td><td>Always</td></tr>
-    <tr><td>2</td><td><strong>Alliance name correction</strong></td><td>Fixes common LLM misspellings (e.g., "UNINOVOS" → "UNINOVIS")</td><td>Always</td></tr>
-    <tr><td>3</td><td><strong>Paper verification</strong></td><td>Checks quoted paper titles against papers.json. Flags unrecognised titles with ⚠️. Verifies that paper IDs match their titles.</td><td>Not for meta-questions or off-topic</td></tr>
-    <tr><td>4</td><td><strong>Unsolicited gap detection</strong></td><td>Detects when the LLM volunteers gap analysis the user didn't ask for. Injects a red banner before the speculative section.</td><td>When user didn't ask about gaps</td></tr>
-    <tr><td>5</td><td><strong>Off-topic detection</strong></td><td>Checks first 300 characters for refusal phrases. If detected, removes any banner (honest refusal needs no reliability cue).</td><td>Always (except conceptual queries)</td></tr>
-    <tr><td>6</td><td><strong>Humility rewriting</strong></td><td>Adds hedging prefixes to ungrounded claims. Moderate: hedge LLM-only claims. Strict: hedge LLM + web claims, add disclaimer footer.</td><td>If humility_postprocessing ≠ "off"</td></tr>
-</table>
-</div>
+    <div class="pipeline" id="pipeline">
+        <!-- Steps injected by JS -->
+    </div>
 
-<h3 style="margin-top:16px;">Reliability Cue Assignment</h3>
-<p style="font-size:13px;color:#64748b;margin-bottom:8px;">The reliability cue is determined by the query type (decided during Reasoning) and displayed as a coloured banner at the top of the response:</p>
-<div class="detail-panel show">
-    <table>
-        <tr><th>Response type</th><th>Cue</th><th>Rationale</th></tr>
-        <tr><td>Programmatic data (structured DB)</td><td><span class="badge badge-green">Green</span></td><td>Data comes directly from the database, no AI involved</td></tr>
-        <tr><td>AI interprets database content</td><td><span class="badge badge-yellow">Yellow</span></td><td>LLM summarises or formats real data</td></tr>
-        <tr><td>AI uses general knowledge (in-scope)</td><td><span class="badge badge-yellow">Yellow</span></td><td>Topic is within scope but not in the database</td></tr>
-        <tr><td>AI reasons about absence (gaps)</td><td><span class="badge badge-red">Red</span></td><td>Speculative — verify independently</td></tr>
-        <tr><td>Honest refusal (off-topic, meta, non-research)</td><td><span class="badge badge-none">None</span></td><td>Refusal is not unreliable content</td></tr>
-        <tr><td>Researcher disambiguation / lookup</td><td><span class="badge badge-none">None</span></td><td>Data from structured database or clarification</td></tr>
-        <tr><td>"How many" queries</td><td><span class="badge badge-yellow">Yellow + note</span></td><td>Counts may be approximate</td></tr>
+    <table style="margin-top:12px;">
+        <tr><th style="width:40px;">#</th><th style="width:180px;">Step</th><th>What it does</th><th>When active</th></tr>
+        <tr><td>1</td><td><strong>Authority sanitisation</strong></td><td>Replaces overconfident phrases: "has not been studied" → "does not appear in the indexed database"</td><td>Always</td></tr>
+        <tr><td>2</td><td><strong>Alliance name correction</strong></td><td>Fixes common LLM misspellings (e.g., "UNINOVOS" → "UNINOVIS")</td><td>Always</td></tr>
+        <tr><td>3</td><td><strong>Paper verification</strong></td><td>Checks quoted paper titles against papers.json. Flags unrecognised titles.</td><td>Not for meta-questions or off-topic</td></tr>
+        <tr><td>4</td><td><strong>Unsolicited gap detection</strong></td><td>Detects when the LLM volunteers gap analysis the user didn't ask for. Injects a red banner.</td><td>When user didn't ask about gaps</td></tr>
+        <tr><td>5</td><td><strong>Off-topic detection</strong></td><td>Checks first 300 characters for refusal phrases. If detected, removes any banner.</td><td>Always (except conceptual queries)</td></tr>
+        <tr><td>6</td><td><strong>Humility rewriting</strong></td><td>Adds hedging prefixes to ungrounded claims.</td><td>If humility_postprocessing ≠ "off"</td></tr>
     </table>
 </div>
 
@@ -916,7 +671,7 @@ h2 {
 <h2>RAG Agents (Vector-based retrieval)</h2>
 <p style="font-size:13px;color:#64748b;margin-bottom:12px;">RAG agents use ChromaDB vector embeddings to find semantically similar document chunks. Unlike BM25 (keyword matching), vector retrieval can find relevant content even when the exact words differ — e.g., "adversarial testing" matches "red-teaming".</p>
 
-<div class="branch-flow" style="grid-template-rows: auto auto;">
+<div class="branch-flow" style="grid-template-rows: auto auto auto;">
     <div class="bf-header" style="grid-row:1;grid-column:1;">Perception</div>
     <div style="grid-row:1;grid-column:2;"></div>
     <div class="bf-header" style="grid-row:1;grid-column:3;">Reasoning</div>
@@ -925,13 +680,25 @@ h2 {
     <div style="grid-row:1;grid-column:6;"></div>
     <div class="bf-header" style="grid-row:1;grid-column:7;">Production</div>
 
-    <div class="bf-box bf-perc" style="grid-row:2;grid-column:1;">User query</div>
-    <div class="bf-arrow" style="grid-row:2;grid-column:2;">▸</div>
-    <div class="bf-box bf-reason" style="grid-row:2;grid-column:3;"><b>ChromaDB</b><br>vector search<small>Semantic matching</small></div>
-    <div class="bf-arrow" style="grid-row:2;grid-column:4;">▸</div>
-    <div class="bf-box bf-action-yellow" style="grid-row:2;grid-column:5;"><b>LLM generates</b><br>from system prompt<br>+ chunks + user query<small>Always used</small></div>
-    <div class="bf-arrow" style="grid-row:2;grid-column:6;">▸</div>
-    <div class="bf-box bf-prod-yellow" style="grid-row:2;grid-column:7;">Post-processing<br>+ reliability cue<small><span class="badge badge-yellow">Yellow</span> or <span class="badge badge-none">None</span></small></div>
+    <!-- Perception spans both rows -->
+    <div class="bf-box bf-perc" style="grid-row:2/4;grid-column:1;">User query</div>
+    <div class="bf-arrow" style="grid-row:2/4;grid-column:2;">▸</div>
+
+    <!-- Reasoning spans both rows (same for both paths) -->
+    <div class="bf-box bf-reason" style="grid-row:2/4;grid-column:3;"><b>ChromaDB</b><br>vector search<small>Semantic matching</small></div>
+    <div class="bf-arrow" style="grid-row:2/4;grid-column:4;">▸</div>
+
+    <!-- Action spans both rows (LLM always used) -->
+    <div class="bf-box bf-action-yellow" style="grid-row:2/4;grid-column:5;"><b>LLM generates</b><br>from system prompt<br>+ chunks + user query<small>Always used</small></div>
+    <div class="bf-arrow" style="grid-row:2/4;grid-column:6;">▸</div>
+
+    <!-- Production: 2 paths (fork here) -->
+    <div class="bf-box bf-prod-yellow" style="grid-row:2;grid-column:7;">
+        On-topic response<br>+ post-processing<small><span class="badge badge-yellow">Yellow</span></small>
+    </div>
+    <div class="bf-box bf-prod-none" style="grid-row:3;grid-column:7;">
+        Off-topic refusal<br>detected<small><span class="badge badge-none">No cue</span></small>
+    </div>
 </div>
 
 <div class="detail-panel show" style="margin-top:16px;">
@@ -987,19 +754,6 @@ made a decision are more likely to trust it...</span>
     <p style="margin-top:8px;color:#64748b;font-size:12px;">Since all RAG responses pass through the LLM, the cue is always yellow. There is no programmatic path that would produce a green cue.</p>
 </div>
 
-<div class="detail-panel show" style="margin-top:16px;">
-    <h3>RAG vs RAG Vectorless</h3>
-    <table>
-        <tr><th>Feature</th><th>RAG (Vector)</th><th>RAG Vectorless (BM25)</th></tr>
-        <tr><td>Retrieval method</td><td>Vector similarity (ChromaDB)</td><td>BM25 keyword matching</td></tr>
-        <tr><td>Semantic matching</td><td>Yes — "adversarial testing" finds "red-teaming"</td><td>No — exact words only</td></tr>
-        <tr><td>Setup</td><td>Requires ChromaDB + embedding model</td><td>No dependencies — pure Python</td></tr>
-        <tr><td>Indexing</td><td>Embedding computation (slower)</td><td>Keyword extraction (fast)</td></tr>
-        <tr><td>Index storage</td><td><code>data/chroma_db/</code> (vector database)</td><td><code>data/chunk_db.json</code> (JSON file)</td></tr>
-        <tr><td>Best for</td><td>Large corpora, semantic queries</td><td>Small corpora, keyword-rich queries</td></tr>
-    </table>
-
-</div>
 
 </div>
 
@@ -1020,13 +774,25 @@ made a decision are more likely to trust it...</span>
     <div style="grid-row:1;grid-column:6;"></div>
     <div class="bf-header" style="grid-row:1;grid-column:7;">Production</div>
 
-    <div class="bf-box bf-perc" style="grid-row:2;grid-column:1;">User query</div>
-    <div class="bf-arrow" style="grid-row:2;grid-column:2;">▸</div>
-    <div class="bf-box bf-reason" style="grid-row:2;grid-column:3;"><b>BM25</b><br>keyword search<small>in chunk_db.json</small></div>
-    <div class="bf-arrow" style="grid-row:2;grid-column:4;">▸</div>
-    <div class="bf-box bf-action-yellow" style="grid-row:2;grid-column:5;"><b>LLM generates</b><br>from system prompt<br>+ chunks + user query<small>Always used</small></div>
-    <div class="bf-arrow" style="grid-row:2;grid-column:6;">▸</div>
-    <div class="bf-box bf-prod-yellow" style="grid-row:2;grid-column:7;">Off-topic check<br>+ procedural banner<small><span class="badge badge-yellow">Y</span> or <span class="badge badge-none">None</span></small></div>
+    <!-- Perception spans both rows -->
+    <div class="bf-box bf-perc" style="grid-row:2/4;grid-column:1;">User query</div>
+    <div class="bf-arrow" style="grid-row:2/4;grid-column:2;">▸</div>
+
+    <!-- Reasoning spans both rows -->
+    <div class="bf-box bf-reason" style="grid-row:2/4;grid-column:3;"><b>BM25</b><br>keyword search<small>in chunk_db.json</small></div>
+    <div class="bf-arrow" style="grid-row:2/4;grid-column:4;">▸</div>
+
+    <!-- Action spans both rows -->
+    <div class="bf-box bf-action-yellow" style="grid-row:2/4;grid-column:5;"><b>LLM generates</b><br>from system prompt<br>+ chunks + user query<small>Always used</small></div>
+    <div class="bf-arrow" style="grid-row:2/4;grid-column:6;">▸</div>
+
+    <!-- Production: 2 paths -->
+    <div class="bf-box bf-prod-yellow" style="grid-row:2;grid-column:7;">
+        On-topic response<br>+ post-processing<small><span class="badge badge-yellow">Yellow</span></small>
+    </div>
+    <div class="bf-box bf-prod-none" style="grid-row:3;grid-column:7;">
+        Off-topic refusal<br>detected<small><span class="badge badge-none">No cue</span></small>
+    </div>
 </div>
 
 <div class="detail-panel show" style="margin-top:16px;">
@@ -1084,6 +850,19 @@ oneshot (no retrieval)...</span>
     <p style="margin-top:8px;color:#64748b;font-size:12px;">RAG Vectorless agents do not use green cues (no structured metadata to serve programmatically) or red cues (no gap analysis capability). The off-topic detector scans only the first 300 characters to avoid false positives when the response quotes off-topic phrases in explanations.</p>
 </div>
 
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>RAG Vectorless vs RAG (Vector)</h3>
+    <table>
+        <tr><th>Feature</th><th>RAG Vectorless (BM25)</th><th>RAG (Vector)</th></tr>
+        <tr><td>Retrieval method</td><td>BM25 keyword matching</td><td>Vector similarity (ChromaDB)</td></tr>
+        <tr><td>Semantic matching</td><td>No — exact words only</td><td>Yes — "adversarial testing" finds "red-teaming"</td></tr>
+        <tr><td>Setup</td><td>No dependencies — pure Python</td><td>Requires ChromaDB + embedding model</td></tr>
+        <tr><td>Indexing</td><td>Keyword extraction (fast)</td><td>Embedding computation (slower)</td></tr>
+        <tr><td>Index storage</td><td><code>data/chunk_db.json</code> (JSON file)</td><td><code>data/chroma_db/</code> (vector database)</td></tr>
+        <tr><td>Best for</td><td>Small corpora, keyword-rich queries</td><td>Large corpora, semantic queries</td></tr>
+    </table>
+</div>
+
 </div>
 
 <!-- ============================================================ -->
@@ -1093,92 +872,6 @@ oneshot (no retrieval)...</span>
 
 <h2>Text2SQL Agents (Pisha, Algoria)</h2>
 <p style="font-size:13px;color:#64748b;margin-bottom:12px;">Text2SQL agents convert natural language to SQL queries. Unlike Oneshot and RAG agents (which have a single response path), Text2SQL agents have <strong>three distinct response paths</strong>, each with different actions and production outputs. The Reasoning stage determines which path the query follows.</p>
-
-<div class="detail-panel show" style="margin-top:16px;">
-    <h3>1. Perception</h3>
-    <p>The agent receives the user's text query. It also maintains session state: previous SQL query, previous results, operations history, and shown fields. <b>LLM: Not used.</b></p>
-
-    <h3 style="margin-top:12px;">2. Reasoning</h3>
-    <p>An 8-step intent detection chain identifies which response path the query should follow. The first match wins. This is where the agent's decision logic resides — it determines not just the answer, but the entire processing path. <b>LLM: Not used</b> — intent detection is pattern-based.</p>
-
-    <h3 style="margin-top:12px;">3. Action &amp; 4. Production (path-specific)</h3>
-    <p>Unlike simpler agents where every query follows the same action and production, here each response path has its own action and production:</p>
-    <table>
-        <tr><th>Response path</th><th>Reasoning</th><th>Action</th><th>Production</th></tr>
-        <tr>
-            <td><strong>New query</strong></td>
-            <td>No navigation or refinement pattern detected</td>
-            <td><b>LLM generates</b> SQL from DB schema + user query → verify → execute on SQLite DB</td>
-            <td>HTML table + <span class="badge badge-yellow">Yellow</span> cue + SQL display (crystal box)</td>
-        </tr>
-        <tr>
-            <td><strong>Refinement</strong></td>
-            <td>Refinement pattern detected + previous SQL exists</td>
-            <td><b>LLM modifies</b> previous SQL → verify → execute on SQLite DB</td>
-            <td>HTML table + <span class="badge badge-yellow">Yellow</span> cue + SQL display (crystal box)</td>
-        </tr>
-        <tr>
-            <td><strong>Navigation</strong></td>
-            <td>Show more, detail, back, history, show field, or sort detected</td>
-            <td>Read from <b>session state</b> — no DB access, no LLM</td>
-            <td>Re-render table or detail card. <span class="badge badge-none">No cue</span></td>
-        </tr>
-    </table>
-    <p style="margin-top:8px;color:#64748b;font-size:12px;">This is the key architectural difference from simpler agent types: the Reasoning stage does not just classify the query — it selects the entire response path, including which Action to perform and which Production output to generate.</p>
-
-    <h3 style="margin-top:16px;">Action detail: New query path (step 8)</h3>
-    <p style="font-size:12px;color:#64748b;margin-bottom:6px;">Unlike RAG agents (where the LLM generates a text answer), the Text2SQL Action stage involves <strong>two sub-steps</strong>: first the LLM translates the question to SQL, then the SQL is executed on the database. The LLM never sees the data — it only sees the schema.</p>
-
-    <p style="font-size:12px;font-weight:600;color:#334155;margin:10px 0 4px;">Sub-step 1: LLM translates question → SQL</p>
-    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:12px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:10px;">
-<span style="color:#64748b;">── System prompt ───────────────────────────────────</span>
-<span style="color:#c084fc;">You are a SQL expert. Convert the user's question
-into a SQLite SELECT query. Use only the tables and
-columns described in the schema below.</span>
-
-<span style="color:#64748b;">── Database schema (injected as context) ───────────</span>
-<span style="color:#86efac;">TABLE: destinations
-  host_institution      TEXT    -- University name
-  destination_country   TEXT    -- Country name
-  lang_1_name           TEXT    -- Required language
-  lang_1_cert_level     TEXT    -- Language level (B1, B2...)
-  student_vacancies     INTEGER -- Number of places
-  mobility_program      TEXT    -- Erasmus+, bilateral...
-  uma_faculties         TEXT    -- Faculty at UMA
-  uma_degrees           TEXT    -- Degree programme</span>
-
-<span style="color:#64748b;">── User query ──────────────────────────────────────</span>
-<span style="color:#60a5fa;">Agreements with universities in Germany that
-require English B2</span>
-    </div>
-
-    <p style="font-size:12px;color:#64748b;margin-bottom:4px;">The LLM responds with:</p>
-    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:10px;">
-<span style="color:#60a5fa;">SELECT</span> * <span style="color:#60a5fa;">FROM</span> destinations
-<span style="color:#60a5fa;">WHERE</span> destination_country = <span style="color:#86efac;">'Germany'</span>
-  <span style="color:#60a5fa;">AND</span> lang_1_name = <span style="color:#86efac;">'English'</span>
-  <span style="color:#60a5fa;">AND</span> lang_1_cert_level = <span style="color:#86efac;">'B2'</span>
-<span style="color:#60a5fa;">ORDER BY</span> host_institution;
-    </div>
-
-    <p style="font-size:12px;font-weight:600;color:#334155;margin:10px 0 4px;">Sub-step 2: Verify SQL → Execute on SQLite database</p>
-    <p style="font-size:12px;color:#64748b;margin-bottom:6px;">The generated SQL is verified (table/column existence, semantic alignment with the question) and then executed directly on the SQLite database. The results come from the DB, not from the LLM — the LLM was only used as a translator.</p>
-    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:10px;">
-<span style="color:#64748b;">── Verification ────────────────────────────────────</span>
-<span style="color:#86efac;">✓ Table "destinations" exists
-✓ Columns "destination_country", "lang_1_name",
-  "lang_1_cert_level" exist
-✓ Semantic check: "Germany" → destination_country ✓
-                   "English B2" → lang_1_name + level ✓</span>
-
-<span style="color:#64748b;">── Execution on SQLite DB ──────────────────────────</span>
-<span style="color:#60a5fa;">→ 12 rows returned</span>
-    </div>
-
-    <p style="font-size:12px;color:#64748b;">This is why the reliability cue is <span class="badge badge-yellow">Yellow</span>: the <b>data is real</b> (from the database), but the <b>translation is AI</b> — the LLM may have misunderstood the question. In Crystal box mode, the SQL and a plain-language explanation are shown so the user can verify the translation.</p>
-</div>
-
-<p style="font-size:13px;color:#64748b;margin:16px 0 12px;">The diagram below summarises all three response paths through the four stages:</p>
 
 <!-- ── Branching flow diagram ── -->
 <div class="branch-flow">
@@ -1246,32 +939,73 @@ require English B2</span>
     </div>
 </div>
 
-<p style="font-size:12px;color:#64748b;margin:8px 0 16px;">Steps 1–6 (navigation) require <b style="color:#16a34a;">no LLM</b> — data comes from session state. Steps 7–8 use the <b style="color:#d97706;">LLM</b> to generate or modify SQL, which is then verified and executed on the SQLite database.</p>
+<div class="detail-panel show" style="margin-top:16px;">
+    <h3>1. Perception</h3>
+    <p>The agent receives the user's text query. It also maintains session state: previous SQL query, previous results, operations history, and shown fields. <b>LLM: Not used.</b></p>
 
-<h2>Step-by-step detail</h2>
-<p style="font-size:13px;color:#64748b;margin-bottom:12px;">The diagram above shows the 8 possible paths. Below, each reasoning step is listed in priority order (first match wins). Click any step to see the detection method, data source, and technical details.</p>
+    <h3 style="margin-top:12px;">2. Reasoning</h3>
+    <p>An 8-step intent detection chain identifies which response path the query should follow. The first match wins. Each path leads to a different action and production (visible in the diagram above). <b>LLM: Not used</b> — intent detection is pattern-based.</p>
+    <p style="margin-top:8px;font-size:13px;color:#64748b;">Each step is listed below in priority order. Click any step for details and source code.</p>
+</div>
 
 <div class="flow" id="text2sql-flow">
     <!-- Steps injected by JS -->
 </div>
 
 <div class="detail-panel show" style="margin-top:16px;">
-    <h3>Production</h3>
+    <h3>3. Action</h3>
+    <p>Depends on the response path. For <b>navigation</b> (steps 3–8): the action reads from session state — no database access, no LLM. For <b>new queries and refinements</b> (steps 1–2): the action involves two sub-steps — the LLM translates the question to SQL, then the SQL is verified and executed on the database. The LLM never sees the data — it only sees the schema.</p>
 
-    <h3 style="margin-top:12px;">Reliability Cues</h3>
-    <table>
-        <tr><th>Response type</th><th>Cue</th><th>Rationale</th></tr>
-        <tr><td>Navigation (show more, sort, back, detail, field, history)</td><td><span class="badge badge-none">None</span></td><td>No AI involved — re-displaying data from session state</td></tr>
-        <tr><td>Query translated and executed successfully</td><td><span class="badge badge-yellow">Yellow</span></td><td>AI translation risk — the SQL may not match the intent</td></tr>
-        <tr><td>Semantic mismatch detected</td><td>Blocked / Warning</td><td>Stringent: blocked. Tolerant: warning shown but query executes</td></tr>
-    </table>
+    <p style="margin-top:10px;font-size:13px;font-weight:600;color:#334155;">Example: what the LLM receives (new query)</p>
+    <p style="font-size:12px;color:#64748b;margin-bottom:6px;">For <em>"Agreements with universities in Germany that require English B2"</em>:</p>
 
-    <h3 style="margin-top:12px;">Transparency Levels</h3>
-    <table>
-        <tr><th>Level</th><th>Shows</th></tr>
-        <tr><td>Crystal box</td><td>SQL query + plain-language explanation + verification badges</td></tr>
-        <tr><td>Black box</td><td>Results only</td></tr>
-    </table>
+    <p style="font-size:12px;font-weight:600;color:#334155;margin:8px 0 4px;">Sub-step 1: LLM translates question → SQL</p>
+    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:12px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:10px;">
+<span style="color:#64748b;">── System prompt ───────────────────────────────────</span>
+<span style="color:#c084fc;">You are a SQL expert. Convert the user's question
+into a SQLite SELECT query. Use only the tables and
+columns described in the schema below.</span>
+
+<span style="color:#64748b;">── Database schema (injected as context) ───────────</span>
+<span style="color:#86efac;">TABLE: destinations
+  host_institution      TEXT    -- University name
+  destination_country   TEXT    -- Country name
+  lang_1_name           TEXT    -- Required language
+  lang_1_cert_level     TEXT    -- Language level (B1, B2...)
+  student_vacancies     INTEGER -- Number of places
+  mobility_program      TEXT    -- Erasmus+, bilateral...
+  uma_faculties         TEXT    -- Faculty at UMA
+  uma_degrees           TEXT    -- Degree programme</span>
+
+<span style="color:#64748b;">── User query ──────────────────────────────────────</span>
+<span style="color:#60a5fa;">Agreements with universities in Germany that
+require English B2</span>
+    </div>
+
+    <p style="font-size:12px;color:#64748b;margin-bottom:4px;">The LLM responds with:</p>
+    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:10px;">
+<span style="color:#60a5fa;">SELECT</span> * <span style="color:#60a5fa;">FROM</span> destinations
+<span style="color:#60a5fa;">WHERE</span> destination_country = <span style="color:#86efac;">'Germany'</span>
+  <span style="color:#60a5fa;">AND</span> lang_1_name = <span style="color:#86efac;">'English'</span>
+  <span style="color:#60a5fa;">AND</span> lang_1_cert_level = <span style="color:#86efac;">'B2'</span>
+<span style="color:#60a5fa;">ORDER BY</span> host_institution;
+    </div>
+
+    <p style="font-size:12px;font-weight:600;color:#334155;margin:10px 0 4px;">Sub-step 2: Verify SQL → Execute on SQLite database</p>
+    <div style="background:#1e293b;color:#e2e8f0;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:11px;line-height:1.5;overflow-x:auto;margin-bottom:10px;">
+<span style="color:#64748b;">── Verification ────────────────────────────────────</span>
+<span style="color:#86efac;">✓ Table "destinations" exists
+✓ Columns "destination_country", "lang_1_name",
+  "lang_1_cert_level" exist
+✓ Semantic check: "Germany" → destination_country ✓
+                   "English B2" → lang_1_name + level ✓</span>
+
+<span style="color:#64748b;">── Execution on SQLite DB ──────────────────────────</span>
+<span style="color:#60a5fa;">→ 12 rows returned</span>
+    </div>
+
+    <h3 style="margin-top:12px;">4. Production</h3>
+    <p>Results are formatted as HTML tables with expandable details. The reliability cue (visible in the diagram) is <span class="badge badge-yellow">Yellow</span> for LLM-translated queries (the data is real but the translation is AI) and <span class="badge badge-none">None</span> for navigation (no AI involved). In Crystal box mode, the SQL query and a plain-language explanation are shown so the user can verify the translation. <b>LLM: Not used</b> — formatting is rule-based.</p>
 </div>
 
 </div>
@@ -1378,6 +1112,271 @@ that answers questions</span>
         <li>Speed is important (no retrieval overhead)</li>
     </ul>
     <p style="margin-top:8px;">For tasks requiring grounded, verifiable answers from specific data, use RAG or Metadata+RAG agents instead.</p>
+</div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- KEY INSIGHTS -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-insights">
+
+<h2>Key Insights for Agent Design</h2>
+
+<div class="intro">
+<p>This section examines three cross-cutting topics that provide a practical framework for designing, building, and evaluating AI agents:</p>
+<ul style="margin:10px 0 0 20px;line-height:1.8;">
+    <li><strong>Handling Reliability</strong> — How to communicate the trustworthiness of each response to the user, and why reliability depends on the grounding of the response path.</li>
+    <li><strong>Choosing the Right Agent Type</strong> — How to select the appropriate agent architecture based on your data, your users' queries, and your reliability requirements.</li>
+    <li><strong>Critical Architectural Elements</strong> — The key building blocks of every agent: system prompts, knowledge bases, and response paths.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<!-- 1. HANDLING RELIABILITY -->
+<!-- ============================================ -->
+<h2>Handling Reliability</h2>
+
+<div class="detail-panel show">
+<p>Reliability is a central challenge in AI agent design. As Rabanser et al. (2025) argue, <em>"reliability is not a single property but a multidimensional concept"</em> that encompasses correctness, consistency, robustness, and transparency <a href="#references">[1]</a>. An agent may produce a correct answer for one query and hallucinate on a similar one — and the user has no way to tell the difference unless the system provides <strong>reliability signals</strong>.</p>
+
+<p style="margin-top:8px;">In the TOMMI platform, reliability is addressed through two complementary mechanisms: (1) <strong>minimising LLM dependence</strong> by routing queries to programmatic, deterministic response paths whenever possible, and (2) <strong>reliability cues</strong> — visual indicators that communicate to the user how much the response depends on AI interpretation vs. verified data. The cue colour reflects the <em>structural grounding</em> of the response path, not a confidence score.</p>
+
+<p style="margin-top:8px;">The reliability of an AI agent's response correlates with the <strong>amount of relevant, controlled context</strong> provided to the LLM. Three factors determine this:</p>
+
+<table>
+    <tr><th style="width:160px;">Factor</th><th>Description</th><th>Effect on reliability</th></tr>
+    <tr><td><strong>Context relevance</strong></td><td>Does the injected context (retrieved chunks, glossary entries, paper data) match the user's query?</td><td>High relevance → LLM is constrained to accurate information → lower hallucination risk</td></tr>
+    <tr><td><strong>Context volume</strong></td><td>How much relevant data is injected into the LLM prompt?</td><td>More relevant context → LLM has more material to draw from → less need to invent</td></tr>
+    <tr><td><strong>Instruction quality</strong></td><td>How well do the system prompt rules constrain the LLM? (e.g., "only answer from provided context", "say you don't know if uncertain")</td><td>Stricter rules → LLM less likely to hallucinate beyond the context</td></tr>
+</table>
+
+<p style="margin-top:12px;">This suggests a spectrum from green (fully grounded) to red (poorly grounded):</p>
+
+<table>
+    <tr><th style="width:60px;">Cue</th><th style="width:30%;">Grounding level</th><th>Examples</th></tr>
+    <tr><td><span class="badge badge-green">Green</span></td><td><strong>Programmatic.</strong> The response is built directly from structured data files, without involving the LLM. Since no AI interpretation is involved, the response is 100% faithful to the source data.</td><td><em>"Papers by Rubén González"</em> → the agent looks up the name in a researchers file and returns the exact list of papers stored there.<br><br><em>"What is explainable AI?"</em> → the agent finds the term in a curated glossary and returns the expert-written definition verbatim.</td></tr>
+    <tr><td><span class="badge badge-yellow">Yellow</span></td><td><strong>LLM well-grounded.</strong> The LLM generates the response, but it has been given relevant data as context. The AI interprets and summarises this data, so the response is informed but may not be perfectly faithful.</td><td><em>"What are the main research topics at THUAS?"</em> → the agent retrieves relevant papers and provides them to the LLM, which writes a summary. The paper list is real, but the summary is AI interpretation.</td></tr>
+    <tr><td><span class="badge badge-red">Red</span></td><td><strong>LLM poorly grounded.</strong> The topic has little or no representation in the available data. The LLM must reason from general knowledge or infer what is <em>absent</em> — both inherently speculative.</td><td><em>"What responsible AI topics have not been studied?"</em> → the LLM must reason about what is <em>missing</em> from the database — a speculative task with high hallucination risk.</td></tr>
+</table>
+
+<h3 style="margin-top:16px;">A note on dynamic scoring</h3>
+<p>At least theoretically, reliability could be computed dynamically — for example, based on the number of retrieved chunks or their relevance scores. However, this would introduce instability (the same query could get different cues each time), arbitrary thresholds, and user confusion. It would also create a transparency paradox: a black-box estimation inside the transparency system itself. Instead, TOMMI assigns cues based on <strong>query type</strong>, which is determined by the deterministic classification chain — making the cue predictable, explainable, and stable.</p>
+
+<h3 style="margin-top:16px;">The four dimensions of reliability</h3>
+<p>Rabanser et al. <a href="#references">[1]</a> identify four dimensions of AI agent reliability. The following table analyses how each is addressed in TOMMI:</p>
+
+<table>
+    <tr><th style="width:120px;">Dimension</th><th>Definition</th><th>How TOMMI addresses it</th><th>Limitations &amp; opportunities</th></tr>
+    <tr>
+        <td><strong>Correctness</strong></td>
+        <td>Is the response factually accurate?</td>
+        <td>
+            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
+                <li><b>Programmatic paths</b> (8 of 13 in Metadata+RAG) are correct by construction.</li>
+                <li><b>Paper verification</b> checks every cited title against papers.json.</li>
+                <li><b>SQL verification</b> checks table/column existence and semantic alignment.</li>
+                <li><b>Authority sanitisation</b> replaces overconfident LLM phrases.</li>
+            </ul>
+        </td>
+        <td style="font-size:12px;">Strongest on programmatic paths, weakest on gap analysis. LLM commentary on topic searches is not verified.</td>
+    </tr>
+    <tr>
+        <td><strong>Consistency</strong></td>
+        <td>Same query → same answer?</td>
+        <td>
+            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
+                <li><b>Programmatic paths</b> are perfectly consistent (deterministic).</li>
+                <li><b>Classification chain</b> is rule-based: same query → same path.</li>
+                <li><b>Reliability cues</b> depend on query type, not LLM output.</li>
+            </ul>
+        </td>
+        <td style="font-size:12px;">LLM paths are inherently inconsistent — asking the same question twice may produce differently worded answers. This could be reduced by making the LLM more deterministic (setting <code>temperature=0</code>) or by storing previous answers (<code>caching</code>). The more response paths are programmatic, the more consistent the agent is overall.</td>
+    </tr>
+    <tr>
+        <td><strong>Robustness</strong></td>
+        <td>Handles rephrasing and edge cases?</td>
+        <td>
+            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
+                <li><b>Pattern-based detection</b> with multiple variants per intent.</li>
+                <li><b>Bilingual patterns</b> (Spanish/English) in Text2SQL.</li>
+                <li><b>Decision logic benchmark</b> (56 test cases).</li>
+            </ul>
+        </td>
+        <td style="font-size:12px;">Novel phrasings may miss patterns. Could use broader pattern sets or a lightweight intent classifier.</td>
+    </tr>
+    <tr>
+        <td><strong>Transparency</strong></td>
+        <td>Can the user assess trustworthiness?</td>
+        <td>
+            <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
+                <li><b>Reliability cues</b> signal trustworthiness based on response source.</li>
+                <li><b>Crystal box mode</b> shows generated SQL for verification.</li>
+                <li><b>Open documentation</b> makes the decision process auditable.</li>
+            </ul>
+        </td>
+        <td style="font-size:12px;">Could show which data sources contributed to each response.</td>
+    </tr>
+</table>
+
+<p style="margin-top:12px;">The key insight is that <strong>programmatic response paths score high on all four dimensions simultaneously</strong>: correct, consistent, robust, and transparent. Each query moved from an LLM path to a programmatic path improves reliability across all dimensions at once.</p>
+</div>
+
+<!-- ============================================ -->
+<!-- 2. CHOOSING THE RIGHT AGENT TYPE -->
+<!-- ============================================ -->
+<h2>Choosing the Right Agent Type</h2>
+
+<div class="detail-panel show">
+<p>The choice of agent type should be driven by three questions about your specific use case:</p>
+
+<h3 style="margin-top:12px;">Question 1: What kind of data do you have?</h3>
+<table>
+    <tr><th>Your data</th><th>Recommended type</th><th>Why</th></tr>
+    <tr><td>No data — the LLM's general knowledge is sufficient</td><td><strong>Oneshot</strong></td><td>No retrieval overhead. The system prompt defines the agent's expertise. Suitable for creative tasks, prompt design, brainstorming.</td></tr>
+    <tr><td>Unstructured documents (PDFs, markdown, web pages)</td><td><strong>RAG</strong> or <strong>RAG Vectorless</strong></td><td>Documents are chunked and searched. RAG (vector) for semantic queries; RAG Vectorless (BM25) for keyword-rich content or simpler setups.</td></tr>
+    <tr><td>A structured database (SQLite, PostgreSQL)</td><td><strong>Text2SQL</strong></td><td>The LLM translates questions to SQL. Results come directly from the database — factual and precise.</td></tr>
+    <tr><td>Structured metadata (JSON) + unstructured documents + glossaries</td><td><strong>Metadata+RAG</strong></td><td>The most capable type. Combines programmatic responses for structured data with LLM-based responses for open-ended queries.</td></tr>
+</table>
+
+<h3 style="margin-top:16px;">Question 2: What kind of queries will users ask?</h3>
+<table>
+    <tr><th>Query characteristics</th><th>Recommended type</th><th>Why</th></tr>
+    <tr><td>Open-ended, creative, no single correct answer</td><td><strong>Oneshot</strong></td><td>No grounding data needed — the LLM's flexibility is the feature.</td></tr>
+    <tr><td>Factual questions about documents ("What does the policy say about X?")</td><td><strong>RAG / RAG Vectorless</strong></td><td>The answer is in the documents. Retrieval finds the relevant passages.</td></tr>
+    <tr><td>Quantitative queries about structured data ("How many agreements with Germany?")</td><td><strong>Text2SQL</strong></td><td>SQL can express filters, counts, and aggregations precisely.</td></tr>
+    <tr><td>Mixed: factual lookups + conceptual questions + data exploration</td><td><strong>Metadata+RAG</strong></td><td>Different query types need different response paths. The classification chain routes each query optimally.</td></tr>
+</table>
+
+<h3 style="margin-top:16px;">Question 3: How important is reliability?</h3>
+<table>
+    <tr><th>Reliability need</th><th>Recommended type</th><th>Why</th></tr>
+    <tr><td>Low — approximate answers are acceptable</td><td><strong>Oneshot</strong> or <strong>RAG</strong></td><td>Fewer response paths, simpler architecture, but all responses go through the LLM.</td></tr>
+    <tr><td>Medium — most answers should be accurate</td><td><strong>RAG Vectorless</strong> or <strong>Text2SQL</strong></td><td>RAG Vectorless grounds responses in documents. Text2SQL grounds responses in database results.</td></tr>
+    <tr><td>High — critical that common queries are 100% accurate</td><td><strong>Metadata+RAG</strong></td><td>Programmatic paths bypass the LLM for common query types, ensuring deterministic, verifiable responses.</td></tr>
+</table>
+
+<h3 style="margin-top:16px;">How Reasoning complexity varies</h3>
+<p style="font-size:13px;color:#475569;margin-bottom:8px;">The choice of agent type directly determines the complexity of the Reasoning stage — which is where the most significant architectural differences emerge:</p>
+
+<table>
+    <tr><th style="width:180px;">Agent type</th><th>Reasoning</th><th>Response paths</th><th>LLM usage</th></tr>
+    <tr>
+        <td><strong>Oneshot</strong></td>
+        <td>None — every query follows the same path</td>
+        <td>1</td>
+        <td>Always (100%)</td>
+    </tr>
+    <tr>
+        <td><strong>RAG / RAG Vectorless</strong></td>
+        <td>Mechanical retrieval (vector or keyword)</td>
+        <td>2</td>
+        <td>Always (100%)</td>
+    </tr>
+    <tr>
+        <td><strong>Text2SQL</strong></td>
+        <td>8-step intent detection chain</td>
+        <td>8</td>
+        <td>New queries only (~25%)</td>
+    </tr>
+    <tr>
+        <td><strong>Metadata+RAG</strong></td>
+        <td>13-step classification chain + 5-step content sub-chain</td>
+        <td>18</td>
+        <td>5 of 18 paths (~28%)</td>
+    </tr>
+</table>
+<p style="margin-top:8px;color:#64748b;font-size:12px;">More response paths mean more development effort, but also higher reliability and lower LLM costs. The trade-off is explicit: each programmatic path added is one fewer query that needs the LLM.</p>
+</div>
+
+<!-- ============================================ -->
+<!-- 3. CRITICAL ARCHITECTURAL ELEMENTS -->
+<!-- ============================================ -->
+<h2>Critical Architectural Elements</h2>
+
+<div class="detail-panel show">
+<p>Regardless of agent type, three architectural elements determine the quality of the agent's responses. Getting these right is more important than the choice of agent type itself.</p>
+
+<h3 style="margin-top:12px;">System Prompts</h3>
+<p>The system prompt is the single most important element of any agent. It defines who the agent is, what it can do, and how it should behave. In TOMMI, system prompts are stored in <code>prompts.json</code> and structured into three sections, activated by the <strong>prompt level</strong> setting:</p>
+
+<table>
+    <tr><th style="width:120px;">Section</th><th>Active at</th><th>Purpose</th><th>Example content</th></tr>
+    <tr>
+        <td><strong>Identity</strong></td>
+        <td>All levels</td>
+        <td>Defines who the agent is and its core purpose. Always present.</td>
+        <td><em>"You are a research assistant for the UNINOVIS Excellence Hub on Responsible AI. You help users explore research publications, projects, and researchers."</em></td>
+    </tr>
+    <tr>
+        <td><strong>Rules</strong></td>
+        <td>Tolerant, Stringent</td>
+        <td>Behavioural guidelines: tone, communication style, what to include/exclude in responses.</td>
+        <td><em>"Always cite the paper title and authors when referencing a publication. Never invent paper titles. If you are unsure, say so."</em></td>
+    </tr>
+    <tr>
+        <td><strong>Strict</strong></td>
+        <td>Stringent only</td>
+        <td>Hard limits, prohibitions, and fallback instructions. The strongest constraints.</td>
+        <td><em>"NEVER claim that a topic has not been studied unless the database search returned zero results. NEVER generate citation counts — the database does not contain this information."</em></td>
+    </tr>
+</table>
+
+<h3 style="margin-top:16px;">Guidelines for writing effective system prompts</h3>
+<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
+    <li><strong>Be specific, not generic.</strong> "You are a helpful assistant" is weak. "You are a research assistant specialising in responsible AI publications from 7 European universities" is strong — it constrains the LLM's scope.</li>
+    <li><strong>Define the boundaries explicitly.</strong> State what the agent should NOT do: "Do not write essays, translate text, or answer questions outside your domain."</li>
+    <li><strong>Specify the output format.</strong> "Present results as a numbered list with title, authors, and year" gives the LLM a clear template.</li>
+    <li><strong>Anticipate failure modes.</strong> "If you cannot find the answer in the provided context, say 'This topic does not appear in the indexed database' rather than guessing."</li>
+    <li><strong>Use the Strict section for hard rules.</strong> Rules like "NEVER invent paper titles" should be in the Strict section, not in the general Rules — they must be enforced even when the LLM is tempted to fill gaps.</li>
+    <li><strong>Test with adversarial queries.</strong> Try queries designed to break the agent: off-topic requests, ambiguous phrasing, requests for information that doesn't exist.</li>
+</ul>
+
+<h3 style="margin-top:16px;">Knowledge Base Design</h3>
+<p>For RAG, RAG Vectorless, and Metadata+RAG agents, the knowledge base is the second critical element. The LLM can only answer from what it is given — poor knowledge base design leads to poor answers.</p>
+
+<table>
+    <tr><th style="width:180px;">Decision</th><th>Options</th><th>Trade-offs</th></tr>
+    <tr>
+        <td><strong>Retrieval method</strong></td>
+        <td>BM25 (keyword) vs ChromaDB (vector)</td>
+        <td>BM25 is simpler, faster, and requires no dependencies — but only matches exact words. ChromaDB finds semantically similar content ("adversarial testing" matches "red-teaming") but requires an embedding model.</td>
+    </tr>
+    <tr>
+        <td><strong>Chunk size</strong></td>
+        <td>Small (100–200 words) vs Large (500–1000 words)</td>
+        <td>Small chunks are more precise but may lack context. Large chunks provide more context but may include irrelevant text. Typical: 300–500 words with 50-word overlap.</td>
+    </tr>
+    <tr>
+        <td><strong>Number of chunks retrieved</strong></td>
+        <td>Few (3–5) vs Many (10–20)</td>
+        <td>Fewer chunks = less noise but risk missing relevant content. More chunks = better coverage but more LLM cost and potential confusion. Start with 5, tune based on results.</td>
+    </tr>
+    <tr>
+        <td><strong>Data format</strong></td>
+        <td>Unstructured (documents) vs Structured (JSON, DB)</td>
+        <td>Unstructured data must be chunked and retrieved — the LLM interprets it (yellow cue). Structured data can be served programmatically — no LLM needed (green cue). Use structured data wherever possible.</td>
+    </tr>
+</table>
+
+<h3 style="margin-top:16px;">Response Path Design</h3>
+<p>A <strong>response path</strong> is the complete route a query takes through the four stages (Perception → Reasoning → Action → Production). The number and kind of response paths determine the agent's reliability and efficiency.</p>
+
+<p style="margin-top:8px;">When designing response paths, consider:</p>
+<ul style="margin:8px 0 0 20px;font-size:13px;color:#475569;">
+    <li><strong>Which queries can be answered without the LLM?</strong> Every programmatic path is faster, cheaper, and 100% reliable. Common candidates: meta-questions ("What can you do?"), refusals (off-topic, non-research tasks), lookups in structured data (researcher, project, glossary).</li>
+    <li><strong>Which queries need the LLM but can be grounded?</strong> Provide as much relevant context as possible. Topic searches, for example, can combine a programmatic paper list (green) with LLM commentary (yellow).</li>
+    <li><strong>Which queries are inherently speculative?</strong> Gap analysis, conceptual questions outside the glossary, and follow-ups without context are poorly grounded — assign red cues and consider whether these paths are worth supporting.</li>
+    <li><strong>What reliability cue does each path get?</strong> The cue should reflect the structural grounding of the path, not a confidence score. Programmatic → green. LLM with context → yellow. LLM without context → red. Refusals → none.</li>
+</ul>
+
+<table>
+    <tr><th>Agent type</th><th>Paths</th><th>Key design focus</th></tr>
+    <tr><td><strong>Oneshot</strong></td><td>1</td><td>System prompt quality is everything — it's the only thing constraining the LLM.</td></tr>
+    <tr><td><strong>RAG / RAG Vectorless</strong></td><td>2</td><td>Knowledge base quality and chunk design. Off-topic check in Production.</td></tr>
+    <tr><td><strong>Text2SQL</strong></td><td>8</td><td>Intent detection patterns (bilingual). SQL verification. Session state for navigation.</td></tr>
+    <tr><td><strong>Metadata+RAG</strong></td><td>18</td><td>13-step classification + 5-step content sub-chain. Programmatic formatting. Post-processing pipeline.</td></tr>
+</table>
 </div>
 
 </div>
