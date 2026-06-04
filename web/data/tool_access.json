@@ -1,6 +1,5 @@
 {
   "directory": [
-    "public",
     "admin_staff",
     "teaching_staff",
     "tester",
@@ -50,7 +49,6 @@
     "superuser"
   ],
   "unigracon": [
-    "public",
     "admin_staff",
     "teaching_staff",
     "tester",

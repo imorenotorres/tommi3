@@ -615,7 +615,7 @@ h2 {
     <p>The agent receives the user's text query via the chat interface. It also receives session context: conversation history, session ID, model preference, and transparency level. <b>LLM: Not used.</b></p>
 
     <h3 style="margin-top:12px;">2. Reasoning</h3>
-    <p>A priority chain of 13 classification checks identifies which response path the query should follow. The first match wins. This is where the agent's intelligence resides — it determines the entire processing path: which data source to use, whether the LLM is needed, and which reliability cue to assign. The entire classification chain is rule-based and deterministic. <b>LLM: Not used.</b></p>
+    <p>Before classification, the query is <strong>normalised</strong>: a synonym expansion step replaces common variants with canonical terms (e.g., "publications" → "papers", "visualise" → "figure", "define" → "what is") and strips academic titles ("Professor", "Dr."). Researcher name matching is accent-insensitive ("Ruben Gonzalez" matches "Rubén González"). A priority chain of 13 classification checks then identifies which response path the query should follow. The first match wins. The entire chain is rule-based and deterministic. <b>LLM: Not used.</b></p>
     <p style="margin-top:8px;font-size:13px;color:#64748b;">Each of the 13 steps is listed below in classification priority order (first match wins). Click any step to see the detection method, data source, and source code.</p>
 </div>
 
@@ -1198,12 +1198,15 @@ that answers questions</span>
         <td>Handles rephrasing and edge cases?</td>
         <td>
             <ul style="margin:0 0 0 16px;padding:0;font-size:12px;">
+                <li><b>Synonym normalisation</b> expands ~50 synonyms before classification (e.g., "publications" → "papers", "visualise" → "figure", "define" → "what is").</li>
+                <li><b>Accent-insensitive matching</b> for researcher names (e.g., "Ruben Gonzalez" matches "Rubén González").</li>
                 <li><b>Pattern-based detection</b> with multiple variants per intent.</li>
                 <li><b>Bilingual patterns</b> (Spanish/English) in Text2SQL.</li>
-                <li><b>Decision logic benchmark</b> (56 test cases).</li>
+                <li><b>Topic extraction guards</b> reject vague/generic queries (blocklist + generic word filter).</li>
+                <li><b>Reliability benchmark</b> (70 classification tests + 44 paraphrase robustness tests).</li>
             </ul>
         </td>
-        <td style="font-size:12px;">Novel phrasings may miss patterns. Could use broader pattern sets or a lightweight intent classifier.</td>
+        <td style="font-size:12px;">Novel phrasings not covered by the synonym map may still miss. The synonym approach trades coverage for transparency — each mapping is auditable, unlike a black-box classifier.</td>
     </tr>
     <tr>
         <td><strong>Transparency</strong></td>
@@ -1220,6 +1223,32 @@ that answers questions</span>
 </table>
 
 <p style="margin-top:12px;">The key insight is that <strong>programmatic response paths score high on all four dimensions simultaneously</strong>: correct, consistent, robust, and transparent. Each query moved from an LLM path to a programmatic path improves reliability across all dimensions at once.</p>
+
+<h3 style="margin-top:16px;">Example: a real failure analysed through the four dimensions</h3>
+<p>A user types <em>"Things by topic"</em> — a vague, possibly accidental query. The agent correctly reports <strong>"No papers found"</strong> (the topic search returns 0 results). However, it then calls the LLM for commentary. Since the LLM has no data to work with, it fabricates a lengthy analysis discussing universities, research themes, and collaborations that have nothing to do with the query.</p>
+
+<table>
+    <tr><th style="width:120px;">Dimension</th><th>How this failure manifests</th></tr>
+    <tr><td><strong>Safety</strong></td><td><b>Compliance violation.</b> The agent's constraint is "only answer from provided context." The context was empty (0 papers), yet the LLM produced unsolicited, ungrounded content. A user might mistake this fabricated analysis for real findings.</td></tr>
+    <tr><td><strong>Predictability</strong></td><td><b>Unpredictable behaviour.</b> The user cannot anticipate when the agent will produce grounded vs fabricated commentary. A "0 results" response should be a clear signal that no analysis is possible — but the agent contradicts its own finding.</td></tr>
+    <tr><td><strong>Consistency</strong></td><td><b>Inconsistent framing.</b> The factual section says "No papers found" while the commentary discusses research themes as if data exists. The two parts of the same response contradict each other.</td></tr>
+    <tr><td><strong>Correctness</strong></td><td><b>Fabricated content.</b> The commentary mentions specific universities, topics, and collaboration patterns that are not grounded in any data.</td></tr>
+</table>
+
+<p style="margin-top:10px;"><b>The fix:</b> When a data search returns 0 results, the agent now returns the factual "No papers found" message and <strong>skips the LLM commentary entirely</strong>. This converts a mixed path (programmatic data + LLM commentary) into a purely programmatic path for the empty-results case — eliminating the fabrication risk at its source. This is an example of <em>extending the programmatic boundary</em>: identifying a case where the LLM adds no value and removing it from the response path.</p>
+
+<h3 style="margin-top:16px;">Example: a false-positive match</h3>
+<p>A user types <em>"Things to do"</em> — clearly not a research query. The topic extraction accepts it as a bare topic phrase (3 words, no question word). The search matches "Things" against a paper about the "Internet of <b>Things</b>" (IoT). The agent then presents this paper with a <span class="badge badge-green">Green</span> cue ("Verified data") — misleading the user into trusting a spurious match — followed by LLM commentary that tries to rationalise "Things to do" as a research topic.</p>
+
+<table>
+    <tr><th style="width:120px;">Dimension</th><th>How this failure manifests</th></tr>
+    <tr><td><strong>Robustness</strong></td><td><b>Primary failure.</b> The topic extraction was too permissive — it accepted vague everyday phrases as research topics and matched partial words against paper metadata.</td></tr>
+    <tr><td><strong>Safety</strong></td><td><b>Misleading cue.</b> A Green cue is assigned to a false-positive match, undermining the user's trust in the cue system. If green can be wrong, all cues lose credibility.</td></tr>
+    <tr><td><strong>Correctness</strong></td><td><b>Wrong match.</b> The paper is real but the match is spurious — it is not about "Things to do."</td></tr>
+</table>
+
+<p style="margin-top:10px;"><b>The fix:</b> The topic extraction now rejects queries that consist entirely of generic/common words (e.g., "things", "stuff", "something") and maintains a blocklist of clearly non-research phrases ("things to do", "help me", "hello"). This is a <em>robustness</em> improvement: the classification chain becomes less brittle to vague or accidental inputs, preventing false-positive matches that cascade into misleading results and fabricated commentary.</p>
+
 </div>
 
 <!-- ============================================ -->
@@ -1281,7 +1310,7 @@ that answers questions</span>
     </tr>
     <tr>
         <td><strong>Metadata+RAG</strong></td>
-        <td>13-step classification chain + 5-step content sub-chain</td>
+        <td>Synonym normalisation + 13-step classification chain + 5-step content sub-chain</td>
         <td>18</td>
         <td>5 of 18 paths (~28%)</td>
     </tr>
@@ -1375,7 +1404,7 @@ that answers questions</span>
     <tr><td><strong>Oneshot</strong></td><td>1</td><td>System prompt quality is everything — it's the only thing constraining the LLM.</td></tr>
     <tr><td><strong>RAG / RAG Vectorless</strong></td><td>2</td><td>Knowledge base quality and chunk design. Off-topic check in Production.</td></tr>
     <tr><td><strong>Text2SQL</strong></td><td>8</td><td>Intent detection patterns (bilingual). SQL verification. Session state for navigation.</td></tr>
-    <tr><td><strong>Metadata+RAG</strong></td><td>18</td><td>13-step classification + 5-step content sub-chain. Programmatic formatting. Post-processing pipeline.</td></tr>
+    <tr><td><strong>Metadata+RAG</strong></td><td>18</td><td>Synonym normalisation + accent-insensitive matching + 13-step classification + 5-step content sub-chain. Post-processing pipeline.</td></tr>
 </table>
 </div>
 

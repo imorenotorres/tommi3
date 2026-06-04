@@ -1,0 +1,117 @@
+{
+  "phase": 1,
+  "timestamp": "2026-06-04 13:34:36",
+  "elapsed_seconds": 0.3,
+  "consistency": {
+    "classification": {
+      "total": 70,
+      "consistent": 70,
+      "rate": 1.0
+    },
+    "programmatic": {
+      "total": 12,
+      "consistent": 12,
+      "rate": 1.0
+    },
+    "aggregate": 1.0
+  },
+  "robustness": {
+    "paraphrase": {
+      "total": 44,
+      "matched": 30,
+      "rate": 0.6818,
+      "failures": [
+        [
+          "What can you do?",
+          "What functionality do you offer?",
+          "meta",
+          "off_topic"
+        ],
+        [
+          "How does this work?",
+          "How do you operate?",
+          "meta",
+          "off_topic"
+        ],
+        [
+          "Who are you?",
+          "What agent is this?",
+          "meta",
+          "off_topic"
+        ],
+        [
+          "What can you do?",
+          "I'd like to know what you can do",
+          "meta",
+          "off_topic"
+        ],
+        [
+          "Which universities are in UNINOVIS?",
+          "Tell me the UNINOVIS partner universities",
+          "meta",
+          "rag"
+        ],
+        [
+          "Translate this text to French",
+          "I need this translated into French",
+          "non_research",
+          "topic_search"
+        ],
+        [
+          "Who won the last World Cup?",
+          "Tell me the World Cup winner",
+          "non_research",
+          "off_topic"
+        ],
+        [
+          "What responsible AI topics have not been studied?",
+          "Which responsible AI topics are unexplored?",
+          "gap",
+          "rag"
+        ],
+        [
+          "What topics are underrepresented in the database?",
+          "Tell me which topics have little coverage in the database",
+          "gap",
+          "rag"
+        ],
+        [
+          "What is the difference between interpretability and explainability?",
+          "How do interpretability and explainability differ?",
+          "conceptual_gloss",
+          "rag"
+        ],
+        [
+          "What is trustworthy AI?",
+          "I want to understand trustworthy AI",
+          "conceptual_gloss",
+          "topic_search"
+        ],
+        [
+          "Is AI dangerous?",
+          "Can AI be harmful?",
+          "conceptual_no",
+          "off_topic"
+        ],
+        [
+          "Can AI make decisions on its own?",
+          "Is AI capable of autonomous decision-making?",
+          "conceptual_no",
+          "off_topic"
+        ],
+        [
+          "Papers by Ruben Gonzalez",
+          "Give me the bibliography of Ruben Gonzalez",
+          "researcher",
+          "off_topic"
+        ]
+      ]
+    },
+    "normalisation": {
+      "total": 9,
+      "passed": 8,
+      "rate": 0.8889
+    },
+    "aggregate": 0.6818
+  }
+}

@@ -293,6 +293,81 @@ class MetadataRAGMixin:
             print(f"Topical scope built: {len(scope)} terms")
         return scope
 
+    # ------------------------------------------------------------------
+    # Synonym expansion for classification robustness
+    # ------------------------------------------------------------------
+    # Maps common synonyms/variants to the canonical terms used in
+    # the classification patterns. Applied once before the chain runs.
+    # This improves robustness to paraphrased queries without adding
+    # complexity to individual pattern lists.
+    _SYNONYM_MAP = {
+        # Figure/map synonyms
+        "visualise": "figure", "visualize": "figure", "graph": "figure",
+        "chart": "figure", "diagram": "figure", "plot": "figure",
+        "display a": "show a",
+        # Paper/publication synonyms
+        "publications": "papers", "publication": "paper",
+        "articles": "papers", "article": "paper",
+        "studies": "papers", "study on": "paper on",
+        "works on": "papers on",
+        # Researcher synonyms
+        "professor": "", "prof.": "", "prof ": " ",
+        "dr.": "", "dr ": " ",
+        "scholar": "researcher", "scholars": "researchers",
+        "academics": "researchers", "academic": "researcher",
+        "scientist": "researcher", "scientists": "researchers",
+        "author": "researcher", "authors": "researchers",
+        # Action synonyms
+        "enumerate": "list", "give me": "list",
+        "provide": "list", "tell me about": "what is",
+        "describe": "what is", "explain to me": "explain",
+        "define": "what is",
+        "bibliography of": "papers by", "bibliography from": "papers from",
+        # Meta-question synonyms
+        "tell me about your capabilities": "what can you do",
+        "what functionality do you offer": "what can you do",
+        "what functionality": "what can you do",
+        "your abilities": "what can you do",
+        "what are you able to": "what can you do",
+        "how can you assist": "how can you help",
+        "how do you operate": "how does this work",
+        "what agent is this": "who are you",
+        # Non-research synonyms
+        "draft a paper": "write an essay", "draft an essay": "write an essay",
+        "compose": "write",
+        "i need this translated": "translate this",
+        # Gap analysis synonyms
+        "research gaps": "gaps", "knowledge gaps": "gaps",
+        "underexplored": "least studied", "under-explored": "least studied",
+        "unexplored": "not studied", "overlooked": "not studied",
+        "little coverage": "gaps",
+        # Conceptual synonyms
+        "harmful": "dangerous",
+        "differ": "difference",
+        "i want to understand": "what is",
+        # Sort/navigation synonyms (for Text2SQL, but useful here too)
+        "nation": "country", "nations": "countries",
+    }
+
+    @staticmethod
+    def _normalise_query(msg: str) -> str:
+        """Apply synonym expansion to improve classification robustness.
+
+        Replaces common synonyms/variants with canonical terms used in
+        classification patterns. Uses word boundaries to avoid replacing
+        substrings within words (e.g., "graph" inside "bibliography").
+        """
+        result = msg
+        # Apply longer synonyms first to prevent partial matches
+        # (e.g., "tell me about your capabilities" before "tell me about")
+        for synonym, canonical in sorted(MetadataRAGMixin._SYNONYM_MAP.items(),
+                                         key=lambda x: len(x[0]), reverse=True):
+            pattern = re.compile(r'\b' + re.escape(synonym) + r'\b', re.IGNORECASE)
+            result = pattern.sub(canonical, result)
+        # Clean up any double spaces introduced by empty replacements
+        result = re.sub(r'  +', ' ', result).strip()
+        return result
+
     @staticmethod
     def _is_meta_question(msg_lower: str) -> bool:
         """Check if the question is about the agent itself (not about content)."""
@@ -302,6 +377,8 @@ class MetadataRAGMixin:
             "what is uninovis", "which universities", "who are you",
             "what are you", "how can you help", "what do you know",
             "what is your", "tell me about yourself",
+            "i'd like to know what you can do", "i would like to know what you can do",
+            "partner universities",
         ]
         return any(p in msg_lower for p in meta_patterns)
 
@@ -1826,6 +1903,7 @@ class MetadataRAGMixin:
             return ""
 
         msg_lower = user_message.lower().strip()
+        msg_ascii = self._strip_accents(msg_lower)
 
         # Check if this is a disambiguation follow-up (user replied with a number)
         if hasattr(self, '_disambiguation_candidates') and self._disambiguation_candidates:
@@ -1836,7 +1914,6 @@ class MetadataRAGMixin:
                     chosen = self._disambiguation_candidates[idx]
                     matches = [chosen]
                     self._disambiguation_candidates = None
-                    # Jump to building full context
                     return self._build_researcher_detail_context(matches)
 
         exact_matches = []
@@ -1846,6 +1923,7 @@ class MetadataRAGMixin:
             for r in researchers:
                 name = r["name"]
                 name_lower = name.lower()
+                name_ascii = self._strip_accents(name_lower)
                 name_parts = name.split()
                 surname = name_parts[-1] if name_parts else ""
                 uni_info = self._config.get("universities", {}).get(acronym, {})
@@ -1858,27 +1936,33 @@ class MetadataRAGMixin:
                     "affiliation_status": r.get("affiliation_status", "confirmed"),
                 }
 
-                # Exact full name match
-                if name_lower in msg_lower:
+                # Exact full name match (accent-insensitive)
+                if name_lower in msg_lower or name_ascii in msg_ascii:
                     exact_matches.append(match_entry)
                     continue
 
-                # Partial matches: surname, first+any-surname combos, or first name alone
-                # Use word boundary regex to avoid matching within words (e.g., "pons" in "responsible")
+                # Partial matches (accent-insensitive)
+                surname_lower = surname.lower()
+                surname_ascii = self._strip_accents(surname_lower)
                 is_partial = False
-                if len(surname) > 3 and re.search(r'\b' + re.escape(surname.lower()) + r'\b', msg_lower):
-                    is_partial = True
+                if len(surname) > 3:
+                    if (re.search(r'\b' + re.escape(surname_lower) + r'\b', msg_lower) or
+                        re.search(r'\b' + re.escape(surname_ascii) + r'\b', msg_ascii)):
+                        is_partial = True
                 if not is_partial and len(name_parts) >= 2:
                     for i in range(1, len(name_parts)):
                         combo = f"{name_parts[0]} {name_parts[i]}".lower()
-                        if len(combo) > 8 and combo in msg_lower:
+                        combo_ascii = self._strip_accents(combo)
+                        if len(combo) > 8 and (combo in msg_lower or combo_ascii in msg_ascii):
                             is_partial = True
                             break
-                # First name only (≥5 chars to avoid "Ana", "Eva" false matches)
                 if not is_partial and len(name_parts) >= 2:
                     first = name_parts[0].lower()
-                    if len(first) >= 5 and re.search(r'\b' + re.escape(first) + r'\b', msg_lower):
-                        is_partial = True
+                    first_ascii = self._strip_accents(first)
+                    if len(first) >= 5:
+                        if (re.search(r'\b' + re.escape(first) + r'\b', msg_lower) or
+                            re.search(r'\b' + re.escape(first_ascii) + r'\b', msg_ascii)):
+                            is_partial = True
                 if is_partial:
                     partial_matches_list.append(match_entry)
 
@@ -2055,6 +2139,31 @@ class MetadataRAGMixin:
                 topic = bare
             else:
                 return ""
+
+        # Reject topics that are clearly not research queries
+        # (common everyday phrases, single generic words, etc.)
+        _NON_TOPIC_PHRASES = {
+            "things to do", "things to see", "things to know",
+            "stuff to do", "stuff to read", "something to do",
+            "hello", "hi", "hey", "thanks", "thank you",
+            "good morning", "good afternoon", "good evening",
+            "help me", "help", "test", "testing", "ok", "okay",
+        }
+        if topic.lower().strip() in _NON_TOPIC_PHRASES:
+            return ""
+
+        # Reject topics where all words are too generic (stopwords / common words)
+        _GENERIC_WORDS = {
+            "the", "a", "an", "of", "in", "on", "to", "for", "and", "or",
+            "is", "are", "was", "were", "do", "does", "did", "be", "been",
+            "with", "from", "by", "at", "this", "that", "it", "its",
+            "things", "stuff", "something", "anything", "everything",
+            "all", "some", "any", "many", "much", "more", "most",
+            "about", "per", "new", "old", "good", "bad", "best", "worst",
+        }
+        topic_words = [w.lower() for w in topic.split() if len(w) > 1]
+        if topic_words and all(w in _GENERIC_WORDS for w in topic_words):
+            return ""
 
         # Remove trailing university references (acronyms and full names) and filler words
         universities = self._config.get("universities", {})
@@ -3421,8 +3530,12 @@ class MetadataRAGMixin:
             r'^explain\b',
             # "is X dangerous/safe/trustworthy/reliable" — opinion/conceptual questions about AI
             r'\bis\s+(?:ai|artificial intelligence)\s+(?:dangerous|safe|trustworthy|reliable|ethical|biased)\b',
-            # "can AI be trusted/make decisions" — conceptual questions about AI capabilities
-            r'\bcan\s+(?:ai|artificial intelligence)\s+(?:be\s+trusted|make\s+decisions|think|feel|be\s+fair|be\s+ethical)\b',
+            # "can AI be trusted/dangerous/harmful/make decisions" — conceptual questions about AI
+            r'\bcan\s+(?:ai|artificial intelligence)\s+(?:be\s+trusted|be\s+dangerous|be\s+harmful|make\s+decisions|think|feel|be\s+fair|be\s+ethical)\b',
+            # "how do X and Y difference" (after synonym: "differ" → "difference")
+            r'\bhow\s+do\b.+\bdifference\b',
+            # "is AI capable of X" — conceptual
+            r'\bis\s+(?:ai|artificial intelligence)\s+capable\s+of\b',
         ]
         return any(re.search(p, msg_lower) for p in conceptual_patterns)
 
@@ -3445,12 +3558,14 @@ class MetadataRAGMixin:
         msg_lower = user_message.lower().strip()
         task_patterns = [
             r'^write\s+(?:me\s+)?(?:an?\s+)?(?:essay|report|letter|poem|story|code|summary)',
+            r'\b(?:help\s+(?:me\s+)?)?write\s+(?:me\s+)?(?:an?\s+)?(?:essay|report|letter|poem|story|code|summary)',
             r'\bsummary\b.*\b(?:essay|report|homework|assignment|coursework)\b',
             r'^translate\b',
             r'\btranslate\s+(?:this|the|my|following)\b',
             r'\bbook\s+(?:me|a|my)\s+(?:a\s+)?(?:flight|hotel|ticket|room)',
             r'\border\s+(?:me|a|my)\b',
             r'\bwho\s+won\s+(?:the|last)\b',
+            r'\b(?:world\s+cup|super\s+bowl|champions\s+league)\s+winner\b',
             r'\bwhat\s+is\s+the\s+(?:weather|temperature|time|capital|population)\b',
             r'\bwhat\s+(?:is|was)\s+the\s+score\b',
             r'\brecipe\b',
@@ -3497,11 +3612,21 @@ class MetadataRAGMixin:
         """
         return text
 
+    @staticmethod
+    def _strip_accents(s: str) -> str:
+        """Remove diacritical marks (accents) for accent-insensitive matching."""
+        import unicodedata
+        return ''.join(
+            c for c in unicodedata.normalize('NFD', s)
+            if unicodedata.category(c) != 'Mn'
+        )
+
     def _query_mentions_researcher(self, user_message: str) -> bool:
         """Check if the user's query mentions a known researcher name (exact or partial)."""
         if not self._researchers_by_uni:
             return False
         msg_lower = user_message.lower()
+        msg_ascii = self._strip_accents(msg_lower)
         # Also detect "papers by X" or "publications by X" patterns
         if re.search(r'\b(?:papers?|publications?|research|works?)\s+(?:by|from|of)\s+[A-ZÀ-Ü]', user_message):
             return True
@@ -3510,19 +3635,29 @@ class MetadataRAGMixin:
                 name = r["name"]
                 name_parts = name.split()
                 surname = name_parts[-1] if name_parts else ""
-                # Use word boundaries to avoid matching within words (e.g., "pons" in "responsible")
-                if name.lower() in msg_lower:
+                # Match with and without accents (e.g., "Rubén" matches "Ruben")
+                name_lower = name.lower()
+                name_ascii = self._strip_accents(name_lower)
+                if name_lower in msg_lower or name_ascii in msg_ascii:
                     return True
-                if len(surname) > 3 and re.search(r'\b' + re.escape(surname.lower()) + r'\b', msg_lower):
-                    return True
+                surname_lower = surname.lower()
+                surname_ascii = self._strip_accents(surname_lower)
+                if len(surname) > 3:
+                    if (re.search(r'\b' + re.escape(surname_lower) + r'\b', msg_lower) or
+                        re.search(r'\b' + re.escape(surname_ascii) + r'\b', msg_ascii)):
+                        return True
                 if len(name_parts) >= 2:
                     for i in range(1, len(name_parts)):
                         combo = f"{name_parts[0]} {name_parts[i]}".lower()
-                        if len(combo) > 8 and combo in msg_lower:
+                        combo_ascii = self._strip_accents(combo)
+                        if len(combo) > 8 and (combo in msg_lower or combo_ascii in msg_ascii):
                             return True
                     first = name_parts[0].lower()
-                    if len(first) >= 5 and re.search(r'\b' + re.escape(first) + r'\b', msg_lower):
-                        return True
+                    first_ascii = self._strip_accents(first)
+                    if len(first) >= 5:
+                        if (re.search(r'\b' + re.escape(first) + r'\b', msg_lower) or
+                            re.search(r'\b' + re.escape(first_ascii) + r'\b', msg_ascii)):
+                            return True
         return False
 
     @staticmethod
@@ -4249,7 +4384,11 @@ class MetadataRAGMixin:
 
         # -- Stage 1: Perception (receive user input and session context) --
         # -- Stage 2: Reasoning (classify query, select data source, build context) --
-        is_web_expand = self._is_web_expand_request(user_message) and history
+        # Apply synonym expansion for classification robustness.
+        # user_msg is used for all classification checks;
+        # user_message (original) is preserved for the LLM prompt.
+        user_msg = self._normalise_query(user_message)
+        is_web_expand = self._is_web_expand_request(user_msg) and history
         web_ctx = ""
         if is_web_expand:
             original_query = self._get_last_query()
@@ -4263,34 +4402,34 @@ class MetadataRAGMixin:
                 )
 
         # Conceptual questions (definitions, concept relationships) use glossary, not paper search
-        is_conceptual = (not is_web_expand) and self._is_conceptual_question(user_message)
-        glossary_ctx = self._build_glossary_context(user_message) if is_conceptual else ""
+        is_conceptual = (not is_web_expand) and self._is_conceptual_question(user_msg)
+        glossary_ctx = self._build_glossary_context(user_msg) if is_conceptual else ""
 
         # Check for project-specific queries first (before paper queries)
-        project_ctx = "" if (is_web_expand or is_conceptual) else self._build_project_context(user_message)
+        project_ctx = "" if (is_web_expand or is_conceptual) else self._build_project_context(user_msg)
         # Check for affiliation-based researcher queries
-        affiliation_ctx = "" if (project_ctx or is_web_expand or is_conceptual) else self._build_affiliation_context(user_message)
+        affiliation_ctx = "" if (project_ctx or is_web_expand or is_conceptual) else self._build_affiliation_context(user_msg)
         # Shared topics between 2+ universities (must check before uni_papers_ctx)
         shared_topics_ctx = ""
         if not (affiliation_ctx or project_ctx or is_web_expand or is_conceptual):
-            if self._is_shared_topics_query(user_message):
-                shared_topics_ctx = self._build_shared_topics_context(user_message)
+            if self._is_shared_topics_query(user_msg):
+                shared_topics_ctx = self._build_shared_topics_context(user_msg)
         # University paper listing (no topic) -- uses authoritative *_papers.json
-        uni_papers_ctx = "" if (shared_topics_ctx or affiliation_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_university_papers_context(user_message)
+        uni_papers_ctx = "" if (shared_topics_ctx or affiliation_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_university_papers_context(user_msg)
         # Add topic-specific structured data (same source as figures)
-        topic_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_topic_context(user_message)
+        topic_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_topic_context(user_msg)
         # Look up specific researchers mentioned in the query
-        researcher_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_researcher_context(user_message)
+        researcher_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_researcher_context(user_msg)
 
         # Figure/map requests: the LLM generates the map link from system prompt
         # instructions alone -- no data context needed, maps use structured data
-        is_figure_request = False if is_web_expand else self._is_figure_request(user_message)
+        is_figure_request = False if is_web_expand else self._is_figure_request(user_msg)
 
         # Follow-up queries rely on conversation history, not RAG
-        is_followup = (not is_web_expand) and self._is_followup_query(user_message) and history
+        is_followup = (not is_web_expand) and self._is_followup_query(user_msg) and history
 
         # Gap analysis queries use metadata + LLM reasoning, not RAG
-        is_gap_analysis = False if is_web_expand else self._is_gap_analysis_query(user_message)
+        is_gap_analysis = False if is_web_expand else self._is_gap_analysis_query(user_msg)
 
         # When structured context is available, use it instead of RAG
         if is_web_expand:
@@ -4309,7 +4448,7 @@ class MetadataRAGMixin:
             context = ""
             source_type = "Metadata"
         else:
-            uni_filter = self._detect_university_filter(user_message)
+            uni_filter = self._detect_university_filter(user_msg)
             context = self._retrieve_context(user_message, metadata_filter=uni_filter)
             source_type = "RAG"
 
@@ -4381,6 +4520,10 @@ class MetadataRAGMixin:
                 factual_section = self._build_topic_factual_section(user_message, show_banners=show_banners)
 
         if factual_section:
+            # If 0 papers found, return the factual section directly — no LLM commentary
+            if "No papers found" in factual_section or "0 papers found" in factual_section:
+                return factual_section
+
             topic = self._extract_topic(user_message) or "shared research topics"
             analysis_prompt = self._analysis_prompt(topic, hedged=self._should_use_text_style())
             messages = [{"role": "system", "content": system_with_context}]
@@ -4455,7 +4598,7 @@ class MetadataRAGMixin:
                     pre_banner = self._banner_verified()
                 elif not context and not web_ctx:
                     # No data at all: distinguish in-scope from out-of-scope
-                    if self._is_in_topical_scope(user_message):
+                    if self._is_in_topical_scope(user_msg):
                         pre_banner = self._banner_undefined()
                         self._log_undefined_topic(user_message)
                     else:
@@ -4471,11 +4614,11 @@ class MetadataRAGMixin:
                         )
 
                 # Non-research tasks: no reliability cue (refusal is not unreliable)
-                if self._is_non_research_task(user_message):
+                if self._is_non_research_task(user_msg):
                     pre_banner = ""
 
                 # Meta-questions: no reliability cue (answer comes from system prompt)
-                if self._is_meta_question(user_message.lower()):
+                if self._is_meta_question(user_msg.lower()):
                     pre_banner = ""
 
                 # Researcher disambiguation: no reliability cue (it's a clarification, not content)
@@ -4510,7 +4653,7 @@ class MetadataRAGMixin:
                 project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
                 metadata_ctx, context, web_ctx
             ]))
-            if detect_hallucinations and not self._is_meta_question(user_message.lower()) and not self._is_off_topic_response(llm_content):
+            if detect_hallucinations and not self._is_meta_question(user_msg.lower()) and not self._is_off_topic_response(llm_content):
                 llm_content, hallucination_count = self._verify_paper_references(llm_content, combined_ctx, transparency)
             else:
                 hallucination_count = 0
@@ -4644,7 +4787,11 @@ class MetadataRAGMixin:
 
         # -- Stage 1: Perception (receive user input and session context) --
         # -- Stage 2: Reasoning (classify query, select data source, build context) --
-        is_web_expand = self._is_web_expand_request(user_message) and history
+        # Apply synonym expansion for classification robustness.
+        # user_msg is used for all classification checks;
+        # user_message (original) is preserved for the LLM prompt.
+        user_msg = self._normalise_query(user_message)
+        is_web_expand = self._is_web_expand_request(user_msg) and history
         web_ctx = ""
         if is_web_expand:
             yield ("status", "Searching the web...")
@@ -4659,34 +4806,34 @@ class MetadataRAGMixin:
                 )
 
         # Conceptual questions (definitions, concept relationships) use glossary, not paper search
-        is_conceptual = (not is_web_expand) and self._is_conceptual_question(user_message)
-        glossary_ctx = self._build_glossary_context(user_message) if is_conceptual else ""
+        is_conceptual = (not is_web_expand) and self._is_conceptual_question(user_msg)
+        glossary_ctx = self._build_glossary_context(user_msg) if is_conceptual else ""
 
         # Check for project-specific queries first (before paper queries)
-        project_ctx = "" if (is_web_expand or is_conceptual) else self._build_project_context(user_message)
+        project_ctx = "" if (is_web_expand or is_conceptual) else self._build_project_context(user_msg)
         # Check for affiliation-based researcher queries
-        affiliation_ctx = "" if (project_ctx or is_web_expand or is_conceptual) else self._build_affiliation_context(user_message)
+        affiliation_ctx = "" if (project_ctx or is_web_expand or is_conceptual) else self._build_affiliation_context(user_msg)
         # Shared topics between 2+ universities (must check before uni_papers_ctx)
         shared_topics_ctx = ""
         if not (affiliation_ctx or project_ctx or is_web_expand or is_conceptual):
-            if self._is_shared_topics_query(user_message):
-                shared_topics_ctx = self._build_shared_topics_context(user_message)
+            if self._is_shared_topics_query(user_msg):
+                shared_topics_ctx = self._build_shared_topics_context(user_msg)
         # University paper listing (no topic) -- uses authoritative *_papers.json
-        uni_papers_ctx = "" if (shared_topics_ctx or affiliation_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_university_papers_context(user_message)
+        uni_papers_ctx = "" if (shared_topics_ctx or affiliation_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_university_papers_context(user_msg)
         # Add topic-specific structured data (same source as figures)
-        topic_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_topic_context(user_message)
+        topic_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_topic_context(user_msg)
         # Look up specific researchers mentioned in the query
-        researcher_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_researcher_context(user_message)
+        researcher_ctx = "" if (shared_topics_ctx or affiliation_ctx or uni_papers_ctx or project_ctx or is_web_expand or is_conceptual) else self._build_researcher_context(user_msg)
 
         # Figure/map requests: the LLM generates the map link from system prompt
         # instructions alone -- no data context needed, maps use structured data
-        is_figure_request = False if is_web_expand else self._is_figure_request(user_message)
+        is_figure_request = False if is_web_expand else self._is_figure_request(user_msg)
 
         # Follow-up queries rely on conversation history, not RAG
-        is_followup = (not is_web_expand) and self._is_followup_query(user_message) and history
+        is_followup = (not is_web_expand) and self._is_followup_query(user_msg) and history
 
         # Gap analysis queries use metadata + LLM reasoning, not RAG
-        is_gap_analysis = False if is_web_expand else self._is_gap_analysis_query(user_message)
+        is_gap_analysis = False if is_web_expand else self._is_gap_analysis_query(user_msg)
 
         # --- Build decision trace (follows actual priority chain) ---
         trace_setting = self._config.get("decision_trace", "black_box")
@@ -4696,11 +4843,11 @@ class MetadataRAGMixin:
             trace.perception = user_message[:120] + ("..." if len(user_message) > 120 else "")
 
             # Determine classifications (same logic as the actual code, in priority order)
-            is_meta = self._is_meta_question(user_message.lower())
-            is_non_research = self._is_non_research_task(user_message)
+            is_meta = self._is_meta_question(user_msg.lower())
+            is_non_research = self._is_non_research_task(user_msg)
             has_disambiguation = hasattr(self, '_disambiguation_candidates') and self._disambiguation_candidates and re.match(r'^\d+\.?$', user_message.strip())
             # Figure/map request is checked BEFORE off-topic (asking for a figure is never off-topic)
-            is_off_topic_raw = not self._is_in_topical_scope(user_message) if not (is_meta or is_non_research or is_figure_request) else False
+            is_off_topic_raw = not self._is_in_topical_scope(user_msg) if not (is_meta or is_non_research or is_figure_request) else False
 
             # Record steps in priority order — once a step matches, later steps don't fire
             found = False
@@ -4715,7 +4862,7 @@ class MetadataRAGMixin:
 
             trace_step("Meta-question", is_meta, "agent description")
             trace_step("Non-research task", is_non_research, "refused")
-            is_expand_cmd, expand_num = self._is_expand_command(user_message)
+            is_expand_cmd, expand_num = self._is_expand_command(user_msg)
             trace_step("Expand command", is_expand_cmd and bool(self._get_last_response()), f"expand #{expand_num}")
             trace_step("Disambiguation follow-up", has_disambiguation, "number reply")
             trace_step("Figure/map request", bool(is_figure_request), "map link generation")
@@ -4742,7 +4889,7 @@ class MetadataRAGMixin:
         # --- Deterministic early returns (no LLM needed) ---
 
         # Meta-question: programmatic response from config
-        is_meta = self._is_meta_question(user_message.lower())
+        is_meta = self._is_meta_question(user_msg.lower())
         if is_meta and not is_web_expand:
             research_topic = self._config.get("research_topic", "this domain")
             alliance_name = self._config.get("alliance", {}).get("name", "UNINOVIS")
@@ -4775,7 +4922,7 @@ class MetadataRAGMixin:
             return
 
         # Non-research task: programmatic refusal
-        is_non_research = self._is_non_research_task(user_message)
+        is_non_research = self._is_non_research_task(user_msg)
         if is_non_research:
             research_topic = self._config.get("research_topic", "this domain")
             alliance_name = self._config.get("alliance", {}).get("name", "UNINOVIS")
@@ -4823,7 +4970,7 @@ class MetadataRAGMixin:
                 return
 
         # Expand command: "expand 2", "expand #3", "more about 1"
-        is_expand, expand_n = self._is_expand_command(user_message)
+        is_expand, expand_n = self._is_expand_command(user_msg)
         if is_expand and self._get_last_response():
             item_text = self._extract_numbered_item(expand_n)
             if item_text:
@@ -4869,7 +5016,7 @@ class MetadataRAGMixin:
         # Off-topic: programmatic refusal with scope suggestions (no LLM)
         if not is_web_expand and not is_conceptual and not is_figure_request and not is_gap_analysis:
             if not any([project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx]):
-                if not self._is_in_topical_scope(user_message):
+                if not self._is_in_topical_scope(user_msg):
                     research_topic = self._config.get("research_topic", "this domain")
                     scope_terms = self._config.get("extra_scope_terms", [])[:8]
                     response = (
@@ -4921,7 +5068,7 @@ class MetadataRAGMixin:
             context = ""
             source_type = "Metadata"
         else:
-            uni_filter = self._detect_university_filter(user_message)
+            uni_filter = self._detect_university_filter(user_msg)
             context = self._retrieve_context(user_message, metadata_filter=uni_filter)
             source_type = "RAG"
 
@@ -4993,6 +5140,11 @@ class MetadataRAGMixin:
                 factual_section = self._build_topic_factual_section(user_message, show_banners=show_banners)
 
         if factual_section:
+            # If 0 papers found, return the factual section directly — no LLM commentary
+            if "No papers found" in factual_section or "0 papers found" in factual_section:
+                yield factual_section
+                return
+
             # Stream the factual section first (no LLM involved)
             separator = self._banner_commentary() if show_banners else "\n\n---\n\n"
             full_response = factual_section
@@ -5093,7 +5245,7 @@ class MetadataRAGMixin:
                     pre_banner = self._banner_verified()
                 elif not context and not web_ctx:
                     # No data at all: distinguish in-scope from out-of-scope
-                    if self._is_in_topical_scope(user_message):
+                    if self._is_in_topical_scope(user_msg):
                         pre_banner = self._banner_undefined()
                         self._log_undefined_topic(user_message)
                     else:
@@ -5109,11 +5261,11 @@ class MetadataRAGMixin:
                         )
 
                 # Non-research tasks: no reliability cue (refusal is not unreliable)
-                if self._is_non_research_task(user_message):
+                if self._is_non_research_task(user_msg):
                     pre_banner = ""
 
                 # Meta-questions: no reliability cue (answer comes from system prompt)
-                if self._is_meta_question(user_message.lower()):
+                if self._is_meta_question(user_msg.lower()):
                     pre_banner = ""
 
                 # Researcher disambiguation: no reliability cue (it's a clarification, not content)
@@ -5187,7 +5339,7 @@ class MetadataRAGMixin:
                 project_ctx, affiliation_ctx, shared_topics_ctx, uni_papers_ctx, topic_ctx, researcher_ctx,
                 metadata_ctx, context, web_ctx
             ]))
-            if detect_hallucinations and not self._is_meta_question(user_message.lower()) and not self._is_off_topic_response(full_response):
+            if detect_hallucinations and not self._is_meta_question(user_msg.lower()) and not self._is_off_topic_response(full_response):
                 verified, hallucination_count = self._verify_paper_references(full_response, combined_ctx, transparency)
                 if verified != full_response:
                     full_response = verified

@@ -38,7 +38,7 @@
       "id": "WP1",
       "name": "Work Package 1",
       "leader": "ca37dc6a",
-      "verified": false,
+      "verified": true,
       "subgroups": [
         {
           "id": "CntMngers",
@@ -63,6 +63,14 @@
         {
           "id": "T2.4",
           "name": "Task 2.4 Learning Support"
+        },
+        {
+          "id": "T2 QA",
+          "name": "WP2 Academic Programmes Quality Board"
+        },
+        {
+          "id": "T2 JointProg",
+          "name": "WP2 Joint Programs"
         }
       ]
     },
@@ -70,7 +78,7 @@
       "id": "WP3",
       "name": "Work Package 3",
       "leader": "ca990447",
-      "verified": false,
+      "verified": true,
       "subgroups": [
         {
           "id": "T3.1",
@@ -91,6 +99,10 @@
         {
           "id": "Mobility",
           "name": "Mobility subgroup"
+        },
+        {
+          "id": "ResSupUn",
+          "name": "Research Support Unit"
         }
       ]
     },
@@ -205,7 +217,8 @@
         "WP3"
       ],
       "subgroups": [
-        "T3.3"
+        "T3.3",
+        "ResSupUn"
       ]
     },
     {
@@ -213,7 +226,7 @@
       "university": "KK",
       "first_name": "Jolanta",
       "family_name": "Valiaugiene",
-      "role": "Coordinator  for International Partnerships/UNINOVIS local coordinator",
+      "role": "UNINOVIS local coordinator",
       "email": "jolanta.valiaugiene@kaunokolegija.lt",
       "telephone": "",
       "groups": [
@@ -222,7 +235,11 @@
         "WP4",
         "WP5"
       ],
-      "subgroups": []
+      "subgroups": [
+        "T2 JointProg"
+      ],
+      "notes": "",
+      "custom": {}
     },
     {
       "id": "70a7ea0f",
@@ -412,7 +429,9 @@
       "role": "WP3 Board Member",
       "email": "maike.antlitz@thws.de",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": [
         "T3.2"
       ]
@@ -429,7 +448,8 @@
         "WP3"
       ],
       "subgroups": [
-        "T3.3"
+        "T3.3",
+        "ResSupUn"
       ]
     },
     {
@@ -450,7 +470,7 @@
       "university": "THWS",
       "first_name": "Wouter",
       "family_name": "de Regt",
-      "role": "UNINOVIS Local Coordinator",
+      "role": "Local Coordinator",
       "email": "wouter.deregt@thws.de",
       "telephone": "",
       "groups": [
@@ -473,7 +493,9 @@
       "groups": [
         "WP3"
       ],
-      "subgroups": []
+      "subgroups": [
+        "T3.2"
+      ]
     },
     {
       "id": "3626ce94",
@@ -498,7 +520,9 @@
       "role": "EH Coordinator",
       "email": "antonio.balzanella@unicampania.it",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": [
         "T3.1",
         "EH-WG"
@@ -554,7 +578,8 @@
       "email": "mauro.iacono@unicampania.it",
       "telephone": "",
       "groups": [
-        "WP4"
+        "WP4",
+        "WP3"
       ],
       "subgroups": [
         "T3.3"
@@ -605,11 +630,12 @@
       "university": "UDCLV",
       "first_name": "Rosanna",
       "family_name": "Verde",
-      "role": "Senior Specialist - Delegate of the Rector on UNINOVIS project",
+      "role": "Local Coordinator",
       "email": "rosanna.verde@unicampania.it",
       "telephone": "",
       "groups": [
-        "WP1"
+        "WP1",
+        "WP3"
       ],
       "subgroups": [
         "T3.3"
@@ -639,9 +665,11 @@
       "first_name": "Beatriz",
       "family_name": "Blázquez",
       "role": "WP2 Board Member",
-      "email": "vra.movilidad@uma.es",
+      "email": "dirmovilidad@uma.es",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": [
         "T3.2"
       ],
@@ -711,18 +739,22 @@
       "university": "UMA",
       "first_name": "Ignacio",
       "family_name": "Moreno-Torres",
-      "role": "Local Coordinator",
+      "role": "LC & Senior Lecturer",
       "email": "imoreno@uma.es",
       "telephone": "",
       "groups": [
         "WP1",
+        "WP2",
         "WP3",
         "WP4",
-        "MngBrd",
         "QA"
       ],
-      "subgroups": [],
-      "custom": {}
+      "subgroups": [
+        "T2 QA",
+        "T2 JointProg"
+      ],
+      "custom": {},
+      "notes": ""
     },
     {
       "id": "f061d5bf",
@@ -730,9 +762,11 @@
       "first_name": "Inés",
       "family_name": "Moreno",
       "role": "No role or unknown rol",
-      "email": "vra.investigacion@uma.es",
+      "email": "inesmoreno@uma.es",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": [
         "T3.3"
       ],
@@ -746,7 +780,9 @@
       "role": "EH Coordinator",
       "email": "javierlopez@uma.es",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": [
         "T3.1",
         "EH-WG"
@@ -783,7 +819,9 @@
         "MngBrd",
         "WP1"
       ],
-      "subgroups": [],
+      "subgroups": [
+        "ResSupUn"
+      ],
       "custom": {}
     },
     {
@@ -833,7 +871,8 @@
       "subgroups": [
         "T3.3",
         "T3.1",
-        "EH-WG"
+        "EH-WG",
+        "ResSupUn"
       ]
     },
     {
@@ -872,7 +911,9 @@
       "role": "Responsible for USPN activities in WP3",
       "email": "nathalie.pernelle@univ-paris13.fr",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": []
     },
     {
@@ -899,7 +940,8 @@
       "email": "projects-ri@univ-paris13.fr",
       "telephone": "",
       "groups": [
-        "WP1"
+        "WP1",
+        "WP3"
       ],
       "subgroups": [
         "T3.2"
@@ -962,7 +1004,8 @@
       "telephone": "",
       "groups": [
         "WP4",
-        "TB"
+        "TB",
+        "WP3"
       ],
       "subgroups": [
         "T3.1",
@@ -1100,7 +1143,9 @@
       "role": "Scientific Manager, European Alliances and Research Partnerships",
       "email": "basudeb.chaudhuri@univ-paris13.fr",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": [
         "T3.3"
       ],
@@ -1115,7 +1160,8 @@
       "email": "liana.berkowitz@sorbonne-paris-nord.fr",
       "telephone": "",
       "groups": [
-        "WP1"
+        "WP1",
+        "QA"
       ],
       "subgroups": [],
       "custom": {}
@@ -1367,9 +1413,13 @@
       "email": "lelio.campanile@unicampania.it",
       "telephone": "",
       "groups": [
-        "WP2"
+        "WP2",
+        "WP3"
       ],
-      "subgroups": [],
+      "subgroups": [
+        "T2 QA",
+        "ResSupUn"
+      ],
       "custom": {}
     },
     {
@@ -1416,7 +1466,9 @@
       "role": "Professor-researcher in Biophysics and Nuclear Medecine USPN/Avicenne hospital",
       "email": "yoann.lalatonne@aphp.fr",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": [
         "T3.1",
         "EH-WG"
@@ -1431,7 +1483,9 @@
       "role": "Head of the Telecommunications and networks dpt",
       "email": "khaled.boussetta@univ-paris13.fr",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": [
         "T3.1",
         "EH-WG"
@@ -1563,12 +1617,15 @@
       "university": "TAMK",
       "first_name": "Merja",
       "family_name": "Jortikka",
-      "role": "Director of Human Resources",
+      "role": "WP2 Board Member",
       "email": "merja.jortikka@tuni.fi",
       "telephone": "",
       "groups": [],
-      "subgroups": [],
-      "custom": {}
+      "subgroups": [
+        "T2.4"
+      ],
+      "custom": {},
+      "notes": ""
     },
     {
       "id": "ae81eb5f",
@@ -1593,14 +1650,18 @@
       "groups": [
         "WP2"
       ],
-      "subgroups": [],
-      "custom": {}
+      "subgroups": [
+        "T2.1",
+        "T2 QA"
+      ],
+      "custom": {},
+      "notes": "Leader of Task 2.1. MC"
     },
     {
       "id": "21edf0df",
       "university": "KK",
-      "first_name": "dr.",
-      "family_name": "Rasa Greenspoon",
+      "first_name": "Rasa",
+      "family_name": "Greenspoon",
       "role": "Head/responsible for KK activities in WP2",
       "email": "rasa.greenspoon@kaunokolegija.lt",
       "telephone": "",
@@ -1609,9 +1670,11 @@
       ],
       "subgroups": [
         "T2.1",
-        "T2.2"
+        "T2.2",
+        "T2 QA"
       ],
-      "custom": {}
+      "custom": {},
+      "notes": "Head of Study Development Unit"
     },
     {
       "id": "568ddf57",
@@ -1625,9 +1688,12 @@
         "WP2"
       ],
       "subgroups": [
-        "T2.4"
+        "T2.1",
+        "T2.4",
+        "T2 QA"
       ],
-      "custom": {}
+      "custom": {},
+      "notes": ""
     },
     {
       "id": "4e1c929e",
@@ -1646,12 +1712,18 @@
       "university": "TAMK",
       "first_name": "Kaisa",
       "family_name": "Kokko",
-      "role": "Senior Lecturer, Responsible for local TAMK activities in WP2",
+      "role": "Coach & Senior Lecturer",
       "email": "kaisa.kokko@tuni.fi",
       "telephone": "",
-      "groups": [],
-      "subgroups": [],
-      "custom": {}
+      "groups": [
+        "WP2",
+        "WP3"
+      ],
+      "subgroups": [
+        "ResSupUn"
+      ],
+      "custom": {},
+      "notes": "Coach & Senior Lecturer"
     },
     {
       "id": "ccf2eaac",
@@ -1675,8 +1747,12 @@
       "role": "Senior Lecturer, member of Micro Credentials sub group",
       "email": "juho.tiili@tuni.fi",
       "telephone": "",
-      "groups": [],
-      "subgroups": [],
+      "groups": [
+        "WP2"
+      ],
+      "subgroups": [
+        "T2 QA"
+      ],
       "custom": {}
     },
     {
@@ -1706,7 +1782,8 @@
         "WP4"
       ],
       "subgroups": [
-        "T3.2"
+        "T3.2",
+        "Mobility"
       ],
       "custom": {}
     },
@@ -1718,7 +1795,9 @@
       "role": "Responsible for establishment of Excellence Hub at TAMK",
       "email": "pirita.ihamaki@tuni.fi",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": [
         "T3.1",
         "EH-WG"
@@ -1734,7 +1813,9 @@
       "email": "anna.tuusa@tuni.fi",
       "telephone": "",
       "groups": [],
-      "subgroups": [],
+      "subgroups": [
+        "T3.2"
+      ],
       "custom": {}
     },
     {
@@ -1745,7 +1826,9 @@
       "role": "International Relations Department",
       "email": "iro@unitir.edu.al",
       "telephone": "",
-      "groups": [],
+      "groups": [
+        "WP3"
+      ],
       "subgroups": [
         "T3.2"
       ],
@@ -1771,7 +1854,7 @@
       "university": "THUAS",
       "first_name": "Heleen",
       "family_name": "Geerts",
-      "role": "",
+      "role": "Excellence Hub Coordinator",
       "email": "",
       "telephone": "",
       "groups": [
@@ -1779,7 +1862,8 @@
       ],
       "subgroups": [
         "T3.1",
-        "EH-WG"
+        "EH-WG",
+        "ResSupUn"
       ],
       "custom": {}
     },
@@ -1855,8 +1939,8 @@
     {
       "id": "8bb390d7",
       "university": "KK",
-      "first_name": "dr.",
-      "family_name": "Zivile Jukneviciene",
+      "first_name": "Zivile",
+      "family_name": "Jukneviciene",
       "role": "No role or unknown rol",
       "email": "zivile.jukneviciene@kaunokolegija.lt",
       "telephone": "",
@@ -1864,7 +1948,8 @@
         "WP4"
       ],
       "subgroups": [],
-      "custom": {}
+      "custom": {},
+      "notes": ""
     },
     {
       "id": "1b87fe29",
@@ -2089,6 +2174,79 @@
         "WP5Assist"
       ],
       "custom": {}
+    },
+    {
+      "id": "69d4e526",
+      "university": "THWS",
+      "first_name": "Aylin",
+      "family_name": "Chaban",
+      "role": "",
+      "email": "aylin.chaban@thws.de",
+      "telephone": "",
+      "notes": "",
+      "groups": [],
+      "subgroups": [
+        "T2.4"
+      ],
+      "custom": {}
+    },
+    {
+      "id": "7dbdc35f",
+      "university": "UT",
+      "first_name": "Albana",
+      "family_name": "Gorishti",
+      "role": "WP2 Board Member",
+      "email": "albana.gorishti@unitir.edu.al",
+      "telephone": "",
+      "notes": "",
+      "groups": [],
+      "subgroups": [
+        "T2 QA"
+      ],
+      "custom": {}
+    },
+    {
+      "id": "b16cc198",
+      "university": "THUAS",
+      "first_name": "R.W.A.",
+      "family_name": "Bakkers",
+      "role": "",
+      "email": "R.W.A.Bakkers@hhs.nl",
+      "telephone": "",
+      "notes": "",
+      "groups": [],
+      "subgroups": [
+        "T2 QA"
+      ],
+      "custom": {}
+    },
+    {
+      "id": "974a2ea6",
+      "university": "TAMK",
+      "first_name": "Nina",
+      "family_name": "Smolander",
+      "role": "Local WP3 Coordinator",
+      "email": "nina.smolander@tuni.fi",
+      "telephone": "",
+      "groups": [
+        "WP3"
+      ],
+      "subgroups": []
+    },
+    {
+      "id": "2ee37d20",
+      "university": "TAMK",
+      "first_name": "Arja",
+      "family_name": "Halkoaho",
+      "role": "",
+      "email": "arja.halkoaho@tuni.fi",
+      "telephone": "",
+      "groups": [
+        "WP3"
+      ],
+      "subgroups": [
+        "T3.3"
+      ]
     }
   ],
   "settings": {

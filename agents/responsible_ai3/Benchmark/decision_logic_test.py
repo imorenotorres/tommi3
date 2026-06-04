@@ -130,6 +130,42 @@ TEST_CASES = [
     ("What is sustainable AI?", "conceptual_gloss"),
     ("What is AI governance?", "conceptual_gloss"),
     ("What is human-centred AI?", "conceptual_gloss"),
+
+    # === Synonym expansion robustness tests ===
+    # These test that paraphrased queries are correctly classified
+    # thanks to synonym normalisation.
+
+    # "publications" → "papers"
+    ("Publications by Rubén González Vallejo", "researcher"),
+    ("List all publications on AI ethics", "topic_search"),
+
+    # "visualise/graph/chart" → "figure"
+    ("Visualise the collaborations among partners", "figure"),
+    ("Show a graph of papers by year", "figure"),
+    ("Chart of publications on trustworthy AI", "figure"),
+
+    # "define" → "what is"
+    ("Define explainable AI", "conceptual_gloss"),
+
+    # "describe" → "what is"
+    ("Describe the EU AI Act", "conceptual_gloss"),
+
+    # "bibliography of" → "papers by"
+    ("Give me the bibliography of Fabrizio Esposito", "researcher"),
+
+    # "draft a paper" → "write an essay"
+    ("Help me draft a paper on responsible AI", "non_research"),
+
+    # "capabilities" → "what can you do"
+    ("Tell me about your capabilities", "meta"),
+
+    # "research gaps" → "gaps"
+    ("What are the research gaps in UNINOVIS?", "gap"),
+    ("Which topics are underexplored?", "gap"),
+
+    # "scholar/scientist" → "researcher"
+    ("List scholars from THUAS", "uni_papers"),
+    ("Which scientists work on explainable AI?", "topic_search"),
 ]
 
 
@@ -139,7 +175,7 @@ def classify_query(agent, query, history=None):
     This simulates the Reasoning stage without calling the LLM.
     Returns a string matching the expected classification codes above.
     """
-    msg = query
+    msg = agent._normalise_query(query)
     msg_lower = msg.lower()
 
     # 1. Meta-question

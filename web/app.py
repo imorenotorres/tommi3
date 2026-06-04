@@ -912,8 +912,8 @@ class AgentResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    """Serve the piloting page as the landing page"""
-    return FileResponse(SCRIPT_DIR / "static" / "piloting.html")
+    """Serve the UNINOVIS intranet as the landing page"""
+    return FileResponse(SCRIPT_DIR / "static" / "intranet.html")
 
 
 @app.get("/intranet")
