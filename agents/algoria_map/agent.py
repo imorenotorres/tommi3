@@ -108,6 +108,24 @@ UNINOVIS_PARTNERS = [
     "TAMK",                                                    # TAMK (as in DB)
 ]
 
+COUNTRY_ALIASES = {
+    "corea": "Corea del Sur", "korea": "Corea del Sur", "south korea": "Corea del Sur",
+    "uk": "Reino Unido", "united kingdom": "Reino Unido", "england": "Reino Unido",
+    "usa": "Estados Unidos", "united states": "Estados Unidos", "us": "Estados Unidos",
+    "czech republic": "Chequia", "czechia": "Chequia",
+    "holland": "Países Bajos", "netherlands": "Países Bajos",
+    "germany": "Alemania", "italy": "Italia", "france": "Francia",
+    "belgium": "Bélgica", "sweden": "Suecia", "switzerland": "Suiza",
+    "norway": "Noruega", "denmark": "Dinamarca", "finland": "Finlandia",
+    "poland": "Polonia", "romania": "Rumanía", "greece": "Grecia",
+    "turkey": "Turquía", "japan": "Japón", "mexico": "México",
+    "brazil": "Brasil", "argentina": "Argentina", "chile": "Chile",
+    "colombia": "Colombia", "portugal": "Portugal", "ireland": "Irlanda",
+    "iceland": "Islandia", "austria": "Austria", "hungary": "Hungría",
+    "pakistan": "Pakistán", "paquistan": "Pakistán", "paquistán": "Pakistán",
+    "india": "India", "china": "China",
+}
+
 FACULTY_ALIASES = {
     "letters": "Filosofía y Letras", "letras": "Filosofía y Letras",
     "filosofía y letras": "Filosofía y Letras",
@@ -340,8 +358,10 @@ class Agent:
                 params.extend(countries)
 
         if filters.get("country"):
+            country = filters["country"]
+            country = COUNTRY_ALIASES.get(country.lower(), country)
             conditions.append("destination_country LIKE ?")
-            params.append(f"%{filters['country']}%")
+            params.append(f"%{country}%")
 
         if filters.get("faculty"):
             conditions.append("uma_faculties LIKE ?")
