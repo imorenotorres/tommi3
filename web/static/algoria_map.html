@@ -255,6 +255,7 @@ const COUNTRY_ALIASES = {
     "netherlands": "Países Bajos", "holland": "Países Bajos",
     "uk": "Reino Unido", "united kingdom": "Reino Unido", "england": "Reino Unido",
     "czech republic": "Chequia", "south korea": "Corea del Sur",
+    "corea": "Corea del Sur", "korea": "Corea del Sur",
     "belgium": "Bélgica", "usa": "Estados Unidos", "united states": "Estados Unidos",
     "sweden": "Suecia", "switzerland": "Suiza", "norway": "Noruega",
     "denmark": "Dinamarca", "finland": "Finlandia", "poland": "Polonia",
@@ -499,11 +500,25 @@ function parseQuery(q) {
         }
     }
     // Direct match against country list (Spanish names)
+    // Check both directions: query contains country name, OR country name contains a query word (≥4 chars)
     if (!filters.country && !filters.continent) {
         for (const c of COUNTRIES) {
             if (lower.includes(c.toLowerCase())) {
                 filters.country = c;
                 break;
+            }
+        }
+        if (!filters.country) {
+            const words = lower.split(/\s+/).filter(w => w.length >= 4);
+            for (const c of COUNTRIES) {
+                const cl = c.toLowerCase();
+                for (const w of words) {
+                    if (cl.includes(w)) {
+                        filters.country = c;
+                        break;
+                    }
+                }
+                if (filters.country) break;
             }
         }
     }

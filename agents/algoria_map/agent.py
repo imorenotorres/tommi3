@@ -177,7 +177,7 @@ TOOLS = [
                     },
                     "country": {
                         "type": "string",
-                        "description": "Filter by destination country (in Spanish, e.g. 'Italia', 'Alemania')",
+                        "description": "Filter by destination country. Use the user's wording — partial matches and aliases are resolved automatically (e.g. 'Corea' matches 'Corea del Sur', 'UK' matches 'Reino Unido')",
                     },
                     "faculty": {
                         "type": "string",
@@ -219,7 +219,7 @@ SYSTEM_PROMPT = """You are Algoria Map, an assistant that helps users explore UM
 When the user asks about agreements, call the search_agreements tool with the appropriate filters.
 - For general queries like "show all agreements", call with no filters.
 - For continent queries like "show Europe" or "agreements in Asia", set the continent parameter.
-- For country queries like "agreements in Italy", set the country parameter (use Spanish names: Italia, Alemania, Francia, etc.). Partial names work (e.g. "Corea" matches "Corea del Sur"), so use the shortest unambiguous form.
+- For country queries like "agreements in Italy", set the country parameter. ALWAYS pass the user's country name directly — the system resolves aliases and partial matches automatically (e.g. "Corea" → "Corea del Sur", "UK" → "Reino Unido"). Never reject a country query — always call the tool and let the system handle it.
 - For faculty queries like "Faculty of Letters", set faculty to the relevant faculty name.
 - For language requirements like "English B2", set language and/or language_level.
 - For refinements like "show only Italy" or "only those with B2 English", apply the mentioned filter.
@@ -876,6 +876,7 @@ class Agent:
 
     def _handle_search(self, filters: dict) -> str:
         """Execute search and build map + optional list."""
+        print(f"[ALGORIA] _handle_search called with filters: {filters}")
         results = self._execute_search(filters)
 
         if not results:
