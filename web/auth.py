@@ -279,11 +279,14 @@ UNINOVIS_DOMAINS = {
     "uma.es",           # Universidad de Malaga (Spain)
     "thws.de",          # TH Wurzburg-Schweinfurt (Germany)
     "thuas.nl",         # The Hague University of Applied Sciences (Netherlands)
+    "hhs.nl",           # Haagse Hogeschool (THUAS alternative domain)
     "univ-paris13.fr",  # Universite Sorbonne Paris Nord (France)
+    "univ-paris.fr",
     "sorbonne-paris-nord.fr",
     "unicampania.it",   # University of Campania "Luigi Vanvitelli" (Italy)
     "go.kauko.lt",      # Kauno Kolegija (Lithuania)
     "kauko.lt",
+    "kaunokolegija.lt",
     "unitir.edu.al",    # University of Tirana (Albania)
     "tuni.fi",          # Tampere University of Applied Sciences (Finland)
     "tamk.fi",
