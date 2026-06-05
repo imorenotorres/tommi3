@@ -275,6 +275,15 @@ async function checkAuth() {
         var resp = await fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + authToken } });
         if (resp.ok) {
             authUser = await resp.json();
+            // Guest/public sessions mean no real authentication — show login
+            if (!authUser || authUser.role === 'public' || authUser.username === 'guest') {
+                authToken = '';
+                authUser = null;
+                localStorage.removeItem('tommi_token');
+                localStorage.removeItem('uninovis_token');
+                showLogin();
+                return;
+            }
             var params = new URLSearchParams(window.location.search);
             var redirect = params.get('redirect');
             if (redirect) { window.location.href = redirect; return; }
