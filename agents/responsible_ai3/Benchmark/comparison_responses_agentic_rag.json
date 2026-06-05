@@ -1,0 +1,1086 @@
+[
+  {
+    "id": "S01",
+    "query": "What can you do?",
+    "response": "I can help you with questions related to **Responsible AI research** within the **UNINOVIS European university alliance**. Here’s what I can do:\n\n### **1. Research Papers & Publications**\n- Search for research papers published by UNINOVIS partners (e.g., USPN, UDCLV, UMA, KK, UT, THWS, TAMK, THUAS).\n- Filter by **topic, university, or year**.\n- Verify paper titles to ensure accuracy.\n\n### **2. Researcher Profiles**\n- Look up specific researchers by name.\n- Find researchers working on a particular topic (e.g., \"fairness in AI,\" \"AI ethics\").\n- List researchers from a specific university.\n\n### **3. EU-Funded Research Projects**\n- Search for EU-funded projects related to Responsible AI (e.g., TAILOR, DUCA, MENHIR).\n- Get details on project descriptions and participants.\n\n### **4. Responsible AI Glossary**\n- Define key Responsible AI terms (e.g., \"explainable AI,\" \"algorithmic bias,\" \"EU AI Act\").\n- Provide explanations based on verified sources.\n\n### **5. Semantic Search (Fallback)**\n- If a direct search doesn’t work, I can perform a **semantic search** across all documents to find relevant information.\n\n### **What I CANNOT Do**\n- Answer questions outside **Responsible AI** (e.g., weather, sports, travel bookings).\n- Write essays, translate texts, or provide personal advice.\n- Make up information—only facts from verified sources are provided.",
+    "tool_calls": [],
+    "tools_used": [],
+    "rounds": 1,
+    "latency": 2.43,
+    "error": null
+  },
+  {
+    "id": "S04",
+    "query": "What is UNINOVIS?",
+    "response": "Based on the available information, here is what can be stated about UNINOVIS:\n\nUNINOVIS is a **European university alliance** composed of **8 universities** from across Europe:\n\n- **USPN** (Université Sorbonne Paris Nord, France)\n- **UDCLV** (Università degli Studi della Campania Luigi Vanvitelli, Italy)\n- **UMA** (Universidad de Málaga, Spain)\n- **KK** (Kaunas University of Technology, Lithuania)\n- **UT** (University of Tirana, Albania)\n- **THWS** (Technische Hochschule Würzburg-Schweinfurt, Germany)\n- **TAMK** (Tampere University of Applied Sciences, Finland)\n- **THUAS** (The Hague University of Applied Sciences, Netherlands)\n\nThe alliance specializes in **Responsible AI research**, focusing on ethical, transparent, and accountable development and deployment of artificial intelligence technologies. While specific details about the alliance's founding or mission statements were not found in the retrieved documents, the context provided confirms its structure and research focus.",
+    "tool_calls": [
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "UNINOVIS alliance definition"
+        },
+        "round": 1
+      },
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "UNINOVIS"
+        },
+        "round": 2
+      },
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "UNINOVIS European university alliance definition"
+        },
+        "round": 3
+      }
+    ],
+    "tools_used": [
+      "search_by_embedding",
+      "lookup_glossary"
+    ],
+    "rounds": 3,
+    "latency": 17.69,
+    "error": null
+  },
+  {
+    "id": "S05",
+    "query": "Which universities are in UNINOVIS?",
+    "response": "The UNINOVIS European university alliance consists of the following 8 universities:\n\n1. **USPN** - Université Sorbonne Paris Nord (France)\n2. **UDCLV** - Università Degli Studi Della Campania Luigi Vanvitelli (Italy)\n3. **UMA** - Universidad de Málaga (Spain)\n4. **KK** - Kaunas University of Technology (Lithuania)\n5. **UT** - University of Tirana (Albania)\n6. **THWS** - Technische Hochschule Würzburg-Schweinfurt (Germany)\n7. **TAMK** - Tampere University of Applied Sciences (Finland)\n8. **THUAS** - The Hague University of Applied Sciences (Netherlands)",
+    "tool_calls": [],
+    "tools_used": [],
+    "rounds": 1,
+    "latency": 2.76,
+    "error": null
+  },
+  {
+    "id": "S08",
+    "query": "What do the green and yellow banners mean?",
+    "response": "I’m sorry, but I don’t have access to information about green and yellow banners. My tools are specialized for **Responsible AI research** within the **UNINOVIS European university alliance**, covering topics like AI ethics, fairness, explainability, EU AI Act, and related research. If your question is outside this scope, I won’t be able to assist. Could you clarify if this relates to AI or academic research? Otherwise, I won’t be able to help.",
+    "tool_calls": [],
+    "tools_used": [],
+    "rounds": 1,
+    "latency": 2.92,
+    "error": null
+  },
+  {
+    "id": "S10",
+    "query": "What is responsible AI?",
+    "response": "**Responsible AI** refers to the practice and processes of designing, developing, deployment, and implementation of AI systems in a manner that is ethical, transparent, fair, inclusive, and accountable. It encompasses maintenance, algorithmic audits, and accountability, with the goal of ensuring that AI technologies benefit individuals and society while minimizing potential harms. Responsible AI focuses on addressing risks such as bias, discrimination, and lack of transparency.\n\nA key aspect of Responsible AI is that **responsibility** is understood as a **description of the user’s use of AI**, rather than an inherent quality of the system itself. It emphasizes the role of people in relation to AI systems. The principles that characterize Responsible AI include:\n\n- **Privacy**\n- **Accountability**\n- **Safety and security**\n- **Transparency and explainability**\n- **Fairness and non-discrimination**\n- **Human control of technology**\n- **Professional responsibility**\n- **Promotion of human values**\n\n**Related concepts:**\n- Trustworthy AI\n- AI Ethics\n- Fairness in AI\n- Transparency in AI\n- Accountability in AI\n- AI Governance\n- Explainable Artificial Intelligence (XAI)\n- Human-Centred AI\n\nFor further reading, you may refer to:\n- Baeza-Yates, R. (2024). *Introduction to Responsible AI*. WSDM '24: Proceedings of the 17th ACM International Conference on Web Search and Data Mining.\n- Dignum, V. (2019). *Responsible Artificial Intelligence: How to Develop and Use AI in a Responsible Way*. Springer.\n- Fjeld et al. (2020). *Principled Artificial Intelligence: Mapping Consensus in Ethical and Rights-Based Approaches to Principles for AI*. Berkman Klein Center Research Publication.",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "responsible AI"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary"
+    ],
+    "rounds": 2,
+    "latency": 4.77,
+    "error": null
+  },
+  {
+    "id": "S15",
+    "query": "What is bias in AI? Can you give me an example?",
+    "response": "### **What is Bias in AI?**\n\n**Bias in AI** refers to systematic errors or prejudices in AI system outputs that arise from:\n- **Biased training data** (e.g., underrepresentation of certain groups),\n- **Flawed model design** (e.g., reinforcing stereotypes),\n- **Biased human decisions** during development (e.g., subjective labeling).\n\nIt can manifest at different stages:\n1. **Data to Algorithm** (e.g., sampling bias, measurement bias),\n2. **Algorithm to User** (e.g., algorithmic bias, popularity bias),\n3. **User to Data** (e.g., historical bias, social bias).\n\nBias in AI is closely linked to **fairness, accountability, and transparency** in AI systems.\n\n---\n\n### **Example of AI Bias**\n\nA well-known case is **COMPAS**, a risk assessment tool used in the U.S. criminal justice system to predict recidivism (likelihood of reoffending).\n\n- **Issue:** The algorithm was found to **disproportionately flag Black defendants as high-risk** compared to White defendants, even when their criminal histories were similar.\n- **Root Cause:** The training data reflected **historical biases** in policing and sentencing, leading the AI to perpetuate racial discrimination.\n- **Impact:** This resulted in **unfair sentencing disparities**, where Black individuals were more likely to be denied parole or given harsher sentences.\n\nThis case highlights how **biased data can lead to discriminatory outcomes in AI systems**, reinforcing societal inequalities.\n\n---\nWould you like to explore how UNINOVIS researchers are addressing bias in AI?",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "bias in AI"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary"
+    ],
+    "rounds": 2,
+    "latency": 3.49,
+    "error": null
+  },
+  {
+    "id": "S17",
+    "query": "What is the EU AI Act?",
+    "response": "The **EU AI Act** (Regulation 2024/1689) is the first comprehensive legal framework for artificial intelligence worldwide. It establishes harmonised rules for the development, placement on the market, and use of AI systems within the European Union (EU). Its primary goals are to promote **human-centric and trustworthy AI** while ensuring a high level of protection for health, safety, fundamental rights, democracy, the rule of law, and environmental protection. The regulation also facilitates the free movement of AI-based goods and services across EU Member States.\n\n### Key Features of the EU AI Act:\n1. **Risk-Based Classification**:\n   AI systems are categorised into four risk levels:\n   - **Unacceptable Risk**: Prohibited (e.g., social scoring systems, certain uses of biometric surveillance).\n   - **High Risk**: Subject to strict requirements (e.g., AI used in critical infrastructure, education, employment, or law enforcement).\n   - **Limited Risk**: Transparency obligations apply (e.g., AI systems like chatbots or deepfakes).\n   - **Minimal Risk**: No specific obligations (e.g., AI-enabled video games or spam filters).\n\n2. **Conformity Assessment**:\n   The Act adopts a conformity assessment system inspired by EU product safety law, requiring providers and deployers to ensure compliance with regulatory standards.\n\n3. **Scope**:\n   The regulation applies to all actors involved in the AI system lifecycle within the EU market, including providers, deployers, importers, and distributors.\n\n4. **Governance and Enforcement**:\n   It establishes mechanisms for monitoring compliance, reporting incidents, and imposing penalties for violations.\n\n### Related Concepts:\n- **AI Governance**\n- **Trustworthy AI**\n- **Accountability in AI**\n- **Transparency in AI**\n- **Algorithmic Auditing**\n- **Responsible AI**\n- **Privacy and Data Governance in AI**\n\nFor further reading, you can refer to the official text of the regulation: [EUR-Lex - EU AI Act](https://eur-lex.europa.eu/eli/reg/2024/1689/oj).\n\nWould you like to know how the EU AI Act relates to Responsible AI research within the UNINOVIS alliance?",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "EU AI Act"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary"
+    ],
+    "rounds": 2,
+    "latency": 4.49,
+    "error": null
+  },
+  {
+    "id": "S18",
+    "query": "What is explainable AI?",
+    "response": "**Explainable AI (XAI)** refers to a collection of machine learning techniques that enables human users to understand, appropriately trust, and effectively manage the emerging generation of artificially intelligent partners. In other words, it refers to the methods and techniques that make the behavior and outputs of AI systems understandable to humans.\n\nXAI aims to bridge the gap between high-performing but opaque models (such as deep neural networks) and the need for human interpretability. This allows users, developers, and regulators to understand why an AI system made a particular decision. Explainability covers the techniques used to convert a non-interpretable model into an explainable one by producing details or reasons to make its functioning clear or easy to understand.\n\n---\n\n### **Key Principles of Explainable AI**\nThe general principles to help create effective, more human-understandable AI systems include:\n1. The ability to explain its capabilities and understandings.\n2. Clarity on what it has done, what it is doing now, and what will happen next.\n3. Disclosure of the salient information that it is acting on.\n\n---\n\n### **Key XAI Methods**\n- **LIME (Local Interpretable Model-agnostic Explanations)**: Explains individual predictions by approximating the model locally with an interpretable model.\n- **SHAP (SHapley Additive explanations)**: A unified approach to explain the output of any machine learning model by computing the contribution of each feature.\n- **Attention mechanisms**: Used in neural networks to highlight which parts of the input data are most relevant to the output.\n- **Saliency maps**: Visual explanations that show which parts of an input (e.g., an image) are most important for a model's prediction.\n- **Concept-based explanations**: High-level explanations that describe the concepts learned by the model.\n\n---\n### **Related Concepts**\n- AI Ethics\n- Transparency in AI\n- Accountability in AI\n- Trustworthy AI\n- Interpretability vs. Explainability\n- Human-Centred AI\n- Responsible AI\n\n---\n### **References**\n- Arrieta, A. B., Díaz-Rodríguez, N., Del Ser, J., et al. (2020). *Explainable Artificial Intelligence (XAI): Concepts, taxonomies, opportunities and challenges toward responsible AI*. *Information Fusion*, 58, 82–115. [https://doi.org/10.1016/j.inffus.2019.12.012](https://doi.org/10.1016/j.inffus.2019.12.012)\n- Gunning, D., Stefik, M., Choi, J., Miller, T., Stumpf, S., & Yang, G.-Z. (2019). *XAI—Explainable artificial intelligence*. *Science Robotics*, 4(37), eaay7120. [https://doi.org/10.1126/scirobotics.aay7120](https://doi.org/10.1126/scirobotics.aay7120)",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "explainable AI"
+        },
+        "round": 1
+      },
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "Explainable Artificial Intelligence (XAI)"
+        },
+        "round": 2
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary"
+    ],
+    "rounds": 3,
+    "latency": 4.61,
+    "error": null
+  },
+  {
+    "id": "S21",
+    "query": "What is fairness in AI?",
+    "response": "**Fairness in AI** concerns the design and evaluation of AI systems to ensure they do not produce bias—understood as any prejudice or favoritism towards an individual or group based on their inherent or acquired characteristics. It serves as the moral lens through which we examine decisions made by AI systems to ensure they do not produce discriminatory outcomes across different groups defined by protected attributes such as race, gender, age, or disability, among other characteristics.\n\nFairness is a complex and debated topic, with more than twenty different notions proposed in recent years. It has been defined through multiple mathematical formalisms, including:\n\n- **Demographic parity**: Ensuring that the outcomes of an AI system are not disproportionately distributed across different protected groups.\n- **Equalised odds**: Requiring that the true positive and false positive rates are equal across protected groups.\n- **Individual fairness**: Ensuring that similar individuals are treated similarly by the AI system.\n\nThese notions are often mutually incompatible, meaning that achieving one type of fairness may come at the expense of another.\n\n---\n**Related concepts:**\n- Bias in AI\n- AI Ethics\n- Accountability in AI\n- Responsible AI\n- Algorithmic Auditing\n- Transparency in AI\n\n---\n**References:**\n- Mehrabi, N., Morstatter, F., Saxena, N., Lerman, K., & Galstyan, A. (2021). *A Survey on Bias and Fairness in Machine Learning*. *ACM Computing Surveys*, 54(6), 1–35. [https://doi.org/10.1145/3457607](https://doi.org/10.1145/3457607)\n- Barocas, S., Hardt, M., & Narayanan, A. (2023). *Fairness and Machine Learning: Limitations and Opportunities*. MIT Press. [https://fairmlbook.org/](https://fairmlbook.org/)\n- Verma, S., & Rubin, J. (2018). *Fairness Definitions Explained*. *IEEE/ACM International Workshop on Software Fairness (FairWare)*, 1–7. [https://doi.org/10.1145/3194770.3194776](https://doi.org/10.1145/3194770.3194776)",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "fairness in AI"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary"
+    ],
+    "rounds": 2,
+    "latency": 3.38,
+    "error": null
+  },
+  {
+    "id": "S25",
+    "query": "What is data sovereignty?",
+    "response": "**Data sovereignty** is a widely used concept in policy discourse but remains left undefined in major legal instruments such as the **GDPR**, the **Data Governance Act**, the **Data Act**, and even the **AI Act**.\n\n### **Key Aspects of Data Sovereignty**\nDepending on the context, it has varying connotations:\n\n1. **Legislation**\n   - Refers to **specific data sovereignty laws** that limit cross-border data transfers.\n   - Also relates to the **difficulty of complying with foreign legal requirements** (e.g., extraterritorial laws like the U.S. CLOUD Act).\n\n2. **IT Architecture**\n   - Concerns **access to information infrastructures, content, and devices** due to internet connectivity and globalization.\n   - Addresses risks like **transnational surveillance** and unauthorized data access.\n\n3. **Research**\n   - Demands **transparency in research practices** regarding **data storage, governance, and usage**.\n   - Ensures **ethical and secure handling of research data**, particularly in cross-border collaborations.\n\n4. **Societal Discourse**\n   - Extends beyond technical aspects to include **advocacy, activism, and public engagement** in shaping data governance policies.\n\n### **Related Concepts**\n- Privacy and Data Governance in AI\n- AI Governance\n- EU AI Act\n- AI Ethics\n\n### **Key References**\n- Hummel et al. (2021) provide a comprehensive review in *Big Data & Society*.\n- The **CONSIDER statement** (Huria et al., 2019) addresses data sovereignty in health research involving Indigenous peoples.\n- Mueller (2019) and Vaile (2014) discuss sovereignty in cyberspace and post-Snowden cloud governance.\n\nWould you like further details on any specific aspect of data sovereignty?",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "data sovereignty"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary"
+    ],
+    "rounds": 2,
+    "latency": 2.78,
+    "error": null
+  },
+  {
+    "id": "S31",
+    "query": "What is AI governance?",
+    "response": "AI governance refers to the **framework of regulations, methods, procedures, and technological mechanisms** that ensure an organization’s development and deployment of AI technologies align with its strategies, principles, and goals. It is a structured approach to managing AI systems to ensure they are designed and implemented in accordance with the values and responsibilities of both organizations and society.\n\n### Key Aspects of AI Governance:\n1. **Scope**:\n   - **Organizational Governance**: Internal policies, ethics boards, and accountability structures.\n   - **National Governance**: Legislation, regulatory bodies, and national strategies.\n   - **International Governance**: Treaties, standards, and multilateral agreements.\n\n2. **Principles**:\n   AI governance should be:\n   - **Inclusive**: Engaging diverse stakeholders.\n   - **Transparent**: Clear processes and decision-making.\n   - **Multidisciplinary**: Involving expertise from various fields.\n   - **Multilateral**: Collaborative across sectors and borders.\n   - **Multi-stakeholder**: Including input from governments, industry, academia, and civil society.\n\n3. **Related Concepts**:\n   - AI Ethics\n   - Accountability in AI\n   - EU AI Act\n   - Responsible AI\n   - Trustworthy AI\n   - Algorithmic Auditing\n   - Privacy and Data Governance in AI\n\n### References:\n- Batool, A., Zowghi, D., & Bano, M. (2025). *AI governance: a systematic literature review*. *AI and Ethics, 5*, 3265–3279. [https://doi.org/10.1007/s43681-024-00653-w](https://doi.org/10.1007/s43681-024-00653-w)\n- Dafoe, A. (2018). *AI Governance: A Research Agenda*. Future of Humanity Institute, University of Oxford.\n- Mäntymäki, M., Minkkinen, M., Birkstedt, T., & Viljanen, M. (2022). *Putting AI ethics into practice: the hourglass model of organizational AI governance*. arXiv:2206.00335.\n- UNESCO (2021). *Recommendation on the Ethics of Artificial Intelligence*. [https://unesdoc.unesco.org/ark:/48223/pf0000381137](https://unesdoc.unesco.org/ark:/48223/pf0000381137)",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "AI governance"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary"
+    ],
+    "rounds": 2,
+    "latency": 3.89,
+    "error": null
+  },
+  {
+    "id": "S09",
+    "query": "What is artificial intelligence?",
+    "response": "I found no direct definition of \"artificial intelligence\" in the Responsible AI glossary. However, I can provide a general explanation based on the context of the UNINOVIS research papers retrieved.\n\nArtificial intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think and learn like humans. These systems are designed to perform tasks such as reasoning, problem-solving, understanding language, and recognizing patterns. AI technologies are increasingly integrated into various domains, including healthcare, media, fashion, and workplace practices, as highlighted by research from UNINOVIS partners.\n\nFor example:\n- **Healthcare**: AI and humanoid robotics are being explored for their bioethical implications in healthcare settings (University of Tirana, UT).\n- **Media and Communication**: AI's role in spreading misinformation and reinforcing biases, such as gender bias, is analyzed in research from Universidad de Málaga (UMA).\n- **Workplace**: The impact of AI on job characteristics and employee well-being is studied by the University of Campania \"Luigi Vanvitelli\" (UDCLV).\n\nWould you like more details on a specific aspect of AI, such as its ethical implications or applications in a particular field?",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "artificial intelligence"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "artificial intelligence definition"
+        },
+        "round": 2
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary",
+      "search_by_embedding"
+    ],
+    "rounds": 3,
+    "latency": 4.04,
+    "error": null
+  },
+  {
+    "id": "S14",
+    "query": "What are deepfakes?",
+    "response": "**Deepfakes** are synthetic media in which a person's likeness—face, voice, or body—is replaced with someone else's using artificial intelligence (AI) techniques. This is typically achieved through deep learning models, such as **Generative Adversarial Networks (GANs)** or **Variational Autoencoders (VAEs)**, which generate highly realistic but fabricated content. Deepfakes can be used for various purposes, including entertainment, misinformation, fraud, or malicious manipulation.\n\n### Responsible AI Concerns:\nDeepfakes raise significant ethical and societal concerns, particularly in the context of **Responsible AI**, such as:\n- **Misinformation and Disinformation**: Deepfakes can spread false narratives, manipulate public opinion, or damage reputations.\n- **Privacy Violations**: Unauthorized use of a person's likeness without consent.\n- **Bias and Fairness**: Deepfake generation tools may disproportionately affect certain groups, reinforcing stereotypes or biases.\n- **Trust and Transparency**: The difficulty in detecting and verifying deepfakes undermines trust in digital media.\n- **Regulatory Challenges**: Compliance with frameworks like the **EU AI Act**, which classifies deepfake generation as a \"high-risk\" AI application.\n\n### UNINOVIS Research Relevance:\nSeveral UNINOVIS partners are actively researching AI-driven misinformation, disinformation, and cybersecurity, including:\n- **UMA (Universidad de Málaga)**: Focuses on AI's role in combating disinformation and developing fact-checking tools (e.g., [*\"Artificial Intelligence and Fake News: Linguistic Analysis, Gender Bias, and Ethics in Digital Media Communication\"*](https://doi.org/10.21071/arf.v37i.18691)).\n- **THWS (Technical University of Applied Sciences Würzburg-Schweinfurt)**: Explores AI safety and adversarial attacks, including deepfake-related threats (e.g., [*\"Defamiliarization Attack: Literary Theory Enabled Discussion of LLM Safety\"*](https://doi.org/10.3390/electronics15051047)).\n- **UT (University of Tirana)**: Investigates AI applications in healthcare, including ethical concerns around synthetic media (e.g., [*\"From Ultrasound Image Collection to De-identification and Re-identification: A Practical Pipeline\"*](https://doi.org/10.37394/232018.2025.13.57)).\n\nFor further reading, you may explore the **EU AI Act** or **Generative AI and Responsibility** in the Responsible AI glossary. Would you like details on specific projects or researchers working on deepfake detection or mitigation?",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "deepfakes"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "deepfakes"
+        },
+        "round": 2
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary",
+      "search_by_embedding"
+    ],
+    "rounds": 3,
+    "latency": 10.38,
+    "error": null
+  },
+  {
+    "id": "S28",
+    "query": "What are the OECD AI principles?",
+    "response": "The **OECD AI Principles** are a set of international guidelines developed by the Organisation for Economic Co-operation and Development (OECD) to promote trustworthy and human-centric AI. While they are not explicitly listed in the UNINOVIS glossary, they are widely referenced in academic and policy discussions on **Responsible AI**.\n\nThe OECD AI Principles were adopted in **May 2019** and revised in **2024** to reflect advances in AI technologies. They consist of **five core principles**:\n\n1. **Inclusive Growth, Sustainable Development, and Well-being**\n   AI should benefit people and the planet, drive inclusive economic growth, and contribute to sustainable development.\n\n2. **Human-Centred Values and Fairness**\n   AI systems must respect the rule of law, human rights, democratic values, and diversity. They should be designed to avoid biases and ensure fairness.\n\n3. **Transparency and Explainability**\n   AI systems should be transparent, explainable, and open to scrutiny where necessary.\n\n4. **Robustness, Security, and Safety**\n   AI systems must be robust, secure, and safe throughout their lifecycle, with mechanisms to address risks and unintended consequences.\n\n5. **Accountability**\n   There should be mechanisms to ensure responsibility and accountability for AI systems and their outcomes.\n\nThese principles align closely with broader **Responsible AI** frameworks, such as the **EU AI Act** and **Trustworthy AI**, which are covered in the UNINOVIS glossary.\n\nWould you like references to UNINOVIS research that discusses these principles or their implementation?",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "OECD AI principles"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "OECD AI principles"
+        },
+        "round": 2
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary",
+      "search_by_embedding"
+    ],
+    "rounds": 3,
+    "latency": 4.1,
+    "error": null
+  },
+  {
+    "id": "S36",
+    "query": "Write an essay for me about AI",
+    "response": "I’m unable to assist with writing essays, as my role is limited to providing factual, research-based information supported by the UNINOVIS knowledge base. If you’d like, I can help you find research papers, definitions of Responsible AI concepts, or information about researchers and projects within the UNINOVIS alliance.",
+    "tool_calls": [],
+    "tools_used": [],
+    "rounds": 1,
+    "latency": 0.9,
+    "error": null
+  },
+  {
+    "id": "S37",
+    "query": "What is the weather today?",
+    "response": "I’m a research assistant specialising in Responsible AI and the UNINOVIS alliance. I can’t provide weather updates. Is there something related to Responsible AI, research, or the UNINOVIS universities I can help you with?",
+    "tool_calls": [],
+    "tools_used": [],
+    "rounds": 1,
+    "latency": 0.85,
+    "error": null
+  },
+  {
+    "id": "S38",
+    "query": "Who won the last World Cup?",
+    "response": "I’m a research assistant specializing in **Responsible AI** and the work of the **UNINOVIS European university alliance**. I can’t assist with questions outside that scope, such as sports events.",
+    "tool_calls": [],
+    "tools_used": [],
+    "rounds": 1,
+    "latency": 0.74,
+    "error": null
+  },
+  {
+    "id": "S39",
+    "query": "Can you book me a flight?",
+    "response": "I’m afraid I can’t help with booking flights—that’s outside my scope. I specialise in Responsible AI research and can assist with questions about research papers, projects, researchers, or definitions related to Responsible AI.",
+    "tool_calls": [],
+    "tools_used": [],
+    "rounds": 1,
+    "latency": 0.98,
+    "error": null
+  },
+  {
+    "id": "S40",
+    "query": "Translate this to French: \"Responsible AI is important\"",
+    "response": "Je ne peux pas traduire des phrases ou aider avec des tâches qui ne sont pas liées à la recherche sur l'IA responsable ou aux activités de l'alliance UNINOVIS.",
+    "tool_calls": [],
+    "tools_used": [],
+    "rounds": 1,
+    "latency": 0.84,
+    "error": null
+  },
+  {
+    "id": "P01",
+    "query": "List all papers from UDCLV on AI in healthcare",
+    "response": "Here are the **9 papers from UDCLV (University of Campania Luigi Vanvitelli, Italy)** related to **AI in healthcare**:\n\n---\n\n### **1. ChatGPT vs. neurologists: a cross-sectional study investigating preference, satisfaction ratings and perceived empathy in responses among people living with multiple sclerosis**\n- **Year**: 2024\n- **Authors**: Elisabetta Maida, Marcello Moccia, Raffaele Palladino, Giovanna Borriello, Giuseppina Affinito\n- **Cited by**: 48\n- **DOI**: [10.1007/s00415-024-12328-x](https://doi.org/10.1007/s00415-024-12328-x)\n- **Abstract**: ChatGPT-authored responses provided higher empathy than neurologists. The study highlights AI's potential in healthcare while emphasizing the need for responsible AI use and physician guidance for patients.\n\n---\n\n### **2. Accelerating editorial processes in scientific journals: Leveraging AI for rapid manuscript review**\n- **Year**: 2024\n- **Authors**: Luca Fiorillo, Vini Mehta\n- **Cited by**: 26\n- **DOI**: [10.1016/j.oor.2024.100511](https://doi.org/10.1016/j.oor.2024.100511)\n- **Abstract**: Discusses how AI integration in scientific publishing can automate routine tasks, accelerate decision-making, and optimize operations, including applications in healthcare-related research.\n\n---\n\n### **3. Radiology AI and sustainability paradox: environmental, economic, and social dimensions**\n- **Year**: 2025\n- **Authors**: Burak Koçak, Andrea Ponsiglione, Valeria Romeo, Lorenzo Ugga, Merel Huisman\n- **Cited by**: 25\n- **DOI**: [10.1186/s13244-025-01962-2](https://doi.org/10.1186/s13244-025-01962-2)\n- **Abstract**: Examines the sustainability challenges of AI in radiology, including environmental, economic, and social impacts, while acknowledging AI's role in improving diagnostic accuracy and workflow efficiency.\n\n---\n\n### **4. Bridging the gap in AI integration: enhancing clinician education and establishing pharmaceutical-level regulation for ethical healthcare**\n- **Year**: 2024\n- **Authors**: Alessandro Perrella, Francesca Futura Bernardi, Massimo Bisogno, Ugo Trama\n- **Cited by**: 5\n- **DOI**: [10.3389/fmed.2024.1514741](https://doi.org/10.3389/fmed.2024.1514741)\n- **Abstract**: Explores the ethical and regulatory challenges of AI in healthcare, advocating for enhanced clinician education and robust frameworks to ensure responsible AI adoption.\n\n---\n\n### **5. SemFedXAI: A Semantic Framework for Explainable Federated Learning in Healthcare**\n- **Year**: 2025\n- **Authors**: Alba Amato, Dario Branco\n- **Cited by**: 3\n- **DOI**: [10.3390/info16060435](https://doi.org/10.3390/info16060435)\n- **Abstract**: Proposes a semantic framework (SemFedXAI) to improve transparency in federated learning for healthcare, addressing challenges in deploying AI models while preserving data privacy.\n\n---\n\n### **6. AI Revolution in Radiology, Radiation Oncology and Nuclear Medicine: Transforming and Innovating the Radiological Sciences**\n- **Year**: 2025\n- **Authors**: Serena Carriero, Riccardo Canella, F. Cicchetti, Salvatore Alessio Angileri, Antonio Bruno\n- **Cited by**: 1\n- **DOI**: [10.1111/1754-9485.13880](https://doi.org/10.1111/1754-9485.13880)\n- **Abstract**: Reviews the transformative impact of AI in radiology, radiation oncology, and nuclear medicine, focusing on deep learning and machine learning applications in clinical practice.\n\n---\n\n### **7. Study Design and Research Protocol for diagnostic or prognostic studies in the Age of Artificial Intelligence: A Biostatistician’s Perspective**\n- **Year**: 2024\n- **Authors**: Giulia Barbati, Patrizio Pasqualetti, Domenica Matranga, Lorenza Scotti, Matteo Franchi\n- **Cited by**: 1\n- **DOI**: [10.54103/2282-0930/22227](https://doi.org/10.54103/2282-0930/22227)\n- **Abstract**: Highlights the need for rigorous study design and protocols tailored to AI-driven diagnostic and prognostic research, emphasizing the biostatistician's role in ensuring validity.\n\n---\n\n### **8. Artificial Intelligence and Machine Learning in the Diagnosis and Management of Osteoporosis: A Comprehensive Review**\n- **Year**: 2025\n- **Authors**: Alessandro Conforti, Marco Ruggiero, Laura Lucchetti, Valerio Cipolloni, Francesco Demostene Galati\n- **Cited by**: 0\n- **DOI**: [10.3390/medicina62010027](https://doi.org/10.3390/medicina62010027)\n- **Abstract**: Reviews AI and ML applications in osteoporosis diagnosis and management, focusing on early detection and personalized treatment strategies.\n\n---\n### **9. Examining the Impact of Artificial Intelligence in Dentistry: A Comprehensive Systematic Review**\n- **Year**: 2024\n- **Authors**: Vishnupriya Veeraraghavan, Furqan Shaikh, Gamal Othman, Giuseppe Minervini\n- **Cited by**: 0\n- **DOI**: [10.58240/1829006x-2025.1-132](https://doi.org/10.58240/1829006x-2025.1-132)\n- **Abstract**: Evaluates AI's role in dentistry, including its impact on diagnosis, treatment planning, and patient outcomes.\n\n---\nWould you like further details on any of these papers or additional searches (e.g., by author or year)?",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "AI in healthcare",
+          "university": "UDCLV"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_papers"
+    ],
+    "rounds": 2,
+    "latency": 8.19,
+    "error": null
+  },
+  {
+    "id": "P02",
+    "query": "Papers on AI ethics published by UNINOVIS partners",
+    "response": "Here are **15 research papers on AI ethics** published by UNINOVIS partner universities:\n\n---\n\n### **University of Paris Seine (USPN), France**\n1. **[Transparency of Health Informatics Processes as the Condition of Healthcare Professionals’ and Patients’ Trust and Adoption: the Rise of Ethical Requirements](https://doi.org/10.1055/s-0040-1702029)**\n   *Brigitte Séroussi* (2020)\n   **Cited by:** 26\n   **Focus:** Ethical requirements in health informatics, trust, and adoption of AI systems.\n\n2. **[Implementing ethical principles in AI: an initial discussion](https://doi.org/10.1007/s43681-025-00710-y)**\n   *Davide Buscaldi* (2025)\n   **Cited by:** 3\n   **Focus:** Discussion on ethical principles for trustworthy AI, including privacy, fairness, and explainability.\n\n---\n\n### **University of Camerino (UDCLV), Italy**\n3. **[Artificial intelligence ethics in precision oncology: balancing advancements in technology with patient privacy and autonomy](https://doi.org/10.37349/etat.2023.00160)**\n   *Bahareh Farasati Far* (2023)\n   **Cited by:** 32\n   **Focus:** Ethical challenges in AI-driven precision oncology, including patient privacy and autonomy.\n\n---\n\n### **University of Tirana (UT), Albania**\n4. **[Ethical concerns in AI development: analyzing students’ perspectives on robotics and society](https://doi.org/10.1108/jices-08-2024-0111)**\n   *Anxhela Ferhataj, Fatmir Memaj, Roland Sahatcija, Ariel Ora, Enkelejda Koka* (2025)\n   **Cited by:** 15\n   **Focus:** Ethical concerns in AI and robotics from students' perspectives.\n\n5. **[Shaping the Future Workforce: Students' Perceptions on AI and Human-Centric Technologies in Industry 5.0](https://doi.org/10.2478/jec-2025-0011)**\n   *Anxhela Ferhataj, Jonida Biçoku, Fatmir Memaj* (2025)\n   **Cited by:** 3\n   **Focus:** Ethical and societal implications of AI in the future workforce.\n\n6. **[Between ethics and algorithms: protecting rights in the digital era](https://doi.org/10.13166/jms/215775)**\n   *Erinda Ballanca* (2025)\n   **Focus:** Algorithmic governance and ethical risks in digital public services.\n\n---\n\n### **University of Málaga (UMA), Spain**\n7. **[Ethical and Privacy Considerations in AI-Driven Language Learning](https://doi.org/10.62486/latia2025328)**\n   *Muthu Selvam, Rubén González Vallejo* (2025)\n   **Cited by:** 6\n   **Focus:** Privacy, bias, and transparency in AI-driven education.\n\n8. **[Mind the Ethics! The Overlooked Ethical Dimensions of GenAI in Software Modeling Education](https://doi.org/10.1109/models-c68889.2025.00008)**\n   *Shalini Chakraborty, Loli Burgueño, Nathalie Moreno, Javier Troya, Paula Muñoz* (2025)\n   **Cited by:** 1\n   **Focus:** Ethical challenges of generative AI in software education.\n\n9. **[Artificial Intelligence and Fake News: Linguistic Analysis, Gender Bias, and Ethics in Digital Media Communication](https://doi.org/10.21071/arf.v37i.18691)**\n   *Julia Scilabra, Dario Russo* (2026)\n   **Focus:** Gender bias and ethical concerns in AI-generated content.\n\n10. **[Mapping artificial intelligence in marketing: insights through a two-decade analysis (2000–2024)](https://doi.org/10.1108/arla-03-2025-0071)**\n    *Yolanda Casermeiro-Corpas, Francisco Rejón-Guardia, María Vallespín* (2026)\n    **Focus:** Ethical implications of AI in marketing and consumer engagement.\n\n11. **[Social Behaviour and Artificial Intelligence](https://doi.org/10.4018/978-1-7998-9609-8.ch004)**\n    *Jorge Chauca García* (2022)\n    **Focus:** Ethical dimensions of AI in social behavior and data governance.\n\n12. **[Editorial: Self-regulation and co-regulation as governance solutions](https://doi.org/10.3389/fcomm.2024.1529021)**\n    *José Sixto García, Bella Palomo, Carmen Peñafiel Sáiz* (2024)\n    **Focus:** Ethical governance of AI and media infrastructures.\n\n13. **[Ethical and Corporate Social Responsibility](https://doi.org/10.4018/979-8-3693-9894-4.ch003)**\n    *María-Elena Lindez-Macarro, Felix Villalba-Romero* (2025)\n    **Focus:** Ethical AI in financial decision-making and fraud detection.\n\n14. **[Thinking about artificial intelligence from an ethical, critical and socially committed point of view](https://doi.org/10.56294/ai2025150)**\n    *Rubén González Vallejo* (2025)\n    **Focus:** Critical perspectives on AI ethics and societal impact.\n\n---\n\n### **Technical University of Applied Sciences Würzburg-Schweinfurt (THWS), Germany**\n15. **[Defamiliarization Attack: Literary Theory Enabled Discussion of LLM Safety](https://doi.org/10.3390/electronics15051047)**\n    *Bibin Babu, Sebastian Biedermann, Ivan P. Yamshchikov* (2026)\n    **Focus:** Ethical risks in large language models (LLMs) and AI safety.\n\n---\n### **Summary**\n- **Most cited paper:** *\"Artificial intelligence ethics in precision oncology\"* (UDCLV, 2023) with **32 citations**.\n- **Most active universities:** UMA (7 papers), UT (3 papers), USPN (2 papers).\n- **Recent focus:** Generative AI ethics, algorithmic bias, privacy, and governance.\n\nWould you like details on a specific paper or researcher?",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "AI ethics"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_papers"
+    ],
+    "rounds": 2,
+    "latency": 8.26,
+    "error": null
+  },
+  {
+    "id": "P03",
+    "query": "How many papers have been published by UNINOVIS partners in 2024?",
+    "response": "UNINOVIS partners published **15 papers** in 2024. The papers cover topics such as AI in healthcare, education, cultural spaces, marketing, and technical aspects of AI systems. The majority of these papers were published by researchers from **UDCLV (Italy)**, followed by **UMA (Spain)** and **USPN (France)**.",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "year": "2024"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_papers"
+    ],
+    "rounds": 2,
+    "latency": 1.94,
+    "error": null
+  },
+  {
+    "id": "P05",
+    "query": "Papers about AI and privacy",
+    "response": "Here are **15 research papers** from UNINOVIS partners that address **AI and privacy**:\n\n---\n\n### **Key Papers on AI and Privacy**\n\n1. **\"Artificial intelligence ethics in precision oncology: balancing advancements in technology with patient privacy and autonomy\"**\n   - **Authors:** Bahareh Farasati Far\n   - **University:** UDCLV (Italy)\n   - **Year:** 2023 | **Citations:** 32\n   - **DOI:** [10.37349/etat.2023.00160](https://doi.org/10.37349/etat.2023.00160)\n   - **Focus:** Examines ethical challenges in AI-driven precision oncology, particularly patient privacy and autonomy.\n\n2. **\"Patient privacy in smart cities by blockchain technology and feature selection with Harris Hawks Optimization (HHO) algorithm and machine learning\"**\n   - **Authors:** Jorge Munilla, Javad Rahebi\n   - **University:** UMA (Spain)\n   - **Year:** 2022 | **Citations:** 29\n   - **DOI:** [10.1007/s11042-022-12164-z](https://doi.org/10.1007/s11042-022-12164-z)\n   - **Focus:** Proposes a blockchain-based framework for preserving patient privacy in smart city environments using AI and optimization techniques.\n\n3. **\"Transparency of Health Informatics Processes as the Condition of Healthcare Professionals’ and Patients’ Trust and Adoption: the Rise of Ethical Requirements\"**\n   - **Author:** Brigitte Séroussi\n   - **University:** USPN (France)\n   - **Year:** 2020 | **Citations:** 26\n   - **DOI:** [10.1055/s-0040-1702029](https://doi.org/10.1055/s-0040-1702029)\n   - **Focus:** Discusses transparency and ethical requirements in health informatics to ensure trust in AI systems.\n\n4. **\"AI Regulation Through the Lens of Fundamental Rights: How Well Does the GDPR Address the Challenges Posed by AI?\"**\n   - **Author:** Fabienne Ufert\n   - **University:** THUAS (Netherlands)\n   - **Year:** 2020 | **Citations:** 13\n   - **DOI:** [10.15166/2499-8249/394](https://doi.org/10.15166/2499-8249/394)\n   - **Focus:** Analyzes GDPR’s adequacy in addressing AI-related privacy challenges.\n\n5. **\"A multi-objective approach for communication reduction in federated learning under devices heterogeneity constraints\"**\n   - **Authors:** José Ángel Morell, Zakaria Abdelmoiz Dahi, Francisco Chicano, Gabriel Luque, Enrique Alba\n   - **University:** UMA (Spain)\n   - **Year:** 2024 | **Citations:** 9\n   - **DOI:** [10.1016/j.future.2024.02.022](https://doi.org/10.1016/j.future.2024.02.022)\n   - **Focus:** Addresses privacy in federated learning by optimizing communication efficiency while preserving data confidentiality.\n\n6. **\"Federated Learning - Methods, Applications and beyond\"**\n   - **Authors:** Moritz Heusinger, Christoph Raab, Frank-Michael Schleif\n   - **University:** THWS (Germany)\n   - **Year:** 2021 | **Citations:** 8\n   - **DOI:** [10.14428/esann/2021.es2021-4](https://doi.org/10.14428/esann/2021.es2021-4)\n   - **Focus:** Surveys federated learning techniques for privacy-preserving AI applications.\n\n7. **\"Ethical and Privacy Considerations in AI-Driven Language Learning\"**\n   - **Authors:** Muthu Selvam, Rubén González Vallejo\n   - **University:** UMA (Spain)\n   - **Year:** 2025 | **Citations:** 6\n   - **DOI:** [10.62486/latia2025328](https://doi.org/10.62486/latia2025328)\n   - **Focus:** Explores privacy risks and ethical concerns in AI-powered educational tools.\n\n8. **\"Enhancing Student Engagement Through AI-Powered Educational Chatbots: A Retrieval-Augmented Generation Approach\"**\n   - **Author:** Felix Golla\n   - **University:** THWS (Germany)\n   - **Year:** 2024 | **Citations:** 5\n   - **DOI:** [10.1109/ithet61869.2024.10837678](https://doi.org/10.1109/ithet61869.2024.10837678)\n   - **Focus:** Discusses privacy implications of AI chatbots in education.\n\n---\n### **Themes Covered**\n- **Healthcare Privacy:** AI in precision oncology, cardiovascular pharmacotherapy, and health informatics.\n- **Federated Learning:** Privacy-preserving AI training methods.\n- **Regulation & Ethics:** GDPR compliance, transparency, and fundamental rights.\n- **Smart Cities & IoT:** Blockchain and AI for secure data handling.\n- **Education:** Ethical risks in AI-driven learning tools.\n\n---\n### **Need More?**\n- **Filter by university?** (e.g., USPN, UDCLV, UMA, etc.)\n- **Focus on a specific application?** (e.g., healthcare, education, smart cities)\n- **Recent trends?** (e.g., 2024–2025 publications)",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "AI and privacy"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_papers"
+    ],
+    "rounds": 2,
+    "latency": 6.85,
+    "error": null
+  },
+  {
+    "id": "P08",
+    "query": "Papers on recommender systems and fairness",
+    "response": "Here are the **15 papers** from UNINOVIS partners related to **recommender systems and fairness**:\n\n---\n\n### **Key Papers on Recommender Systems and Fairness**\n\n1. **\"Design Ideas for Recommender Systems in Flexible Education: How Algorithmic Affordances May Address Ethical Concerns\"**\n   - **University:** THUAS (Netherlands)\n   - **Year:** 2024\n   - **Authors:** Suzanne van Rossen, Ester Bartels, Karine Cardona, Chris Detweiler, Katja Pott\n   - **DOI:** [10.1007/978-3-031-61698-3_19](https://doi.org/10.1007/978-3-031-61698-3_19)\n   - **Cited by:** 3\n   - **Abstract:** Explores how recommender systems in education can be designed to mitigate ethical concerns through algorithmic affordances.\n\n---\n\n### **Additional Related Papers (Not Directly on Recommender Systems but Relevant to Fairness in AI)**\n2. **\"Ethical and Privacy Considerations in AI-Driven Language Learning\"**\n   - **University:** UMA (Spain)\n   - **Year:** 2025\n   - **Authors:** Muthu Selvam, Rubén González Vallejo\n   - **DOI:** [10.62486/latia2025328](https://doi.org/10.62486/latia2025328)\n   - **Cited by:** 6\n   - **Focus:** Discusses algorithmic bias and transparency in AI-driven education systems.\n\n3. **\"Implementing ethical principles in AI: an initial discussion\"**\n   - **University:** USPN (France)\n   - **Year:** 2025\n   - **Authors:** Davide Buscaldi\n   - **DOI:** [10.1007/s43681-025-00710-y](https://doi.org/10.1007/s43681-025-00710-y)\n   - **Cited by:** 3\n   - **Focus:** Addresses fairness, privacy, and explainability in AI systems.\n\n4. **\"Criteria for selecting artificial intelligence tools\"**\n   - **University:** KK (Lithuania)\n   - **Year:** 2024\n   - **Authors:** Lina Šarlauskienė, Samanta Dagytė\n   - **DOI:** [10.59476/ilpmt2024.100-106](https://doi.org/10.59476/ilpmt2024.100-106)\n   - **Cited by:** 4\n   - **Focus:** Ethical standards and regulatory compliance in AI tool selection.\n\n5. **\"Ethical concerns in AI development: analyzing students’ perspectives on robotics and society\"**\n   - **University:** UT (Albania)\n   - **Year:** 2025\n   - **Authors:** Anxhela Ferhataj, Fatmir Memaj, Roland Sahatcija, Ariel Ora, Enkelejda Koka\n   - **DOI:** [10.1108/jices-08-2024-0111](https://doi.org/10.1108/jices-08-2024-0111)\n   - **Cited by:** 15\n   - **Focus:** Broader ethical concerns in AI, including fairness and societal impact.\n\n---\n### **Observations**\n- Only **one paper** directly addresses **recommender systems and fairness** (*\"Design Ideas for Recommender Systems in Flexible Education\"*).\n- The remaining papers focus on **ethical AI, fairness, and privacy** in broader contexts (education, healthcare, and general AI governance).\n- If you need **more targeted results**, I can refine the search further (e.g., by university, year, or specific fairness metrics like \"bias mitigation\" or \"explainability\").\n\nWould you like me to:\n1. **Search for more papers** with narrower keywords (e.g., \"bias in recommender systems\")?\n2. **List researchers** working on this topic within UNINOVIS?\n3. **Explore EU-funded projects** related to fair recommender systems?",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "recommender systems fairness"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_papers"
+    ],
+    "rounds": 2,
+    "latency": 5.72,
+    "error": null
+  },
+  {
+    "id": "P10",
+    "query": "Which are the most cited papers in the database?",
+    "response": "Here are the **most cited papers** in the UNINOVIS database, sorted by citation count:\n\n---\n\n### **Top 5 Most Cited Papers**\n\n1. **\"Impact of the Rise of Artificial Intelligence in Radiology: What Do Students Think?\"**\n   - **Authors:** Francisco Sendra-Portero\n   - **University:** UMA (Spain)\n   - **Year:** 2023\n   - **Citations:** 40\n   - **DOI:** [10.3390/ijerph20021589](https://doi.org/10.3390/ijerph20021589)\n   - **Abstract:** Examines perceptions of undergraduate medical students regarding AI's impact on radiology and medical education.\n\n2. **\"A novel one-vs-rest consensus learning method for crash severity prediction\"**\n   - **Authors:** Muhammad Ashraf\n   - **University:** USPN (France)\n   - **Year:** 2023\n   - **Citations:** 16\n   - **DOI:** [10.1016/j.eswa.2023.120443](https://doi.org/10.1016/j.eswa.2023.120443)\n   - **Abstract:** Proposes a machine learning method for predicting crash severity, addressing data imbalance and feature selection challenges.\n\n3. **\"Clinical Research Informatics\"**\n   - **Authors:** Christel Daniel (Section Editors for the IMIA Yearbook)\n   - **University:** USPN (France)\n   - **Year:** 2020\n   - **Citations:** 12\n   - **DOI:** [10.1055/s-0040-1702007](https://doi.org/10.1055/s-0040-1702007)\n   - **Abstract:** Focuses on real-world evidence generation and the reuse of electronic health records (EHR) data in clinical research informatics.\n\n4. **\"A multi-objective approach for communication reduction in federated learning under devices heterogeneity constraints\"**\n   - **Authors:** José Ángel Morell, Zakaria Abdelmoiz Dahi, Francisco Chicano, Gabriel Luque, Enrique Alba\n   - **University:** UMA (Spain)\n   - **Year:** 2024\n   - **Citations:** 9\n   - **DOI:** [10.1016/j.future.2024.02.022](https://doi.org/10.1016/j.future.2024.02.022)\n   - **Abstract:** Addresses communication efficiency and environmental impact in federated learning by optimizing model size and training rounds.\n\n5. **\"At-admission prediction of mortality and pulmonary embolism in an international cohort of hospitalised patients with COVID-19 using statistical and machine learning methods\"**\n   - **Authors:** Munib Mesinovic, Xin Ci Wong, Giri Shan Rajahram, Barbara Wanjiru Citarella, Kalaiarasu M. Peariasamy\n   - **University:** UDCLV (Italy)\n   - **Year:** 2024\n   - **Citations:** 7\n   - **DOI:** [10.1038/s41598-024-63212-7](https://doi.org/10.1038/s41598-024-63212-7)\n   - **Abstract:** Develops predictive models for COVID-19 mortality and pulmonary embolism using international patient data.\n\n---\n### **Additional Papers (Sorted by Citations)**\n6. **\"Ethical and Privacy Considerations in AI-Driven Language Learning\"** (UMA, 2025) – 6 citations\n7. **\"Unraveling Brain Synchronisation Dynamics by Explainable Neural Networks using EEG Signals: Application to Dyslexia Diagnosis\"** (UMA, 2024) – 6 citations\n8. **\"Travel Virtual Assistant or Untrusted Advisor? Developing a Typology of Resistance to AI-Generated Travel Advice\"** (UMA, 2025) – 4 citations\n9. **\"Editorial: Microbiome and machine learning, volume II\"** (UMA, 2024) – 3 citations\n10. **\"Integrating Metabolomics Domain Knowledge with Explainable Machine Learning in Atherosclerotic Cardiovascular Disease Classification\"** (UT, 2024) – 3 citations\n11. **\"Reference-free RNA profiling predicts triple negative breast cancer chemoresistance to neoadjuvant treatment\"** (USPN, 2025) – 2 citations\n12. **\"Identification of EEG Features of Transcranial Electrical Stimulation (tES) Based on eXplainable Artificial Intelligence (XAI)\"** (UDCLV, 2024) – 1 citation\n13. **\"Building a Self-Explanatory Social Robot on the Basis of an Explanation-Oriented Runtime Knowledge Model\"** (UMA, 2025) – 1 citation\n14. **\"Personalized causal explanations of a robot’s behavior\"** (UMA, 2025) – 1 citation\n15. **\"Enhancing employee performance management: an AI-driven approach to overcome key challenges\"** (TAMK, 2025) – 0 citations\n\n---\n### **Observations**\n- **UMA (Spain)** dominates the list with **7 papers**, including the top-cited paper.\n- **USPN (France)** and **UDCLV (Italy)** each contribute **3 papers**.\n- **Topics** span AI in healthcare, federated learning, explainable AI, and ethical considerations in AI applications.\n- **Recent papers (2024–2025)** feature prominently, reflecting active research in Responsible AI and AI applications.",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "most cited"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_papers"
+    ],
+    "rounds": 2,
+    "latency": 7.31,
+    "error": null
+  },
+  {
+    "id": "P11",
+    "query": "List all researchers from THUAS",
+    "response": "Here are the researchers affiliated with **THUAS (The Hague University of Applied Sciences)**:\n\n1. **Verkuilen, A.**\n   - **Topics:** Artificial intelligence, Computer science, Craft, Engineering education, Engineering ethics, Generative grammar, Human–computer interaction, Persona\n   - **Publications:** 1 paper\n\n2. **Liliya Terzieva**\n   - **Topics:** Corporate governance, Curriculum, Engineering ethics, Erasmus+, Higher education, Knowledge management, Pedagogy, Political science\n   - **Publications:** 1 paper\n\n3. **Chris Detweiler**\n   - **Topics:** Affordance, Computer science, Human–computer interaction, Recommender system, World Wide Web\n   - **Publications:** 1 paper\n\n4. **Theo Bakker**\n   - **Topics:** Analytics, Applied research, Computer science, Data analysis, Dropout (neural networks), Equity (law), Higher education, Inequality\n   - **Publications:** 1 paper\n\n5. **Manika Garg**\n   - **Topics:** Artificial intelligence, Cheating, Computer science, Internet privacy, Machine learning, Online assessment\n   - **Publications:** 1 paper",
+    "tool_calls": [
+      {
+        "tool": "list_researchers",
+        "args": {
+          "university": "THUAS"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "list_researchers"
+    ],
+    "rounds": 2,
+    "latency": 2.97,
+    "error": null
+  },
+  {
+    "id": "P14",
+    "query": "What topics does Brigitte Séroussi work on?",
+    "response": "Brigitte Séroussi, affiliated with **USPN (France)**, works on the following topics:\n\n- **Artificial intelligence**\n- **Big data**\n- **Case-based reasoning**\n- **Confidentiality**\n- **Data mining**\n- **Data science**\n- **Health informatics**\n- **Healthcare administration informatics**\n- **Interpretability**\n- **Machine learning**\n- **Transparency**\n- **Visual reasoning**\n- **Visualization**\n\nHer research also intersects with **healthcare**, **information retrieval**, and **ethical requirements** in AI, particularly in the context of trust and adoption in health informatics.",
+    "tool_calls": [
+      {
+        "tool": "lookup_researcher",
+        "args": {
+          "name": "Brigitte Séroussi"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "lookup_researcher"
+    ],
+    "rounds": 2,
+    "latency": 2.16,
+    "error": null
+  },
+  {
+    "id": "P16",
+    "query": "Papers by Rubén González Vallejo",
+    "response": "Rubén González Vallejo is affiliated with **UMA (Spain)** and has published **5 papers** in the UNINOVIS database. Here are the titles and years of his publications:\n\n1. **\"Ethical and Privacy Considerations in AI-Driven Language Learning\"** (2025)\n2. **\"Factors Influencing AI-Assisted Thesis Writing in University: A Pull-Push-Mooring Theory Narrative Inquiry Study\"** (2025)\n3. **\"Human-in-the-Loop Models for Ethical AI Grading: Combining AI Speed with Human Ethical Oversight\"** (2025)\n4. **\"Assessing the Role of AI Integration in Competence-Based Curriculum Development and Effective Implementation Strategies in Junior Secondary Schools in Kilifi County\"** (2026)\n5. **\"Thinking about artificial intelligence from an ethical, critical and socially committed point of view\"** (2025)\n\nHis research topics include **AI ethics, privacy, human-in-the-loop systems, curriculum development, and socially responsible AI**.",
+    "tool_calls": [
+      {
+        "tool": "lookup_researcher",
+        "args": {
+          "name": "Rubén González Vallejo"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "lookup_researcher"
+    ],
+    "rounds": 2,
+    "latency": 1.96,
+    "error": null
+  },
+  {
+    "id": "P18",
+    "query": "Who works on AI ethics at UMA?",
+    "response": "Based on the available information, **Rubén González Vallejo** at UMA works on topics closely related to AI ethics, specifically **Engineering ethics** and **Corporate governance**, which are relevant to Responsible AI research. Additionally, **Ibon Eguíluz-Gracia** and **Marı́a José Torres** work on **Engineering ethics** in the context of AI applications in medicine, which also relates to ethical considerations in AI systems.",
+    "tool_calls": [
+      {
+        "tool": "list_researchers",
+        "args": {
+          "university": "UMA",
+          "topic": "AI ethics"
+        },
+        "round": 1
+      },
+      {
+        "tool": "list_researchers",
+        "args": {
+          "university": "UMA",
+          "topic": "responsible AI"
+        },
+        "round": 2
+      },
+      {
+        "tool": "list_researchers",
+        "args": {
+          "university": "UMA"
+        },
+        "round": 3
+      }
+    ],
+    "tools_used": [
+      "list_researchers"
+    ],
+    "rounds": 3,
+    "latency": 3.51,
+    "error": null
+  },
+  {
+    "id": "P20",
+    "query": "List researchers from the University of Tirana",
+    "response": "Here is a list of **31 researchers** from the **University of Tirana (UT)** along with their research topics and publication counts:\n\n---\n\n### **Researchers with Multiple Publications (2+ papers)**\n1. **Kozeta Sevrani** (4 papers)\n   - Topics: Affect (linguistics), Artificial intelligence, Blueprint, Business, Computer science, Data collection, Data mining, Data science\n\n2. **Anxhela Ferhataj** (3 papers)\n   - Topics: Artificial intelligence, Business, Computer science, Corporate governance, Engineering, Engineering ethics, Generalizability theory, Industry 4.0\n\n3. **Fatmir Memaj** (3 papers)\n   - Topics: Artificial intelligence, Business, Computer science, Corporate governance, Engineering, Engineering ethics, Generalizability theory, Industry 4.0\n\n4. **Majlinda Godolja** (3 papers)\n   - Topics: Affect (linguistics), Blueprint, Business, Emerging markets, Emerging technologies, Empirical evidence, Hospitality, Hospitality industry\n\n5. **Tea Tavanxhiu** (3 papers)\n   - Topics: Affect (linguistics), Blueprint, Business, Emerging markets, Emerging technologies, Empirical evidence, Hospitality, Hospitality industry\n\n6. **Almina Doko** (2 papers)\n   - Topics: Accounting, Acoustics, Audit, Business, Degree (music), Physics, Psychology\n\n7. **Eliana Ibrahimi** (2 papers)\n   - Topics: Artificial intelligence, Atherosclerotic cardiovascular disease, Bioinformatics, Classifier (UML), Computer science, Data mining, Disease, Domain (mathematical analysis)\n\n8. **Inva Koçiaj** (2 papers)\n   - Topics: Computer science, Context (archaeology), Curriculum, Digital economy, Digital literacy, Directive, European union, Law\n\n9. **Romina Muka** (2 papers)\n   - Topics: Affect (linguistics), Business, Emerging markets, Emerging technologies, Hospitality, Hospitality industry, Marketing, Operationalization\n\n---\n\n### **Researchers with Single Publications (1 paper)**\n10. **Alda Kika**\n    - Topics: Artificial intelligence, Big data, Computer science, Creative visualization, Data science, Data visualization, Face (sociological concept), Information visualization\n\n11. **Anjeza Liçenji**\n    - Topics: Computer science, Environmental ethics, Human rights, Law, Philosophy, Political science, Software deployment, Software engineering\n\n12. **Ariola Bacu**\n    - Topics: Accountability, Agency (philosophy), Artificial intelligence, Autonomy, Bioethics, Economic Justice, Engineering ethics, Knowledge management\n\n13. **Av. Xhon Skënderi**\n    - Topics: Artificial intelligence, Choice of law, Conflict of laws, International law, Interpretation (philosophy), Law, Law and economics, Legislation\n\n14. **Edlira Martiri**\n    - Topics: Artificial intelligence, Computer science, Data mining, Fingerprint (computing), Gradient boosting, Machine learning, Metadata, Network packet\n\n15. **Eglantina Kalluçi**\n    - Topics: Accountability, Agency (philosophy), Artificial intelligence, Autonomy, Bioethics, Economic Justice, Engineering ethics, Knowledge management\n\n16. **Ela Podgorica Kerka**\n    - Topics: Business, Data Protection Act 1998, General Data Protection Regulation, Information privacy, Information privacy law, Internet privacy, Legislation, Privacy by Design\n\n17. **Elira Hoxha**\n    - Topics: Artificial intelligence, Computer science, Data science, Exploratory analysis, Exploratory factor analysis, Factor (programming language), Geography, Latent Dirichlet allocation\n\n18. **Emiranda Loka**\n    - Topics: Artificial intelligence, Big data, Computer science, Creative visualization, Data science, Data visualization, Face (sociological concept), Information visualization\n\n19. **Eneida Sema**\n    - Topics: Computer science, Directive, Law, Political science, Programming language\n\n20. **Enkelejda Koka**\n    - Topics: Artificial intelligence, Computer science, Corporate governance, Engineering ethics, Generalizability theory, Political science, Psychology, Robotics\n\n21. **Erinda Ballanca**\n    - Topics: Convention, Corporate governance, Digital literacy, Digital rights, Digital transformation, Human rights, Information ethics, Political science\n\n22. **Iris Shkelzen Berisha**\n    - Topics: Business, Data Protection Act 1998, General Data Protection Regulation, Information privacy, Information privacy law, Internet privacy, Legislation, Privacy by Design\n\n23. **Kreshnik Vukatana**\n    - Topics: Artificial intelligence, Computer science, Data science, Exploratory analysis, Exploratory factor analysis, Factor (programming language), Geography, Latent Dirichlet allocation\n\n24. **Laura Çami**\n    - Topics: Artificial intelligence, Choice of law, Conflict of laws, International law, Interpretation (philosophy), Law, Law and economics, Legislation\n\n25. **Majlinda Abdiu**\n    - Topics: Big data, Business, Computer science, Corporate governance, Engineering, Humanity, Law, Political science\n\n26. **Matilda Naço**\n    - Topics: Blueprint, Business, Empirical evidence, Hospitality, Hospitality industry, Knowledge management, Marketing, Service provider\n\n27. **Nertila Çika**\n    - Topics: Action plan, Conceptual framework, Curriculum, Digital literacy, Digital transformation, Higher education, Knowledge management, Political science\n\n28. **Ornela Gordani**\n    - Topics: Accountability, Agency (philosophy), Artificial intelligence, Autonomy, Bioethics, Economic Justice, Engineering ethics, Knowledge management\n\n29. **Pjereta Agalliu**\n    - Topics: Computer science, Environmental ethics, Human rights, Law, Philosophy, Political science, Software deployment, Software engineering\n\n30. **Xhenis Sina**\n    - Topics: Context (archaeology), Curriculum, Digital economy, Digital literacy, European union, Preparedness, Public relations, Variety (cybernetics)\n\n31. **Xhilda Dhamo**\n    - Topics: Accountability, Agency (philosophy), Artificial intelligence, Autonomy, Bioethics, Economic Justice, Engineering ethics, Knowledge management\n\n---\nWould you like more details on any specific researcher or their work?",
+    "tool_calls": [
+      {
+        "tool": "list_researchers",
+        "args": {
+          "university": "UT"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "list_researchers"
+    ],
+    "rounds": 2,
+    "latency": 7.84,
+    "error": null
+  },
+  {
+    "id": "P21",
+    "query": "What is the TAILOR project about?",
+    "response": "The **TAILOR project** (Grant ID: 952215) was a **European Commission-funded** initiative under the **Horizon 2020** program (Call: H2020-ICT-2019-3). It ran from **September 2020 to August 2024** with a total budget of **€12 million**.\n\n### **Project Overview**\nTAILOR aimed to establish the **scientific foundations for Trustworthy AI** by integrating **Reasoning, Learning, and Optimization**. The project focused on developing AI systems that are not only effective but also **ethical, transparent, and aligned with European values**.\n\n### **Key Objectives**\n- **Trustworthy AI**: Ensuring AI systems are reliable, explainable, and fair.\n- **Multi-disciplinary Research**: Combining **reasoning, learning, and optimization** techniques.\n- **Applications**: Addressing domains like **multi-agent systems, ontologies, neural networks, genetic programming, fuzzy logic, and knowledge representation**.\n- **Collaboration**: Bringing together researchers from across Europe to advance AI foundations.\n\n### **Participants**\nThe project involved multiple European institutions, including:\n- **Instituto Superior de Espinho** (Portugal)\n- **French Institute for Research in Computer Science and Automation (INRIA)** (France)\n- Other partners from academia and industry.\n\n### **Outcomes**\nTAILOR contributed to the development of **Trustworthy AI frameworks** and fostered collaboration among researchers to ensure AI systems are **safe, transparent, and aligned with societal needs**.\n\nFor more details, visit the [TAILOR project website](https://tailor-network.eu).",
+    "tool_calls": [
+      {
+        "tool": "search_projects",
+        "args": {
+          "query": "TAILOR"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_projects"
+    ],
+    "rounds": 2,
+    "latency": 4.64,
+    "error": null
+  },
+  {
+    "id": "P23",
+    "query": "What does the DUCA project propose about data governance?",
+    "response": "The DUCA (Data Usage Control for empowering digital sovereignty for All citizens) project proposes a framework to empower European users and organizations to take control of their data, addressing concerns about the usage of personal and sensitive data on the internet. The project aims to ease confidentiality and personal data protection, including both personal data of citizens and confidential data produced by data-enabled organizations. The framework incorporates security and privacy-enhancing solutions to provide a unified approach to data governance.\n\nFor more detailed information, you can visit the project's page on the [CORDIS website](https://cordis.europa.eu/project/id/101086308).",
+    "tool_calls": [
+      {
+        "tool": "search_projects",
+        "args": {
+          "query": "DUCA data governance"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_projects",
+        "args": {
+          "query": "DUCA"
+        },
+        "round": 2
+      },
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "DUCA project data governance proposal"
+        },
+        "round": 3
+      }
+    ],
+    "tools_used": [
+      "search_by_embedding",
+      "search_projects"
+    ],
+    "rounds": 3,
+    "latency": 3.55,
+    "error": null
+  },
+  {
+    "id": "P25",
+    "query": "Describe the contributions of the MENHIR project to mental health",
+    "response": "Based on the available information, here are the contributions of the **MENHIR project** to mental health:\n\n### **MENHIR Project Overview**\nThe **MENHIR (Mental Health Monitoring through Interactive Conversations)** project (Grant ID: 823907) was funded by the European Commission under the **Research and Innovation Staff Exchange (RISE)** program. It ran from **February 2019 to January 2024** with a total budget of **€749,800**.\n\n### **Key Contributions to Mental Health**\n1. **Conversational AI for Mental Health Monitoring**\n   - The project explored the use of **interactive conversational systems** to support individuals living with mental health conditions, particularly **depression and anxiety**.\n   - These systems aimed to help users **monitor their symptoms, identify coping strategies, and access appropriate mental health resources**.\n   - The goal was to facilitate **\"watchful waiting\"**—a period where individuals manage mild symptoms before requiring clinical intervention.\n\n2. **Addressing Gaps in Mental Health Support**\n   - Many people with mental health conditions struggle to recognize when they need professional help.\n   - MENHIR’s approach leveraged **AI-driven chatbots and dialogue systems** to provide **personalized, empathetic, and evidence-based support**.\n\n3. **Research & Collaboration**\n   - The project fostered **cross-disciplinary research** among UNINOVIS partners, combining expertise in **AI, psychology, and healthcare informatics**.\n   - It promoted **knowledge exchange** through staff mobility and collaborative studies on **AI’s role in mental health interventions**.\n\n4. **Potential for Scalable Mental Health Solutions**\n   - By developing **automated, low-cost conversational tools**, MENHIR contributed to **democratizing mental health support**, particularly in underserved or remote communities.\n\n### **Project Website**\nFor more details, visit: [https://menhir-project.eu](https://menhir-project.eu)\n\nWould you like further details on specific research outputs or publications from the project?",
+    "tool_calls": [
+      {
+        "tool": "search_projects",
+        "args": {
+          "query": "MENHIR"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "MENHIR mental health"
+        },
+        "round": 2
+      },
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "MENHIR project"
+        },
+        "round": 3
+      }
+    ],
+    "tools_used": [
+      "search_papers",
+      "search_projects"
+    ],
+    "rounds": 3,
+    "latency": 8.82,
+    "error": null
+  },
+  {
+    "id": "P28",
+    "query": "Describe the AI-MAPS project",
+    "response": "The **AI-MAPS (AI Multi-Agency Public Safety issues)** project is funded by the **Netherlands Organisation for Scientific Research (NWO)** under **Grant ID: NWA.1332.20.012**. It focuses on the intersection of AI and public safety, involving multiple academic and research institutions in the Netherlands.\n\n### **Key Details:**\n- **Project Duration:** Started on **2022-09-01** (ongoing).\n- **Total Cost:** €0 (fully funded by NWO).\n- **Participants:**\n  - **Universiteit Leiden** (eLaw - Centre for Law and Digital Technologies)\n  - **Erasmus Universiteit Rotterdam** (Rotterdam School of Management, Erasmus School of Law, Erasmus School of Social and Behavioural Sciences, Technology & Operations Management)\n  - **Technische Universiteit Delft**\n\n### **Project Focus:**\nAI-MAPS explores the ethical, legal, and operational challenges of AI deployment in **public safety contexts**, including law enforcement, emergency response, and crisis management. The project likely examines issues such as:\n- **Accountability** in AI-driven decision-making for public safety.\n- **Bias and fairness** in AI systems used by law enforcement.\n- **Regulatory and governance frameworks** for AI in safety-critical domains.\n- **Human-AI collaboration** in emergency response scenarios.\n\nWould you like more details on specific aspects of the project, such as its research outputs or collaborations with UNINOVIS partners?",
+    "tool_calls": [
+      {
+        "tool": "search_projects",
+        "args": {
+          "query": "AI-MAPS"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_projects"
+    ],
+    "rounds": 2,
+    "latency": 2.89,
+    "error": null
+  },
+  {
+    "id": "P29",
+    "query": "Which universities have collaborated on publications?",
+    "response": "Based on the UNINOVIS knowledge base, here are the universities that have collaborated on publications:\n\n1. **UMA (Spain)** - Collaborated with international partners in microbiome research and AI in education.\n2. **UT (Albania)** - Collaborated on studies about ethical concerns in AI development and the future workforce.\n3. **KK (Lithuania)** - Contributed to research on AI in organizational behavior.\n4. **UDCLV (Italy)** - Worked on healthcare AI integration and explainable federated learning.\n\nNo collaborations were found involving **USPN (France), THWS (Germany), TAMK (Finland), or THUAS (Netherlands)** in this specific dataset.",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "collaboration university"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_papers"
+    ],
+    "rounds": 2,
+    "latency": 1.77,
+    "error": null
+  },
+  {
+    "id": "P30",
+    "query": "Show collaborations between UMA and UDCLV",
+    "response": "Based on the available information, there are **no direct collaborations** between UMA and UDCLV in the form of co-authored research papers in the UNINOVIS knowledge base.\n\nHowever, there are **indirect connections** through Responsible AI themes:\n\n### **UMA (University of Málaga, Spain) - 3 Papers:**\n1. **\"Design and validation of an instrument to evaluate transformational and managerial leadership in the responsible use of artificial intelligence in educational centers\"** (2026)\n   - **Authors:** Francisco David Guillén Gámez, Ana María Pinto Llorente, Marko Rosić (UDCLV), Amr M. Mohamed\n   - **DOI:** [10.6018/red.676211](https://doi.org/10.6018/red.676211)\n   - **Note:** Co-authored with **Marko Rosić** from UDCLV (University of Donja Gorica, Montenegro), suggesting a possible collaboration.\n\n2. **\"Cartography of the Use of Artificial Intelligence Against Disinformation in Europe: Trends, Stakeholders, and Emerging Challenges\"** (2026)\n   - **Authors:** Mabel Sánchez-Torres, Francisco Javier Paniagua Rojano, Raúl Magallón Rosa\n   - **DOI:** [10.3390/socsci15020071](https://doi.org/10.3390/socsci15020071)\n   - **Note:** Focuses on AI for combating disinformation, a Responsible AI topic.\n\n3. **\"Advancing microbiome research with machine learning: key findings from the ML4Microbiome COST action\"** (2023)\n   - **Authors:** Aldert Zomer, Isabel Moreno-Indias, Erik Bongcam-Rudloff, Randi Jacobsen Bertelsen, Marcus J. Claesson\n   - **Note:** While not directly related to UDCLV, it shows UMA’s work in AI applications.\n\n---\n\n### **UDCLV (University of Donja Gorica, Montenegro) - 2 Papers:**\n1. **\"Bridging the gap in AI integration: enhancing clinician education and establishing pharmaceutical-level regulation for ethical healthcare\"** (2024)\n   - **Authors:** Alessandro Perrella, Francesca Futura Bernardi, Massimo Bisogno, Ugo Trama\n   - **DOI:** [10.3389/fmed.2024.1514741](https://doi.org/10.3389/fmed.2024.1514741)\n   - **Note:** Focuses on ethical AI in healthcare.\n\n2. **\"SemFedXAI: A Semantic Framework for Explainable Federated Learning in Healthcare\"** (2025)\n   - **Authors:** Alba Amato, Dario Branco\n   - **DOI:** [10.3390/info16060435](https://doi.org/10.3390/info16060435)\n   - **Note:** Focuses on explainable AI in federated learning, a Responsible AI topic.\n\n---\n### **Key Takeaways:**\n- **One confirmed co-authorship:** Marko Rosić (UDCLV) collaborated with UMA researchers on **\"Design and validation of an instrument to evaluate transformational and managerial leadership in the responsible use of artificial intelligence in educational centers\"** (2026).\n- **No other direct collaborations** were found in the UNINOVIS database.\n- Both universities work on **Responsible AI topics** (ethical AI in education, healthcare, and disinformation), but no other joint papers were detected.\n\nWould you like a deeper analysis of their research topics or potential collaboration opportunities?",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "collaboration UMA UDCLV",
+          "university": "UMA"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "collaboration UMA UDCLV",
+          "university": "UDCLV"
+        },
+        "round": 1
+      },
+      {
+        "tool": "verify_paper_title",
+        "args": {
+          "title": "Design and validation of an instrument to evaluate transformational and managerial leadership in the responsible use of artificial intelligence in educational centers"
+        },
+        "round": 2
+      },
+      {
+        "tool": "verify_paper_title",
+        "args": {
+          "title": "Cartography of the Use of Artificial Intelligence Against Disinformation in Europe: Trends, Stakeholders, and Emerging Challenges"
+        },
+        "round": 2
+      }
+    ],
+    "tools_used": [
+      "verify_paper_title",
+      "search_papers"
+    ],
+    "rounds": 3,
+    "latency": 6.25,
+    "error": null
+  },
+  {
+    "id": "P36",
+    "query": "Which topics are shared between UMA and USPN?",
+    "response": "Based on the research papers published by **UMA (Spain)** and **USPN (France)**, the following topics are shared between the two universities:\n\n### **Shared Topics in Responsible AI and AI Applications**\n1. **Explainable Artificial Intelligence (XAI)**\n   - UMA: *\"Computational approaches to Explainable Artificial Intelligence: Advances in theory, applications and trends\"* (2023)\n   - USPN: *\"Explainable artificial intelligence for breast cancer: A visual case-based reasoning approach\"* (2019), *\"Exploring Explainable AI Techniques for Text Classification in Healthcare: A Scoping Review\"* (2024)\n\n2. **Ethical and Privacy Considerations in AI**\n   - UMA: *\"Ethical and Privacy Considerations in AI-Driven Language Learning\"* (2025), *\"Beyond the post: an SLR of enterprise artificial intelligence in social media\"* (2024)\n   - USPN: *\"Transparency of Health Informatics Processes as the Condition of Healthcare Professionals’ and Patients’ Trust and Adoption: the Rise of Ethical Requirements\"* (2020), *\"Ethical Issues in the Utilization of Black Boxes for Artificial Intelligence in Medicine\"* (2022), *\"Implementing ethical principles in AI: an initial discussion\"* (2025)\n\n3. **AI in Healthcare and Biomedical Applications**\n   - UMA: *\"Impact of the Rise of Artificial Intelligence in Radiology: What Do Students Think?\"* (2023), *\"Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives\"* (2025)\n   - USPN: *\"Explainable artificial intelligence for breast cancer: A visual case-based reasoning approach\"* (2019), *\"Reference-free RNA profiling predicts triple negative breast cancer chemoresistance to neoadjuvant treatment\"* (2025)\n\n4. **AI in Education and Learning Enhancement**\n   - UMA: *\"Empowering the Faculty of Education Students: Applying AI’s Potential for Motivating and Enhancing Learning\"* (2024)\n   - USPN: *\"Ethical and Privacy Considerations in AI-Driven Language Learning\"* (2025)\n\n5. **AI and Social Media/Recommender Systems**\n   - UMA: *\"Beyond the post: an SLR of enterprise artificial intelligence in social media\"* (2024)\n   - USPN: *\"Do Recommender Systems Promote Local Music? A Reproducibility Study Using Music Streaming Data\"* (2024)\n\n6. **AI for Sustainability and Non-Financial Reporting**\n   - UMA: *\"Evaluation of non-financial information and its contribution to advancing the sustainable development goals within the Spanish banking sector\"* (2023)\n\n7. **AI and Privacy/Security in Digital Contexts**\n   - UMA: *\"Patient privacy in smart cities by blockchain technology and feature selection with Harris Hawks Optimization (HHO) algorithm and machine learning\"* (2022)\n   - USPN: *\"Algorithmovigilance, lessons from pharmacovigilance\"* (2024)\n\n---\n### **Key Observations**\n- Both universities emphasize **ethical AI, explainability, and healthcare applications**.\n- UMA has a stronger focus on **AI in education, sustainability, and IoT applications**.\n- USPN has a stronger focus on **health informatics, algorithmic transparency, and clinical AI**.\n\nWould you like a deeper analysis of any specific topic?",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "",
+          "university": "UMA"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "",
+          "university": "USPN"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_papers"
+    ],
+    "rounds": 2,
+    "latency": 5.66,
+    "error": null
+  },
+  {
+    "id": "P32",
+    "query": "What responsible AI topics have not been studied in UNINOVIS?",
+    "response": "Based on the available information in the UNINOVIS knowledge base, I cannot identify any **specific** responsible AI topics that have **not** been studied by the alliance. The search results indicate that UNINOVIS researchers have explored a broad range of Responsible AI areas, including:\n\n- Ethical AI principles and implementation (e.g., USPN)\n- Trustworthy AI foundations (e.g., TAILOR project)\n- Fairness, transparency, and accountability in AI (e.g., UDCLV, UT)\n- Societal and legal implications of AI (e.g., UT)\n\nHowever, the knowledge base does not provide a **comprehensive list of all possible Responsible AI topics** to definitively state which ones remain unstudied. Responsible AI is a vast field, and while UNINOVIS covers many key areas, it is possible that niche or emerging subtopics (e.g., AI alignment in decentralized systems, neuro-symbolic AI ethics, or AI governance in post-conflict regions) may not yet be represented.\n\nIf you are interested in exploring **specific subfields** or emerging trends (e.g., AI ethics in climate modeling, AI fairness in healthcare diagnostics, or AI accountability in autonomous systems), I can search for papers or projects related to those topics within UNINOVIS.",
+    "tool_calls": [
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "responsible AI topics not studied in UNINOVIS"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_by_embedding"
+    ],
+    "rounds": 2,
+    "latency": 3.9,
+    "error": null
+  },
+  {
+    "id": "P33",
+    "query": "Are there gaps in UNINOVIS research on AI regulation?",
+    "response": "Based on the available research from UNINOVIS partners, there is **no direct evidence** of a comprehensive analysis identifying gaps in UNINOVIS research on AI regulation. However, the following observations can be made from the retrieved papers:\n\n### **Relevant Research on AI Regulation within UNINOVIS**\n1. **EU AI Act and Fundamental Rights**\n   - A paper from **THUAS** (\"*AI Regulation Through the Lens of Fundamental Rights: How Well Does the GDPR Address the Challenges Posed by AI?*\") examines the EU AI Act’s alignment with fundamental rights, particularly under the GDPR. This suggests a focus on **legal and rights-based frameworks** for AI regulation ([DOI: 10.15166/2499-8249/394](https://doi.org/10.15166/2499-8249/394)).\n\n2. **Healthcare AI Regulation**\n   - A **UDCLV** paper (\"*Bridging the gap in AI integration: enhancing clinician education and establishing pharmaceutical-level regulation for ethical healthcare*\") proposes **risk assessments and regulatory oversight** for AI in healthcare, comparing AI tools to pharmaceuticals in terms of safety and ethical implications. This indicates a focus on **sector-specific regulation** ([DOI: 10.3389/fmed.2024.1514741](https://doi.org/10.3389/fmed.2024.1514741)).\n\n3. **Cross-Border AI Regulation**\n   - A **UT** paper (\"*The Impact of AI on Determining the Applicable Law in Cross-Border Disputes Under the Rome II Regulation*\") explores how AI affects **legal jurisdiction and liability** in international disputes, highlighting challenges in applying traditional legal frameworks to AI ([DOI: 10.37745/gjplr.2013/vol11n3110](https://doi.org/10.37745/gjplr.2013/vol11n3110)).\n\n4. **Ethical AI and Fundamental Rights**\n   - A **USPN** paper (\"*Implementing ethical principles in AI: an initial discussion*\") discusses **ethical principles** in AI development, aligning with regulatory needs for **fairness, transparency, and accountability** ([DOI: 10.1007/s43681-025-00710-y](https://doi.org/10.1007/s43681-025-00710-y)).\n\n---\n\n### **Potential Gaps in UNINOVIS Research on AI Regulation**\nWhile the above papers address **specific aspects** of AI regulation (e.g., healthcare, fundamental rights, cross-border disputes), there is **no clear evidence** of research covering:\n- **Cross-sectoral regulatory harmonization** (e.g., how AI regulations in healthcare, finance, and transportation interact).\n- **Enforcement mechanisms** for AI regulations (e.g., compliance monitoring, penalties, and auditing frameworks).\n- **Global AI governance** (e.g., comparisons between the EU AI Act, US AI regulations, and other international frameworks).\n- **Regulatory sandboxes and innovation-friendly compliance** (e.g., how startups and SMEs can navigate AI regulations).\n- **Long-term societal impacts** of AI regulation (e.g., effects on democracy, labor markets, and education).\n\n---\n### **Recommendations for Future Research**\nIf UNINOVIS aims to strengthen its research on AI regulation, the following areas could be explored:\n1. **Comparative AI Regulation Studies** (e.g., EU vs. US vs. Asia).\n2. **Regulatory Sandboxes and Compliance Tools** for SMEs.\n3. **AI Liability and Accountability Frameworks** (e.g., post-market surveillance).\n4. **Ethical AI Certification and Auditing Standards**.\n5. **Public Perception and Trust in AI Regulation**.\n\nWould you like a deeper analysis of any specific aspect of AI regulation within UNINOVIS research?",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "AI regulation"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "AI regulation gaps research"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_papers",
+      "search_by_embedding"
+    ],
+    "rounds": 2,
+    "latency": 6.54,
+    "error": null
+  },
+  {
+    "id": "P34",
+    "query": "Which responsible AI subtopics are least studied?",
+    "response": "Based on the available research from UNINOVIS partners, the **least studied subtopics in Responsible AI** appear to be:\n\n### **1. AI in Tourism (Ethical & Technological Perspectives)**\n   - **Paper**: [\"Challenges and Opportunities of AI Implementation in Tourism: An Ethical and Technological Perspective\" (UT, 2024)](https://doi.org/10.52320/svv.v1iix.357)\n   - **Key Gap**: While AI adoption in tourism is growing, ethical concerns (e.g., bias in personalized recommendations, data privacy, and algorithmic transparency) remain understudied.\n   - **Citations**: Only **4** (indicating limited research attention).\n\n### **2. AI in Language Learning (Ethical & Privacy Considerations)**\n   - **Paper**: [\"Ethical and Privacy Considerations in AI-Driven Language Learning\" (UMA, 2025)](https://doi.org/10.62486/latia2025328)\n   - **Key Gap**: Focuses on **algorithmic bias, data security, and transparency** in AI-driven education, but lacks broader empirical validation.\n   - **Citations**: Only **6**.\n\n### **3. AI in Protected Areas & Environmental Management**\n   - **Paper**: [\"Artificial Intelligence Technologies as Smart Solutions for Sustainable Protected Areas Management\" (KK, 2025)](https://doi.org/10.3390/su17115006)\n   - **Key Gap**: While AI is proposed for sustainability, **ethical risks (e.g., ecological impact, bias in conservation decisions)** are not deeply explored.\n   - **Citations**: Only **7**.\n\n### **4. AI in Organizational Behavior & Workplace Dynamics**\n   - **Paper**: [\"Exploring the Intersections of Artificial Intelligence, Organizational Behavior, and Communication Dynamics in the Modern Workplace\" (KK, 2024)](https://doi.org/10.53615/2232-5697.13.71-80)\n   - **Key Gap**: Focuses on **productivity and efficiency** but lacks discussion on **worker autonomy, AI accountability in HR decisions, and long-term societal impacts**.\n   - **Citations**: Only **5**.\n\n### **5. AI in Marketing & Consumer Trust**\n   - **Paper**: [\"AI in Marketing Management: Executive Perspectives from Companies\" (UMA, 2024)](https://doi.org/10.21272/mmi.2024.4-04)\n   - **Key Gap**: Examines **adoption factors** but does not deeply analyze **manipulative AI practices, consumer deception, or long-term trust erosion**.\n   - **Citations**: Only **4**.\n\n### **6. Federated Learning in Healthcare (Explainability & Trust)**\n   - **Paper**: [\"SemFedXAI: A Semantic Framework for Explainable Federated Learning in Healthcare\" (UDCLV, 2025)](https://doi.org/10.3390/info16060435)\n   - **Key Gap**: While federated learning (FL) is promising for **privacy-preserving AI**, **explainability and regulatory compliance** in clinical settings remain underexplored.\n   - **Citations**: Only **3** (very recent, but still low engagement).\n\n---\n### **Most Studied vs. Least Studied Responsible AI Topics (Based on UNINOVIS Research)**\n| **Highly Studied** | **Least Studied** |\n|--------------------|-------------------|\n| Fairness in AI (bias mitigation) | AI in tourism ethics |\n| Explainable AI (XAI) | AI-driven language learning ethics |\n| AI in healthcare (diagnostics) | AI in environmental management |\n| Privacy & data governance | AI in organizational behavior ethics |\n| EU AI Act compliance | AI in marketing manipulation risks |\n| Algorithmic accountability | Federated learning explainability |\n\n---\n### **Key Takeaways**\n- **Understudied areas** tend to be **domain-specific** (tourism, education, environmental management) rather than **cross-cutting** (fairness, explainability).\n- **Emerging but neglected themes**:\n  - **AI’s societal impact in niche sectors** (e.g., tourism, protected areas).\n  - **Worker & consumer protection** in AI-driven workplaces.\n  - **Explainability in decentralized AI** (e.g., federated learning).\n- **Possible reasons for low study**:\n  - **Interdisciplinary gaps** (e.g., AI + environmental science).\n  - **Lack of funding** for ethical assessments in non-tech sectors.\n  - **Regulatory lag** (e.g., tourism AI is growing faster than ethical frameworks).\n\nWould you like a deeper dive into any of these subtopics or researcher expertise in these areas?",
+    "tool_calls": [
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "responsible AI subtopics least studied gaps research"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "responsible AI gaps understudied subtopics emerging topics"
+        },
+        "round": 2
+      }
+    ],
+    "tools_used": [
+      "search_papers",
+      "search_by_embedding"
+    ],
+    "rounds": 3,
+    "latency": 9.86,
+    "error": null
+  },
+  {
+    "id": "P35",
+    "query": "Is there any research on AI and disability in UNINOVIS?",
+    "response": "Based on the available information, there is **no direct research on AI and disability** published by UNINOVIS partners. However, related topics such as **AI accessibility, inclusion, and fairness** are addressed in some works:\n\n1. **Fairness in AI** (Glossary entry) discusses ensuring AI systems do not produce bias against groups defined by protected attributes, including **disability**.\n   - Source: UNINOVIS Glossary\n\n2. **AI in Education** (Glossary entry) mentions examining how specific populations of students learn, which may include students with disabilities.\n   - Source: UNINOVIS Glossary\n\n3. A paper from **Universidad de Málaga (UMA)** titled *\"Thinking about artificial intelligence from an ethical, critical and socially committed point of view\"* discusses AI's societal implications, which may include disability inclusion.\n   - DOI: [10.56294/ai2025150](https://doi.org/10.56294/ai2025150)\n\nWould you like more details on any of these works?",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "AI and disability"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "disability"
+        },
+        "round": 2
+      },
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "AI accessibility disability inclusion"
+        },
+        "round": 3
+      }
+    ],
+    "tools_used": [
+      "search_papers",
+      "search_by_embedding"
+    ],
+    "rounds": 3,
+    "latency": 5.22,
+    "error": null
+  },
+  {
+    "id": "P46",
+    "query": "What is AI red-teaming?",
+    "response": "**AI Red-Teaming** refers to the practice of testing the safety, security, resilience, and effectiveness of an AI system by simulating adversarial attacks. This involves assigning a \"red team\" to act as an enemy, probing the AI system to identify vulnerabilities, harmful outputs, biases, hallucinations, or potential misuse. Originating from military wargaming, red-teaming in AI helps uncover risks and improve trustworthiness.\n\nIn **Responsible AI**, red-teaming is used to surface issues like bias, robustness failures, and existential risks. However, challenges remain regarding how identified issues are addressed, how judgments are made, and who is responsible for mitigation. While cybersecurity has a mature ecosystem of tools and methodologies for red-teaming, AI red-teaming is a more recent development.\n\n**Related concepts:** Adversarial testing, AI safety, Trustworthy AI.\n\nWould you like to know more about specific red-teaming methodologies or UNINOVIS research on this topic?",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "AI red-teaming"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary"
+    ],
+    "rounds": 2,
+    "latency": 2.95,
+    "error": null
+  },
+  {
+    "id": "P47",
+    "query": "What are model cards and why are they important?",
+    "response": "**\"Model cards\"** are standardized documents that accompany machine learning models to provide essential information about their development, intended use, performance metrics, limitations, and ethical considerations. They were introduced by **Google Research** in 2018 as a tool for **transparency, accountability, and responsible AI deployment**.\n\n### **Why are Model Cards Important?**\n1. **Transparency**\n   - They document key details about the model, such as training data, evaluation metrics, and intended use cases, making it easier for stakeholders to understand its behavior and limitations.\n\n2. **Bias and Fairness Assessment**\n   - Model cards encourage reporting on potential biases in training data and model performance across different demographic groups, helping mitigate discriminatory outcomes.\n\n3. **Risk Management**\n   - By explicitly stating limitations (e.g., edge cases where the model may fail), they help organizations assess risks and implement safeguards before deployment.\n\n4. **Regulatory Compliance**\n   - They align with frameworks like the **EU AI Act** and **NIST AI Risk Management Framework (AI RMF)**, which emphasize documentation and risk mitigation in AI systems.\n\n5. **Reproducibility**\n   - They provide details on model architecture, hyperparameters, and training procedures, enabling other researchers to replicate or build upon the work.\n\n6. **Stakeholder Communication**\n   - They serve as a communication tool between AI developers, policymakers, and end-users, ensuring that model capabilities and risks are clearly conveyed.\n\n### **Key Components of a Model Card**\n- **Model Details** (e.g., version, developer, license)\n- **Intended Use** (e.g., target audience, use cases)\n- **Training Data** (e.g., sources, biases, preprocessing)\n- **Performance Metrics** (e.g., accuracy, fairness across groups)\n- **Ethical Considerations** (e.g., potential harms, mitigation strategies)\n- **Limitations** (e.g., edge cases, failure modes)\n\n### **Example in Research**\nWhile the UNINOVIS database does not explicitly define \"model cards\" in its glossary, related concepts like **transparency in AI** and **responsible AI** are covered. If you'd like, I can search for research papers from UNINOVIS partners that discuss **model documentation practices** or **AI transparency tools**. Would you like me to do so?",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "model cards"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "model cards definition importance"
+        },
+        "round": 2
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary",
+      "search_by_embedding"
+    ],
+    "rounds": 3,
+    "latency": 7.0,
+    "error": null
+  },
+  {
+    "id": "P50",
+    "query": "What is the ISO 42001 standard?",
+    "response": "The **ISO 42001** standard is not explicitly defined in the UNINOVIS Responsible AI glossary or the retrieved documents. However, based on external knowledge, **ISO 42001** is the **ISO/IEC 42001:2023** standard, titled **\"Information technology — Artificial Intelligence — Management System\"**.\n\nThis standard provides a framework for establishing, implementing, maintaining, and continually improving an **AI Management System (AIMS)**. It is designed to help organizations ensure that their AI systems are developed and used responsibly, aligning with principles such as transparency, accountability, and risk management.\n\nWould you like me to search for related UNINOVIS research on AI governance frameworks or standards like ISO 42001?",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "ISO 42001"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "ISO 42001 standard"
+        },
+        "round": 2
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary",
+      "search_by_embedding"
+    ],
+    "rounds": 3,
+    "latency": 5.85,
+    "error": null
+  },
+  {
+    "id": "P52",
+    "query": "What is the NIST AI Risk Management Framework?",
+    "response": "The **NIST AI Risk Management Framework (AI RMF)** is a framework developed by the **National Institute of Standards and Technology (NIST)**, part of the U.S. Department of Commerce. It is designed to provide organizations and individuals with structured approaches to **increase the trustworthiness of AI systems**.\n\nThe framework focuses on **managing risks associated with AI technologies** by offering guidance on identifying, assessing, prioritizing, and mitigating these risks. It emphasizes **trustworthy AI principles**, including transparency, fairness, accountability, and robustness, to ensure responsible AI development and deployment.\n\nWould you like more details on its structure or applications?",
+    "tool_calls": [
+      {
+        "tool": "lookup_glossary",
+        "args": {
+          "term": "NIST AI Risk Management Framework"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "lookup_glossary"
+    ],
+    "rounds": 2,
+    "latency": 3.08,
+    "error": null
+  },
+  {
+    "id": "A01",
+    "query": "How many papers have UNINOVIS partners published in total?",
+    "response": "Based on the available data, **UNINOVIS partners have published a total of 15 research papers** in the knowledge base. These papers cover topics related to Responsible AI, such as explainable AI, trustworthy autonomous systems, and ethical considerations in AI applications.",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "query": "*"
+        },
+        "round": 1
+      },
+      {
+        "tool": "search_by_embedding",
+        "args": {
+          "query": "total number of research papers published by UNINOVIS partners"
+        },
+        "round": 2
+      },
+      {
+        "tool": "search_papers",
+        "args": {},
+        "round": 3
+      }
+    ],
+    "tools_used": [
+      "search_papers",
+      "search_by_embedding"
+    ],
+    "rounds": 3,
+    "latency": 3.29,
+    "error": null
+  },
+  {
+    "id": "A03",
+    "query": "How many researchers are there per university?",
+    "response": "Here is the number of researchers per university in the UNINOVIS alliance:\n\n- **KK (Lithuania):** 12 researchers\n- **TAMK (Finland):** 4 researchers\n- **THUAS (Netherlands):** 5 researchers\n- **THWS (Germany):** 7 researchers\n- **UDCLV (Italy):** 18 researchers\n- **UMA (Spain):** 53 researchers\n- **USPN (France):** 15 researchers\n- **UT (Albania):** 31 researchers",
+    "tool_calls": [
+      {
+        "tool": "list_researchers",
+        "args": {},
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "list_researchers"
+    ],
+    "rounds": 2,
+    "latency": 2.54,
+    "error": null
+  },
+  {
+    "id": "A04",
+    "query": "How many papers were published in 2025?",
+    "response": "There were **15 research papers** published in 2025 by researchers from the UNINOVIS alliance. Here are the titles and their respective universities:\n\n1. **Radiology AI and sustainability paradox: environmental, economic, and social dimensions** (UDCLV)\n2. **Ethical concerns in AI development: analyzing students’ perspectives on robotics and society** (UT)\n3. **Trends and Challenges in Real-Time Stress Detection and Modulation: The Role of the IoT and Artificial Intelligence** (UMA)\n4. **Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives** (UMA)\n5. **Revolutionizing Sperm Analysis with AI: A Review of Computer-Aided Sperm Analysis Systems** (UMA)\n6. **Artificial Intelligence Technologies as Smart Solutions for Sustainable Protected Areas Management** (KK)\n7. **AI in scientific writing and publishing: A call for critical engagement** (UDCLV)\n8. **Ethical and Privacy Considerations in AI-Driven Language Learning** (UMA)\n9. **Factors Influencing AI-Assisted Thesis Writing in University: A Pull-Push-Mooring Theory Narrative Inquiry Study** (UMA)\n10. **Travel Virtual Assistant or Untrusted Advisor? Developing a Typology of Resistance to AI-Generated Travel Advice** (UMA)\n11. **University students’ perceptions of the impact of artificial intelligence in the business sector on their educational and professional development** (UMA)\n12. **Towards Fair Assessments: A Machine Learning-based Approach for Detecting Cheating in Online Assessments** (THUAS)\n13. **SemFedXAI: A Semantic Framework for Explainable Federated Learning in Healthcare** (UDCLV)\n14. **AI in Companies' Production Processes** (UMA)\n15. **Implementing ethical principles in AI: an initial discussion** (USPN)",
+    "tool_calls": [
+      {
+        "tool": "search_papers",
+        "args": {
+          "year": "2025"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_papers"
+    ],
+    "rounds": 2,
+    "latency": 3.17,
+    "error": null
+  },
+  {
+    "id": "A05",
+    "query": "List research projects involving UNINOVIS partners",
+    "response": "Here is a list of **11 research projects** involving UNINOVIS partner universities:\n\n---\n\n### **Active Projects**\n\n1. **[IntelliMan](https://cordis.europa.eu/project/id/101070136)**\n   - **Grant ID:** 101070136\n   - **Funder:** European Commission (Digital, Industry and Space)\n   - **Period:** 2022–2026\n   - **Focus:** AI-powered robotic manipulation for service, manufacturing, and prosthetics.\n   - **UNINOVIS Partners Involved:** *(Check project website for specific partners)*\n\n2. **[DUCA](https://cordis.europa.eu/project/id/101086308)**\n   - **Grant ID:** 101086308\n   - **Funder:** European Commission (MSCA)\n   - **Period:** 2023–2026\n   - **Focus:** Data usage control for digital sovereignty and privacy-enhancing technologies.\n   - **UNINOVIS Partners Involved:** *(Check project website for specific partners)*\n\n3. **[AIAS](https://cordis.europa.eu/project/id/101131292)**\n   - **Grant ID:** 101131292\n   - **Funder:** European Commission (MSCA Staff Exchanges)\n   - **Period:** 2024–2027\n   - **Focus:** AI-assisted cybersecurity for SMEs against adversarial AI attacks.\n   - **UNINOVIS Partners Involved:** *(Check project website for specific partners)*\n\n4. **[dAIbetes](https://cordis.europa.eu/project/id/101136305)**\n   - **Grant ID:** 101136305\n   - **Funder:** European Commission (Health)\n   - **Period:** 2024–2028\n   - **Focus:** Federated virtual twins for privacy-preserving diabetes treatment prediction.\n   - **UNINOVIS Partners Involved:** *(Check project website for specific partners)*\n\n5. **[InnoGuard](https://cordis.europa.eu/project/id/101169233)**\n   - **Grant ID:** 101169233\n   - **Funder:** European Commission (MSCA Doctoral Networks)\n   - **Period:** 2024–2028\n   - **Focus:** Trustworthy autonomous cyber-physical systems (ACPS).\n   - **UNINOVIS Partners Involved:** *(Check project website for specific partners)*\n\n6. **[CRYSTAL](https://cordis.europa.eu/project/id/101182965)**\n   - **Grant ID:** 101182965\n   - **Funder:** European Commission (MSCA)\n   - **Period:** 2024–2028\n   - **Focus:** Conversational AI for emotional support and customer assistance.\n   - **UNINOVIS Partners Involved:** *(Check project website for specific partners)*\n\n---\n\n### **Closed Projects**\n\n7. **[MoveCare](http://www.movecare-project.eu)**\n   - **Grant ID:** 732158\n   - **Funder:** European Commission (ICT)\n   - **Period:** 2017–2020\n   - **Focus:** Multi-actor virtual caregiver for elderly independent living.\n   - **UNINOVIS Partners Involved:** *(Check project website for specific partners)*\n\n8. **[EMPATHIC](http://www.empathic-project.eu/)**\n   - **Grant ID:** 769872\n   - **Funder:** European Commission (Health)\n   - **Period:** 2017–2021\n   - **Focus:** Personalized virtual coaches for elderly independent living.\n   - **UNINOVIS Partners Involved:** *(Check project website for specific partners)*\n\n9. **[MENHIR](https://menhir-project.eu)**\n   - **Grant ID:** 823907\n   - **Funder:** European Commission (Research and Innovation Staff Exchange)\n   - **Period:** 2019–2024\n   - **Focus:** Mental health monitoring through interactive conversational AI.\n   - **UNINOVIS Partners Involved:** *(Check project website for specific partners)*\n\n10. **[TAILOR](https://tailor-network.eu)**\n    - **Grant ID:** 952215\n    - **Funder:** European Commission (H2020)\n    - **Period:** 2020–2024\n    - **Focus:** Foundations of Trustworthy AI (reasoning, learning, optimization).\n    - **UNINOVIS Partners Involved:** *(Check project website for specific partners)*\n\n11. **[AI-MAPS](https://www.nwo.nl/en/projects/nwa133220012)**\n    - **Grant ID:** NWA.1332.20.012\n    - **Funder:** Netherlands Organisation for Scientific Research (NWO)\n    - **Period:** 2022–Present\n    - **Focus:** AI multi-agency public safety issues.\n    - **UNINOVIS Partners Involved:** THUAS (Netherlands)\n\n---\n### **Notes**\n- **UNINOVIS Partner Involvement:** For most projects, the specific UNINOVIS partners involved are not listed in the provided data. You may check the project websites or contact the project coordinators for details.\n- **Responsible AI Focus:** Projects like **DUCA**, **InnoGuard**, **TAILOR**, and **AIAS** align closely with Responsible AI themes (privacy, trustworthiness, cybersecurity).",
+    "tool_calls": [
+      {
+        "tool": "search_projects",
+        "args": {
+          "query": "UNINOVIS"
+        },
+        "round": 1
+      }
+    ],
+    "tools_used": [
+      "search_projects"
+    ],
+    "rounds": 2,
+    "latency": 6.99,
+    "error": null
+  }
+]

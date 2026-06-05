@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS DATA FOR L.I.F.E. — Encuesta de competencias en datos e IA</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+        .container { max-width: 720px; margin: 0 auto; padding: 24px 20px 60px; }
+
+        .header-bar { background: #1a2255; color: #fff; padding: 16px 24px; text-align: center; }
+        .header-bar h1 { font-size: 1.15em; font-weight: 600; }
+        .header-bar .sub { font-size: 0.82em; opacity: 0.8; margin-top: 4px; }
+
+        .intro-card {
+            background: #fff; border-radius: 10px; padding: 20px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;
+            font-size: 0.88rem; line-height: 1.7; color: #555;
+            border-top: 4px solid #1a2255;
+        }
+        .intro-card h2 { color: #1a2255; font-size: 1rem; margin-bottom: 8px; }
+        .intro-card p { margin-bottom: 8px; }
+        .intro-card ul { margin: 6px 0 6px 20px; }
+
+        .section-card {
+            background: #fff; border-radius: 10px; padding: 20px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 16px;
+        }
+        .section-title {
+            background: #1a2255; color: #fff; padding: 12px 24px;
+            border-radius: 10px 10px 0 0; margin: -20px -24px 16px;
+            font-size: 0.95rem; font-weight: 600;
+        }
+
+        .q-group { margin-bottom: 24px; }
+        .q-label {
+            font-weight: 600; font-size: 0.88rem; color: #1a2255;
+            margin-bottom: 8px; display: block; line-height: 1.5;
+        }
+        .q-label .req { color: #dc3545; margin-left: 2px; }
+        .q-hint { font-size: 0.8rem; color: #888; margin-bottom: 8px; line-height: 1.5; font-style: italic; }
+
+        .radio-group, .check-group { display: flex; flex-direction: column; gap: 6px; }
+        .radio-group label, .check-group label {
+            display: flex; align-items: flex-start; gap: 8px;
+            font-size: 0.85rem; cursor: pointer; padding: 4px 0;
+        }
+        .radio-group input, .check-group input { margin-top: 3px; flex-shrink: 0; }
+
+        select {
+            width: 100%; padding: 8px 12px; border: 1px solid #d1d5db;
+            border-radius: 6px; font-size: 0.85rem; background: #fff;
+        }
+
+        textarea {
+            width: 100%; padding: 10px 12px; border: 1px solid #d1d5db;
+            border-radius: 6px; font-size: 0.85rem; min-height: 80px;
+            resize: vertical; font-family: inherit;
+        }
+
+        /* Likert matrix */
+        .likert-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 8px; }
+        .likert-table th { text-align: center; padding: 6px 4px; font-size: 0.7rem; color: #555; font-weight: 600; vertical-align: bottom; }
+        .likert-table th:first-child { text-align: left; width: 45%; }
+        .likert-table td { text-align: center; padding: 8px 4px; border-bottom: 1px solid #f0f0f0; }
+        .likert-table td:first-child { text-align: left; font-size: 0.8rem; color: #444; line-height: 1.4; }
+        .likert-table tr:hover td { background: #f8fafc; }
+
+        /* Training needs matrix */
+        .training-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 8px; }
+        .training-table th { text-align: center; padding: 6px 8px; font-size: 0.78rem; color: #555; font-weight: 600; }
+        .training-table th:first-child { text-align: left; width: 55%; }
+        .training-table td { text-align: center; padding: 8px; border-bottom: 1px solid #f0f0f0; }
+        .training-table td:first-child { text-align: left; color: #444; }
+
+        .btn-submit {
+            display: block; width: 100%; padding: 14px;
+            background: #1a2255; color: #fff; border: none;
+            border-radius: 8px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; margin-top: 24px;
+        }
+        .btn-submit:hover { background: #2d3876; }
+
+        .msg { padding: 12px 16px; border-radius: 8px; margin-top: 12px; font-size: 0.88rem; display: none; }
+        .msg.ok { background: #dcfce7; color: #166534; }
+        .msg.err { background: #fee2e2; color: #991b1b; }
+
+        .progress { display: flex; gap: 4px; margin-bottom: 20px; }
+        .progress .dot { flex: 1; height: 4px; border-radius: 2px; background: #e2e8f0; }
+        .progress .dot.active { background: #1a2255; }
+    </style>
+    <!-- Matomo -->
+    <script>
+      var _paq = window._paq = window._paq || [];
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="https://uninovis.matomo.cloud/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '3']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+</head>
+<body>
+
+<div class="header-bar">
+    <h1>Encuesta de referencia sobre competencias en datos e IA</h1>
+    <div class="sub">UNINOVIS DATA FOR L.I.F.E.</div>
+</div>
+
+<div class="container">
+
+<!-- INTRO -->
+<div class="intro-card">
+    <h2>Contexto del proyecto y uso de datos</h2>
+    <p>Esta encuesta se realiza en el marco del proyecto UNINOVIS DATA FOR L.I.F.E. Los resultados se utilizarán para apoyar el desarrollo de contenidos de formación compartidos en las universidades asociadas, a partir de las necesidades identificadas mediante los datos recogidos del personal de las instituciones. Los datos recopilados serán utilizados exclusivamente para los fines indicados.</p>
+    <p>La encuesta no tiene como objetivo la clasificación, comparación o evaluación de personas o instituciones. Las respuestas individuales no serán publicadas y ningún participante podrá ser identificado en informes o publicaciones de investigación.</p>
+
+    <h2 style="margin-top:14px;">Estructura y duración</h2>
+    <p>Responder la encuesta requiere aproximadamente <strong>15 minutos</strong> y está dividida en tres secciones:</p>
+    <ul>
+        <li>Información general</li>
+        <li>Alfabetización en datos y gestión de datos</li>
+        <li>Inteligencia artificial</li>
+    </ul>
+
+    <h2 style="margin-top:14px;">Propósito</h2>
+    <p>La competencia relacionada con los datos y la inteligencia artificial se ha convertido rápidamente en una habilidad esencial en la vida laboral. El propósito de esta encuesta es identificar las perspectivas del personal sobre sus niveles de competencia y necesidades de formación en el contexto de la economía de datos sostenible, con especial atención a la competencia en datos e IA.</p>
+</div>
+
+<form id="surveyForm" onsubmit="return submitSurvey(event)">
+
+<div class="progress">
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 1: INFORMACIÓN GENERAL -->
+<!-- ============================================ -->
+<div class="section-card">
+    <div class="section-title">Sección 1 — Información general</div>
+
+    <!-- Q1 -->
+    <div class="q-group">
+        <span class="q-label">1. Grupo de edad</span>
+        <div class="radio-group">
+            <label><input type="radio" name="q1" value="15-24"> 15–24</label>
+            <label><input type="radio" name="q1" value="25-44"> 25–44</label>
+            <label><input type="radio" name="q1" value="45-64"> 45–64</label>
+            <label><input type="radio" name="q1" value="65+"> 65+</label>
+        </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="q-group">
+        <span class="q-label">2. Seleccione su institución de origen<span class="req">*</span></span>
+        <select name="q2" required>
+            <option value="">— Seleccione —</option>
+            <option value="USPN">University of Sorbonne Paris Nord</option>
+            <option value="THWS">Technical University of Applied Sciences Würzburg-Schweinfurt</option>
+            <option value="UDCLV">University of Campania "Luigi Vanvitelli"</option>
+            <option value="TAMK">Tampere University of Applied Sciences</option>
+            <option value="KK">Kauno Kolegija Higher Education Institution</option>
+            <option value="UMA">University of Malaga</option>
+            <option value="UT">University of Tirana</option>
+            <option value="THUAS">The Hague University of Applied Sciences</option>
+        </select>
+    </div>
+
+    <!-- Q3 -->
+    <div class="q-group">
+        <span class="q-label">3. ¿En qué área trabaja principalmente dentro de su organización?</span>
+        <div class="radio-group">
+            <label><input type="radio" name="q3" value="teaching"> Docencia</label>
+            <label><input type="radio" name="q3" value="admin"> Administración</label>
+            <label><input type="radio" name="q3" value="research"> Investigación</label>
+            <label><input type="radio" name="q3" value="teaching_research"> Docencia e investigación en proporciones aproximadamente iguales</label>
+        </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="q-group">
+        <span class="q-label">4. ¿En qué campo de educación o investigación trabaja?</span>
+        <p class="q-hint">En caso de trabajo administrativo, seleccione la opción más cercana. Opciones basadas en los campos de educación CINE/ISCED.</p>
+        <select name="q4">
+            <option value="">— Seleccione —</option>
+            <option value="generic">Programas y titulaciones genéricas</option>
+            <option value="education">Educación</option>
+            <option value="arts">Artes y humanidades</option>
+            <option value="social">Ciencias sociales, periodismo e información</option>
+            <option value="business">Negocios, administración y derecho</option>
+            <option value="science">Ciencias naturales, matemáticas y estadística</option>
+            <option value="ict">Tecnologías de la información y la comunicación</option>
+            <option value="engineering">Ingeniería, industria y construcción</option>
+            <option value="agriculture">Agricultura, silvicultura, pesca y veterinaria</option>
+            <option value="health">Salud y bienestar</option>
+            <option value="services">Servicios</option>
+        </select>
+    </div>
+
+    <!-- Q5 -->
+    <div class="q-group">
+        <span class="q-label">5. ¿Cuál es su nivel de estudios más alto completado?</span>
+        <div class="radio-group">
+            <label><input type="radio" name="q5" value="isced8"> Doctorado o nivel equivalente (CINE 8)</label>
+            <label><input type="radio" name="q5" value="isced7"> Máster o nivel equivalente (CINE 7)</label>
+            <label><input type="radio" name="q5" value="isced6"> Grado universitario o nivel equivalente (CINE 6)</label>
+            <label><input type="radio" name="q5" value="below6"> Nivel inferior (por debajo del CINE 6)</label>
+        </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="q-group">
+        <span class="q-label">6. ¿Cuánto tiempo lleva trabajando en el sector educativo?</span>
+        <div class="radio-group">
+            <label><input type="radio" name="q6" value="<3"> Menos de 3 años</label>
+            <label><input type="radio" name="q6" value="3-5"> 3–5 años</label>
+            <label><input type="radio" name="q6" value="5-10"> 5–10 años</label>
+            <label><input type="radio" name="q6" value=">10"> Más de 10 años</label>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 2: ALFABETIZACIÓN EN DATOS -->
+<!-- ============================================ -->
+<div class="section-card">
+    <div class="section-title">Sección 2 — Alfabetización en datos y gestión de datos</div>
+    <p style="font-size:0.82rem;color:#666;margin-bottom:16px;line-height:1.6;">Las competencias relacionadas con la alfabetización en datos y la gestión de datos utilizadas en las preguntas se derivan del marco DigComp. Incluyen la capacidad de explorar, buscar y filtrar datos, información y contenidos digitales; evaluar de forma crítica la calidad, fiabilidad y relevancia de dichos contenidos; y organizar y gestionar de manera efectiva datos, información y contenidos digitales.</p>
+
+    <!-- Q7 -->
+    <div class="q-group">
+        <span class="q-label">7. ¿Cuál de las siguientes opciones describe mejor su competencia en alfabetización en datos y gestión de datos?</span>
+        <div class="radio-group">
+            <label><input type="radio" name="q7" value="0"> Sin competencia</label>
+            <label><input type="radio" name="q7" value="1"> Solo reconocimiento</label>
+            <label><input type="radio" name="q7" value="2"> Comprensión básica</label>
+            <label><input type="radio" name="q7" value="3"> Aplicación guiada</label>
+            <label><input type="radio" name="q7" value="4"> Aplicación independiente</label>
+            <label><input type="radio" name="q7" value="5"> Evaluación crítica</label>
+            <label><input type="radio" name="q7" value="6"> Innovación / Experiencia avanzada</label>
+        </div>
+    </div>
+
+    <!-- Q8 — Likert: Search -->
+    <div class="q-group">
+        <span class="q-label">8. Búsqueda, exploración y filtrado de datos, información y contenidos digitales<span class="req">*</span></span>
+        <p class="q-hint">Ejemplos: encontrar datos de investigación, informes o materiales didácticos en bases de datos o plataformas digitales; usar palabras clave y filtros para refinar los resultados; comparar fuentes o ajustar búsquedas cuando los resultados son demasiado amplios o irrelevantes.</p>
+        <table class="likert-table">
+            <tr><th></th><th>Muy en desacuerdo</th><th>En desacuerdo</th><th>Ni de acuerdo ni en desacuerdo</th><th>De acuerdo</th><th>Muy de acuerdo</th></tr>
+            <tr><td>Reconozco mis necesidades de información y encuentro recursos básicos.</td><td><input type="radio" name="q8a" value="1" required></td><td><input type="radio" name="q8a" value="2"></td><td><input type="radio" name="q8a" value="3"></td><td><input type="radio" name="q8a" value="4"></td><td><input type="radio" name="q8a" value="5"></td></tr>
+            <tr><td>Puedo ilustrar las necesidades de información y navegar entre datos, información y contenidos digitales.</td><td><input type="radio" name="q8b" value="1" required></td><td><input type="radio" name="q8b" value="2"></td><td><input type="radio" name="q8b" value="3"></td><td><input type="radio" name="q8b" value="4"></td><td><input type="radio" name="q8b" value="5"></td></tr>
+            <tr><td>Puedo navegar eficazmente por fuentes digitales y ayudar a otros a aplicar estrategias de búsqueda adecuadas.</td><td><input type="radio" name="q8c" value="1" required></td><td><input type="radio" name="q8c" value="2"></td><td><input type="radio" name="q8c" value="3"></td><td><input type="radio" name="q8c" value="4"></td><td><input type="radio" name="q8c" value="5"></td></tr>
+            <tr><td>Puedo variar las estrategias de búsqueda para encontrar los datos, la información y los contenidos digitales más apropiados.</td><td><input type="radio" name="q8d" value="1" required></td><td><input type="radio" name="q8d" value="2"></td><td><input type="radio" name="q8d" value="3"></td><td><input type="radio" name="q8d" value="4"></td><td><input type="radio" name="q8d" value="5"></td></tr>
+            <tr><td>Evalúo las necesidades de información y adapto las estrategias de búsqueda para datos, información y contenidos complejos.</td><td><input type="radio" name="q8e" value="1" required></td><td><input type="radio" name="q8e" value="2"></td><td><input type="radio" name="q8e" value="3"></td><td><input type="radio" name="q8e" value="4"></td><td><input type="radio" name="q8e" value="5"></td></tr>
+            <tr><td>Innovo nuevos enfoques para resolver desafíos complejos de recuperación de información.</td><td><input type="radio" name="q8f" value="1" required></td><td><input type="radio" name="q8f" value="2"></td><td><input type="radio" name="q8f" value="3"></td><td><input type="radio" name="q8f" value="4"></td><td><input type="radio" name="q8f" value="5"></td></tr>
+        </table>
+    </div>
+
+    <!-- Q9 — Likert: Evaluation -->
+    <div class="q-group">
+        <span class="q-label">9. Evaluación de datos, información y contenidos digitales<span class="req">*</span></span>
+        <p class="q-hint">Ejemplos: decidir si los datos o fuentes son fiables para informes, docencia o solicitudes de financiación; gestionar información contradictoria; evaluar la credibilidad cuando la información es incompleta o incierta.</p>
+        <table class="likert-table">
+            <tr><th></th><th>Muy en desacuerdo</th><th>En desacuerdo</th><th>Ni de acuerdo ni en desacuerdo</th><th>De acuerdo</th><th>Muy de acuerdo</th></tr>
+            <tr><td>Puedo reconocer indicadores básicos de fuentes fiables.</td><td><input type="radio" name="q9a" value="1" required></td><td><input type="radio" name="q9a" value="2"></td><td><input type="radio" name="q9a" value="3"></td><td><input type="radio" name="q9a" value="4"></td><td><input type="radio" name="q9a" value="5"></td></tr>
+            <tr><td>Puedo interpretar y comparar indicadores de fiabilidad y sesgo en contextos claramente definidos.</td><td><input type="radio" name="q9b" value="1" required></td><td><input type="radio" name="q9b" value="2"></td><td><input type="radio" name="q9b" value="3"></td><td><input type="radio" name="q9b" value="4"></td><td><input type="radio" name="q9b" value="5"></td></tr>
+            <tr><td>Puedo aplicar técnicas de evaluación y guiar a otros en su uso.</td><td><input type="radio" name="q9c" value="1" required></td><td><input type="radio" name="q9c" value="2"></td><td><input type="radio" name="q9c" value="3"></td><td><input type="radio" name="q9c" value="4"></td><td><input type="radio" name="q9c" value="5"></td></tr>
+            <tr><td>Puedo distinguir de forma crítica entre información basada en hechos y opiniones, e identificar limitaciones en las fuentes.</td><td><input type="radio" name="q9d" value="1" required></td><td><input type="radio" name="q9d" value="2"></td><td><input type="radio" name="q9d" value="3"></td><td><input type="radio" name="q9d" value="4"></td><td><input type="radio" name="q9d" value="5"></td></tr>
+            <tr><td>Puedo evaluar de forma crítica la fiabilidad de la información y las fuentes en situaciones complejas.</td><td><input type="radio" name="q9e" value="1" required></td><td><input type="radio" name="q9e" value="2"></td><td><input type="radio" name="q9e" value="3"></td><td><input type="radio" name="q9e" value="4"></td><td><input type="radio" name="q9e" value="5"></td></tr>
+            <tr><td>Puedo desarrollar y compartir enfoques muy especializados para problemas complejos de evaluación.</td><td><input type="radio" name="q9f" value="1" required></td><td><input type="radio" name="q9f" value="2"></td><td><input type="radio" name="q9f" value="3"></td><td><input type="radio" name="q9f" value="4"></td><td><input type="radio" name="q9f" value="5"></td></tr>
+        </table>
+    </div>
+
+    <!-- Q10 — Likert: Management -->
+    <div class="q-group">
+        <span class="q-label">10. Gestión de datos, información y contenidos digitales<span class="req">*</span></span>
+        <p class="q-hint">Ejemplos: organizar datos de investigación, informes o materiales didácticos en sistemas o carpetas compartidos; recuperar y gestionar información para tareas laborales cotidianas; elegir opciones de almacenamiento adecuadas para garantizar el acceso y el cumplimiento normativo.</p>
+        <table class="likert-table">
+            <tr><th></th><th>Muy en desacuerdo</th><th>En desacuerdo</th><th>Ni de acuerdo ni en desacuerdo</th><th>De acuerdo</th><th>Muy de acuerdo</th></tr>
+            <tr><td>Puedo organizar datos e información para un acceso fácil en situaciones no rutinarias.</td><td><input type="radio" name="q10a" value="1" required></td><td><input type="radio" name="q10a" value="2"></td><td><input type="radio" name="q10a" value="3"></td><td><input type="radio" name="q10a" value="4"></td><td><input type="radio" name="q10a" value="5"></td></tr>
+            <tr><td>Puedo estructurar y gestionar datos, información y contenidos para su almacenamiento y recuperación, y guiar a otros.</td><td><input type="radio" name="q10b" value="1" required></td><td><input type="radio" name="q10b" value="2"></td><td><input type="radio" name="q10b" value="3"></td><td><input type="radio" name="q10b" value="4"></td><td><input type="radio" name="q10b" value="5"></td></tr>
+            <tr><td>Puedo analizar y mejorar la forma en que se gestionan los datos, la información y los contenidos digitales en mi trabajo.</td><td><input type="radio" name="q10c" value="1" required></td><td><input type="radio" name="q10c" value="2"></td><td><input type="radio" name="q10c" value="3"></td><td><input type="radio" name="q10c" value="4"></td><td><input type="radio" name="q10c" value="5"></td></tr>
+            <tr><td>Puedo adaptar la gestión de datos e información para garantizar un almacenamiento y recuperación eficaces en situaciones complejas.</td><td><input type="radio" name="q10d" value="1" required></td><td><input type="radio" name="q10d" value="2"></td><td><input type="radio" name="q10d" value="3"></td><td><input type="radio" name="q10d" value="4"></td><td><input type="radio" name="q10d" value="5"></td></tr>
+            <tr><td>Puedo crear soluciones innovadoras para organizar, almacenar y recuperar datos.</td><td><input type="radio" name="q10e" value="1" required></td><td><input type="radio" name="q10e" value="2"></td><td><input type="radio" name="q10e" value="3"></td><td><input type="radio" name="q10e" value="4"></td><td><input type="radio" name="q10e" value="5"></td></tr>
+        </table>
+    </div>
+
+    <!-- Q11 -->
+    <div class="q-group">
+        <span class="q-label">11. Si tiene competencias avanzadas en alfabetización o gestión de datos, describa uno o dos ejemplos específicos de su trabajo.</span>
+        <p class="q-hint">Explique brevemente qué hizo, qué herramientas o sistemas utilizó (si los hubo) y cuál fue el resultado o impacto.</p>
+        <textarea name="q11" placeholder="Respuesta opcional..."></textarea>
+    </div>
+
+    <!-- Q12 — Training needs matrix -->
+    <div class="q-group">
+        <span class="q-label">12. ¿Considera que necesita o le gustaría recibir formación adicional en estos temas?</span>
+        <table class="training-table">
+            <tr><th></th><th>Sí</th><th>No estoy seguro/a</th><th>No</th></tr>
+            <tr><td>Búsqueda y filtrado de datos, información y contenido digital</td><td><input type="radio" name="q12a" value="yes"></td><td><input type="radio" name="q12a" value="unsure"></td><td><input type="radio" name="q12a" value="no"></td></tr>
+            <tr><td>Evaluación de datos, información y contenido digital</td><td><input type="radio" name="q12b" value="yes"></td><td><input type="radio" name="q12b" value="unsure"></td><td><input type="radio" name="q12b" value="no"></td></tr>
+            <tr><td>Gestión de datos, información y contenido digital</td><td><input type="radio" name="q12c" value="yes"></td><td><input type="radio" name="q12c" value="unsure"></td><td><input type="radio" name="q12c" value="no"></td></tr>
+        </table>
+    </div>
+
+    <!-- Q13 -->
+    <div class="q-group">
+        <span class="q-label">13. Si lo desea, puede especificar con más detalle las áreas en las que necesitaría formación adicional.</span>
+        <p class="q-hint">También puede indicar si sus necesidades de formación están relacionadas con la docencia, la investigación o la administración.</p>
+        <textarea name="q13" placeholder="Respuesta opcional..."></textarea>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION 3: INTELIGENCIA ARTIFICIAL -->
+<!-- ============================================ -->
+<div class="section-card">
+    <div class="section-title">Sección 3 — Inteligencia artificial (IA)</div>
+    <p style="font-size:0.82rem;color:#666;margin-bottom:16px;line-height:1.6;">En este contexto, la IA se refiere de forma amplia a tecnologías que pueden realizar tareas que requieren una inteligencia similar a la humana, incluidas aplicaciones de IA generativa, así como funciones de IA integradas en sistemas y herramientas digitales.</p>
+
+    <!-- Q14 -->
+    <div class="q-group">
+        <span class="q-label">14. ¿Cuál de las siguientes opciones describe mejor su competencia en IA?</span>
+        <div class="radio-group">
+            <label><input type="radio" name="q14" value="0"> Sin competencia</label>
+            <label><input type="radio" name="q14" value="1"> Solo reconocimiento</label>
+            <label><input type="radio" name="q14" value="2"> Comprensión básica</label>
+            <label><input type="radio" name="q14" value="3"> Aplicación guiada</label>
+            <label><input type="radio" name="q14" value="4"> Aplicación independiente</label>
+            <label><input type="radio" name="q14" value="5"> Evaluación crítica</label>
+            <label><input type="radio" name="q14" value="6"> Innovación / Experiencia avanzada</label>
+        </div>
+    </div>
+
+    <!-- Q15 — Likert: AI Evaluation -->
+    <div class="q-group">
+        <span class="q-label">15. Evaluación de datos, información y contenidos digitales relacionados con la IA<span class="req">*</span></span>
+        <p class="q-hint">Ejemplos: decidir si el texto o los datos generados por IA son fiables para la docencia o la elaboración de informes; gestionar resultados sesgados, inconsistentes o incorrectos; evaluar la credibilidad al usar IA en la toma de decisiones.</p>
+        <table class="likert-table">
+            <tr><th></th><th>Muy en desacuerdo</th><th>En desacuerdo</th><th>Ni de acuerdo ni en desacuerdo</th><th>De acuerdo</th><th>Muy de acuerdo</th></tr>
+            <tr><td>Puedo detectar cuándo las herramientas de IA pueden afectar a la fiabilidad de los datos, la información y los contenidos digitales.</td><td><input type="radio" name="q15a" value="1" required></td><td><input type="radio" name="q15a" value="2"></td><td><input type="radio" name="q15a" value="3"></td><td><input type="radio" name="q15a" value="4"></td><td><input type="radio" name="q15a" value="5"></td></tr>
+            <tr><td>Puedo analizar e interpretar el sesgo y las limitaciones en los datos procesados por IA.</td><td><input type="radio" name="q15b" value="1" required></td><td><input type="radio" name="q15b" value="2"></td><td><input type="radio" name="q15b" value="3"></td><td><input type="radio" name="q15b" value="4"></td><td><input type="radio" name="q15b" value="5"></td></tr>
+            <tr><td>Puedo evaluar los resultados generados por IA y guiar a otros en cómo hacerlo.</td><td><input type="radio" name="q15c" value="1" required></td><td><input type="radio" name="q15c" value="2"></td><td><input type="radio" name="q15c" value="3"></td><td><input type="radio" name="q15c" value="4"></td><td><input type="radio" name="q15c" value="5"></td></tr>
+            <tr><td>Puedo analizar y explicar patrones, inconsistencias y limitaciones en los resultados generados por IA.</td><td><input type="radio" name="q15d" value="1" required></td><td><input type="radio" name="q15d" value="2"></td><td><input type="radio" name="q15d" value="3"></td><td><input type="radio" name="q15d" value="4"></td><td><input type="radio" name="q15d" value="5"></td></tr>
+            <tr><td>Puedo evaluar críticamente la credibilidad y fiabilidad de los resultados generados por IA en contextos complejos.</td><td><input type="radio" name="q15e" value="1" required></td><td><input type="radio" name="q15e" value="2"></td><td><input type="radio" name="q15e" value="3"></td><td><input type="radio" name="q15e" value="4"></td><td><input type="radio" name="q15e" value="5"></td></tr>
+            <tr><td>Puedo crear soluciones para problemas complejos de evaluación de IA y proponer nuevas prácticas.</td><td><input type="radio" name="q15f" value="1" required></td><td><input type="radio" name="q15f" value="2"></td><td><input type="radio" name="q15f" value="3"></td><td><input type="radio" name="q15f" value="4"></td><td><input type="radio" name="q15f" value="5"></td></tr>
+        </table>
+    </div>
+
+    <!-- Q16 — Likert: AI Needs -->
+    <div class="q-group">
+        <span class="q-label">16. Identificación de necesidades y respuestas tecnológicas relacionadas con la IA</span>
+        <p class="q-hint">Ejemplos: decidir cómo usar la IA para tareas como redactar informes, resumir grandes cantidades de información o traducir materiales; elegir entre diferentes herramientas de IA; identificar cómo podría usarse la IA para optimizar flujos de trabajo.</p>
+        <table class="likert-table">
+            <tr><th></th><th>Muy en desacuerdo</th><th>En desacuerdo</th><th>Ni de acuerdo ni en desacuerdo</th><th>De acuerdo</th><th>Muy de acuerdo</th></tr>
+            <tr><td>Puedo reconocer los desafíos organizativos habituales y las tecnologías básicas de IA para abordarlos.</td><td><input type="radio" name="q16a" value="1"></td><td><input type="radio" name="q16a" value="2"></td><td><input type="radio" name="q16a" value="3"></td><td><input type="radio" name="q16a" value="4"></td><td><input type="radio" name="q16a" value="5"></td></tr>
+            <tr><td>Puedo adaptar soluciones de IA a necesidades y flujos de trabajo específicos en mi trabajo.</td><td><input type="radio" name="q16b" value="1"></td><td><input type="radio" name="q16b" value="2"></td><td><input type="radio" name="q16b" value="3"></td><td><input type="radio" name="q16b" value="4"></td><td><input type="radio" name="q16b" value="5"></td></tr>
+            <tr><td>Puedo aplicar diferentes herramientas de IA a mis necesidades y guiar a otros en su uso.</td><td><input type="radio" name="q16c" value="1"></td><td><input type="radio" name="q16c" value="2"></td><td><input type="radio" name="q16c" value="3"></td><td><input type="radio" name="q16c" value="4"></td><td><input type="radio" name="q16c" value="5"></td></tr>
+            <tr><td>Puedo analizar la idoneidad de las tecnologías de IA para resolver problemas complejos.</td><td><input type="radio" name="q16d" value="1"></td><td><input type="radio" name="q16d" value="2"></td><td><input type="radio" name="q16d" value="3"></td><td><input type="radio" name="q16d" value="4"></td><td><input type="radio" name="q16d" value="5"></td></tr>
+            <tr><td>Puedo evaluar necesidades y seleccionar herramientas de IA adecuadas, considerando sus riesgos e implicaciones éticas.</td><td><input type="radio" name="q16e" value="1"></td><td><input type="radio" name="q16e" value="2"></td><td><input type="radio" name="q16e" value="3"></td><td><input type="radio" name="q16e" value="4"></td><td><input type="radio" name="q16e" value="5"></td></tr>
+            <tr><td>Puedo diseñar soluciones impulsadas por IA adaptadas a la medida para mejorar los procesos de trabajo.</td><td><input type="radio" name="q16f" value="1"></td><td><input type="radio" name="q16f" value="2"></td><td><input type="radio" name="q16f" value="3"></td><td><input type="radio" name="q16f" value="4"></td><td><input type="radio" name="q16f" value="5"></td></tr>
+        </table>
+    </div>
+
+    <!-- Q17 — Likert: Creative AI use -->
+    <div class="q-group">
+        <span class="q-label">17. Uso creativo de tecnologías digitales relacionadas con la IA<span class="req">*</span></span>
+        <p class="q-hint">Ejemplos: usar IA para diseñar preguntas de examen o retroalimentación, apoyar flujos de trabajo de investigación, o asistir con tareas de planificación y administración; explorar nuevas formas de usar la IA en su trabajo.</p>
+        <table class="likert-table">
+            <tr><th></th><th>Muy en desacuerdo</th><th>En desacuerdo</th><th>Ni de acuerdo ni en desacuerdo</th><th>De acuerdo</th><th>Muy de acuerdo</th></tr>
+            <tr><td>Estoy familiarizado/a con herramientas y tecnologías básicas de IA que pueden mejorar las prácticas laborales.</td><td><input type="radio" name="q17a" value="1" required></td><td><input type="radio" name="q17a" value="2"></td><td><input type="radio" name="q17a" value="3"></td><td><input type="radio" name="q17a" value="4"></td><td><input type="radio" name="q17a" value="5"></td></tr>
+            <tr><td>Entiendo cómo se puede usar la IA de forma creativa para resolver problemas y mejorar los procesos de trabajo.</td><td><input type="radio" name="q17b" value="1" required></td><td><input type="radio" name="q17b" value="2"></td><td><input type="radio" name="q17b" value="3"></td><td><input type="radio" name="q17b" value="4"></td><td><input type="radio" name="q17b" value="5"></td></tr>
+            <tr><td>Puedo aplicar diferentes herramientas de IA para crear nuevas soluciones y guiar a otros en su uso.</td><td><input type="radio" name="q17c" value="1" required></td><td><input type="radio" name="q17c" value="2"></td><td><input type="radio" name="q17c" value="3"></td><td><input type="radio" name="q17c" value="4"></td><td><input type="radio" name="q17c" value="5"></td></tr>
+            <tr><td>Puedo analizar oportunidades para usar la IA con el fin de crear conocimiento y mejorar procesos.</td><td><input type="radio" name="q17d" value="1" required></td><td><input type="radio" name="q17d" value="2"></td><td><input type="radio" name="q17d" value="3"></td><td><input type="radio" name="q17d" value="4"></td><td><input type="radio" name="q17d" value="5"></td></tr>
+            <tr><td>Puedo evaluar de forma crítica y adaptar las herramientas de IA para necesidades complejas en mi trabajo.</td><td><input type="radio" name="q17e" value="1" required></td><td><input type="radio" name="q17e" value="2"></td><td><input type="radio" name="q17e" value="3"></td><td><input type="radio" name="q17e" value="4"></td><td><input type="radio" name="q17e" value="5"></td></tr>
+            <tr><td>Puedo diseñar e implementar soluciones innovadoras basadas en IA para problemas complejos en mi campo profesional.</td><td><input type="radio" name="q17f" value="1" required></td><td><input type="radio" name="q17f" value="2"></td><td><input type="radio" name="q17f" value="3"></td><td><input type="radio" name="q17f" value="4"></td><td><input type="radio" name="q17f" value="5"></td></tr>
+        </table>
+    </div>
+
+    <!-- Q18 -->
+    <div class="q-group">
+        <span class="q-label">18. Si tiene competencias avanzadas en IA, describa uno o dos ejemplos específicos de su trabajo.</span>
+        <p class="q-hint">Céntrese en una tarea o problema concreto: qué hizo con la IA, qué herramientas o sistemas utilizó y cuál fue el resultado o impacto.</p>
+        <textarea name="q18" placeholder="Respuesta opcional..."></textarea>
+    </div>
+
+    <!-- Q19 — Training needs matrix (AI) -->
+    <div class="q-group">
+        <span class="q-label">19. ¿Considera que necesita o le gustaría recibir formación adicional relacionada con la IA?<span class="req">*</span></span>
+        <table class="training-table">
+            <tr><th></th><th>Sí</th><th>No estoy seguro/a</th><th>No</th></tr>
+            <tr><td>Evaluación de datos, información y contenido digital</td><td><input type="radio" name="q19a" value="yes" required></td><td><input type="radio" name="q19a" value="unsure"></td><td><input type="radio" name="q19a" value="no"></td></tr>
+            <tr><td>Identificación de necesidades y respuestas tecnológicas</td><td><input type="radio" name="q19b" value="yes" required></td><td><input type="radio" name="q19b" value="unsure"></td><td><input type="radio" name="q19b" value="no"></td></tr>
+            <tr><td>Utilización creativa de las tecnologías digitales</td><td><input type="radio" name="q19c" value="yes" required></td><td><input type="radio" name="q19c" value="unsure"></td><td><input type="radio" name="q19c" value="no"></td></tr>
+        </table>
+    </div>
+
+    <!-- Q20 -->
+    <div class="q-group">
+        <span class="q-label">20. Si lo desea, puede especificar con más detalle las áreas en las que le gustaría formación adicional relacionada con la IA.</span>
+        <p class="q-hint">También puede indicar si sus necesidades de formación están relacionadas con la docencia, la investigación o la administración.</p>
+        <textarea name="q20" placeholder="Respuesta opcional..."></textarea>
+    </div>
+
+    <!-- Q21 -->
+    <div class="q-group">
+        <span class="q-label">21. Si ya ha completado microcredenciales existentes relacionadas con la alfabetización en datos y la gestión de datos o la IA, ¿cuáles son?</span>
+        <textarea name="q21" placeholder="Respuesta opcional..."></textarea>
+    </div>
+</div>
+
+<button type="submit" class="btn-submit">Enviar encuesta</button>
+<div id="surveyMsg" class="msg"></div>
+
+</form>
+</div>
+
+<script>
+async function submitSurvey(e) {
+    e.preventDefault();
+    var form = document.getElementById('surveyForm');
+    var msg = document.getElementById('surveyMsg');
+    var data = {};
+
+    // Collect all form data
+    var formData = new FormData(form);
+    for (var [key, val] of formData.entries()) {
+        data[key] = val;
+    }
+
+    // Validate required fields
+    if (!data.q2) {
+        msg.className = 'msg err'; msg.style.display = ''; msg.textContent = 'Por favor seleccione su institución de origen (pregunta 2).';
+        msg.scrollIntoView({behavior: 'smooth'}); return false;
+    }
+
+    try {
+        var resp = await fetch('/survey-datalife/api/submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if (resp.ok) {
+            msg.className = 'msg ok'; msg.style.display = '';
+            msg.textContent = 'Gracias por completar la encuesta. Sus respuestas han sido registradas.';
+            form.style.display = 'none';
+        } else {
+            var err = await resp.json().catch(function(){return {};});
+            msg.className = 'msg err'; msg.style.display = '';
+            msg.textContent = err.detail || 'Error al enviar la encuesta. Inténtelo de nuevo.';
+        }
+    } catch (ex) {
+        msg.className = 'msg err'; msg.style.display = '';
+        msg.textContent = 'Error de conexión. Inténtelo de nuevo.';
+    }
+    msg.scrollIntoView({behavior: 'smooth'});
+    return false;
+}
+</script>
+</body>
+</html>

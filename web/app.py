@@ -32,7 +32,7 @@ from auth import (
     create_user, create_user_pending, create_invite_token, delete_user,
     ensure_superuser, get_session, has_role, list_access_requests, list_users,
     logout, reject_access_request, send_invite_email, set_password_from_invite,
-    update_user_role, validate_invite_token, validate_password,
+    update_user_role, user_exists, validate_invite_token, validate_password,
     validate_uninovis_email, ROLES, TOOL_ACCESS, UNINOVIS_DOMAINS,
     can_access_tool, can_edit, user_roles, max_role_level,
 )
@@ -151,7 +151,7 @@ from starlette.responses import JSONResponse
 
 class AuthMiddleware(BaseHTTPMiddleware):
     # Routes that don't require authentication
-    PUBLIC_PATHS = {"/api/auth/login", "/api/auth/invite/validate", "/api/auth/invite/set-password", "/api/auth/request-access"}
+    PUBLIC_PATHS = {"/api/auth/login", "/api/auth/invite/validate", "/api/auth/invite/set-password", "/api/auth/request-access", "/api/auth/forgot-password"}
 
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
@@ -213,6 +213,11 @@ app.mount("/event-calendar/static", StaticFiles(directory=SCRIPT_DIR / "apps" / 
 from apps.matomo_analytics.matomo_analytics import router as matomo_analytics_router
 app.include_router(matomo_analytics_router)
 app.mount("/matomo-analytics/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "matomo_analytics" / "static"), name="matomo_analytics_static")
+
+# Mount Survey DATA FOR L.I.F.E. app
+from apps.survey_datalife.survey_datalife import router as survey_datalife_router
+app.include_router(survey_datalife_router)
+app.mount("/survey-datalife/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "survey_datalife" / "static"), name="survey_datalife_static")
 
 # Mount Research Proposals app
 from apps.research_proposals.research_proposals import router as research_proposals_router
@@ -469,6 +474,24 @@ async def api_update_role(username: str, req: UpdateRoleRequest, session: dict =
 # ---------------------------------------------------------------------------
 
 # SMTP config — re-read from .env on each call so changes don't require restart
+def _check_directory_email(email: str) -> str:
+    """Check if an email exists in the directory. Returns the person's name if found, empty string if not."""
+    try:
+        import json
+        directory_path = SCRIPT_DIR / "apps" / "directory" / "data.json"
+        if not directory_path.exists():
+            return ""
+        with open(directory_path, encoding="utf-8") as f:
+            data = json.load(f)
+        email_lower = email.lower()
+        for user in data.get("users", []):
+            if user.get("email", "").lower() == email_lower:
+                return f"{user.get('first_name', '')} {user.get('family_name', '')}".strip()
+    except Exception:
+        pass
+    return ""
+
+
 def _get_smtp_config() -> dict:
     """Read SMTP settings from .env file each time (not cached)."""
     from dotenv import dotenv_values
@@ -621,8 +644,9 @@ class AccessRequestBody(BaseModel):
 
 
 @app.post("/api/auth/request-access")
-async def api_request_access(req: AccessRequestBody):
-    """Public endpoint: submit an access request (must be UNINOVIS email)."""
+async def api_request_access(req: AccessRequestBody, request: Request):
+    """Public endpoint: submit an access request (must be UNINOVIS email).
+    If the email is found in the directory, an invitation is sent automatically."""
     email = req.email.strip().lower()
     # Validate email domain
     domain_err = validate_uninovis_email(email)
@@ -630,16 +654,94 @@ async def api_request_access(req: AccessRequestBody):
         raise HTTPException(status_code=400, detail=domain_err)
     if not req.full_name.strip():
         raise HTTPException(status_code=400, detail="Full name is required")
-    if not req.reason.strip():
-        raise HTTPException(status_code=400, detail="Reason for access is required")
+
+    # Check if user already exists
+    if user_exists(email):
+        raise HTTPException(status_code=409, detail="An account with this email already exists. Use 'Forgot password' if you need to reset it.")
+
+    # Check if the email is in the directory
+    directory_match = _check_directory_email(email)
+
+    if directory_match:
+        # Auto-create user and send invitation
+        try:
+            create_user(email, role="student", provisional=True)
+            invite_token = create_invite_token(email)
+            if invite_token:
+                smtp = _get_smtp_config()
+                if smtp["configured"]:
+                    base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+                    invite_url = f"{base_url}/set-password?token={invite_token}"
+                    try:
+                        send_invite_email(
+                            username=email,
+                            invite_url=invite_url,
+                            smtp_host=smtp["host"],
+                            smtp_port=smtp["port"],
+                            smtp_user=smtp["user"],
+                            smtp_password=smtp["password"],
+                            from_addr=smtp["from_addr"],
+                        )
+                    except Exception:
+                        pass
+            return {"ok": True, "message": f"Your email was found in the UNINOVIS directory ({directory_match}). An invitation has been sent to {email}."}
+        except Exception:
+            pass  # Fall through to manual request
+
+    # Not in directory — create a pending access request
+    reason = req.reason.strip() if req.reason.strip() else "Sign up request"
     ok = create_access_request(
         email, req.full_name.strip(), req.institution.strip(),
-        department=req.department.strip(), profile_url=req.profile_url.strip(),
-        reason=req.reason.strip(),
+        department=getattr(req, 'department', ''),
+        profile_url=getattr(req, 'profile_url', ''),
+        reason=reason,
     )
     if not ok:
-        raise HTTPException(status_code=409, detail="A request or account with this email already exists")
-    return {"ok": True, "message": "Access request submitted. You will receive an email when your request is approved."}
+        raise HTTPException(status_code=409, detail="A request with this email already exists")
+    return {"ok": True, "message": "Access request submitted. A UNINOVIS administrator will review your request and you will receive an email when approved."}
+
+
+@app.post("/api/auth/forgot-password")
+async def api_forgot_password(request: Request, body: dict = None):
+    """Public endpoint: request a password reset link.
+    Checks if the email/username exists and sends an invite token that
+    allows setting a new password via the existing set-password flow."""
+    if body is None:
+        body = await request.json()
+    email = body.get("email", "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email or username is required")
+
+    # Check if user exists
+    if not user_exists(email):
+        # Don't reveal whether the user exists — always show success
+        return {"ok": True, "message": "If this email is registered, a password reset link has been sent."}
+
+    # Generate an invite token (reuses the existing invite mechanism)
+    invite_token = create_invite_token(email)
+    if not invite_token:
+        return {"ok": True, "message": "If this email is registered, a password reset link has been sent."}
+
+    # Try to send the reset email
+    smtp = _get_smtp_config()
+    if smtp["configured"]:
+        base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+        reset_url = f"{base_url}/set-password?token={invite_token}"
+        try:
+            send_invite_email(
+                username=email,
+                invite_url=reset_url,
+                smtp_host=smtp["host"],
+                smtp_port=smtp["port"],
+                smtp_user=smtp["user"],
+                smtp_password=smtp["password"],
+                from_addr=smtp["from_addr"],
+                subject="UNINOVIS — Password Reset",
+            )
+        except Exception:
+            pass  # Don't reveal email sending failures
+
+    return {"ok": True, "message": "If this email is registered, a password reset link has been sent."}
 
 
 @app.get("/api/auth/access-requests")
