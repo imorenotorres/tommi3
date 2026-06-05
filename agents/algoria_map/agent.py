@@ -104,7 +104,8 @@ UNINOVIS_PARTNERS = [
     "Technical University of Applied Sciences Würzburg-Schweinfurt", # THWS
     "UNIVERSITY OF TIRANA",                                   # UT
     "KAUNO KOLEGIJA",                                         # KK
-    "Tampere University of Applied Sciences",                  # TAMK
+    "Tampere University of Applied Sciences",                  # TAMK (full name)
+    "TAMK",                                                    # TAMK (as in DB)
 ]
 
 FACULTY_ALIASES = {
