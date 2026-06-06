@@ -1,8 +1,8 @@
 {
   "type": "rag_metadata_vectorless",
   "agent_id": "rag_study_procedural",
-  "agent_name": "RAG Study: Procedural",
-  "description": "Variant 3 — Metadata + RAG + Procedural Reasoning. 13-step classification chain, programmatic paths, post-processing pipeline. This is the full Metadata+RAG architecture.",
+  "agent_name": "RAG Study: V3 Procedural",
+  "description": "Variant 3 — BM25 + metadata + code classification (13-step chain) + programmatic paths + post-processing. Classification and response are SEPARATED — code classifies first, then dispatches to programmatic paths or LLM.",
   "welcome_message": "Hello! I am a research assistant specialized in UNINOVIS Responsible AI research (vectorless mode). How can I help you?",
   "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
   "show_history": true,

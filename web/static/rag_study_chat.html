@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Study — Chat</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/style.css?v=20">
+    <!-- Marked.js for rendering markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+    marked.setOptions({ breaks: true, gfm: true });
+    function renderResponse(text) {
+        // If text contains HTML tags (like decision trace), render markdown first
+        // then the HTML passes through (marked preserves raw HTML by default)
+        var html = marked.parse(text);
+        return html;
+    }
+    </script>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; }
+        .study-nav {
+            background: #1a2255; color: #fff; padding: 10px 20px;
+            display: flex; align-items: center; gap: 16px; font-size: 0.9rem;
+        }
+        .study-nav a { color: #fff; text-decoration: none; opacity: 0.7; }
+        .study-nav a:hover { opacity: 1; }
+        .study-nav .sep { opacity: 0.4; }
+        .study-nav select {
+            padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1); color: #fff; font-size: 0.85rem;
+        }
+        .study-nav select option { background: #1a2255; color: #fff; }
+        .study-chat-area {
+            max-width: 800px; margin: 0 auto; padding: 20px;
+            display: flex; flex-direction: column; height: calc(100vh - 50px);
+        }
+        .study-info {
+            background: #fff; border-radius: 10px; padding: 14px 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 16px;
+            font-size: 0.82rem; color: #666; line-height: 1.5;
+        }
+        .study-info h3 { color: #1a2255; font-size: 0.9rem; margin-bottom: 4px; }
+        .study-info .tags { display: flex; gap: 6px; margin-top: 6px; }
+        .study-info .tag { font-size: 0.68rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+        .tag-on { background: #dcfce7; color: #166534; }
+        .tag-off { background: #f1f5f9; color: #94a3b8; }
+        #messages {
+            flex: 1; overflow-y: auto; background: #fff; border-radius: 10px;
+            padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 12px;
+        }
+        .msg { margin-bottom: 14px; line-height: 1.6; font-size: 0.88rem; }
+        .msg-user { text-align: right; }
+        .msg-user .bubble { display: inline-block; background: #1a2255; color: #fff; padding: 8px 14px; border-radius: 12px 12px 0 12px; max-width: 80%; text-align: left; }
+        .msg-bot .bubble { background: #f8fafc; padding: 10px 14px; border-radius: 0 12px 12px 12px; border: 1px solid #e2e8f0; }
+        .msg-bot .bubble p { margin: 0 0 8px; }
+        .msg-bot .bubble p:last-child { margin: 0; }
+        .msg-status { text-align: center; color: #94a3b8; font-size: 0.78rem; font-style: italic; }
+        .chat-input {
+            display: flex; gap: 8px;
+        }
+        .chat-input input {
+            flex: 1; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px;
+            font-size: 0.9rem; outline: none;
+        }
+        .chat-input input:focus { border-color: #1a2255; }
+        .chat-input button {
+            padding: 10px 20px; background: #1a2255; color: #fff; border: none;
+            border-radius: 8px; font-size: 0.9rem; cursor: pointer; font-weight: 600;
+        }
+        .chat-input button:hover { background: #2d3876; }
+        .chat-input button:disabled { background: #94a3b8; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="study-nav">
+    <a href="/rag-study">RAG Study</a>
+    <span class="sep">/</span>
+    <select id="agent-select" onchange="switchAgent(this.value)">
+        <option value="">Loading...</option>
+    </select>
+</div>
+
+<div class="study-chat-area">
+    <div class="study-info" id="agent-info" style="display:none;">
+        <h3 id="info-name"></h3>
+        <div id="info-desc"></div>
+        <div class="tags" id="info-tags"></div>
+    </div>
+
+    <div id="messages">
+        <div class="msg msg-status">Select a variant to start chatting.</div>
+    </div>
+
+    <div class="chat-input">
+        <input type="text" id="input" placeholder="Type your message..." disabled>
+        <button id="send-btn" onclick="sendMessage()" disabled>Send</button>
+    </div>
+</div>
+
+<script>
+var currentAgent = null;
+var chatHistory = [];
+var sessionId = null;
+var TOKEN = localStorage.getItem('tommi_token') || '';
+
+// Check authentication — redirect to login if not authenticated
+(function() {
+    if (!TOKEN) {
+        window.location.href = '/intranet?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+        return;
+    }
+    fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + TOKEN } })
+        .then(function(r) { if (!r.ok) throw new Error(); })
+        .catch(function() {
+            localStorage.removeItem('tommi_token');
+            window.location.href = '/intranet?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+        });
+})();
+
+var VARIANT_META = {
+    'rag_study_vanilla': {
+        label: 'V1: Baseline', tags: ['BM25', 'No metadata', 'Fused', 'No post-proc'],
+        on: ['BM25'], off: ['Metadata', 'Classification', 'Programmatic paths', 'Post-processing']
+    },
+    'rag_study_llm_reasoning': {
+        label: 'V2: LLM Reasoning', tags: ['BM25', 'Metadata', 'LLM classifies', 'Post-proc'],
+        on: ['BM25', 'Metadata', 'LLM classification', 'Post-processing'], off: ['Programmatic paths']
+    },
+    'rag_study_procedural': {
+        label: 'V3: Procedural', tags: ['BM25', 'Metadata', 'Code classifies', 'Programmatic paths', 'Post-proc'],
+        on: ['BM25', 'Metadata', 'Code classification', 'Programmatic paths', 'Post-processing'], off: []
+    },
+    'rag_study_llm_guided': {
+        label: 'V4: LLM-Guided', tags: ['BM25', 'Metadata', 'LLM→code', 'Programmatic paths', 'Post-proc'],
+        on: ['BM25', 'Metadata', 'LLM→code classification', 'Programmatic paths', 'Post-processing'], off: []
+    },
+};
+
+async function loadAgents() {
+    var sel = document.getElementById('agent-select');
+    try {
+        var headers = {};
+        if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+        var resp = await fetch('/api/agents?prefix=rag_study_', { headers: headers });
+        var agents = await resp.json();
+        sel.innerHTML = '<option value="">— Select variant —</option>';
+        agents.forEach(function(a) {
+            var meta = VARIANT_META[a.id] || {};
+            var label = meta.label || a.name;
+            sel.innerHTML += '<option value="' + a.id + '">' + label + '</option>';
+        });
+        // Auto-select from URL parameter
+        var params = new URLSearchParams(window.location.search);
+        var agentParam = params.get('agent');
+        if (agentParam) {
+            sel.value = agentParam;
+            switchAgent(agentParam);
+        }
+    } catch (e) {
+        sel.innerHTML = '<option value="">Error loading agents</option>';
+    }
+}
+
+function switchAgent(agentId) {
+    if (!agentId) return;
+    currentAgent = agentId;
+    chatHistory = [];
+    sessionId = null;
+    document.getElementById('messages').innerHTML = '';
+    document.getElementById('input').disabled = false;
+    document.getElementById('send-btn').disabled = false;
+
+    // Update info panel
+    var meta = VARIANT_META[agentId] || {};
+    var info = document.getElementById('agent-info');
+    document.getElementById('info-name').textContent = meta.label || agentId;
+
+    var tagsHtml = '';
+    (meta.on || []).forEach(function(t) { tagsHtml += '<span class="tag tag-on">' + t + '</span>'; });
+    (meta.off || []).forEach(function(t) { tagsHtml += '<span class="tag tag-off">' + t + '</span>'; });
+    document.getElementById('info-tags').innerHTML = tagsHtml;
+    info.style.display = '';
+
+    // Update URL
+    var url = new URL(window.location);
+    url.searchParams.set('agent', agentId);
+    window.history.replaceState({}, '', url);
+
+    addMessage('bot', 'Hello! I am a research assistant specialized in Responsible AI research. How can I help you?');
+    document.getElementById('input').focus();
+}
+
+function addMessage(role, text) {
+    var div = document.createElement('div');
+    div.className = 'msg msg-' + role;
+    if (role === 'status') {
+        div.className = 'msg msg-status';
+        div.textContent = text;
+    } else {
+        var bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        if (role === 'bot') {
+            try { bubble.innerHTML = marked.parse(text); } catch(e) { bubble.textContent = text; }
+        } else {
+            bubble.textContent = text;
+        }
+        div.appendChild(bubble);
+    }
+    document.getElementById('messages').appendChild(div);
+    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    return div;
+}
+
+async function sendMessage() {
+    var input = document.getElementById('input');
+    var text = input.value.trim();
+    if (!text || !currentAgent) return;
+
+    input.value = '';
+    addMessage('user', text);
+    var btn = document.getElementById('send-btn');
+    btn.disabled = true;
+    input.disabled = true;
+
+    var statusDiv = addMessage('status', 'Thinking...');
+
+    var url = '/api/chat/stream?agent_id=' + encodeURIComponent(currentAgent)
+        + '&message=' + encodeURIComponent(text)
+        + (sessionId ? '&session_id=' + encodeURIComponent(sessionId) : '')
+        + (TOKEN ? '&token=' + encodeURIComponent(TOKEN) : '');
+
+    var botDiv = null;
+    var botBubble = null;
+    var fullText = '';
+
+    var es = new EventSource(url);
+
+    es.addEventListener('message', function(e) {
+        if (e.data === '[DONE]') {
+            es.close();
+            statusDiv.remove();
+            chatHistory.push({role: 'user', content: text});
+            chatHistory.push({role: 'assistant', content: fullText});
+            btn.disabled = false;
+            input.disabled = false;
+            input.focus();
+            return;
+        }
+        if (!botDiv) {
+            statusDiv.remove();
+            botDiv = addMessage('bot', '');
+            botBubble = botDiv.querySelector('.bubble');
+        }
+        fullText += e.data.replace(/\\n/g, '\n');
+        try { botBubble.innerHTML = renderResponse(fullText); } catch(ex) { botBubble.textContent = fullText; }
+        document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    });
+
+    es.addEventListener('status', function(e) {
+        statusDiv.querySelector('.bubble') ? statusDiv.querySelector('.bubble').textContent = e.data : statusDiv.textContent = e.data;
+    });
+
+    es.addEventListener('trace', function(e) {
+        var traceHtml = e.data.replace(/\\n/g, '\n');
+        if (botBubble) {
+            fullText += traceHtml;
+            botBubble.innerHTML = renderResponse(fullText);
+        }
+    });
+
+    es.addEventListener('badge', function(e) {
+        // Skip badges in study chat — they're visual noise
+    });
+
+    es.addEventListener('procedural_banner', function(e) {
+        var bannerHtml = e.data.replace(/\\n/g, '\n');
+        if (!botDiv) {
+            statusDiv.remove();
+            botDiv = addMessage('bot', '');
+            botBubble = botDiv.querySelector('.bubble');
+        }
+        botBubble.innerHTML = bannerHtml + botBubble.innerHTML;
+    });
+
+    es.addEventListener('replace', function(e) {
+        fullText = e.data.replace(/\\n/g, '\n');
+        if (botBubble) {
+            try { botBubble.innerHTML = renderResponse(fullText); } catch(ex) { botBubble.textContent = fullText; }
+        }
+    });
+
+    es.addEventListener('session_id', function(e) {
+        sessionId = e.data;
+    });
+
+    es.addEventListener('complete', function(e) {
+        es.close();
+        if (!botDiv) {
+            statusDiv.remove();
+            botDiv = addMessage('bot', '');
+            botBubble = botDiv.querySelector('.bubble');
+        }
+        statusDiv.style.display = 'none';
+        chatHistory.push({role: 'user', content: text});
+        chatHistory.push({role: 'assistant', content: fullText});
+        btn.disabled = false;
+        input.disabled = false;
+        input.focus();
+    });
+
+    es.onerror = function() {
+        es.close();
+        statusDiv.remove();
+        if (!botDiv && !fullText) {
+            addMessage('bot', 'Connection error.');
+        } else {
+            // Stream ended normally (EventSource fires onerror on close)
+            chatHistory.push({role: 'user', content: text});
+            chatHistory.push({role: 'assistant', content: fullText});
+        }
+        btn.disabled = false;
+        input.disabled = false;
+        input.focus();
+    };
+}
+
+document.getElementById('input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendMessage();
+});
+
+loadAgents();
+</script>
+
+</body>
+</html>

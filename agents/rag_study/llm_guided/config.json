@@ -1,8 +1,8 @@
 {
   "type": "rag_metadata_vectorless",
   "agent_id": "rag_study_llm_guided",
-  "agent_name": "RAG Study: LLM-Guided",
-  "description": "Variant 5 — Same response paths as Procedural, but the LLM classifies the query type instead of pattern matching. Tests whether LLM classification can surpass human-designed patterns.",
+  "agent_name": "RAG Study: V4 LLM-Guided",
+  "description": "Variant 4 — BM25 + metadata + LLM classification → code execution + same programmatic paths + post-processing. Classification and response are SEPARATED (like V3), but the LLM classifies instead of code patterns.",
   "welcome_message": "Hello! I am a research assistant specialized in UNINOVIS Responsible AI research (vectorless mode). How can I help you?",
   "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
   "show_history": true,

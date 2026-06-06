@@ -80,6 +80,55 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             print(f"[LLM_GUIDED] Classification error: {e}")
             return {"category": "general"}
 
+    # All possible categories the LLM can choose
+    _ALL_CATEGORIES = [
+        "meta", "non_research", "figure", "project", "researcher",
+        "glossary", "gap", "topic_search", "university_papers",
+        "off_topic", "followup", "general",
+    ]
+
+    def _build_trace(self, classification: dict, action: str, production: str) -> str:
+        """Build a decision trace matching V3's format (Perception → Reasoning → Action → Production)."""
+        cat = classification.get("category", "general")
+        topic = classification.get("topic", "")
+        researcher = classification.get("researcher", "")
+        university = classification.get("university", "")
+        project = classification.get("project", "")
+
+        lines = []
+        lines.append('<details class="decision-trace" style="margin-top:8px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;font-size:12px;">')
+        lines.append('<summary style="padding:6px 10px;cursor:pointer;font-weight:600;color:#64748b;">Decision Trace</summary>')
+        lines.append('<div style="padding:8px 10px;">')
+
+        # Perception
+        query_preview = classification.get("_query", "")[:120]
+        lines.append(f'<div style="margin-bottom:6px;"><span style="color:#0284c7;font-weight:600;">Perception:</span> {query_preview}</div>')
+
+        # Reasoning — show all categories with ✓/✗
+        lines.append('<div style="margin-bottom:6px;"><span style="color:#d97706;font-weight:600;">Reasoning (LLM classification):</span></div>')
+        lines.append('<div style="margin-left:12px;">')
+        for c in self._ALL_CATEGORIES:
+            if c == cat:
+                entities = []
+                if topic: entities.append(f'topic="{topic}"')
+                if researcher: entities.append(f'researcher="{researcher}"')
+                if university: entities.append(f'university={university}')
+                if project: entities.append(f'project="{project}"')
+                detail = f' — <span style="color:#64748b;">{", ".join(entities)}</span>' if entities else ""
+                lines.append(f'<div style="color:#16a34a;font-weight:600;">✓ {c}{detail}</div>')
+            else:
+                lines.append(f'<div style="color:#94a3b8;">✗ {c}</div>')
+        lines.append('</div>')
+
+        # Action
+        lines.append(f'<div style="margin-bottom:6px;"><span style="color:#16a34a;font-weight:600;">Action:</span> {action}</div>')
+
+        # Production
+        lines.append(f'<div><span style="color:#9333ea;font-weight:600;">Production:</span> {production}</div>')
+
+        lines.append('</div></details>')
+        return '\n'.join(lines)
+
     def _dispatch(self, classification: dict, user_message: str, history: list = None, **kwargs):
         """Dispatch to the appropriate response path based on LLM classification."""
         cat = classification.get("category", "general")
@@ -90,16 +139,19 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
 
         # --- Programmatic paths (no LLM needed for response) ---
 
+        classification["_query"] = user_message
+
         if cat == "meta":
-            return self._build_meta_response()
+            return self._build_meta_response() + self._build_trace(classification, "Built from config.json", "Programmatic response (no LLM)")
 
         if cat == "non_research":
             research_topic = self._config.get("research_topic", "Responsible AI")
-            return (
+            response = (
                 f"I am a research assistant specialised in **{research_topic}**. "
                 f"I can help you search papers, researchers, and projects within this domain, "
                 f"but I cannot perform this type of task."
             )
+            return response + self._build_trace(classification, "Fixed refusal message", "Programmatic refusal (no LLM)")
 
         if cat == "off_topic":
             research_topic = self._config.get("research_topic", "Responsible AI")
@@ -107,30 +159,30 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             response = f"This question is outside my scope. I specialise in **{research_topic}**."
             if scope_terms:
                 response += f"\n\nTopics I can help with include: {', '.join(scope_terms)}."
-            return response
+            return response + self._build_trace(classification, "Scope refusal from config.json", "Programmatic refusal (no LLM)")
 
         if cat == "figure":
             agent_id = self._config.get("agent_id", "")
-            return self._generate_map_link_programmatic(user_message, agent_id)
+            result = self._generate_map_link_programmatic(user_message, agent_id)
+            return result + self._build_trace(classification, "Map link from regex extraction", "Interactive map (no LLM)")
 
         if cat == "project":
             ctx = self._build_project_context(user_message)
             if ctx:
-                return self._format_project_response(ctx)
+                return self._format_project_response(ctx) + self._build_trace(classification, "Formatted from project_docs/", "Programmatic response (no LLM)")
 
         if cat == "researcher":
             ctx = self._build_researcher_context(user_message)
             if ctx:
-                return self._format_researcher_response(ctx)
+                return self._format_researcher_response(ctx) + self._build_trace(classification, "Formatted from researchers.json", "Programmatic response (no LLM)")
 
         if cat == "glossary":
             glossary_ctx = self._build_glossary_context(user_message)
             if glossary_ctx:
-                return self._format_glossary_response(glossary_ctx)
+                return self._format_glossary_response(user_message, glossary_ctx) + self._build_trace(classification, "Formatted from Glossary.md", "Programmatic glossary response (no LLM)")
 
         # --- LLM paths (need LLM for response generation) ---
-        # Fall through to standard RAG for: topic_search, university_papers,
-        # gap, followup, general, and any failed programmatic lookups
+        self._pending_trace = self._build_trace(classification, f"LLM generates response with RAG context", "LLM response + post-processing")
         return None  # signals caller to use LLM
 
     def _build_meta_response(self) -> str:
@@ -162,6 +214,7 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         print(f"[LLM_GUIDED] Classification: {classification}")
 
         # Step 2: Try programmatic dispatch
+        self._pending_trace = ""
         result = self._dispatch(classification, user_message, history, **kwargs)
         if result is not None:
             return result
@@ -198,7 +251,7 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         messages.append({"role": "user", "content": user_message})
 
         response = self.client.chat.complete(model=model, messages=messages, max_tokens=2048)
-        return response.choices[0].message.content
+        return response.choices[0].message.content + self._pending_trace
 
     async def chat_stream(self, user_message: str, history: list = None, **kwargs):
         model = kwargs.get('model_override') or self.model
@@ -213,6 +266,7 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         print(f"[LLM_GUIDED] Classification: {classification}")
 
         # Step 2: Try programmatic dispatch
+        self._pending_trace = ""
         result = self._dispatch(classification, user_message, history, **kwargs)
         if result is not None:
             yield result
@@ -250,7 +304,10 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             messages.extend(history)
         messages.append({"role": "user", "content": user_message})
 
-        response = self.client.chat.complete(model=model, messages=messages, max_tokens=2048, stream=True)
-        for chunk in response:
+        async for chunk in await self.client.chat.stream_async(model=model, messages=messages):
             if chunk.data.choices and chunk.data.choices[0].delta.content:
                 yield chunk.data.choices[0].delta.content
+
+        # Append decision trace after streaming completes
+        if self._pending_trace:
+            yield self._pending_trace

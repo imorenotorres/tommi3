@@ -56,17 +56,25 @@ class AgentRunner:
         """Descubre todos los agentes disponibles leyendo AGENT_CONFIG de app.py"""
         agents = []
 
+        # Collect candidate directories: top-level + one level of nesting
+        # (e.g., agents/responsible_ai3/ and agents/rag_study/vanilla_rag/)
+        candidate_dirs = []
         for agent_dir in self.agents_base_path.iterdir():
             if not agent_dir.is_dir():
                 continue
-
-            # Ignorar carpetas especiales
             if agent_dir.name.startswith('.') or agent_dir.name in ['web', '__pycache__']:
                 continue
+            if (agent_dir / "app.py").exists():
+                candidate_dirs.append(agent_dir)
+            else:
+                # Check subdirectories (one level deep)
+                for sub_dir in agent_dir.iterdir():
+                    if sub_dir.is_dir() and not sub_dir.name.startswith('.') and sub_dir.name != '__pycache__':
+                        if (sub_dir / "app.py").exists():
+                            candidate_dirs.append(sub_dir)
 
+        for agent_dir in candidate_dirs:
             app_py = agent_dir / "app.py"
-            if not app_py.exists():
-                continue
 
             try:
                 # Leer AGENT_CONFIG del archivo app.py

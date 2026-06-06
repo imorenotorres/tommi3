@@ -199,10 +199,10 @@ from apps.researcher_connect.researcher_connect import router as researcher_conn
 app.include_router(researcher_connect_router)
 app.mount("/researcher_connect/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "researcher_connect" / "static"), name="researcher_connect_static")
 
-# Mount Transparency Study apps
-from apps.rag_study.study import router as rag_study_router
-app.include_router(rag_study_router)
-app.mount("/rag-study/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "rag_study" / "static"), name="rag_study_static")
+# Mount Transparency Study apps (TODO: create apps/rag_study/)
+# from apps.rag_study.study import router as rag_study_router
+# app.include_router(rag_study_router)
+# app.mount("/rag-study/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "rag_study" / "static"), name="rag_study_static")
 
 # Mount Event Calendar app
 from apps.event_calendar.event_calendar import router as event_calendar_router
@@ -1030,6 +1030,12 @@ async def rag_study_page():
     return FileResponse(SCRIPT_DIR / "static" / "rag_study.html")
 
 
+@app.get("/rag-study/chat")
+async def rag_study_chat_page():
+    """RAG Architecture Study — dedicated chat interface"""
+    return FileResponse(SCRIPT_DIR / "static" / "rag_study_chat.html")
+
+
 @app.get("/agents")
 async def agents_page():
     """Serve the TOMMI AI Agents interface"""
@@ -1582,8 +1588,8 @@ async def get_history(
 
 
 @app.get("/api/agents", response_model=list[AgentResponse])
-async def list_agents(request: Request, mode: Optional[str] = Query(None)):
-    """Lista todos los agentes disponibles (filtered by visibility, mode, and role)"""
+async def list_agents(request: Request, mode: Optional[str] = Query(None), prefix: Optional[str] = Query(None)):
+    """Lista todos los agentes disponibles (filtered by visibility, mode, role, and prefix)"""
     agents = runner.discover_agents()
 
     # Determine user role and username from session
@@ -1592,8 +1598,14 @@ async def list_agents(request: Request, mode: Optional[str] = Query(None)):
     user_role = session["role"] if session else "user"
     username = session["username"] if session else ""
 
-    # Filter agents based on visibility level and allowed_users
-    agents = [a for a in agents if _can_user_see_agent(a.id, username, user_role)]
+    # Optional prefix filter (e.g., ?prefix=rag_study_ to show only study agents)
+    if prefix:
+        # When filtering by prefix, skip visibility checks (study agents are hidden from main list)
+        agents = [a for a in agents if a.id.startswith(prefix)]
+    else:
+        # Normal list: filter by visibility and exclude study agents from main list
+        agents = [a for a in agents if _can_user_see_agent(a.id, username, user_role)]
+        agents = [a for a in agents if not a.id.startswith("rag_study_")]
 
     return [
         AgentResponse(

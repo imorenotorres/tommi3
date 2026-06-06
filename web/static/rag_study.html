@@ -55,18 +55,22 @@
         .tag-code { background: #fef3c7; color: #92400e; }
         .tag-llm { background: #f3e8ff; color: #6b21a8; }
         .tag-none { background: #f1f5f9; color: #64748b; }
+        .tag-safety { background: #fee2e2; color: #991b1b; }
 
         .variant-detail {
             display: none; padding: 0 20px 16px; font-size: 0.82rem;
             color: #555; line-height: 1.6; border-top: 1px solid #f0f0f0;
         }
         .variant-detail.open { display: block; }
-        .variant-detail table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 0.78rem; }
-        .variant-detail th { text-align: left; padding: 4px 8px; background: #f8fafc; font-size: 0.75rem; }
-        .variant-detail td { padding: 4px 8px; border-bottom: 1px solid #f0f0f0; }
+
+        .hypothesis { margin: 10px 0; padding: 10px 14px; background: #f8fafc; border-left: 3px solid #1a2255; border-radius: 0 6px 6px 0; font-size: 0.8rem; }
+        .hypothesis strong { color: #1a2255; }
+        .h-up { color: #16a34a; font-weight: 600; }
+        .h-down { color: #dc3545; font-weight: 600; }
+        .h-eq { color: #64748b; font-weight: 600; }
 
         .btn-chat {
-            display: inline-block; padding: 6px 16px; margin-top: 8px;
+            display: inline-block; padding: 6px 16px; margin-top: 10px;
             background: #1a2255; color: #fff; border: none; border-radius: 6px;
             font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none;
         }
@@ -105,15 +109,15 @@
 
 <div class="header">
     <h1>RAG Architecture Study</h1>
-    <div class="sub">Comparing AI agent architectures for reliability — UNINOVIS</div>
+    <div class="sub">How does each architectural layer affect AI agent reliability?</div>
 </div>
 
 <div class="container">
 
 <div class="intro">
     <h2>Research Question</h2>
-    <p>How does each architectural layer of an AI agent affect its reliability? This study isolates four variables — <strong>retrieval</strong>, <strong>structured metadata</strong>, <strong>reasoning method</strong>, and <strong>classification approach</strong> — using five agent variants that share the same domain, LLM, and benchmark.</p>
-    <p style="margin-top:8px;">Each variant adds exactly one layer. Select any variant below to chat with it and compare responses.</p>
+    <p>This study compares four agent architectures to measure the effect of <strong>metadata</strong>, <strong>reasoning method</strong>, and <strong>classification approach</strong> on reliability — measured across consistency, robustness, correctness, predictability, and safety (Rabanser et al., 2025).</p>
+    <p style="margin-top:8px;">All variants share the same LLM (Mistral), the same BM25 retrieval, and the same Responsible AI domain. Each variant adds exactly one architectural layer. Click any variant to see details and hypotheses.</p>
 </div>
 
 <div class="variants" id="variants"></div>
@@ -123,68 +127,26 @@
     <table>
         <tr>
             <th>Feature</th>
-            <th>1. Baseline</th>
-            <th>2. Vanilla RAG</th>
-            <th>3. LLM Reasoning</th>
-            <th>4. Procedural</th>
-            <th>5. LLM-Guided</th>
+            <th>V1 Baseline</th>
+            <th>V2 LLM Reasoning</th>
+            <th>V3 Procedural</th>
+            <th>V4 LLM-Guided</th>
         </tr>
+        <tr><td>Retrieval</td><td>BM25</td><td>BM25</td><td>BM25</td><td>BM25</td></tr>
+        <tr><td>Metadata</td><td class="dot-no">No</td><td class="dot-yes">Yes</td><td class="dot-yes">Yes</td><td class="dot-yes">Yes</td></tr>
+        <tr><td>System prompt</td><td>Simple</td><td>Complex (8 query types)</td><td>Complex (rules + strict)</td><td>Complex (same as V3)</td></tr>
         <tr>
-            <td>Document retrieval (BM25)</td>
-            <td class="dot-no">—</td>
-            <td class="dot-yes">Yes</td>
-            <td class="dot-yes">Yes</td>
-            <td class="dot-yes">Yes</td>
-            <td class="dot-yes">Yes</td>
+            <td>Classification + response</td>
+            <td>Fused<br>(1 LLM call)</td>
+            <td>Fused<br>(1 LLM call, guided)</td>
+            <td>Separated<br>(code classifies first)</td>
+            <td>Separated<br>(LLM classifies first)</td>
         </tr>
-        <tr>
-            <td>Structured metadata</td>
-            <td class="dot-no">—</td>
-            <td class="dot-no">—</td>
-            <td class="dot-yes">Yes</td>
-            <td class="dot-yes">Yes</td>
-            <td class="dot-yes">Yes</td>
-        </tr>
-        <tr>
-            <td>Query classification</td>
-            <td class="dot-no">—</td>
-            <td class="dot-no">—</td>
-            <td class="dot-partial">LLM (prompt)</td>
-            <td class="dot-yes">Code (13-step)</td>
-            <td class="dot-partial">LLM → code</td>
-        </tr>
-        <tr>
-            <td>Programmatic response paths</td>
-            <td>0</td>
-            <td>0</td>
-            <td>0</td>
-            <td>8 of 18</td>
-            <td>8 of 18</td>
-        </tr>
-        <tr>
-            <td>Post-processing pipeline</td>
-            <td class="dot-no">—</td>
-            <td class="dot-partial">Off-topic only</td>
-            <td class="dot-partial">Off-topic only</td>
-            <td class="dot-yes">6 steps</td>
-            <td class="dot-no">—</td>
-        </tr>
-        <tr>
-            <td>Classification determinism</td>
-            <td>N/A</td>
-            <td>N/A</td>
-            <td class="dot-no">Non-deterministic</td>
-            <td class="dot-yes">Deterministic</td>
-            <td class="dot-no">Non-deterministic</td>
-        </tr>
-        <tr>
-            <td>LLM calls per query</td>
-            <td>1</td>
-            <td>1</td>
-            <td>1</td>
-            <td>0 or 1</td>
-            <td>1 or 2</td>
-        </tr>
+        <tr><td>Can bypass LLM for response?</td><td class="dot-no">No</td><td class="dot-no">No</td><td class="dot-yes">Yes (8 types)</td><td class="dot-yes">Yes (8 types)</td></tr>
+        <tr><td>Post-processing</td><td class="dot-no">None</td><td class="dot-yes">Full (6 steps)</td><td class="dot-yes">Full (6 steps)</td><td class="dot-yes">Full (6 steps)</td></tr>
+        <tr><td>Classification determinism</td><td>N/A</td><td class="dot-no">Non-deterministic</td><td class="dot-yes">Deterministic</td><td class="dot-no">Non-deterministic</td></tr>
+        <tr><td>LLM calls per query</td><td>1</td><td>1</td><td>0 or 1</td><td>1 or 2</td></tr>
+        <tr><td>Development effort</td><td>Low</td><td>Medium</td><td>High</td><td>Medium</td></tr>
     </table>
 </div>
 
@@ -195,70 +157,81 @@
 </div>
 
 <script>
+// Check authentication — redirect to login if not authenticated
+(function() {
+    var token = localStorage.getItem('tommi_token') || '';
+    if (!token) {
+        window.location.href = '/intranet?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
+    }
+    // Verify token is valid
+    fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function(r) { if (!r.ok) throw new Error(); })
+        .catch(function() {
+            localStorage.removeItem('tommi_token');
+            window.location.href = '/intranet?redirect=' + encodeURIComponent(window.location.pathname);
+        });
+})();
+
 var VARIANTS = [
     {
-        id: "rag_study_baseline", num: 1, name: "Baseline",
+        id: "rag_study_vanilla", num: 1, name: "Baseline (Vanilla RAG)",
         color: "#94a3b8",
-        desc: "Pure LLM with system prompt. No retrieval, no metadata, no classification.",
-        tags: [{label:"No retrieval", cls:"tag-none"}, {label:"No metadata", cls:"tag-none"}, {label:"No classification", cls:"tag-none"}],
-        detail: "The simplest possible agent. Establishes what the LLM knows on its own about Responsible AI, without any data access. Every query gets the same treatment: system prompt + user query → LLM response.",
-        paths: "1", tests: "What does the LLM know without any help?"
+        desc: "BM25 + LLM. No metadata, no classification, no post-processing. Like NotebookLM.",
+        tags: [{label:"BM25", cls:"tag-retrieval"}, {label:"No metadata", cls:"tag-none"}, {label:"Fused", cls:"tag-none"}],
+        detail: "The simplest RAG agent — like NotebookLM. Upload documents, ask questions, get answers. Every query follows the same path: retrieve BM25 chunks, send to LLM, return response. No special handling for different query types.",
+        hypotheses: "<strong>Reference point</strong> — no hypotheses. This is the baseline against which all other variants are compared.",
+        paths: "1"
     },
     {
-        id: "rag_study_vanilla", num: 2, name: "Vanilla RAG",
-        color: "#3b82f6",
-        desc: "BM25 retrieval + LLM. Documents are retrieved but no classification or metadata.",
-        tags: [{label:"BM25", cls:"tag-retrieval"}, {label:"No metadata", cls:"tag-none"}, {label:"No classification", cls:"tag-none"}],
-        detail: "Adds document retrieval via BM25 keyword matching. The LLM receives relevant chunks from the knowledge base alongside the system prompt. A simple off-topic check in production detects refusals.",
-        paths: "2", tests: "Does grounding in documents improve reliability?"
-    },
-    {
-        id: "rag_study_llm_reasoning", num: 3, name: "LLM Reasoning",
+        id: "rag_study_llm_reasoning", num: 2, name: "LLM Reasoning",
         color: "#8b5cf6",
-        desc: "BM25 + structured metadata + LLM-based query classification (via prompt instructions).",
-        tags: [{label:"BM25", cls:"tag-retrieval"}, {label:"Metadata", cls:"tag-metadata"}, {label:"LLM classifies", cls:"tag-llm"}],
-        detail: "Same retrieval as Variant 2, plus structured metadata (papers, researchers, projects, glossary). The system prompt instructs the LLM to classify queries into 8 categories and respond differently for each. All reasoning is in the prompt — no code classification.",
-        paths: "2", tests: "Does structured data improve reliability when the LLM manages everything?"
+        desc: "BM25 + metadata + LLM classification (via prompt) + post-processing. Fused: 1 LLM call.",
+        tags: [{label:"BM25", cls:"tag-retrieval"}, {label:"Metadata", cls:"tag-metadata"}, {label:"LLM classifies", cls:"tag-llm"}, {label:"Post-proc", cls:"tag-safety"}],
+        detail: "Same retrieval, plus structured metadata (papers, researchers, glossary, projects) injected into context. The prompt instructs the LLM to classify queries into 8 types and respond differently. Classification and response happen in one LLM call (fused). Full post-processing pipeline.",
+        hypotheses: '<div class="hypothesis"><strong>vs V1:</strong> <span class="h-up">Correctness ↑</span> (metadata provides verified data). <span class="h-up">Robustness ↑</span> (LLM handles query types differently). <span class="h-up">Safety ↑</span> (post-processing catches errors). <span class="h-up">Predictability ↑</span> (meaningful reliability cues). <span class="h-up">Overall reliability ↑</span>.</div>',
+        paths: "1 (LLM handles all classification internally)"
     },
     {
-        id: "rag_study_procedural", num: 4, name: "Procedural",
+        id: "rag_study_procedural", num: 3, name: "Procedural",
         color: "#16a34a",
-        desc: "BM25 + metadata + 13-step code classification chain + post-processing pipeline.",
-        tags: [{label:"BM25", cls:"tag-retrieval"}, {label:"Metadata", cls:"tag-metadata"}, {label:"Code classifies", cls:"tag-code"}],
-        detail: "The full Metadata+RAG architecture. A deterministic classification chain in code (with synonym expansion and accent-insensitive matching) identifies the query type. 8 of 18 response paths bypass the LLM entirely. A 6-step post-processing pipeline checks for hallucinated papers and overconfident language.",
-        paths: "18", tests: "Does deterministic code classification improve reliability?"
+        desc: "BM25 + metadata + code classification (13-step chain) + programmatic paths + post-processing.",
+        tags: [{label:"BM25", cls:"tag-retrieval"}, {label:"Metadata", cls:"tag-metadata"}, {label:"Code classifies", cls:"tag-code"}, {label:"Programmatic paths", cls:"tag-code"}, {label:"Post-proc", cls:"tag-safety"}],
+        detail: "Classification is separated from response generation. A deterministic 13-step code chain (with synonym expansion and accent-insensitive matching) classifies the query before any LLM call. For 8 query types, code generates the response directly — no LLM, zero hallucination risk.",
+        hypotheses: '<div class="hypothesis"><strong>vs V2:</strong> <span class="h-up">Consistency ↑</span> (deterministic — same query always gets same path). <span class="h-up">Correctness ↑</span> (programmatic paths serve verified data, no LLM interpretation). <span class="h-up">Predictability ↑</span> (cue assignment is deterministic). <span class="h-down">Robustness ↓?</span> (pattern matching may miss novel phrasings). <span class="h-up">Overall reliability ↑</span> (consistency + correctness gains expected to outweigh robustness risk).</div>',
+        paths: "18 (13 steps + 5 content sub-steps)"
     },
     {
-        id: "rag_study_llm_guided", num: 5, name: "LLM-Guided",
+        id: "rag_study_llm_guided", num: 4, name: "LLM-Guided Paths",
         color: "#d97706",
-        desc: "LLM classifies the query type, then code executes the same paths as Procedural.",
-        tags: [{label:"BM25", cls:"tag-retrieval"}, {label:"Metadata", cls:"tag-metadata"}, {label:"LLM → code", cls:"tag-llm"}],
-        detail: "Same response paths and data access as Variant 4, but the classification decision is made by the LLM instead of pattern matching. The LLM returns a JSON classification, then code dispatches to the appropriate function. Tests whether LLM classification can surpass human-designed patterns.",
-        paths: "18", tests: "Can LLM classification surpass human-designed pattern matching?"
+        desc: "LLM classifies → code executes same paths as V3. Tests LLM vs human-designed classification.",
+        tags: [{label:"BM25", cls:"tag-retrieval"}, {label:"Metadata", cls:"tag-metadata"}, {label:"LLM → code", cls:"tag-llm"}, {label:"Programmatic paths", cls:"tag-code"}, {label:"Post-proc", cls:"tag-safety"}],
+        detail: "Same response paths as V3, but the LLM classifies the query (returns JSON) instead of pattern matching. Tests whether LLM classification can surpass human-designed patterns — the LLM doesn't need synonym maps or pattern lists because it understands language natively.",
+        hypotheses: '<div class="hypothesis"><strong>vs V3:</strong> <span class="h-up">Robustness ↑</span> (handles paraphrases, synonyms, multilingual queries without pattern lists). <span class="h-down">Consistency ↓?</span> (non-deterministic — same query might get different classification). <span class="h-eq">Correctness =</span> (same programmatic paths execute). <span class="h-eq">Safety =</span> (same post-processing). <strong>Overall reliability:</strong> depends on robustness gain vs consistency loss.</div>',
+        paths: "18 (same as V3)"
     },
 ];
 
 var container = document.getElementById('variants');
 VARIANTS.forEach(function(v) {
     var tags = v.tags.map(function(t) { return '<span class="tag ' + t.cls + '">' + t.label + '</span>'; }).join('');
-    var html = '<div class="variant-card" id="card-' + v.id + '">'
+    var html = '<div class="variant-card">'
         + '<div class="variant-header" onclick="toggleDetail(\'' + v.id + '\')">'
         + '<div class="variant-num" style="background:' + v.color + ';">' + v.num + '</div>'
-        + '<div class="variant-info"><h3>Variant ' + v.num + ': ' + v.name + '</h3><div class="desc">' + v.desc + '</div></div>'
+        + '<div class="variant-info"><h3>V' + v.num + ': ' + v.name + '</h3><div class="desc">' + v.desc + '</div></div>'
         + '<div class="variant-tags">' + tags + '</div>'
         + '</div>'
         + '<div class="variant-detail" id="detail-' + v.id + '">'
         + '<p>' + v.detail + '</p>'
-        + '<table><tr><th>Response paths</th><th>Key question</th></tr>'
-        + '<tr><td>' + v.paths + '</td><td>' + v.tests + '</td></tr></table>'
-        + '<a class="btn-chat" href="/agents/' + v.id + '" target="_blank">Chat with this variant</a>'
+        + '<p style="margin-top:8px;font-size:0.78rem;color:#64748b;"><strong>Response paths:</strong> ' + v.paths + '</p>'
+        + v.hypotheses
+        + '<a class="btn-chat" href="/rag-study/chat?agent=' + v.id + '" target="_blank">Chat with V' + v.num + '</a>'
         + '</div></div>';
     container.innerHTML += html;
 });
 
 function toggleDetail(id) {
-    var el = document.getElementById('detail-' + id);
-    el.classList.toggle('open');
+    document.getElementById('detail-' + id).classList.toggle('open');
 }
 </script>
 

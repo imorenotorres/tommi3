@@ -1,8 +1,8 @@
 {
   "type": "rag_vectorless",
   "agent_id": "rag_study_vanilla",
-  "agent_name": "RAG Study: Vanilla RAG",
-  "description": "Variant 1 — Simple BM25 retrieval + LLM. No classification chain, no metadata, no programmatic paths. Every query follows the same path.",
+  "agent_name": "RAG Study: V1 Baseline",
+  "description": "Variant 1 (Baseline) — BM25 retrieval + LLM. No metadata, no classification, no post-processing. Like NotebookLM: upload documents, ask questions, get answers.",
   "welcome_message": "Hello! I am a research assistant specialized in Responsible AI research. How can I help you?",
   "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
   "show_history": true,

@@ -3843,21 +3843,38 @@ class MetadataRAGMixin:
         return f"[{label}]({url})"
 
     def _format_glossary_response(self, user_message: str, glossary_ctx: str) -> str:
-        """Format glossary context as a user-facing response."""
+        """Format glossary context as a user-facing response.
+
+        Only shows the PRIMARY matching entry (the first ### heading),
+        not all related concepts. Related concepts are listed as links
+        at the end for the user to explore.
+        """
         if not glossary_ctx:
             return ""
-        # The glossary context starts with "GLOSSARY CONTEXT — Definitions..."
-        # followed by "### ConceptName\n definition text"
         lines = glossary_ctx.split('\n')
         output = []
+        found_first = False
+        in_primary = False
         for line in lines:
-            # Skip the header line
+            # Skip header and instruction lines
             if line.startswith("GLOSSARY CONTEXT"):
                 continue
+            if line.startswith("Use this information"):
+                continue
+            if line.startswith("IMPORTANT:"):
+                continue
             if line.startswith("### "):
-                concept = line[4:].strip()
-                output.append(f"## {concept}\n")
-            elif line.strip():
+                if not found_first:
+                    # First entry — this is the primary match
+                    concept = line[4:].strip()
+                    output.append(f"## {concept}\n")
+                    found_first = True
+                    in_primary = True
+                else:
+                    # Second entry onwards — stop (these are related concepts)
+                    in_primary = False
+                    break
+            elif in_primary and line.strip():
                 output.append(line)
         result = "\n".join(output).strip()
         return result if result else ""

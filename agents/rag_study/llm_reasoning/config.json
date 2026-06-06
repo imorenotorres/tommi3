@@ -1,8 +1,8 @@
 {
   "type": "rag_vectorless",
   "agent_id": "rag_study_llm_reasoning",
-  "agent_name": "RAG Study: LLM Reasoning",
-  "description": "Variant 2 — BM25 retrieval + LLM-based query classification. The LLM decides how to handle each query type (meta, off-topic, conceptual, researcher, etc.) based on prompt instructions. No programmatic classification chain.",
+  "agent_name": "RAG Study: V2 LLM Reasoning",
+  "description": "Variant 2 — BM25 + metadata + LLM-based query classification (via prompt) + full post-processing. The LLM classifies and responds in a single call. Classification and response are fused.",
   "welcome_message": "Hello! I am a research assistant specialized in Responsible AI research. How can I help you?",
   "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
   "show_history": true,
