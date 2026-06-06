@@ -1,0 +1,27 @@
+{
+  "type": "rag_vectorless",
+  "agent_id": "rag_study_vanilla",
+  "agent_name": "RAG Study: Vanilla RAG",
+  "description": "Variant 1 — Simple BM25 retrieval + LLM. No classification chain, no metadata, no programmatic paths. Every query follows the same path.",
+  "welcome_message": "Hello! I am a research assistant specialized in Responsible AI research. How can I help you?",
+  "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
+  "show_history": true,
+  "example_queries": [
+    "What is explainable AI?",
+    "Papers on AI ethics",
+    "What is the EU AI Act?",
+    "What responsible AI topics have been studied?",
+    "What is trustworthy AI?"
+  ],
+  "alliance": {
+    "name": "UNINOVIS",
+    "description": "UNINOVIS is a European university alliance focused on enhancing education, research, and innovation."
+  },
+  "retrieve_chunks": 8,
+  "reliability_cues": "shown",
+  "humility_postprocessing": "off",
+  "humility_prompt": "off",
+  "prompt_level": "tolerant",
+  "decision_trace": "black_box",
+  "rag_study_variant": "vanilla_rag"
+}

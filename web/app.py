@@ -1024,6 +1024,12 @@ async def intranet_page():
     return FileResponse(SCRIPT_DIR / "static" / "intranet.html")
 
 
+@app.get("/rag-study")
+async def rag_study_page():
+    """RAG Architecture Study entry point"""
+    return FileResponse(SCRIPT_DIR / "static" / "rag_study.html")
+
+
 @app.get("/agents")
 async def agents_page():
     """Serve the TOMMI AI Agents interface"""

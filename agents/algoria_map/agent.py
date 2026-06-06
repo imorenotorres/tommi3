@@ -51,10 +51,10 @@ COUNTRY_COORDS = {
 }
 
 CONTINENT_MAP = {
-    "Europa": ["Albania", "Alemania", "Austria", "Azerbaiyán", "Bélgica", "Bulgaria",
+    "Europa": ["Albania", "Alemania", "Austria", "Bélgica", "Bulgaria",
                "Chequia", "Croacia", "Dinamarca", "Eslovaquia", "Eslovenia", "España",
-               "Estonia", "Finlandia", "Francia", "Georgia", "Grecia", "Hungría",
-               "Irlanda", "Islandia", "Italia", "Kazajistán", "Letonia", "Lituania",
+               "Estonia", "Finlandia", "Francia", "Grecia", "Hungría",
+               "Irlanda", "Islandia", "Italia", "Letonia", "Lituania",
                "Malta", "Moldavia", "Noruega", "Países Bajos", "Polonia", "Portugal",
                "Reino Unido", "República de Chipre", "República de Macedonia",
                "Rumanía", "Serbia", "Suecia", "Suiza", "Turquía", "Ucrania"],
@@ -62,7 +62,7 @@ CONTINENT_MAP = {
                 "Costa Rica", "Ecuador", "Estados Unidos", "Honduras", "México",
                 "Panamá", "Paraguay", "Perú", "Puerto Rico", "República Dominicana",
                 "Uruguay", "Venezuela"],
-    "Asia": ["Armenia", "Corea del Sur", "Filipinas", "India", "Indonesia", "Japón",
+    "Asia": ["Armenia", "Azerbaiyán", "Corea del Sur", "Filipinas", "Georgia", "India", "Indonesia", "Japón",
              "Kazajistán", "Malasia", "Nepal", "Tailandia", "Taiwán", "Tayikistán"],
     "África": ["Argelia", "Libia", "Sudáfrica"],
     "Oceanía": ["Australia"],

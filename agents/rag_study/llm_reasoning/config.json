@@ -1,0 +1,28 @@
+{
+  "type": "rag_vectorless",
+  "agent_id": "rag_study_llm_reasoning",
+  "agent_name": "RAG Study: LLM Reasoning",
+  "description": "Variant 2 — BM25 retrieval + LLM-based query classification. The LLM decides how to handle each query type (meta, off-topic, conceptual, researcher, etc.) based on prompt instructions. No programmatic classification chain.",
+  "welcome_message": "Hello! I am a research assistant specialized in Responsible AI research. How can I help you?",
+  "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
+  "show_history": true,
+  "example_queries": [
+    "What can you do?",
+    "What is explainable AI?",
+    "Papers on AI ethics",
+    "Papers by Rubén González Vallejo",
+    "What responsible AI topics have not been studied?",
+    "Write me an essay about AI"
+  ],
+  "alliance": {
+    "name": "UNINOVIS",
+    "description": "UNINOVIS is a European university alliance focused on enhancing education, research, and innovation."
+  },
+  "retrieve_chunks": 8,
+  "reliability_cues": "shown",
+  "humility_postprocessing": "off",
+  "humility_prompt": "off",
+  "prompt_level": "tolerant",
+  "decision_trace": "black_box",
+  "rag_study_variant": "llm_reasoning"
+}
