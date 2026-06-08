@@ -1,0 +1,87 @@
+{
+  "timestamp": "20260606_232434",
+  "variant": "llm_based",
+  "accuracy": {
+    "total": 69,
+    "correct": 66,
+    "rate": 0.9565
+  },
+  "failures": [
+    {
+      "query": "Papers by Rubén González Vallejo",
+      "expected": "researcher",
+      "got": "university_papers",
+      "full_result": {
+        "category": "university_papers",
+        "researcher": "Rubén González Vallejo",
+        "topic": "",
+        "university": "",
+        "project": ""
+      }
+    },
+    {
+      "query": "Publications by Rubén González Vallejo",
+      "expected": "researcher",
+      "got": "topic_search",
+      "full_result": {
+        "category": "topic_search",
+        "topic": "",
+        "researcher": "Rubén González Vallejo",
+        "university": "",
+        "project": ""
+      }
+    },
+    {
+      "query": "AI in education research at UNINOVIS",
+      "expected": "topic_search",
+      "got": "university_papers",
+      "full_result": {
+        "category": "university_papers",
+        "topic": "AI in education",
+        "university": "",
+        "researcher": "",
+        "project": ""
+      }
+    }
+  ],
+  "consistency": {
+    "total": 69,
+    "consistent": 66,
+    "rate": 0.9565
+  },
+  "consistency_issues": [
+    {
+      "query": "Publications by Rubén González Vallejo",
+      "expected": "researcher",
+      "categories": [
+        "university_papers",
+        "university_papers",
+        "university_papers",
+        "researcher",
+        "topic_search"
+      ]
+    },
+    {
+      "query": "List all researchers from THUAS",
+      "expected": "university_papers",
+      "categories": [
+        "university_papers",
+        "university_papers",
+        "general",
+        "university_papers",
+        "university_papers"
+      ]
+    },
+    {
+      "query": "AI in education research at UNINOVIS",
+      "expected": "topic_search",
+      "categories": [
+        "university_papers",
+        "university_papers",
+        "topic_search",
+        "university_papers",
+        "university_papers"
+      ]
+    }
+  ]
+}

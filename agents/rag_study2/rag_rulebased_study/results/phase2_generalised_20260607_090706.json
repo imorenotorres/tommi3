@@ -1,0 +1,115 @@
+{
+  "timestamp": "2026-06-07 09:07:06",
+  "phase": "phase2_generalised",
+  "dev": {
+    "total": 144,
+    "correct": 137,
+    "rate": 0.9514,
+    "failures_count": 7
+  },
+  "eval": {
+    "total": 120,
+    "correct": 113,
+    "rate": 0.9417,
+    "by_category": {
+      "meta": {
+        "total": 10,
+        "correct": 10,
+        "rate": 1.0
+      },
+      "non_research": {
+        "total": 10,
+        "correct": 10,
+        "rate": 1.0
+      },
+      "off_topic": {
+        "total": 12,
+        "correct": 9,
+        "rate": 0.75
+      },
+      "figure": {
+        "total": 8,
+        "correct": 8,
+        "rate": 1.0
+      },
+      "project": {
+        "total": 10,
+        "correct": 10,
+        "rate": 1.0
+      },
+      "researcher": {
+        "total": 10,
+        "correct": 10,
+        "rate": 1.0
+      },
+      "glossary": {
+        "total": 10,
+        "correct": 9,
+        "rate": 0.9
+      },
+      "topic_search": {
+        "total": 12,
+        "correct": 12,
+        "rate": 1.0
+      },
+      "university_papers": {
+        "total": 10,
+        "correct": 10,
+        "rate": 1.0
+      },
+      "gap": {
+        "total": 10,
+        "correct": 9,
+        "rate": 0.9
+      },
+      "general": {
+        "total": 12,
+        "correct": 10,
+        "rate": 0.833
+      },
+      "followup": {
+        "total": 6,
+        "correct": 6,
+        "rate": 1.0
+      }
+    }
+  },
+  "eval_failures": [
+    {
+      "query": "Best restaurants in Málaga",
+      "expected": "off_topic",
+      "got": "university_papers"
+    },
+    {
+      "query": "What is blockchain technology?",
+      "expected": "off_topic",
+      "got": "general"
+    },
+    {
+      "query": "What programming language should I learn?",
+      "expected": "off_topic",
+      "got": "general"
+    },
+    {
+      "query": "How is AI bias defined?",
+      "expected": "glossary",
+      "got": "general"
+    },
+    {
+      "query": "Topics that UNINOVIS has not explored yet",
+      "expected": "gap",
+      "got": "researcher"
+    },
+    {
+      "query": "What is the future of AI governance?",
+      "expected": "general",
+      "got": "glossary"
+    },
+    {
+      "query": "What makes an AI system trustworthy?",
+      "expected": "general",
+      "got": "non_research"
+    }
+  ],
+  "generalisation_gap": 0.0097
+}

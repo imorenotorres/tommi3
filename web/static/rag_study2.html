@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reliability of Query Classification in RAG Agents — UNINOVIS</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+
+        .header { background: #1a2255; color: #fff; padding: 28px 24px; text-align: center; }
+        .header h1 { font-size: 1.3em; font-weight: 600; max-width: 700px; margin: 0 auto; line-height: 1.4; }
+        .header .sub { font-size: 0.85em; opacity: 0.8; margin-top: 6px; }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 24px 20px; }
+
+        .section {
+            background: #fff; border-radius: 10px; padding: 24px 28px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;
+            font-size: 0.9rem; line-height: 1.75; color: #444;
+        }
+        .section h2 {
+            color: #1a2255; font-size: 1.05rem; margin-bottom: 12px;
+            padding-bottom: 8px; border-bottom: 2px solid #e2e8f0;
+        }
+        .section p { margin-bottom: 12px; }
+        .section strong { color: #333; }
+        .section em { color: #6b7280; }
+
+        .highlight {
+            background: #eff6ff; border-left: 4px solid #3b82f6;
+            padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0;
+            font-size: 0.88rem;
+        }
+
+        .agents-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 16px; }
+
+        .agent-card {
+            display: flex; align-items: center; gap: 16px;
+            padding: 16px 20px; border-radius: 10px;
+            background: #fff; border: 2px solid #e2e8f0;
+            text-decoration: none; color: inherit;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .agent-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
+
+        .agent-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+        .agent-info h3 { font-size: 0.95rem; color: #1a2255; margin-bottom: 2px; }
+        .agent-info p { font-size: 0.8rem; color: #6b7280; margin: 0; line-height: 1.4; }
+        .agent-tag {
+            display: inline-block; font-size: 0.65rem; padding: 2px 8px; border-radius: 4px;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 4px;
+        }
+
+        .reference {
+            font-size: 0.8rem; color: #6b7280; line-height: 1.6;
+            margin-top: 8px;
+        }
+        .reference a { color: #3b82f6; text-decoration: none; }
+        .reference a:hover { text-decoration: underline; }
+
+        .footer {
+            text-align: center; padding: 20px; font-size: 0.75rem; color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Reliability of Query Classification in RAG Agents</h1>
+    <div class="sub">A Controlled Comparison of Rule-Based and LLM-Based Approaches</div>
+</div>
+
+<div class="container">
+
+    <div class="section">
+        <h2>Research Context</h2>
+        <p>
+            AI-powered educational assistants are increasingly deployed in universities to support students,
+            researchers, and faculty. The <strong>EU AI Act</strong> (Regulation EU 2024/1689) classifies AI systems
+            used in education as <strong>high-risk</strong>, noting that they "may determine the educational and
+            professional course of a person's life." In this context, reliability is not a desirable feature
+            but a prerequisite: an unreliable assistant risks propagating misinformation in a setting designed
+            to build understanding.
+        </p>
+        <p>
+            This research project investigates how to build <strong>reliable AI agents for education</strong>,
+            using the <strong>UNINOVIS</strong> European university alliance (8 universities across 8 countries)
+            as a testbed. The agents serve as research assistants specialised in Responsible AI, helping users
+            search papers, look up researchers, explore projects, and answer conceptual questions.
+        </p>
+        <p>
+            Reliability is evaluated using the four-dimensional framework proposed by
+            <em>Rabanser et al. (2025)</em>: <strong>consistency</strong> (same query, same response),
+            <strong>robustness</strong> (handles diverse phrasings), <strong>predictability</strong>
+            (knows when it might be wrong), and <strong>safety</strong> (refuses out-of-scope queries).
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>Study Aim</h2>
+        <p>
+            A key architectural decision in building reliable RAG agents is how to <strong>classify user queries</strong>
+            to route them to specialised response paths. Some paths bypass the LLM entirely (producing deterministic,
+            hallucination-free responses from structured data), while others use the LLM with targeted context.
+        </p>
+        <p>
+            This study compares the <strong>reliability</strong> of three approaches to query intent classification:
+        </p>
+        <div class="highlight">
+            <strong>Production rule-based</strong> &mdash; hand-crafted patterns developed over months of real-world use<br>
+            <strong>Auto-constructed rule-based</strong> &mdash; broad patterns built automatically through batch feedback<br>
+            <strong>Auto-constructed LLM-based</strong> &mdash; a separate LLM call classifies the query before response generation
+        </div>
+        <p>
+            All three approaches share <strong>identical response paths</strong> &mdash; the only difference is how the
+            classification decision is made. This isolation allows us to attribute reliability differences to the
+            classification mechanism itself.
+        </p>
+        <p>
+            A <strong>Baseline</strong> (vanilla RAG with no classification) establishes the case for classification:
+            it achieves 0% response consistency and 10% refusal accuracy, demonstrating that classification is necessary
+            for reliability in high-stakes domains.
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>Architecture</h2>
+        <p>
+            The figure below shows the two architectural configurations compared in this study.
+            Vanilla RAG (a) uses a single pipeline for all queries. Classified RAG (b) adds a classification
+            stage that routes queries to programmatic paths (deterministic) or LLM generation with targeted context.
+            The classification box (dashed) is the variable under study — three approaches are compared.
+        </p>
+        <img src="/static/img/rag_study2_architecture.png" alt="Architecture comparison"
+             style="width:100%;border-radius:8px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+    </div>
+
+    <div class="section">
+        <h2>Try the Agents</h2>
+        <p>Test each agent variant on the same queries and compare their behaviour:</p>
+
+        <div class="agents-grid">
+            <a class="agent-card" href="/rag-study/chat?agent=rag_study2_baseline" id="card-baseline">
+                <div class="agent-icon" style="background:#64748b;">B</div>
+                <div class="agent-info">
+                    <h3>Baseline (Vanilla RAG)</h3>
+                    <p>BM25 retrieval + LLM. No classification, no programmatic paths. Every query follows the same pipeline.</p>
+                    <span class="agent-tag" style="background:#f1f5f9;color:#64748b;">No classification</span>
+                </div>
+            </a>
+
+            <a class="agent-card" href="/rag-study/chat?agent=rag_study2_rule_based" id="card-production">
+                <div class="agent-icon" style="background:#9ca3af;">P</div>
+                <div class="agent-info">
+                    <h3>Production Rule-based</h3>
+                    <p>Hand-crafted patterns + ~60 synonym mappings. Developed over months of production use. Deterministic.</p>
+                    <span class="agent-tag" style="background:#f1f5f9;color:#9ca3af;">Deterministic</span>
+                    <span class="agent-tag" style="background:#fef3c7;color:#92400e;">Reactive feedback</span>
+                </div>
+            </a>
+
+            <a class="agent-card" href="/rag-study/chat?agent=rag_study2_rule_based" id="card-auto-rule">
+                <div class="agent-icon" style="background:#f59e0b;">R</div>
+                <div class="agent-info">
+                    <h3>Auto-constructed Rule-based</h3>
+                    <p>Broad word-class patterns + ~35 synonym families. Built automatically in hours. Deterministic.</p>
+                    <span class="agent-tag" style="background:#f1f5f9;color:#f59e0b;">Deterministic</span>
+                    <span class="agent-tag" style="background:#fef3c7;color:#92400e;">Batch feedback</span>
+                </div>
+            </a>
+
+            <a class="agent-card" href="/rag-study/chat?agent=rag_study2_llm_based" id="card-llm">
+                <div class="agent-icon" style="background:#3b82f6;">L</div>
+                <div class="agent-info">
+                    <h3>Auto-constructed LLM-based</h3>
+                    <p>Separate LLM call classifies the query, then dispatches to the same response paths. Non-deterministic.</p>
+                    <span class="agent-tag" style="background:#dbeafe;color:#1e40af;">Non-deterministic</span>
+                    <span class="agent-tag" style="background:#f3e8ff;color:#6b21a8;">Pre-trained knowledge</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>References</h2>
+        <div class="reference">
+            <p>Rabanser, S., Kapoor, S., Kirgis, P., Liu, K., Utpala, S., &amp; Narayanan, A. (2025).
+            <em>Towards a Science of AI Agent Reliability.</em> Princeton University.
+            <a href="https://arxiv.org/abs/2602.16666">arXiv:2602.16666</a></p>
+            <p>European Parliament &amp; Council (2024).
+            <em>Regulation (EU) 2024/1689 laying down harmonised rules on artificial intelligence (AI Act).</em>
+            Official Journal of the European Union.</p>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">
+    UNINOVIS &mdash; European University Alliance &mdash; Responsible AI Excellence Hub
+</div>
+
+<script>
+(function() {
+    var token = localStorage.getItem('tommi_token');
+    if (!token) {
+        window.location.href = '/intranet?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
+    }
+    // Verify token is valid
+    fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function(r) { if (!r.ok) throw new Error(); })
+        .catch(function() {
+            localStorage.removeItem('tommi_token');
+            window.location.href = '/intranet?redirect=' + encodeURIComponent(window.location.pathname);
+        });
+})();
+</script>
+
+</body>
+</html>

@@ -4537,25 +4537,9 @@ class MetadataRAGMixin:
                 factual_section = self._build_topic_factual_section(user_message, show_banners=show_banners)
 
         if factual_section:
-            # If 0 papers found, return the factual section directly — no LLM commentary
-            if "No papers found" in factual_section or "0 papers found" in factual_section:
-                return factual_section
-
-            topic = self._extract_topic(user_message) or "shared research topics"
-            analysis_prompt = self._analysis_prompt(topic, hedged=self._should_use_text_style())
-            messages = [{"role": "system", "content": system_with_context}]
-            if history:
-                messages.extend(history)
-            messages.append({"role": "user", "content": analysis_prompt})
-
-            response = self.client.chat.complete(
-                model=model,
-                messages=messages,
-                max_tokens=1024,
-            )
-            separator = self._banner_commentary() if show_banners else "\n\n---\n\n"
-            commentary = self._sanitize_authority(response.choices[0].message.content)
-            llm_content = factual_section + separator + commentary
+            # Return factual section directly — no LLM commentary.
+            # Users can ask for a summary as a follow-up if needed.
+            llm_content = factual_section
             hallucination_count = 0
         else:
             # Determine banner based on query type (AI3 only)
@@ -5157,53 +5141,11 @@ class MetadataRAGMixin:
                 factual_section = self._build_topic_factual_section(user_message, show_banners=show_banners)
 
         if factual_section:
-            # If 0 papers found, return the factual section directly — no LLM commentary
-            if "No papers found" in factual_section or "0 papers found" in factual_section:
-                yield factual_section
-                return
-
-            # Stream the factual section first (no LLM involved)
-            separator = self._banner_commentary() if show_banners else "\n\n---\n\n"
+            # Return factual section directly — no LLM commentary.
+            # Users can ask for a summary as a follow-up if needed.
             full_response = factual_section
             yield factual_section
-
-            # Stream the separator/banner
-            full_response += separator
-            yield separator
-
-            # Ask the LLM for a brief analysis only — constrained prompt
-            topic = self._extract_topic(user_message) or "shared research topics"
-            analysis_prompt = self._analysis_prompt(topic, hedged=self._should_use_text_style())
-            messages = [{"role": "system", "content": system_with_context}]
-            if history:
-                messages.extend(history)
-            messages.append({"role": "user", "content": analysis_prompt})
-
-            for _attempt in range(3):
-                try:
-                    async for chunk in await self.client.chat.stream_async(
-                        model=model,
-                        messages=messages,
-                        max_tokens=1024,
-                    ):
-                        if chunk.data.choices[0].delta.content:
-                            full_response += chunk.data.choices[0].delta.content
-                            yield chunk.data.choices[0].delta.content
-                    break  # success
-                except Exception as e:
-                    logger.warning("Mistral streaming attempt %d failed: %s", _attempt + 1, e)
-                    if _attempt < 2:
-                        await asyncio.sleep(1 * (_attempt + 1))
-                    else:
-                        raise
-
-            # -- Stage 4: Production (post-processing, banners, badge, audit) --
-            sanitized = self._sanitize_authority(full_response)
-            if sanitized != full_response:
-                full_response = sanitized
-                yield ("replace", factual_section + separator + sanitized)
-
-            hallucination_count = 0  # Factual section is verified by construction
+            hallucination_count = 0
         else:
             # Determine banner based on query type (AI3 procedural only)
             pre_banner = ""

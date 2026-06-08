@@ -127,26 +127,28 @@
     <table>
         <tr>
             <th>Feature</th>
-            <th>V1 Baseline</th>
+            <th>V0 Oneshot</th>
+            <th>V1 Vanilla RAG</th>
             <th>V2 LLM Reasoning</th>
-            <th>V3 Procedural</th>
+            <th>V3 Rule-based Paths</th>
             <th>V4 LLM-Guided</th>
         </tr>
-        <tr><td>Retrieval</td><td>BM25</td><td>BM25</td><td>BM25</td><td>BM25</td></tr>
-        <tr><td>Metadata</td><td class="dot-no">No</td><td class="dot-yes">Yes</td><td class="dot-yes">Yes</td><td class="dot-yes">Yes</td></tr>
-        <tr><td>System prompt</td><td>Simple</td><td>Complex (8 query types)</td><td>Complex (rules + strict)</td><td>Complex (same as V3)</td></tr>
+        <tr><td>Retrieval</td><td class="dot-no">None</td><td>BM25</td><td>BM25</td><td>BM25</td><td>BM25</td></tr>
+        <tr><td>Metadata</td><td class="dot-no">No</td><td class="dot-no">No</td><td class="dot-yes">Yes</td><td class="dot-yes">Yes</td><td class="dot-yes">Yes</td></tr>
+        <tr><td>System prompt</td><td>Simple</td><td>Simple</td><td>Complex (8 query types)</td><td>Complex (rules + strict)</td><td>Complex (same as V3)</td></tr>
         <tr>
             <td>Classification + response</td>
+            <td>Fused<br>(1 LLM call)</td>
             <td>Fused<br>(1 LLM call)</td>
             <td>Fused<br>(1 LLM call, guided)</td>
             <td>Separated<br>(code classifies first)</td>
             <td>Separated<br>(LLM classifies first)</td>
         </tr>
-        <tr><td>Can bypass LLM for response?</td><td class="dot-no">No</td><td class="dot-no">No</td><td class="dot-yes">Yes (8 types)</td><td class="dot-yes">Yes (8 types)</td></tr>
-        <tr><td>Post-processing</td><td class="dot-no">None</td><td class="dot-yes">Full (6 steps)</td><td class="dot-yes">Full (6 steps)</td><td class="dot-yes">Full (6 steps)</td></tr>
-        <tr><td>Classification determinism</td><td>N/A</td><td class="dot-no">Non-deterministic</td><td class="dot-yes">Deterministic</td><td class="dot-no">Non-deterministic</td></tr>
-        <tr><td>LLM calls per query</td><td>1</td><td>1</td><td>0 or 1</td><td>1 or 2</td></tr>
-        <tr><td>Development effort</td><td>Low</td><td>Medium</td><td>High</td><td>Medium</td></tr>
+        <tr><td>Can bypass LLM for response?</td><td class="dot-no">No</td><td class="dot-no">No</td><td class="dot-no">No</td><td class="dot-yes">Yes (8 types)</td><td class="dot-yes">Yes (8 types)</td></tr>
+        <tr><td>Post-processing</td><td class="dot-no">None</td><td class="dot-no">None</td><td class="dot-yes">Full (6 steps)</td><td class="dot-yes">Full (6 steps)</td><td class="dot-yes">Full (6 steps)</td></tr>
+        <tr><td>Classification determinism</td><td>N/A</td><td>N/A</td><td class="dot-no">Non-deterministic</td><td class="dot-yes">Deterministic</td><td class="dot-no">Non-deterministic</td></tr>
+        <tr><td>LLM calls per query</td><td>1</td><td>1</td><td>1</td><td>0 or 1</td><td>1 or 2</td></tr>
+        <tr><td>Development effort</td><td>Minimal</td><td>Low</td><td>Medium</td><td>High</td><td>Medium</td></tr>
     </table>
 </div>
 
@@ -175,7 +177,16 @@
 
 var VARIANTS = [
     {
-        id: "rag_study_vanilla", num: 1, name: "Baseline (Vanilla RAG)",
+        id: "rag_study_oneshot", num: 0, name: "Oneshot (No retrieval)",
+        color: "#64748b",
+        desc: "Pure LLM with system prompt. No retrieval, no metadata. What does the LLM know on its own?",
+        tags: [{label:"No retrieval", cls:"tag-none"}, {label:"No metadata", cls:"tag-none"}, {label:"LLM only", cls:"tag-llm"}],
+        detail: "The simplest possible agent. The LLM answers from its general knowledge about Responsible AI, constrained only by the system prompt. No documents, no data. Establishes the baseline for what retrieval adds.",
+        hypotheses: '<div class="hypothesis"><strong>Reference point</strong> — establishes what the LLM knows without any data access. Comparing V0 vs V1 isolates the effect of document retrieval (BM25).</div>',
+        paths: "1"
+    },
+    {
+        id: "rag_study_vanilla", num: 1, name: "Vanilla RAG",
         color: "#94a3b8",
         desc: "BM25 + LLM. No metadata, no classification, no post-processing. Like NotebookLM.",
         tags: [{label:"BM25", cls:"tag-retrieval"}, {label:"No metadata", cls:"tag-none"}, {label:"Fused", cls:"tag-none"}],
@@ -193,7 +204,7 @@ var VARIANTS = [
         paths: "1 (LLM handles all classification internally)"
     },
     {
-        id: "rag_study_procedural", num: 3, name: "Procedural",
+        id: "rag_study_procedural", num: 3, name: "Rule-based Paths",
         color: "#16a34a",
         desc: "BM25 + metadata + code classification (13-step chain) + programmatic paths + post-processing.",
         tags: [{label:"BM25", cls:"tag-retrieval"}, {label:"Metadata", cls:"tag-metadata"}, {label:"Code classifies", cls:"tag-code"}, {label:"Programmatic paths", cls:"tag-code"}, {label:"Post-proc", cls:"tag-safety"}],

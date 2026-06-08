@@ -171,7 +171,7 @@
     "llm"
   ],
   "_extra_scope_terms_comment": "Additional terms that are within the Responsible AI domain but may not appear in the glossary or paper topics. Used by the two-axis banner system to distinguish on-topic queries from off-topic ones.",
-  "reliability_cues": "shown",
+  "reliability_cues": "hidden",
   "decision_trace": "crystal_box",
   "humility_prompt": "on",
   "humility_postprocessing": "moderate",

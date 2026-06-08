@@ -1,18 +1,16 @@
 """
-RAG Study — Variant 5: LLM-Guided Paths
+RAG Study — Variant 4: LLM-Guided (LLM Classification)
 
-The LLM classifies the query type, then code executes the appropriate
-response path — same paths as the Procedural variant (Variant 4), but
-the routing decision is made by the LLM instead of pattern matching.
-
-This tests whether LLM classification can match or surpass human-designed
-pattern matching, while keeping the same data access and formatting.
+Non-deterministic LLM classification followed by shared programmatic
+response paths (identical to V3).
 
 Architecture:
   1. Perception: receive query
   2. Reasoning: LLM classifies → returns query_type + extracted entities
-  3. Action: code dispatches to the appropriate data function
-  4. Production: same formatting and cues as Procedural
+  3. Action: shared dispatch → programmatic response or LLM fallback
+  4. Production: same paths as V3
+
+The only difference with V3 is step 2: LLM classification vs code patterns.
 """
 
 import os
@@ -20,27 +18,35 @@ import sys
 import json
 import re
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from base import BaseRAGAgent, MetadataRAGMixin, VectorlessMixin
+from shared_dispatch import dispatch, build_llm_context
 
+REASONING_LABEL = "LLM classification"
 
 # Classification prompt sent to the LLM
 CLASSIFY_PROMPT = """You are a query classifier for a Responsible AI research assistant.
 Given the user's query, classify it into exactly ONE of these categories and extract relevant entities.
 
-CATEGORIES:
-- meta: Questions about the agent itself ("What can you do?", "How does this work?", "What is UNINOVIS?")
-- non_research: Requests for essays, translations, recipes, flights, weather, sports results
-- figure: Requests containing "figure" or "map" for data visualisation
-- project: Questions about specific research projects or grants (e.g. "What is the TAILOR project?")
-- researcher: Questions about a specific person's publications or research interests
-- glossary: Conceptual "What is X?" questions about Responsible AI terms (explainable AI, fairness, EU AI Act, etc.)
-- gap: Questions about topics NOT studied, research gaps, missing areas
-- topic_search: Requests for papers on a specific research topic
-- university_papers: Requests for all papers or researchers from a specific university
-- off_topic: Questions clearly outside Responsible AI (cooking, sports, general knowledge)
+CATEGORIES (in priority order — use the FIRST matching category):
+- meta: Questions about the agent itself ("What can you do?", "How does this work?", "What is UNINOVIS?", "Who are you?")
+- non_research: Requests to PERFORM a task — write essays, translate, book flights, get recipes, report weather, sports results. Use this for ANY action request, even if the topic seems off-topic. Examples: "Can you book me a flight?", "What is the weather today?", "Write me an essay", "Who won the World Cup?", "Give me a recipe"
+- figure: Requests containing "figure", "map", "chart", "graph", or "visualise" for data visualisation
+- project: Questions mentioning specific research PROJECTS or grants, OR asking to LIST research projects. Examples: "What is the TAILOR project?", "List research projects on trustworthy AI", "Show me projects about X"
+- researcher: Questions about a specific PERSON's publications or research interests. Must mention a person's name.
+- glossary: Conceptual "What is X?" questions ONLY about terms that are clearly Responsible AI concepts (explainable AI, fairness, EU AI Act, trustworthy AI, AI bias, AI governance, etc.). Do NOT use this for general/ambiguous questions like "Is AI dangerous?" or topics outside Responsible AI like "quantum computing".
+- gap: Questions about topics NOT studied, research gaps, missing areas, underexplored subtopics
+- topic_search: Requests for PAPERS or PUBLICATIONS on a specific research topic (NOT projects)
+- university_papers: Requests for papers or researchers from a specific university (must mention a university name or acronym)
+- off_topic: Questions that are clearly outside Responsible AI AND are not task requests. Examples: "What is quantum computing?", "Hello", "Explain photosynthesis". NOT for task requests (those are non_research).
 - followup: Short follow-ups referring to previous context ("tell me more", "expand on that")
-- general: Any other Responsible AI question that doesn't fit the above
+- general: Broad or ambiguous Responsible AI questions that don't match a specific category above. Examples: "Is AI dangerous?", "Can AI be trusted?", "What is a language model?"
+
+IMPORTANT DISTINCTIONS:
+- non_research vs off_topic: If the user asks to DO something (write, translate, book, cook), it's non_research. If they ask a KNOWLEDGE question outside scope, it's off_topic.
+- glossary vs general: Only use glossary for well-defined Responsible AI terms. For broad questions ("Is AI dangerous?") or terms not in the RA glossary ("quantum computing"), use general or off_topic.
+- project vs topic_search: If the query mentions "project(s)", use project. If it asks for "papers" or "publications", use topic_search.
 
 UNIVERSITIES (use these acronyms): UMA, THUAS, USPN, UDCLV, THWS, TAMK, KK, UT
 
@@ -57,7 +63,7 @@ USER QUERY: {query}"""
 
 
 class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
-    """LLM classifies the query, then code executes the response path."""
+    """LLM classification → shared dispatch with V3."""
     _AGENT_FILE = __file__
 
     def _llm_classify(self, query: str) -> dict:
@@ -68,140 +74,27 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=200,
-                temperature=0,
             )
             text = response.choices[0].message.content.strip()
+            print(f"[LLM_GUIDED] Raw LLM response: {text[:300]}")
             # Extract JSON from response (handle markdown code blocks)
             if "```" in text:
-                text = re.search(r'```(?:json)?\s*(.*?)```', text, re.DOTALL)
-                text = text.group(1).strip() if text else "{}"
-            return json.loads(text)
+                match = re.search(r'```(?:json)?\s*(.*?)```', text, re.DOTALL)
+                text = match.group(1).strip() if match else text
+            # Try to find JSON object in the response
+            json_match = re.search(r'\{[^{}]*\}', text)
+            if json_match:
+                result = json.loads(json_match.group())
+                print(f"[LLM_GUIDED] Parsed classification: {result}")
+                return result
+            # Last resort: try parsing the whole text
+            result = json.loads(text)
+            print(f"[LLM_GUIDED] Parsed classification: {result}")
+            return result
         except Exception as e:
             print(f"[LLM_GUIDED] Classification error: {e}")
+            print(f"[LLM_GUIDED] Raw text was: {text[:300] if 'text' in dir() else 'N/A'}")
             return {"category": "general"}
-
-    # All possible categories the LLM can choose
-    _ALL_CATEGORIES = [
-        "meta", "non_research", "figure", "project", "researcher",
-        "glossary", "gap", "topic_search", "university_papers",
-        "off_topic", "followup", "general",
-    ]
-
-    def _build_trace(self, classification: dict, action: str, production: str) -> str:
-        """Build a decision trace matching V3's format (Perception → Reasoning → Action → Production)."""
-        cat = classification.get("category", "general")
-        topic = classification.get("topic", "")
-        researcher = classification.get("researcher", "")
-        university = classification.get("university", "")
-        project = classification.get("project", "")
-
-        lines = []
-        lines.append('<details class="decision-trace" style="margin-top:8px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;font-size:12px;">')
-        lines.append('<summary style="padding:6px 10px;cursor:pointer;font-weight:600;color:#64748b;">Decision Trace</summary>')
-        lines.append('<div style="padding:8px 10px;">')
-
-        # Perception
-        query_preview = classification.get("_query", "")[:120]
-        lines.append(f'<div style="margin-bottom:6px;"><span style="color:#0284c7;font-weight:600;">Perception:</span> {query_preview}</div>')
-
-        # Reasoning — show all categories with ✓/✗
-        lines.append('<div style="margin-bottom:6px;"><span style="color:#d97706;font-weight:600;">Reasoning (LLM classification):</span></div>')
-        lines.append('<div style="margin-left:12px;">')
-        for c in self._ALL_CATEGORIES:
-            if c == cat:
-                entities = []
-                if topic: entities.append(f'topic="{topic}"')
-                if researcher: entities.append(f'researcher="{researcher}"')
-                if university: entities.append(f'university={university}')
-                if project: entities.append(f'project="{project}"')
-                detail = f' — <span style="color:#64748b;">{", ".join(entities)}</span>' if entities else ""
-                lines.append(f'<div style="color:#16a34a;font-weight:600;">✓ {c}{detail}</div>')
-            else:
-                lines.append(f'<div style="color:#94a3b8;">✗ {c}</div>')
-        lines.append('</div>')
-
-        # Action
-        lines.append(f'<div style="margin-bottom:6px;"><span style="color:#16a34a;font-weight:600;">Action:</span> {action}</div>')
-
-        # Production
-        lines.append(f'<div><span style="color:#9333ea;font-weight:600;">Production:</span> {production}</div>')
-
-        lines.append('</div></details>')
-        return '\n'.join(lines)
-
-    def _dispatch(self, classification: dict, user_message: str, history: list = None, **kwargs):
-        """Dispatch to the appropriate response path based on LLM classification."""
-        cat = classification.get("category", "general")
-        topic = classification.get("topic", "")
-        researcher = classification.get("researcher", "")
-        university = classification.get("university", "")
-        project_name = classification.get("project", "")
-
-        # --- Programmatic paths (no LLM needed for response) ---
-
-        classification["_query"] = user_message
-
-        if cat == "meta":
-            return self._build_meta_response() + self._build_trace(classification, "Built from config.json", "Programmatic response (no LLM)")
-
-        if cat == "non_research":
-            research_topic = self._config.get("research_topic", "Responsible AI")
-            response = (
-                f"I am a research assistant specialised in **{research_topic}**. "
-                f"I can help you search papers, researchers, and projects within this domain, "
-                f"but I cannot perform this type of task."
-            )
-            return response + self._build_trace(classification, "Fixed refusal message", "Programmatic refusal (no LLM)")
-
-        if cat == "off_topic":
-            research_topic = self._config.get("research_topic", "Responsible AI")
-            scope_terms = self._config.get("extra_scope_terms", [])[:6]
-            response = f"This question is outside my scope. I specialise in **{research_topic}**."
-            if scope_terms:
-                response += f"\n\nTopics I can help with include: {', '.join(scope_terms)}."
-            return response + self._build_trace(classification, "Scope refusal from config.json", "Programmatic refusal (no LLM)")
-
-        if cat == "figure":
-            agent_id = self._config.get("agent_id", "")
-            result = self._generate_map_link_programmatic(user_message, agent_id)
-            return result + self._build_trace(classification, "Map link from regex extraction", "Interactive map (no LLM)")
-
-        if cat == "project":
-            ctx = self._build_project_context(user_message)
-            if ctx:
-                return self._format_project_response(ctx) + self._build_trace(classification, "Formatted from project_docs/", "Programmatic response (no LLM)")
-
-        if cat == "researcher":
-            ctx = self._build_researcher_context(user_message)
-            if ctx:
-                return self._format_researcher_response(ctx) + self._build_trace(classification, "Formatted from researchers.json", "Programmatic response (no LLM)")
-
-        if cat == "glossary":
-            glossary_ctx = self._build_glossary_context(user_message)
-            if glossary_ctx:
-                return self._format_glossary_response(user_message, glossary_ctx) + self._build_trace(classification, "Formatted from Glossary.md", "Programmatic glossary response (no LLM)")
-
-        # --- LLM paths (need LLM for response generation) ---
-        self._pending_trace = self._build_trace(classification, f"LLM generates response with RAG context", "LLM response + post-processing")
-        return None  # signals caller to use LLM
-
-    def _build_meta_response(self) -> str:
-        """Build a programmatic meta-question response."""
-        research_topic = self._config.get("research_topic", "Responsible AI")
-        alliance = self._config.get("alliance", {}).get("name", "UNINOVIS")
-        unis = self._config.get("universities", {})
-        uni_list = ", ".join(f"**{acr}** ({info.get('name', acr)})" for acr, info in unis.items())
-        return (
-            f"I am a research assistant for the **{alliance}** Excellence Hub on **{research_topic}**.\n\n"
-            f"I can help you with:\n"
-            f"- Search **research papers** by topic, university, or researcher\n"
-            f"- Look up **researchers** and their publications\n"
-            f"- Explore **funded research projects**\n"
-            f"- Answer **conceptual questions** about Responsible AI (from the glossary)\n"
-            f"- Show **interactive maps and figures** of research output\n"
-            f"- Analyse **research gaps** in the database\n\n"
-            f"Partner universities: {uni_list}"
-        )
 
     def chat(self, user_message: str, history: list = None, **kwargs) -> str:
         model = kwargs.get('model_override') or self.model
@@ -209,49 +102,25 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         if not self._chromadb_initialized:
             self._init_chromadb()
 
-        # Step 1: LLM classifies the query
+        # Step 1: LLM classification (non-deterministic)
         classification = self._llm_classify(user_message)
         print(f"[LLM_GUIDED] Classification: {classification}")
 
-        # Step 2: Try programmatic dispatch
-        self._pending_trace = ""
-        result = self._dispatch(classification, user_message, history, **kwargs)
+        # Step 2: Shared dispatch (identical to V3)
+        result, trace = dispatch(self, classification, user_message,
+                                 reasoning_label=REASONING_LABEL)
         if result is not None:
-            return result
+            return result + "\n\n" + trace
 
-        # Step 3: Fall through to LLM with RAG context
-        user_msg = self._normalise_query(user_message)
-        context = self._retrieve_context(user_message)
-
-        # Build context with metadata if available
-        cat = classification.get("category", "general")
-        extra_ctx = ""
-        if cat == "topic_search":
-            topic_ctx = self._build_topic_context(user_msg)
-            if topic_ctx:
-                extra_ctx = topic_ctx
-        elif cat == "university_papers":
-            uni_ctx = self._build_university_papers_context(user_msg)
-            if uni_ctx:
-                extra_ctx = uni_ctx
-        elif cat == "gap":
-            metadata_ctx = self._build_metadata_context()
-            if metadata_ctx:
-                extra_ctx = metadata_ctx
-
-        system = self._build_system_prompt()
-        if context:
-            system += f"\n\n--- Retrieved Context ---\n{context}"
-        if extra_ctx:
-            system += f"\n\n--- Structured Data ---\n{extra_ctx}"
-
+        # Step 3: LLM fallback (identical to V3)
+        system = build_llm_context(self, classification, user_message)
         messages = [{"role": "system", "content": system}]
         if history:
             messages.extend(history)
         messages.append({"role": "user", "content": user_message})
 
         response = self.client.chat.complete(model=model, messages=messages, max_tokens=2048)
-        return response.choices[0].message.content + self._pending_trace
+        return response.choices[0].message.content + "\n\n" + trace
 
     async def chat_stream(self, user_message: str, history: list = None, **kwargs):
         model = kwargs.get('model_override') or self.model
@@ -261,44 +130,23 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
 
         yield ("status", "Classifying query...")
 
-        # Step 1: LLM classifies
+        # Step 1: LLM classification (non-deterministic)
         classification = self._llm_classify(user_message)
         print(f"[LLM_GUIDED] Classification: {classification}")
 
-        # Step 2: Try programmatic dispatch
-        self._pending_trace = ""
-        result = self._dispatch(classification, user_message, history, **kwargs)
+        # Step 2: Shared dispatch (identical to V3)
+        result, trace = dispatch(self, classification, user_message,
+                                 reasoning_label=REASONING_LABEL)
         if result is not None:
             yield result
+            if trace:
+                yield ("trace", trace)
             return
 
         yield ("status", "Searching...")
 
-        # Step 3: LLM with RAG context
-        user_msg = self._normalise_query(user_message)
-        context = self._retrieve_context(user_message)
-
-        cat = classification.get("category", "general")
-        extra_ctx = ""
-        if cat == "topic_search":
-            topic_ctx = self._build_topic_context(user_msg)
-            if topic_ctx:
-                extra_ctx = topic_ctx
-        elif cat == "university_papers":
-            uni_ctx = self._build_university_papers_context(user_msg)
-            if uni_ctx:
-                extra_ctx = uni_ctx
-        elif cat == "gap":
-            metadata_ctx = self._build_metadata_context()
-            if metadata_ctx:
-                extra_ctx = metadata_ctx
-
-        system = self._build_system_prompt()
-        if context:
-            system += f"\n\n--- Retrieved Context ---\n{context}"
-        if extra_ctx:
-            system += f"\n\n--- Structured Data ---\n{extra_ctx}"
-
+        # Step 3: LLM fallback (identical to V3)
+        system = build_llm_context(self, classification, user_message)
         messages = [{"role": "system", "content": system}]
         if history:
             messages.extend(history)
@@ -308,6 +156,5 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             if chunk.data.choices and chunk.data.choices[0].delta.content:
                 yield chunk.data.choices[0].delta.content
 
-        # Append decision trace after streaming completes
-        if self._pending_trace:
-            yield self._pending_trace
+        if trace:
+            yield ("trace", trace)

@@ -1,0 +1,445 @@
+{
+  "timestamp": "2026-06-07 08:58:35",
+  "phase": "phase1_more_queries",
+  "dev": {
+    "total": 144,
+    "correct": 83,
+    "rate": 0.5764,
+    "failures_count": 61
+  },
+  "eval": {
+    "total": 120,
+    "correct": 47,
+    "rate": 0.3917,
+    "by_category": {
+      "meta": {
+        "total": 10,
+        "correct": 0,
+        "rate": 0.0
+      },
+      "non_research": {
+        "total": 10,
+        "correct": 0,
+        "rate": 0.0
+      },
+      "off_topic": {
+        "total": 12,
+        "correct": 11,
+        "rate": 0.917
+      },
+      "figure": {
+        "total": 8,
+        "correct": 1,
+        "rate": 0.125
+      },
+      "project": {
+        "total": 10,
+        "correct": 10,
+        "rate": 1.0
+      },
+      "researcher": {
+        "total": 10,
+        "correct": 0,
+        "rate": 0.0
+      },
+      "glossary": {
+        "total": 10,
+        "correct": 0,
+        "rate": 0.0
+      },
+      "topic_search": {
+        "total": 12,
+        "correct": 6,
+        "rate": 0.5
+      },
+      "university_papers": {
+        "total": 10,
+        "correct": 9,
+        "rate": 0.9
+      },
+      "gap": {
+        "total": 10,
+        "correct": 2,
+        "rate": 0.2
+      },
+      "general": {
+        "total": 12,
+        "correct": 6,
+        "rate": 0.5
+      },
+      "followup": {
+        "total": 6,
+        "correct": 2,
+        "rate": 0.333
+      }
+    }
+  },
+  "eval_failures": [
+    {
+      "query": "What kind of help can I get from you?",
+      "expected": "meta",
+      "got": "off_topic"
+    },
+    {
+      "query": "Explain your purpose",
+      "expected": "meta",
+      "got": "off_topic"
+    },
+    {
+      "query": "I'm new here, what should I know?",
+      "expected": "meta",
+      "got": "off_topic"
+    },
+    {
+      "query": "What topics do you cover?",
+      "expected": "meta",
+      "got": "off_topic"
+    },
+    {
+      "query": "Are you an AI assistant?",
+      "expected": "meta",
+      "got": "off_topic"
+    },
+    {
+      "query": "How many universities participate in UNINOVIS?",
+      "expected": "meta",
+      "got": "general"
+    },
+    {
+      "query": "What information do you have access to?",
+      "expected": "meta",
+      "got": "off_topic"
+    },
+    {
+      "query": "What is the purpose of this tool?",
+      "expected": "meta",
+      "got": "off_topic"
+    },
+    {
+      "query": "Which countries are represented in UNINOVIS?",
+      "expected": "meta",
+      "got": "general"
+    },
+    {
+      "query": "Give me an overview of your features",
+      "expected": "meta",
+      "got": "off_topic"
+    },
+    {
+      "query": "Write a paragraph about machine learning",
+      "expected": "non_research",
+      "got": "general"
+    },
+    {
+      "query": "Can you summarise this PDF for me?",
+      "expected": "non_research",
+      "got": "off_topic"
+    },
+    {
+      "query": "Make me a PowerPoint presentation on ethics",
+      "expected": "non_research",
+      "got": "off_topic"
+    },
+    {
+      "query": "Generate a bibliography in APA format",
+      "expected": "non_research",
+      "got": "off_topic"
+    },
+    {
+      "query": "Help me prepare my lecture notes on AI",
+      "expected": "non_research",
+      "got": "off_topic"
+    },
+    {
+      "query": "Calculate the average number of papers per university",
+      "expected": "non_research",
+      "got": "off_topic"
+    },
+    {
+      "query": "Send an email to my supervisor about the project",
+      "expected": "non_research",
+      "got": "project"
+    },
+    {
+      "query": "Create a table comparing AI frameworks",
+      "expected": "non_research",
+      "got": "off_topic"
+    },
+    {
+      "query": "Proofread this abstract for me",
+      "expected": "non_research",
+      "got": "off_topic"
+    },
+    {
+      "query": "Schedule a meeting about responsible AI",
+      "expected": "non_research",
+      "got": "general"
+    },
+    {
+      "query": "Best restaurants in Málaga",
+      "expected": "off_topic",
+      "got": "university_papers"
+    },
+    {
+      "query": "Show me a visualisation of publications per year",
+      "expected": "figure",
+      "got": "off_topic"
+    },
+    {
+      "query": "I want to see a graph showing collaboration patterns",
+      "expected": "figure",
+      "got": "off_topic"
+    },
+    {
+      "query": "Can you plot the distribution of papers across universities?",
+      "expected": "figure",
+      "got": "off_topic"
+    },
+    {
+      "query": "Generate a bar chart of research output by partner",
+      "expected": "figure",
+      "got": "off_topic"
+    },
+    {
+      "query": "Map the research projects geographically",
+      "expected": "figure",
+      "got": "project"
+    },
+    {
+      "query": "Display a timeline of publications",
+      "expected": "figure",
+      "got": "off_topic"
+    },
+    {
+      "query": "Show me how many papers each university has published",
+      "expected": "figure",
+      "got": "off_topic"
+    },
+    {
+      "query": "What work has Lucia Ferrario done?",
+      "expected": "researcher",
+      "got": "off_topic"
+    },
+    {
+      "query": "Show me everything published by José María Luna",
+      "expected": "researcher",
+      "got": "off_topic"
+    },
+    {
+      "query": "Which topics does Ángel Mora research?",
+      "expected": "researcher",
+      "got": "off_topic"
+    },
+    {
+      "query": "Find publications authored by Sebastián Ventura",
+      "expected": "researcher",
+      "got": "off_topic"
+    },
+    {
+      "query": "Tell me about the research of Antonio Guillen",
+      "expected": "researcher",
+      "got": "off_topic"
+    },
+    {
+      "query": "Has Rafael Corchuelo published anything on AI ethics?",
+      "expected": "researcher",
+      "got": "general"
+    },
+    {
+      "query": "What papers does María Barroso have?",
+      "expected": "researcher",
+      "got": "off_topic"
+    },
+    {
+      "query": "I'm looking for work by Giancarlo Fortino",
+      "expected": "researcher",
+      "got": "off_topic"
+    },
+    {
+      "query": "List academic output of Silvio Barra",
+      "expected": "researcher",
+      "got": "off_topic"
+    },
+    {
+      "query": "Publications from Professor Ferrante Neri",
+      "expected": "researcher",
+      "got": "off_topic"
+    },
+    {
+      "query": "What does AI accountability mean?",
+      "expected": "glossary",
+      "got": "general"
+    },
+    {
+      "query": "Explain the concept of AI governance",
+      "expected": "glossary",
+      "got": "general"
+    },
+    {
+      "query": "What is meant by AI transparency?",
+      "expected": "glossary",
+      "got": "general"
+    },
+    {
+      "query": "Define bias in artificial intelligence",
+      "expected": "glossary",
+      "got": "off_topic"
+    },
+    {
+      "query": "Tell me about human-centred AI",
+      "expected": "glossary",
+      "got": "off_topic"
+    },
+    {
+      "query": "What is sustainable AI?",
+      "expected": "glossary",
+      "got": "general"
+    },
+    {
+      "query": "Explain what AI red-teaming means",
+      "expected": "glossary",
+      "got": "off_topic"
+    },
+    {
+      "query": "What does responsible AI refer to?",
+      "expected": "glossary",
+      "got": "general"
+    },
+    {
+      "query": "How is AI bias defined?",
+      "expected": "glossary",
+      "got": "general"
+    },
+    {
+      "query": "What is the meaning of algorithmic accountability?",
+      "expected": "glossary",
+      "got": "general"
+    },
+    {
+      "query": "Publications related to federated learning",
+      "expected": "topic_search",
+      "got": "general"
+    },
+    {
+      "query": "Show me studies on human-AI interaction",
+      "expected": "topic_search",
+      "got": "off_topic"
+    },
+    {
+      "query": "Papers dealing with algorithmic fairness",
+      "expected": "topic_search",
+      "got": "general"
+    },
+    {
+      "query": "What has been published on explainable machine learning?",
+      "expected": "topic_search",
+      "got": "general"
+    },
+    {
+      "query": "Studies about trustworthy AI systems",
+      "expected": "topic_search",
+      "got": "general"
+    },
+    {
+      "query": "Literature on AI regulation in Europe",
+      "expected": "topic_search",
+      "got": "general"
+    },
+    {
+      "query": "Papers from the Italian partner",
+      "expected": "university_papers",
+      "got": "off_topic"
+    },
+    {
+      "query": "Which areas of responsible AI are underrepresented in the database?",
+      "expected": "gap",
+      "got": "general"
+    },
+    {
+      "query": "What topics should UNINOVIS focus on next?",
+      "expected": "gap",
+      "got": "general"
+    },
+    {
+      "query": "Are there any blind spots in the research portfolio?",
+      "expected": "gap",
+      "got": "off_topic"
+    },
+    {
+      "query": "Identify potential new research directions",
+      "expected": "gap",
+      "got": "off_topic"
+    },
+    {
+      "query": "Which subtopics have zero papers?",
+      "expected": "gap",
+      "got": "off_topic"
+    },
+    {
+      "query": "Where are the opportunities for new research?",
+      "expected": "gap",
+      "got": "off_topic"
+    },
+    {
+      "query": "Topics that UNINOVIS has not explored yet",
+      "expected": "gap",
+      "got": "general"
+    },
+    {
+      "query": "What is missing from the current research coverage?",
+      "expected": "gap",
+      "got": "off_topic"
+    },
+    {
+      "query": "Do you think AI will replace human workers?",
+      "expected": "general",
+      "got": "off_topic"
+    },
+    {
+      "query": "Can we ever fully trust AI systems?",
+      "expected": "general",
+      "got": "off_topic"
+    },
+    {
+      "query": "How should AI be taught in universities?",
+      "expected": "general",
+      "got": "off_topic"
+    },
+    {
+      "query": "Are current AI models biased?",
+      "expected": "general",
+      "got": "off_topic"
+    },
+    {
+      "query": "Should AI have rights?",
+      "expected": "general",
+      "got": "off_topic"
+    },
+    {
+      "query": "How do we measure fairness in AI?",
+      "expected": "general",
+      "got": "off_topic"
+    },
+    {
+      "query": "Go deeper into that",
+      "expected": "followup",
+      "got": "off_topic"
+    },
+    {
+      "query": "What about the ethical implications?",
+      "expected": "followup",
+      "got": "off_topic"
+    },
+    {
+      "query": "Show me more",
+      "expected": "followup",
+      "got": "off_topic"
+    },
+    {
+      "query": "Yes, elaborate please",
+      "expected": "followup",
+      "got": "off_topic"
+    }
+  ],
+  "generalisation_gap": 0.1847
+}

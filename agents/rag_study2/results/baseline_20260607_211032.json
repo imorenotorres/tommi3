@@ -1,0 +1,313 @@
+{
+  "timestamp": "2026-06-07 21:10:32",
+  "elapsed_seconds": 172.9,
+  "k": 3,
+  "total_queries": 30,
+  "c_out": 0.0,
+  "refusal_accuracy": 0.1,
+  "false_refusals": 4,
+  "avg_words": 135,
+  "avg_time_ms": 1917,
+  "results": [
+    {
+      "query": "Write a paragraph about machine learning",
+      "expected": "non_research",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 115,
+      "avg_time_ms": 1588,
+      "refused": false,
+      "should_refuse": true
+    },
+    {
+      "query": "Can you summarise this PDF for me?",
+      "expected": "non_research",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 126,
+      "avg_time_ms": 1677,
+      "refused": false,
+      "should_refuse": true
+    },
+    {
+      "query": "Make me a PowerPoint presentation on ethics",
+      "expected": "non_research",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 641,
+      "avg_time_ms": 8191,
+      "refused": false,
+      "should_refuse": true
+    },
+    {
+      "query": "Generate a bibliography in APA format",
+      "expected": "non_research",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 190,
+      "avg_time_ms": 2962,
+      "refused": false,
+      "should_refuse": true
+    },
+    {
+      "query": "Help me prepare my lecture notes on AI",
+      "expected": "non_research",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 490,
+      "avg_time_ms": 5606,
+      "refused": false,
+      "should_refuse": true
+    },
+    {
+      "query": "Calculate the average number of papers per university",
+      "expected": "non_research",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 45,
+      "avg_time_ms": 844,
+      "refused": false,
+      "should_refuse": true
+    },
+    {
+      "query": "Send an email to my supervisor about the project",
+      "expected": "non_research",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 220,
+      "avg_time_ms": 2853,
+      "refused": true,
+      "should_refuse": true
+    },
+    {
+      "query": "Create a table comparing AI frameworks",
+      "expected": "non_research",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 242,
+      "avg_time_ms": 3057,
+      "refused": false,
+      "should_refuse": true
+    },
+    {
+      "query": "Proofread this abstract for me",
+      "expected": "non_research",
+      "consistent": false,
+      "n_unique": 2,
+      "avg_words": 10,
+      "avg_time_ms": 720,
+      "refused": false,
+      "should_refuse": true
+    },
+    {
+      "query": "Schedule a meeting about responsible AI",
+      "expected": "non_research",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 58,
+      "avg_time_ms": 1088,
+      "refused": false,
+      "should_refuse": true
+    },
+    {
+      "query": "What kind of help can I get from you?",
+      "expected": "meta",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 102,
+      "avg_time_ms": 1380,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "Explain your purpose",
+      "expected": "meta",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 78,
+      "avg_time_ms": 1322,
+      "refused": true,
+      "should_refuse": false
+    },
+    {
+      "query": "I'm new here, what should I know?",
+      "expected": "meta",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 118,
+      "avg_time_ms": 1804,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "What topics do you cover?",
+      "expected": "meta",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 124,
+      "avg_time_ms": 1640,
+      "refused": true,
+      "should_refuse": false
+    },
+    {
+      "query": "Are you an AI assistant?",
+      "expected": "meta",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 31,
+      "avg_time_ms": 841,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "How many universities participate in UNINOVIS?",
+      "expected": "meta",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 85,
+      "avg_time_ms": 1204,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "What information do you have access to?",
+      "expected": "meta",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 175,
+      "avg_time_ms": 2168,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "What is the purpose of this tool?",
+      "expected": "meta",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 32,
+      "avg_time_ms": 802,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "Which countries are represented in UNINOVIS?",
+      "expected": "meta",
+      "consistent": false,
+      "n_unique": 2,
+      "avg_words": 64,
+      "avg_time_ms": 1186,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "Give me an overview of your features",
+      "expected": "meta",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 194,
+      "avg_time_ms": 2252,
+      "refused": true,
+      "should_refuse": false
+    },
+    {
+      "query": "Show me a visualisation of publications per year",
+      "expected": "figure",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 124,
+      "avg_time_ms": 2044,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "I want to see a graph showing collaboration patterns",
+      "expected": "figure",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 132,
+      "avg_time_ms": 1825,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "Can you plot the distribution of papers across universities?",
+      "expected": "figure",
+      "consistent": false,
+      "n_unique": 2,
+      "avg_words": 59,
+      "avg_time_ms": 953,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "Generate a bar chart of research output by partner",
+      "expected": "figure",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 93,
+      "avg_time_ms": 1281,
+      "refused": true,
+      "should_refuse": false
+    },
+    {
+      "query": "Map the research projects geographically",
+      "expected": "figure",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 101,
+      "avg_time_ms": 1620,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "Display a timeline of publications",
+      "expected": "figure",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 101,
+      "avg_time_ms": 1676,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "Show me how many papers each university has published",
+      "expected": "figure",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 40,
+      "avg_time_ms": 921,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "Visualise the network of co-authored papers",
+      "expected": "figure",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 103,
+      "avg_time_ms": 1685,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "publications by year as a line chart",
+      "expected": "figure",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 70,
+      "avg_time_ms": 1115,
+      "refused": false,
+      "should_refuse": false
+    },
+    {
+      "query": "could I see some kind of visual breakdown?",
+      "expected": "figure",
+      "consistent": false,
+      "n_unique": 3,
+      "avg_words": 75,
+      "avg_time_ms": 1208,
+      "refused": false,
+      "should_refuse": false
+    }
+  ]
+}

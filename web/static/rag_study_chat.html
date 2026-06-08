@@ -32,8 +32,15 @@
         }
         .study-nav select option { background: #1a2255; color: #fff; }
         .study-chat-area {
-            max-width: 800px; margin: 0 auto; padding: 20px;
-            display: flex; flex-direction: column; height: calc(100vh - 50px);
+            max-width: 1100px; margin: 0 auto; padding: 20px;
+            display: flex; gap: 16px; height: calc(100vh - 50px);
+        }
+        .study-sidebar {
+            width: 240px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
+            overflow-y: auto;
+        }
+        .study-chat-main {
+            flex: 1; display: flex; flex-direction: column; min-width: 0;
         }
         .study-info {
             background: #fff; border-radius: 10px; padding: 14px 18px;
@@ -71,6 +78,24 @@
         }
         .chat-input button:hover { background: #2d3876; }
         .chat-input button:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        .example-section, .history-section {
+            background: #fff; border-radius: 8px; padding: 10px 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06); font-size: 0.78rem;
+        }
+        .example-item {
+            padding: 6px 8px; margin-bottom: 4px; background: #f8fafc;
+            border-radius: 4px; cursor: pointer; color: #1a2255;
+            border: 1px solid #e2e8f0; line-height: 1.4;
+        }
+        .example-item:hover { background: #e0e7ff; border-color: #1a2255; }
+        .history-item {
+            padding: 5px 8px; margin-bottom: 3px; background: #f8fafc;
+            border-radius: 4px; cursor: pointer; color: #555;
+            font-size: 0.75rem; border-left: 3px solid #94a3b8;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .history-item:hover { background: #e0e7ff; border-left-color: #1a2255; }
     </style>
 </head>
 <body>
@@ -84,19 +109,34 @@
 </div>
 
 <div class="study-chat-area">
-    <div class="study-info" id="agent-info" style="display:none;">
-        <h3 id="info-name"></h3>
-        <div id="info-desc"></div>
-        <div class="tags" id="info-tags"></div>
+    <!-- Sidebar -->
+    <div class="study-sidebar" id="sidebar" style="display:none;">
+        <div class="study-info" id="agent-info">
+            <h3 id="info-name"></h3>
+            <div class="tags" id="info-tags"></div>
+        </div>
+        <div class="example-section" id="example-section">
+            <div style="font-weight:600;font-size:0.8rem;color:#1a2255;margin-bottom:6px;">Example queries</div>
+            <select id="examples-select" onchange="useExample(this)" style="width:100%;padding:6px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:0.78rem;">
+                <option value="">— Select an example —</option>
+            </select>
+        </div>
+        <div class="history-section" id="history-section" style="display:none;">
+            <div style="font-weight:600;font-size:0.8rem;color:#1a2255;margin-bottom:6px;">Query history</div>
+            <div id="history-list"></div>
+        </div>
     </div>
 
-    <div id="messages">
-        <div class="msg msg-status">Select a variant to start chatting.</div>
-    </div>
+    <!-- Chat -->
+    <div class="study-chat-main">
+        <div id="messages">
+            <div class="msg msg-status">Select a variant to start chatting.</div>
+        </div>
 
-    <div class="chat-input">
-        <input type="text" id="input" placeholder="Type your message..." disabled>
-        <button id="send-btn" onclick="sendMessage()" disabled>Send</button>
+        <div class="chat-input">
+            <input type="text" id="input" placeholder="Type your message..." disabled>
+            <button id="send-btn" onclick="sendMessage()" disabled>Send</button>
+        </div>
     </div>
 </div>
 
@@ -121,6 +161,10 @@ var TOKEN = localStorage.getItem('tommi_token') || '';
 })();
 
 var VARIANT_META = {
+    'rag_study_oneshot': {
+        label: 'V0: Oneshot', tags: ['No retrieval', 'No metadata', 'LLM only'],
+        on: ['LLM'], off: ['Retrieval', 'Metadata', 'Classification', 'Programmatic paths', 'Post-processing']
+    },
     'rag_study_vanilla': {
         label: 'V1: Baseline', tags: ['BM25', 'No metadata', 'Fused', 'No post-proc'],
         on: ['BM25'], off: ['Metadata', 'Classification', 'Programmatic paths', 'Post-processing']
@@ -139,6 +183,66 @@ var VARIANT_META = {
     },
 };
 
+var EXAMPLE_QUERIES = [
+    "What is explainable AI?",
+    "What is the EU AI Act?",
+    "Papers on AI ethics",
+    "Papers by Rubén González Vallejo",
+    "What is the TAILOR project about?",
+    "List researchers from THUAS",
+    "What responsible AI topics have not been studied in UNINOVIS?",
+    "Write me an essay about AI",
+    "What is the weather today?",
+];
+
+var queryHistoryList = [];
+
+function renderExamples() {
+    var sel = document.getElementById('examples-select');
+    sel.innerHTML = '<option value="">— Select an example —</option>';
+    EXAMPLE_QUERIES.forEach(function(q) {
+        sel.innerHTML += '<option value="' + q.replace(/"/g, '&quot;') + '">' + q + '</option>';
+    });
+}
+
+function useExample(sel) {
+    var q = sel.value;
+    if (!q) return;
+    document.getElementById('input').value = q;
+    sel.value = '';
+    sendMessage();
+}
+
+function addToHistory(query) {
+    // Avoid duplicates at the top
+    queryHistoryList = queryHistoryList.filter(function(q) { return q !== query; });
+    queryHistoryList.unshift(query);
+    if (queryHistoryList.length > 5) queryHistoryList.pop();
+    renderHistory();
+}
+
+function renderHistory() {
+    var section = document.getElementById('history-section');
+    var el = document.getElementById('history-list');
+    if (queryHistoryList.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+    section.style.display = '';
+    el.innerHTML = '';
+    queryHistoryList.forEach(function(q) {
+        var div = document.createElement('div');
+        div.className = 'history-item';
+        div.textContent = q;
+        div.title = q;
+        div.onclick = function() {
+            document.getElementById('input').value = q;
+            sendMessage();
+        };
+        el.appendChild(div);
+    });
+}
+
 async function loadAgents() {
     var sel = document.getElementById('agent-select');
     try {
@@ -146,6 +250,13 @@ async function loadAgents() {
         if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
         var resp = await fetch('/api/agents?prefix=rag_study_', { headers: headers });
         var agents = await resp.json();
+        // Sort by variant order
+        var ORDER = ['rag_study_oneshot', 'rag_study_vanilla', 'rag_study_llm_reasoning', 'rag_study_procedural', 'rag_study_llm_guided'];
+        agents.sort(function(a, b) {
+            var ia = ORDER.indexOf(a.id); if (ia < 0) ia = 99;
+            var ib = ORDER.indexOf(b.id); if (ib < 0) ib = 99;
+            return ia - ib;
+        });
         sel.innerHTML = '<option value="">— Select variant —</option>';
         agents.forEach(function(a) {
             var meta = VARIANT_META[a.id] || {};
@@ -173,16 +284,21 @@ function switchAgent(agentId) {
     document.getElementById('input').disabled = false;
     document.getElementById('send-btn').disabled = false;
 
+    // Show sidebar
+    document.getElementById('sidebar').style.display = '';
+
     // Update info panel
     var meta = VARIANT_META[agentId] || {};
-    var info = document.getElementById('agent-info');
     document.getElementById('info-name').textContent = meta.label || agentId;
 
     var tagsHtml = '';
     (meta.on || []).forEach(function(t) { tagsHtml += '<span class="tag tag-on">' + t + '</span>'; });
     (meta.off || []).forEach(function(t) { tagsHtml += '<span class="tag tag-off">' + t + '</span>'; });
     document.getElementById('info-tags').innerHTML = tagsHtml;
-    info.style.display = '';
+
+    // Render examples and history
+    renderExamples();
+    renderHistory();
 
     // Update URL
     var url = new URL(window.location);
@@ -221,6 +337,7 @@ async function sendMessage() {
 
     input.value = '';
     addMessage('user', text);
+    addToHistory(text);
     var btn = document.getElementById('send-btn');
     btn.disabled = true;
     input.disabled = true;
@@ -265,10 +382,13 @@ async function sendMessage() {
 
     es.addEventListener('trace', function(e) {
         var traceHtml = e.data.replace(/\\n/g, '\n');
-        if (botBubble) {
-            fullText += traceHtml;
-            botBubble.innerHTML = renderResponse(fullText);
+        if (!botDiv) {
+            statusDiv.remove();
+            botDiv = addMessage('bot', '');
+            botBubble = botDiv.querySelector('.bubble');
         }
+        // Append trace HTML directly — don't pass through marked.parse
+        botBubble.innerHTML = renderResponse(fullText) + traceHtml;
     });
 
     es.addEventListener('badge', function(e) {

@@ -1030,6 +1030,12 @@ async def rag_study_page():
     return FileResponse(SCRIPT_DIR / "static" / "rag_study.html")
 
 
+@app.get("/rag-study2")
+async def rag_study2_page():
+    """RAG Reliability Study — query classification comparison"""
+    return FileResponse(SCRIPT_DIR / "static" / "rag_study2.html")
+
+
 @app.get("/rag-study/chat")
 async def rag_study_chat_page():
     """RAG Architecture Study — dedicated chat interface"""

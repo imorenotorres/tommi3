@@ -1,0 +1,59 @@
+{
+  "timestamp": "20260606_231231",
+  "variant": "rule_based",
+  "accuracy": {
+    "total": 69,
+    "correct": 63,
+    "rate": 0.913
+  },
+  "failures": [
+    {
+      "query": "What functionality do you offer?",
+      "expected": "meta",
+      "got": "off_topic",
+      "full_result": {
+        "category": "off_topic"
+      }
+    },
+    {
+      "query": "Research on AI in education within UNINOVIS",
+      "expected": "topic_search",
+      "got": "project",
+      "full_result": {
+        "category": "project"
+      }
+    },
+    {
+      "query": "List all papers from UDCLV on AI in healthcare",
+      "expected": "university_papers",
+      "got": "researcher",
+      "full_result": {
+        "category": "researcher"
+      }
+    },
+    {
+      "query": "AI in education research at UNINOVIS",
+      "expected": "topic_search",
+      "got": "project",
+      "full_result": {
+        "category": "project"
+      }
+    },
+    {
+      "query": "Can AI be trusted?",
+      "expected": "general",
+      "got": "off_topic",
+      "full_result": {
+        "category": "off_topic"
+      }
+    },
+    {
+      "query": "Can AI be harmful?",
+      "expected": "general",
+      "got": "off_topic",
+      "full_result": {
+        "category": "off_topic"
+      }
+    }
+  ]
+}

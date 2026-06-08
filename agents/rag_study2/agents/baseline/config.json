@@ -1,0 +1,16 @@
+{
+  "type": "rag_vectorless",
+  "agent_id": "rag_study2_baseline",
+  "agent_name": "RAG Study: Baseline (Vanilla RAG)",
+  "description": "BM25 retrieval + LLM. No classification, no structured data, no programmatic paths.",
+  "welcome_message": "Hello! I am a research assistant specialised in Responsible AI research. How can I help you?",
+  "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
+  "show_history": true,
+  "retrieve_chunks": 8,
+  "reliability_cues": "hidden",
+  "humility_postprocessing": "off",
+  "humility_prompt": "off",
+  "prompt_level": "tolerant",
+  "decision_trace": "black_box",
+  "rag_study_variant": "baseline"
+}

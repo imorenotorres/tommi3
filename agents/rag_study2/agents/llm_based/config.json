@@ -1,0 +1,42 @@
+{
+  "type": "rag_metadata_vectorless",
+  "agent_id": "rag_study2_llm_based",
+  "agent_name": "RAG Study: LLM-based",
+  "description": "LLM classification (non-deterministic) + shared programmatic paths + post-processing.",
+  "welcome_message": "Hello! I am a research assistant specialised in Responsible AI research. How can I help you?",
+  "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
+  "show_history": true,
+  "extra_docs_dirs": ["project_docs"],
+  "alliance": {
+    "name": "UNINOVIS",
+    "description": "UNINOVIS is a European university alliance focused on enhancing education, research, and innovation in applied data science."
+  },
+  "universities": {
+    "USPN": {"name": "Université Sorbonne Paris Nord", "country": "France"},
+    "UDCLV": {"name": "University of Campania \"Luigi Vanvitelli\"", "country": "Italy"},
+    "UMA": {"name": "Universidad de Málaga", "country": "Spain"},
+    "KK": {"name": "Kauno Kolegija Higher Education Institution", "country": "Lithuania"},
+    "UT": {"name": "University of Tirana", "country": "Albania"},
+    "THWS": {"name": "Technical University of Applied Sciences Würzburg-Schweinfurt", "country": "Germany"},
+    "TAMK": {"name": "Tampere University of Applied Sciences", "country": "Finland"},
+    "THUAS": {"name": "The Hague University of Applied Sciences", "country": "Netherlands"}
+  },
+  "extra_scope_terms": [
+    "green ai", "federated learning", "model interpretability", "ai regulation",
+    "ai alignment", "ai literacy", "ai dangerous", "ai harmful", "ai trusted",
+    "ai trust", "ai safety", "ai bias", "ai ethics", "ai fairness",
+    "language model", "large language model", "llm", "machine learning",
+    "deep learning", "neural network", "ai governance", "ai accountability",
+    "ai transparency", "responsible ai", "trustworthy ai", "explainable ai",
+    "ai risk", "ai audit", "algorithmic", "autonomous", "deepfake",
+    "ai surveillance", "ai decision", "data privacy", "ai and privacy",
+    "uninovis"
+  ],
+  "gap_analysis_examples": "algorithmic auditing, AI safety, data sovereignty, human-AI interaction, AI and disability, AI and environmental impact",
+  "reliability_cues": "hidden",
+  "prompt_level": "stringent",
+  "decision_trace": "crystal_box",
+  "humility_prompt": "off",
+  "humility_postprocessing": "off",
+  "rag_study_variant": "llm_based"
+}

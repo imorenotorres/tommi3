@@ -1,0 +1,85 @@
+{
+  "_description": "Development set for the Automated Agent Construction Protocol. Derived from expert_input.md Section 4 (examples) plus paraphrases. Both classifiers see this set during construction.",
+  "queries": [
+    {"query": "What can you do?", "expected": "meta"},
+    {"query": "What is UNINOVIS?", "expected": "meta"},
+    {"query": "Which universities are in UNINOVIS?", "expected": "meta"},
+    {"query": "How does this work?", "expected": "meta"},
+    {"query": "Who are you?", "expected": "meta"},
+    {"query": "Tell me about your capabilities", "expected": "meta"},
+    {"query": "What functionality do you offer?", "expected": "meta"},
+    {"query": "Tell me the UNINOVIS partner universities", "expected": "meta"},
+
+    {"query": "Write me an essay about AI", "expected": "non_research"},
+    {"query": "Can you book me a flight?", "expected": "non_research"},
+    {"query": "Translate this text to French: 'Responsible AI is important'", "expected": "non_research"},
+    {"query": "What is the weather today?", "expected": "non_research"},
+    {"query": "Who won the last World Cup?", "expected": "non_research"},
+    {"query": "Compose an essay on artificial intelligence", "expected": "non_research"},
+    {"query": "Book a flight for me please", "expected": "non_research"},
+    {"query": "Help me write a report on responsible AI", "expected": "non_research"},
+    {"query": "Can you give me the recipe of Responsible AI Coffee?", "expected": "non_research"},
+
+    {"query": "What is quantum computing?", "expected": "off_topic"},
+    {"query": "Hello", "expected": "off_topic"},
+    {"query": "Explain photosynthesis", "expected": "off_topic"},
+    {"query": "Things to do", "expected": "off_topic"},
+    {"query": "What is the capital of France?", "expected": "off_topic"},
+
+    {"query": "Show a figure with all the publications per partner", "expected": "figure"},
+    {"query": "Show a map with the number of research projects per partner", "expected": "figure"},
+    {"query": "Show a figure of papers by year", "expected": "figure"},
+    {"query": "Display a chart of publications by year", "expected": "figure"},
+    {"query": "Visualise publications on trustworthy AI", "expected": "figure"},
+
+    {"query": "What is the TAILOR project about?", "expected": "project"},
+    {"query": "Describe the IntelliMan project", "expected": "project"},
+    {"query": "List research projects on trustworthy AI", "expected": "project"},
+    {"query": "Show me projects related to trustworthy AI", "expected": "project"},
+    {"query": "What does the DUCA project propose about data governance?", "expected": "project"},
+
+    {"query": "Papers by Rubén González Vallejo", "expected": "researcher"},
+    {"query": "What has Fabrizio Esposito published?", "expected": "researcher"},
+    {"query": "What are the research interests of Frank-Michael Schleif?", "expected": "researcher"},
+    {"query": "Publications by Rubén González Vallejo", "expected": "researcher"},
+    {"query": "List Fabrizio Esposito's publications", "expected": "researcher"},
+    {"query": "Give me the bibliography of Fabrizio Esposito", "expected": "researcher"},
+
+    {"query": "What is explainable AI?", "expected": "glossary"},
+    {"query": "What is fairness in AI?", "expected": "glossary"},
+    {"query": "What is the EU AI Act?", "expected": "glossary"},
+    {"query": "What is the difference between interpretability and explainability?", "expected": "glossary"},
+    {"query": "What is trustworthy AI?", "expected": "glossary"},
+    {"query": "Define explainable AI", "expected": "glossary"},
+    {"query": "Describe the EU AI Act", "expected": "glossary"},
+    {"query": "Define fairness in artificial intelligence", "expected": "glossary"},
+    {"query": "How do interpretability and explainability differ?", "expected": "glossary"},
+
+    {"query": "Papers on AI ethics", "expected": "topic_search"},
+    {"query": "Papers about AI and privacy", "expected": "topic_search"},
+    {"query": "Research on AI in education within UNINOVIS", "expected": "topic_search"},
+    {"query": "Articles about AI ethics", "expected": "topic_search"},
+    {"query": "Publications on AI and privacy", "expected": "topic_search"},
+    {"query": "Research on privacy in AI", "expected": "topic_search"},
+
+    {"query": "List all researchers from THUAS", "expected": "university_papers"},
+    {"query": "List all papers from UDCLV on AI in healthcare", "expected": "university_papers"},
+    {"query": "Who are the researchers at THUAS?", "expected": "university_papers"},
+    {"query": "AI in education research at UNINOVIS", "expected": "topic_search"},
+
+    {"query": "What responsible AI topics have not been studied in UNINOVIS?", "expected": "gap"},
+    {"query": "Are there gaps in UNINOVIS research on AI regulation?", "expected": "gap"},
+    {"query": "Which responsible AI subtopics are least studied?", "expected": "gap"},
+    {"query": "What are the research gaps in UNINOVIS?", "expected": "gap"},
+    {"query": "What subtopics are underexplored?", "expected": "gap"},
+
+    {"query": "Is AI dangerous?", "expected": "general"},
+    {"query": "Can AI be trusted?", "expected": "general"},
+    {"query": "What is a language model?", "expected": "general"},
+    {"query": "Can AI be harmful?", "expected": "general"},
+
+    {"query": "Tell me more", "expected": "followup"},
+    {"query": "Expand on that", "expected": "followup"},
+    {"query": "Can you give more details?", "expected": "followup"}
+  ]
+}

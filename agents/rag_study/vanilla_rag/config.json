@@ -18,7 +18,7 @@
     "description": "UNINOVIS is a European university alliance focused on enhancing education, research, and innovation."
   },
   "retrieve_chunks": 8,
-  "reliability_cues": "shown",
+  "reliability_cues": "hidden",
   "humility_postprocessing": "off",
   "humility_prompt": "off",
   "prompt_level": "tolerant",

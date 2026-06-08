@@ -1,0 +1,127 @@
+{
+  "timestamp": "20260606_230407",
+  "variant": "rule_based",
+  "accuracy": {
+    "total": 69,
+    "correct": 55,
+    "rate": 0.7971
+  },
+  "failures": [
+    {
+      "query": "Which universities are in UNINOVIS?",
+      "expected": "meta",
+      "got": "general",
+      "full_result": {
+        "category": "general",
+        "topic": ""
+      }
+    },
+    {
+      "query": "What functionality do you offer?",
+      "expected": "meta",
+      "got": "off_topic",
+      "full_result": {
+        "category": "off_topic"
+      }
+    },
+    {
+      "query": "Tell me the UNINOVIS partner universities",
+      "expected": "meta",
+      "got": "general",
+      "full_result": {
+        "category": "general",
+        "topic": ""
+      }
+    },
+    {
+      "query": "List research projects on trustworthy AI",
+      "expected": "project",
+      "got": "topic_search",
+      "full_result": {
+        "category": "topic_search",
+        "topic": "trustworthy ai"
+      }
+    },
+    {
+      "query": "Show me projects related to trustworthy AI",
+      "expected": "project",
+      "got": "general",
+      "full_result": {
+        "category": "general",
+        "topic": ""
+      }
+    },
+    {
+      "query": "Research on AI in education within UNINOVIS",
+      "expected": "topic_search",
+      "got": "project",
+      "full_result": {
+        "category": "project"
+      }
+    },
+    {
+      "query": "List all researchers from THUAS",
+      "expected": "university_papers",
+      "got": "off_topic",
+      "full_result": {
+        "category": "off_topic"
+      }
+    },
+    {
+      "query": "List all papers from UDCLV on AI in healthcare",
+      "expected": "university_papers",
+      "got": "researcher",
+      "full_result": {
+        "category": "researcher"
+      }
+    },
+    {
+      "query": "Who are the researchers at THUAS?",
+      "expected": "university_papers",
+      "got": "off_topic",
+      "full_result": {
+        "category": "off_topic"
+      }
+    },
+    {
+      "query": "AI in education research at UNINOVIS",
+      "expected": "topic_search",
+      "got": "project",
+      "full_result": {
+        "category": "project"
+      }
+    },
+    {
+      "query": "Is AI dangerous?",
+      "expected": "general",
+      "got": "off_topic",
+      "full_result": {
+        "category": "off_topic"
+      }
+    },
+    {
+      "query": "Can AI be trusted?",
+      "expected": "general",
+      "got": "off_topic",
+      "full_result": {
+        "category": "off_topic"
+      }
+    },
+    {
+      "query": "What is a language model?",
+      "expected": "general",
+      "got": "off_topic",
+      "full_result": {
+        "category": "off_topic"
+      }
+    },
+    {
+      "query": "Can AI be harmful?",
+      "expected": "general",
+      "got": "off_topic",
+      "full_result": {
+        "category": "off_topic"
+      }
+    }
+  ]
+}

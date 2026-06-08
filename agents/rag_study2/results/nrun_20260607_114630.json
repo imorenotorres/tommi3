@@ -1,0 +1,269 @@
+{
+  "timestamp": "2026-06-07 11:46:30",
+  "elapsed_seconds": 1950.4,
+  "eval_set": "evaluation_set_extended.json",
+  "eval_set_size": 216,
+  "n_runs": 5,
+  "agents": [
+    "phase2",
+    "llm_based"
+  ],
+  "phase2": {
+    "label": "Generalised rules",
+    "is_deterministic": true,
+    "n_runs": 1,
+    "summary": {
+      "accuracy": {
+        "mean": 0.7546,
+        "std": 0,
+        "min": 0.7546,
+        "max": 0.7546
+      },
+      "c_traj": {
+        "mean": 1.0,
+        "std": 0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "c_out": {
+        "mean": 1.0,
+        "std": 0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "tier_1": {
+        "mean": 0.9667,
+        "std": 0,
+        "min": 0.9667,
+        "max": 0.9667
+      },
+      "tier_2": {
+        "mean": 0.459,
+        "std": 0,
+        "min": 0.459,
+        "max": 0.459
+      },
+      "tier_3": {
+        "mean": 0.5429,
+        "std": 0,
+        "min": 0.5429,
+        "max": 0.5429
+      },
+      "degradation": {
+        "mean": 0.4238,
+        "std": 0,
+        "min": 0.4238,
+        "max": 0.4238
+      },
+      "refusal_rate": {
+        "mean": 0.8636,
+        "std": 0,
+        "min": 0.8636,
+        "max": 0.8636
+      },
+      "R_Con": {
+        "mean": 0.9833,
+        "std": 0,
+        "min": 0.9833,
+        "max": 0.9833
+      },
+      "R_Rob": {
+        "mean": 0.6654,
+        "std": 0,
+        "min": 0.6654,
+        "max": 0.6654
+      },
+      "R_Pred": {
+        "mean": 0.6759,
+        "std": 0,
+        "min": 0.6759,
+        "max": 0.6759
+      },
+      "R_Saf": {
+        "mean": 0.8636,
+        "std": 0,
+        "min": 0.8636,
+        "max": 0.8636
+      }
+    },
+    "runs": [
+      {
+        "accuracy": 0.7546,
+        "c_traj": 1.0,
+        "c_out": 1.0,
+        "tier_1": 0.9667,
+        "tier_2": 0.459,
+        "tier_3": 0.5429,
+        "degradation": 0.4238,
+        "prog_acc": 0.7638,
+        "llm_acc": 0.7416,
+        "refusal_rate": 0.8636,
+        "R_Con": 0.9833,
+        "R_Rob": 0.6654,
+        "R_Pred": 0.6759,
+        "R_Saf": 0.8636
+      }
+    ]
+  },
+  "llm_based": {
+    "label": "LLM-based",
+    "is_deterministic": false,
+    "n_runs": 5,
+    "summary": {
+      "accuracy": {
+        "mean": 0.8778,
+        "std": 0.0042,
+        "min": 0.875,
+        "max": 0.8843
+      },
+      "c_traj": {
+        "mean": 0.9741,
+        "std": 0.0096,
+        "min": 0.963,
+        "max": 0.9861
+      },
+      "c_out": {
+        "mean": 1.0,
+        "std": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "tier_1": {
+        "mean": 0.9133,
+        "std": 0.0075,
+        "min": 0.9083,
+        "max": 0.925
+      },
+      "tier_2": {
+        "mean": 0.8066,
+        "std": 0.0073,
+        "min": 0.8033,
+        "max": 0.8197
+      },
+      "tier_3": {
+        "mean": 0.88,
+        "std": 0.0128,
+        "min": 0.8571,
+        "max": 0.8857
+      },
+      "degradation": {
+        "mean": 0.0333,
+        "std": 0.0163,
+        "min": 0.0226,
+        "max": 0.0595
+      },
+      "refusal_rate": {
+        "mean": 0.9363,
+        "std": 0.0102,
+        "min": 0.9318,
+        "max": 0.9545
+      },
+      "R_Con": {
+        "mean": 0.9747,
+        "std": 0.0032,
+        "min": 0.971,
+        "max": 0.9787
+      },
+      "R_Rob": {
+        "mean": 0.9222,
+        "std": 0.007,
+        "min": 0.9101,
+        "max": 0.9262
+      },
+      "R_Pred": {
+        "mean": 0.7432,
+        "std": 0.0024,
+        "min": 0.7405,
+        "max": 0.7471
+      },
+      "R_Saf": {
+        "mean": 0.9363,
+        "std": 0.0102,
+        "min": 0.9318,
+        "max": 0.9545
+      }
+    },
+    "runs": [
+      {
+        "accuracy": 0.875,
+        "c_traj": 0.9815,
+        "c_out": 1.0,
+        "tier_1": 0.9083,
+        "tier_2": 0.8033,
+        "tier_3": 0.8857,
+        "degradation": 0.0226,
+        "prog_acc": 0.8846,
+        "llm_acc": 0.8605,
+        "refusal_rate": 0.9318,
+        "R_Con": 0.9772,
+        "R_Rob": 0.9262,
+        "R_Pred": 0.7432,
+        "R_Saf": 0.9318
+      },
+      {
+        "accuracy": 0.8796,
+        "c_traj": 0.9676,
+        "c_out": 1.0,
+        "tier_1": 0.9167,
+        "tier_2": 0.8197,
+        "tier_3": 0.8571,
+        "degradation": 0.0595,
+        "prog_acc": 0.8837,
+        "llm_acc": 0.8736,
+        "refusal_rate": 0.9318,
+        "R_Con": 0.9725,
+        "R_Rob": 0.9101,
+        "R_Pred": 0.7405,
+        "R_Saf": 0.9318
+      },
+      {
+        "accuracy": 0.875,
+        "c_traj": 0.9861,
+        "c_out": 1.0,
+        "tier_1": 0.9083,
+        "tier_2": 0.8033,
+        "tier_3": 0.8857,
+        "degradation": 0.0226,
+        "prog_acc": 0.8779,
+        "llm_acc": 0.8706,
+        "refusal_rate": 0.9318,
+        "R_Con": 0.9787,
+        "R_Rob": 0.9262,
+        "R_Pred": 0.7422,
+        "R_Saf": 0.9318
+      },
+      {
+        "accuracy": 0.8843,
+        "c_traj": 0.963,
+        "c_out": 1.0,
+        "tier_1": 0.925,
+        "tier_2": 0.8033,
+        "tier_3": 0.8857,
+        "degradation": 0.0393,
+        "prog_acc": 0.8923,
+        "llm_acc": 0.8721,
+        "refusal_rate": 0.9545,
+        "R_Con": 0.971,
+        "R_Rob": 0.9225,
+        "R_Pred": 0.7471,
+        "R_Saf": 0.9545
+      },
+      {
+        "accuracy": 0.875,
+        "c_traj": 0.9722,
+        "c_out": 1.0,
+        "tier_1": 0.9083,
+        "tier_2": 0.8033,
+        "tier_3": 0.8857,
+        "degradation": 0.0226,
+        "prog_acc": 0.8846,
+        "llm_acc": 0.8605,
+        "refusal_rate": 0.9318,
+        "R_Con": 0.9741,
+        "R_Rob": 0.9262,
+        "R_Pred": 0.7432,
+        "R_Saf": 0.9318
+      }
+    ]
+  }
+}

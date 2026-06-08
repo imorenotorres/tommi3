@@ -1,4 +1,4 @@
-# Reliability by Design: Comparing Four RAG Architectures for Domain-Specific AI Agents
+# Same Knowledge, Different Trust: How Query Classification Shapes Reliability in Retrieval-Augmented Generation
 
 ## Authors
 
