@@ -11,8 +11,9 @@ This establishes what vanilla RAG can do with documents alone.
 import os
 import sys
 
-# Add paths for base classes and web modules
-_STUDY_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add paths for base classes and web modules (realpath resolves symlinks)
+_AGENT_DIR = os.path.dirname(os.path.realpath(__file__))
+_STUDY_DIR = os.path.dirname(os.path.dirname(_AGENT_DIR))
 sys.path.insert(0, os.path.join(_STUDY_DIR, ".."))
 sys.path.insert(0, os.path.join(_STUDY_DIR, "..", "..", "web"))
 

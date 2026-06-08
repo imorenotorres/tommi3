@@ -17,7 +17,7 @@ import json
 import re
 
 # Add paths
-_AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
+_AGENT_DIR = os.path.dirname(os.path.realpath(__file__))
 _STUDY_DIR = os.path.dirname(os.path.dirname(_AGENT_DIR))
 sys.path.insert(0, os.path.join(_STUDY_DIR, ".."))
 sys.path.insert(0, os.path.join(_STUDY_DIR, "..", "..", "web"))

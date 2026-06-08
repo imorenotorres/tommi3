@@ -1025,9 +1025,10 @@ async def intranet_page():
 
 
 @app.get("/rag-study")
-async def rag_study_page():
-    """RAG Architecture Study entry point"""
-    return FileResponse(SCRIPT_DIR / "static" / "rag_study.html")
+async def rag_study_redirect():
+    """Redirect old rag-study URL to rag-study2"""
+    from starlette.responses import RedirectResponse
+    return RedirectResponse("/rag-study2")
 
 
 @app.get("/rag-study2")
@@ -1036,10 +1037,10 @@ async def rag_study2_page():
     return FileResponse(SCRIPT_DIR / "static" / "rag_study2.html")
 
 
-@app.get("/rag-study/chat")
-async def rag_study_chat_page():
-    """RAG Architecture Study — dedicated chat interface"""
-    return FileResponse(SCRIPT_DIR / "static" / "rag_study_chat.html")
+@app.get("/rag-study2/chat")
+async def rag_study2_chat_page():
+    """RAG Reliability Study — agent chat interface"""
+    return FileResponse(SCRIPT_DIR / "static" / "rag_study2_chat.html")
 
 
 @app.get("/agents")
@@ -1611,7 +1612,7 @@ async def list_agents(request: Request, mode: Optional[str] = Query(None), prefi
     else:
         # Normal list: filter by visibility and exclude study agents from main list
         agents = [a for a in agents if _can_user_see_agent(a.id, username, user_role)]
-        agents = [a for a in agents if not a.id.startswith("rag_study_")]
+        agents = [a for a in agents if not a.id.startswith("rag_study_") and not a.id.startswith("rag_study2_")]
 
     return [
         AgentResponse(
