@@ -125,7 +125,7 @@ CATEGORY_EXAMPLES = {
         "Publications related to federated learning",
         "Show me studies on human-AI interaction",
     ],
-    "university_papers": [
+    "papers": [
         "List all researchers from THUAS",
         "List all papers from UDCLV",
         "What papers has UMA produced?",

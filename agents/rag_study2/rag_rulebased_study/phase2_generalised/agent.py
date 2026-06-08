@@ -169,7 +169,7 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         if re.search(r'\bfigure\b|\bmap\b', msg_lower):
             return {"category": "figure"}
         # "show me how many papers" → figure (data display intent)
-        # But NOT "show me all research FROM [university]" → that's university_papers
+        # But NOT "show me all research FROM [university]" → that's papers
         if re.search(r'\bshow\s+(?:me\s+)?(?:how many|the number)\b.*\b(?:papers?|publications?|research)\b', msg_lower):
             return {"category": "figure"}
 
@@ -197,20 +197,20 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
 
         # 6. UNIVERSITY — mentions a university (before researcher to avoid substring matches)
         if re.search(r'\b(?:UMA|THUAS|USPN|UDCLV|THWS|TAMK)\b', msg_original):
-            return {"category": "university_papers"}
+            return {"category": "papers"}
         if re.search(r'\bKK\b', msg_original) and re.search(r'\b(?:kauno|lithuania|universit|papers?|researcher)\b', msg_lower):
-            return {"category": "university_papers"}
+            return {"category": "papers"}
         if re.search(r'\bUT\b', msg_original) and re.search(r'\b(?:tirana|albania|universit|papers?|researcher)\b', msg_lower):
-            return {"category": "university_papers"}
+            return {"category": "papers"}
         uni_names = [r'm[aá]laga', r'hague', r'sorbonne', r'campania', r'vanvitelli',
                      r'w[uü]rzburg', r'tampere', r'kauno', r'tirana']
         if any(re.search(r'\b' + p + r'\b', msg_lower) for p in uni_names):
-            # Only university_papers if the query is about research/papers/researchers
+            # Only papers if the query is about research/papers/researchers
             if re.search(r'\b(?:papers?|research|publications?|researchers?|output|from|university|all)\b', msg_lower):
-                return {"category": "university_papers"}
+                return {"category": "papers"}
         # "Italian/Spanish/German/etc. partner" → university
         if re.search(r'\b(?:italian|spanish|german|french|finnish|dutch|lithuanian|albanian)\s+(?:partner|university)\b', msg_lower):
-            return {"category": "university_papers"}
+            return {"category": "papers"}
 
         # 7. RESEARCHER — entity-type detection (person name)
         # Use the MetadataRAGMixin's researcher detection (matches against DB)

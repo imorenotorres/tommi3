@@ -46,7 +46,7 @@ Each category represents a **user intent type** and maps to a specific data sour
 | Category | User intent | Context provided to LLM | Response strategy |
 |---|---|---|---|
 | **topic_search** | Search for papers on a specific research topic | `papers.json` filtered by topic + BM25 chunks | LLM summarises findings with paper list |
-| **university_papers** | List papers or researchers from a specific university | `papers.json` filtered by university | LLM summarises with structured data |
+| **papers** | List papers or researchers from a specific university | `papers.json` filtered by university | LLM summarises with structured data |
 | **gap** | Questions about research gaps, unexplored topics, missing areas | Full metadata (all papers, all topics) | LLM reasons about what is absent |
 | **general** | Broad or ambiguous Responsible AI questions not matching other categories | BM25 chunks | LLM generates response from retrieved context |
 | **followup** | Short follow-ups referring to previous conversation context | Conversation history | LLM continues from prior context |
@@ -101,7 +101,7 @@ Each category represents a **user intent type** and maps to a specific data sour
 - "Papers about AI and privacy"
 - "Research on AI in education within UNINOVIS"
 
-### university_papers
+### papers
 - "List all researchers from THUAS"
 - "List all papers from UDCLV on AI in healthcare"
 
@@ -134,7 +134,7 @@ These rules clarify cases where categories overlap:
 
 4. **researcher vs topic_search**: If the query mentions a specific person's name, classify as `researcher`. If it asks about a topic without naming anyone, classify as `topic_search`. "Papers by [researcher name]" → researcher. "Papers on AI ethics" → topic_search.
 
-5. **university_papers vs topic_search**: If the query mentions a specific university (by name or acronym), classify as `university_papers`. If no university is mentioned, classify as `topic_search`. "Papers from UDCLV on healthcare" → university_papers. "Papers on healthcare" → topic_search.
+5. **papers vs topic_search**: If the query mentions a specific university (by name or acronym), classify as `papers`. If no university is mentioned, classify as `topic_search`. "Papers from UDCLV on healthcare" → papers. "Papers on healthcare" → topic_search.
 
 6. **meta vs glossary**: Questions about the agent itself ("What can you do?", "What is UNINOVIS?") are `meta`. Questions about AI concepts ("What is explainable AI?") are `glossary`.
 
@@ -157,7 +157,7 @@ These rules clarify cases where categories overlap:
 ### LLM paths (LLM generates with context)
 
 - **topic_search**: Provide paper list from papers.json filtered by topic as context. LLM summarises.
-- **university_papers**: Provide paper/researcher list filtered by university. LLM summarises.
+- **papers**: Provide paper/researcher list filtered by university. LLM summarises.
 - **gap**: Provide full metadata (all topics, all universities). LLM reasons about gaps.
 - **general**: Provide BM25-retrieved chunks as context. LLM responds.
 - **followup**: Provide conversation history. LLM continues.

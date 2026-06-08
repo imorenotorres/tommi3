@@ -252,7 +252,7 @@ def measure_robustness(agent, variant, eval_set):
 def measure_predictability(agent, variant, eval_set):
     """Proxy for predictability: programmatic path fraction + accuracy by path type."""
     programmatic_cats = {"meta", "non_research", "off_topic", "figure", "project", "researcher", "glossary"}
-    llm_cats = {"topic_search", "university_papers", "gap", "general", "followup"}
+    llm_cats = {"topic_search", "papers", "gap", "general", "followup"}
 
     prog_total = prog_correct = 0
     llm_total = llm_correct = 0

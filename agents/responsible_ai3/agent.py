@@ -24,24 +24,24 @@ CLASSIFY_PROMPT = """You are a query classifier for a Responsible AI research as
 Given the user's query, classify it into exactly ONE of these categories and extract relevant entities.
 
 CATEGORIES (in priority order — use the FIRST matching category):
+- researcher: Questions about a specific PERSON's publications or research interests. Must mention a person's name. If a query mentions a person's name, it is ALWAYS researcher.
+- topic_search: Requests for PAPERS or PUBLICATIONS on a specific research topic (NOT projects)
+- papers: Requests for papers or researchers from a specific university (must mention a university name or acronym). Use ONLY when no specific topic is mentioned.
+- project: Questions mentioning specific research PROJECTS or grants, OR asking to LIST research projects.
+- glossary: Conceptual "What is X?" questions ONLY about well-defined Responsible AI terms (explainable AI, fairness, EU AI Act, trustworthy AI, AI bias, AI governance, etc.). Do NOT use for general/ambiguous questions.
+- figure: Requests containing "figure", "map", "chart", "graph", or "visualise" for data visualisation
 - meta: Questions about the agent itself ("What can you do?", "How does this work?", "What is UNINOVIS?", "Who are you?")
 - non_research: Requests to PERFORM a task — write essays, translate, book flights, get recipes, report weather, sports results. Use this for ANY action request, even if the topic seems off-topic.
-- figure: Requests containing "figure", "map", "chart", "graph", or "visualise" for data visualisation
-- project: Questions mentioning specific research PROJECTS or grants, OR asking to LIST research projects.
-- researcher: Questions about a specific PERSON's publications or research interests. Must mention a person's name. If a query mentions a person's name, it is ALWAYS researcher.
-- glossary: Conceptual "What is X?" questions ONLY about well-defined Responsible AI terms (explainable AI, fairness, EU AI Act, trustworthy AI, AI bias, AI governance, etc.). Do NOT use for general/ambiguous questions.
-- gap: Questions about topics NOT studied, research gaps, missing areas, underexplored subtopics
-- topic_search: Requests for PAPERS or PUBLICATIONS on a specific research topic (NOT projects)
-- university_papers: Requests for papers or researchers from a specific university (must mention a university name or acronym). Use ONLY when no specific topic is mentioned.
 - off_topic: Questions clearly outside Responsible AI AND not task requests. Also for vague, meaningless, or greeting-like inputs.
 - followup: Short follow-ups referring to previous context ("tell me more", "expand on that")
+- gap: Questions about topics NOT studied, research gaps, missing areas, underexplored subtopics
 - general: Broad or ambiguous AI/technology questions that don't match a specific category above.
 
 IMPORTANT DISTINCTIONS:
 - non_research vs off_topic: DO something = non_research. KNOW something outside scope = off_topic.
 - glossary vs general: Glossary only for well-defined RA terms. Broad AI questions = general.
 - project vs topic_search: "project(s)" keyword = project. "papers/publications" = topic_search.
-- topic_search vs university_papers: If a TOPIC is mentioned, use topic_search even if a university is also mentioned.
+- topic_search vs papers: If a TOPIC is mentioned, use topic_search even if a university is also mentioned.
 
 UNIVERSITIES: UMA, THUAS, USPN, UDCLV, THWS, TAMK, KK, UT
 
@@ -147,6 +147,12 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             if glossary_ctx:
                 return self._format_glossary_response(user_message, glossary_ctx)
 
+        if cat == "topic_search":
+            if hasattr(self, '_build_topic_factual_section'):
+                result = self._build_topic_factual_section(user_message)
+                if result:
+                    return result
+
         return None  # LLM fallback
 
     def _build_llm_context(self, classification: dict, user_message: str) -> str:
@@ -161,12 +167,7 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         context = self._retrieve_context(user_message)
 
         extra_ctx = ""
-        if cat == "topic_search":
-            if hasattr(self, '_build_topic_context'):
-                topic_ctx = self._build_topic_context(user_msg)
-                if topic_ctx:
-                    extra_ctx = topic_ctx
-        elif cat == "university_papers":
+        if cat == "papers":
             if hasattr(self, '_build_university_papers_context'):
                 uni_ctx = self._build_university_papers_context(user_msg)
                 if uni_ctx:
@@ -302,9 +303,9 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
     def _build_decision_trace(self, classification: dict, programmatic: bool) -> str:
         cat = classification.get("category", "general")
         all_categories = [
-            "meta", "non_research", "figure", "project", "researcher",
-            "glossary", "gap", "topic_search", "university_papers",
-            "off_topic", "followup", "general",
+            "researcher", "topic_search", "papers", "project",
+            "glossary", "figure", "meta", "non_research", "off_topic",
+            "followup", "gap", "general",
         ]
 
         lines = []

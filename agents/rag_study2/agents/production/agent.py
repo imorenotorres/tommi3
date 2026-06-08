@@ -77,7 +77,7 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         # 9. University-specific paper listing
         uni_ctx = self._build_university_papers_context(user_msg)
         if uni_ctx:
-            return {"category": "university_papers"}
+            return {"category": "papers"}
 
         # 10. Topic search
         topic_ctx = self._build_topic_context(user_msg)

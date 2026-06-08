@@ -34,6 +34,8 @@
     td { padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border); }
     tr:nth-child(even) { background: var(--bg-alt); }
     tr:hover { background: #e8f4fd; }
+    .workflow-box { padding: 1rem 1.2rem; border-radius: 0 6px 6px 0; margin-bottom: 0.8rem; }
+    .workflow-arrow { font-family: monospace; font-size: 0.9em; margin-top: 0.6rem; }
     @media (max-width: 768px) { body { padding: 1rem; font-size: 14px; } table { font-size: 0.85em; } }
     @media print { body { max-width: 100%; padding: 1rem; font-size: 12px; } }
   </style>
@@ -44,7 +46,7 @@
 
 <h2>What is this agent?</h2>
 
-<p>The Responsible AI Agent is a research assistant that answers questions about <strong>Responsible AI research</strong> within the <strong>UNINOVIS</strong> European university alliance. It draws on a curated database of scientific publications, funded research projects, and a glossary of Responsible AI concepts contributed by the 8 UNINOVIS partner universities.</p>
+<p>The Responsible AI Agent is a research assistant that answers questions about <strong>Responsible AI research</strong> within the <strong>UNINOVIS</strong> European university alliance. It draws on a curated database of scientific publications, funded research projects, and a glossary of Responsible AI concepts developed at the University of Málaga for the UNINOVIS alliance.</p>
 
 <h2>Which are the main information sources of the Agent?</h2>
 
@@ -56,48 +58,222 @@
   <li><strong>An external LLM</strong> (Large Language Model) – We use Mistral, a general-purpose AI model trained on large amounts of text from the internet. Because it is a general-purpose model, <strong style="color:#dc3545;">we cannot guarantee that the information it provides about specific topics is correct</strong>.</li>
 </ol>
 
-<h2>How does the agent select which data source to use?</h2>
+<h2>How does the agent work?</h2>
 
-<p>Information across the three sources can overlap. The agent analyses your question and selects the most appropriate source. Depending on the type of question, a different workflow is followed:</p>
+<p>When you send a question, the agent follows a four-stage cognitive workflow:</p>
 
-<div style="margin: 1.5rem 0;">
+<!-- Visual workflow diagram -->
+<div style="margin: 2rem 0; display: flex; flex-direction: column; gap: 0;">
 
-  <div style="background: #d4edda; border-left: 5px solid #28a745; padding: 1rem 1.2rem; border-radius: 0 6px 6px 0; margin-bottom: 1rem;">
-    <strong style="color: #155724;">Workflow 1 — Who, where, or how many?</strong><br/>
-    <span style="font-size: 0.95em; color: #333;">e.g. "List researchers working on AI ethics", "Show publications per university", "How many papers in 2024?"</span>
-    <div style="margin-top: 0.6rem; font-family: monospace; font-size: 0.9em; color: #155724;">
-      Your question &#10132; <strong>Metadata</strong> &#10132; Direct response (no LLM involved)
+  <!-- Stage 1: Perception -->
+  <div style="display: flex; align-items: stretch;">
+    <div style="width: 140px; min-width: 140px; background: #3498db; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95em; border-radius: 8px 0 0 0; padding: 0.8rem 0.5rem; text-align: center;">
+      1. Perception
+    </div>
+    <div style="flex: 1; background: #e8f4fd; border: 2px solid #3498db; border-left: none; border-radius: 0 8px 0 0; padding: 0.8rem 1.2rem;">
+      <strong>Receive the query</strong><br/>
+      <span style="font-size: 0.93em; color: #555;">The agent receives your question as natural language text.</span>
     </div>
   </div>
 
-  <div style="background: #fff3cd; border-left: 5px solid #ffc107; padding: 1rem 1.2rem; border-radius: 0 6px 6px 0; margin-bottom: 1rem;">
-    <strong style="color: #856404;">Workflow 2 — What does something mean? What does a paper say?</strong><br/>
-    <span style="font-size: 0.95em; color: #333;">e.g. "What is explainable AI?", "What are the findings of paper X?", "Describe the project Y"</span>
-    <div style="margin-top: 0.6rem; font-family: monospace; font-size: 0.9em; color: #856404;">
-      Your question &#10132; <strong>Documents database</strong> (relevant passages retrieved) &#10132; <strong>LLM</strong> composes the response
+  <!-- Arrow -->
+  <div style="text-align: center; font-size: 1.5rem; color: #7f8c8d; line-height: 1.2;">&#9660;</div>
+
+  <!-- Stage 2: Reasoning -->
+  <div style="display: flex; align-items: stretch;">
+    <div style="width: 140px; min-width: 140px; background: #e67e22; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95em; padding: 0.8rem 0.5rem; text-align: center;">
+      2. Reasoning
+    </div>
+    <div style="flex: 1; background: #fef5e7; border: 2px solid #e67e22; border-left: none; padding: 0.8rem 1.2rem;">
+      <strong>LLM classification</strong><br/>
+      <span style="font-size: 0.93em; color: #555;">A separate LLM call analyses your question and classifies it into one of 12 categories:</span>
+      <div style="margin-top: 0.5rem; font-size: 0.85em;">
+        <div style="display: flex; flex-wrap: wrap; gap: 4px 8px; margin-bottom: 4px;">
+          <span style="background:#d4edda; color:#155724; padding:2px 8px; border-radius:4px; border:1px solid #a3d9a5;">researcher</span>
+          <span style="background:#d4edda; color:#155724; padding:2px 8px; border-radius:4px; border:1px solid #a3d9a5;">topic_search</span>
+          <span style="background:#d4edda; color:#155724; padding:2px 8px; border-radius:4px; border:1px solid #a3d9a5;">papers</span>
+          <span style="background:#d4edda; color:#155724; padding:2px 8px; border-radius:4px; border:1px solid #a3d9a5;">project</span>
+          <span style="background:#d4edda; color:#155724; padding:2px 8px; border-radius:4px; border:1px solid #a3d9a5;">glossary</span>
+          <span style="background:#d4edda; color:#155724; padding:2px 8px; border-radius:4px; border:1px solid #a3d9a5;">figure</span>
+          <span style="background:#d4edda; color:#155724; padding:2px 8px; border-radius:4px; border:1px solid #a3d9a5;">meta</span>
+          <span style="background:#d4edda; color:#155724; padding:2px 8px; border-radius:4px; border:1px solid #a3d9a5;">non_research</span>
+          <span style="background:#d4edda; color:#155724; padding:2px 8px; border-radius:4px; border:1px solid #a3d9a5;">off_topic</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px 8px;">
+          <span style="background:#fff3cd; color:#856404; padding:2px 8px; border-radius:4px; border:1px solid #f0d77b;">followup</span>
+          <span style="background:#fff3cd; color:#856404; padding:2px 8px; border-radius:4px; border:1px solid #f0d77b;">gap</span>
+          <span style="background:#fff3cd; color:#856404; padding:2px 8px; border-radius:4px; border:1px solid #f0d77b;">general</span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div style="background: #f8d7da; border-left: 5px solid #dc3545; padding: 1rem 1.2rem; border-radius: 0 6px 6px 0; margin-bottom: 1rem;">
-    <strong style="color: #721c24;">Workflow 3 — Beyond the database</strong><br/>
-    <span style="font-size: 0.95em; color: #333;">e.g. "What research gaps exist?", "Tell me about AI regulation in China", "Write me a recipe"</span>
-    <div style="margin-top: 0.6rem; font-family: monospace; font-size: 0.9em; color: #721c24;">
-      Your question &#10132; <strong>LLM</strong> responds from its own general knowledge (no curated data involved)
+  <!-- Arrow with branch -->
+  <div style="text-align: center; font-size: 1.5rem; color: #7f8c8d; line-height: 1.2;">&#9660;</div>
+
+  <!-- Stage 3: Action (branching) -->
+  <div style="display: flex; align-items: stretch;">
+    <div style="width: 140px; min-width: 140px; background: #27ae60; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95em; padding: 0.8rem 0.5rem; text-align: center;">
+      3. Action
+    </div>
+    <div style="flex: 1; border: 2px solid #27ae60; border-left: none; padding: 0;">
+      <!-- Programmatic path -->
+      <div style="background: #d4edda; padding: 0.7rem 1.2rem; border-bottom: 1px solid #27ae60;">
+        <strong style="color: #155724;">Programmatic path</strong> (9 categories)<br/>
+        <span style="font-size: 0.93em; color: #555;">The response is built <strong>directly from the database</strong> — no LLM involved. Deterministic: the same question always produces the same answer.</span>
+      </div>
+      <!-- LLM path -->
+      <div style="background: #fff3cd; padding: 0.7rem 1.2rem;">
+        <strong style="color: #856404;">LLM-assisted path</strong> (3 categories)<br/>
+        <span style="font-size: 0.93em; color: #555;">Relevant data is retrieved from the database and passed to the LLM, which composes a response. The information is grounded, but involves AI interpretation.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow -->
+  <div style="text-align: center; font-size: 1.5rem; color: #7f8c8d; line-height: 1.2;">&#9660;</div>
+
+  <!-- Stage 4: Production -->
+  <div style="display: flex; align-items: stretch;">
+    <div style="width: 140px; min-width: 140px; background: #8e44ad; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95em; border-radius: 0 0 0 8px; padding: 0.8rem 0.5rem; text-align: center;">
+      4. Production
+    </div>
+    <div style="flex: 1; background: #f4ecf7; border: 2px solid #8e44ad; border-left: none; border-radius: 0 0 8px 0; padding: 0.8rem 1.2rem;">
+      <strong>Post-processing and delivery</strong><br/>
+      <span style="font-size: 0.93em; color: #555;">The response is verified, sanitised, and delivered to you. For LLM-assisted responses, paper references are checked against the database and PDF links are injected.</span>
     </div>
   </div>
 
 </div>
 
+<h3>Query categories</h3>
 
-<h2>Up to what point is Responsible AI a reliable information source?</h2>
+<p>The agent recognises the following types of questions. Categories marked as <strong style="color:#28a745;">programmatic</strong> produce responses directly from the database; categories marked as <strong style="color:#856404;">LLM-assisted</strong> involve the AI model.</p>
 
-<p>It depends on the data source used to answer your question. </p>
+<table>
+  <thead>
+    <tr><th>Category</th><th>What it handles</th><th>Response type</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>researcher</strong></td>
+      <td>Questions about a specific person's publications or research interests</td>
+      <td style="color:#28a745;">Programmatic</td>
+    </tr>
+    <tr>
+      <td><strong>topic_search</strong></td>
+      <td>Requests for papers on a specific research topic</td>
+      <td style="color:#28a745;">Programmatic</td>
+    </tr>
+    <tr>
+      <td><strong>papers</strong></td>
+      <td>Requests for all papers or researchers from a specific university</td>
+      <td style="color:#28a745;">Programmatic</td>
+    </tr>
+    <tr>
+      <td><strong>project</strong></td>
+      <td>Questions about funded research projects or grants</td>
+      <td style="color:#28a745;">Programmatic</td>
+    </tr>
+    <tr>
+      <td><strong>glossary</strong></td>
+      <td>Conceptual questions about Responsible AI terms (e.g. "What is explainable AI?")</td>
+      <td style="color:#28a745;">Programmatic</td>
+    </tr>
+    <tr>
+      <td><strong>figure</strong></td>
+      <td>Requests for maps, charts, or visualisations of research output</td>
+      <td style="color:#28a745;">Programmatic</td>
+    </tr>
+    <tr>
+      <td><strong>meta</strong></td>
+      <td>Questions about the agent itself ("What can you do?", "What is UNINOVIS?")</td>
+      <td style="color:#28a745;">Programmatic</td>
+    </tr>
+    <tr>
+      <td><strong>non_research</strong></td>
+      <td>Requests to perform tasks outside the agent's scope (write essays, book flights, etc.)</td>
+      <td style="color:#28a745;">Programmatic</td>
+    </tr>
+    <tr>
+      <td><strong>off_topic</strong></td>
+      <td>Questions clearly outside Responsible AI</td>
+      <td style="color:#28a745;">Programmatic</td>
+    </tr>
+    <tr>
+      <td><strong>followup</strong></td>
+      <td>Short follow-ups referring to previous context ("tell me more")</td>
+      <td style="color:#856404;">LLM-assisted</td>
+    </tr>
+    <tr>
+      <td><strong>gap</strong></td>
+      <td>Questions about research gaps, missing areas, or underexplored topics</td>
+      <td style="color:#856404;">LLM-assisted</td>
+    </tr>
+    <tr>
+      <td><strong>general</strong></td>
+      <td>Broad or ambiguous AI questions that don't match a specific category</td>
+      <td style="color:#856404;">LLM-assisted</td>
+    </tr>
+  </tbody>
+</table>
+
+
+<h2>Transparency: the Decision Trace</h2>
+
+<p>The agent can show you exactly how it understood your question and which response path it followed. This is called the <strong>Decision Trace</strong>, and it appears as a collapsible panel below each answer.</p>
+
+<p>The Decision Trace shows:</p>
 <ul>
-  <li>When the agent draws from curated metadata, the information is highly reliable.</li>
-  <li>When it retrieves and summarises document content, the underlying data is real but the presentation involves AI interpretation.</li>
-  <li>When the answer relies on the external LLM, the information is unverified and should be treated with caution.</li>
+  <li>Which <strong>category</strong> the agent assigned to your question (and which categories were ruled out)</li>
+  <li>Any <strong>entities</strong> it extracted (topic, researcher name, university, project)</li>
+  <li>Whether the response was <strong>programmatic</strong> (no LLM) or <strong>LLM-generated</strong></li>
 </ul>
-<p>To make this visible, a <strong>coloured banner</strong> appears at the top of every answer:</p>
+
+<p>This helps you understand whether the agent correctly interpreted your question. If you see an unexpected category, try rephrasing your query.</p>
+
+<h3>How to enable the Decision Trace</h3>
+
+<p>The Decision Trace is controlled by the <strong>Agent transparency</strong> setting. To enable it:</p>
+
+<ol>
+  <li>Click the <strong>gear icon</strong> (<span style="font-size:1.1em;">&#9881;</span>) in the agent information bar at the top of the chat.</li>
+  <li>Find the <strong>"Agent transparency"</strong> dropdown.</li>
+  <li>Select <strong>"crystal_box"</strong>.</li>
+  <li>Click <strong>Save</strong>.</li>
+</ol>
+
+<p>Once enabled, every response will include a <em>Decision Trace</em> section that you can expand to inspect the agent's reasoning.</p>
+
+
+<h2>Reliability</h2>
+
+<p>Not all responses are equally reliable. The reliability of an answer depends on <strong>which data source</strong> was used to produce it:</p>
+
+<table>
+  <thead>
+    <tr><th>Response type</th><th>Reliability</th><th>Why</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong style="color:#28a745;">Programmatic</strong></td>
+      <td>High</td>
+      <td>The response is built directly from curated, structured data. No AI interpretation is involved. The same question always produces the same answer.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#856404;">LLM-assisted (grounded)</strong></td>
+      <td>Medium</td>
+      <td>The LLM generates the response based on real data retrieved from the database. The information is grounded, but the AI may summarise, group, or interpret it. Check important details.</td>
+    </tr>
+    <tr>
+      <td><strong style="color:#dc3545;">LLM-assisted (ungrounded)</strong></td>
+      <td>Low</td>
+      <td>The LLM reasons beyond the database — for example, suggesting research gaps or answering off-topic questions. Verify independently before relying on this information.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To make reliability visible, a <strong>coloured banner</strong> may appear at the top of each answer:</p>
 
 <table>
   <thead>
@@ -120,6 +296,10 @@
 </table>
 
 <p><strong>Rule of thumb:</strong> green means the data is factual and traceable; yellow means the AI is interpreting real data — useful but worth double-checking; red means the AI is speculating — treat it as a starting point, not a conclusion.</p>
+
+<h3>Reliability cues visibility</h3>
+
+<p>The coloured banners can be toggled on or off. If you do not see them, click the <strong>gear icon</strong> (<span style="font-size:1.1em;">&#9881;</span>) and set <strong>"Reliability cues"</strong> to <strong>"shown"</strong>.</p>
 
 </body>
 </html>

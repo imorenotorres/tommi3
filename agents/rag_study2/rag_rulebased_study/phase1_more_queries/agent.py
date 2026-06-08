@@ -101,12 +101,12 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         # (checked before researcher to avoid false positives from name substrings)
         # Case-sensitive check for acronyms (avoid false positives on "ut", "kk")
         if re.search(r'\b(?:UMA|THUAS|USPN|UDCLV|THWS|TAMK)\b', msg):
-            return {"category": "university_papers"}
+            return {"category": "papers"}
         # KK and UT need more context to avoid false positives
         if re.search(r'\bKK\b', msg) and re.search(r'\b(?:kauno|lithuania|universit|papers?|researchers?)\b', msg_lower):
-            return {"category": "university_papers"}
+            return {"category": "papers"}
         if re.search(r'\bUT\b', msg) and re.search(r'\b(?:tirana|albania|universit|papers?|researchers?)\b', msg_lower):
-            return {"category": "university_papers"}
+            return {"category": "papers"}
         # Full university names (case-insensitive)
         uni_name_patterns = [
             r'\bm[aá]laga\b', r'\bhague\b', r'\bsorbonne\b', r'\bcampania\b',
@@ -114,7 +114,7 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             r'\bvanvitelli\b',
         ]
         if any(re.search(p, msg_lower) for p in uni_name_patterns):
-            return {"category": "university_papers"}
+            return {"category": "papers"}
 
         # 7. RESEARCHER — mentions a person's name
         if self._query_mentions_researcher(msg):

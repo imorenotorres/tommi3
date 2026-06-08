@@ -16,9 +16,9 @@ import json
 # ── All categories ─────────────────────────────────────────────────────────
 
 ALL_CATEGORIES = [
-    "meta", "non_research", "figure", "project", "researcher",
-    "glossary", "gap", "topic_search", "university_papers",
-    "off_topic", "followup", "general",
+    "researcher", "topic_search", "papers", "project",
+    "glossary", "figure", "meta", "non_research", "off_topic",
+    "followup", "gap", "general",
 ]
 
 
@@ -185,7 +185,7 @@ def build_llm_context(agent, classification: dict, user_message: str) -> str:
             topic_ctx = agent._build_topic_context(user_msg)
             if topic_ctx:
                 extra_ctx = topic_ctx
-    elif cat == "university_papers":
+    elif cat == "papers":
         if hasattr(agent, '_build_university_papers_context'):
             uni_ctx = agent._build_university_papers_context(user_msg)
             if uni_ctx:

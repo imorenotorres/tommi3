@@ -62,9 +62,9 @@
     {"query": "Publications on AI and privacy", "expected": "topic_search"},
     {"query": "Research on privacy in AI", "expected": "topic_search"},
 
-    {"query": "List all researchers from THUAS", "expected": "university_papers"},
-    {"query": "List all papers from UDCLV on AI in healthcare", "expected": "university_papers"},
-    {"query": "Who are the researchers at THUAS?", "expected": "university_papers"},
+    {"query": "List all researchers from THUAS", "expected": "papers"},
+    {"query": "List all papers from UDCLV on AI in healthcare", "expected": "papers"},
+    {"query": "Who are the researchers at THUAS?", "expected": "papers"},
     {"query": "AI in education research at UNINOVIS", "expected": "topic_search"},
 
     {"query": "What responsible AI topics have not been studied in UNINOVIS?", "expected": "gap"},
