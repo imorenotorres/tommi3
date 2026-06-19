@@ -42,6 +42,8 @@ IMPORTANT DISTINCTIONS:
 - glossary vs general: Glossary only for well-defined RA terms. Broad AI questions = general.
 - project vs topic_search: "project(s)" keyword = project. "papers/publications" = topic_search.
 - topic_search vs papers: If a TOPIC is mentioned, use topic_search even if a university is also mentioned.
+- Questions about "subtopics", "topics most studied", "most researched areas", or listing research areas = topic_search (they query the publication database).
+- off_topic is ONLY for queries completely unrelated to AI, technology, research, or higher education. When in doubt, prefer general over off_topic.
 
 UNIVERSITIES: UMA, THUAS, USPN, UDCLV, THWS, TAMK, KK, UT
 
