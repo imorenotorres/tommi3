@@ -640,6 +640,26 @@
                               ],
                               "affiliations": [],
                               "affiliation_status": "confirmed"
+                    },
+                    {
+                              "name": "Anna A. Moritz",
+                              "paper_count": 1,
+                              "topics": [
+                                        "Digital platforms",
+                                        "IT governance",
+                                        "Higher education",
+                                        "Interoperability",
+                                        "European university alliances"
+                              ],
+                              "papers": [
+                                        {
+                                                  "id": "EUNIS2026_Zamora",
+                                                  "title": "Governing Digital Platforms in European University Alliances: A Cross-Alliance Survey",
+                                                  "year": 2026
+                                        }
+                              ],
+                              "affiliations": [],
+                              "affiliation_status": "confirmed"
                     }
           ],
           "UDCLV": [
@@ -2675,6 +2695,86 @@
                               "affiliations": [
                                         "Universidad de Málaga"
                               ],
+                              "affiliation_status": "confirmed"
+                    },
+                    {
+                              "name": "Amparo Zamora-Mogollo",
+                              "paper_count": 1,
+                              "topics": [
+                                        "Digital platforms",
+                                        "IT governance",
+                                        "Higher education",
+                                        "Interoperability",
+                                        "European university alliances"
+                              ],
+                              "papers": [
+                                        {
+                                                  "id": "EUNIS2026_Zamora",
+                                                  "title": "Governing Digital Platforms in European University Alliances: A Cross-Alliance Survey",
+                                                  "year": 2026
+                                        }
+                              ],
+                              "affiliations": [],
+                              "affiliation_status": "confirmed"
+                    },
+                    {
+                              "name": "Francisca Martin-Vergara",
+                              "paper_count": 1,
+                              "topics": [
+                                        "Digital platforms",
+                                        "IT governance",
+                                        "Higher education",
+                                        "Interoperability",
+                                        "European university alliances"
+                              ],
+                              "papers": [
+                                        {
+                                                  "id": "EUNIS2026_Zamora",
+                                                  "title": "Governing Digital Platforms in European University Alliances: A Cross-Alliance Survey",
+                                                  "year": 2026
+                                        }
+                              ],
+                              "affiliations": [],
+                              "affiliation_status": "confirmed"
+                    },
+                    {
+                              "name": "Ignacio Moreno-Torres",
+                              "paper_count": 1,
+                              "topics": [
+                                        "Digital platforms",
+                                        "IT governance",
+                                        "Higher education",
+                                        "Interoperability",
+                                        "European university alliances"
+                              ],
+                              "papers": [
+                                        {
+                                                  "id": "EUNIS2026_Zamora",
+                                                  "title": "Governing Digital Platforms in European University Alliances: A Cross-Alliance Survey",
+                                                  "year": 2026
+                                        }
+                              ],
+                              "affiliations": [],
+                              "affiliation_status": "confirmed"
+                    },
+                    {
+                              "name": "Victoriano F. Giralt",
+                              "paper_count": 1,
+                              "topics": [
+                                        "Digital platforms",
+                                        "IT governance",
+                                        "Higher education",
+                                        "Interoperability",
+                                        "European university alliances"
+                              ],
+                              "papers": [
+                                        {
+                                                  "id": "EUNIS2026_Zamora",
+                                                  "title": "Governing Digital Platforms in European University Alliances: A Cross-Alliance Survey",
+                                                  "year": 2026
+                                        }
+                              ],
+                              "affiliations": [],
                               "affiliation_status": "confirmed"
                     }
           ],

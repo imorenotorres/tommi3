@@ -164,5 +164,22 @@
   "_extra_scope_terms_comment": "Additional terms that are within the Health and Wellbeing Systems domain but may not appear in the glossary or paper topics. Used by the two-axis banner system to distinguish on-topic queries from off-topic ones.",
   "reliability_cues": "shown",
   "humility_postprocessing": "moderate",
-  "decision_trace": "crystal_box_testers"
+  "decision_trace": "crystal_box_testers",
+  "_classification_comment": "LLM-based query classification routes to programmatic paths (deterministic, no LLM) or LLM fallback paths (context-augmented LLM generation).",
+  "_programmatic_paths": [
+    "researcher",
+    "topic_search",
+    "project",
+    "glossary",
+    "figure",
+    "meta",
+    "non_research",
+    "off_topic"
+  ],
+  "_llm_paths": [
+    "papers",
+    "followup",
+    "gap",
+    "general"
+  ]
 }

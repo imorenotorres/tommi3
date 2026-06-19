@@ -1429,6 +1429,81 @@
                                                   "source": "Proceedings on Privacy Enhancing Technologies",
                                                   "language": null,
                                                   "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7125651258.pdf"
+                                        },
+                                        {
+                                                  "id": "EUNIS2026_Zamora",
+                                                  "doi": "https://doi.org/10.29007/4gps",
+                                                  "title": "Governing Digital Platforms in European University Alliances: A Cross-Alliance Survey",
+                                                  "abstract": "European University Alliances (EUAs) are expected to deliver cross-border digital services through shared digital platforms; yet, evidence on governance, architecture, and interoperability remains fragmented. We report a cross-sectional survey (29 Aug 2025–8 Jan 2026) with 38 responses covering 30 alliances (approx. 46% of EUAs), complemented by a light document review. Most alliances are still consolidating platform strategy, relying heavily on institutional tools and favouring incremental integration over platform replacement. Learning management systems are a common anchor service (Moodle is the most frequently reported), while architectures tend to be distributed or hybrid rather than fully centralised. Key constraints include limited dedicated capacity, heterogeneous local IT landscapes and uneven interoperability maturity, with legal and data protection considerations frequently shaping implementation paths. We translate these findings into governance-ready recommendations on decision rights, operating models, and compliance-aware interoperability baselines to help EUAs move from pilots to sustainable cross-border service delivery.",
+                                                  "publication_date": "2026-06-01",
+                                                  "publication_year": 2026,
+                                                  "type": "conference-paper",
+                                                  "cited_by_count": 0,
+                                                  "authors": [
+                                                            {
+                                                                      "name": "Amparo Zamora-Mogollo",
+                                                                      "orcid": null
+                                                            },
+                                                            {
+                                                                      "name": "Francisca Martin-Vergara",
+                                                                      "orcid": null
+                                                            },
+                                                            {
+                                                                      "name": "Anna A. Moritz",
+                                                                      "orcid": null
+                                                            },
+                                                            {
+                                                                      "name": "Ignacio Moreno-Torres",
+                                                                      "orcid": null
+                                                            },
+                                                            {
+                                                                      "name": "Victoriano F. Giralt",
+                                                                      "orcid": null
+                                                            }
+                                                  ],
+                                                  "affiliations": [
+                                                            "Universidad de Málaga",
+                                                            "Technical University of Applied Sciences Würzburg-Schweinfurt"
+                                                  ],
+                                                  "concepts": [
+                                                            {
+                                                                      "name": "Digital platforms",
+                                                                      "score": 0.85
+                                                            },
+                                                            {
+                                                                      "name": "European university alliances",
+                                                                      "score": 0.82
+                                                            },
+                                                            {
+                                                                      "name": "Interoperability",
+                                                                      "score": 0.78
+                                                            },
+                                                            {
+                                                                      "name": "IT governance",
+                                                                      "score": 0.75
+                                                            },
+                                                            {
+                                                                      "name": "Higher education",
+                                                                      "score": 0.72
+                                                            },
+                                                            {
+                                                                      "name": "Cross-border services",
+                                                                      "score": 0.68
+                                                            },
+                                                            {
+                                                                      "name": "Survey methodology",
+                                                                      "score": 0.55
+                                                            },
+                                                            {
+                                                                      "name": "Data protection",
+                                                                      "score": 0.5
+                                                            }
+                                                  ],
+                                                  "is_open_access": true,
+                                                  "pdf_url": null,
+                                                  "source": "EPiC Series in Computing",
+                                                  "language": "en",
+                                                  "local_pdf_path": null
                                         }
                               ]
                     },
@@ -16890,6 +16965,81 @@
                                                             }
                                                   ],
                                                   "pdf_url": "https://link.springer.com/content/pdf/10.1007/s10639-025-13712-4.pdf"
+                                        },
+                                        {
+                                                  "id": "EUNIS2026_Zamora",
+                                                  "doi": "https://doi.org/10.29007/4gps",
+                                                  "title": "Governing Digital Platforms in European University Alliances: A Cross-Alliance Survey",
+                                                  "abstract": "European University Alliances (EUAs) are expected to deliver cross-border digital services through shared digital platforms; yet, evidence on governance, architecture, and interoperability remains fragmented. We report a cross-sectional survey (29 Aug 2025–8 Jan 2026) with 38 responses covering 30 alliances (approx. 46% of EUAs), complemented by a light document review. Most alliances are still consolidating platform strategy, relying heavily on institutional tools and favouring incremental integration over platform replacement. Learning management systems are a common anchor service (Moodle is the most frequently reported), while architectures tend to be distributed or hybrid rather than fully centralised. Key constraints include limited dedicated capacity, heterogeneous local IT landscapes and uneven interoperability maturity, with legal and data protection considerations frequently shaping implementation paths. We translate these findings into governance-ready recommendations on decision rights, operating models, and compliance-aware interoperability baselines to help EUAs move from pilots to sustainable cross-border service delivery.",
+                                                  "publication_date": "2026-06-01",
+                                                  "publication_year": 2026,
+                                                  "type": "conference-paper",
+                                                  "cited_by_count": 0,
+                                                  "authors": [
+                                                            {
+                                                                      "name": "Amparo Zamora-Mogollo",
+                                                                      "orcid": null
+                                                            },
+                                                            {
+                                                                      "name": "Francisca Martin-Vergara",
+                                                                      "orcid": null
+                                                            },
+                                                            {
+                                                                      "name": "Anna A. Moritz",
+                                                                      "orcid": null
+                                                            },
+                                                            {
+                                                                      "name": "Ignacio Moreno-Torres",
+                                                                      "orcid": null
+                                                            },
+                                                            {
+                                                                      "name": "Victoriano F. Giralt",
+                                                                      "orcid": null
+                                                            }
+                                                  ],
+                                                  "affiliations": [
+                                                            "Universidad de Málaga",
+                                                            "Technical University of Applied Sciences Würzburg-Schweinfurt"
+                                                  ],
+                                                  "concepts": [
+                                                            {
+                                                                      "name": "Digital platforms",
+                                                                      "score": 0.85
+                                                            },
+                                                            {
+                                                                      "name": "European university alliances",
+                                                                      "score": 0.82
+                                                            },
+                                                            {
+                                                                      "name": "Interoperability",
+                                                                      "score": 0.78
+                                                            },
+                                                            {
+                                                                      "name": "IT governance",
+                                                                      "score": 0.75
+                                                            },
+                                                            {
+                                                                      "name": "Higher education",
+                                                                      "score": 0.72
+                                                            },
+                                                            {
+                                                                      "name": "Cross-border services",
+                                                                      "score": 0.68
+                                                            },
+                                                            {
+                                                                      "name": "Survey methodology",
+                                                                      "score": 0.55
+                                                            },
+                                                            {
+                                                                      "name": "Data protection",
+                                                                      "score": 0.5
+                                                            }
+                                                  ],
+                                                  "is_open_access": true,
+                                                  "pdf_url": null,
+                                                  "source": "EPiC Series in Computing",
+                                                  "language": "en",
+                                                  "local_pdf_path": null
                                         }
                               ],
                               "papers_count": 51
