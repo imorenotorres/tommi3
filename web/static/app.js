@@ -855,7 +855,12 @@ async function loadPdfList(agentId) {
  * Replaces broken markdown/HTML link patterns containing /pdf/W... with just the paper ID.
  */
 function cleanPdfLinks(text) {
-    // Convert markdown PDF links to just "📄 PDF" text with the paper ID preserved
+    // Convert new-format markdown PDF links [W1234](/api/.../pdf/W1234.pdf) to clickable HTML
+    text = text.replace(
+        /\[(W\d{7,})\]\(([^)]*\/pdf\/W\d{7,}\.pdf[^)]*)\)/g,
+        '<a href="$2" target="_blank" rel="noopener" style="color:#2563eb;text-decoration:none;">\uD83D\uDCC4 PDF</a>'
+    );
+    // Convert old-format markdown PDF links to just "📄 PDF" text
     // The addPdfLinks function will later make paper IDs clickable
     text = text.replace(
         /\s*\[([^\]]*)\]\([^)]*\/pdf\/(W\d{7,})\.pdf[^)]*\)/g,

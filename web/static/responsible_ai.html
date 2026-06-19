@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNINOVIS — Responsible AI Research Assistant</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Leaflet for inline maps -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; background: #f8fafc; color: #1e293b; }
+
+/* Nav bar */
+.nav { background: #1e293b; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 15px; }
+.nav-sep { color: #475569; margin: 0 2px; }
+.nav-current { color: #94a3b8; font-size: 14px; }
+
+/* Main layout */
+.layout { flex: 1; display: flex; overflow: hidden; }
+
+/* Sidebar */
+.sidebar {
+    width: 280px; min-width: 280px; background: #2D3876; color: #e2e8f0;
+    display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+}
+.sidebar-content { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.sidebar-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.info-icons { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.info-icons img { height: 24px; width: 24px; cursor: help; background: rgba(255,255,255,0.85); border-radius: 4px; padding: 2px; }
+.info-icons .prompt-dot { font-size: 14px; cursor: help; background: rgba(255,255,255,0.85); border-radius: 4px; padding: 2px 5px; }
+.help-btn {
+    font-size: 12px; color: #cbd5e1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px; padding: 3px 8px; cursor: pointer; text-decoration: none; white-space: nowrap;
+}
+.help-btn:hover { background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; }
+.sidebar-desc { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+
+/* Example queries panel */
+.examples-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
+.examples-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e293b; user-select: none;
+}
+.examples-panel summary:hover { background: #f1f5f9; }
+.examples-container { background: #fff; }
+.example-btn {
+    display: block; width: 100%; padding: 8px 12px; margin: 0;
+    background: #fff; border: none; border-bottom: 1px solid #e2e8f0;
+    color: #000; font-size: 13px; text-align: left; cursor: pointer;
+    transition: background 0.15s; line-height: 1.4;
+}
+.example-btn:last-child { border-bottom: none; }
+.example-btn:hover { background: #f1f5f9; }
+
+/* Query history panel */
+.history-panel { margin-top: 4px; }
+.history-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
+.history-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e293b; user-select: none;
+}
+.history-panel summary:hover { background: #f1f5f9; }
+.history-container { max-height: 400px; overflow-y: auto; }
+.history-item {
+    padding: 8px 12px; border-top: 1px solid #e2e8f0; cursor: pointer;
+    transition: all 0.15s; border-left: 3px solid transparent; background: #fff;
+}
+.history-item:hover { background: #f1f5f9; border-left-color: #3b82f6; }
+.history-question {
+    font-size: 13px; color: #1e293b; display: -webkit-box;
+    -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;
+}
+.history-meta { font-size: 11px; color: #64748b; margin-top: 3px; }
+.history-empty { padding: 12px; color: #94a3b8; font-size: 13px; font-style: italic; }
+
+/* Sidebar footer */
+.sidebar-footer { margin-top: auto; padding-top: 16px; text-align: center; }
+.sidebar-footer img { max-width: 120px; opacity: 0.7; }
+
+/* Chat area */
+.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+.message { display: flex; flex-direction: column; gap: 4px; }
+.message.user .bubble { background: #2563eb; color: #fff; align-self: flex-end; border-radius: 12px 12px 4px 12px; }
+.message.agent .bubble { background: #fff; color: #1e293b; align-self: flex-start; border-radius: 12px 12px 12px 4px; border: 1px solid #e2e8f0; }
+.bubble { padding: 12px 16px; max-width: 98%; font-size: 14px; line-height: 1.6; word-wrap: break-word; overflow: visible; }
+.bubble p { margin: 0 0 8px; }
+.bubble p:last-child { margin-bottom: 0; }
+.bubble ul, .bubble ol { margin: 4px 0 8px 20px; }
+.bubble table { border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.bubble th, .bubble td { border: 1px solid #e2e8f0; padding: 6px 10px; text-align: left; }
+.bubble th { background: #f1f5f9; font-weight: 600; }
+.bubble strong { font-weight: 600; }
+.bubble a { color: #2563eb; }
+.bubble code { background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 13px; }
+.bubble pre { background: #f1f5f9; padding: 10px; border-radius: 6px; overflow-x: auto; margin: 8px 0; }
+.bubble pre code { background: none; padding: 0; }
+.bubble img { max-width: 100%; border-radius: 6px; }
+.bubble h1, .bubble h2, .bubble h3, .bubble h4 { margin: 12px 0 6px; }
+.loading { color: #94a3b8; font-style: italic; }
+.inline-map { width: calc(100vw - 340px); height: 600px; border-radius: 8px; margin: 8px 0; border: 1px solid #e2e8f0; }
+.inline-map-container { position: relative; }
+.inline-map-header { font-weight: 600; font-size: 14px; padding: 8px 0 4px; }
+.inline-map-panel {
+    position: absolute; top: 0; width: 280px; height: 100%; background: #fff;
+    border: 1px solid #e2e8f0; border-radius: 8px; z-index: 1000;
+    overflow-y: auto; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.panel-left { left: 0; }
+.panel-right { right: 0; }
+.panel-close { position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; }
+.panel-title { font-weight: 700; font-size: 15px; color: #1e293b; margin-bottom: 4px; padding-right: 24px; }
+.panel-country { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+.panel-count { font-size: 14px; font-weight: 600; color: #2563eb; margin-bottom: 8px; }
+.panel-papers { font-size: 13px; line-height: 1.4; }
+.panel-open-btn {
+    display: block; width: 100%; padding: 6px 12px; background: #f1f5f9; border: 1px solid #e2e8f0;
+    border-radius: 6px; font-size: 13px; color: #334155; cursor: pointer; text-align: center;
+}
+.panel-open-btn:hover { background: #e2e8f0; }
+
+/* Welcome message in chat area */
+.welcome-chat { padding: 30px 20px; color: #64748b; font-size: 14px; line-height: 1.6; text-align: center; }
+.welcome-chat h2 { color: #1e293b; font-size: 18px; margin-bottom: 8px; }
+
+/* Input area */
+.input-area { padding: 12px 20px 16px; border-top: 1px solid #e2e8f0; background: #fff; flex-shrink: 0; }
+.input-row { display: flex; gap: 8px; }
+.input-row textarea {
+    flex: 1; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 14px; font-family: inherit; resize: none; outline: none;
+    min-height: 44px; max-height: 120px;
+}
+.input-row textarea:focus { border-color: #2563eb; }
+.input-row button {
+    background: #2563eb; color: #fff; border: none; border-radius: 8px;
+    padding: 10px 20px; font-size: 14px; cursor: pointer; white-space: nowrap;
+}
+.input-row button:hover { background: #1d4ed8; }
+.input-row button:disabled { background: #94a3b8; cursor: not-allowed; }
+.disclaimer { padding: 6px 20px; text-align: center; font-size: 11px; color: #94a3b8; }
+
+/* Mobile */
+@media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 0; max-height: 200px; flex-shrink: 0; }
+    .sidebar-content { flex-direction: row; flex-wrap: wrap; gap: 8px; padding: 10px; }
+    .sidebar-title, .sidebar-desc { display: none; }
+    .examples-panel, .history-panel { flex: 1; min-width: 140px; }
+    .sidebar-footer { display: none; }
+    .chat-area { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <span class="nav-brand">UNINOVIS</span>
+    <span class="nav-sep">/</span>
+    <span class="nav-current">Responsible AI Research Assistant</span>
+</div>
+
+<div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-content">
+            <div>
+                <div class="sidebar-title" id="sidebar-title">EH: Responsible AI</div>
+                <div class="info-icons" id="info-icons">
+                    <a class="help-btn" href="/api/agents/responsible_ai3/quickguide" target="_blank" title="Quick guide — how this agent works">? Help</a>
+                </div>
+                <div class="sidebar-desc" id="sidebar-desc">Research assistant for UNINOVIS Responsible AI research.</div>
+            </div>
+
+            <div class="examples-panel">
+                <details>
+                    <summary>Example queries</summary>
+                    <div class="examples-container" id="examples-container"></div>
+                </details>
+            </div>
+
+            <div class="history-panel">
+                <details id="history-details" open>
+                    <summary>Query history</summary>
+                    <div class="history-container" id="history-container">
+                        <div class="history-empty">No queries yet</div>
+                    </div>
+                </details>
+            </div>
+
+            <div class="sidebar-footer">
+                <img src="/static/logo_uninovis.png" alt="UNINOVIS">
+                <div style="margin-top:8px; font-size:11px; color:#94a3b8;">
+                    TOMMI is licensed under the <a href="/static/license.html" target="_blank" style="color:#cbd5e1;">EUPL v1.2</a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Chat area -->
+    <div class="chat-area">
+        <div class="welcome-chat" id="welcome">
+            <h2>Responsible AI Research Assistant</h2>
+            <p id="welcome-text">Ask about responsible AI research papers, researchers, projects, and topics across the UNINOVIS alliance.</p>
+        </div>
+
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <div class="input-area">
+            <div class="input-row">
+                <textarea id="message-input" placeholder="Ask about responsible AI research..." rows="1"></textarea>
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+        <div class="disclaimer">
+            Responses are AI-generated and may contain inaccuracies. Verify important information independently.
+        </div>
+    </div>
+</div>
+
+<script>
+const AGENT_ID = 'responsible_ai3';
+let sessionId = null;
+let isLoading = false;
+let queryHistory = [];
+
+const chatMessages = document.getElementById('chat-messages');
+const messageInput = document.getElementById('message-input');
+const sendBtn = document.getElementById('send-btn');
+const welcome = document.getElementById('welcome');
+const examplesContainer = document.getElementById('examples-container');
+const historyContainer = document.getElementById('history-container');
+
+// Configure marked
+marked.setOptions({ breaks: true, gfm: true });
+
+// Load example queries from agent config
+async function loadConfig() {
+    try {
+        const resp = await fetch('/api/public-agent/responsible_ai3/config');
+        if (!resp.ok) return;
+        const cfg = await resp.json();
+
+        // Populate examples
+        const queries = cfg.example_queries || [];
+        queries.forEach(q => {
+            const btn = document.createElement('button');
+            btn.className = 'example-btn';
+            btn.innerHTML = q.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            btn.addEventListener('click', () => sendMessage(btn.textContent));
+            examplesContainer.appendChild(btn);
+        });
+
+        // Update descriptions
+        if (cfg.welcome_message) {
+            document.getElementById('welcome-text').textContent = cfg.welcome_message;
+        }
+        if (cfg.description) {
+            document.getElementById('sidebar-desc').textContent = cfg.description;
+        }
+    } catch (e) { console.warn('Could not load config'); }
+}
+
+// History management
+function addToHistory(query) {
+    // Remove duplicate if exists
+    queryHistory = queryHistory.filter(h => h.query !== query);
+    queryHistory.unshift({ query: query, time: new Date() });
+    if (queryHistory.length > 30) queryHistory.pop();
+    renderHistory();
+}
+
+function renderHistory() {
+    historyContainer.innerHTML = '';
+    if (queryHistory.length === 0) {
+        historyContainer.innerHTML = '<div class="history-empty">No queries yet</div>';
+        return;
+    }
+    queryHistory.forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+
+        const question = document.createElement('div');
+        question.className = 'history-question';
+        question.textContent = h.query;
+
+        const meta = document.createElement('div');
+        meta.className = 'history-meta';
+        meta.textContent = formatTime(h.time);
+
+        item.appendChild(question);
+        item.appendChild(meta);
+        item.addEventListener('click', () => sendMessage(h.query));
+        historyContainer.appendChild(item);
+    });
+}
+
+function formatTime(date) {
+    const d = new Date(date);
+    const now = new Date();
+    const diffMs = now - d;
+    if (diffMs < 60000) return 'Just now';
+    if (diffMs < 3600000) return Math.floor(diffMs / 60000) + ' min ago';
+    if (diffMs < 86400000) return Math.floor(diffMs / 3600000) + ' h ago';
+    return d.toLocaleDateString();
+}
+
+function addMessage(text, role) {
+    if (welcome.style.display !== 'none') {
+        welcome.style.display = 'none';
+    }
+    const msg = document.createElement('div');
+    msg.className = 'message ' + role;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    if (role === 'user') {
+        bubble.textContent = text;
+    }
+    msg.appendChild(bubble);
+    chatMessages.appendChild(msg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return bubble;
+}
+
+async function sendMessage(message) {
+    if (isLoading || !message.trim()) return;
+    isLoading = true;
+    sendBtn.disabled = true;
+    messageInput.value = '';
+
+    addToHistory(message);
+
+    const userBubble = addMessage(message, 'user');
+    const userMsg = userBubble.closest('.message');
+    const agentBubble = addMessage('', 'agent');
+    agentBubble.innerHTML = '<span class="loading">Preparing response...</span>';
+
+    const params = new URLSearchParams({ agent_id: AGENT_ID, message: message });
+    if (sessionId) params.append('session_id', sessionId);
+
+    const eventSource = new EventSource('/api/public-agent/responsible_ai3/chat/stream?' + params);
+    let responseText = '';
+    let badgeHtml = '';
+    let bannerHtml = '';
+    let traceHtml = '';
+    let hasScrolled = false;
+
+    function scrollToUser() {
+        if (hasScrolled) return;
+        hasScrolled = true;
+        if (userMsg) {
+            const cr = chatMessages.getBoundingClientRect();
+            const mr = userMsg.getBoundingClientRect();
+            chatMessages.scrollTop += mr.top - cr.top;
+        }
+    }
+
+    eventSource.addEventListener('session', (e) => { sessionId = e.data; });
+
+    eventSource.addEventListener('status', (e) => {
+        agentBubble.innerHTML = '<span class="loading">' + e.data + '</span>';
+    });
+
+    eventSource.addEventListener('badge', (e) => {
+        badgeHtml = e.data.replace(/\\n/g, '\n');
+        agentBubble.innerHTML = bannerHtml + badgeHtml;
+        scrollToUser();
+    });
+
+    eventSource.addEventListener('procedural_banner', (e) => {
+        bannerHtml = e.data.replace(/\\n/g, '\n');
+        agentBubble.innerHTML = bannerHtml;
+        scrollToUser();
+    });
+
+    eventSource.onmessage = (e) => {
+        const chunk = e.data.replace(/\\n/g, '\n');
+        responseText += chunk;
+        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(cleanPdfLinks(responseText));
+        scrollToUser();
+    };
+
+    eventSource.addEventListener('replace', (e) => {
+        responseText = e.data.replace(/\\n/g, '\n');
+        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(cleanPdfLinks(responseText));
+    });
+
+    eventSource.addEventListener('trace', (e) => {
+        traceHtml = e.data.replace(/\\n/g, '\n');
+        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(cleanPdfLinks(responseText)) + traceHtml;
+    });
+
+    eventSource.addEventListener('done', () => {
+        eventSource.close();
+        const processedText = replaceMapLinksWithPlaceholders(cleanPdfLinks(responseText));
+        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(processedText) + traceHtml;
+        renderInlineMapPlaceholders(agentBubble);
+        addPdfLinks(agentBubble);
+        agentBubble.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+        isLoading = false;
+        sendBtn.disabled = false;
+        messageInput.focus();
+        setTimeout(() => {
+            if (userMsg) {
+                const cr = chatMessages.getBoundingClientRect();
+                const mr = userMsg.getBoundingClientRect();
+                chatMessages.scrollTop += mr.top - cr.top;
+            }
+        }, 150);
+    });
+
+    eventSource.addEventListener('error', (e) => {
+        eventSource.close();
+        if (!responseText) {
+            agentBubble.innerHTML = '<span style="color:#dc3545;">Error connecting to the assistant. Please try again.</span>';
+        }
+        isLoading = false;
+        sendBtn.disabled = false;
+    });
+}
+
+// Event listeners
+sendBtn.addEventListener('click', () => sendMessage(messageInput.value));
+messageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(messageInput.value);
+    }
+});
+messageInput.addEventListener('input', () => {
+    messageInput.style.height = 'auto';
+    messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+});
+
+// ── Map & figure rendering ──
+let mapCounter = 0;
+
+function cleanPdfLinks(text) {
+    // Convert markdown PDF links [W1234](/api/.../pdf/W1234.pdf) to clickable HTML links
+    text = text.replace(/\[(W\d{7,})\]\(([^)]*\/pdf\/W\d{7,}\.pdf[^)]*)\)/g,
+        '<a href="$2" target="_blank" rel="noopener" style="color:#2563eb;text-decoration:none;">\uD83D\uDCC4 PDF</a>');
+    // Clean up any old-format markdown PDF links
+    text = text.replace(/\s*\[([^\]]*)\]\([^)]*\/pdf\/(W\d{7,})\.pdf[^)]*\)/g, '\uD83D\uDCC4 PDF');
+    text = text.replace(/<a\s[^>]*\/pdf\/(W\d{7,})\.pdf[^>]*>[^<]*<\/a>/gi, '$1');
+    text = text.replace(/api\/agents\/[^/]+\/pdf\/(W\d{7,})\.pdf"[^>]*>[^\n]*/g, '$1');
+    return text;
+}
+
+function replaceMapLinksWithPlaceholders(text) {
+    return text.replace(/\[([^\]]+)\]\(([^)]*(?:project-topic-map|projects-map|topic-map|publications-map|collaboration-map)[^)]*)\)/g, (match, linkText, href) => {
+        const mapId = 'topic-map-' + (++mapCounter);
+        let mapType = href.includes('project-topic-map') ? 'project-topic' :
+                      href.includes('projects-map') ? 'projects' :
+                      href.includes('collaboration-map') ? 'collaboration' :
+                      href.includes('publications-map') ? 'publications' : 'topic';
+        let dataUrl;
+        if (mapType === 'project-topic') dataUrl = href.replace('project-topic-map', 'project-topic-search');
+        else if (mapType === 'projects') dataUrl = href.replace('projects-map', 'projects-search');
+        else if (mapType === 'collaboration') dataUrl = href.replace('collaboration-map', 'collaboration-search');
+        else if (mapType === 'publications') dataUrl = href.replace('publications-map', 'publications-search');
+        else dataUrl = href.replace('topic-map', 'topic-search');
+
+        // Fix topic URL encoding
+        const topicMatch = dataUrl.match(/([?&]topic=)(.+)/);
+        if (topicMatch) {
+            const prefix = dataUrl.substring(0, topicMatch.index) + topicMatch[1];
+            let rawTopic = topicMatch[2];
+            let suffix = '';
+            const nextParam = rawTopic.match(/&([a-z_]+=)/i);
+            if (nextParam) { suffix = rawTopic.substring(nextParam.index); rawTopic = rawTopic.substring(0, nextParam.index); }
+            try { rawTopic = decodeURIComponent(rawTopic); } catch(e) {}
+            dataUrl = prefix + encodeURIComponent(rawTopic.trim()) + suffix;
+        }
+        const safeUrl = dataUrl.replace(/&/g, '&amp;');
+        return '<div class="inline-map-container"><div class="inline-map-header" style="font-weight:600;font-size:14px;padding:8px 0 4px;">' + linkText + '</div><div id="' + mapId + '" class="inline-map" data-map-url="' + safeUrl + '" data-map-type="' + mapType + '"><span class="loading" style="padding:12px;display:block;">Loading map...</span></div></div>';
+    });
+}
+
+function renderInlineMapPlaceholders(container) {
+    const mapDivs = container.querySelectorAll('.inline-map[data-map-url]');
+    mapDivs.forEach(async (mapDiv) => {
+        const url = mapDiv.getAttribute('data-map-url');
+        const mapId = mapDiv.id;
+        const mapType = mapDiv.getAttribute('data-map-type') || 'topic';
+        try {
+            const resp = await fetch(url);
+            const result = await resp.json();
+            mapDiv.innerHTML = '';
+            const mapOptions = { minZoom: 3, maxZoom: 10, zoomControl: true, attributionControl: false };
+            const map = L.map(mapId, mapOptions);
+            map.setView([50, 10], 4);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 10 }).addTo(map);
+
+            if (mapType === 'collaboration') {
+                const unis = result.universities || {};
+                const connections = result.connections || [];
+                const maxConnCount = Math.max(...connections.map(c => c.count), 1);
+
+                function showPanel(mapDiv, title, subtitle, countText, papersHtml, midLon) {
+                    const ctr = mapDiv.closest('.inline-map-container');
+                    const existing = ctr.querySelector('.inline-map-panel');
+                    if (existing) existing.remove();
+                    const panel = document.createElement('div');
+                    const isWest = midLon < 10;
+                    panel.className = 'inline-map-panel ' + (isWest ? 'panel-left' : 'panel-right');
+                    let html = '<button class="panel-close">&times;</button>';
+                    html += '<div class="panel-title">' + title + '</div>';
+                    if (subtitle) html += '<div class="panel-country">' + subtitle + '</div>';
+                    html += '<div class="panel-count">' + countText + '</div>';
+                    if (papersHtml) html += '<div class="panel-papers">' + papersHtml + '</div>';
+                    panel.innerHTML = html;
+                    ctr.appendChild(panel);
+                    panel.querySelector('.panel-close').addEventListener('click', (e) => { e.stopPropagation(); panel.remove(); });
+                }
+
+                connections.forEach(conn => {
+                    const fromUni = unis[conn.from], toUni = unis[conn.to];
+                    if (!fromUni || !toUni || !fromUni.lat || !toUni.lat) return;
+                    const latlngs = [[fromUni.lat, fromUni.lon], [toUni.lat, toUni.lon]];
+                    const weight = Math.max(1.5, Math.min(5, 1.5 + (conn.count / maxConnCount) * 3.5));
+                    const line = L.polyline(latlngs, { color: '#7c3aed', weight, opacity: 0.7 }).addTo(map);
+                    const midLat = (fromUni.lat + toUni.lat) / 2, midLon = (fromUni.lon + toUni.lon) / 2;
+                    const labelIcon = L.divIcon({ className: '', html: '<div style="background:#7c3aed;color:#fff;font-weight:700;font-size:13px;border-radius:12px;padding:2px 8px;text-align:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.25);">' + conn.count + '</div>', iconSize: [32, 24], iconAnchor: [16, 12] });
+                    const labelMarker = L.marker([midLat, midLon], { icon: labelIcon, interactive: true, zIndexOffset: 1000 }).addTo(map);
+                    let papersHtml = '';
+                    if (conn.papers && conn.papers.length > 0) {
+                        conn.papers.forEach(p => {
+                            const authors = p.authors ? p.authors.slice(0, 3).join(', ') : '';
+                            const doi = p.doi ? ' — <a href="' + p.doi + '" target="_blank" style="color:#7c3aed;">DOI</a>' : '';
+                            papersHtml += '<div style="padding:6px 0;border-bottom:1px solid #e2e8f0;"><b>' + (p.title || 'Untitled') + '</b><br><span style="color:#64748b;">' + authors + (p.year ? ' (' + p.year + ')' : '') + doi + '</span></div>';
+                        });
+                    }
+                    const openPanel = () => showPanel(mapDiv, conn.from + ' \u2194 ' + conn.to, fromUni.name + ' & ' + toUni.name, conn.count + ' shared paper(s)', papersHtml, midLon);
+                    line.on('click', openPanel);
+                    labelMarker.on('click', openPanel);
+                });
+
+                Object.entries(unis).forEach(([acronym, uni]) => {
+                    if (!uni.lat || !uni.lon) return;
+                    const hasCollabs = (uni.collab_count || 0) > 0;
+                    const size = 32, color = hasCollabs ? '#7c3aed' : '#cbd5e1', borderColor = hasCollabs ? '#5b21b6' : '#94a3b8';
+                    const icon = L.divIcon({ className: '', html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + color + ';border:2px solid ' + borderColor + ';opacity:' + (hasCollabs ? 0.9 : 0.6) + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:11px;text-shadow:0 1px 2px rgba(0,0,0,0.4);">' + acronym + '</div>', iconSize: [size, size], iconAnchor: [size/2, size/2] });
+                    L.marker([uni.lat, uni.lon], { icon }).addTo(map).on('click', () => showPanel(mapDiv, acronym + ' \u2014 ' + uni.name, uni.country, (uni.collab_count || 0) + ' collaboration paper(s)', '', uni.lon));
+                });
+
+            } else if (mapType === 'projects' || mapType === 'project-topic') {
+                const data = result.universities || {};
+                const maxCount = Math.max(...Object.values(data).map(u => u.count), 1);
+                Object.entries(data).forEach(([acronym, uni]) => {
+                    if (!uni.lat || !uni.lon) return;
+                    const size = uni.count > 0 ? Math.max(36, Math.min(56, 36 + (uni.count / maxCount) * 20)) : 24;
+                    const color = uni.count > 0 ? '#059669' : '#cbd5e1', borderColor = uni.count > 0 ? '#047857' : '#94a3b8';
+                    const icon = L.divIcon({ className: '', html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + color + ';border:2px solid ' + borderColor + ';opacity:' + (uni.count > 0 ? 0.9 : 0.6) + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,0.5);">' + uni.count + '</div>', iconSize: [size, size], iconAnchor: [size/2, size/2] });
+                    const marker = L.marker([uni.lat, uni.lon], { icon }).addTo(map);
+
+                    let projectsHtml = '';
+                    if (uni.projects && uni.projects.length > 0) {
+                        uni.projects.forEach(p => {
+                            const keywords = p.keywords ? p.keywords.join(', ') : '';
+                            const participants = p.participants ? p.participants.join(', ') : '';
+                            const researchers = p.uninovis_researchers ? p.uninovis_researchers.map(r => r.name).join(', ') : '';
+                            projectsHtml += '<div style="padding:8px 0;border-bottom:1px solid #e2e8f0;">';
+                            projectsHtml += '<b>' + (p.title || 'Untitled') + '</b>';
+                            if (p.website) projectsHtml += ' <a href="' + p.website + '" target="_blank" style="color:#059669;font-size:0.85em;">Website</a>';
+                            projectsHtml += '<br><span style="color:#64748b;">Grant: ' + (p.grant_id || '\u2014');
+                            if (p.funder) projectsHtml += ' \u2014 ' + p.funder;
+                            if (p.period) projectsHtml += ' \u2014 ' + p.period;
+                            if (p.status) projectsHtml += ' (' + p.status + ')';
+                            projectsHtml += '</span>';
+                            if (p.total_cost) projectsHtml += '<br><span style="color:#64748b;">Budget: ' + p.total_cost + '</span>';
+                            if (researchers) projectsHtml += '<br><span style="color:#059669;font-size:0.9em;"><b>UNINOVIS researchers:</b> ' + researchers + '</span>';
+                            if (participants) projectsHtml += '<br><span style="color:#475569;font-size:0.9em;"><b>Participants:</b> ' + participants + '</span>';
+                            if (keywords) projectsHtml += '<br><span style="color:#64748b;font-size:0.85em;">Keywords: ' + keywords + '</span>';
+                            projectsHtml += '</div>';
+                        });
+                    }
+                    const isWest = uni.lon < 10;
+                    marker.on('click', function() {
+                        const ctr = mapDiv.closest('.inline-map-container');
+                        const existing = ctr.querySelector('.inline-map-panel');
+                        if (existing) existing.remove();
+                        const panel = document.createElement('div');
+                        panel.className = 'inline-map-panel ' + (isWest ? 'panel-left' : 'panel-right');
+                        let html = '<button class="panel-close">&times;</button>';
+                        html += '<div class="panel-title">' + acronym + ' \u2014 ' + uni.name + '</div>';
+                        html += '<div class="panel-country">' + (uni.country || '') + '</div>';
+                        html += '<button class="panel-open-btn" style="margin-bottom:10px;">Open in new window</button>';
+                        html += '<div class="panel-count" style="color:#059669;">' + uni.count + ' project(s)</div>';
+                        if (projectsHtml) html += '<div class="panel-papers">' + projectsHtml + '</div>';
+                        html += '<button class="panel-open-btn">Open in new window</button>';
+                        panel.innerHTML = html;
+                        ctr.appendChild(panel);
+                        panel.querySelector('.panel-close').addEventListener('click', (e) => { e.stopPropagation(); panel.remove(); });
+                        panel.querySelectorAll('.panel-open-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const w = window.open('', '_blank', 'width=700,height=600');
+                                w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + acronym + ' \u2014 Projects</title><style>body{font-family:system-ui,sans-serif;margin:20px;color:#1a1a1a;line-height:1.6;}b{color:#334155;}</style></head><body><h2>' + acronym + ' \u2014 ' + uni.name + '</h2><p style="color:#059669;font-weight:600;">' + uni.count + ' project(s)</p>' + projectsHtml + '</body></html>');
+                                w.document.close();
+                            });
+                        });
+                    });
+                });
+
+            } else {
+                // Topic / Publications map
+                const data = result.universities || {};
+                const maxCount = Math.max(...Object.values(data).map(u => u.count), 1);
+                Object.entries(data).forEach(([acronym, uni]) => {
+                    if (!uni.lat || !uni.lon) return;
+                    const size = uni.count > 0 ? Math.max(36, Math.min(56, 36 + (uni.count / maxCount) * 20)) : 24;
+                    const color = uni.count > 0 ? '#2563eb' : '#cbd5e1', borderColor = uni.count > 0 ? '#1e40af' : '#94a3b8';
+                    const icon = L.divIcon({ className: '', html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + color + ';border:2px solid ' + borderColor + ';opacity:' + (uni.count > 0 ? 0.9 : 0.6) + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,0.5);">' + uni.count + '</div>', iconSize: [size, size], iconAnchor: [size/2, size/2] });
+                    const marker = L.marker([uni.lat, uni.lon], { icon }).addTo(map);
+
+                    let papersHtml = '';
+                    if (uni.papers && uni.papers.length > 0) {
+                        uni.papers.forEach(p => {
+                            const authors = p.authors ? p.authors.slice(0, 3).join(', ') : '';
+                            const doi = p.doi ? ' — <a href="' + p.doi + '" target="_blank" style="color:#2563eb;">DOI</a>' : '';
+                            papersHtml += '<div style="padding:6px 0;border-bottom:1px solid #e2e8f0;"><b>' + (p.title || 'Untitled') + '</b><br><span style="color:#64748b;">' + authors + (p.year ? ' (' + p.year + ')' : '') + (p.cited_by_count ? ' \u2014 Cited: ' + p.cited_by_count : '') + doi + '</span></div>';
+                        });
+                    }
+                    const isWest = uni.lon < 10;
+                    marker.on('click', function() {
+                        const ctr = mapDiv.closest('.inline-map-container');
+                        const existing = ctr.querySelector('.inline-map-panel');
+                        if (existing) existing.remove();
+                        const panel = document.createElement('div');
+                        panel.className = 'inline-map-panel ' + (isWest ? 'panel-left' : 'panel-right');
+                        let html = '<button class="panel-close">&times;</button>';
+                        html += '<div class="panel-title">' + acronym + ' \u2014 ' + uni.name + '</div>';
+                        html += '<div class="panel-country">' + (uni.country || '') + '</div>';
+                        html += '<button class="panel-open-btn" style="margin-bottom:10px;">Open in new window</button>';
+                        html += '<div class="panel-count">' + uni.count + ' paper(s)</div>';
+                        if (papersHtml) html += '<div class="panel-papers">' + papersHtml + '</div>';
+                        html += '<button class="panel-open-btn">Open in new window</button>';
+                        panel.innerHTML = html;
+                        ctr.appendChild(panel);
+                        panel.querySelector('.panel-close').addEventListener('click', (e) => { e.stopPropagation(); panel.remove(); });
+                        panel.querySelectorAll('.panel-open-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const w = window.open('', '_blank', 'width=700,height=600');
+                                w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + acronym + ' \u2014 Papers</title><style>body{font-family:system-ui,sans-serif;margin:20px;color:#1a1a1a;line-height:1.6;}b{color:#334155;}</style></head><body><h2>' + acronym + ' \u2014 ' + uni.name + '</h2><p style="color:#2563eb;font-weight:600;">' + uni.count + ' paper(s)</p>' + papersHtml + '</body></html>');
+                                w.document.close();
+                            });
+                        });
+                    });
+                });
+            }
+
+            setTimeout(() => { map.invalidateSize(); map.setView([50, 10], 4); }, 500);
+        } catch (err) {
+            console.error('Error loading inline map:', err);
+            mapDiv.innerHTML = '<p style="color:#ef4444;padding:12px;">Error loading map</p>';
+        }
+    });
+}
+
+// ── PDF link handling ──
+let pdfSet = null;
+
+async function loadPdfList() {
+    if (pdfSet) return pdfSet;
+    try {
+        const resp = await fetch('/api/agents/responsible_ai3/pdf-list');
+        const data = await resp.json();
+        pdfSet = new Set(data.pdfs || []);
+    } catch (e) { pdfSet = new Set(); }
+    return pdfSet;
+}
+
+function addPdfLinks(container) {
+    loadPdfList().then(pdfs => {
+        if (pdfs.size === 0) return;
+        // Fix existing broken PDF links
+        container.querySelectorAll('a[href*="/pdf/"]').forEach(a => {
+            const match = a.href.match(/(W\d{7,})(?:[^0-9]|$)/);
+            if (match) {
+                if (!pdfs.has(match[1])) { a.replaceWith(document.createTextNode(a.textContent)); return; }
+                a.href = '/api/agents/responsible_ai3/pdf/' + match[1] + '.pdf';
+            }
+            a.target = '_blank'; a.rel = 'noopener';
+        });
+        // Add PDF links next to paper IDs in text
+        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(textNode => {
+            const text = textNode.textContent;
+            if (!/W\d{7,}/.test(text)) return;
+            if (textNode.parentElement.closest('a')) return;
+            const parentText = textNode.parentElement.textContent;
+            const parts = text.split(/(W\d{7,})/);
+            if (parts.length <= 1) return;
+            const frag = document.createDocumentFragment();
+            parts.forEach(part => {
+                const idMatch = part.match(/^(W\d{7,})$/);
+                if (idMatch && pdfs.has(idMatch[1])) {
+                    frag.appendChild(document.createTextNode(part));
+                    const idPos = parentText.indexOf(idMatch[1]);
+                    const nearby = idPos >= 0 ? parentText.substring(idPos, idPos + 200) : '';
+                    if (!/not in database|hallucination/i.test(nearby)) {
+                        const link = document.createElement('a');
+                        link.href = '/api/agents/responsible_ai3/pdf/' + idMatch[1] + '.pdf';
+                        link.textContent = '\uD83D\uDCC4 PDF';
+                        link.target = '_blank';
+                        link.rel = 'noopener';
+                        link.style.cssText = 'margin-left:4px;color:#2563eb;text-decoration:none;font-size:13px;';
+                        frag.appendChild(link);
+                    }
+                } else {
+                    frag.appendChild(document.createTextNode(part));
+                }
+            });
+            textNode.parentNode.replaceChild(frag, textNode);
+        });
+    });
+}
+
+// Load agent info icons (type, LLM, prompt level, transparency)
+async function loadIcons() {
+    try {
+        const resp = await fetch('/api/public-agent/responsible_ai3/info');
+        if (!resp.ok) return;
+        const info = await resp.json();
+        const row = document.getElementById('info-icons');
+
+        // Agent type icon
+        if (info.agent_type) {
+            const img = document.createElement('img');
+            img.src = '/img/' + info.agent_type + '.svg';
+            img.alt = info.agent_type_label || info.agent_type;
+            img.title = 'Agent type: ' + (info.agent_type_label || info.agent_type);
+            row.appendChild(img);
+        }
+
+        // LLM provider icon
+        const llmImg = document.createElement('img');
+        llmImg.src = info.is_local ? '/static/icon_llm_local.svg' : '/static/icon_llm_cloud.svg';
+        llmImg.title = 'LLM: ' + (info.model || 'Unknown') + (info.is_local ? ' (local)' : ' (cloud)');
+        row.appendChild(llmImg);
+
+        // Prompt level dot
+        if (info.prompt_level) {
+            const dots = { stringent: '\uD83D\uDFE2', tolerant: '\uD83D\uDFE1', lax: '\uD83D\uDD34' };
+            const labels = { stringent: 'Stringent', tolerant: 'Tolerant', lax: 'Lax' };
+            const span = document.createElement('span');
+            span.className = 'prompt-dot';
+            span.textContent = dots[info.prompt_level] || dots.stringent;
+            span.title = 'System prompt: ' + (labels[info.prompt_level] || info.prompt_level);
+            row.appendChild(span);
+        }
+
+        // Transparency icon (crystal/black box)
+        if (info.decision_trace) {
+            const isCrystal = info.decision_trace === 'crystal_box' || info.decision_trace === 'crystal_box_testers';
+            const img = document.createElement('img');
+            img.src = isCrystal ? '/static/icon_crystal_box.svg' : '/static/icon_black_box.svg';
+            img.title = 'Agent transparency: ' + (isCrystal ? 'Crystal box' : 'Black box');
+            row.appendChild(img);
+        }
+
+        // Reliability cues icon
+        if (info.reliability_cues) {
+            const img = document.createElement('img');
+            img.src = info.reliability_cues === 'shown' ? '/static/icon_reliability_on.svg' : '/static/icon_reliability_off.svg';
+            img.title = 'Reliability cues: ' + (info.reliability_cues === 'shown' ? 'Shown' : 'Hidden');
+            row.appendChild(img);
+        }
+
+        // Update title
+        if (info.agent_name) {
+            document.getElementById('sidebar-title').textContent = info.agent_name;
+        }
+    } catch (e) { console.warn('Could not load agent info'); }
+}
+
+loadConfig();
+loadIcons();
+</script>
+</body>
+</html>

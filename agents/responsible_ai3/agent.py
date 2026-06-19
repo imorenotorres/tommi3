@@ -229,6 +229,7 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
 
     async def chat_stream(self, user_message: str, history: list = None, **kwargs):
         model = kwargs.get('model_override') or self.model
+        show_banners = self._show_procedural_banners
 
         if not self._chromadb_initialized:
             init_msg = getattr(self, '_init_status_message', "Initializing...")
@@ -245,6 +246,10 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         result = self._dispatch(classification, user_message)
         if result is not None:
             result = self._sanitize_authority(result)
+            # Programmatic banner (green) — if not already embedded in the result
+            if show_banners and '\U0001F7E2' not in result:
+                from base.simple_vectorless_mixin import _banner_verified
+                yield ("procedural_banner", _banner_verified())
             yield result
 
             # Decision trace (if crystal_box)
@@ -257,6 +262,28 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
 
         # Step 3: LLM fallback with targeted context
         system = self._build_llm_context(classification, user_message)
+
+        # For gap queries: show factual topics first (green), then LLM analysis (red)
+        if show_banners and cat == "gap":
+            from base.simple_vectorless_mixin import _banner_verified, _banner_unverified
+            topics = self.get_top_topics(top_n=25) if hasattr(self, 'get_top_topics') else []
+            if topics:
+                factual_lines = ["**Research topics currently studied in UNINOVIS** (from the database):\n"]
+                for t in topics:
+                    unis = ", ".join(t["universities"])
+                    factual_lines.append(f"- **{t['topic']}**: {t['paper_count']} papers ({unis})")
+                factual_section = "\n".join(factual_lines) + "\n\n---\n\n"
+                yield ("procedural_banner", _banner_verified(
+                    f"{len(topics)} research topics from the UNINOVIS database (no AI involved)."))
+                yield factual_section
+                yield ("procedural_banner",
+                    _banner_verified(f"{len(topics)} research topics from the UNINOVIS database (no AI involved).")
+                    + _banner_unverified(
+                    "The gap analysis below is AI-generated. The LLM reasons beyond the database. Verify independently."))
+        elif show_banners:
+            from base.simple_vectorless_mixin import _banner_database
+            yield ("procedural_banner", _banner_database())
+
         messages = [{"role": "system", "content": system}]
         if history:
             messages.extend(history)

@@ -53,9 +53,24 @@
 <p>The agent has three sources of information:</p>
 
 <ol>
-  <li><strong>Metadata</strong> – A structured list of authors, their universities, research topics, and publication records within the UNINOVIS alliance. This data has been <strong style="color:#28a745;">curated by UNINOVIS staff</strong> from public academic sources.</li>
-  <li><strong>A documents database</strong> – The PDF papers produced by the authors, the funded research projects in which they have participated, and a glossary of Responsible AI concepts. The list of documents included in the database was <strong style="color:#28a745;">selected by UNINOVIS staff</strong>.</li>
-  <li><strong>An external LLM</strong> (Large Language Model) – We use Mistral, a general-purpose AI model trained on large amounts of text from the internet. Because it is a general-purpose model, <strong style="color:#dc3545;">we cannot guarantee that the information it provides about specific topics is correct</strong>.</li>
+  <li>
+    <strong>Metadata</strong> – A structured list of authors, their universities, research topics, and publication records within the UNINOVIS alliance. This data has been <strong style="color:#28a745;">curated by UNINOVIS staff</strong> from public academic sources.
+    <div style="background:#d4edda; border-left:4px solid #28a745; padding:0.6rem 1rem; margin:0.5rem 0; border-radius:0 6px 6px 0; font-size:0.93em;">
+      <strong>Example:</strong> <em>"List researchers that have interest in AI and Ethics"</em> — The agent looks up the structured metadata to find authors whose publications are tagged with AI ethics topics, and returns verified lists of researchers, their universities, and paper counts.
+    </div>
+  </li>
+  <li>
+    <strong>A documents database</strong> – The PDF papers produced by the authors, the funded research projects in which they have participated, and a glossary of Responsible AI concepts. The list of documents included in the database was <strong style="color:#28a745;">selected by UNINOVIS staff</strong>.
+    <div style="background:#d4edda; border-left:4px solid #28a745; padding:0.6rem 1rem; margin:0.5rem 0; border-radius:0 6px 6px 0; font-size:0.93em;">
+      <strong>Example:</strong> <em>"What is explainable AI?"</em> — The agent retrieves the definition directly from the curated Responsible AI glossary. Similarly, <em>"List research projects on trustworthy AI"</em> returns project details (title, grant ID, funder, participants) from the projects database.
+    </div>
+  </li>
+  <li>
+    <strong>An external LLM</strong> (Large Language Model) – We use Mistral, a general-purpose AI model trained on large amounts of text from the internet. Because it is a general-purpose model, <strong style="color:#dc3545;">we cannot guarantee that the information it provides about specific topics is correct</strong>.
+    <div style="background:#fff3cd; border-left:4px solid #ffc107; padding:0.6rem 1rem; margin:0.5rem 0; border-radius:0 6px 6px 0; font-size:0.93em;">
+      <strong>Example:</strong> <em>"What topics related to responsible AI have not been studied in UNINOVIS?"</em> — The agent retrieves the list of topics covered in the database and passes it to the LLM, which identifies potential gaps by comparing against its general knowledge. The gap suggestions are AI-generated and should be verified independently.
+    </div>
+  </li>
 </ol>
 
 <h2>How does the agent work?</h2>
@@ -152,67 +167,79 @@
 
 <table>
   <thead>
-    <tr><th>Category</th><th>What it handles</th><th>Response type</th></tr>
+    <tr><th>Category</th><th>What it handles</th><th>Example query</th><th>Response type</th></tr>
   </thead>
   <tbody>
     <tr>
       <td><strong>researcher</strong></td>
       <td>Questions about a specific person's publications or research interests</td>
+      <td><em>"What has Rubén González Vallejo published?"</em></td>
       <td style="color:#28a745;">Programmatic</td>
     </tr>
     <tr>
       <td><strong>topic_search</strong></td>
       <td>Requests for papers on a specific research topic</td>
+      <td><em>"List researchers that have interest in AI and Ethics"</em></td>
       <td style="color:#28a745;">Programmatic</td>
     </tr>
     <tr>
       <td><strong>papers</strong></td>
       <td>Requests for all papers or researchers from a specific university</td>
+      <td><em>"Show me all papers from THWS"</em></td>
       <td style="color:#28a745;">Programmatic</td>
     </tr>
     <tr>
       <td><strong>project</strong></td>
       <td>Questions about funded research projects or grants</td>
+      <td><em>"List research projects on trustworthy AI"</em></td>
       <td style="color:#28a745;">Programmatic</td>
     </tr>
     <tr>
       <td><strong>glossary</strong></td>
-      <td>Conceptual questions about Responsible AI terms (e.g. "What is explainable AI?")</td>
+      <td>Conceptual questions about Responsible AI terms</td>
+      <td><em>"What is explainable AI?"</em></td>
       <td style="color:#28a745;">Programmatic</td>
     </tr>
     <tr>
       <td><strong>figure</strong></td>
       <td>Requests for maps, charts, or visualisations of research output</td>
+      <td><em>"Show a figure with all the publications per partner"</em></td>
       <td style="color:#28a745;">Programmatic</td>
     </tr>
     <tr>
       <td><strong>meta</strong></td>
-      <td>Questions about the agent itself ("What can you do?", "What is UNINOVIS?")</td>
+      <td>Questions about the agent itself</td>
+      <td><em>"What can you do?"</em></td>
       <td style="color:#28a745;">Programmatic</td>
     </tr>
     <tr>
       <td><strong>non_research</strong></td>
-      <td>Requests to perform tasks outside the agent's scope (write essays, book flights, etc.)</td>
+      <td>Requests to perform tasks outside the agent's scope</td>
+      <td><em>"Write me an essay about climate change"</em></td>
       <td style="color:#28a745;">Programmatic</td>
     </tr>
     <tr>
       <td><strong>off_topic</strong></td>
       <td>Questions clearly outside Responsible AI</td>
+      <td><em>"Tell me an AI responsible hot chocolate recipe"</em></td>
       <td style="color:#28a745;">Programmatic</td>
     </tr>
     <tr>
       <td><strong>followup</strong></td>
-      <td>Short follow-ups referring to previous context ("tell me more")</td>
+      <td>Short follow-ups referring to previous context</td>
+      <td><em>"Tell me more about the first paper"</em></td>
       <td style="color:#856404;">LLM-assisted</td>
     </tr>
     <tr>
       <td><strong>gap</strong></td>
       <td>Questions about research gaps, missing areas, or underexplored topics</td>
+      <td><em>"What topics related to responsible AI have not been studied?"</em></td>
       <td style="color:#856404;">LLM-assisted</td>
     </tr>
     <tr>
       <td><strong>general</strong></td>
       <td>Broad or ambiguous AI questions that don't match a specific category</td>
+      <td><em>"What is the relationship between AI fairness and bias?"</em></td>
       <td style="color:#856404;">LLM-assisted</td>
     </tr>
   </tbody>
@@ -232,18 +259,6 @@
 
 <p>This helps you understand whether the agent correctly interpreted your question. If you see an unexpected category, try rephrasing your query.</p>
 
-<h3>How to enable the Decision Trace</h3>
-
-<p>The Decision Trace is controlled by the <strong>Agent transparency</strong> setting. To enable it:</p>
-
-<ol>
-  <li>Click the <strong>gear icon</strong> (<span style="font-size:1.1em;">&#9881;</span>) in the agent information bar at the top of the chat.</li>
-  <li>Find the <strong>"Agent transparency"</strong> dropdown.</li>
-  <li>Select <strong>"crystal_box"</strong>.</li>
-  <li>Click <strong>Save</strong>.</li>
-</ol>
-
-<p>Once enabled, every response will include a <em>Decision Trace</em> section that you can expand to inspect the agent's reasoning.</p>
 
 
 <h2>Reliability</h2>
@@ -268,7 +283,7 @@
     <tr>
       <td><strong style="color:#dc3545;">LLM-assisted (ungrounded)</strong></td>
       <td>Low</td>
-      <td>The LLM reasons beyond the database — for example, suggesting research gaps or answering off-topic questions. Verify independently before relying on this information.</td>
+      <td>The LLM reasons beyond the database — for example, suggesting research gaps based on the topics already covered. The list of studied topics is factual (from the database), but the gap suggestions are AI-generated and should be verified independently.</td>
     </tr>
   </tbody>
 </table>

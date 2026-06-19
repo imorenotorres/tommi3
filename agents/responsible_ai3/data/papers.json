@@ -71,7 +71,8 @@
                                                   "pdf_url": "https://doi.org/10.59476/ilpmt2024.100-106",
                                                   "source": "Innovations in Publishing Printing and Multimedia Technologies",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Sarlauskiene_et_al"
                                         },
                                         {
                                                   "id": "W4411160104",
@@ -133,7 +134,8 @@
                                                   "pdf_url": "https://journals.ru.lv/index.php/ETR/article/download/8505/6952",
                                                   "source": "Environment Technology Resources Proceedings of the International Scientific and Practical Conference",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Vasiliauskiene_et_al"
                                         },
                                         {
                                                   "id": "W4391676703",
@@ -192,7 +194,8 @@
                                                   "pdf_url": "https://journals.gen.tr/index.php/jlecon/article/download/2294/1543",
                                                   "source": "Journal of Life Economics",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4391676703.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4391676703.pdf",
+                                                  "citation_key": "2024_Israfilzade_et_al"
                                         },
                                         {
                                                   "id": "W4413181039",
@@ -234,7 +237,8 @@
                                                   "pdf_url": "https://www.epess.net/index.php/epess/article/download/906/929",
                                                   "source": "The Eurasia Proceedings of Educational and Social Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4413181039.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4413181039.pdf",
+                                                  "citation_key": "2025_Israfilzade"
                                         },
                                         {
                                                   "id": "W4411641989",
@@ -289,7 +293,8 @@
                                                   "pdf_url": "https://toknowpress.net/submission/index.php/ijmkl/article/view/203/136",
                                                   "source": "International Journal of Management Knowledge and Learning",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4411641989.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4411641989.pdf",
+                                                  "citation_key": "2025_Gabelaia_et_al"
                                         },
                                         {
                                                   "id": "W4397032894",
@@ -351,7 +356,8 @@
                                                   "pdf_url": "https://toknowpress.net/submission/index.php/ijmkl/article/view/150/94",
                                                   "source": "International Journal of Management Knowledge and Learning",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4397032894.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4397032894.pdf",
+                                                  "citation_key": "2024_Gabelaia_et_al"
                                         },
                                         {
                                                   "id": "W4410858606",
@@ -436,7 +442,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2071-1050/17/11/5006/pdf?version=1748523126",
                                                   "source": "Sustainability",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Atalay_et_al"
                                         }
                               ]
                     },
@@ -507,7 +514,8 @@
                                                   "pdf_url": "http://www.theseus.fi/bitstream/10024/898565/2/Tambekar_Nikhil.pdf",
                                                   "source": "Theseus (Ammattikorkeakoulujen)",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7111586712.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7111586712.pdf",
+                                                  "citation_key": "2025_Nikhil"
                                         },
                                         {
                                                   "id": "W7113514217",
@@ -557,7 +565,8 @@
                                                   "pdf_url": null,
                                                   "source": "Theseus (Ammattikorkeakoulujen)",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7113514217.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7113514217.pdf",
+                                                  "citation_key": "2025_Ejezie"
                                         },
                                         {
                                                   "id": "W7114943744",
@@ -615,7 +624,8 @@
                                                   "pdf_url": null,
                                                   "source": "Theseus (Ammattikorkeakoulujen)",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7114943744.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7114943744.pdf",
+                                                  "citation_key": "2025_Schwezoff"
                                         }
                               ]
                     },
@@ -686,7 +696,8 @@
                                                   "pdf_url": "https://doi.org/10.5281/zenodo.17631321",
                                                   "source": "Zenodo (CERN European Organization for Nuclear Research)",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_A"
                                         },
                                         {
                                                   "id": "W4413082795",
@@ -778,7 +789,8 @@
                                                   "pdf_url": "https://journal.doba.si/OJS/index.php/jimb/article/download/396/373",
                                                   "source": "Mednarodno inovativno poslovanje = Journal of Innovative Business and Management",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4413082795.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4413082795.pdf",
+                                                  "citation_key": "2025_Vukasovic_et_al"
                                         },
                                         {
                                                   "id": "W4400430845",
@@ -861,7 +873,8 @@
                                                   "pdf_url": "https://inria.hal.science/hal-05305345/document",
                                                   "source": "Lecture notes in computer science",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4400430845.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4400430845.pdf",
+                                                  "citation_key": "2024_Rossen_et_al"
                                         },
                                         {
                                                   "id": "W4395086125",
@@ -929,7 +942,8 @@
                                                   "pdf_url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/2AB3D0AF6B14CAD564BAD283D5466120/9781009321198c20_267-284.pdf/moroccos-governance-of-cities-and-borders.pdf",
                                                   "source": "Cambridge University Press eBooks",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4395086125.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4395086125.pdf",
+                                                  "citation_key": "2024_Bergh_et_al"
                                         },
                                         {
                                                   "id": "W7129328603",
@@ -995,7 +1009,8 @@
                                                   "pdf_url": "https://doi.org/10.5281/zenodo.18669524",
                                                   "source": "Zenodo (CERN European Organization for Nuclear Research)",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Bakker"
                                         },
                                         {
                                                   "id": "W4407842007",
@@ -1066,7 +1081,8 @@
                                                   "pdf_url": "https://doi.org/10.1145/3706468.3706482",
                                                   "source": null,
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Garg_et_al"
                                         },
                                         {
                                                   "id": "W3128070792",
@@ -1120,7 +1136,8 @@
                                                   "pdf_url": "https://doaj.org/article/e8ff7b5ab6cd45a9905a07d8430798e2",
                                                   "source": "SHILAP Revista de lepidopterología",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2020_Ufert"
                                         }
                               ]
                     },
@@ -1166,7 +1183,8 @@
                                                   "pdf_url": "https://doi.org/10.14428/esann/2021.es2021-4",
                                                   "source": "ESANN 2021 proceedings",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W3205696641.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W3205696641.pdf",
+                                                  "citation_key": "2021_Heusinger_et_al"
                                         },
                                         {
                                                   "id": "W4416104283",
@@ -1232,7 +1250,8 @@
                                                   "pdf_url": "https://ojs.kaunokolegija.lt/index.php/mttlk/article/download/730/779",
                                                   "source": "Mokslo taikomieji tyrimai / Applied Research",
                                                   "language": "lt",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4416104283.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4416104283.pdf",
+                                                  "citation_key": "2025_Rosskopf"
                                         },
                                         {
                                                   "id": "W7133219553",
@@ -1307,7 +1326,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2079-9292/15/5/1047/pdf",
                                                   "source": "Electronics",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2026_Babu_et_al"
                                         },
                                         {
                                                   "id": "W4406459680",
@@ -1361,7 +1381,8 @@
                                                   "pdf_url": null,
                                                   "source": null,
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Golla"
                                         },
                                         {
                                                   "id": "W7125651258",
@@ -1428,7 +1449,8 @@
                                                   "pdf_url": "https://petsymposium.org/popets/2026/popets-2026-0008.pdf",
                                                   "source": "Proceedings on Privacy Enhancing Technologies",
                                                   "language": null,
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7125651258.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7125651258.pdf",
+                                                  "citation_key": "2026_Weggenmann"
                                         },
                                         {
                                                   "id": "EUNIS2026_Zamora",
@@ -1503,7 +1525,8 @@
                                                   "pdf_url": null,
                                                   "source": "EPiC Series in Computing",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2026_Zamora-Mogollo_et_al"
                                         }
                               ]
                     },
@@ -1792,7 +1815,8 @@
                                                   "pdf_url": "https://link.springer.com/content/pdf/10.1007/s00415-024-12328-x.pdf",
                                                   "source": "Journal of Neurology",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4393851454.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4393851454.pdf",
+                                                  "citation_key": "2024_Maida_et_al"
                                         },
                                         {
                                                   "id": "W4312553523",
@@ -1858,7 +1882,8 @@
                                                   "pdf_url": "https://flore.unifi.it/bitstream/2158/1303990/1/Towards_Trustworthy_Autonomous_Systems_Taxonomies_and_Future_Perspectives.pdf",
                                                   "source": "IEEE Transactions on Emerging Topics in Computing",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4312553523.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4312553523.pdf",
+                                                  "citation_key": "2022_Flammini_et_al"
                                         },
                                         {
                                                   "id": "W4404926118",
@@ -1938,7 +1963,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2571-5577/7/6/121/pdf?version=1732971475",
                                                   "source": "Applied System Innovation",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Bonito_et_al"
                                         },
                                         {
                                                   "id": "W4410721481",
@@ -1988,7 +2014,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2078-2489/16/6/435/pdf?version=1748156324",
                                                   "source": "Information",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Amato_et_al"
                                         },
                                         {
                                                   "id": "W4412121010",
@@ -2150,7 +2177,8 @@
                                                   "pdf_url": "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1111/1754-9485.13880",
                                                   "source": "Journal of Medical Imaging and Radiation Oncology",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Carriero_et_al"
                                         },
                                         {
                                                   "id": "W3003161132",
@@ -2235,7 +2263,8 @@
                                                   "pdf_url": "https://link.springer.com/content/pdf/10.1007/s11547-020-01135-9.pdf",
                                                   "source": "La radiologia medica",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W3003161132.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W3003161132.pdf",
+                                                  "citation_key": "2020_Neri_et_al"
                                         },
                                         {
                                                   "id": "W4404756410",
@@ -2353,7 +2382,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2076-3425/14/12/1196/pdf?version=1732785455",
                                                   "source": "Brain Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Stefano_et_al"
                                         },
                                         {
                                                   "id": "W4409540874",
@@ -2443,7 +2473,8 @@
                                                   "pdf_url": "https://insightsimaging.springeropen.com/counter/pdf/10.1186/s13244-025-01962-2",
                                                   "source": "Insights into Imaging",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4409540874.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4409540874.pdf",
+                                                  "citation_key": "2025_Kocak_et_al"
                                         },
                                         {
                                                   "id": "W4385881824",
@@ -2518,7 +2549,8 @@
                                                   "pdf_url": "http://www.scs-europe.net/dlib/2023/ecms2023acceptedpapers/0575_dis_ecms2023_0084.pdf",
                                                   "source": null,
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4385881824.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4385881824.pdf",
+                                                  "citation_key": "2023_Campanile_et_al"
                                         },
                                         {
                                                   "id": "W4386329022",
@@ -2585,7 +2617,8 @@
                                                   "pdf_url": "https://www.explorationpub.com/uploads/Article/A1002160/1002160.pdf",
                                                   "source": "Exploration of Targeted Anti-tumor Therapy",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4386329022.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4386329022.pdf",
+                                                  "citation_key": "2023_Far"
                                         },
                                         {
                                                   "id": "W4403968920",
@@ -2667,7 +2700,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2077-0383/13/21/6559/pdf?version=1730370523",
                                                   "source": "Journal of Clinical Medicine",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Mondillo_et_al"
                                         },
                                         {
                                                   "id": "W4400687382",
@@ -9858,7 +9892,8 @@
                                                   "pdf_url": "https://www.nature.com/articles/s41598-024-63212-7.pdf",
                                                   "source": "Scientific Reports",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4400687382.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4400687382.pdf",
+                                                  "citation_key": "2024_Mesinovic_et_al"
                                         },
                                         {
                                                   "id": "W4391882038",
@@ -9897,7 +9932,8 @@
                                                   "pdf_url": "https://riviste.fupress.net/index.php/fh/article/download/2503/1652",
                                                   "source": "Fashion Highlight",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4391882038.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4391882038.pdf",
+                                                  "citation_key": "2024_Bertacchini_et_al"
                                         },
                                         {
                                                   "id": "W4405755197",
@@ -10014,7 +10050,8 @@
                                                   "pdf_url": null,
                                                   "source": null,
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Arpaia_et_al"
                                         },
                                         {
                                                   "id": "W4392597761",
@@ -10133,7 +10170,8 @@
                                                   "pdf_url": "https://riviste.unimi.it/index.php/ebph/article/download/22227/20201",
                                                   "source": "Epidemiology Biostatistics and Public Health",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4392597761.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4392597761.pdf",
+                                                  "citation_key": "2024_Barbati_et_al"
                                         },
                                         {
                                                   "id": "W7116930675",
@@ -10230,7 +10268,8 @@
                                                   "pdf_url": "https://www.mdpi.com/1648-9144/62/1/27/pdf",
                                                   "source": "Medicina",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Conforti_et_al"
                                         },
                                         {
                                                   "id": "W4392772216",
@@ -10288,7 +10327,8 @@
                                                   "pdf_url": "https://heritagesciencejournal.springeropen.com/counter/pdf/10.1186/s40494-024-01186-5",
                                                   "source": "Heritage Science",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Capece_et_al"
                                         },
                                         {
                                                   "id": "W4404584922",
@@ -10371,7 +10411,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2076-3417/14/23/10802/pdf?version=1732202214",
                                                   "source": "Applied Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Puleio_et_al"
                                         },
                                         {
                                                   "id": "W4386929116",
@@ -10458,7 +10499,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2306-5354/10/9/1103/pdf?version=1695268136",
                                                   "source": "Bioengineering",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2023_Donisi_et_al"
                                         },
                                         {
                                                   "id": "W4392595776",
@@ -10539,7 +10581,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2075-4418/14/6/576/pdf?version=1709885896",
                                                   "source": "Diagnostics",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Romano_et_al"
                                         },
                                         {
                                                   "id": "W4412015577",
@@ -10597,7 +10640,8 @@
                                                   "pdf_url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/773EA05BF34AC4B42AC25D4B9F0DC6C1/S0924933825100618a.pdf/div-class-title-ai-in-scientific-writing-and-publishing-a-call-for-critical-engagement-div.pdf",
                                                   "source": "European Psychiatry",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4412015577.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4412015577.pdf",
+                                                  "citation_key": "2025_Frangou_et_al"
                                         },
                                         {
                                                   "id": "W4405689247",
@@ -10666,7 +10710,8 @@
                                                   "pdf_url": "https://doi.org/10.58240/1829006x-2025.1-132",
                                                   "source": "BULLETIN OF STOMATOLOGY AND MAXILLOFACIAL SURGERY",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4405689247.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4405689247.pdf",
+                                                  "citation_key": "2024_Veeraraghavan_et_al"
                                         },
                                         {
                                                   "id": "W7128302952",
@@ -10773,7 +10818,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2076-328X/16/2/238/pdf?version=1770538375",
                                                   "source": "Behavioral Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2026_Gemmano_et_al"
                                         },
                                         {
                                                   "id": "W4378190329",
@@ -10874,7 +10920,8 @@
                                                   "pdf_url": "https://www.sciencedirect.com/science/article/pii/S1386505623001284",
                                                   "source": "International Journal of Medical Informatics",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2023_Palmieri_et_al"
                                         },
                                         {
                                                   "id": "W4405602662",
@@ -10954,7 +11001,8 @@
                                                   "pdf_url": "https://www.frontiersin.org/journals/medicine/articles/10.3389/fmed.2024.1514741/pdf",
                                                   "source": "Frontiers in Medicine",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4405602662.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4405602662.pdf",
+                                                  "citation_key": "2024_Perrella_et_al"
                                         },
                                         {
                                                   "id": "W4414345257",
@@ -11049,7 +11097,8 @@
                                                   "pdf_url": "https://www.mdpi.com/1424-8220/25/18/5822/pdf?version=1758192231",
                                                   "source": "Sensors",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Cesarelli_et_al"
                                         },
                                         {
                                                   "id": "W4415599004",
@@ -11124,7 +11173,8 @@
                                                   "pdf_url": "http://www.inform.nu/Articles/Vol28/InfoSciV28Art030Toscano12142.pdf",
                                                   "source": "Informing Science The International Journal of an Emerging Transdiscipline",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4415599004.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4415599004.pdf",
+                                                  "citation_key": "2025_Toscano_et_al"
                                         },
                                         {
                                                   "id": "W4414773191",
@@ -11208,7 +11258,8 @@
                                                   "pdf_url": "https://www.frontiersin.org/journals/computer-science/articles/10.3389/fcomp.2025.1646679/pdf",
                                                   "source": "Frontiers in Computer Science",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4414773191.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4414773191.pdf",
+                                                  "citation_key": "2025_Bountzis_et_al"
                                         },
                                         {
                                                   "id": "W7132822830",
@@ -11311,7 +11362,8 @@
                                                   "pdf_url": "https://www.biorxiv.org/content/biorxiv/early/2026/02/28/2026.02.26.708207.full.pdf",
                                                   "source": null,
                                                   "language": null,
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2026_Pirone_et_al"
                                         },
                                         {
                                                   "id": "W4406423442",
@@ -11391,7 +11443,8 @@
                                                   "pdf_url": "https://www.ledonline.it/index.php/ECPS-Journal/article/download/6517/1979",
                                                   "source": "Journal of Educational Cultural and Psychological Studies (ECPS Journal)",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4406423442.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4406423442.pdf",
+                                                  "citation_key": "2025_Luongo_et_al"
                                         },
                                         {
                                                   "id": "W7119540272",
@@ -11462,7 +11515,8 @@
                                                   "pdf_url": null,
                                                   "source": "Advances in computational intelligence and robotics book series",
                                                   "language": null,
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Taktaz_et_al"
                                         },
                                         {
                                                   "id": "W4398165020",
@@ -11515,7 +11569,8 @@
                                                   "pdf_url": "https://doi.org/10.1016/j.oor.2024.100511",
                                                   "source": "Oral Oncology Reports",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Fiorillo_et_al"
                                         },
                                         {
                                                   "id": "W3042868593",
@@ -11594,7 +11649,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2079-9292/9/7/1175/pdf?version=1595477828",
                                                   "source": "Electronics",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2020_Ponte_et_al"
                                         },
                                         {
                                                   "id": "W4400272378",
@@ -11748,7 +11804,8 @@
                                                   "pdf_url": null,
                                                   "source": "Journal of Clinical Oncology",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Lallas_et_al"
                                         },
                                         {
                                                   "id": "W2949571888",
@@ -11818,7 +11875,8 @@
                                                   "pdf_url": "https://arxiv.org/pdf/1311.1372",
                                                   "source": "arXiv (Cornell University)",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W2949571888.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W2949571888.pdf",
+                                                  "citation_key": "2013_Romano_et_al"
                                         },
                                         {
                                                   "id": "W4200176105",
@@ -11951,7 +12009,8 @@
                                                   "pdf_url": "https://www.researchsquare.com/article/rs-1123643/latest.pdf",
                                                   "source": "Research Square (Research Square)",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4200176105.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4200176105.pdf",
+                                                  "citation_key": "2021_Cilla_et_al"
                                         },
                                         {
                                                   "id": "W4412674231",
@@ -12082,7 +12141,8 @@
                                                   "pdf_url": "https://www.biorxiv.org/content/biorxiv/early/2025/07/26/2025.07.22.666145.full.pdf",
                                                   "source": null,
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Pirone_et_al"
                                         },
                                         {
                                                   "id": "W4416297556",
@@ -12204,7 +12264,8 @@
                                                   "pdf_url": "https://link.springer.com/content/pdf/10.1007/s00384-025-05031-4.pdf",
                                                   "source": "International Journal of Colorectal Disease",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4416297556.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4416297556.pdf",
+                                                  "citation_key": "2025_Zhang_et_al"
                                         },
                                         {
                                                   "id": "W4220694335",
@@ -12312,7 +12373,8 @@
                                                                       "score": 0.0
                                                             }
                                                   ],
-                                                  "pdf_url": "https://jssidoi.org/jesi/article/download/953"
+                                                  "pdf_url": "https://jssidoi.org/jesi/article/download/953",
+                                                  "citation_key": "2022_Marino_et_al"
                                         },
                                         {
                                                   "id": "W4313409498",
@@ -12443,7 +12505,8 @@
                                                                       "score": 0.0
                                                             }
                                                   ],
-                                                  "pdf_url": "https://www.mdpi.com/2078-2489/14/1/21/pdf?version=1672306032"
+                                                  "pdf_url": "https://www.mdpi.com/2078-2489/14/1/21/pdf?version=1672306032",
+                                                  "citation_key": "2022_Fazio_et_al"
                                         },
                                         {
                                                   "id": "W4317718004",
@@ -12790,7 +12853,8 @@
                                                                       "score": 0.1092647910118103
                                                             }
                                                   ],
-                                                  "pdf_url": "https://www.frontiersin.org/articles/10.3389/fonc.2022.1078822/pdf"
+                                                  "pdf_url": "https://www.frontiersin.org/articles/10.3389/fonc.2022.1078822/pdf",
+                                                  "citation_key": "2023_Prelaj_et_al"
                                         },
                                         {
                                                   "id": "W4392923777",
@@ -12920,7 +12984,8 @@
                                                                       "score": 0.3779856562614441
                                                             }
                                                   ],
-                                                  "pdf_url": "https://www.frontiersin.org/articles/10.3389/fdsfr.2024.1356405/pdf?isPublishedV2=False"
+                                                  "pdf_url": "https://www.frontiersin.org/articles/10.3389/fdsfr.2024.1356405/pdf?isPublishedV2=False",
+                                                  "citation_key": "2024_Crisafulli_et_al"
                                         },
                                         {
                                                   "id": "W4416074225",
@@ -13066,7 +13131,8 @@
                                                                       "score": 0.25769999623298645
                                                             }
                                                   ],
-                                                  "pdf_url": "https://www.mdpi.com/1999-5903/17/11/513/pdf"
+                                                  "pdf_url": "https://www.mdpi.com/1999-5903/17/11/513/pdf",
+                                                  "citation_key": "2025_Barzegar_et_al"
                                         }
                               ]
                     },
@@ -13141,7 +13207,8 @@
                                                   "pdf_url": "https://link.springer.com/content/pdf/10.1007/s13278-024-01382-y.pdf",
                                                   "source": "Social Network Analysis and Mining",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4404547652.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4404547652.pdf",
+                                                  "citation_key": "2024_Maldonado-Canca_et_al"
                                         },
                                         {
                                                   "id": "W4411673845",
@@ -13211,7 +13278,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2079-9292/14/13/2581/pdf?version=1750940407",
                                                   "source": "Electronics",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Paniagua-Gomez_et_al"
                                         },
                                         {
                                                   "id": "W4409162436",
@@ -13266,7 +13334,8 @@
                                                   "pdf_url": "https://latia.ageditor.uy/index.php/latia/article/download/328/240",
                                                   "source": "LatIA",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Selvam_et_al"
                                         },
                                         {
                                                   "id": "W4407775051",
@@ -13337,7 +13406,8 @@
                                                   "pdf_url": "https://dm.ageditor.ar/index.php/dm/article/download/203/1067",
                                                   "source": "Data & Metadata",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4407775051.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4407775051.pdf",
+                                                  "citation_key": "2025_Butarbutar_et_al"
                                         },
                                         {
                                                   "id": "W4413191734",
@@ -13400,7 +13470,8 @@
                                                   "pdf_url": "https://ai.ageditor.ar/index.php/ai/article/download/413/166",
                                                   "source": "EthAIca",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4413191734.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4413191734.pdf",
+                                                  "citation_key": "2025_Selvam_et_alb"
                                         },
                                         {
                                                   "id": "W4417436257",
@@ -13475,7 +13546,8 @@
                                                   "pdf_url": "https://www.jotse.org/index.php/jotse/article/download/3616/1007",
                                                   "source": "Journal of Technology and Science Education",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4417436257.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4417436257.pdf",
+                                                  "citation_key": "2025_Rubio-Gragera_et_al"
                                         },
                                         {
                                                   "id": "W7120099924",
@@ -13554,7 +13626,8 @@
                                                   "pdf_url": "https://revistas.um.es/red/article/download/676211/393301",
                                                   "source": "Revista de Educación a Distancia (RED)",
                                                   "language": null,
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7120099924.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7120099924.pdf",
+                                                  "citation_key": "2026_Gamez_et_al"
                                         },
                                         {
                                                   "id": "W7126051914",
@@ -13629,7 +13702,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2076-0760/15/2/71/pdf?version=1769681699",
                                                   "source": "Social Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2026_Sanchez-Torres_et_al"
                                         },
                                         {
                                                   "id": "W7128909101",
@@ -13710,7 +13784,8 @@
                                                   "pdf_url": "https://rc.cienciasas.org/index.php/rc/article/download/531/610",
                                                   "source": "Región Científica",
                                                   "language": null,
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7128909101.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7128909101.pdf",
+                                                  "citation_key": "2026_Juma_et_al"
                                         },
                                         {
                                                   "id": "W4414043654",
@@ -13802,7 +13877,8 @@
                                                   "pdf_url": "https://doi.org/10.1016/j.jaci.2025.08.022",
                                                   "source": "Journal of Allergy and Clinical Immunology",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Breugel_et_al"
                                         },
                                         {
                                                   "id": "W4403170672",
@@ -13886,7 +13962,8 @@
                                                   "pdf_url": "https://link.springer.com/content/pdf/10.1007/s10755-024-09747-z.pdf",
                                                   "source": "Innovative Higher Education",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4403170672.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4403170672.pdf",
+                                                  "citation_key": "2024_Mohamed_et_al"
                                         },
                                         {
                                                   "id": "W4404122645",
@@ -13956,7 +14033,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2076-0760/13/11/608/pdf?version=1730966186",
                                                   "source": "Social Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Sanguinetti_et_al"
                                         },
                                         {
                                                   "id": "W4412046979",
@@ -14039,7 +14117,8 @@
                                                   "pdf_url": "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/jtr.70082",
                                                   "source": "International Journal of Tourism Research",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Seyfi_et_al"
                                         },
                                         {
                                                   "id": "W4412786490",
@@ -14069,7 +14148,8 @@
                                                   "pdf_url": "https://revistaeic.eu/index.php/raeic/article/download/656/1258",
                                                   "source": "Revista de la Asociación Española de Investigación de la Comunicación",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4412786490.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4412786490.pdf",
+                                                  "citation_key": "2025_Sanguinetti"
                                         },
                                         {
                                                   "id": "W7131655367",
@@ -14140,7 +14220,8 @@
                                                   "pdf_url": "https://journals.uco.es/alfinge/article/download/18691/17059",
                                                   "source": "Alfinge Revista de Filología",
                                                   "language": null,
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7131655367.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7131655367.pdf",
+                                                  "citation_key": "2026_Scilabra_et_al"
                                         },
                                         {
                                                   "id": "W7133878676",
@@ -14214,7 +14295,8 @@
                                                   "pdf_url": null,
                                                   "source": "Academia Revista Latinoamericana de Administración",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2026_Casermeiro-Corpas_et_al"
                                         },
                                         {
                                                   "id": "W4412455680",
@@ -14366,7 +14448,8 @@
                                                   "pdf_url": "https://academic.oup.com/eurheartj/advance-article-pdf/doi/10.1093/eurheartj/ehaf474/63765118/ehaf474.pdf",
                                                   "source": "European Heart Journal",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Costa_et_al"
                                         },
                                         {
                                                   "id": "W4406906895",
@@ -14424,7 +14507,8 @@
                                                   "pdf_url": "https://mmi.sumdu.edu.ua/wp-content/uploads/2025/01/04_A829-2024_Maldonado-Canca-et-al.pdf",
                                                   "source": "Marketing and Management of Innovations",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4406906895.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4406906895.pdf",
+                                                  "citation_key": "2024_Maldonado-Canca_et_alb"
                                         },
                                         {
                                                   "id": "W4406204824",
@@ -14490,7 +14574,8 @@
                                                   "pdf_url": "https://www.igi-global.com/ViewTitle.aspx?TitleId=366653&isxn=9798369324523",
                                                   "source": "Journal of Global Information Management",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Maldonado-Canca_et_al"
                                         },
                                         {
                                                   "id": "W4409034698",
@@ -14550,7 +14635,8 @@
                                                   "pdf_url": "https://revistas.unav.edu/index.php/communication-and-society/article/download/50554/41912",
                                                   "source": "Communication & Society",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4409034698.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4409034698.pdf",
+                                                  "citation_key": "2025_Canton-Correa_et_al"
                                         },
                                         {
                                                   "id": "W4414599221",
@@ -14630,7 +14716,8 @@
                                                   "pdf_url": "https://mw.ageditor.ar/index.php/mw/article/download/722/1114",
                                                   "source": "Seminars in Medical Writing and Education",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4414599221.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4414599221.pdf",
+                                                  "citation_key": "2025_Rodriguez_et_al"
                                         },
                                         {
                                                   "id": "W4386921745",
@@ -14757,7 +14844,8 @@
                                                   "pdf_url": "https://www.frontiersin.org/articles/10.3389/fmicb.2023.1257002/pdf?isPublishedV2=False",
                                                   "source": "Frontiers in Microbiology",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4386921745.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4386921745.pdf",
+                                                  "citation_key": "2023_Zomer_et_al"
                                         },
                                         {
                                                   "id": "W4410953613",
@@ -14834,7 +14922,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2079-3197/13/6/132/pdf?version=1748876670",
                                                   "source": "Computation",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Baldan_et_al"
                                         },
                                         {
                                                   "id": "W4413206531",
@@ -14921,7 +15010,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2079-9292/14/16/3178/pdf?version=1754832225",
                                                   "source": "Electronics",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Galeas_et_al"
                                         },
                                         {
                                                   "id": "W4400260010",
@@ -15006,7 +15096,8 @@
                                                   "pdf_url": "https://link.springer.com/content/pdf/10.1007/s12539-024-00634-x.pdf",
                                                   "source": "Interdisciplinary Sciences Computational Life Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4400260010.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4400260010.pdf",
+                                                  "citation_key": "2024_Gallego-Molina_et_al"
                                         },
                                         {
                                                   "id": "W4403442497",
@@ -15087,7 +15178,8 @@
                                                   "pdf_url": "https://www.frontiersin.org/journals/microbiology/articles/10.3389/fmicb.2024.1499260/pdf",
                                                   "source": "Frontiers in Microbiology",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4403442497.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4403442497.pdf",
+                                                  "citation_key": "2024_Zomer_et_al"
                                         },
                                         {
                                                   "id": "W4414923573",
@@ -15166,7 +15258,8 @@
                                                   "pdf_url": "https://www.frontiersin.org/journals/robotics-and-ai/articles/10.3389/frobt.2025.1637574/pdf",
                                                   "source": "Frontiers in Robotics and AI",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4414923573.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4414923573.pdf",
+                                                  "citation_key": "2025_Galeas_et_alb"
                                         },
                                         {
                                                   "id": "W4317884115",
@@ -15249,7 +15342,8 @@
                                                   "pdf_url": "https://doi.org/10.1016/j.iedeen.2022.100211",
                                                   "source": "European Research on Management and Business Economics",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2023_Correa_et_al"
                                         },
                                         {
                                                   "id": "W4316465182",
@@ -15317,7 +15411,8 @@
                                                   "pdf_url": "https://www.mdpi.com/1660-4601/20/2/1589/pdf?version=1673847954",
                                                   "source": "International Journal of Environmental Research and Public Health",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2023_SendraPortero"
                                         },
                                         {
                                                   "id": "W4386608382",
@@ -15398,7 +15493,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2227-7102/13/9/923/pdf?version=1694414044",
                                                   "source": "Education Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2023_Cebrian-Robles_et_al"
                                         },
                                         {
                                                   "id": "W4213221688",
@@ -15464,7 +15560,8 @@
                                                   "pdf_url": null,
                                                   "source": "Advances in electronic government, digital divide, and regional development book series",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2022_Garcia"
                                         },
                                         {
                                                   "id": "W4405123149",
@@ -15536,7 +15633,8 @@
                                                   "pdf_url": "https://www.frontiersin.org/journals/communication/articles/10.3389/fcomm.2024.1529021/pdf",
                                                   "source": "Frontiers in Communication",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4405123149.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4405123149.pdf",
+                                                  "citation_key": "2024_Garcia_et_al"
                                         },
                                         {
                                                   "id": "W4409249898",
@@ -15607,7 +15705,8 @@
                                                   "pdf_url": null,
                                                   "source": "Advances in computational intelligence and robotics book series",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Lindez-Macarro_et_al"
                                         },
                                         {
                                                   "id": "W4412589942",
@@ -15673,7 +15772,8 @@
                                                   "pdf_url": "https://doi.org/10.56294/ai2025150",
                                                   "source": "EthAIca",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Vallejo"
                                         },
                                         {
                                                   "id": "W4417250728",
@@ -15756,7 +15856,8 @@
                                                   "pdf_url": null,
                                                   "source": null,
                                                   "language": null,
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Chakraborty_et_al"
                                         },
                                         {
                                                   "id": "W4391542026",
@@ -15826,7 +15927,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2220-9964/13/2/46/pdf?version=1706887137",
                                                   "source": "ISPRS International Journal of Geo-Information",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Montenegro_et_al"
                                         },
                                         {
                                                   "id": "W7125681158",
@@ -15900,7 +16002,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2076-0760/15/2/63/pdf?version=1769435445",
                                                   "source": "Social Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2026_Torres_et_al"
                                         },
                                         {
                                                   "id": "W4392133813",
@@ -15986,7 +16089,8 @@
                                                   "pdf_url": "https://doi.org/10.1016/j.future.2024.02.022",
                                                   "source": "Future Generation Computer Systems",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Morell_et_al"
                                         },
                                         {
                                                   "id": "W4210632374",
@@ -16057,7 +16161,8 @@
                                                   "pdf_url": "https://link.springer.com/content/pdf/10.1007/s11042-022-12164-z.pdf",
                                                   "source": "Multimedia Tools and Applications",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2022_Munilla_et_al"
                                         },
                                         {
                                                   "id": "W1982623426",
@@ -16140,7 +16245,8 @@
                                                   "pdf_url": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0093851&type=printable",
                                                   "source": "PLoS ONE",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W1982623426.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W1982623426.pdf",
+                                                  "citation_key": "2014_Ortiz_et_al"
                                         },
                                         {
                                                   "id": "W7133136978",
@@ -16206,7 +16312,8 @@
                                                   "pdf_url": "https://rc.cienciasas.org/index.php/rc/article/download/552/635",
                                                   "source": "Región Científica",
                                                   "language": null,
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7133136978.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7133136978.pdf",
+                                                  "citation_key": "2026_CABALLERO"
                                         },
                                         {
                                                   "id": "W4385383529",
@@ -16798,7 +16905,8 @@
                                                                       "score": 0.0
                                                             }
                                                   ],
-                                                  "pdf_url": "https://doi.org/10.1016/j.inffus.2023.101945"
+                                                  "pdf_url": "https://doi.org/10.1016/j.inffus.2023.101945",
+                                                  "citation_key": "2023_Gorriz_et_al"
                                         },
                                         {
                                                   "id": "W4393071966",
@@ -16866,7 +16974,8 @@
                                                                       "score": 0.12569159269332886
                                                             }
                                                   ],
-                                                  "pdf_url": "https://www.mdpi.com/2079-9292/13/7/1169/pdf?version=1711094309"
+                                                  "pdf_url": "https://www.mdpi.com/2079-9292/13/7/1169/pdf?version=1711094309",
+                                                  "citation_key": "2024_Marfil_et_al"
                                         },
                                         {
                                                   "id": "W4413806993",
@@ -16964,7 +17073,8 @@
                                                                       "score": 0.0
                                                             }
                                                   ],
-                                                  "pdf_url": "https://link.springer.com/content/pdf/10.1007/s10639-025-13712-4.pdf"
+                                                  "pdf_url": "https://link.springer.com/content/pdf/10.1007/s10639-025-13712-4.pdf",
+                                                  "citation_key": "2025_Jaen_et_al"
                                         },
                                         {
                                                   "id": "EUNIS2026_Zamora",
@@ -17039,7 +17149,8 @@
                                                   "pdf_url": null,
                                                   "source": "EPiC Series in Computing",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2026_Zamora-Mogollo_et_al"
                                         }
                               ],
                               "papers_count": 51
@@ -17089,7 +17200,8 @@
                                                   "pdf_url": "https://link.springer.com/content/pdf/10.1007/s43681-025-00710-y.pdf",
                                                   "source": "AI and Ethics",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4409459278.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4409459278.pdf",
+                                                  "citation_key": "2025_Buscaldi"
                                         },
                                         {
                                                   "id": "W3081510761",
@@ -17163,7 +17275,8 @@
                                                   "pdf_url": "http://www.thieme-connect.de/products/ejournals/pdf/10.1055/s-0040-1702029.pdf",
                                                   "source": "Yearbook of Medical Informatics",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W3081510761.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W3081510761.pdf",
+                                                  "citation_key": "2020_Seroussi"
                                         },
                                         {
                                                   "id": "W4403048071",
@@ -17247,7 +17360,8 @@
                                                   "pdf_url": "https://www.nature.com/articles/s41746-024-01237-y.pdf",
                                                   "source": "npj Digital Medicine",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4403048071.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4403048071.pdf",
+                                                  "citation_key": "2024_Balendran_et_al"
                                         },
                                         {
                                                   "id": "W4283716294",
@@ -17322,7 +17436,8 @@
                                                   "pdf_url": "https://ebooks.iospress.nl/pdf/doi/10.3233/SHTI220709",
                                                   "source": "Studies in health technology and informatics",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2022_Lamas_et_al"
                                         },
                                         {
                                                   "id": "W4403219726",
@@ -17400,7 +17515,8 @@
                                                   "pdf_url": "https://dl.acm.org/doi/pdf/10.1145/3640457.3688065",
                                                   "source": null,
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Matrosova_et_al"
                                         },
                                         {
                                                   "id": "W4396788685",
@@ -17442,7 +17558,8 @@
                                                   "pdf_url": "https://hal.science/hal-04570806/document",
                                                   "source": "SPIRE - Sciences Po Institutional REpository",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4396788685.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4396788685.pdf",
+                                                  "citation_key": "2024_Moreau"
                                         },
                                         {
                                                   "id": "W4386887825",
@@ -17972,7 +18089,8 @@
                                                   "pdf_url": "https://www.nature.com/articles/s41467-023-39824-4.pdf",
                                                   "source": "Nature Communications",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4386887825.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4386887825.pdf",
+                                                  "citation_key": "2023_Andrikopoulos_et_al"
                                         },
                                         {
                                                   "id": "W4376126986",
@@ -18041,7 +18159,8 @@
                                                   "pdf_url": "https://doi.org/10.1016/j.eswa.2023.120443",
                                                   "source": "Expert Systems with Applications",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2023_Ashraf"
                                         },
                                         {
                                                   "id": "W4281486759",
@@ -18111,7 +18230,8 @@
                                                   "pdf_url": "https://ebooks.iospress.nl/pdf/doi/10.3233/SHTI220407",
                                                   "source": "Studies in health technology and informatics",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2022_Bousquet"
                                         },
                                         {
                                                   "id": "W3080524808",
@@ -18188,7 +18308,8 @@
                                                   "pdf_url": "http://www.thieme-connect.de/products/ejournals/pdf/10.1055/s-0040-1702007.pdf",
                                                   "source": "Yearbook of Medical Informatics",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W3080524808.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W3080524808.pdf",
+                                                  "citation_key": "2020_Daniel_et_al"
                                         },
                                         {
                                                   "id": "W4414494722",
@@ -18285,7 +18406,8 @@
                                                   "pdf_url": "https://www.medrxiv.org/content/medrxiv/early/2025/09/25/2025.09.24.25336459.full.pdf",
                                                   "source": null,
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4414494722.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4414494722.pdf",
+                                                  "citation_key": "2025_Yaacoub_et_al"
                                         },
                                         {
                                                   "id": "W2967002964",
@@ -18361,7 +18483,8 @@
                                                   "pdf_url": "http://www.thieme-connect.de/products/ejournals/pdf/10.1055/s-0039-1677951.pdf",
                                                   "source": "Yearbook of Medical Informatics",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W2967002964.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W2967002964.pdf",
+                                                  "citation_key": "2019_Seroussi"
                                         },
                                         {
                                                   "id": "W4407218627",
@@ -18404,7 +18527,8 @@
                                                   "pdf_url": "https://spir.aoir.org/ojs/index.php/spir/article/download/13894/11870",
                                                   "source": "AoIR Selected Papers of Internet Research",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4407218627.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4407218627.pdf",
+                                                  "citation_key": "2025_Agarwal"
                                         },
                                         {
                                                   "id": "W4283790509",
@@ -18476,7 +18600,8 @@
                                                   "pdf_url": "https://ojs.aaai.org/index.php/AAAI/article/download/20760/20519",
                                                   "source": "Proceedings of the AAAI Conference on Artificial Intelligence",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4283790509.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4283790509.pdf",
+                                                  "citation_key": "2022_Osmani_et_al"
                                         },
                                         {
                                                   "id": "W4416930780",
@@ -18542,7 +18667,8 @@
                                                   "pdf_url": "https://jdmdc.com/index.php/JDMDC/article/download/47/36",
                                                   "source": "Journal of Digital Market and Digital Currency.",
                                                   "language": null,
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4416930780.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4416930780.pdf",
+                                                  "citation_key": "2025_BenOthman"
                                         },
                                         {
                                                   "id": "W4414915530",
@@ -18691,7 +18817,8 @@
                                                   "pdf_url": "https://doi.org/10.1093/narcan/zcaf036",
                                                   "source": "NAR Cancer",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Torossian_et_al"
                                         },
                                         {
                                                   "id": "W3211238343",
@@ -18764,7 +18891,8 @@
                                                   "pdf_url": "https://www.mdpi.com/1424-8220/21/21/7278/pdf?version=1636092895",
                                                   "source": "Sensors",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2021_Hamidi_et_al"
                                         },
                                         {
                                                   "id": "W4225264497",
@@ -18848,7 +18976,8 @@
                                                   "pdf_url": null,
                                                   "source": "ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2022_Modaresi_et_al"
                                         },
                                         {
                                                   "id": "W2910890213",
@@ -18975,7 +19104,8 @@
                                                                       "score": 0.0
                                                             }
                                                   ],
-                                                  "pdf_url": "https://www.sciencedirect.com/science/article/am/pii/S0933365718304846?via%3Dihub"
+                                                  "pdf_url": "https://www.sciencedirect.com/science/article/am/pii/S0933365718304846?via%3Dihub",
+                                                  "citation_key": "2019_Lamy_et_al"
                                         },
                                         {
                                                   "id": "W4286774193",
@@ -19069,7 +19199,8 @@
                                                                       "score": 0.08836424350738525
                                                             }
                                                   ],
-                                                  "pdf_url": "https://hal.science/hal-03636208"
+                                                  "pdf_url": "https://hal.science/hal-03636208",
+                                                  "citation_key": "2021_Aschenbruck_et_al"
                                         },
                                         {
                                                   "id": "W4401822498",
@@ -19196,7 +19327,8 @@
                                                                       "score": 0.0
                                                             }
                                                   ],
-                                                  "pdf_url": "https://ebooks.iospress.nl/pdf/doi/10.3233/SHTI240544"
+                                                  "pdf_url": "https://ebooks.iospress.nl/pdf/doi/10.3233/SHTI240544",
+                                                  "citation_key": "2024_Madi_et_al"
                                         },
                                         {
                                                   "id": "W4415143672",
@@ -19310,7 +19442,8 @@
                                                                       "score": 0.27799999713897705
                                                             }
                                                   ],
-                                                  "pdf_url": "https://hal.science/hal-05177129"
+                                                  "pdf_url": "https://hal.science/hal-05177129",
+                                                  "citation_key": "2025_Sellami_et_al"
                                         }
                               ]
                     },
@@ -19399,7 +19532,8 @@
                                                   "pdf_url": null,
                                                   "source": "Journal of Information Communication and Ethics in Society",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Ferhataj_et_al"
                                         },
                                         {
                                                   "id": "W4405913001",
@@ -19471,7 +19605,8 @@
                                                   "pdf_url": "https://ojs.kvk.lt/index.php/SVV/article/download/357/299",
                                                   "source": "STUDIJOS – VERSLAS – VISUOMENĖ DABARTIS IR ATEITIES ĮŽVALGOS",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4405913001.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4405913001.pdf",
+                                                  "citation_key": "2024_Ferhataj_et_al"
                                         },
                                         {
                                                   "id": "W4410481635",
@@ -19546,7 +19681,8 @@
                                                   "pdf_url": "https://doi.org/10.37394/23209.2025.22.29",
                                                   "source": "WSEAS TRANSACTIONS ON INFORMATION SCIENCE AND APPLICATIONS",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4410481635.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4410481635.pdf",
+                                                  "citation_key": "2025_Vukatana_et_al"
                                         },
                                         {
                                                   "id": "W4417026910",
@@ -19624,7 +19760,8 @@
                                                   "pdf_url": "https://www.preprints.org/frontend/manuscript/871a0cd64340d9007b448e97999fc39e/download_pub",
                                                   "source": "Preprints.org",
                                                   "language": null,
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Godolja_et_al"
                                         },
                                         {
                                                   "id": "W7117587373",
@@ -19690,7 +19827,8 @@
                                                   "pdf_url": "https://www.jomswsge.com/pdf-215775-133792?filename=Between-ethics-and-algori.pdf",
                                                   "source": "Journal of Modern Science",
                                                   "language": "uk",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7117587373.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7117587373.pdf",
+                                                  "citation_key": "2025_Ballanca"
                                         },
                                         {
                                                   "id": "W7128440946",
@@ -19768,7 +19906,8 @@
                                                   "pdf_url": "https://www.mdpi.com/2079-8954/14/2/188/pdf?version=1770805889",
                                                   "source": "Systems",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2026_Tavanxhiu_et_al"
                                         },
                                         {
                                                   "id": "W7131275768",
@@ -19838,7 +19977,8 @@
                                                   "pdf_url": "https://jns.edu.al/wp-content/uploads/2026/02/2-Inform.-Emiranda-Loka_Alda-Kika.pdf",
                                                   "source": "Journal of Natural Sciences",
                                                   "language": null,
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7131275768.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7131275768.pdf",
+                                                  "citation_key": "2025_Loka_et_al"
                                         },
                                         {
                                                   "id": "W4416102023",
@@ -19904,7 +20044,8 @@
                                                   "pdf_url": "https://learning-gate.com/index.php/2576-8484/article/download/10877/3500",
                                                   "source": "Edelweiss Applied Science and Technology",
                                                   "language": null,
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4416102023.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4416102023.pdf",
+                                                  "citation_key": "2025_Cika"
                                         },
                                         {
                                                   "id": "W4407604885",
@@ -19948,7 +20089,8 @@
                                                   "pdf_url": "https://www.dpublication.com/conference-proceedings/index.php/imeconf/article/download/841/534",
                                                   "source": "Proceedings of The International Conference on Research in Management and Economics",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4407604885.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4407604885.pdf",
+                                                  "citation_key": "2025_Doko"
                                         },
                                         {
                                                   "id": "W4412933679",
@@ -20010,7 +20152,8 @@
                                                   "pdf_url": "https://malque.pub/ojs/index.php/msj/article/download/11254/4194",
                                                   "source": "Multidisciplinary Science Journal",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4412933679.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4412933679.pdf",
+                                                  "citation_key": "2025_Agalliu_et_al"
                                         },
                                         {
                                                   "id": "W4413074216",
@@ -20198,7 +20341,8 @@
                                                   "pdf_url": "https://reference-global.com/2/v2/download/article/10.2478/ebtj-2025-0019.pdf",
                                                   "source": "The EuroBiotech Journal",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4413074216.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4413074216.pdf",
+                                                  "citation_key": "2025_Feizyab_et_al"
                                         },
                                         {
                                                   "id": "W4411665163",
@@ -20274,7 +20418,8 @@
                                                   "pdf_url": "https://doi.org/10.2478/jec-2025-0011",
                                                   "source": "Economics and Culture",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Ferhataj_et_alb"
                                         },
                                         {
                                                   "id": "W4404903329",
@@ -20357,7 +20502,8 @@
                                                   "pdf_url": "https://www.mdpi.com/1422-0067/25/23/12905/pdf?version=1733099901",
                                                   "source": "International Journal of Molecular Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2024_Santana_et_al"
                                         },
                                         {
                                                   "id": "W7118576169",
@@ -20427,7 +20573,8 @@
                                                   "pdf_url": "https://malque.pub/ojs/index.php/mr/article/download/12975/5522",
                                                   "source": "Multidisciplinary Reviews",
                                                   "language": null,
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7118576169.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7118576169.pdf",
+                                                  "citation_key": "2025_Sina_et_al"
                                         },
                                         {
                                                   "id": "W4413420839",
@@ -20477,7 +20624,8 @@
                                                   "pdf_url": "https://balkans-jetss.org/index.php/index_bjetss/article/download/135/114",
                                                   "source": "Balkans Journal of Emerging Trends in Social Sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4413420839.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4413420839.pdf",
+                                                  "citation_key": "2025_Kociaj_et_al"
                                         },
                                         {
                                                   "id": "W4213168039",
@@ -20548,7 +20696,8 @@
                                                   "pdf_url": null,
                                                   "source": "Advances in electronic government, digital divide, and regional development book series",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2022_Escudero_et_al"
                                         },
                                         {
                                                   "id": "W4377080381",
@@ -20618,7 +20767,8 @@
                                                   "pdf_url": "https://eajournals.org/gjplr/wp-content/uploads/sites/36/2023/05/The-Impact-of-AI.pdf",
                                                   "source": "Global Journal of Politics and Law Research",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4377080381.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4377080381.pdf",
+                                                  "citation_key": "2023_Cami_et_al"
                                         },
                                         {
                                                   "id": "W4386607180",
@@ -20698,7 +20848,8 @@
                                                   "pdf_url": "https://www.researchsquare.com/article/rs-3314855/latest.pdf",
                                                   "source": "Research Square (Research Square)",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4386607180.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4386607180.pdf",
+                                                  "citation_key": "2023_Rexha_et_al"
                                         },
                                         {
                                                   "id": "W4409274183",
@@ -20749,7 +20900,8 @@
                                                   "pdf_url": "http://www.hrpub.org/download/20250330/UJAF1-12240410.pdf",
                                                   "source": "Universal Journal of Accounting and Finance",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Doko_et_al"
                                         },
                                         {
                                                   "id": "W7117989499",
@@ -20828,7 +20980,8 @@
                                                   "pdf_url": "https://doi.org/10.3390/tourhosp7010014",
                                                   "source": "Tourism and Hospitality",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2026_Godolja_et_al"
                                         },
                                         {
                                                   "id": "W7124704132",
@@ -20903,7 +21056,8 @@
                                                   "pdf_url": "https://reference-global.com/download/article/10.2478/ejels-2026-0009.pdf",
                                                   "source": "European journal of economics, law and social sciences",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7124704132.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W7124704132.pdf",
+                                                  "citation_key": "2026_Berisha_et_al"
                                         },
                                         {
                                                   "id": "W4414148337",
@@ -20995,7 +21149,8 @@
                                                   "pdf_url": "https://doi.org/10.54103/2282-0930/29480",
                                                   "source": "Epidemiology Biostatistics and Public Health",
                                                   "language": "en",
-                                                  "local_pdf_path": null
+                                                  "local_pdf_path": null,
+                                                  "citation_key": "2025_Porreca_et_al"
                                         },
                                         {
                                                   "id": "W4415268218",
@@ -21070,7 +21225,8 @@
                                                   "pdf_url": "https://doi.org/10.37394/232018.2025.13.57",
                                                   "source": "WSEAS TRANSACTIONS ON COMPUTER RESEARCH",
                                                   "language": "en",
-                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4415268218.pdf"
+                                                  "local_pdf_path": "/Users/ignaciomoreno-torres/Library/CloudStorage/OneDrive-UniversidaddeMálaga/agentes/tommi3/scripts/data/papers/W4415268218.pdf",
+                                                  "citation_key": "2025_Laci_et_al"
                                         }
                               ]
                     }

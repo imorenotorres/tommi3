@@ -1,0 +1,24 @@
+ACKNOWLEDGMENTS
+================
+
+TOMMI — AI Agent Framework for the UNINOVIS European University Alliance
+
+The first version of TOMMI was originally based on Tokki
+(https://github.com/germtb/tokki/) by Gerard Moreno-Torres Bertran,
+licensed under the MIT License (see LICENSES/MIT-Tokki.txt).
+
+TOMMI has since been substantially extended and redesigned, including:
+- RAG (Retrieval-Augmented Generation) architecture with metadata-based
+  retrieval and programmatic response paths
+- LLM-based query classification with 12 intent categories
+- Multi-agent support with configurable visibility, transparency levels,
+  and reliability cues
+- Inline interactive maps (Leaflet) for research output visualisation
+- EU AI Act compliance features (audit logging, decision traces,
+  crystal-box transparency)
+- Support for multiple LLM providers (Mistral, Ollama, OpenAI)
+
+This work has been supported by the UNINOVIS Data for L.I.F.E project
+(EACEA/A/01.101177239) of the European Commission and the DC4EU project
+co-funded by the European Union's Digital Europe Programme under Grant
+Agreement no. 101102611.

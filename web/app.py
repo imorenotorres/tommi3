@@ -159,7 +159,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # PDF endpoints are public (academic documents, not personal data)
         # Study app routes are public (participants don't need TOMMI accounts)
         is_study = path.startswith("/study/api/") or path.startswith("/rag-study/api/") or path.startswith("/sql-study/api/")
-        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/public-tools" not in path and not is_study:
+        is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/projects-search", "/project-topic-search", "/pdf-list")) and "/responsible_ai3/" in path
+        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/public-tools" not in path and "/public-agent/" not in path and not is_study and not is_public_search:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
                 token = request.query_params.get("token", "")
@@ -1043,6 +1044,12 @@ async def rag_study2_chat_page():
     return FileResponse(SCRIPT_DIR / "static" / "rag_study2_chat.html")
 
 
+@app.get("/responsible-ai")
+async def responsible_ai_public_page():
+    """Serve the public Responsible AI Research Assistant page (no auth required)"""
+    return FileResponse(SCRIPT_DIR / "static" / "responsible_ai.html")
+
+
 @app.get("/agents")
 async def agents_page():
     """Serve the TOMMI AI Agents interface"""
@@ -1716,6 +1723,155 @@ async def get_public_tools():
     public = [tool_id for tool_id, roles in TOOL_ACCESS.items()
               if "public" in roles]
     return {"public_tools": public}
+
+
+# ---------------------------------------------------------------------------
+# Public agent endpoints (no auth required) — for standalone public pages
+# ---------------------------------------------------------------------------
+
+# Set of agent IDs that are allowed to be accessed publicly
+_PUBLIC_AGENT_IDS = {"responsible_ai3"}
+
+
+@app.get("/api/public-agent/{agent_id}/config")
+async def get_public_agent_config(agent_id: str):
+    """Get basic config for a public agent (no auth required)."""
+    if agent_id not in _PUBLIC_AGENT_IDS:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    agent = runner.get_agent(agent_id)
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    config_path = Path(agent.path) / "config.json"
+    if not config_path.exists():
+        return {}
+    with open(config_path, "r", encoding="utf-8") as f:
+        cfg = json.load(f)
+    # Only expose safe fields
+    return {
+        "agent_name": cfg.get("agent_name", agent.name),
+        "description": cfg.get("description", ""),
+        "welcome_message": cfg.get("welcome_message", ""),
+        "example_queries": cfg.get("example_queries", []),
+    }
+
+
+@app.get("/api/public-agent/{agent_id}/info")
+async def get_public_agent_info(agent_id: str):
+    """Get agent type, LLM provider, and transparency info for a public agent (no auth)."""
+    if agent_id not in _PUBLIC_AGENT_IDS:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    agent = runner.get_agent(agent_id)
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    config_path = Path(agent.path) / "config.json"
+    cfg = {}
+    if config_path.exists():
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+
+    # Agent type label
+    type_labels = {
+        'rag': 'RAG', 'rag_metadata': 'RAG + Metadata',
+        'rag_metadata_vectorless': 'RAG + Metadata (Vectorless)',
+        'oneshot': 'One-shot', 'custom': 'Custom',
+    }
+    agent_type = agent.agent_type or 'oneshot'
+
+    # LLM provider info
+    provider = _get_agent_provider(agent_id)
+    is_local = provider in LOCAL_PROVIDERS
+
+    # Model name
+    from dotenv import dotenv_values
+    agent_env_path = Path(agent.path) / ".env"
+    model = ""
+    if agent_env_path.exists():
+        env = dotenv_values(agent_env_path)
+        model = env.get("MISTRAL_MODEL") or env.get("OLLAMA_MODEL") or env.get("OPENAI_MODEL") or ""
+    if not model:
+        web_env = dotenv_values(Path(__file__).parent / ".env")
+        model = web_env.get("MISTRAL_MODEL") or web_env.get("OLLAMA_MODEL") or ""
+
+    return {
+        "agent_name": cfg.get("agent_name", agent.name),
+        "agent_type": agent_type,
+        "agent_type_label": type_labels.get(agent_type, agent_type),
+        "is_local": is_local,
+        "model": model,
+        "prompt_level": cfg.get("prompt_level", ""),
+        "decision_trace": cfg.get("decision_trace", cfg.get("transparency_level", "")),
+        "reliability_cues": cfg.get("reliability_cues", ""),
+    }
+
+
+@app.get("/api/public-agent/{agent_id}/chat/stream")
+async def public_agent_chat_stream(
+    request: Request,
+    agent_id: str,
+    message: str = Query(..., description="Message to send"),
+    session_id: Optional[str] = Query(None, description="Session ID"),
+):
+    """Public streaming chat endpoint for open agents (no auth required)."""
+    if agent_id not in _PUBLIC_AGENT_IDS:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    agent = runner.get_agent(agent_id)
+    if not agent:
+        err = format_error(AGENT_NOT_FOUND, agent_id=agent_id)
+        raise HTTPException(status_code=404, detail=f"Error {err['error_code']}: {err['error']}")
+
+    client_ip = request.client.host if request.client else "unknown"
+
+    async def event_generator():
+        new_session_id = None
+        full_response = ""
+        try:
+            async for event_type, content, returned_session_id in runner.run_query_stream(
+                agent_id=agent_id,
+                message=message,
+                session_id=session_id,
+                username=None,
+                role=None,
+            ):
+                if returned_session_id and not new_session_id:
+                    new_session_id = returned_session_id
+                    yield f"event: session\ndata: {new_session_id}\n\n"
+
+                if event_type == "status":
+                    yield f"event: status\ndata: {content}\n\n"
+                elif event_type == "badge":
+                    escaped = content.replace("\n", "\\n")
+                    yield f"event: badge\ndata: {escaped}\n\n"
+                elif event_type == "trace":
+                    escaped = content.replace("\n", "\\n")
+                    yield f"event: trace\ndata: {escaped}\n\n"
+                elif event_type == "procedural_banner":
+                    escaped = content.replace("\n", "\\n")
+                    yield f"event: procedural_banner\ndata: {escaped}\n\n"
+                elif event_type == "replace":
+                    full_response = content
+                    escaped = content.replace("\n", "\\n")
+                    yield f"event: replace\ndata: {escaped}\n\n"
+                else:
+                    full_response += content
+                    escaped = content.replace("\n", "\\n")
+                    yield f"data: {escaped}\n\n"
+
+            log_conversation(
+                client_ip=client_ip,
+                agent_id=agent_id,
+                agent_name=agent.name,
+                question=message,
+                response=full_response,
+                session_id=new_session_id or session_id or "",
+                transparency_level=None,
+                username=None,
+            )
+            yield "event: done\ndata: complete\n\n"
+        except Exception as e:
+            err = format_error(SERVER_STREAMING_ERROR, details=str(e))
+            yield f"event: error\ndata: {json.dumps(err)}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 # ---------------------------------------------------------------------------

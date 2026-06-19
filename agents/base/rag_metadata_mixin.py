@@ -2204,21 +2204,36 @@ class MetadataRAGMixin:
         """Return the paper ID and a PDF link (if the PDF exists locally).
 
         Always includes the paper ID so the LLM can cite it.
+        Uses citation_key (e.g. 2025_Selvam_et_al) when available, falls back to paper_id.
         When the PDF exists locally, adds a clickable PDF link.
         When it does not, shows 'PDF not in database' and a DOI link if available.
         """
         if not paper_id:
             return ""
+        citation_key = self._get_citation_key(paper_id)
+        display_id = citation_key or paper_id
         filename = f"{paper_id}.pdf"
         docs_path = os.path.join(self._agent_dir, "data", "docs", filename)
         if os.path.exists(docs_path):
             agent_id = self._config.get("agent_id", "responsible_ai")
-            return f" (ID: {paper_id}) [PDF](/api/agents/{agent_id}/pdf/{filename})"
+            return f" (ID: {display_id})[{paper_id}](/api/agents/{agent_id}/pdf/{filename})"
         # PDF not available — show informative text + DOI link if available
-        suffix = f" (ID: {paper_id}) — PDF not in database."
+        suffix = f" (ID: {display_id})"
         if doi:
-            suffix += f' <a href="{doi}" target="_blank">Link to Internet paper</a>'
+            suffix += f' <a href="{doi}" target="_blank">Link to paper</a>'
         return suffix
+
+    def _get_citation_key(self, paper_id: str) -> str:
+        """Look up citation_key for a paper_id. Returns '' if not found."""
+        if not hasattr(self, '_citation_key_index'):
+            self._citation_key_index = {}
+            for papers in self._all_uni_papers.values():
+                for p in papers:
+                    pid = p.get("id", "")
+                    ckey = p.get("citation_key", "")
+                    if pid and ckey:
+                        self._citation_key_index[pid] = ckey
+        return self._citation_key_index.get(paper_id, "")
 
     def _build_paper_id_index(self) -> dict:
         """Build a paper_id → doi lookup from cached papers data.
@@ -2255,20 +2270,18 @@ class MetadataRAGMixin:
             if paper_id not in index:
                 return full_match
             # Check if there's already a link nearby (within the same line)
-            # by looking at what follows the match
             after = text[m.end():m.end() + 200]
-            # If there's already a PDF link, DOI link, or "Link to Internet paper" nearby, skip
             if re.match(r'[^<\n]{0,50}(?:<a\s|href=|\[PDF\]|\[Link)', after):
                 return full_match
-            # Generate the link — extract just the link portion (skip the "(ID: ...)" part
-            # since the ID is already present in the text)
+            # Replace the raw W-ID with citation_key if available
+            display_id = self._get_citation_key(paper_id) or paper_id
             link = self._pdf_link(paper_id, index[paper_id])
-            # _pdf_link returns " (ID: W...) [PDF](...)" or " (ID: W...) — PDF not in database. <a...>"
-            # Strip the "(ID: ...)" prefix since the ID already appears in the text
-            link_only = re.sub(r'^\s*\(ID:\s*\w+\)\s*', '', link).strip()
+            # Strip the "(ID: ...)" prefix since we'll replace the whole match
+            link_only = re.sub(r'^\s*\(ID:\s*[\w_\-]+\)\s*', '', link).strip()
+            replacement = f"(ID: {display_id})"
             if link_only:
-                return full_match + " " + link_only
-            return full_match
+                replacement += " " + link_only
+            return replacement
 
         # Match paper IDs in patterns like "(ID: W1234)" or bare "W1234"
         # Capture optional surrounding (ID: ...) wrapper to replace the whole thing
