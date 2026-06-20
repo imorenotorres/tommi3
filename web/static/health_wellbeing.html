@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UNINOVIS — Responsible AI Research Explorer</title>
+<title>UNINOVIS — Health &amp; Wellbeing Systems Research Explorer</title>
 <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <!-- Leaflet for inline maps -->
@@ -185,7 +185,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 <div class="nav">
     <a href="/research-explorers" class="nav-brand" style="text-decoration:none;">UNINOVIS Research Explorers</a>
     <span class="nav-sep">/</span>
-    <span class="nav-current">Responsible AI</span>
+    <span class="nav-current">Health &amp; Wellbeing Systems</span>
 </div>
 
 <div class="layout">
@@ -216,7 +216,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 
             <div class="sidebar-footer">
                 <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="width:100%;">
-                <a class="help-btn" href="javascript:void(0)" onclick="showInChat('/api/agents/responsible_ai3/quickguide')" title="Quick guide — how this agent works" style="display:block; text-align:center; margin-top:10px;">? Help</a>
+                <a class="help-btn" href="javascript:void(0)" onclick="showInChat('/api/agents/health_wellbeing_sistems/quickguide')" title="Quick guide — how this agent works" style="display:block; text-align:center; margin-top:10px;">? Help</a>
                 <div style="margin-top:8px; font-size:11px; color:#94a3b8; line-height:1.5;">
                     Built with <strong style="color:#cbd5e1;">TOMMI</strong>, an agentic framework by the UNINOVIS-UMA ICT Team. Licensed under the <a href="javascript:void(0)" onclick="showInChat('/static/license.html')" style="color:#cbd5e1;">EUPL v1.2</a> | <a href="javascript:void(0)" onclick="showInChat('/static/privacy.html')" style="color:#cbd5e1;">Privacy Policy</a>
                 </div>
@@ -227,15 +227,15 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
     <!-- Chat area -->
     <div class="chat-area">
         <div class="welcome-chat" id="welcome">
-            <h2>Responsible AI Research Explorer</h2>
-            <p id="welcome-text">Ask about responsible AI research papers, researchers, projects, and topics across the UNINOVIS alliance.</p>
+            <h2>Health &amp; Wellbeing Systems Research Explorer</h2>
+            <p id="welcome-text">Ask about health and wellbeing systems research papers, researchers, projects, and topics across the UNINOVIS alliance.</p>
         </div>
 
         <div class="chat-messages" id="chat-messages"></div>
 
         <div class="input-area">
             <div class="input-row">
-                <textarea id="message-input" placeholder="Ask about responsible AI research..." rows="1"></textarea>
+                <textarea id="message-input" placeholder="Ask about health and wellbeing systems research..." rows="1"></textarea>
                 <button id="send-btn">Send</button>
             </div>
         </div>
@@ -246,7 +246,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 </div>
 
 <script>
-const AGENT_ID = 'responsible_ai3';
+const AGENT_ID = 'health_wellbeing_sistems';
 let sessionId = null;
 let isLoading = false;
 let queryHistory = [];
@@ -264,7 +264,7 @@ marked.setOptions({ breaks: true, gfm: true });
 // Load example queries from agent config
 async function loadConfig() {
     try {
-        const resp = await fetch('/api/public-agent/responsible_ai3/config');
+        const resp = await fetch('/api/public-agent/health_wellbeing_sistems/config');
         if (!resp.ok) return;
         const cfg = await resp.json();
 
@@ -364,7 +364,7 @@ async function sendMessage(message) {
     const params = new URLSearchParams({ agent_id: AGENT_ID, message: message });
     if (sessionId) params.append('session_id', sessionId);
 
-    const eventSource = new EventSource('/api/public-agent/responsible_ai3/chat/stream?' + params);
+    const eventSource = new EventSource('/api/public-agent/health_wellbeing_sistems/chat/stream?' + params);
     let responseText = '';
     let badgeHtml = '';
     let bannerHtml = '';
@@ -703,7 +703,7 @@ let pdfSet = null;
 async function loadPdfList() {
     if (pdfSet) return pdfSet;
     try {
-        const resp = await fetch('/api/agents/responsible_ai3/pdf-list');
+        const resp = await fetch('/api/agents/health_wellbeing_sistems/pdf-list');
         const data = await resp.json();
         pdfSet = new Set(data.pdfs || []);
     } catch (e) { pdfSet = new Set(); }
@@ -718,7 +718,7 @@ function addPdfLinks(container) {
             const match = a.href.match(/(W\d{7,})(?:[^0-9]|$)/);
             if (match) {
                 if (!pdfs.has(match[1])) { a.replaceWith(document.createTextNode(a.textContent)); return; }
-                a.href = '/api/agents/responsible_ai3/pdf/' + match[1] + '.pdf';
+                a.href = '/api/agents/health_wellbeing_sistems/pdf/' + match[1] + '.pdf';
             }
             a.target = '_blank'; a.rel = 'noopener';
         });
@@ -742,7 +742,7 @@ function addPdfLinks(container) {
                     const nearby = idPos >= 0 ? parentText.substring(idPos, idPos + 200) : '';
                     if (!/not in database|hallucination/i.test(nearby)) {
                         const link = document.createElement('a');
-                        link.href = '/api/agents/responsible_ai3/pdf/' + idMatch[1] + '.pdf';
+                        link.href = '/api/agents/health_wellbeing_sistems/pdf/' + idMatch[1] + '.pdf';
                         link.textContent = '\uD83D\uDCC4 PDF';
                         link.target = '_blank';
                         link.rel = 'noopener';
@@ -761,7 +761,7 @@ function addPdfLinks(container) {
 // Load agent info icons (type, LLM, prompt level, transparency)
 async function loadIcons() {
     try {
-        const resp = await fetch('/api/public-agent/responsible_ai3/info');
+        const resp = await fetch('/api/public-agent/health_wellbeing_sistems/info');
         if (!resp.ok) return;
         const info = await resp.json();
         const row = document.getElementById('info-icons');

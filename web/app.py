@@ -159,7 +159,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # PDF endpoints are public (academic documents, not personal data)
         # Study app routes are public (participants don't need TOMMI accounts)
         is_study = path.startswith("/study/api/") or path.startswith("/rag-study/api/") or path.startswith("/sql-study/api/")
-        is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/projects-search", "/project-topic-search", "/pdf-list")) and "/responsible_ai3/" in path
+        is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/projects-search", "/project-topic-search", "/pdf-list")) and any(f"/{aid}/" in path for aid in ("responsible_ai3", "health_wellbeing_sistems"))
         if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/public-tools" not in path and "/public-agent/" not in path and not is_study and not is_public_search:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
@@ -1044,10 +1044,22 @@ async def rag_study2_chat_page():
     return FileResponse(SCRIPT_DIR / "static" / "rag_study2_chat.html")
 
 
+@app.get("/research-explorers")
+async def research_explorers_page():
+    """Serve the Research Explorers landing page (no auth required)"""
+    return FileResponse(SCRIPT_DIR / "static" / "research_explorers.html")
+
+
 @app.get("/responsible-ai")
 async def responsible_ai_public_page():
     """Serve the public Responsible AI Research Assistant page (no auth required)"""
     return FileResponse(SCRIPT_DIR / "static" / "responsible_ai.html")
+
+
+@app.get("/health-wellbeing")
+async def health_wellbeing_public_page():
+    """Serve the public Health & Wellbeing Systems Research Explorer page (no auth required)"""
+    return FileResponse(SCRIPT_DIR / "static" / "health_wellbeing.html")
 
 
 @app.get("/agents")
@@ -1730,7 +1742,7 @@ async def get_public_tools():
 # ---------------------------------------------------------------------------
 
 # Set of agent IDs that are allowed to be accessed publicly
-_PUBLIC_AGENT_IDS = {"responsible_ai3"}
+_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems"}
 
 
 @app.get("/api/public-agent/{agent_id}/config")

@@ -31,7 +31,7 @@ CATEGORIES (in priority order — use the FIRST matching category):
 - meta: Questions about the agent itself ("What can you do?", "How does this work?", "What is UNINOVIS?", "Who are you?")
 - non_research: Requests to PERFORM a task — write essays, translate, book flights, get recipes, report weather, sports results. Use this for ANY action request, even if the topic seems off-topic.
 - off_topic: Questions clearly outside Health and Wellbeing Systems AND not task requests. Also for vague, meaningless, or greeting-like inputs.
-- followup: Short follow-ups referring to previous context ("tell me more", "expand on that")
+- followup: Short follow-ups referring to previous context ("tell me more", "expand on that", "yes", "no", or a single number like "3" selecting from a previous list)
 - gap: Questions about topics NOT studied, research gaps, missing areas, underexplored subtopics
 - general: Broad or ambiguous health/AI/technology questions that don't match a specific category above.
 
@@ -40,6 +40,9 @@ IMPORTANT DISTINCTIONS:
 - glossary vs general: Glossary only for well-defined Health & Wellbeing terms. Broad questions = general.
 - project vs topic_search: "project(s)" keyword = project. "papers/publications" = topic_search.
 - topic_search vs papers: If a TOPIC is mentioned, use topic_search even if a university is also mentioned.
+- Questions about "subtopics", "topics most studied", "most researched areas", or listing research areas = topic_search (they query the publication database).
+- off_topic is ONLY for queries completely unrelated to health, wellbeing, AI, technology, research, or higher education. When in doubt, prefer general over off_topic.
+- Single numbers (e.g. "1", "2", "3"), "yes", "no", or very short replies = followup (they are responses to a previous question from the agent). NEVER classify these as off_topic.
 
 UNIVERSITIES: UMA, THUAS, USPN, UDCLV, THWS, TAMK, KK, UT
 
@@ -110,11 +113,43 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             response += f"\n\nTopics I can help with include: {', '.join(scope_terms)}."
         return response
 
+    def _build_university_researchers_response(self, user_message: str):
+        """Programmatic response listing all researchers from a university."""
+        if not self._researchers_by_uni:
+            return None
+        uni_filter = self._detect_university_filter(user_message) if hasattr(self, '_detect_university_filter') else None
+        if not uni_filter:
+            return None
+        val = uni_filter.get("university_acronym")
+        targets = {val} if isinstance(val, str) else set(val.get("$in", [])) if isinstance(val, dict) else set()
+        if not targets:
+            return None
+        lines = []
+        for acronym in sorted(targets):
+            researchers = self._researchers_by_uni.get(acronym, [])
+            if not researchers:
+                continue
+            uni_info = self._config.get("universities", {}).get(acronym, {})
+            uni_name = uni_info.get("name", acronym)
+            lines.append(f"### {acronym} ({uni_name}) — {len(researchers)} researchers\n")
+            for r in sorted(researchers, key=lambda x: x["name"]):
+                topics = ", ".join(r.get("topics", [])[:5])
+                papers = r.get("paper_count", 0)
+                lines.append(f"- **{r['name']}** ({papers} paper{'s' if papers != 1 else ''}) — {topics}")
+            lines.append("")
+        return "\n".join(lines) if lines else None
+
     # ── Dispatch ───────────────────────────────────────────────────────────
 
     def _dispatch(self, classification: dict, user_message: str):
         """Route to programmatic path or return None for LLM fallback."""
         cat = classification.get("category", "general")
+
+        # Handle pending disambiguation (e.g. user replied "3" to a researcher list)
+        if cat == "followup" and hasattr(self, '_disambiguation_candidates') and self._disambiguation_candidates:
+            ctx = self._build_researcher_context(user_message)
+            if ctx:
+                return self._format_researcher_response(ctx)
 
         if cat == "meta":
             return self._build_meta_response()
@@ -129,6 +164,14 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             agent_id = self._config.get("agent_id", "")
             if hasattr(self, '_generate_map_link_programmatic'):
                 return self._generate_map_link_programmatic(user_message, agent_id)
+
+        # "List researchers from UMA" → classified as papers but should list researchers
+        if cat == "papers" and re.search(r'\bresearcher', user_message, re.I):
+            result = self._build_university_researchers_response(user_message)
+            if result:
+                classification["category"] = "researcher"
+                classification["_rerouted_from"] = "papers"
+                return result
 
         if cat == "project":
             ctx = self._build_project_context(user_message)
@@ -236,10 +279,16 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         classification = self._llm_classify(user_message)
         cat = classification.get("category", "general")
 
+        show_banners = self._show_procedural_banners
+
         # Step 2: Try programmatic dispatch
         result = self._dispatch(classification, user_message)
         if result is not None:
             result = self._sanitize_authority(result)
+            # Programmatic banner (green) — if not already embedded in the result
+            if show_banners and '\U0001F7E2' not in result:
+                from base.simple_vectorless_mixin import _banner_verified
+                yield ("procedural_banner", _banner_verified())
             yield result
 
             # Decision trace (if crystal_box)
@@ -252,6 +301,16 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
 
         # Step 3: LLM fallback with targeted context
         system = self._build_llm_context(classification, user_message)
+
+        # For gap queries: LLM generates the gap analysis (red banner)
+        if show_banners and cat == "gap":
+            from base.simple_vectorless_mixin import _banner_unverified
+            yield ("procedural_banner", _banner_unverified(
+                "The gap analysis below is AI-generated. The LLM reasons about topics NOT in the database. Verify independently."))
+        elif show_banners:
+            from base.simple_vectorless_mixin import _banner_database
+            yield ("procedural_banner", _banner_database())
+
         messages = [{"role": "system", "content": system}]
         if history:
             messages.extend(history)
@@ -324,6 +383,11 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             else:
                 lines.append(f'<div style="color:#94a3b8;">✗ {c}</div>')
         lines.append('</div>')
+
+        # Show re-routing if it happened
+        rerouted_from = classification.get("_rerouted_from")
+        if rerouted_from:
+            lines.append(f'<div style="margin-top:6px;"><span style="color:#d97706;font-weight:600;">Re-routed:</span> {rerouted_from} → {cat}</div>')
 
         action = "Programmatic response (no LLM)" if programmatic else "LLM generates response with context"
         lines.append(f'<div style="margin-top:6px;"><span style="color:#16a34a;font-weight:600;">Action:</span> {action}</div>')

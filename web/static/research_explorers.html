@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNINOVIS — Research Explorers</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+/* Nav bar */
+.nav { background: #4250b3; padding: 12px 24px; display: flex; align-items: center; gap: 12px; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 16px; text-decoration: none; }
+.nav-sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.nav-current { color: #fff; font-size: 16px; font-weight: 600; }
+
+/* Hero */
+.hero {
+    background: #4250b3; color: #fff; text-align: center;
+    padding: 48px 24px 56px;
+}
+.hero h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.hero p { font-size: 15px; opacity: 0.85; max-width: 560px; margin: 0 auto; line-height: 1.6; }
+
+/* Cards container */
+.cards-section { max-width: 900px; margin: -32px auto 0; padding: 0 24px 48px; position: relative; z-index: 1; }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+/* Card */
+.card {
+    background: #fff; border-radius: 12px; padding: 28px 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none; color: #1e293b; display: flex; flex-direction: column;
+    border-top: 4px solid #4250b3;
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.card-icon {
+    width: 48px; height: 48px; border-radius: 50%; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; margin-bottom: 14px;
+}
+.card h3 { font-size: 17px; color: #1e293b; margin-bottom: 6px; }
+.card p { font-size: 13px; color: #64748b; line-height: 1.5; flex: 1; }
+.card-lead { display: block; margin-top: 12px; font-size: 12px; font-weight: 600; color: #4250b3; }
+.card-badge {
+    display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 600;
+    color: #64748b; background: #f1f5f9; padding: 3px 12px; border-radius: 10px;
+    align-self: flex-start;
+}
+
+/* Disabled card */
+.card-disabled { opacity: 0.55; cursor: default; border-top-color: #94a3b8; }
+.card-disabled:hover { transform: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+/* Footer */
+.footer { text-align: center; padding: 24px; font-size: 12px; color: #94a3b8; }
+.footer a { color: #64748b; }
+
+@media (max-width: 600px) {
+    .cards-grid { grid-template-columns: 1fr; }
+    .hero { padding: 32px 16px 44px; }
+    .hero h1 { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/" class="nav-brand">UNINOVIS</a>
+    <span class="nav-sep">/</span>
+    <span class="nav-current">Research Explorers</span>
+</div>
+
+<div class="hero">
+    <h1>Research Explorers</h1>
+    <p>AI-powered research assistants for each UNINOVIS Excellence Hub. Search papers, researchers, projects, and topics across the alliance.</p>
+</div>
+
+<section class="cards-section">
+    <div class="cards-grid">
+
+        <a href="/responsible-ai" class="card">
+            <div class="card-icon" style="background:linear-gradient(135deg,#4250b3,#374399);">AI</div>
+            <h3>Responsible AI</h3>
+            <p>Explainable AI, AI ethics, trustworthy AI, AI fairness, AI governance</p>
+            <span class="card-lead">THUAS &mdash; The Hague, Netherlands</span>
+        </a>
+
+        <a href="/health-wellbeing" class="card">
+            <div class="card-icon" style="background:linear-gradient(135deg,#059669,#047857);">HW</div>
+            <h3>Health &amp; Wellbeing Systems</h3>
+            <p>Digital health, AI diagnostics, wearable monitoring, precision medicine</p>
+            <span class="card-lead">UMA &mdash; M&aacute;laga, Spain</span>
+        </a>
+
+        <div class="card card-disabled">
+            <div class="card-icon" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);">NLP</div>
+            <h3>AI &amp; Language</h3>
+            <p>NLP, computational linguistics, machine translation, language models</p>
+            <span class="card-lead">UT &mdash; Tirana, Albania</span>
+            <span class="card-badge">Coming soon</span>
+        </div>
+
+        <div class="card card-disabled">
+            <div class="card-icon" style="background:linear-gradient(135deg,#dc2626,#b91c1c);">Rob</div>
+            <h3>AI &amp; Robotics</h3>
+            <p>Intelligent automation, human-robot interaction, Industry 4.0, smart manufacturing</p>
+            <span class="card-lead">THWS &mdash; W&uuml;rzburg, Germany</span>
+            <span class="card-badge">Coming soon</span>
+        </div>
+
+    </div>
+</section>
+
+<footer class="footer">
+    Built with <strong>TOMMI</strong> by the UNINOVIS-UMA ICT Team. Licensed under the <a href="/static/license.html">EUPL v1.2</a> | <a href="/static/privacy.html">Privacy Policy</a>
+</footer>
+
+</body>
+</html>

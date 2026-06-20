@@ -241,6 +241,25 @@ body {
     color: var(--eh-text-muted);
 }
 
+.eh-card-lead {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--eh-primary-light);
+}
+
+.eh-card-badge {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--eh-text-muted);
+    background: var(--eh-bg-alt);
+    padding: 2px 10px;
+    border-radius: 10px;
+}
+
 /* ── Objectives ──────────────────────────────────────────────── */
 .eh-objectives-list {
     list-style: none;

@@ -115,6 +115,32 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             response += f"\n\nTopics I can help with include: {', '.join(scope_terms)}."
         return response
 
+    def _build_university_researchers_response(self, user_message: str):
+        """Programmatic response listing all researchers from a university."""
+        if not self._researchers_by_uni:
+            return None
+        uni_filter = self._detect_university_filter(user_message) if hasattr(self, '_detect_university_filter') else None
+        if not uni_filter:
+            return None
+        val = uni_filter.get("university_acronym")
+        targets = {val} if isinstance(val, str) else set(val.get("$in", [])) if isinstance(val, dict) else set()
+        if not targets:
+            return None
+        lines = []
+        for acronym in sorted(targets):
+            researchers = self._researchers_by_uni.get(acronym, [])
+            if not researchers:
+                continue
+            uni_info = self._config.get("universities", {}).get(acronym, {})
+            uni_name = uni_info.get("name", acronym)
+            lines.append(f"### {acronym} ({uni_name}) — {len(researchers)} researchers\n")
+            for r in sorted(researchers, key=lambda x: x["name"]):
+                topics = ", ".join(r.get("topics", [])[:5])
+                papers = r.get("paper_count", 0)
+                lines.append(f"- **{r['name']}** ({papers} paper{'s' if papers != 1 else ''}) — {topics}")
+            lines.append("")
+        return "\n".join(lines) if lines else None
+
     # ── Dispatch ───────────────────────────────────────────────────────────
 
     def _dispatch(self, classification: dict, user_message: str):
@@ -140,6 +166,14 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             agent_id = self._config.get("agent_id", "")
             if hasattr(self, '_generate_map_link_programmatic'):
                 return self._generate_map_link_programmatic(user_message, agent_id)
+
+        # "List researchers from UMA" → classified as papers but should list researchers
+        if cat == "papers" and re.search(r'\bresearcher', user_message, re.I):
+            result = self._build_university_researchers_response(user_message)
+            if result:
+                classification["category"] = "researcher"
+                classification["_rerouted_from"] = "papers"
+                return result
 
         if cat == "project":
             ctx = self._build_project_context(user_message)
@@ -270,23 +304,11 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         # Step 3: LLM fallback with targeted context
         system = self._build_llm_context(classification, user_message)
 
-        # For gap queries: show factual topics first (green), then LLM analysis (red)
+        # For gap queries: LLM generates the gap analysis (red banner)
         if show_banners and cat == "gap":
-            from base.simple_vectorless_mixin import _banner_verified, _banner_unverified
-            topics = self.get_top_topics(top_n=25) if hasattr(self, 'get_top_topics') else []
-            if topics:
-                factual_lines = ["**Research topics currently studied in UNINOVIS** (from the database):\n"]
-                for t in topics:
-                    unis = ", ".join(t["universities"])
-                    factual_lines.append(f"- **{t['topic']}**: {t['paper_count']} papers ({unis})")
-                factual_section = "\n".join(factual_lines) + "\n\n---\n\n"
-                yield ("procedural_banner", _banner_verified(
-                    f"{len(topics)} research topics from the UNINOVIS database (no AI involved)."))
-                yield factual_section
-                yield ("procedural_banner",
-                    _banner_verified(f"{len(topics)} research topics from the UNINOVIS database (no AI involved).")
-                    + _banner_unverified(
-                    "The gap analysis below is AI-generated. The LLM reasons beyond the database. Verify independently."))
+            from base.simple_vectorless_mixin import _banner_unverified
+            yield ("procedural_banner", _banner_unverified(
+                "The gap analysis below is AI-generated. The LLM reasons about topics NOT in the database. Verify independently."))
         elif show_banners:
             from base.simple_vectorless_mixin import _banner_database
             yield ("procedural_banner", _banner_database())
@@ -363,6 +385,11 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
             else:
                 lines.append(f'<div style="color:#94a3b8;">✗ {c}</div>')
         lines.append('</div>')
+
+        # Show re-routing if it happened
+        rerouted_from = classification.get("_rerouted_from")
+        if rerouted_from:
+            lines.append(f'<div style="margin-top:6px;"><span style="color:#d97706;font-weight:600;">Re-routed:</span> {rerouted_from} → {cat}</div>')
 
         action = "Programmatic response (no LLM)" if programmatic else "LLM generates response with context"
         lines.append(f'<div style="margin-top:6px;"><span style="color:#16a34a;font-weight:600;">Action:</span> {action}</div>')
