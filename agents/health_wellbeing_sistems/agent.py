@@ -29,9 +29,9 @@ CATEGORIES (in priority order — use the FIRST matching category):
 - glossary: Conceptual "What is X?" questions ONLY about well-defined Health and Wellbeing Systems terms (digital therapeutics, precision medicine, telehealth, wearable health monitoring, AI-assisted diagnosis, etc.). Do NOT use for general/ambiguous questions.
 - figure: Requests containing "figure", "map", "chart", "graph", or "visualise" for data visualisation
 - meta: Questions about the agent itself ("What can you do?", "How does this work?", "What is UNINOVIS?", "Who are you?")
-- non_research: Requests to PERFORM a task — write essays, translate, book flights, get recipes, report weather, sports results. Use this for ANY action request, even if the topic seems off-topic.
+- non_research: Requests to PERFORM a task UNRELATED to research — write essays, translate, book flights, get recipes, report weather, sports results. Do NOT use for requests to summarize, explain, or analyse papers or research topics — those are valid research queries (use followup or general).
 - off_topic: Questions clearly outside Health and Wellbeing Systems AND not task requests. Also for vague, meaningless, or greeting-like inputs.
-- followup: Short follow-ups referring to previous context ("tell me more", "expand on that", "yes", "no", or a single number like "3" selecting from a previous list)
+- followup: Follow-ups referring to previous context ("tell me more", "expand on that", "summarize this", "explain that", "yes", "no", or a single number like "3" selecting from a previous list). Any request that refers to content from a previous response is a followup.
 - gap: Questions about topics NOT studied, research gaps, missing areas, underexplored subtopics
 - general: Broad or ambiguous health/AI/technology questions that don't match a specific category above.
 
@@ -41,6 +41,7 @@ IMPORTANT DISTINCTIONS:
 - project vs topic_search: "project(s)" keyword = project. "papers/publications" = topic_search.
 - topic_search vs papers: If a TOPIC is mentioned, use topic_search even if a university is also mentioned.
 - Questions about "subtopics", "topics most studied", "most researched areas", or listing research areas = topic_search (they query the publication database).
+- Questions asking "what/which [thing] is most studied?", "any [thing] that is researched?", or similar meta-questions about the database = general (the LLM needs to reason about the data, not do a literal topic search).
 - off_topic is ONLY for queries completely unrelated to health, wellbeing, AI, technology, research, or higher education. When in doubt, prefer general over off_topic.
 - Single numbers (e.g. "1", "2", "3"), "yes", "no", or very short replies = followup (they are responses to a previous question from the agent). NEVER classify these as off_topic.
 
