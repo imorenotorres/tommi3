@@ -33,7 +33,7 @@ CATEGORIES (in priority order — use the FIRST matching category):
 - meta: Questions about the agent itself ("What can you do?", "How does this work?", "What is UNINOVIS?", "Who are you?")
 - non_research: Requests to PERFORM a task — write essays, translate, book flights, get recipes, report weather, sports results. Use this for ANY action request, even if the topic seems off-topic.
 - off_topic: Questions clearly outside Responsible AI AND not task requests. Also for vague, meaningless, or greeting-like inputs.
-- followup: Short follow-ups referring to previous context ("tell me more", "expand on that")
+- followup: Short follow-ups referring to previous context ("tell me more", "expand on that", "yes", "no", or a single number like "3" selecting from a previous list)
 - gap: Questions about topics NOT studied, research gaps, missing areas, underexplored subtopics
 - general: Broad or ambiguous AI/technology questions that don't match a specific category above.
 
@@ -44,6 +44,7 @@ IMPORTANT DISTINCTIONS:
 - topic_search vs papers: If a TOPIC is mentioned, use topic_search even if a university is also mentioned.
 - Questions about "subtopics", "topics most studied", "most researched areas", or listing research areas = topic_search (they query the publication database).
 - off_topic is ONLY for queries completely unrelated to AI, technology, research, or higher education. When in doubt, prefer general over off_topic.
+- Single numbers (e.g. "1", "2", "3"), "yes", "no", or very short replies = followup (they are responses to a previous question from the agent). NEVER classify these as off_topic.
 
 UNIVERSITIES: UMA, THUAS, USPN, UDCLV, THWS, TAMK, KK, UT
 
@@ -119,6 +120,12 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
     def _dispatch(self, classification: dict, user_message: str):
         """Route to programmatic path or return None for LLM fallback."""
         cat = classification.get("category", "general")
+
+        # Handle pending disambiguation (e.g. user replied "3" to a researcher list)
+        if cat == "followup" and hasattr(self, '_disambiguation_candidates') and self._disambiguation_candidates:
+            ctx = self._build_researcher_context(user_message)
+            if ctx:
+                return self._format_researcher_response(ctx)
 
         if cat == "meta":
             return self._build_meta_response()

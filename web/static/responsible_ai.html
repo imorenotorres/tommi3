@@ -92,10 +92,10 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 
 /* Sidebar footer */
 .sidebar-footer { margin-top: auto; padding-top: 16px; text-align: center; }
-.sidebar-footer img { max-width: 120px; opacity: 0.7; }
+.sidebar-footer img { width: 100%; }
 
 /* Chat area */
-.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
 .message { display: flex; flex-direction: column; gap: 4px; }
 .message.user .bubble { background: #2563eb; color: #fff; align-self: flex-end; border-radius: 12px 12px 4px 12px; }
@@ -157,6 +157,16 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 .input-row button:disabled { background: #94a3b8; cursor: not-allowed; }
 .disclaimer { padding: 6px 20px; text-align: center; font-size: 11px; color: #94a3b8; }
 
+/* Embedded page (help, license) */
+.embedded-page { display: flex; flex-direction: column; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 100; }
+.embedded-page iframe { flex: 1; min-height: 0; }
+.back-btn {
+    background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px;
+    padding: 6px 14px; font-size: 13px; color: #334155; cursor: pointer;
+    margin: 10px 20px; align-self: flex-start; flex-shrink: 0;
+}
+.back-btn:hover { background: #e2e8f0; }
+
 /* Mobile */
 @media (max-width: 768px) {
     .layout { flex-direction: column; }
@@ -172,9 +182,9 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 <body>
 
 <div class="nav">
-    <span class="nav-brand">UNINOVIS</span>
+    <span class="nav-brand">UNINOVIS Research Explorer</span>
     <span class="nav-sep">/</span>
-    <span class="nav-current">Responsible AI Research Assistant</span>
+    <span class="nav-current">Responsible AI</span>
 </div>
 
 <div class="layout">
@@ -184,7 +194,6 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
             <div>
                 <div class="sidebar-title" id="sidebar-title">EH: Responsible AI</div>
                 <div class="info-icons" id="info-icons">
-                    <a class="help-btn" href="/api/agents/responsible_ai3/quickguide" target="_blank" title="Quick guide — how this agent works">? Help</a>
                 </div>
                 <div class="sidebar-desc" id="sidebar-desc">Research assistant for UNINOVIS Responsible AI research.</div>
             </div>
@@ -206,9 +215,10 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
             </div>
 
             <div class="sidebar-footer">
-                <img src="/static/logo_uninovis.png" alt="UNINOVIS">
-                <div style="margin-top:8px; font-size:11px; color:#94a3b8;">
-                    TOMMI is licensed under the <a href="/static/license.html" target="_blank" style="color:#cbd5e1;">EUPL v1.2</a>
+                <img src="/static/logo_uninovis.png" alt="UNINOVIS" style="width:100%;">
+                <a class="help-btn" href="javascript:void(0)" onclick="showInChat('/api/agents/responsible_ai3/quickguide')" title="Quick guide — how this agent works" style="display:block; text-align:center; margin-top:10px;">? Help</a>
+                <div style="margin-top:8px; font-size:11px; color:#94a3b8; line-height:1.5;">
+                    Built with <strong style="color:#cbd5e1;">TOMMI</strong>, an agentic framework by the UNINOVIS-UMA ICT Team. Licensed under the <a href="javascript:void(0)" onclick="showInChat('/static/license.html')" style="color:#cbd5e1;">EUPL v1.2</a>
                 </div>
             </div>
         </div>
@@ -449,6 +459,19 @@ messageInput.addEventListener('input', () => {
     messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
 });
 
+// ── Show HTML pages in the chat area ──
+function showInChat(url) {
+    const chatArea = document.querySelector('.chat-area');
+    // Remove any existing overlay
+    const existing = chatArea.querySelector('.embedded-page');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.className = 'embedded-page';
+    overlay.innerHTML = '<button class="back-btn" onclick="this.parentElement.remove()">&#8592; Back to chat</button>' +
+        '<iframe src="' + url + '" style="width:100%;border:none;"></iframe>';
+    chatArea.appendChild(overlay);
+}
+
 // ── Map & figure rendering ──
 let mapCounter = 0;
 
@@ -542,7 +565,8 @@ function renderInlineMapPlaceholders(container) {
                     let papersHtml = '';
                     if (conn.papers && conn.papers.length > 0) {
                         conn.papers.forEach(p => {
-                            const authors = p.authors ? p.authors.slice(0, 3).join(', ') : '';
+                            const authorList = p.authors || [];
+                            const authors = authorList.length > 5 ? authorList.slice(0, 5).join(', ') + ' et al.' : authorList.join(', ');
                             const doi = p.doi ? ' — <a href="' + p.doi + '" target="_blank" style="color:#7c3aed;">DOI</a>' : '';
                             papersHtml += '<div style="padding:6px 0;border-bottom:1px solid #e2e8f0;"><b>' + (p.title || 'Untitled') + '</b><br><span style="color:#64748b;">' + authors + (p.year ? ' (' + p.year + ')' : '') + doi + '</span></div>';
                         });
@@ -632,7 +656,8 @@ function renderInlineMapPlaceholders(container) {
                     let papersHtml = '';
                     if (uni.papers && uni.papers.length > 0) {
                         uni.papers.forEach(p => {
-                            const authors = p.authors ? p.authors.slice(0, 3).join(', ') : '';
+                            const authorList = p.authors || [];
+                            const authors = authorList.length > 5 ? authorList.slice(0, 5).join(', ') + ' et al.' : authorList.join(', ');
                             const doi = p.doi ? ' — <a href="' + p.doi + '" target="_blank" style="color:#2563eb;">DOI</a>' : '';
                             papersHtml += '<div style="padding:6px 0;border-bottom:1px solid #e2e8f0;"><b>' + (p.title || 'Untitled') + '</b><br><span style="color:#64748b;">' + authors + (p.year ? ' (' + p.year + ')' : '') + (p.cited_by_count ? ' \u2014 Cited: ' + p.cited_by_count : '') + doi + '</span></div>';
                         });

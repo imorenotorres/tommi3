@@ -60,14 +60,14 @@
     </div>
   </li>
   <li>
-    <strong>A documents database</strong> – The PDF papers produced by the authors, the funded research projects in which they have participated, and a glossary of Responsible AI concepts. The list of documents included in the database was <strong style="color:#28a745;">selected by UNINOVIS staff</strong>.
-    <div style="background:#d4edda; border-left:4px solid #28a745; padding:0.6rem 1rem; margin:0.5rem 0; border-radius:0 6px 6px 0; font-size:0.93em;">
+    <strong>A documents database</strong> – The PDF papers produced by the authors, the funded research projects in which they have participated, and a glossary of Responsible AI concepts. The list of documents included in the database was <strong style="color:#856404;">selected by UNINOVIS staff</strong>, but the AI may summarise or interpret the content.
+    <div style="background:#fff3cd; border-left:4px solid #ffc107; padding:0.6rem 1rem; margin:0.5rem 0; border-radius:0 6px 6px 0; font-size:0.93em;">
       <strong>Example:</strong> <em>"What is explainable AI?"</em> — The agent retrieves the definition directly from the curated Responsible AI glossary. Similarly, <em>"List research projects on trustworthy AI"</em> returns project details (title, grant ID, funder, participants) from the projects database.
     </div>
   </li>
   <li>
     <strong>An external LLM</strong> (Large Language Model) – We use Mistral, a general-purpose AI model trained on large amounts of text from the internet. Because it is a general-purpose model, <strong style="color:#dc3545;">we cannot guarantee that the information it provides about specific topics is correct</strong>.
-    <div style="background:#fff3cd; border-left:4px solid #ffc107; padding:0.6rem 1rem; margin:0.5rem 0; border-radius:0 6px 6px 0; font-size:0.93em;">
+    <div style="background:#f8d7da; border-left:4px solid #dc3545; padding:0.6rem 1rem; margin:0.5rem 0; border-radius:0 6px 6px 0; font-size:0.93em;">
       <strong>Example:</strong> <em>"What topics related to responsible AI have not been studied in UNINOVIS?"</em> — The agent retrieves the list of topics covered in the database and passes it to the LLM, which identifies potential gaps by comparing against its general knowledge. The gap suggestions are AI-generated and should be verified independently.
     </div>
   </li>

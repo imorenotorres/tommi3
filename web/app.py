@@ -2892,7 +2892,7 @@ async def chat_stream(
 @app.get("/api/agents/{agent_id}/publications-search")
 async def agent_publications_search(agent_id: str, year: Optional[int] = Query(None)):
     """Return all papers grouped by university as JSON data."""
-    agent_instance = runner.get_agent_instance(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "get_all_papers_by_university"):
@@ -2908,7 +2908,7 @@ async def agent_publications_map(agent_id: str, year: Optional[int] = Query(None
     from fastapi.responses import HTMLResponse
     import json as json_module
 
-    agent_instance = runner.get_agent_instance(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "get_all_papers_by_university"):
@@ -2929,7 +2929,7 @@ async def agent_publications_map(agent_id: str, year: Optional[int] = Query(None
 async def agent_collaboration_search(agent_id: str, topic: str = Query(None),
                                      year: int = Query(None)):
     """Return collaboration data (universities + connections) as JSON."""
-    agent_instance = runner.get_agent_instance(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "get_collaboration_map_data"):
@@ -2940,7 +2940,7 @@ async def agent_collaboration_search(agent_id: str, topic: str = Query(None),
 @app.get("/api/agents/{agent_id}/topic-search")
 async def agent_topic_search(agent_id: str, topic: str = Query(...)):
     """Search papers by topic across universities. Returns JSON data."""
-    agent_instance = runner.get_agent_instance(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "search_papers_by_topic"):
@@ -2955,7 +2955,7 @@ async def agent_topic_map(agent_id: str, topic: str = Query(...)):
     from fastapi.responses import HTMLResponse
     import json as json_module
 
-    agent_instance = runner.get_agent_instance(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "search_papers_by_topic"):
@@ -2977,7 +2977,7 @@ async def agent_topic_map(agent_id: str, topic: str = Query(...)):
 @app.get("/api/agents/{agent_id}/projects-search")
 async def agent_projects_search(agent_id: str, year: Optional[int] = Query(None)):
     """Return all projects grouped by university as JSON data, optionally filtered by year."""
-    agent_instance = runner.get_agent_instance(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "get_all_projects_by_university"):
@@ -2990,7 +2990,7 @@ async def agent_projects_search(agent_id: str, year: Optional[int] = Query(None)
 async def agent_project_topic_search(agent_id: str, topic: str = Query(...),
                                      year: Optional[int] = Query(None)):
     """Search projects by topic across universities, optionally filtered by year. Returns JSON data."""
-    agent_instance = runner.get_agent_instance(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "search_projects_by_topic"):
@@ -3005,7 +3005,7 @@ async def agent_projects_map(agent_id: str, year: Optional[int] = Query(None)):
     from fastapi.responses import HTMLResponse
     import json as json_module
 
-    agent_instance = runner.get_agent_instance(agent_id)
+    agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
     if not agent_instance:
         raise HTTPException(status_code=404, detail="Agent not loaded")
     if not hasattr(agent_instance, "get_all_projects_by_university"):
