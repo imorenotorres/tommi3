@@ -195,7 +195,6 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
                 <div class="sidebar-title" id="sidebar-title"></div>
                 <div class="info-icons" id="info-icons">
                 </div>
-                <div class="sidebar-desc" id="sidebar-desc">Research assistant for UNINOVIS Responsible AI research.</div>
             </div>
 
             <div class="examples-panel">
@@ -283,7 +282,6 @@ async function loadConfig() {
             document.getElementById('welcome-text').textContent = cfg.welcome_message;
         }
         if (cfg.description) {
-            document.getElementById('sidebar-desc').textContent = cfg.description;
         }
     } catch (e) { console.warn('Could not load config'); }
 }
