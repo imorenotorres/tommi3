@@ -3,7 +3,7 @@
   "agent_id": "responsible_ai3",
   "agent_name": "EH: Responsible AI",
   "description": "Research assistant for UNINOVIS Responsible AI Excellence Hub",
-  "welcome_message": "Hello! I am a research assistant specialized in UNINOVIS Responsible AI research (vectorless mode). How can I help you?",
+  "welcome_message": "Hello! I am a research explorer specialized in UNINOVIS Responsible AI research. How can I help you?",
   "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",
   "show_history": true,
   "extra_docs_dirs": [

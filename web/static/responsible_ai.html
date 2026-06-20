@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UNINOVIS — Responsible AI Research Assistant</title>
+<title>UNINOVIS — Responsible AI Research Explorer</title>
 <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <!-- Leaflet for inline maps -->
@@ -27,17 +27,17 @@
 body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; background: #f8fafc; color: #1e293b; }
 
 /* Nav bar */
-.nav { background: #1e293b; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.nav { background: #4250b3; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .nav-brand { color: #fff; font-weight: 700; font-size: 15px; }
-.nav-sep { color: #475569; margin: 0 2px; }
-.nav-current { color: #94a3b8; font-size: 14px; }
+.nav-sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.nav-current { color: #fff; font-size: 16px; font-weight: 600; }
 
 /* Main layout */
 .layout { flex: 1; display: flex; overflow: hidden; }
 
 /* Sidebar */
 .sidebar {
-    width: 280px; min-width: 280px; background: #2D3876; color: #e2e8f0;
+    width: 280px; min-width: 280px; background: #4250b3; color: #e2e8f0;
     display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
 }
 .sidebar-content { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
@@ -182,7 +182,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 <body>
 
 <div class="nav">
-    <span class="nav-brand">UNINOVIS Research Explorer</span>
+    <span class="nav-brand">UNINOVIS Research Explorers</span>
     <span class="nav-sep">/</span>
     <span class="nav-current">Responsible AI</span>
 </div>
@@ -192,7 +192,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
     <aside class="sidebar">
         <div class="sidebar-content">
             <div>
-                <div class="sidebar-title" id="sidebar-title">EH: Responsible AI</div>
+                <div class="sidebar-title" id="sidebar-title"></div>
                 <div class="info-icons" id="info-icons">
                 </div>
                 <div class="sidebar-desc" id="sidebar-desc">Research assistant for UNINOVIS Responsible AI research.</div>
@@ -215,7 +215,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
             </div>
 
             <div class="sidebar-footer">
-                <img src="/static/logo_uninovis.png" alt="UNINOVIS" style="width:100%;">
+                <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="width:100%;">
                 <a class="help-btn" href="javascript:void(0)" onclick="showInChat('/api/agents/responsible_ai3/quickguide')" title="Quick guide — how this agent works" style="display:block; text-align:center; margin-top:10px;">? Help</a>
                 <div style="margin-top:8px; font-size:11px; color:#94a3b8; line-height:1.5;">
                     Built with <strong style="color:#cbd5e1;">TOMMI</strong>, an agentic framework by the UNINOVIS-UMA ICT Team. Licensed under the <a href="javascript:void(0)" onclick="showInChat('/static/license.html')" style="color:#cbd5e1;">EUPL v1.2</a>
@@ -227,7 +227,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
     <!-- Chat area -->
     <div class="chat-area">
         <div class="welcome-chat" id="welcome">
-            <h2>Responsible AI Research Assistant</h2>
+            <h2>Responsible AI Research Explorer</h2>
             <p id="welcome-text">Ask about responsible AI research papers, researchers, projects, and topics across the UNINOVIS alliance.</p>
         </div>
 
@@ -811,9 +811,6 @@ async function loadIcons() {
         }
 
         // Update title
-        if (info.agent_name) {
-            document.getElementById('sidebar-title').textContent = info.agent_name;
-        }
     } catch (e) { console.warn('Could not load agent info'); }
 }
 
