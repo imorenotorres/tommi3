@@ -52,6 +52,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 }
 .help-btn:hover { background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; }
 .sidebar-desc { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+.status-badge { display: inline-block; font-size: 13px; font-weight: 600; padding: 3px 12px; border-radius: 10px; color: #856404; background: #fff3cd; vertical-align: middle; }
 
 /* Example queries panel */
 .examples-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
@@ -158,6 +159,17 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 .input-row button:disabled { background: #94a3b8; cursor: not-allowed; }
 .disclaimer { padding: 6px 20px; text-align: center; font-size: 11px; color: #94a3b8; }
 
+/* Feedback widget */
+.feedback-widget { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; padding: 4px 0; flex-wrap: wrap; }
+.feedback-btn { background: none; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; padding: 2px 8px; font-size: 14px; opacity: 0.55; transition: opacity 0.15s, transform 0.15s; }
+.feedback-btn:hover { opacity: 1; transform: scale(1.15); }
+.feedback-report-panel { display: flex; flex-direction: column; gap: 6px; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8f9fa; width: 100%; max-width: 600px; margin-top: 4px; }
+.feedback-report-panel.hidden { display: none; }
+.feedback-notes { font-size: 13px; padding: 4px 6px; border: 1px solid #e2e8f0; border-radius: 4px; resize: vertical; font-family: inherit; width: 100%; box-sizing: border-box; }
+.feedback-submit-btn { align-self: flex-end; font-size: 12px; padding: 4px 14px; border: 1px solid #2563eb; border-radius: 4px; background: #2563eb; color: #fff; cursor: pointer; transition: background 0.15s; margin-top: 2px; }
+.feedback-submit-btn:hover { background: #1d4ed8; }
+.feedback-thanks { font-size: 13px; color: #64748b; }
+
 /* Embedded page (help, license) */
 .embedded-page { display: flex; flex-direction: column; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 100; }
 .embedded-page iframe { flex: 1; min-height: 0; }
@@ -186,6 +198,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
     <a href="/research-explorers" class="nav-brand" style="text-decoration:none;">UNINOVIS Research Explorers</a>
     <span class="nav-sep">/</span>
     <span class="nav-current">Health &amp; Wellbeing Systems</span>
+    <span class="status-badge" title="This agent's knowledge base is being curated. Data may be incomplete or contain errors at this stage. Your feedback is welcome and helps us improve." style="margin-left:10px;">Status: Data curation</span>
 </div>
 
 <div class="layout">
@@ -423,6 +436,9 @@ async function sendMessage(message) {
         renderInlineMapPlaceholders(agentBubble);
         addPdfLinks(agentBubble);
         agentBubble.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+        // Add feedback widget
+        const parentMsg = agentBubble.closest('.message') || agentBubble.parentElement;
+        if (parentMsg) createFeedbackWidget(parentMsg, message, responseText);
         isLoading = false;
         sendBtn.disabled = false;
         messageInput.focus();
@@ -811,6 +827,72 @@ async function loadIcons() {
 
         // Update title
     } catch (e) { console.warn('Could not load agent info'); }
+}
+
+// ── Feedback widget ──
+function createFeedbackWidget(parentMsg, userQuestion, responseText) {
+    const widget = document.createElement('div');
+    widget.className = 'feedback-widget';
+
+    const btnUp = document.createElement('button');
+    btnUp.className = 'feedback-btn';
+    btnUp.innerHTML = '\uD83D\uDC4D';
+    btnUp.title = 'Good response';
+    btnUp.addEventListener('click', () => submitFeedback(widget, 'up', '', userQuestion, responseText));
+
+    const btnDown = document.createElement('button');
+    btnDown.className = 'feedback-btn';
+    btnDown.innerHTML = '\uD83D\uDC4E';
+    btnDown.title = 'Report an issue';
+
+    const panel = document.createElement('div');
+    panel.className = 'feedback-report-panel hidden';
+
+    btnDown.addEventListener('click', () => {
+        if (!panel.dataset.built) {
+            const notes = document.createElement('textarea');
+            notes.className = 'feedback-notes';
+            notes.placeholder = 'What was wrong? (optional)';
+            notes.rows = 2;
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'feedback-submit-btn';
+            submitBtn.textContent = 'Send';
+            submitBtn.addEventListener('click', () => submitFeedback(widget, 'down', notes.value, userQuestion, responseText));
+            panel.appendChild(notes);
+            panel.appendChild(submitBtn);
+            panel.dataset.built = 'true';
+        }
+        panel.classList.toggle('hidden');
+    });
+
+    widget.appendChild(btnUp);
+    widget.appendChild(btnDown);
+    widget.appendChild(panel);
+    parentMsg.appendChild(widget);
+}
+
+async function submitFeedback(widget, rating, notes, userQuestion, responseText) {
+    try {
+        await fetch('/api/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                agent_id: AGENT_ID,
+                session_id: sessionId || '',
+                message_index: document.querySelectorAll('.message.agent').length,
+                mode: 'public',
+                rating: rating,
+                error_code: '',
+                severity: '',
+                notes: notes || '',
+                user_question: userQuestion || '',
+                full_response: responseText || '',
+            })
+        });
+        widget.innerHTML = '<span class="feedback-thanks">Thank you for your feedback!</span>';
+    } catch (e) {
+        widget.innerHTML = '<span class="feedback-thanks">Could not send feedback.</span>';
+    }
 }
 
 loadConfig();
