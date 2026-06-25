@@ -1,120 +1,319 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UNINOVIS — Virtual Workshop: Innovative Teaching Practices in the Age of AI (26 November 2026)</title>
-<style>
-  body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: #1e293b; line-height: 1.7; font-size: 15px; }
-  h1 { font-size: 1.8rem; color: #1e293b; border-bottom: 3px solid #4250b3; padding-bottom: 0.5rem; margin-top: 0; }
-  h2 { font-size: 1.3rem; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3rem; margin-top: 2rem; }
-  h3 { font-size: 1.1rem; color: #334155; margin-top: 1.5rem; }
-  a { color: #4250b3; }
-  strong { color: #1e293b; }
-  p { margin: 0.8rem 0; }
-  ul, ol { padding-left: 1.5rem; }
-  li { margin-bottom: 0.4rem; }
-  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95em; }
-  thead { background: #4250b3; color: #fff; }
-  th { padding: 0.6rem 0.8rem; text-align: left; font-weight: 600; }
-  td { padding: 0.5rem 0.8rem; border-bottom: 1px solid #e2e8f0; }
-  tr:nth-child(even) { background: #f8fafc; }
-  .subtitle { font-size: 1.1rem; color: #4250b3; font-weight: 600; margin-top: 0; }
-  .category-box { background: #f8fafc; border-left: 4px solid #4250b3; padding: 0.5rem 1rem; margin: 0.5rem 0; border-radius: 0 6px 6px 0; }
-  .strategy-box { background: #f8fafc; border-left: 4px solid #059669; padding: 0.5rem 1rem; margin: 0.5rem 0; border-radius: 0 6px 6px 0; }
-  .footer-note { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: 0.9em; color: #64748b; font-style: italic; }
-  @media print { body { max-width: 100%; padding: 1rem; font-size: 12px; } }
-</style>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Innovative Teaching Practices in the Age of AI (Online. November 26th, 2026)</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
 </head>
 <body>
-
-<h1>Virtual Workshop: Innovative Teaching Practices in the Age of AI (26 November 2026)</h1>
-<p class="subtitle">UNINOVIS European University Alliance</p>
-
-<h2>Context</h2>
-
-<p>Artificial intelligence is rapidly transforming higher education. Students now have access to tools that can generate essays, solve problems, write code, and summarise literature. This shift challenges us to rethink what we teach, how we teach, and how we assess learning.</p>
-
-<p>Across UNINOVIS, many teachers are already responding to these challenges with creative and effective approaches. This call aims to identify, document, and share these innovations across the alliance.</p>
-
-<h2>Who is this call for?</h2>
-
-<p>Any teacher, lecturer, or instructor at a UNINOVIS partner institution who has adapted their teaching practice in response to the challenges or opportunities created by AI. We are looking for practitioners at any level &mdash; from small adjustments in a single course to comprehensive programme redesigns.</p>
-
-<h2>What we are looking for</h2>
-
-<p>We want to hear about pedagogical innovations that address one or more of the following goals:</p>
-
-<div class="category-box"><strong>A. Fostering active student participation</strong> &mdash; strategies that shift students from passive consumers to active contributors in the learning process</div>
-<div class="category-box"><strong>B. Developing critical thinking</strong> &mdash; approaches that train students to question, evaluate, and reason independently, including evaluating AI-generated content</div>
-<div class="category-box"><strong>C. Authentic assessment</strong> &mdash; moving beyond traditional exams toward assessments that reflect real-world competences and are resilient to AI misuse</div>
-<div class="category-box"><strong>D. Learning by doing</strong> &mdash; hands-on, experiential approaches where students learn through practice and application</div>
-<div class="category-box"><strong>E. Personalised learning</strong> &mdash; adapting the learning experience to individual student needs, pace, or interests</div>
-<div class="category-box"><strong>F. Interdisciplinary and collaborative learning</strong> &mdash; breaking disciplinary silos and building teamwork skills across fields, institutions, or countries</div>
-<div class="category-box"><strong>G. Ethical awareness and social responsibility</strong> &mdash; embedding reflection on the societal impact of AI and professional practice</div>
-<div class="category-box"><strong>H. Creativity and original production</strong> &mdash; encouraging students to produce genuinely original work that goes beyond what AI can generate</div>
-
-<h3>How do you innovate?</h3>
-
-<p>We are also interested in understanding <strong>how</strong> you innovate. Your approach may involve one or more of the following strategies:</p>
-
-<div class="strategy-box"><strong>1. Redesigning the learning activity</strong> &mdash; changing what happens in the classroom (new dynamics, formats, or interactions)</div>
-<div class="strategy-box"><strong>2. Redesigning assessment</strong> &mdash; changing how student learning is evaluated</div>
-<div class="strategy-box"><strong>3. Integrating new tools or technologies</strong> &mdash; adopting digital tools, including AI, to enhance teaching or learning</div>
-<div class="strategy-box"><strong>4. Changing the role of the student</strong> &mdash; increasing student responsibility, autonomy, or agency</div>
-<div class="strategy-box"><strong>5. Changing the role of the teacher</strong> &mdash; redefining the teacher's function from knowledge transmitter to facilitator, mentor, or coach</div>
-<div class="strategy-box"><strong>6. Bridging academia and the professional world</strong> &mdash; connecting classroom learning to real-world practice</div>
-<div class="strategy-box"><strong>7. Cross-boundary collaboration</strong> &mdash; innovating through collaboration across disciplines, institutions, or countries</div>
-
-<h2>What to submit</h2>
-
+<header id="title-block-header">
+<h1 class="title">Innovative Teaching Practices in the Age of AI
+(Online. November 26<sup>th</sup>, 2026)</h1>
+</header>
+<p><strong>UNINOVIS European University Alliance</strong></p>
+<h1 id="context">Context</h1>
+<p>Artificial intelligence is rapidly transforming higher education.
+Students now have access to tools that can generate essays, solve
+problems, write code, and summarise literature. This shift challenges us
+to rethink what we teach, how we teach, and how we assess learning.</p>
+<p>Across UNINOVIS, many teachers are already responding to these
+challenges with creative and effective approaches. This call aims to
+identify, document, and share these innovations across the alliance.</p>
+<h1 id="who-is-this-call-for">Who is this call for?</h1>
+<p>Any teacher, lecturer, or instructor at a UNINOVIS partner
+institution who has adapted their teaching practice in response to the
+challenges or opportunities created by AI. We are looking for
+practitioners at any level — from small adjustments in a single course
+to comprehensive programme redesigns.</p>
+<h1 id="what-we-are-looking-for">What we are looking for</h1>
+<p>We want to hear about pedagogical innovations that address one or
+more of the following goals:</p>
+<p><strong>A. Fostering active student participation</strong> —
+strategies that shift students from passive consumers to active
+contributors in the learning process</p>
+<p><strong>B. Developing critical thinking</strong> — approaches that
+train students to question, evaluate, and reason independently,
+including evaluating AI-generated content</p>
+<p><strong>C. Authentic assessment</strong> — moving beyond traditional
+exams toward assessments that reflect real-world competences and are
+resilient to AI misuse</p>
+<p><strong>D. Learning by doing</strong> — hands-on, experiential
+approaches where students learn through practice and application</p>
+<p><strong>E. Personalised learning</strong> — adapting the learning
+experience to individual student needs, pace, or interests</p>
+<p><strong>F. Interdisciplinary and collaborative learning</strong> —
+breaking disciplinary silos and building teamwork skills across fields,
+institutions, or countries</p>
+<p><strong>G. Ethical awareness and social responsibility</strong> —
+embedding reflection on the societal impact of AI and professional
+practice</p>
+<p><strong>H. Creativity and original production</strong> — encouraging
+students to produce genuinely original work that goes beyond what AI can
+generate</p>
+<h2 id="how-do-you-innovate">How do you innovate?</h2>
+<p>We are also interested in understanding how you innovate. Your
+approach may involve one or more of the following strategies:</p>
+<p><strong>1. Redesigning the learning activity</strong> — changing what
+happens in the classroom (new dynamics, formats, or interactions). This
+may involve <strong>changing the role of the student</strong>
+<strong>(</strong>increasing student responsibility, autonomy, or
+agency), <strong>changing the role of the teacher</strong> (redefining
+the teacher’s function from knowledge transmitter to facilitator,
+mentor, or coach)</p>
+<p><strong>2. Designing tasks that promote creativity and critical
+thinking</strong> — a deep understanding of written text… and/or
+<strong>integrating new tools or technologies</strong> — adopting
+digital tools, including AI, to enhance teaching or learning</p>
+<p><strong>3. Redesigning assessment</strong> — changing how student
+learning is evaluated</p>
+<p><strong>4. Other approaches, such as cross-boundary
+collaboration</strong> — innovating through collaboration across
+disciplines, institutions, or countries</p>
+<h1 id="what-to-submit">What to submit</h1>
 <p>A short description (maximum 500 words) covering:</p>
-
-<ol>
-  <li><strong>Your context</strong> &mdash; institution, discipline, level (bachelor/master), approximate class size</li>
-  <li><strong>The challenge</strong> &mdash; what problem or opportunity prompted you to change your practice</li>
-  <li><strong>Your innovation</strong> &mdash; what you did differently and how it works in practice</li>
-  <li><strong>Pedagogical goals</strong> &mdash; which of the goals above (A&ndash;H) your innovation addresses</li>
-  <li><strong>Innovation strategy</strong> &mdash; which of the strategies above (1&ndash;7) best describes your approach</li>
-  <li><strong>Results or observations</strong> &mdash; what impact you have observed, even if informal or anecdotal</li>
-  <li><strong>Link to resources</strong> (optional) &mdash; a link to a web page, platform, or material you use with your students that illustrates your approach</li>
+<ol type="1">
+<li><p><strong>Your context</strong> — institution, discipline, level
+(bachelor/master), approximate class size</p></li>
+<li><p><strong>The challenge</strong> — what problem or opportunity
+prompted you to change your practice</p></li>
+<li><p><strong>Your innovation</strong> — what you did differently and
+how it works in practice</p></li>
+<li><p><strong>Pedagogical goals</strong> — which of the goals above
+(A–H) your innovation addresses</p></li>
+<li><p><strong>Innovation strategy</strong> — which of the strategies
+above (1–4) best describes your approach</p></li>
+<li><p><strong>Results or observations</strong> — what impact you have
+observed, even if informal or anecdotal</p></li>
+<li><p><strong>(Optional) Link to resources</strong> — a link to a web
+page, platform, or material you use with your students that illustrates
+your approach (optional)</p></li>
 </ol>
-
-<p>Submissions do not need to be polished academic papers. We value practical experience and honest reflection over formal research methodology.</p>
-
-<h2>What happens next</h2>
-
+<p>Submissions do not need to be polished academic papers. We value
+practical experience and honest reflection over formal research
+methodology.</p>
+<h1 id="what-happens-next">What happens next</h1>
 <p>Selected contributions will be:</p>
-
 <ul>
-  <li>Featured in a <strong>UNINOVIS compendium of innovative teaching practices</strong> shared across all partner institutions</li>
-  <li>Invited to present at a <strong>UNINOVIS workshop on teaching innovation in the age of AI</strong></li>
-  <li>Considered for development into <strong>joint pilot projects</strong> across the alliance</li>
+<li><p>Featured in a UNINOVIS compendium of innovative teaching
+practices shared across all partner institutions</p></li>
+<li><p>Invited to make a presentation (15 minutes) of their proposal at
+<em><strong>UNINOVIS Virtual Workshop Innovative Teaching Practices in
+the Age of AI</strong></em>. Note that time constrained may force the
+organizers to limit the number of invitations.</p></li>
+<li><p>Considered for development of new micro-credentials across the
+alliance and for participation in an in-person workshop during the
+spring of 2027</p></li>
 </ul>
-
-<p>The selection process will seek to ensure representation across different disciplines, so that the resulting compendium and workshop reflect the breadth of teaching contexts within the alliance.</p>
-
-<h2>How to submit</h2>
-
-<p>Send your contribution to <strong>[contact email]</strong> by <strong>16 September 2026</strong>.</p>
-
-<p>For questions or clarifications, contact <strong>[contact person]</strong>.</p>
-
-<h2>Timeline</h2>
-
+<p>The selection process will seek to ensure representation across
+different disciplines, so that the resulting compendium and workshop
+reflect the breadth of teaching contexts within the alliance.</p>
+<h1 id="how-to-submit">How to submit</h1>
+<p>Send your contribution to <strong>[contact email]</strong> by
+<strong>16 September 2026</strong>.</p>
+<p>For questions or clarifications, contact <strong>[contact
+person]</strong>.</p>
+<h1 id="timeline">Timeline</h1>
 <table>
-  <thead>
-    <tr><th>Milestone</th><th>Date</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>Call opens</td><td>2 September 2026</td></tr>
-    <tr><td>Submission deadline</td><td>16 September 2026</td></tr>
-    <tr><td>Review and selection</td><td>7 October 2026</td></tr>
-    <tr><td>Online workshop</td><td>26 November 2026</td></tr>
-  </tbody>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th><strong>Milestone</strong></th>
+<th><strong>Date</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Call opens</td>
+<td>14 August 2026</td>
+</tr>
+<tr>
+<td>Submission deadline</td>
+<td>16 September 2026</td>
+</tr>
+<tr>
+<td>Review and selection</td>
+<td>7 October 2026</td>
+</tr>
+<tr>
+<td>Online workshop</td>
+<td>26 November 2026</td>
+</tr>
+<tr>
+<td>Physical workshop (location to be confirmed)</td>
+<td>Spring 2027</td>
+</tr>
+</tbody>
 </table>
-
-<p class="footer-note">This initiative is supported by the UNINOVIS DATA FOR L.I.F.E. project.</p>
-
+<p><em>This initiative is supported by the UNINOVIS DATA FOR L.I.F.E.
+project.</em></p>
 </body>
 </html>
