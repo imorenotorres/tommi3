@@ -1062,6 +1062,12 @@ async def health_wellbeing_public_page():
     return FileResponse(SCRIPT_DIR / "static" / "health_wellbeing.html")
 
 
+@app.get("/european-projects")
+async def european_projects_public_page():
+    """Serve the public European Projects Assistant page (no auth required)"""
+    return FileResponse(SCRIPT_DIR / "static" / "european_projects.html")
+
+
 @app.get("/agents")
 async def agents_page():
     """Serve the TOMMI AI Agents interface"""
@@ -1742,7 +1748,7 @@ async def get_public_tools():
 # ---------------------------------------------------------------------------
 
 # Set of agent IDs that are allowed to be accessed publicly
-_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems"}
+_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos"}
 
 
 @app.get("/api/public-agent/{agent_id}/config")
