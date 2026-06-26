@@ -186,11 +186,12 @@ def fig2_rabanser():
     ax.set_xticklabels(dimensions)
     ax.set_ylim(0, 1.1)
     ax.axhline(y=1.0, color='#d1d5db', linestyle='--', linewidth=0.8)
-    ax.legend(loc='upper left', fontsize=9, framealpha=0.9)
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=3, fontsize=9, framealpha=0.9)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
     plt.tight_layout()
+    plt.subplots_adjust(bottom=0.2)
     plt.savefig(os.path.join(FIGDIR, 'fig2_rabanser.png'), bbox_inches='tight')
     plt.close()
     print("fig2_rabanser.png")

@@ -304,16 +304,17 @@ We adapt the Rabanser et al. (2025) framework to our controlled setting. For the
 
 **Aggregate**: R_Rob = R_prompt
 
-#### 4.2.3 Correctness and Safety (Expert Evaluation)
+#### 4.2.3 Response Quality (Future Work)
 
-For the Baseline vs Rule-based/LLM-based comparison, a domain expert evaluates responses on:
+Evaluating actual response quality — factual correctness, completeness, hallucination rate — requires expert annotation of individual responses across multiple agents and runs. This is resource-intensive and falls outside the scope of the present study, which focuses on classification reliability.
 
-- **Factual correctness** (0–3): Are facts accurate and verifiable against the knowledge base?
-- **Completeness** (0–2): Does the response include all relevant information?
-- **Hallucination** (0–2): Does the response contain fabricated facts?
-- **Safety violations**: Invented paper titles, fabricated researcher affiliations, scope violations.
+However, the architectural argument for quality improvement is straightforward: programmatic paths eliminate hallucination by construction (responses are generated from verified structured data, not by the LLM), and correct classification routes queries to the appropriate path. Therefore, improvements in classification accuracy (Section 6.3) are expected to translate into improvements in response quality, particularly for:
 
-These dimensions are expected to improve from Baseline to Rule-based/LLM-based, since programmatic paths eliminate hallucination for structured queries by construction.
+- **Factual correctness**: Programmatic paths return data directly from the knowledge base.
+- **Hallucination reduction**: Structured queries (researcher, topic, project) bypass the LLM entirely when correctly classified.
+- **Safety**: Off-topic and non-research queries receive deterministic refusal messages rather than LLM-generated content.
+
+A systematic expert evaluation of response quality across agents remains an important direction for future work.
 
 #### 4.2.4 Classification Agreement (Rule-based vs LLM-based)
 
@@ -330,7 +331,7 @@ Two limitations of this approach should be noted:
 
 **First, ground truth is subjective for boundary cases.** Some queries sit at the intersection of two categories: "Is AI dangerous?" could reasonably be classified as `general` (a broad AI question) or `glossary` (a conceptual question about AI safety). The expert's label reflects one reasonable interpretation, but a classifier that chooses the alternative is not necessarily wrong — it may produce an equally appropriate response through a different path. This affects accuracy measurements for all classifiers, though it does not bias the comparison between them (all are evaluated against the same labels).
 
-**Second, classification accuracy is a proxy for response quality, not a direct measure of it.** The study assumes that correct classification leads to the correct response path, which leads to a better response. For programmatic paths, this assumption is strong: a query correctly classified as `researcher` receives a verified, formatted researcher profile from structured data. For LLM paths, the assumption is weaker: a query correctly classified as `topic_search` receives appropriate context, but the LLM may still generate an incomplete or inaccurate response. Evaluating actual response quality — factual correctness, completeness, hallucination rate — requires expert annotation of individual responses (Section 4.2.3), which is resource-intensive and is left for future work.
+**Second, classification accuracy is a proxy for response quality, not a direct measure of it.** The study assumes that correct classification leads to the correct response path, which leads to a better response. For programmatic paths, this assumption is strong: a query correctly classified as `researcher` receives a verified, formatted researcher profile from structured data. For LLM paths, the assumption is weaker: a query correctly classified as `topic_search` receives appropriate context, but the LLM may still generate an incomplete or inaccurate response. Evaluating actual response quality — factual correctness, completeness, hallucination rate — requires expert annotation of individual responses, which is resource-intensive and is left for future work (see Section 4.2.3).
 
 ### 4.3 Benchmark Query Sets
 
@@ -338,7 +339,7 @@ Two limitations of this approach should be noted:
 
 Queries covering all 12 categories with validated ground-truth labels. Used during the automated construction loop. Both variants see these queries during optimisation.
 
-Target size: 70–100 queries (5–8 per category, including paraphrases).
+Size: 69 queries (5–8 per category, including paraphrases).
 
 #### 4.3.2 Evaluation Set
 
@@ -356,7 +357,6 @@ Ground truth labels are validated by the domain expert. Neither classifier is mo
 - **McNemar's test**: Paired comparison testing whether the two classifiers make errors on the same queries or on different ones (complementary vs overlapping failures).
 - **Per-category analysis**: Accuracy, consistency, and robustness broken down by query type, identifying categories where each mechanism excels.
 - **Consistency coefficient of variation**: For LLM-based, measure the variance in classification across K runs, per category.
-- **Effect size**: Cohen's d or equivalent for the Baseline → Rule-based/LLM-based reliability improvement.
 
 ---
 
@@ -403,7 +403,7 @@ Additionally, a hand-crafted variant (responsible_ai3) developed over several mo
    d. Paraphrase robustness: evaluation set includes paraphrases.
    e. Response consistency: K=3 full agent runs for programmatic-path queries.
    f. Expert evaluation: correctness and safety for Baseline vs Rule-based/LLM-based comparison.
-5. **Statistical analysis**: McNemar's test, per-category breakdown, effect sizes.
+5. **Statistical analysis**: McNemar's test, per-category breakdown.
 
 ---
 
