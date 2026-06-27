@@ -1,7 +1,7 @@
 {
   "type": "rag_metadata_vectorless",
-  "agent_id": "rag_study2_rule_based",
-  "agent_name": "RAG Study: Rule-based",
+  "agent_id": "rag_study2_auto_rule_based",
+  "agent_name": "RAG Study: Auto Rule-based",
   "description": "Rule-based classification (deterministic) + shared programmatic paths + post-processing.",
   "welcome_message": "Hello! I am a research assistant specialised in Responsible AI research. How can I help you?",
   "research_topic": "AI & Responsibility (explainable AI, AI ethics, trustworthy AI, AI fairness, etc.)",

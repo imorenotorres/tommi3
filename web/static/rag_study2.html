@@ -165,7 +165,7 @@
                 </div>
             </a>
 
-            <a class="agent-card" href="/rag-study2/chat?agent=rule_based" id="card-auto-rule">
+            <a class="agent-card" href="/rag-study2/chat?agent=auto_rule_based" id="card-auto-rule">
                 <div class="agent-icon" style="background:#f59e0b;">R</div>
                 <div class="agent-info">
                     <h3>Auto-constructed Rule-based</h3>
@@ -205,22 +205,6 @@
     UNINOVIS &mdash; European University Alliance &mdash; Responsible AI Excellence Hub
 </div>
 
-<script>
-(function() {
-    var token = localStorage.getItem('tommi_token');
-    if (!token) {
-        window.location.href = '/intranet?redirect=' + encodeURIComponent(window.location.pathname);
-        return;
-    }
-    // Verify token is valid
-    fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } })
-        .then(function(r) { if (!r.ok) throw new Error(); })
-        .catch(function() {
-            localStorage.removeItem('tommi_token');
-            window.location.href = '/intranet?redirect=' + encodeURIComponent(window.location.pathname);
-        });
-})();
-</script>
 
 </body>
 </html>

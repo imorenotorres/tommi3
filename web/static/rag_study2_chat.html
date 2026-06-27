@@ -81,7 +81,7 @@
         <option value="">Select an agent...</option>
         <option value="baseline">Baseline (Vanilla RAG)</option>
         <option value="production">Production Rule-based</option>
-        <option value="rule_based">Auto-constructed Rule-based</option>
+        <option value="auto_rule_based">Auto-constructed Rule-based</option>
         <option value="llm_based">Auto-constructed LLM-based</option>
     </select>
 
@@ -123,7 +123,7 @@ const MAX_HISTORY = 8;
 const AGENT_CONFIG = {
     baseline: { name: 'Baseline (Vanilla RAG)', endpoint: 'rag_study2_baseline' },
     production: { name: 'Production Rule-based', endpoint: 'rag_study2_production' },
-    rule_based: { name: 'Auto-constructed Rule-based', endpoint: 'rag_study2_rule_based' },
+    auto_rule_based: { name: 'Auto-constructed Rule-based', endpoint: 'rag_study2_auto_rule_based' },
     llm_based: { name: 'Auto-constructed LLM-based', endpoint: 'rag_study2_llm_based' },
 };
 
