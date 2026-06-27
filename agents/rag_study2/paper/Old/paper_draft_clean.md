@@ -33,7 +33,7 @@ This architecture transforms the reliability profile of the agent: programmatic 
 
   -----------------------------------------------------------------------
 
-  : Figure 1: Architectural configurations compared in this study. The transition from (a) to (b)/(c) adds response paths. The transition from (b) to (c) swaps the classification mechanism --- everything downstream remains identical. Two rule-based variants are tested under (b): a production variant developed over months through reactive feedback, and an auto-constructed variant built in hours through batch feedback. Both are deterministic; they differ in pattern breadth. (Section 3.5)
+  : Figure 1: Architectural configurations compared in this study. The transition from (a) to (b)/(c) adds response paths. The transition from (b) to (c) swaps the classification mechanism --- everything downstream remains identical. Two rule-based variants are tested under (b): a production variant developed over months through reactive feedback, and an auto-constructed variant built in hours through batch feedback. Both are deterministic; they differ in pattern breadth. (Section 3.2)
 
 ### 1.3 The Classification Mechanism Question
 
@@ -131,8 +131,6 @@ We compare four agent configurations. The **Baseline** establishes what vanilla 
 
 The simplest architecture: BM25 keyword retrieval over 19,942 document chunks, followed by LLM generation. Every query follows the same pipeline: retrieve → generate. No classification, no structured data access, no programmatic paths.
 
-This is the simplest architecture: BM25 keyword retrieval over 19,942 document chunks, followed by LLM generation. Every query follows the same pipeline: retrieve → generate. No classification, no structured data access, no programmatic paths.
-
 #### Production Rule-based (Hand-crafted)
 
 A rule-based classifier developed over several months of real-world production use. It uses \~60 manually designed synonym mappings, accent-insensitive matching, and a 13-step priority-ordered classification chain. Patterns were added reactively as individual failures occurred in production use (see Section 7 for discussion of how this feedback loop affects generalisation).
@@ -150,7 +148,7 @@ After classification, all three classified variants dispatch to the same respons
 ### 3.3 Shared Components (Controlled Variables)
 
   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  **Component**        **Baseline**    **Production rule-based**                                   **Rule-based (auto)**                                       **LLM-based (auto)**
+  **Component**        **Baseline**    **Production rule-based**                                   **Auto rule-based**                                       **LLM-based (auto)**
   -------------------- --------------- ----------------------------------------------------------- ----------------------------------------------------------- -----------------------------------------------------------
   Retrieval            BM25            BM25                                                        BM25                                                        BM25
 
@@ -302,7 +300,7 @@ Two limitations of this approach should be noted:
 
 **First, ground truth is subjective for boundary cases.** Some queries sit at the intersection of two categories: "Is AI dangerous?" could reasonably be classified as `general` (a broad AI question) or `glossary` (a conceptual question about AI safety). The expert's label reflects one reasonable interpretation, but a classifier that chooses the alternative is not necessarily wrong --- it may produce an equally appropriate response through a different path. This affects accuracy measurements for all classifiers, though it does not bias the comparison between them (all are evaluated against the same labels).
 
-**Second, classification accuracy is a proxy for response quality, not a direct measure of it.** The study assumes that correct classification leads to the correct response path, which leads to a better response. For programmatic paths, this assumption is strong: a query correctly classified as `researcher` receives a verified, formatted researcher profile from structured data. For LLM paths, the assumption is weaker: a query correctly classified as `topic_search` receives appropriate context, but the LLM may still generate an incomplete or inaccurate response. Evaluating actual response quality --- factual correctness, completeness, hallucination rate --- requires expert annotation of individual responses (Section 4.2.3), which is resource-intensive and is left for future work.
+**Second, classification accuracy is a proxy for response quality, not a direct measure of it.** The study assumes that correct classification leads to the correct response path, which leads to a better response. For programmatic paths, this assumption is strong: a query correctly classified as `researcher` receives a verified, formatted researcher profile from structured data. For LLM paths, the assumption is weaker: a query correctly classified as `topic_search` receives appropriate context, but the LLM may still generate an incomplete or inaccurate response. Evaluating actual response quality --- factual correctness, completeness, hallucination rate --- requires expert annotation of individual responses, which is resource-intensive and is left for future work.
 
 ### 4.3 Benchmark Query Sets
 
@@ -370,9 +368,9 @@ Ground truth labels are validated by the domain expert. Neither classifier is mo
 
 ## 6. Results
 
-### 6.1 Construction Trajectory
+### 6.1 Construction Trajectory of automatic classifiers
 
-Both classifiers were built from the same expert input (12 category definitions, 3--5 examples each, 7 boundary rules) and iteratively optimised by an automated constructor (Claude) until reaching 100% accuracy on the development set (69 queries).
+The auto rule-based classifier started 16 points lower than the LLM-based (79.7% vs 95.7%), reflecting the LLM's pre-trained knowledge advantage. Rule-based fixes were **narrow** (one regex per failure); LLM-based fixes were **broad** (category descriptions affecting all queries of that type). Both variants reached 100% on the development set.
 
 **Rule-based construction** (3 fix iterations):
 
@@ -402,11 +400,10 @@ Both classifiers were built from the same expert input (12 category definitions,
   3             100.0% (69/69)   98.6%         Refined topic_search vs university_papers precedence rule
   ----------------------------------------------------------------------------------------------------------------------------
 
-The rule-based classifier started 16 points lower than the LLM-based (79.7% vs 95.7%), reflecting the LLM's pre-trained knowledge advantage. Rule-based fixes were **narrow** (one regex per failure); LLM-based fixes were **broad** (category descriptions affecting all queries of that type). Both variants reached 100% on the development set.
 
 ### 6.2 Baseline: The Case for Classification
 
-Before comparing classification mechanisms, we establish that classification itself is necessary. The Baseline (vanilla RAG) agent has no classification --- every query follows the same retrieve-then-generate pipeline. We evaluate it on 30 representative queries (10 that should be refused, 10 from programmatic categories, 10 from LLM categories), each run K=3 times.
+Before comparing classification mechanisms, we establish that classification itself is necessary. To this end, we evaluate the Baseline vanilla RAG agent on 30 representative queries (10 that should be refused, 10 from programmatic categories, 10 from LLM categories), each run K=3 times.
 
   ----------------------------------------------------------------------------------------
   Metric                                   Baseline (Vanilla RAG)   Best classified agent
@@ -420,7 +417,7 @@ Before comparing classification mechanisms, we establish that classification its
   **Avg response time**                            1917ms                 2--556ms
   ----------------------------------------------------------------------------------------
 
-The Baseline produces a different response every time the same query is asked (C_out = 0%) --- not a single exact match across 30 queries and 3 runs. It attempts to answer almost everything, including task requests like "Make me a PowerPoint presentation on ethics" (generating 641 words of fabricated content) and "Help me prepare my lecture notes on AI" (generating 490 words). It correctly refuses only 1 of 10 queries that should be refused, while falsely refusing 4 of 20 valid queries.
+The Baseline produces a different response every time the same query is asked (C_out = 0%). It attempts to answer almost everything, including task requests like "Make me a PowerPoint presentation on ethics" (generating 641 words of fabricated content) and "Help me prepare my lecture notes on AI" (generating 490 words). It correctly refuses only 1 of 10 queries that should be refused, while falsely refusing 4 of 20 valid queries.
 
 These results are expected: without classification, every response is LLM-generated and therefore stochastic (C_out = 0%), and scope enforcement relies on prompt engineering alone (10% refusal accuracy). The Baseline uses a minimal system prompt representative of typical vanilla RAG deployments --- deliberately not over-engineered, as it represents the starting point from which practitioners would consider adding classification.
 
@@ -442,14 +439,14 @@ The final evaluation uses 216 queries across 12 categories and 3 difficulty tier
   **R_Saf (Safety)**                     0.500                 0.864    **0.936 ± 0.010**
   -------------------------------------------------------------------------------------------
 
-The LLM-based classifier scores highest on three of four dimensions (robustness, predictability, safety). The rule-based scores highest on consistency. The production rule-based agent --- developed over months with \~60 synonym mappings --- scores lowest on consistency (0.823) and safety (0.500), despite having the same perfect classification determinism (C_traj = 100%). This paradox is explained in Section 6.2.2. Figure 2 visualises the comparison.
+The LLM-based classifier scores highest on three of four dimensions (robustness, predictability, safety). The rule-based scores highest on consistency. The production rule-based agent --- developed over months with \~60 synonym mappings --- scores lowest on consistency (0.823) and safety (0.500), despite having the same perfect classification determinism (C_traj = 100%). This paradox is explained in Section 6.3.2. Figure 2 visualises the comparison.
 
 *Figure 2: Rabanser reliability dimensions across classification approaches. LLM-based classification (blue) scores highest on robustness, predictability, and safety. Rule-based classification (yellow) scores highest on consistency. Error bars show ±1 std from N=5 runs.*
 
 #### 6.3.2 Consistency
 
   -------------------------------------------------------------------------------------------
-  Metric                         Production rule-based   Rule-based (auto)   LLM-based (N=5)
+  Metric                         Production rule-based   Auto rule-based   LLM-based (N=5)
   ----------------------------- ----------------------- ------------------- -----------------
   **C_traj** (classification)         **100.0%**            **100.0%**        97.4% ± 1.0%
 
@@ -463,7 +460,7 @@ The LLM-based classifier scores highest on three of four dimensions (robustness,
 Both rule-based variants achieve perfect classification consistency (C_traj = 100%) by construction. However, **classification consistency without classification accuracy is meaningless**. This is starkly demonstrated by the production rule-based agent: despite months of manual engineering and perfect C_traj, it achieves the lowest response consistency of all variants (C_out = 50.0%). The reason is that its low accuracy on unseen queries (44.0%) means over half of queries are misclassified to LLM paths, which produce different text each run. The agent *consistently* classifies wrong, which *consistently* invokes the LLM, which *inconsistently* generates different responses --- resulting in the lowest R_Con (0.823) of all variants.
 
 
-The LLM-based classifier sacrifices 2.6% classification consistency (C_traj = 97.4% ± 1.0%) but achieves perfect response consistency (C_out = 100%) because when it classifies correctly --- which it does 87.8% ± 0.4% of the time --- the programmatic paths produce identical responses. The rule-based classifier achieves the best overall R_Con (0.983) by combining perfect C_traj with high accuracy (75.5%), so that most queries reach the intended programmatic path.
+The LLM-based classifier sacrifices 2.6% classification consistency (C_traj = 97.4% ± 1.0%) but achieves perfect response consistency (C_out = 100%) because when it classifies correctly --- which it does 87.8% ± 0.4% of the time --- the programmatic paths produce identical responses. The auto rule-based classifier achieves the best overall R_Con (0.983) by combining perfect C_traj with high accuracy (75.5%), so that most queries reach the intended programmatic path.
 
 
 *Figure 4: The consistency paradox. Both rule-based variants achieve 100% classification consistency (C_traj), yet the production rule-based agent has the lowest response consistency (C_out = 50%). The red line shows classification accuracy --- the missing link between C_traj and C_out.*
@@ -471,7 +468,7 @@ The LLM-based classifier sacrifices 2.6% classification consistency (C_traj = 97
 #### 6.3.3 Robustness
 
   ------------------------------------------------------------------------------------------------
-  Metric                            Production rule-based   Rule-based (auto)    LLM-based (N=5)
+  Metric                            Production rule-based   Auto rule-based    LLM-based (N=5)
   -------------------------------- ----------------------- ------------------- -------------------
   **Overall accuracy**                      44.0%                 75.5%         **87.8% ± 0.4%**
 
@@ -516,14 +513,12 @@ Per-category robustness across tiers reveals where each mechanism excels and fai
   gap            17             100/0/67                **90/50/100**
   -----------------------------------------------------------------------
 
-The LLM-based classifier is the only mechanism that maintains ≥50% accuracy on every category at every tier. The rule-based variant shows catastrophic failures (0%) on multiple category-tier combinations. Figure 6 provides a heatmap view of per-category accuracy across all agents.
-
-*Figure 6: Per-category classification accuracy heatmap. Green indicates high accuracy, red indicates low. LLM-based (bottom row) shows uniformly high accuracy; rule-based variants show category-dependent failures.*
+The LLM-based classifier is the only mechanism that maintains ≥50% accuracy on every category at every tier. The rule-based variant shows catastrophic failures (0%) on several category-tier combinations. 
 
 #### 6.3.4 Predictability
 
   ------------------------------------------------------------------------------------------
-  Metric                        Production rule-based   Rule-based (auto)   LLM-based (N=5)
+  Metric                        Production rule-based   Auto rule-based   LLM-based (N=5)
   ---------------------------- ----------------------- ------------------- -----------------
   Programmatic path fraction            54.2%                 58.8%              60.7%
 
@@ -537,7 +532,7 @@ All three variants route a similar fraction of queries to programmatic paths (\~
 #### 6.3.5 Safety
 
   ------------------------------------------------------------------------------------------------------------
-  Metric                                         Production rule-based   Rule-based (auto)   LLM-based (N=5)
+  Metric                                         Production rule-based   Auto rule-based   LLM-based (N=5)
   --------------------------------------------- ----------------------- ------------------- ------------------
   Refusal accuracy (off-topic + non-research)            50.0%                 86.4%         **93.6% ± 1.0%**
 
@@ -547,37 +542,11 @@ The LLM-based classifier correctly refuses 93.6% ± 1.0% of off-topic and non-re
 
 #### 6.3.6 Classification Agreement
 
-When the rule-based and LLM-based classifiers disagree, the LLM is correct more often --- reflecting the LLM's superior generalisation from pre-trained language understanding compared to pattern-based classification.
+The two classifiers agree on 43.3% of queries (52/120). When they disagree (68 cases), the LLM-based classifier is correct in 88.2% of disagreements (60/68), the rule-based in only 4.4% (3/68), with both wrong in 7.4% (5/68). This strongly asymmetric pattern reflects the LLM's superior generalisation from pre-trained language understanding compared to pattern-based classification.
 
-### 6.4 Construction Effort Comparison
-
-  -------------------------------------------------------------------------------------------------------------------------------------------------------------
-  Aspect                        Production rule-based                        Rule-based (auto)                                     LLM-based (auto)
-  ----------------------------- -------------------------------------------- ----------------------------------------------------- ----------------------------
-  Construction method           Manual, reactive (months)                    Automated, batch (hours)                              Automated, batch (hours)
-
-  Feedback type                 Sequential (one failure at a time)           Batch (14 failures at once)                           Batch (4 failures at once)
-
-  Pattern style                 Narrow (\~60 synonyms + specific patterns)   Broad (\~35 synonym families + word-class patterns)   LLM prompt (\~500 words)
-
-  Dev set accuracy              100% (69 queries)                            95.8% (144 queries)                                   100% (69 queries)
-
-  Eval T1 accuracy              45.8%                                        **96.7%**                                             91.3%
-
-  Eval T3 accuracy              40.0%                                        54.3%                                                 **88.0%**
-
-  Generalisation (dev → eval)   −56.0 pts                                    −20.3 pts                                             **−12.2 pts**
-  -------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-The production rule-based agent --- representing months of manual engineering --- achieves only 44.0% on unseen queries, far below the rule-based classifier built through automated batch construction (75.5%). Both have synonym expansion; the difference is that production's reactive feedback loop produced narrow patterns (one fix per failure) while the automated constructor's batch feedback produced broader word-class patterns (Section 3.5). This suggests that the construction process, not the engineering effort, determines generalisation quality. Figure 5 shows the construction trajectory and generalisation gap.
-
-*Figure 5: (a) Construction trajectory showing dev set accuracy across iterations. LLM-based starts 16 points higher due to pre-trained knowledge. (b) Generalisation gap: all agents achieve ≥95% on dev set, but performance on unseen queries varies dramatically --- the production rule-based agent (months of work) generalises worst.*
-
-### 6.5 Between-Run Variance (N=5 Runs)
+### 6.4 Between-Run Variance (N=5 Runs)
 
 Since LLM-based classification is non-deterministic, a single benchmark run may not be representative. To quantify between-run variance, we run the full evaluation set 5 times for the LLM-based classifier, and verify with a single run that the rule-based classifier produces identical results (as expected from determinism).
-
-#### 6.5.1 LLM-Based Variance
 
   ---------------------------------------------------------------------
   Metric                        Mean      Std      Range \[min, max\]
@@ -605,27 +574,7 @@ Since LLM-based classification is non-deterministic, a single benchmark run may 
 
 The between-run variance is small across all metrics. Accuracy varies by ±0.4 percentage points --- negligible compared to the 12.3-point gap with rule-based classification (75.5%). The largest variance is in safety (refusal accuracy: ±1.0%), where a single query's classification occasionally flips between `non_research` and `off_topic` across runs --- both of which produce a refusal, but only one matches the ground truth label.
 
-#### 6.5.2 Rule-Based Verification
-
-The rule-based classifier produces identical results across runs, as expected: accuracy = 75.5%, R_Con = 0.983, R_Rob = 0.665, R_Saf = 0.864 with zero variance. This confirms that deterministic classification eliminates between-run variance entirely.
-
-#### 6.5.3 Robustness of the Comparison
-
-The N-run analysis confirms that the differences between rule-based and LLM-based classification are robust and not artefacts of a single run:
-
-  ---------------------------------------------------------------------------
-  Metric        Rule-based LLM-ba sed (worst run) Gap (w   orst case)
-  ----------- ------------------- ------------------------ ------------------
-  Accuracy                  75.5% 87.5%                    **12.0 pts**
-
-  R_Rob                     0.665 0.910                    **0.245**
-
-  R_Saf                     0.864 0.932                    **0.068**
-
-  R_Con                     0.983 0.971                    **−0.012**
-  ---------------------------------------------------------------------------
-
-Even in the LLM's worst run, it outperforms rule-based classification on accuracy by 12.0 points, on robustness by 0.245, and on safety by 0.068 --- while trailing on consistency by only 0.012. The consistency gap is an order of magnitude smaller than the robustness advantage.
+The auto rule-based classifier produces identical results across runs, as expected: accuracy = 75.5%, R_Con = 0.983, R_Rob = 0.665, R_Saf = 0.864 with zero variance. This confirms that deterministic classification eliminates between-run variance entirely.
 
 ## 7. Discussion
 
@@ -637,40 +586,20 @@ The key finding is that this improvement is substantial regardless of whether cl
 
 ### 7.2 The Consistency-Robustness Trade-off
 
-The full benchmark (216 queries, 3 tiers) reveals that the consistency-robustness trade-off is more nuanced than initially hypothesised:
+The full benchmark reveals that the consistency-robustness trade-off is more nuanced than initially hypothesised. The production rule-based agent, despite perfect determinism, achieves the lowest consistency because its narrow patterns produce low accuracy on unseen queries. The auto rule-based agent achieves the highest consistency by combining determinism with broader patterns. The LLM-based agent trades a marginal consistency cost for substantially higher robustness and safety.
 
-- **Production rule-based**: Perfect C_traj (100%) but the lowest R_Con (0.823) --- because its reactive, narrow patterns produce low accuracy (44.0%) on unseen queries, funnelling most queries to variable LLM paths (C_out = 50%).
-- **Rule-based**: Perfect C_traj (100%) and the highest R_Con (0.983) --- broad synonym families and word-class patterns produce higher accuracy (75.5%), so most queries reach deterministic programmatic paths (C_out = 100%).
-- **LLM-based**: Near-perfect C_traj (97.4% ± 1.0%) and R_Con = 0.975 ± 0.003 --- slightly lower classification consistency but perfect response consistency (C_out = 100%) because high accuracy (87.8%) means most queries are correctly routed.
+The comparison between rule-based variants highlights that the construction process matters more than the engineering effort. Reactive feedback (fixing one failure at a time) naturally produces narrow patterns, while batch feedback (seeing multiple failures at once) prompts broader generalisations. This is not merely a consistency-robustness trade-off — it is a generalisation gap: rule-based classification exhibits classic overfitting to the development set, while LLM classification generalises from pre-trained language understanding.
 
-The key insight is that **consistency is a function of accuracy, not just determinism**. A deterministic classifier with low accuracy consistently sends queries to the wrong paths, which invoke the LLM and produce variable responses. The consistency advantage of deterministic classification only materialises when accuracy is also high.
-
-The comparison between production and rule-based variants reveals that the construction process matters more than the engineering effort. Both have synonym expansion; the difference is structural: in production, the feedback loop is reactive --- each time a user query fails, a specific fix is added, naturally producing narrow patterns. The developer never sees "Proofread this abstract" or "Format these references" because those uses haven't appeared yet, so the developer never generalises to "any task verb + any document object". The auto-constructed variant avoids this trap because the constructor sees failures in batches --- 14 misclassifications at once --- making it obvious that these are all the same intent class. Batch feedback prompts broader solutions; sequential feedback prompts narrow fixes. Months of manual engineering do not compensate for the structural limitations of reactive pattern construction.
-
-This is not merely a consistency-robustness trade-off --- it is a **generalisation gap**. Rule-based classification exhibits classic overfitting: the patterns memorise the development set without learning the underlying intent structure. The LLM does not overfit because its classification ability derives from pre-trained language understanding, not from query-specific patterns.
-
-### 7.3 Overfitting in Rule-Based Classification and the Role of Generalisation Mechanisms
-
-The rule-based classifier incorporates several generalisation mechanisms designed to reduce overfitting to training examples:
-
-1.  **Synonym expansion**: \~35 synonym families mapping words to canonical forms ("write/compose/draft/prepare" → write intent; "publications/papers/articles/studies" → paper query). This extends coverage without adding individual patterns for each phrasing.
-2.  **Semantic templates**: Matching intent structures rather than exact phrases (e.g., "\[action verb\] + \[document type\]" → non_research, regardless of the specific verb or document).
-3.  **Stemming and lemmatisation**: Reducing words to their roots ("publications/published/publishing" → "publish"), so that inflected forms are automatically covered.
-4.  **Entity-type detection**: Recognising "person name" as a syntactic class rather than matching individual researcher names, so that any name triggers the researcher category.
-
-These mechanisms transform rule-based classification from a **lookup table** (match exact patterns) into a **generalisation engine** (match intent classes), and they substantially improve performance: the rule-based classifier achieves 96.7% on standard phrasings (Tier 1), demonstrating that well-designed patterns can cover anticipated variations effectively.
-
-However, generalisation mechanisms reduce but do not eliminate overfitting. On unusual and adversarial phrasings (Tiers 2--3), the rule-based classifier collapses to 45.9% and 54.3% --- a 42.4-point degradation from Tier 1. The patterns still fail on formulations that fall outside the synonym families and templates, because coverage is ultimately bounded by what the constructor anticipated. The LLM-based classifier, by contrast, shows near-zero degradation (3.3 points) because its classification ability derives from pre-trained language understanding rather than explicit pattern coverage. This suggests that while generalisation mechanisms are essential for viable rule-based classification, they cannot fully close the generalisation gap with LLM-based approaches.
-
-### 7.4 The Automated Construction Protocol
+### 7.3 The Automated Construction Protocol
 
 The automated construction protocol provides several insights beyond the classification comparison:
 
-- **Construction trajectory**: The rule-based classifier required 3 iterations and 14 pattern additions to reach 100% on the development set. The LLM-based classifier required 2 iterations and 4 prompt refinements. This difference reflects the granularity of each mechanism: rule-based fixes are pattern-specific (one pattern per failure), while LLM fixes are **broad** (a category description change affects all queries of that type).
+- **Construction trajectory**: The auto rule-based classifier required 3 iterations and 14 pattern additions to reach 100% on the development set. The LLM-based classifier required 2 iterations and 4 prompt refinements. This difference reflects the granularity of each mechanism: rule-based fixes are pattern-specific (one pattern per failure), while LLM fixes are **broad** (a category description change affects all queries of that type).
 - **Overfitting asymmetry**: Both classifiers reached high accuracy on the development set, but the rule-based classifier dropped to 75.5% on the evaluation set while the LLM-based dropped only to 87.8%. The construction protocol achieved its goal (equivalent development accuracy) but revealed a critical difference in generalisation.
+- **Construction process matters more than effort**: The production rule-based agent --- representing months of manual engineering --- generalises worst (−56.0 pts from dev to eval), while the auto-constructed LLM-based variant built in hours generalises best (−12.2 pts). Reactive feedback (fixing one failure at a time) produces narrow patterns, while batch feedback produces broader generalisations.
 - **Reproducibility**: The protocol can be replicated by other teams with different data. The construction trajectory is fully documented, enabling inspection of the optimisation process.
 
-### 7.5 Practical Implications
+### 7.4 Practical Implications
 
 For practitioners choosing between classification approaches:
 
@@ -679,48 +608,18 @@ For practitioners choosing between classification approaches:
 - **Consider hybrid approaches**: Use rule-based classification for high-confidence, well-defined categories (e.g., project names, specific glossary terms) with LLM fallback for ambiguous queries. This combines deterministic auditability where possible with LLM robustness where needed.
 - **Start with vanilla RAG, then add classification**: The improvement from Baseline to classified agents is larger than the difference between classification mechanisms. Classification is the high-impact decision; the mechanism is a second-order optimisation.
 
-### 7.6 Why Does Classification Improve Reliability? The Decomposition Hypothesis
+### 7.5 The Role of Architecture in Reliability
 
-The results show that adding a classification stage to vanilla RAG substantially improves reliability across all four Rabanser dimensions. But *why* does it work? Two mechanisms may be at play, and distinguishing between them has important implications for RAG system design.
+The reliability gains from classification stem from two complementary mechanisms. First, **programmatic path bypass**: 7 of 12 categories route to deterministic paths that bypass the LLM entirely, eliminating hallucination and inconsistency by construction. Second, **task decomposition**: classification separates the routing decision from response generation, simplifying the LLM's task even for queries that still require it --- paralleling the benefits of chain-of-thought prompting (Wei et al., 2022) and Self-RAG (Asai et al., 2023). Testing whether decomposition improves LLM response quality independently of bypass would require expert evaluation and is left as future work.
 
-**Mechanism A: Programmatic path bypass.** For 7 of 12 categories, classification routes queries to programmatic paths that bypass the LLM entirely. These paths produce deterministic responses from structured data, eliminating hallucination, inconsistency, and formatting errors by construction. Under this mechanism, the reliability gain comes entirely from *not using the LLM* --- and the LLM's performance on queries that still require it (topic_search, gap, general) would be no better than in vanilla RAG.
+The proportion of programmatic paths shapes the magnitude of these gains. With ~58% of queries routed to programmatic paths in this study, classification accuracy directly determines response consistency and safety. In domains with more structured data (e.g., medical databases, legal registries), a higher proportion of programmatic paths would amplify the reliability advantages of correct classification. This suggests a practical guideline: **invest in structured data and programmatic paths first**, then choose the classification mechanism.
 
-**Mechanism B: Task decomposition.** In vanilla RAG, the LLM must simultaneously understand the query intent, locate relevant information in the context, generate a well-structured response, stay within scope, and avoid hallucination --- a complex, multi-objective task performed in a single inference call. In the classified agent, the problem is decomposed into two simpler subtasks: (1) "What type of question is this?" (classification), and (2) "Given this context, generate a response" (generation with targeted context). Under this mechanism, the LLM's performance improves *even on queries that still go through the LLM*, because each subtask is simpler and more focused than the combined task.
-
-This decomposition parallels findings in other LLM research. Chain-of-thought prompting (Wei et al., 2022) improves reasoning by breaking complex problems into steps. Self-RAG (Asai et al., 2023) improves retrieval by separating the decision to retrieve from the generation itself. In our architecture, classification serves a similar function: it separates the *routing decision* from the *response generation*, allowing each to be optimised independently.
-
-**Testing the hypothesis** would require comparing the quality of LLM-generated responses (on LLM-path queries only) between vanilla RAG and the classified agent. If the classified agent produces better responses on topic_search, gap, and general queries --- where the LLM still generates the response, but with targeted context rather than generic BM25 retrieval --- then decomposition itself is a reliability mechanism, not just programmatic bypass. This comparison requires expert evaluation of response quality and is left as future work.
-
-If confirmed, the decomposition hypothesis would have a practical implication: **even for query types that cannot be answered programmatically, classification still improves reliability** by simplifying the LLM's task. This would mean that the benefit of classification extends beyond the 7 programmatic categories to all 12 --- a stronger argument for the architectural decision than the programmatic bypass mechanism alone.
-
-### 7.7 The Role of Response Paths in the Reliability Profile
-
-The response paths --- the programmatic and LLM-based functions that execute after classification --- are a controlled variable in this study (shared identically by all classifiers). However, the design of these paths is itself an architectural decision that shapes the reliability profile and amplifies the consequences of classification accuracy.
-
-In this study, 7 of 12 categories route to **programmatic paths** (meta, non_research, off_topic, figure, project, researcher, glossary) that produce deterministic, identical responses from structured data. The remaining 5 categories route to **LLM paths** (topic_search, university_papers, gap, general, followup) where the LLM generates a response from retrieved context. This 7:5 ratio reflects the data structure of the knowledge base: some queries can be fully answered from structured data, others require LLM reasoning.
-
-This design has two consequences for the results:
-
-**First, programmatic paths amplify the accuracy-consistency link.** When a query is correctly classified to a programmatic path, the response is deterministic --- identical across runs, with zero hallucination risk. When the same query is misclassified to an LLM path, the response varies across runs and may contain fabricated information. This means that classification accuracy directly determines response consistency (C_out) and safety (S_comp). The finding that "consistency is a function of accuracy, not just determinism" is partly a consequence of this architecture: in a system with no programmatic paths, all responses would be LLM-generated and variable, making classification accuracy less consequential for consistency.
-
-**Second, the proportion of programmatic paths determines the ceiling for reliability gains from classification.** With 7 of 12 categories programmatic (\~58% of queries in this study), a perfect classifier would route \~58% of queries to deterministic paths. Increasing this proportion --- by making more categories answerable from structured data --- would increase the reliability gains from classification. Conversely, a system with fewer programmatic paths would show smaller differences between classifiers.
-
-These observations do not invalidate the comparison --- the response paths are shared equally by all classifiers, so they do not bias the comparison between classification mechanisms. However, they do mean that the **magnitude** of the consistency and safety differences depends on the specific distribution of programmatic vs LLM paths. In domains with more structured data (e.g., medical databases, legal registries), a higher proportion of programmatic paths is possible, potentially amplifying the reliability advantages of correct classification. In domains with less structured data (e.g., general knowledge assistance), fewer programmatic paths are feasible, and the classification mechanism matters less for overall reliability.
-
-This suggests a practical guideline: **invest in structured data and programmatic paths first**, then choose the classification mechanism. The more queries that can be answered deterministically, the more classification accuracy matters --- and the more the choice between rule-based and LLM-based classification becomes consequential.
-
-### 7.8 Classification Ontology: User-Driven Design
-
-A potential concern is whether the classification categories are biased toward Rule-based, since they were initially developed alongside a rule-based classification system. We argue that the categories are **user-driven** rather than mechanism-driven: they reflect the types of questions users naturally ask a research assistant and map directly to the underlying data sources. Any classification system serving this knowledge base would need to distinguish these same intent types.
-
-In principle, an LLM-native ontology might introduce categories that rule-based patterns would not naturally produce --- for instance, distinguishing "factual lookup" from "analytical question". However, these finer distinctions would still map to the same data sources, and the response paths would converge to similar implementations. We treat the classification ontology as a controlled variable and leave the question of alternative ontologies as future work.
-
-### 7.9 Limitations
+### 7.6 Limitations
 
 - **Single LLM**: The study uses Mistral Small for LLM-based classification and response generation. Results may differ with larger or more capable models. The automated construction protocol could be rerun with different LLMs to assess model sensitivity.
 - **Single domain**: The knowledge base is domain-specific (Responsible AI research). While the methodology is domain-agnostic, generalisation to other domains requires replication.
 - **Constructor bias**: The automated constructor (Claude) may have systematic biases in how it generates patterns vs prompts. In particular, LLMs may be better at writing prompts for other LLMs than at writing effective regex patterns. Using a different constructor LLM would test this.
-- **Ontology**: The classification categories were initially designed for a rule-based system. While we argue they are user-driven (Section 7.8), an LLM-native ontology might yield different trade-offs.
+- **Ontology**: The classification categories were initially designed alongside a rule-based system. While they are user-driven (reflecting natural query types and data sources), an LLM-native ontology might yield different trade-offs.
 - **Embedding-based routing not explored**: A third classification mechanism --- semantic routing using sentence embeddings and cosine similarity --- offers deterministic classification with potential generalisation advantages. Preliminary experiments showed that while embedding-based routing achieves perfect consistency (C_traj = 100%) and low degradation across tiers, its overall accuracy (66.7%) and safety (50% refusal rate) were insufficient for high-stakes domains, primarily because embeddings capture topical similarity rather than user intent type. Future work could explore fine-tuned intent embeddings or hybrid approaches combining embedding routing with rule-based safety filters.
 - **Expert evaluation**: Predictability and safety dimensions require domain expert annotation, which is resource-intensive and introduces subjectivity.
 
@@ -728,9 +627,9 @@ In principle, an LLM-native ontology might introduce categories that rule-based 
 
 This study addresses a practical question faced by every RAG system builder: having decided to add query classification for reliability, should the classifier be rule-based or LLM-based? By isolating classification as the sole independent variable --- with identical downstream response paths --- and by evaluating through the four-dimensional Rabanser framework, we reach three main conclusions.
 
-**First, LLM-based classification is more reliable overall.** On 216 unseen queries across three difficulty tiers, LLM-based classification achieves R_Rob = 0.922 ± 0.007 vs 0.665 for the rule-based variant, while maintaining R_Con = 0.975 ± 0.003 (vs 0.983 for rule-based). The robustness advantage is most pronounced on adversarial queries (Tier 3: 88.0% ± 1.3% vs 54.3%), where pre-trained language understanding handles novel phrasings that no synonym map anticipated. The consistency cost (97.4% ± 1.0% vs 100% C_traj) is marginal and confined to genuinely ambiguous queries. An N=5 repeated-runs analysis confirms these findings are stable: even the worst LLM run outperforms the rule-based variant on accuracy by 12.0 points.
+**First, LLM-based classification is more reliable overall.** On 216 unseen queries across three difficulty tiers, LLM-based classification substantially outperforms rule-based on robustness and safety, while incurring only a marginal consistency cost. The advantage is most pronounced on adversarial queries, where pre-trained language understanding handles novel phrasings that no synonym map anticipated. An N=5 repeated-runs analysis confirms these findings are stable across runs.
 
-**Second, consistency is a function of accuracy, not just determinism.** This is the study's most counterintuitive finding. A deterministic classifier with low accuracy achieves perfect C_traj but low R_Con, because misclassified queries are routed to non-deterministic LLM paths. The hand-crafted agent --- with 100% C_traj but only 44% accuracy on unseen queries --- scores the lowest R_Con (0.823) of all variants. Determinism guarantees classification consistency but not response consistency; the latter requires correct classification.
+**Second, consistency is a function of accuracy, not just determinism.** This is the study's most counterintuitive finding. A deterministic classifier with low accuracy achieves perfect classification consistency but low response consistency, because misclassified queries are routed to non-deterministic LLM paths. The production rule-based agent illustrates this paradox: despite perfect determinism, it scores the lowest overall consistency of all variants. Determinism guarantees classification consistency but not response consistency; the latter requires correct classification.
 
 **Third, the construction process determines generalisation quality, not the engineering effort.** A production rule-based classifier developed over months (44.0% on unseen queries) scores far below a rule-based classifier built in hours through automated batch construction (75.5%), despite both having synonym expansion. The difference is structural: production's reactive feedback loop (one failure → one fix) produces narrow patterns, while automated batch construction (14 failures → word-class patterns) produces broader coverage. LLM-based classification (87.8%) generalises best because pre-trained language understanding provides implicit coverage that no amount of pattern engineering --- reactive or batch --- can fully replicate.
 

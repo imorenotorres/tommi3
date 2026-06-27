@@ -44,15 +44,17 @@ sys.path.insert(0, os.path.join(STUDY_DIR, ".."))
 sys.path.insert(0, os.path.join(STUDY_DIR, "..", "..", "web"))
 
 AGENT_PATHS = {
-    "rule_based": os.path.join(STUDY_DIR, "agents", "rule_based"),
+    "rule_based": os.path.join(STUDY_DIR, "agents", "rule_based_OLD"),
+    "auto_rule_based": os.path.join(STUDY_DIR, "agents", "auto_rule_based"),
     "llm_based": os.path.join(STUDY_DIR, "agents", "llm_based"),
     "embedding_based": os.path.join(STUDY_DIR, "agents", "embedding_based"),
     "phase2": os.path.join(STUDY_DIR, "rag_rulebased_study", "phase2_generalised"),
     "responsible_ai3": os.path.join(STUDY_DIR, "..", "rag_study", "procedural"),
 }
 LABELS = {
-    "rule_based": "Narrow rules",
-    "phase2": "Generalised rules",
+    "rule_based": "Narrow rules (OLD)",
+    "auto_rule_based": "Auto rule-based",
+    "phase2": "Generalised rules (alias)",
     "llm_based": "LLM-based",
     "embedding_based": "Embedding-based",
     "responsible_ai3": "Hand-crafted (months)",

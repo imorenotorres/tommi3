@@ -166,9 +166,9 @@ def fig1_architecture():
 
 def fig2_rabanser():
     dimensions = ['R_Con\n(Consistency)', 'R_Rob\n(Robustness)', 'R_Pred\n(Predictability)', 'R_Saf\n(Safety)']
-    production = [0.823, 0.691, 0.506, 0.500]
-    auto_rule = [0.983, 0.665, 0.676, 0.864]
-    llm = [0.975, 0.922, 0.743, 0.936]
+    production = [0.750, 0.691, 0.506, 0.500]
+    auto_rule = [0.933, 0.665, 0.676, 0.864]
+    llm = [0.922, 0.922, 0.743, 0.936]
     llm_std = [0.003, 0.007, 0.002, 0.010]
 
     x = np.arange(len(dimensions))
@@ -226,17 +226,18 @@ def fig3_tiers():
     # Degradation annotations
     ax.annotate('', xy=(2.22, 88), xytext=(0.22, 91.3),
         arrowprops=dict(arrowstyle='->', color=COLORS['llm'], lw=1.5, linestyle='--'))
-    ax.text(1.3, 93, '−3.3 pts', color=COLORS['llm'], fontsize=8, fontweight='bold')
+    ax.text(0.8, 95, '−3.3 pts', color='#1e40af', fontsize=10, fontweight='bold')
 
     ax.annotate('', xy=(2.0, 54.3), xytext=(0.0, 96.7),
         arrowprops=dict(arrowstyle='->', color=COLORS['auto_rule'], lw=1.5, linestyle='--'))
     ax.text(0.7, 78, '−42.4 pts', color=COLORS['auto_rule'], fontsize=8, fontweight='bold')
 
-    ax.legend(loc='upper right', fontsize=9, framealpha=0.9)
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=3, fontsize=9, framealpha=0.9)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
     plt.tight_layout()
+    plt.subplots_adjust(bottom=0.2)
     plt.savefig(os.path.join(FIGDIR, 'fig3_tiers.png'), bbox_inches='tight')
     plt.close()
     print("fig3_tiers.png")
@@ -249,7 +250,7 @@ def fig3_tiers():
 def fig4_consistency():
     agents = ['Production\nrule-based', 'Auto-constructed\nrule-based', 'Auto-constructed\nLLM-based']
     c_traj = [100.0, 100.0, 97.4]
-    c_out = [50.0, 100.0, 100.0]
+    c_out = [50.0, 86.7, 90.0]
     accuracy = [44.0, 75.5, 87.8]
 
     x = np.arange(len(agents))
@@ -277,12 +278,6 @@ def fig4_consistency():
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(lines1 + lines2, labels1 + labels2, loc='lower right', fontsize=9, framealpha=0.9)
-
-    # Annotation
-    ax1.annotate('100% C_traj\nbut 50% C_out\n(consistently wrong)',
-                 xy=(0, 50), xytext=(0.8, 30),
-                 arrowprops=dict(arrowstyle='->', color='#374151'),
-                 fontsize=8, color='#374151', ha='center')
 
     ax1.spines['top'].set_visible(False)
     ax2.spines['top'].set_visible(False)
