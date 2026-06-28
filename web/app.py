@@ -1709,8 +1709,8 @@ async def set_agent_visibility(
 # ---------------------------------------------------------------------------
 
 @app.get("/api/tool-access")
-async def get_tool_access(session: dict = Depends(require_role("superuser"))):
-    """Get current tool access configuration."""
+async def get_tool_access(session: dict = Depends(require_auth)):
+    """Get current tool access configuration (readable by all authenticated users)."""
     return {"tool_access": TOOL_ACCESS}
 
 

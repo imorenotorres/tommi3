@@ -2,7 +2,9 @@
 
 ## Abstract
 
-Domain-specific AI assistants built on Retrieval-Augmented Generation (RAG) are increasingly deployed in contexts that demand high reliability — education, research management, healthcare information, legal analysis. In these domains, incorrect responses are not merely unhelpful but potentially harmful: a fabricated paper citation, a wrong researcher attribution, or a failure to refuse an out-of-scope query can have real consequences. A key architectural decision for improving RAG reliability is adding a query classification stage that routes queries to specialised response paths — some bypassing the LLM entirely. But the classification mechanism itself introduces reliability trade-offs: deterministic rule-based classification should theoretically offer higher consistency and safety (identical output for identical input, auditable decision logic), while LLM-based classification should offer higher robustness (natural handling of diverse phrasings through pre-trained linguistic knowledge). Despite the growing deployment of RAG agents, no prior study has evaluated the reliability of query classification in RAG systems, nor compared deterministic and non-deterministic approaches through a reliability lens. We present a controlled study that isolates classification as the sole independent variable — both approaches share identical downstream response paths — and evaluates reliability using the four-dimensional framework of Rabanser et al. (2025): consistency, robustness, predictability, and safety. To ensure a fair comparison, we introduce an *automated agent construction protocol* that removes human engineering skill as a confound. Results on 216 unseen queries across three difficulty tiers challenge the theoretical expectations: while rule-based classification achieves perfect classification consistency (C_traj = 100%), accuracy varies dramatically depending on the construction process — a production rule-based classifier developed over months of reactive engineering (44.0%) scores far below an auto-constructed variant using broad word-class patterns (75.5%). Both fall short of LLM-based classification (87.8% ± 0.4%). LLM-based classification achieves higher scores on three of four reliability dimensions (robustness, predictability, safety), while nearly matching rule-based on consistency. An N=5 repeated-runs analysis confirms these findings are stable. We conclude that response consistency depends on classification accuracy rather than determinism, favouring LLM-based classification for its superior robustness on unseen queries.
+Domain-specific AI assistants built on Retrieval-Augmented Generation (RAG) are increasingly deployed in contexts that demand high reliability. A key architectural decision is adding a query classification stage that routes queries to specialised response paths — allowing factual questions to be answered deterministically from curated data while exploratory questions are directed to the LLM. This is especially useful in teaching, where materials combine structured resources (glossaries, curated bibliographies) with unstructured texts. However, classification introduces reliability trade-offs: deterministic rule-based classification should theoretically offer higher consistency, while LLM-based classification should offer higher robustness. No prior study has compared these approaches through a reliability lens.
+
+We present a controlled study isolating classification as the sole independent variable and evaluating reliability using the four-dimensional framework of Rabanser et al. (2025): consistency, robustness, predictability, and safety. Three agents are compared: a production rule-based classifier developed over months of real-world use, and two auto-constructed variants — one rule-based, one LLM-based. Results on 216 unseen queries across three difficulty tiers show that while rule-based classification achieves perfect consistency (100%), accuracy varies dramatically — the production classifier (44.0%) scores far below an auto-constructed variant (75.5%), and both fall short of LLM-based classification (87.8% ± 0.4%). LLM-based classification scores highest on three of four reliability dimensions while nearly matching rule-based on consistency. We conclude that consistency alone does not guarantee reliability — accuracy on unseen queries is the primary driver — favouring LLM-based classification for deployments where users express the same intent in unpredictable ways.
 
 ---
 
@@ -10,9 +12,9 @@ Domain-specific AI assistants built on Retrieval-Augmented Generation (RAG) are 
 
 ### 1.1 Reliability in Domain-Specific AI Assistants
 
-Retrieval-Augmented Generation (Lewis et al., 2020) has become the standard architecture for domain-specific AI assistants. RAG agents are deployed in educational platforms, research management systems, healthcare information tools, and legal analysis — domains where users rely on the agent's responses for consequential decisions. Education is of particular concern: the EU AI Act (Regulation (EU) 2024/1689) explicitly classifies AI systems used in education as **high-risk** (Annex III, Section 3), noting that such systems "may determine the educational and professional course of a person's life" and, when improperly designed, "can be particularly intrusive and may violate the right to education and training" (European Parliament & Council, 2024). In this context, students and faculty interact with AI assistants as trusted knowledge sources; an unreliable agent risks propagating misinformation in a setting designed to build understanding. In these contexts, reliability is not a desirable feature but a prerequisite: a research assistant that fabricates paper titles, misattributes researcher affiliations, or fails to refuse out-of-scope queries undermines the trust that makes the system useful.
+Retrieval-Augmented Generation (Lewis et al., 2020) has become the standard architecture for domain-specific AI assistants. RAG agents are deployed in educational platforms, research management systems, healthcare information tools, and legal analysis — domains where users rely on the agent's responses for consequential decisions. Education is of particular concern: the EU AI Act (Regulation (EU) 2024/1689) explicitly classifies AI systems used in education as **high-risk** (Annex III, Section 3), noting that such systems "may determine the educational and professional course of a person's life" and, when improperly designed, "can be particularly intrusive and may violate the right to education and training" (European Parliament & Council, 2024). In these contexts, reliability is not a desirable feature but a prerequisite: a research assistant that fabricates paper titles, misattributes researcher affiliations, or fails to refuse out-of-scope queries undermines the trust that makes the system useful.
 
-Yet despite their growing deployment, the reliability of RAG agents has received surprisingly little systematic study. Existing evaluations focus primarily on accuracy metrics — correctness, hallucination rate, F1 scores — measured in single-run settings. These metrics capture whether the agent *can* produce a correct response, but not whether it *reliably* does so: the same query asked twice may produce different responses, a rephrased question may be misrouted, and the system may confidently generate responses on topics it should refuse.
+Yet despite their growing deployment, the reliability of RAG agents has received little systematic attention. Existing evaluations focus primarily on accuracy metrics — correctness, hallucination rate, F1 scores — measured in single-run settings. These metrics capture whether the agent *can* produce a correct response, but not whether it *reliably* does so: the same query asked twice may produce different responses, a rephrased question may be misrouted, and the system may confidently generate responses on topics it should refuse.
 
 Rabanser et al. (2025) propose a four-dimensional framework for AI agent reliability — consistency, robustness, predictability, and safety — but apply it to general-purpose agents. No prior work has adapted this framework to evaluate the specific reliability challenges of domain-specific RAG agents, where some response paths are deterministic (programmatic data lookups) while others depend on LLM generation.
 
@@ -26,7 +28,9 @@ A natural improvement is to add a **query classification stage** that routes que
 - **Principled refusals**: Off-topic or non-research queries are refused programmatically, preventing scope violations.
 - **Targeted context**: Different query types receive context from the appropriate data source, improving correctness.
 
-This architecture transforms the reliability profile of the agent: programmatic paths are perfectly reliable by construction, while LLM paths retain their inherent variability. The overall reliability depends critically on how well the classification stage routes queries to the correct path. Figure 1 illustrates the architectural difference between vanilla RAG and agents with intent classification.
+This architecture is particularly relevant in educational contexts, where knowledge bases naturally combine heterogeneous materials. Teachers commonly maintain, alongside diverse texts, structured resources developed over years of practice — glossaries, lists of key concepts, curated bibliographies, author catalogues. A Spanish 19th-century poetry instructor, for instance, might have a curated list of authors and canonical texts that students should study in depth, while also wanting the assistant to help students explore related poets from other periods or nationalities. Intent classification enables this mix: queries about curated material are answered deterministically from structured data, while exploratory questions are handled by the LLM with appropriate context. Without classification, both types of query would receive the same LLM-generated treatment, risking hallucination on factual lookups and missing the opportunity to leverage the teacher's curated resources.
+
+The overall reliability depends critically on how well the classification stage routes queries to the correct path. Figure 1 illustrates the architectural difference between vanilla RAG and agents with intent classification.
 
 ![Figure 1: Architectural configurations compared in this study. (a) Vanilla RAG: all queries follow the same retrieve-then-generate pipeline. (b)/(c) Classified agents: queries are routed to programmatic paths (deterministic, no hallucination) or LLM generation with targeted context. The transition from (b) to (c) swaps the classification mechanism — everything downstream remains identical.](figures/fig1_architecture.png)
 
@@ -50,7 +54,7 @@ This theoretical framing suggests a **consistency-robustness trade-off** in whic
 
 ### 1.4 Research Gap
 
-Despite growing interest in query routing for RAG systems (RAGRouter, Hu et al., 2025; R³AG, 2025; RouteRAG), existing work has not examined the reliability implications of the routing mechanism itself. Specifically:
+Despite growing interest in query routing for RAG systems (RAGRouter, Zhang et al., 2025; R³AG, Zhao et al., 2026; RouteRAG, Guo et al., 2025), existing work has not examined the reliability implications of the routing mechanism itself. Specifically:
 
 1. **No prior study has evaluated the reliability of RAG agents** using a multi-dimensional framework. Existing evaluations measure accuracy in single-run settings, overlooking consistency across runs, robustness to paraphrases, and safety of refusal behaviour.
 
@@ -74,40 +78,40 @@ This paper makes three contributions:
 
 Retrieval-Augmented Generation (Lewis et al., 2020) combines parametric knowledge (LLM) with non-parametric knowledge (retrieved documents) to ground responses in external data. The architecture has been widely adopted for domain-specific applications, yet **evaluation of RAG systems has focused almost exclusively on single-run accuracy metrics** — correctness, hallucination rate, and F1 scores (Gao et al., 2024). Multi-run reliability (does the system produce the same answer twice?) and robustness (does it handle rephrased queries?) have not been systematically studied.
 
-**Modular RAG** (Gao et al., 2024) decomposes RAG into interchangeable modules (retrieval, reranking, generation, verification). Frameworks such as FlashRAG (Jin et al., 2024) and RAGLAB provide standardised implementations for comparative evaluation. However, these frameworks evaluate module *performance*, not module *reliability* — a distinction that matters in high-stakes domains.
+**Modular RAG** (Gao et al., 2024) decomposes RAG into interchangeable modules (retrieval, reranking, generation, verification). Frameworks such as FlashRAG (Jin et al., 2024) and RAGLAB (Zhang et al., 2024) provide standardised implementations for comparative evaluation. However, these frameworks evaluate module *performance*, not module *reliability* — a distinction that matters in high-stakes domains.
 
 **Adaptive RAG** (Jeong et al., 2024) dynamically routes queries to different retrieval pipelines based on complexity. **Self-RAG** (Asai et al., 2023) adds self-reflection tokens for retrieval decisions. Both adapt the retrieval strategy but do not separate classification from generation, making it impossible to attribute reliability differences to the classification mechanism.
 
 ### 2.2 Query Routing in RAG Systems
 
-Recent work on query routing focuses on *where* to route, not on the *reliability* of routing. **RAGRouter** (Hu et al., 2025) routes queries to different RAG-enabled LLMs using retrieval-aware embeddings. **R³AG** (2025) frames routing as retriever selection. **RouteRAG** proposes adaptive routing between retrieval strategies. **InSemRAG** (Xiang et al., 2025) uses intent-aware retrieval with a lightweight classifier.
+Recent work on query routing focuses on *where* to route, not on the *reliability* of routing. **RAGRouter** (Zhang et al., 2025) routes queries to different RAG-enabled LLMs using retrieval-aware embeddings. **R³AG** (Zhao et al., 2026) frames routing as retriever selection. **RouteRAG** (Guo et al., 2025) proposes adaptive routing between retrieval strategies. **InSemRAG** (Puspitasari et al., 2026) uses intent-aware retrieval with a lightweight classifier.
 
 These approaches evaluate routing through accuracy metrics (F1, exact match). None measures whether the router produces the same decision across multiple runs (consistency), whether it handles paraphrased queries correctly (robustness), or whether it appropriately refuses out-of-scope queries (safety).
 
-A survey by Ding et al. (2025) categorises routing strategies as rule-based, classifier-based, and LLM-based, noting that "probabilistic strategies seem to outperform deterministic strategies" in terms of accuracy. However, this finding does not account for consistency or safety — dimensions that may be critical for high-stakes deployments.
+Among the various routing strategies, rule-based and LLM-based classification represent the two extremes of a fundamental design trade-off: determinism versus flexibility. Rule-based classification offers full auditability and reproducibility but requires anticipating user phrasings; LLM-based classification handles linguistic diversity naturally but introduces stochasticity. This makes them the natural pair for a reliability comparison.
 
 ### 2.3 AI Agent Reliability
 
 Rabanser et al. (2025) propose a four-dimensional framework for evaluating AI agent reliability:
 
-- **Consistency**: Does the agent produce the same result for the same input across multiple runs? We measure trajectory consistency (C_traj: same classification across runs) and outcome consistency (C_out: same response across runs).
-- **Robustness**: Does the agent handle perturbations — rephrased queries, edge cases, unexpected inputs — correctly? We measure prompt robustness: accuracy across paraphrases at multiple difficulty tiers.
-- **Predictability**: Can the system signal when its output is likely to be correct or incorrect? Rabanser et al. measure this through confidence calibration (do the system's confidence scores match actual accuracy?). Our system does not produce explicit confidence scores; instead, we use the classification path as a proxy: queries routed to programmatic paths receive deterministic, verified responses, while queries routed to LLM paths receive generated responses that may contain errors. We measure whether this distinction correlates with actual correctness — i.e., whether the response type (programmatic vs LLM) serves as a reliable indicator of response quality.
-- **Safety**: Does the agent refuse queries it should not answer? We measure refusal accuracy: the fraction of out-of-scope queries correctly refused.
+- **Consistency (R_Con)**: Does the classifier produce the same classification for the same input across multiple runs? We measure classification consistency: same classification across K runs.
+- **Robustness (R_Rob)**: Does the agent handle perturbations — rephrased queries, edge cases, unexpected inputs — correctly? We measure prompt robustness: accuracy across paraphrases at multiple difficulty tiers.
+- **Predictability (R_Pred)**: Can the system signal when its output is likely to be correct or incorrect? Rabanser et al. measure this through confidence calibration. Our system does not produce explicit confidence scores; instead, we use the classification path as a proxy: queries routed to programmatic paths receive deterministic, verified responses, while queries routed to LLM paths receive generated responses that may contain errors. We measure whether this distinction correlates with actual correctness.
+- **Safety (R_Saf)**: Does the agent refuse queries it should not answer? We measure refusal accuracy: the fraction of out-of-scope queries correctly refused.
 
-This framework was developed for general-purpose agents in complex environments. **No prior work has applied it to RAG agents**, despite the growing deployment of RAG systems in domains where reliability is critical. Recent work has begun to examine RAG robustness at specific pipeline stages — retriever degradation under query perturbations (Wang et al., 2025), graph-theoretic consistency analysis (ReliabilityRAG, Xie et al., 2025), guardrail robustness under RAG-style contexts (Yi et al., 2025) — but these focus on retrieval or generation, not on classification. Our work evaluates reliability at the *classification* stage — an earlier point in the pipeline where failures propagate to all downstream components.
+This framework was developed for general-purpose agents in complex environments. **No prior work has applied it to RAG agents**, despite the growing deployment of RAG systems in domains where reliability is critical. Recent work has begun to examine RAG robustness at specific pipeline stages — retriever degradation under query perturbations (Percin et al., 2025), graph-theoretic consistency analysis (ReliabilityRAG, Shen et al., 2025), guardrail robustness under RAG-style contexts (She et al., 2025) — but these focus on retrieval or generation, not on classification. Our work evaluates reliability at the *classification* stage — an earlier point in the pipeline where failures propagate to all downstream components.
 
 ---
 
 ## 3. System Architecture
 
-### 3.1 The TOMMI Agent Platform
+### 3.1 Platform and Knowledge Base
 
-The study is conducted on the TOMMI platform, a multi-agent system serving the UNINOVIS European university alliance (8 universities across 8 countries). The platform hosts agents of different types, including domain-specific RAG agents. The present study uses one such RAG agent, specialised in Responsible AI research, whose knowledge base contains 154 research papers, 145 UNINOVIS researchers, 11 funded projects, and a Responsible AI glossary.
+The study is conducted on TOMMI, an educational platform used to explore different types of AI agents in the higher education context. Using TOMMI, we created four different RAG agents. All agents shared the same knowledge base, specialised in Responsible AI research: 154 research papers, 145 researchers, 11 funded projects, and a Responsible AI glossary.
 
 ### 3.2 Agent Variants
 
-We compare four agent configurations. The **Baseline** establishes what vanilla RAG can do alone. The three classified variants share identical response paths — the only difference is the classification mechanism:
+We compare four agent configurations. The **Baseline** establishes what vanilla RAG can do alone. The three variants with query classification share identical response paths — the only difference is the classification mechanism:
 
 #### Baseline (Vanilla RAG)
 
@@ -213,31 +217,17 @@ To prevent overfitting the construction to the benchmark, we use separate query 
 - **Development set** (N = 69): Used during the construction loop. Contains queries covering all categories with validated ground-truth labels. Failures on this set drive automated improvements. Both variants see this set during construction.
 - **Evaluation set** (N = 216): A larger, independently generated set of queries, **never seen during construction**. Generated using the same constructor LLM (Claude) in a separate session, with explicit instructions to produce diverse phrasings, boundary cases, and novel formulations. Ground truth labels are validated by the domain expert. This set is used exclusively for the final reliability benchmark.
 
-This separation ensures that the final comparison measures **generalisation to unseen queries**, not memorisation of training examples.
-
 ### 4.2 Reliability Evaluation Framework
 
 We adapt the Rabanser et al. (2025) framework to our controlled setting. For the Baseline vs Rule-based/LLM-based comparison, we evaluate all four dimensions. For the Rule-based vs LLM-based comparison, we focus on the two dimensions directly affected by the classification mechanism.
 
 #### 4.2.1 Consistency (R_Con)
 
-Consistency measures whether the agent produces the same output for the same input across multiple runs. We decompose it into two components:
+Consistency measures whether the classifier produces the same classification for the same input across multiple runs.
 
-**Trajectory consistency** (C_traj): the fraction of queries that receive the same classification across K runs.
-
-$$C_{traj} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}\left[\forall k \in \{1,...,K\}: c_k(q_i) = c_1(q_i)\right]$$
+$$R_{Con} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}\left[\forall k \in \{1,...,K\}: c_k(q_i) = c_1(q_i)\right]$$
 
 where $c_k(q_i)$ is the classification assigned to query $q_i$ on run $k$, and $K = 5$.
-
-**Outcome consistency** (C_out): the fraction of queries that produce identical responses across K runs.
-
-$$C_{out} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}\left[\forall k \in \{1,...,K\}: r_k(q_i) = r_1(q_i)\right]$$
-
-where $r_k(q_i)$ is the full response for query $q_i$ on run $k$ (exact string match, excluding decision traces), and $K = 3$.
-
-The aggregate consistency score is:
-
-$$R_{Con} = \frac{C_{traj} + C_{out}}{2}$$
 
 #### 4.2.2 Robustness (R_Rob)
 
@@ -363,20 +353,20 @@ Before comparing classification mechanisms, we establish that classification its
 
 | Metric | Baseline (Vanilla RAG) | Best agent with intent classification |
 |---|:---:|:---:|
-| **Response consistency** (C_out, K=3) | **0.0%** (0/30) | 100.0% |
+| **Response consistency** (K=3) | **0.0%** (0/30) | 100.0% |
 | **Refusal accuracy** | **10.0%** (1/10) | 93.6% |
 | **False refusals** | 4/20 valid queries | 0 |
 | **Avg response time** | 1917ms | 2–556ms |
 
-The Baseline produces a different response every time the same query is asked (C_out = 0%) — not a single exact match across 30 queries and 3 runs. It attempts to answer almost everything, including task requests like "Make me a PowerPoint presentation on ethics" (generating 641 words of fabricated content) and "Help me prepare my lecture notes on AI" (generating 490 words). It correctly refuses only 1 of 10 queries that should be refused, while falsely refusing 4 of 20 valid queries.
+The Baseline produces a different response every time the same query is asked (0% response consistency) — not a single exact match across 30 queries and 3 runs. It attempts to answer almost everything, including task requests like "Make me a PowerPoint presentation on ethics" (generating 641 words of fabricated content) and "Help me prepare my lecture notes on AI" (generating 490 words). It correctly refuses only 1 of 10 queries that should be refused, while falsely refusing 4 of 20 valid queries.
 
 Two aspects of this result merit discussion:
 
-**Response consistency (C_out = 0%) is an architectural limitation, not an engineering one.** No amount of prompt engineering can make LLM-generated responses identical across runs. The LLM is stochastic by design — each inference produces slightly different text. Only programmatic paths (which bypass the LLM entirely) can achieve deterministic, reproducible responses. This is a fundamental argument for adding classification: it enables programmatic paths. A second argument is that classification allows LLM paths to receive query-specific context, potentially improving response quality even when the LLM is still involved.
+**Response consistency (0%) is an architectural limitation, not an engineering one.** No amount of prompt engineering can make LLM-generated responses identical across runs. The LLM is stochastic by design — each inference produces slightly different text. Only programmatic paths (which bypass the LLM entirely) can achieve deterministic, reproducible responses. This is a fundamental argument for adding classification: it enables programmatic paths. A second argument is that classification allows LLM paths to receive query-specific context, potentially improving response quality even when the LLM is still involved.
 
 **Refusal accuracy (10%) is partly addressable through prompt engineering.** A more carefully crafted system prompt could improve the Baseline's ability to refuse off-topic queries. However, even with a perfect prompt, the LLM makes the refusal decision *within the same inference call* that generates the response — a single-step process that is inherently less reliable than in agents with intent classification, where refusal is a deterministic programmatic path triggered by a separate classification step.
 
-### 6.3 Full Reliability Benchmark (Agents with Intent Classification)
+### 6.3 Full Reliability Benchmark (Agents with Query Classification)
 
 The final evaluation uses 216 queries across 12 categories and 3 difficulty tiers, independently generated and never seen during construction. Tier 1 contains standard phrasings (120 queries), Tier 2 contains unusual phrasings — informal, verbose, telegraphic (61 queries), and Tier 3 contains adversarial queries — ambiguous, compound, edge cases (35 queries).
 
@@ -384,31 +374,22 @@ The final evaluation uses 216 queries across 12 categories and 3 difficulty tier
 
 | Dimension | Production rule-based | Auto rule-based | Auto LLM-based (N=5) |
 |---|:---:|:---:|:---:|
-| **R_Con (Consistency)** | 0.750 | **0.933** | 0.922 |
-| **R_Rob (Robustness)** | 0.691 | 0.665 | **0.922 ± 0.007** |
-| **R_Pred (Predictability)** | 0.506 | 0.676 | **0.743 ± 0.002** |
-| **R_Saf (Safety)** | 0.500 | 0.864 | **0.936 ± 0.010** |
+| **R_Con (Consistency)** | **100.0%** | **100.0%** | 97.4% ± 1.0% |
+| **R_Rob (Robustness)** | 69.1% | 66.5% | **92.2% ± 0.7%** |
+| **R_Pred (Predictability)** | 50.6% | 67.6% | **74.3% ± 0.2%** |
+| **R_Saf (Safety)** | 50.0% | 86.4% | **93.6% ± 1.0%** |
 
-The LLM-based classifier scores highest on three of four dimensions (robustness, predictability, safety). The auto rule-based scores highest on consistency. Counterintuitively, the production rule-based agent — developed over months with ~60 synonym mappings — scores lowest on both consistency (0.750) and safety (0.500), despite being fully deterministic. This paradox, which arises from the interaction between determinism and classification accuracy, is analysed in Section 6.3.2. Figure 2 visualises the comparison.
+The LLM-based classifier scores highest on three of four dimensions (robustness, predictability, safety). Both rule-based variants achieve perfect consistency (R_Con = 1.000) by construction, while LLM-based achieves R_Con = 97.4% ± 1.0%. Figure 2 visualises the comparison.
 
-![Figure 2: Rabanser reliability dimensions across classification approaches. LLM-based classification (blue) scores highest on robustness, predictability, and safety. Rule-based classification (yellow) scores highest on consistency. Error bars show ±1 std from N=5 runs.](figures/fig2_rabanser.png)
+![Figure 2: Rabanser reliability dimensions across classification approaches. LLM-based classification (blue) scores highest on robustness, predictability, and safety. Auto-constructed rule-based classification (yellow) scores highest on consistency. Error bars show ±1 std from N=5 runs.](figures/fig2_rabanser.png)
 
 #### 6.3.2 Consistency
 
 | Metric | Production rule-based | Auto rule-based | LLM-based (N=5) |
 |---|:---:|:---:|:---:|
-| **C_traj** (classification) | **100.0%** | **100.0%** | 97.4% ± 1.0% |
-| **C_out** (response, K=3) | 50.0% | 86.7% | **90.0%** |
+| **R_Con** (classification consistency) | **100.0%** | **100.0%** | 97.4% ± 1.0% |
 
-Both rule-based variants achieve perfect classification consistency (C_traj = 100%) by construction. The LLM-based classifier achieves C_traj = 97.4% ± 1.0%. Response consistency (C_out) is highest for the LLM-based (90.0%), followed by the auto rule-based (86.7%), with the production rule-based far behind (50.0%).
-
-The production rule-based agent's low accuracy on unseen queries (44.0%) means over half of queries are misclassified to LLM paths, which produce different text each run — resulting in the lowest R_Con (0.750) of all variants. This reveals that **classification consistency without classification accuracy is meaningless**.
-
-The auto rule-based achieves the highest R_Con (0.933) by combining perfect C_traj with reasonable accuracy (75.5%). The LLM-based classifier sacrifices 2.6% classification consistency but compensates with the highest response consistency (C_out = 90.0%), achieving R_Con = 0.922.
-
-Figure 3 illustrates the consistency paradox.
-
-![Figure 3: The consistency paradox. Both rule-based variants achieve 100% classification consistency (C_traj), yet the production rule-based agent has the lowest response consistency (C_out = 50%). The red line shows classification accuracy — the missing link between C_traj and C_out.](figures/fig3_consistency.png)
+Both rule-based variants achieve perfect classification consistency (R_Con = 100%) by construction — the same query always receives the same classification. The LLM-based classifier achieves R_Con = 97.4% ± 1.0%, with the 2.6% inconsistency confined to genuinely ambiguous queries where multiple classifications are defensible.
 
 #### 6.3.3 Robustness
 
@@ -430,7 +411,7 @@ The production rule-based agent shows low degradation (5.8 pts) but for the wron
 
 Per-category robustness across tiers reveals where each mechanism excels and fails:
 
-| Category | n | Rule-based (T1/T2/T3) | LLM (T1/T2/T3) |
+| Category | n | Auto rule-based (T1/T2/T3) | Auto LLM-based (T1/T2/T3) |
 |---|---|---|---|
 | project | 16 | 100/100/100 | 100/100/100 |
 | topic_search | 20 | 100/40/67 | **100/100/100** |
@@ -477,18 +458,18 @@ Since LLM-based classification is non-deterministic, a single benchmark run may 
 | Metric | Mean | Std | Range [min, max] |
 |---|:---:|:---:|:---:|
 | **Accuracy** | 87.8% | ± 0.4% | [87.5%, 88.4%] |
-| **C_traj** (K=5) | 97.4% | ± 1.0% | [96.3%, 98.6%] |
+| **R_Con** (K=5) | 97.4% | ± 1.0% | [96.3%, 98.6%] |
 | **Tier 1** (standard) | 91.3% | ± 0.7% | [90.8%, 92.5%] |
 | **Tier 2** (unusual) | 80.7% | ± 0.7% | [80.3%, 82.0%] |
 | **Tier 3** (adversarial) | 88.0% | ± 1.3% | [85.7%, 88.6%] |
 | **Refusal accuracy** | 93.6% | ± 1.0% | [93.2%, 95.5%] |
-| **R_Rob** | 0.922 | ± 0.007 | [0.910, 0.926] |
-| **R_Pred** | 0.743 | ± 0.002 | [0.741, 0.747] |
-| **R_Saf** | 0.936 | ± 0.010 | [0.932, 0.955] |
+| **R_Rob** | 92.2% | ± 0.7% | [91.0%, 92.6%] |
+| **R_Pred** | 74.3% | ± 0.2% | [74.1%, 74.7%] |
+| **R_Saf** | 93.6% | ± 1.0% | [93.2%, 95.5%] |
 
 The between-run variance is small across all metrics. Accuracy varies by ±0.4 percentage points — negligible compared to the 12.3-point gap with auto rule-based classification (75.5%). The largest variance is in safety (refusal accuracy: ±1.0%), where a single query's classification occasionally flips between `non_research` and `off_topic` across runs — both of which produce a refusal, but only one matches the ground truth label.
 
-The auto rule-based classifier produces identical results across runs, as expected: accuracy = 75.5%, R_Con = 0.933, R_Rob = 0.665, R_Saf = 0.864 with zero variance.
+The auto rule-based classifier produces identical results across runs, as expected: accuracy = 75.5%, R_Con = 100%, R_Rob = 66.5%, R_Saf = 86.4% with zero variance.
 
 ---
 
@@ -502,7 +483,7 @@ The key finding is that this improvement is substantial regardless of whether cl
 
 ### 7.2 The Consistency-Robustness Trade-off
 
-The full benchmark reveals that the consistency-robustness trade-off is more nuanced than initially hypothesised. The production rule-based agent, despite perfect determinism, achieves the lowest consistency because its reactive patterns produce low accuracy on unseen queries. The auto-constructed rule-based agent achieves the highest consistency by combining determinism with broader patterns. The LLM-based agent trades a marginal consistency cost for substantially higher robustness and safety.
+The full benchmark reveals that the consistency-robustness trade-off is real but asymmetric. Both rule-based variants achieve perfect classification consistency (R_Con = 100%) by construction, while the LLM-based classifier achieves R_Con = 97.4%. However, this 2.6% consistency advantage comes at a substantial cost: the LLM-based classifier outperforms both rule-based variants on robustness, predictability, and safety by much larger margins.
 
 The comparison between rule-based variants highlights that the construction process matters more than the engineering effort. Reactive feedback (fixing one failure at a time) naturally produces query-specific patterns, while batch feedback (seeing multiple failures at once) prompts broader generalisations. This is not merely a consistency-robustness trade-off — it is a generalisation gap: rule-based classification exhibits classic overfitting to the development set, while LLM classification generalises from pre-trained language understanding.
 
@@ -510,83 +491,69 @@ The comparison between rule-based variants highlights that the construction proc
 
 The automated construction protocol provides several insights beyond the classification comparison:
 
-- **Construction trajectory**: The rule-based classifier required 3 iterations and 14 pattern additions to reach 100% on the development set. The LLM-based classifier required 2 iterations and 4 prompt refinements. This difference reflects the granularity of each mechanism: rule-based fixes are pattern-specific (one pattern per failure), while LLM fixes are broad (a category description change affects all queries of that type).
+- **Construction trajectory**: The rule-based classifier required 3 iterations and 9 pattern fixes to reach 100% on the development set. The LLM-based classifier also required 3 iterations but only 4 prompt refinements. This difference reflects the granularity of each mechanism: rule-based fixes are pattern-specific, while LLM fixes are broad (a category description change affects all queries of that type).
 - **Overfitting asymmetry**: Both classifiers reached high accuracy on the development set, but the rule-based classifier dropped to 75.5% on the evaluation set while the LLM-based dropped only to 87.8%. The construction protocol achieved its goal (equivalent development accuracy) but revealed a critical difference in generalisation.
 - **Construction process matters more than effort**: The production rule-based agent — representing months of manual engineering — generalises worst, while the auto-constructed LLM-based variant built in hours generalises best. Reactive feedback (fixing one failure at a time) produces specific patterns, while batch feedback produces broader generalisations.
 - **Reproducibility**: The protocol can be replicated by other teams with different data. The construction trajectory is fully documented, enabling inspection of the optimisation process.
 
-### 7.4 Practical Implications
+### 7.4 Practical Implications for Education
 
-For practitioners choosing between classification approaches:
+These findings have direct implications for teachers and IT teams building RAG-based assistants for educational use:
 
-- **LLM classification is the recommended default** for most applications. Its robustness to novel phrasings far outweighs the minor consistency cost. Users express the same intent in diverse ways — a classifier that only handles anticipated phrasings will fail in production.
-- **Rule-based classification requires generalisation mechanisms** to be viable. Without synonym expansion, stemming, and semantic templates, pattern matching overfits to training examples. If deterministic classification is required (e.g., for auditability or regulatory compliance), invest in these generalisation mechanisms rather than adding more specific patterns.
-- **Consider hybrid approaches**: Use rule-based classification for high-confidence, well-defined categories (e.g., project names, specific glossary terms) with LLM fallback for ambiguous queries. This combines deterministic auditability where possible with LLM robustness where needed.
-- **Start with vanilla RAG, then add classification**: The improvement from Baseline to agents with intent classification is larger than the difference between classification mechanisms. Classification is the high-impact decision; the mechanism is a second-order optimisation.
+- **Structure your materials, then add an AI layer.** The largest reliability gain comes not from choosing the right LLM, but from organising knowledge into structured resources (glossaries, author lists, project catalogues, curated bibliographies) and routing queries to them programmatically. A teacher who has spent years curating a list of key concepts or canonical texts can make that investment directly available to students — with guaranteed accuracy — by adding intent classification on top of a RAG system. The LLM then handles only the exploratory, open-ended questions where its flexibility adds value.
+- **Students ask questions in unpredictable ways.** Rule-based classification works well for anticipated phrasings but fails when students use informal, indirect, or creative language — which they inevitably do. LLM-based classification handles this diversity naturally, making it the recommended default for educational deployments where the user population is diverse and uncontrolled.
+- **Reliability transparency builds trust.** In educational settings, students and teachers benefit from knowing whether a response comes from curated data or AI interpretation. Intent classification enables this transparency: programmatic responses can be clearly marked as verified, while LLM-generated responses can carry appropriate caveats. This aligns with the EU AI Act's emphasis on transparency for high-risk AI systems in education.
+- **Start simple, then improve.** A vanilla RAG system (upload documents, ask questions) is easy to set up but unreliable. Adding intent classification — even with a simple LLM-based classifier — dramatically improves reliability across all four dimensions. This is the high-impact decision; the specific classification mechanism is a second-order optimisation that can be refined over time.
 
-### 7.5 The Role of Architecture in Reliability
-
-The reliability gains from classification stem from two complementary mechanisms. First, **programmatic path bypass**: 7 of 12 categories route to deterministic paths that bypass the LLM entirely, eliminating hallucination and inconsistency by construction. Second, **task decomposition**: classification separates the routing decision from response generation, simplifying the LLM's task even for queries that still require it — paralleling the benefits of chain-of-thought prompting (Wei et al., 2022) and Self-RAG (Asai et al., 2023). Testing whether decomposition improves LLM response quality independently of bypass would require expert evaluation and is left as future work.
-
-The proportion of programmatic paths shapes the magnitude of these gains. With ~58% of queries routed to programmatic paths in this study, classification accuracy directly determines response consistency and safety. In domains with more structured data (e.g., medical databases, legal registries), a higher proportion of programmatic paths would amplify the reliability advantages of correct classification. This suggests a practical guideline: **invest in structured data and programmatic paths first**, then choose the classification mechanism.
-
-### 7.6 Limitations
+### 7.5 Limitations
 
 - **Single LLM**: The study uses Mistral Small for LLM-based classification and response generation. Results may differ with larger or more capable models. The automated construction protocol could be rerun with different LLMs to assess model sensitivity.
 - **Single domain**: The knowledge base is domain-specific (Responsible AI research). While the methodology is domain-agnostic, generalisation to other domains requires replication.
 - **Constructor bias**: The automated constructor (Claude) may have systematic biases in how it generates patterns vs prompts. In particular, LLMs may be better at writing prompts for other LLMs than at writing effective regex patterns. Using a different constructor LLM would test this.
 - **Ontology**: The classification categories were initially designed alongside a rule-based system. While they are user-driven (reflecting natural query types and data sources), an LLM-native ontology might yield different trade-offs.
-- **Embedding-based routing not explored**: A third classification mechanism — semantic routing using sentence embeddings and cosine similarity — offers deterministic classification with potential generalisation advantages. Preliminary experiments showed that while embedding-based routing achieves perfect consistency (C_traj = 100%) and low degradation across tiers, its overall accuracy (66.7%) and safety (50% refusal rate) were insufficient for high-stakes domains, primarily because embeddings capture topical similarity rather than user intent type. Future work could explore fine-tuned intent embeddings or hybrid approaches combining embedding routing with rule-based safety filters.
-- **Expert evaluation**: Predictability and safety dimensions require domain expert annotation, which is resource-intensive and introduces subjectivity.
 
 ---
 
 ## 8. Conclusion
 
-This study addresses a practical question faced by every RAG system builder: having decided to add query classification for reliability, should the classifier be rule-based or LLM-based? By isolating classification as the sole independent variable — with identical downstream response paths — and by evaluating through the four-dimensional Rabanser framework, we reach three main conclusions.
+As AI assistants are increasingly deployed in education — a domain classified as high-risk under the EU AI Act — reliability is not optional. This study addresses a practical question for teachers and IT teams building RAG-based educational tools: how should user queries be classified to maximise reliability?
 
-**First, LLM-based classification is more reliable overall.** It scores highest on three of four Rabanser dimensions (robustness, predictability, safety) while nearly matching rule-based on consistency. The robustness advantage is most pronounced on adversarial queries, where pre-trained language understanding handles novel phrasings that no synonym map anticipated. The consistency cost is marginal and confined to genuinely ambiguous queries. An N=5 repeated-runs analysis confirms these findings are stable.
+By isolating classification as the sole independent variable and evaluating through the Rabanser et al. (2025) four-dimensional framework, we reach three conclusions. First, **LLM-based classification is more reliable overall**, scoring highest on robustness, predictability, and safety while nearly matching rule-based on consistency. Second, **classification consistency alone does not guarantee reliability** — a classifier that consistently misclassifies offers no practical advantage. Third, **the construction process matters more than the engineering effort** — months of manual pattern engineering generalise worse than hours of automated batch construction.
 
-**Second, consistency is a function of accuracy, not just determinism.** A deterministic classifier with low accuracy consistently routes queries to the wrong paths, which invoke the LLM and produce variable responses. Determinism guarantees classification consistency but not response consistency; the latter requires correct classification.
-
-**Third, the construction process determines generalisation quality, not the engineering effort.** A production rule-based classifier developed over months scores far below an auto-constructed variant built in hours, despite both having synonym expansion. The difference is structural: reactive construction produces query-specific patterns, while batch construction produces broader coverage. LLM-based classification generalises best because pre-trained language understanding provides implicit coverage that no amount of pattern engineering can fully replicate.
-
-The **automated agent construction protocol** is itself a methodological contribution. By separating human expert knowledge (what to classify) from automated classifier construction (how to classify), the protocol ensures fair comparison, removes engineering skill as a confound, and enables reproducibility across teams and domains.
-
-For practitioners, we recommend: (1) start with vanilla RAG, then add classification — the reliability improvement is substantial regardless of mechanism; (2) prefer LLM-based classification for most applications, as its robustness advantage far outweighs the minor consistency cost; (3) if deterministic classification is required for regulatory or auditability reasons, invest in generalisation mechanisms rather than adding more specific patterns; (4) evaluate classifiers on unseen queries across multiple difficulty tiers, not just on the queries used during development.
+For educational deployments, we recommend: (1) organise teaching materials into structured resources (glossaries, curated bibliographies, author lists) that can be served through programmatic paths — this is where the largest reliability gains originate; (2) use LLM-based classification to handle the diversity of real student queries; (3) make reliability visible to users by distinguishing verified responses from AI-generated ones; (4) start with a simple RAG system and add classification — this single architectural decision produces the largest improvement in reliability.
 
 ---
 
 ## References
 
-Asai, A., Wu, Z., Wang, Y., Sil, A., & Hajishirzi, H. (2023). Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection. *NeurIPS 2023*.
-
-Ding, Y., et al. (2025). Doing More with Less — Implementing Routing Strategies in Large Language Model-Based Systems: An Extended Survey. *arXiv:2502.00409*.
+Asai, A., Wu, Z., Wang, Y., et al. (2023). Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection. *NeurIPS 2023*.
 
 European Parliament & Council (2024). Regulation (EU) 2024/1689 laying down harmonised rules on artificial intelligence (AI Act). *Official Journal of the European Union*, L 2024/1689.
 
-Gao, Y., Xiong, Y., Gao, X., Jia, K., Pan, J., Bi, Y., ... & Wang, H. (2024). Retrieval-Augmented Generation for Large Language Models: A Survey. *arXiv:2312.10997*.
+Gao, Y., Xiong, Y., Gao, X., et al. (2024). Retrieval-Augmented Generation for Large Language Models: A Survey. *arXiv:2312.10997*.
 
-Hu, Y., et al. (2025). RAGRouter: Learning to Route Queries to Multiple Retrieval-Augmented Language Models. *arXiv:2505.23052*.
+Guo, Y., Su, M., Guan, S., et al. (2025). RouteRAG: Efficient Retrieval-Augmented Generation from Text and Graph via Reinforcement Learning. *arXiv:2512.09487*.
 
-Jeong, S., Baek, J., Cho, S., Hwang, S.J., & Park, J.C. (2024). Adaptive-RAG: Learning to Adapt Retrieval-Augmented Large Language Models through Question Complexity. *NAACL 2024*.
+Jeong, S., Baek, J., Cho, S., et al. (2024). Adaptive-RAG: Learning to Adapt Retrieval-Augmented Large Language Models through Question Complexity. *NAACL 2024*.
 
-Jin, J., et al. (2024). FlashRAG: A Modular Toolkit for Retrieval-Augmented Generation Research. *arXiv:2405.13576*.
+Jin, J., Zhu, Y., Dong, G., et al. (2024). FlashRAG: A Modular Toolkit for Retrieval-Augmented Generation Research. *arXiv:2405.13576*.
 
-Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., ... & Kiela, D. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. *NeurIPS 2020*.
+Lewis, P., Perez, E., Piktus, A., et al. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. *NeurIPS 2020*.
 
-Li, X., et al. (2025). Retrieval-Augmented Generation: A Comprehensive Survey of Architectures, Enhancements, and Robustness Frontiers. *arXiv:2506.00054*.
+Moreno-Torres, I., Zamora-Mogollo, A., & Martín-Vergara, F. (2026). TOMMI: An AI Agent Framework for European University Alliances. *GitHub repository*.
 
-Rabanser, S., Kapoor, S., Kirgis, P., Liu, K., Utpala, S., & Narayanan, A. (2025). Towards a Science of AI Agent Reliability. Princeton University. *arXiv:2602.16666*.
+Percin, S., Su, X., Syed, Q.S., et al. (2025). Investigating the Robustness of Retrieval-Augmented Generation at the Query Level. *arXiv:2507.06956*.
 
-R³AG (2025). Retriever Routing for Retrieval-Augmented Generation. *arXiv:2604.22849*.
+Puspitasari, F.D., Zhang, C., Zhang, J., et al. (2026). Efficient RAG with Intent-Aware Retrieval and Semantics-Preserving Chunking (InSemRAG). *arXiv:2606.01240*.
 
-Schick, T., Dwivedi-Yu, J., Dessì, R., Raileanu, R., Lomeli, M., Zettlemoyer, L., ... & Scialom, T. (2023). Toolformer: Language Models Can Teach Themselves to Use Tools. *NeurIPS 2023*.
+Rabanser, S., Kapoor, S., Kirgis, P., et al. (2025). Towards a Science of AI Agent Reliability. Princeton University. *arXiv:2602.16666*.
 
-Wang, L., et al. (2025). Investigating the Robustness of Retrieval-Augmented Generation at the Query Level. *arXiv:2507.06956*.
+She, Y., Peterson, D.W., Liu, M.M., et al. (2025). RAG Makes Guardrails Unsafe? Investigating Robustness of Guardrails under RAG-style Contexts. *arXiv:2510.05310*.
 
-Wei, J., Wang, X., Schuurmans, D., Bosma, M., Ichter, B., Xia, F., ... & Zhou, D. (2022). Chain-of-Thought Prompting Elicits Reasoning in Large Language Models. *NeurIPS 2022*.
+Shen, Z., Imana, B., Wu, T., et al. (2025). ReliabilityRAG: Effective and Provably Robust Defense for RAG-based Web-Search. *arXiv:2509.23519*.
 
-Xiang, S., et al. (2025). Efficient RAG with Intent-Aware Retrieval and Semantics-Preserving Chunking (InSemRAG). *arXiv:2606.01240*.
+Zhang, J., Wang, Z., Chen, Z., et al. (2025). RAGRouter: Learning to Route Queries to Multiple Retrieval-Augmented Language Models. *arXiv:2505.23052*.
 
-Xie, Z., et al. (2025). ReliabilityRAG: Effective and Provably Robust Defense for RAG-based Web-Search. *arXiv:2509.23519*.
+Zhang, X., Song, Y., Wang, Y., et al. (2024). RAGLAB: A Modular and Research-Oriented Unified Framework for Retrieval-Augmented Generation. *arXiv:2408.11381*.
+
+Zhao, T., Zhu, Y., Tian, Y., & Dou, Z. (2026). R³AG: Retriever Routing for Retrieval-Augmented Generation. *arXiv:2604.22849*.

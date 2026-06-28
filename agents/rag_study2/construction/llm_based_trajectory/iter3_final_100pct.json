@@ -1,0 +1,28 @@
+{
+  "timestamp": "20260606_233123",
+  "variant": "llm_based",
+  "accuracy": {
+    "total": 69,
+    "correct": 69,
+    "rate": 1.0
+  },
+  "failures": [],
+  "consistency": {
+    "total": 69,
+    "consistent": 68,
+    "rate": 0.9855
+  },
+  "consistency_issues": [
+    {
+      "query": "What are the research gaps in UNINOVIS?",
+      "expected": "gap",
+      "categories": [
+        "project",
+        "gap",
+        "gap",
+        "gap",
+        "gap"
+      ]
+    }
+  ]
+}

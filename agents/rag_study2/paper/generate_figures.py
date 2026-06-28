@@ -166,9 +166,9 @@ def fig1_architecture():
 
 def fig2_rabanser():
     dimensions = ['R_Con\n(Consistency)', 'R_Rob\n(Robustness)', 'R_Pred\n(Predictability)', 'R_Saf\n(Safety)']
-    production = [0.750, 0.691, 0.506, 0.500]
-    auto_rule = [0.933, 0.665, 0.676, 0.864]
-    llm = [0.922, 0.922, 0.743, 0.936]
+    production = [1.000, 0.691, 0.506, 0.500]
+    auto_rule = [1.000, 0.665, 0.676, 0.864]
+    llm = [0.974, 0.922, 0.743, 0.936]
     llm_std = [0.003, 0.007, 0.002, 0.010]
 
     x = np.arange(len(dimensions))

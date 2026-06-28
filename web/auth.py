@@ -34,16 +34,29 @@ ROLES = {
 
 # Tool access — which roles can access each tool (defaults)
 _DEFAULT_TOOL_ACCESS = {
-    "directory":          ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "event_calendar":     ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "mobility_planner":   ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "intranet_services":  ["admin_staff", "teaching_staff", "tester", "superuser"],
+    # Learning & Mobility
+    "course_catalogue":   ["student", "admin_staff", "teaching_staff", "tester", "superuser"],
+    "module_overview":    ["student", "admin_staff", "teaching_staff", "tester", "superuser"],
+    "module_recognition": ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "micro_credentials":  ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "learning_support":   ["student", "admin_staff", "teaching_staff", "tester", "superuser"],
     "unigracon":          ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "mobility_planner":   ["admin_staff", "teaching_staff", "tester", "superuser"],
+    # Research & Innovation
+    "internships":        ["student", "admin_staff", "teaching_staff", "tester", "superuser"],
     "researcher_connect": ["teaching_staff", "tester", "superuser"],
     "research_proposals": ["teaching_staff", "tester", "superuser"],
-    "tommi_agents":       ["teaching_staff", "tester", "superuser"],
-    "virtual_campus":     ["student", "tester", "superuser"],
-    "student_admin":      ["student", "tester", "superuser"],
+    "research_portfolio": ["teaching_staff", "tester", "superuser"],
+    "research_explorers": ["student", "teaching_staff", "tester", "superuser"],
+    # Events & Communication
+    "event_calendar":     ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "event_catalogue":    ["admin_staff", "teaching_staff", "tester", "superuser"],
+    # Administration
+    "directory":          ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "dp_status":          ["admin_staff", "teaching_staff", "tester", "superuser"],
+    # Analytics
+    "log_analytics":      ["superuser"],
+    "matomo_analytics":   ["superuser"],
 }
 
 TOOL_ACCESS_FILE = DATA_DIR / "tool_access.json"

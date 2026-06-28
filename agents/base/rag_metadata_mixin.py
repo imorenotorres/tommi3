@@ -2387,6 +2387,22 @@ class MetadataRAGMixin:
                     }
                 return output
 
+        # Normalise common aliases before splitting into keywords
+        _TOPIC_ALIASES = {
+            "artificial intelligence": "ai",
+            "machine learning": "ml",
+            "natural language processing": "nlp",
+            "computer vision": "cv",
+            "reinforcement learning": "rl",
+            "large language model": "llm",
+            "large language models": "llm",
+            "explainable ai": "xai",
+            "explainable artificial intelligence": "xai",
+        }
+        for phrase, alias in _TOPIC_ALIASES.items():
+            if phrase in topic_lower:
+                topic_lower = topic_lower.replace(phrase, alias)
+
         stop_words = {"the", "a", "an", "in", "on", "of", "and", "or", "for", "to", "is", "are", "was", "were", "by", "with", "from", "at", "as"}
         # Keep domain-critical short terms like "ai", "xai", "ml" that would
         # otherwise be dropped by the len>2 filter
