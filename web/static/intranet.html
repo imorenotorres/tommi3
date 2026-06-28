@@ -35,9 +35,21 @@
         .welcome h2 { color: #2D3876; font-size: 1.2em; margin-bottom: 4px; }
         .welcome .roles-badge { display: inline-block; background: #e8e0f0; color: #2D3876; padding: 2px 10px; border-radius: 10px; font-size: 0.75em; font-weight: 600; margin-left: 4px; }
 
+        /* Tabs */
+        .wp-tabs { display: flex; gap: 0; border-bottom: 2px solid #e2e8f0; margin-bottom: 16px; overflow-x: auto; }
+        .wp-tab {
+            padding: 8px 16px; font-size: 0.82em; font-weight: 600; color: #666;
+            cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap;
+            transition: color 0.15s, border-color 0.15s; user-select: none;
+        }
+        .wp-tab:hover { color: #4250b3; }
+        .wp-tab.active { color: #4250b3; border-bottom-color: #4250b3; }
+
         /* Sections */
         .section { margin-bottom: 20px; }
         .section-title { font-size: 0.82em; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding-left: 2px; }
+        .wp-panel { display: none; }
+        .wp-panel.active { display: block; }
 
         /* Tool grid */
         .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
@@ -46,7 +58,11 @@
             padding: 14px 14px; text-decoration: none; color: #333;
             transition: transform 0.15s, box-shadow 0.15s;
             display: flex; flex-direction: column; border-left: 4px solid #2D3876;
+            position: relative;
         }
+        .server-badge { position: absolute; top: 6px; right: 8px; font-size: 0.58em; font-weight: 600; padding: 1px 6px; border-radius: 6px; }
+        .server-agora { background: #d1ecf1; color: #0c5460; }
+        .server-gloria { background: #e8e0f0; color: #4250b3; }
         .tool-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
         .tool-card .tool-icon { font-size: 1.3em; margin-bottom: 4px; }
         .tool-card h3 { color: #2D3876; font-size: 0.88em; margin-bottom: 2px; }
@@ -55,6 +71,7 @@
         .tag-active { background: #e8e0f0; color: #374399; }
         .tag-prototype { background: #f8d7da; color: #721c24; }
         .tag-testing { background: #d1ecf1; color: #0c5460; }
+        .tag-pilot { background: #cce5ff; color: #004085; }
         .tag-soon { background: #fff3cd; color: #856404; }
 
         .footer { text-align: center; color: #aaa; font-size: 0.75em; padding: 16px; }
@@ -177,72 +194,90 @@
 <script>
 // ── Tool definitions ─────────────────────────────────────────────
 var TOOL_ACCESS = {
-    'research_explorers': ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'directory':          ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'event_calendar':     ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    // Learning & Mobility
+    'course_catalogue':   ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'module_overview':    ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'module_recognition': ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'micro_credentials':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'learning_support':   ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'unigracon':          ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
     'mobility_planner':   ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'intranet_services':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'unigracon':          ['teaching_staff', 'tester', 'superuser'],
+    'internships':        ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    // Research & Innovation
     'researcher_connect': ['teaching_staff', 'tester', 'superuser'],
+    'research_proposals': ['teaching_staff', 'tester', 'superuser'],
+    'research_portfolio': ['teaching_staff', 'tester', 'superuser'],
+    'research_explorers': ['student', 'teaching_staff', 'tester', 'superuser'],
+    // Events & Communication
+    'event_calendar':     ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'event_catalogue':    ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    // Administration
+    'directory':          ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'intranet_services':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    // AI Agents
     'tommi_agents':       ['teaching_staff', 'tester', 'superuser'],
-    'virtual_campus':     ['student', 'tester', 'superuser'],
-    'student_admin':      ['student', 'tester', 'superuser'],
+    'tommi_testing':      ['tester', 'superuser'],
+    // System Administration
     'user_management':    ['superuser'],
     'agent_management':   ['superuser'],
     'tool_visibility':    ['superuser'],
     'log_analytics':      ['superuser'],
     'matomo_analytics':   ['superuser'],
-    'research_proposals': ['teaching_staff', 'tester', 'superuser'],
-    'tommi_testing':      ['tester', 'superuser'],
 };
 
-// Tools grouped by section
+// Tools grouped by functionality
 var SECTIONS = [
     {
-        id: 'explorers',
-        title: 'Research Explorers',
+        id: 'learning',
+        title: 'WP2: Learning & Mobility',
         roles: ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
         tools: [
-            { id: 'research_explorers', name: 'Research Explorers', icon: '\uD83D\uDD0D', desc: 'AI-powered research assistants for each UNINOVIS Excellence Hub.', url: '/research-explorers', status: 'active' },
+            { id: 'course_catalogue', name: 'Course Catalogue', icon: '\uD83D\uDCDA', desc: 'Courses offered across UNINOVIS partner universities.', url: 'https://uninovis.widening.eu', status: 'soon', external: true },
+            { id: 'module_overview', name: 'Module Overview', icon: '\uD83D\uDCD6', desc: 'Educational modules available for mobility and recognition.', url: 'https://uninovis.widening.eu', status: 'soon', external: true },
+            { id: 'module_recognition', name: 'Module Recognition', icon: '\uD83D\uDD04', desc: 'Recognise and convert academic modules across partner universities.', url: '#', status: 'soon' },
+            { id: 'micro_credentials', name: 'Micro Credentials', icon: '\uD83C\uDFC5', desc: 'Management and issuance of micro credentials across the alliance.', url: 'https://uninovis.widening.eu', status: 'soon', external: true },
+            { id: 'learning_support', name: 'Learning Support', icon: '\uD83C\uDFEB', desc: 'Resources and tools to support student learning.', url: 'https://uninovis.widening.eu/learningsupport', status: 'pilot', external: true },
+            { id: 'unigracon', name: 'UNIGRACON', icon: '\uD83C\uDF93', desc: 'Grade converter between partner universities.', url: '/unigracon/', status: 'pilot' },
         ]
     },
     {
-        id: 'campus',
-        title: 'Campus',
-        roles: ['student'],
+        id: 'research',
+        title: 'WP3: Research & Innovation',
+        roles: ['student', 'teaching_staff'],
         tools: [
-            { id: 'virtual_campus', name: 'Virtual Campus', icon: '\uD83C\uDFEB', desc: 'Courses, learning materials, and virtual classrooms.', url: '#', status: 'soon' },
-            { id: 'student_admin', name: 'Student Administration', icon: '\uD83D\uDCDD', desc: 'Grades, curriculum, enrolment, and academic records.', url: '#', status: 'soon' },
+            { id: 'mobility_planner', name: 'Mobility Planner', icon: '\u2708\uFE0F', desc: 'Call opening dates for mobility activities, accounting for holidays.', url: '/mobility_planner/', status: 'pilot' },
+            { id: 'internships', name: 'Internships', icon: '\uD83D\uDCBC', desc: 'Internship opportunities and placements across partner institutions.', url: 'https://uninovis.widening.eu/internships', status: 'active', external: true },
+            { id: 'researcher_connect', name: 'Researcher Connect', icon: '\uD83D\uDD2C', desc: 'Find and connect with researchers. Search by interests and expertise.', url: '/researcher_connect/', status: 'prototype' },
+            { id: 'research_proposals', name: 'Research Proposals', icon: '\uD83D\uDCDD', desc: 'Post and discover research collaboration opportunities and funding calls.', url: '/research_proposals/', status: 'prototype' },
+            { id: 'research_portfolio', name: 'Research Portfolio', icon: '\uD83D\uDCCA', desc: 'Portfolio of research activities and outputs across UNINOVIS.', url: 'https://uninovis.widening.eu', status: 'active', external: true },
+            { id: 'research_explorers', name: 'Research Explorers', icon: '\uD83C\uDF10', desc: 'AI-powered research assistants for each Excellence Hub.', url: '/research-explorers', status: 'active' },
         ]
     },
     {
-        id: 'teaching',
-        title: 'Teaching & Research',
-        roles: ['teaching_staff'],
+        id: 'events',
+        title: 'WP5: Events & Communication',
+        roles: ['admin_staff', 'teaching_staff'],
         tools: [
-            { id: 'researcher_connect', name: 'Researcher Connect', icon: '\uD83D\uDD2C', desc: 'Find and connect with researchers across UNINOVIS.', url: '/researcher_connect/', status: 'prototype' },
-            { id: 'research_proposals', name: 'Research Proposals', icon: '\uD83D\uDCDD', desc: 'Post and discover research collaboration opportunities.', url: '/research_proposals/', status: 'prototype' },
+            { id: 'event_catalogue', name: 'Event Catalogue', icon: '\uD83D\uDCC5', desc: 'Public catalogue of events, workshops, and activities.', url: 'https://uninovis.widening.eu/event-catalogue', status: 'active', external: true },
         ]
     },
     {
         id: 'admin',
-        title: 'Administration',
+        title: 'WP1: Administration',
         roles: ['admin_staff', 'teaching_staff'],
         tools: [
-            { id: 'directory', name: 'Directory', icon: '\uD83D\uDCCB', desc: 'Staff directory, groups, and org charts.', url: '/directory/', status: 'testing' },
-            { id: 'event_calendar', name: 'Event Tracker', icon: '\uD83D\uDCC5', desc: 'Event calendar with filters and iCal sync.', url: '/event-calendar/', status: 'testing' },
-            { id: 'mobility_planner', name: 'Mobility Planner', icon: '\u2708\uFE0F', desc: 'Call opening dates for mobility activities.', url: '/mobility_planner/', status: 'testing' },
-            { id: 'unigracon', name: 'UNIGRACON', icon: '\uD83C\uDF93', desc: 'Grade converter between partner universities.', url: '/unigracon/', status: 'testing' },
-            { id: 'intranet_services', name: 'Services Catalogue', icon: '\uD83D\uDDA5\uFE0F', desc: 'All UNINOVIS digital services and tools.', url: '/uninovis/services', status: 'active' },
+            { id: 'directory', name: 'Directory', icon: '\uD83D\uDCCB', desc: 'Internal staff directory. Contacts, groups, work packages, and org charts.', url: '/directory/', status: 'pilot' },
+            { id: 'event_calendar', name: 'Event Tracker', icon: '\uD83D\uDCC6', desc: 'Shared calendar with filters, iCal sync, and participant management.', url: '/event-calendar/', status: 'pilot' },
+            { id: 'log_analytics', name: 'Agents Analytics', icon: '\uD83D\uDCCA', desc: 'View request summaries, visitor stats, and manage agent log files.', url: '#', status: 'prototype', action: 'openLogAnalytics' },
+            { id: 'matomo_analytics', name: 'Site Analytics', icon: '\uD83D\uDCC8', desc: 'Website traffic, page views, visitors, and referrers from Matomo.', url: '/matomo-analytics/', status: 'prototype' },
         ]
     },
     {
-        id: 'ai',
-        title: 'AI Agents',
-        roles: ['teaching_staff', 'tester', 'superuser'],
+        id: 'platform',
+        title: 'WP4: Digital Platform & Sustainability',
+        roles: ['admin_staff', 'teaching_staff'],
         tools: [
-            { id: 'tommi_agents', name: 'TOMMI Agents', icon: '\uD83E\uDD16', desc: 'Chat with AI agents for research and admin support.', url: '/agents', status: 'active' },
-            { id: 'tommi_testing', name: 'Agent Testing', icon: '\uD83E\uDDEA', desc: 'Testing and development interface for AI agents.', url: '/testing', status: 'active' },
+            { id: 'dp_status', name: 'Status of DP Services', icon: '\uD83D\uDCCA', desc: 'Summary of all digital platform services across work packages.', url: '#', status: 'active', action: 'openDPStatus' },
         ]
     },
     {
@@ -253,8 +288,6 @@ var SECTIONS = [
             { id: 'user_management', name: 'User Management', icon: '\uD83D\uDD10', desc: 'Create, edit, and delete users. Manage roles and invitations.', url: '#', status: 'active', action: 'openUserManagement' },
             { id: 'agent_management', name: 'Agent Management', icon: '\u2699\uFE0F', desc: 'Agent visibility, access control, data export, and log management.', url: '#', status: 'active', action: 'openAgentManagement' },
             { id: 'tool_visibility', name: 'Tool Visibility', icon: '\uD83D\uDC41', desc: 'Configure which intranet tools are visible to each role.', url: '#', status: 'active', action: 'openToolVisibility' },
-            { id: 'log_analytics', name: 'Agents Analytics', icon: '\uD83D\uDCCA', desc: 'View request summaries, visitor stats, and manage agent log files.', url: '#', status: 'active', action: 'openLogAnalytics' },
-            { id: 'matomo_analytics', name: 'Site Analytics', icon: '\uD83D\uDCC8', desc: 'Website traffic, page views, visitors, and referrers from Matomo.', url: '/matomo-analytics/', status: 'active' },
         ]
     },
 ];
@@ -328,6 +361,12 @@ async function showMain() {
 
     // Load server-side tool access overrides before rendering
     await loadToolAccess();
+
+    // Hide "Edit my profile" if user doesn't have directory access
+    if (!canAccess('directory', roles)) {
+        document.getElementById('editProfileLink').style.display = 'none';
+    }
+
     renderSections(roles);
 }
 
@@ -437,41 +476,219 @@ async function submitSignUp() {
 document.getElementById('forgotEmail').addEventListener('keydown', function(e) { if (e.key === 'Enter') submitForgotPassword(); });
 document.getElementById('signupEmail').addEventListener('keydown', function(e) { if (e.key === 'Enter') submitSignUp(); });
 
-// ── Render sections ──────────────────────────────────────────────
-function renderSections(roles) {
+// ── Render card HTML for a tool ──────────────────────────────────
+function renderToolCard(tool) {
+    var tagClass = tool.status === 'active' ? 'tag-active' : tool.status === 'pilot' ? 'tag-pilot' : tool.status === 'prototype' ? 'tag-prototype' : tool.status === 'testing' ? 'tag-testing' : 'tag-soon';
+    var tagText = tool.status === 'active' ? 'Active' : tool.status === 'pilot' ? 'Pilot' : tool.status === 'prototype' ? 'Untested Prototype' : tool.status === 'testing' ? 'Status: Data collection' : 'Coming soon';
+    var href = (tool.status === 'active' || tool.status === 'pilot' || tool.status === 'prototype' || tool.status === 'testing') ? tool.url : '#';
+    var clickAttr = '';
+    if (tool.status === 'soon') {
+        clickAttr = ' onclick="event.preventDefault();" style="opacity:0.6;cursor:default;"';
+    } else if (tool.action) {
+        clickAttr = ' onclick="event.preventDefault();' + tool.action + '()"';
+        href = '#';
+    }
+    var targetAttr = tool.external ? ' target="_blank" rel="noopener"' : '';
+    var isAgora = tool.url && tool.url.indexOf('uninovis.widening.eu') !== -1;
+    var serverBadge = isAgora ? '<span class="server-badge server-agora">Agora</span>' : '<span class="server-badge server-gloria">Gloria</span>';
+    return '<a class="tool-card" href="' + href + '"' + clickAttr + targetAttr + '>'
+        + serverBadge
+        + '<div class="tool-icon">' + tool.icon + '</div>'
+        + '<h3>' + tool.name + '</h3>'
+        + '<p>' + tool.desc + '</p>'
+        + '<span class="tool-tag ' + tagClass + '">' + tagText + '</span>'
+        + '</a>';
+}
+
+// ── Flat view for students and teaching staff ────────────────────
+// Map each WP section to a user-friendly label
+var FLAT_LABELS = {
+    'learning': 'Learning & Mobility',
+    'research': 'Research & Innovation',
+    'events': 'Events & Communication',
+    'admin': 'Administration',
+    'platform': 'Digital Platform',
+};
+
+function renderFlatView(roles) {
     var html = '';
+    // Use the same SECTIONS but with friendly labels, skip superuser
     SECTIONS.forEach(function(section) {
+        if (section.id === 'superuser') return;
         if (!sectionVisible(section, roles)) return;
+        var label = FLAT_LABELS[section.id] || section.title;
         var toolsHtml = '';
         section.tools.forEach(function(tool) {
             if (!canAccess(tool.id, roles)) return;
-            var tagClass = tool.status === 'active' ? 'tag-active' : tool.status === 'prototype' ? 'tag-prototype' : tool.status === 'testing' ? 'tag-testing' : 'tag-soon';
-            var tagText = tool.status === 'active' ? 'Active' : tool.status === 'prototype' ? 'Untested Prototype' : tool.status === 'testing' ? 'Status: Data collection' : 'Coming soon';
-            var href = (tool.status === 'active' || tool.status === 'prototype' || tool.status === 'testing') ? tool.url : '#';
-            var clickAttr = '';
-            if (tool.status === 'soon') {
-                clickAttr = ' onclick="event.preventDefault();" style="opacity:0.6;cursor:default;"';
-            } else if (tool.action) {
-                clickAttr = ' onclick="event.preventDefault();' + tool.action + '()"';
-                href = '#';
-            }
-            toolsHtml += '<a class="tool-card" href="' + href + '"' + clickAttr + '>'
-                + '<div class="tool-icon">' + tool.icon + '</div>'
-                + '<h3>' + tool.name + '</h3>'
-                + '<p>' + tool.desc + '</p>'
-                + '<span class="tool-tag ' + tagClass + '">' + tagText + '</span>'
-                + '</a>';
+            toolsHtml += renderToolCard(tool);
         });
         if (!toolsHtml) return;
         html += '<div class="section">'
-            + '<div class="section-title">' + section.title + '</div>'
+            + '<div class="section-title">' + label + '</div>'
             + '<div class="tools-grid">' + toolsHtml + '</div>'
             + '</div>';
     });
+
     if (!html) {
         html = '<p style="color:#888;text-align:center;">No tools available for your role. Contact an administrator.</p>';
     }
     document.getElementById('toolSections').innerHTML = html;
+}
+
+// ── Tabbed view for admin staff, testers, superusers ─────────────
+function renderTabbedView(roles) {
+    var visibleSections = SECTIONS.filter(function(s) { return sectionVisible(s, roles); });
+    visibleSections.sort(function(a, b) {
+        var aIsWP = a.title.match(/^WP(\d)/);
+        var bIsWP = b.title.match(/^WP(\d)/);
+        if (aIsWP && bIsWP) return parseInt(aIsWP[1]) - parseInt(bIsWP[1]);
+        if (aIsWP) return -1;
+        if (bIsWP) return 1;
+        return a.title.localeCompare(b.title);
+    });
+
+    var tabsHtml = '<div class="wp-tabs">';
+    var panelsHtml = '';
+    var hasContent = false;
+
+    var statusOrder = ['active', 'pilot', 'prototype', 'testing', 'soon'];
+
+    visibleSections.forEach(function(section) {
+        // Group accessible tools by status
+        var toolsByStatus = {};
+        section.tools.forEach(function(tool) {
+            if (!canAccess(tool.id, roles)) return;
+            if (!toolsByStatus[tool.status]) toolsByStatus[tool.status] = [];
+            toolsByStatus[tool.status].push(tool);
+        });
+
+        // Build panel with rows sorted by status
+        var panelContent = '';
+        statusOrder.forEach(function(status) {
+            if (!toolsByStatus[status]) return;
+            panelContent += '<div class="tools-grid">';
+            toolsByStatus[status].forEach(function(tool) {
+                panelContent += renderToolCard(tool);
+            });
+            panelContent += '</div>';
+        });
+
+        if (!panelContent) return;
+        hasContent = true;
+        var isFirst = (panelsHtml === '');
+        var tabLabel = section.title.match(/^(WP\d)/) ? section.title.match(/^(WP\d)/)[1] : (section.id === 'superuser' ? 'Sys Admin' : section.title);
+        tabsHtml += '<div class="wp-tab' + (isFirst ? ' active' : '') + '" data-tab="' + section.id + '" onclick="switchTab(\'' + section.id + '\')" title="' + section.title + '">' + tabLabel + '</div>';
+        panelsHtml += '<div class="wp-panel' + (isFirst ? ' active' : '') + '" id="panel-' + section.id + '">'
+            + panelContent
+            + '</div>';
+    });
+
+    tabsHtml += '</div>';
+
+    if (!hasContent) {
+        document.getElementById('toolSections').innerHTML = '<p style="color:#888;text-align:center;">No tools available for your role. Contact an administrator.</p>';
+    } else {
+        document.getElementById('toolSections').innerHTML = tabsHtml + panelsHtml;
+    }
+}
+
+// ── Main render function ─────────────────────────────────────────
+function renderSections(roles) {
+    var isAdmin = roles.indexOf('admin_staff') !== -1 || roles.indexOf('tester') !== -1 || roles.indexOf('superuser') !== -1;
+    if (isAdmin) {
+        renderTabbedView(roles);
+    } else {
+        renderFlatView(roles);
+    }
+}
+
+function switchTab(tabId) {
+    document.querySelectorAll('.wp-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.wp-panel').forEach(function(p) { p.classList.remove('active'); });
+    var tab = document.querySelector('.wp-tab[data-tab="' + tabId + '"]');
+    var panel = document.getElementById('panel-' + tabId);
+    if (tab) tab.classList.add('active');
+    if (panel) panel.classList.add('active');
+}
+
+// ── DP Status summary ────────────────────────────────────────────
+function openDPStatus() {
+    var existing = document.getElementById('dp-overlay');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'dp-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
+
+    var statusColors = {
+        active: { bg: '#d4edda', color: '#155724', label: 'Active' },
+        pilot: { bg: '#cce5ff', color: '#004085', label: 'Pilot' },
+        prototype: { bg: '#f8d7da', color: '#721c24', label: 'Untested Prototype' },
+        testing: { bg: '#d1ecf1', color: '#0c5460', label: 'Data collection' },
+        soon: { bg: '#fff3cd', color: '#856404', label: 'Coming soon' }
+    };
+
+    var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
+        + '<h2 style="margin:0;font-size:1.15rem;color:#2D3876;">Status of Digital Platform Services</h2>'
+        + '<button onclick="document.getElementById(\'dp-overlay\').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+        + '</div>';
+
+    // Count totals
+    var totals = { active: 0, pilot: 0, prototype: 0, testing: 0, soon: 0 };
+
+    // Sort sections: WPs in order, System Administration last
+    var sortedSections = SECTIONS.slice().sort(function(a, b) {
+        var aIsWP = a.title.match(/^WP(\d)/);
+        var bIsWP = b.title.match(/^WP(\d)/);
+        if (aIsWP && bIsWP) return parseInt(aIsWP[1]) - parseInt(bIsWP[1]);
+        if (aIsWP) return -1;
+        if (bIsWP) return 1;
+        return a.title.localeCompare(b.title);
+    });
+
+    sortedSections.forEach(function(section) {
+        var tools = section.tools;
+        if (!tools || !tools.length) return;
+
+        html += '<h3 style="font-size:0.9rem;color:#4250b3;margin:14px 0 6px 0;border-bottom:1px solid #e2e8f0;padding-bottom:4px;">' + section.title + '</h3>';
+        html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:4px;">';
+        tools.forEach(function(tool) {
+            var s = statusColors[tool.status] || statusColors.soon;
+            totals[tool.status] = (totals[tool.status] || 0) + 1;
+            var isAgora = tool.url && tool.url.indexOf('uninovis.widening.eu') !== -1;
+            var server = isAgora ? '<span style="font-size:0.72em;padding:1px 5px;border-radius:4px;background:#d1ecf1;color:#0c5460;">Agora</span>' : '<span style="font-size:0.72em;padding:1px 5px;border-radius:4px;background:#e8e0f0;color:#4250b3;">Gloria</span>';
+            html += '<tr style="border-bottom:1px solid #f0f0f0;">'
+                + '<td style="padding:4px 8px;">' + tool.name + '</td>'
+                + '<td style="padding:4px 8px;text-align:center;">' + server + '</td>'
+                + '<td style="padding:4px 8px;text-align:right;"><span style="font-size:0.75em;font-weight:600;padding:2px 8px;border-radius:8px;background:' + s.bg + ';color:' + s.color + ';">' + s.label + '</span></td>'
+                + '</tr>';
+        });
+        html += '</table>';
+    });
+
+    // Summary bar
+    var summaryHtml = '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">';
+    Object.keys(statusColors).forEach(function(key) {
+        if (totals[key]) {
+            var s = statusColors[key];
+            summaryHtml += '<div style="text-align:center;padding:6px 14px;border-radius:8px;background:' + s.bg + ';color:' + s.color + ';font-size:0.82rem;">'
+                + '<div style="font-size:1.2rem;font-weight:700;">' + totals[key] + '</div>'
+                + '<div style="font-size:0.7rem;">' + s.label + '</div></div>';
+        }
+    });
+    summaryHtml += '</div>';
+
+    var panel = document.createElement('div');
+    panel.style.cssText = 'background:#fff;border-radius:12px;padding:24px;width:680px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);';
+    panel.innerHTML = html.replace('</h2></div>', '</h2></div>' + summaryHtml);
+
+    // Re-insert summary after header
+    var headerEnd = html.indexOf('</div>') + 6;
+    panel.innerHTML = html.substring(0, headerEnd) + summaryHtml + html.substring(headerEnd);
+
+    overlay.appendChild(panel);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
 }
 
 // ── Load server-side tool access overrides ───────────────────────
@@ -769,13 +986,16 @@ async function umEditRoles(username) {
     var dialog = document.createElement('div');
     dialog.id = 'um-role-dialog';
     dialog.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:1100;display:flex;justify-content:center;align-items:center;';
-    dialog.innerHTML = '<div style="background:#fff;border-radius:10px;padding:20px;width:300px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+    dialog.innerHTML = '<div style="background:#fff;border-radius:10px;padding:20px;width:300px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);position:relative;">'
+        + '<button onclick="document.getElementById(\'um-role-dialog\').remove()" style="position:absolute;top:8px;right:10px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">&times;</button>'
         + '<h3 style="margin:0 0 12px 0;font-size:0.95rem;color:#2D3876;">Roles for ' + username + '</h3>'
         + '<div id="um-role-checks">' + checkboxes + '</div>'
         + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">'
-        + '<button onclick="document.getElementById(\'um-role-dialog\').remove()" style="background:#e9ecef;border:1px solid #ccc;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Cancel</button>'
         + '<button onclick="umSaveRoles(\'' + username.replace(/'/g, "\\'") + '\')" style="background:#2D3876;color:#fff;border:none;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Save</button>'
+        + '<button onclick="document.getElementById(\'um-role-dialog\').remove()" style="background:#2D3876;color:#fff;border:none;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Close</button>'
+        + '<button onclick="document.getElementById(\'um-role-dialog\').remove()" style="background:#e9ecef;border:1px solid #ccc;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Cancel</button>'
         + '</div></div>';
+    dialog.addEventListener('click', function(e) { if (e.target === dialog) dialog.remove(); });
     document.body.appendChild(dialog);
 }
 
@@ -995,17 +1215,27 @@ var ALL_ROLES = ['public', 'student', 'admin_staff', 'teaching_staff', 'tester',
 
 // Readable labels for tool IDs
 var TOOL_LABELS = {
-    directory: 'Directory',
-    event_calendar: 'Event Tracker',
-    mobility_planner: 'Mobility Planner',
-    intranet_services: 'Services Catalogue',
+    // Learning & Mobility
+    course_catalogue: 'Course Catalogue',
+    module_overview: 'Module Overview',
+    module_recognition: 'Module Recognition',
+    micro_credentials: 'Micro Credentials',
+    learning_support: 'Learning Support',
     unigracon: 'UNIGRACON',
+    mobility_planner: 'Mobility Planner',
+    // Research & Innovation
+    internships: 'Internships',
     researcher_connect: 'Researcher Connect',
     research_proposals: 'Research Proposals',
-    tommi_agents: 'TOMMI Agents',
-    tommi_testing: 'Agent Testing',
-    virtual_campus: 'Virtual Campus',
-    student_admin: 'Student Administration',
+    research_portfolio: 'Research Portfolio',
+    research_explorers: 'Research Explorers',
+    // Events & Communication
+    event_calendar: 'Event Tracker',
+    event_catalogue: 'Event Catalogue',
+    // Administration
+    directory: 'Directory',
+    intranet_services: 'Services Catalogue',
+    // System Administration
     log_analytics: 'Agents Analytics',
     matomo_analytics: 'Site Analytics',
 };
@@ -1255,7 +1485,15 @@ function laRenderSummary(data, container) {
 
     html += '<div style="font-size:0.75rem;color:#888;margin-bottom:6px;">' + periodLabel + '</div>';
 
-    var agents = Object.keys(data.per_agent);
+    // Only show Research Explorer agents
+    var EXPLORER_AGENTS = {
+        'responsible_ai3': 'EH: Responsible AI',
+        'health_wellbeing_sistems': 'EH: Health & Wellbeing Systems',
+        'nlp_eh': 'EH: AI & Language',
+        'robotics_ai': 'EH: AI & Robotics',
+        'proyectoseuopeos': 'European Projects'
+    };
+    var agents = Object.keys(data.per_agent).filter(function(a) { return EXPLORER_AGENTS[a]; });
     if (agents.length > 0) {
         agents.sort(function(a, b) { return data.per_agent[b].requests - data.per_agent[a].requests; });
         html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
@@ -1266,7 +1504,7 @@ function laRenderSummary(data, container) {
         agents.forEach(function(aid) {
             var a = data.per_agent[aid];
             html += '<tr style="border-bottom:1px solid #f0f0f0;">'
-                + '<td style="padding:4px 6px;">' + aid + '</td>'
+                + '<td style="padding:4px 6px;">' + (EXPLORER_AGENTS[aid] || aid) + '</td>'
                 + '<td style="text-align:right;padding:4px 6px;">' + a.requests + '</td>'
                 + '<td style="text-align:right;padding:4px 6px;">' + a.sessions + '</td>'
                 + '<td style="text-align:right;padding:4px 6px;">' + a.unique_users + '</td></tr>';
