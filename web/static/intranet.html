@@ -208,6 +208,7 @@ var TOOL_ACCESS = {
     'research_proposals': ['teaching_staff', 'tester', 'superuser'],
     'research_portfolio': ['teaching_staff', 'tester', 'superuser'],
     'research_explorers': ['student', 'teaching_staff', 'tester', 'superuser'],
+    'european_projects':  ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
     // Events & Communication
     'event_calendar':     ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
     'event_catalogue':    ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
@@ -251,6 +252,7 @@ var SECTIONS = [
             { id: 'research_proposals', name: 'Research Proposals', icon: '\uD83D\uDCDD', desc: 'Post and discover research collaboration opportunities and funding calls.', url: '/research_proposals/', status: 'prototype' },
             { id: 'research_portfolio', name: 'Research Portfolio', icon: '\uD83D\uDCCA', desc: 'Portfolio of research activities and outputs across UNINOVIS.', url: 'https://uninovis.widening.eu', status: 'active', external: true },
             { id: 'research_explorers', name: 'Research Explorers', icon: '\uD83C\uDF10', desc: 'AI-powered research assistants for each Excellence Hub.', url: '/research-explorers', status: 'active' },
+            { id: 'european_projects', name: 'European Projects', icon: '\uD83C\uDDEA\uD83C\uDDFA', desc: 'Search European research funding calls and projects.', url: '/european-projects', status: 'active' },
         ]
     },
     {
@@ -363,7 +365,9 @@ async function showMain() {
     await loadToolAccess();
 
     // Hide "Edit my profile" if user doesn't have directory access
-    if (!canAccess('directory', roles)) {
+    // Show "Edit my profile" for staff roles that have directory access
+    var canEditProfile = roles.indexOf('admin_staff') !== -1 || roles.indexOf('teaching_staff') !== -1 || roles.indexOf('tester') !== -1 || roles.indexOf('superuser') !== -1;
+    if (!canEditProfile) {
         document.getElementById('editProfileLink').style.display = 'none';
     }
 
@@ -780,7 +784,10 @@ function openUserManagement() {
         + '<option value="university">Sort by university</option>'
         + '</select>'
         + '</div>'
-        + '<div id="um-list" style="font-size:0.85rem;">Loading...</div>';
+        + '<div id="um-list" style="font-size:0.85rem;">Loading...</div>'
+        + '<div style="display:flex;justify-content:flex-end;margin-top:16px;">'
+        + '<button onclick="closeUserManagement()" style="background:#2D3876;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:0.9rem;">Close</button>'
+        + '</div>';
 
     overlay.appendChild(panel);
     overlay.addEventListener('click', function(e) { if (e.target === overlay) closeUserManagement(); });
@@ -1100,7 +1107,10 @@ function openAgentManagement() {
         + '<b>Restricted</b>: testers and above &nbsp;|&nbsp; '
         + '<b>Open</b>: any logged-in user. '
         + 'If <b>Allowed users</b> are set, only those users can see the agent.</p>'
-        + '<div id="am-agent-list" style="font-size:0.85rem;">Loading...</div>';
+        + '<div id="am-agent-list" style="font-size:0.85rem;">Loading...</div>'
+        + '<div style="display:flex;justify-content:flex-end;margin-top:16px;">'
+        + '<button onclick="closeAgentManagement()" style="background:#2D3876;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:0.9rem;">Close</button>'
+        + '</div>';
 
     overlay.appendChild(panel);
     overlay.addEventListener('click', function(e) { if (e.target === overlay) closeAgentManagement(); });

@@ -553,13 +553,13 @@
             return '<th style="cursor:pointer;" onclick="setSort(\'' + col + '\')">' + label + arrow + '</th>';
         }
         var customFields = (appData.settings && appData.settings.custom_fields) || [];
-        var html = '<table><tr>' + sortHeader('university', 'University') + sortHeader('family_name', 'Family Name') + sortHeader('first_name', 'First Name') + sortHeader('role', 'Main Role') + sortHeader('email', 'Email') + sortHeader('telephone', 'Telephone') + sortHeader('notes', 'Notes');
+        var html = '<table><tr>' + sortHeader('university', 'University') + sortHeader('family_name', 'Family Name') + sortHeader('first_name', 'First Name') + sortHeader('email', 'Email');
         customFields.forEach(function(cf) {
             if (cf.type !== 'image') html += '<th>' + esc(cf.label) + '</th>';
         });
         var hasImageField = customFields.some(function(cf) { return cf.type === 'image'; });
         if (hasImageField) html += '<th>Photo</th>';
-        html += '<th>Groups</th>';
+        html += '<th style="min-width:200px;">Groups</th>';
         if (canEdit) html += '<th>Actions</th>';
         html += '</tr>';
 
@@ -572,10 +572,7 @@
                 + '<td><span class="badge badge-uni">' + esc(u.university) + '</span></td>'
                 + '<td>' + esc(u.family_name) + '</td>'
                 + '<td>' + esc(u.first_name) + '</td>'
-                + '<td>' + esc(u.role || '') + '</td>'
-                + '<td>' + esc(u.email) + '</td>'
-                + '<td>' + esc(u.telephone || '') + '</td>'
-                + '<td style="max-width:150px;font-size:0.82em;white-space:pre-wrap;">' + esc(u.notes || '') + '</td>';
+                + '<td>' + esc(u.email) + '</td>';
             customFields.forEach(function(cf) {
                 var val = uc[cf.id];
                 if (cf.type === 'image') return; // handled separately

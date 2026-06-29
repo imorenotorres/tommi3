@@ -346,8 +346,7 @@
       "email": "virve.peltoniemi@tuni.fi",
       "telephone": "",
       "groups": [
-        "TB",
-        "WP4"
+        "TB"
       ],
       "subgroups": []
     },
@@ -386,7 +385,6 @@
       "email": "anna.moritz@thws.de",
       "telephone": "",
       "groups": [
-        "WP4",
         "TB"
       ],
       "subgroups": [
@@ -1923,9 +1921,7 @@
       "role": "No role or unknown rol",
       "email": "joaquin@uma.es",
       "telephone": "",
-      "groups": [
-        "WP4"
-      ],
+      "groups": [],
       "subgroups": [],
       "custom": {}
     },
