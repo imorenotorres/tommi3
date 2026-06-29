@@ -302,9 +302,9 @@ function doLogout() {
 
 // ── Render card HTML for a tool ──────────────────────────────────
 function renderToolCard(tool) {
-    var tagClass = tool.status === 'active' ? 'tag-active' : tool.status === 'pilot' ? 'tag-pilot' : tool.status === 'pre-pilot' ? 'tag-pre-pilot' : tool.status === 'construction' ? 'tag-construction' : tool.status === 'prototype' ? 'tag-prototype' : tool.status === 'testing' ? 'tag-testing' : tool.status === 'data-update' ? 'tag-data-update' : 'tag-soon';
-    var tagText = tool.status === 'active' ? 'Active' : tool.status === 'pilot' ? 'Pilot' : tool.status === 'pre-pilot' ? 'Pre-pilot' : tool.status === 'construction' ? 'In construction' : tool.status === 'prototype' ? 'Untested Prototype' : tool.status === 'testing' ? 'Status: Data collection' : tool.status === 'data-update' ? 'Data update required' : 'Coming soon';
-    var href = (tool.status === 'active' || tool.status === 'pilot' || tool.status === 'pre-pilot' || tool.status === 'construction' || tool.status === 'prototype' || tool.status === 'testing' || tool.status === 'data-update') ? tool.url : '#';
+    var tagClass = tool.status === 'active' ? 'tag-active' : tool.status === 'pilot' ? 'tag-pilot' : tool.status === 'data-update' ? 'tag-data-update' : tool.status === 'construction' ? 'tag-construction' : tool.status === 'prototype' ? 'tag-prototype' : 'tag-soon';
+    var tagText = tool.status === 'active' ? 'Active' : tool.status === 'pilot' ? 'Pilot' : tool.status === 'data-update' ? 'Data update required' : tool.status === 'construction' ? 'In construction' : tool.status === 'prototype' ? 'Untested Prototype' : 'Pending';
+    var href = (tool.status === 'active' || tool.status === 'pilot' || tool.status === 'data-update' || tool.status === 'construction' || tool.status === 'prototype') ? tool.url : '#';
     var clickAttr = '';
     if (tool.status === 'soon') {
         clickAttr = ' onclick="event.preventDefault();" style="opacity:0.6;cursor:default;"';
@@ -375,7 +375,7 @@ function renderTabbedView(roles) {
     var panelsHtml = '';
     var hasContent = false;
 
-    var statusOrder = ['active', 'pilot', 'pre-pilot', 'construction', 'prototype', 'data-update', 'testing', 'soon'];
+    var statusOrder = ['active', 'pilot', 'data-update', 'construction', 'prototype', 'soon'];
 
     visibleSections.forEach(function(section) {
         // Group accessible tools by status
@@ -447,9 +447,10 @@ function openDPStatus() {
     var statusColors = {
         active: { bg: '#d4edda', color: '#155724', label: 'Active' },
         pilot: { bg: '#cce5ff', color: '#004085', label: 'Pilot' },
+        'data-update': { bg: '#fef3c7', color: '#92400e', label: 'Data update required' },
+        construction: { bg: '#fce4ec', color: '#880e4f', label: 'In construction' },
         prototype: { bg: '#f8d7da', color: '#721c24', label: 'Untested Prototype' },
-        testing: { bg: '#d1ecf1', color: '#0c5460', label: 'Data collection' },
-        soon: { bg: '#fff3cd', color: '#856404', label: 'Coming soon' }
+        soon: { bg: '#fff3cd', color: '#856404', label: 'Pending' }
     };
 
     var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
@@ -458,7 +459,7 @@ function openDPStatus() {
         + '</div>';
 
     // Count totals
-    var totals = { active: 0, pilot: 0, prototype: 0, testing: 0, soon: 0 };
+    var totals = { active: 0, pilot: 0, 'data-update': 0, construction: 0, prototype: 0, soon: 0 };
 
     // Sort sections: WPs in order, System Administration last
     var sortedSections = SECTIONS.slice().sort(function(a, b) {
