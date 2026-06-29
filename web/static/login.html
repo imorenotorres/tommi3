@@ -3,674 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tommi - Login</title>
+    <title>UNINOVIS - Sign in</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <style>
-        :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-color: #f8fafc;
-            --border-color: #e2e8f0;
-            --text-muted: #64748b;
-            --error-color: #dc2626;
-            --success-color: #16a34a;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-image: url('/static/fondo.png');
-            background-size: cover;
-            background-position: center;
-        }
-
-        .login-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .login-card .logo {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .login-card .logo img {
-            max-width: 320px;
-        }
-
-        .login-card .platform-name {
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 1.5rem;
-            letter-spacing: 0.02em;
-        }
-
-        .login-card h2 {
-            text-align: center;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-            font-size: 1.25rem;
-        }
-
-        .login-card .subtitle {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 0.35rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.6rem 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.15s;
-        }
-
-        .form-group input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 0.65rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.15s;
-            margin-top: 0.5rem;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn-primary:disabled {
-            background-color: #94a3b8;
-            cursor: not-allowed;
-        }
-
-        .message {
-            padding: 0.5rem 0.75rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
-            display: none;
-        }
-
-        .message.error {
-            background-color: #fef2f2;
-            color: var(--error-color);
-            border: 1px solid #fecaca;
-            display: block;
-        }
-
-        .message.success {
-            background-color: #f0fdf4;
-            color: var(--success-color);
-            border: 1px solid #bbf7d0;
-            display: block;
-        }
-
-        .message.info {
-            background-color: #eff6ff;
-            color: var(--primary-color);
-            border: 1px solid #bfdbfe;
-            display: block;
-        }
-
-        /* Two-column layout for request form */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0 1.5rem;
-        }
-        .form-grid .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-        @media (max-width: 600px) {
-            .form-grid { grid-template-columns: 1fr; }
-        }
-
-        /* Change password form (shown when provisional) */
-        #change-password-section {
-            display: none;
-        }
-
-        .password-requirements {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-        }
-
-        /* Transparency selection (shown after login) */
-        #transparency-section {
-            display: none;
-        }
-
-        .transparency-options {
-            display: flex;
-            gap: 1rem;
-            margin: 1.5rem 0;
-            justify-content: center;
-        }
+        .login-box { background: #fff; border-radius: 10px; padding: 36px 32px; max-width: 380px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.12); text-align: center; }
+        .login-box h2 { color: #2D3876; margin-bottom: 4px; font-size: 1.3em; }
+        .login-box .login-subtitle { color: #666; font-size: 0.85em; margin-bottom: 24px; }
+        .login-box .form-group { margin-bottom: 14px; text-align: left; }
+        .login-box label { display: block; font-weight: 600; margin-bottom: 4px; color: #2D3876; font-size: 0.85em; }
+        .login-box input { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+        .login-box input:focus { outline: none; border-color: #2D3876; }
+        .login-box select { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+        .login-box .btn-login { width: 100%; background: #2D3876; color: #fff; border: none; padding: 11px; border-radius: 6px; font-size: 1em; cursor: pointer; margin-top: 8px; }
+        .login-box .btn-login:hover { background: #4250b3; }
+        .login-box .btn-login:disabled { background: #94a3b8; cursor: not-allowed; }
+        .login-box .login-error { color: #dc3545; font-size: 0.85em; margin-top: 8px; min-height: 1.2em; }
+        .login-box .login-success { color: #16a34a; font-size: 0.85em; margin-top: 8px; min-height: 1.2em; }
+        .password-req { font-size: 0.75em; color: #666; margin-top: 4px; }
 
         @media (max-width: 600px) {
-            .transparency-options { flex-direction: column; }
-        }
-
-        .transparency-option {
-            flex: 1;
-            max-width: 220px;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1.25rem 1rem;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
-            background: white;
-        }
-
-        .transparency-option:hover {
-            border-color: var(--primary-color);
-            box-shadow: 0 2px 12px rgba(37, 99, 235, 0.12);
-            transform: translateY(-2px);
-        }
-
-        .transparency-option.selected {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-        }
-
-        .transparency-option img {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 0.5rem;
-        }
-
-        .transparency-option .opt-label {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #1e293b;
-            margin-bottom: 0.35rem;
-        }
-
-        .transparency-option .opt-desc {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            line-height: 1.4;
+            .login-box { padding: 24px 20px; }
         }
     </style>
-    <!-- Matomo -->
-    <script>
-      var _paq = window._paq = window._paq || [];
-      /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-      _paq.push(['disableCookies']);
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
   _paq.push(['trackPageView']);
-      _paq.push(['enableLinkTracking']);
-      (function() {
-        var u="https://uninovis.matomo.cloud/";
-        _paq.push(['setTrackerUrl', u+'matomo.php']);
-        _paq.push(['setSiteId', '3']);
-        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-        g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
-      })();
-    </script>
-    <!-- End Matomo Code -->
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
 </head>
 <body>
-    <div class="login-card">
-        <div class="logo">
-            <img src="/static/logo_uninovis.png" alt="UNINOVIS Alliance">
-        </div>
-        <p class="platform-name"><span style="font-weight:normal;">Welcome to</span><br>UNINOVIS TOMMI Cooperative Agents Platform</p>
 
-        <!-- Login form -->
-        <div id="login-section">
-            <div style="margin-bottom:1.5rem;"></div>
-            <div id="login-message" class="message"></div>
-            <form id="login-form">
-              <div class="form-grid">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" autocomplete="username" required autofocus>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" autocomplete="current-password" required>
-                </div>
-              </div>
-                <div class="gdpr-notice" style="margin-top:1rem; padding:0.75rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; font-size:0.75rem; color:#64748b; line-height:1.5;">
-                    <p style="font-size:0.95rem; font-weight:600; color:#1e293b; margin-bottom:0.5rem;">Data Protection &amp; AI Transparency Notice</p>
-                    This service uses AI-powered agents that provide information only and do not make autonomous decisions. By signing in, you acknowledge that you are interacting with an AI system, in accordance with <b>Article 50</b> (transparency obligations) and <b>Article 4</b> (AI literacy) of the <b>EU Artificial Intelligence Act</b> (Regulation (EU) 2024/1689). Your personal data (username, IP address, and conversation logs) is processed for the purpose of operating this service, ensuring quality, and fulfilling the accountability principle established in <b>Article 5(2) of the GDPR</b>. Additionally, your interactions are logged with a <b>pseudonymized user identifier</b> (a non-reversible hash of your username) for <b>scientific research purposes</b>, under the legal basis of <b>Article 6(1)(e)</b> (task in the public interest) and the safeguards of <b>Article 89</b> (processing for scientific research) of the GDPR. These pseudonymized logs may be used to study AI transparency, explainability, and user interaction patterns within the UNINOVIS research programme. All data is processed exclusively on infrastructure operated by the Universidad de M&aacute;laga and is not transferred to third parties. You may exercise your rights of access, rectification, erasure, and portability by contacting the Data Protection Officer at <a href="mailto:dpo@uma.es" style="color:#2563eb;">dpo@uma.es</a>.
-                </div>
-                <button type="submit" class="btn btn-primary" id="login-btn">Sign in</button>
-            </form>
-            <p style="text-align:center; margin-top:1rem; font-size:0.85rem; color:var(--text-muted);">
-                Don't have an account? <a href="#" id="show-request-form" style="color:var(--primary-color);">Request access</a>
-            </p>
-        </div>
-
-        <!-- Request access form -->
-        <div id="request-section" style="display:none;">
-            <h2>Request access</h2>
-            <p class="subtitle">Submit a request using your UNINOVIS institutional email</p>
-            <div id="request-message" class="message"></div>
-            <form id="request-form">
-              <div class="form-grid">
-                <div class="form-group">
-                    <label for="req-email">Institutional email</label>
-                    <input type="email" id="req-email" required placeholder="name@university.edu">
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Must be from a UNINOVIS partner institution</p>
-                </div>
-                <div class="form-group">
-                    <label for="req-name">Full name</label>
-                    <input type="text" id="req-name" required placeholder="First Last">
-                </div>
-                <div class="form-group">
-                    <label for="req-institution">Institution</label>
-                    <select id="req-institution" style="width:100%; padding:0.6rem 0.75rem; border:1px solid var(--border-color); border-radius:6px; font-size:0.95rem;">
-                        <option value="">-- Select your institution --</option>
-                        <option value="UMA">Universidad de Malaga (Spain)</option>
-                        <option value="THWS">TH Wurzburg-Schweinfurt (Germany)</option>
-                        <option value="THUAS">The Hague University of Applied Sciences (Netherlands)</option>
-                        <option value="USPN">Universite Sorbonne Paris Nord (France)</option>
-                        <option value="UDCLV">University of Campania "Luigi Vanvitelli" (Italy)</option>
-                        <option value="KK">Kauno Kolegija (Lithuania)</option>
-                        <option value="UT">University of Tirana (Albania)</option>
-                        <option value="TAMK">Tampere University of Applied Sciences (Finland)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="req-department">Department</label>
-                    <input type="text" id="req-department" required placeholder="e.g. Computer Science, Applied Mathematics">
-                </div>
-                <div class="form-group full-width">
-                    <label for="req-profile">Public profile URL <span style="color:var(--text-muted); font-weight:normal;">(optional)</span></label>
-                    <input type="url" id="req-profile" placeholder="e.g. https://www.uma.es/departments/staff/yourname">
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Institutional page, ORCID, or academic profile where your identity can be verified</p>
-                </div>
-                <div class="form-group full-width">
-                    <label for="req-reason">Reason for access</label>
-                    <textarea id="req-reason" rows="2" required style="width:100%; padding:0.6rem 0.75rem; border:1px solid var(--border-color); border-radius:6px; font-size:0.95rem; font-family:inherit; resize:vertical;" placeholder="Brief description of your intended use"></textarea>
-                </div>
-              </div>
-              <button type="submit" class="btn btn-primary" id="request-btn">Submit request</button>
-            </form>
-            <p style="text-align:center; margin-top:1rem; font-size:0.85rem; color:var(--text-muted);">
-                Already have an account? <a href="#" id="show-login-form" style="color:var(--primary-color);">Sign in</a>
-            </p>
-        </div>
-
-        <!-- Change password form (provisional) -->
-        <div id="change-password-section">
-            <h2>Change your password</h2>
-            <p class="subtitle">You must change your provisional password before continuing</p>
-            <div id="change-message" class="message"></div>
-            <form id="change-password-form">
-                <div class="form-group">
-                    <label for="current-password">Current password</label>
-                    <input type="password" id="current-password" name="current-password" required>
-                </div>
-                <div class="form-group">
-                    <label for="new-password">New password</label>
-                    <input type="password" id="new-password" name="new-password" required minlength="8">
-                    <p class="password-requirements">Min. 8 chars, uppercase, lowercase, digit, and special character</p>
-                </div>
-                <div class="form-group">
-                    <label for="confirm-password">Confirm new password</label>
-                    <input type="password" id="confirm-password" name="confirm-password" required>
-                </div>
-                <button type="submit" class="btn btn-primary" id="change-btn">Change password</button>
-            </form>
-        </div>
-
-        <!-- Transparency level selection (shown after login) -->
-        <div id="transparency-section">
-            <h2>Choose your transparency level</h2>
-            <p class="subtitle">This controls how much detail the AI agent shows about its reasoning and sources. You can change it at any time during your session.</p>
-
-            <div class="transparency-options">
-                <div class="transparency-option" data-level="crystal_box">
-                    <img src="/static/icon_crystal_box.svg" alt="Crystal box">
-                    <div class="opt-label">Crystal box</div>
-                    <div class="opt-desc">Full detail: source breakdown, claim verification, confidence formula, and inline highlights</div>
-                </div>
-                <div class="transparency-option" data-level="grey_box">
-                    <img src="/static/icon_grey_box.svg" alt="Grey box">
-                    <div class="opt-label">Grey box</div>
-                    <div class="opt-desc">Essential info: reliability score and agent tuning, without detailed source percentages</div>
-                </div>
-                <div class="transparency-option" data-level="black_box">
-                    <img src="/static/icon_black_box.svg" alt="Black box">
-                    <div class="opt-label">Black box</div>
-                    <div class="opt-desc">Clean output: responses only, no reliability badges or verification details</div>
-                </div>
-            </div>
-
-            <button class="btn btn-primary" id="transparency-continue-btn" disabled>Continue</button>
-        </div>
+<!-- Sign in form -->
+<div class="login-box" id="loginBox">
+    <h2>UNINOVIS</h2>
+    <p class="login-subtitle">Sign in to access the intranet</p>
+    <div class="form-group">
+        <label>Email / Username</label>
+        <input type="text" id="loginUser" autocomplete="username">
     </div>
+    <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPass" autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign in</button>
+    <div class="login-error" id="loginError"></div>
+    <div style="margin-top:16px;font-size:0.82em;color:#666;display:flex;justify-content:space-between;">
+        <a href="#" onclick="showForgotPassword();return false;" style="color:#2D3876;text-decoration:none;">Forgot password?</a>
+        <a href="#" onclick="showSignUp();return false;" style="color:#2D3876;text-decoration:none;">Request access</a>
+    </div>
+</div>
 
-    <script>
-        // Check if already logged in
-        const token = localStorage.getItem('tommi_token');
-        if (token) {
-            fetch('/api/auth/me', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            }).then(r => {
-                if (r.ok) return r.json();
-                throw new Error('invalid');
-            }).then(data => {
-                if (data.study_participant || data.study_mode) {
-                    localStorage.setItem('tommi_transparency', data.study_condition);
-                    localStorage.setItem('tommi_study_mode', 'true');
-                }
-                if (data.provisional_password) {
-                    showChangePassword(data.username);
-                } else if (data.study_participant) {
-                    window.location.href = '/study';
-                } else {
-                    redirectByRole(data.role);
-                }
-            }).catch(() => {
-                localStorage.removeItem('tommi_token');
-            });
-        }
+<!-- Forgot password form -->
+<div class="login-box" id="forgotBox" style="display:none;">
+    <h2>Reset password</h2>
+    <p class="login-subtitle">Enter your email or username. If you are in the directory, we will send a password reset link.</p>
+    <div id="forgotMsg" style="font-size:0.85em;margin-bottom:10px;min-height:1.2em;"></div>
+    <div class="form-group">
+        <label>Email or username</label>
+        <input type="text" id="forgotEmail" autocomplete="email" placeholder="name@university.edu">
+    </div>
+    <button class="btn-login" onclick="submitForgotPassword()">Send reset link</button>
+    <div style="margin-top:14px;font-size:0.82em;text-align:center;">
+        <a href="#" onclick="showLoginForm();return false;" style="color:#2D3876;text-decoration:none;">Back to sign in</a>
+    </div>
+</div>
 
-        let _currentUsername = '';
-        let _pendingRole = '';  // stored while transparency is being selected
+<!-- Sign up / Request access form -->
+<div class="login-box" id="signupBox" style="display:none;max-width:440px;">
+    <h2>Request access</h2>
+    <p class="login-subtitle">Enter your institutional email from any UNINOVIS partner university to request access.</p>
+    <div id="signupMsg" style="font-size:0.85em;margin-bottom:10px;min-height:1.2em;"></div>
+    <div class="form-group">
+        <label>Institutional email</label>
+        <input type="email" id="signupEmail" placeholder="name@university.edu" required>
+    </div>
+    <div class="form-group">
+        <label>Full name</label>
+        <input type="text" id="signupName" placeholder="First Last" required>
+    </div>
+    <div class="form-group">
+        <label>Institution</label>
+        <select id="signupInstitution">
+            <option value="">-- Select --</option>
+            <option value="UMA">Universidad de Malaga</option>
+            <option value="THWS">TH Würzburg-Schweinfurt</option>
+            <option value="THUAS">The Hague University of Applied Sciences</option>
+            <option value="USPN">Université Sorbonne Paris Nord</option>
+            <option value="UDCLV">University of Campania "Luigi Vanvitelli"</option>
+            <option value="KK">Kauno Kolegija</option>
+            <option value="UT">University of Tirana</option>
+            <option value="TAMK">Tampere University of Applied Sciences</option>
+        </select>
+    </div>
+    <button class="btn-login" onclick="submitSignUp()">Request access</button>
+    <div style="margin-top:14px;font-size:0.82em;text-align:center;">
+        <a href="#" onclick="showLoginForm();return false;" style="color:#2D3876;text-decoration:none;">Back to sign in</a>
+    </div>
+</div>
 
-        function checkPasswordComplexity(pwd) {
-            if (pwd.length < 8) return 'Password must be at least 8 characters';
-            if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter';
-            if (!/[a-z]/.test(pwd)) return 'Password must contain at least one lowercase letter';
-            if (!/[0-9]/.test(pwd)) return 'Password must contain at least one digit';
-            if (!/[^A-Za-z0-9]/.test(pwd)) return 'Password must contain at least one special character (!@#$%...)';
-            return null;
-        }
+<!-- Change password form (provisional passwords) -->
+<div class="login-box" id="changeBox" style="display:none;">
+    <h2>Change your password</h2>
+    <p class="login-subtitle">You must change your provisional password before continuing</p>
+    <div id="changeMsg" style="font-size:0.85em;margin-bottom:10px;min-height:1.2em;"></div>
+    <div class="form-group">
+        <label>Current password</label>
+        <input type="password" id="changeCurrent" required>
+    </div>
+    <div class="form-group">
+        <label>New password</label>
+        <input type="password" id="changeNew" required minlength="8">
+        <p class="password-req">Min. 8 chars, uppercase, lowercase, digit, and special character</p>
+    </div>
+    <div class="form-group">
+        <label>Confirm new password</label>
+        <input type="password" id="changeConfirm" required>
+    </div>
+    <button class="btn-login" onclick="doChangePassword()">Change password</button>
+</div>
 
-        function showMessage(elementId, text, type) {
-            const el = document.getElementById(elementId);
-            el.textContent = text;
-            el.className = 'message ' + type;
-        }
-
-        function redirectByRole(role) {
-            // Study mode: condition assigned server-side, skip selector
-            if (localStorage.getItem('tommi_study_mode') === 'true') {
-                doRedirect(role);
-                return;
+<script>
+// Check if already logged in
+var token = localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
+if (token) {
+    fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function(data) {
+            if (data && data.role !== 'public' && data.username !== 'guest') {
+                doRedirect();
             }
-            // Skip transparency selection — go straight through
-            // (Each agent defines its own default transparency level)
-            doRedirect(role);
+        })
+        .catch(function() { localStorage.removeItem('tommi_token'); localStorage.removeItem('uninovis_token'); });
+}
+
+function doRedirect() {
+    var params = new URLSearchParams(window.location.search);
+    var redirect = params.get('redirect');
+    window.location.href = redirect || '/';
+}
+
+// ── Form switching ──
+function showLoginForm() {
+    document.getElementById('loginBox').style.display = '';
+    document.getElementById('forgotBox').style.display = 'none';
+    document.getElementById('signupBox').style.display = 'none';
+    document.getElementById('changeBox').style.display = 'none';
+}
+function showForgotPassword() {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('forgotBox').style.display = '';
+    document.getElementById('forgotMsg').textContent = '';
+}
+function showSignUp() {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('signupBox').style.display = '';
+    document.getElementById('signupMsg').textContent = '';
+}
+
+// ── Login ──
+async function doLogin() {
+    var username = document.getElementById('loginUser').value.trim();
+    var password = document.getElementById('loginPass').value;
+    if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
+    var btn = document.getElementById('loginBtn');
+    btn.disabled = true; btn.textContent = 'Signing in...';
+    try {
+        var resp = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, password: password })
+        });
+        if (!resp.ok) {
+            var err = await resp.json();
+            document.getElementById('loginError').textContent = err.detail || 'Invalid credentials';
+            btn.disabled = false; btn.textContent = 'Sign in';
             return;
         }
-
-        function doRedirect(role) {
-            // Check if there's a redirect parameter in the URL
-            var params = new URLSearchParams(window.location.search);
-            var redirect = params.get('redirect');
-            if (redirect) {
-                window.location.href = redirect;
-            } else {
-                window.location.href = '/intranet';
-            }
+        var data = await resp.json();
+        localStorage.setItem('tommi_token', data.token);
+        localStorage.setItem('uninovis_token', data.token);
+        if (data.provisional_password) {
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('changeBox').style.display = '';
+        } else {
+            doRedirect();
         }
+    } catch (e) {
+        document.getElementById('loginError').textContent = 'Connection error';
+    }
+    btn.disabled = false; btn.textContent = 'Sign in';
+}
 
-        function showTransparencySelector() {
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('change-password-section').style.display = 'none';
-            // Randomize the order of transparency options (Fisher-Yates shuffle)
-            const container = document.querySelector('.transparency-options');
-            const options = Array.from(container.children);
-            for (let i = options.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [options[i], options[j]] = [options[j], options[i]];
-            }
-            options.forEach(opt => container.appendChild(opt));
-            document.getElementById('transparency-section').style.display = 'block';
-        }
-
-        // Transparency option click handling
-        document.querySelectorAll('.transparency-option').forEach(opt => {
-            opt.addEventListener('click', () => {
-                document.querySelectorAll('.transparency-option').forEach(o => o.classList.remove('selected'));
-                opt.classList.add('selected');
-                document.getElementById('transparency-continue-btn').disabled = false;
-            });
+// ── Change password ──
+async function doChangePassword() {
+    var oldPwd = document.getElementById('changeCurrent').value;
+    var newPwd = document.getElementById('changeNew').value;
+    var confirmPwd = document.getElementById('changeConfirm').value;
+    var msg = document.getElementById('changeMsg');
+    if (newPwd !== confirmPwd) { msg.style.color = '#dc3545'; msg.textContent = 'Passwords do not match'; return; }
+    if (newPwd.length < 8) { msg.style.color = '#dc3545'; msg.textContent = 'Password must be at least 8 characters'; return; }
+    if (newPwd === oldPwd) { msg.style.color = '#dc3545'; msg.textContent = 'New password must be different'; return; }
+    try {
+        var token = localStorage.getItem('tommi_token');
+        var resp = await fetch('/api/auth/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ old_password: oldPwd, new_password: newPwd })
         });
+        if (!resp.ok) { var err = await resp.json(); msg.style.color = '#dc3545'; msg.textContent = err.detail || 'Failed'; return; }
+        msg.style.color = '#16a34a'; msg.textContent = 'Password changed. Redirecting...';
+        setTimeout(doRedirect, 1000);
+    } catch (e) { msg.style.color = '#dc3545'; msg.textContent = 'Connection error'; }
+}
 
-        document.getElementById('transparency-continue-btn').addEventListener('click', () => {
-            const selected = document.querySelector('.transparency-option.selected');
-            if (!selected) return;
-            const level = selected.dataset.level;
-            localStorage.setItem('tommi_transparency', level);
-            doRedirect(_pendingRole);
+// ── Forgot password ──
+async function submitForgotPassword() {
+    var email = document.getElementById('forgotEmail').value.trim();
+    var msg = document.getElementById('forgotMsg');
+    if (!email) { msg.style.color = '#dc3545'; msg.textContent = 'Please enter your email or username.'; return; }
+    try {
+        var resp = await fetch('/api/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
         });
+        var data = await resp.json();
+        msg.style.color = resp.ok ? '#16a34a' : '#dc3545';
+        msg.textContent = data.message || data.detail || 'An error occurred.';
+    } catch (e) { msg.style.color = '#dc3545'; msg.textContent = 'Connection error.'; }
+}
 
-        function showChangePassword(username) {
-            _currentUsername = username;
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('change-password-section').style.display = 'block';
-        }
-
-        // Login form
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('login-btn');
-            btn.disabled = true;
-            btn.textContent = 'Signing in...';
-
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-
-            try {
-                const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await res.json();
-
-                if (!res.ok) {
-                    showMessage('login-message', data.detail || 'Login failed', 'error');
-                    btn.disabled = false;
-                    btn.textContent = 'Sign in';
-                    return;
-                }
-
-                localStorage.setItem('tommi_token', data.token);
-                localStorage.setItem('tommi_username', data.username);
-                localStorage.setItem('tommi_role', data.role);
-
-                // Study participant: redirect to /study
-                if (data.study_participant) {
-                    localStorage.setItem('tommi_transparency', data.study_condition);
-                    localStorage.setItem('tommi_study_mode', 'true');
-                    if (data.provisional_password) {
-                        showChangePassword(data.username);
-                    } else {
-                        window.location.href = '/study';
-                    }
-                    btn.disabled = false;
-                    btn.textContent = 'Sign in';
-                    return;
-                }
-
-                // Study mode (non-enrolled): store assigned condition and skip selector
-                if (data.study_mode && data.study_condition) {
-                    localStorage.setItem('tommi_transparency', data.study_condition);
-                    localStorage.setItem('tommi_study_mode', 'true');
-                }
-
-                if (data.provisional_password) {
-                    showChangePassword(data.username);
-                } else {
-                    redirectByRole(data.role);
-                }
-            } catch (err) {
-                showMessage('login-message', 'Connection error', 'error');
-            }
-
-            btn.disabled = false;
-            btn.textContent = 'Sign in';
+// ── Request access ──
+async function submitSignUp() {
+    var email = document.getElementById('signupEmail').value.trim();
+    var fullName = document.getElementById('signupName').value.trim();
+    var institution = document.getElementById('signupInstitution').value;
+    var msg = document.getElementById('signupMsg');
+    if (!email || !fullName) { msg.style.color = '#dc3545'; msg.textContent = 'Please fill in all required fields.'; return; }
+    if (!institution) { msg.style.color = '#dc3545'; msg.textContent = 'Please select your institution.'; return; }
+    try {
+        var resp = await fetch('/api/auth/request-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, full_name: fullName, institution: institution, department: '', profile_url: '', reason: 'Sign up request' })
         });
+        var data = await resp.json();
+        msg.style.color = resp.ok ? '#16a34a' : '#dc3545';
+        msg.textContent = data.message || data.detail || 'An error occurred.';
+    } catch (e) { msg.style.color = '#dc3545'; msg.textContent = 'Connection error.'; }
+}
 
-        // Change password form
-        document.getElementById('change-password-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('change-btn');
-
-            const oldPwd = document.getElementById('current-password').value;
-            const newPwd = document.getElementById('new-password').value;
-            const confirmPwd = document.getElementById('confirm-password').value;
-
-            if (newPwd !== confirmPwd) {
-                showMessage('change-message', 'Passwords do not match', 'error');
-                return;
-            }
-
-            const pwdErr = checkPasswordComplexity(newPwd);
-            if (pwdErr) {
-                showMessage('change-message', pwdErr, 'error');
-                return;
-            }
-
-            if (newPwd === oldPwd) {
-                showMessage('change-message', 'New password must be different from current password', 'error');
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = 'Changing...';
-
-            try {
-                const token = localStorage.getItem('tommi_token');
-                const res = await fetch('/api/auth/change-password', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({
-                        old_password: oldPwd,
-                        new_password: newPwd
-                    })
-                });
-
-                const data = await res.json();
-
-                if (!res.ok) {
-                    showMessage('change-message', data.detail || 'Failed to change password', 'error');
-                    btn.disabled = false;
-                    btn.textContent = 'Change password';
-                    return;
-                }
-
-                showMessage('change-message', 'Password changed successfully. Redirecting...', 'success');
-                const role = localStorage.getItem('tommi_role');
-                setTimeout(() => redirectByRole(role), 1000);
-            } catch (err) {
-                showMessage('change-message', 'Connection error', 'error');
-            }
-
-            btn.disabled = false;
-            btn.textContent = 'Change password';
-        });
-
-        // Toggle between login and request forms
-        document.getElementById('show-request-form').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('request-section').style.display = 'block';
-        });
-        document.getElementById('show-login-form').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('request-section').style.display = 'none';
-            document.getElementById('login-section').style.display = 'block';
-        });
-
-        // Request access form
-        document.getElementById('request-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('request-btn');
-            btn.disabled = true;
-            btn.textContent = 'Submitting...';
-
-            const email = document.getElementById('req-email').value.trim();
-            const fullName = document.getElementById('req-name').value.trim();
-            const institution = document.getElementById('req-institution').value;
-            const department = document.getElementById('req-department').value.trim();
-            const profileUrl = document.getElementById('req-profile').value.trim();
-            const reason = document.getElementById('req-reason').value.trim();
-
-            if (!institution) {
-                showMessage('request-message', 'Please select your institution', 'error');
-                btn.disabled = false;
-                btn.textContent = 'Submit request';
-                return;
-            }
-
-            try {
-                const res = await fetch('/api/auth/request-access', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, full_name: fullName, institution, department, profile_url: profileUrl, reason })
-                });
-                const data = await res.json();
-
-                if (!res.ok) {
-                    showMessage('request-message', data.detail || 'Request failed', 'error');
-                    btn.disabled = false;
-                    btn.textContent = 'Submit request';
-                    return;
-                }
-
-                showMessage('request-message', data.message || 'Request submitted successfully', 'success');
-                document.getElementById('request-form').reset();
-            } catch (err) {
-                showMessage('request-message', 'Connection error', 'error');
-            }
-            btn.disabled = false;
-            btn.textContent = 'Submit request';
-        });
-    </script>
+// ── Key listeners ──
+document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
+document.getElementById('forgotEmail').addEventListener('keydown', function(e) { if (e.key === 'Enter') submitForgotPassword(); });
+document.getElementById('signupEmail').addEventListener('keydown', function(e) { if (e.key === 'Enter') submitSignUp(); });
+</script>
 </body>
 </html>
