@@ -59,6 +59,9 @@
         .tag-prototype { background: #f8d7da; color: #721c24; }
         .tag-testing { background: #d1ecf1; color: #0c5460; }
         .tag-pilot { background: #cce5ff; color: #004085; }
+        .tag-pre-pilot { background: #e0e7ff; color: #3730a3; }
+        .tag-construction { background: #fce4ec; color: #880e4f; }
+        .tag-data-update { background: #fef3c7; color: #92400e; }
         .tag-soon { background: #fff3cd; color: #856404; }
 
         .footer { text-align: center; color: #aaa; font-size: 0.75em; padding: 16px; }
@@ -150,12 +153,12 @@ var SECTIONS = [
         title: 'WP2: Learning & Mobility',
         roles: ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
         tools: [
-            { id: 'course_catalogue', name: 'Course Catalogue', icon: '\uD83D\uDCDA', desc: 'Courses offered across UNINOVIS partner universities.', url: 'https://uninovis.widening.eu', status: 'soon', external: true },
+            { id: 'course_catalogue', name: 'Course Catalogue', icon: '\uD83D\uDCDA', desc: 'Courses offered across UNINOVIS partner universities.', url: 'https://uninovis.widening.eu/student-courses', status: 'construction', external: true },
             { id: 'module_overview', name: 'Module Overview', icon: '\uD83D\uDCD6', desc: 'Educational modules available for mobility and recognition.', url: 'https://uninovis.widening.eu', status: 'soon', external: true },
             { id: 'module_recognition', name: 'Module Recognition', icon: '\uD83D\uDD04', desc: 'Recognise and convert academic modules across partner universities.', url: '#', status: 'soon' },
             { id: 'micro_credentials', name: 'Micro Credentials', icon: '\uD83C\uDFC5', desc: 'Management and issuance of micro credentials across the alliance.', url: 'https://uninovis.widening.eu', status: 'soon', external: true },
-            { id: 'learning_support', name: 'Learning Support', icon: '\uD83C\uDFEB', desc: 'Resources and tools to support student learning.', url: 'https://uninovis.widening.eu/learningsupportcatalogue', status: 'pilot', external: true },
-            { id: 'unigracon', name: 'UNIGRACON', icon: '\uD83C\uDF93', desc: 'Grade converter between partner universities.', url: '/unigracon/', status: 'pilot' },
+            { id: 'learning_support', name: 'Learning Support', icon: '\uD83C\uDFEB', desc: 'Resources and tools to support student learning.', url: 'https://uninovis.widening.eu/learningsupportcatalogue', status: 'construction', external: true },
+            { id: 'unigracon', name: 'UNIGRACON', icon: '\uD83C\uDF93', desc: 'Grade converter between partner universities.', url: '/unigracon/', status: 'data-update' },
         ]
     },
     {
@@ -163,13 +166,13 @@ var SECTIONS = [
         title: 'WP3: Research & Innovation',
         roles: ['student', 'teaching_staff'],
         tools: [
-            { id: 'mobility_planner', name: 'Mobility Planner', icon: '\u2708\uFE0F', desc: 'Call opening dates for mobility activities, accounting for holidays.', url: '/mobility_planner/', status: 'pilot' },
+            { id: 'mobility_planner', name: 'Mobility Planner', icon: '\u2708\uFE0F', desc: 'Call opening dates for mobility activities, accounting for holidays.', url: '/mobility_planner/', status: 'data-update' },
             { id: 'internships', name: 'Internships', icon: '\uD83D\uDCBC', desc: 'Internship opportunities and placements across partner institutions.', url: 'https://uninovis.widening.eu/internships', status: 'active', external: true },
-            { id: 'researcher_connect', name: 'Researcher Connect', icon: '\uD83D\uDD2C', desc: 'Find and connect with researchers. Search by interests and expertise.', url: 'https://uninovis.widening.eu/researcher-connect', status: 'active', external: true },
-            { id: 'research_proposals', name: 'Research Proposals', icon: '\uD83D\uDCDD', desc: 'Post and discover research collaboration opportunities and funding calls.', url: 'https://uninovis.widening.eu/research-proposals', status: 'active', external: true },
+            { id: 'researcher_connect', name: 'Researcher Connect', icon: '\uD83D\uDD2C', desc: 'Find and connect with researchers. Search by interests and expertise.', url: 'https://uninovis.widening.eu/researcher-connect', status: 'prototype', external: true },
+            { id: 'research_proposals', name: 'Research Proposals', icon: '\uD83D\uDCDD', desc: 'Post and discover research collaboration opportunities and funding calls.', url: 'https://uninovis.widening.eu/research-proposals', status: 'prototype', external: true },
             { id: 'research_portfolio', name: 'Research Portfolio', icon: '\uD83D\uDCCA', desc: 'Portfolio of research activities and outputs across UNINOVIS.', url: 'https://uninovis.widening.eu/research-portfolio', status: 'active', external: true },
-            { id: 'research_explorers', name: 'Research Explorers', icon: '\uD83C\uDF10', desc: 'AI-powered research assistants for each Excellence Hub.', url: '/research-explorers', status: 'active' },
-            { id: 'european_projects', name: 'European Projects', icon: '\uD83C\uDDEA\uD83C\uDDFA', desc: 'Search European research funding calls and projects.', url: '/european-projects', status: 'active' },
+            { id: 'research_explorers', name: 'Research Explorers', icon: '\uD83C\uDF10', desc: 'AI-powered research assistants for each Excellence Hub.', url: '/research-explorers', status: 'pilot' },
+            { id: 'european_projects', name: 'European Projects', icon: '\uD83C\uDDEA\uD83C\uDDFA', desc: 'Search European research funding calls and projects.', url: '/european-projects', status: 'pilot' },
         ]
     },
     {
@@ -299,9 +302,9 @@ function doLogout() {
 
 // ── Render card HTML for a tool ──────────────────────────────────
 function renderToolCard(tool) {
-    var tagClass = tool.status === 'active' ? 'tag-active' : tool.status === 'pilot' ? 'tag-pilot' : tool.status === 'prototype' ? 'tag-prototype' : tool.status === 'testing' ? 'tag-testing' : 'tag-soon';
-    var tagText = tool.status === 'active' ? 'Active' : tool.status === 'pilot' ? 'Pilot' : tool.status === 'prototype' ? 'Untested Prototype' : tool.status === 'testing' ? 'Status: Data collection' : 'Coming soon';
-    var href = (tool.status === 'active' || tool.status === 'pilot' || tool.status === 'prototype' || tool.status === 'testing') ? tool.url : '#';
+    var tagClass = tool.status === 'active' ? 'tag-active' : tool.status === 'pilot' ? 'tag-pilot' : tool.status === 'pre-pilot' ? 'tag-pre-pilot' : tool.status === 'construction' ? 'tag-construction' : tool.status === 'prototype' ? 'tag-prototype' : tool.status === 'testing' ? 'tag-testing' : tool.status === 'data-update' ? 'tag-data-update' : 'tag-soon';
+    var tagText = tool.status === 'active' ? 'Active' : tool.status === 'pilot' ? 'Pilot' : tool.status === 'pre-pilot' ? 'Pre-pilot' : tool.status === 'construction' ? 'In construction' : tool.status === 'prototype' ? 'Untested Prototype' : tool.status === 'testing' ? 'Status: Data collection' : tool.status === 'data-update' ? 'Data update required' : 'Coming soon';
+    var href = (tool.status === 'active' || tool.status === 'pilot' || tool.status === 'pre-pilot' || tool.status === 'construction' || tool.status === 'prototype' || tool.status === 'testing' || tool.status === 'data-update') ? tool.url : '#';
     var clickAttr = '';
     if (tool.status === 'soon') {
         clickAttr = ' onclick="event.preventDefault();" style="opacity:0.6;cursor:default;"';
@@ -372,7 +375,7 @@ function renderTabbedView(roles) {
     var panelsHtml = '';
     var hasContent = false;
 
-    var statusOrder = ['active', 'pilot', 'prototype', 'testing', 'soon'];
+    var statusOrder = ['active', 'pilot', 'pre-pilot', 'construction', 'prototype', 'data-update', 'testing', 'soon'];
 
     visibleSections.forEach(function(section) {
         // Group accessible tools by status
