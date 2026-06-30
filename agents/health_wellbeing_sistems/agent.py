@@ -28,10 +28,10 @@ CATEGORIES (in priority order — use the FIRST matching category):
 - project: Questions mentioning specific research PROJECTS or grants, OR asking to LIST research projects.
 - glossary: Conceptual "What is X?" questions ONLY about well-defined Health and Wellbeing Systems terms (digital therapeutics, precision medicine, telehealth, wearable health monitoring, AI-assisted diagnosis, etc.). Do NOT use for general/ambiguous questions.
 - figure: Requests containing "figure", "map", "chart", "graph", or "visualise" for data visualisation
-- meta: Questions about the agent itself ("What can you do?", "How does this work?", "What is UNINOVIS?", "Who are you?")
+- meta: Questions about the agent itself ("What can you do?", "How does this work?", "What is UNINOVIS?", "Who are you?"). Do NOT use meta for questions about how a previous answer was generated — those are followup.
 - non_research: Requests to PERFORM a task UNRELATED to research — write essays, translate, book flights, get recipes, report weather, sports results. Do NOT use for requests to summarize, explain, or analyse papers or research topics — those are valid research queries (use followup or general).
 - off_topic: Questions clearly outside Health and Wellbeing Systems AND not task requests. Also for vague, meaningless, or greeting-like inputs.
-- followup: Follow-ups referring to previous context ("tell me more", "expand on that", "summarize this", "explain that", "yes", "no", or a single number like "3" selecting from a previous list). Any request that refers to content from a previous response is a followup.
+- followup: Follow-ups referring to previous context ("tell me more", "expand on that", "summarize this", "explain that", "who is doing research on these themes?", "yes", "no", or a single number like "3" selecting from a previous list). Any request that refers to content from a previous response is a followup. Also: requests to summarize, explain, or analyse a specific paper = followup.
 - gap: Questions about topics NOT studied, research gaps, missing areas, underexplored subtopics
 - general: Broad or ambiguous health/AI/technology questions that don't match a specific category above.
 
@@ -43,6 +43,8 @@ IMPORTANT DISTINCTIONS:
 - Questions about "subtopics", "topics most studied", "most researched areas", or listing research areas = topic_search (they query the publication database).
 - Questions asking "what/which [thing] is most studied?", "any [thing] that is researched?", or similar meta-questions about the database = general (the LLM needs to reason about the data, not do a literal topic search).
 - off_topic is ONLY for queries completely unrelated to health, wellbeing, AI, technology, research, or higher education. When in doubt, prefer general over off_topic.
+- Questions about ANY health topic (even if not in the database) should be general, NOT off_topic. Examples: "AI in palliative care", "AI in mental health", "wearable sensors for elderly" are ALL within scope.
+- "How was this generated?", "how did you get this?", "explain how you found this" = followup, NOT meta.
 - Single numbers (e.g. "1", "2", "3"), "yes", "no", or very short replies = followup (they are responses to a previous question from the agent). NEVER classify these as off_topic.
 
 UNIVERSITIES: UMA, THUAS, USPN, UDCLV, THWS, TAMK, KK, UT
@@ -88,7 +90,11 @@ class Agent(VectorlessMixin, MetadataRAGMixin, BaseRAGAgent):
         uni_list = ", ".join(f"**{acr}** ({info.get('name', acr)})" for acr, info in unis.items())
         return (
             f"I am a research assistant for the **{alliance}** Excellence Hub on **{research_topic}**.\n\n"
-            f"I can help you with:\n"
+            f"**My information sources:**\n"
+            f"1. **Curated metadata** — a structured database of authors, universities, research topics, and publication records, curated by UNINOVIS staff from public academic sources.\n"
+            f"2. **Documents database** — PDF papers, funded research projects, and a glossary of key concepts, selected by UNINOVIS staff.\n"
+            f"3. **An external LLM** (Mistral) — for exploratory or open-ended questions. AI-generated responses should be verified independently.\n\n"
+            f"**I can help you with:**\n"
             f"- Search **research papers** by topic, university, or researcher\n"
             f"- Look up **researchers** and their publications\n"
             f"- Explore **funded research projects**\n"

@@ -1,0 +1,111 @@
+# Scope Keywords for AI & Robotics Research Explorer
+#
+# These keywords define what is WITHIN the scope of this agent.
+# They are used to distinguish on-topic queries from off-topic ones.
+# Add one keyword or phrase per line. Lines starting with # are comments.
+#
+
+# Core robotics
+robotics
+robot
+robotic system
+robotic arm
+robotic manipulation
+robot navigation
+robot perception
+robot control
+robot learning
+
+# Human-robot interaction
+human-robot interaction
+HRI
+collaborative robotics
+cobots
+social robots
+teleoperation
+haptic feedback
+gesture recognition
+
+# Autonomous systems
+autonomous systems
+autonomous vehicles
+autonomous navigation
+self-driving
+UAV
+unmanned aerial vehicle
+drone
+unmanned ground vehicle
+path planning
+SLAM
+simultaneous localization and mapping
+
+# AI for robotics
+machine learning for robotics
+reinforcement learning
+deep learning
+computer vision
+object detection
+object recognition
+sensor fusion
+neural networks
+transfer learning
+
+# Industry 4.0 and manufacturing
+Industry 4.0
+smart manufacturing
+industrial automation
+smart factory
+digital twin
+predictive maintenance
+cyber-physical systems
+IoT
+internet of things
+production optimization
+quality control
+supply chain
+
+# Specific robotic domains
+soft robotics
+swarm robotics
+medical robotics
+surgical robotics
+rehabilitation robotics
+assistive robotics
+prosthetics
+exoskeleton
+agricultural robotics
+warehouse robotics
+service robotics
+
+# Safety and ethics
+robot safety
+safe AI
+robot ethics
+explainable robotics
+trustworthy robotics
+human-centered AI
+responsible robotics
+
+# Related technologies
+embedded systems
+edge AI
+real-time systems
+ROS
+robot operating system
+motion planning
+kinematics
+dynamics
+actuators
+sensors
+LIDAR
+3D printing
+additive manufacturing
+
+# General AI terms (keep for broad matching)
+artificial intelligence
+machine learning
+deep learning
+neural network
+language model
+large language model
+LLM

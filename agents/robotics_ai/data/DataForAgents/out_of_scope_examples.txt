@@ -1,0 +1,49 @@
+# Out-of-Scope Examples for AI & Robotics Research Explorer
+#
+# These are examples of topics and queries that are OUTSIDE the scope
+# of this agent. They help the agent learn to refuse irrelevant questions.
+# Add one example per line. Lines starting with # are comments.
+#
+
+# General knowledge (not AI/robotics)
+quantum computing
+photosynthesis
+capital of France
+history of Rome
+cooking recipes
+weather forecast
+sports results
+flight booking
+stock market
+
+# Other AI domains (not robotics-related)
+natural language processing without robotics context
+computational linguistics
+machine translation
+sentiment analysis
+text mining
+social media analytics
+recommendation systems
+financial AI
+marketing AI
+
+# Pure mathematics/physics (unless applied to robotics)
+abstract algebra
+number theory
+pure mathematics
+particle physics
+astrophysics
+
+# Medical/health (unless robotics-related)
+pharmaceutical research
+drug discovery without AI
+clinical trials
+epidemiology
+
+# Task requests (the agent is a research assistant, not a general tool)
+write me an essay
+translate this text
+book a flight
+make a presentation
+help me with my homework
+proofread my paper
