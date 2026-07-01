@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistente BD Algoria</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; background: #f8fafc; color: #1e293b; }
+
+/* Barra de navegación */
+.nav { background: #4250b3; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 20px; text-decoration: none; }
+.nav-brand:hover { opacity: 0.9; }
+.nav-sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.nav-current { color: #fff; font-size: 16px; font-weight: 600; }
+.nav-logos { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+/* Diseño principal */
+.layout { flex: 1; display: flex; overflow: hidden; }
+
+/* Barra lateral */
+.sidebar {
+    width: 280px; min-width: 280px; background: #4250b3; color: #e2e8f0;
+    display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+}
+.sidebar-content { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.info-icons { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.info-icons img { height: 24px; width: 24px; cursor: help; background: rgba(255,255,255,0.85); border-radius: 4px; padding: 2px; }
+.info-icons .prompt-dot { font-size: 14px; cursor: help; background: rgba(255,255,255,0.85); border-radius: 4px; padding: 2px 5px; }
+
+/* Panel de preguntas de ejemplo */
+.examples-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
+.examples-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e293b; user-select: none;
+}
+.examples-panel summary:hover { background: #f1f5f9; }
+.example-btn {
+    display: block; width: 100%; padding: 8px 12px; margin: 0;
+    background: #fff; border: none; border-bottom: 1px solid #e2e8f0;
+    color: #000; font-size: 13px; text-align: left; cursor: pointer;
+    transition: background 0.15s; line-height: 1.4;
+}
+.example-btn:last-child { border-bottom: none; }
+.example-btn:hover { background: #f1f5f9; }
+
+/* Historial */
+.history-panel { margin-top: 4px; }
+.history-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
+.history-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e293b; user-select: none;
+}
+.history-panel summary:hover { background: #f1f5f9; }
+.history-container { max-height: 400px; overflow-y: auto; }
+.history-item {
+    padding: 8px 12px; border-top: 1px solid #e2e8f0; cursor: pointer;
+    transition: all 0.15s; border-left: 3px solid transparent; background: #fff;
+}
+.history-item:hover { background: #f1f5f9; border-left-color: #3b82f6; }
+.history-question { font-size: 13px; color: #1e293b; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+.history-meta { font-size: 11px; color: #64748b; margin-top: 3px; }
+.history-empty { padding: 12px; color: #94a3b8; font-size: 13px; font-style: italic; }
+
+/* Pie de barra lateral */
+.sidebar-footer { margin-top: auto; padding-top: 16px; text-align: center; }
+.sidebar-footer img { width: 100%; }
+.help-btn {
+    font-size: 12px; color: #cbd5e1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px; padding: 3px 8px; cursor: pointer; text-decoration: none; white-space: nowrap;
+}
+.help-btn:hover { background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; }
+
+/* Área de chat */
+.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+.message { display: flex; flex-direction: column; gap: 4px; }
+.message.user .bubble { background: #2563eb; color: #fff; align-self: flex-end; border-radius: 12px 12px 4px 12px; }
+.message.agent .bubble { background: #fff; color: #1e293b; align-self: flex-start; border-radius: 12px 12px 12px 4px; border: 1px solid #e2e8f0; }
+.bubble { padding: 12px 16px; max-width: 98%; font-size: 14px; line-height: 1.6; word-wrap: break-word; overflow: visible; }
+.bubble p { margin: 0 0 8px; }
+.bubble p:last-child { margin-bottom: 0; }
+.bubble ul, .bubble ol { margin: 4px 0 8px 20px; }
+.bubble table { border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.bubble th, .bubble td { border: 1px solid #e2e8f0; padding: 6px 10px; text-align: left; }
+.bubble th { background: #f1f5f9; font-weight: 600; }
+.bubble strong { font-weight: 600; }
+.bubble a { color: #2563eb; }
+.bubble code { background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 13px; }
+.bubble pre { background: #f1f5f9; padding: 10px; border-radius: 6px; overflow-x: auto; margin: 8px 0; }
+.bubble pre code { background: none; padding: 0; }
+.bubble h1, .bubble h2, .bubble h3, .bubble h4 { margin: 12px 0 6px; }
+.loading { color: #94a3b8; font-style: italic; }
+
+/* Bienvenida */
+.welcome-chat { padding: 30px 20px; color: #64748b; font-size: 14px; line-height: 1.6; text-align: center; }
+.welcome-chat h2 { color: #1e293b; font-size: 18px; margin-bottom: 8px; }
+
+/* Entrada */
+.input-area { padding: 12px 20px 16px; border-top: 1px solid #e2e8f0; background: #fff; flex-shrink: 0; }
+.input-row { display: flex; gap: 8px; }
+.input-row textarea {
+    flex: 1; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 14px; font-family: inherit; resize: none; outline: none;
+    min-height: 44px; max-height: 120px;
+}
+.input-row textarea:focus { border-color: #2563eb; }
+.input-row button {
+    background: #2563eb; color: #fff; border: none; border-radius: 8px;
+    padding: 10px 20px; font-size: 14px; cursor: pointer; white-space: nowrap;
+}
+.input-row button:hover { background: #1d4ed8; }
+.input-row button:disabled { background: #94a3b8; cursor: not-allowed; }
+.disclaimer { padding: 6px 20px; text-align: center; font-size: 11px; color: #94a3b8; }
+
+/* Móvil */
+@media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 0; max-height: 200px; flex-shrink: 0; }
+    .sidebar-content { flex-direction: row; flex-wrap: wrap; gap: 8px; padding: 10px; }
+    .sidebar-footer { display: none; }
+    .chat-area { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/uninovis-uma" class="nav-brand">Agentes administrativos</a>
+    <span class="nav-sep">/</span>
+    <span class="nav-current">Asistente BD Algoria</span>
+    <div class="nav-logos">
+        <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:44px;">
+        <img src="/static/logo_uma.png" alt="UMA" style="height:44px;">
+    </div>
+</div>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="sidebar-content">
+            <div>
+                <div class="info-icons" id="info-icons"></div>
+            </div>
+
+            <div class="examples-panel">
+                <details>
+                    <summary>Consultas de ejemplo</summary>
+                    <div id="examples-container">
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">¿Qué convenios hay con The Hague University of Applied Sciences?</button>
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">¿Qué universidades de los Países Bajos (Netherlands) tienen convenios?</button>
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">¿Hay convenios con requisito de 'English B1'?</button>
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">¿Tenemos convenios con Alemania (Germany)?</button>
+                    </div>
+                </details>
+            </div>
+
+            <div class="history-panel">
+                <details id="history-details" open>
+                    <summary>Historial de consultas</summary>
+                    <div class="history-container" id="history-container">
+                        <div class="history-empty">Sin consultas aún</div>
+                    </div>
+                </details>
+            </div>
+
+            <div class="sidebar-footer">
+                <a class="help-btn" href="/uninovis-uma/help/agoria-db" style="display:block;text-align:center;margin-top:10px;">? Ayuda</a>
+                <div style="margin-top:8px; font-size:11px; color:#94a3b8; line-height:1.5;">
+                    Desarrollado con <strong style="color:#cbd5e1;">TOMMI</strong> por el equipo TIC de UNINOVIS-UMA.
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="chat-area">
+        <div class="welcome-chat" id="welcome">
+            <h2>Asistente BD Algoria</h2>
+            <p id="welcome-text">Consulta la base de datos de convenios universitarios. Pregunta por universidad, país, idioma, nivel de estudios y más.</p>
+        </div>
+
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <div class="input-area">
+            <div class="input-row">
+                <textarea id="message-input" placeholder="Pregunta sobre convenios universitarios..." rows="1"></textarea>
+                <button id="send-btn">Enviar</button>
+            </div>
+        </div>
+        <div class="disclaimer">
+            Los resultados provienen de la base de datos. La consulta SQL es generada por IA y verificada antes de ejecutarse.
+        </div>
+    </div>
+</div>
+
+<script>
+var AGENT_ID = 'pisha5';
+var sessionId = null;
+var isLoading = false;
+var queryHistory = [];
+
+var chatMessages = document.getElementById('chat-messages');
+var messageInput = document.getElementById('message-input');
+var sendBtn = document.getElementById('send-btn');
+var welcome = document.getElementById('welcome');
+var historyContainer = document.getElementById('history-container');
+
+marked.setOptions({ breaks: true, gfm: true });
+
+function getToken() {
+    return localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
+}
+
+function authUrl(url) {
+    var token = getToken();
+    if (!token) return url;
+    var sep = url.includes('?') ? '&' : '?';
+    return url + sep + 'token=' + encodeURIComponent(token);
+}
+
+// Check auth on load
+(function() {
+    var token = getToken();
+    if (!token) {
+        window.location.href = '/login?redirect=/uninovis-uma/algoria';
+        return;
+    }
+    fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+        .then(function(data) {
+            if (!data || data.role === 'public' || data.username === 'guest') throw new Error();
+            loadIcons();
+        })
+        .catch(function() {
+            localStorage.removeItem('tommi_token');
+            localStorage.removeItem('uninovis_token');
+            window.location.href = '/login?redirect=/uninovis-uma/algoria';
+        });
+})();
+
+// Historial
+function addToHistory(query) {
+    queryHistory = queryHistory.filter(function(h) { return h.query !== query; });
+    queryHistory.unshift({ query: query, time: new Date() });
+    if (queryHistory.length > 30) queryHistory.pop();
+    renderHistory();
+}
+function renderHistory() {
+    historyContainer.innerHTML = '';
+    if (queryHistory.length === 0) { historyContainer.innerHTML = '<div class="history-empty">Sin consultas aún</div>'; return; }
+    queryHistory.forEach(function(h) {
+        var item = document.createElement('div'); item.className = 'history-item';
+        var q = document.createElement('div'); q.className = 'history-question'; q.textContent = h.query;
+        var m = document.createElement('div'); m.className = 'history-meta'; m.textContent = formatTime(h.time);
+        item.appendChild(q); item.appendChild(m);
+        item.addEventListener('click', function() { sendMessage(h.query); });
+        historyContainer.appendChild(item);
+    });
+}
+function formatTime(date) {
+    var d = new Date(date); var now = new Date(); var diff = now - d;
+    if (diff < 60000) return 'Ahora';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' min';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + ' h';
+    return d.toLocaleDateString();
+}
+
+function addMessage(text, role) {
+    if (welcome.style.display !== 'none') welcome.style.display = 'none';
+    var msg = document.createElement('div'); msg.className = 'message ' + role;
+    var bubble = document.createElement('div'); bubble.className = 'bubble';
+    if (role === 'user') bubble.textContent = text;
+    msg.appendChild(bubble);
+    chatMessages.appendChild(msg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return bubble;
+}
+
+function sendMessage(message) {
+    if (isLoading || !message.trim()) return;
+    isLoading = true; sendBtn.disabled = true; messageInput.value = '';
+    addToHistory(message);
+    var userBubble = addMessage(message, 'user');
+    var userMsg = userBubble.closest('.message');
+    var agentBubble = addMessage('', 'agent');
+    agentBubble.innerHTML = '<span class="loading">Preparando respuesta...</span>';
+
+    var params = new URLSearchParams({ agent_id: AGENT_ID, message: message });
+    if (sessionId) params.append('session_id', sessionId);
+
+    var eventSource = new EventSource(authUrl('/api/chat/stream?' + params));
+    var responseText = '';
+    var badgeHtml = '';
+    var bannerHtml = '';
+    var traceHtml = '';
+    var hasScrolled = false;
+
+    function scrollToUser() {
+        if (hasScrolled) return; hasScrolled = true;
+        if (userMsg) {
+            var cr = chatMessages.getBoundingClientRect();
+            var mr = userMsg.getBoundingClientRect();
+            chatMessages.scrollTop += mr.top - cr.top;
+        }
+    }
+
+    eventSource.addEventListener('session', function(e) { sessionId = e.data; });
+    eventSource.addEventListener('status', function(e) { agentBubble.innerHTML = '<span class="loading">' + e.data + '</span>'; });
+    eventSource.addEventListener('badge', function(e) { badgeHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml; scrollToUser(); });
+    eventSource.addEventListener('procedural_banner', function(e) { bannerHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml; scrollToUser(); });
+    eventSource.onmessage = function(e) {
+        var chunk = e.data.replace(/\\n/g, '\n'); responseText += chunk;
+        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText); scrollToUser();
+    };
+    eventSource.addEventListener('replace', function(e) { responseText = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText); });
+    eventSource.addEventListener('trace', function(e) { traceHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText) + traceHtml; });
+    eventSource.addEventListener('done', function() {
+        eventSource.close();
+        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText) + traceHtml;
+        agentBubble.querySelectorAll('a').forEach(function(a) { a.target = '_blank'; a.rel = 'noopener'; });
+        isLoading = false; sendBtn.disabled = false; messageInput.focus();
+    });
+    eventSource.addEventListener('error', function() {
+        eventSource.close();
+        if (!responseText) agentBubble.innerHTML = '<span style="color:#dc3545;">Error de conexión. Inténtalo de nuevo.</span>';
+        isLoading = false; sendBtn.disabled = false;
+    });
+}
+
+sendBtn.addEventListener('click', function() { sendMessage(messageInput.value); });
+messageInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(messageInput.value); } });
+messageInput.addEventListener('input', function() { messageInput.style.height = 'auto'; messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px'; });
+
+// Iconos de información
+function loadIcons() {
+    var token = getToken();
+    fetch('/api/agents', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function(r) { return r.ok ? r.json() : []; })
+        .then(function(agents) {
+            var agent = agents.find(function(a) { return a.id === AGENT_ID; });
+            if (!agent) return;
+            var row = document.getElementById('info-icons');
+
+            if (agent.agent_type) {
+                var img = document.createElement('img');
+                img.src = '/img/' + agent.agent_type + '.svg';
+                img.title = 'Tipo: ' + agent.agent_type;
+                row.appendChild(img);
+            }
+
+            if (agent.prompt_level) {
+                var dots = { stringent: '\uD83D\uDFE2', tolerant: '\uD83D\uDFE1', lax: '\uD83D\uDD34' };
+                var labels = { stringent: 'Estricto', tolerant: 'Tolerante', lax: 'Relajado' };
+                var span = document.createElement('span');
+                span.className = 'prompt-dot';
+                span.textContent = dots[agent.prompt_level] || dots.stringent;
+                span.title = 'Nivel de prompt: ' + (labels[agent.prompt_level] || agent.prompt_level);
+                row.appendChild(span);
+            }
+
+            if (agent.decision_trace) {
+                var isCrystal = agent.decision_trace === 'crystal_box' || agent.decision_trace === 'crystal_box_testers';
+                var img2 = document.createElement('img');
+                img2.src = isCrystal ? '/static/icon_crystal_box.svg' : '/static/icon_black_box.svg';
+                img2.title = 'Transparencia: ' + (isCrystal ? 'Caja de cristal' : 'Caja negra');
+                row.appendChild(img2);
+            }
+
+            if (agent.reliability_cues) {
+                var img3 = document.createElement('img');
+                img3.src = agent.reliability_cues === 'shown' ? '/static/icon_reliability_on.svg' : '/static/icon_reliability_off.svg';
+                img3.title = 'Indicadores de fiabilidad: ' + (agent.reliability_cues === 'shown' ? 'Visibles' : 'Ocultos');
+                row.appendChild(img3);
+            }
+        })
+        .catch(function() {});
+}
+</script>
+</body>
+</html>

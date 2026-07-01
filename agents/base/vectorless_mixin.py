@@ -82,7 +82,7 @@ class VectorlessMixin:
         self.chroma_client = None
         self.collection = None
 
-        if VectorlessMixin._chunk_db is None:
+        if not hasattr(self, '_instance_chunk_db') or self._instance_chunk_db is None:
             db_path = os.path.join(self._agent_dir, "data", "chunk_db.json")
 
             # Auto-rebuild if chunk_db.json is missing or stale
@@ -96,21 +96,25 @@ class VectorlessMixin:
                 try:
                     with open(db_path, "r", encoding="utf-8") as f:
                         data = json.load(f)
-                    VectorlessMixin._chunk_db = data.get("chunks", [])
-                    VectorlessMixin._chunk_db_idf = data.get("idf", {})
-                    total_kw = sum(len(c.get("keywords", [])) for c in VectorlessMixin._chunk_db)
-                    if VectorlessMixin._chunk_db:
-                        VectorlessMixin._chunk_db_avg_kw = total_kw / len(VectorlessMixin._chunk_db)
-                    print(f"Vectorless chunk DB loaded: {len(VectorlessMixin._chunk_db)} chunks, "
-                          f"{len(VectorlessMixin._chunk_db_idf)} IDF terms")
+                    self._instance_chunk_db = data.get("chunks", [])
+                    self._instance_chunk_db_idf = data.get("idf", {})
+                    total_kw = sum(len(c.get("keywords", [])) for c in self._instance_chunk_db)
+                    if self._instance_chunk_db:
+                        self._instance_chunk_db_avg_kw = total_kw / len(self._instance_chunk_db)
+                    else:
+                        self._instance_chunk_db_avg_kw = 15.0
+                    print(f"Vectorless chunk DB loaded: {len(self._instance_chunk_db)} chunks, "
+                          f"{len(self._instance_chunk_db_idf)} IDF terms ({os.path.basename(self._agent_dir)})")
                 except Exception as e:
                     print(f"Warning: could not load chunk_db.json: {e}")
-                    VectorlessMixin._chunk_db = []
-                    VectorlessMixin._chunk_db_idf = {}
+                    self._instance_chunk_db = []
+                    self._instance_chunk_db_idf = {}
+                    self._instance_chunk_db_avg_kw = 15.0
             else:
                 print("No chunk_db.json and no documents to build from — pure metadata mode")
-                VectorlessMixin._chunk_db = []
-                VectorlessMixin._chunk_db_idf = {}
+                self._instance_chunk_db = []
+                self._instance_chunk_db_idf = {}
+                self._instance_chunk_db_avg_kw = 15.0
 
     def _report_progress(self, message: str):
         """Report progress via callback if available, otherwise print."""
@@ -172,8 +176,8 @@ class VectorlessMixin:
 
     def _retrieve_context(self, query: str, n_results: int = None, **kwargs) -> str:
         """Retrieve relevant chunks using BM25 keyword matching."""
-        chunks = VectorlessMixin._chunk_db
-        idf = VectorlessMixin._chunk_db_idf
+        chunks = getattr(self, '_instance_chunk_db', None) or []
+        idf = getattr(self, '_instance_chunk_db_idf', None) or {}
         if not chunks or not idf:
             return ""
 
@@ -189,7 +193,7 @@ class VectorlessMixin:
         for chunk in chunks:
             score = _bm25_score(
                 query_tokens, chunk.get("keywords", []),
-                idf, avg_kw_len=VectorlessMixin._chunk_db_avg_kw,
+                idf, avg_kw_len=getattr(self, '_instance_chunk_db_avg_kw', 15.0),
             )
             if score > 0:
                 scored.append((score, chunk))
@@ -234,8 +238,9 @@ class VectorlessMixin:
 
     def reindex(self):
         """Clear cached chunk DB so it reloads on next query."""
-        VectorlessMixin._chunk_db = None
-        VectorlessMixin._chunk_db_idf = None
+        self._instance_chunk_db = None
+        self._instance_chunk_db_idf = None
+        self._instance_chunk_db_avg_kw = 15.0
         if hasattr(self, '_metadata_cache'):
             self._metadata_cache = None
         return 0

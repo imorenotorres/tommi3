@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ayuda — Proyectos Europeos</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.nav { background: #4250b3; padding: 12px 24px; display: flex; align-items: center; gap: 12px; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 20px; text-decoration: none; }
+.nav-sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.nav-current { color: #fff; font-size: 16px; font-weight: 600; }
+.content { max-width: 700px; margin: 0 auto; padding: 32px 24px 48px; line-height: 1.7; font-size: 15px; }
+h1 { font-size: 1.6rem; color: #4250b3; margin-bottom: 8px; }
+h2 { font-size: 1.2rem; color: #1e293b; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3rem; }
+p { margin: 0.6em 0; }
+ul, ol { padding-left: 1.5em; margin: 0.6em 0; }
+li { margin-bottom: 0.4em; }
+.example { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin: 8px 0; font-size: 14px; }
+.icon-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.icon-row img { height: 24px; width: 24px; background: rgba(0,0,0,0.05); border-radius: 4px; padding: 2px; }
+.source-list { font-size: 13px; }
+.source-list li { margin-bottom: 2px; }
+.back-link { display: inline-block; margin-top: 24px; color: #4250b3; text-decoration: none; font-size: 14px; }
+.back-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/uninovis-uma" class="nav-brand">Agentes administrativos</a>
+    <span class="nav-sep">/</span>
+    <span class="nav-current">Proyectos Europeos — Ayuda</span>
+</div>
+
+<div class="content">
+<h1>Asistente de Proyectos Europeos</h1>
+<p>Este asistente te ayuda a buscar información sobre programas de financiación europeos, convocatorias y proyectos de investigación. Utiliza una base de conocimiento con documentación oficial de la UE.</p>
+
+<h2>¿Qué puedes preguntar?</h2>
+<ul>
+    <li>Información sobre <strong>Horizon Europe</strong>, <strong>Erasmus+</strong> y otros programas de la UE</li>
+    <li>Detalles sobre <strong>convocatorias</strong> específicas y sus requisitos</li>
+    <li>Orientación sobre <strong>preparación de propuestas</strong></li>
+    <li>Información sobre <strong>gestión de proyectos</strong> y reportes</li>
+</ul>
+
+<h2>Ejemplos de consultas</h2>
+<div class="example">¿Hay convocatorias dirigidas a Humanidades?</div>
+<div class="example">¿Qué convocatorias hay sobre ciberseguridad?</div>
+<div class="example">Lista convocatorias relacionadas con IA y educación</div>
+<div class="example">¿Qué convocatorias hay para Alianzas de Universidades Europeas en 2026?</div>
+
+<h2>Tipo de agente</h2>
+<p>Este es un agente de tipo <strong>RAG (Retrieval-Augmented Generation)</strong>: cuando haces una pregunta, el sistema busca fragmentos relevantes en su base de documentos y los proporciona al modelo de lenguaje (LLM) como contexto para generar la respuesta.</p>
+<p>El agente <strong>no tiene acceso a Internet</strong> — solo responde con información de los documentos que tiene indexados. Los documentos están en inglés, pero puedes preguntar en español.</p>
+
+<h2>Indicadores de fiabilidad</h2>
+<p>Cada respuesta incluye un <strong>indicador de fiabilidad</strong> (banner de color) que muestra el origen de la información:</p>
+<ul>
+    <li><span style="color:#16a34a;font-weight:600;">Verde</span> — Datos verificados directamente de la base de conocimiento (sin intervención de IA)</li>
+    <li><span style="color:#ca8a04;font-weight:600;">Amarillo</span> — Comentario de IA basado en datos de la base de conocimiento</li>
+    <li><span style="color:#dc2626;font-weight:600;">Rojo</span> — Contenido generado íntegramente por IA. Verificar de forma independiente</li>
+</ul>
+
+<h2>Transparencia</h2>
+<p>Los iconos en la barra lateral muestran la configuración del agente:</p>
+<div class="icon-row">
+    <img src="/static/icon_crystal_box.svg" alt="Crystal box">
+    <span><strong>Caja de cristal</strong> — El agente muestra trazas de decisión y detalles de las fuentes consultadas. Máxima transparencia.</span>
+</div>
+<div class="icon-row">
+    <img src="/static/icon_reliability_on.svg" alt="Reliability on">
+    <span><strong>Indicadores de fiabilidad activados</strong> — Los banners de color están visibles en cada respuesta.</span>
+</div>
+<p>El icono <span style="font-size:14px;background:rgba(0,0,0,0.05);border-radius:4px;padding:2px 5px;">🟢</span> indica que el nivel de prompt es <strong>estricto</strong>: el agente prioriza la precisión sobre la exhaustividad.</p>
+
+<h2>Fuentes documentales</h2>
+<p>El agente tiene indexados los siguientes documentos oficiales (Work Programmes de Horizon Europe 2026-2027):</p>
+<ol class="source-list">
+    <li>Introducción general (wp-1)</li>
+    <li>Acciones Marie Skłodowska-Curie (wp-2)</li>
+    <li>Infraestructuras de investigación (wp-3)</li>
+    <li>Salud (wp-4)</li>
+    <li>Cultura, creatividad y sociedad inclusiva (wp-5)</li>
+    <li>Seguridad civil para la sociedad (wp-6)</li>
+    <li>Digital, industria y espacio (wp-7)</li>
+    <li>Clima, energía y movilidad (wp-8)</li>
+    <li>Alimentación, bioeconomía, recursos naturales, agricultura y medio ambiente (wp-9)</li>
+    <li>Ecosistemas europeos de innovación (wp-10)</li>
+    <li>Ampliación de la participación y refuerzo del EEI (wp-11)</li>
+    <li>Misiones (wp-12)</li>
+    <li>Nueva Bauhaus Europea (wp-13)</li>
+    <li>Actividades horizontales (wp-14)</li>
+    <li>Anexos generales (wp-15)</li>
+    <li>Programa de trabajo del ERC 2026</li>
+    <li>Programa de trabajo del EIC 2026</li>
+    <li>Programa de trabajo CBE-JU 2026</li>
+</ol>
+
+<h2>Limitaciones</h2>
+<ul>
+    <li>Las respuestas son <strong>resúmenes generados por IA</strong> — verifica siempre los detalles importantes en los documentos oficiales del <a href="https://ec.europa.eu/info/funding-tenders/opportunities/portal/" target="_blank">Portal de Financiación de la UE</a>.</li>
+    <li>El agente no tiene información sobre convocatorias fuera de Horizon Europe 2026-2027.</li>
+    <li>Los documentos fuente están en inglés — las traducciones al español son aproximadas.</li>
+</ul>
+
+<a href="/uninovis-uma" class="back-link">&larr; Volver a Agentes administrativos</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentes administrativos</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; }
+.nav { background: #4250b3; padding: 10px 24px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 15px; text-decoration: none; }
+.nav-brand:hover { opacity: 0.9; }
+.nav-sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.nav-current { color: #fff; font-size: 15px; font-weight: 600; }
+.nav-help { color: rgba(255,255,255,0.8); font-size: 13px; text-decoration: none; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 4px; }
+.nav-help:hover { background: rgba(255,255,255,0.25); color: #fff; }
+.nav-logos { display: flex; align-items: center; gap: 10px; }
+.agent-frame { flex: 1; border: none; width: 100%; }
+.loading { flex: 1; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/uninovis-uma" class="nav-brand">Agentes administrativos</a>
+    <span class="nav-sep">/</span>
+    <span class="nav-current" id="agentName">Cargando...</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+        <a href="#" class="nav-help" id="helpLink">? Ayuda</a>
+        <div class="nav-logos">
+            <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:44px;">
+            <img src="/static/logo_uma.png" alt="UMA" style="height:44px;">
+        </div>
+    </div>
+</div>
+
+<div class="loading" id="loadingMsg">Verificando acceso...</div>
+<iframe class="agent-frame" id="agentFrame" style="display:none;"></iframe>
+
+<script>
+var AGENTS = {
+    'pisha5': { name: 'Asistente BD Algoria', help: '/uninovis-uma/help/agoria-db' },
+    'proyectoseuopeos': { name: 'Proyectos Europeos', help: '/uninovis-uma/help/european-projects' },
+};
+
+var params = new URLSearchParams(window.location.search);
+var agentId = params.get('agent');
+
+if (agentId && AGENTS[agentId]) {
+    var agent = AGENTS[agentId];
+    document.getElementById('agentName').textContent = agent.name;
+    document.getElementById('helpLink').href = agent.help;
+    document.title = 'Agentes administrativos — ' + agent.name;
+
+    // Check auth first
+    var token = localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
+    if (!token) {
+        // No token — redirect to login
+        window.location.href = '/login?redirect=' + encodeURIComponent('/uninovis-uma/agent?agent=' + agentId);
+    } else {
+        // Verify token is valid
+        fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(function(r) {
+                if (r.ok) return r.json();
+                throw new Error('invalid');
+            })
+            .then(function(data) {
+                if (!data || data.role === 'public' || data.username === 'guest') {
+                    throw new Error('not authenticated');
+                }
+                // Token valid — load agent in iframe
+                document.getElementById('loadingMsg').style.display = 'none';
+                var frame = document.getElementById('agentFrame');
+                frame.style.display = '';
+                frame.src = '/agents/' + agentId;
+            })
+            .catch(function() {
+                // Token invalid — clear and redirect to login
+                localStorage.removeItem('tommi_token');
+                localStorage.removeItem('uninovis_token');
+                window.location.href = '/login?redirect=' + encodeURIComponent('/uninovis-uma/agent?agent=' + agentId);
+            });
+    }
+} else {
+    window.location.href = '/uninovis-uma';
+}
+</script>
+</body>
+</html>

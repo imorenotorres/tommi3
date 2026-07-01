@@ -1013,6 +1013,7 @@ class AgentResponse(BaseModel):
     transparency_type: str = ""
     prompt_level: str = "stringent"
     decision_trace: str = "black_box"
+    reliability_cues: str = ""
 
 
 @app.get("/")
@@ -1062,6 +1063,42 @@ async def responsible_ai_public_page():
 async def health_wellbeing_public_page():
     """Serve the public Health & Wellbeing Systems Research Explorer page (no auth required)"""
     return FileResponse(SCRIPT_DIR / "static" / "health_wellbeing.html")
+
+
+@app.get("/uninovis-uma")
+async def uninovis_uma_page():
+    """Serve the UNINOVIS-UMA AI Tools landing page"""
+    return FileResponse(SCRIPT_DIR / "static" / "uninovis_uma.html")
+
+
+@app.get("/uninovis-uma/agent")
+async def uninovis_uma_agent():
+    """Serve an agent within the UNINOVIS-UMA wrapper"""
+    return FileResponse(SCRIPT_DIR / "static" / "uma_agent.html")
+
+
+@app.get("/uninovis-uma/algoria")
+async def uninovis_uma_algoria():
+    """Serve the Algoria DB agent page within UNINOVIS-UMA"""
+    return FileResponse(SCRIPT_DIR / "static" / "uma_algoria.html")
+
+
+@app.get("/uninovis-uma/proyectos-europeos")
+async def uninovis_uma_proyectos():
+    """Serve the European Projects agent page within UNINOVIS-UMA"""
+    return FileResponse(SCRIPT_DIR / "static" / "uma_proyectos.html")
+
+
+@app.get("/uninovis-uma/help/agoria-db")
+async def help_agoria_db():
+    """Help page for the Agoria DB Assistant"""
+    return FileResponse(SCRIPT_DIR / "static" / "help_agoria_db.html")
+
+
+@app.get("/uninovis-uma/help/european-projects")
+async def help_european_projects():
+    """Help page for the European Projects Assistant"""
+    return FileResponse(SCRIPT_DIR / "static" / "help_european_projects.html")
 
 
 @app.get("/european-projects")
@@ -1655,7 +1692,8 @@ async def list_agents(request: Request, mode: Optional[str] = Query(None), prefi
             transparency_level=a.transparency_level,
             transparency_type=a.transparency_type,
             prompt_level=a.prompt_level,
-            decision_trace=a.decision_trace
+            decision_trace=a.decision_trace,
+            reliability_cues=a.reliability_cues
         )
         for a in agents
     ]
@@ -1819,7 +1857,7 @@ async def get_public_agent_info(agent_id: str):
         "is_local": is_local,
         "model": model,
         "prompt_level": cfg.get("prompt_level", ""),
-        "decision_trace": cfg.get("decision_trace", cfg.get("transparency_level", "")),
+        "decision_trace": cfg.get("decision_trace") or cfg.get("transparency_level", ""),
         "reliability_cues": cfg.get("reliability_cues", ""),
     }
 

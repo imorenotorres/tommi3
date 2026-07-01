@@ -34,6 +34,7 @@ class AgentInfo:
     transparency_type: str = ""  # "procedural" or "content" (empty = auto from class)
     prompt_level: str = "stringent"
     decision_trace: str = "black_box"
+    reliability_cues: str = ""
 
 
 @dataclass
@@ -110,7 +111,8 @@ class AgentRunner:
                     transparency_level=config.get("transparency_level", "black_box"),
                     transparency_type=config.get("transparency_type", ""),
                     prompt_level=config.get("prompt_level", "stringent"),
-                    decision_trace=config.get("decision_trace", "black_box"),
+                    decision_trace=config.get("decision_trace") or config.get("transparency_level", "black_box"),
+                    reliability_cues=config.get("reliability_cues", ""),
                 )
 
                 if agent.public:
@@ -148,7 +150,8 @@ class AgentRunner:
                     "transparency_level": cfg.get("transparency_level", "black_box"),
                     "transparency_type": cfg.get("transparency_type", ""),
                     "prompt_level": cfg.get("prompt_level", "stringent"),
-                    "decision_trace": cfg.get("decision_trace", "black_box"),
+                    "decision_trace": cfg.get("decision_trace") or cfg.get("transparency_level", "black_box"),
+                    "reliability_cues": cfg.get("reliability_cues", ""),
                 }
                 # Use type from config.json if present, otherwise try app.py
                 config["type"] = cfg.get("type") or self._extract_agent_type(app_py) or "oneshot"
