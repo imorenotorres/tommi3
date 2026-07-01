@@ -62,7 +62,7 @@ class AgentRunner:
         for agent_dir in self.agents_base_path.iterdir():
             if not agent_dir.is_dir():
                 continue
-            if agent_dir.name.startswith('.') or agent_dir.name in ['web', '__pycache__']:
+            if agent_dir.name.startswith('.') or agent_dir.name in ['web', '__pycache__', 'OldAgents', 'Old']:
                 continue
             if (agent_dir / "app.py").exists():
                 candidate_dirs.append(agent_dir)
