@@ -24,7 +24,7 @@
 body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
 
 /* Nav bar */
-.nav { background: #4250b3; padding: 12px 24px; display: flex; align-items: center; gap: 12px; }
+.nav { background: #4250b3; padding: 16px 24px 60px; display: flex; align-items: flex-start; gap: 12px; }
 .nav-brand { color: #fff; font-weight: 700; font-size: 16px; text-decoration: none; }
 .nav-sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
 .nav-current { color: #fff; font-size: 16px; font-weight: 600; }
@@ -82,17 +82,14 @@ a.card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.
 <body>
 
 <div class="nav">
-    <span class="nav-current" style="font-size:24px;">Agentes administrativos</span>
-    <div style="margin-left:auto;display:flex;flex-direction:column;align-items:center;">
-        <div style="display:flex;align-items:center;gap:12px;">
-            <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:70px;">
-            <img src="/static/logo_uma.png" alt="UMA" style="height:70px;">
-        </div>
-        <span style="color:rgba(255,255,255,0.85);font-size:14px;margin-top:4px;">Vicerrectorado de Movilidad y Proyectos Internacionales</span>
+    <div>
+        <span class="nav-current" style="font-size:24px;display:block;">Agentes administrativos</span>
+        <span style="color:rgba(255,255,255,0.85);font-size:15px;display:block;margin-top:2px;">Vicerrectorado de Movilidad y Proyectos Internacionales</span>
     </div>
-</div>
-
-<div class="hero">
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+        <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:70px;">
+        <img src="/static/logo_uma.png" alt="UMA" style="height:70px;">
+    </div>
 </div>
 
 <section class="cards-section">
