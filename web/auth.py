@@ -51,6 +51,7 @@ _DEFAULT_TOOL_ACCESS = {
     # Events & Communication
     "event_calendar":     ["admin_staff", "teaching_staff", "tester", "superuser"],
     "event_catalogue":    ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "calendar":           ["admin_staff", "teaching_staff", "tester", "superuser"],
     # Administration
     "directory":          ["admin_staff", "teaching_staff", "tester", "superuser"],
     "dp_status":          ["admin_staff", "teaching_staff", "tester", "superuser"],

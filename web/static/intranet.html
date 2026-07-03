@@ -132,6 +132,7 @@ var TOOL_ACCESS = {
     // Events & Communication
     'event_calendar':     ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
     'event_catalogue':    ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'calendar':           ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
     // Administration
     'directory':          ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
     'intranet_services':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
@@ -181,6 +182,7 @@ var SECTIONS = [
         roles: ['admin_staff', 'teaching_staff'],
         tools: [
             { id: 'event_catalogue', name: 'Event Catalogue', icon: '\uD83D\uDCC5', desc: 'Public catalogue of events, workshops, and activities.', url: 'https://uninovis.widening.eu/event-catalogue', status: 'active', external: true },
+            { id: 'calendar', name: 'Calendar', icon: '\uD83D\uDCC5', desc: 'Unified calendar with UNINOVIS events and Agora catalogue integration.', url: '/calendar/', status: 'active' },
         ]
     },
     {
@@ -1063,6 +1065,7 @@ var TOOL_LABELS = {
     // Events & Communication
     event_calendar: 'Event Tracker',
     event_catalogue: 'Event Catalogue',
+    calendar: 'Calendar',
     // Administration
     directory: 'Directory',
     intranet_services: 'Services Catalogue',

@@ -212,6 +212,11 @@ from apps.event_calendar.event_calendar import router as event_calendar_router
 app.include_router(event_calendar_router)
 app.mount("/event-calendar/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "event_calendar" / "static"), name="event_calendar_static")
 
+# Mount Calendar app
+from apps.calendar.calendar import router as calendar_router
+app.include_router(calendar_router)
+app.mount("/calendar/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "calendar" / "static"), name="calendar_static")
+
 # Mount Matomo Analytics app
 from apps.matomo_analytics.matomo_analytics import router as matomo_analytics_router
 app.include_router(matomo_analytics_router)
