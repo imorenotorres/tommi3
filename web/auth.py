@@ -49,11 +49,10 @@ _DEFAULT_TOOL_ACCESS = {
     "research_portfolio": ["teaching_staff", "tester", "superuser"],
     "research_explorers": ["student", "teaching_staff", "tester", "superuser"],
     # Events & Communication
-    "event_calendar":     ["admin_staff", "teaching_staff", "tester", "superuser"],
     "event_catalogue":    ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "calendar":           ["admin_staff", "teaching_staff", "tester", "superuser"],
     # Administration
     "directory":          ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "event_tracker":      ["admin_staff", "teaching_staff", "tester", "superuser"],
     "dp_status":          ["admin_staff", "teaching_staff", "tester", "superuser"],
     # Analytics
     "log_analytics":      ["superuser"],

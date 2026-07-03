@@ -207,15 +207,10 @@ app.mount("/researcher_connect/static", StaticFiles(directory=SCRIPT_DIR / "apps
 # app.include_router(rag_study_router)
 # app.mount("/rag-study/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "rag_study" / "static"), name="rag_study_static")
 
-# Mount Event Calendar app
-from apps.event_calendar.event_calendar import router as event_calendar_router
-app.include_router(event_calendar_router)
-app.mount("/event-calendar/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "event_calendar" / "static"), name="event_calendar_static")
-
-# Mount Calendar app
-from apps.calendar.calendar import router as calendar_router
-app.include_router(calendar_router)
-app.mount("/calendar/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "calendar" / "static"), name="calendar_static")
+# Mount Event Tracker app
+from apps.event_tracker.event_tracker import router as event_tracker_router
+app.include_router(event_tracker_router)
+app.mount("/event-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "event_tracker" / "static"), name="event_tracker_static")
 
 # Mount Matomo Analytics app
 from apps.matomo_analytics.matomo_analytics import router as matomo_analytics_router

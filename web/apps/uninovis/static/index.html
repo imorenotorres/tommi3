@@ -156,7 +156,6 @@
     // Tool access rules (mirrors TOOL_ACCESS in auth.py)
     var TOOL_ACCESS = {
         'directory':          ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-        'event_calendar':     ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
         'mobility_planner':   ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
         'intranet_services':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
         'unigracon':          ['teaching_staff', 'tester', 'superuser'],
@@ -182,14 +181,6 @@
             icon: '\uD83D\uDCCB',
             description: 'Internal staff directory. Manage contacts, groups, and org charts for all UNINOVIS partners.',
             url: '/directory/',
-            status: 'pilot',
-        },
-        {
-            id: 'event_calendar',
-            name: 'Event Tracker',
-            icon: '\uD83D\uDCC5',
-            description: 'UNINOVIS event tracker with category filters, calendar views, list view, and iCal subscription.',
-            url: '/event-calendar/',
             status: 'pilot',
         },
         {

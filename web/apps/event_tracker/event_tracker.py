@@ -1,5 +1,5 @@
 """
-UNINOVIS Calendar — mirrors the Event Tracker and adds sync with the
+UNINOVIS Event Tracker — shared calendar of UNINOVIS events, synced with the
 Agora Event Catalogue API (https://uninovis.widening.eu/catalogue-api/v2/).
 
 Catalogue token is read from the CATALOGUE_API_TOKEN environment variable
@@ -34,7 +34,7 @@ ENV_PATH    = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
 
 os.makedirs(PERSONAL_DIR, exist_ok=True)
 
-router = APIRouter(prefix="/calendar", tags=["calendar"])
+router = APIRouter(prefix="/event-tracker", tags=["event_tracker"])
 
 # ---------------------------------------------------------------------------
 # Catalogue API config
@@ -180,7 +180,7 @@ def load_directory():
 
 
 # ---------------------------------------------------------------------------
-# Recurrence helpers (identical to event_calendar)
+# Recurrence helpers
 # ---------------------------------------------------------------------------
 
 def _nth_weekday_of_month(year, month, weekday, nth):
@@ -505,7 +505,7 @@ async def catalogue_sync(session: dict = Depends(_require_editor)):
 
 
 # ---------------------------------------------------------------------------
-# Event CRUD (identical to event_calendar)
+# Event CRUD
 # ---------------------------------------------------------------------------
 
 class EventBody(BaseModel):
@@ -830,10 +830,10 @@ def _generate_ics(events_list: list) -> str:
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//UNINOVIS//Calendar//EN",
+        "PRODID:-//UNINOVIS//Event Tracker//EN",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
-        "X-WR-CALNAME:UNINOVIS Calendar",
+        "X-WR-CALNAME:UNINOVIS Event Tracker",
         "X-WR-TIMEZONE:Europe/Berlin",
     ]
     for ev in events_list:

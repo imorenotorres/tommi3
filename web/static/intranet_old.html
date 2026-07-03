@@ -179,7 +179,6 @@
 var TOOL_ACCESS = {
     'research_explorers': ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
     'directory':          ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'event_calendar':     ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
     'mobility_planner':   ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
     'intranet_services':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
     'unigracon':          ['teaching_staff', 'tester', 'superuser'],
@@ -230,7 +229,6 @@ var SECTIONS = [
         roles: ['admin_staff', 'teaching_staff'],
         tools: [
             { id: 'directory', name: 'Directory', icon: '\uD83D\uDCCB', desc: 'Staff directory, groups, and org charts.', url: '/directory/', status: 'testing' },
-            { id: 'event_calendar', name: 'Event Tracker', icon: '\uD83D\uDCC5', desc: 'Event calendar with filters and iCal sync.', url: '/event-calendar/', status: 'testing' },
             { id: 'mobility_planner', name: 'Mobility Planner', icon: '\u2708\uFE0F', desc: 'Call opening dates for mobility activities.', url: '/mobility_planner/', status: 'testing' },
             { id: 'unigracon', name: 'UNIGRACON', icon: '\uD83C\uDF93', desc: 'Grade converter between partner universities.', url: '/unigracon/', status: 'testing' },
             { id: 'intranet_services', name: 'Services Catalogue', icon: '\uD83D\uDDA5\uFE0F', desc: 'All UNINOVIS digital services and tools.', url: '/uninovis/services', status: 'active' },
@@ -996,7 +994,6 @@ var ALL_ROLES = ['public', 'student', 'admin_staff', 'teaching_staff', 'tester',
 // Readable labels for tool IDs
 var TOOL_LABELS = {
     directory: 'Directory',
-    event_calendar: 'Event Tracker',
     mobility_planner: 'Mobility Planner',
     intranet_services: 'Services Catalogue',
     unigracon: 'UNIGRACON',
