@@ -75,20 +75,33 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .event-chip:hover { opacity: 0.85; }
 .event-chip.catalogue { border-left: 3px solid rgba(255,255,255,0.6); opacity: 0.88; }
 
-.week-grid { display: grid; grid-template-columns: 60px repeat(7,1fr); margin: 0 24px 24px; background: var(--border); gap: 1px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.week-grid { display: grid; grid-template-columns: 60px repeat(7,1fr); margin: 0 24px; background: var(--border); gap: 1px; border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; box-shadow: var(--shadow); }
 .week-grid .wg-header { background: var(--primary); color: #fff; text-align: center; padding: 8px 4px; font-size: 0.78rem; font-weight: 600; }
-.week-grid .wg-time { background: #f9f9fb; padding: 4px; font-size: 0.7rem; color: var(--text-light); text-align: right; padding-right: 8px; min-height: 48px; display: flex; align-items: flex-start; justify-content: flex-end; }
-.week-grid .wg-cell { background: var(--card); min-height: 48px; position: relative; padding: 2px; }
+.week-grid .wg-time { background: #f9f9fb; padding: 4px; font-size: 0.7rem; color: var(--text-light); text-align: right; padding-right: 8px; min-height: 32px; display: flex; align-items: flex-start; justify-content: flex-end; }
+.week-grid .wg-cell { background: var(--card); min-height: 32px; position: relative; padding: 2px; }
 .week-grid .wg-cell.today-col { background: #dbeafe; }
 .week-grid .wg-header.today-col { background: var(--primary-light); }
-.wg-event { font-size: 0.7rem; padding: 2px 4px; margin-bottom: 1px; border-radius: 3px; color: #fff; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wg-cell.today-col .wg-event { color: #1e293b; }
+.wg-allday-label { min-height: 32px !important; }
+.wg-allday-cell { min-height: 32px !important; }
+.wg-cell.today-col .event-chip { color: #1e293b; }
+
+.wg-body { display: flex; margin: 0 24px 24px; background: var(--card); border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); border-top: 1px solid var(--border); overflow: hidden; }
+.wg-timelabels { width: 60px; flex-shrink: 0; background: #f9f9fb; }
+.wg-timelabel { font-size: 0.7rem; color: var(--text-light); text-align: right; padding: 2px 8px 0 0; box-sizing: border-box; border-bottom: 1px solid var(--border); }
+.wg-daycol { position: relative; flex: 1; border-left: 1px solid var(--border); background-image: linear-gradient(var(--border) 1px, transparent 1px); }
+.wg-daycol.today-col { background-color: #dbeafe; }
 
 .day-view { margin: 0 24px 24px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
 .day-view .dv-row { display: grid; grid-template-columns: 60px 1fr; border-bottom: 1px solid var(--border); }
 .day-view .dv-time { padding: 8px; font-size: 0.75rem; color: var(--text-light); text-align: right; padding-right: 12px; background: #f9f9fb; }
 .day-view .dv-cell { padding: 4px 8px; min-height: 48px; position: relative; }
-.dv-event { font-size: 0.8rem; padding: 4px 8px; margin-bottom: 2px; border-radius: 4px; color: #fff; cursor: pointer; }
+.dv-body { display: flex; }
+.dv-timelabels { width: 60px; flex-shrink: 0; background: #f9f9fb; }
+.dv-timelabel { font-size: 0.75rem; color: var(--text-light); text-align: right; padding: 2px 12px 0 0; box-sizing: border-box; border-bottom: 1px solid var(--border); }
+.dv-daycol { position: relative; flex: 1; background-image: linear-gradient(var(--border) 1px, transparent 1px); }
+
+.tl-block { position: absolute; border-radius: 4px; padding: 2px 6px; color: #fff; font-size: 0.72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.tl-block.tbc { border: 2px dashed rgba(255,255,255,0.6); opacity: 0.8; }
 
 .kpi-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
 .kpi-table th { background: var(--primary); color: #fff; padding: 6px 10px; text-align: left; font-size: 0.75rem; white-space: nowrap; position: sticky; top: 0; }
@@ -99,7 +112,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 .tbc-badge { display: inline-block; background: #ff9800; color: #fff; font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; font-weight: 600; vertical-align: middle; margin-left: 4px; }
 .event-chip .tbc-badge { font-size: 0.6rem; padding: 0 4px; margin-left: 2px; }
-.event-chip.tbc, .wg-event.tbc, .dv-event.tbc { border: 2px dashed rgba(0,0,0,0.3); opacity: 0.75; }
+.event-chip.tbc { border: 2px dashed rgba(0,0,0,0.3); opacity: 0.75; }
 
 .catalogue-badge { display: inline-block; background: #1565c0; color: #fff; font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; font-weight: 500; vertical-align: middle; margin-left: 4px; }
 
@@ -805,14 +818,37 @@ function updateLabel() {
 function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
 function weekStart(d) { const s = new Date(d); s.setDate(s.getDate() - ((s.getDay() + 6) % 7)); return s; }
 
+function eventSegments(ev) {
+  // BIP-style catalogue events carry discrete component date ranges (virtual/
+  // physical/posterior) instead of one continuous span across the gaps.
+  if (Array.isArray(ev.date_segments) && ev.date_segments.length) return ev.date_segments;
+  if (ev.start_date && ev.end_date) return [{ start: ev.start_date, end: ev.end_date }];
+  return [];
+}
+
+function segmentCoveringDate(ev, date) {
+  const d = new Date(date); d.setHours(12,0,0,0);
+  for (const seg of eventSegments(ev)) {
+    if (!seg.start) continue;
+    const s = new Date(seg.start); s.setHours(0,0,0,0);
+    const en = new Date(seg.end || seg.start); en.setHours(23,59,59,999);
+    if (d >= s && d <= en) return seg;
+  }
+  return null;
+}
+
 function eventsOnDate(date) {
-  return filteredEvents().filter(e => {
-    if (!e.start_date || !e.end_date) return false;
-    const s = new Date(e.start_date); s.setHours(0,0,0,0);
-    const en = new Date(e.end_date); en.setHours(23,59,59,999);
-    const d = new Date(date); d.setHours(12,0,0,0);
-    return d >= s && d <= en;
-  });
+  return filteredEvents().filter(e => segmentCoveringDate(e, date) !== null);
+}
+
+function isAllDaySegment(seg) {
+  // Multi-day segments, or ones covering the whole visible hour window, get
+  // shown once as an all-day banner instead of repeating in every hour row.
+  if (!seg || !seg.start) return false;
+  const s = new Date(seg.start);
+  const e = new Date(seg.end || seg.start);
+  if (!sameDay(s, e)) return true;
+  return s.getHours() <= 7 && e.getHours() >= 21;
 }
 
 function fmtTime(isoStr) {
@@ -821,14 +857,70 @@ function fmtTime(isoStr) {
   return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
+// -- Timed-block layout (week/day views) --------------------------------------
+// Timed events are drawn as one absolutely-positioned block spanning their
+// full duration, instead of being repeated in every hour row they overlap.
+const TIMELINE_ROW_HEIGHT = 48;
+const TIMELINE_FIRST_HOUR = 7;
+const TIMELINE_LAST_HOUR = 21;
+
+function timelineOffset(date) {
+  const hourFrac = Math.max(TIMELINE_FIRST_HOUR, Math.min(TIMELINE_LAST_HOUR + 1, date.getHours() + date.getMinutes() / 60));
+  return (hourFrac - TIMELINE_FIRST_HOUR) * TIMELINE_ROW_HEIGHT;
+}
+
+function timedEventsForDay(day) {
+  // Returns { ev, seg, top, height } for each non-all-day event occurring on
+  // `day`, clipped to the visible hour window, with overlapping events
+  // assigned side-by-side lanes so they don't visually cover one another.
+  const dayStart = new Date(day); dayStart.setHours(TIMELINE_FIRST_HOUR, 0, 0, 0);
+  const dayEnd = new Date(day); dayEnd.setHours(TIMELINE_LAST_HOUR + 1, 0, 0, 0);
+
+  const items = eventsOnDate(day).map(ev => {
+    const seg = segmentCoveringDate(ev, day);
+    if (!seg || isAllDaySegment(seg)) return null;
+    const s = sameDay(new Date(seg.start), day) ? new Date(seg.start) : dayStart;
+    const e = seg.end && sameDay(new Date(seg.end), day) ? new Date(seg.end) : dayEnd;
+    const top = timelineOffset(s);
+    const height = Math.max(20, timelineOffset(e) - top);
+    return { ev, seg, top, height, bottom: top + height };
+  }).filter(Boolean);
+
+  items.sort((a, b) => a.top - b.top);
+  const laneEnds = [];
+  items.forEach(item => {
+    let lane = laneEnds.findIndex(end => end <= item.top);
+    if (lane === -1) { lane = laneEnds.length; laneEnds.push(item.bottom); }
+    else { laneEnds[lane] = item.bottom; }
+    item.lane = lane;
+  });
+  const totalLanes = laneEnds.length || 1;
+  items.forEach(item => { item.totalLanes = totalLanes; });
+  return items;
+}
+
+function timedBlockHTML(item) {
+  const { ev, seg, top, height, lane, totalLanes } = item;
+  const cls = CAT_CSS_CLASS(ev.category);
+  const isCat = ev.source === 'catalogue';
+  const uniList = ev.universities || (ev.university ? [ev.university] : []);
+  const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
+  const widthPct = 100 / totalLanes;
+  const leftPct = widthPct * lane;
+  const style = `top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);`;
+  return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail('${ev.id}')" title="${esc(ev.name)}${uni}">${isCat ? '&#127760; ' : ''}${fmtTime(seg.start)} ${esc(ev.name)}${uni}</div>`;
+}
+
 function evTZ(ev) { return ev.timezone || 'CEST'; }
 
-function chipHTML(ev) {
+function chipHTML(ev, date) {
   const cls = CAT_CSS_CLASS(ev.category);
   const isCat = ev.source === 'catalogue';
   const catCls = isCat ? ' catalogue' : '';
   const personal = ev.visibility === 'personal' ? ' personal' : '';
-  const t = ev.start_date ? fmtTime(ev.start_date) : '';
+  const seg = date ? segmentCoveringDate(ev, date) : null;
+  const segStart = seg ? seg.start : ev.start_date;
+  const t = segStart ? fmtTime(segStart) : '';
   const icon = ev.visibility === 'personal' ? '&#128274; ' : isCat ? '&#127760; ' : '';
   const timeLabel = ev.date_tbc ? '' : (t ? t + ' ' : '');
   const uniList = ev.universities || (ev.university ? [ev.university] : []);
@@ -836,7 +928,8 @@ function chipHTML(ev) {
   const shortName = ev.name.length > 22 ? ev.name.slice(0, 20) + '...' : ev.name;
   const tbcCls = ev.date_tbc ? ' tbc' : '';
   const tbcPrefix = ev.date_tbc ? '<span style="font-size:0.6rem;opacity:0.85;">TBC</span> ' : '';
-  return `<div class="event-chip ${cls}${catCls}${personal}${tbcCls}" onclick="showDetail('${ev.id}')" title="${ev.name}${uni}${isCat ? ' [Agora Catalogue]' : ''}">${icon}${tbcPrefix}${timeLabel}${shortName}</div>`;
+  const segLabel = seg && seg.label ? ' — ' + seg.label : '';
+  return `<div class="event-chip ${cls}${catCls}${personal}${tbcCls}" onclick="showDetail('${ev.id}')" title="${ev.name}${uni}${segLabel}${isCat ? ' [Agora Catalogue]' : ''}">${icon}${tbcPrefix}${timeLabel}${shortName}</div>`;
 }
 
 // -- Month view --------------------------------------------------------------
@@ -855,7 +948,7 @@ function renderMonth() {
     const isToday = sameDay(d, today);
     html += `<div class="day-cell${isOther ? ' other-month' : ''}${isToday ? ' today' : ''}">`;
     html += `<div class="day-num">${d.getDate()}</div>`;
-    eventsOnDate(d).forEach(ev => { html += chipHTML(ev); });
+    eventsOnDate(d).forEach(ev => { html += chipHTML(ev, d); });
     html += '</div>';
   }
   html += '</div>';
@@ -867,59 +960,67 @@ function renderWeek() {
   const ws = weekStart(currentDate);
   const today = new Date(); today.setHours(0,0,0,0);
   const hours = [];
-  for (let h = 7; h <= 21; h++) hours.push(h);
+  for (let h = TIMELINE_FIRST_HOUR; h <= TIMELINE_LAST_HOUR; h++) hours.push(h);
+  const totalHeight = hours.length * TIMELINE_ROW_HEIGHT;
+  const weekDays = [];
+  for (let i = 0; i < 7; i++) { const d = new Date(ws); d.setDate(d.getDate() + i); weekDays.push(d); }
+
   let html = '<div class="week-grid">';
   html += '<div class="wg-header"></div>';
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(ws); d.setDate(d.getDate() + i);
+  weekDays.forEach(d => {
     const isToday = sameDay(d, today);
     html += `<div class="wg-header${isToday ? ' today-col' : ''}">${d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}</div>`;
-  }
-  hours.forEach(h => {
-    html += `<div class="wg-time">${String(h).padStart(2,'0')}:00</div>`;
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(ws); d.setDate(d.getDate() + i);
-      const isToday = sameDay(d, today);
-      const dayEvents = eventsOnDate(d).filter(ev => {
-        const s = new Date(ev.start_date); const e = new Date(ev.end_date);
-        return s.getHours() <= h && e.getHours() >= h;
-      });
-      html += `<div class="wg-cell${isToday ? ' today-col' : ''}">`;
-      dayEvents.forEach(ev => {
-        const uniList = ev.universities || (ev.university ? [ev.university] : []);
-        const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
-        const nm = ev.name.length > 18 ? ev.name.slice(0, 16) + '...' : ev.name;
-        const isCat = ev.source === 'catalogue';
-        html += `<div class="wg-event ${CAT_CSS_CLASS(ev.category)}${ev.date_tbc?' tbc':''}" onclick="showDetail('${ev.id}')">${isCat?'&#127760; ':''}${fmtTime(ev.start_date)} ${nm}${uni}</div>`;
-      });
-      html += '</div>';
-    }
+  });
+
+  html += '<div class="wg-time wg-allday-label">All day</div>';
+  weekDays.forEach(d => {
+    const isToday = sameDay(d, today);
+    const allDayEvents = eventsOnDate(d).filter(ev => isAllDaySegment(segmentCoveringDate(ev, d)));
+    html += `<div class="wg-cell wg-allday-cell${isToday ? ' today-col' : ''}">`;
+    allDayEvents.forEach(ev => { html += chipHTML(ev, d); });
+    html += '</div>';
   });
   html += '</div>';
+
+  html += '<div class="wg-body">';
+  html += '<div class="wg-timelabels">';
+  hours.forEach(h => { html += `<div class="wg-timelabel" style="height:${TIMELINE_ROW_HEIGHT}px;">${String(h).padStart(2,'0')}:00</div>`; });
+  html += '</div>';
+  weekDays.forEach(d => {
+    const isToday = sameDay(d, today);
+    html += `<div class="wg-daycol${isToday ? ' today-col' : ''}" style="height:${totalHeight}px;background-size:100% ${TIMELINE_ROW_HEIGHT}px;">`;
+    timedEventsForDay(d).forEach(item => { html += timedBlockHTML(item); });
+    html += '</div>';
+  });
+  html += '</div>';
+
   document.getElementById('calendarContainer').innerHTML = html;
 }
 
 // -- Day view ----------------------------------------------------------------
 function renderDay() {
   const hours = [];
-  for (let h = 7; h <= 21; h++) hours.push(h);
+  for (let h = TIMELINE_FIRST_HOUR; h <= TIMELINE_LAST_HOUR; h++) hours.push(h);
+  const totalHeight = hours.length * TIMELINE_ROW_HEIGHT;
   let html = '<div class="day-view">';
-  hours.forEach(h => {
-    const dayEvents = eventsOnDate(currentDate).filter(ev => {
-      const s = new Date(ev.start_date); const e = new Date(ev.end_date);
-      return s.getHours() <= h && e.getHours() >= h;
-    });
+
+  const allDayEvents = eventsOnDate(currentDate).filter(ev => isAllDaySegment(segmentCoveringDate(ev, currentDate)));
+  if (allDayEvents.length) {
     html += '<div class="dv-row">';
-    html += `<div class="dv-time">${String(h).padStart(2,'0')}:00</div>`;
+    html += '<div class="dv-time">All day</div>';
     html += '<div class="dv-cell">';
-    dayEvents.forEach(ev => {
-      const uniList = ev.universities || (ev.university ? [ev.university] : []);
-      const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
-      const isCat = ev.source === 'catalogue';
-      html += `<div class="dv-event ${CAT_CSS_CLASS(ev.category)}${ev.date_tbc?' tbc':''}" onclick="showDetail('${ev.id}')">${isCat?'&#127760; ':''}${fmtTime(ev.start_date)} ${ev.name}${uni}</div>`;
-    });
+    allDayEvents.forEach(ev => { html += chipHTML(ev, currentDate); });
     html += '</div></div>';
-  });
+  }
+
+  html += '<div class="dv-body">';
+  html += '<div class="dv-timelabels">';
+  hours.forEach(h => { html += `<div class="dv-timelabel" style="height:${TIMELINE_ROW_HEIGHT}px;">${String(h).padStart(2,'0')}:00</div>`; });
+  html += '</div>';
+  html += `<div class="dv-daycol" style="height:${totalHeight}px;background-size:100% ${TIMELINE_ROW_HEIGHT}px;">`;
+  timedEventsForDay(currentDate).forEach(item => { html += timedBlockHTML(item); });
+  html += '</div></div>';
+
   html += '</div>';
   document.getElementById('calendarContainer').innerHTML = html;
 }

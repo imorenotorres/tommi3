@@ -286,6 +286,22 @@ class EventBody(BaseModel):
     virtual_post_url: str = ""
 
 
+def _compute_actual_dates(body: EventBody) -> tuple[str, str]:
+    """For BIPs, span the physical component plus any virtual pre/post components;
+    the general start/end fields are only used as the physical component's dates."""
+    if body.category != "BIP":
+        return body.start_date, body.end_date
+    starts = [d for d in (body.virtual_pre_start, body.start_date, body.virtual_post_start) if d]
+    ends = [d for d in (
+        body.virtual_pre_end or body.virtual_pre_start,
+        body.end_date,
+        body.virtual_post_end or body.virtual_post_start,
+    ) if d]
+    if not starts or not ends:
+        return body.start_date, body.end_date
+    return min(starts), max(ends)
+
+
 def _build_event(body: EventBody, start_date: str, end_date: str, series_id: str, username: str) -> dict:
     # Support both legacy single university and new multi-university
     unis = body.universities if body.universities else ([body.university] if body.university else [])
@@ -412,12 +428,14 @@ def create_event(body: EventBody, session: dict = Depends(_require_auth)):
     data = load_data()
     _validate_event(body, data)
 
+    actual_start, actual_end = _compute_actual_dates(body)
+
     recurrence = body.recurrence
     if recurrence and recurrence.get("type"):
         # Create a series of recurring events
         series_id = "ser" + str(uuid.uuid4())[:8]
-        start_dt = datetime.fromisoformat(body.start_date)
-        end_dt = datetime.fromisoformat(body.end_date)
+        start_dt = datetime.fromisoformat(actual_start)
+        end_dt = datetime.fromisoformat(actual_end)
         duration = end_dt - start_dt
         until_str = recurrence.get("until", "")
         if not until_str:
@@ -445,7 +463,7 @@ def create_event(body: EventBody, session: dict = Depends(_require_auth)):
             save_data(data)
         return {"series_id": series_id, "count": len(created), "events": created}
     else:
-        ev = _build_event(body, body.start_date, body.end_date, "", session["username"])
+        ev = _build_event(body, actual_start, actual_end, "", session["username"])
         _store_event(ev, session["username"])
         # Create virtual components as separate events
         components = _build_virtual_components(body, ev["id"], session["username"])
@@ -466,8 +484,9 @@ def _update_ev_fields(ev: dict, body: EventBody):
     ev["place"] = body.place
     ev["meeting_url"] = body.meeting_url
     ev["timezone"] = body.timezone
-    ev["start_date"] = body.start_date
-    ev["end_date"] = body.end_date
+    actual_start, actual_end = _compute_actual_dates(body)
+    ev["start_date"] = actual_start
+    ev["end_date"] = actual_end
     ev["registration_link"] = body.registration_link
     ev["image"] = body.image
     ev["participants"] = body.participants

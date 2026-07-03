@@ -299,8 +299,6 @@ def _agora_item_to_event(item: dict) -> dict:
     fields = item.get("fields", {})
     catalogue_id = item.get("id")
     name = fields.get("name") or fields.get("display_name") or "(Untitled)"
-    start = _agora_date(fields.get("x_date"))
-    end   = _agora_date(fields.get("x_end_date"))
     category = _extract_event_type(fields.get("x_event_type"))
     unis = _extract_unis(fields.get("x_partners"))
     description_html = fields.get("x_description", "")
@@ -313,9 +311,37 @@ def _agora_item_to_event(item: dict) -> dict:
     if not image or image == "False":
         image = ""
 
-    # Determine if physical or virtual (BIPs have both components)
+    # BIP component dates: virtual (mandatory-ish) + physical + posterior (optional)
     virt_start = _agora_date(fields.get("x_virtualcomponentdatestart"))
+    virt_end   = _agora_date(fields.get("x_virtualcomponentdateend"))
     phys_start = _agora_date(fields.get("x_physicaldatebipstart"))
+    phys_end   = _agora_date(fields.get("x_physicaldatebipend"))
+    post_start = _agora_date(fields.get("x_posteriorcomponentstart"))
+    post_end   = _agora_date(fields.get("x_posteriorcomponentend"))
+
+    component_starts = [d for d in (virt_start, phys_start, post_start) if d]
+    component_ends = [d for d in (virt_end, phys_end, post_end) if d]
+    if component_starts or component_ends:
+        # BIP component fields take priority over x_date/x_end_date
+        start = min(component_starts) if component_starts else None
+        end = max(component_ends) if component_ends else start
+    else:
+        start = _agora_date(fields.get("x_date"))
+        end   = _agora_date(fields.get("x_end_date"))
+
+    # Discrete date ranges the event actually occupies (so the calendar can
+    # highlight just those days instead of filling the gap between components).
+    date_segments = []
+    if virt_start:
+        date_segments.append({"start": virt_start, "end": virt_end or virt_start, "label": "Virtual component"})
+    if phys_start:
+        date_segments.append({"start": phys_start, "end": phys_end or phys_start, "label": "Physical component"})
+    if post_start:
+        date_segments.append({"start": post_start, "end": post_end or post_start, "label": "Posterior component"})
+    if not date_segments and start:
+        date_segments.append({"start": start, "end": end or start, "label": ""})
+
+    # Determine if physical or virtual (BIPs have both components)
     if phys_start and virt_start:
         event_type = "Physical"  # main event is physical; virtual component noted in description
     elif virt_start:
@@ -342,6 +368,7 @@ def _agora_item_to_event(item: dict) -> dict:
         "timezone": "CEST",
         "start_date": start,
         "end_date": end if end else start,
+        "date_segments": date_segments,
         "registration_link": reg_link,
         "image": image,
         "visibility": "shared",
@@ -352,12 +379,12 @@ def _agora_item_to_event(item: dict) -> dict:
         "series_id": "",
         "created_by": "agora_catalogue",
         # Extra Agora-specific info
-        "x_virtual_start": _agora_date(fields.get("x_virtualcomponentdatestart")),
-        "x_virtual_end":   _agora_date(fields.get("x_virtualcomponentdateend")),
-        "x_physical_start": _agora_date(fields.get("x_physicaldatebipstart")),
-        "x_physical_end":   _agora_date(fields.get("x_physicaldatebipend")),
-        "x_posterior_start": _agora_date(fields.get("x_posteriorcomponentstart")),
-        "x_posterior_end":   _agora_date(fields.get("x_posteriorcomponentend")),
+        "x_virtual_start": virt_start,
+        "x_virtual_end":   virt_end,
+        "x_physical_start": phys_start,
+        "x_physical_end":   phys_end,
+        "x_posterior_start": post_start,
+        "x_posterior_end":   post_end,
         "x_programme": fields.get("x_programme", ""),
         "x_target_group": _parse_agora_field(fields.get("x_target_group")),
         "x_number_of_participants": fields.get("x_numberofparticipants", "0"),

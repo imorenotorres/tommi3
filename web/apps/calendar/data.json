@@ -20,6 +20,13 @@
       "timezone": "CEST",
       "start_date": "2026-10-22T06:00:00",
       "end_date": "2026-10-23T13:00:00",
+      "date_segments": [
+        {
+          "start": "2026-10-22T06:00:00",
+          "end": "2026-10-23T13:00:00",
+          "label": ""
+        }
+      ],
       "registration_link": "https://docs.google.com/forms/d/e/1FAIpQLSeDce5J1O1mJF6HUMr_ThoI80uGvZ6lYw0JskDiBSZQi5-a2A/viewform",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=20&field=x_image",
       "visibility": "shared",
@@ -61,6 +68,13 @@
       "timezone": "CEST",
       "start_date": "2026-04-13T08:00:00",
       "end_date": "2026-04-17T12:00:00",
+      "date_segments": [
+        {
+          "start": "2026-04-13T08:00:00",
+          "end": "2026-04-17T12:00:00",
+          "label": ""
+        }
+      ],
       "registration_link": "https://www.uma.es/international-hub/noticias/information-about-uma-15th-international-staff-week/",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=13&field=x_image",
       "visibility": "shared",
@@ -98,8 +112,20 @@
       "place": "",
       "meeting_url": "",
       "timezone": "CEST",
-      "start_date": "2026-10-12T05:00:00",
-      "end_date": "2026-10-23T14:00:00",
+      "start_date": "2026-10-11T21:00:00",
+      "end_date": "2026-10-22T21:00:00",
+      "date_segments": [
+        {
+          "start": "2026-10-11T21:00:00",
+          "end": "2026-10-15T21:00:00",
+          "label": "Virtual component"
+        },
+        {
+          "start": "2026-10-18T21:00:00",
+          "end": "2026-10-22T21:00:00",
+          "label": "Physical component"
+        }
+      ],
       "registration_link": "mailto:rita.kmite@go.kauko.lt",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=19&field=x_image",
       "visibility": "shared",
@@ -143,6 +169,18 @@
       "timezone": "CEST",
       "start_date": "2026-05-18T09:00:00",
       "end_date": "2026-06-19T11:30:00",
+      "date_segments": [
+        {
+          "start": "2026-05-18T09:00:00",
+          "end": "2026-05-18T11:00:00",
+          "label": "Virtual component"
+        },
+        {
+          "start": "2026-06-15T08:00:00",
+          "end": "2026-06-19T11:30:00",
+          "label": "Physical component"
+        }
+      ],
       "registration_link": "https://uninovis.widening.eu/event/artificial-intelligence-agents-blended-intensive-programme-bip-21/register",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=2&field=x_image",
       "visibility": "shared",
@@ -183,6 +221,23 @@
       "timezone": "CEST",
       "start_date": "2026-04-27T08:00:00",
       "end_date": "2026-05-29T08:00:00",
+      "date_segments": [
+        {
+          "start": "2026-04-27T08:00:00",
+          "end": "2026-04-27T10:00:00",
+          "label": "Virtual component"
+        },
+        {
+          "start": "2026-05-04T06:00:00",
+          "end": "2026-05-08T17:00:00",
+          "label": "Physical component"
+        },
+        {
+          "start": "2026-05-29T06:00:00",
+          "end": "2026-05-29T08:00:00",
+          "label": "Posterior component"
+        }
+      ],
       "registration_link": "https://uninovis.widening.eu/event/shaping-the-future-of-health-young-researchers-leading-change-23/register",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=1&field=x_image",
       "visibility": "shared",
@@ -220,6 +275,13 @@
       "timezone": "CEST",
       "start_date": "2026-06-18T06:30:00",
       "end_date": "2026-06-18T15:00:00",
+      "date_segments": [
+        {
+          "start": "2026-06-18T06:30:00",
+          "end": "2026-06-18T15:00:00",
+          "label": ""
+        }
+      ],
       "registration_link": "https://www.thws.de/en/research/institutes/cairothws/hackathon/",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=7&field=x_image",
       "visibility": "shared",
@@ -256,7 +318,19 @@
       "meeting_url": "",
       "timezone": "CEST",
       "start_date": "2026-06-22T07:30:00",
-      "end_date": "2026-06-26T15:00:00",
+      "end_date": "2026-07-15T15:00:00",
+      "date_segments": [
+        {
+          "start": "2026-07-13T07:30:00",
+          "end": "2026-07-15T15:00:00",
+          "label": "Virtual component"
+        },
+        {
+          "start": "2026-06-22T07:30:00",
+          "end": "2026-06-26T15:00:00",
+          "label": "Physical component"
+        }
+      ],
       "registration_link": "mailto:ida.caracciolo@unicampania.it",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=18&field=x_image",
       "visibility": "shared",
@@ -296,6 +370,18 @@
       "timezone": "CEST",
       "start_date": "2026-06-01T10:00:00",
       "end_date": "2026-06-07T20:00:00",
+      "date_segments": [
+        {
+          "start": "2026-06-01T10:00:00",
+          "end": "2026-06-01T12:30:00",
+          "label": "Virtual component"
+        },
+        {
+          "start": "2026-06-03T10:00:00",
+          "end": "2026-06-07T20:00:00",
+          "label": "Physical component"
+        }
+      ],
       "registration_link": "mailto:olivierkarl.butzbach@unicampania.it",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=16&field=x_image",
       "visibility": "shared",
@@ -333,6 +419,13 @@
       "timezone": "CEST",
       "start_date": "2026-05-05T06:00:00",
       "end_date": "2026-05-05T06:00:00",
+      "date_segments": [
+        {
+          "start": "2026-05-05T06:00:00",
+          "end": "2026-05-05T06:00:00",
+          "label": ""
+        }
+      ],
       "registration_link": "https://eventos.uma.es/145509/detail/genzsalud-i-congreso-internacional-de-innovacion-y-liderazgo-de-jovenes-investigadores-en-ciencias-.html",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=4&field=x_image",
       "visibility": "shared",
@@ -370,6 +463,13 @@
       "timezone": "CEST",
       "start_date": "2026-05-11T07:00:00",
       "end_date": "2026-05-15T11:15:00",
+      "date_segments": [
+        {
+          "start": "2026-05-11T07:00:00",
+          "end": "2026-05-15T11:15:00",
+          "label": ""
+        }
+      ],
       "registration_link": "https://encuestas.uma.es/ls4/index.php/798495?lang=en",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=11&field=x_image",
       "visibility": "shared",
@@ -407,6 +507,13 @@
       "timezone": "CEST",
       "start_date": "2026-07-06T07:00:00",
       "end_date": "2026-07-17T15:00:00",
+      "date_segments": [
+        {
+          "start": "2026-07-06T07:00:00",
+          "end": "2026-07-17T15:00:00",
+          "label": ""
+        }
+      ],
       "registration_link": "https://www.thuas.com/programmes/exchange-programmes-other-courses/hague-summer-school",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=6&field=x_image",
       "visibility": "shared",
@@ -444,6 +551,13 @@
       "timezone": "CEST",
       "start_date": "2026-11-16T06:00:00",
       "end_date": "2026-11-20T15:00:00",
+      "date_segments": [
+        {
+          "start": "2026-11-16T06:00:00",
+          "end": "2026-11-20T15:00:00",
+          "label": ""
+        }
+      ],
       "registration_link": "https://docs.google.com/forms/d/e/1FAIpQLSfCZvia82uYRPq1wDqoFqf3VlqKqutmDuxPwb5_7SQFkh2Jgg/viewform",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=21&field=x_image",
       "visibility": "shared",
@@ -485,6 +599,13 @@
       "timezone": "CEST",
       "start_date": "2026-01-26T07:00:00",
       "end_date": "2026-01-27T14:00:00",
+      "date_segments": [
+        {
+          "start": "2026-01-26T07:00:00",
+          "end": "2026-01-27T14:00:00",
+          "label": ""
+        }
+      ],
       "registration_link": "https://uninovis.widening.eu/",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=5&field=x_image",
       "visibility": "shared",
@@ -522,6 +643,13 @@
       "timezone": "CEST",
       "start_date": "2026-11-26T08:00:00",
       "end_date": "2026-11-26T13:00:00",
+      "date_segments": [
+        {
+          "start": "2026-11-26T08:00:00",
+          "end": "2026-11-26T13:00:00",
+          "label": ""
+        }
+      ],
       "registration_link": "",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=22&field=x_image",
       "visibility": "shared",
@@ -559,6 +687,13 @@
       "timezone": "CEST",
       "start_date": "2026-04-06T07:00:00",
       "end_date": "2026-04-10T15:00:00",
+      "date_segments": [
+        {
+          "start": "2026-04-06T07:00:00",
+          "end": "2026-04-10T15:00:00",
+          "label": "Physical component"
+        }
+      ],
       "registration_link": "",
       "image": "https://uninovis.widening.eu/web/image?model=alliance_catalogue_app.eventcatalogue&id=12&field=x_image",
       "visibility": "shared",
@@ -579,7 +714,7 @@
       "x_number_of_participants": "0"
     }
   ],
-  "catalogue_last_sync": "2026-07-02T09:21:13.933217Z",
+  "catalogue_last_sync": "2026-07-03T07:56:08.045192Z",
   "categories": [
     "WP1",
     "WP2",
