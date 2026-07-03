@@ -234,25 +234,8 @@ function authUrl(url) {
     return url + sep + 'token=' + encodeURIComponent(token);
 }
 
-// Check auth on load
-(function() {
-    var token = getToken();
-    if (!token) {
-        window.location.href = '/login?redirect=/uninovis-uma/proyectos-europeos';
-        return;
-    }
-    fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + token } })
-        .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
-        .then(function(data) {
-            if (!data || data.role === 'public' || data.username === 'guest') throw new Error();
-            loadIcons();
-        })
-        .catch(function() {
-            localStorage.removeItem('tommi_token');
-            localStorage.removeItem('uninovis_token');
-            window.location.href = '/login?redirect=/uninovis-uma/proyectos-europeos';
-        });
-})();
+// Load icons on start (no auth required for public agents)
+loadIcons();
 
 // Historial
 function addToHistory(query) {
@@ -304,7 +287,7 @@ function sendMessage(message) {
     var params = new URLSearchParams({ agent_id: AGENT_ID, message: message });
     if (sessionId) params.append('session_id', sessionId);
 
-    var eventSource = new EventSource(authUrl('/api/chat/stream?' + params));
+    var eventSource = new EventSource('/api/public-agent/' + AGENT_ID + '/chat/stream?' + params);
     var responseText = '';
     var badgeHtml = '';
     var bannerHtml = '';
@@ -350,10 +333,9 @@ messageInput.addEventListener('input', function() { messageInput.style.height = 
 // Iconos de información
 function loadIcons() {
     var token = getToken();
-    fetch('/api/agents', { headers: { 'Authorization': 'Bearer ' + token } })
-        .then(function(r) { return r.ok ? r.json() : []; })
-        .then(function(agents) {
-            var agent = agents.find(function(a) { return a.id === AGENT_ID; });
+    fetch('/api/public-agent/' + AGENT_ID + '/info')
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(agent) {
             if (!agent) return;
             var row = document.getElementById('info-icons');
 
