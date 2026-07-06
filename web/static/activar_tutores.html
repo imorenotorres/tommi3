@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activar cuenta — Tutores Virtuales</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+.nav { background: #4250b3; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 20px; text-decoration: none; }
+.nav-logos { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.box {
+    background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    padding: 32px; width: 100%; max-width: 380px; border-top: 4px solid #16a34a;
+}
+.box h2 { font-size: 20px; margin-bottom: 4px; color: #1e293b; }
+.box .subtitle { font-size: 13px; color: #64748b; margin-bottom: 16px; }
+.box .username-display { font-size: 14px; color: #1e293b; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; margin-bottom: 16px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+.field input {
+    width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 14px; font-family: inherit; outline: none;
+}
+.field input:focus { border-color: #16a34a; }
+.activate-btn {
+    width: 100%; padding: 12px; background: #16a34a; color: #fff; border: none;
+    border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 6px;
+}
+.activate-btn:hover { background: #15803d; }
+.msg { font-size: 13px; margin-top: 10px; }
+.msg.err { color: #dc2626; }
+.msg.ok { color: #16a34a; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/tutores-virtuales" class="nav-brand">Tutores virtuales</a>
+    <div class="nav-logos">
+        <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:44px;">
+        <img src="/static/logo_uma.png" alt="UMA" style="height:44px;">
+    </div>
+</div>
+
+<div class="container">
+    <div class="box" id="main-box">
+        <h2>Activar cuenta</h2>
+        <p class="subtitle">Establece tu contraseña para acceder al tutor</p>
+        <div class="username-display" id="username-display">Verificando enlace...</div>
+
+        <div id="form-section" style="display:none;">
+            <div class="field">
+                <label for="password">Nueva contraseña</label>
+                <input type="password" id="password" placeholder="Al menos 6 caracteres">
+            </div>
+            <div class="field">
+                <label for="confirm">Confirmar contraseña</label>
+                <input type="password" id="confirm" placeholder="Repite la contraseña">
+            </div>
+            <button class="activate-btn" onclick="doActivate()">Activar cuenta</button>
+        </div>
+
+        <div class="msg" id="msg"></div>
+    </div>
+</div>
+
+<script>
+var inviteToken = new URLSearchParams(window.location.search).get('token');
+var usernameEl = document.getElementById('username-display');
+var formEl = document.getElementById('form-section');
+var msgEl = document.getElementById('msg');
+
+if (!inviteToken) {
+    usernameEl.textContent = 'Enlace no válido';
+    msgEl.textContent = 'No se ha proporcionado un enlace de activación.';
+    msgEl.className = 'msg err';
+} else {
+    // Validate token
+    fetch('/api/tutores/invite/validate?token=' + encodeURIComponent(inviteToken))
+        .then(function(r) {
+            if (!r.ok) throw new Error('invalid');
+            return r.json();
+        })
+        .then(function(data) {
+            usernameEl.textContent = 'Usuario: ' + data.username;
+            formEl.style.display = 'block';
+        })
+        .catch(function() {
+            usernameEl.textContent = 'Enlace no válido o caducado';
+            msgEl.textContent = 'Solicita un nuevo enlace al profesorado.';
+            msgEl.className = 'msg err';
+        });
+}
+
+document.getElementById('confirm').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doActivate();
+});
+
+function doActivate() {
+    var pw = document.getElementById('password').value;
+    var confirm = document.getElementById('confirm').value;
+    msgEl.textContent = '';
+    msgEl.className = 'msg';
+
+    if (!pw || pw.length < 6) { showMsg('La contraseña debe tener al menos 6 caracteres', true); return; }
+    if (pw !== confirm) { showMsg('Las contraseñas no coinciden', true); return; }
+
+    fetch('/api/tutores/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: inviteToken, password: pw }),
+    })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function(data) {
+        showMsg('Cuenta activada correctamente. Redirigiendo al login...', false);
+        formEl.style.display = 'none';
+        setTimeout(function() {
+            window.location.href = '/tutores-virtuales/login?redirect=/tutores-virtuales/lali-tutor';
+        }, 2000);
+    })
+    .catch(function(err) {
+        showMsg(err.message || 'Error al activar la cuenta', true);
+    });
+}
+
+function showMsg(text, isError) {
+    msgEl.textContent = text;
+    msgEl.className = 'msg ' + (isError ? 'err' : 'ok');
+}
+</script>
+</body>
+</html>

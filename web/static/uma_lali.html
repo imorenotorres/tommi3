@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutor LALI</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; background: #f8fafc; color: #1e293b; }
+
+/* Barra de navegación */
+.nav { background: #4250b3; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 20px; text-decoration: none; }
+.nav-brand:hover { opacity: 0.9; }
+.nav-sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.nav-current { color: #fff; font-size: 16px; font-weight: 600; }
+.nav-logos { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.nav-auth-link { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 13px; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; padding: 3px 10px; }
+.nav-auth-link:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+/* Diseño principal */
+.layout { flex: 1; display: flex; overflow: hidden; }
+
+/* Barra lateral */
+.sidebar {
+    width: 280px; min-width: 280px; background: #4250b3; color: #e2e8f0;
+    display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+}
+.sidebar-content { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.info-icons { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.info-icons img { height: 24px; width: 24px; cursor: help; background: rgba(255,255,255,0.85); border-radius: 4px; padding: 2px; }
+.info-icons .prompt-dot { font-size: 14px; cursor: help; background: rgba(255,255,255,0.85); border-radius: 4px; padding: 2px 5px; }
+
+/* Panel de preguntas de ejemplo */
+.examples-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
+.examples-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e293b; user-select: none;
+}
+.examples-panel summary:hover { background: #f1f5f9; }
+.example-btn {
+    display: block; width: 100%; padding: 8px 12px; margin: 0;
+    background: #fff; border: none; border-bottom: 1px solid #e2e8f0;
+    color: #000; font-size: 13px; text-align: left; cursor: pointer;
+    transition: background 0.15s; line-height: 1.4;
+}
+.example-btn:last-child { border-bottom: none; }
+.example-btn:hover { background: #f1f5f9; }
+
+/* Historial */
+.history-panel { margin-top: 4px; }
+.history-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
+.history-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e293b; user-select: none;
+}
+.history-panel summary:hover { background: #f1f5f9; }
+.history-container { max-height: 400px; overflow-y: auto; }
+.history-item {
+    padding: 8px 12px; border-top: 1px solid #e2e8f0; cursor: pointer;
+    transition: all 0.15s; border-left: 3px solid transparent; background: #fff;
+}
+.history-item:hover { background: #f1f5f9; border-left-color: #3b82f6; }
+.history-question { font-size: 13px; color: #1e293b; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+.history-meta { font-size: 11px; color: #64748b; margin-top: 3px; }
+.history-empty { padding: 12px; color: #94a3b8; font-size: 13px; font-style: italic; }
+
+/* Pie de barra lateral */
+.sidebar-footer { margin-top: auto; padding-top: 16px; text-align: center; }
+.sidebar-footer img { width: 100%; }
+.help-btn {
+    font-size: 12px; color: #cbd5e1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px; padding: 3px 8px; cursor: pointer; text-decoration: none; white-space: nowrap;
+}
+.help-btn:hover { background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; }
+
+/* Área de chat */
+.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+.message { display: flex; flex-direction: column; gap: 4px; }
+.message.user .bubble { background: #2563eb; color: #fff; align-self: flex-end; border-radius: 12px 12px 4px 12px; }
+.message.agent .bubble { background: #fff; color: #1e293b; align-self: flex-start; border-radius: 12px 12px 12px 4px; border: 1px solid #e2e8f0; }
+.bubble { padding: 12px 16px; max-width: 98%; font-size: 14px; line-height: 1.6; word-wrap: break-word; overflow: visible; }
+.bubble p { margin: 0 0 8px; }
+.bubble p:last-child { margin-bottom: 0; }
+.bubble ul, .bubble ol { margin: 4px 0 8px 20px; }
+.bubble table { border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.bubble th, .bubble td { border: 1px solid #e2e8f0; padding: 6px 10px; text-align: left; }
+.bubble th { background: #f1f5f9; font-weight: 600; }
+.bubble strong { font-weight: 600; }
+.bubble a { color: #2563eb; }
+.bubble code { background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 13px; }
+.bubble pre { background: #f1f5f9; padding: 10px; border-radius: 6px; overflow-x: auto; margin: 8px 0; }
+.bubble pre code { background: none; padding: 0; }
+.bubble h1, .bubble h2, .bubble h3, .bubble h4 { margin: 12px 0 6px; }
+.loading { color: #94a3b8; font-style: italic; }
+
+/* Bienvenida */
+.welcome-chat { padding: 30px 20px; color: #64748b; font-size: 14px; line-height: 1.6; text-align: center; }
+.welcome-chat h2 { color: #1e293b; font-size: 18px; margin-bottom: 8px; }
+
+/* Entrada */
+.input-area { padding: 12px 20px 16px; border-top: 1px solid #e2e8f0; background: #fff; flex-shrink: 0; }
+.input-row { display: flex; gap: 8px; }
+.input-row textarea {
+    flex: 1; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 14px; font-family: inherit; resize: none; outline: none;
+    min-height: 44px; max-height: 120px;
+}
+.input-row textarea:focus { border-color: #2563eb; }
+.input-row button {
+    background: #2563eb; color: #fff; border: none; border-radius: 8px;
+    padding: 10px 20px; font-size: 14px; cursor: pointer; white-space: nowrap;
+}
+.input-row button:hover { background: #1d4ed8; }
+.input-row button:disabled { background: #94a3b8; cursor: not-allowed; }
+.disclaimer { padding: 6px 20px; text-align: center; font-size: 11px; color: #94a3b8; }
+
+/* Feedback widget */
+.feedback-widget { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; padding: 4px 0; flex-wrap: wrap; }
+.feedback-btn { background: none; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; padding: 2px 8px; font-size: 14px; opacity: 0.55; transition: opacity 0.15s, transform 0.15s; }
+.feedback-btn:hover { opacity: 1; transform: scale(1.15); }
+.feedback-report-panel { display: flex; flex-direction: column; gap: 6px; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8f9fa; width: 100%; max-width: 600px; margin-top: 4px; }
+.feedback-report-panel.hidden { display: none; }
+.feedback-notes { font-size: 13px; padding: 4px 6px; border: 1px solid #e2e8f0; border-radius: 4px; resize: vertical; font-family: inherit; width: 100%; box-sizing: border-box; }
+.feedback-submit-btn { align-self: flex-end; font-size: 12px; padding: 4px 14px; border: 1px solid #2563eb; border-radius: 4px; background: #2563eb; color: #fff; cursor: pointer; transition: background 0.15s; margin-top: 2px; }
+.feedback-submit-btn:hover { background: #1d4ed8; }
+.feedback-thanks { font-size: 13px; color: #64748b; }
+
+/* Panel de ejercicios */
+.exercise-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
+.exercise-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e293b; user-select: none; background: #eef2ff;
+}
+.exercise-panel summary:hover { background: #e0e7ff; }
+.exercise-options { padding: 10px 12px; }
+.exercise-options label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin: 6px 0 3px; }
+.exercise-options select {
+    width: 100%; padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px;
+    font-size: 13px; background: #fff; color: #1e293b;
+}
+.exercise-btn {
+    display: block; width: 100%; margin-top: 10px; padding: 8px;
+    background: #4250b3; color: #fff; border: none; border-radius: 6px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.exercise-btn:hover { background: #374399; }
+
+/* Panel de configuración del profesor */
+.config-panel { display: none; }
+.config-panel details { background: #fff; border-radius: 8px; overflow: hidden; border: 2px solid #f59e0b; }
+.config-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #92400e; user-select: none; background: #fffbeb;
+}
+.config-panel summary:hover { background: #fef3c7; }
+.config-options { padding: 10px 12px; }
+.config-options label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin: 8px 0 3px; }
+.config-options label:first-child { margin-top: 0; }
+.config-options select {
+    width: 100%; padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px;
+    font-size: 13px; background: #fff; color: #1e293b;
+}
+.config-save-btn {
+    display: block; width: 100%; margin-top: 10px; padding: 8px;
+    background: #f59e0b; color: #fff; border: none; border-radius: 6px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.config-save-btn:hover { background: #d97706; }
+.config-status { font-size: 12px; margin-top: 6px; text-align: center; min-height: 18px; }
+.config-status.ok { color: #16a34a; }
+.config-status.err { color: #dc2626; }
+.config-editor-badge {
+    display: inline-block; font-size: 11px; background: #fef3c7; color: #92400e;
+    border: 1px solid #fde68a; border-radius: 4px; padding: 1px 6px; margin-left: 6px;
+}
+
+/* Panel de gestión de usuarios (docente) */
+.users-panel { display: none; }
+.users-panel details { background: #fff; border-radius: 8px; overflow: hidden; border: 2px solid #f59e0b; }
+.users-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #92400e; user-select: none; background: #fffbeb;
+}
+.users-panel summary:hover { background: #fef3c7; }
+.users-body { padding: 10px 12px; }
+.users-list { max-height: 200px; overflow-y: auto; margin-bottom: 8px; }
+.user-row {
+    display: flex; align-items: center; gap: 6px; padding: 4px 0;
+    border-bottom: 1px solid #f1f5f9; font-size: 12px;
+}
+.user-row:last-child { border-bottom: none; }
+.user-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-role { font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+.role-docente { background: #fef3c7; color: #92400e; }
+.role-estudiante { background: #e0f2fe; color: #0369a1; }
+.user-del-btn { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 14px; padding: 0 2px; opacity: 0.5; }
+.user-del-btn:hover { opacity: 1; }
+.add-user-form { border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 4px; }
+.add-user-form input, .add-user-form select {
+    width: 100%; padding: 5px 8px; border: 1px solid #e2e8f0; border-radius: 6px;
+    font-size: 12px; margin-bottom: 4px; font-family: inherit;
+}
+.add-user-btn {
+    width: 100%; padding: 6px; background: #f59e0b; color: #fff; border: none;
+    border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 2px;
+}
+.add-user-btn:hover { background: #d97706; }
+.users-status { font-size: 11px; margin-top: 4px; text-align: center; min-height: 16px; }
+.users-status.ok { color: #16a34a; }
+.users-status.err { color: #dc2626; }
+
+/* Botones de ejercicio (Corregir / Solución) */
+.ejercicio-btns { display: flex; gap: 10px; margin-top: 12px; }
+.ejercicio-btns button {
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; transition: background 0.15s, transform 0.1s;
+}
+.ejercicio-btns button:active { transform: scale(0.97); }
+.btn-corregir { background: #2563eb; color: #fff; }
+.btn-corregir:hover { background: #1d4ed8; }
+.btn-solucion { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0 !important; }
+.btn-solucion:hover { background: #e2e8f0; }
+
+/* Transcripciones fonológicas en ejercicios */
+.phonetic { font-family: 'Doulos SIL', 'Charis SIL', 'Gentium', 'Noto Sans', serif; }
+.error-highlight { background: #fef2f2; color: #991b1b; padding: 1px 3px; border-radius: 3px; border-bottom: 2px solid #dc3545; }
+.correct-highlight { background: #d4edda; color: #155724; padding: 1px 3px; border-radius: 3px; }
+
+/* Teclado AFI */
+.afi-keyboard { display: none; padding: 4px 20px 0; background: #fff; border-top: 1px solid #e2e8f0; }
+.afi-row { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 3px; align-items: center; }
+.afi-row-label { font-size: 10px; color: #94a3b8; min-width: 70px; font-weight: 600; }
+.afi-btn {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;
+    padding: 3px 7px; font-size: 14px; font-family: 'Doulos SIL', 'Charis SIL', 'Gentium', serif;
+    cursor: pointer; min-width: 28px; text-align: center; line-height: 1.3;
+    transition: background 0.1s;
+}
+.afi-btn:hover { background: #e2e8f0; }
+.afi-btn.afi-special { background: #eef2ff; border-color: #c7d2fe; color: #4250b3; font-weight: 600; }
+.afi-btn.afi-special:hover { background: #c7d2fe; }
+.afi-toggle { font-size: 11px; color: #64748b; cursor: pointer; background: none; border: none; padding: 2px 6px; }
+.afi-toggle:hover { color: #1e293b; }
+
+/* Móvil */
+@media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 0; max-height: 200px; flex-shrink: 0; }
+    .sidebar-content { flex-direction: row; flex-wrap: wrap; gap: 8px; padding: 10px; }
+    .sidebar-footer { display: none; }
+    .chat-area { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/tutores-virtuales" class="nav-brand">Tutores virtuales</a>
+    <span class="nav-sep">/</span>
+    <span class="nav-current">Tutor LALI</span>
+    <div class="nav-logos">
+        <span id="nav-auth" style="font-size:13px;color:rgba(255,255,255,0.7);margin-right:8px;"></span>
+        <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:44px;">
+        <img src="/static/logo_uma.png" alt="UMA" style="height:44px;">
+    </div>
+</div>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="sidebar-content">
+            <div>
+                <div class="info-icons" id="info-icons"></div>
+            </div>
+
+            <div class="examples-panel">
+                <details>
+                    <summary>Consultas de ejemplo</summary>
+                    <div id="examples-container">
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">¿Qué diferencia hay entre fonema y alófono?</button>
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">Transcribe fonológicamente la palabra 'encender'</button>
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">¿Qué error fonológico hay en 'comprar' → 'tompar'?</button>
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">¿Cuáles son los alófonos de /b/?</button>
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">¿Cómo grabo un sonido en Praat?</button>
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">¿Qué es un espectrograma?</button>
+                        <button class="example-btn" onclick="sendMessage(this.textContent)">Dame un ejercicio de errores fonológicos</button>
+                    </div>
+                </details>
+            </div>
+
+            <div class="exercise-panel">
+                <details>
+                    <summary>Ejercicios de transcripción</summary>
+                    <div class="exercise-options">
+                        <label>Tipo:</label>
+                        <select id="trans-tipo">
+                            <option value="fonologica">Fonológica solo</option>
+                            <option value="fonetica">Fonológica + Fonética</option>
+                        </select>
+                        <label>Habla:</label>
+                        <select id="trans-habla">
+                            <option value="tipica">Habla típica</option>
+                            <option value="errores">Habla con errores</option>
+                        </select>
+                        <label>Nivel (1-6):</label>
+                        <select id="trans-nivel">
+                            <option value="1">1 — Transparente</option>
+                            <option value="2">2 — Divergencias simples</option>
+                            <option value="3">3 — Dígrafos</option>
+                            <option value="4">4 — Contextuales</option>
+                            <option value="5">5 — H muda y diptongos</option>
+                            <option value="6">6 — Combinaciones complejas</option>
+                            <option value="7">7 — Oraciones cortas</option>
+                            <option value="8">8 — Oraciones largas</option>
+                        </select>
+                        <label>Nº de ítems:</label>
+                        <select id="trans-items">
+                            <option value="1">1</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6" selected>6</option>
+                            <option value="8">8</option>
+                            <option value="10">10</option>
+                        </select>
+                        <button class="exercise-btn" onclick="requestTranscripcion()">Generar ejercicio</button>
+                    </div>
+                </details>
+            </div>
+
+            <div class="exercise-panel">
+                <details>
+                    <summary>Ejercicios de errores</summary>
+                    <div class="exercise-options">
+                        <label>Tipo de error:</label>
+                        <select id="exercise-type">
+                            <option value="">Todos los tipos</option>
+                            <option value="sistemico">Sistémicos (fonema)</option>
+                            <option value="silaba">De sílaba</option>
+                            <option value="palabra">De palabra</option>
+                        </select>
+                        <label>Nivel:</label>
+                        <select id="exercise-level">
+                            <option value="basico">Básico</option>
+                            <option value="intermedio">Intermedio</option>
+                            <option value="avanzado">Avanzado</option>
+                        </select>
+                        <button class="exercise-btn" onclick="requestExercise()">Generar ejercicio</button>
+                    </div>
+                </details>
+            </div>
+
+            <div class="config-panel" id="config-panel">
+                <details>
+                    <summary>Configuración de transcripción</summary>
+                    <div class="config-options">
+                        <label>Sibilantes:</label>
+                        <select id="cfg-sibilantes">
+                            <option value="distinguidor">Distinguidor (/θ/ y /s/)</option>
+                            <option value="seseo">Seseo (solo /s/)</option>
+                            <option value="ceceo">Ceceo (solo /θ/)</option>
+                        </select>
+
+                        <label>Nasalización vocálica:</label>
+                        <select id="cfg-nasalizacion">
+                            <option value="false">No</option>
+                            <option value="true">Sí (vocal → [ã] ante nasal)</option>
+                        </select>
+
+                        <label>/s/ en coda:</label>
+                        <select id="cfg-s-coda">
+                            <option value="sibilante">Sibilante (se mantiene [s])</option>
+                            <option value="aspiracion">Aspiración ([h])</option>
+                            <option value="omision">Omisión (se elimina)</option>
+                            <option value="alargamiento">Alargamiento vocálico ([aː])</option>
+                        </select>
+
+                        <button class="config-save-btn" onclick="saveConfig()">Guardar configuración</button>
+                        <div class="config-status" id="config-status"></div>
+                    </div>
+                </details>
+            </div>
+
+            <div class="users-panel" id="users-panel">
+                <details>
+                    <summary>Gestión de usuarios</summary>
+                    <div class="users-body">
+                        <div class="users-list" id="users-list">
+                            <div style="color:#94a3b8;font-size:12px;font-style:italic;">Cargando...</div>
+                        </div>
+                        <div class="add-user-form">
+                            <input type="text" id="new-user-name" placeholder="Nombre completo">
+                            <input type="text" id="new-user-username" placeholder="Usuario (ej: nombre.apellido)">
+                            <input type="text" id="new-user-password" placeholder="Contraseña">
+                            <select id="new-user-role">
+                                <option value="estudiante">Estudiante</option>
+                                <option value="docente">Docente</option>
+                            </select>
+                            <button class="add-user-btn" onclick="addUser()">Añadir usuario</button>
+                        </div>
+                        <div class="users-status" id="users-status"></div>
+                    </div>
+                </details>
+            </div>
+
+            <div class="history-panel">
+                <details id="history-details" open>
+                    <summary>Historial de consultas</summary>
+                    <div class="history-container" id="history-container">
+                        <div class="history-empty">Sin consultas aún</div>
+                    </div>
+                </details>
+            </div>
+
+            <div class="sidebar-footer">
+                <a class="help-btn" href="/tutores-virtuales/help/lali-tutor" style="display:block;text-align:center;margin-top:10px;">? Ayuda</a>
+                <div style="margin-top:8px; font-size:11px; color:#94a3b8; line-height:1.5;">
+                    Desarrollado con <strong style="color:#cbd5e1;">TOMMI</strong> por el equipo TIC de UNINOVIS-UMA.
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="chat-area">
+        <div class="welcome-chat" id="welcome">
+            <h2>Tutor LALI</h2>
+            <p id="welcome-text">Tutor virtual de Lingüística Aplicada a la Logopedia. Consulta sobre fonología, fonética, transcripciones, errores fonológicos y Praat.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;">
+                <button onclick="sendMessage('Dame un ejercicio de errores sistémicos')" style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:8px 14px;font-size:13px;color:#4250b3;cursor:pointer;">Ejercicio: errores sistémicos</button>
+                <button onclick="sendMessage('Dame un ejercicio de errores de sílaba')" style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:8px 14px;font-size:13px;color:#4250b3;cursor:pointer;">Ejercicio: errores de sílaba</button>
+                <button onclick="sendMessage('Dame un ejercicio de errores de palabra')" style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:8px 14px;font-size:13px;color:#4250b3;cursor:pointer;">Ejercicio: errores de palabra</button>
+                <button onclick="sendMessage('Transcribe fonológicamente mariposa')" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 14px;font-size:13px;color:#166534;cursor:pointer;">Transcripción fonológica</button>
+                <button onclick="sendMessage('Qué es la sonorización')" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 14px;font-size:13px;color:#9a3412;cursor:pointer;">¿Qué es la sonorización?</button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <div class="afi-keyboard" id="afi-keyboard">
+            <div class="afi-row">
+                <span class="afi-row-label">Fonemas</span>
+                <button class="afi-btn" onclick="insertAfi('θ')" title="interdental sorda (z, ce, ci)">θ</button>
+                <button class="afi-btn" onclick="insertAfi('ɲ')" title="nasal palatal (ñ)">ɲ</button>
+                <button class="afi-btn" onclick="insertAfi('ʝ')" title="fricativa palatal (y, ll)">ʝ</button>
+                <button class="afi-btn" onclick="insertAfi('tʃ')" title="africada (ch)">tʃ</button>
+                <button class="afi-btn" onclick="insertAfi('ɾ')" title="vibrante simple (r intervocálica)">ɾ</button>
+                <button class="afi-btn" onclick="insertAfi('r')" title="vibrante múltiple (rr, r inicial)">r</button>
+                <button class="afi-btn afi-special" onclick="insertAfi('ˈ')" title="acento (antes de sílaba tónica)">ˈ</button>
+                <button class="afi-btn afi-special" onclick="insertAfi('.')" title="separador de sílabas">.</button>
+                <button class="afi-btn afi-special" onclick="insertAfi('/')" title="barra de transcripción fonológica">/</button>
+                <button class="afi-btn afi-special" onclick="insertAfi('[')" title="corchete (transcripción fonética)">[</button>
+                <button class="afi-btn afi-special" onclick="insertAfi(']')" title="corchete (transcripción fonética)">]</button>
+            </div>
+            <div class="afi-row" id="afi-row-alofonos" style="display:none;">
+                <span class="afi-row-label">Alófonos</span>
+                <button class="afi-btn" onclick="insertAfi('β̞')" title="aproximante bilabial">β̞</button>
+                <button class="afi-btn" onclick="insertAfi('ð̞')" title="aproximante dental">ð̞</button>
+                <button class="afi-btn" onclick="insertAfi('ɣ̞')" title="aproximante velar">ɣ̞</button>
+                <button class="afi-btn" onclick="insertAfi('ʤ')" title="africada sonora">ʤ</button>
+                <button class="afi-btn" onclick="insertAfi('ɱ')" title="nasal labiodental">ɱ</button>
+                <button class="afi-btn" onclick="insertAfi('ŋ')" title="nasal velar">ŋ</button>
+                <button class="afi-btn" onclick="insertAfi('ɹ')" title="aproximante alveolar">ɹ</button>
+                <button class="afi-btn" onclick="insertAfi('n̪')" title="nasal dental">n̪</button>
+                <button class="afi-btn" onclick="insertAfi('n̟')" title="nasal interdental">n̟</button>
+                <button class="afi-btn" onclick="insertAfi('nʲ')" title="nasal palatalizada">nʲ</button>
+                <button class="afi-btn" onclick="insertAfi('l̪')" title="lateral dental">l̪</button>
+                <button class="afi-btn" onclick="insertAfi('l̟')" title="lateral interdental">l̟</button>
+                <button class="afi-btn" onclick="insertAfi('j')" title="semiconsonante palatal">j</button>
+                <button class="afi-btn" onclick="insertAfi('w')" title="semiconsonante velar">w</button>
+                <button class="afi-btn" onclick="insertAfi('i̯')" title="semivocal palatal">i̯</button>
+                <button class="afi-btn" onclick="insertAfi('u̯')" title="semivocal velar">u̯</button>
+            </div>
+            <div class="afi-row" id="afi-row-otros" style="display:none;">
+                <span class="afi-row-label">Otros</span>
+                <button class="afi-btn" onclick="insertAfi('ã')" title="a nasalizada">ã</button>
+                <button class="afi-btn" onclick="insertAfi('ẽ')" title="e nasalizada">ẽ</button>
+                <button class="afi-btn" onclick="insertAfi('ĩ')" title="i nasalizada">ĩ</button>
+                <button class="afi-btn" onclick="insertAfi('õ')" title="o nasalizada">õ</button>
+                <button class="afi-btn" onclick="insertAfi('ũ')" title="u nasalizada">ũ</button>
+                <button class="afi-btn" onclick="insertAfi('ː')" title="alargamiento vocálico">ː</button>
+                <button class="afi-btn" onclick="insertAfi('h')" title="aspiración">h</button>
+                <button class="afi-btn" onclick="insertAfi('v')" title="labiodental sonora">v</button>
+                <button class="afi-btn" onclick="insertAfi('z')" title="alveolar sonora">z</button>
+                <button class="afi-btn" onclick="insertAfi('ʃ')" title="fricativa postalveolar">ʃ</button>
+            </div>
+            <div style="text-align:right;padding:2px 0;">
+                <button class="afi-toggle" id="afi-toggle-more" onclick="toggleAfiRows()">Más símbolos ▼</button>
+            </div>
+        </div>
+        <div class="input-area">
+            <div class="input-row">
+                <textarea id="message-input" placeholder="Pregunta sobre fonología, fonética, transcripciones..." rows="1"></textarea>
+                <button id="send-btn">Enviar</button>
+            </div>
+        </div>
+        <div class="disclaimer">
+            Las respuestas se basan en los materiales de la asignatura. Consulta los apuntes para más detalle.
+        </div>
+    </div>
+</div>
+
+<script>
+var AGENT_ID = 'lali_tutor';
+var sessionId = null;
+var isLoading = false;
+var queryHistory = [];
+
+var chatMessages = document.getElementById('chat-messages');
+var messageInput = document.getElementById('message-input');
+var sendBtn = document.getElementById('send-btn');
+var welcome = document.getElementById('welcome');
+var historyContainer = document.getElementById('history-container');
+
+marked.setOptions({ breaks: true, gfm: true });
+
+function getToken() {
+    return localStorage.getItem('tutores_token') || '';
+}
+
+function authUrl(url) {
+    var token = getToken();
+    if (!token) return url;
+    var sep = url.includes('?') ? '&' : '?';
+    return url + sep + 'token=' + encodeURIComponent(token);
+}
+
+// Require login — redirect if no token
+if (!getToken()) {
+    window.location.href = '/tutores-virtuales/login?redirect=/tutores-virtuales/lali-tutor';
+}
+
+// Load icons on start
+loadIcons();
+
+// Check auth level: show config panel for editors (professors)
+checkAuthLevel();
+
+function checkAuthLevel() {
+    var authEl = document.getElementById('nav-auth');
+    var token = getToken();
+    if (!token) {
+        authEl.innerHTML = '<a href="/tutores-virtuales/login?redirect=/tutores-virtuales/lali-tutor" class="nav-auth-link">Iniciar sesión</a>';
+        return;
+    }
+    fetch(authUrl('/api/tutores/auth-level'))
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+            if (!data || !data.authenticated) {
+                authEl.innerHTML = '<a href="/tutores-virtuales/login?redirect=/tutores-virtuales/lali-tutor" class="nav-auth-link">Iniciar sesión</a>';
+                return;
+            }
+            var name = data.nombre || data.username || '';
+            authEl.innerHTML = '<span style="margin-right:6px;">' + name + '</span><a href="#" class="nav-auth-link" onclick="doLogout();return false;">Cerrar sesión</a>';
+
+            if (data.level === 'docente') {
+                document.getElementById('config-panel').style.display = 'block';
+                document.getElementById('users-panel').style.display = 'block';
+                var nav = document.querySelector('.nav-current');
+                if (nav && !document.getElementById('editor-badge')) {
+                    var badge = document.createElement('span');
+                    badge.id = 'editor-badge';
+                    badge.className = 'config-editor-badge';
+                    badge.textContent = 'Docente';
+                    nav.appendChild(badge);
+                }
+                loadConfig();
+                loadUsers();
+            }
+        })
+        .catch(function() {
+            authEl.innerHTML = '<a href="/tutores-virtuales/login?redirect=/tutores-virtuales/lali-tutor" class="nav-auth-link">Iniciar sesión</a>';
+        });
+}
+
+function doLogout() {
+    fetch(authUrl('/api/tutores/logout'), { method: 'POST' }).catch(function(){});
+    localStorage.removeItem('tutores_token');
+    localStorage.removeItem('tutores_username');
+    localStorage.removeItem('tutores_role');
+    window.location.href = '/tutores-virtuales/login';
+}
+
+function loadConfig() {
+    fetch('/api/public-agent/lali_tutor/transcripcion-config')
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(cfg) {
+            if (!cfg) return;
+            document.getElementById('cfg-sibilantes').value = cfg.sibilantes || 'distinguidor';
+            document.getElementById('cfg-nasalizacion').value = String(cfg.nasalizacion_vocalica || false);
+            document.getElementById('cfg-s-coda').value = cfg.s_coda || 'sibilante';
+        })
+        .catch(function() {});
+}
+
+function saveConfig() {
+    var body = {
+        sibilantes: document.getElementById('cfg-sibilantes').value,
+        nasalizacion_vocalica: document.getElementById('cfg-nasalizacion').value === 'true',
+        s_coda: document.getElementById('cfg-s-coda').value,
+    };
+    var status = document.getElementById('config-status');
+    status.textContent = 'Guardando...';
+    status.className = 'config-status';
+
+    fetch(authUrl('/api/agent/lali_tutor/transcripcion-config'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function(data) {
+        status.textContent = 'Configuración guardada';
+        status.className = 'config-status ok';
+        setTimeout(function() { status.textContent = ''; }, 3000);
+    })
+    .catch(function(err) {
+        status.textContent = err.message || 'Error al guardar';
+        status.className = 'config-status err';
+    });
+}
+
+// ── Gestión de usuarios (docente) ──
+function loadUsers() {
+    fetch(authUrl('/api/tutores/users'))
+        .then(function(r) { return r.ok ? r.json() : []; })
+        .then(function(users) {
+            var container = document.getElementById('users-list');
+            if (!users.length) { container.innerHTML = '<div style="color:#94a3b8;font-size:12px;font-style:italic;">Sin usuarios</div>'; return; }
+            container.innerHTML = '';
+            users.forEach(function(u) {
+                var row = document.createElement('div'); row.className = 'user-row';
+                var name = document.createElement('span'); name.className = 'user-name';
+                name.textContent = (u.nombre || u.username);
+                name.title = u.username;
+                var role = document.createElement('span');
+                role.className = 'user-role ' + (u.role === 'docente' ? 'role-docente' : 'role-estudiante');
+                role.textContent = u.role === 'docente' ? 'Docente' : 'Estudiante';
+                // Status indicator
+                if (!u.activo) {
+                    var pending = document.createElement('span');
+                    pending.style.cssText = 'font-size:10px;color:#f59e0b;margin-left:2px;';
+                    pending.textContent = '(pendiente)';
+                    pending.title = 'Cuenta sin activar';
+                    name.appendChild(pending);
+                }
+                // Invite link button
+                var invite = document.createElement('button'); invite.className = 'user-del-btn';
+                invite.innerHTML = '\uD83D\uDD17'; invite.title = 'Generar enlace de activación';
+                invite.style.color = '#2563eb';
+                invite.addEventListener('click', function() { generateInvite(u.username); });
+                // Delete button
+                var del = document.createElement('button'); del.className = 'user-del-btn';
+                del.innerHTML = '\u00D7'; del.title = 'Eliminar ' + u.username;
+                del.addEventListener('click', function() { deleteUser(u.username); });
+                row.appendChild(name); row.appendChild(role); row.appendChild(invite); row.appendChild(del);
+                container.appendChild(row);
+            });
+        })
+        .catch(function() {});
+}
+
+function generateInvite(username) {
+    var status = document.getElementById('users-status');
+    fetch(authUrl('/api/tutores/users/' + encodeURIComponent(username) + '/invite'), { method: 'POST' })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function(data) {
+        // Copy link to clipboard and show it
+        navigator.clipboard.writeText(data.link).then(function() {
+            status.textContent = 'Enlace copiado al portapapeles';
+            status.className = 'users-status ok';
+        }).catch(function() {
+            // Fallback: show in prompt
+            prompt('Enlace de activación para ' + username + ':', data.link);
+            status.textContent = 'Enlace generado';
+            status.className = 'users-status ok';
+        });
+        setTimeout(function() { status.textContent = ''; }, 5000);
+    })
+    .catch(function(err) { status.textContent = err.message; status.className = 'users-status err'; });
+}
+
+function addUser() {
+    var nombre = document.getElementById('new-user-name').value.trim();
+    var username = document.getElementById('new-user-username').value.trim();
+    var password = document.getElementById('new-user-password').value.trim();
+    var role = document.getElementById('new-user-role').value;
+    var status = document.getElementById('users-status');
+
+    if (!username || !password) { status.textContent = 'Introduce usuario y contraseña'; status.className = 'users-status err'; return; }
+
+    fetch(authUrl('/api/tutores/users'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password, role: role, nombre: nombre }),
+    })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function() {
+        status.textContent = 'Usuario creado'; status.className = 'users-status ok';
+        document.getElementById('new-user-name').value = '';
+        document.getElementById('new-user-username').value = '';
+        document.getElementById('new-user-password').value = '';
+        loadUsers();
+        setTimeout(function() { status.textContent = ''; }, 3000);
+    })
+    .catch(function(err) { status.textContent = err.message; status.className = 'users-status err'; });
+}
+
+function deleteUser(username) {
+    if (!confirm('¿Eliminar el usuario "' + username + '"?')) return;
+    var status = document.getElementById('users-status');
+    fetch(authUrl('/api/tutores/users/' + encodeURIComponent(username)), { method: 'DELETE' })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function() {
+        status.textContent = 'Usuario eliminado'; status.className = 'users-status ok';
+        loadUsers();
+        setTimeout(function() { status.textContent = ''; }, 3000);
+    })
+    .catch(function(err) { status.textContent = err.message; status.className = 'users-status err'; });
+}
+
+// Historial
+function addToHistory(query) {
+    queryHistory = queryHistory.filter(function(h) { return h.query !== query; });
+    queryHistory.unshift({ query: query, time: new Date() });
+    if (queryHistory.length > 30) queryHistory.pop();
+    renderHistory();
+}
+function renderHistory() {
+    historyContainer.innerHTML = '';
+    if (queryHistory.length === 0) { historyContainer.innerHTML = '<div class="history-empty">Sin consultas aún</div>'; return; }
+    queryHistory.forEach(function(h) {
+        var item = document.createElement('div'); item.className = 'history-item';
+        var q = document.createElement('div'); q.className = 'history-question'; q.textContent = h.query;
+        var m = document.createElement('div'); m.className = 'history-meta'; m.textContent = formatTime(h.time);
+        item.appendChild(q); item.appendChild(m);
+        item.addEventListener('click', function() { sendMessage(h.query); });
+        historyContainer.appendChild(item);
+    });
+}
+function formatTime(date) {
+    var d = new Date(date); var now = new Date(); var diff = now - d;
+    if (diff < 60000) return 'Ahora';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' min';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + ' h';
+    return d.toLocaleDateString();
+}
+
+function addMessage(text, role) {
+    if (welcome.style.display !== 'none') welcome.style.display = 'none';
+    var msg = document.createElement('div'); msg.className = 'message ' + role;
+    var bubble = document.createElement('div'); bubble.className = 'bubble';
+    if (role === 'user') bubble.textContent = text;
+    msg.appendChild(bubble);
+    chatMessages.appendChild(msg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return bubble;
+}
+
+function injectExerciseButtons(bubble) {
+    var placeholder = bubble.querySelector('.ejercicio-btns-placeholder');
+    if (!placeholder) return;
+
+    var btns = document.createElement('div');
+    btns.className = 'ejercicio-btns';
+
+    var btnCorregir = document.createElement('button');
+    btnCorregir.className = 'btn-corregir';
+    btnCorregir.textContent = 'Corregir mis respuestas';
+    btnCorregir.addEventListener('click', function() { sendMessage('corregir'); });
+
+    var btnSolucion = document.createElement('button');
+    btnSolucion.className = 'btn-solucion';
+    btnSolucion.textContent = 'Ver solución';
+    btnSolucion.addEventListener('click', function() { sendMessage('solución'); });
+
+    btns.appendChild(btnCorregir);
+    btns.appendChild(btnSolucion);
+    placeholder.replaceWith(btns);
+}
+
+function sendMessage(message) {
+    if (isLoading || !message.trim()) return;
+    isLoading = true; sendBtn.disabled = true; messageInput.value = '';
+    addToHistory(message);
+    var userBubble = addMessage(message, 'user');
+    var userMsg = userBubble.closest('.message');
+    var agentBubble = addMessage('', 'agent');
+    agentBubble.innerHTML = '<span class="loading">Preparando respuesta...</span>';
+
+    var params = new URLSearchParams({ agent_id: AGENT_ID, message: message });
+    if (sessionId) params.append('session_id', sessionId);
+
+    var chatUrl = authUrl('/api/chat/stream?' + params);
+    var eventSource = new EventSource(chatUrl);
+    var responseText = '';
+    var badgeHtml = '';
+    var bannerHtml = '';
+    var traceHtml = '';
+    var hasScrolled = false;
+
+    function scrollToUser() {
+        if (hasScrolled) return; hasScrolled = true;
+        if (userMsg) {
+            var cr = chatMessages.getBoundingClientRect();
+            var mr = userMsg.getBoundingClientRect();
+            chatMessages.scrollTop += mr.top - cr.top;
+        }
+    }
+
+    eventSource.addEventListener('session', function(e) { sessionId = e.data; });
+    eventSource.addEventListener('status', function(e) { agentBubble.innerHTML = '<span class="loading">' + e.data + '</span>'; });
+    eventSource.addEventListener('badge', function(e) { badgeHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml; scrollToUser(); });
+    eventSource.addEventListener('procedural_banner', function(e) { bannerHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml; scrollToUser(); });
+    eventSource.onmessage = function(e) {
+        var chunk = e.data.replace(/\\n/g, '\n'); responseText += chunk;
+        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText); scrollToUser();
+    };
+    eventSource.addEventListener('replace', function(e) { responseText = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText); });
+    eventSource.addEventListener('trace', function(e) { traceHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText) + traceHtml; });
+    eventSource.addEventListener('done', function() {
+        eventSource.close();
+        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText) + traceHtml;
+        agentBubble.querySelectorAll('a').forEach(function(a) { a.target = '_blank'; a.rel = 'noopener'; });
+        // Replace exercise button markers with actual buttons
+        injectExerciseButtons(agentBubble);
+        // Show/hide AFI keyboard based on exercise state
+        checkExerciseActive(responseText);
+        // Add feedback widget
+        var parentMsg = agentBubble.closest('.message') || agentBubble.parentElement;
+        if (parentMsg) createFeedbackWidget(parentMsg, message, responseText);
+        isLoading = false; sendBtn.disabled = false; messageInput.focus();
+    });
+    eventSource.addEventListener('error', function() {
+        eventSource.close();
+        if (!responseText) agentBubble.innerHTML = '<span style="color:#dc3545;">Error de conexión. Inténtalo de nuevo.</span>';
+        isLoading = false; sendBtn.disabled = false;
+    });
+}
+
+// ── Ejercicios de errores fonológicos ──
+// ── Teclado AFI ──
+function insertAfi(symbol) {
+    var input = document.getElementById('message-input');
+    var start = input.selectionStart;
+    var end = input.selectionEnd;
+    var text = input.value;
+    input.value = text.substring(0, start) + symbol + text.substring(end);
+    input.selectionStart = input.selectionEnd = start + symbol.length;
+    input.focus();
+    // Auto-resize
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+}
+
+var afiExpanded = false;
+function toggleAfiRows() {
+    afiExpanded = !afiExpanded;
+    document.getElementById('afi-row-alofonos').style.display = afiExpanded ? 'flex' : 'none';
+    document.getElementById('afi-row-otros').style.display = afiExpanded ? 'flex' : 'none';
+    document.getElementById('afi-toggle-more').textContent = afiExpanded ? 'Menos símbolos ▲' : 'Más símbolos ▼';
+}
+
+function showAfiKeyboard(includeAlofonos) {
+    document.getElementById('afi-keyboard').style.display = 'block';
+    // If fonética mode, show allophones row automatically
+    if (includeAlofonos) {
+        document.getElementById('afi-row-alofonos').style.display = 'flex';
+        afiExpanded = true;
+        document.getElementById('afi-toggle-more').textContent = 'Menos símbolos \u25B2';
+    }
+}
+
+function hideAfiKeyboard() {
+    document.getElementById('afi-keyboard').style.display = 'none';
+    document.getElementById('afi-row-alofonos').style.display = 'none';
+    document.getElementById('afi-row-otros').style.display = 'none';
+    afiExpanded = false;
+    document.getElementById('afi-toggle-more').textContent = 'Más símbolos \u25BC';
+}
+
+// Show keyboard when exercise is active (detected from response)
+var _exerciseActive = false;
+function checkExerciseActive(responseText) {
+    if (responseText.indexOf('ejercicio-btns-placeholder') !== -1 ||
+        responseText.indexOf('Respuestas recibidas') !== -1 ||
+        responseText.indexOf('Responde copiando esta plantilla') !== -1) {
+        _exerciseActive = true;
+        // Check if it's a fonética exercise (needs allophones)
+        var isFonetica = responseText.indexOf('fonética') !== -1 || responseText.indexOf('[ ]') !== -1;
+        showAfiKeyboard(isFonetica);
+    }
+    // Hide after correction
+    if (responseText.indexOf('Informe de errores') !== -1 || responseText.indexOf('Sin errores') !== -1) {
+        _exerciseActive = false;
+        hideAfiKeyboard();
+    }
+}
+
+function requestTranscripcion() {
+    var tipo = document.getElementById('trans-tipo').value;
+    var habla = document.getElementById('trans-habla').value;
+    var nivel = document.getElementById('trans-nivel').value;
+    var items = document.getElementById('trans-items').value;
+    var tipoDesc = tipo === 'fonetica' ? 'fonológica y fonética' : 'fonológica';
+    var hablaDesc = habla === 'errores' ? ' con habla con errores' : ' con habla típica';
+    var msg = 'Crea un ejercicio de transcripción ' + tipoDesc + ' de nivel ' + nivel + hablaDesc + ' con ' + items + ' ítems';
+    sendMessage(msg);
+}
+
+function requestExercise() {
+    var tipo = document.getElementById('exercise-type').value;
+    var nivel = document.getElementById('exercise-level').value;
+    var niveles = { basico: 'básico', intermedio: 'intermedio', avanzado: 'avanzado' };
+    var tipos = { '': 'combinados', sistemico: 'sistémicos', silaba: 'de sílaba', palabra: 'de palabra' };
+    var msg = 'Dame un ejercicio de errores ' + (tipos[tipo] || 'fonológicos') + ' nivel ' + (niveles[nivel] || nivel);
+    sendMessage(msg);
+}
+
+sendBtn.addEventListener('click', function() { sendMessage(messageInput.value); });
+messageInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(messageInput.value); } });
+messageInput.addEventListener('input', function() { messageInput.style.height = 'auto'; messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px'; });
+
+// Iconos de información
+function loadIcons() {
+    var token = getToken();
+    fetch('/api/public-agent/' + AGENT_ID + '/info')
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(agent) {
+            if (!agent) return;
+            var row = document.getElementById('info-icons');
+
+            if (agent.agent_type) {
+                var img = document.createElement('img');
+                img.src = '/img/' + agent.agent_type + '.svg';
+                img.title = 'Tipo: ' + agent.agent_type;
+                row.appendChild(img);
+            }
+
+            if (agent.prompt_level) {
+                var dots = { stringent: '\uD83D\uDFE2', tolerant: '\uD83D\uDFE1', lax: '\uD83D\uDD34' };
+                var labels = { stringent: 'Estricto', tolerant: 'Tolerante', lax: 'Relajado' };
+                var span = document.createElement('span');
+                span.className = 'prompt-dot';
+                span.textContent = dots[agent.prompt_level] || dots.stringent;
+                span.title = 'Nivel de prompt: ' + (labels[agent.prompt_level] || agent.prompt_level);
+                row.appendChild(span);
+            }
+
+            if (agent.decision_trace) {
+                var isCrystal = agent.decision_trace === 'crystal_box' || agent.decision_trace === 'crystal_box_testers';
+                var img2 = document.createElement('img');
+                img2.src = isCrystal ? '/static/icon_crystal_box.svg' : '/static/icon_black_box.svg';
+                img2.title = 'Transparencia: ' + (isCrystal ? 'Caja de cristal' : 'Caja negra');
+                row.appendChild(img2);
+            }
+
+            if (agent.reliability_cues) {
+                var img3 = document.createElement('img');
+                img3.src = agent.reliability_cues === 'shown' ? '/static/icon_reliability_on.svg' : '/static/icon_reliability_off.svg';
+                img3.title = 'Indicadores de fiabilidad: ' + (agent.reliability_cues === 'shown' ? 'Visibles' : 'Ocultos');
+                row.appendChild(img3);
+            }
+        })
+        .catch(function() {});
+}
+
+// ── Feedback widget ──
+function createFeedbackWidget(parentMsg, userQuestion, responseText) {
+    var widget = document.createElement('div');
+    widget.className = 'feedback-widget';
+
+    var btnUp = document.createElement('button');
+    btnUp.className = 'feedback-btn';
+    btnUp.innerHTML = '\uD83D\uDC4D';
+    btnUp.title = 'Respuesta correcta';
+    btnUp.addEventListener('click', function() { submitFeedback(widget, 'up', '', userQuestion, responseText); });
+
+    var btnDown = document.createElement('button');
+    btnDown.className = 'feedback-btn';
+    btnDown.innerHTML = '\uD83D\uDC4E';
+    btnDown.title = 'Reportar un problema';
+
+    var panel = document.createElement('div');
+    panel.className = 'feedback-report-panel hidden';
+
+    btnDown.addEventListener('click', function() {
+        if (!panel.dataset.built) {
+            var notes = document.createElement('textarea');
+            notes.className = 'feedback-notes';
+            notes.placeholder = '¿Qué error has encontrado? (opcional)';
+            notes.rows = 2;
+            var submitBtn = document.createElement('button');
+            submitBtn.className = 'feedback-submit-btn';
+            submitBtn.textContent = 'Enviar';
+            submitBtn.addEventListener('click', function() { submitFeedback(widget, 'down', notes.value, userQuestion, responseText); });
+            panel.appendChild(notes);
+            panel.appendChild(submitBtn);
+            panel.dataset.built = 'true';
+        }
+        panel.classList.toggle('hidden');
+    });
+
+    widget.appendChild(btnUp);
+    widget.appendChild(btnDown);
+    widget.appendChild(panel);
+    parentMsg.appendChild(widget);
+}
+
+function submitFeedback(widget, rating, notes, userQuestion, responseText) {
+    fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            agent_id: AGENT_ID,
+            session_id: sessionId || '',
+            message_index: document.querySelectorAll('.message.agent').length,
+            mode: 'public',
+            rating: rating,
+            error_code: '',
+            severity: '',
+            notes: notes || '',
+            user_question: userQuestion || '',
+            full_response: responseText || '',
+        })
+    }).then(function() {
+        widget.innerHTML = '<span class="feedback-thanks">¡Gracias por tu feedback!</span>';
+    }).catch(function() {
+        widget.innerHTML = '<span class="feedback-thanks">No se pudo enviar el feedback.</span>';
+    });
+}
+</script>
+</body>
+</html>

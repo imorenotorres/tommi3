@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acceso — Tutores Virtuales</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+.nav { background: #4250b3; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 20px; text-decoration: none; }
+.nav-brand:hover { opacity: 0.9; }
+.nav-logos { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.login-box {
+    background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    padding: 32px; width: 100%; max-width: 380px; border-top: 4px solid #7c3aed;
+}
+.login-box h2 { font-size: 20px; margin-bottom: 4px; color: #1e293b; }
+.login-box .subtitle { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+.field input {
+    width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 14px; font-family: inherit; outline: none;
+}
+.field input:focus { border-color: #7c3aed; }
+.login-btn {
+    width: 100%; padding: 12px; background: #7c3aed; color: #fff; border: none;
+    border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 6px;
+}
+.login-btn:hover { background: #6d28d9; }
+.login-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+.error-msg { color: #dc2626; font-size: 13px; margin-top: 10px; display: none; }
+.footer { text-align: center; padding: 16px; font-size: 12px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/tutores-virtuales" class="nav-brand">Tutores virtuales</a>
+    <div class="nav-logos">
+        <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:44px;">
+        <img src="/static/logo_uma.png" alt="UMA" style="height:44px;">
+    </div>
+</div>
+
+<div class="container">
+    <div class="login-box">
+        <h2>Acceso al tutor</h2>
+        <p class="subtitle">Introduce tus credenciales de la asignatura</p>
+
+        <div class="field">
+            <label for="username">Usuario</label>
+            <input type="text" id="username" placeholder="nombre.apellido" autocomplete="username">
+        </div>
+        <div class="field">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" placeholder="Tu contraseña" autocomplete="current-password">
+        </div>
+
+        <button class="login-btn" id="login-btn" onclick="doLogin()">Iniciar sesión</button>
+        <div class="error-msg" id="error-msg"></div>
+
+    </div>
+</div>
+
+<div class="footer">
+    Desarrollado con <strong>TOMMI</strong> por el equipo TIC de UNINOVIS-UMA
+</div>
+
+<script>
+var usernameInput = document.getElementById('username');
+var passwordInput = document.getElementById('password');
+var errorMsg = document.getElementById('error-msg');
+var loginBtn = document.getElementById('login-btn');
+
+// If already logged in (valid token), redirect — otherwise clear stale token
+(function() {
+    var existingToken = localStorage.getItem('tutores_token');
+    if (!existingToken) return;
+
+    // Synchronous XHR to avoid flash redirect
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/tutores/auth-level?token=' + encodeURIComponent(existingToken), false);
+    try {
+        xhr.send();
+        if (xhr.status === 200) {
+            var data = JSON.parse(xhr.responseText);
+            if (data && data.authenticated) {
+                var redirect = new URLSearchParams(window.location.search).get('redirect') || '/tutores-virtuales';
+                window.location.href = redirect;
+                return;
+            }
+        }
+    } catch(e) {}
+    // Token invalid — clear it
+    localStorage.removeItem('tutores_token');
+    localStorage.removeItem('tutores_username');
+    localStorage.removeItem('tutores_role');
+})();
+
+// Enter key submits
+passwordInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+usernameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') passwordInput.focus(); });
+
+function doLogin() {
+    var username = usernameInput.value.trim();
+    var password = passwordInput.value;
+    if (!username || !password) {
+        showError('Introduce usuario y contraseña');
+        return;
+    }
+    loginBtn.disabled = true;
+    errorMsg.style.display = 'none';
+
+    fetch('/api/tutores/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password }),
+    })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function(data) {
+        localStorage.setItem('tutores_token', data.token);
+        localStorage.setItem('tutores_username', data.username);
+        localStorage.setItem('tutores_role', data.role);
+
+        var redirect = new URLSearchParams(window.location.search).get('redirect') || '/tutores-virtuales';
+        window.location.href = redirect;
+    })
+    .catch(function(err) {
+        showError(err.message || 'Usuario o contraseña incorrectos');
+        loginBtn.disabled = false;
+    });
+}
+
+function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+}
+</script>
+</body>
+</html>

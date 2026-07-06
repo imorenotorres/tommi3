@@ -1,0 +1,133 @@
+# Scope Keywords for Logistics & Data Science Research Explorer
+#
+# These keywords define what is WITHIN the scope of this agent.
+# They are used to distinguish on-topic queries from off-topic ones.
+# Add one keyword or phrase per line. Lines starting with # are comments.
+#
+
+# Core logistics
+logistics
+logistics management
+logistics systems
+logistics optimization
+freight logistics
+maritime logistics
+air cargo logistics
+rail logistics
+intermodal transport
+
+# Supply chain
+supply chain management
+supply chain analytics
+supply chain optimization
+supply chain visibility
+supply chain resilience
+demand planning
+procurement analytics
+supplier management
+
+# Data science and analytics
+data science
+data analytics
+big data analytics
+business analytics
+predictive analytics
+prescriptive analytics
+descriptive analytics
+data-driven decision making
+data visualization
+dashboard analytics
+
+# Statistical methods
+statistics
+statistical modeling
+Bayesian statistics
+regression analysis
+hypothesis testing
+multivariate analysis
+time series analysis
+time series forecasting
+stochastic modeling
+Monte Carlo simulation
+experimental design
+
+# Operations research
+operations research
+optimization
+linear programming
+integer programming
+mathematical programming
+combinatorial optimization
+heuristics
+metaheuristics
+genetic algorithms
+simulated annealing
+constraint programming
+stochastic optimization
+
+# Transportation
+transportation management
+transportation optimization
+route optimization
+vehicle routing
+vehicle routing problem
+fleet management
+last-mile delivery
+freight transport
+traffic optimization
+mobility analytics
+
+# Warehouse and inventory
+warehouse management
+warehouse optimization
+inventory management
+inventory optimization
+demand forecasting
+stock management
+smart warehousing
+automated warehousing
+warehouse robotics
+order picking optimization
+
+# AI for logistics
+machine learning for logistics
+AI in supply chain
+deep learning for forecasting
+reinforcement learning for logistics
+anomaly detection in logistics
+predictive maintenance in logistics
+natural language processing for logistics
+
+# Sustainability in logistics
+green logistics
+sustainable logistics
+carbon footprint logistics
+reverse logistics
+circular economy logistics
+waste management logistics
+sustainable supply chain
+
+# Smart logistics
+Logistics 4.0
+smart logistics
+digital supply chain
+IoT in logistics
+blockchain in supply chain
+digital twin logistics
+autonomous logistics
+connected logistics
+real-time tracking
+
+# Network optimization
+network design
+network optimization
+facility location
+hub-and-spoke networks
+distribution network
+graph analytics
+
+# General AI terms (keep for broad matching)
+artificial intelligence
+machine learning
+deep learning
+neural network

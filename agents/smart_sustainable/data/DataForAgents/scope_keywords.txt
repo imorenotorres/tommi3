@@ -1,0 +1,140 @@
+# Scope Keywords for Smart & Sustainable Environments Research Explorer
+#
+# These keywords define what is WITHIN the scope of this agent.
+# They are used to distinguish on-topic queries from off-topic ones.
+# Add one keyword or phrase per line. Lines starting with # are comments.
+#
+
+# Smart cities
+smart city
+smart cities
+urban computing
+urban informatics
+urban data analytics
+urban AI
+city analytics
+smart governance
+digital city
+connected city
+
+# Sustainable development
+sustainable development
+sustainability
+Sustainable Development Goals
+SDGs
+green technology
+environmental sustainability
+climate action
+circular economy
+sustainable innovation
+
+# Environmental AI
+environmental AI
+environmental monitoring
+environmental sensing
+air quality monitoring
+water quality monitoring
+noise monitoring
+pollution monitoring
+biodiversity monitoring
+ecosystem monitoring
+remote sensing
+satellite imagery analysis
+geospatial AI
+
+# Energy efficiency
+energy efficiency
+energy management
+energy optimization
+building energy management
+smart buildings
+smart lighting
+energy consumption prediction
+energy auditing
+energy harvesting
+zero-energy buildings
+net-zero buildings
+passive house
+
+# Renewable energy
+renewable energy
+solar energy
+wind energy
+renewable energy forecasting
+energy storage
+battery management
+photovoltaic systems
+
+# Smart grid
+smart grid
+microgrids
+energy distribution
+demand response
+grid optimization
+power systems
+distributed energy resources
+
+# IoT for environment
+IoT
+internet of things
+sensor networks
+wireless sensor networks
+edge computing
+fog computing
+smart sensors
+environmental IoT
+
+# Climate and weather
+climate modeling
+climate change adaptation
+climate resilience
+weather forecasting
+climate data analytics
+carbon footprint analysis
+greenhouse gas monitoring
+
+# Urban mobility
+smart mobility
+intelligent transport systems
+traffic management
+electric vehicles
+shared mobility
+multimodal transport
+bike sharing
+public transport optimization
+
+# Water management
+smart water management
+water distribution
+water network optimization
+flood management
+drought monitoring
+water quality
+wastewater management
+
+# Waste management
+waste management optimization
+smart waste collection
+recycling optimization
+waste sorting
+circular economy
+
+# Green AI
+green AI
+sustainable AI
+energy-efficient computing
+carbon-aware computing
+
+# Urban planning
+urban planning AI
+digital twin for cities
+participatory sensing
+open data
+open government data
+citizen science
+
+# General AI terms (keep for broad matching)
+artificial intelligence
+machine learning
+deep learning
+neural network

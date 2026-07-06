@@ -1,0 +1,85 @@
+# Out-of-Scope Examples for Responsible AI Research Explorer
+#
+# These are examples of topics and queries that are OUTSIDE the scope
+# of this agent. They help the agent learn to refuse irrelevant questions.
+# Add one example per line. Lines starting with # are comments.
+#
+
+# General knowledge (not AI/ethics)
+quantum computing
+photosynthesis
+capital of France
+history of Rome
+cooking recipes
+weather forecast
+sports results
+flight booking
+stock market
+
+# Robotics (separate Excellence Hub)
+robotic manipulation
+autonomous vehicles
+robot navigation
+industrial automation
+swarm robotics
+drone control
+smart manufacturing
+
+# NLP and language (separate Excellence Hub)
+natural language processing
+machine translation
+computational linguistics
+sentiment analysis
+text mining
+corpus linguistics
+
+# Pure computer science (not ethics/governance related)
+database optimization
+operating systems
+computer architecture
+game development
+computer graphics
+3D rendering
+software engineering without ethical context
+programming languages
+
+# Pure philosophy (without AI/algorithmic component)
+classical ethics without AI
+metaphysics
+epistemology without AI
+philosophy of mind without AI
+ancient philosophy
+political philosophy without technology
+
+# Pure law (without algorithmic/AI context)
+contract law
+criminal law without AI
+property law
+international law without technology
+tax law
+
+# Pure mathematics/physics
+abstract algebra
+number theory
+pure mathematics
+particle physics
+astrophysics
+
+# Medical/health (unless AI ethics related)
+pharmaceutical research
+drug discovery
+clinical trials
+epidemiology
+
+# Other AI domains (without ethical/governance dimension)
+image recognition without fairness context
+recommendation systems without bias analysis
+optimization algorithms without societal impact
+
+# Task requests (the agent is a research assistant, not a general tool)
+write me an essay
+translate this text
+book a flight
+make a presentation
+help me with my homework
+proofread my paper

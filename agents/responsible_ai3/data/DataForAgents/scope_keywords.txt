@@ -1,0 +1,148 @@
+# Scope Keywords for Responsible AI Research Explorer
+#
+# These keywords define what is WITHIN the scope of this agent.
+# They are used to distinguish on-topic queries from off-topic ones.
+# Add one keyword or phrase per line. Lines starting with # are comments.
+#
+
+# Core responsible AI
+responsible AI
+responsible artificial intelligence
+responsible innovation
+AI responsibility
+ethical AI
+AI ethics
+
+# Explainability and XAI
+explainable AI
+XAI
+explainability
+interpretability
+interpretable machine learning
+model interpretability
+black-box models
+glass-box models
+post-hoc explanations
+feature importance
+SHAP
+LIME
+counterfactual explanations
+saliency maps
+attention visualization
+
+# Fairness and bias
+algorithmic fairness
+AI fairness
+algorithmic bias
+bias mitigation
+bias detection
+discrimination in AI
+demographic parity
+equalized odds
+disparate impact
+fairness metrics
+fair machine learning
+representational bias
+historical bias
+
+# AI governance and regulation
+AI governance
+AI regulation
+AI policy
+EU AI Act
+AI Act
+AI standards
+AI certification
+regulatory sandboxes
+AI oversight
+AI compliance
+algorithmic regulation
+technology governance
+
+# Privacy and data protection
+data protection
+GDPR
+privacy-preserving AI
+differential privacy
+federated learning
+data anonymization
+data minimization
+privacy by design
+personal data
+data sovereignty
+right to be forgotten
+
+# Trustworthy AI
+trustworthy AI
+trustworthiness
+AI trust
+human trust in AI
+reliability
+robustness
+AI safety
+AI security
+adversarial robustness
+adversarial attacks
+adversarial examples
+
+# Accountability and auditing
+AI accountability
+algorithmic accountability
+AI auditing
+algorithmic auditing
+model auditing
+algorithmic impact assessment
+AI impact assessment
+due diligence
+audit trail
+model documentation
+model cards
+datasheets for datasets
+
+# Human-centered AI
+human-centered AI
+human-in-the-loop
+human oversight
+human control
+human agency
+user autonomy
+participatory AI
+inclusive AI
+AI accessibility
+stakeholder engagement
+
+# Transparency
+algorithmic transparency
+transparency
+model transparency
+decision transparency
+right to explanation
+automated decision-making
+algorithmic decision-making
+
+# AI and society
+AI and society
+social impact of AI
+AI for social good
+digital divide
+AI inequality
+AI and human rights
+AI and democracy
+surveillance AI
+predictive policing
+AI in criminal justice
+AI and labor
+automation and employment
+
+# Value-sensitive design
+value-sensitive design
+ethics by design
+AI alignment
+value alignment
+AI values
+
+# General AI terms (keep for broad matching)
+artificial intelligence
+machine learning
+deep learning
+neural network

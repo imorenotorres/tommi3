@@ -1,0 +1,15 @@
+{
+  "_doc": "Configuración de la transcripción fonética. Modifica estos valores para cambiar el dialecto y las reglas aplicadas.",
+  "sibilantes": {
+    "_doc": "Tratamiento de las sibilantes: 'distinguidor' (θ/s), 'seseo' (solo s), 'ceceo' (solo θ)",
+    "valor": "distinguidor"
+  },
+  "nasalizacion_vocalica": {
+    "_doc": "Si true, las vocales entre nasales o ante nasal en coda se transcriben como nasalizadas (ej: [ã])",
+    "valor": false
+  },
+  "s_coda": {
+    "_doc": "Tratamiento de /s/ en posición de coda: 'sibilante' (se mantiene [s]), 'aspiracion' ([h]), 'omision' (se elimina), 'alargamiento' (se omite y la vocal precedente se alarga [aː])",
+    "valor": "sibilante"
+  }
+}

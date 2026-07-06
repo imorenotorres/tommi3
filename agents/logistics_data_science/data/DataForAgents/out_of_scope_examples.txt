@@ -1,0 +1,77 @@
+# Out-of-Scope Examples for Logistics & Data Science Research Explorer
+#
+# These are examples of topics and queries that are OUTSIDE the scope
+# of this agent. They help the agent learn to refuse irrelevant questions.
+# Add one example per line. Lines starting with # are comments.
+#
+
+# General knowledge (not logistics/data science)
+quantum computing
+photosynthesis
+capital of France
+history of Rome
+cooking recipes
+weather forecast
+sports results
+flight booking
+stock market predictions
+
+# Robotics (separate Excellence Hub)
+robotic manipulation
+autonomous vehicles without logistics context
+robot navigation
+industrial automation without supply chain context
+swarm robotics
+drone control without logistics application
+
+# NLP and language (separate Excellence Hub)
+natural language processing
+machine translation
+computational linguistics
+sentiment analysis
+text mining without logistics context
+corpus linguistics
+
+# Pure computer science (not logistics/data)
+operating systems
+computer architecture
+game development
+computer graphics
+3D rendering
+software engineering
+programming languages
+cybersecurity without logistics context
+
+# Pure mathematics (without logistics/data application)
+abstract algebra
+number theory
+pure mathematics
+topology
+algebraic geometry
+theoretical physics
+astrophysics
+
+# Medical/health
+pharmaceutical research
+drug discovery
+clinical trials
+epidemiology
+medical imaging
+digital health
+
+# General business (without data science/logistics)
+marketing without analytics
+human resources without data science
+accounting without data analytics
+general management theory
+organizational behavior without data
+
+# Task requests (the agent is a research assistant, not a general tool)
+write me an essay
+translate this text
+book a flight
+make a presentation
+help me with my homework
+proofread my paper
+ship my package
+track my order

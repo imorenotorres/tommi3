@@ -1,0 +1,140 @@
+# Scope Keywords for Wellness Technologies & Services Research Explorer
+#
+# These keywords define what is WITHIN the scope of this agent.
+# They are used to distinguish on-topic queries from off-topic ones.
+# Add one keyword or phrase per line. Lines starting with # are comments.
+#
+
+# Wellness technology
+wellness technology
+digital wellness
+wellness informatics
+wellness monitoring
+wellness assessment
+well-being technology
+wellbeing technology
+quality of life technology
+
+# Digital wellness services
+digital services
+digital health services
+wellness services
+service design
+service innovation
+co-design
+user-centered design
+human-centered design
+
+# Physical activity and fitness
+physical activity monitoring
+activity recognition
+fitness technology
+exercise technology
+exergaming
+active gaming
+movement analysis
+step counting
+accelerometry
+
+# Nutrition technology
+nutrition technology
+dietary monitoring
+food tracking
+nutritional informatics
+personalized nutrition
+digital nutrition
+
+# Sleep technology
+sleep technology
+sleep monitoring
+sleep tracking
+sleep quality assessment
+circadian rhythm
+actigraphy
+
+# Stress management
+stress management technology
+stress detection
+stress monitoring
+biofeedback
+heart rate variability
+physiological stress markers
+relaxation technology
+
+# Mental wellness
+mental wellness technology
+mindfulness technology
+meditation apps
+positive psychology technology
+emotional well-being
+mood tracking
+mood monitoring
+mental health apps
+cognitive well-being
+
+# Preventive health
+preventive health technology
+health promotion
+health coaching
+health coaching technology
+health literacy
+health education technology
+public health technology
+
+# Gamification and motivation
+gamification
+gamification for health
+motivational design
+persuasive technology
+nudging
+nudging technology
+behavior change technology
+behavior change techniques
+habit formation technology
+
+# Quantified self
+quantified self
+self-tracking
+personal informatics
+lifelogging
+personal health data
+self-monitoring
+
+# Wearable wellness
+wearable wellness devices
+wearable sensors
+smartwatch
+fitness tracker
+smart clothing
+smart textiles
+biosensors
+
+# Assistive technology
+assistive technology
+ambient assisted living
+AAL
+smart home for wellbeing
+aging in place
+elderly care technology
+accessibility technology
+
+# Social wellness
+social prescribing
+social connectedness
+community wellness
+occupational wellness
+workplace wellness
+ergonomics technology
+
+# User experience
+user experience
+UX for health
+usability
+technology acceptance
+adoption of health technology
+
+# General AI terms (keep for broad matching)
+artificial intelligence
+machine learning
+deep learning
+neural network

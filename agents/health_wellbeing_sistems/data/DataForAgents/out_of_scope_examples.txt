@@ -1,0 +1,85 @@
+# Out-of-Scope Examples for Health & Wellbeing Systems Research Explorer
+#
+# These are examples of topics and queries that are OUTSIDE the scope
+# of this agent. They help the agent learn to refuse irrelevant questions.
+# Add one example per line. Lines starting with # are comments.
+#
+
+# General knowledge (not health/AI)
+quantum computing
+photosynthesis
+capital of France
+history of Rome
+cooking recipes
+weather forecast
+sports results
+flight booking
+stock market
+
+# Robotics (separate Excellence Hub)
+robotic manipulation
+autonomous vehicles
+robot navigation
+industrial automation
+swarm robotics
+drone control
+smart manufacturing
+
+# NLP and language (separate Excellence Hub)
+natural language processing without health context
+machine translation
+computational linguistics
+sentiment analysis without health context
+text mining without biomedical context
+
+# Pure computer science (not health-related)
+database optimization
+operating systems
+computer architecture
+game development
+computer graphics
+3D rendering
+software engineering
+programming languages
+blockchain without health application
+
+# Pure medicine (without AI/technology component)
+pharmaceutical research without AI
+drug discovery without computational methods
+traditional medicine without technology
+surgical techniques without robotics or AI
+anatomy
+physiology without sensors
+pathology without computational methods
+
+# Pure biology (without AI/computational methods)
+molecular biology without bioinformatics
+genetics without computational methods
+microbiology without AI
+botany
+zoology
+ecology without AI monitoring
+
+# Pure mathematics/physics
+abstract algebra
+number theory
+pure mathematics
+particle physics
+astrophysics
+theoretical physics
+
+# General wellness (without technology)
+traditional fitness training without technology
+diet and nutrition without digital tools
+meditation without technology
+yoga without wearable monitoring
+
+# Task requests (the agent is a research assistant, not a general tool)
+write me an essay
+translate this text
+book a flight
+make a presentation
+help me with my homework
+proofread my paper
+diagnose my symptoms
+prescribe medication

@@ -1,0 +1,144 @@
+# Scope Keywords for Health & Wellbeing Systems Research Explorer
+#
+# These keywords define what is WITHIN the scope of this agent.
+# They are used to distinguish on-topic queries from off-topic ones.
+# Add one keyword or phrase per line. Lines starting with # are comments.
+#
+
+# Digital health
+digital health
+eHealth
+e-health
+health technology
+health informatics
+biomedical informatics
+clinical informatics
+health IT
+health information systems
+
+# AI diagnostics
+AI diagnostics
+AI-assisted diagnosis
+computer-aided diagnosis
+computer-aided detection
+CAD
+clinical decision support
+clinical decision support systems
+CDSS
+diagnostic AI
+
+# Medical imaging
+medical image analysis
+medical imaging
+radiology AI
+pathology AI
+imaging biomarkers
+image segmentation
+CT scan analysis
+MRI analysis
+X-ray analysis
+ultrasound AI
+
+# Wearable technology
+wearable technology
+wearable health monitoring
+wearable sensors
+wearable devices
+biosensors
+smart sensors
+health wearables
+fitness trackers
+smartwatch health
+physiological monitoring
+
+# Precision medicine
+precision medicine
+personalized medicine
+genomics
+pharmacogenomics
+biomarkers
+patient stratification
+targeted therapy
+companion diagnostics
+
+# Telemedicine
+telemedicine
+telehealth
+remote patient monitoring
+remote consultation
+virtual care
+teleconsultation
+telemonitoring
+
+# Health data and analytics
+electronic health records
+EHR
+health data analytics
+predictive analytics in healthcare
+clinical data mining
+health data interoperability
+FHIR
+HL7
+real-world evidence
+real-world data
+
+# Mental health technology
+mental health technology
+digital mental health
+digital therapeutics
+cognitive behavioral therapy apps
+mood monitoring
+stress detection
+anxiety detection
+depression detection
+mental health AI
+
+# Biomedical signal processing
+biomedical signal processing
+ECG analysis
+EEG analysis
+EMG analysis
+heart rate variability
+physiological signals
+vital signs monitoring
+
+# Rehabilitation technology
+rehabilitation technology
+assistive technology
+physical rehabilitation
+neurorehabilitation
+motor recovery
+gait analysis
+balance assessment
+
+# mHealth
+mHealth
+mobile health
+health apps
+smartphone health
+point-of-care testing
+
+# Clinical NLP
+clinical NLP
+biomedical NLP
+medical text mining
+clinical text analysis
+medical literature mining
+
+# Public health
+public health informatics
+epidemiological modeling
+disease surveillance
+health monitoring systems
+population health
+
+# Federated learning in healthcare
+federated learning
+privacy-preserving health AI
+secure health data
+
+# General AI terms (keep for broad matching)
+artificial intelligence
+machine learning
+deep learning
+neural network

@@ -1,0 +1,84 @@
+# Out-of-Scope Examples for Wellness Technologies & Services Research Explorer
+#
+# These are examples of topics and queries that are OUTSIDE the scope
+# of this agent. They help the agent learn to refuse irrelevant questions.
+# Add one example per line. Lines starting with # are comments.
+#
+
+# General knowledge (not wellness/technology)
+quantum computing
+photosynthesis
+capital of France
+history of Rome
+cooking recipes
+weather forecast
+sports results
+flight booking
+stock market
+
+# Robotics (separate Excellence Hub)
+robotic manipulation
+autonomous vehicles
+robot navigation
+industrial automation
+swarm robotics
+drone control
+smart manufacturing
+
+# NLP and language (separate Excellence Hub)
+natural language processing
+machine translation
+computational linguistics
+sentiment analysis
+text mining
+corpus linguistics
+
+# Pure computer science (not wellness-related)
+database optimization
+operating systems
+computer architecture
+game development
+computer graphics
+3D rendering
+software engineering
+programming languages
+cybersecurity
+
+# Pure clinical medicine (without technology component)
+pharmaceutical research
+drug discovery without AI
+clinical trials without digital tools
+surgical techniques without technology
+pharmacology
+pathology without computational methods
+radiology without AI
+
+# Pure sports science (without digital component)
+sports biomechanics without sensors
+athletic training without technology
+exercise physiology without wearables
+sports psychology without apps
+coaching methods without digital tools
+
+# Pure mathematics/physics
+abstract algebra
+number theory
+pure mathematics
+particle physics
+astrophysics
+
+# Pure psychology (without technology)
+psychoanalysis
+clinical psychology without digital tools
+developmental psychology without technology
+cognitive psychology without computational methods
+
+# Task requests (the agent is a research assistant, not a general tool)
+write me an essay
+translate this text
+book a flight
+make a presentation
+help me with my homework
+proofread my paper
+create a workout plan
+recommend a diet

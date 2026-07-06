@@ -1,0 +1,80 @@
+# Out-of-Scope Examples for Logistics & Cybersecurity Research Explorer
+#
+# These are examples of topics and queries that are OUTSIDE the scope
+# of this agent. They help the agent learn to refuse irrelevant questions.
+# Add one example per line. Lines starting with # are comments.
+#
+
+# General knowledge (not cybersecurity/logistics)
+quantum computing without security context
+photosynthesis
+capital of France
+history of Rome
+cooking recipes
+weather forecast
+sports results
+flight booking
+stock market
+
+# Robotics (separate Excellence Hub)
+robotic manipulation
+autonomous vehicles without security context
+robot navigation
+industrial automation without cybersecurity
+swarm robotics
+drone control without security
+
+# NLP and language (separate Excellence Hub)
+natural language processing
+machine translation
+computational linguistics
+sentiment analysis
+text mining without threat intelligence context
+corpus linguistics
+
+# Pure computer science (non-security)
+database optimization without security
+computer graphics
+3D rendering
+game development
+general software engineering without security
+front-end web development
+
+# Pure mathematics/physics
+abstract algebra
+number theory without cryptography
+pure mathematics
+particle physics
+astrophysics
+
+# Medical/health
+pharmaceutical research
+drug discovery
+clinical trials
+epidemiology
+medical imaging
+digital health without security context
+
+# General business (without cybersecurity/logistics)
+marketing
+human resources
+accounting
+general management theory
+organizational behavior
+
+# Offensive hacking (without research/defensive context)
+hacking tutorials for malicious purposes
+creating malware for attacks
+social engineering for fraud
+phishing kit creation
+exploit development for unauthorized access
+
+# Task requests (the agent is a research assistant, not a general tool)
+write me an essay
+translate this text
+book a flight
+make a presentation
+help me with my homework
+proofread my paper
+hack a website
+crack a password

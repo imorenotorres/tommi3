@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutores Virtuales — UMA</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+/* Barra de navegación */
+.nav { background: #4250b3; padding: 16px 24px 60px; display: flex; align-items: flex-start; gap: 12px; }
+.nav-current { color: #fff; font-size: 24px; font-weight: 600; }
+.nav-sub { color: rgba(255,255,255,0.85); font-size: 15px; display: block; margin-top: 2px; }
+.nav-logos { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+/* Tarjetas */
+.cards-section { max-width: 700px; margin: -32px auto 0; padding: 0 24px 48px; position: relative; z-index: 1; }
+.cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.card {
+    background: #fff; border-radius: 10px; padding: 20px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-decoration: none; color: #1e293b; display: flex; flex-direction: column;
+    border-top: 4px solid #7c3aed;
+}
+.card-icon {
+    width: fit-content; height: 40px; border-radius: 20px; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px; margin-bottom: 10px; padding: 0 8px;
+}
+.card h3 { font-size: 15px; color: #1e293b; margin-bottom: 4px; }
+.card p { font-size: 12px; color: #64748b; line-height: 1.4; flex: 1; }
+.card-badge {
+    display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 600;
+    padding: 3px 12px; border-radius: 10px; align-self: flex-start;
+}
+.badge-pilot { color: #0c5460; background: #d1ecf1; }
+.card-links { margin-top: 10px; display: flex; gap: 8px; }
+.card-links a {
+    font-size: 11px; color: #7c3aed; text-decoration: none;
+    border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 4px;
+}
+.card-links a:hover { background: #f1f5f9; }
+
+/* Footer */
+.footer { text-align: center; padding: 24px; font-size: 12px; color: #94a3b8; }
+.footer a { color: #64748b; }
+
+@media (max-width: 600px) {
+    .cards-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <div>
+        <span class="nav-current">Tutores virtuales</span>
+        <span class="nav-sub">Universidad de Málaga</span>
+    </div>
+    <div class="nav-logos">
+        <span id="nav-auth" style="font-size:13px;color:rgba(255,255,255,0.7);margin-right:8px;"></span>
+        <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:70px;">
+        <img src="/static/logo_uma.png" alt="UMA" style="height:70px;">
+    </div>
+</div>
+
+<section class="cards-section">
+    <div class="cards-grid">
+
+        <div class="card">
+            <div class="card-icon" style="background:#7c3aed;">LALI</div>
+            <h3>Tutor LALI</h3>
+            <p>Tutor virtual de Lingüística Aplicada a la Logopedia. Fonología, fonética, transcripciones, errores fonológicos y Praat.</p>
+            <span class="card-badge badge-pilot">Piloto</span>
+            <div class="card-links">
+                <a href="/tutores-virtuales/lali-tutor">Abrir tutor</a>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<footer class="footer">
+    Desarrollado con <strong>TOMMI</strong> por el equipo TIC de UNINOVIS-UMA. Licencia <a href="/static/license.html">EUPL v1.2</a> | <a href="/static/privacy.html">Política de privacidad</a>
+</footer>
+
+<script>
+(function() {
+    var authEl = document.getElementById('nav-auth');
+    var linkStyle = 'color:rgba(255,255,255,0.8);text-decoration:none;font-size:13px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:3px 10px;';
+
+    function showLogin() {
+        localStorage.removeItem('tutores_token');
+        localStorage.removeItem('tutores_username');
+        localStorage.removeItem('tutores_role');
+        authEl.innerHTML = '<a href="/tutores-virtuales/login" style="' + linkStyle + '">Iniciar sesión</a>';
+    }
+
+    var token = localStorage.getItem('tutores_token') || '';
+    if (!token) { showLogin(); return; }
+
+    fetch('/api/tutores/auth-level?token=' + encodeURIComponent(token))
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+            if (!data || !data.authenticated) { showLogin(); return; }
+            var name = data.nombre || data.username || '';
+            authEl.innerHTML = '<span style="margin-right:6px;">' + name + '</span><a href="#" style="' + linkStyle + '" onclick="localStorage.removeItem(\'tutores_token\');localStorage.removeItem(\'tutores_username\');localStorage.removeItem(\'tutores_role\');location.reload();return false;">Cerrar sesión</a>';
+        })
+        .catch(function() { showLogin(); });
+})();
+</script>
+</body>
+</html>

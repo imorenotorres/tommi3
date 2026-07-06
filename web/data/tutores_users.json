@@ -1,0 +1,19 @@
+{
+  "imoreno@uma.es": {
+    "password_hash": "a524d7a7afab003d54667b937ac848bc115c1f31e02c948dd4017bda358230e2",
+    "salt": "0e7f67fbf672dbe46921e1fc2bd2b2e1",
+    "role": "docente",
+    "nombre": "Ignacio Moreno-Torres",
+    "activo": true
+  },
+  "maria.garcia@uma.es": {
+    "role": "estudiante",
+    "nombre": "María García López",
+    "activo": false
+  },
+  "carlos.ruiz@uma.es": {
+    "role": "estudiante",
+    "nombre": "Carlos Ruiz Fernández",
+    "activo": false
+  }
+}

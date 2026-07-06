@@ -162,12 +162,18 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # rag_study2 agents are public (research study participants don't need accounts)
         is_rag_study2 = "rag_study2_" in request.query_params.get("agent_id", "")
         is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/projects-search", "/project-topic-search", "/pdf-list")) and any(f"/{aid}/" in path for aid in ("responsible_ai3", "health_wellbeing_sistems"))
-        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/public-tools" not in path and "/public-agent/" not in path and "/api/feedback" != path and not is_study and not is_public_search and not is_rag_study2:
+        is_tutores = path.startswith("/api/tutores/")
+        is_lali_public = path in ("/api/lali-tutor/auth-level", "/api/agent/lali_tutor/transcripcion-config")
+        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/public-tools" not in path and "/public-agent/" not in path and "/api/feedback" != path and not is_study and not is_public_search and not is_rag_study2 and not is_tutores and not is_lali_public:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
                 token = request.query_params.get("token", "")
             if not token or not get_session(token):
-                return JSONResponse(status_code=401, content={"detail": "Authentication required"})
+                # Also accept tutores tokens for lali_tutor agent
+                is_lali_chat = (request.query_params.get("agent_id") == "lali_tutor"
+                                and token and tutores_get_session(token))
+                if not is_lali_chat:
+                    return JSONResponse(status_code=401, content={"detail": "Authentication required"})
         return await call_next(request)
 
 
@@ -1089,6 +1095,303 @@ async def uninovis_uma_proyectos():
     return FileResponse(SCRIPT_DIR / "static" / "uma_proyectos.html")
 
 
+@app.get("/tutores-virtuales")
+async def tutores_virtuales_page():
+    """Serve the Virtual Tutors landing page"""
+    return FileResponse(SCRIPT_DIR / "static" / "tutores_virtuales.html")
+
+
+@app.get("/tutores-virtuales/help/lali-tutor")
+async def help_lali_tutor():
+    """Help page for the LALI tutor"""
+    return FileResponse(SCRIPT_DIR / "static" / "help_lali_tutor.html")
+
+
+@app.get("/tutores-virtuales/lali-tutor")
+async def tutores_lali():
+    """Serve the LALI tutor page"""
+    return FileResponse(SCRIPT_DIR / "static" / "uma_lali.html")
+
+
+# ── Tutores Virtuales: auth system ─────────────────────────────────────
+
+from auth_tutores import (
+    authenticate as tutores_authenticate,
+    get_session as tutores_get_session,
+    logout as tutores_logout,
+    is_docente as tutores_is_docente,
+    list_users as tutores_list_users,
+    create_user as tutores_create_user,
+    delete_user as tutores_delete_user,
+    update_user as tutores_update_user,
+    bulk_create as tutores_bulk_create,
+    change_password as tutores_change_password,
+    create_invite as tutores_create_invite,
+    validate_invite as tutores_validate_invite,
+    activate_with_invite as tutores_activate_with_invite,
+)
+
+
+def _get_tutores_token(request: Request) -> str:
+    """Extract tutores auth token from request."""
+    token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+    if not token:
+        token = request.query_params.get("token", "")
+    return token
+
+
+@app.get("/tutores-virtuales/login")
+async def tutores_login_page():
+    return FileResponse(SCRIPT_DIR / "static" / "login_tutores.html")
+
+
+class TutoresLoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+@app.post("/api/tutores/login")
+async def tutores_login(req: TutoresLoginRequest):
+    result = tutores_authenticate(req.username, req.password)
+    if not result:
+        raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
+    return result
+
+
+class TutoresChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
+@app.post("/api/tutores/change-password")
+async def tutores_do_change_password(req: TutoresChangePasswordRequest, request: Request):
+    """Change password for the current tutores user."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session:
+        raise HTTPException(status_code=401, detail="No autenticado")
+    if len(req.new_password) < 6:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 6 caracteres")
+    ok = tutores_change_password(session["username"], req.old_password, req.new_password)
+    if not ok:
+        raise HTTPException(status_code=400, detail="Contraseña actual incorrecta")
+    return {"ok": True}
+
+
+@app.post("/api/tutores/logout")
+async def tutores_do_logout(request: Request):
+    token = _get_tutores_token(request)
+    if token:
+        tutores_logout(token)
+    return {"ok": True}
+
+
+@app.get("/api/tutores/auth-level")
+async def tutores_auth_level(request: Request):
+    """Check tutores auth level."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session:
+        return {"level": "none", "authenticated": False}
+    if tutores_is_docente(session):
+        return {"level": "docente", "authenticated": True,
+                "username": session["username"], "nombre": session.get("nombre", "")}
+    return {"level": "estudiante", "authenticated": True,
+            "username": session["username"], "nombre": session.get("nombre", "")}
+
+
+@app.get("/api/tutores/users")
+async def tutores_get_users(request: Request):
+    """List tutores users (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede ver el listado de usuarios")
+    return tutores_list_users()
+
+
+class TutoresCreateUserRequest(BaseModel):
+    username: str
+    password: str
+    role: str = "estudiante"
+    nombre: str = ""
+
+
+@app.post("/api/tutores/users")
+async def tutores_add_user(req: TutoresCreateUserRequest, request: Request):
+    """Add a tutores user (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede crear usuarios")
+    try:
+        ok = tutores_create_user(req.username, req.password, req.role, req.nombre)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if not ok:
+        raise HTTPException(status_code=409, detail=f"El usuario '{req.username}' ya existe")
+    return {"ok": True, "username": req.username}
+
+
+@app.delete("/api/tutores/users/{username}")
+async def tutores_remove_user(username: str, request: Request):
+    """Delete a tutores user (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede eliminar usuarios")
+    if not tutores_delete_user(username):
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return {"ok": True}
+
+
+class TutoresBulkRequest(BaseModel):
+    users: list[dict]
+
+
+@app.post("/api/tutores/users/bulk")
+async def tutores_bulk_add(req: TutoresBulkRequest, request: Request):
+    """Bulk create tutores users from a list (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede crear usuarios")
+    result = tutores_bulk_create(req.users)
+    return result
+
+
+@app.post("/api/tutores/users/{username}/invite")
+async def tutores_gen_invite(username: str, request: Request):
+    """Generate an invitation link for a user (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede generar enlaces")
+    token = tutores_create_invite(username)
+    if not token:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    # Build full URL
+    host = request.headers.get("host", "localhost")
+    scheme = request.headers.get("x-forwarded-proto", "https")
+    link = f"{scheme}://{host}/tutores-virtuales/activar?token={token}"
+    return {"link": link, "token": token, "username": username}
+
+
+@app.get("/tutores-virtuales/activar")
+async def tutores_activation_page():
+    """Serve the account activation page."""
+    return FileResponse(SCRIPT_DIR / "static" / "activar_tutores.html")
+
+
+class TutoresActivateRequest(BaseModel):
+    token: str
+    password: str
+
+
+@app.post("/api/tutores/activate")
+async def tutores_activate(req: TutoresActivateRequest):
+    """Activate an account by setting password via invite token."""
+    if len(req.password) < 6:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 6 caracteres")
+    username = tutores_activate_with_invite(req.token, req.password)
+    if not username:
+        raise HTTPException(status_code=400, detail="Enlace inválido o caducado. Solicita un nuevo enlace al profesorado.")
+    return {"ok": True, "username": username}
+
+
+@app.get("/api/tutores/invite/validate")
+async def tutores_validate_invite_endpoint(token: str = Query(...)):
+    """Validate an invite token and return the username."""
+    username = tutores_validate_invite(token)
+    if not username:
+        raise HTTPException(status_code=400, detail="Enlace inválido o caducado")
+    return {"username": username}
+
+
+# ── LALI tutor: transcription config API ──────────────────────────────
+
+_LALI_CONFIG_PATH = Path(__file__).parent.parent / "agents" / "lali_tutor" / "transcripcion_config.json"
+
+@app.get("/api/public-agent/lali_tutor/transcripcion-config")
+async def lali_get_transcripcion_config():
+    """Get current transcription config (public, read-only)."""
+    if not _LALI_CONFIG_PATH.exists():
+        return {}
+    with open(_LALI_CONFIG_PATH, "r", encoding="utf-8") as f:
+        raw = json.load(f)
+    return {
+        "sibilantes": raw.get("sibilantes", {}).get("valor", "distinguidor"),
+        "nasalizacion_vocalica": raw.get("nasalizacion_vocalica", {}).get("valor", False),
+        "s_coda": raw.get("s_coda", {}).get("valor", "sibilante"),
+    }
+
+
+class TranscripcionConfigUpdate(BaseModel):
+    sibilantes: Optional[str] = None
+    nasalizacion_vocalica: Optional[bool] = None
+    s_coda: Optional[str] = None
+
+
+@app.put("/api/agent/lali_tutor/transcripcion-config")
+async def lali_update_transcripcion_config(body: TranscripcionConfigUpdate, request: Request):
+    """Update transcription config (requires docente role)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session:
+        raise HTTPException(status_code=401, detail="No autenticado. Inicia sesión para modificar la configuración.")
+    if not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="No tienes permisos de edición. Solo el profesorado puede modificar la configuración.")
+
+    # Validate values
+    valid_sibilantes = {"distinguidor", "seseo", "ceceo"}
+    valid_s_coda = {"sibilante", "aspiracion", "omision", "alargamiento"}
+
+    if body.sibilantes and body.sibilantes not in valid_sibilantes:
+        raise HTTPException(status_code=400, detail=f"Valor inválido para sibilantes. Opciones: {', '.join(valid_sibilantes)}")
+    if body.s_coda and body.s_coda not in valid_s_coda:
+        raise HTTPException(status_code=400, detail=f"Valor inválido para s_coda. Opciones: {', '.join(valid_s_coda)}")
+
+    # Read current config
+    with open(_LALI_CONFIG_PATH, "r", encoding="utf-8") as f:
+        cfg = json.load(f)
+
+    # Update only provided fields
+    if body.sibilantes is not None:
+        cfg["sibilantes"]["valor"] = body.sibilantes
+    if body.nasalizacion_vocalica is not None:
+        cfg["nasalizacion_vocalica"]["valor"] = body.nasalizacion_vocalica
+    if body.s_coda is not None:
+        cfg["s_coda"]["valor"] = body.s_coda
+
+    with open(_LALI_CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+
+    # Reload config in transcriptor (if loaded)
+    try:
+        agent = runner.get_agent("lali_tutor")
+        if agent and hasattr(agent, '_instance'):
+            import importlib
+            transcriptor = importlib.import_module("transcriptor")
+            transcriptor.recargar_config()
+    except Exception:
+        pass  # Non-critical
+
+    username = session.get("username", "unknown")
+    if ENABLE_LOGGING:
+        logger = _get_agent_logger("lali_tutor")
+        logger.info(f"CONFIG_UPDATE by {username}: sibilantes={body.sibilantes}, nasalizacion={body.nasalizacion_vocalica}, s_coda={body.s_coda}")
+
+    return {"status": "ok", "config": {
+        "sibilantes": cfg["sibilantes"]["valor"],
+        "nasalizacion_vocalica": cfg["nasalizacion_vocalica"]["valor"],
+        "s_coda": cfg["s_coda"]["valor"],
+    }}
+
+
+@app.get("/api/lali-tutor/auth-level")
+async def lali_auth_level(request: Request):
+    """Check if current user has editor access to LALI tutor config (tutores auth)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session:
+        return {"level": "none", "authenticated": False}
+    if tutores_is_docente(session):
+        return {"level": "editor", "authenticated": True, "username": session.get("username")}
+    return {"level": "student", "authenticated": True, "username": session.get("username")}
+
+
 @app.get("/uninovis-uma/help/agoria-db")
 async def help_agoria_db():
     """Help page for the Agoria DB Assistant"""
@@ -1788,7 +2091,7 @@ async def get_public_tools():
 # ---------------------------------------------------------------------------
 
 # Set of agent IDs that are allowed to be accessed publicly
-_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos", "pisha5", "algoria_map"}
+_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos", "pisha5", "algoria_map", "lali_tutor"}
 
 
 @app.get("/api/public-agent/{agent_id}/config")
@@ -1879,6 +2182,19 @@ async def public_agent_chat_stream(
 
     client_ip = request.client.host if request.client else "unknown"
 
+    # If user is authenticated, pass username to agent (for progress tracking)
+    # Try tutores auth first, then TOMMI auth
+    tutores_token = _get_tutores_token(request)
+    tutores_session = tutores_get_session(tutores_token) if tutores_token else None
+    if tutores_session:
+        req_username = tutores_session.get("username")
+        req_role = tutores_session.get("role")
+    else:
+        tommi_token = _get_token(request)
+        tommi_session = get_session(tommi_token) if tommi_token else None
+        req_username = tommi_session.get("username") if tommi_session else None
+        req_role = tommi_session.get("role") if tommi_session else None
+
     async def event_generator():
         new_session_id = None
         full_response = ""
@@ -1887,8 +2203,8 @@ async def public_agent_chat_stream(
                 agent_id=agent_id,
                 message=message,
                 session_id=session_id,
-                username=None,
-                role=None,
+                username=req_username,
+                role=req_role,
             ):
                 if returned_session_id and not new_session_id:
                     new_session_id = returned_session_id
