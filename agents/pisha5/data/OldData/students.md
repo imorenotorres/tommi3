@@ -1,7 +1,7 @@
 # Base de datos: students.db
 
 Descripción:
-Esta base de datos continene información de asignaturas y titulaciones de la Universidad de Málaga (UMA)
+Esta base de datos continene información de estudiantes de la Universidad de Málaga (UMA)
 
 ## Consideraciones generales
 - Todas las tablas utilizan "id" como clave primaria salvo que se indique lo contrario.
