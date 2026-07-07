@@ -1,0 +1,13 @@
+# Search topics for AI & Language CORDIS project collection
+# One query per line. These are used as search terms.
+
+natural language processing
+computational linguistics
+machine translation
+multilingual NLP
+language model
+text mining
+sentiment analysis
+speech recognition
+dialogue systems
+language technology

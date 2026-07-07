@@ -1,0 +1,143 @@
+# Scope Keywords for AI & Language Research Explorer
+#
+# These keywords define what is WITHIN the scope of this agent.
+# They are used to distinguish on-topic queries from off-topic ones.
+# Add one keyword or phrase per line. Lines starting with # are comments.
+#
+
+# Core NLP
+natural language processing
+NLP
+computational linguistics
+text processing
+language technology
+language engineering
+
+# Language models
+language model
+large language model
+LLM
+transformer
+BERT
+GPT
+neural language model
+pre-trained language model
+foundation model
+fine-tuning
+
+# Machine translation
+machine translation
+neural machine translation
+statistical machine translation
+translation memory
+computer-assisted translation
+post-editing
+multilingual NLP
+cross-lingual transfer
+
+# Text analysis
+text mining
+text classification
+sentiment analysis
+opinion mining
+named entity recognition
+NER
+information extraction
+information retrieval
+text summarization
+automatic summarization
+keyword extraction
+topic modeling
+
+# Speech and language
+speech recognition
+automatic speech recognition
+ASR
+speech synthesis
+text-to-speech
+TTS
+spoken language understanding
+speech-to-text
+voice technology
+
+# Dialogue and interaction
+dialogue systems
+conversational AI
+chatbot
+question answering
+reading comprehension
+task-oriented dialogue
+virtual assistant
+
+# Multilingualism
+multilingualism
+bilingualism
+language diversity
+low-resource languages
+endangered languages
+minority languages
+language documentation
+language revitalization
+multilingual education
+
+# Syntax and semantics
+parsing
+syntactic analysis
+semantic analysis
+dependency parsing
+constituency parsing
+semantic role labeling
+word sense disambiguation
+coreference resolution
+discourse analysis
+
+# Morphology and phonology
+morphological analysis
+lemmatization
+stemming
+tokenization
+part-of-speech tagging
+POS tagging
+phonology
+phonetics
+orthography
+
+# Applied NLP
+hate speech detection
+fake news detection
+misinformation detection
+content moderation
+plagiarism detection
+legal NLP
+biomedical NLP
+clinical NLP
+educational NLP
+accessibility
+
+# Multimodal language
+multimodal NLP
+vision and language
+image captioning
+visual question answering
+sign language processing
+gesture and language
+audio-visual speech
+
+# Evaluation and resources
+language resources
+corpus linguistics
+annotated corpus
+benchmark
+evaluation metrics
+BLEU
+word embeddings
+knowledge graphs
+ontology
+lexicon
+wordnet
+
+# General AI terms (keep for broad matching)
+artificial intelligence
+machine learning
+deep learning
+neural network

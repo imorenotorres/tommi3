@@ -1,0 +1,74 @@
+# Out-of-Scope Examples for AI & Language Research Explorer
+#
+# These are examples of topics and queries that are OUTSIDE the scope
+# of this agent. They help the agent learn to refuse irrelevant questions.
+# Add one example per line. Lines starting with # are comments.
+#
+
+# General knowledge (not AI/language)
+quantum computing
+photosynthesis
+capital of France
+history of Rome
+cooking recipes
+weather forecast
+sports results
+flight booking
+stock market
+
+# Robotics (separate Excellence Hub)
+robotic manipulation
+autonomous vehicles
+robot navigation
+industrial automation
+swarm robotics
+drone control
+
+# Pure computer science (not language-related)
+database optimization
+operating systems
+computer architecture
+cybersecurity
+blockchain
+cryptocurrency
+game development
+computer graphics
+3D rendering
+
+# Pure linguistics (without computational/AI component)
+literary criticism
+comparative literature
+philology without computational methods
+historical linguistics without AI
+language teaching methodology without AI
+sociolinguistics without computational methods
+
+# Other AI domains (not language-related)
+image recognition without language
+autonomous driving
+predictive maintenance
+smart manufacturing
+recommendation systems without NLP
+financial AI without text analysis
+marketing AI without NLP
+
+# Pure mathematics/physics
+abstract algebra
+number theory
+pure mathematics
+particle physics
+astrophysics
+
+# Medical/health (unless NLP-related)
+pharmaceutical research
+drug discovery without AI
+clinical trials without text mining
+epidemiology without NLP
+
+# Task requests (the agent is a research assistant, not a general tool)
+write me an essay
+translate this text
+book a flight
+make a presentation
+help me with my homework
+proofread my paper
