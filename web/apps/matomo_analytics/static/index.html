@@ -48,18 +48,23 @@
         }
         .panel h3 { font-size: 0.88rem; color: #2D3876; margin-bottom: 8px; }
 
-        /* Bar chart */
-        .bchart { display: flex; align-items: flex-end; gap: 1px; height: 160px; }
-        .bcol { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 6px; }
-        .brect { width: 100%; border-radius: 2px 2px 0 0; min-height: 2px; position: relative; cursor: default; }
-        .brect .tip {
-            display: none; position: absolute; bottom: 100%; left: 50%;
-            transform: translateX(-50%); background: #1e293b; color: #fff;
-            padding: 4px 10px; border-radius: 4px; font-size: 0.7rem;
-            white-space: pre; margin-bottom: 4px; z-index: 10; line-height: 1.4;
+        /* Line chart */
+        .lchart { position: relative; width: 100%; height: 160px; }
+        .lchart svg { width: 100%; height: 100%; overflow: visible; }
+        .lchart .grid-line { stroke: #e5e7eb; stroke-width: 0.5; }
+        .lchart .axis-label { font-size: 9px; fill: #94a3b8; }
+        .lchart .line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .lchart .dot { cursor: default; }
+        .lchart .dot:hover { r: 6; }
+        .lchart .tooltip-area { fill: transparent; cursor: crosshair; }
+        .chart-tooltip {
+            position: absolute; background: #1e293b; color: #fff;
+            padding: 6px 12px; border-radius: 6px; font-size: 0.72rem;
+            white-space: pre; line-height: 1.5; pointer-events: none;
+            opacity: 0; transition: opacity 0.15s; z-index: 10;
         }
-        .brect:hover .tip { display: block; }
-        .blbl { font-size: 0.6rem; color: #94a3b8; margin-top: 3px; writing-mode: vertical-rl; max-height: 50px; overflow: hidden; }
+        .chart-tooltip.show { opacity: 1; }
+        .x-labels { display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.65rem; color: #94a3b8; }
 
         .legend { display: flex; gap: 14px; margin-bottom: 6px; font-size: 0.72rem; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
@@ -79,6 +84,18 @@
         .loading { text-align: center; padding: 24px; color: #888; font-size: 0.85rem; }
         .error { color: #dc3545; text-align: center; padding: 16px; font-size: 0.82rem; }
         .note { font-size: 0.7rem; color: #94a3b8; margin-top: 4px; }
+
+        .country-pill {
+            padding: 3px 10px; border: 1px solid #d1d5db; border-radius: 12px;
+            font-size: 0.7rem; cursor: pointer; background: #fff; color: #555;
+            transition: all 0.15s;
+        }
+        .country-pill:hover { border-color: #2D3876; color: #2D3876; }
+        .country-pill.active { background: #2D3876; color: #fff; border-color: #2D3876; }
+        .country-pill.uninovis-group { background: #ede9fe; border-color: #a78bfa; color: #5b21b6; }
+        .country-pill.uninovis-group.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+
+        .hrow:hover { background: #f8fafc; border-radius: 4px; }
     </style>
     <!-- Matomo -->
     <script>
@@ -99,12 +116,13 @@
 <script>uninovisNav({ crumbs: [{label:'System', href:'#'}], current: 'Site Analytics' });</script>
 
 <div class="container">
+    <!-- 1. Filters -->
     <div class="controls">
         <label>Site:</label>
         <select id="selSite"><option value="all">All sites</option></select>
         <div class="sep"></div>
-        <label>Country:</label>
-        <select id="selCountry"><option value="all">All countries</option></select>
+        <label>Page:</label>
+        <select id="selPage" onchange="loadAll()"><option value="">All pages</option></select>
         <div class="sep"></div>
         <label>Period:</label>
         <select id="selPeriod">
@@ -121,66 +139,359 @@
             <option value="last52">Last 52</option>
         </select>
         <div class="sep"></div>
-        <label>Page:</label>
-        <input type="text" id="txtPage" placeholder="/agents, /event-calendar...">
+        <label>Metric:</label>
+        <select id="selMetric" onchange="onMetricChange()">
+            <option value="visits">Visits</option>
+            <option value="both">Visits + Unique</option>
+            <option value="unique">Unique Visitors</option>
+        </select>
+        <div class="sep" id="sepPerSite"></div>
+        <label id="lblPerSite" style="display:none;font-size:0.78rem;cursor:pointer;color:#555;user-select:none;">
+            <input type="checkbox" id="chkPerSite" onchange="loadChart()" style="vertical-align:middle;cursor:pointer;"> Per site
+        </label>
         <button onclick="loadAll()">Apply</button>
+        <a href="/matomo-analytics/setup" style="font-size:0.72rem;color:#2D3876;text-decoration:none;margin-left:4px;" title="Configure tracked URLs">&#9881; Setup</a>
     </div>
 
-    <!-- KPIs -->
-    <div class="kpi-row">
-        <div class="kpi-card"><div class="kv" id="kvVisits">-</div><div class="kl">Visits</div></div>
-        <div class="kpi-card"><div class="kv" id="kvUniq">-</div><div class="kl">Unique Visitors</div></div>
-        <div class="kpi-card"><div class="kv" id="kvPages">-</div><div class="kl">Page Views</div></div>
-        <div class="kpi-card"><div class="kv" id="kvTime">-</div><div class="kl">Avg. Duration</div></div>
-        <div class="kpi-card"><div class="kv" id="kvBounce">-</div><div class="kl">Bounce Rate</div></div>
+    <!-- 2a. Group summary: All / UNINOVIS vs Non-UNINOVIS -->
+    <div class="panel" id="groupSummaryPanel">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <h3 style="margin:0;flex:1;">Visit Groups</h3>
+        </div>
+        <div id="groupSummary"></div>
     </div>
 
-    <!-- Main chart -->
+    <!-- 2b. Visits by Country -->
+    <div class="panel" id="countryChartPanel">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <h3 style="margin:0;flex:1;" id="countryChartTitle">Visits by Country</h3>
+            <label style="font-size:0.72rem;cursor:pointer;color:#555;user-select:none;">
+                <input type="checkbox" id="chkNonUninovis" onchange="loadCountryChart()" style="vertical-align:middle;cursor:pointer;"> Include non-UNINOVIS
+            </label>
+        </div>
+        <div id="countryChart"></div>
+        <div class="note" id="countryChartNote" style="margin-top:4px;"></div>
+    </div>
+
+    <!-- 3. Visits/Visitors Over Time -->
     <div class="panel">
-        <h3 id="chartTitle">Visitors Over Time</h3>
-        <div class="legend" id="chartLegend"></div>
-        <div id="chart" class="bchart loading">Loading...</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <h3 id="chartTitle" style="margin:0;flex:1;">Visits Over Time</h3>
+            <label style="font-size:0.72rem;cursor:pointer;color:#555;user-select:none;">
+                <input type="checkbox" id="chkChartNonUninovis" onchange="loadChart()" style="vertical-align:middle;cursor:pointer;"> Include non-UNINOVIS
+            </label>
+        </div>
+        <div id="chart" class="lchart"><div class="loading">Loading...</div></div>
         <div class="note" id="chartNote"></div>
     </div>
 
-    <!-- Site breakdown -->
-    <div class="panel" id="breakdownPanel" style="display:none;">
-        <h3>Breakdown by Site</h3>
-        <div id="breakdown"></div>
+    <!-- Hidden: used by KPI logic -->
+    <div style="display:none;">
+        <span id="kvVisits"></span><span id="kvUniq"></span><span id="kvPages"></span>
+        <span id="kvTime"></span><span id="kvBounce"></span>
+        <select id="selNonUninovis"></select>
     </div>
 
-    <!-- Tabs -->
-    <div class="tab-row">
-        <button class="tab-btn active" data-tab="pages" onclick="showTab('pages',this)">Top Pages</button>
-        <button class="tab-btn" data-tab="referrers" onclick="showTab('referrers',this)">Referrers</button>
-        <button class="tab-btn" data-tab="countries" onclick="showTab('countries',this)">Countries</button>
-        <button class="tab-btn" data-tab="devices" onclick="showTab('devices',this)">Devices</button>
+    <!-- 4. Top Pages (only when "All pages" is selected) -->
+    <div id="tabsSection">
+        <div class="tab-row">
+            <button class="tab-btn active" data-tab="pages" onclick="showTab('pages',this)">Top Pages</button>
+            <button class="tab-btn" data-tab="referrers" onclick="showTab('referrers',this)">Referrers</button>
+            <button class="tab-btn" data-tab="countries" onclick="showTab('countries',this)">Countries</button>
+            <button class="tab-btn" data-tab="devices" onclick="showTab('devices',this)">Devices</button>
+            <div style="flex:1;"></div>
+            <label style="font-size:0.75rem;font-weight:600;color:#555;">View:</label>
+            <select id="selView" onchange="reloadCurrentTab()" style="padding:4px 6px;border:1px solid #d1d5db;border-radius:6px;font-size:0.75rem;">
+                <option value="grouped">Grouped</option>
+                <option value="detailed">Detailed</option>
+            </select>
+            <label style="font-size:0.75rem;font-weight:600;color:#555;margin-left:6px;">Show:</label>
+            <select id="selLimit" onchange="reloadCurrentTab()" style="padding:4px 6px;border:1px solid #d1d5db;border-radius:6px;font-size:0.75rem;">
+                <option value="10">Top 10</option>
+                <option value="20" selected>Top 20</option>
+                <option value="50">Top 50</option>
+                <option value="-1">All</option>
+            </select>
+        </div>
+        <div class="panel" id="tabContent"><div class="loading">Loading...</div></div>
     </div>
-    <div class="panel" id="tabContent"><div class="loading">Loading...</div></div>
+
+    <!-- Drill-down panel for a specific page -->
+    <div class="panel" id="drillPanel" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <h3 id="drillTitle" style="flex:1;font-size:0.88rem;color:#2D3876;margin:0;"></h3>
+            <button class="tab-btn" onclick="closeDrill()" style="font-size:0.7rem;">&#10005; Close</button>
+        </div>
+        <div id="drillChart" class="lchart" style="height:140px;"></div>
+        <div class="note" id="drillNote"></div>
+        <div class="legend" id="drillLegend"></div>
+    </div>
 </div>
 
 <script>
 var API = '/matomo-analytics/api/proxy';
 var SITES = {};
 var COLORS = { visits: '#2D3876', uniq: '#60a5fa' };
-var countryListLoaded = false;
+var PALETTE = ['#2D3876','#e74c3c','#27ae60','#f39c12','#8e44ad','#00bcd4','#e67e22','#e91e63'];
+var URL_CONFIG = { urls: [] };
+var UNINOVIS_COUNTRIES = ['al','de','es','fi','fr','it','lt','nl'];
+var chartFilter = { country: 'all' }; // country selected via country bar chart
 
 function $$(id) { return document.getElementById(id); }
 function site() { return $$('selSite').value; }
-function country() { return $$('selCountry').value; }
 function per() { return $$('selPeriod').value; }
 function rng() { return $$('selRange').value; }
-function pg() { return $$('txtPage').value.trim(); }
+function tabLimit() { return $$('selLimit').value; }
+function viewMode() { return $$('selView').value; }
 function isAll() { return site() === 'all'; }
-function isAllCountry() { return country() === 'all'; }
 function fmt(n) { return n == null ? '-' : Number(n).toLocaleString(); }
 function fmtT(s) { s = Math.round(s||0); return s < 60 ? s+'s' : Math.floor(s/60)+'m '+(s%60)+'s'; }
+
+// Page filter: returns the URL pattern from the dropdown (or '' for all)
+function selectedPageUrl() {
+    var sel = $$('selPage');
+    return sel ? sel.value : '';
+}
+function selectedPageLabel() {
+    var sel = $$('selPage');
+    if (!sel || !sel.value) return '';
+    return sel.options[sel.selectedIndex].textContent;
+}
+
+function populatePageDropdown() {
+    var sel = $$('selPage');
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">All pages</option>';
+    // Add configured pages first (with descriptions)
+    var configuredPaths = {};
+    if (URL_CONFIG.urls) {
+        URL_CONFIG.urls.forEach(function(u) {
+            if (!u.url || u.included === false) return;
+            var o = document.createElement('option');
+            o.value = u.url;
+            o.textContent = u.description || u.url;
+            sel.appendChild(o);
+            configuredPaths[u.url.replace(/\/$/, '')] = true;
+        });
+    }
+    sel.value = cur || '';
+    // Then fetch top pages from Matomo and add unconfigured ones
+    q('Actions.getPageUrls', { flat: '1', filter_limit: '50' }).then(function(raw) {
+        var pages = {};
+        function collect(items) {
+            if (!Array.isArray(items)) return;
+            items.forEach(function(item) {
+                var label = item.label || '';
+                var url = item.url || '';
+                if (url.indexOf('localhost') !== -1) return;
+                if (!label || label === '/') return;
+                var norm = label.replace(/\/$/, '');
+                // Skip if already covered by a config entry
+                if (configuredPaths[norm]) return;
+                // Skip if covered by a config prefix
+                var covered = false;
+                for (var cp in configuredPaths) {
+                    if (norm.indexOf(cp + '/') === 0 || norm.indexOf(cp + '?') === 0) { covered = true; break; }
+                }
+                if (covered) return;
+                if (!pages[norm]) pages[norm] = 0;
+                pages[norm] += (item.nb_visits || 0);
+            });
+        }
+        if (isAll()) {
+            for (var sid in raw) {
+                var sd = raw[sid];
+                if (typeof sd !== 'object') continue;
+                for (var dk in sd) collect(sd[dk]);
+            }
+        } else {
+            for (var dk in raw) collect(raw[dk]);
+        }
+        // Filter by minimum visits and sort
+        var minV = (URL_CONFIG.minVisits != null) ? URL_CONFIG.minVisits : 100;
+        var sorted = Object.keys(pages).filter(function(p) { return pages[p] >= minV; })
+            .sort(function(a, b) { return pages[b] - pages[a]; });
+        if (sorted.length && Object.keys(configuredPaths).length > 0) {
+            var sep = document.createElement('option');
+            sep.disabled = true;
+            sep.textContent = '── Other pages ──';
+            sel.appendChild(sep);
+        }
+        sorted.forEach(function(path) {
+            var o = document.createElement('option');
+            o.value = path;
+            o.textContent = path + ' (' + pages[path] + ')';
+            sel.appendChild(o);
+        });
+        sel.value = cur || '';
+    }).catch(function() {});
+}
+
+// URL config helpers
+function urlMatches(urlPath, pattern) {
+    // Exact match or path-prefix match (pattern must align on path boundaries)
+    if (!pattern) return false;
+    if (pattern === '/') return urlPath === '/';
+    // Normalize: remove trailing slash for comparison
+    var p = pattern.replace(/\/$/, '');
+    var u = urlPath.replace(/\/$/, '');
+    return u === p || u.indexOf(p + '/') === 0 || u.indexOf(p + '?') === 0;
+}
+
+function getUrlDescription(urlPath) {
+    if (!URL_CONFIG.urls || !URL_CONFIG.urls.length) return null;
+    for (var i = 0; i < URL_CONFIG.urls.length; i++) {
+        var u = URL_CONFIG.urls[i];
+        if (urlMatches(urlPath, u.url) && u.description) {
+            return u.description;
+        }
+    }
+    return null;
+}
+
+function isUrlExcluded(urlPath) {
+    if (!URL_CONFIG.urls || !URL_CONFIG.urls.length) return false;
+    for (var i = 0; i < URL_CONFIG.urls.length; i++) {
+        var u = URL_CONFIG.urls[i];
+        if (urlMatches(urlPath, u.url) && u.included === false) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function groupByDescription(items) {
+    // Group pages that share the same description, summing their visits.
+    // Pages without a matching description remain as individual rows.
+    var groups = {};
+    var ungrouped = [];
+    items.forEach(function(r) {
+        var desc = getUrlDescription(r.label || '');
+        if (desc) {
+            if (!groups[desc]) groups[desc] = { label: desc, nb_visits: 0, nb_hits: 0, _urls: [] };
+            groups[desc].nb_visits += (r.nb_visits || 0);
+            groups[desc].nb_hits += (r.nb_hits || 0);
+            groups[desc]._urls.push(r.label);
+        } else {
+            ungrouped.push(r);
+        }
+    });
+    var grouped = Object.values(groups);
+    // Merge grouped + ungrouped and sort by visits descending
+    return grouped.concat(ungrouped).sort(function(a, b) { return (b.nb_visits||0) - (a.nb_visits||0); });
+}
+
+async function loadUrlConfig() {
+    try {
+        var resp = await fetch('/matomo-analytics/api/url-config');
+        URL_CONFIG = await resp.json();
+    } catch(e) { URL_CONFIG = { urls: [] }; }
+    populatePageDropdown();
+}
 
 // Short label for date keys
 function shortDate(k) {
     if (k.length === 10) return k.substring(5);
     if (k.indexOf(',') > -1) return k.split(',')[0].substring(5);
     return k.length > 7 ? k.substring(0,7) : k;
+}
+
+// ── Shared line chart renderer ──
+// series: [ { name, data: {dateKey: value}, color } ]
+function renderLineChart(el, keys, series) {
+    if (!keys.length || !series.length) {
+        el.innerHTML = '<span class="error">No data for this selection.</span>'; return;
+    }
+
+    var W = el.clientWidth || 600;
+    var H = el.clientHeight || 160;
+    var pad = { top: 10, right: 12, bottom: 4, left: 40 };
+    var cw = W - pad.left - pad.right;
+    var ch = H - pad.top - pad.bottom;
+
+    var maxV = 0;
+    series.forEach(function(s) {
+        keys.forEach(function(k) { if ((s.data[k]||0) > maxV) maxV = s.data[k]; });
+    });
+    if (!maxV) maxV = 1;
+
+    function x(i) { return pad.left + (keys.length === 1 ? cw/2 : (i / (keys.length - 1)) * cw); }
+    function y(v) { return pad.top + ch - (v / maxV) * ch; }
+
+    var svg = '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">';
+
+    // Y-axis grid
+    var gridSteps = 4;
+    for (var g = 0; g <= gridSteps; g++) {
+        var gy = pad.top + (g / gridSteps) * ch;
+        var gv = Math.round(maxV * (1 - g / gridSteps));
+        svg += '<line x1="'+pad.left+'" y1="'+gy+'" x2="'+(W-pad.right)+'" y2="'+gy+'" class="grid-line"/>';
+        svg += '<text x="'+(pad.left-4)+'" y="'+(gy+3)+'" class="axis-label" text-anchor="end">'+fmt(gv)+'</text>';
+    }
+
+    // Draw each series
+    series.forEach(function(s) {
+        var path = '';
+        keys.forEach(function(k, i) {
+            path += (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(s.data[k]||0).toFixed(1);
+        });
+        svg += '<path d="'+path+'" class="line" style="stroke:'+s.color+';"/>';
+        keys.forEach(function(k, i) {
+            svg += '<circle cx="'+x(i).toFixed(1)+'" cy="'+y(s.data[k]||0).toFixed(1)+'" r="'+(series.length > 4 ? 3 : 4)+'" class="dot" fill="'+s.color+'" stroke="#fff" stroke-width="1"/>';
+        });
+    });
+
+    svg += '</svg>';
+
+    // X-axis labels
+    var xlabels = '<div class="x-labels">';
+    var step = Math.max(1, Math.floor(keys.length / 8));
+    keys.forEach(function(k, i) {
+        if (i % step === 0 || i === keys.length - 1) {
+            xlabels += '<span>'+shortDate(k)+'</span>';
+        }
+    });
+    xlabels += '</div>';
+
+    // Legend
+    var legendHtml = '<div class="legend">';
+    series.forEach(function(s) {
+        legendHtml += '<div class="legend-item"><div class="ldot" style="background:'+s.color+';"></div> '+s.name+'</div>';
+    });
+    legendHtml += '</div>';
+
+    // Tooltip
+    var tooltipId = 'tip_' + Math.random().toString(36).substr(2,6);
+    var tooltipDiv = '<div class="chart-tooltip" id="'+tooltipId+'"></div>';
+
+    el.innerHTML = tooltipDiv + legendHtml + svg + xlabels;
+
+    var svgEl = el.querySelector('svg');
+    var tipEl = el.querySelector('#'+tooltipId);
+    svgEl.addEventListener('mousemove', function(e) {
+        var rect = svgEl.getBoundingClientRect();
+        var mx = e.clientX - rect.left;
+        var idx = Math.round((mx - pad.left) / (cw || 1) * (keys.length - 1));
+        idx = Math.max(0, Math.min(keys.length - 1, idx));
+        var k = keys[idx];
+        var text = k;
+        series.forEach(function(s) { text += '\n' + s.name + ': ' + fmt(s.data[k]||0); });
+        tipEl.textContent = text;
+        tipEl.classList.add('show');
+        tipEl.style.left = Math.min(mx, W - 120) + 'px';
+        tipEl.style.top = '0px';
+    });
+    svgEl.addEventListener('mouseleave', function() {
+        tipEl.classList.remove('show');
+    });
+}
+
+// Helper to build series from visits/uniques dicts
+function makeStandardSeries(visits, uniques) {
+    var s = [];
+    if (visits) s.push({ name: 'Visits', data: visits, color: COLORS.visits });
+    if (uniques) s.push({ name: 'Unique', data: uniques, color: COLORS.uniq });
+    return s;
 }
 
 async function loadSites() {
@@ -199,46 +510,364 @@ async function loadSites() {
 async function q(method, extra) {
     var p = new URLSearchParams({ method:method, period:per(), date:rng(), idSite:site() });
     if (extra) for (var k in extra) p.set(k, extra[k]);
-    var pf = pg();
-    if (pf && method.indexOf('Actions.') === -1) p.set('segment', 'pageUrl=@'+pf);
     var r = await fetch(API+'?'+p.toString());
     if (!r.ok) throw new Error('API '+r.status);
     return r.json();
 }
 
-// ── Country list ──
-async function loadCountries() {
-    if (countryListLoaded) return;
-    try {
-        var raw = await q('UserCountry.getCountry', { period:'month', date:'last6', filter_limit:'-1' });
-        var countries = {};
-        var process = function(arr) {
-            if (!Array.isArray(arr)) return;
-            arr.forEach(function(c) {
-                var code = c.code;
-                if (!code || code === 'xx') return;
-                if (!countries[code]) countries[code] = { code: code, label: c.label, visits: 0 };
-                countries[code].visits += (c.nb_visits||0);
-            });
-        };
-        if (isAll()) {
-            for (var sid in raw) { var sd = raw[sid]; for (var dk in sd) process(sd[dk]); }
-        } else {
-            for (var dk in raw) process(raw[dk]);
+// ── Client-side page-filtered visit series ──
+// Since Matomo Cloud segments don't work with this token,
+// we fetch Actions.getPageUrls and sum visits for matching pages per date.
+// exactMatch: true = only exact label match (for page dropdown)
+//             false = prefix match (for drill-down from grouped view)
+async function getPageFilteredSeries(pagePattern, exactMatch) {
+    var raw = await q('Actions.getPageUrls', { flat: '1', filter_limit: '-1' });
+    var visits = {}, uniques = {};
+
+    function matches(label, pattern) {
+        if (exactMatch) {
+            // Exact match: normalize trailing slashes
+            return label.replace(/\/$/, '') === pattern.replace(/\/$/, '');
         }
-        var sorted = Object.values(countries).sort(function(a,b){ return b.visits - a.visits; });
-        var sel = $$('selCountry');
-        // Keep current selection
-        var cur = sel.value;
-        sel.innerHTML = '<option value="all">All countries</option>';
-        sorted.forEach(function(c) {
-            var o = document.createElement('option');
-            o.value = c.code; o.textContent = c.label + ' (' + fmt(c.visits) + ')';
-            sel.appendChild(o);
+        return urlMatches(label, pattern);
+    }
+
+    function processItems(items, dk) {
+        if (!Array.isArray(items)) return;
+        items.forEach(function(item) {
+            var label = item.label || '';
+            var url = item.url || '';
+            if (url.indexOf('localhost') !== -1) return;
+            if (!matches(label, pagePattern)) return;
+            if (!visits[dk]) visits[dk] = 0;
+            if (!uniques[dk]) uniques[dk] = 0;
+            visits[dk] += (item.nb_visits || 0);
+            uniques[dk] += (item.sum_daily_nb_uniq_visitors || 0);
         });
-        sel.value = cur || 'all';
-        countryListLoaded = true;
-    } catch(e) { console.error('Countries:', e); }
+    }
+
+    if (isAll()) {
+        for (var sid in raw) {
+            var sd = raw[sid];
+            if (typeof sd !== 'object' || !sd) continue;
+            for (var dk in sd) processItems(sd[dk], dk);
+        }
+    } else {
+        for (var dk in raw) processItems(raw[dk], dk);
+    }
+    return { visits: visits, uniques: uniques };
+}
+
+// ── Page + Country cross-reference via Live API ──
+// Fetches visits only from the site that has the page, then caches.
+var liveCache = { key: '', visits: [], unavailable: false };
+
+// Detect which site(s) contain a given page path
+async function findSitesForPage(pagePattern, exactMatch) {
+    if (!isAll()) return [site()];
+    // Fetch page data from all sites and check which ones have the page
+    var raw = await q('Actions.getPageUrls', { flat: '1', filter_limit: '-1' });
+    var found = {};
+    for (var sid in raw) {
+        var sd = raw[sid];
+        if (typeof sd !== 'object' || !sd) continue;
+        for (var dk in sd) {
+            if (!Array.isArray(sd[dk])) continue;
+            for (var i = 0; i < sd[dk].length; i++) {
+                var item = sd[dk][i];
+                var label = item.label || '';
+                var url = item.url || '';
+                if (url.indexOf('localhost') !== -1) continue;
+                var match = exactMatch
+                    ? label.replace(/\/$/, '') === pagePattern.replace(/\/$/, '')
+                    : urlMatches(label, pagePattern);
+                if (match) { found[sid] = true; break; }
+            }
+            if (found[sid]) break;
+        }
+    }
+    var result = Object.keys(found);
+    return result.length ? result : Object.keys(SITES);
+}
+
+async function fetchLiveVisits(pagePattern, exactMatch) {
+    var p = per(), r = rng();
+    var numPeriods = parseInt(r.replace('last','')) || 8;
+    var dateRange = computeDateRange(p, numPeriods);
+    var cacheKey = pagePattern + '|' + dateRange;
+
+    if (liveCache.key === cacheKey) return;
+
+    var siteIds = await findSitesForPage(pagePattern, exactMatch);
+    var allVisits = [];
+    var unavailable = false;
+
+    var fetches = siteIds.map(function(sid) {
+        return q('Live.getLastVisitsDetails', {
+            idSite: sid, period: 'range', date: dateRange, filter_limit: '10000'
+        }).then(function(raw) {
+            if (raw && raw.result === 'error') { unavailable = true; return; }
+            if (Array.isArray(raw)) allVisits = allVisits.concat(raw);
+        }).catch(function(e) {
+            console.error('Live API error for site ' + sid + ':', e);
+            unavailable = true;
+        });
+    });
+    await Promise.all(fetches);
+
+    liveCache = { key: cacheKey, visits: allVisits, unavailable: unavailable };
+}
+
+function filterLiveVisits(pagePattern, countryCode, exactMatch) {
+    var p = per();
+    var numPeriods = parseInt(rng().replace('last','')) || 8;
+    var visits = {}, uniques = {};
+
+    liveCache.visits.forEach(function(v) {
+        var vCountry = v.countryCode || 'xx';
+
+        // Country filter
+        var countryMatch = false;
+        if (countryCode === 'all') countryMatch = true;
+        else if (countryCode === 'uninovis') countryMatch = UNINOVIS_COUNTRIES.indexOf(vCountry) !== -1;
+        else if (countryCode === 'non-uninovis') countryMatch = UNINOVIS_COUNTRIES.indexOf(vCountry) === -1;
+        else countryMatch = (vCountry === countryCode);
+        if (!countryMatch) return;
+
+        // Page filter
+        var actions = v.actionDetails || [];
+        var pageMatch = false;
+        for (var ai = 0; ai < actions.length; ai++) {
+            var aUrl = actions[ai].url || '';
+            if (aUrl.indexOf('localhost') !== -1) continue;
+            if (actions[ai].type !== 'action') continue;
+            var path = aUrl.replace(/^https?:\/\/[^\/]+/, '');
+            if (exactMatch) {
+                if (path.replace(/\/$/, '') === pagePattern.replace(/\/$/, '')) { pageMatch = true; break; }
+            } else {
+                if (urlMatches(path, pagePattern)) { pageMatch = true; break; }
+            }
+        }
+        if (!pageMatch) return;
+
+        var visitDate = v.serverDate || '';
+        var dk = dateToBucket(visitDate, p, numPeriods);
+        if (!dk) return;
+
+        if (!visits[dk]) visits[dk] = 0;
+        if (!uniques[dk]) uniques[dk] = 0;
+        visits[dk]++;
+        uniques[dk]++;
+    });
+
+    return { visits: visits, uniques: uniques };
+}
+
+async function getPageCountrySeries(pagePattern, countryCode, exactMatch) {
+    await fetchLiveVisits(pagePattern, exactMatch);
+    if (liveCache.unavailable && liveCache.visits.length === 0) return null;
+    return filterLiveVisits(pagePattern, countryCode, exactMatch);
+}
+
+// Compute a date range string for the Live API (e.g., "2026-06-01,2026-07-12")
+function computeDateRange(period, numPeriods) {
+    var end = new Date();
+    var start = new Date();
+    if (period === 'day') start.setDate(end.getDate() - numPeriods);
+    else if (period === 'week') start.setDate(end.getDate() - numPeriods * 7);
+    else if (period === 'month') start.setMonth(end.getMonth() - numPeriods);
+    function fmt(d) {
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+    return fmt(start) + ',' + fmt(end);
+}
+
+// Assign a visit date to a period bucket key matching the format from other Matomo APIs
+function dateToBucket(dateStr, period, numPeriods) {
+    if (!dateStr) return null;
+    if (period === 'month') return dateStr.substring(0, 7);
+    if (period === 'day') return dateStr;
+    if (period === 'week') {
+        // Find Monday of the week
+        var d = new Date(dateStr + 'T00:00:00');
+        var day = d.getDay(); // 0=Sun
+        var diff = (day === 0 ? 6 : day - 1);
+        var monday = new Date(d);
+        monday.setDate(d.getDate() - diff);
+        var sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        function fmt(d) {
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        }
+        return fmt(monday) + ',' + fmt(sunday);
+    }
+    return dateStr;
+}
+
+// ── Chart filter pills ──
+// ── Metric and country helpers ──
+function selectedMetric() { return $$('selMetric').value; }
+
+function onMetricChange() {
+    loadChart();
+    loadCountryChart();
+}
+
+function selectCountry(code) {
+    chartFilter.country = code;
+    // Highlight selected bar
+    var bars = document.querySelectorAll('#countryChart .hrow');
+    bars.forEach(function(row) {
+        row.style.background = (row.dataset.code === code) ? '#e0e7ff' : '';
+    });
+    loadChart();
+}
+
+function updatePerSiteVisibility() {
+    var show = isAll();
+    $$('lblPerSite').style.display = show ? '' : 'none';
+    $$('sepPerSite').style.display = show ? '' : 'none';
+    if (!show) $$('chkPerSite').checked = false;
+}
+
+// ── Country bar chart ──
+async function loadCountryChart() {
+    var el = $$('countryChart');
+    var noteEl = $$('countryChartNote');
+    var met = selectedMetric();
+    var showNon = $$('chkNonUninovis').checked;
+    var pageFilter = selectedPageUrl();
+    noteEl.textContent = '';
+
+    try {
+        var countries = {};
+
+        if (pageFilter) {
+            // Use Live API for page+country cross-reference
+            el.innerHTML = '<div class="loading" style="padding:8px;">Loading...</div>';
+            await fetchLiveVisits(pageFilter, true);
+            if (liveCache.visits.length === 0) {
+                el.innerHTML = '<p style="color:#888;font-size:0.82rem;">No country data available for this page.</p>';
+                return;
+            }
+            // Extract country totals from live data
+            var p = per();
+            var numPeriods = parseInt(rng().replace('last','')) || 8;
+            liveCache.visits.forEach(function(v) {
+                var vCountry = v.countryCode || 'xx';
+                if (vCountry === 'xx') return;
+                // Page match
+                var actions = v.actionDetails || [];
+                var pageMatch = false;
+                for (var ai = 0; ai < actions.length; ai++) {
+                    var aUrl = actions[ai].url || '';
+                    if (aUrl.indexOf('localhost') !== -1) continue;
+                    if (actions[ai].type !== 'action') continue;
+                    var path = aUrl.replace(/^https?:\/\/[^\/]+/, '');
+                    if (path.replace(/\/$/, '') === pageFilter.replace(/\/$/, '')) { pageMatch = true; break; }
+                }
+                if (!pageMatch) return;
+                if (!countries[vCountry]) countries[vCountry] = { code: vCountry, label: vCountry.toUpperCase(), visits: 0, uniq: 0 };
+                countries[vCountry].visits++;
+                countries[vCountry].uniq++;
+            });
+        } else {
+            // Use UserCountry.getCountry API
+            var raw = await q('UserCountry.getCountry', { filter_limit: '-1' });
+            function process(arr) {
+                if (!Array.isArray(arr)) return;
+                arr.forEach(function(c) {
+                    var code = c.code;
+                    if (!code || code === 'xx') return;
+                    if (!countries[code]) countries[code] = { code: code, label: c.label, visits: 0, uniq: 0 };
+                    countries[code].visits += (c.nb_visits||0);
+                    countries[code].uniq += (c.nb_uniq_visitors||0);
+                });
+            }
+            if (isAll()) {
+                for (var sid in raw) { var sd = raw[sid]; for (var dk in sd) process(sd[dk]); }
+            } else {
+                for (var dk in raw) process(raw[dk]);
+            }
+        }
+
+        // Split into UNINOVIS and non-UNINOVIS
+        var uninovisItems = [];
+        var otherItems = [];
+        for (var code in countries) {
+            var c = countries[code];
+            if (UNINOVIS_COUNTRIES.indexOf(code) !== -1) {
+                uninovisItems.push(c);
+            } else {
+                otherItems.push(c);
+            }
+        }
+        uninovisItems.sort(function(a,b){ return b.visits - a.visits; });
+        otherItems.sort(function(a,b){ return b.visits - a.visits; });
+
+        // Build bars
+        var items = uninovisItems.slice();
+        if (showNon) items = items.concat(otherItems);
+
+        var useVisits = (met !== 'unique');
+        var max = 0;
+        items.forEach(function(c) { var v = useVisits ? c.visits : c.uniq; if (v > max) max = v; });
+        if (!max) max = 1;
+
+        // Group totals
+        var totalV = 0, totalU = 0;
+        for (var code in countries) { totalV += countries[code].visits; totalU += countries[code].uniq; }
+        var allVal = useVisits ? totalV : totalU;
+
+        var uniV = 0, uniU = 0, nonV = 0, nonU = 0;
+        uninovisItems.forEach(function(c) { uniV += c.visits; uniU += c.uniq; });
+        otherItems.forEach(function(c) { nonV += c.visits; nonU += c.uniq; });
+        var uniVal = useVisits ? uniV : uniU;
+        var nonVal = useVisits ? nonV : nonU;
+
+        // Populate group summary panel (vertical bars)
+        var groupMax = Math.max(allVal, uniVal, nonVal) || 1;
+        var uniPct = allVal ? (uniVal / allVal * 100).toFixed(1) : '0.0';
+        var nonPct = allVal ? (nonVal / allVal * 100).toFixed(1) : '0.0';
+        var barH = 120;
+        function vbar(code, label, val, pct, color, clickCode) {
+            var h = groupMax ? (val / groupMax * barH) : 0;
+            var sel = chartFilter.country === clickCode;
+            return '<div onclick="selectCountry(\''+clickCode+'\')" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;flex:1;padding:8px 4px;border-radius:8px;'+(sel?'background:#e0e7ff;':'')+'">'
+                + '<div style="font-size:0.82rem;font-weight:700;color:#2D3876;">'+fmt(val)+'</div>'
+                + (pct !== null ? '<div style="font-size:0.7rem;color:#888;">'+pct+'%</div>' : '')
+                + '<div style="width:40px;height:'+barH+'px;background:#f0f2f5;border-radius:4px;margin:6px 0;display:flex;align-items:flex-end;">'
+                + '<div style="width:100%;height:'+h+'px;background:'+color+';border-radius:4px;"></div>'
+                + '</div>'
+                + '<div style="font-size:0.75rem;font-weight:600;color:'+color+';text-align:center;">'+label+'</div>'
+                + '</div>';
+        }
+        var ghtml = '<div style="display:flex;gap:8px;align-items:flex-end;">'
+            + vbar('all', 'All', allVal, null, '#94a3b8', 'all')
+            + vbar('uninovis', 'UNINOVIS', uniVal, uniPct, '#2D3876', 'uninovis-compare')
+            + vbar('non-uninovis', 'Non-UNINOVIS', nonVal, nonPct, '#e74c3c', 'uninovis-compare')
+            + '</div>';
+        $$('groupSummary').innerHTML = ghtml;
+
+        // Country bars (individual countries only)
+        var html = '';
+        items.forEach(function(c) {
+            var v = useVisits ? c.visits : c.uniq;
+            var isUninovis = UNINOVIS_COUNTRIES.indexOf(c.code) !== -1;
+            var color = isUninovis ? '#2D3876' : '#e74c3c';
+            var selected = chartFilter.country === c.code;
+            html += '<div class="hrow" data-code="'+c.code+'" onclick="selectCountry(\''+c.code+'\')" style="cursor:pointer;'+(selected?'background:#e0e7ff;':'')+'">'
+                + '<div class="hlbl" title="'+c.label+'">'+c.label+'</div>'
+                + '<div class="htrack"><div class="hfill" style="width:'+(v/max*100)+'%;background:'+color+';"></div></div>'
+                + '<div class="hval">'+fmt(v)+'</div></div>';
+        });
+
+        el.innerHTML = html;
+        $$('countryChartTitle').textContent = (useVisits ? 'Visits' : 'Unique Visitors') + ' by Country';
+
+    } catch(e) {
+        el.innerHTML = '<span class="error">Error: '+e.message+'</span>';
+    }
 }
 
 // Unwrap values that Matomo may return as [{nb_visits:N}] instead of N
@@ -285,8 +914,10 @@ function flatA(data) {
         if (Array.isArray(sd)) arrs.push(sd);
         else if (typeof sd === 'object') for (var k in sd) if (Array.isArray(sd[k])) arrs.push(sd[k]);
         arrs.forEach(function(a) { a.forEach(function(i) {
+            var url = i.url||'';
+            if (url.indexOf('localhost') !== -1) return;
             var key = i.label||'';
-            if (!m[key]) m[key] = {label:key,nb_visits:0,nb_hits:0};
+            if (!m[key]) m[key] = {label:key, nb_visits:0, nb_hits:0, url:url};
             m[key].nb_visits += (i.nb_visits||0);
             m[key].nb_hits += (i.nb_hits||0);
         }); });
@@ -302,8 +933,10 @@ function arrify(data) {
     Object.values(data).forEach(function(arr) {
         if (!Array.isArray(arr)) return;
         arr.forEach(function(i) {
+            var url = i.url||'';
+            if (url.indexOf('localhost') !== -1) return;
             var k = i.label||'';
-            if (!m[k]) m[k] = {label:k,nb_visits:0,nb_hits:0};
+            if (!m[k]) m[k] = {label:k, nb_visits:0, nb_hits:0, url:url};
             m[k].nb_visits += (i.nb_visits||0);
             m[k].nb_hits += (i.nb_hits||0);
         });
@@ -340,12 +973,50 @@ function extractCountrySeries(countryData, code) {
 // ── KPIs ──
 async function loadKPIs() {
     try {
-        if (!isAllCountry()) {
-            // Country-filtered: use UserCountry data
+        var cc = chartFilter.country;
+        var pageFilter = selectedPageUrl();
+
+        if (pageFilter) {
+            var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
+            var kpiData = null;
+            if (cc !== 'all' && cc !== 'uninovis-compare') {
+                var countryParam = (cc === 'uninovis' || cc === 'non-uninovis') ? cc : resolvedCC;
+                kpiData = await getPageCountrySeries(pageFilter, countryParam, true);
+                if (kpiData && Object.keys(kpiData.visits).length === 0) kpiData = null;
+            }
+            if (!kpiData) {
+                kpiData = await getPageFilteredSeries(pageFilter, true);
+            }
+            var totV = 0;
+            for (var dk in kpiData.visits) totV += kpiData.visits[dk];
+            $$('kvVisits').textContent = fmt(totV);
+            $$('kvUniq').textContent = '-';
+            $$('kvPages').textContent = '-';
+            $$('kvTime').textContent = '-';
+            $$('kvBounce').textContent = '-';
+            return;
+        }
+
+        if (cc !== 'all' && cc !== 'uninovis-compare') {
             var raw = await q('UserCountry.getCountry', { filter_limit: '-1' });
-            var series = extractCountrySeries(raw, country());
+            var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
+            var codes = (cc === 'uninovis') ? UNINOVIS_COUNTRIES :
+                        (cc === 'non-uninovis') ? null : [resolvedCC];
             var totV = 0, totU = 0;
-            for (var dk in series) { totV += series[dk].visits; totU += series[dk].uniq; }
+            if (cc === 'non-uninovis') {
+                var allSeries = extractAllCountrySeries(raw);
+                for (var code in allSeries) {
+                    if (UNINOVIS_COUNTRIES.indexOf(code) === -1) {
+                        var s = allSeries[code];
+                        for (var dk in s) { totV += s[dk].visits; totU += s[dk].uniq; }
+                    }
+                }
+            } else {
+                codes.forEach(function(code) {
+                    var series = extractCountrySeries(raw, code);
+                    for (var dk in series) { totV += series[dk].visits; totU += series[dk].uniq; }
+                });
+            }
             $$('kvVisits').textContent = fmt(totV);
             $$('kvUniq').textContent = fmt(totU);
             $$('kvPages').textContent = '-';
@@ -353,6 +1024,7 @@ async function loadKPIs() {
             $$('kvBounce').textContent = '-';
             return;
         }
+
         var raw = await q('VisitsSummary.get');
         var data = flatN(raw);
         var t = {nb_visits:0,nb_actions:0,nb_uniq_visitors:0,avg_time_on_site:0,bounce_rate:''};
@@ -379,166 +1051,420 @@ async function loadKPIs() {
     } catch(e) { console.error('KPIs:', e); }
 }
 
+// Extract all countries as { code: { date: {visits, uniq} } }
+function extractAllCountrySeries(countryData) {
+    var all = {};
+    function processDateMap(dateMap) {
+        for (var dk in dateMap) {
+            if (!Array.isArray(dateMap[dk])) continue;
+            dateMap[dk].forEach(function(c) {
+                var code = c.code;
+                if (!code || code === 'xx') return;
+                if (!all[code]) all[code] = {};
+                if (!all[code][dk]) all[code][dk] = { visits: 0, uniq: 0 };
+                all[code][dk].visits += (c.nb_visits||0);
+                all[code][dk].uniq += (c.nb_uniq_visitors||0);
+            });
+        }
+    }
+    if (isAll()) {
+        for (var sid in countryData) processDateMap(countryData[sid]);
+    } else {
+        processDateMap(countryData);
+    }
+    return all;
+}
+
+// Extract country series for a specific site from multi-site data
+// countryData structure: { siteId: { date: [ {code, nb_visits, ...} ] } }
+function extractCountrySeriesForSite(countryData, siteId, countryCode) {
+    var series = {};
+    var siteData = countryData[siteId];
+    if (!siteData || typeof siteData !== 'object') return series;
+    for (var dk in siteData) {
+        if (!Array.isArray(siteData[dk])) continue;
+        var match = siteData[dk].filter(function(c) { return c.code === countryCode; });
+        var visits = 0, uniq = 0;
+        match.forEach(function(c) { visits += (c.nb_visits||0); uniq += (c.nb_uniq_visitors||0); });
+        if (visits > 0 || uniq > 0) {
+            series[dk] = { visits: visits, uniq: uniq };
+        }
+    }
+    return series;
+}
+
+function extractAllCountriesForSite(countryData, siteId) {
+    var totals = {};
+    var siteData = countryData[siteId];
+    if (!siteData || typeof siteData !== 'object') return totals;
+    for (var dk in siteData) {
+        if (!Array.isArray(siteData[dk])) continue;
+        siteData[dk].forEach(function(c) {
+            var code = c.code;
+            if (!code || code === 'xx') return;
+            if (!totals[dk]) totals[dk] = { visits: 0, uniq: 0 };
+            totals[dk].visits += (c.nb_visits||0);
+            totals[dk].uniq += (c.nb_uniq_visitors||0);
+        });
+    }
+    return totals;
+}
+
 // ── Main chart ──
 async function loadChart() {
     var el = $$('chart');
     var noteEl = $$('chartNote');
-    var legendEl = $$('chartLegend');
-    var p = per();
-    var uniqAvail = (p === 'day' || p === 'week');
+    var cc = chartFilter.country;
+    var met = selectedMetric();
+    el.innerHTML = '<div class="loading">Loading...</div>';
 
     try {
-        var visits = {}, uniques = {};
+        noteEl.textContent = '';
+        var showVisits = (met === 'both' || met === 'visits');
+        var showUniq = (met === 'both' || met === 'unique');
+        var pageFilter = selectedPageUrl();
+        var chartSeries, keys;
 
-        if (!isAllCountry()) {
-            // Country filter: extract from UserCountry.getCountry
-            var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
-            var series = extractCountrySeries(rawC, country());
-            for (var dk in series) { visits[dk] = series[dk].visits; uniques[dk] = series[dk].uniq; }
-            uniqAvail = true;
-        } else {
-            // Use VisitsSummary.get which returns both visits and unique visitors
-            var rawS = await q('VisitsSummary.get');
-            var summary = flatN(rawS);
-            for (var dk in summary) {
-                var val = summary[dk];
-                if (typeof val === 'object' && val !== null) {
-                    visits[dk] = val.nb_visits || 0;
-                    uniques[dk] = val.nb_uniq_visitors || 0;
-                } else if (typeof val === 'number') {
-                    visits[dk] = val;
+        if (pageFilter && cc !== 'all') {
+            // Page + country: try Live API, fall back to page-only
+            el.innerHTML = '<div class="loading">Loading (Live API)...</div>';
+            var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
+            var countryParam = (cc === 'uninovis' || cc === 'non-uninovis') ? cc : resolvedCC;
+
+            if (cc === 'uninovis') {
+                // Try 8 lines
+                chartSeries = [];
+                var allKeys = {};
+                var liveOk = false;
+                for (var ci = 0; ci < UNINOVIS_COUNTRIES.length; ci++) {
+                    var code = UNINOVIS_COUNTRIES[ci];
+                    var cs = await getPageCountrySeries(pageFilter, code, true);
+                    if (!cs) continue;
+                    liveOk = true;
+                    var cdata = showVisits ? cs.visits : cs.uniques;
+                    for (var dk in cdata) allKeys[dk] = true;
+                    chartSeries.push({ name: code.toUpperCase(), data: cdata, color: PALETTE[ci % PALETTE.length] });
+                }
+                keys = Object.keys(allKeys).sort();
+                chartSeries.forEach(function(s) { keys.forEach(function(k) { if (!(k in s.data)) s.data[k] = 0; }); });
+                if (!liveOk) {
+                    // Fall back to page-only
+                    noteEl.textContent = 'Live API not available for this site. Showing all countries.';
+                    var pageSeries = await getPageFilteredSeries(pageFilter, true);
+                    chartSeries = makeStandardSeries(pageSeries.visits, null);
+                    keys = Object.keys(pageSeries.visits).sort();
+                }
+            } else {
+                var liveSeries = await getPageCountrySeries(pageFilter, countryParam, true);
+                if (!liveSeries) {
+                    // Live API truly unavailable — fall back to page-only
+                    noteEl.textContent = 'Live API not available for this site. Country filter cannot be applied. Showing all countries.';
+                    var pageSeries = await getPageFilteredSeries(pageFilter, true);
+                    chartSeries = makeStandardSeries(pageSeries.visits, null);
+                    keys = Object.keys(pageSeries.visits).sort();
+                } else {
+                    // Show data (even if empty — means 0 visits from that country)
+                    var visits = liveSeries.visits;
+                    chartSeries = makeStandardSeries(visits, null);
+                    keys = Object.keys(visits).sort();
                 }
             }
+        } else if (pageFilter) {
+            // Page filter only (country = All): use Actions API (visits only, unique not reliable per page)
+            var pageSeries = await getPageFilteredSeries(pageFilter, true);
+            chartSeries = makeStandardSeries(pageSeries.visits, null);
+            keys = Object.keys(pageSeries.visits).sort();
+        } else if (cc === 'uninovis-compare') {
+            // Two lines: UNINOVIS (aggregated) vs Non-UNINOVIS (aggregated)
+            var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
+            var allCS = extractAllCountrySeries(rawC);
+            var uniData = {}, nonData = {}, allKeys = {};
+            for (var code in allCS) {
+                var isUni = UNINOVIS_COUNTRIES.indexOf(code) !== -1;
+                var target = isUni ? uniData : nonData;
+                var s = allCS[code];
+                for (var dk in s) {
+                    allKeys[dk] = true;
+                    if (!target[dk]) target[dk] = 0;
+                    target[dk] += showVisits ? s[dk].visits : s[dk].uniq;
+                }
+            }
+            keys = Object.keys(allKeys).sort();
+            var uniLine = {}, nonLine = {};
+            keys.forEach(function(k) { uniLine[k] = uniData[k] || 0; nonLine[k] = nonData[k] || 0; });
+            chartSeries = [
+                { name: 'UNINOVIS', data: uniLine, color: '#2D3876' },
+                { name: 'Non-UNINOVIS', data: nonLine, color: '#e74c3c' }
+            ];
+        } else if (cc === 'uninovis') {
+            // 8 separate lines, one per country
+            var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
+            chartSeries = [];
+            var allKeys = {};
+            UNINOVIS_COUNTRIES.forEach(function(code, idx) {
+                var cs = extractCountrySeries(rawC, code);
+                var data = {};
+                for (var dk in cs) {
+                    data[dk] = showVisits ? cs[dk].visits : cs[dk].uniq;
+                    allKeys[dk] = true;
+                }
+                chartSeries.push({ name: code.toUpperCase(), data: data, color: PALETTE[idx % PALETTE.length] });
+            });
+            keys = Object.keys(allKeys).sort();
+            chartSeries.forEach(function(s) { keys.forEach(function(k) { if (!(k in s.data)) s.data[k] = 0; }); });
+            if (met === 'unique') noteEl.textContent = 'Showing unique visitors per country.';
+        } else if (isAll() && $$('chkPerSite').checked) {
+            // Per-site breakdown: one line per site
+            var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
+            var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
+            chartSeries = [];
+            var allKeys = {};
+            var siteIds = Object.keys(SITES);
+            var SITE_COLORS = ['#2D3876','#e74c3c','#27ae60','#f39c12','#8e44ad'];
+            siteIds.forEach(function(sid, idx) {
+                var siteSeries;
+                if (cc === 'all') {
+                    // All countries for this site
+                    siteSeries = extractAllCountriesForSite(rawC, sid);
+                } else if (cc === 'uninovis') {
+                    siteSeries = {};
+                    UNINOVIS_COUNTRIES.forEach(function(code) {
+                        var cs = extractCountrySeriesForSite(rawC, sid, code);
+                        for (var dk in cs) {
+                            if (!siteSeries[dk]) siteSeries[dk] = { visits: 0, uniq: 0 };
+                            siteSeries[dk].visits += cs[dk].visits;
+                            siteSeries[dk].uniq += cs[dk].uniq;
+                        }
+                    });
+                } else if (cc === 'non-uninovis') {
+                    siteSeries = {};
+                    var siteData = rawC[sid];
+                    if (siteData) {
+                        for (var dk in siteData) {
+                            if (!Array.isArray(siteData[dk])) continue;
+                            siteData[dk].forEach(function(c) {
+                                if (!c.code || c.code === 'xx') return;
+                                if (UNINOVIS_COUNTRIES.indexOf(c.code) !== -1) return;
+                                if (!siteSeries[dk]) siteSeries[dk] = { visits: 0, uniq: 0 };
+                                siteSeries[dk].visits += (c.nb_visits||0);
+                                siteSeries[dk].uniq += (c.nb_uniq_visitors||0);
+                            });
+                        }
+                    }
+                } else {
+                    siteSeries = extractCountrySeriesForSite(rawC, sid, resolvedCC);
+                }
+                var data = {};
+                for (var dk in siteSeries) {
+                    data[dk] = showVisits ? siteSeries[dk].visits : siteSeries[dk].uniq;
+                    allKeys[dk] = true;
+                }
+                chartSeries.push({ name: SITES[sid], data: data, color: SITE_COLORS[idx % SITE_COLORS.length] });
+            });
+            keys = Object.keys(allKeys).sort();
+            chartSeries.forEach(function(s) { keys.forEach(function(k) { if (!(k in s.data)) s.data[k] = 0; }); });
+        } else {
+            var visits = {}, uniques = {};
+            var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
+            var includeNonUni = $$('chkChartNonUninovis').checked;
+            if (cc !== 'all') {
+                var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
+                if (cc === 'non-uninovis') {
+                    var allS = extractAllCountrySeries(rawC);
+                    for (var code in allS) {
+                        if (UNINOVIS_COUNTRIES.indexOf(code) === -1) {
+                            var s = allS[code];
+                            for (var dk in s) {
+                                if (!visits[dk]) visits[dk] = 0;
+                                if (!uniques[dk]) uniques[dk] = 0;
+                                visits[dk] += s[dk].visits;
+                                uniques[dk] += s[dk].uniq;
+                            }
+                        }
+                    }
+                } else {
+                    var series = extractCountrySeries(rawC, resolvedCC);
+                    for (var dk in series) { visits[dk] = series[dk].visits; uniques[dk] = series[dk].uniq; }
+                }
+            } else if (!includeNonUni) {
+                // Show only UNINOVIS countries (aggregated into single line)
+                var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
+                var allS = extractAllCountrySeries(rawC);
+                var totalAll = 0, totalUni = 0;
+                for (var code in allS) {
+                    var s = allS[code];
+                    var isUni = UNINOVIS_COUNTRIES.indexOf(code) !== -1;
+                    for (var dk in s) {
+                        totalAll += s[dk].visits;
+                        if (isUni) {
+                            if (!visits[dk]) visits[dk] = 0;
+                            if (!uniques[dk]) uniques[dk] = 0;
+                            visits[dk] += s[dk].visits;
+                            uniques[dk] += s[dk].uniq;
+                            totalUni += s[dk].visits;
+                        }
+                    }
+                }
+                if (totalAll > 0) {
+                    var pct = (totalUni / totalAll * 100).toFixed(1);
+                    noteEl.textContent = 'Showing UNINOVIS countries only (' + pct + '% of total visits).';
+                }
+            } else {
+                var rawS = await q('VisitsSummary.get');
+                var summary = flatN(rawS);
+                for (var dk in summary) {
+                    var val = summary[dk];
+                    if (typeof val === 'object' && val !== null) {
+                        visits[dk] = val.nb_visits || 0;
+                        uniques[dk] = val.nb_uniq_visitors || 0;
+                    } else if (typeof val === 'number') {
+                        visits[dk] = val;
+                    }
+                }
+            }
+            var hasUniqData = false;
+            for (var _k in uniques) { if (uniques[_k] > 0) { hasUniqData = true; break; } }
+            if (showUniq && !hasUniqData) {
+                var p = per();
+                if (p !== 'day' && p !== 'week')
+                    noteEl.textContent = 'Unique visitors only available for daily/weekly periods on Matomo Cloud.';
+            }
+            var vShow = showVisits ? visits : null;
+            var uShow = (showUniq && hasUniqData) ? uniques : null;
+            // Fallback: if only unique was requested but unavailable, show visits instead
+            if (!vShow && !uShow) {
+                vShow = visits;
+                noteEl.textContent = 'Unique visitor data not available. Showing visits instead.';
+            }
+            chartSeries = makeStandardSeries(vShow, uShow);
+            keys = Object.keys(visits).sort();
         }
 
-        el.className = 'bchart'; el.innerHTML = '';
-        var hasUniqData = false;
-        for (var _k in uniques) { if (uniques[_k] > 0) { hasUniqData = true; break; } }
-        noteEl.textContent = hasUniqData ? '' :
-            (uniqAvail ? '' : 'Unique visitors are only available for daily and weekly periods on Matomo Cloud. Switch to Daily or Weekly to see them.');
-
-        var hasUniq = Object.keys(uniques).length > 0;
-        legendEl.innerHTML =
-            '<div class="legend-item"><div class="ldot" style="background:'+COLORS.visits+';"></div> Visits</div>' +
-            (hasUniq ? '<div class="legend-item"><div class="ldot" style="background:'+COLORS.uniq+';"></div> Unique Visitors</div>' : '');
-
-        var keys = Object.keys(visits).sort();
-        if (!keys.length) { el.innerHTML = '<span class="error">No data for this selection.</span>'; return; }
-
-        var maxV = 0;
-        keys.forEach(function(k) { var v = visits[k]||0; if (v > maxV) maxV = v; });
-        if (!maxV) maxV = 1;
-
-        keys.forEach(function(k) {
-            var v = visits[k]||0, u = uniques[k]||0;
-            var pctV = (v/maxV)*100, pctU = (u/maxV)*100;
-            var col = document.createElement('div'); col.className = 'bcol';
-            var lbl = shortDate(k);
-
-            if (hasUniq && u > 0) {
-                var rem = Math.max(0, pctV - pctU);
-                col.innerHTML =
-                    '<div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:100%;">' +
-                    '<div class="brect" style="height:'+rem+'%;background:'+COLORS.visits+';"><span class="tip">'+k+'\nVisits: '+v+'\nUnique: '+u+'</span></div>' +
-                    '<div class="brect" style="height:'+Math.max(pctU,2)+'%;background:'+COLORS.uniq+';"><span class="tip">'+k+'\nUnique: '+u+'</span></div></div>';
-            } else {
-                col.innerHTML = '<div class="brect" style="height:'+Math.max(pctV,2)+'%;background:'+COLORS.visits+';"><span class="tip">'+k+'\nVisits: '+v+'</span></div>';
-            }
-            col.innerHTML += '<div class="blbl">'+lbl+'</div>';
-            el.appendChild(col);
-        });
+        renderLineChart(el, keys, chartSeries);
 
         // Title
-        var parts = ['Visitors Over Time'];
-        var countryName = $$('selCountry').selectedOptions[0]?.textContent;
-        if (!isAllCountry()) parts.push(countryName.split(' (')[0]);
-        if (pg()) parts.push('"'+pg()+'"');
+        var perSite = isAll() && $$('chkPerSite').checked;
+        var baseTitle;
+        if (pageFilter || perSite) baseTitle = 'Visits Over Time';
+        else if (showVisits && showUniq) baseTitle = 'Visitors/Visits Over Time';
+        else if (showUniq) baseTitle = 'Visitors Over Time';
+        else baseTitle = 'Visits Over Time';
+        var parts = [baseTitle];
+        if (cc === 'uninovis-compare') parts.push('UNINOVIS vs Non-UNINOVIS');
+        else if (cc === 'uninovis') parts.push('UNINOVIS 8');
+        else if (cc === 'non-uninovis') parts.push('Non-UNINOVIS');
+        else if (cc === 'all' && !$$('chkChartNonUninovis').checked) parts.push('UNINOVIS only');
+        else if (cc.indexOf('other:') === 0) {
+            // Show the selected label from the dropdown
+            var selNU = $$('selNonUninovis');
+            var optText = selNU.options[selNU.selectedIndex] ? selNU.options[selNU.selectedIndex].textContent.split(' (')[0] : cc.substring(6).toUpperCase();
+            parts.push(optText);
+        }
+        else if (cc !== 'all') parts.push(cc.toUpperCase());
+        var pgLabel = selectedPageLabel();
+        if (pgLabel) parts.push(pgLabel);
         $$('chartTitle').textContent = parts.join(' — ');
 
     } catch(e) {
-        el.className = '';
         el.innerHTML = '<span class="error">Error: '+e.message+'</span>';
     }
 }
 
 // ── Site breakdown ──
-async function loadBreakdown() {
-    var panel = $$('breakdownPanel');
-    if (!isAll()) { panel.style.display = 'none'; return; }
-    panel.style.display = '';
-    var el = $$('breakdown');
-    try {
-        var raw = await q('VisitsSummary.get');
-        var stats = [];
-        for (var sid in raw) {
-            var sd = raw[sid]; if (typeof sd !== 'object') continue;
-            var v = 0, u = 0, a = 0;
-            for (var dk in sd) {
-                var d = sd[dk];
-                if (d && typeof d === 'object' && !Array.isArray(d)) {
-                    v += (d.nb_visits||0);
-                    u += (d.nb_uniq_visitors||0);
-                    a += (d.nb_actions||0);
-                }
-            }
-            stats.push({ name: SITES[sid]||('Site '+sid), visits: v, uniq: u, actions: a });
-        }
-        stats.sort(function(a,b){return b.visits-a.visits;});
-        var max = stats.length ? stats[0].visits : 1;
-        el.innerHTML = stats.map(function(s) {
-            var pct = (s.visits/max*100);
-            var pctU = max ? (s.uniq/max*100) : 0;
-            return '<div class="hrow">'
-                + '<div class="hlbl">'+s.name+'</div>'
-                + '<div class="htrack" style="position:relative;">'
-                + '<div class="hfill" style="width:'+pct+'%;background:'+COLORS.visits+';position:absolute;top:0;left:0;"></div>'
-                + '<div class="hfill" style="width:'+pctU+'%;background:'+COLORS.uniq+';position:absolute;top:0;left:0;"></div>'
-                + '</div>'
-                + '<div class="hval" title="Visits: '+fmt(s.visits)+' | Unique: '+fmt(s.uniq)+'">'+fmt(s.visits)+' / '+fmt(s.uniq)+'</div>'
-                + '</div>';
-        }).join('')
-        + '<div class="note" style="margin-top:8px;">Values: Visits / Unique Visitors. '
-        + (per()==='day'||per()==='week' ? '' : 'Unique visitors only available for daily/weekly periods.')
-        + '</div>';
-    } catch(e) { el.innerHTML = '<span class="error">Error</span>'; }
-}
-
 // ── Tabs ──
 var tabCache = {};
 async function loadTab(tab) {
     var el = $$('tabContent');
-    var ck = [tab,site(),country(),per(),rng(),pg()].join('_');
+    var lim = tabLimit();
+    var vm = viewMode();
+    var ck = [tab,site(),per(),rng(),selectedPageUrl(),lim,vm].join('_');
     if (tabCache[ck]) { el.innerHTML = tabCache[ck]; return; }
     el.innerHTML = '<div class="loading">Loading...</div>';
     try {
         var raw, items, html;
+        var fetchLimit = lim === '-1' ? '-1' : String(Math.max(parseInt(lim)*2, 100));
         switch (tab) {
             case 'pages':
-                raw = await q('Actions.getPageUrls', {flat:'1',filter_limit:'25'});
+                raw = await q('Actions.getPageUrls', {flat:'1',filter_limit:fetchLimit});
                 items = isAll() ? flatA(raw) : arrify(raw); break;
             case 'referrers':
-                raw = await q('Referrers.getWebsites', {filter_limit:'20'});
+                raw = await q('Referrers.getWebsites', {filter_limit:fetchLimit});
                 items = isAll() ? flatA(raw) : arrify(raw); break;
             case 'countries':
-                raw = await q('UserCountry.getCountry', {filter_limit:'20'});
+                raw = await q('UserCountry.getCountry', {filter_limit:fetchLimit});
                 items = isAll() ? flatA(raw) : arrify(raw); break;
             case 'devices':
-                raw = await q('DevicesDetection.getType', {filter_limit:'10'});
+                raw = await q('DevicesDetection.getType', {filter_limit:fetchLimit});
                 items = isAll() ? flatA(raw) : arrify(raw); break;
         }
-        html = renderH(items);
+        // For pages tab: apply exclusions, min visits, optionally group
+        if (tab === 'pages') {
+            var minV = (URL_CONFIG.minVisits != null) ? URL_CONFIG.minVisits : 100;
+            items = items.filter(function(r) {
+                // Exclude URLs marked in config
+                if (URL_CONFIG.urls && URL_CONFIG.urls.length && isUrlExcluded(r.label||'')) return false;
+                // Apply min visits (but keep configured pages)
+                if ((r.nb_visits||0) < minV && !getUrlDescription(r.label||'')) return false;
+                return true;
+            });
+            if (vm === 'grouped') {
+                items = groupByDescription(items);
+            }
+        }
+        // Apply limit
+        if (lim !== '-1') {
+            items = items.slice(0, parseInt(lim));
+        }
+        html = renderH(items, tab);
         tabCache[ck] = html;
         el.innerHTML = html;
     } catch(e) { el.innerHTML = '<span class="error">Error: '+e.message+'</span>'; }
 }
 
-function renderH(items) {
+function reloadCurrentTab() {
+    tabCache = {};
+    var act = document.querySelector('.tab-btn.active');
+    loadTab(act ? act.dataset.tab : 'pages');
+}
+
+function renderH(items, tab) {
     if (!items || !items.length) return '<p style="color:#888;font-size:0.85rem;">No data.</p>';
+    var isPages = (tab === 'pages');
     var max = Math.max.apply(null, items.map(function(r){return r.nb_visits||0;}))||1;
     return items.map(function(r) {
         var l = r.label||'?', v = r.nb_visits||0;
-        return '<div class="hrow"><div class="hlbl" title="'+l.replace(/"/g,'&quot;')+'">'+l+'</div><div class="htrack"><div class="hfill" style="width:'+(v/max*100)+'%;"></div></div><div class="hval">'+fmt(v)+'</div></div>';
+        var display = l;
+        var tooltip = l;
+        var clickAttr = '';
+        if (isPages) {
+            if (r._urls) {
+                tooltip = r._urls.join('\n');
+                var patternUrl = findConfigUrlForLabel(r._urls[0]);
+                if (patternUrl) {
+                    clickAttr = ' onclick="openDrill(\''+escAttr(patternUrl)+'\',\''+escAttr(display)+'\',true)"';
+                }
+            } else {
+                var desc = getUrlDescription(l);
+                if (desc) display = desc;
+                clickAttr = ' onclick="openDrill(\''+escAttr(l)+'\',\''+escAttr(display)+'\',false)"';
+            }
+        }
+        return '<div class="hrow"'+clickAttr+' style="'+(isPages ? 'cursor:pointer;' : '')+'">'
+            + '<div class="hlbl" title="'+tooltip.replace(/"/g,'&quot;')+'">'+display+'</div>'
+            + '<div class="htrack"><div class="hfill" style="width:'+(v/max*100)+'%;"></div></div>'
+            + '<div class="hval">'+fmt(v)+'</div></div>';
     }).join('');
+}
+
+function escAttr(s) { return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+function findConfigUrlForLabel(urlPath) {
+    if (!URL_CONFIG.urls || !URL_CONFIG.urls.length) return null;
+    for (var i = 0; i < URL_CONFIG.urls.length; i++) {
+        var u = URL_CONFIG.urls[i];
+        if (u.url && urlMatches(urlPath, u.url)) return u.url;
+    }
+    return null;
 }
 
 function showTab(tab, btn) {
@@ -547,20 +1473,61 @@ function showTab(tab, btn) {
     loadTab(tab);
 }
 
-// Reset country list when site changes
-$$('selSite').addEventListener('change', function() { countryListLoaded = false; });
 
 async function loadAll() {
     tabCache = {};
-    await loadCountries();
-    loadKPIs();
+    liveCache = { key: '', visits: [], unavailable: false };
+    chartFilter.country = 'all';
+    updatePerSiteVisibility();
+    closeDrill();
+    loadCountryChart();
     loadChart();
-    loadBreakdown();
-    var act = document.querySelector('.tab-btn.active');
-    loadTab(act ? act.dataset.tab : 'pages');
+    var pageFilter = selectedPageUrl();
+    var tabsEl = $$('tabsSection');
+    if (pageFilter) {
+        tabsEl.style.display = 'none';
+    } else {
+        tabsEl.style.display = '';
+        var act = document.querySelector('.tab-btn.active');
+        loadTab(act ? act.dataset.tab : 'pages');
+    }
 }
 
-loadSites().then(function(){ loadAll(); });
+// ── Drill-down for specific page ──
+var drillState = { pagePattern: '', label: '', country: 'all', exact: true };
+
+function openDrill(pagePattern, displayLabel, grouped) {
+    drillState.pagePattern = pagePattern;
+    drillState.label = displayLabel;
+    drillState.exact = !grouped;
+    $$('drillPanel').style.display = '';
+    $$('drillTitle').textContent = displayLabel;
+    loadDrillChart();
+    $$('drillPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeDrill() {
+    $$('drillPanel').style.display = 'none';
+}
+
+async function loadDrillChart() {
+    var el = $$('drillChart');
+    var noteEl = $$('drillNote');
+    el.innerHTML = '<div class="loading">Loading...</div>';
+    el.className = 'lchart';
+    noteEl.textContent = '';
+
+    try {
+        var pageSeries = await getPageFilteredSeries(drillState.pagePattern, drillState.exact);
+        var chartSeries = makeStandardSeries(pageSeries.visits, null);
+        var keys = Object.keys(pageSeries.visits).sort();
+        renderLineChart(el, keys, chartSeries);
+    } catch(e) {
+        el.innerHTML = '<span class="error">Error: '+e.message+'</span>';
+    }
+}
+
+Promise.all([loadSites(), loadUrlConfig()]).then(function(){ loadAll(); });
 </script>
 </body>
 </html>

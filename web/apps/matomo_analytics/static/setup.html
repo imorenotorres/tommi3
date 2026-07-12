@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS — Analytics Setup</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/nav.css?v=2">
+    <script src="/static/nav.js?v=2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px 24px; }
+
+        .panel {
+            background: #fff; border-radius: 10px; padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 16px;
+        }
+        .panel h2 { font-size: 1rem; color: #2D3876; margin-bottom: 12px; }
+        .panel p.desc { font-size: 0.82rem; color: #666; margin-bottom: 16px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        th { text-align: left; padding: 8px 10px; background: #f8fafc; color: #555; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        tr:hover td { background: #f8fafc; }
+
+        input[type=text] {
+            width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 5px;
+            font-size: 0.8rem; background: #fff;
+        }
+        input[type=text]:focus { outline: none; border-color: #2D3876; }
+
+        .cb { width: 16px; height: 16px; cursor: pointer; }
+
+        .btn {
+            padding: 7px 16px; border: none; border-radius: 6px;
+            font-size: 0.8rem; cursor: pointer; font-weight: 600;
+        }
+        .btn-primary { background: #2D3876; color: #fff; }
+        .btn-primary:hover { background: #4a5299; }
+        .btn-secondary { background: #e5e7eb; color: #333; }
+        .btn-secondary:hover { background: #d1d5db; }
+        .btn-danger { background: #fee2e2; color: #dc2626; }
+        .btn-danger:hover { background: #fecaca; }
+
+        .actions { display: flex; gap: 8px; margin-top: 16px; align-items: center; }
+        .actions .spacer { flex: 1; }
+
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; background: #065f46; color: #fff;
+            padding: 10px 20px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+
+        .back-link { font-size: 0.82rem; color: #2D3876; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<script>uninovisNav({ crumbs: [{label:'System', href:'#'}, {label:'Analytics', href:'/matomo-analytics/'}], current: 'Setup' });</script>
+
+<div class="container">
+    <div style="margin-bottom: 12px;">
+        <a href="/matomo-analytics/" class="back-link">&larr; Back to Analytics</a>
+    </div>
+
+    <div class="panel">
+        <h2>URL Configuration</h2>
+        <p class="desc">
+            Define the URLs you want to track. Add a text description to display instead of the raw URL in reports.
+            Uncheck "Include" to exclude a page from the filtered view.
+        </p>
+
+        <table id="urlTable">
+            <thead>
+                <tr>
+                    <th style="width:40px;">Include</th>
+                    <th>URL path</th>
+                    <th>Description (shown in reports)</th>
+                    <th style="width:60px;"></th>
+                </tr>
+            </thead>
+            <tbody id="urlBody">
+            </tbody>
+        </table>
+
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="addRow()">+ Add URL</button>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Page Dropdown Filter</h2>
+        <p class="desc">
+            The page dropdown in the analytics view lists all configured pages above, plus other pages
+            discovered automatically from Matomo. Set a minimum number of visits for a page to appear
+            in the dropdown (does not affect configured pages, which always appear).
+        </p>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <label style="font-size:0.82rem;font-weight:600;color:#555;">Minimum visits:</label>
+            <input type="number" id="minVisits" value="100" min="0" step="10"
+                   style="width:80px;padding:5px 8px;border:1px solid #d1d5db;border-radius:5px;font-size:0.82rem;">
+        </div>
+    </div>
+
+    <div style="text-align:right;margin-top:4px;">
+        <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+    </div>
+</div>
+
+<div class="toast" id="toast">Configuration saved</div>
+
+<script>
+var config = { urls: [] };
+
+function addRow(url, desc, included) {
+    url = url || '';
+    desc = desc || '';
+    if (included === undefined) included = true;
+
+    var tbody = document.getElementById('urlBody');
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+        '<td style="text-align:center;"><input type="checkbox" class="cb" ' + (included ? 'checked' : '') + '></td>' +
+        '<td><input type="text" class="url-input" value="' + escHtml(url) + '" placeholder="/agents, /event-calendar..."></td>' +
+        '<td><input type="text" class="desc-input" value="' + escHtml(desc) + '" placeholder="e.g. Agent Chat Page"></td>' +
+        '<td style="text-align:center;"><button class="btn btn-danger" onclick="removeRow(this)" title="Remove">&times;</button></td>';
+    tbody.appendChild(tr);
+}
+
+function removeRow(btn) {
+    btn.closest('tr').remove();
+}
+
+function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+function gatherConfig() {
+    var rows = document.querySelectorAll('#urlBody tr');
+    var urls = [];
+    rows.forEach(function(tr) {
+        var url = tr.querySelector('.url-input').value.trim();
+        if (!url) return;
+        urls.push({
+            url: url,
+            description: tr.querySelector('.desc-input').value.trim(),
+            included: tr.querySelector('.cb').checked
+        });
+    });
+    var minVisits = parseInt(document.getElementById('minVisits').value) || 100;
+    return { urls: urls, minVisits: minVisits };
+}
+
+async function saveConfig() {
+    var cfg = gatherConfig();
+    try {
+        var resp = await fetch('/matomo-analytics/api/url-config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cfg)
+        });
+        if (resp.ok) {
+            showToast('Configuration saved');
+        } else {
+            showToast('Error saving configuration');
+        }
+    } catch(e) {
+        showToast('Error: ' + e.message);
+    }
+}
+
+function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+async function loadConfig() {
+    try {
+        var resp = await fetch('/matomo-analytics/api/url-config');
+        config = await resp.json();
+        if (config.urls && config.urls.length) {
+            config.urls.forEach(function(u) {
+                addRow(u.url, u.description, u.included !== false);
+            });
+        } else {
+            addRow();
+        }
+        document.getElementById('minVisits').value = config.minVisits != null ? config.minVisits : 100;
+    } catch(e) {
+        addRow();
+    }
+}
+
+loadConfig();
+</script>
+</body>
+</html>

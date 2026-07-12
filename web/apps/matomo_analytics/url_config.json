@@ -1,0 +1,115 @@
+{
+  "urls": [
+    {
+      "url": "/bipia",
+      "description": "Event (UMA): BIP AI Agents Main Page",
+      "included": true
+    },
+    {
+      "url": "/offering/64/22",
+      "description": "Event (UMA):  Workshop: Innovative Teaching AI",
+      "included": true
+    },
+    {
+      "url": "/offering/64/2",
+      "description": "Event (UMA): BIP AI Agents Agora Registration",
+      "included": true
+    },
+    {
+      "url": "/static/EHs/responsible-ai.html",
+      "description": "Resposible AI Research Explorer",
+      "included": true
+    },
+    {
+      "url": "/login?redirect=/",
+      "description": "",
+      "included": false
+    },
+    {
+      "url": "/login",
+      "description": "",
+      "included": false
+    },
+    {
+      "url": "/static/algoria_map.html",
+      "description": "",
+      "included": false
+    },
+    {
+      "url": "/event-calendar/",
+      "description": "Tools: Events Calendar",
+      "included": true
+    },
+    {
+      "url": "/static/EHs/index.html",
+      "description": "Excellence Hubs Main Page",
+      "included": true
+    },
+    {
+      "url": "/agents",
+      "description": "",
+      "included": false
+    },
+    {
+      "url": "/",
+      "description": "",
+      "included": false
+    },
+    {
+      "url": "/internships",
+      "description": "UNINOVIS Internships",
+      "included": true
+    },
+    {
+      "url": "/research-explorers",
+      "description": "Tools: Research explorers",
+      "included": true
+    },
+    {
+      "url": "/unigracon/",
+      "description": "Tools: UNINOVIS Grade Converter",
+      "included": true
+    },
+    {
+      "url": "/mobility_planner/",
+      "description": "Tools: UNINOVIS Mobility Planner",
+      "included": true
+    },
+    {
+      "url": "/uninovis-uma",
+      "description": "",
+      "included": false
+    },
+    {
+      "url": "/news",
+      "description": "All news",
+      "included": true
+    },
+    {
+      "url": "/offering/",
+      "description": "All offerings",
+      "included": true
+    },
+    {
+      "url": "/directory/",
+      "description": "Tools: Directory",
+      "included": true
+    },
+    {
+      "url": "/web/login?redirect=/",
+      "description": "",
+      "included": false
+    },
+    {
+      "url": "/event-catalogue",
+      "description": "Tools: Event catalogue",
+      "included": true
+    },
+    {
+      "url": "/event/bip-artificial-intelligence-for-european-university-alliances-research-teaching-and-administration-21/register",
+      "description": "",
+      "included": false
+    }
+  ],
+  "minVisits": 100
+}
