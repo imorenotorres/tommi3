@@ -24,9 +24,9 @@
         }
         .controls input[type=text] { width: 160px; }
         .controls button {
-            padding: 5px 14px; border: none; border-radius: 6px;
-            background: #2D3876; color: #fff; font-size: 0.78rem;
-            cursor: pointer; font-weight: 600;
+            padding: 8px 28px; border: none; border-radius: 6px;
+            background: #2D3876; color: #fff; font-size: 0.92rem;
+            cursor: pointer; font-weight: 700; letter-spacing: 0.5px;
         }
         .controls button:hover { background: #4a5299; }
         .controls .sep { width: 1px; height: 22px; background: #e2e8f0; }
@@ -49,7 +49,7 @@
         .panel h3 { font-size: 0.88rem; color: #2D3876; margin-bottom: 8px; }
 
         /* Line chart */
-        .lchart { position: relative; width: 100%; height: 160px; }
+        .lchart { position: relative; width: 100%; height: 320px; }
         .lchart svg { width: 100%; height: 100%; overflow: visible; }
         .lchart .grid-line { stroke: #e5e7eb; stroke-width: 0.5; }
         .lchart .axis-label { font-size: 9px; fill: #94a3b8; }
@@ -124,6 +124,13 @@
         <label>Page:</label>
         <select id="selPage" onchange="loadAll()"><option value="">All pages</option></select>
         <div class="sep"></div>
+        <label>Country:</label>
+        <select id="selCountry" onchange="onCountryChange()">
+            <option value="all">All</option>
+            <option value="uninovis">All UNINOVIS</option>
+        </select>
+    </div>
+    <div class="controls" style="margin-top:-8px;">
         <label>Period:</label>
         <select id="selPeriod">
             <option value="day">Daily</option>
@@ -145,29 +152,22 @@
             <option value="both">Visits + Unique</option>
             <option value="unique">Unique Visitors</option>
         </select>
-        <div class="sep" id="sepPerSite"></div>
-        <label id="lblPerSite" style="display:none;font-size:0.78rem;cursor:pointer;color:#555;user-select:none;">
-            <input type="checkbox" id="chkPerSite" onchange="loadChart()" style="vertical-align:middle;cursor:pointer;"> Per site
-        </label>
+        <div style="flex:1;"></div>
         <button onclick="loadAll()">Apply</button>
         <a href="/matomo-analytics/setup" style="font-size:0.72rem;color:#2D3876;text-decoration:none;margin-left:4px;" title="Configure tracked URLs">&#9881; Setup</a>
     </div>
 
-    <!-- 2a. Group summary: All / UNINOVIS vs Non-UNINOVIS -->
-    <div class="panel" id="groupSummaryPanel">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-            <h3 style="margin:0;flex:1;">Visit Groups</h3>
-        </div>
-        <div id="groupSummary"></div>
-    </div>
-
-    <!-- 2b. Visits by Country -->
+    <!-- 2. Visits by Country -->
     <div class="panel" id="countryChartPanel">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-            <h3 style="margin:0;flex:1;" id="countryChartTitle">Visits by Country</h3>
-            <label style="font-size:0.72rem;cursor:pointer;color:#555;user-select:none;">
-                <input type="checkbox" id="chkNonUninovis" onchange="loadCountryChart()" style="vertical-align:middle;cursor:pointer;"> Include non-UNINOVIS
-            </label>
+            <h3 id="countryChartTitle" style="margin:0;flex:1;">Visits by Country</h3>
+            <label style="font-size:0.72rem;font-weight:600;color:#555;">Show:</label>
+            <select id="selCountryLimit" onchange="loadCountryChart()" style="padding:3px 6px;border:1px solid #d1d5db;border-radius:6px;font-size:0.72rem;">
+                <option value="10">Top 10</option>
+                <option value="20" selected>Top 20</option>
+                <option value="30">Top 30</option>
+                <option value="-1">All</option>
+            </select>
         </div>
         <div id="countryChart"></div>
         <div class="note" id="countryChartNote" style="margin-top:4px;"></div>
@@ -177,8 +177,8 @@
     <div class="panel">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
             <h3 id="chartTitle" style="margin:0;flex:1;">Visits Over Time</h3>
-            <label style="font-size:0.72rem;cursor:pointer;color:#555;user-select:none;">
-                <input type="checkbox" id="chkChartNonUninovis" onchange="loadChart()" style="vertical-align:middle;cursor:pointer;"> Include non-UNINOVIS
+            <label id="lblShowAgg" style="display:none;font-size:0.72rem;cursor:pointer;color:#555;user-select:none;">
+                <input type="checkbox" id="chkShowAgg" checked onchange="loadChart()" style="vertical-align:middle;cursor:pointer;"> Show aggregated
             </label>
         </div>
         <div id="chart" class="lchart"><div class="loading">Loading...</div></div>
@@ -238,12 +238,13 @@ var UNINOVIS_COUNTRIES = ['al','de','es','fi','fr','it','lt','nl'];
 var chartFilter = { country: 'all' }; // country selected via country bar chart
 
 function $$(id) { return document.getElementById(id); }
-function site() { return $$('selSite').value; }
+function site() { var v = $$('selSite').value; return (v === 'persite') ? 'all' : v; }
+function isPerSite() { return $$('selSite').value === 'persite'; }
 function per() { return $$('selPeriod').value; }
 function rng() { return $$('selRange').value; }
 function tabLimit() { return $$('selLimit').value; }
 function viewMode() { return $$('selView').value; }
-function isAll() { return site() === 'all'; }
+function isAll() { return site() === 'all'; } // true for both 'all' and 'persite'
 function fmt(n) { return n == null ? '-' : Number(n).toLocaleString(); }
 function fmtT(s) { s = Math.round(s||0); return s < 60 ? s+'s' : Math.floor(s/60)+'m '+(s%60)+'s'; }
 
@@ -261,6 +262,8 @@ function selectedPageLabel() {
 function populatePageDropdown() {
     var sel = $$('selPage');
     var cur = sel.value;
+    // Temporarily disable onchange to prevent recursive loadAll
+    sel.onchange = null;
     sel.innerHTML = '<option value="">All pages</option>';
     // Add configured pages first (with descriptions)
     var configuredPaths = {};
@@ -275,6 +278,7 @@ function populatePageDropdown() {
         });
     }
     sel.value = cur || '';
+    sel.onchange = function() { loadAll(); };
     // Then fetch top pages from Matomo and add unconfigured ones
     q('Actions.getPageUrls', { flat: '1', filter_limit: '50' }).then(function(raw) {
         var pages = {};
@@ -498,12 +502,26 @@ async function loadSites() {
     try {
         var r = await (await fetch('/matomo-analytics/api/sites')).json();
         var sel = $$('selSite');
+        sel.innerHTML = '';
+        // Individual sites first
         (r.sites||[]).forEach(function(s) {
             SITES[s.id] = s.name;
             var o = document.createElement('option');
             o.value = s.id; o.textContent = s.name;
             sel.appendChild(o);
         });
+        // Separator + aggregate options
+        var sep = document.createElement('option');
+        sep.disabled = true; sep.textContent = '──────────';
+        sel.appendChild(sep);
+        var oAll = document.createElement('option');
+        oAll.value = 'all'; oAll.textContent = 'All sites (aggregated)';
+        sel.appendChild(oAll);
+        var oPer = document.createElement('option');
+        oPer.value = 'persite'; oPer.textContent = 'All sites (separately)';
+        sel.appendChild(oPer);
+        // Default to first site
+        sel.value = Object.keys(SITES)[0] || 'all';
     } catch(e) {}
 }
 
@@ -526,8 +544,10 @@ async function getPageFilteredSeries(pagePattern, exactMatch) {
 
     function matches(label, pattern) {
         if (exactMatch) {
-            // Exact match: normalize trailing slashes
-            return label.replace(/\/$/, '') === pattern.replace(/\/$/, '');
+            // Exact match: normalize trailing slashes and query strings
+            var l = label.replace(/\/$/, '').split('?')[0];
+            var p = pattern.replace(/\/$/, '').split('?')[0];
+            return l === p;
         }
         return urlMatches(label, pattern);
     }
@@ -673,9 +693,23 @@ async function getPageCountrySeries(pagePattern, countryCode, exactMatch) {
 function computeDateRange(period, numPeriods) {
     var end = new Date();
     var start = new Date();
-    if (period === 'day') start.setDate(end.getDate() - numPeriods);
-    else if (period === 'week') start.setDate(end.getDate() - numPeriods * 7);
-    else if (period === 'month') start.setMonth(end.getMonth() - numPeriods);
+    if (period === 'day') {
+        start.setDate(end.getDate() - numPeriods);
+    } else if (period === 'week') {
+        // Align to Monday (Matomo weeks start on Monday)
+        var day = end.getDay(); // 0=Sun
+        var endMonday = new Date(end);
+        endMonday.setDate(end.getDate() - (day === 0 ? 6 : day - 1));
+        var startMonday = new Date(endMonday);
+        startMonday.setDate(endMonday.getDate() - (numPeriods - 1) * 7);
+        start = startMonday;
+        // End on Sunday of current week
+        end = new Date(endMonday);
+        end.setDate(endMonday.getDate() + 6);
+    } else if (period === 'month') {
+        start.setMonth(end.getMonth() - numPeriods);
+        start.setDate(1);
+    }
     function fmt(d) {
         return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
@@ -708,35 +742,128 @@ function dateToBucket(dateStr, period, numPeriods) {
 // ── Metric and country helpers ──
 function selectedMetric() { return $$('selMetric').value; }
 
+function selectedCountry() { return $$('selCountry').value; }
+
 function onMetricChange() {
-    loadChart();
     loadCountryChart();
+    loadChart();
+    reloadCurrentTab();
+}
+
+function onCountryChange() {
+    chartFilter.country = selectedCountry();
+    loadCountryChart();
+    loadChart();
+    reloadCurrentTab();
 }
 
 function selectCountry(code) {
-    chartFilter.country = code;
-    // Highlight selected bar
-    var bars = document.querySelectorAll('#countryChart .hrow');
-    bars.forEach(function(row) {
-        row.style.background = (row.dataset.code === code) ? '#e0e7ff' : '';
-    });
+    var sel = $$('selCountry');
+    // If code is not in dropdown (e.g., a non-top-5 country), add it temporarily
+    var found = false;
+    for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === code) { found = true; break; }
+    }
+    if (!found && code.indexOf('other:') !== 0) {
+        // Check if it needs other: prefix (non-UNINOVIS individual country)
+        if (UNINOVIS_COUNTRIES.indexOf(code) === -1 && code !== 'all' && code !== 'uninovis' && code !== 'non-uninovis') {
+            code = 'other:' + code;
+        }
+    }
+    if (!found) {
+        var o = document.createElement('option');
+        o.value = code;
+        o.textContent = code.replace('other:','').toUpperCase();
+        sel.appendChild(o);
+    }
+    sel.value = code;
+    loadCountryChart();
     loadChart();
+    reloadCurrentTab();
 }
 
-function updatePerSiteVisibility() {
-    var show = isAll();
-    $$('lblPerSite').style.display = show ? '' : 'none';
-    $$('sepPerSite').style.display = show ? '' : 'none';
-    if (!show) $$('chkPerSite').checked = false;
+// Populate country dropdown with UNINOVIS countries + top 5 non-UNINOVIS
+async function populateCountryDropdown() {
+    var sel = $$('selCountry');
+    var cur = sel.value || 'all';
+    sel.onchange = null;
+    sel.innerHTML = '<option value="all">All</option>'
+        + '<option value="uninovis">All UNINOVIS</option>';
+
+    // Add individual UNINOVIS countries (sorted alphabetically)
+    var countryNames = {};
+    UNINOVIS_COUNTRIES.forEach(function(c) {
+        var o = document.createElement('option');
+        o.value = c;
+        o.textContent = c.toUpperCase();
+        sel.appendChild(o);
+    });
+
+    // Separator
+    var sep = document.createElement('option');
+    sep.disabled = true;
+    sep.textContent = '── Non-UNINOVIS ──';
+    sel.appendChild(sep);
+
+    // Non-UNINOVIS (all aggregated)
+    var oNon = document.createElement('option');
+    oNon.value = 'non-uninovis';
+    oNon.textContent = 'All non-UNINOVIS';
+    sel.appendChild(oNon);
+
+    // Fetch top non-UNINOVIS countries
+    try {
+        var raw = await q('UserCountry.getCountry', { period:'month', date:'last6', filter_limit:'-1' });
+        var countries = {};
+        function process(arr) {
+            if (!Array.isArray(arr)) return;
+            arr.forEach(function(c) {
+                var code = c.code;
+                if (!code || code === 'xx') return;
+                // Collect country names for all countries (including UNINOVIS)
+                if (!countryNames[code]) countryNames[code] = c.label;
+                // Only add non-UNINOVIS to the dropdown's "other" section
+                if (UNINOVIS_COUNTRIES.indexOf(code) !== -1) return;
+                if (!countries[code]) countries[code] = { code: code, label: c.label, visits: 0 };
+                countries[code].visits += (c.nb_visits||0);
+            });
+        }
+        if (isAll()) {
+            for (var sid in raw) { var sd = raw[sid]; for (var dk in sd) process(sd[dk]); }
+        } else {
+            for (var dk in raw) process(raw[dk]);
+        }
+        var sorted = Object.values(countries).sort(function(a,b){ return b.visits - a.visits; });
+        sorted.slice(0, 5).forEach(function(c) {
+            var o = document.createElement('option');
+            o.value = 'other:' + c.code;
+            o.textContent = c.label;
+            sel.appendChild(o);
+        });
+
+        // Update UNINOVIS labels with real names
+        sel.querySelectorAll('option').forEach(function(opt) {
+            if (UNINOVIS_COUNTRIES.indexOf(opt.value) !== -1 && countryNames[opt.value]) {
+                opt.textContent = countryNames[opt.value];
+            }
+        });
+    } catch(e) {}
+
+    sel.value = cur;
+    chartFilter.country = sel.value || 'all';
+    sel.onchange = function() { onCountryChange(); };
 }
+
 
 // ── Country bar chart ──
+var _countryChartGen = 0;
 async function loadCountryChart() {
+    var gen = ++_countryChartGen;
     var el = $$('countryChart');
     var noteEl = $$('countryChartNote');
     var met = selectedMetric();
-    var showNon = $$('chkNonUninovis').checked;
     var pageFilter = selectedPageUrl();
+    el.innerHTML = '<div class="loading" style="padding:8px;">Loading...</div>';
     noteEl.textContent = '';
 
     try {
@@ -746,6 +873,7 @@ async function loadCountryChart() {
             // Use Live API for page+country cross-reference
             el.innerHTML = '<div class="loading" style="padding:8px;">Loading...</div>';
             await fetchLiveVisits(pageFilter, true);
+            if (gen !== _countryChartGen) return;
             if (liveCache.visits.length === 0) {
                 el.innerHTML = '<p style="color:#888;font-size:0.82rem;">No country data available for this page.</p>';
                 return;
@@ -774,6 +902,7 @@ async function loadCountryChart() {
         } else {
             // Use UserCountry.getCountry API
             var raw = await q('UserCountry.getCountry', { filter_limit: '-1' });
+            if (gen !== _countryChartGen) return;
             function process(arr) {
                 if (!Array.isArray(arr)) return;
                 arr.forEach(function(c) {
@@ -791,79 +920,60 @@ async function loadCountryChart() {
             }
         }
 
-        // Split into UNINOVIS and non-UNINOVIS
-        var uninovisItems = [];
-        var otherItems = [];
+        // Filter countries based on the Country dropdown
+        var cc = selectedCountry();
+        var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
+        var items = [];
         for (var code in countries) {
             var c = countries[code];
-            if (UNINOVIS_COUNTRIES.indexOf(code) !== -1) {
-                uninovisItems.push(c);
-            } else {
-                otherItems.push(c);
-            }
+            var isUni = UNINOVIS_COUNTRIES.indexOf(code) !== -1;
+            if (cc === 'all') { items.push(c); }
+            else if (cc === 'uninovis') { if (isUni) items.push(c); }
+            else if (cc === 'non-uninovis') { if (!isUni) items.push(c); }
+            else { if (code === resolvedCC) items.push(c); }
         }
-        uninovisItems.sort(function(a,b){ return b.visits - a.visits; });
-        otherItems.sort(function(a,b){ return b.visits - a.visits; });
-
-        // Build bars
-        var items = uninovisItems.slice();
-        if (showNon) items = items.concat(otherItems);
+        items.sort(function(a,b){ return b.visits - a.visits; });
+        // Apply country limit
+        var countryLim = parseInt($$('selCountryLimit').value);
+        if (countryLim > 0) items = items.slice(0, countryLim);
+        // Update chart title to reflect filter
+        var titleSuffix = '';
+        if (cc === 'uninovis') titleSuffix = ' (UNINOVIS)';
+        else if (cc === 'non-uninovis') titleSuffix = ' (Non-UNINOVIS)';
+        else if (cc !== 'all') titleSuffix = ' (' + (items.length ? items[0].label : resolvedCC.toUpperCase()) + ')';
 
         var useVisits = (met !== 'unique');
         var max = 0;
         items.forEach(function(c) { var v = useVisits ? c.visits : c.uniq; if (v > max) max = v; });
         if (!max) max = 1;
 
-        // Group totals
-        var totalV = 0, totalU = 0;
-        for (var code in countries) { totalV += countries[code].visits; totalU += countries[code].uniq; }
-        var allVal = useVisits ? totalV : totalU;
-
-        var uniV = 0, uniU = 0, nonV = 0, nonU = 0;
-        uninovisItems.forEach(function(c) { uniV += c.visits; uniU += c.uniq; });
-        otherItems.forEach(function(c) { nonV += c.visits; nonU += c.uniq; });
-        var uniVal = useVisits ? uniV : uniU;
-        var nonVal = useVisits ? nonV : nonU;
-
-        // Populate group summary panel (vertical bars)
-        var groupMax = Math.max(allVal, uniVal, nonVal) || 1;
-        var uniPct = allVal ? (uniVal / allVal * 100).toFixed(1) : '0.0';
-        var nonPct = allVal ? (nonVal / allVal * 100).toFixed(1) : '0.0';
-        var barH = 120;
-        function vbar(code, label, val, pct, color, clickCode) {
-            var h = groupMax ? (val / groupMax * barH) : 0;
-            var sel = chartFilter.country === clickCode;
-            return '<div onclick="selectCountry(\''+clickCode+'\')" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;flex:1;padding:8px 4px;border-radius:8px;'+(sel?'background:#e0e7ff;':'')+'">'
-                + '<div style="font-size:0.82rem;font-weight:700;color:#2D3876;">'+fmt(val)+'</div>'
-                + (pct !== null ? '<div style="font-size:0.7rem;color:#888;">'+pct+'%</div>' : '')
-                + '<div style="width:40px;height:'+barH+'px;background:#f0f2f5;border-radius:4px;margin:6px 0;display:flex;align-items:flex-end;">'
-                + '<div style="width:100%;height:'+h+'px;background:'+color+';border-radius:4px;"></div>'
-                + '</div>'
-                + '<div style="font-size:0.75rem;font-weight:600;color:'+color+';text-align:center;">'+label+'</div>'
-                + '</div>';
+        if (!items.length) {
+            el.innerHTML = '<p style="color:#888;font-size:0.82rem;">No country data.</p>';
+        } else {
+            var html = '';
+            // For "All UNINOVIS": add an aggregated total bar at the top
+            if (cc === 'uninovis') {
+                var totalV = 0, totalU = 0;
+                items.forEach(function(c) { totalV += c.visits; totalU += c.uniq; });
+                var totalVal = useVisits ? totalV : totalU;
+                max = Math.max(max, totalVal);
+                html += '<div class="hrow" style="margin-bottom:8px;">'
+                    + '<div class="hlbl" style="font-weight:700;">All UNINOVIS</div>'
+                    + '<div class="htrack"><div class="hfill" style="width:100%;background:#94a3b8;"></div></div>'
+                    + '<div class="hval" style="font-weight:700;">'+fmt(totalVal)+'</div></div>';
+            }
+            items.forEach(function(c) {
+                var v = useVisits ? c.visits : c.uniq;
+                var isUninovis = UNINOVIS_COUNTRIES.indexOf(c.code) !== -1;
+                var color = isUninovis ? '#2D3876' : '#e74c3c';
+                html += '<div class="hrow">'
+                    + '<div class="hlbl" title="'+c.label+'">'+c.label+'</div>'
+                    + '<div class="htrack"><div class="hfill" style="width:'+(v/max*100)+'%;background:'+color+';"></div></div>'
+                    + '<div class="hval">'+fmt(v)+'</div></div>';
+            });
+            el.innerHTML = html;
         }
-        var ghtml = '<div style="display:flex;gap:8px;align-items:flex-end;">'
-            + vbar('all', 'All', allVal, null, '#94a3b8', 'all')
-            + vbar('uninovis', 'UNINOVIS', uniVal, uniPct, '#2D3876', 'uninovis-compare')
-            + vbar('non-uninovis', 'Non-UNINOVIS', nonVal, nonPct, '#e74c3c', 'uninovis-compare')
-            + '</div>';
-        $$('groupSummary').innerHTML = ghtml;
-
-        // Country bars (individual countries only)
-        var html = '';
-        items.forEach(function(c) {
-            var v = useVisits ? c.visits : c.uniq;
-            var isUninovis = UNINOVIS_COUNTRIES.indexOf(c.code) !== -1;
-            var color = isUninovis ? '#2D3876' : '#e74c3c';
-            var selected = chartFilter.country === c.code;
-            html += '<div class="hrow" data-code="'+c.code+'" onclick="selectCountry(\''+c.code+'\')" style="cursor:pointer;'+(selected?'background:#e0e7ff;':'')+'">'
-                + '<div class="hlbl" title="'+c.label+'">'+c.label+'</div>'
-                + '<div class="htrack"><div class="hfill" style="width:'+(v/max*100)+'%;background:'+color+';"></div></div>'
-                + '<div class="hval">'+fmt(v)+'</div></div>';
-        });
-
-        el.innerHTML = html;
-        $$('countryChartTitle').textContent = (useVisits ? 'Visits' : 'Unique Visitors') + ' by Country';
+        $$('countryChartTitle').textContent = (useVisits ? 'Visits' : 'Unique Visitors') + ' by Country' + titleSuffix;
 
     } catch(e) {
         el.innerHTML = '<span class="error">Error: '+e.message+'</span>';
@@ -917,7 +1027,7 @@ function flatA(data) {
             var url = i.url||'';
             if (url.indexOf('localhost') !== -1) return;
             var key = i.label||'';
-            if (!m[key]) m[key] = {label:key, nb_visits:0, nb_hits:0, url:url};
+            if (!m[key]) m[key] = {label:key, nb_visits:0, nb_hits:0, url:url, code:i.code||''};
             m[key].nb_visits += (i.nb_visits||0);
             m[key].nb_hits += (i.nb_hits||0);
         }); });
@@ -936,7 +1046,7 @@ function arrify(data) {
             var url = i.url||'';
             if (url.indexOf('localhost') !== -1) return;
             var k = i.label||'';
-            if (!m[k]) m[k] = {label:k, nb_visits:0, nb_hits:0, url:url};
+            if (!m[k]) m[k] = {label:k, nb_visits:0, nb_hits:0, url:url, code:i.code||''};
             m[k].nb_visits += (i.nb_visits||0);
             m[k].nb_hits += (i.nb_hits||0);
         });
@@ -973,13 +1083,13 @@ function extractCountrySeries(countryData, code) {
 // ── KPIs ──
 async function loadKPIs() {
     try {
-        var cc = chartFilter.country;
+        var cc = selectedCountry();
         var pageFilter = selectedPageUrl();
 
         if (pageFilter) {
             var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
             var kpiData = null;
-            if (cc !== 'all' && cc !== 'uninovis-compare') {
+            if (cc !== 'all') {
                 var countryParam = (cc === 'uninovis' || cc === 'non-uninovis') ? cc : resolvedCC;
                 kpiData = await getPageCountrySeries(pageFilter, countryParam, true);
                 if (kpiData && Object.keys(kpiData.visits).length === 0) kpiData = null;
@@ -997,7 +1107,7 @@ async function loadKPIs() {
             return;
         }
 
-        if (cc !== 'all' && cc !== 'uninovis-compare') {
+        if (cc !== 'all') {
             var raw = await q('UserCountry.getCountry', { filter_limit: '-1' });
             var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
             var codes = (cc === 'uninovis') ? UNINOVIS_COUNTRIES :
@@ -1111,10 +1221,12 @@ function extractAllCountriesForSite(countryData, siteId) {
 }
 
 // ── Main chart ──
+var _chartGen = 0;
 async function loadChart() {
+    var gen = ++_chartGen;
     var el = $$('chart');
     var noteEl = $$('chartNote');
-    var cc = chartFilter.country;
+    var cc = selectedCountry();
     var met = selectedMetric();
     el.innerHTML = '<div class="loading">Loading...</div>';
 
@@ -1172,48 +1284,39 @@ async function loadChart() {
         } else if (pageFilter) {
             // Page filter only (country = All): use Actions API (visits only, unique not reliable per page)
             var pageSeries = await getPageFilteredSeries(pageFilter, true);
+            // If exact match found nothing, try prefix match as fallback
+            if (Object.keys(pageSeries.visits).length === 0) {
+                pageSeries = await getPageFilteredSeries(pageFilter, false);
+            }
             chartSeries = makeStandardSeries(pageSeries.visits, null);
             keys = Object.keys(pageSeries.visits).sort();
-        } else if (cc === 'uninovis-compare') {
-            // Two lines: UNINOVIS (aggregated) vs Non-UNINOVIS (aggregated)
-            var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
-            var allCS = extractAllCountrySeries(rawC);
-            var uniData = {}, nonData = {}, allKeys = {};
-            for (var code in allCS) {
-                var isUni = UNINOVIS_COUNTRIES.indexOf(code) !== -1;
-                var target = isUni ? uniData : nonData;
-                var s = allCS[code];
-                for (var dk in s) {
-                    allKeys[dk] = true;
-                    if (!target[dk]) target[dk] = 0;
-                    target[dk] += showVisits ? s[dk].visits : s[dk].uniq;
-                }
-            }
-            keys = Object.keys(allKeys).sort();
-            var uniLine = {}, nonLine = {};
-            keys.forEach(function(k) { uniLine[k] = uniData[k] || 0; nonLine[k] = nonData[k] || 0; });
-            chartSeries = [
-                { name: 'UNINOVIS', data: uniLine, color: '#2D3876' },
-                { name: 'Non-UNINOVIS', data: nonLine, color: '#e74c3c' }
-            ];
         } else if (cc === 'uninovis') {
-            // 8 separate lines, one per country
+            // 8 separate lines + optional aggregated total
             var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
             chartSeries = [];
             var allKeys = {};
+            var aggData = {};
             UNINOVIS_COUNTRIES.forEach(function(code, idx) {
                 var cs = extractCountrySeries(rawC, code);
                 var data = {};
                 for (var dk in cs) {
                     data[dk] = showVisits ? cs[dk].visits : cs[dk].uniq;
                     allKeys[dk] = true;
+                    if (!aggData[dk]) aggData[dk] = 0;
+                    aggData[dk] += data[dk];
                 }
                 chartSeries.push({ name: code.toUpperCase(), data: data, color: PALETTE[idx % PALETTE.length] });
             });
             keys = Object.keys(allKeys).sort();
             chartSeries.forEach(function(s) { keys.forEach(function(k) { if (!(k in s.data)) s.data[k] = 0; }); });
+            // Add aggregated line if checkbox is checked
+            $$('lblShowAgg').style.display = '';
+            if ($$('chkShowAgg').checked) {
+                keys.forEach(function(k) { if (!aggData[k]) aggData[k] = 0; });
+                chartSeries.unshift({ name: 'All UNINOVIS', data: aggData, color: '#94a3b8' });
+            }
             if (met === 'unique') noteEl.textContent = 'Showing unique visitors per country.';
-        } else if (isAll() && $$('chkPerSite').checked) {
+        } else if (isPerSite()) {
             // Per-site breakdown: one line per site
             var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
             var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
@@ -1266,7 +1369,6 @@ async function loadChart() {
         } else {
             var visits = {}, uniques = {};
             var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
-            var includeNonUni = $$('chkChartNonUninovis').checked;
             if (cc !== 'all') {
                 var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
                 if (cc === 'non-uninovis') {
@@ -1285,29 +1387,6 @@ async function loadChart() {
                 } else {
                     var series = extractCountrySeries(rawC, resolvedCC);
                     for (var dk in series) { visits[dk] = series[dk].visits; uniques[dk] = series[dk].uniq; }
-                }
-            } else if (!includeNonUni) {
-                // Show only UNINOVIS countries (aggregated into single line)
-                var rawC = await q('UserCountry.getCountry', { filter_limit: '-1' });
-                var allS = extractAllCountrySeries(rawC);
-                var totalAll = 0, totalUni = 0;
-                for (var code in allS) {
-                    var s = allS[code];
-                    var isUni = UNINOVIS_COUNTRIES.indexOf(code) !== -1;
-                    for (var dk in s) {
-                        totalAll += s[dk].visits;
-                        if (isUni) {
-                            if (!visits[dk]) visits[dk] = 0;
-                            if (!uniques[dk]) uniques[dk] = 0;
-                            visits[dk] += s[dk].visits;
-                            uniques[dk] += s[dk].uniq;
-                            totalUni += s[dk].visits;
-                        }
-                    }
-                }
-                if (totalAll > 0) {
-                    var pct = (totalUni / totalAll * 100).toFixed(1);
-                    noteEl.textContent = 'Showing UNINOVIS countries only (' + pct + '% of total visits).';
                 }
             } else {
                 var rawS = await q('VisitsSummary.get');
@@ -1340,20 +1419,21 @@ async function loadChart() {
             keys = Object.keys(visits).sort();
         }
 
+        if (gen !== _chartGen) return;
+        // Hide "Show aggregated" checkbox unless UNINOVIS 8
+        if (cc !== 'uninovis') $$('lblShowAgg').style.display = 'none';
         renderLineChart(el, keys, chartSeries);
 
         // Title
-        var perSite = isAll() && $$('chkPerSite').checked;
+        var perSite = isPerSite();
         var baseTitle;
         if (pageFilter || perSite) baseTitle = 'Visits Over Time';
         else if (showVisits && showUniq) baseTitle = 'Visitors/Visits Over Time';
         else if (showUniq) baseTitle = 'Visitors Over Time';
         else baseTitle = 'Visits Over Time';
         var parts = [baseTitle];
-        if (cc === 'uninovis-compare') parts.push('UNINOVIS vs Non-UNINOVIS');
-        else if (cc === 'uninovis') parts.push('UNINOVIS 8');
+        if (cc === 'uninovis') parts.push('UNINOVIS 8');
         else if (cc === 'non-uninovis') parts.push('Non-UNINOVIS');
-        else if (cc === 'all' && !$$('chkChartNonUninovis').checked) parts.push('UNINOVIS only');
         else if (cc.indexOf('other:') === 0) {
             // Show the selected label from the dropdown
             var selNU = $$('selNonUninovis');
@@ -1373,38 +1453,110 @@ async function loadChart() {
 // ── Site breakdown ──
 // ── Tabs ──
 var tabCache = {};
+var _tabGen = 0;
 async function loadTab(tab) {
+    var gen = ++_tabGen;
     var el = $$('tabContent');
     var lim = tabLimit();
     var vm = viewMode();
-    var ck = [tab,site(),per(),rng(),selectedPageUrl(),lim,vm].join('_');
+    var cc = selectedCountry();
+    var ck = [tab,site(),cc,per(),rng(),selectedPageUrl(),lim,vm].join('_');
     if (tabCache[ck]) { el.innerHTML = tabCache[ck]; return; }
     el.innerHTML = '<div class="loading">Loading...</div>';
     try {
         var raw, items, html;
         var fetchLimit = lim === '-1' ? '-1' : String(Math.max(parseInt(lim)*2, 100));
-        switch (tab) {
-            case 'pages':
-                raw = await q('Actions.getPageUrls', {flat:'1',filter_limit:fetchLimit});
-                items = isAll() ? flatA(raw) : arrify(raw); break;
-            case 'referrers':
-                raw = await q('Referrers.getWebsites', {filter_limit:fetchLimit});
-                items = isAll() ? flatA(raw) : arrify(raw); break;
-            case 'countries':
-                raw = await q('UserCountry.getCountry', {filter_limit:fetchLimit});
-                items = isAll() ? flatA(raw) : arrify(raw); break;
-            case 'devices':
-                raw = await q('DevicesDetection.getType', {filter_limit:fetchLimit});
-                items = isAll() ? flatA(raw) : arrify(raw); break;
+        var countryFiltered = (cc !== 'all');
+
+        if (countryFiltered && (tab === 'pages' || tab === 'referrers' || tab === 'devices')) {
+            // Country-filtered: use Live API
+            el.innerHTML = '<div class="loading">Loading (Live API)...</div>';
+            var resolvedCC = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
+            var p = per(), r = rng();
+            var numPeriods = parseInt(r.replace('last','')) || 8;
+            var dateRange = computeDateRange(p, numPeriods);
+            var siteIds = isAll() ? Object.keys(SITES) : [site()];
+            var allLiveVisits = [];
+            var fetches = siteIds.map(function(sid) {
+                return q('Live.getLastVisitsDetails', {
+                    idSite: sid, period: 'range', date: dateRange, filter_limit: '10000'
+                }).then(function(raw) {
+                    if (Array.isArray(raw)) allLiveVisits = allLiveVisits.concat(raw);
+                }).catch(function() {});
+            });
+            await Promise.all(fetches);
+            if (gen !== _tabGen) return;
+
+            // Filter visits by country
+            function matchCountry(vCountry) {
+                if (cc === 'uninovis') return UNINOVIS_COUNTRIES.indexOf(vCountry) !== -1;
+                if (cc === 'non-uninovis') return UNINOVIS_COUNTRIES.indexOf(vCountry) === -1 && vCountry !== 'xx';
+                return vCountry === resolvedCC;
+            }
+
+            var counts = {};
+            allLiveVisits.forEach(function(v) {
+                if (!matchCountry(v.countryCode || 'xx')) return;
+
+                if (tab === 'pages') {
+                    var actions = v.actionDetails || [];
+                    var seen = {};
+                    actions.forEach(function(a) {
+                        var url = a.url || '';
+                        if (url.indexOf('localhost') !== -1) return;
+                        if (a.type !== 'action') return;
+                        var path = url.replace(/^https?:\/\/[^\/]+/, '');
+                        if (!seen[path]) {
+                            seen[path] = true;
+                            if (!counts[path]) counts[path] = { label: path, nb_visits: 0 };
+                            counts[path].nb_visits++;
+                        }
+                    });
+                } else if (tab === 'referrers') {
+                    var ref = v.referrerName || v.referrerUrl || 'Direct Entry';
+                    if (!counts[ref]) counts[ref] = { label: ref, nb_visits: 0 };
+                    counts[ref].nb_visits++;
+                } else if (tab === 'devices') {
+                    var dev = v.deviceType || 'Unknown';
+                    if (!counts[dev]) counts[dev] = { label: dev, nb_visits: 0 };
+                    counts[dev].nb_visits++;
+                }
+            });
+            items = Object.values(counts).sort(function(a,b) { return b.nb_visits - a.nb_visits; });
+        } else {
+            switch (tab) {
+                case 'pages':
+                    raw = await q('Actions.getPageUrls', {flat:'1',filter_limit:fetchLimit});
+                    items = isAll() ? flatA(raw) : arrify(raw); break;
+                case 'referrers':
+                    raw = await q('Referrers.getWebsites', {filter_limit:fetchLimit});
+                    items = isAll() ? flatA(raw) : arrify(raw); break;
+                case 'countries':
+                    raw = await q('UserCountry.getCountry', {filter_limit:fetchLimit});
+                    items = isAll() ? flatA(raw) : arrify(raw); break;
+                case 'devices':
+                    raw = await q('DevicesDetection.getType', {filter_limit:fetchLimit});
+                    items = isAll() ? flatA(raw) : arrify(raw); break;
+            }
+            if (gen !== _tabGen) return;
+            // For countries tab with country filter: filter from API data
+            if (tab === 'countries' && countryFiltered && items) {
+                var resolvedCC2 = cc.indexOf('other:') === 0 ? cc.substring(6) : cc;
+                items = items.filter(function(r) {
+                    var code = (r.code || r.label || '').toLowerCase();
+                    if (cc === 'uninovis') return UNINOVIS_COUNTRIES.indexOf(code) !== -1;
+                    if (cc === 'non-uninovis') return UNINOVIS_COUNTRIES.indexOf(code) === -1;
+                    return code === resolvedCC2;
+                });
+            }
         }
         // For pages tab: apply exclusions, min visits, optionally group
         if (tab === 'pages') {
-            var minV = (URL_CONFIG.minVisits != null) ? URL_CONFIG.minVisits : 100;
+            // When country-filtered, don't apply minVisits (counts are naturally lower)
+            var minV = countryFiltered ? 0 : ((URL_CONFIG.minVisits != null) ? URL_CONFIG.minVisits : 100);
             items = items.filter(function(r) {
-                // Exclude URLs marked in config
                 if (URL_CONFIG.urls && URL_CONFIG.urls.length && isUrlExcluded(r.label||'')) return false;
-                // Apply min visits (but keep configured pages)
-                if ((r.nb_visits||0) < minV && !getUrlDescription(r.label||'')) return false;
+                if (minV > 0 && (r.nb_visits||0) < minV && !getUrlDescription(r.label||'')) return false;
                 return true;
             });
             if (vm === 'grouped') {
@@ -1415,6 +1567,7 @@ async function loadTab(tab) {
         if (lim !== '-1') {
             items = items.slice(0, parseInt(lim));
         }
+        if (gen !== _tabGen) return;
         html = renderH(items, tab);
         tabCache[ck] = html;
         el.innerHTML = html;
@@ -1444,8 +1597,6 @@ function renderH(items, tab) {
                     clickAttr = ' onclick="openDrill(\''+escAttr(patternUrl)+'\',\''+escAttr(display)+'\',true)"';
                 }
             } else {
-                var desc = getUrlDescription(l);
-                if (desc) display = desc;
                 clickAttr = ' onclick="openDrill(\''+escAttr(l)+'\',\''+escAttr(display)+'\',false)"';
             }
         }
@@ -1477,11 +1628,10 @@ function showTab(tab, btn) {
 async function loadAll() {
     tabCache = {};
     liveCache = { key: '', visits: [], unavailable: false };
-    chartFilter.country = 'all';
-    updatePerSiteVisibility();
     closeDrill();
-    loadCountryChart();
-    loadChart();
+    await populateCountryDropdown();
+    await loadCountryChart();
+    await loadChart();
     var pageFilter = selectedPageUrl();
     var tabsEl = $$('tabsSection');
     if (pageFilter) {
