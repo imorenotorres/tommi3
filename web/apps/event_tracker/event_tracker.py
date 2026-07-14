@@ -359,6 +359,7 @@ def _agora_item_to_event(item: dict) -> dict:
         "name": name,
         "description": description_html,
         "category": category,
+        "categories": [category] if category else [],
         "university": unis[0] if unis else "",
         "universities": unis,
         "uninovis_group": "",
@@ -511,7 +512,8 @@ async def catalogue_sync(session: dict = Depends(_require_editor)):
 class EventBody(BaseModel):
     name: str
     description: str = ""
-    category: str
+    category: str = ""
+    categories: list[str] = []
     university: str = ""
     universities: list[str] = []
     uninovis_group: str = ""
@@ -528,6 +530,7 @@ class EventBody(BaseModel):
     visibility: str = "shared"
     date_tbc: bool = False
     date_tbc_label: str = ""
+    all_day: bool = False
     recurrence: Optional[dict] = None
     series_id: Optional[str] = None
     virtual_pre_name: str = ""
@@ -542,11 +545,13 @@ class EventBody(BaseModel):
 
 def _build_event(body: EventBody, start_date: str, end_date: str, series_id: str, username: str) -> dict:
     unis = body.universities if body.universities else ([body.university] if body.university else [])
+    cats = body.categories if body.categories else ([body.category] if body.category else [])
     return {
         "id": "evt" + str(uuid.uuid4())[:8],
         "name": body.name,
         "description": body.description,
-        "category": body.category,
+        "category": cats[0] if cats else "",
+        "categories": cats,
         "university": unis[0] if unis else "",
         "universities": unis,
         "uninovis_group": body.uninovis_group,
@@ -561,6 +566,7 @@ def _build_event(body: EventBody, start_date: str, end_date: str, series_id: str
         "visibility": body.visibility,
         "date_tbc": body.date_tbc,
         "date_tbc_label": body.date_tbc_label,
+        "all_day": body.all_day,
         "participants": body.participants,
         "participant_groups": body.participant_groups,
         "series_id": series_id,
@@ -571,12 +577,14 @@ def _build_event(body: EventBody, start_date: str, end_date: str, series_id: str
 def _build_virtual_components(body: EventBody, parent_id: str, username: str) -> list:
     components = []
     unis = body.universities if body.universities else ([body.university] if body.university else [])
+    cats = body.categories if body.categories else ([body.category] if body.category else [])
     if body.virtual_pre_name and body.virtual_pre_start:
         components.append({
             "id": "evt" + str(uuid.uuid4())[:8],
             "name": body.virtual_pre_name,
             "description": f"Virtual component (before {body.name})",
-            "category": body.category,
+            "category": cats[0] if cats else "",
+            "categories": cats,
             "university": unis[0] if unis else "",
             "universities": unis,
             "event_type": "Virtual",
@@ -602,7 +610,8 @@ def _build_virtual_components(body: EventBody, parent_id: str, username: str) ->
             "id": "evt" + str(uuid.uuid4())[:8],
             "name": body.virtual_post_name,
             "description": f"Virtual component (after {body.name})",
-            "category": body.category,
+            "category": cats[0] if cats else "",
+            "categories": cats,
             "university": unis[0] if unis else "",
             "universities": unis,
             "event_type": "Virtual",
@@ -627,8 +636,12 @@ def _build_virtual_components(body: EventBody, parent_id: str, username: str) ->
 
 
 def _validate_event(body: EventBody, data: dict):
-    if body.category not in data["categories"]:
-        raise HTTPException(400, f"Unknown category: {body.category}")
+    cats = body.categories if body.categories else ([body.category] if body.category else [])
+    if not cats:
+        raise HTTPException(400, "At least one category is required")
+    for c in cats:
+        if c not in data["categories"]:
+            raise HTTPException(400, f"Unknown category: {c}")
     if body.event_type not in ("Virtual", "Physical"):
         raise HTTPException(400, "event_type must be 'Virtual' or 'Physical'")
     if not body.date_tbc and (not body.start_date or not body.end_date):
@@ -701,7 +714,9 @@ def create_event(body: EventBody, session: dict = Depends(_require_auth)):
 def _update_ev_fields(ev: dict, body: EventBody):
     ev["name"] = body.name
     ev["description"] = body.description
-    ev["category"] = body.category
+    cats = body.categories if body.categories else ([body.category] if body.category else [])
+    ev["category"] = cats[0] if cats else ""
+    ev["categories"] = cats
     unis = body.universities if body.universities else ([body.university] if body.university else [])
     ev["university"] = unis[0] if unis else ""
     ev["universities"] = unis
@@ -719,6 +734,7 @@ def _update_ev_fields(ev: dict, body: EventBody):
     ev["visibility"] = body.visibility
     ev["date_tbc"] = body.date_tbc
     ev["date_tbc_label"] = body.date_tbc_label
+    ev["all_day"] = body.all_day
 
 
 @router.put("/api/events/{event_id}")
@@ -747,13 +763,17 @@ def update_event(event_id: str, body: EventBody, session: dict = Depends(_requir
 def update_series(series_id: str, body: EventBody, session: dict = Depends(_require_editor)):
     data = load_data()
     _validate_event(body, data)
+    cats = body.categories if body.categories else ([body.category] if body.category else [])
+    unis = body.universities if body.universities else ([body.university] if body.university else [])
     updated = 0
     for ev in data["events"]:
         if ev.get("series_id") == series_id:
             ev["name"] = body.name
             ev["description"] = body.description
-            ev["category"] = body.category
-            ev["university"] = body.university
+            ev["category"] = cats[0] if cats else ""
+            ev["categories"] = cats
+            ev["university"] = unis[0] if unis else ""
+            ev["universities"] = unis
             ev["event_type"] = body.event_type
             ev["place"] = body.place
             ev["meeting_url"] = body.meeting_url
@@ -762,6 +782,7 @@ def update_series(series_id: str, body: EventBody, session: dict = Depends(_requ
             ev["image"] = body.image
             ev["participants"] = body.participants
             ev["participant_groups"] = body.participant_groups
+            ev["all_day"] = body.all_day
             updated += 1
     if updated == 0:
         raise HTTPException(404, "Series not found")
@@ -844,8 +865,15 @@ def _generate_ics(events_list: list) -> str:
         tbc_prefix = "[TBC] " if ev.get("date_tbc") else ""
         lines.append("BEGIN:VEVENT")
         lines.append(f"UID:{ev['id']}@uninovis.calendar")
-        lines.append(f"DTSTART;TZID={tzid}:{_to_ical_dt(ev['start_date'])}")
-        lines.append(f"DTEND;TZID={tzid}:{_to_ical_dt(ev['end_date'])}")
+        if ev.get("all_day"):
+            start_dt = datetime.fromisoformat(ev["start_date"])
+            end_dt = datetime.fromisoformat(ev["end_date"])
+            end_exclusive = max(end_dt.date(), start_dt.date()) + timedelta(days=1)
+            lines.append(f"DTSTART;VALUE=DATE:{start_dt.strftime('%Y%m%d')}")
+            lines.append(f"DTEND;VALUE=DATE:{end_exclusive.strftime('%Y%m%d')}")
+        else:
+            lines.append(f"DTSTART;TZID={tzid}:{_to_ical_dt(ev['start_date'])}")
+            lines.append(f"DTEND;TZID={tzid}:{_to_ical_dt(ev['end_date'])}")
         lines.append(f"SUMMARY:{_ical_escape(tbc_prefix + ev['name'])}")
         desc_parts = []
         if ev.get("date_tbc"):
@@ -854,8 +882,9 @@ def _generate_ics(events_list: list) -> str:
             # Strip HTML tags for iCal
             plain = re.sub(r'<[^>]+>', ' ', ev["description"])
             desc_parts.append(plain[:500])
-        if ev.get("category"):
-            desc_parts.append(f"Category: {ev['category']}")
+        cats = ev.get("categories") or ([ev["category"]] if ev.get("category") else [])
+        if cats:
+            desc_parts.append(f"Category: {', '.join(cats)}")
         if ev.get("registration_link"):
             desc_parts.append(f"Registration: {ev['registration_link']}")
         if ev.get("source") == "catalogue":
@@ -865,8 +894,8 @@ def _generate_ics(events_list: list) -> str:
             lines.append(f"LOCATION:{_ical_escape(ev['place'])}")
         if ev.get("registration_link"):
             lines.append(f"URL:{ev['registration_link']}")
-        if ev.get("category"):
-            lines.append(f"CATEGORIES:{_ical_escape(ev['category'])}")
+        if cats:
+            lines.append(f"CATEGORIES:{_ical_escape(','.join(cats))}")
         lines.append(f"DTSTAMP:{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}")
         lines.append("END:VEVENT")
     lines.append("END:VCALENDAR")
@@ -919,7 +948,10 @@ def _filter_events(events: list, date_from: str, date_to: str, university: str, 
         result = [ev for ev in result if ev.get("university", "") in unis]
     if category:
         cats = [c.strip() for c in category.split(",")]
-        result = [ev for ev in result if ev.get("category", "") in cats]
+        result = [
+            ev for ev in result
+            if set(ev.get("categories") or ([ev["category"]] if ev.get("category") else [])) & set(cats)
+        ]
     return result
 
 

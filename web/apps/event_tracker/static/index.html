@@ -143,6 +143,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .cat-Staff_Week { background: #2e7d32; }
 .cat-Summer_School { background: #e65100; }
 .cat-Workshop { background: #0277bd; }
+.cat-TB { background: #5c6bc0; }
+.cat-Management_Committee { background: #8d6e63; }
+.cat-Coordinators_Meeting { background: #c2185b; }
+.cat-Kick_off_meeting { background: #7cb342; }
+.cat-General_Assembly { background: #303f9f; }
+.cat-Holidays { background: #757575; }
+.cat-Innovation_Camp { background: #f4511e; }
+.cat-International_Week { background: #00acc1; }
 .event-chip.personal { border: 2px dashed #fff; opacity: 0.9; }
 .personal-badge { display: inline-block; font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; background: #ffe0b2; color: #e65100; margin-left: 4px; }
 
@@ -155,7 +163,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .modal-body { padding: 20px; }
 .modal-body label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 4px; margin-top: 12px; }
 .modal-body label:first-child { margin-top: 0; }
-.modal-body input, .modal-body select, .modal-body textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; font-family: inherit; }
+.modal-body input:not([type="checkbox"]), .modal-body select, .modal-body textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; font-family: inherit; }
 .modal-body textarea { resize: vertical; min-height: 60px; }
 .modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
 .modal-footer .btn { padding: 8px 20px; border-radius: var(--radius); border: 1px solid var(--border); cursor: pointer; font-size: 0.9rem; }
@@ -305,7 +313,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <label>University</label>
       <div id="exportUniChecks" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;"></div>
       <label>Category</label>
-      <div id="exportCatChecks" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;"></div>
+      <div id="exportCatChecks" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));align-items:start;gap:6px 12px;margin-bottom:8px;"></div>
       <div id="exportPreview" style="margin-top:8px;font-size:0.82rem;color:var(--text-light);"></div>
     </div>
     <div class="modal-footer">
@@ -421,8 +429,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       </div>
       <label>Name *</label>
       <input type="text" id="editName" required>
-      <label>Category *</label>
-      <select id="editCategory"></select>
+      <label>Category/ies *</label>
+      <div id="editCategories" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));align-items:start;gap:6px 12px;margin-bottom:8px;"></div>
       <label>UNINOVIS Group</label>
       <select id="editUninovisGroup" onchange="toggleParticipantsByGroup()">
         <option value="">— None —</option>
@@ -456,6 +464,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <option value="GMT">GMT (UTC+0)</option>
         <option value="UTC">UTC</option>
       </select>
+      <div style="margin-bottom:8px;">
+        <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:500;">
+          <input type="checkbox" id="editAllDay" onchange="toggleAllDay()"> All day
+        </label>
+      </div>
       <div style="margin-bottom:8px;">
         <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:500;">
           <input type="checkbox" id="editDateTbc" onchange="toggleDateTbc()"> Date to be confirmed (TBC)
@@ -568,9 +581,9 @@ let activeUniFilter = 'all';
 let editParticipants = [];
 let editPartGroups = [];
 
-const INTERNAL_CATS = ['WP1','WP2','WP3','WP4','WP5','BoP','ExecCouncil'];
-const EXTERNAL_CATS = ['BIP','Hackathon','Conference','Staff Week','Summer School','Workshop','Other public events'];
-const CAT_CSS_CLASS = c => 'cat-' + c.replace(/ /g, '_');
+const INTERNAL_CATS = ['WP1','WP2','WP3','WP4','WP5','BoP','ExecCouncil','TB','Management Committee',"Coordinators' Meeting",'Kick off meeting','General Assembly','Holidays'];
+const EXTERNAL_CATS = ['BIP','Hackathon','Conference','Staff Week','Summer School','Workshop','Other public events','Innovation Camp','International Week'];
+const CAT_CSS_CLASS = c => 'cat-' + c.replace(/[^A-Za-z0-9]+/g, '_');
 
 // -- Init --------------------------------------------------------------------
 (async function init() {
@@ -735,11 +748,12 @@ function filteredEvents() {
   return events.filter(e => {
     if (!showCatalogue && e.source === 'catalogue') return false;
 
+    const evCats = e.categories && e.categories.length ? e.categories : (e.category ? [e.category] : []);
     let catOk = false;
     if (activeCatFilter === 'all') catOk = true;
-    else if (activeCatFilter === 'all_internal') catOk = INTERNAL_CATS.includes(e.category);
-    else if (activeCatFilter === 'all_external') catOk = EXTERNAL_CATS.includes(e.category);
-    else catOk = e.category === activeCatFilter;
+    else if (activeCatFilter === 'all_internal') catOk = evCats.some(c => INTERNAL_CATS.includes(c));
+    else if (activeCatFilter === 'all_external') catOk = evCats.some(c => EXTERNAL_CATS.includes(c));
+    else catOk = evCats.includes(activeCatFilter);
 
     let evUnis = e.universities || (e.university ? [e.university] : []);
     let uniOk = activeUniFilter === 'all' || evUnis.includes(activeUniFilter);
@@ -908,7 +922,8 @@ function timedBlockHTML(item) {
   const widthPct = 100 / totalLanes;
   const leftPct = widthPct * lane;
   const style = `top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);`;
-  return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail('${ev.id}')" title="${esc(ev.name)}${uni}">${isCat ? '&#127760; ' : ''}${fmtTime(seg.start)} ${esc(ev.name)}${uni}</div>`;
+  const timePrefix = ev.all_day ? '' : fmtTime(seg.start) + ' ';
+  return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail('${ev.id}')" title="${esc(ev.name)}${uni}">${isCat ? '&#127760; ' : ''}${timePrefix}${esc(ev.name)}${uni}</div>`;
 }
 
 function evTZ(ev) { return ev.timezone || 'CEST'; }
@@ -922,7 +937,7 @@ function chipHTML(ev, date) {
   const segStart = seg ? seg.start : ev.start_date;
   const t = segStart ? fmtTime(segStart) : '';
   const icon = ev.visibility === 'personal' ? '&#128274; ' : isCat ? '&#127760; ' : '';
-  const timeLabel = ev.date_tbc ? '' : (t ? t + ' ' : '');
+  const timeLabel = (ev.date_tbc || ev.all_day) ? '' : (t ? t + ' ' : '');
   const uniList = ev.universities || (ev.university ? [ev.university] : []);
   const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
   const shortName = ev.name.length > 22 ? ev.name.slice(0, 20) + '...' : ev.name;
@@ -1100,7 +1115,6 @@ function renderList() {
   html += '<tr>' + th('start_date','Start') + th('end_date','End') + th('name','Name') + th('category','Category') + th('university','University') + th('event_type','Type') + '<th>Source / Place</th></tr>';
 
   evts.forEach(ev => {
-    const catCls = CAT_CSS_CLASS(ev.category);
     const eType = ev.event_type || 'Physical';
     const isCat = ev.source === 'catalogue';
     const rowCls = isCat ? ' class="is-catalogue"' : '';
@@ -1108,10 +1122,10 @@ function renderList() {
     const locDisplay = loc.length > 40 ? loc.slice(0, 40) + '...' : loc;
     html += `<tr${rowCls} onclick="showDetail('${ev.id}')">`;
     const tz = evTZ(ev);
-    html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.start_date ? '<span class="tbc-badge">' + esc(ev.date_tbc_label || 'TBC') + '</span>' : fmtShort(ev.start_date) + ' <small style="color:var(--text-light);">' + tz + '</small>'}</td>`;
-    html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.end_date ? '&mdash;' : fmtShort(ev.end_date)}</td>`;
+    html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.start_date ? '<span class="tbc-badge">' + esc(ev.date_tbc_label || 'TBC') + '</span>' : fmtShort(ev.start_date, ev.all_day) + (ev.all_day ? '' : ' <small style="color:var(--text-light);">' + tz + '</small>')}</td>`;
+    html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.end_date ? '&mdash;' : fmtShort(ev.end_date, ev.all_day)}</td>`;
     html += `<td>${ev.date_tbc ? '<span class="tbc-badge">TBC</span> ' : ''}${isCat ? '&#127760; ' : ''}<strong>${esc(ev.name)}</strong></td>`;
-    html += `<td><span class="cat-badge ${catCls}">${ev.category}</span></td>`;
+    html += `<td>${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="cat-badge ${CAT_CSS_CLASS(c)}">${c}</span>`).join(' ')}</td>`;
     html += `<td>${(ev.universities || (ev.university ? [ev.university] : [])).join(', ')}</td>`;
     html += `<td><span class="type-badge${eType==='Virtual'?' virtual':''}">${eType}</span></td>`;
     html += `<td style="font-size:0.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${isCat ? '<span class="catalogue-badge">Agora</span>' : esc(locDisplay)}</td>`;
@@ -1129,22 +1143,24 @@ function listSort(col) {
   renderList();
 }
 
-function fmtShort(isoStr) {
+function fmtShort(isoStr, allDay) {
   if (!isoStr) return '&mdash;';
   const d = new Date(isoStr);
   const dd = String(d.getDate()).padStart(2,'0');
   const mm = d.toLocaleDateString(undefined, { month: 'short' });
   const yy = d.getFullYear();
+  if (allDay) return dd + ' ' + mm + ' ' + yy;
   return dd + ' ' + mm + ' ' + yy + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-function fmtDateTZ(isoStr, tz) {
+function fmtDateTZ(isoStr, tz, allDay) {
   if (!isoStr) return '<em>Not set</em>';
   const d = new Date(isoStr);
-  return d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) +
-    ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ' ' + (tz || 'CEST');
+  const datePart = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+  if (allDay) return datePart;
+  return datePart + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ' ' + (tz || 'CEST');
 }
 
 function tbcDateDisplay(ev) {
@@ -1180,7 +1196,7 @@ function showDetail(id) {
   const eType = ev.event_type || 'Physical';
   const typeIcon = eType === 'Virtual' ? '&#128187; Virtual' : '&#127970; Physical';
   let html = `
-    <div class="detail-field"><div class="dl">Category</div><div class="dv"><span class="event-chip ${CAT_CSS_CLASS(ev.category)}" style="display:inline-block;cursor:default;">${ev.category}</span></div></div>
+    <div class="detail-field"><div class="dl">Category/ies</div><div class="dv">${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="event-chip ${CAT_CSS_CLASS(c)}" style="display:inline-block;cursor:default;margin:0 4px 4px 0;">${c}</span>`).join('')}</div></div>
     ${ev.source === 'catalogue' ? '<div class="detail-field"><div class="dl">Source</div><div class="dv"><span class="catalogue-badge">&#127760; Agora Event Catalogue</span></div></div>' : ''}
     ${ev.uninovis_group ? '<div class="detail-field"><div class="dl">UNINOVIS Group</div><div class="dv">' + ev.uninovis_group + '</div></div>' : ''}
     <div class="detail-field"><div class="dl">Organizing University/ies</div><div class="dv">${(ev.universities || (ev.university ? [ev.university] : [])).join(', ') || '<em>Not specified</em>'}</div></div>
@@ -1197,8 +1213,8 @@ function showDetail(id) {
   const descHtml = ev.description || '<em>No description</em>';
   html += `
     <div class="detail-field"><div class="dl">Description</div><div class="dv">${descHtml}</div></div>
-    <div class="detail-field"><div class="dl">Start</div><div class="dv">${ev.date_tbc ? tbcDateDisplay(ev) : fmtDateTZ(ev.start_date, evTZ(ev))}</div></div>
-    <div class="detail-field"><div class="dl">End</div><div class="dv">${ev.date_tbc ? (ev.end_date ? fmtDateTZ(ev.end_date, evTZ(ev)) + ' <span class="tbc-badge">TBC</span>' : '<span class="tbc-badge">TBC</span>') : fmtDateTZ(ev.end_date, evTZ(ev))}</div></div>
+    <div class="detail-field"><div class="dl">Start</div><div class="dv">${ev.date_tbc ? tbcDateDisplay(ev) : fmtDateTZ(ev.start_date, evTZ(ev), ev.all_day)}${ev.all_day && !ev.date_tbc ? ' <span class="tbc-badge">All day</span>' : ''}</div></div>
+    <div class="detail-field"><div class="dl">End</div><div class="dv">${ev.date_tbc ? (ev.end_date ? fmtDateTZ(ev.end_date, evTZ(ev), ev.all_day) + ' <span class="tbc-badge">TBC</span>' : '<span class="tbc-badge">TBC</span>') : fmtDateTZ(ev.end_date, evTZ(ev), ev.all_day)}</div></div>
   `;
   if (ev.registration_link) html += `<div class="detail-field"><div class="dl">Registration</div><div class="dv"><a href="${esc(ev.registration_link)}" target="_blank" rel="noopener">${esc(ev.registration_link)}</a></div></div>`;
 
@@ -1209,7 +1225,8 @@ function showDetail(id) {
     if (ev.x_posterior_start) html += `<div class="detail-field"><div class="dl">Posterior component</div><div class="dv">${fmtDateTZ(ev.x_posterior_start, 'CEST')} &rarr; ${ev.x_posterior_end ? fmtDateTZ(ev.x_posterior_end, 'CEST') : '?'}</div></div>`;
   }
 
-  if (isInternal(ev.category) && ev.source !== 'catalogue') {
+  const evCatsDetail = ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : []);
+  if (evCatsDetail.some(isInternal) && ev.source !== 'catalogue') {
     const parts = resolveParticipants(ev);
     const gids = ev.participant_groups || [];
     html += '<div class="detail-field"><div class="dl">Participants (' + parts.length + ')</div><div class="dv">';
@@ -1280,8 +1297,28 @@ function toggleDateTbc() {
   document.getElementById('labelEnd').textContent = tbc ? 'Approximate End (optional)' : 'End Date *';
 }
 
+function toggleAllDay() {
+  const allDay = document.getElementById('editAllDay').checked;
+  const startEl = document.getElementById('editStart');
+  const endEl = document.getElementById('editEnd');
+  if (allDay) {
+    if (startEl.value) startEl.value = startEl.value.slice(0, 10);
+    if (endEl.value) endEl.value = endEl.value.slice(0, 10);
+    startEl.type = 'date';
+    endEl.type = 'date';
+  } else {
+    startEl.type = 'datetime-local';
+    endEl.type = 'datetime-local';
+    if (startEl.value && startEl.value.length === 10) startEl.value += 'T00:00';
+    if (endEl.value && endEl.value.length === 10) endEl.value += 'T23:59';
+  }
+}
+
 function showParticipantsSection(show) { document.getElementById('participantsSection').style.display = show ? '' : 'none'; }
-function shouldShowParticipants() { return isInternal(document.getElementById('editCategory').value) || !!document.getElementById('editUninovisGroup').value; }
+function shouldShowParticipants() {
+  const selCats = [...document.querySelectorAll('#editCategories .cat-cb:checked')].map(cb => cb.value);
+  return selCats.some(isInternal) || !!document.getElementById('editUninovisGroup').value;
+}
 function toggleParticipantsByGroup() { showParticipantsSection(shouldShowParticipants()); }
 
 function populateGroupSelect() {
@@ -1352,13 +1389,15 @@ function filterPersonList() { renderPartPersonList(); }
 
 function openEdit(id, defaultVisibility) {
   const modal = document.getElementById('editModal');
-  const catSel = document.getElementById('editCategory');
-  catSel.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+  const catContainer = document.getElementById('editCategories');
+  catContainer.innerHTML = categories.map(c =>
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" class="cat-cb" value="${c}" onchange="showParticipantsSection(shouldShowParticipants())"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
+  ).join('');
   const grpSel = document.getElementById('editUninovisGroup');
   grpSel.innerHTML = '<option value="">— None —</option>' + dirGroups.map(g => `<option value="${g.name}">${g.name}</option>`).join('');
   const uniContainer = document.getElementById('editUniversities');
   uniContainer.innerHTML = universities.map(u =>
-    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;cursor:pointer;"><input type="checkbox" class="uni-cb" value="${u}"> ${u}</label>`
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="uni-cb" value="${u}"> ${u}</label>`
   ).join('');
   populateGroupSelect();
 
@@ -1368,7 +1407,8 @@ function openEdit(id, defaultVisibility) {
     document.getElementById('editId').value = ev.id;
     document.getElementById('editName').value = ev.name;
     document.getElementById('editDesc').value = ev.description || '';
-    catSel.value = ev.category;
+    const evCats = ev.categories || (ev.category ? [ev.category] : []);
+    catContainer.querySelectorAll('.cat-cb').forEach(cb => { cb.checked = evCats.includes(cb.value); });
     grpSel.value = ev.uninovis_group || '';
     const evUnis = ev.universities || (ev.university ? [ev.university] : []);
     uniContainer.querySelectorAll('.uni-cb').forEach(cb => { cb.checked = evUnis.includes(cb.value); });
@@ -1376,12 +1416,16 @@ function openEdit(id, defaultVisibility) {
     document.getElementById('editTimezone').value = ev.timezone || 'CEST';
     document.getElementById('editPlace').value = ev.place || '';
     document.getElementById('editMeetingUrl').value = ev.meeting_url || '';
+    document.getElementById('editStart').type = 'datetime-local';
+    document.getElementById('editEnd').type = 'datetime-local';
     document.getElementById('editStart').value = ev.start_date ? ev.start_date.slice(0, 16) : '';
     document.getElementById('editEnd').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
     document.getElementById('editLink').value = ev.registration_link || '';
     document.getElementById('editDateTbc').checked = !!ev.date_tbc;
     document.getElementById('editDateTbcLabel').value = ev.date_tbc_label || '';
     toggleDateTbc();
+    document.getElementById('editAllDay').checked = !!ev.all_day;
+    toggleAllDay();
     editParticipants = [...(ev.participants || [])];
     editPartGroups = [...(ev.participant_groups || [])];
     const vis = ev.visibility || 'shared';
@@ -1401,13 +1445,18 @@ function openEdit(id, defaultVisibility) {
     document.getElementById('editTimezone').value = 'CEST';
     document.getElementById('editPlace').value = '';
     document.getElementById('editMeetingUrl').value = '';
+    document.getElementById('editStart').type = 'datetime-local';
+    document.getElementById('editEnd').type = 'datetime-local';
     document.getElementById('editStart').value = '';
     document.getElementById('editEnd').value = '';
     document.getElementById('editLink').value = '';
     document.getElementById('editDateTbc').checked = false;
     document.getElementById('editDateTbcLabel').value = '';
     toggleDateTbc();
+    document.getElementById('editAllDay').checked = false;
+    toggleAllDay();
     uniContainer.querySelectorAll('.uni-cb').forEach(cb => { cb.checked = false; });
+    catContainer.querySelectorAll('.cat-cb').forEach(cb => { cb.checked = false; });
     ['editVirtualPreName','editVirtualPreStart','editVirtualPreEnd','editVirtualPreUrl',
      'editVirtualPostName','editVirtualPostStart','editVirtualPostEnd','editVirtualPostUrl'].forEach(id => {
       document.getElementById(id).value = '';
@@ -1427,7 +1476,6 @@ function openEdit(id, defaultVisibility) {
   toggleTypeFields();
   showParticipantsSection(shouldShowParticipants());
   renderPartGroupTags(); renderPartPersonList();
-  catSel.onchange = () => showParticipantsSection(shouldShowParticipants());
   modal.classList.add('open');
 }
 
@@ -1435,11 +1483,16 @@ function closeEdit() { document.getElementById('editModal').classList.remove('op
 
 async function saveEvent() {
   const id = document.getElementById('editId').value;
-  const cat = document.getElementById('editCategory').value;
+  const allDay = document.getElementById('editAllDay').checked;
+  const startVal = document.getElementById('editStart').value;
+  const endVal = document.getElementById('editEnd').value;
+  const startDate = startVal ? (allDay ? startVal + 'T00:00:00' : startVal + ':00') : '';
+  const endDate = endVal ? (allDay ? endVal + 'T23:59:00' : endVal + ':00') : '';
   const body = {
     name: document.getElementById('editName').value.trim(),
     description: document.getElementById('editDesc').value.trim(),
-    category: cat,
+    category: '',
+    categories: [...document.querySelectorAll('#editCategories .cat-cb:checked')].map(cb => cb.value),
     universities: [...document.querySelectorAll('#editUniversities .uni-cb:checked')].map(cb => cb.value),
     university: '',
     event_type: document.getElementById('editType').value,
@@ -1447,11 +1500,12 @@ async function saveEvent() {
     timezone: document.getElementById('editTimezone').value,
     place: document.getElementById('editPlace').value.trim(),
     meeting_url: document.getElementById('editMeetingUrl').value.trim(),
-    start_date: document.getElementById('editStart').value ? document.getElementById('editStart').value + ':00' : '',
-    end_date: document.getElementById('editEnd').value ? document.getElementById('editEnd').value + ':00' : '',
+    start_date: startDate,
+    end_date: endDate,
     registration_link: document.getElementById('editLink').value.trim(),
     date_tbc: document.getElementById('editDateTbc').checked,
     date_tbc_label: document.getElementById('editDateTbcLabel').value.trim(),
+    all_day: allDay,
     uninovis_group: document.getElementById('editUninovisGroup').value,
     participants: shouldShowParticipants() ? editParticipants : [],
     participant_groups: shouldShowParticipants() ? editPartGroups : [],
@@ -1509,40 +1563,46 @@ async function deleteSeries(seriesId) {
 function editSeries(seriesId, evId) {
   closeDetail();
   const ev = events.find(e => e.id === evId); if (!ev) return;
-  const catSel = document.getElementById('editCategory');
-  catSel.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+  const catContainer = document.getElementById('editCategories');
+  catContainer.innerHTML = categories.map(c =>
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" class="cat-cb" value="${c}" onchange="showParticipantsSection(shouldShowParticipants())"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
+  ).join('');
   populateGroupSelect();
   document.getElementById('editModalTitle').textContent = 'Edit Series (' + events.filter(e => e.series_id === seriesId).length + ' events)';
   document.getElementById('editId').value = 'series:' + seriesId;
   document.getElementById('editName').value = ev.name;
   document.getElementById('editDesc').value = ev.description || '';
-  catSel.value = ev.category;
+  const evCats = ev.categories || (ev.category ? [ev.category] : []);
+  catContainer.querySelectorAll('.cat-cb').forEach(cb => { cb.checked = evCats.includes(cb.value); });
   document.getElementById('editType').value = ev.event_type || 'Physical';
   document.getElementById('editTimezone').value = ev.timezone || 'CEST';
   document.getElementById('editPlace').value = ev.place || '';
   document.getElementById('editMeetingUrl').value = ev.meeting_url || '';
+  document.getElementById('editStart').type = 'datetime-local';
+  document.getElementById('editEnd').type = 'datetime-local';
   document.getElementById('editStart').value = ev.start_date ? ev.start_date.slice(0, 16) : '';
   document.getElementById('editEnd').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
   document.getElementById('editLink').value = ev.registration_link || '';
   document.getElementById('editDateTbc').checked = !!ev.date_tbc;
   document.getElementById('editDateTbcLabel').value = ev.date_tbc_label || '';
   toggleDateTbc();
+  document.getElementById('editAllDay').checked = !!ev.all_day;
+  toggleAllDay();
   editParticipants = [...(ev.participants || [])]; editPartGroups = [...(ev.participant_groups || [])];
   document.getElementById('recurrenceSection').style.display = 'none';
   toggleTypeFields();
   showParticipantsSection(shouldShowParticipants());
   renderPartGroupTags(); renderPartPersonList();
-  catSel.onchange = () => showParticipantsSection(shouldShowParticipants());
   document.getElementById('editModal').classList.add('open');
 }
 
 // -- Export / Import ---------------------------------------------------------
 function openExportModal() {
   document.getElementById('exportUniChecks').innerHTML = universities.map(u =>
-    `<label style="font-size:0.82rem;"><input type="checkbox" value="${u}" checked onchange="updateExportPreview()"> ${u}</label>`
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" value="${u}" checked onchange="updateExportPreview()"> ${u}</label>`
   ).join('');
   document.getElementById('exportCatChecks').innerHTML = INTERNAL_CATS.concat(EXTERNAL_CATS).map(c =>
-    `<label style="font-size:0.82rem;"><input type="checkbox" value="${c}" checked onchange="updateExportPreview()"> ${c}</label>`
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" value="${c}" checked onchange="updateExportPreview()"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
   ).join('');
   document.getElementById('exportFrom').value = '';
   document.getElementById('exportTo').value = '';
@@ -1578,7 +1638,8 @@ function updateExportPreview() {
     if (from && (e.start_date || '') < from) return false;
     if (to && (e.start_date || '') > to + 'T23:59:59') return false;
     if (selUnis.length < universities.length && !selUnis.includes(e.university)) return false;
-    if (selCats.length < allCats.length && !selCats.includes(e.category)) return false;
+    const evCats = e.categories && e.categories.length ? e.categories : (e.category ? [e.category] : []);
+    if (selCats.length < allCats.length && !evCats.some(c => selCats.includes(c))) return false;
     return true;
   }).length;
   document.getElementById('exportPreview').textContent = count + ' events will be exported';
