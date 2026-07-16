@@ -1684,7 +1684,20 @@ function eventMonth(ev) {
   return new Date(ev.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
 }
 
+function componentDays(start, end) {
+  if (!start) return 0;
+  return Math.max(1, Math.round((new Date(end || start) - new Date(start)) / 86400000) + 1);
+}
+
 function eventDays(ev) {
+  // BIP-style events (physical + pre-event virtual + post-event virtual
+  // components) count each component's span separately and sum them, rather
+  // than spanning the gaps between components like a single continuous event.
+  if (ev.x_physical_start || ev.x_virtual_start || ev.x_posterior_start) {
+    return componentDays(ev.x_physical_start, ev.x_physical_end) +
+           componentDays(ev.x_virtual_start, ev.x_virtual_end) +
+           componentDays(ev.x_posterior_start, ev.x_posterior_end);
+  }
   if (!ev.start_date || !ev.end_date) return 0;
   return Math.max(1, Math.round((new Date(ev.end_date) - new Date(ev.start_date)) / 86400000) + 1);
 }
@@ -1697,13 +1710,19 @@ function eventParticipantCount(ev) {
   return ids.size;
 }
 
-function dimValue(ev, dim) {
-  if (dim === 'category') return ev.category || '(none)';
-  if (dim === 'university') return ev.university || '(none)';
-  if (dim === 'event_type') return ev.event_type || 'Physical';
-  if (dim === 'status') return eventStatus(ev);
-  if (dim === 'month') return eventMonth(ev);
-  return '';
+function dimValues(ev, dim) {
+  if (dim === 'university') {
+    const unis = ev.universities && ev.universities.length ? ev.universities : (ev.university ? [ev.university] : []);
+    // Jointly-organised events go in their own "Multiple partners" bucket
+    // instead of being credited to each individual organising partner.
+    if (unis.length > 1) return ['Multiple partners'];
+    return unis.length ? unis : ['(none)'];
+  }
+  if (dim === 'category') return [ev.category || '(none)'];
+  if (dim === 'event_type') return [ev.event_type || 'Physical'];
+  if (dim === 'status') return [eventStatus(ev)];
+  if (dim === 'month') return [eventMonth(ev)];
+  return [''];
 }
 
 function buildKpiData() {
@@ -1713,18 +1732,20 @@ function buildKpiData() {
   const wantCount = document.getElementById('kpiMetricCount').checked;
   const wantDays = document.getElementById('kpiMetricDays').checked;
   const wantPart = document.getElementById('kpiMetricParticipants').checked;
-  const rowVals = [...new Set(evts.map(e => dimValue(e, rowDim)))].sort();
-  const colVals = colDim ? [...new Set(evts.map(e => dimValue(e, colDim)))].sort() : ['Total'];
+  const rowVals = [...new Set(evts.flatMap(e => dimValues(e, rowDim)))].sort();
+  const colVals = colDim ? [...new Set(evts.flatMap(e => dimValues(e, colDim)))].sort() : ['Total'];
   const rows = {};
   rowVals.forEach(r => { rows[r] = {}; colVals.forEach(c => { rows[r][c] = { count: 0, days: 0, participants: 0 }; }); });
   const totals = {};
   colVals.forEach(c => { totals[c] = { count: 0, days: 0, participants: 0 }; });
   evts.forEach(ev => {
-    const r = dimValue(ev, rowDim);
-    const c = colDim ? dimValue(ev, colDim) : 'Total';
+    const rVals = dimValues(ev, rowDim);
+    const cVals = colDim ? dimValues(ev, colDim) : ['Total'];
     const d = eventDays(ev); const p = eventParticipantCount(ev);
-    if (rows[r] && rows[r][c]) { rows[r][c].count++; rows[r][c].days += d; rows[r][c].participants += p; }
-    if (totals[c]) { totals[c].count++; totals[c].days += d; totals[c].participants += p; }
+    rVals.forEach(r => { cVals.forEach(c => {
+      if (rows[r] && rows[r][c]) { rows[r][c].count++; rows[r][c].days += d; rows[r][c].participants += p; }
+      if (totals[c]) { totals[c].count++; totals[c].days += d; totals[c].participants += p; }
+    }); });
   });
   return { rowVals, colVals, rows, totals, wantCount, wantDays, wantPart, rowDim, colDim, total: evts.length };
 }
