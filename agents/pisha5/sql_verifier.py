@@ -127,12 +127,7 @@ class SQLVerifier:
         # --- Semantic plausibility checks ---
         semantic_penalty = 0
 
-        # 1. SELECT * is overly broad — the LLM should select specific columns
-        if re.search(r'\bSELECT\s+\*\s', sql_upper):
-            issues.append("SELECT * returns all columns (overly broad)")
-            semantic_penalty += 10
-
-        # 2. OR explosion: many OR conditions with LIKE suggest the LLM is guessing
+        # 1. OR explosion: many OR conditions with LIKE suggest the LLM is guessing
         or_like_count = len(re.findall(r'\bOR\b.*?\bLIKE\b', sql_upper))
         if or_like_count >= 4:
             issues.append(f"Query has {or_like_count} OR+LIKE conditions (may be too broad)")

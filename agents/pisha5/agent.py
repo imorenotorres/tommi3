@@ -3490,17 +3490,14 @@ sqlite3 data/database.db < your_schema.sql
                     '</div>\n\n'
                 )
 
-        # Content transparency: verification footer with quantitative details
-        verification_footer = (
-            f"\n\n---\n"
-            f"**Verification details:**\n"
-            f"- Confidence score: **{verification['confidence']}%**\n"
-            f"- Tables verified: {len(verification['verified_tables'])}/{len(verification['verified_tables'])+len(verification['unknown_tables'])}\n"
-            f"- Columns verified: {len(verification['verified_columns'])}/{len(verification['verified_columns'])+len(verification['unknown_columns'])}\n"
-            f"- Source: SQLite database query\n"
-        )
-        if verification['issues']:
-            verification_footer += "- Issues: " + "; ".join(verification['issues']) + "\n"
+        # Content transparency: only show warnings if there are issues
+        verification_footer = ""
+        if verification.get('issues'):
+            verification_footer = (
+                f"\n\n---\n"
+                f"⚠️ **Warnings:**\n"
+                + "".join(f"- {i}\n" for i in verification['issues'])
+            )
 
         suggestion_section = ""
         if verification.get("suggestions"):
@@ -3797,17 +3794,14 @@ sqlite3 data/database.db < your_schema.sql
         # Enviar la explicación formateada
         yield ("content", formatted)
 
-        # Content transparency: verification footer with quantitative details
-        verification_footer = (
-            f"\n\n---\n"
-            f"**Verification details:**\n"
-            f"- Confidence score: **{verification['confidence']}%**\n"
-            f"- Tables verified: {len(verification['verified_tables'])}/{len(verification['verified_tables'])+len(verification['unknown_tables'])}\n"
-            f"- Columns verified: {len(verification['verified_columns'])}/{len(verification['verified_columns'])+len(verification['unknown_columns'])}\n"
-            f"- Source: SQLite database query\n"
-        )
-        if verification['issues']:
-            verification_footer += "- Issues: " + "; ".join(verification['issues']) + "\n"
+        # Content transparency: only show warnings if there are issues
+        verification_footer = ""
+        if verification.get('issues'):
+            verification_footer = (
+                f"\n\n---\n"
+                f"⚠️ **Warnings:**\n"
+                + "".join(f"- {i}\n" for i in verification['issues'])
+            )
         yield ("content", verification_footer)
 
         # Show suggestions if any
