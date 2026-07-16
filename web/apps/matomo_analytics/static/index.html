@@ -202,8 +202,8 @@
             <div style="flex:1;"></div>
             <label style="font-size:0.75rem;font-weight:600;color:#555;">View:</label>
             <select id="selView" onchange="reloadCurrentTab()" style="padding:4px 6px;border:1px solid #d1d5db;border-radius:6px;font-size:0.75rem;">
-                <option value="grouped">Grouped</option>
                 <option value="detailed">Detailed</option>
+                <option value="grouped">Grouped</option>
             </select>
             <label style="font-size:0.75rem;font-weight:600;color:#555;margin-left:6px;">Show:</label>
             <select id="selLimit" onchange="reloadCurrentTab()" style="padding:4px 6px;border:1px solid #d1d5db;border-radius:6px;font-size:0.75rem;">
@@ -214,6 +214,7 @@
             </select>
         </div>
         <div class="panel" id="tabContent"><div class="loading">Loading...</div></div>
+        <div class="note" id="tabNote" style="margin-top:4px;">Click on a page name to see visits over time (to that page)</div>
     </div>
 
     <!-- Drill-down panel for a specific page -->
@@ -238,8 +239,13 @@ var UNINOVIS_COUNTRIES = ['al','de','es','fi','fr','it','lt','nl'];
 var chartFilter = { country: 'all' }; // country selected via country bar chart
 
 function $$(id) { return document.getElementById(id); }
-function site() { var v = $$('selSite').value; return (v === 'persite') ? 'all' : v; }
-function isPerSite() { return $$('selSite').value === 'persite'; }
+function site() {
+    var v = $$('selSite').value;
+    if (v === 'persite') return 'all';
+    if (selectedPageUrl()) return 'all'; // page filter overrides site
+    return v;
+}
+function isPerSite() { return $$('selSite').value === 'persite' && !selectedPageUrl(); }
 function per() { return $$('selPeriod').value; }
 function rng() { return $$('selRange').value; }
 function tabLimit() { return $$('selLimit').value; }
@@ -265,23 +271,22 @@ function populatePageDropdown() {
     // Temporarily disable onchange to prevent recursive loadAll
     sel.onchange = null;
     sel.innerHTML = '<option value="">All pages</option>';
-    // Add configured pages first (with descriptions)
+    // Collect configured paths
     var configuredPaths = {};
+    var configuredEntries = [];
     if (URL_CONFIG.urls) {
         URL_CONFIG.urls.forEach(function(u) {
             if (!u.url || u.included === false) return;
-            var o = document.createElement('option');
-            o.value = u.url;
-            o.textContent = u.description || u.url;
-            sel.appendChild(o);
             configuredPaths[u.url.replace(/\/$/, '')] = true;
+            configuredEntries.push(u);
         });
     }
     sel.value = cur || '';
     sel.onchange = function() { loadAll(); };
-    // Then fetch top pages from Matomo and add unconfigured ones
-    q('Actions.getPageUrls', { flat: '1', filter_limit: '50' }).then(function(raw) {
-        var pages = {};
+    // Fetch page data from ALL sites to get accurate visit counts
+    q('Actions.getPageUrls', { flat: '1', filter_limit: '-1', idSite: 'all' }).then(function(raw) {
+        // Collect visit counts for all pages
+        var allPages = {};
         function collect(items) {
             if (!Array.isArray(items)) return;
             items.forEach(function(item) {
@@ -290,32 +295,47 @@ function populatePageDropdown() {
                 if (url.indexOf('localhost') !== -1) return;
                 if (!label || label === '/') return;
                 var norm = label.replace(/\/$/, '');
-                // Skip if already covered by a config entry
-                if (configuredPaths[norm]) return;
-                // Skip if covered by a config prefix
-                var covered = false;
-                for (var cp in configuredPaths) {
-                    if (norm.indexOf(cp + '/') === 0 || norm.indexOf(cp + '?') === 0) { covered = true; break; }
-                }
-                if (covered) return;
-                if (!pages[norm]) pages[norm] = 0;
-                pages[norm] += (item.nb_visits || 0);
+                if (!allPages[norm]) allPages[norm] = 0;
+                allPages[norm] += (item.nb_visits || 0);
             });
         }
-        if (isAll()) {
-            for (var sid in raw) {
-                var sd = raw[sid];
-                if (typeof sd !== 'object') continue;
-                for (var dk in sd) collect(sd[dk]);
-            }
-        } else {
-            for (var dk in raw) collect(raw[dk]);
+        // Always process as multi-site (we forced idSite=all)
+        for (var sid in raw) {
+            var sd = raw[sid];
+            if (typeof sd !== 'object') continue;
+            for (var dk in sd) collect(sd[dk]);
         }
-        // Filter by minimum visits and sort
+
+        // Rebuild dropdown with counts
+        sel.onchange = null;
+        sel.innerHTML = '<option value="">All pages</option>';
+
+        // Configured pages with visit counts
+        configuredEntries.forEach(function(u) {
+            var norm = u.url.replace(/\/$/, '');
+            var visits = allPages[norm] || 0;
+            // For prefix patterns (like /news), sum all matching sub-pages
+            if (!visits) {
+                for (var p in allPages) {
+                    if (p === norm || p.indexOf(norm + '/') === 0) visits += allPages[p];
+                }
+            }
+            var o = document.createElement('option');
+            o.value = u.url;
+            o.textContent = (u.description || u.url) + ' (' + fmt(visits) + ')';
+            sel.appendChild(o);
+        });
+
+        // Other pages (not in config)
         var minV = (URL_CONFIG.minVisits != null) ? URL_CONFIG.minVisits : 100;
-        var sorted = Object.keys(pages).filter(function(p) { return pages[p] >= minV; })
-            .sort(function(a, b) { return pages[b] - pages[a]; });
-        if (sorted.length && Object.keys(configuredPaths).length > 0) {
+        var otherPages = {};
+        for (var p in allPages) {
+            if (configuredPaths[p]) continue;
+            otherPages[p] = allPages[p];
+        }
+        var sorted = Object.keys(otherPages).filter(function(p) { return otherPages[p] >= minV; })
+            .sort(function(a, b) { return otherPages[b] - otherPages[a]; });
+        if (sorted.length && configuredEntries.length > 0) {
             var sep = document.createElement('option');
             sep.disabled = true;
             sep.textContent = '── Other pages ──';
@@ -521,7 +541,7 @@ async function loadSites() {
         oPer.value = 'persite'; oPer.textContent = 'All sites (separately)';
         sel.appendChild(oPer);
         // Default to first site
-        sel.value = Object.keys(SITES)[0] || 'all';
+        sel.value = 'all';
     } catch(e) {}
 }
 
@@ -538,13 +558,24 @@ async function q(method, extra) {
 // we fetch Actions.getPageUrls and sum visits for matching pages per date.
 // exactMatch: true = only exact label match (for page dropdown)
 //             false = prefix match (for drill-down from grouped view)
+// Find the configured siteId restriction for a page URL
+function getConfiguredSiteId(pageUrl) {
+    if (!URL_CONFIG.urls) return '';
+    var norm = pageUrl.replace(/\/$/, '');
+    for (var i = 0; i < URL_CONFIG.urls.length; i++) {
+        var u = URL_CONFIG.urls[i];
+        if (u.url && u.url.replace(/\/$/, '') === norm && u.siteId) return u.siteId;
+    }
+    return '';
+}
+
 async function getPageFilteredSeries(pagePattern, exactMatch) {
     var raw = await q('Actions.getPageUrls', { flat: '1', filter_limit: '-1' });
     var visits = {}, uniques = {};
+    var restrictSite = getConfiguredSiteId(pagePattern);
 
     function matches(label, pattern) {
         if (exactMatch) {
-            // Exact match: normalize trailing slashes and query strings
             var l = label.replace(/\/$/, '').split('?')[0];
             var p = pattern.replace(/\/$/, '').split('?')[0];
             return l === p;
@@ -568,6 +599,7 @@ async function getPageFilteredSeries(pagePattern, exactMatch) {
 
     if (isAll()) {
         for (var sid in raw) {
+            if (restrictSite && sid !== restrictSite) continue;
             var sd = raw[sid];
             if (typeof sd !== 'object' || !sd) continue;
             for (var dk in sd) processItems(sd[dk], dk);
@@ -584,6 +616,9 @@ var liveCache = { key: '', visits: [], unavailable: false };
 
 // Detect which site(s) contain a given page path
 async function findSitesForPage(pagePattern, exactMatch) {
+    // If a specific site is configured for this page, use only that site
+    var restrictSite = getConfiguredSiteId(pagePattern);
+    if (restrictSite) return [restrictSite];
     if (!isAll()) return [site()];
     // Fetch page data from all sites and check which ones have the page
     var raw = await q('Actions.getPageUrls', { flat: '1', filter_limit: '-1' });
@@ -1027,6 +1062,9 @@ function flatA(data) {
             var url = i.url||'';
             if (url.indexOf('localhost') !== -1) return;
             var key = i.label||'';
+            // Skip if this page is restricted to a different site
+            var restrictSite = getConfiguredSiteId(key);
+            if (restrictSite && restrictSite !== sid) return;
             if (!m[key]) m[key] = {label:key, nb_visits:0, nb_hits:0, url:url, code:i.code||''};
             m[key].nb_visits += (i.nb_visits||0);
             m[key].nb_hits += (i.nb_hits||0);
@@ -1556,7 +1594,13 @@ async function loadTab(tab) {
             var minV = countryFiltered ? 0 : ((URL_CONFIG.minVisits != null) ? URL_CONFIG.minVisits : 100);
             items = items.filter(function(r) {
                 if (URL_CONFIG.urls && URL_CONFIG.urls.length && isUrlExcluded(r.label||'')) return false;
-                if (minV > 0 && (r.nb_visits||0) < minV && !getUrlDescription(r.label||'')) return false;
+                // Apply min visits; only bypass for pages explicitly configured (exact URL match in config)
+                if (minV > 0 && (r.nb_visits||0) < minV) {
+                    var isConfigured = URL_CONFIG.urls && URL_CONFIG.urls.some(function(u) {
+                        return u.url && u.included !== false && u.url.replace(/\/$/,'') === (r.label||'').replace(/\/$/,'');
+                    });
+                    if (!isConfigured) return false;
+                }
                 return true;
             });
             if (vm === 'grouped') {
@@ -1597,6 +1641,17 @@ function renderH(items, tab) {
                     clickAttr = ' onclick="openDrill(\''+escAttr(patternUrl)+'\',\''+escAttr(display)+'\',true)"';
                 }
             } else {
+                // Show description only for exact config matches (not prefix matches)
+                if (URL_CONFIG.urls) {
+                    for (var ui = 0; ui < URL_CONFIG.urls.length; ui++) {
+                        var uc = URL_CONFIG.urls[ui];
+                        if (uc.url && uc.description && uc.url.replace(/\/$/,'') === l.replace(/\/$/,'')) {
+                            display = uc.description;
+                            tooltip = l;
+                            break;
+                        }
+                    }
+                }
                 clickAttr = ' onclick="openDrill(\''+escAttr(l)+'\',\''+escAttr(display)+'\',false)"';
             }
         }

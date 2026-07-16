@@ -3,112 +3,134 @@
     {
       "url": "/bipia",
       "description": "Event (UMA): BIP AI Agents Main Page",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/offering/64/22",
       "description": "Event (UMA):  Workshop: Innovative Teaching AI",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/offering/64/2",
       "description": "Event (UMA): BIP AI Agents Agora Registration",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/static/EHs/responsible-ai.html",
       "description": "Responsible AI Research Explorer",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/login?redirect=/",
       "description": "",
-      "included": false
+      "included": false,
+      "siteId": ""
     },
     {
       "url": "/login",
       "description": "",
-      "included": false
+      "included": false,
+      "siteId": ""
     },
     {
       "url": "/static/algoria_map.html",
       "description": "",
-      "included": false
+      "included": false,
+      "siteId": ""
     },
     {
       "url": "/event-calendar/",
       "description": "Tools: Events Calendar",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/static/EHs/index.html",
       "description": "Excellence Hubs Main Page",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/agents",
       "description": "",
-      "included": false
+      "included": false,
+      "siteId": ""
     },
     {
       "url": "/",
       "description": "",
-      "included": false
+      "included": false,
+      "siteId": ""
     },
     {
       "url": "/internships",
       "description": "UNINOVIS Internships",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/research-explorers",
       "description": "Tools: Research explorers",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/unigracon/",
       "description": "Tools: UNINOVIS Grade Converter",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/mobility_planner/",
       "description": "Tools: UNINOVIS Mobility Planner",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/uninovis-uma",
       "description": "",
-      "included": false
+      "included": false,
+      "siteId": ""
     },
     {
       "url": "/news",
       "description": "All news",
-      "included": true
+      "included": false,
+      "siteId": ""
     },
     {
       "url": "/offering/",
       "description": "All offerings",
-      "included": true
+      "included": false,
+      "siteId": ""
     },
     {
       "url": "/directory/",
       "description": "Tools: Directory",
-      "included": true
+      "included": true,
+      "siteId": "3"
     },
     {
       "url": "/web/login?redirect=/",
       "description": "",
-      "included": false
+      "included": false,
+      "siteId": ""
     },
     {
       "url": "/event-catalogue",
       "description": "Tools: Event catalogue",
-      "included": true
+      "included": true,
+      "siteId": ""
     },
     {
       "url": "/event/bip-artificial-intelligence-for-european-university-alliances-research-teaching-and-administration-21/register",
       "description": "",
-      "included": false
+      "included": false,
+      "siteId": ""
     }
   ],
   "minVisits": 100

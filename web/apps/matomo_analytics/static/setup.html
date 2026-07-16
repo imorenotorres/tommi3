@@ -78,6 +78,7 @@
                     <th style="width:40px;">Include</th>
                     <th>URL path</th>
                     <th>Description (shown in reports)</th>
+                    <th style="width:100px;">Site</th>
                     <th style="width:60px;"></th>
                 </tr>
             </thead>
@@ -114,10 +115,11 @@
 <script>
 var config = { urls: [] };
 
-function addRow(url, desc, included) {
+function addRow(url, desc, included, siteId) {
     url = url || '';
     desc = desc || '';
     if (included === undefined) included = true;
+    siteId = siteId || '';
 
     var tbody = document.getElementById('urlBody');
     var tr = document.createElement('tr');
@@ -125,6 +127,12 @@ function addRow(url, desc, included) {
         '<td style="text-align:center;"><input type="checkbox" class="cb" ' + (included ? 'checked' : '') + '></td>' +
         '<td><input type="text" class="url-input" value="' + escHtml(url) + '" placeholder="/agents, /event-calendar..."></td>' +
         '<td><input type="text" class="desc-input" value="' + escHtml(desc) + '" placeholder="e.g. Agent Chat Page"></td>' +
+        '<td><select class="site-select" style="width:100%;padding:4px;border:1px solid #d1d5db;border-radius:5px;font-size:0.78rem;">' +
+            '<option value="">All</option>' +
+            '<option value="1"' + (siteId==='1'?' selected':'') + '>uninovis.eu</option>' +
+            '<option value="2"' + (siteId==='2'?' selected':'') + '>Agora</option>' +
+            '<option value="3"' + (siteId==='3'?' selected':'') + '>Gloria</option>' +
+        '</select></td>' +
         '<td style="text-align:center;"><button class="btn btn-danger" onclick="removeRow(this)" title="Remove">&times;</button></td>';
     tbody.appendChild(tr);
 }
@@ -143,10 +151,12 @@ function gatherConfig() {
     rows.forEach(function(tr) {
         var url = tr.querySelector('.url-input').value.trim();
         if (!url) return;
+        var siteVal = tr.querySelector('.site-select').value;
         urls.push({
             url: url,
             description: tr.querySelector('.desc-input').value.trim(),
-            included: tr.querySelector('.cb').checked
+            included: tr.querySelector('.cb').checked,
+            siteId: siteVal || ''
         });
     });
     var minVisits = parseInt(document.getElementById('minVisits').value) || 100;
@@ -184,7 +194,7 @@ async function loadConfig() {
         config = await resp.json();
         if (config.urls && config.urls.length) {
             config.urls.forEach(function(u) {
-                addRow(u.url, u.description, u.included !== false);
+                addRow(u.url, u.description, u.included !== false, u.siteId || '');
             });
         } else {
             addRow();
