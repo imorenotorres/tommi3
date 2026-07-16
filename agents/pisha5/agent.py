@@ -3350,19 +3350,14 @@ sqlite3 data/database.db < your_schema.sql
         if self._prompt_level in ("stringent", "tolerant"):
             pre_check = self._sql_verifier.verify(sql_query)
 
-            # Semantic alignment check: does the SQL match the user's question?
-            semantic = self._sql_verifier.verify_semantic(user_message, sql_query)
-            if semantic["issues"]:
-                pre_check["issues"].extend(semantic["issues"])
-                pre_check["confidence"] = max(0, pre_check["confidence"] - semantic["penalty"])
-                logger.warning(f"⚠️ Semantic check: {semantic['issues']}")
-
             if self._prompt_level == "stringent":
-                # STRINGENT: reject on hard errors (unknown tables/columns, unsafe code, semantic mismatch)
+                # STRINGENT: reject on hard errors (unknown tables/columns, unsafe code)
+                # Semantic mismatches are shown as warnings but do NOT block execution,
+                # because the LLM often makes valid transformations (e.g. Tirana→Albania,
+                # griegas→Grecia) that the rule-based verifier cannot anticipate.
                 hard_errors = [i for i in pre_check["issues"]
                                if i.startswith("Unknown table:") or i.startswith("Unknown column:")
-                               or i.startswith("Dangerous keyword")
-                               or i.startswith("Semantic mismatch:")]
+                               or i.startswith("Dangerous keyword")]
                 if hard_errors:
                     issues_text = "\n".join(f"- {i}" for i in hard_errors)
                     badge = SQLReliabilityBadge.source_badge(
@@ -3463,12 +3458,6 @@ sqlite3 data/database.db < your_schema.sql
         # ⏱️ Fase 5: SQL verification (for audit log)
         result_count = len(results) if isinstance(results, list) else 0
         verification = self._sql_verifier.verify_with_execution(sql_query, success, result_count)
-
-        # Post-execution semantic check (also applies to tolerant mode)
-        semantic_post = self._sql_verifier.verify_semantic(user_message, sql_query)
-        if semantic_post["issues"]:
-            verification["issues"].extend(semantic_post["issues"])
-            verification["confidence"] = max(0, verification["confidence"] - semantic_post["penalty"])
 
         logger.info(f"🔍 SQL verification: confidence={verification['confidence']}%, "
                      f"tables={len(verification['verified_tables'])}/{len(verification['verified_tables'])+len(verification['unknown_tables'])}, "
@@ -3661,18 +3650,10 @@ sqlite3 data/database.db < your_schema.sql
         if prompt_level in ("stringent", "tolerant"):
             pre_check = self._sql_verifier.verify(sql_query)
 
-            # Semantic alignment check
-            semantic = self._sql_verifier.verify_semantic(user_message, sql_query)
-            if semantic["issues"]:
-                pre_check["issues"].extend(semantic["issues"])
-                pre_check["confidence"] = max(0, pre_check["confidence"] - semantic["penalty"])
-                logger.warning(f"⚠️ Semantic check: {semantic['issues']}")
-
             if prompt_level == "stringent":
                 hard_errors = [i for i in pre_check["issues"]
                                if i.startswith("Unknown table:") or i.startswith("Unknown column:")
-                               or i.startswith("Dangerous keyword")
-                               or i.startswith("Semantic mismatch:")]
+                               or i.startswith("Dangerous keyword")]
                 if hard_errors:
                     issues_text = "\n".join(f"- {i}" for i in hard_errors)
                     badge = SQLReliabilityBadge.source_badge(
