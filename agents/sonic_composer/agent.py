@@ -325,8 +325,12 @@ class Agent:
         if not old_lines:
             return "\n".join(esc_line(l) for l in new_lines)
 
-        result = []
+        # If code is mostly different (< 30% match), show all as new — no diff
         matcher = difflib.SequenceMatcher(None, old_lines, new_lines)
+        if matcher.ratio() < 0.3:
+            return "\n".join(esc_line(l) for l in new_lines)
+
+        result = []
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
             if tag == "equal":
                 for line in new_lines[j1:j2]:
@@ -399,6 +403,8 @@ class Agent:
             parts = [description]
 
             # Sonic Pi code block (visible)
+            if not code:
+                self._previous_code = ""
             if code:
                 code_html = self._diff_code(self._previous_code, code)
                 self._previous_code = code
