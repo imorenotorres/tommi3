@@ -294,7 +294,16 @@ class Agent:
         )
         self._config = _load_json("config.json")
         self._prompts = _load_json("prompts.json")
-        self.system_prompt = system_prompt or _build_system_prompt(self._config, self._prompts)
+        self._presets = _load_json("presets.json")
+        base_prompt = system_prompt or _build_system_prompt(self._config, self._prompts)
+        # Append preset reference to system prompt
+        if self._presets:
+            preset_ref = "\n\nPRESETS DE ESTILOS MUSICALES:\nCuando el usuario pida un estilo musical específico, usa estos presets como BASE y adáptalos según la instrucción. Puedes modificar bpm, notas, instrumentos, etc. pero mantén la estructura rítmica del estilo.\n\n"
+            for name, preset in self._presets.items():
+                preset_ref += f"- {name}: {preset.get('description', '')} (bpm={preset.get('bpm', 120)})\n"
+            preset_ref += "\nPara usar un preset, responde con su estado JSON completo. Puedes combinar elementos de varios presets."
+            base_prompt += preset_ref
+        self.system_prompt = base_prompt
 
         # Musical state persists across messages in the same session
         self.musical_state = {"bpm": 120, "loops": {}}
@@ -372,9 +381,23 @@ class Agent:
             self._previous_code = ""
             self.musical_state = {"bpm": 120, "loops": {}}
 
+        # Check if a preset matches the user's request
+        preset_hint = ""
+        if self._presets:
+            msg_lower = message.lower()
+            for name, preset in self._presets.items():
+                keywords = name.replace("_", " ").split()
+                if all(k in msg_lower for k in keywords):
+                    preset_hint = (
+                        f"\n\nPRESET SUGERIDO para '{name}':\n"
+                        f"{json.dumps(preset, ensure_ascii=False, indent=2)}\n"
+                        f"Usa este preset como base y adáptalo según la instrucción del usuario."
+                    )
+                    break
+
         # Build messages with current state injected
         state_str = json.dumps(self.musical_state, ensure_ascii=False, indent=2)
-        user_msg = f"<estado_actual>\n{state_str}\n</estado_actual>\n\nInstrucción del usuario: {message}"
+        user_msg = f"<estado_actual>\n{state_str}\n</estado_actual>\n\nInstrucción del usuario: {message}{preset_hint}"
 
         messages = [{"role": "system", "content": self.system_prompt}]
         messages.extend(history)
