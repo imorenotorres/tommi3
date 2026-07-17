@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Agents — TOMMI</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.nav { background: #1a1a2e; padding: 16px 24px 60px; display: flex; align-items: flex-start; gap: 12px; }
+.nav-current { color: #fff; font-size: 24px; font-weight: 600; }
+.nav-sub { color: rgba(255,255,255,0.85); font-size: 15px; display: block; margin-top: 2px; }
+.nav-logos { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+.cards-section { max-width: 700px; margin: -32px auto 0; padding: 0 24px 48px; position: relative; z-index: 1; }
+.cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.card {
+    background: #fff; border-radius: 10px; padding: 20px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none; color: #1e293b; display: flex; flex-direction: column;
+    border-top: 4px solid #e74c3c;
+}
+a.card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.card-icon {
+    width: fit-content; height: 40px; border-radius: 20px; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px; margin-bottom: 10px; padding: 0 12px;
+}
+.card h3 { font-size: 15px; color: #1e293b; margin-bottom: 4px; }
+.card p { font-size: 12px; color: #64748b; line-height: 1.4; flex: 1; }
+.card-badge {
+    display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 600;
+    padding: 3px 12px; border-radius: 10px; align-self: flex-start;
+}
+.badge-pilot { color: #0c5460; background: #d1ecf1; }
+.card-links { margin-top: 10px; display: flex; gap: 8px; }
+.card-links a {
+    font-size: 11px; color: #e74c3c; text-decoration: none;
+    border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 4px;
+}
+.card-links a:hover { background: #f1f5f9; }
+
+.footer { text-align: center; padding: 24px; font-size: 12px; color: #94a3b8; }
+.footer a { color: #64748b; }
+
+@media (max-width: 600px) {
+    .cards-grid { grid-template-columns: 1fr; }
+    .nav { padding: 16px 16px 44px; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <div>
+        <span class="nav-current">Creative Agents</span>
+        <span class="nav-sub">Interactive AI tools for music, art and creative expression</span>
+    </div>
+    <div class="nav-logos">
+        <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:70px;">
+    </div>
+</div>
+
+<section class="cards-section">
+    <div class="cards-grid">
+
+        <a class="card" href="/creative-agents/sonic-composer">
+            <div class="card-icon" style="background:#e74c3c;">&#9835;</div>
+            <h3>Sonic Composer</h3>
+            <p>Create and modify music in real time using natural language. Supports ambient, generative, techno, and more. Sound plays directly in your browser.</p>
+            <span class="card-badge badge-pilot">Pilot</span>
+        </a>
+
+    </div>
+</section>
+
+<footer class="footer">
+    Built with <strong>TOMMI</strong>. License <a href="/static/license.html">EUPL v1.2</a> | <a href="/static/privacy.html">Privacy</a>
+</footer>
+
+</body>
+</html>

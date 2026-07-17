@@ -1,0 +1,21 @@
+{
+  "agent_id": "sonic_composer",
+  "agent_name": "Sonic Composer",
+  "type": "oneshot",
+  "description": "Agente musical interactivo que genera y modifica música en tiempo real usando Sonic Pi",
+  "welcome_message": "¡Hola! Soy tu compositor musical. Dime qué quieres escuchar y lo haré sonar en Sonic Pi. Puedes ir dándome instrucciones para modificar la música en tiempo real.",
+  "example_queries": [
+    "Toca algo tranquilo en piano",
+    "Ponme un ritmo techno a 130 bpm",
+    "Añade un bajo con sintetizador",
+    "Cambia a escala menor",
+    "Pon el breakbeat de amen a media velocidad con filtro",
+    "Añade una melodía generativa con piano y reverb, posicionada a la derecha",
+    "Toca el loop de tabla con la melodía a la izquierda y el bajo al centro",
+    "Añade algo experimental y aleatorio con el sintetizador hollow",
+    "Para la música"
+  ],
+  "show_history": true,
+  "public": true,
+  "prompt_level": "stringent"
+}

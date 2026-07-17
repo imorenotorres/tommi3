@@ -1095,6 +1095,24 @@ async def uninovis_uma_proyectos():
     return FileResponse(SCRIPT_DIR / "static" / "uma_proyectos.html")
 
 
+@app.get("/creative-agents")
+async def creative_agents_page():
+    """Serve the Creative Agents landing page"""
+    return FileResponse(SCRIPT_DIR / "static" / "creative_agents.html")
+
+
+@app.get("/creative-agents/sonic-composer")
+async def sonic_composer_page():
+    """Serve the Sonic Composer chat page"""
+    return FileResponse(SCRIPT_DIR / "static" / "sonic_composer.html")
+
+
+@app.get("/creative-agents/sonic-composer/help")
+async def sonic_composer_help():
+    """Serve the Sonic Composer help page"""
+    return FileResponse(SCRIPT_DIR / "static" / "sonic_composer_howto.html")
+
+
 @app.get("/tutores-virtuales")
 async def tutores_virtuales_page():
     """Serve the Virtual Tutors landing page"""
@@ -2091,7 +2109,7 @@ async def get_public_tools():
 # ---------------------------------------------------------------------------
 
 # Set of agent IDs that are allowed to be accessed publicly
-_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos", "pisha5", "algoria_map", "lali_tutor"}
+_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos", "pisha5", "algoria_map", "lali_tutor", "sonic_composer"}
 
 
 @app.get("/api/public-agent/{agent_id}/config")

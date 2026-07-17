@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sonic Composer</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://unpkg.com/@strudel/web@1.0.3"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; background: #f8fafc; color: #1e293b; }
+
+/* Nav */
+.nav { background: #1a1a2e; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 20px; text-decoration: none; }
+.nav-brand:hover { opacity: 0.9; }
+.nav-sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.nav-current { color: #fff; font-size: 16px; font-weight: 600; }
+.nav-help { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; padding: 3px 10px; margin-left: auto; }
+.nav-help:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+/* Sonic Panel */
+.sonic-panel { background: #f0f0ff; border-bottom: 1px solid #e0e0e0; padding: 10px 20px; flex-shrink: 0; }
+.sp-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+.sp-row:last-child { margin-bottom: 0; }
+.sonic-panel label { font-size: 0.72rem; font-weight: 600; color: #555; white-space: nowrap; }
+.sonic-panel select { padding: 3px 6px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.75rem; background: #fff; }
+.sp-bpm-val { font-size: 0.75rem; font-weight: 700; color: #e74c3c; min-width: 32px; text-align: center; }
+.sp-fx { display: flex; gap: 6px; flex-wrap: wrap; }
+.sp-fx label { font-weight: 400; font-size: 0.72rem; cursor: pointer; }
+.sp-fx input { vertical-align: middle; cursor: pointer; }
+.sp-btn { padding: 4px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #e74c3c; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.sp-btn:hover { background: #e74c3c; color: #fff; border-color: #e74c3c; }
+.sp-btn.stop { border-color: #333; color: #333; }
+.sp-btn.stop:hover { background: #333; color: #fff; }
+.sp-sep { width: 1px; height: 20px; background: #d1d5db; }
+.sp-loops { display: flex; gap: 6px; flex-wrap: wrap; }
+.sp-loop-tag { display: inline-flex; align-items: center; gap: 4px; background: #fce4ec; color: #e74c3c; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.15s; user-select: none; }
+.sp-loop-tag:hover { opacity: 0.8; }
+.sp-loop-tag.muted { background: #e8e8e8; color: #999; text-decoration: line-through; }
+
+/* Chat */
+.chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; max-width: 900px; width: 100%; margin: 0 auto; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.message { display: flex; gap: 10px; }
+.message.user { justify-content: flex-end; }
+.bubble { max-width: 80%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; word-wrap: break-word; }
+.bubble.user { background: #1a1a2e; color: #fff; border-bottom-right-radius: 4px; }
+.bubble.agent { background: #fff; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; }
+.bubble.agent pre { background: #1a1a2e; color: #e0e0e0; border-radius: 6px; padding: 12px; margin: 8px 0; overflow-x: auto; font-size: 0.85em; font-family: 'SF Mono', Consolas, monospace; white-space: pre-wrap; }
+.bubble.agent code { background: #e8e8f0; padding: 1px 5px; border-radius: 3px; font-size: 0.88em; font-family: 'SF Mono', Consolas, monospace; }
+.bubble.agent pre code { background: none; padding: 0; }
+.loading { color: #94a3b8; font-style: italic; }
+
+/* Input */
+.input-area { padding: 12px 20px; background: #fff; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; flex-shrink: 0; }
+.input-area input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+.input-area input:focus { border-color: #e74c3c; }
+.input-area button { background: #e74c3c; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+.input-area button:hover { background: #c0392b; }
+.input-area button:disabled { background: #ccc; cursor: not-allowed; }
+
+/* Examples */
+.examples { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 20px; }
+.example-btn { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 13px; color: #e74c3c; transition: all 0.15s; max-width: 300px; text-align: left; }
+.example-btn:hover { border-color: #e74c3c; background: #fff5f5; }
+
+@media (max-width: 600px) {
+    .sp-row { gap: 4px; }
+    .bubble { max-width: 95%; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/creative-agents" class="nav-brand">Creative Agents</a>
+    <span class="nav-sep">/</span>
+    <span class="nav-current">Sonic Composer</span>
+    <a href="/creative-agents/sonic-composer/help" class="nav-help">? Help</a>
+</div>
+
+<div class="sonic-panel" id="sonicPanel">
+    <div class="sp-row">
+        <label>BPM:</label>
+        <input type="range" id="spBpm" min="40" max="200" value="120" oninput="document.getElementById('spBpmVal').textContent=this.value" style="width:100px;">
+        <span class="sp-bpm-val" id="spBpmVal">120</span>
+        <div class="sp-sep"></div>
+        <label>Synth:</label>
+        <select id="spSynth">
+            <option value="piano">Piano</option><option value="hollow">Hollow</option>
+            <option value="pluck">Pluck</option><option value="prophet">Prophet</option>
+            <option value="blade">Blade</option><option value="fm">FM</option>
+            <option value="tb303">TB-303</option><option value="saw">Saw</option>
+            <option value="square">Square</option><option value="dsaw">DSaw</option>
+            <option value="dpulse">DPulse</option><option value="tech_saws">Tech Saws</option>
+        </select>
+        <div class="sp-sep"></div>
+        <label>Scale:</label>
+        <select id="spScale">
+            <option value="major">Major</option><option value="minor">Minor</option>
+            <option value="pentatonic">Pentatonic</option><option value="blues">Blues</option>
+            <option value="dorian">Dorian</option><option value="mixolydian">Mixolydian</option>
+            <option value="harmonic_minor">Harmonic minor</option><option value="melodic_minor">Melodic minor</option>
+        </select>
+        <div class="sp-sep"></div>
+        <label>Loop:</label>
+        <select id="spLoop">
+            <option value="">— none —</option>
+            <option value="loop_amen">Amen break</option><option value="loop_breakbeat">Breakbeat</option>
+            <option value="loop_industrial">Industrial</option><option value="loop_safari">Safari</option>
+            <option value="loop_tabla">Tabla</option><option value="loop_compus">Compus</option>
+            <option value="loop_garzul">Garzul</option><option value="loop_mika">Mika</option>
+        </select>
+    </div>
+    <div class="sp-row">
+        <label>FX:</label>
+        <div class="sp-fx">
+            <label><input type="checkbox" value="reverb"> reverb</label>
+            <label><input type="checkbox" value="echo"> echo</label>
+            <label><input type="checkbox" value="distortion"> distortion</label>
+            <label><input type="checkbox" value="lpf"> lpf</label>
+            <label><input type="checkbox" value="hpf"> hpf</label>
+            <label><input type="checkbox" value="flanger"> flanger</label>
+            <label><input type="checkbox" value="wobble"> wobble</label>
+            <label><input type="checkbox" value="slicer"> slicer</label>
+        </div>
+        <div class="sp-sep"></div>
+        <button class="sp-btn" onclick="spApply()">&#9835; Apply</button>
+        <button class="sp-btn stop" onclick="spStop()">&#9632; Stop</button>
+        <div class="sp-sep"></div>
+        <label>Active:</label>
+        <div class="sp-loops" id="spActiveLoops"><span style="font-size:0.72rem;color:#999;">none</span></div>
+    </div>
+</div>
+
+<div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+        <div class="examples" id="examples">
+            <button class="example-btn" onclick="sendExample(this.textContent)">Toca algo tranquilo en piano</button>
+            <button class="example-btn" onclick="sendExample(this.textContent)">Ponme un ritmo techno a 130 bpm</button>
+            <button class="example-btn" onclick="sendExample(this.textContent)">Crea un paisaje sonoro generativo con hollow y reverb</button>
+            <button class="example-btn" onclick="sendExample(this.textContent)">Pon el breakbeat de amen a media velocidad con filtro</button>
+            <button class="example-btn" onclick="sendExample(this.textContent)">Añade algo experimental y aleatorio</button>
+        </div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="msgInput" placeholder="Describe what you want to hear..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button id="sendBtn" onclick="sendMsg()">Send</button>
+    </div>
+</div>
+
+<script>
+var AGENT_ID = 'sonic_composer';
+var sessionId = null;
+var isLoading = false;
+var strudelReady = false;
+var spMutedLoops = {};
+var pendingState = null; // State waiting to be played on next user click
+
+// ── Strudel ──
+
+// Strudel built-in oscillators (always available, no sample loading needed)
+var SP_STRUDEL_SYNTHS = {
+  piano:'triangle', tb303:'sawtooth', prophet:'supersaw', blade:'square',
+  pluck:'triangle', beep:'sine', fm:'fm', saw:'sawtooth', square:'square',
+  hollow:'sine', dsaw:'supersaw', dpulse:'square', tech_saws:'supersaw'
+};
+var SP_STRUDEL_SAMPLES = {
+  bd_haus:'bd', bd_ada:'bd', bd_boom:'bd', sn_dolf:'sd', sn_dub:'sd',
+  hat_snap:'hh', hat_cab:'hh', hat_gem:'hh'
+};
+var SP_STRUDEL_FX = {
+  reverb:'.room(2)', echo:'.delay(.5)', distortion:'.distort(1)',
+  lpf:'.lpf(800)', hpf:'.hpf(400)', flanger:'.phaser(4)',
+  wobble:'.lpf(800)', slicer:'.gain(.8)'
+};
+
+function ensureStrudel() {
+  if (!strudelReady && typeof initStrudel === 'function') {
+    initStrudel({
+      prebake: function() {
+        // Load dirt-samples (includes piano, bass, drums, etc.)
+        return samples('github:tidalcycles/dirt-samples');
+      }
+    });
+    // Resume AudioContext (required by browser autoplay policy)
+    var ctx = window.getAudioContext ? window.getAudioContext() : null;
+    if (!ctx && window.superdough) ctx = window.superdough.ac;
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+    strudelReady = true;
+    console.log('[Strudel] Initialized with samples, AudioContext:', ctx ? ctx.state : 'not found');
+  }
+}
+
+function stateToStrudelCode(state) {
+  var bpm = state.bpm || 120;
+  var cpm = bpm / 4;
+  var loops = state.loops || {};
+  var keys = Object.keys(loops);
+  if (!keys.length) return 'hush()';
+  var lines = [];
+  keys.forEach(function(name) {
+    var loop = loops[name];
+    var type = loop.type || 'melody';
+    var vol = loop.volume != null ? loop.volume : 0.8;
+    var pan = loop.pan || 0;
+    var fx = loop.fx || [];
+    var line = '';
+    if (type === 'melody' || type === 'bass') {
+      var notes = loop.notes || [60,62,64,65,67];
+      var rhythm = loop.rhythm || [0.5];
+      var synth = SP_STRUDEL_SYNTHS[loop.synth] || 'piano';
+      var parts = []; var totalBeats = 0;
+      for (var i = 0; i < notes.length; i++) {
+        var dur = rhythm[i % rhythm.length];
+        parts.push(notes[i] + '@' + dur); totalBeats += dur;
+      }
+      line = 'note("' + parts.join(' ') + '").sound("' + synth + '")';
+      var slow = totalBeats / 4;
+      if (Math.abs(slow - 1) > 0.01) line += '.slow(' + slow.toFixed(2) + ')';
+    } else if (type === 'beat') {
+      var pattern = loop.beat_pattern || [{sample:'bd',sleep:0.25},{sample:'hh',sleep:0.25},{sample:'bd',sleep:0.25},{sample:'sd',sleep:0.25}];
+      var sounds = pattern.map(function(s) { return s.sample === 'rest' ? '~' : (SP_STRUDEL_SAMPLES[s.sample] || s.sample); });
+      line = 'sound("' + sounds.join(' ') + '")';
+    } else if (type === 'chords') {
+      var synth = SP_STRUDEL_SYNTHS[loop.synth] || 'piano';
+      var chords = loop.chord_names || ['C','Am','F','G'];
+      var rhythm = loop.rhythm || [2];
+      var totalBeats = 0; var cparts = [];
+      for (var i = 0; i < chords.length; i++) {
+        var dur = rhythm[i % rhythm.length];
+        var root = chords[i].replace(/m7?|7|dim|aug/g,'').toLowerCase();
+        cparts.push(root + '3@' + dur); totalBeats += dur;
+      }
+      line = 'note("' + cparts.join(' ') + '").sound("' + synth + '")';
+      var slow = totalBeats / 4;
+      if (Math.abs(slow - 1) > 0.01) line += '.slow(' + slow.toFixed(2) + ')';
+    } else if (type === 'sample_loop') {
+      var sampleName = (loop.sample_name || 'break').replace('loop_','');
+      line = 'sound("' + sampleName + '").speed(' + (loop.rate||1) + ')';
+    } else if (type === 'generative') {
+      var synth = SP_STRUDEL_SYNTHS[loop.synth] || 'piano';
+      var root = (loop.root || 'C4').replace(/(\d)/, '');
+      var sc = loop.scale || 'pentatonic';
+      var density = loop.density || 8;
+      var sleepRange = loop.sleep_range || [0.2, 0.8];
+      var avgSleep = (sleepRange[0] + sleepRange[1]) / 2;
+      var degs = [];
+      for (var i = 0; i < density; i++) degs.push(Math.floor(Math.random() * 8));
+      line = 'n("' + degs.join(' ') + '").scale("' + root + ':' + sc + '").sound("' + synth + '")';
+      var slow = (density * avgSleep) / 4;
+      if (Math.abs(slow - 1) > 0.01) line += '.slow(' + slow.toFixed(2) + ')';
+    }
+    if (!line) return;
+    line += '.gain(' + vol + ')';
+    fx.forEach(function(f) { if (SP_STRUDEL_FX[f]) line += SP_STRUDEL_FX[f]; });
+    if (pan) line += '.pan(' + ((pan + 1) / 2).toFixed(2) + ')';
+    line += '.cpm(' + cpm + ')';
+    lines.push(line);
+  });
+  return lines.join('\n');
+}
+
+function executeStrudel(state) {
+  ensureStrudel();
+  // Resume AudioContext if suspended
+  var ctx = window.getAudioContext ? window.getAudioContext() : null;
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume().then(function() {
+      console.log('[Strudel] AudioContext resumed');
+      _doExecuteStrudel(state);
+    });
+  } else {
+    _doExecuteStrudel(state);
+  }
+}
+
+function _doExecuteStrudel(state) {
+  try {
+    if (typeof hush === 'function') hush();
+    var code = stateToStrudelCode(state);
+    console.log('[Strudel] Code:', code);
+    // Small delay to let hush() complete before starting new patterns
+    setTimeout(function() {
+      try {
+        var codeLines = code.split('\n');
+        for (var i = 0; i < codeLines.length; i++) {
+          var line = codeLines[i].trim();
+          if (!line) continue;
+          console.log('[Strudel] Playing:', line);
+          eval(line + '.play()');
+        }
+      } catch(e) { console.error('[Strudel] Play error:', e); }
+    }, 100);
+  } catch(e) { console.error('[Strudel] Error:', e); }
+}
+
+// ── Chat ──
+
+function addMessage(text, role) {
+  var ex = document.getElementById('examples');
+  if (ex) ex.remove();
+  var chat = document.getElementById('chatMessages');
+  var msg = document.createElement('div');
+  msg.className = 'message ' + role;
+  var bubble = document.createElement('div');
+  bubble.className = 'bubble ' + role;
+  if (role === 'user') bubble.textContent = text;
+  else bubble.innerHTML = text || '';
+  msg.appendChild(bubble);
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+  return bubble;
+}
+
+function sendExample(text) {
+  document.getElementById('msgInput').value = text;
+  sendMsg();
+}
+
+function sendMsg() {
+  var input = document.getElementById('msgInput');
+  var msg = input.value.trim();
+  if (!msg || isLoading) return;
+
+  // Initialize Strudel on user gesture (click/Enter) — required for AudioContext
+  ensureStrudel();
+
+  isLoading = true;
+  input.value = '';
+  document.getElementById('sendBtn').disabled = true;
+
+  addMessage(msg, 'user');
+  var agentBubble = addMessage('<span class="loading">Composing...</span>', 'agent');
+
+  var params = new URLSearchParams({ message: msg });
+  if (sessionId) params.append('session_id', sessionId);
+
+  var es = new EventSource('/api/public-agent/' + AGENT_ID + '/chat/stream?' + params);
+  var fullText = '';
+
+  es.addEventListener('session', function(e) { sessionId = e.data; });
+  es.onmessage = function(e) {
+    var chunk = e.data.replace(/\\n/g, '\n');
+    fullText += chunk;
+    agentBubble.innerHTML = marked.parse(fullText);
+  };
+  es.addEventListener('done', function() {
+    es.close();
+    // If response contains our HTML divs, use raw text; otherwise parse markdown
+    if (fullText.indexOf('sp-state') !== -1 || fullText.indexOf('sp-code-block') !== -1) {
+      agentBubble.innerHTML = fullText;
+    } else {
+      agentBubble.innerHTML = marked.parse(fullText);
+    }
+    console.log('[SonicComposer] fullText length:', fullText.length);
+    console.log('[SonicComposer] has sp-state in text:', fullText.indexOf('sp-state') !== -1);
+    console.log('[SonicComposer] has sp-state in DOM:', !!agentBubble.querySelector('.sp-state'));
+    console.log('[SonicComposer] bubble innerHTML preview:', agentBubble.innerHTML.substring(0, 200));
+    processResponse(agentBubble);
+    isLoading = false;
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+  });
+  es.addEventListener('error_event', function(e) {
+    es.close();
+    agentBubble.innerHTML = '<span style="color:#dc3545;">Error: ' + e.data + '</span>';
+    isLoading = false;
+    document.getElementById('sendBtn').disabled = false;
+  });
+  es.onerror = function() {
+    es.close();
+    if (!fullText) agentBubble.innerHTML = '<span style="color:#dc3545;">Connection error.</span>';
+    isLoading = false;
+    document.getElementById('sendBtn').disabled = false;
+  };
+}
+
+// ── Response processing ──
+
+function processResponse(bubble) {
+  var stateDiv = bubble.querySelector('.sp-state');
+  if (!stateDiv) { updateActiveLoops(bubble.innerHTML); return; }
+  var stateJson = stateDiv.getAttribute('data-state');
+  if (!stateJson) return;
+  try {
+    var ta = document.createElement('textarea');
+    ta.innerHTML = stateJson;
+    var state = JSON.parse(ta.value);
+
+    // Execute Strudel
+    if (!Object.keys(state.loops || {}).length) {
+      if (typeof hush === 'function') { ensureStrudel(); hush(); }
+    } else {
+      executeStrudel(state);
+    }
+
+    // Replace code block header
+    var codeBlock = bubble.querySelector('.sp-code-block');
+    if (codeBlock) {
+      var strudelCode = stateToStrudelCode(state);
+      var escaped = strudelCode.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      codeBlock.innerHTML =
+        '<div style="background:#2ecc71;color:#fff;padding:6px 12px;font-size:0.8em;font-weight:700;">'
+        + '&#9835; Strudel — Playing in Browser</div>'
+        + '<pre style="margin:0;border-radius:0;"><code>' + escaped + '</code></pre>';
+    }
+
+    // Update active loops
+    updateActiveLoopsFromState(state);
+  } catch(e) { console.error('State parse error:', e); }
+}
+
+function updateActiveLoopsFromState(state) {
+  var el = document.getElementById('spActiveLoops');
+  if (!el) return;
+  var names = Object.keys(state.loops || {});
+  if (!names.length) {
+    el.innerHTML = '<span style="font-size:0.72rem;color:#999;">none</span>';
+    spMutedLoops = {};
+    return;
+  }
+  names.forEach(function(n) {
+    var v = state.loops[n].volume;
+    if (v === 0 || v === 0.0) spMutedLoops[n] = true;
+    else delete spMutedLoops[n];
+  });
+  el.innerHTML = names.map(function(n) {
+    var muted = spMutedLoops[n];
+    return '<span class="sp-loop-tag' + (muted ? ' muted' : '') + '" onclick="spToggleLoop(\'' + n + '\')" title="Click to ' + (muted ? 'activate' : 'mute') + '">'
+      + (muted ? '&#9724; ' : '&#9654; ') + n + '</span>';
+  }).join('');
+  // Update BPM
+  if (state.bpm) {
+    var b = document.getElementById('spBpm');
+    var bv = document.getElementById('spBpmVal');
+    if (b && bv) { b.value = state.bpm; bv.textContent = state.bpm; }
+  }
+}
+
+function updateActiveLoops(html) {
+  // Fallback for responses without state div
+  var el = document.getElementById('spActiveLoops');
+  if (!el) return;
+  if (html.indexOf('detenido') !== -1 || html.indexOf('Stopped') !== -1) {
+    el.innerHTML = '<span style="font-size:0.72rem;color:#999;">none</span>';
+    spMutedLoops = {};
+  }
+}
+
+// ── Panel actions ──
+
+function spApply() {
+  var parts = [];
+  parts.push('Toca a ' + document.getElementById('spBpm').value + ' bpm');
+  parts.push('con sintetizador ' + document.getElementById('spSynth').value);
+  parts.push('en escala ' + document.getElementById('spScale').value);
+  var fx = [];
+  document.querySelectorAll('.sp-fx input:checked').forEach(function(cb) { fx.push(cb.value); });
+  if (fx.length) parts.push('con efectos ' + fx.join(' y '));
+  var loop = document.getElementById('spLoop').value;
+  if (loop) parts.push('y añade el loop ' + loop.replace('loop_', ''));
+  document.getElementById('msgInput').value = parts.join(', ');
+  sendMsg();
+}
+
+function spStop() {
+  if (typeof hush === 'function') { ensureStrudel(); hush(); }
+  document.getElementById('msgInput').value = 'Para la música';
+  sendMsg();
+}
+
+function spToggleLoop(name) {
+  if (spMutedLoops[name]) {
+    delete spMutedLoops[name];
+    document.getElementById('msgInput').value = 'Activa el loop ' + name;
+  } else {
+    spMutedLoops[name] = true;
+    document.getElementById('msgInput').value = 'Desactiva el loop ' + name + ' (ponlo en volumen 0 pero no lo elimines)';
+  }
+  sendMsg();
+}
+
+document.getElementById('msgInput').focus();
+</script>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sonic Composer — How To</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f6fa; color: #333; line-height: 1.7; }
+
+  .header { background: #1a1a2e; color: #fff; padding: 32px 24px; text-align: center; }
+  .header h1 { font-size: 2em; margin-bottom: 4px; }
+  .header p { color: #aaa; font-size: 1em; }
+
+  .container { max-width: 820px; margin: 0 auto; padding: 32px 24px; }
+
+  .toc { background: #fff; border-radius: 10px; padding: 24px 28px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 32px; }
+  .toc h2 { color: #4250b3; font-size: 1.1em; margin-bottom: 12px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 6px; }
+  .toc a { color: #4250b3; text-decoration: none; font-weight: 500; }
+  .toc a:hover { text-decoration: underline; }
+
+  .step { background: #fff; border-radius: 10px; padding: 28px 28px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 28px; border-left: 5px solid #4250b3; }
+  .step h2 { color: #4250b3; font-size: 1.25em; margin-bottom: 4px; }
+  .step .step-num { display: inline-block; background: #4250b3; color: #fff; width: 32px; height: 32px; border-radius: 50%; text-align: center; line-height: 32px; font-weight: 700; font-size: 0.9em; margin-right: 8px; vertical-align: middle; }
+  .step h2 span { vertical-align: middle; }
+  .step p { margin: 12px 0; }
+  .step ul, .step ol { margin: 12px 0; padding-left: 24px; }
+  .step li { margin-bottom: 6px; }
+  .step h3 { margin: 16px 0 8px; color: #1a1a2e; font-size: 1em; }
+
+  pre { background: #1a1a2e; color: #e0e0e0; border-radius: 6px; padding: 14px 18px; font-size: 0.9em; overflow-x: auto; margin: 10px 0; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+  code { background: #e8e8f0; padding: 2px 6px; border-radius: 3px; font-size: 0.88em; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+  pre code { background: none; padding: 0; }
+
+  .tip { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; margin: 12px 0; font-size: 0.88em; }
+  .tip strong { color: #16a34a; }
+  .warning { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 12px 16px; margin: 12px 0; font-size: 0.88em; }
+  .warning strong { color: #ea580c; }
+
+  .example { background: #f8f9ff; border: 1px solid #e8e8f0; border-radius: 8px; padding: 16px; margin: 16px 0; }
+  .example h4 { color: #4250b3; font-size: 0.95em; margin-bottom: 8px; }
+  .example .user { color: #4250b3; font-weight: 600; }
+  .example .response { color: #555; margin-top: 4px; padding-left: 16px; border-left: 3px solid #ddd; }
+
+  .back-link { display: inline-block; margin-bottom: 20px; color: #4250b3; text-decoration: none; font-weight: 600; font-size: 0.9em; }
+  .back-link:hover { text-decoration: underline; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.88em; }
+  th { background: #4250b3; color: #fff; padding: 8px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e8e8f0; }
+  tr:nth-child(even) { background: #f8f9ff; }
+
+  .legend { display: inline-flex; align-items: center; gap: 6px; margin: 4px 8px; font-size: 0.85em; }
+  .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Sonic Composer</h1>
+  <p>Create and modify music in real time with natural language</p>
+</div>
+
+<div class="container">
+  <a href="/creative-agents/sonic-composer" class="back-link">&larr; Back to Sonic Composer</a>
+
+  <div class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#overview">What is Sonic Composer?</a></li>
+      <li><a href="#requirements">Requirements</a></li>
+      <li><a href="#setup">Setup</a></li>
+      <li><a href="#panel">Control panel</a></li>
+      <li><a href="#usage">How to use it</a></li>
+      <li><a href="#commands">Command reference</a></li>
+      <li><a href="#examples">Example sessions</a></li>
+      <li><a href="#troubleshooting">Troubleshooting</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. Overview -->
+  <div class="step" id="overview">
+    <h2><span class="step-num">1</span> <span>What is Sonic Composer?</span></h2>
+    <p>
+      Sonic Composer is an interactive music agent that lets you create and modify music in real time
+      using natural language. You describe what you want to hear, and the agent generates
+      <a href="https://sonic-pi.net" target="_blank">Sonic Pi</a> code and plays it immediately.
+    </p>
+    <p>The interaction is incremental: the music keeps playing in a loop, and each new instruction
+      modifies what is currently sounding &mdash; you can add instruments, change tempo, switch scales,
+      apply effects, or remove elements, all without stopping the music.</p>
+    <p>No programming or music theory knowledge is required. You can interact via natural language
+      in the chat, via the control panel, or a combination of both.</p>
+  </div>
+
+  <!-- 2. Requirements -->
+  <div class="step" id="requirements">
+    <h2><span class="step-num">2</span> <span>Requirements</span></h2>
+    <ul>
+      <li><strong>Sonic Pi 4.x</strong> installed and running on your machine
+        (<a href="https://sonic-pi.net" target="_blank">download here</a>)</li>
+      <li><strong>TOMMI Lite</strong> running locally</li>
+      <li><strong>psonic</strong> Python library (for communication with Sonic Pi)</li>
+    </ul>
+    <p>Install the Python dependency:</p>
+    <pre><code>pip install python-sonic</code></pre>
+    <div class="tip">
+      <strong>Tip:</strong> Sonic Pi must be open <em>before</em> you start the agent.
+      The agent automatically detects Sonic Pi's connection parameters at startup.
+    </div>
+  </div>
+
+  <!-- 3. Setup -->
+  <div class="step" id="setup">
+    <h2><span class="step-num">3</span> <span>Setup</span></h2>
+
+    <p><strong>Step 1:</strong> Open Sonic Pi and wait until it finishes booting (you should see the editor ready).</p>
+
+    <p><strong>Step 2:</strong> Start TOMMI Lite as usual:</p>
+    <pre><code>python app.py</code></pre>
+
+    <p><strong>Step 3:</strong> Select <strong>Sonic Composer</strong> from the agent list in the sidebar.</p>
+
+    <p>That's it. The agent automatically reads the connection parameters (token, ports) from
+      Sonic Pi's log file at <code>~/.sonic-pi/log/gui.log</code>. No manual configuration is needed.</p>
+
+    <div class="warning">
+      <strong>Important:</strong> Sonic Pi assigns new ports and a new token every time it restarts.
+      If you restart Sonic Pi, you must also restart TOMMI Lite so the agent picks up the new values.
+    </div>
+
+    <p><strong>Manual configuration (only if auto-detection fails):</strong></p>
+    <p>Edit <code>agents/sonic_composer/env.txt</code> and set the values manually:</p>
+    <pre><code>SONIC_PI_HOST=127.0.0.1
+SONIC_PI_TOKEN=&lt;your_token&gt;
+SONIC_PI_GUI_PORT=&lt;gui_port&gt;
+SONIC_PI_OSC_PORT=&lt;spider_port&gt;</code></pre>
+    <p>To find the current values:</p>
+    <pre><code>strings ~/.sonic-pi/log/gui.log | grep "daemon_stdout"</code></pre>
+    <p>The output shows 8 numbers in order. You need:</p>
+    <table>
+      <tr><th>Position</th><th>Value</th><th>Variable</th></tr>
+      <tr><td>2nd</td><td>GUI port</td><td>SONIC_PI_GUI_PORT</td></tr>
+      <tr><td>3rd</td><td>Spider port</td><td>SONIC_PI_OSC_PORT</td></tr>
+      <tr><td>8th</td><td>Token</td><td>SONIC_PI_TOKEN</td></tr>
+    </table>
+  </div>
+
+  <!-- 4. Control panel -->
+  <div class="step" id="panel">
+    <h2><span class="step-num">4</span> <span>Control panel</span></h2>
+
+    <p>When you select Sonic Composer, a control panel appears between the top bar and the chat area.
+      It provides quick access to the most common parameters without typing.</p>
+
+    <h3>Panel controls</h3>
+    <table>
+      <tr><th>Control</th><th>Description</th></tr>
+      <tr><td><strong>BPM</strong></td><td>Slider (40&ndash;200) to set the tempo</td></tr>
+      <tr><td><strong>Synth</strong></td><td>Dropdown to select the synthesizer sound</td></tr>
+      <tr><td><strong>Scale</strong></td><td>Dropdown to select the musical scale</td></tr>
+      <tr><td><strong>Loop</strong></td><td>Dropdown to select a pre-recorded loop sample</td></tr>
+      <tr><td><strong>FX</strong></td><td>Checkboxes to enable/disable effects (reverb, echo, etc.)</td></tr>
+      <tr><td><strong>Apply</strong></td><td>Builds a natural language instruction from the selected parameters and sends it to the agent</td></tr>
+      <tr><td><strong>Stop</strong></td><td>Stops all music</td></tr>
+    </table>
+
+    <h3>Active loops</h3>
+    <p>The <strong>Active</strong> section shows all loops currently playing. Each loop is displayed as a tag
+      that you can click to <strong>mute</strong> or <strong>unmute</strong>:</p>
+    <ul>
+      <li><strong>&#9654; name</strong> (purple background) &mdash; loop is active. Click to mute it.</li>
+      <li><strong>&#9724; <s>name</s></strong> (grey background, strikethrough) &mdash; loop is muted. Click to reactivate it.</li>
+    </ul>
+    <p>Muting sets the loop volume to zero without removing it from the composition, so you can
+      bring it back at any time.</p>
+
+    <div class="tip">
+      <strong>Tip:</strong> You can combine the control panel with chat instructions. For example, set
+      the BPM and synth in the panel, then type more specific instructions in the chat like
+      <em>"make the melody more spacious with echo"</em>.
+    </div>
+  </div>
+
+  <!-- 5. Usage -->
+  <div class="step" id="usage">
+    <h2><span class="step-num">5</span> <span>How to use it</span></h2>
+
+    <p>Type what you want to hear in natural language. The agent understands instructions in
+      <strong>English and Spanish</strong>. Here's the basic workflow:</p>
+
+    <ol>
+      <li><strong>Start the music:</strong> Describe what you want to hear
+        <br><em>"Play a calm piano melody in C major"</em></li>
+      <li><strong>Modify in real time:</strong> Give instructions to change what's playing
+        <br><em>"Make it faster"</em>, <em>"Add a bass line"</em>, <em>"Switch to minor scale"</em></li>
+      <li><strong>Add layers:</strong> Each instruction can add new elements on top of what's already playing
+        <br><em>"Add a techno beat"</em>, <em>"Add reverb to the melody"</em></li>
+      <li><strong>Mute/unmute:</strong> Click on active loops in the panel to toggle them on or off</li>
+      <li><strong>Stop everything:</strong> Click the Stop button or say <em>"Stop"</em></li>
+    </ol>
+
+    <h3>Code diff</h3>
+    <p>After each instruction, the generated Sonic Pi code is displayed in a highlighted box.
+      When the code changes, you can see exactly what was modified:</p>
+    <ul>
+      <li><span class="legend"><span class="dot" style="background:#2ecc71;"></span> Green bullet</span> &mdash; new or modified line</li>
+      <li><span class="legend"><span class="dot" style="background:#e74c3c;"></span> Red bullet with #</span> &mdash; removed line (shown in the position where it was)</li>
+    </ul>
+    <p>This makes it easy to understand what changed and is also a great way to learn Sonic Pi syntax.</p>
+
+    <h3>Loop types</h3>
+    <p>The agent supports six types of loops:</p>
+    <table>
+      <tr><th>Type</th><th>Description</th><th>Example instruction</th></tr>
+      <tr><td><strong>melody</strong></td><td>Melodic line using a synth and scale</td><td><em>"Play a piano melody in pentatonic"</em></td></tr>
+      <tr><td><strong>bass</strong></td><td>Bass line in low octaves</td><td><em>"Add a bass with tb303"</em></td></tr>
+      <tr><td><strong>beat</strong></td><td>Drum pattern from percussion samples</td><td><em>"Add a techno beat"</em></td></tr>
+      <tr><td><strong>chords</strong></td><td>Chord progression</td><td><em>"Add chords C, Am, F, G"</em></td></tr>
+      <tr><td><strong>sample_loop</strong></td><td>Pre-recorded loop (amen, breakbeat, etc.)</td><td><em>"Play the amen break at half speed"</em></td></tr>
+      <tr><td><strong>generative</strong></td><td>Random notes from a scale, different each cycle</td><td><em>"Add something generative and experimental"</em></td></tr>
+    </table>
+  </div>
+
+  <!-- 6. Command reference -->
+  <div class="step" id="commands">
+    <h2><span class="step-num">6</span> <span>Command reference</span></h2>
+
+    <h3>Tempo &amp; rhythm</h3>
+    <table>
+      <tr><th>Instruction</th><th>Effect</th></tr>
+      <tr><td>"Faster" / "More speed"</td><td>Increases BPM</td></tr>
+      <tr><td>"Slower" / "More chill"</td><td>Decreases BPM</td></tr>
+      <tr><td>"Set tempo to 140 bpm"</td><td>Sets exact BPM</td></tr>
+    </table>
+
+    <h3>Instruments &amp; synths</h3>
+    <table>
+      <tr><th>Synth name</th><th>Character</th></tr>
+      <tr><td>piano</td><td>Acoustic piano sound</td></tr>
+      <tr><td>pluck</td><td>Plucked string</td></tr>
+      <tr><td>tb303</td><td>Classic acid bass synthesizer</td></tr>
+      <tr><td>prophet</td><td>Warm analog-style synth</td></tr>
+      <tr><td>blade</td><td>Sharp, metallic sound</td></tr>
+      <tr><td>fm</td><td>FM synthesis (bells, electric piano)</td></tr>
+      <tr><td>saw, square</td><td>Raw waveform synths</td></tr>
+      <tr><td>hollow</td><td>Soft, airy pad</td></tr>
+      <tr><td>dsaw, dpulse</td><td>Detuned synths (thick sound)</td></tr>
+      <tr><td>tech_saws</td><td>Detuned saws (trance/EDM)</td></tr>
+    </table>
+
+    <h3>Scales</h3>
+    <table>
+      <tr><th>Scale</th><th>Mood</th></tr>
+      <tr><td>major</td><td>Happy, bright</td></tr>
+      <tr><td>minor</td><td>Sad, dark</td></tr>
+      <tr><td>pentatonic</td><td>Simple, universal</td></tr>
+      <tr><td>blues</td><td>Bluesy, soulful</td></tr>
+      <tr><td>dorian</td><td>Jazz, funk</td></tr>
+      <tr><td>mixolydian</td><td>Rock, folk</td></tr>
+      <tr><td>harmonic_minor</td><td>Dark, dramatic</td></tr>
+      <tr><td>melodic_minor</td><td>Jazz, sophisticated</td></tr>
+    </table>
+
+    <h3>Effects (FX)</h3>
+    <table>
+      <tr><th>Effect</th><th>Description</th></tr>
+      <tr><td>reverb</td><td>Spacious room sound</td></tr>
+      <tr><td>echo</td><td>Delayed repetitions</td></tr>
+      <tr><td>distortion</td><td>Gritty, overdriven</td></tr>
+      <tr><td>lpf / hpf</td><td>Low-pass / high-pass filter</td></tr>
+      <tr><td>flanger</td><td>Swooshing, jet-like effect</td></tr>
+      <tr><td>wobble</td><td>Dubstep-style wobble</td></tr>
+      <tr><td>slicer</td><td>Rhythmic chopping</td></tr>
+    </table>
+
+    <h3>Pre-recorded loops</h3>
+    <table>
+      <tr><th>Loop</th><th>Style</th></tr>
+      <tr><td>loop_amen</td><td>Classic breakbeat</td></tr>
+      <tr><td>loop_breakbeat</td><td>Alternative breakbeat</td></tr>
+      <tr><td>loop_industrial</td><td>Industrial rhythm</td></tr>
+      <tr><td>loop_safari</td><td>African percussion</td></tr>
+      <tr><td>loop_tabla</td><td>Indian percussion</td></tr>
+      <tr><td>loop_compus</td><td>Electronic loop</td></tr>
+      <tr><td>loop_garzul</td><td>Experimental loop</td></tr>
+      <tr><td>loop_mika</td><td>Melodic loop</td></tr>
+    </table>
+    <p>Loops can be played at different speeds using <code>rate</code>: 1.0 = normal, 0.5 = half speed,
+      2.0 = double speed, -1.0 = reverse.</p>
+
+    <h3>Percussion samples</h3>
+    <table>
+      <tr><th>Sample</th><th>Sound</th></tr>
+      <tr><td>bd_haus, bd_ada, bd_boom</td><td>Kick drums</td></tr>
+      <tr><td>sn_dolf, sn_dub</td><td>Snare drums</td></tr>
+      <tr><td>hat_snap, hat_cab, hat_gem</td><td>Hi-hats</td></tr>
+    </table>
+
+    <h3>Additional samples</h3>
+    <table>
+      <tr><th>Category</th><th>Samples</th></tr>
+      <tr><td>Ambient</td><td>ambi_piano, ambi_choir, ambi_drone, ambi_lunar_land, ambi_dark_woosh, ambi_glass_hum</td></tr>
+      <tr><td>Bass</td><td>bass_hit_c, bass_voxy_c, bass_dnb_f, bass_drop_c, bass_thick_c</td></tr>
+      <tr><td>Electronic</td><td>elec_ping, elec_twang, elec_bell, elec_blip, elec_chime, elec_pop</td></tr>
+      <tr><td>Guitar</td><td>guit_em9, guit_e_fifths, guit_e_slide, guit_harmonics</td></tr>
+      <tr><td>Vinyl</td><td>vinyl_scratch, vinyl_rewind, vinyl_hiss, vinyl_backspin</td></tr>
+    </table>
+
+    <h3>Pan (stereo positioning)</h3>
+    <p>You can position sounds in the stereo field:</p>
+    <ul>
+      <li><code>pan: -1.0</code> = full left</li>
+      <li><code>pan: 0.0</code> = center (default)</li>
+      <li><code>pan: 1.0</code> = full right</li>
+    </ul>
+    <p>Example: <em>"Put the melody to the right and the bass in the center"</em></p>
+
+    <h3>Generative music</h3>
+    <p>Generative loops play random notes from a scale, creating different patterns each cycle.
+      You can control:</p>
+    <ul>
+      <li><strong>density</strong> &mdash; how many notes per cycle (e.g. 4 for sparse, 16 for dense)</li>
+      <li><strong>sleep_range</strong> &mdash; how spaced the notes are (e.g. [0.1, 0.3] for fast, [1.0, 3.0] for slow)</li>
+      <li><strong>num_octaves</strong> &mdash; range of notes (1 for focused, 3&ndash;4 for wide)</li>
+    </ul>
+    <p>Example: <em>"Add something generative with hollow in pentatonic, density 4, slow and spacious, with reverb and echo"</em></p>
+  </div>
+
+  <!-- 7. Examples -->
+  <div class="step" id="examples">
+    <h2><span class="step-num">7</span> <span>Example sessions</span></h2>
+
+    <div class="example">
+      <h4>Creating a chill track step by step</h4>
+
+      <p class="user">You: "Play a slow piano melody in C major at 80 bpm"</p>
+      <div class="response">A calm piano melody starts playing in C major.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Add a soft bass with the FM synth"</p>
+      <div class="response">A bass line joins the melody, playing low notes with the FM synthesizer.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Add reverb to the piano"</p>
+      <div class="response">The piano melody now sounds spacious with reverb applied.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Add a gentle hip-hop beat"</p>
+      <div class="response">A hip-hop drum pattern starts playing alongside the melody and bass.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Switch everything to A minor"</p>
+      <div class="response">The melody and bass shift to A minor, giving a darker mood. The code diff shows the changed note arrays in green.</div>
+
+      <p class="user" style="margin-top:12px;">You: [Click on the beat loop tag to mute it]</p>
+      <div class="response">The beat is muted (volume 0) but remains in the composition. Click again to unmute.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Stop"</p>
+      <div class="response">All sounds stop.</div>
+    </div>
+
+    <div class="example">
+      <h4>Ambient / generative soundscape</h4>
+
+      <p class="user">You: "Create a generative soundscape with hollow in pentatonic, density 4, with reverb and echo, at 60 bpm"</p>
+      <div class="response">Random pentatonic notes with hollow synth, spacious and slow.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Add a slow bass drone with dsaw in C2, volume low, with reverb"</p>
+      <div class="response">A deep drone joins the generative melody.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Add the safari loop at half speed, volume low, positioned to the left"</p>
+      <div class="response">Slowed-down African percussion panned to the left adds a textural layer.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Make the generative melody more spacious, with notes further apart"</p>
+      <div class="response">The sleep range increases, making the melody more sparse and contemplative.</div>
+    </div>
+
+    <div class="example">
+      <h4>Quick one-liners</h4>
+      <p class="user">You: "Techno beat at 135 bpm with a tb303 bass and echo"</p>
+      <div class="response">A complete techno track starts immediately.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Play the amen break at half speed with lots of reverb"</p>
+      <div class="response">The classic breakbeat slowed down into an atmospheric texture.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Play the bass line from With or Without You by U2 with FM synth"</p>
+      <div class="response">D, A, B, G bass pattern at ~110 bpm.</div>
+    </div>
+
+    <div class="example">
+      <h4>Using the control panel</h4>
+      <p class="user">You: [Set BPM to 90, select "hollow" synth, select "pentatonic" scale, check "reverb" and "echo", click Apply]</p>
+      <div class="response">The panel composes the instruction automatically and sends it. Music starts with the selected parameters.</div>
+
+      <p class="user" style="margin-top:12px;">You: [Select "loop_tabla" from the Loop dropdown, click Apply]</p>
+      <div class="response">Indian tabla percussion is added to the existing composition.</div>
+
+      <p class="user" style="margin-top:12px;">You: [Click the tabla loop tag to mute it]</p>
+      <div class="response">Tabla is silenced. Click again to bring it back.</div>
+    </div>
+  </div>
+
+  <!-- 8. Troubleshooting -->
+  <div class="step" id="troubleshooting">
+    <h2><span class="step-num">8</span> <span>Troubleshooting</span></h2>
+
+    <table>
+      <tr><th>Problem</th><th>Solution</th></tr>
+      <tr>
+        <td>"Sonic Pi no conectado"</td>
+        <td>Make sure Sonic Pi is open and fully booted before starting TOMMI Lite.
+          If you opened Sonic Pi after starting TOMMI Lite, restart TOMMI Lite.</td>
+      </tr>
+      <tr>
+        <td>"No se pudieron detectar los par&aacute;metros"</td>
+        <td>The auto-detection reads <code>~/.sonic-pi/log/gui.log</code>.
+          If this file doesn't exist, Sonic Pi may not have been started yet.
+          Open Sonic Pi, wait for it to boot, then restart TOMMI Lite.</td>
+      </tr>
+      <tr>
+        <td>Agent responds but no sound</td>
+        <td>Check that Sonic Pi's volume is up and audio output is configured.
+          Try running <code>play 60</code> directly in Sonic Pi to verify it works.</td>
+      </tr>
+      <tr>
+        <td>Sound doesn't change after instruction</td>
+        <td>Sonic Pi's <code>live_loop</code> waits for the current cycle to finish before applying
+          changes. Wait a few seconds for the loop to restart.</td>
+      </tr>
+      <tr>
+        <td>Connection lost after restarting Sonic Pi</td>
+        <td>Sonic Pi assigns new ports on each restart. Restart TOMMI Lite so the agent
+          re-detects the new parameters.</td>
+      </tr>
+      <tr>
+        <td><code>psonic</code> import error</td>
+        <td>Install the dependency: <code>pip install python-sonic</code></td>
+      </tr>
+      <tr>
+        <td>Control panel not visible</td>
+        <td>The panel only appears when the Sonic Composer agent is selected. Select it from the sidebar.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="text-align:center; margin: 40px 0 20px; color: #999; font-size: 0.85em;">
+    <a href="/creative-agents/sonic-composer" style="color:#4250b3; text-decoration:none;">&larr; Back to Sonic Composer</a>
+  </div>
+</div>
+
+</body>
+</html>
