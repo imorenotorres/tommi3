@@ -406,7 +406,9 @@ class Agent:
                 parts.append(
                     '<div class="sp-code-block" style="border:2px solid #4250b3;border-radius:8px;overflow:hidden;margin:8px 0;">'
                     '<div style="background:#4250b3;color:#fff;padding:6px 12px;font-size:0.8em;font-weight:700;">'
-                    '&#9835; Now Playing</div>'
+                    '&#9835; Now Playing'
+                    '<button onclick="spCopyCode(this)" style="float:right;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:2px 10px;border-radius:4px;font-size:0.8em;cursor:pointer;">Copy</button>'
+                    '</div>'
                     '<pre style="margin:0;border-radius:0;"><code>'
                     + code_html +
                     '</code></pre></div>'

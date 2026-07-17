@@ -475,6 +475,19 @@ function sendMsg() {
   };
 }
 
+function spCopyCode(btn) {
+  var codeBlock = btn.closest('.sp-code-block');
+  if (!codeBlock) return;
+  var pre = codeBlock.querySelector('pre');
+  if (!pre) return;
+  var code = pre.textContent.replace(/[●] /g, '').replace(/[●] # [^\n]*/g, '').trim();
+  navigator.clipboard.writeText(code).then(function() {
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = orig; }, 1500);
+  });
+}
+
 // ── Response processing ──
 
 function processResponse(bubble) {
@@ -509,7 +522,11 @@ function processResponse(bubble) {
           updateModeIndicator(true);
           if (codeBlock) {
             var header = codeBlock.querySelector('div');
-            if (header) { header.style.background = '#4250b3'; header.innerHTML = '&#9835; Sonic Pi — Playing locally'; }
+            if (header) {
+              header.style.background = '#4250b3';
+              header.innerHTML = '&#9835; Sonic Pi — Playing locally'
+                + '<button onclick="spCopyCode(this)" style="float:right;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:2px 10px;border-radius:4px;font-size:0.8em;cursor:pointer;">Copy</button>';
+            }
           }
         })
         .catch(function() {
@@ -523,7 +540,9 @@ function processResponse(bubble) {
             var escaped = strudelCode.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             codeBlock.innerHTML =
               '<div style="background:#2ecc71;color:#fff;padding:6px 12px;font-size:0.8em;font-weight:700;">'
-              + '&#9835; Strudel — Playing in Browser</div>'
+              + '&#9835; Strudel — Playing in Browser'
+              + '<button onclick="spCopyCode(this)" style="float:right;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:2px 10px;border-radius:4px;font-size:0.8em;cursor:pointer;">Copy</button>'
+              + '</div>'
               + '<pre style="margin:0;border-radius:0;"><code>' + escaped + '</code></pre>';
           }
         });
