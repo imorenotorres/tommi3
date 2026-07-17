@@ -1646,8 +1646,8 @@ async function sendMessage(message) {
         });
 
         eventSource.addEventListener('procedural_banner', (event) => {
-            // Procedural banner (reliability cue) — persists through all replace events
-            bannerHtml = event.data.replace(/\\n/g, '\n');
+            // Procedural banners (reliability cues) — accumulate and persist through replace events
+            bannerHtml += event.data.replace(/\\n/g, '\n');
             responseDiv.innerHTML = bannerHtml;
             scrollToUserMessage();
         });

@@ -3626,7 +3626,7 @@ sqlite3 data/database.db < your_schema.sql
                     'Check that it matches your intent.'
                     '</div>\n\n'
                 )
-                yield ("content", yellow_banner)
+                yield ("procedural_banner", yellow_banner)
                 sql_explanation = SQLVerifier.sql_to_text(sql_query)
                 explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
                 yield ("content", f"```sql\n{sql_query}\n```\n\n{explanation_line}")
@@ -3638,7 +3638,7 @@ sqlite3 data/database.db < your_schema.sql
                     'Check that it matches your intent.'
                     '</div>\n\n'
                 )
-                yield ("content", yellow_banner)
+                yield ("procedural_banner", yellow_banner)
                 sql_explanation = SQLVerifier.sql_to_text(sql_query)
                 explanation_line = f"**In plain language:** {sql_explanation}\n\n" if sql_explanation else ""
                 yield ("content", explanation_line)
@@ -3781,7 +3781,7 @@ sqlite3 data/database.db < your_schema.sql
                         'Data from the database.'
                         '</div>\n\n'
                     )
-                yield ("content", green_banner)
+                yield ("procedural_banner", green_banner)
             else:
                 green_banner = (
                     f'<div style="background-color:#d4edda;border-left:4px solid #28a745;{_BANNER_STYLE}">'
@@ -3789,7 +3789,7 @@ sqlite3 data/database.db < your_schema.sql
                     'The query was executed against the database but returned no results.'
                     '</div>\n\n'
                 )
-                yield ("content", green_banner)
+                yield ("procedural_banner", green_banner)
 
         # Enviar la explicación formateada
         yield ("content", formatted)
