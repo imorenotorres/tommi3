@@ -3,7 +3,12 @@ REM Sonic Pi Bridge — double-click to start (Windows)
 cd /d "%~dp0"
 
 echo.
-echo   Checking Python...
+echo   ===============================
+echo    Sonic Pi Bridge
+echo   ===============================
+echo.
+
+REM Check Python
 python --version >nul 2>&1
 if errorlevel 1 (
     echo   ERROR: Python not found. Install it from python.org
@@ -12,10 +17,20 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo   Checking python-sonic...
-python -c "import psonic" 2>nul || python -m pip install python-sonic --quiet
+REM Create venv if needed
+if not exist ".venv" (
+    echo   Creating virtual environment (first time only^)...
+    python -m venv .venv
+)
+
+REM Install python-sonic if needed
+.venv\Scripts\python -c "import psonic" 2>nul
+if errorlevel 1 (
+    echo   Installing python-sonic...
+    .venv\Scripts\pip install python-sonic --quiet
+)
 
 echo   Starting bridge...
 echo.
-python sonic_bridge.py
+.venv\Scripts\python sonic_bridge.py
 pause

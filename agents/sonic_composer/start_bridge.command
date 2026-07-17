@@ -3,16 +3,31 @@
 cd "$(dirname "$0")"
 
 echo ""
-echo "  Checking Python..."
+echo "  ==============================="
+echo "   Sonic Pi Bridge"
+echo "  ==============================="
+echo ""
+
+# Check Python
 if ! command -v python3 &>/dev/null; then
     echo "  ERROR: Python 3 not found. Install it from python.org"
     echo ""; read -p "  Press Enter to exit..."
     exit 1
 fi
 
-echo "  Checking python-sonic..."
-python3 -c "import psonic" 2>/dev/null || python3 -m pip install python-sonic --quiet
+# Create venv if needed
+if [ ! -d ".venv" ]; then
+    echo "  Creating virtual environment (first time only)..."
+    python3 -m venv .venv
+fi
+
+# Install python-sonic if needed
+.venv/bin/python3 -c "import psonic" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo "  Installing python-sonic..."
+    .venv/bin/pip install python-sonic --quiet
+fi
 
 echo "  Starting bridge..."
 echo ""
-python3 sonic_bridge.py
+.venv/bin/python3 sonic_bridge.py

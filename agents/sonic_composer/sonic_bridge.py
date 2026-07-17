@@ -25,11 +25,16 @@ from pathlib import Path
 # ── Check dependencies ──
 
 try:
-    from psonic import set_server_parameter, run, stop
+    from psonic import set_server_parameter, run, stop, start_recording, stop_recording, save_recording
 except ImportError:
-    print("Installing python-sonic...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "python-sonic", "--quiet"])
-    from psonic import set_server_parameter, run, stop
+    print()
+    print("  ERROR: python-sonic is not installed.")
+    print("  Use start_bridge.command (Mac) or start_bridge.bat (Windows)")
+    print("  to set up automatically, or install manually:")
+    print("    pip install python-sonic")
+    print()
+    input("  Press Enter to exit...")
+    sys.exit(1)
 
 
 # ── Sonic Pi auto-detection ──
@@ -102,7 +107,9 @@ def detect_sonic_pi():
 # ── HTTP Bridge Server ──
 
 BRIDGE_PORT = 8001
+RECORDING_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "recordings")
 sp_connected = False
+is_recording = False
 
 
 def play_code(code):
@@ -113,6 +120,25 @@ def play_code(code):
 def stop_all():
     stop()
     return "All sounds stopped"
+
+
+def rec_start():
+    global is_recording
+    start_recording()
+    is_recording = True
+    return "Recording started"
+
+
+def rec_stop():
+    global is_recording
+    os.makedirs(RECORDING_DIR, exist_ok=True)
+    filepath = os.path.join(RECORDING_DIR, "composition.wav")
+    stop_recording()
+    import time
+    time.sleep(0.5)
+    save_recording(filepath)
+    is_recording = False
+    return filepath
 
 
 class BridgeHandler(BaseHTTPRequestHandler):
@@ -135,7 +161,21 @@ class BridgeHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/ping":
-            self._json(200, {"status": "ok", "sonic_pi": sp_connected})
+            self._json(200, {"status": "ok", "sonic_pi": sp_connected, "recording": is_recording})
+        elif self.path == "/record/download":
+            filepath = os.path.join(RECORDING_DIR, "composition.wav")
+            if os.path.exists(filepath):
+                self.send_response(200)
+                self._cors()
+                self.send_header("Content-Type", "audio/wav")
+                self.send_header("Content-Disposition", "attachment; filename=composition.wav")
+                size = os.path.getsize(filepath)
+                self.send_header("Content-Length", str(size))
+                self.end_headers()
+                with open(filepath, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self._json(404, {"error": "No recording found. Record something first."})
         else:
             self._json(404, {"error": "not found"})
 
@@ -159,6 +199,20 @@ class BridgeHandler(BaseHTTPRequestHandler):
             try:
                 result = stop_all()
                 self._json(200, {"status": result})
+            except Exception as e:
+                self._json(500, {"error": str(e)})
+
+        elif self.path == "/record/start":
+            try:
+                result = rec_start()
+                self._json(200, {"status": result})
+            except Exception as e:
+                self._json(500, {"error": str(e)})
+
+        elif self.path == "/record/stop":
+            try:
+                filepath = rec_stop()
+                self._json(200, {"status": "Recording saved", "file": filepath})
             except Exception as e:
                 self._json(500, {"error": str(e)})
 

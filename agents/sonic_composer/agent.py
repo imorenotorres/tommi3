@@ -363,6 +363,11 @@ class Agent:
         return "(Sonic Pi no conectado — instala psonic y abre Sonic Pi)"
 
     def chat(self, message, history, **kwargs):
+        # Reset diff tracking when starting a new session (no history)
+        if not history:
+            self._previous_code = ""
+            self.musical_state = {"bpm": 120, "loops": {}}
+
         # Build messages with current state injected
         state_str = json.dumps(self.musical_state, ensure_ascii=False, indent=2)
         user_msg = f"<estado_actual>\n{state_str}\n</estado_actual>\n\nInstrucción del usuario: {message}"

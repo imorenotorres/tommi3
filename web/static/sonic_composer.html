@@ -129,6 +129,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
         <div class="sp-sep"></div>
         <button class="sp-btn" onclick="spApply()">&#9835; Apply</button>
         <button class="sp-btn stop" onclick="spStop()">&#9632; Stop</button>
+        <button class="sp-btn" id="spRecBtn" onclick="spToggleRec()" style="display:none;">&#9679; Rec</button>
         <div class="sp-sep"></div>
         <label>Active:</label>
         <div class="sp-loops" id="spActiveLoops"><span style="font-size:0.72rem;color:#999;">none</span></div>
@@ -164,6 +165,8 @@ var BRIDGE_URL = 'http://localhost:8001';
 
 // ── Sonic Pi Bridge ──
 
+var isRecording = false;
+
 function updateModeIndicator(isBridge) {
   var modeInfo = document.getElementById('spModeInfo');
   if (!modeInfo) return;
@@ -171,6 +174,49 @@ function updateModeIndicator(isBridge) {
     modeInfo.innerHTML = '<span style="color:#2ecc71;">&#9679;</span> Sonic Pi';
   } else {
     modeInfo.innerHTML = '<span style="color:#f39c12;">&#9679;</span> Strudel';
+  }
+  // Show/hide Rec button (only available with bridge)
+  var recBtn = document.getElementById('spRecBtn');
+  if (recBtn) recBtn.style.display = isBridge ? '' : 'none';
+}
+
+function spToggleRec() {
+  var btn = document.getElementById('spRecBtn');
+  if (isRecording) {
+    // Stop recording and download
+    btn.innerHTML = '&#9679; Rec';
+    btn.style.color = '#e74c3c';
+    btn.style.background = '#fff';
+    fetch(BRIDGE_URL + '/record/stop', {
+      method: 'POST', mode: 'cors',
+      headers: { 'Content-Type': 'application/json' }, body: '{}'
+    }).then(function(r) { return r.json(); })
+      .then(function(data) {
+        isRecording = false;
+        console.log('[Rec] Stopped:', data.status);
+        // Trigger download
+        var a = document.createElement('a');
+        a.href = BRIDGE_URL + '/record/download';
+        a.download = 'composition.wav';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      })
+      .catch(function(e) { console.error('[Rec] Stop error:', e); isRecording = false; });
+  } else {
+    // Start recording
+    fetch(BRIDGE_URL + '/record/start', {
+      method: 'POST', mode: 'cors',
+      headers: { 'Content-Type': 'application/json' }, body: '{}'
+    }).then(function(r) { return r.json(); })
+      .then(function(data) {
+        isRecording = true;
+        btn.innerHTML = '&#9632; Stop Rec';
+        btn.style.color = '#fff';
+        btn.style.background = '#e74c3c';
+        console.log('[Rec] Started:', data.status);
+      })
+      .catch(function(e) { console.error('[Rec] Start error:', e); });
   }
 }
 
@@ -395,16 +441,21 @@ function sendMsg() {
   };
   es.addEventListener('done', function() {
     es.close();
-    // If response contains our HTML divs, use raw text; otherwise parse markdown
-    if (fullText.indexOf('sp-state') !== -1 || fullText.indexOf('sp-code-block') !== -1) {
-      agentBubble.innerHTML = fullText;
-    } else {
-      agentBubble.innerHTML = marked.parse(fullText);
+    // The response contains HTML divs — set innerHTML directly
+    agentBubble.innerHTML = fullText;
+    // If the HTML divs didn't survive (marked.parse during streaming may have mangled them),
+    // check and log
+    var hasState = !!agentBubble.querySelector('.sp-state');
+    var hasCode = !!agentBubble.querySelector('.sp-code-block');
+    console.log('[SonicComposer] DOM has sp-state:', hasState, 'sp-code-block:', hasCode);
+    if (!hasState && fullText.indexOf('data-state') !== -1) {
+      // The HTML got mangled — try inserting via a temp container
+      var temp = document.createElement('div');
+      temp.innerHTML = fullText;
+      agentBubble.innerHTML = '';
+      while (temp.firstChild) agentBubble.appendChild(temp.firstChild);
+      console.log('[SonicComposer] Re-inserted via temp container');
     }
-    console.log('[SonicComposer] fullText length:', fullText.length);
-    console.log('[SonicComposer] has sp-state in text:', fullText.indexOf('sp-state') !== -1);
-    console.log('[SonicComposer] has sp-state in DOM:', !!agentBubble.querySelector('.sp-state'));
-    console.log('[SonicComposer] bubble innerHTML preview:', agentBubble.innerHTML.substring(0, 200));
     processResponse(agentBubble);
     isLoading = false;
     document.getElementById('sendBtn').disabled = false;
