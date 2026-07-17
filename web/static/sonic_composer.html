@@ -164,22 +164,26 @@ var BRIDGE_URL = 'http://localhost:8001';
 
 // ── Sonic Pi Bridge ──
 
+function updateModeIndicator(isBridge) {
+  var modeInfo = document.getElementById('spModeInfo');
+  if (!modeInfo) return;
+  if (isBridge) {
+    modeInfo.innerHTML = '<span style="color:#2ecc71;">&#9679;</span> Sonic Pi';
+  } else {
+    modeInfo.innerHTML = '<span style="color:#f39c12;">&#9679;</span> Strudel';
+  }
+}
+
 function detectBridge() {
   fetch(BRIDGE_URL + '/ping', { mode: 'cors' })
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      if (data.status === 'ok' && data.sonic_pi) {
-        bridgeAvailable = true;
-        console.log('[Bridge] Sonic Pi bridge detected!');
-        var modeInfo = document.getElementById('spModeInfo');
-        if (modeInfo) modeInfo.innerHTML = '<span style="color:#2ecc71;">&#9679;</span> Sonic Pi (via bridge)';
-      }
+      bridgeAvailable = data.status === 'ok' && data.sonic_pi;
+      updateModeIndicator(bridgeAvailable);
     })
     .catch(function() {
       bridgeAvailable = false;
-      console.log('[Bridge] No bridge found, using Strudel');
-      var modeInfo = document.getElementById('spModeInfo');
-      if (modeInfo) modeInfo.innerHTML = '<span style="color:#f39c12;">&#9679;</span> Strudel (browser)';
+      updateModeIndicator(false);
     });
 }
 
@@ -370,9 +374,6 @@ function sendMsg() {
   var msg = input.value.trim();
   if (!msg || isLoading) return;
 
-  // Initialize Strudel on user gesture (click/Enter) — required for AudioContext
-  ensureStrudel();
-
   isLoading = true;
   input.value = '';
   document.getElementById('sendBtn').disabled = true;
@@ -436,50 +437,49 @@ function processResponse(bubble) {
     var state = JSON.parse(ta.value);
     var hasLoops = Object.keys(state.loops || {}).length > 0;
 
-    if (bridgeAvailable) {
-      // Use Sonic Pi via bridge — send the Sonic Pi code directly
-      var codeBlock = bubble.querySelector('.sp-code-block');
-      var sonicCode = '';
-      if (codeBlock) {
-        // Extract raw code from the pre block (strip HTML tags)
-        var pre = codeBlock.querySelector('pre');
-        if (pre) sonicCode = pre.textContent;
-      }
-      if (hasLoops && sonicCode) {
-        bridgePlay(sonicCode).then(function(r) {
-          console.log('[Bridge] Play:', r.status);
-        }).catch(function(e) {
-          console.error('[Bridge] Error, falling back to Strudel:', e);
+    // Extract Sonic Pi code from the code block
+    var codeBlock = bubble.querySelector('.sp-code-block');
+    var sonicCode = '';
+    if (codeBlock) {
+      var pre = codeBlock.querySelector('pre');
+      if (pre) sonicCode = pre.textContent.replace(/[●] /g, '').replace(/[●] # [^\n]*/g, '');
+    }
+
+    // Try bridge first (always), fall back to Strudel
+    if (hasLoops && sonicCode) {
+      fetch(BRIDGE_URL + '/play', {
+        method: 'POST', mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: sonicCode })
+      }).then(function(r) { return r.json(); })
+        .then(function(data) {
+          bridgeAvailable = true;
+          console.log('[Bridge] Play:', data.status);
+          updateModeIndicator(true);
+          if (codeBlock) {
+            var header = codeBlock.querySelector('div');
+            if (header) { header.style.background = '#4250b3'; header.innerHTML = '&#9835; Sonic Pi — Playing locally'; }
+          }
+        })
+        .catch(function() {
+          // No bridge — use Strudel
+          bridgeAvailable = false;
+          console.log('[Strudel] Bridge unavailable, using Strudel');
+          updateModeIndicator(false);
           executeStrudel(state);
+          if (codeBlock) {
+            var strudelCode = stateToStrudelCode(state);
+            var escaped = strudelCode.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            codeBlock.innerHTML =
+              '<div style="background:#2ecc71;color:#fff;padding:6px 12px;font-size:0.8em;font-weight:700;">'
+              + '&#9835; Strudel — Playing in Browser</div>'
+              + '<pre style="margin:0;border-radius:0;"><code>' + escaped + '</code></pre>';
+          }
         });
-      } else {
-        bridgeStop().catch(function() {});
-      }
-      // Update header to show Sonic Pi mode
-      if (codeBlock) {
-        var header = codeBlock.querySelector('div');
-        if (header) {
-          header.style.background = '#4250b3';
-          header.innerHTML = '&#9835; Sonic Pi — Playing locally';
-        }
-      }
     } else {
-      // Use Strudel (browser fallback)
-      if (!hasLoops) {
-        if (typeof hush === 'function') { ensureStrudel(); hush(); }
-      } else {
-        executeStrudel(state);
-      }
-      // Replace code block with Strudel code
-      var codeBlock = bubble.querySelector('.sp-code-block');
-      if (codeBlock) {
-        var strudelCode = stateToStrudelCode(state);
-        var escaped = strudelCode.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        codeBlock.innerHTML =
-          '<div style="background:#2ecc71;color:#fff;padding:6px 12px;font-size:0.8em;font-weight:700;">'
-          + '&#9835; Strudel — Playing in Browser</div>'
-          + '<pre style="margin:0;border-radius:0;"><code>' + escaped + '</code></pre>';
-      }
+      // Stop all
+      fetch(BRIDGE_URL + '/stop', { method:'POST', mode:'cors', headers:{'Content-Type':'application/json'}, body:'{}' }).catch(function(){});
+      if (typeof hush === 'function') { ensureStrudel(); hush(); }
     }
 
     // Update active loops

@@ -1,29 +1,118 @@
+#!/usr/bin/env python3
 """
-Sonic Pi Bridge — HTTP-to-OSC bridge for browser-based Sonic Pi control.
+Sonic Pi Bridge — connects your browser to Sonic Pi.
 
-Run this script alongside Sonic Pi to allow TOMMI's Sonic Composer
-to send code to your local Sonic Pi instance from the browser.
+This is a self-contained script. Place it anywhere and run:
+    python3 sonic_bridge.py
 
-Usage:
-    python sonic_bridge.py
+It will:
+1. Auto-detect Sonic Pi's connection parameters
+2. Start a tiny HTTP server on localhost:8001
+3. The browser sends code here, and this script forwards it to Sonic Pi
 
 Requirements:
-    pip install python-sonic
-
-The bridge auto-detects Sonic Pi's connection parameters.
+    pip3 install python-sonic
 """
 
-import sys
-import os
 import json
+import os
+import re
+import subprocess
+import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from pathlib import Path
 
-# Add base directory to path for sonic_pi_tools
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "base"))
-from sonic_pi_tools import SonicPiTools
+# ── Check dependencies ──
+
+try:
+    from psonic import set_server_parameter, run, stop
+except ImportError:
+    print("Installing python-sonic...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "python-sonic", "--quiet"])
+    from psonic import set_server_parameter, run, stop
+
+
+# ── Sonic Pi auto-detection ──
+
+def _extract_from_gui_log(text):
+    """Sonic Pi 4.5+ (gui.log, 'daemon_stdout' format)."""
+    values = []
+    for line in text.splitlines():
+        m = re.search(r"daemon_stdout:\s*(-?\d+)", line)
+        if m:
+            values.append(int(m.group(1)))
+    if len(values) >= 8:
+        return {"gui_port": values[1], "osc_port": values[2], "token": values[7]}
+    return {}
+
+
+def _extract_from_spider_log(text):
+    """Sonic Pi 4.3–4.4 (spider.log, 'Token:' format)."""
+    token = server_port = osc_port = None
+    m = re.search(r"Token:\s*(-?\d+)", text)
+    if m:
+        token = int(m.group(1))
+    m = re.search(r":server_port=>(\d+)", text)
+    if m:
+        server_port = int(m.group(1))
+    m = re.search(r":osc_cues_port=>(\d+)", text)
+    if m:
+        osc_port = int(m.group(1))
+    if token and server_port:
+        return {"gui_port": osc_port or 4560, "osc_port": server_port, "token": token}
+    return {}
+
+
+def _read_log(path):
+    """Read a log file, handling both binary and text formats."""
+    try:
+        result = subprocess.run(
+            ["strings", str(path)], capture_output=True, text=True, timeout=5
+        )
+        if result.stdout.strip():
+            return result.stdout
+    except (FileNotFoundError, OSError):
+        pass
+    try:
+        return path.read_text(encoding="utf-8", errors="ignore")
+    except Exception:
+        pass
+    return ""
+
+
+def detect_sonic_pi():
+    """Auto-detect Sonic Pi connection parameters."""
+    log_dir = Path.home() / ".sonic-pi" / "log"
+
+    gui_log = log_dir / "gui.log"
+    if gui_log.exists():
+        params = _extract_from_gui_log(_read_log(gui_log))
+        if params:
+            return params
+
+    spider_log = log_dir / "spider.log"
+    if spider_log.exists():
+        params = _extract_from_spider_log(_read_log(spider_log))
+        if params:
+            return params
+
+    return {}
+
+
+# ── HTTP Bridge Server ──
 
 BRIDGE_PORT = 8001
-sp = None
+sp_connected = False
+
+
+def play_code(code):
+    run(code)
+    return "Code sent to Sonic Pi"
+
+
+def stop_all():
+    stop()
+    return "All sounds stopped"
 
 
 class BridgeHandler(BaseHTTPRequestHandler):
@@ -46,7 +135,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/ping":
-            self._json(200, {"status": "ok", "sonic_pi": sp is not None})
+            self._json(200, {"status": "ok", "sonic_pi": sp_connected})
         else:
             self._json(404, {"error": "not found"})
 
@@ -61,14 +150,14 @@ class BridgeHandler(BaseHTTPRequestHandler):
                 if not code:
                     self._json(400, {"error": "no code"})
                     return
-                result = sp.play_code(code)
+                result = play_code(code)
                 self._json(200, {"status": result})
             except Exception as e:
                 self._json(500, {"error": str(e)})
 
         elif self.path == "/stop":
             try:
-                result = sp.stop_all()
+                result = stop_all()
                 self._json(200, {"status": result})
             except Exception as e:
                 self._json(500, {"error": str(e)})
@@ -80,25 +169,51 @@ class BridgeHandler(BaseHTTPRequestHandler):
         print(f"  {args[0]}")
 
 
+# ── Main ──
+
 def main():
-    global sp
+    global sp_connected
+
+    print()
     print("=" * 50)
     print("  Sonic Pi Bridge")
     print("=" * 50)
     print()
 
-    try:
-        sp = SonicPiTools()
-        print(f"  Connected to Sonic Pi: {sp._params}")
-    except Exception as e:
-        print(f"  ERROR: Cannot connect to Sonic Pi: {e}")
+    # Detect Sonic Pi
+    params = detect_sonic_pi()
+    if not params:
+        print("  ERROR: Cannot detect Sonic Pi.")
         print("  Make sure Sonic Pi is open and try again.")
+        print()
+        input("  Press Enter to exit...")
         sys.exit(1)
 
+    # Connect
+    try:
+        set_server_parameter("127.0.0.1", params["token"], params["osc_port"], params["gui_port"])
+        sp_connected = True
+        print(f"  Connected to Sonic Pi")
+        print(f"    Token: {params['token']}")
+        print(f"    Port:  {params['osc_port']}")
+    except Exception as e:
+        print(f"  ERROR: {e}")
+        input("  Press Enter to exit...")
+        sys.exit(1)
+
+    # Test with a silent command
+    try:
+        run("# bridge connected")
+        print("  Connection verified!")
+    except Exception:
+        pass
+
+    print()
     print(f"  Bridge running at http://localhost:{BRIDGE_PORT}")
     print()
     print("  Ready! Open Sonic Composer in your browser.")
     print("  Press Ctrl+C to stop.")
+    print("=" * 50)
     print()
 
     server = HTTPServer(("127.0.0.1", BRIDGE_PORT), BridgeHandler)
