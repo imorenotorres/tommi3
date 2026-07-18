@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sonic Composer v2 — How To</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f6fa; color: #333; line-height: 1.7; }
+  .header { background: #1a1a2e; color: #fff; padding: 32px 24px; text-align: center; }
+  .header h1 { font-size: 2em; margin-bottom: 4px; }
+  .header p { color: #aaa; font-size: 1em; }
+  .container { max-width: 820px; margin: 0 auto; padding: 32px 24px; }
+  .toc { background: #fff; border-radius: 10px; padding: 24px 28px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 32px; }
+  .toc h2 { color: #2ecc71; font-size: 1.1em; margin-bottom: 12px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 6px; }
+  .toc a { color: #2ecc71; text-decoration: none; font-weight: 500; }
+  .toc a:hover { text-decoration: underline; }
+  .step { background: #fff; border-radius: 10px; padding: 28px 28px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 28px; border-left: 5px solid #2ecc71; }
+  .step h2 { color: #2ecc71; font-size: 1.25em; margin-bottom: 4px; }
+  .step .step-num { display: inline-block; background: #2ecc71; color: #fff; width: 32px; height: 32px; border-radius: 50%; text-align: center; line-height: 32px; font-weight: 700; font-size: 0.9em; margin-right: 8px; vertical-align: middle; }
+  .step h2 span { vertical-align: middle; }
+  .step p { margin: 12px 0; }
+  .step ul, .step ol { margin: 12px 0; padding-left: 24px; }
+  .step li { margin-bottom: 6px; }
+  .step h3 { margin: 16px 0 8px; color: #1a1a2e; font-size: 1em; }
+  pre { background: #1a1a2e; color: #e0e0e0; border-radius: 6px; padding: 14px 18px; font-size: 0.9em; overflow-x: auto; margin: 10px 0; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+  code { background: #e8e8f0; padding: 2px 6px; border-radius: 3px; font-size: 0.88em; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+  pre code { background: none; padding: 0; }
+  .tip { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; margin: 12px 0; font-size: 0.88em; }
+  .tip strong { color: #16a34a; }
+  .warning { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 12px 16px; margin: 12px 0; font-size: 0.88em; }
+  .warning strong { color: #ea580c; }
+  .example { background: #f8f9ff; border: 1px solid #e8e8f0; border-radius: 8px; padding: 16px; margin: 16px 0; }
+  .example h4 { color: #2ecc71; font-size: 0.95em; margin-bottom: 8px; }
+  .example .user { color: #2ecc71; font-weight: 600; }
+  .example .response { color: #555; margin-top: 4px; padding-left: 16px; border-left: 3px solid #ddd; }
+  .back-link { display: inline-block; margin-bottom: 20px; color: #2ecc71; text-decoration: none; font-weight: 600; font-size: 0.9em; }
+  .back-link:hover { text-decoration: underline; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.88em; }
+  th { background: #2ecc71; color: #fff; padding: 8px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e8e8f0; }
+  tr:nth-child(even) { background: #f8f9ff; }
+  .legend { display: inline-flex; align-items: center; gap: 6px; margin: 4px 8px; font-size: 0.85em; }
+  .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+  .badge { display: inline-block; font-size: 0.75em; font-weight: 700; padding: 2px 8px; border-radius: 8px; vertical-align: middle; }
+  .badge-new { background: #d4edda; color: #155724; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Sonic Composer v2</h1>
+  <p>Style-aware music agent with validated Sonic Pi resources</p>
+</div>
+
+<div class="container">
+  <a href="/creative-agents/sonic-composer-v2" class="back-link">&larr; Back to Sonic Composer v2</a>
+
+  <div class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#overview">What's new in v2?</a></li>
+      <li><a href="#audio">Audio modes</a></li>
+      <li><a href="#setup">Setup</a></li>
+      <li><a href="#panel">Control panel</a></li>
+      <li><a href="#styles">Musical styles</a></li>
+      <li><a href="#commands">Command reference</a></li>
+      <li><a href="#recording">Recording</a></li>
+      <li><a href="#examples">Example sessions</a></li>
+      <li><a href="#troubleshooting">Troubleshooting</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. Overview -->
+  <div class="step" id="overview">
+    <h2><span class="step-num">1</span> <span>What's new in v2?</span></h2>
+    <p>Sonic Composer v2 is a style-aware music agent that understands musical genres and their
+      characteristic patterns. It builds on v1 with these improvements:</p>
+    <ul>
+      <li><strong>Intent classification</strong> <span class="badge badge-new">NEW</span> &mdash; The agent understands <em>what kind of request</em> you're making
+        (new composition, modify, add element, remove, stop, or ask for info) and handles each one differently</li>
+      <li><strong>Style presets</strong> <span class="badge badge-new">NEW</span> &mdash; 10 built-in musical styles with authentic drum patterns, chord progressions,
+        and instrument choices (rock, blues, jazz, techno, house, ambient, bossa nova, reggae, hip-hop, lo-fi)</li>
+      <li><strong>Resource validation</strong> <span class="badge badge-new">NEW</span> &mdash; All synths, samples, scales, and effects are validated against
+        Sonic Pi's actual resources &mdash; no more hallucinated instrument names</li>
+      <li><strong>Programmatic modifications</strong> <span class="badge badge-new">NEW</span> &mdash; Simple changes (BPM, synth, scale, effects) are handled
+        directly in code without calling the LLM, making them instant and reliable</li>
+      <li><strong>Sonic Pi Bridge</strong> <span class="badge badge-new">NEW</span> &mdash; Optional bridge for playing through Sonic Pi locally, with Strudel as browser fallback</li>
+      <li><strong>Recording</strong> <span class="badge badge-new">NEW</span> &mdash; Record your composition and download as WAV (requires bridge)</li>
+      <li><strong>Panel sync</strong> &mdash; The control panel updates automatically to reflect what's playing</li>
+      <li><strong>Code diff</strong> &mdash; Changed lines are highlighted with green/red bullets</li>
+      <li><strong>Copy button</strong> &mdash; Copy the generated Sonic Pi code to paste into Sonic Pi directly</li>
+    </ul>
+  </div>
+
+  <!-- 2. Audio modes -->
+  <div class="step" id="audio">
+    <h2><span class="step-num">2</span> <span>Audio modes</span></h2>
+    <p>Sonic Composer v2 supports two audio modes:</p>
+
+    <h3>Sonic Pi (via Bridge) &mdash; recommended</h3>
+    <p>Plays through your local Sonic Pi installation. You hear the real Sonic Pi sounds.
+      Requires running the bridge script alongside Sonic Pi.</p>
+    <p>The status indicator in the panel shows <strong style="color:#2ecc71;">&#9679; Sonic Pi</strong> when connected.</p>
+
+    <h3>Strudel (browser fallback)</h3>
+    <p>Plays directly in the browser using Web Audio. No installation needed, but the sound
+      quality is lower (uses oscillators instead of Sonic Pi's rich synths).</p>
+    <p>The indicator shows <strong style="color:#f39c12;">&#9679; Strudel</strong> when using browser audio.</p>
+
+    <div class="tip">
+      <strong>Tip:</strong> The agent automatically detects which mode is available. If the bridge
+      is running, it uses Sonic Pi. If not, it falls back to Strudel. No configuration needed.
+    </div>
+  </div>
+
+  <!-- 3. Setup -->
+  <div class="step" id="setup">
+    <h2><span class="step-num">3</span> <span>Setup</span></h2>
+
+    <h3>Browser only (Strudel) &mdash; zero setup</h3>
+    <p>Just open the Sonic Composer v2 page. Sound plays in your browser.</p>
+
+    <h3>With Sonic Pi (recommended)</h3>
+    <ol>
+      <li>Open <strong>Sonic Pi</strong> and wait until it finishes booting</li>
+      <li>Double-click <code>start_bridge.command</code> (Mac) or <code>start_bridge.bat</code> (Windows)
+        <br>First time: it creates a virtual environment and installs dependencies automatically</li>
+      <li>Open the Sonic Composer v2 page in your browser</li>
+      <li>The indicator should show <strong style="color:#2ecc71;">&#9679; Sonic Pi</strong></li>
+    </ol>
+
+    <div class="warning">
+      <strong>Important:</strong> If you restart Sonic Pi, restart the bridge too &mdash; the connection
+      parameters change on each restart.
+    </div>
+  </div>
+
+  <!-- 4. Control panel -->
+  <div class="step" id="panel">
+    <h2><span class="step-num">4</span> <span>Control panel</span></h2>
+    <p>The control panel provides quick access to common parameters. It updates automatically
+      after each response to reflect the current state.</p>
+
+    <table>
+      <tr><th>Control</th><th>Description</th></tr>
+      <tr><td><strong>BPM</strong></td><td>Slider (40&ndash;200). Updates when the agent changes tempo</td></tr>
+      <tr><td><strong>Synth</strong></td><td>Dropdown. Updates to show the current synth</td></tr>
+      <tr><td><strong>Scale</strong></td><td>Dropdown. Updates to show the current scale</td></tr>
+      <tr><td><strong>Loop</strong></td><td>Dropdown for pre-recorded loops</td></tr>
+      <tr><td><strong>FX</strong></td><td>Checkboxes. Check/uncheck to reflect active effects</td></tr>
+      <tr><td><strong>Apply</strong></td><td>Sends the panel settings as a natural language instruction</td></tr>
+      <tr><td><strong>Stop</strong></td><td>Stops all music (both Sonic Pi and Strudel)</td></tr>
+      <tr><td><strong>Rec</strong></td><td>Start/stop recording (only with Sonic Pi bridge)</td></tr>
+      <tr><td><strong>Active</strong></td><td>Shows playing loops. Click to mute/unmute</td></tr>
+      <tr><td><strong>Mode indicator</strong></td><td>Shows &#9679; Sonic Pi (green) or &#9679; Strudel (orange)</td></tr>
+    </table>
+  </div>
+
+  <!-- 5. Musical styles -->
+  <div class="step" id="styles">
+    <h2><span class="step-num">5</span> <span>Musical styles</span></h2>
+    <p>v2 knows the patterns and instruments of these styles. Just ask for one and the agent
+      will generate authentic patterns:</p>
+
+    <table>
+      <tr><th>Style</th><th>BPM</th><th>Characteristics</th></tr>
+      <tr><td><strong>Rock and Roll</strong></td><td>130&ndash;150</td><td>Shuffle drums, distorted guitar riff in E, walking bass</td></tr>
+      <tr><td><strong>Blues</strong></td><td>70&ndash;100</td><td>Triplet shuffle, blues scale piano, 12-bar structure</td></tr>
+      <tr><td><strong>Jazz</strong></td><td>100&ndash;140</td><td>Ride cymbal swing, ii-V-I chords (m7/dom7), walking bass</td></tr>
+      <tr><td><strong>Techno</strong></td><td>125&ndash;135</td><td>Four-on-the-floor kick, offbeat hi-hat, acid tb303 bass</td></tr>
+      <tr><td><strong>House</strong></td><td>118&ndash;128</td><td>Four-on-the-floor, piano chords, clap on 2 and 4</td></tr>
+      <tr><td><strong>Ambient</strong></td><td>50&ndash;80</td><td>Generative pads, sparse notes, heavy reverb/echo, no drums</td></tr>
+      <tr><td><strong>Bossa Nova</strong></td><td>120&ndash;140</td><td>Syncopated clave rhythm, nylon guitar chords, melodic bass</td></tr>
+      <tr><td><strong>Reggae</strong></td><td>70&ndash;90</td><td>One-drop drums, offbeat skank chords, heavy melodic bass</td></tr>
+      <tr><td><strong>Hip-Hop</strong></td><td>80&ndash;100</td><td>Boom-bap kick/snare, fast hi-hats, deep sub-bass</td></tr>
+      <tr><td><strong>Chill / Lo-fi</strong></td><td>70&ndash;90</td><td>Soft drums, jazzy piano with reverb/echo, warm bass</td></tr>
+    </table>
+
+    <div class="tip">
+      <strong>Tip:</strong> You can ask for a style and then modify it: <em>"Play a blues in E"</em>
+      then <em>"Make it faster"</em> or <em>"Change the piano to pluck"</em>.
+    </div>
+  </div>
+
+  <!-- 6. Command reference -->
+  <div class="step" id="commands">
+    <h2><span class="step-num">6</span> <span>Command reference</span></h2>
+
+    <h3>Tempo (programmatic &mdash; instant, no LLM)</h3>
+    <table>
+      <tr><th>Instruction</th><th>Effect</th></tr>
+      <tr><td>"75 bpm" / "pon 75 bpm" / "set bpm to 75"</td><td>Sets exact BPM</td></tr>
+      <tr><td>"un poco más rápido" / "slightly faster"</td><td>+10 BPM</td></tr>
+      <tr><td>"más rápido" / "faster"</td><td>+20 BPM</td></tr>
+      <tr><td>"mucho más rápido" / "much faster"</td><td>+40 BPM</td></tr>
+      <tr><td>"un poco más lento" / "slightly slower"</td><td>-10 BPM</td></tr>
+      <tr><td>"más lento" / "slower"</td><td>-20 BPM</td></tr>
+      <tr><td>"mucho más lento" / "much slower"</td><td>-40 BPM</td></tr>
+      <tr><td>"sube el tempo" / "baja el tempo"</td><td>+20 / -20 BPM</td></tr>
+    </table>
+
+    <h3>Synth changes (programmatic)</h3>
+    <table>
+      <tr><th>Instruction</th><th>Effect</th></tr>
+      <tr><td>"cambia synth a tb303" / "change synth to saw"</td><td>Changes synth on all melodic loops</td></tr>
+    </table>
+
+    <h3>Scale changes (programmatic)</h3>
+    <table>
+      <tr><th>Instruction</th><th>Effect</th></tr>
+      <tr><td>"cambia a escala menor" / "change to blues scale"</td><td>Changes scale and regenerates notes</td></tr>
+    </table>
+
+    <h3>Effects (programmatic)</h3>
+    <table>
+      <tr><th>Instruction</th><th>Effect</th></tr>
+      <tr><td>"añade reverb" / "add echo"</td><td>Adds effect to all loops</td></tr>
+      <tr><td>"quita distortion" / "remove flanger"</td><td>Removes effect from all loops</td></tr>
+    </table>
+
+    <h3>Available synths</h3>
+    <table>
+      <tr><th>Synth</th><th>Character</th></tr>
+      <tr><td>piano</td><td>Acoustic piano</td></tr>
+      <tr><td>pluck</td><td>Plucked string</td></tr>
+      <tr><td>tb303</td><td>Classic acid bass</td></tr>
+      <tr><td>prophet</td><td>Warm analog synth</td></tr>
+      <tr><td>saw</td><td>Bright sawtooth (good for guitar-like sounds with distortion)</td></tr>
+      <tr><td>square</td><td>Hollow digital sound</td></tr>
+      <tr><td>fm</td><td>FM synthesis (bells, electric piano, bass)</td></tr>
+      <tr><td>hollow</td><td>Soft airy pad (ambient)</td></tr>
+      <tr><td>supersaw</td><td>Thick detuned saws (trance/EDM)</td></tr>
+      <tr><td>dsaw</td><td>Detuned saw</td></tr>
+      <tr><td>dark_ambience</td><td>Dark atmospheric pad</td></tr>
+      <tr><td>growl</td><td>Aggressive bass</td></tr>
+      <tr><td>hoover</td><td>Classic rave sound</td></tr>
+      <tr><td>zawa</td><td>Metallic evolving pad</td></tr>
+    </table>
+
+    <h3>Available scales</h3>
+    <table>
+      <tr><th>Scale</th><th>Mood</th></tr>
+      <tr><td>major</td><td>Happy, bright</td></tr>
+      <tr><td>minor</td><td>Sad, dark</td></tr>
+      <tr><td>pentatonic</td><td>Simple, universal</td></tr>
+      <tr><td>blues</td><td>Bluesy, soulful</td></tr>
+      <tr><td>dorian</td><td>Jazz, funk</td></tr>
+      <tr><td>mixolydian</td><td>Rock, folk</td></tr>
+      <tr><td>phrygian</td><td>Spanish, flamenco</td></tr>
+      <tr><td>lydian</td><td>Dreamy, bright</td></tr>
+      <tr><td>harmonic_minor</td><td>Dramatic, Middle Eastern</td></tr>
+      <tr><td>whole</td><td>Dreamlike, Debussy</td></tr>
+      <tr><td>hirajoshi, iwato, kumoi</td><td>Japanese</td></tr>
+      <tr><td>egyptian</td><td>Ancient</td></tr>
+    </table>
+
+    <h3>Available effects</h3>
+    <table>
+      <tr><th>Effect</th><th>Description</th></tr>
+      <tr><td>reverb</td><td>Spacious room sound</td></tr>
+      <tr><td>echo</td><td>Delayed repetitions</td></tr>
+      <tr><td>distortion</td><td>Gritty, overdriven</td></tr>
+      <tr><td>lpf / hpf / bpf</td><td>Low-pass / high-pass / band-pass filter</td></tr>
+      <tr><td>flanger</td><td>Swooshing, jet-like</td></tr>
+      <tr><td>wobble</td><td>Dubstep wobble</td></tr>
+      <tr><td>slicer</td><td>Rhythmic chopping</td></tr>
+      <tr><td>krush / bitcrusher</td><td>Lo-fi bit reduction</td></tr>
+      <tr><td>compressor</td><td>Dynamic compression</td></tr>
+    </table>
+  </div>
+
+  <!-- 7. Recording -->
+  <div class="step" id="recording">
+    <h2><span class="step-num">7</span> <span>Recording</span></h2>
+    <p>You can record your composition and download it as a WAV file. This feature requires
+      the Sonic Pi bridge.</p>
+    <ol>
+      <li>Make sure the indicator shows <strong style="color:#2ecc71;">&#9679; Sonic Pi</strong></li>
+      <li>Start your music</li>
+      <li>Click <strong style="color:#e74c3c;">&#9679; Rec</strong> to start recording</li>
+      <li>The button changes to <strong style="background:#e74c3c;color:#fff;padding:2px 8px;border-radius:4px;">&#9632; Stop Rec</strong></li>
+      <li>When done, click <strong>Stop Rec</strong></li>
+      <li>The WAV file downloads automatically</li>
+    </ol>
+    <div class="tip">
+      <strong>Tip:</strong> The Rec button only appears when the Sonic Pi bridge is connected.
+    </div>
+  </div>
+
+  <!-- 8. Examples -->
+  <div class="step" id="examples">
+    <h2><span class="step-num">8</span> <span>Example sessions</span></h2>
+
+    <div class="example">
+      <h4>Exploring styles</h4>
+      <p class="user">You: "Play a rock and roll riff"</p>
+      <div class="response">Rock shuffle drums, distorted guitar riff in E, tb303 bass at 140 BPM.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Un poco más lento"</p>
+      <div class="response">BPM drops by 10 (instant, programmatic). Everything else stays the same.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Stop"</p>
+      <div class="response">All sounds stop.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Toca un blues en Mi"</p>
+      <div class="response">Blues shuffle at 90 BPM with piano blues scale, walking bass in E, triplet feel drums.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Stop. Make a jazz piece"</p>
+      <div class="response">Cool jazz at 110 BPM with ride cymbal, Dm7-G7-C-Am7 piano voicings, walking bass.</div>
+    </div>
+
+    <div class="example">
+      <h4>Modifying with the panel</h4>
+      <p class="user">You: "Create a chill lo-fi beat"</p>
+      <div class="response">Lo-fi at 75 BPM. Panel updates: BPM=75, Synth=piano, FX: reverb+echo checked.</div>
+
+      <p class="user" style="margin-top:12px;">You: [Move BPM slider to 85, click Apply]</p>
+      <div class="response">BPM changes to 85. Everything else unchanged (programmatic).</div>
+
+      <p class="user" style="margin-top:12px;">You: [Click on bass loop tag to mute it]</p>
+      <div class="response">Bass is silenced. Click again to unmute.</div>
+    </div>
+
+    <div class="example">
+      <h4>Asking for info</h4>
+      <p class="user">You: "What styles do you know?"</p>
+      <div class="response">Lists all 10+ styles with descriptions (no music plays &mdash; info intent).</div>
+
+      <p class="user" style="margin-top:12px;">You: "What synths are available?"</p>
+      <div class="response">Lists all valid Sonic Pi synths with descriptions.</div>
+    </div>
+
+    <div class="example">
+      <h4>Recording a composition</h4>
+      <p class="user">You: "Make a bossa nova"</p>
+      <div class="response">Bossa nova starts playing through Sonic Pi.</div>
+
+      <p class="user" style="margin-top:12px;">You: [Click Rec button]</p>
+      <div class="response">Recording starts. Button turns red.</div>
+
+      <p class="user" style="margin-top:12px;">You: "Add reverb to everything"</p>
+      <div class="response">Reverb added (programmatic). Still recording.</div>
+
+      <p class="user" style="margin-top:12px;">You: [Click Stop Rec]</p>
+      <div class="response">Recording stops. composition.wav downloads.</div>
+    </div>
+  </div>
+
+  <!-- 9. Troubleshooting -->
+  <div class="step" id="troubleshooting">
+    <h2><span class="step-num">9</span> <span>Troubleshooting</span></h2>
+    <table>
+      <tr><th>Problem</th><th>Solution</th></tr>
+      <tr>
+        <td>No sound at all</td>
+        <td>If using Strudel: check browser volume and try clicking on the page first (audio context needs user interaction).
+          If using bridge: make sure Sonic Pi is open and the bridge is running.</td>
+      </tr>
+      <tr>
+        <td>Indicator shows &#9679; Strudel but I want Sonic Pi</td>
+        <td>Start the bridge: double-click <code>start_bridge.command</code>. The indicator updates automatically.</td>
+      </tr>
+      <tr>
+        <td>Bridge was working but stopped</td>
+        <td>You probably restarted Sonic Pi. Restart the bridge too.</td>
+      </tr>
+      <tr>
+        <td>Agent changes too much when I modify</td>
+        <td>Use specific instructions: <em>"change BPM to 90"</em> instead of vague requests.
+          Simple changes (BPM, synth, scale, fx) are handled programmatically and never change other elements.</td>
+      </tr>
+      <tr>
+        <td>Invalid chord names in code</td>
+        <td>v2 validates and auto-corrects common hallucinations (e.g. "Caj3" &rarr; "C"). If you spot an issue, try again.</td>
+      </tr>
+      <tr>
+        <td>Rec button not visible</td>
+        <td>Recording requires the Sonic Pi bridge. Start the bridge and the Rec button appears.</td>
+      </tr>
+      <tr>
+        <td>WAV file is empty or doesn't download</td>
+        <td>Make sure music is playing when you click Rec, and wait a few seconds before clicking Stop Rec.</td>
+      </tr>
+      <tr>
+        <td>Panel doesn't update after response</td>
+        <td>Reload the page. The panel syncs on each new response.</td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="text-align:center; margin: 40px 0 20px; color: #999; font-size: 0.85em;">
+    <a href="/creative-agents/sonic-composer-v2" style="color:#2ecc71; text-decoration:none;">&larr; Back to Sonic Composer v2</a>
+  </div>
+</div>
+
+</body>
+</html>

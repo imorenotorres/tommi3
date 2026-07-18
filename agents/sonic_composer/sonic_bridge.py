@@ -113,6 +113,9 @@ is_recording = False
 
 
 def play_code(code):
+    import time
+    stop()
+    time.sleep(0.1)
     run(code)
     return "Code sent to Sonic Pi"
 

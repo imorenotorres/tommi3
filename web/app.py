@@ -1113,6 +1113,18 @@ async def sonic_composer_help():
     return FileResponse(SCRIPT_DIR / "static" / "sonic_composer_howto.html")
 
 
+@app.get("/creative-agents/sonic-composer-v2")
+async def sonic_composer2_page():
+    """Serve the Sonic Composer v2 chat page"""
+    return FileResponse(SCRIPT_DIR / "static" / "sonic_composer2.html")
+
+
+@app.get("/creative-agents/sonic-composer-v2/help")
+async def sonic_composer2_help():
+    """Serve the Sonic Composer v2 help page"""
+    return FileResponse(SCRIPT_DIR / "static" / "sonic_composer2_howto.html")
+
+
 @app.get("/tutores-virtuales")
 async def tutores_virtuales_page():
     """Serve the Virtual Tutors landing page"""
@@ -2109,7 +2121,7 @@ async def get_public_tools():
 # ---------------------------------------------------------------------------
 
 # Set of agent IDs that are allowed to be accessed publicly
-_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos", "pisha5", "algoria_map", "lali_tutor", "sonic_composer"}
+_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos", "pisha5", "algoria_map", "lali_tutor", "sonic_composer", "sonic_composer2"}
 
 
 @app.get("/api/public-agent/{agent_id}/config")

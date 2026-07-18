@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sonic Composer</title>
+<title>Sonic Composer v2</title>
 <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://unpkg.com/@strudel/web@1.0.3"></script>
@@ -77,7 +77,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 <div class="nav">
     <a href="/creative-agents" class="nav-brand">Creative Agents</a>
     <span class="nav-sep">/</span>
-    <span class="nav-current">Sonic Composer</span>
+    <span class="nav-current">Sonic Composer v2</span>
     <a href="/creative-agents/sonic-composer/help" class="nav-help">? Help</a>
 </div>
 
@@ -128,6 +128,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
         </div>
         <div class="sp-sep"></div>
         <button class="sp-btn" onclick="spApply()">&#9835; Apply</button>
+        <button class="sp-btn" onclick="spNewComposition()" style="color:#2ecc71;">&#10010; New</button>
         <button class="sp-btn stop" onclick="spStop()">&#9632; Stop</button>
         <button class="sp-btn" id="spRecBtn" onclick="spToggleRec()" style="display:none;">&#9679; Rec</button>
         <div class="sp-sep"></div>
@@ -141,11 +142,12 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 <div class="chat-container">
     <div class="chat-messages" id="chatMessages">
         <div class="examples" id="examples">
-            <button class="example-btn" onclick="sendExample(this.textContent)">Toca algo tranquilo en piano</button>
-            <button class="example-btn" onclick="sendExample(this.textContent)">Ponme un ritmo techno a 130 bpm</button>
-            <button class="example-btn" onclick="sendExample(this.textContent)">Crea un paisaje sonoro generativo con hollow y reverb</button>
-            <button class="example-btn" onclick="sendExample(this.textContent)">Pon el breakbeat de amen a media velocidad con filtro</button>
-            <button class="example-btn" onclick="sendExample(this.textContent)">Añade algo experimental y aleatorio</button>
+            <button class="example-btn" onclick="sendExample(this.textContent)">Play a rock and roll riff</button>
+            <button class="example-btn" onclick="sendExample(this.textContent)">Create a chill lo-fi beat</button>
+            <button class="example-btn" onclick="sendExample(this.textContent)">Toca un blues en Mi</button>
+            <button class="example-btn" onclick="sendExample(this.textContent)">Make a jazz piece</button>
+            <button class="example-btn" onclick="sendExample(this.textContent)">What styles do you know?</button>
+            <button class="example-btn" onclick="sendExample(this.textContent)">What synths are available?</button>
         </div>
     </div>
     <div class="input-area">
@@ -155,7 +157,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 </div>
 
 <script>
-var AGENT_ID = 'sonic_composer';
+var AGENT_ID = 'sonic_composer2';
 var sessionId = null;
 var isLoading = false;
 var strudelReady = false;
@@ -499,14 +501,16 @@ function spCopyCode(btn) {
 
 function processResponse(bubble) {
   var stateDiv = bubble.querySelector('.sp-state');
+  console.log('[Process] has sp-state:', !!stateDiv);
   if (!stateDiv) { updateActiveLoops(bubble.innerHTML); return; }
   var stateJson = stateDiv.getAttribute('data-state');
-  if (!stateJson) return;
+  if (!stateJson) { console.log('[Process] no data-state attr'); return; }
   try {
     var ta = document.createElement('textarea');
     ta.innerHTML = stateJson;
     var state = JSON.parse(ta.value);
     var hasLoops = Object.keys(state.loops || {}).length > 0;
+    console.log('[Process] hasLoops:', hasLoops, 'loops:', Object.keys(state.loops || {}));
 
     // Extract Sonic Pi code from the code block
     var codeBlock = bubble.querySelector('.sp-code-block');
@@ -515,6 +519,7 @@ function processResponse(bubble) {
       var pre = codeBlock.querySelector('pre');
       if (pre) sonicCode = pre.textContent.replace(/^.*● #.*$/gm, '').replace(/● /g, '').replace(/\n{3,}/g, '\n\n');
     }
+    console.log('[Process] codeBlock:', !!codeBlock, 'sonicCode length:', sonicCode.length);
 
     // Try bridge first (always), fall back to Strudel
     if (hasLoops && sonicCode) {
@@ -570,6 +575,7 @@ function updateActiveLoopsFromState(state) {
   var loops = state.loops || {};
   var names = Object.keys(loops);
 
+  // Update active loops tags
   if (!names.length) {
     el.innerHTML = '<span style="font-size:0.72rem;color:#999;">none</span>';
     spMutedLoops = {};
@@ -586,34 +592,74 @@ function updateActiveLoopsFromState(state) {
     }).join('');
   }
 
+  // Update BPM slider
   if (state.bpm) {
     var b = document.getElementById('spBpm');
     var bv = document.getElementById('spBpmVal');
     if (b && bv) { b.value = state.bpm; bv.textContent = state.bpm; }
   }
 
+  // Update Synth, Scale, FX from the first melodic loop found
   var firstSynth = '', firstScale = '', activeFx = {};
   for (var i = 0; i < names.length; i++) {
     var loop = loops[names[i]];
     var type = loop.type || 'melody';
+    // Collect all active FX
     (loop.fx || []).forEach(function(f) { activeFx[f] = true; });
+    // Get synth and scale from first melodic loop
     if (!firstSynth && (type === 'melody' || type === 'bass' || type === 'chords' || type === 'generative')) {
       firstSynth = loop.synth || '';
       firstScale = loop.scale || '';
     }
   }
-  if (firstSynth) { var s = document.getElementById('spSynth'); if (s) s.value = firstSynth; }
-  if (firstScale) { var s = document.getElementById('spScale'); if (s) s.value = firstScale; }
+
+  // Update Synth dropdown
+  if (firstSynth) {
+    var synthSel = document.getElementById('spSynth');
+    if (synthSel) {
+      for (var i = 0; i < synthSel.options.length; i++) {
+        if (synthSel.options[i].value === firstSynth) {
+          synthSel.value = firstSynth;
+          break;
+        }
+      }
+    }
+  }
+
+  // Update Scale dropdown
+  if (firstScale) {
+    var scaleSel = document.getElementById('spScale');
+    if (scaleSel) {
+      for (var i = 0; i < scaleSel.options.length; i++) {
+        if (scaleSel.options[i].value === firstScale) {
+          scaleSel.value = firstScale;
+          break;
+        }
+      }
+    }
+  }
+
+  // Update Loop dropdown (check for sample_loop type)
   var loopSel = document.getElementById('spLoop');
   if (loopSel) {
     var foundLoop = '';
     for (var i = 0; i < names.length; i++) {
-      if (loops[names[i]].type === 'sample_loop') { foundLoop = loops[names[i]].sample_name || ''; break; }
+      if (loops[names[i]].type === 'sample_loop') {
+        foundLoop = loops[names[i]].sample_name || '';
+        break;
+      }
     }
     loopSel.value = foundLoop;
   }
+
+  // Update FX checkboxes
   var fxBoxes = document.querySelectorAll('.sp-fx input[type=checkbox]');
-  fxBoxes.forEach(function(cb) { cb.checked = !!activeFx[cb.value]; });
+  fxBoxes.forEach(function(cb) {
+    cb.checked = !!activeFx[cb.value];
+  });
+
+  // Capture panel state so Apply only sends changes
+  spLastPanelState = spCapturePanelState();
 }
 
 function updateActiveLoops(html) {
@@ -628,17 +674,69 @@ function updateActiveLoops(html) {
 
 // ── Panel actions ──
 
+// Track last known panel state to detect what the user actually changed
+var spLastPanelState = {};
+
+function spCapturePanelState() {
+  var fx = {};
+  document.querySelectorAll('.sp-fx input[type=checkbox]').forEach(function(cb) { fx[cb.value] = cb.checked; });
+  return {
+    bpm: document.getElementById('spBpm').value,
+    synth: document.getElementById('spSynth').value,
+    scale: document.getElementById('spScale').value,
+    loop: document.getElementById('spLoop').value,
+    fx: fx
+  };
+}
+
 function spApply() {
+  var current = spCapturePanelState();
   var parts = [];
-  parts.push('Toca a ' + document.getElementById('spBpm').value + ' bpm');
-  parts.push('con sintetizador ' + document.getElementById('spSynth').value);
-  parts.push('en escala ' + document.getElementById('spScale').value);
-  var fx = [];
-  document.querySelectorAll('.sp-fx input:checked').forEach(function(cb) { fx.push(cb.value); });
-  if (fx.length) parts.push('con efectos ' + fx.join(' y '));
-  var loop = document.getElementById('spLoop').value;
-  if (loop) parts.push('y añade el loop ' + loop.replace('loop_', ''));
-  document.getElementById('msgInput').value = parts.join(', ');
+
+  // Only send what changed
+  if (current.bpm !== spLastPanelState.bpm) {
+    parts.push('set bpm to ' + current.bpm);
+  }
+  if (current.synth !== spLastPanelState.synth) {
+    parts.push('change synth to ' + current.synth);
+  }
+  if (current.scale !== spLastPanelState.scale) {
+    parts.push('change scale to ' + current.scale);
+  }
+  // FX: only report changes
+  var prevFx = spLastPanelState.fx || {};
+  var addFx = [], removeFx = [];
+  for (var f in current.fx) {
+    if (current.fx[f] && !prevFx[f]) addFx.push(f);
+    if (!current.fx[f] && prevFx[f]) removeFx.push(f);
+  }
+  if (addFx.length) parts.push('add effects ' + addFx.join(' and '));
+  if (removeFx.length) parts.push('remove effects ' + removeFx.join(' and '));
+  // Loop
+  if (current.loop && current.loop !== spLastPanelState.loop) {
+    parts.push('add loop ' + current.loop.replace('loop_', ''));
+  }
+
+  if (!parts.length) return; // Nothing changed
+
+  document.getElementById('msgInput').value = parts.join('. ');
+  sendMsg();
+}
+
+function spNewComposition() {
+  // Stop current music
+  if (bridgeAvailable) bridgeStop().catch(function() {});
+  if (typeof hush === 'function') { ensureStrudel(); hush(); }
+  // Reset panel
+  document.getElementById('spBpm').value = 120;
+  document.getElementById('spBpmVal').textContent = '120';
+  document.getElementById('spSynth').value = 'piano';
+  document.getElementById('spScale').value = 'major';
+  document.getElementById('spLoop').value = '';
+  document.querySelectorAll('.sp-fx input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+  document.getElementById('spActiveLoops').innerHTML = '<span style="font-size:0.72rem;color:#999;">none</span>';
+  // Send stop to reset agent state, then let user type new instruction
+  document.getElementById('msgInput').value = 'Stop';
   sendMsg();
 }
 
