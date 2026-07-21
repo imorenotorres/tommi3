@@ -68,6 +68,10 @@
       "languages_label": "Idiomas",
       "faculties_label": "Facultades",
       "website": "Web",
+      "about_btn": "Sobre este mapa",
+      "about_title": "Sobre este mapa",
+      "about_footer": "Desarrollado con <strong>TOMMI</strong> por el equipo ICT de UNINOVIS-UMA. Licencia <a href='/static/license.html' style='color:#64748b;'>EUPL v1.2</a> | <a href='/static/privacy.html' style='color:#64748b;'>Política de privacidad</a>",
+      "about_body": "<p>El <strong>Mapa de Algoria</strong> es una herramienta interactiva que permite explorar los convenios de movilidad internacional de la Universidad de Málaga (UMA). Puedes buscar convenios por continente, país, universidad, facultad, idioma o nivel de estudios.</p><p style='margin-top:10px;'>Puedes utilizar los filtros del panel superior o escribir consultas en lenguaje natural en el cuadro de búsqueda (por ejemplo, <em>\"Italia, Facultad de Derecho\"</em> o <em>\"Inglés B2\"</em>).</p><p style='margin-top:10px;color:#b45309;'><strong>Esta herramienta se encuentra actualmente en fase piloto.</strong> Los datos mostrados son orientativos y pueden no estar completamente actualizados. Consulta siempre la información oficial del Vicerrectorado de Movilidad y Proyectos Internacionales.</p>",
       "example_queries": [
         {"label": "Mostrar todos los convenios", "q": "Show all agreements"},
         {"label": "Convenios en Italia", "q": "Italia"},
@@ -124,6 +128,9 @@
       "languages_label": "Languages",
       "faculties_label": "Faculties",
       "website": "Website",
+      "about_btn": "About this map",
+      "about_title": "About this map",
+      "about_body": "<p><strong>Algoria Map</strong> is an interactive tool for exploring the international mobility agreements of the University of Málaga (UMA). You can search agreements by continent, country, university, faculty, language, or degree level.</p><p style='margin-top:10px;'>Use the filter panel at the top or type natural language queries in the search box (e.g. <em>\"Italy, Faculty of Law\"</em> or <em>\"English B2\"</em>).</p><p style='margin-top:10px;color:#b45309;'><strong>This tool is currently being piloted.</strong> The data shown is indicative and may not be fully up to date. Always check the official information from the Vice-Rectorate for Mobility and International Projects.</p><p style='margin-top:10px;'>Developed under the <strong>UNINOVIS</strong> project (European Universities Alliance) using the <strong>TOMMI</strong> agentic framework, by the UNINOVIS-UMA ICT Team.</p>",
       "example_queries": [
         {"label": "Show all agreements", "q": "Show all agreements"},
         {"label": "Agreements in Italy", "q": "Italy"},

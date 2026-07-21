@@ -3473,7 +3473,9 @@ async def agent_agreements_config(agent_id: str):
 
 @app.get("/api/agents/{agent_id}/agreements-search")
 async def agent_agreements_search(
+    request: Request,
     agent_id: str,
+    q: Optional[str] = Query(None),
     continent: Optional[str] = Query(None),
     country: Optional[str] = Query(None),
     faculty: Optional[str] = Query(None),
@@ -3502,7 +3504,28 @@ async def agent_agreements_search(
     if university: filters["university"] = university
     if uninovis: filters["uninovis"] = True
 
-    return agent_instance.get_map_data(filters)
+    result = agent_instance.get_map_data(filters)
+
+    # Log the interaction
+    client_ip = request.client.host if request.client else "unknown"
+    n_markers = len(result.get("markers", []))
+    total = sum(m.get("count", 0) for m in result.get("markers", []))
+    if q:
+        question = f"[NL] {q} → {json.dumps(filters, ensure_ascii=False)}"
+    elif filters:
+        question = f"[filters] {json.dumps(filters, ensure_ascii=False)}"
+    else:
+        question = "[init] all agreements"
+    response = f"{total} agreements, {n_markers} markers"
+    log_conversation(
+        client_ip=client_ip,
+        agent_id=agent_id,
+        agent_name="Algoria Map",
+        question=question,
+        response=response,
+    )
+
+    return result
 
 
 # ============================================================================
