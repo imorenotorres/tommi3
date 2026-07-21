@@ -102,6 +102,11 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
     font-size: 13px;
 }
 
+/* Feedback */
+.fb-btn { background: none; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; padding: 2px 8px; font-size: 14px; opacity: 0.55; transition: opacity 0.15s, transform 0.15s; }
+.fb-btn:hover { opacity: 1; transform: scale(1.15); }
+.fb-btn.selected { opacity: 1; border-color: #2563eb; }
+
 /* Map */
 #map { flex: 1; }
 
@@ -223,6 +228,18 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
     </label>
     <button id="btn-clear"></button>
     <span id="summary"></span>
+    <span id="feedback-widget" style="display:none;">
+        <button class="fb-btn" id="fb-up" title="👍">👍</button>
+        <button class="fb-btn" id="fb-down" title="👎">👎</button>
+        <span id="fb-thanks" style="display:none;font-size:12px;color:#64748b;"></span>
+    </span>
+    <div id="fb-notes-panel" style="display:none;position:absolute;right:16px;top:100%;margin-top:4px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:2000;width:300px;">
+        <textarea id="fb-notes" rows="3" style="width:100%;font-size:13px;padding:6px;border:1px solid #e2e8f0;border-radius:4px;resize:vertical;font-family:inherit;box-sizing:border-box;" placeholder=""></textarea>
+        <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px;">
+            <button id="fb-skip" style="font-size:12px;padding:4px 10px;border:1px solid #e2e8f0;border-radius:4px;background:#fff;cursor:pointer;"></button>
+            <button id="fb-submit" style="font-size:12px;padding:4px 10px;border:1px solid #2563eb;border-radius:4px;background:#2563eb;color:#fff;cursor:pointer;"></button>
+        </div>
+    </div>
 </div>
 
 <!-- Map -->
@@ -287,6 +304,7 @@ const COUNTRY_ALIASES = {
 let map, clusterGroup;
 let detailData = {};
 let T = {}; // translations
+let lastSearchContext = {}; // for feedback
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', async () => {
@@ -651,10 +669,79 @@ function renderMarkers(data) {
     const nCountries = new Set(markers.map(m => m.country)).size;
     const agrWord = totalAgreements !== 1 ? (T.agreements || 'agreements') : (T.agreement || 'agreement');
     const ctrWord = nCountries !== 1 ? (T.countries || 'countries') : (T.country_singular || 'country');
-    document.getElementById('summary').textContent =
-        totalAgreements + ' ' + agrWord + ' ' + (T.in || 'in') + ' ' + nCountries + ' ' + ctrWord;
+    const summaryText = totalAgreements + ' ' + agrWord + ' ' + (T.in || 'in') + ' ' + nCountries + ' ' + ctrWord;
+    document.getElementById('summary').textContent = summaryText;
+
+    // Save context for feedback and show widget
+    lastSearchContext = { query: document.getElementById('search-box').value.trim(), summary: summaryText };
+    resetFeedbackWidget();
 }
 
+// ── Feedback ──
+function resetFeedbackWidget() {
+    document.getElementById('feedback-widget').style.display = 'inline-flex';
+    document.getElementById('fb-up').classList.remove('selected');
+    document.getElementById('fb-down').classList.remove('selected');
+    document.getElementById('fb-up').style.display = '';
+    document.getElementById('fb-down').style.display = '';
+    document.getElementById('fb-thanks').style.display = 'none';
+    document.getElementById('fb-notes-panel').style.display = 'none';
+}
+
+function submitFeedback(rating, notes) {
+    const filters = {};
+    const ids = {continent:'f-continent', country:'f-country', faculty:'f-faculty', language:'f-lang', language_level:'f-level'};
+    for (const [k, id] of Object.entries(ids)) {
+        const v = document.getElementById(id).value;
+        if (v) filters[k] = v;
+    }
+    if (document.getElementById('f-uninovis').checked) filters.uninovis = true;
+
+    const question = lastSearchContext.query
+        ? '[NL] ' + lastSearchContext.query + ' → ' + JSON.stringify(filters)
+        : Object.keys(filters).length ? '[filters] ' + JSON.stringify(filters) : '[init] all agreements';
+
+    fetch('/api/feedback', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            agent_id: 'algoria_map',
+            rating: rating,
+            mode: 'user',
+            notes: notes || '',
+            user_question: question,
+            full_response: lastSearchContext.summary || ''
+        })
+    }).catch(e => console.warn('Feedback error:', e));
+
+    document.getElementById('fb-notes-panel').style.display = 'none';
+    document.getElementById('fb-up').style.display = 'none';
+    document.getElementById('fb-down').style.display = 'none';
+    document.getElementById('fb-thanks').style.display = 'inline';
+    document.getElementById('fb-thanks').textContent = T.feedback_thanks || 'Thanks!';
+}
+
+document.getElementById('fb-up').addEventListener('click', () => {
+    submitFeedback('up', '');
+});
+
+document.getElementById('fb-down').addEventListener('click', () => {
+    document.getElementById('fb-down').classList.add('selected');
+    document.getElementById('fb-notes-panel').style.display = 'block';
+    document.getElementById('fb-notes').value = '';
+    document.getElementById('fb-notes').placeholder = T.feedback_placeholder || 'What went wrong?';
+    document.getElementById('fb-skip').textContent = T.feedback_skip || 'Skip';
+    document.getElementById('fb-submit').textContent = T.feedback_send || 'Send';
+    document.getElementById('fb-notes').focus();
+});
+
+document.getElementById('fb-submit').addEventListener('click', () => {
+    submitFeedback('down', document.getElementById('fb-notes').value.trim());
+});
+
+document.getElementById('fb-skip').addEventListener('click', () => {
+    submitFeedback('down', '');
+});
 </script>
 </body>
 </html>
