@@ -162,10 +162,6 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
         <button class="dropdown-btn" id="btn-examples"></button>
         <div class="dropdown-menu" id="examples-menu"></div>
     </div>
-    <div style="position:relative;">
-        <button class="dropdown-btn" id="btn-history"></button>
-        <div class="dropdown-menu" id="history-menu"></div>
-    </div>
 </div>
 
 <!-- Filter bar -->
@@ -276,7 +272,6 @@ const COUNTRY_ALIASES = {
 
 // ── State ──
 let map, clusterGroup;
-let queryHistory = [];
 let detailData = {};
 let T = {}; // translations
 
@@ -299,7 +294,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('search-box').placeholder = T.search_placeholder || 'Search agreements...';
     document.getElementById('btn-search').textContent = T.search_btn || 'Search';
     document.getElementById('btn-examples').textContent = T.examples_btn || 'Examples ▾';
-    document.getElementById('btn-history').textContent = T.history_btn || 'History ▾';
     document.getElementById('lbl-continent').textContent = (T.continent || 'Continent') + ':';
     document.getElementById('lbl-country').textContent = (T.country || 'Country') + ':';
     document.getElementById('lbl-faculty').textContent = (T.faculty || 'Faculty') + ':';
@@ -339,7 +333,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     COUNTRIES.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
 
     // Init map
-    map = L.map('map', { zoomControl: true, attributionControl: false, minZoom: 2, maxZoom: 18 });
+    map = L.map('map', { zoomControl: true, attributionControl: false, minZoom: 2, maxZoom: 18, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1.0 });
     map.setView([25, 15], 2);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(map);
     clusterGroup = L.markerClusterGroup({
@@ -378,7 +372,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btn-examples').addEventListener('click', e => {
         e.stopPropagation();
         document.getElementById('examples-menu').classList.toggle('show');
-        document.getElementById('history-menu').classList.remove('show');
     });
     document.querySelectorAll('#examples-menu .dropdown-item').forEach(item => {
         item.addEventListener('click', () => {
@@ -388,12 +381,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // History dropdown
-    document.getElementById('btn-history').addEventListener('click', e => {
-        e.stopPropagation();
-        document.getElementById('history-menu').classList.toggle('show');
-        document.getElementById('examples-menu').classList.remove('show');
-    });
 
     // Close dropdowns on click outside
     document.addEventListener('click', () => {
@@ -427,13 +414,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 function doSearch() {
     const q = document.getElementById('search-box').value.trim();
     if (!q) return;
-
-    // Add to history
-    if (!queryHistory.includes(q)) {
-        queryHistory.unshift(q);
-        if (queryHistory.length > 20) queryHistory.pop();
-        renderHistory();
-    }
 
     // Parse query into filters
     const filters = parseQuery(q);
@@ -646,27 +626,6 @@ function renderMarkers(data) {
         totalAgreements + ' ' + agrWord + ' ' + (T.in || 'in') + ' ' + nCountries + ' ' + ctrWord;
 }
 
-// ── History ──
-function renderHistory() {
-    const menu = document.getElementById('history-menu');
-    menu.innerHTML = '';
-    if (queryHistory.length === 0) {
-        menu.innerHTML = '<div class="dropdown-item" style="color:#64748b;cursor:default;">' + (T.no_history || 'No history yet') + '</div>';
-        return;
-    }
-    queryHistory.forEach(q => {
-        const item = document.createElement('div');
-        item.className = 'dropdown-item';
-        item.textContent = q;
-        item.addEventListener('click', () => {
-            document.getElementById('search-box').value = q;
-            menu.classList.remove('show');
-            doSearch();
-        });
-        menu.appendChild(item);
-    });
-}
-renderHistory();
 </script>
 </body>
 </html>

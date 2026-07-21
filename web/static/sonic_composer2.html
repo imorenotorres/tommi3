@@ -443,11 +443,15 @@ function sendMsg() {
   var fullText = '';
 
   es.addEventListener('session', function(e) { sessionId = e.data; });
+  var traceHtml = '';
   es.onmessage = function(e) {
     var chunk = e.data.replace(/\\n/g, '\n');
     fullText += chunk;
     agentBubble.innerHTML = marked.parse(fullText);
   };
+  es.addEventListener('trace', function(e) {
+    traceHtml = e.data.replace(/\\n/g, '\n');
+  });
   es.addEventListener('done', function() {
     es.close();
     // The response contains HTML divs — set innerHTML directly
@@ -466,6 +470,7 @@ function sendMsg() {
       console.log('[SonicComposer] Re-inserted via temp container');
     }
     processResponse(agentBubble);
+    if (traceHtml) agentBubble.innerHTML += traceHtml;
     isLoading = false;
     document.getElementById('sendBtn').disabled = false;
     input.focus();

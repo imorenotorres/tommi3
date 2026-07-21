@@ -81,22 +81,62 @@ VALID_SAMPLE_NAMES = {
 }
 
 
+MIDI_TO_NOTE = {
+    0: "C", 1: "C", 2: "D", 3: "D", 4: "E", 5: "F",
+    6: "F", 7: "G", 8: "G", 9: "A", 10: "A", 11: "B",
+}
+
+
 def validate_state(state: dict) -> dict:
     """Validate and fix a musical state, replacing invalid values."""
     state["bpm"] = max(40, min(200, state.get("bpm", 120)))
     for name, loop in state.get("loops", {}).items():
+        if not isinstance(loop, dict):
+            continue
+        # Fix "durations" → "rhythm" (common LLM mistake)
+        if "durations" in loop and "rhythm" not in loop:
+            loop["rhythm"] = loop.pop("durations")
+            print(f"[Validate] Renamed 'durations' → 'rhythm'")
+        # Fix integer root → string (e.g. 48 → "C3")
+        root = loop.get("root")
+        if isinstance(root, (int, float)):
+            midi = int(root)
+            note_name = MIDI_TO_NOTE.get(midi % 12, "C")
+            octave = (midi // 12) - 1
+            loop["root"] = f"{note_name}{octave}"
+            print(f"[Validate] Root {midi} → '{loop['root']}'")
+        # Fix float density → int
+        if "density" in loop:
+            d = loop["density"]
+            if isinstance(d, float) and d < 1:
+                loop["density"] = max(1, int(d * 16))
+            else:
+                loop["density"] = max(1, int(d))
         # Validate synth
         synth = loop.get("synth", "piano")
         if synth not in VALID_SYNTH_NAMES:
             loop["synth"] = "piano"
             print(f"[Validate] Invalid synth '{synth}' → 'piano'")
-        # Validate fx
-        if "fx" in loop:
-            valid_fx = [f for f in loop["fx"] if f in VALID_FX_NAMES]
-            if len(valid_fx) != len(loop["fx"]):
-                removed = set(loop["fx"]) - set(valid_fx)
-                print(f"[Validate] Removed invalid fx: {removed}")
-            loop["fx"] = valid_fx
+        # Validate fx — handle string list, object list, or dict format
+        raw_fx = loop.get("fx", [])
+        normalized_fx = []
+        if isinstance(raw_fx, dict):
+            # FX as dict: {"reverb": {...}, "echo": {...}} → ["reverb", "echo"]
+            for fx_name in raw_fx.keys():
+                if fx_name in VALID_FX_NAMES:
+                    normalized_fx.append(fx_name)
+            print(f"[Validate] FX dict → list: {list(raw_fx.keys())} → {normalized_fx}")
+        elif isinstance(raw_fx, list):
+            for f in raw_fx:
+                if isinstance(f, dict):
+                    fx_name = f.get("type", "")
+                    if fx_name in VALID_FX_NAMES:
+                        normalized_fx.append(fx_name)
+                elif isinstance(f, str) and f in VALID_FX_NAMES:
+                    normalized_fx.append(f)
+            if len(normalized_fx) != len(raw_fx):
+                print(f"[Validate] FX normalized: {raw_fx} → {normalized_fx}")
+        loop["fx"] = normalized_fx
         # Validate volume and pan
         loop["volume"] = max(0.0, min(1.0, loop.get("volume", 0.8)))
         loop["pan"] = max(-1.0, min(1.0, loop.get("pan", 0.0)))
@@ -174,19 +214,35 @@ def _build_system_prompt(config, prompts):
     return "\n\n".join(parts)
 
 
+def _fix_json_str(s: str) -> str:
+    """Fix common LLM JSON mistakes before parsing."""
+    # Ruby symbols :word → "word"
+    s = re.sub(r':\s*:(\w+)', r': "\1"', s)
+    # Trailing commas before } or ]
+    s = re.sub(r',\s*([}\]])', r'\1', s)
+    # Fix unquoted keys like {mix: 0.7, room: 0.8} → {"mix": 0.7, "room": 0.8}
+    s = re.sub(r'\{(\w+):', r'{"\1":', s)
+    s = re.sub(r',\s*(\w+):', r', "\1":', s)
+    # Fix strings that look like {"key: val, key2: val2"} (entire dict as one string)
+    s = re.sub(r'"(\w+):\s*([\d.]+),\s*(\w+):\s*([\d.]+)"', r'{"\1": \2, "\3": \4}', s)
+    return s
+
+
 def _extract_state_json(text: str) -> dict | None:
-    m = re.search(r"<estado>\s*(.*?)\s*</estado>", text, re.DOTALL)
-    if m:
-        try:
-            return json.loads(m.group(1))
-        except json.JSONDecodeError:
-            pass
-    m = re.search(r"```json?\s*(.*?)\s*```", text, re.DOTALL)
-    if m:
-        try:
-            return json.loads(m.group(1))
-        except json.JSONDecodeError:
-            pass
+    for pattern in [
+        r"<estado>\s*(.*?)\s*</estado>",
+        r"```json?\s*(.*?)\s*```",
+    ]:
+        m = re.search(pattern, text, re.DOTALL)
+        if m:
+            raw = m.group(1)
+            # Try as-is first, then with fixes
+            for attempt in [raw, _fix_json_str(raw)]:
+                try:
+                    return json.loads(attempt)
+                except json.JSONDecodeError:
+                    continue
+            print(f"[Parse] Failed to parse JSON:\n{raw[:200]}")
     return None
 
 
@@ -286,6 +342,7 @@ class Agent:
 
         self.musical_state = {"bpm": 120, "loops": {}}
         self._previous_code = ""
+        self._trace = []  # Collects trace events during processing
 
         # Sonic Pi connection
         self._sonic = None
@@ -341,10 +398,13 @@ class Agent:
             # Find relevant section of reference
             preset = self._find_preset(message)
             if preset:
+                self._trace.append(f"Preset: <strong>{preset.get('description', 'matched')}</strong>")
                 parts.append(
                     f"\nPRESET SUGERIDO (usa como base, adapta según la instrucción):\n"
                     f"{json.dumps(preset, ensure_ascii=False, indent=2)}"
                 )
+            else:
+                self._trace.append("Preset: none (free composition)")
             # Add relevant style reference
             if self._reference:
                 # Extract the relevant style section
@@ -489,8 +549,12 @@ class Agent:
             changes.append(f"Volume → {new_vol}")
 
         if not changes:
+            self._trace.append("Handler: <strong>LLM</strong> (no programmatic match)")
             return None  # Could not handle programmatically, fall through to LLM
 
+        self._trace.append("Handler: <strong>programmatic</strong> (no LLM)")
+        for c in changes:
+            self._trace.append(f"  {c}")
         self.musical_state = state
         description = "Modificado: " + ", ".join(changes)
         print(f"[SonicComposer2] Programmatic modify: {changes}")
@@ -512,6 +576,8 @@ class Agent:
         return cleaned
 
     def chat(self, message, history, **kwargs):
+        self._trace = []
+
         # Reset on new session
         if not history:
             self._previous_code = ""
@@ -524,9 +590,11 @@ class Agent:
             # Classify intent
             intent = classify_intent(message, self._config, self.client, self.model)
             print(f"[SonicComposer2] Intent: {intent}")
+            self._trace.append(f"Intent: <strong>{intent}</strong>")
         except Exception as e:
             print(f"[SonicComposer2] Classification error: {e}")
             intent = "modify" if self.musical_state.get("loops") else "new_composition"
+            self._trace.append(f"Intent: <strong>{intent}</strong> (fallback)")
 
         # Handle info intent (no JSON needed)
         if intent == "info":
@@ -579,6 +647,9 @@ class Agent:
 
         if new_state:
             new_state = validate_state(new_state)
+            self._trace.append(f"Handler: <strong>LLM</strong>")
+            self._trace.append(f"Loops: {', '.join(new_state.get('loops', {}).keys())}")
+            self._trace.append(f"BPM: {new_state.get('bpm', '?')}")
             self.musical_state = new_state
             return self._build_response(description)
         else:
@@ -595,3 +666,13 @@ class Agent:
         chunk_size = 40
         for i in range(0, len(result), chunk_size):
             yield ("content", result[i : i + chunk_size])
+        # Send trace as collapsible HTML
+        if self._trace:
+            trace_html = (
+                '<details style="margin-top:8px;font-size:0.8em;color:#888;">'
+                '<summary style="cursor:pointer;color:#4250b3;">Decision trace</summary>'
+                '<div style="padding:6px 12px;background:#f8f9ff;border-radius:6px;margin-top:4px;">'
+                + '<br>'.join(self._trace)
+                + '</div></details>'
+            )
+            yield ("trace", trace_html)

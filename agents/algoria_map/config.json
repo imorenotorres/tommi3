@@ -25,7 +25,7 @@
     "es": {
       "title": "Mapa de Convenios de Movilidad de la UMA",
       "logo": "Mapa de Algoria",
-      "search_placeholder": "Buscar convenios (ej. Italia, Facultad de Derecho, Inglés B2...)",
+      "search_placeholder": "Búsqueda con IA (beta) (ej. Italia, Facultad de Derecho, Inglés B2...)",
       "search_btn": "Buscar",
       "examples_btn": "Ejemplos ▾",
       "history_btn": "Historial ▾",
