@@ -302,6 +302,15 @@ const COUNTRY_ALIASES = {
 
 // ── State ──
 let map, clusterGroup;
+
+// ── Interaction logging ──
+function logInteraction(action, details) {
+    fetch('/api/agents/algoria_map/interaction-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, details })
+    }).catch(() => {});  // fire-and-forget
+}
 let detailData = {};
 let T = {}; // translations
 let lastSearchContext = {}; // for feedback
@@ -388,6 +397,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     });
+    clusterGroup.on('clusterclick', function(e) {
+        var childMarkers = e.layer.getAllChildMarkers();
+        var countries = [...new Set(childMarkers.map(cm => cm.options._country))].filter(Boolean);
+        logInteraction('cluster_click', { count: childMarkers.length, countries: countries, zoom: map.getZoom() });
+    });
     map.addLayer(clusterGroup);
 
     // Event handlers
@@ -437,6 +451,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window._algoriaOpenDetail = function(key) {
         const data = detailData[key];
         if (!data) return;
+        logInteraction('open_detail', { key: key, title: data.title });
         const w = window.open('', '_blank', 'width=700,height=600');
         w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + data.title + '</title>' +
             '<style>body{font-family:system-ui,sans-serif;margin:20px;color:#1a1a1a;line-height:1.6;}b{color:#334155;}</style></head><body>' +
@@ -646,13 +661,15 @@ function renderMarkers(data) {
             color: '#1e40af',
             weight: 1.5,
             opacity: 0.9,
-            fillOpacity: 0.65
+            fillOpacity: 0.65,
+            _country: m.country
         }).bindPopup(m.popup, { maxWidth: 500, maxHeight: 350, autoPan: false });
         marker.on('click', function(e) {
             // Pan map so marker is in the lower third — leaves space for popup above
             var px = map.latLngToContainerPoint(e.latlng);
             var offsetY = px.y - map.getSize().y * 0.7;
             if (offsetY < 0) map.panBy([0, offsetY], { animate: true, duration: 0.3 });
+            logInteraction('marker_click', { country: m.country, count: m.count, lat: m.lat, lon: m.lon, detail_key: m.detail_key || null });
         });
         clusterGroup.addLayer(marker);
     });

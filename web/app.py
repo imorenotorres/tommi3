@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query, Request, Depends, UploadFile
+from fastapi import FastAPI, File as FastFile, HTTPException, Query, Request, Depends, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, RedirectResponse
 from pydantic import BaseModel
@@ -182,6 +182,11 @@ app.add_middleware(AuthMiddleware)
 # Servir archivos estáticos
 app.mount("/static", StaticFiles(directory=SCRIPT_DIR / "static"), name="static")
 app.mount("/img", StaticFiles(directory=SCRIPT_DIR / "img"), name="img")
+
+# Temp directory for generated files (Praat spectrograms, etc.)
+_TEMP_DIR = SCRIPT_DIR / "temp"
+_TEMP_DIR.mkdir(exist_ok=True)
+app.mount("/temp", StaticFiles(directory=_TEMP_DIR), name="temp")
 
 # Mount UNIGRACON app (grade converter)
 from apps.unigracon.unigracon import router as unigracon_router
@@ -1143,6 +1148,16 @@ async def tutores_lali():
     return FileResponse(SCRIPT_DIR / "static" / "uma_lali.html")
 
 
+@app.get("/tutores-virtuales/lali-tutor/widgets/{widget_name}")
+async def lali_widget(widget_name: str):
+    """Serve LALI tutor interactive widgets"""
+    safe_name = widget_name.replace("/", "").replace("..", "")
+    path = SCRIPT_DIR / "static" / "widgets" / f"{safe_name}.html"
+    if not path.is_file():
+        return JSONResponse({"error": "Widget not found"}, status_code=404)
+    return FileResponse(path)
+
+
 # ── Tutores Virtuales: auth system ─────────────────────────────────────
 
 from auth_tutores import (
@@ -1331,9 +1346,258 @@ async def tutores_validate_invite_endpoint(token: str = Query(...)):
     return {"username": username}
 
 
+# ── LALI tutor: course data API ────────────────────────────────────────
+
+_LALI_DIR = Path(__file__).parent.parent / "agents" / "lali_tutor"
+
+
+@app.get("/api/public-agent/lali_tutor/docentes")
+async def lali_get_docentes():
+    """Get teaching staff info (public)."""
+    path = _LALI_DIR / "docentes.json"
+    if not path.exists():
+        return {}
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+@app.get("/api/public-agent/lali_tutor/progreso-temas")
+async def lali_get_progreso_temas(request: Request):
+    """Get student progress across all themes (requires auth)."""
+    tutores_token = _get_tutores_token(request)
+    session = tutores_get_session(tutores_token) if tutores_token else None
+    if not session:
+        return {"temas": [], "tema_recomendado": 1}
+    username = session.get("username", "")
+    if not username:
+        return {"temas": [], "tema_recomendado": 1}
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent / "agents"))
+        from tutor_fonetica_base.progreso_alumno import (
+            progreso_todos_temas, tema_recomendado, set_progress_dir
+        )
+        set_progress_dir(_LALI_DIR / "progress")
+        return {
+            "temas": progreso_todos_temas(username),
+            "tema_recomendado": tema_recomendado(username),
+            "username": username,
+        }
+    except Exception as e:
+        return {"temas": [], "tema_recomendado": 1, "error": str(e)}
+
+
+@app.post("/api/public-agent/lali_tutor/registrar-actividad")
+async def lali_registrar_actividad(request: Request):
+    """Register a student activity in a theme (concept viewed, exercise done, etc.)."""
+    tutores_token = _get_tutores_token(request)
+    session = tutores_get_session(tutores_token) if tutores_token else None
+    if not session:
+        raise HTTPException(status_code=401, detail="No autenticado")
+    username = session.get("username", "")
+    if not username:
+        raise HTTPException(status_code=401, detail="No autenticado")
+    body = await request.json()
+    tema_id = body.get("tema_id")
+    tipo = body.get("tipo")
+    detalle = body.get("detalle", "")
+    if not tema_id or not tipo:
+        raise HTTPException(status_code=400, detail="Faltan tema_id o tipo")
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent / "agents"))
+        from tutor_fonetica_base.progreso_alumno import registrar_actividad_tema, set_progress_dir
+        set_progress_dir(_LALI_DIR / "progress")
+        registrar_actividad_tema(username, int(tema_id), tipo, detalle)
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/public-agent/lali_tutor/autoeval-progreso")
+async def lali_get_autoeval_progreso(
+    request: Request,
+    tema_id: int = Query(None),
+):
+    """Get detailed self-assessment progress for a student."""
+    tutores_token = _get_tutores_token(request)
+    session = tutores_get_session(tutores_token) if tutores_token else None
+    if not session:
+        return {"error": "No autenticado"}
+    username = session.get("username", "")
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent / "agents"))
+        from tutor_fonetica_base.autoevaluacion import (
+            set_autoeval_dir, progreso_tema as ae_progreso_tema,
+            progreso_global as ae_progreso_global
+        )
+        set_autoeval_dir(_LALI_DIR / "autoevaluacion")
+        if tema_id:
+            return ae_progreso_tema(username, tema_id)
+        else:
+            return ae_progreso_global(username)
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# ── LALI tutor: Moodle SSO ─────────────────────────────────────────────
+
+# Secreto compartido para firmar los enlaces desde Moodle.
+# Cámbialo por uno único. Se pone también en el bloque HTML de Moodle.
+_MOODLE_SSO_SECRET = os.environ.get("LALI_MOODLE_SECRET", "cambiar-este-secreto-compartido")
+_MOODLE_SSO_EXPIRY = 300  # 5 minutos de validez
+
+
+@app.get("/api/public-agent/lali_tutor/moodle-login")
+async def lali_moodle_login(
+    request: Request,
+    user: str = Query(...),
+    ts: str = Query(...),
+    sig: str = Query(...),
+    name: str = Query(""),
+    role: str = Query("estudiante"),
+):
+    """SSO desde Moodle. Verifica firma HMAC, crea sesión, redirige al tutor.
+
+    URL generada por el bloque HTML de Moodle:
+        /api/public-agent/lali_tutor/moodle-login?user=EMAIL&ts=TIMESTAMP&sig=HMAC&name=NOMBRE&role=estudiante
+    """
+    import hashlib
+    import hmac
+    import time as _time
+
+    # 1. Verificar que el enlace no ha caducado
+    try:
+        timestamp = int(ts)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Timestamp inválido")
+    if abs(_time.time() - timestamp) > _MOODLE_SSO_EXPIRY:
+        raise HTTPException(status_code=403, detail="El enlace ha caducado. Vuelve a Moodle y haz clic de nuevo.")
+
+    # 2. Verificar firma HMAC
+    mensaje = f"{user}:{ts}"
+    firma_esperada = hmac.new(
+        _MOODLE_SSO_SECRET.encode(), mensaje.encode(), hashlib.sha256
+    ).hexdigest()
+    if not hmac.compare_digest(sig, firma_esperada):
+        # Debug: log para diagnosticar
+        print(f"[MOODLE-SSO] FIRMA INVÁLIDA")
+        print(f"  user={repr(user)} ts={repr(ts)}")
+        print(f"  mensaje={repr(mensaje)}")
+        print(f"  sig_recibida={sig}")
+        print(f"  sig_esperada={firma_esperada}")
+        print(f"  secret={repr(_MOODLE_SSO_SECRET[:10])}...")
+        raise HTTPException(status_code=403, detail="Firma inválida. Acceso denegado.")
+
+    # 3. Buscar o crear el usuario en el sistema de tutores
+    username = user.strip().lower()
+    nombre = name.strip()
+
+    # Intentar autenticar con auth_tutores (si ya existe)
+    from auth_tutores import (
+        create_user as tutores_create_user,
+        authenticate as tutores_authenticate,
+        _load_users as tutores_load_users,
+        _hash_password, _save_users,
+    )
+    users = tutores_load_users()
+
+    if username not in users:
+        # Crear usuario automáticamente con contraseña aleatoria
+        import secrets as _secrets
+        temp_pwd = _secrets.token_urlsafe(16)
+        tutores_create_user(username, temp_pwd, role=role, nombre=nombre, activo=True)
+        users = tutores_load_users()
+
+    # Actualizar nombre si viene de Moodle y ha cambiado
+    if nombre and users[username].get("nombre") != nombre:
+        users[username]["nombre"] = nombre
+        _save_users(users)
+
+    # 4. Crear sesión directamente (sin requerir contraseña)
+    import secrets as _secrets
+    import time as _time
+    from auth_tutores import _sessions
+    token = _secrets.token_hex(32)
+    user_role = users[username].get("role", "estudiante")
+    _sessions[token] = {
+        "username": username,
+        "role": user_role,
+        "nombre": users[username].get("nombre", ""),
+        "created": _time.time(),
+    }
+
+    # 5. Redirigir al tutor con el token en la URL
+    redirect_url = f"/tutores-virtuales/lali-tutor?moodle_token={token}"
+    return RedirectResponse(url=redirect_url, status_code=302)
+
+
+@app.get("/api/public-agent/lali_tutor/temas")
+async def lali_get_temas():
+    """Get course topics structure (public)."""
+    path = _LALI_DIR / "temas.json"
+    if not path.exists():
+        return {"temas": []}
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+@app.get("/api/public-agent/lali_tutor/contenido-seccion")
+async def lali_get_contenido_seccion(
+    doc: str = Query(..., description="Nombre del archivo markdown (ej: Tema1_Introduccion.md)"),
+    seccion: str = Query("", description="Título de la sección a extraer (ej: '1. Fonología y fonética')"),
+):
+    """Devuelve el contenido de una sección de un documento markdown del curso.
+
+    Si seccion está vacío, devuelve todo el documento.
+    El contenido se devuelve en markdown crudo (el frontend lo renderiza con marked.js).
+    """
+    import re as _re
+
+    # Sanitize: no path traversal
+    safe_doc = Path(doc).name
+    doc_path = _LALI_DIR / "data" / "docs" / safe_doc
+    if not doc_path.exists():
+        raise HTTPException(status_code=404, detail=f"Documento no encontrado: {safe_doc}")
+
+    with open(doc_path, "r", encoding="utf-8") as f:
+        contenido = f.read()
+
+    if not seccion:
+        return {"doc": safe_doc, "seccion": "", "contenido": contenido}
+
+    # Buscar la sección por título (## o ###)
+    # Escapar caracteres regex en el título
+    titulo_escaped = _re.escape(seccion.strip())
+    pattern = r'^(#{2,3})\s+' + titulo_escaped + r'\s*$'
+    match = _re.search(pattern, contenido, _re.MULTILINE)
+    if not match:
+        # Intentar búsqueda parcial (sin número de sección)
+        titulo_sin_num = _re.sub(r'^\d+\.\s*', '', seccion.strip())
+        titulo_escaped2 = _re.escape(titulo_sin_num)
+        pattern2 = r'^(#{2,3})\s+(?:\d+\.?\s*)?' + titulo_escaped2 + r'\s*$'
+        match = _re.search(pattern2, contenido, _re.MULTILINE | _re.IGNORECASE)
+
+    if not match:
+        return {"doc": safe_doc, "seccion": seccion, "contenido": "", "error": "Sección no encontrada"}
+
+    nivel = len(match.group(1))  # 2 para ##, 3 para ###
+    inicio = match.start()
+
+    # Buscar el final: siguiente heading del mismo nivel o superior
+    rest = contenido[match.end():]
+    end_pattern = r'^#{2,' + str(nivel) + r'}\s+'
+    end_match = _re.search(end_pattern, rest, _re.MULTILINE)
+    if end_match:
+        fin = match.end() + end_match.start()
+    else:
+        fin = len(contenido)
+
+    seccion_texto = contenido[inicio:fin].strip()
+    return {"doc": safe_doc, "seccion": seccion, "contenido": seccion_texto}
+
+
 # ── LALI tutor: transcription config API ──────────────────────────────
 
-_LALI_CONFIG_PATH = Path(__file__).parent.parent / "agents" / "lali_tutor" / "transcripcion_config.json"
+_LALI_CONFIG_PATH = _LALI_DIR / "transcripcion_config.json"
 
 @app.get("/api/public-agent/lali_tutor/transcripcion-config")
 async def lali_get_transcripcion_config():
@@ -1420,6 +1684,122 @@ async def lali_auth_level(request: Request):
     if tutores_is_docente(session):
         return {"level": "editor", "authenticated": True, "username": session.get("username")}
     return {"level": "student", "authenticated": True, "username": session.get("username")}
+
+
+# ── LALI tutor / Fonética: análisis acústico con Praat ─────────────────
+
+_PRAAT_OUTPUT_DIR = SCRIPT_DIR / "temp" / "praat"
+_PRAAT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Max audio file size: 10 MB
+_MAX_AUDIO_SIZE = 10 * 1024 * 1024
+_ALLOWED_AUDIO_TYPES = {
+    "audio/wav", "audio/wave", "audio/x-wav",
+    "audio/mpeg", "audio/mp3",
+    "audio/ogg", "audio/flac",
+    "audio/webm",
+}
+
+
+@app.post("/api/public-agent/analyze-audio")
+async def analyze_audio(
+    request: Request,
+    file: UploadFile = FastFile(...),
+    mostrar_formantes: bool = Query(True),
+    mostrar_pitch: bool = Query(False),
+):
+    """Analiza un archivo de audio y genera espectrograma + datos acústicos.
+
+    Público (no requiere autenticación). Usado por tutores de fonética.
+
+    Returns:
+        JSON con URLs de imágenes y datos de análisis.
+    """
+    # Validate file type
+    content_type = file.content_type or ""
+    if content_type not in _ALLOWED_AUDIO_TYPES and not file.filename.endswith((".wav", ".mp3", ".ogg", ".flac", ".webm")):
+        raise HTTPException(status_code=400, detail="Formato de audio no soportado. Usa WAV, MP3, OGG o FLAC.")
+
+    # Read and validate size
+    audio_data = await file.read()
+    if len(audio_data) > _MAX_AUDIO_SIZE:
+        raise HTTPException(status_code=400, detail="El archivo es demasiado grande (máximo 10 MB).")
+    if len(audio_data) == 0:
+        raise HTTPException(status_code=400, detail="El archivo está vacío.")
+
+    # Save to temp file
+    import tempfile
+    import uuid
+    file_id = uuid.uuid4().hex[:12]
+    safe_name = "".join(c for c in Path(file.filename or "audio").stem if c.isalnum() or c in "-_")[:30]
+    temp_wav = _PRAAT_OUTPUT_DIR / f"{file_id}_{safe_name}.wav"
+
+    # If not WAV, convert using parselmouth (it handles multiple formats)
+    temp_input = _PRAAT_OUTPUT_DIR / f"{file_id}_input{Path(file.filename or '.wav').suffix}"
+    with open(temp_input, "wb") as f:
+        f.write(audio_data)
+
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent / "agents"))
+        from tutor_fonetica_base.praat_tools import (
+            disponible, generar_espectrograma, generar_oscilograma,
+            analizar_pitch as praat_pitch, resumen_formantes, formatear_analisis,
+        )
+
+        if not disponible():
+            raise HTTPException(status_code=503, detail="parselmouth no está disponible en el servidor.")
+
+        import parselmouth
+        snd = parselmouth.Sound(str(temp_input))
+
+        # Save as WAV for consistent processing
+        snd.save(str(temp_wav), "WAV")
+
+        # Generate spectrogram
+        spec_path = generar_espectrograma(
+            str(temp_wav), str(_PRAAT_OUTPUT_DIR),
+            mostrar_formantes=mostrar_formantes,
+            mostrar_pitch=mostrar_pitch,
+            titulo=safe_name or "Audio",
+        )
+
+        # Generate oscillogram
+        osc_path = generar_oscilograma(str(temp_wav), str(_PRAAT_OUTPUT_DIR))
+
+        # Acoustic analysis
+        pitch_data = praat_pitch(str(temp_wav))
+        formant_data = resumen_formantes(str(temp_wav))
+
+        # Build response with relative URLs
+        spec_url = "/temp/praat/" + Path(spec_path).name
+        osc_url = "/temp/praat/" + Path(osc_path).name
+        duracion = round(snd.xmax - snd.xmin, 3)
+
+        resultado = {
+            "espectrograma_url": spec_url,
+            "oscilograma_url": osc_url,
+            "duracion": duracion,
+            "pitch": pitch_data,
+            "formantes": formant_data,
+            "archivo": file.filename,
+        }
+
+        # Format analysis as markdown for the chat
+        analisis_md = formatear_analisis({
+            "duracion": duracion,
+            "pitch": pitch_data,
+            "formantes": formant_data,
+        })
+        resultado["analisis_md"] = analisis_md
+
+        return resultado
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al analizar el audio: {str(e)}")
+    finally:
+        # Clean up input file (keep generated outputs for serving)
+        if temp_input.exists() and temp_input != temp_wav:
+            temp_input.unlink(missing_ok=True)
 
 
 @app.get("/uninovis-uma/help/agoria-db")
@@ -3526,6 +3906,27 @@ async def agent_agreements_search(
     )
 
     return result
+
+
+@app.post("/api/agents/{agent_id}/interaction-log")
+async def agent_interaction_log(request: Request, agent_id: str):
+    """Log a UI interaction (click on marker, cluster, detail) without a search."""
+    if not ENABLE_LOGGING:
+        return {"ok": True}
+    body = await request.json()
+    action = body.get("action", "unknown")
+    details = body.get("details", "")
+    client_ip = request.client.host if request.client else "unknown"
+    session_id = body.get("session_id", "")
+    log_conversation(
+        client_ip=client_ip,
+        agent_id=agent_id,
+        agent_name="Algoria Map",
+        question=f"[interaction] {action}",
+        response=str(details)[:500],
+        session_id=session_id,
+    )
+    return {"ok": True}
 
 
 # ============================================================================
