@@ -164,7 +164,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/projects-search", "/project-topic-search", "/pdf-list")) and any(f"/{aid}/" in path for aid in ("responsible_ai3", "health_wellbeing_sistems"))
         is_tutores = path.startswith("/api/tutores/")
         is_lali_public = path in ("/api/lali-tutor/auth-level", "/api/agent/lali_tutor/transcripcion-config")
-        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/public-tools" not in path and "/public-agent/" not in path and "/api/feedback" != path and not is_study and not is_public_search and not is_rag_study2 and not is_tutores and not is_lali_public:
+        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/interaction-log" not in path and "/public-tools" not in path and "/public-agent/" not in path and "/api/feedback" != path and not is_study and not is_public_search and not is_rag_study2 and not is_tutores and not is_lali_public:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
                 token = request.query_params.get("token", "")
@@ -1056,6 +1056,12 @@ async def rag_study2_page():
 async def rag_study2_chat_page():
     """RAG Reliability Study — agent chat interface"""
     return FileResponse(SCRIPT_DIR / "static" / "rag_study2_chat.html")
+
+
+@app.get("/all-agents")
+async def all_agents_page():
+    """Serve the unified all-agents landing page"""
+    return FileResponse(SCRIPT_DIR / "static" / "all_agents.html")
 
 
 @app.get("/research-explorers")

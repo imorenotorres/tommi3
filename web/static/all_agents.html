@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All Agents — TOMMI</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+/* Nav */
+.nav { background: #4250b3; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+.nav-title { color: #fff; font-size: 22px; font-weight: 700; }
+.nav-sub { color: rgba(255,255,255,0.8); font-size: 14px; margin-left: 8px; }
+.nav-logos { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+/* Sections */
+.container { max-width: 1100px; margin: 0 auto; padding: 32px 24px 48px; }
+
+.section { margin-bottom: 40px; }
+.section-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    padding-bottom: 8px; border-bottom: 2px solid #e2e8f0;
+}
+.section-icon { font-size: 24px; }
+.section-title { font-size: 18px; font-weight: 700; color: #1e293b; }
+.section-count { font-size: 12px; color: #94a3b8; margin-left: auto; }
+
+/* Cards */
+.cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+.card {
+    background: #fff; border-radius: 10px; padding: 18px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07); transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none; color: #1e293b; display: flex; flex-direction: column;
+    border-top: 4px solid #e2e8f0;
+}
+a.card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.card-disabled { opacity: 0.5; cursor: default; }
+.card-disabled:hover { transform: none; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+
+.card-icon {
+    width: fit-content; height: 36px; border-radius: 18px; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 11px; margin-bottom: 8px; padding: 0 10px;
+}
+.card h3 { font-size: 14px; color: #1e293b; margin-bottom: 3px; }
+.card p { font-size: 12px; color: #64748b; line-height: 1.4; flex: 1; }
+.card-lead { display: block; margin-top: 6px; font-size: 11px; font-weight: 600; color: #4250b3; }
+.card-badge {
+    display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 600;
+    padding: 2px 10px; border-radius: 10px; align-self: flex-start;
+}
+.badge-pilot { color: #0c5460; background: #d1ecf1; }
+.badge-active { color: #155724; background: #d4edda; }
+.badge-data-curation { color: #856404; background: #fff3cd; }
+.badge-construction { color: #856404; background: #ffeeba; }
+
+.card-links { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.card-links a {
+    font-size: 11px; text-decoration: none;
+    border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 4px;
+    color: #4250b3;
+}
+.card-links a:hover { background: #f1f5f9; }
+
+/* Footer */
+.footer { text-align: center; padding: 24px; font-size: 12px; color: #94a3b8; }
+.footer a { color: #64748b; }
+
+@media (max-width: 800px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .cards-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <div>
+        <span class="nav-title">TOMMI Agents</span>
+        <span class="nav-sub">All available agents</span>
+    </div>
+    <div class="nav-logos">
+        <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:50px;">
+        <img src="/static/logo_uma.png" alt="UMA" style="height:50px;">
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Administrative Agents -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">&#127963;</span>
+            <span class="section-title">Administrative Agents</span>
+            <span class="section-count">3 agents</span>
+        </div>
+        <div class="cards-grid">
+
+            <div class="card" style="border-top-color:#4250b3;">
+                <div class="card-icon" style="background:#4250b3;">Algoria BD</div>
+                <h3>Asistente BD Algoria</h3>
+                <p>Database assistant for university agreements. Search by university, country, language and more.</p>
+                <span class="card-badge badge-pilot">Pilot</span>
+                <div class="card-links">
+                    <a href="/uninovis-uma/algoria">Open</a>
+                    <a href="/uninovis-uma/help/agoria-db">Help</a>
+                </div>
+            </div>
+
+            <div class="card" style="border-top-color:#059669;">
+                <div class="card-icon" style="background:#059669;">EU</div>
+                <h3>European Projects</h3>
+                <p>Search European research calls and projects. Horizon Europe, Erasmus+ and other programmes.</p>
+                <span class="card-badge badge-pilot">Pilot</span>
+                <div class="card-links">
+                    <a href="/uninovis-uma/proyectos-europeos">Open</a>
+                    <a href="/uninovis-uma/help/european-projects">Help</a>
+                </div>
+            </div>
+
+            <div class="card" style="border-top-color:#dc2626;">
+                <div class="card-icon" style="background:#dc2626;">Algoria Map</div>
+                <h3>Agreements Map</h3>
+                <p>Interactive map of UMA mobility agreements. Search by continent, country, university, faculty, language or level.</p>
+                <span class="card-badge badge-pilot">Pilot</span>
+                <div class="card-links">
+                    <a href="/static/algoria_map.html">Open map</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Virtual Tutors -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">&#127891;</span>
+            <span class="section-title">Virtual Tutors</span>
+            <span class="section-count">1 agent</span>
+        </div>
+        <div class="cards-grid">
+
+            <div class="card" style="border-top-color:#7c3aed;">
+                <div class="card-icon" style="background:#7c3aed;">LALI</div>
+                <h3>Tutor LALI</h3>
+                <p>Virtual tutor for Applied Linguistics in Speech Therapy. Phonology, phonetics, transcriptions, phonological errors and Praat.</p>
+                <span class="card-badge badge-pilot">Pilot</span>
+                <div class="card-links">
+                    <a href="/tutores-virtuales/lali-tutor">Open tutor</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Research Explorers -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">&#128300;</span>
+            <span class="section-title">Research Explorers</span>
+            <span class="section-count">8 agents</span>
+        </div>
+        <div class="cards-grid">
+
+            <a href="/responsible-ai" class="card" style="border-top-color:#9EA700;">
+                <div class="card-icon" style="background:#9EA700;">AI</div>
+                <h3>Responsible AI</h3>
+                <p>Explainable AI, AI ethics, trustworthy AI, AI fairness, AI governance</p>
+                <span class="card-lead">THUAS — The Hague, Netherlands</span>
+                <span class="card-badge badge-pilot">Pilot</span>
+            </a>
+
+            <a href="/health-wellbeing" class="card" style="border-top-color:#0066CC;">
+                <div class="card-icon" style="background:#0066CC;">HW</div>
+                <h3>Health &amp; Wellbeing Systems</h3>
+                <p>Digital health, AI diagnostics, wearable monitoring, precision medicine</p>
+                <span class="card-lead">UMA — Málaga, Spain</span>
+                <span class="card-badge badge-data-curation">Data curation</span>
+            </a>
+
+            <div class="card card-disabled" style="border-top-color:#FF6A00;">
+                <div class="card-icon" style="background:#FF6A00;">Rob</div>
+                <h3>AI &amp; Robotics</h3>
+                <p>Intelligent automation, human-robot interaction, Industry 4.0, smart manufacturing</p>
+                <span class="card-lead">THWS — Würzburg, Germany</span>
+                <span class="card-badge badge-construction">Preparing metadata</span>
+            </div>
+
+            <div class="card card-disabled" style="border-top-color:#CC1100;">
+                <div class="card-icon" style="background:#CC1100;">ICT</div>
+                <h3>ICT Technologies &amp; Languages</h3>
+                <p>NLP, computational linguistics, machine translation, language models, ICT</p>
+                <span class="card-lead">UT — Tirana, Albania</span>
+                <span class="card-badge badge-construction">Preparing metadata</span>
+            </div>
+
+            <div class="card card-disabled" style="border-top-color:#1176A6;">
+                <div class="card-icon" style="background:#1176A6;">LD</div>
+                <h3>Logistics &amp; Data Science</h3>
+                <p>Logistics, data science applied to statistics, supply chain analytics</p>
+                <span class="card-lead">UDCLV — Caserta, Italy</span>
+                <span class="card-badge badge-construction">Preparing metadata</span>
+            </div>
+
+            <div class="card card-disabled" style="border-top-color:#293358;">
+                <div class="card-icon" style="background:#293358;">SSE</div>
+                <h3>Smart &amp; Sustainable Environments</h3>
+                <p>Smart cities, sustainable development, environmental AI, energy efficiency</p>
+                <span class="card-lead">USPN — Paris, France</span>
+                <span class="card-badge badge-construction">Preparing metadata</span>
+            </div>
+
+            <div class="card card-disabled" style="border-top-color:#4E008E;">
+                <div class="card-icon" style="background:#4E008E;">WT</div>
+                <h3>Wellness Technologies &amp; Services</h3>
+                <p>Wellness technology, digital services, health tech innovation</p>
+                <span class="card-lead">TAMK — Tampere, Finland</span>
+                <span class="card-badge badge-construction">Preparing metadata</span>
+            </div>
+
+            <div class="card card-disabled" style="border-top-color:#399E97;">
+                <div class="card-icon" style="background:#399E97;">LC</div>
+                <h3>Logistics &amp; Cybersecurity</h3>
+                <p>Logistics systems, cybersecurity, secure supply chains, digital infrastructure</p>
+                <span class="card-lead">KK — Kaunas, Lithuania</span>
+                <span class="card-badge badge-construction">Preparing metadata</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Creative Agents -->
+    <div class="section">
+        <div class="section-header">
+            <span class="section-icon">&#127928;</span>
+            <span class="section-title">Creative Agents</span>
+            <span class="section-count">2 agents</span>
+        </div>
+        <div class="cards-grid">
+
+            <a class="card" href="/creative-agents/sonic-composer" style="border-top-color:#e74c3c;">
+                <div class="card-icon" style="background:#e74c3c;">&#9835;</div>
+                <h3>Sonic Composer</h3>
+                <p>Create and modify music in real time using natural language. Supports ambient, generative, techno, and more.</p>
+                <span class="card-badge badge-pilot">Pilot</span>
+            </a>
+
+            <a class="card" href="/creative-agents/sonic-composer-v2" style="border-top-color:#2ecc71;">
+                <div class="card-icon" style="background:#2ecc71;">&#9835; v2</div>
+                <h3>Sonic Composer v2</h3>
+                <p>Style-aware music agent. Knows patterns and instruments of rock, blues, jazz, techno, reggae, bossa nova and more.</p>
+                <span class="card-badge badge-pilot">Pilot</span>
+            </a>
+
+        </div>
+    </div>
+
+</div>
+
+<footer class="footer">
+    Built with <strong>TOMMI</strong> by the UNINOVIS-UMA ICT Team. Licensed under the <a href="/static/license.html">EUPL v1.2</a> | <a href="/static/privacy.html">Privacy Policy</a>
+</footer>
+
+</body>
+</html>
