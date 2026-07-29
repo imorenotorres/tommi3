@@ -1210,10 +1210,13 @@ function openLogAnalytics() {
 
     var panel = document.createElement('div');
     panel.style.cssText = 'background:#fff;border-radius:12px;padding:24px;width:780px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);';
+    panel.id = 'la-panel';
     panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'
         + '<h2 style="margin:0;font-size:1.15rem;color:#2D3876;">Agents Analytics</h2>'
+        + '<div style="display:flex;gap:6px;align-items:center;">'
+        + '<button onclick="document.getElementById(\'la-panel\').scrollTo({top:document.getElementById(\'la-panel\').scrollHeight,behavior:\'smooth\'})" style="background:none;border:1px solid #ccc;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:0.8rem;color:#666;" title="Ir al final">&#8595; Final</button>'
         + '<button onclick="closeLogAnalytics()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
-        + '</div>'
+        + '</div></div>'
         + '<div id="la-message" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
         // Period selector
         + '<div style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">'
@@ -1235,6 +1238,10 @@ function openLogAnalytics() {
         + '<div style="padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">'
         + '<h3 style="margin:0 0 8px 0;font-size:0.9rem;">Log Files</h3>'
         + '<div id="la-files" style="font-size:0.85rem;">Loading...</div>'
+        + '</div>'
+        + '<div style="display:flex;justify-content:space-between;margin-top:16px;">'
+        + '<button onclick="document.getElementById(\'la-panel\').scrollTo({top:0,behavior:\'smooth\'})" style="background:none;border:1px solid #ccc;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:0.82rem;color:#666;">&#8593; Inicio</button>'
+        + '<button onclick="closeLogAnalytics()" style="background:#2D3876;color:#fff;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:0.82rem;">Cerrar</button>'
         + '</div>';
 
     overlay.appendChild(panel);
@@ -1398,10 +1405,13 @@ async function laViewFile(filename) {
 
     var panel = document.createElement('div');
     panel.style.cssText = 'background:#fff;border-radius:12px;padding:24px;width:850px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.25);';
+    panel.id = 'la-viewer-panel';
     panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
         + '<h3 style="margin:0;font-size:1rem;color:#2D3876;word-break:break-all;">' + filename + '</h3>'
+        + '<div style="display:flex;gap:6px;align-items:center;">'
+        + '<button onclick="document.getElementById(\'la-viewer-panel\').scrollTo({top:document.getElementById(\'la-viewer-panel\').scrollHeight,behavior:\'smooth\'})" style="background:none;border:1px solid #ccc;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:0.8rem;color:#666;" title="Ir al final">&#8595; Final</button>'
         + '<button onclick="document.getElementById(\'la-viewer\').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
-        + '</div>'
+        + '</div></div>'
         + '<div id="la-viewer-content" style="font-size:0.85rem;">Loading...</div>';
 
     viewer.appendChild(panel);
@@ -1456,6 +1466,10 @@ async function laViewFile(filename) {
                 + '</div>';
         });
 
+        html += '<div style="display:flex;justify-content:space-between;margin-top:16px;">'
+            + '<button onclick="document.getElementById(\'la-viewer-panel\').scrollTo({top:0,behavior:\'smooth\'})" style="background:none;border:1px solid #ccc;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:0.82rem;color:#666;">&#8593; Inicio</button>'
+            + '<button onclick="document.getElementById(\'la-viewer\').remove()" style="background:#2D3876;color:#fff;border:none;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:0.82rem;">Cerrar</button>'
+            + '</div>';
         container.innerHTML = html;
     } catch (e) {
         document.getElementById('la-viewer-content').innerHTML = '<span style="color:#dc3545;">Error loading file</span>';
