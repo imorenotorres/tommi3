@@ -1847,13 +1847,12 @@ async def lali_moodle_login(
         print(f"[MOODLE-SSO] FIRMA INVÁLIDA user={repr(user)} ts={repr(ts)}")
         raise HTTPException(status_code=403, detail="Firma inválida. Acceso denegado.")
 
-    # 3. Buscar el usuario en users.json del agente (no en tutores_users.json global)
+    # 3. Buscar el usuario en tutores_users.json
     username = user.strip().lower()
-    from agents.tutor_fonetica_base.user_manager import UserManager
-    um = UserManager(_LALI_DIR)
-    user_data = um.obtener_usuario(username)
+    from auth_tutores import _load_users as tutores_load_users
+    users = tutores_load_users()
 
-    if not user_data:
+    if username not in users:
         raise HTTPException(
             status_code=403,
             detail=f"El usuario '{username}' no está registrado en Eulalia. Contacta con el profesor para que te dé de alta."
@@ -1863,11 +1862,10 @@ async def lali_moodle_login(
     import secrets as _secrets
     from auth_tutores import _sessions
     token = _secrets.token_hex(32)
+    user_role = users[username].get("role", "estudiante")
     _sessions[token] = {
         "username": username,
-        "role": user_data["rol"],
-        "nombre": user_data["nombre"],
-        "apellidos": user_data.get("apellidos", ""),
+        "role": user_role,
         "created": _time.time(),
     }
 
