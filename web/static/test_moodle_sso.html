@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test Moodle SSO</title></head>
+<body style="font-family:system-ui;max-width:600px;margin:40px auto;padding:20px;">
+<h2>Test Moodle SSO para Eulalia</h2>
+
+<div style="margin:20px 0;">
+    <label>Servidor TOMMI:</label><br>
+    <input id="servidor" value="http://localhost:8000" style="width:100%;padding:8px;margin:4px 0;">
+</div>
+<div style="margin:20px 0;">
+    <label>Secreto compartido:</label><br>
+    <input id="secreto" value="lali20267" style="width:100%;padding:8px;margin:4px 0;">
+</div>
+<div style="margin:20px 0;">
+    <label>Usuario (email o nombre):</label><br>
+    <input id="usuario" value="ignacio" style="width:100%;padding:8px;margin:4px 0;">
+</div>
+<div style="margin:20px 0;">
+    <label>Nombre completo:</label><br>
+    <input id="nombre" value="Ignacio Moreno-Torres" style="width:100%;padding:8px;margin:4px 0;">
+</div>
+
+<button onclick="generarEnlace()" style="background:#4250b3;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;cursor:pointer;">
+    Generar enlace SSO
+</button>
+
+<div id="resultado" style="margin-top:20px;"></div>
+
+<script>
+async function generarEnlace() {
+    var servidor = document.getElementById('servidor').value.replace(/\/+$/, '');
+    var secreto = document.getElementById('secreto').value;
+    var usuario = document.getElementById('usuario').value;
+    var nombre = document.getElementById('nombre').value;
+    var ts = Math.floor(Date.now() / 1000).toString();
+    var mensaje = usuario + ':' + ts;
+
+    try {
+        var encoder = new TextEncoder();
+        var key = await crypto.subtle.importKey(
+            'raw', encoder.encode(secreto),
+            {name: 'HMAC', hash: 'SHA-256'}, false, ['sign']
+        );
+        var sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(mensaje));
+        var sig = Array.from(new Uint8Array(sigBuffer))
+            .map(function(b) { return b.toString(16).padStart(2, '0'); })
+            .join('');
+
+        var url = servidor
+            + '/api/public-agent/eulalia/moodle-login'
+            + '?user=' + encodeURIComponent(usuario)
+            + '&ts=' + ts
+            + '&sig=' + sig
+            + '&name=' + encodeURIComponent(nombre)
+            + '&role=estudiante';
+
+        document.getElementById('resultado').innerHTML =
+            '<p><strong>URL generada:</strong></p>'
+            + '<div style="word-break:break-all;background:#f1f5f9;padding:10px;border-radius:6px;font-size:12px;margin:8px 0;">' + url + '</div>'
+            + '<p><strong>Firma:</strong> ' + sig + '</p>'
+            + '<p><strong>Mensaje firmado:</strong> ' + mensaje + '</p>'
+            + '<p><strong>Timestamp:</strong> ' + ts + '</p>'
+            + '<p><a href="' + url + '" target="_blank" style="background:#166534;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:8px;">Probar enlace</a></p>';
+    } catch(e) {
+        document.getElementById('resultado').innerHTML =
+            '<p style="color:red;">Error: ' + e.message + '</p>'
+            + '<p>Nota: crypto.subtle solo funciona en HTTPS o localhost.</p>';
+    }
+}
+</script>
+</body>
+</html>

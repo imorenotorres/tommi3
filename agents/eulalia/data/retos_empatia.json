@@ -1,0 +1,18 @@
+[
+  {
+    "perfil": "Persona con implante coclear",
+    "situacion": "Mantener una conversación en una cafetería ruidosa, con muchas personas hablando a la vez.",
+    "tiene_dificultad": true,
+    "explicacion": "El ruido de fondo dificulta enormemente la discriminación del habla con implante coclear. A diferencia de un oído normal, el implante no puede separar eficazmente la voz del interlocutor del ruido ambiente, lo que hace muy difícil seguir la conversación.",
+    "autor": "Profesor",
+    "fecha": "2026-08-01 09:00"
+  },
+  {
+    "perfil": "Persona con implante coclear",
+    "situacion": "Estar en una discoteca donde la música es tan fuerte que nadie puede hablar, o en una situación donde no se puede hablar (por ejemplo, buceando).",
+    "tiene_dificultad": false,
+    "explicacion": "En estas situaciones nadie puede usar la comunicación oral, independientemente de su capacidad auditiva. El implante coclear no supone ninguna desventaja porque las condiciones impiden la comunicación oral para todos por igual.",
+    "autor": "Profesor",
+    "fecha": "2026-08-01 09:00"
+  }
+]

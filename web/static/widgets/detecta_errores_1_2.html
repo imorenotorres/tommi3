@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detecta el error — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header a:hover { opacity: 0.85; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+
+.container { max-width: 700px; margin: 0 auto; padding: 32px 20px; }
+h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+/* Progress */
+.progress-text { font-size: 13px; color: #94a3b8; margin-bottom: 8px; }
+.progress-bar { background: #e2e8f0; border-radius: 8px; height: 8px; margin-bottom: 24px; overflow: hidden; }
+.progress-fill { height: 100%; background: #4250b3; border-radius: 8px; transition: width 0.4s ease; }
+
+/* Statement card */
+.statement-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 24px; margin-bottom: 20px; animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.statement-label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
+
+.statement-text {
+    font-size: 16px; line-height: 1.6; color: #1e293b; padding: 16px;
+    background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.statement-prompt { font-size: 14px; color: #475569; margin-bottom: 12px; font-weight: 600; }
+
+textarea {
+    width: 100%; min-height: 100px; padding: 12px; border: 2px solid #e2e8f0;
+    border-radius: 8px; font-family: inherit; font-size: 14px; line-height: 1.6;
+    resize: vertical; transition: border-color 0.2s;
+}
+textarea:focus { outline: none; border-color: #4250b3; }
+.char-count { font-size: 12px; color: #94a3b8; margin-top: 4px; text-align: right; }
+
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.btn-primary { background: #4250b3; color: #fff; }
+.btn-primary:hover { background: #3740a0; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.submit-row { display: flex; justify-content: flex-end; margin-top: 12px; }
+
+.loading { display: none; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; color: #64748b; }
+.loading.show { display: flex; }
+.spinner {
+    width: 20px; height: 20px; border: 3px solid #e2e8f0; border-top-color: #4250b3;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Feedback per statement */
+.feedback-box {
+    margin-top: 16px; padding: 14px; border-radius: 8px;
+    font-size: 14px; line-height: 1.6; display: none;
+}
+.feedback-box.show { display: block; }
+.feedback-box.ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+.feedback-box.partial { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; }
+.feedback-box.fail { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+.nav-buttons { display: flex; justify-content: space-between; margin-top: 16px; }
+
+/* Final results */
+.results { display: none; animation: fadeIn 0.4s ease; }
+.results.show { display: block; }
+
+.score-box {
+    text-align: center; padding: 20px; margin-bottom: 20px;
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+}
+.score-num { font-size: 42px; font-weight: 800; }
+.score-num.good { color: #16a34a; }
+.score-num.mid { color: #f59e0b; }
+.score-num.bad { color: #dc2626; }
+.score-label { font-size: 14px; color: #64748b; margin-top: 4px; }
+
+.review-item {
+    padding: 12px 14px; margin-bottom: 8px; border-radius: 8px;
+    border: 1px solid #e2e8f0; background: #fff; font-size: 13px; line-height: 1.6;
+}
+.review-statement { font-style: italic; color: #64748b; margin-bottom: 6px; }
+.review-error { color: #991b1b; font-weight: 600; }
+.review-correct { color: #166534; }
+
+.result-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+/* Consultar al profesor */
+.consult-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 90;
+    background: #7c3aed; color: #fff; border: none; border-radius: 50%;
+    width: 56px; height: 56px; font-size: 24px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(124,58,237,0.4); transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+}
+.consult-fab:hover { background: #6d28d9; transform: scale(1.08); }
+.consult-fab .fab-tooltip {
+    position: absolute; right: 64px; background: #1e293b; color: #fff;
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.consult-fab:hover .fab-tooltip { opacity: 1; }
+
+.consult-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 100; align-items: center; justify-content: center;
+}
+.consult-overlay.show { display: flex; }
+.consult-modal {
+    background: #fff; border-radius: 14px; padding: 28px; width: 90%; max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease;
+}
+.consult-modal h3 { font-size: 18px; color: #7c3aed; margin-bottom: 6px; }
+.consult-modal .cm-sub { font-size: 13px; color: #64748b; margin-bottom: 16px; line-height: 1.5; }
+.consult-modal textarea {
+    width: 100%; min-height: 100px; padding: 12px; border: 2px solid #e2e8f0;
+    border-radius: 8px; font-family: inherit; font-size: 14px; line-height: 1.5;
+    resize: vertical; transition: border-color 0.2s;
+}
+.consult-modal textarea:focus { outline: none; border-color: #7c3aed; }
+.consult-modal .cm-count { font-size: 11px; color: #94a3b8; text-align: right; margin-top: 4px; }
+.consult-modal .cm-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.consult-modal .cm-btn {
+    padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.consult-modal .cm-cancel { background: #e2e8f0; color: #475569; }
+.consult-modal .cm-cancel:hover { background: #cbd5e1; }
+.consult-modal .cm-send { background: #7c3aed; color: #fff; }
+.consult-modal .cm-send:hover { background: #6d28d9; }
+.consult-modal .cm-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.consult-modal .cm-ok { display: none; text-align: center; padding: 20px 0; }
+.consult-modal .cm-ok.show { display: block; }
+.consult-modal .cm-ok p { font-size: 15px; color: #16a34a; font-weight: 600; margin-bottom: 4px; }
+.consult-modal .cm-ok span { font-size: 13px; color: #64748b; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">›</span>
+    <span class="title">Tema 1 — Detecta el error</span>
+</div>
+
+<div class="container">
+    <h2>Detecta el error</h2>
+    <p class="subtitle">
+        Cada una de las siguientes afirmaciones contiene un error. Tu tarea es identificar qué está mal
+        y explicar cuál sería la versión correcta.
+    </p>
+
+    <div id="quiz-area"></div>
+    <div class="results" id="results-area"></div>
+</div>
+
+<!-- Consultar al profesor -->
+<button class="consult-fab" onclick="consultOpen()" title="Consultar al profesor">
+    <span class="fab-tooltip">Consultar al profesor</span>
+    &#9993;
+</button>
+<div class="consult-overlay" id="consult-overlay" onclick="if(event.target===this)consultClose()">
+    <div class="consult-modal">
+        <div id="consult-form">
+            <h3>Consultar al profesor</h3>
+            <p class="cm-sub">Escribe tu duda sobre este ejercicio. El profesor la recibirá y te responderá.</p>
+            <textarea id="consult-text" placeholder="Escribe tu consulta aquí..." oninput="consultCount()"></textarea>
+            <div class="cm-count"><span id="consult-count">0</span> caracteres</div>
+            <div class="cm-btns">
+                <button class="cm-btn cm-cancel" onclick="consultClose()">Cancelar</button>
+                <button class="cm-btn cm-send" id="consult-send" onclick="consultSend()" disabled>Enviar consulta</button>
+            </div>
+        </div>
+        <div class="cm-ok" id="consult-ok">
+            <p>&#10003; Consulta enviada</p>
+            <span>El profesor la revisará y te responderá.</span>
+            <div class="cm-btns" style="justify-content:center; margin-top:16px;">
+                <button class="cm-btn cm-cancel" onclick="consultClose()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// ── Progress tracking ──
+function saveProgress(widgetId, score, maxScore) {
+    try {
+        var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
+        var pct = Math.round(score / maxScore * 100);
+        var prev = progress[widgetId];
+        // Only update if better score or not yet saved
+        if (!prev || pct > prev.score) {
+            progress[widgetId] = { completed: pct >= 75, score: pct, date: new Date().toISOString().split('T')[0] };
+            localStorage.setItem('lali_progress', JSON.stringify(progress));
+        }
+    } catch(e) {}
+}
+
+var STATEMENTS = [
+    {
+        text: 'El habla es el conjunto de reglas que comparten los hablantes de una comunidad para comunicarse. La norma, en cambio, incluye todas las emisiones producidas por los hablantes, con toda su variación.',
+        error: 'Confunde habla y norma/lengua. El habla es la colección de todas las emisiones (con toda la variación). La norma contiene lo que es repetición de modelos compartidos. La lengua se centra en las distinciones funcionales.',
+        rubrica: [
+            { descripcion: 'Identifica que la definición de "habla" dada es incorrecta (el habla no es un conjunto de reglas, sino todas las emisiones).' },
+            { descripcion: 'Identifica que la definición de "norma" dada es incorrecta (la norma no incluye toda la variación, sino los modelos compartidos).' },
+            { descripcion: 'Ofrece la corrección adecuada de ambos conceptos.' }
+        ]
+    },
+    {
+        text: 'Decimos que la fonología es multimodal porque los fonemas pueden representarse usando diferentes alfabetos fonéticos, como el AFI o el RFE.',
+        error: 'Confunde multimodalidad con sistemas de transcripción. La fonología es multimodal porque los fonemas se asocian a información de diferentes modalidades sensoriales (auditiva, visual, táctil/motora), no porque haya varios alfabetos.',
+        rubrica: [
+            { descripcion: 'Identifica que la explicación de multimodalidad es incorrecta.' },
+            { descripcion: 'Explica correctamente que la multimodalidad se refiere a que los fonemas se asocian a diferentes modalidades sensoriales (auditiva, visual, táctil/motora).' }
+        ]
+    },
+    {
+        text: 'La ruta directa es la que usamos cuando descomponemos una palabra en fonemas para poder pronunciarla correctamente. Por eso es la ruta más importante para aprender palabras nuevas.',
+        error: 'Confunde ruta directa e indirecta. La ruta indirecta es la que descompone en fonemas (y es la importante para aprender). La ruta directa procesa la palabra como un todo, sin descomponer en fonemas.',
+        rubrica: [
+            { descripcion: 'Identifica que la descripción de "ruta directa" es en realidad la de la "ruta indirecta".' },
+            { descripcion: 'Explica correctamente qué es la ruta directa (procesamiento global, sin descomponer en fonemas).' },
+            { descripcion: 'Aclara que es la ruta indirecta la que es fundamental para el aprendizaje de palabras nuevas.' }
+        ]
+    },
+    {
+        text: 'Una pseudopalabra es una palabra que suena extraña o rara, como un extranjerismo o una palabra técnica poco conocida.',
+        error: 'Una pseudopalabra no es una palabra rara ni un extranjerismo. Es una expresión inventada que se parece fonológicamente a una palabra real pero que no tiene significado. Se usa en logopedia para evaluar el procesamiento fonológico por vía indirecta.',
+        rubrica: [
+            { descripcion: 'Identifica que la definición dada es incorrecta (no es una palabra rara ni un extranjerismo).' },
+            { descripcion: 'Define correctamente qué es una pseudopalabra (expresión inventada, sin significado, que respeta las reglas fonológicas de la lengua).' },
+            { descripcion: 'Menciona o sugiere su utilidad en logopedia (evaluar procesamiento fonológico / ruta indirecta).' }
+        ]
+    },
+    {
+        text: 'Los estructuralistas descubrieron que si cambiamos un sonido por otro en una palabra y el significado cambia, es porque esos dos sonidos son alófonos del mismo fonema.',
+        error: 'Es al revés: si el cambio produce un cambio de significado, los dos sonidos pertenecen a fonemas distintos (no al mismo). Los alófonos son variantes de un mismo fonema cuyo intercambio NO cambia el significado.',
+        rubrica: [
+            { descripcion: 'Identifica que la relación entre cambio de significado y alófonos está invertida.' },
+            { descripcion: 'Explica correctamente que si el cambio de un sonido por otro cambia el significado, son fonemas distintos.' },
+            { descripcion: 'Aclara que los alófonos son variantes de un mismo fonema cuyo intercambio no afecta al significado.' }
+        ]
+    }
+];
+
+var currentIdx = 0;
+var answers = []; // {userText, result}
+var N = STATEMENTS.length;
+
+function render() {
+    if (currentIdx >= N) { showResults(); return; }
+
+    var s = STATEMENTS[currentIdx];
+    var html = '';
+    html += '<div class="progress-text">Afirmación ' + (currentIdx + 1) + ' de ' + N + '</div>';
+    html += '<div class="progress-bar"><div class="progress-fill" style="width:' + (currentIdx / N * 100) + '%"></div></div>';
+
+    html += '<div class="statement-card">';
+    html += '<div class="statement-label">Afirmación ' + (currentIdx + 1) + '</div>';
+    html += '<div class="statement-text">"' + s.text + '"</div>';
+    html += '<div class="statement-prompt">Esta afirmación contiene un error. ¿Cuál es? Explica qué está mal y cuál sería la versión correcta.</div>';
+    html += '<textarea id="user-answer" placeholder="Escribe aquí tu explicación..." oninput="updateCount()"></textarea>';
+    html += '<div class="char-count"><span id="char-count">0</span> caracteres</div>';
+    html += '<div class="submit-row"><button class="btn btn-primary" id="btn-submit" onclick="submitAnswer()" disabled>Comprobar</button></div>';
+    html += '<div class="loading" id="loading"><div class="spinner"></div> Evaluando...</div>';
+    html += '<div class="feedback-box" id="feedback"></div>';
+    html += '<div class="nav-buttons" id="nav-buttons" style="display:none;">';
+    html += '<span></span>';
+    html += '<button class="btn btn-primary" onclick="nextStatement()">Siguiente →</button>';
+    html += '</div>';
+    html += '</div>';
+
+    document.getElementById('quiz-area').innerHTML = html;
+    document.getElementById('results-area').classList.remove('show');
+}
+
+function updateCount() {
+    var n = document.getElementById('user-answer').value.trim().length;
+    document.getElementById('char-count').textContent = n;
+    document.getElementById('btn-submit').disabled = n < 20;
+}
+
+async function submitAnswer() {
+    var text = document.getElementById('user-answer').value.trim();
+    if (text.length < 20) return;
+
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('loading').classList.add('show');
+
+    var s = STATEMENTS[currentIdx];
+
+    try {
+        var res = await fetch('/api/public-agent/eulalia/evaluar-definicion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                concepto: 'Detectar error en afirmación sobre fonología',
+                definicion: 'Afirmación con error: "' + s.text + '"\n\nExplicación del estudiante: ' + text,
+                rubrica: s.rubrica,
+                referencia: 'El error en la afirmación es: ' + s.error
+            })
+        });
+
+        if (!res.ok) throw new Error('Error');
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        var criterios = data.criterios || [];
+        var allOk = criterios.every(function(c) { return c.cumplido; });
+        var someOk = criterios.some(function(c) { return c.cumplido; });
+
+        answers.push({ text: text, criterios: criterios, comment: data.comentario_general, statement: s });
+
+        var fb = document.getElementById('feedback');
+        var cls = allOk ? 'ok' : someOk ? 'partial' : 'fail';
+        var icon = allOk ? '✓' : someOk ? '~' : '✗';
+        var msg = allOk ? '¡Muy bien! Has identificado correctamente el error.' :
+                  someOk ? 'Vas por buen camino, pero tu explicación está incompleta.' :
+                  'No has identificado el error. Revisa la explicación.';
+
+        var fbHtml = '<strong>' + icon + ' ' + msg + '</strong>';
+        if (data.comentario_general) fbHtml += '<br><br>' + data.comentario_general;
+
+        // Show correct answer if not all OK
+        if (!allOk) {
+            fbHtml += '<br><br><strong>El error era:</strong> ' + s.error;
+        }
+
+        fb.innerHTML = fbHtml;
+        fb.className = 'feedback-box show ' + cls;
+        document.getElementById('nav-buttons').style.display = '';
+
+    } catch (e) {
+        alert('Error al evaluar: ' + e.message);
+        document.getElementById('btn-submit').disabled = false;
+    } finally {
+        document.getElementById('loading').classList.remove('show');
+    }
+}
+
+function nextStatement() {
+    currentIdx++;
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showResults() {
+    document.getElementById('quiz-area').innerHTML = '';
+
+    var total = 0, hits = 0;
+    answers.forEach(function(a) {
+        a.criterios.forEach(function(c) { total++; if (c.cumplido) hits++; });
+    });
+
+    var pct = Math.round(hits / total * 100);
+    saveProgress('detecta_errores_1_2', hits, total);
+    var cls = pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad';
+    var msg = pct >= 80 ? '¡Excelente! Dominas bien estos conceptos.' :
+              pct >= 50 ? 'Bien, pero hay algunos conceptos que debes repasar.' :
+              'Necesitas repasar la sección 1.2 antes de continuar.';
+
+    var html = '<div class="score-box">';
+    html += '<div class="score-num ' + cls + '">' + pct + '%</div>';
+    html += '<div class="score-label">' + hits + '/' + total + ' criterios cumplidos — ' + msg + '</div>';
+    html += '</div>';
+
+    // Review each statement
+    answers.forEach(function(a, i) {
+        var allOk = a.criterios.every(function(c) { return c.cumplido; });
+        html += '<div class="review-item">';
+        html += '<div class="review-statement">"' + a.statement.text + '"</div>';
+        if (allOk) {
+            html += '<div class="review-correct">✓ Has identificado el error correctamente.</div>';
+        } else {
+            html += '<div class="review-error">✗ ' + a.statement.error + '</div>';
+        }
+        html += '</div>';
+    });
+
+    html += '<div class="result-buttons">';
+    html += '<button class="btn btn-secondary" onclick="restart()">Repetir ejercicio</button>';
+    html += '<button class="btn btn-primary" onclick="window.close()">Volver al curso</button>';
+    html += '</div>';
+
+    document.getElementById('results-area').innerHTML = html;
+    document.getElementById('results-area').classList.add('show');
+}
+
+function restart() {
+    currentIdx = 0;
+    answers = [];
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Init
+render();
+
+// ── Consultar al profesor ──
+var CONSULT_WIDGET = 'Detecta el error';
+function consultOpen() {
+    document.getElementById('consult-overlay').classList.add('show');
+    document.getElementById('consult-form').style.display = '';
+    document.getElementById('consult-ok').classList.remove('show');
+    document.getElementById('consult-text').value = '';
+    document.getElementById('consult-count').textContent = '0';
+    document.getElementById('consult-send').disabled = true;
+}
+function consultClose() {
+    document.getElementById('consult-overlay').classList.remove('show');
+}
+function consultCount() {
+    var n = document.getElementById('consult-text').value.trim().length;
+    document.getElementById('consult-count').textContent = n;
+    document.getElementById('consult-send').disabled = n < 10;
+}
+async function consultSend() {
+    var text = document.getElementById('consult-text').value.trim();
+    if (text.length < 10) return;
+    document.getElementById('consult-send').disabled = true;
+    document.getElementById('consult-send').textContent = 'Enviando...';
+    try {
+        var res = await fetch('/api/public-agent/eulalia/consulta-profesor', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ consulta: text, widget: CONSULT_WIDGET, contexto: document.title })
+        });
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+        document.getElementById('consult-form').style.display = 'none';
+        document.getElementById('consult-ok').classList.add('show');
+    } catch(e) {
+        alert('Error al enviar: ' + e.message);
+    } finally {
+        document.getElementById('consult-send').textContent = 'Enviar consulta';
+    }
+}
+</script>
+
+</body>
+</html>

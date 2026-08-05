@@ -1,0 +1,108 @@
+<!--
+  Bloque HTML para Moodle — Acceso SSO al Tutor LALI
+
+  INSTRUCCIONES:
+  1. En tu curso de Moodle, activa edición
+  2. Añade un bloque "HTML" (o "Texto")
+  3. Cambia a modo código/HTML y pega este contenido
+  4. Cambia SERVIDOR_TOMMI por la URL real de tu servidor
+  5. Cambia SECRETO por el mismo valor que LALI_MOODLE_SECRET en el servidor
+
+  NOTA: El secreto está en el código JS, pero solo lo ven usuarios autenticados
+  en Moodle. El enlace generado caduca en 5 minutos.
+-->
+
+<div id="lali-tutor-block" style="text-align:center;padding:10px;">
+  <p style="font-size:13px;color:#475569;margin-bottom:10px;">
+    Tutor virtual de Lingüística Aplicada a la Logopedia
+  </p>
+  <a id="lali-tutor-link" href="#"
+     style="display:inline-block;background:#4250b3;color:#fff;padding:10px 24px;
+            border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">
+    Abrir Tutor LALI
+  </a>
+  <p id="lali-tutor-status" style="font-size:11px;color:#94a3b8;margin-top:6px;"></p>
+</div>
+
+<script>
+(function() {
+    // ══════════════════════════════════════════════════════════════
+    // CONFIGURACIÓN — Cambia estos valores
+    // ══════════════════════════════════════════════════════════════
+    var SERVIDOR_TOMMI = 'https://TU-SERVIDOR.com';  // URL del servidor TOMMI (sin / final)
+    var SECRETO = 'cambiar-este-secreto-compartido';  // Mismo valor que LALI_MOODLE_SECRET
+    // ══════════════════════════════════════════════════════════════
+
+    // Leer datos del usuario logueado en Moodle
+    var userEmail = '';
+    var userName = '';
+
+    // Método 1: buscar email en el menú de usuario de Moodle
+    var userMenu = document.querySelector('.usermenu .usertext')
+                || document.querySelector('.userbutton .usertext')
+                || document.querySelector('.logininfo .username')
+                || document.querySelector('[data-action="user-menu"] .usertext');
+    if (userMenu) {
+        userName = userMenu.textContent.trim();
+    }
+
+    // Método 2: buscar en el perfil visible
+    var emailEl = document.querySelector('.userprofile .email a')
+               || document.querySelector('.myprofileitem.email a');
+    if (emailEl) {
+        userEmail = emailEl.textContent.trim();
+    }
+
+    // Método 3: intentar obtener del objeto M.cfg de Moodle (si disponible)
+    if (!userEmail && typeof M !== 'undefined' && M.cfg && M.cfg.sesskey) {
+        // El sesskey confirma que hay usuario logueado, pero no da el email.
+        // Usamos el nombre como identificador si no hay email.
+    }
+
+    // Si no tenemos email, usar el nombre normalizado como username
+    if (!userEmail && userName) {
+        userEmail = userName.toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // quitar tildes
+            .replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '');
+    }
+
+    if (!userEmail) {
+        document.getElementById('lali-tutor-status').textContent =
+            'No se pudo detectar tu usuario de Moodle.';
+        return;
+    }
+
+    // Generar firma HMAC-SHA256
+    // (Usamos SubtleCrypto API del navegador)
+    var timestamp = Math.floor(Date.now() / 1000).toString();
+    var mensaje = userEmail + ':' + timestamp;
+
+    var encoder = new TextEncoder();
+    crypto.subtle.importKey(
+        'raw', encoder.encode(SECRETO),
+        {name: 'HMAC', hash: 'SHA-256'}, false, ['sign']
+    ).then(function(key) {
+        return crypto.subtle.sign('HMAC', key, encoder.encode(mensaje));
+    }).then(function(signature) {
+        var sig = Array.from(new Uint8Array(signature))
+            .map(function(b) { return b.toString(16).padStart(2, '0'); })
+            .join('');
+
+        var url = SERVIDOR_TOMMI
+            + '/api/public-agent/eulalia/moodle-login'
+            + '?user=' + encodeURIComponent(userEmail)
+            + '&ts=' + timestamp
+            + '&sig=' + sig
+            + '&name=' + encodeURIComponent(userName)
+            + '&role=estudiante';
+
+        document.getElementById('lali-tutor-link').href = url;
+        document.getElementById('lali-tutor-link').target = '_blank';
+        document.getElementById('lali-tutor-status').textContent =
+            'Accediendo como: ' + userName;
+    }).catch(function(err) {
+        document.getElementById('lali-tutor-status').textContent =
+            'Error al generar acceso: ' + err.message;
+    });
+})();
+</script>

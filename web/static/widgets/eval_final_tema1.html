@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluación final — Tema 1 — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header a:hover { opacity: 0.85; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+
+.container { max-width: 720px; margin: 0 auto; padding: 32px 20px; }
+h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+/* Mode selection */
+.mode-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 24px; margin-bottom: 16px;
+}
+.mode-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+.progress-overview { margin-bottom: 20px; }
+.progress-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9; font-size: 13px;
+}
+.progress-icon { font-size: 16px; width: 24px; text-align: center; }
+.progress-name { flex: 1; }
+.progress-score { font-weight: 600; min-width: 50px; text-align: right; }
+.progress-score.done { color: #16a34a; }
+.progress-score.pending { color: #94a3b8; }
+
+.mode-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+.mode-btn {
+    flex: 1; min-width: 200px; padding: 16px; border-radius: 10px; border: 2px solid #e2e8f0;
+    background: #fff; cursor: pointer; transition: all 0.2s; font-family: inherit; text-align: left;
+}
+.mode-btn:hover { border-color: #4250b3; background: #f5f3ff; }
+.mode-btn h4 { font-size: 14px; color: #4250b3; margin-bottom: 4px; }
+.mode-btn p { font-size: 12px; color: #64748b; line-height: 1.4; }
+
+/* Quiz */
+.progress-bar { background: #e2e8f0; border-radius: 8px; height: 8px; margin-bottom: 8px; overflow: hidden; }
+.progress-fill { height: 100%; background: #4250b3; border-radius: 8px; transition: width 0.4s; }
+.progress-text { font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
+
+.question-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 24px; margin-bottom: 20px; animation: fadeIn 0.3s;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.q-section { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; }
+.q-type { font-size: 11px; color: #4250b3; font-weight: 600; margin-bottom: 10px; }
+.q-text { font-size: 15px; font-weight: 600; line-height: 1.5; margin-bottom: 16px; }
+
+/* Multiple choice */
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option-btn {
+    padding: 12px 16px; background: #fff; border: 2px solid #e2e8f0; border-radius: 8px;
+    font-size: 14px; cursor: pointer; text-align: left; transition: all 0.2s;
+    font-family: inherit; color: #1e293b; line-height: 1.4;
+}
+.option-btn:hover:not(.disabled) { border-color: #4250b3; background: #f5f3ff; }
+.option-btn.correct { border-color: #16a34a; background: #f0fdf4; color: #166534; }
+.option-btn.wrong { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+.option-btn.disabled { pointer-events: none; opacity: 0.6; }
+.option-btn.disabled.correct { opacity: 1; }
+
+/* Open answer */
+textarea {
+    width: 100%; min-height: 100px; padding: 12px; border: 2px solid #e2e8f0;
+    border-radius: 8px; font-family: inherit; font-size: 14px; line-height: 1.6;
+    resize: vertical;
+}
+textarea:focus { outline: none; border-color: #4250b3; }
+
+/* Statement to correct */
+.statement-box {
+    font-size: 14px; line-height: 1.6; padding: 14px; background: #fef9c3;
+    border: 1px solid #fde68a; border-radius: 8px; margin-bottom: 12px; font-style: italic;
+}
+
+.feedback-inline {
+    margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; display: none;
+}
+.feedback-inline.show { display: block; }
+.feedback-inline.ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+.feedback-inline.fail { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+.feedback-inline.partial { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; }
+
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.btn-primary { background: #4250b3; color: #fff; }
+.btn-primary:hover { background: #3740a0; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-review { background: #fff; color: #92400e; border: 1px solid #fde68a; font-size: 12px; padding: 6px 14px; }
+.btn-review:hover { background: #fef9c3; }
+.btn-review.sent { color: #16a34a; border-color: #bbf7d0; cursor: default; }
+
+.nav-buttons { display: flex; justify-content: flex-end; margin-top: 16px; gap: 8px; align-items: center; }
+
+.loading { display: none; align-items: center; gap: 10px; margin-top: 12px; font-size: 13px; color: #64748b; }
+.loading.show { display: flex; }
+.spinner { width: 18px; height: 18px; border: 3px solid #e2e8f0; border-top-color: #4250b3; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Results */
+.results-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 16px;
+    padding: 32px; text-align: center;
+}
+.score-circle {
+    width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    font-size: 28px; font-weight: 800; color: #fff;
+}
+.score-circle.pass { background: linear-gradient(135deg, #16a34a, #22c55e); }
+.score-circle.fail { background: linear-gradient(135deg, #dc2626, #ef4444); }
+.score-circle.mid { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.score-circle .sc-label { font-size: 10px; font-weight: 600; opacity: 0.9; }
+
+.result-msg { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.result-detail { font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 16px; }
+
+.section-results { text-align: left; margin: 16px 0; }
+.sec-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+.sec-icon { font-size: 16px; width: 24px; text-align: center; }
+.sec-name { flex: 1; }
+.sec-score { font-weight: 600; }
+
+.review-box {
+    background: #fef2f2; border: 2px solid #fecaca; border-radius: 12px;
+    padding: 16px; margin: 16px 0; text-align: left;
+}
+.review-box h3 { color: #991b1b; font-size: 14px; margin-bottom: 8px; }
+.review-box ul { margin-left: 16px; font-size: 13px; color: #7f1d1d; line-height: 1.8; }
+
+.result-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+
+/* Consultar al profesor */
+.consult-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 90;
+    background: #7c3aed; color: #fff; border: none; border-radius: 50%;
+    width: 56px; height: 56px; font-size: 24px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(124,58,237,0.4); transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+}
+.consult-fab:hover { background: #6d28d9; transform: scale(1.08); }
+.consult-fab .fab-tooltip {
+    position: absolute; right: 64px; background: #1e293b; color: #fff;
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.consult-fab:hover .fab-tooltip { opacity: 1; }
+
+.consult-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 100; align-items: center; justify-content: center;
+}
+.consult-overlay.show { display: flex; }
+.consult-modal {
+    background: #fff; border-radius: 14px; padding: 28px; width: 90%; max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease;
+}
+.consult-modal h3 { font-size: 18px; color: #7c3aed; margin-bottom: 6px; }
+.consult-modal .cm-sub { font-size: 13px; color: #64748b; margin-bottom: 16px; line-height: 1.5; }
+.consult-modal textarea {
+    width: 100%; min-height: 100px; padding: 12px; border: 2px solid #e2e8f0;
+    border-radius: 8px; font-family: inherit; font-size: 14px; line-height: 1.5;
+    resize: vertical; transition: border-color 0.2s;
+}
+.consult-modal textarea:focus { outline: none; border-color: #7c3aed; }
+.consult-modal .cm-count { font-size: 11px; color: #94a3b8; text-align: right; margin-top: 4px; }
+.consult-modal .cm-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.consult-modal .cm-btn {
+    padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.consult-modal .cm-cancel { background: #e2e8f0; color: #475569; }
+.consult-modal .cm-cancel:hover { background: #cbd5e1; }
+.consult-modal .cm-send { background: #7c3aed; color: #fff; }
+.consult-modal .cm-send:hover { background: #6d28d9; }
+.consult-modal .cm-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.consult-modal .cm-ok { display: none; text-align: center; padding: 20px 0; }
+.consult-modal .cm-ok.show { display: block; }
+.consult-modal .cm-ok p { font-size: 15px; color: #16a34a; font-weight: 600; margin-bottom: 4px; }
+.consult-modal .cm-ok span { font-size: 13px; color: #64748b; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">›</span>
+    <span class="title">Tema 1 — Evaluación final</span>
+</div>
+
+<div class="container">
+    <div id="mode-area"></div>
+    <div id="quiz-area"></div>
+    <div id="results-area"></div>
+</div>
+
+<!-- Consultar al profesor -->
+<button class="consult-fab" onclick="consultOpen()" title="Consultar al profesor">
+    <span class="fab-tooltip">Consultar al profesor</span>
+    &#9993;
+</button>
+<div class="consult-overlay" id="consult-overlay" onclick="if(event.target===this)consultClose()">
+    <div class="consult-modal">
+        <div id="consult-form">
+            <h3>Consultar al profesor</h3>
+            <p class="cm-sub">Escribe tu duda sobre este ejercicio. El profesor la recibirá y te responderá.</p>
+            <textarea id="consult-text" placeholder="Escribe tu consulta aquí..." oninput="consultCount()"></textarea>
+            <div class="cm-count"><span id="consult-count">0</span> caracteres</div>
+            <div class="cm-btns">
+                <button class="cm-btn cm-cancel" onclick="consultClose()">Cancelar</button>
+                <button class="cm-btn cm-send" id="consult-send" onclick="consultSend()" disabled>Enviar consulta</button>
+            </div>
+        </div>
+        <div class="cm-ok" id="consult-ok">
+            <p>&#10003; Consulta enviada</p>
+            <span>El profesor la revisará y te responderá.</span>
+            <div class="cm-btns" style="justify-content:center; margin-top:16px;">
+                <button class="cm-btn cm-cancel" onclick="consultClose()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// ── Request professor review ──
+function requestReview(btnId) {
+    var email = localStorage.getItem('lali_review_email') || '';
+    email = prompt('Introduce tu email para que el profesor pueda responderte:', email);
+    if (!email || email.indexOf('@') < 0) { alert('Necesitas introducir un email válido.'); return; }
+    localStorage.setItem('lali_review_email', email);
+
+    var q = currentQuestions[currentIdx];
+    var answerEl = document.getElementById('open-answer') || document.getElementById('error-answer');
+    var answerText = answerEl ? answerEl.value.trim() : '';
+    var feedbackEl = document.getElementById('feedback');
+    var evalText = feedbackEl ? feedbackEl.textContent : '';
+
+    var btn = document.getElementById(btnId);
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    fetch('/api/public-agent/eulalia/solicitar-revision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            widget: 'eval_final_tema1',
+            email: email,
+            pregunta: q.text + (q.statement ? ' — "' + q.statement + '"' : ''),
+            respuesta_alumno: answerText,
+            evaluacion_ia: evalText
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function() {
+        btn.textContent = '✓ Revisión solicitada';
+        btn.className = 'btn btn-review sent';
+    })
+    .catch(function() {
+        try {
+            var pending = JSON.parse(localStorage.getItem('lali_revisiones') || '[]');
+            pending.push({ date: new Date().toISOString(), email: email, pregunta: q.text, respuesta: answerText, evaluacion: evalText });
+            localStorage.setItem('lali_revisiones', JSON.stringify(pending));
+        } catch(e) {}
+        btn.textContent = '✓ Guardada (se enviará luego)';
+        btn.className = 'btn btn-review sent';
+    });
+}
+
+// ── Progress tracking ──
+function saveProgress(widgetId, score, maxScore) {
+    try {
+        var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
+        var pct = Math.round(score / maxScore * 100);
+        var prev = progress[widgetId];
+        if (!prev || pct > prev.score) {
+            progress[widgetId] = { completed: pct >= 75, score: pct, date: new Date().toISOString().split('T')[0] };
+            localStorage.setItem('lali_progress', JSON.stringify(progress));
+        }
+    } catch(e) {}
+}
+
+function getProgress() {
+    try { return JSON.parse(localStorage.getItem('lali_progress') || '{}'); } catch(e) { return {}; }
+}
+
+// ── Question bank ──
+// Each question: section, type (mc|open|error), text, and type-specific fields
+// mc: options[], correct (index), explanation
+// open: rubrica[], referencia
+// error: statement, error, rubrica[]
+
+var ALL_QUESTIONS = [
+    // --- 1.1 Fonología y fonética ---
+    { section: '1.1', widget: 'pregunta_foneticas', type: 'mc',
+      text: '¿Cuál de las siguientes afirmaciones es correcta?',
+      options: ['La fonología estudia los sonidos concretos del habla.', 'La fonética estudia las unidades abstractas del sistema lingüístico.', 'La fonología estudia los fonemas y la fonética los sonidos concretos.', 'Fonología y fonética son sinónimos.'],
+      correct: 2, explanation: 'La fonología estudia los fonemas (unidades abstractas) y la fonética los sonidos concretos (alófonos y sonidos).' },
+    { section: '1.1', widget: 'pregunta_foneticas', type: 'mc',
+      text: '¿A qué fase de la comunicación se asocia la fonética acústica?',
+      options: ['Producción', 'Transmisión', 'Recepción', 'Todas las anteriores'],
+      correct: 1, explanation: 'La fonética acústica estudia las propiedades físicas del sonido durante su transmisión. La articulatoria se asocia a producción y la perceptiva a recepción.' },
+    { section: '1.1', widget: 'pregunta_foneticas', type: 'open',
+      text: 'Explica con tus palabras la diferencia entre fonética articulatoria, acústica y perceptiva.',
+      rubrica: [
+        { descripcion: 'Explica correctamente la fonética articulatoria (producción/articulación).' },
+        { descripcion: 'Explica correctamente la fonética acústica (propiedades físicas/transmisión).' },
+        { descripcion: 'Explica correctamente la fonética perceptiva (audición/recepción).' }
+      ],
+      referencia: 'La fonética articulatoria estudia cómo se producen los sonidos (fase de producción). La acústica estudia las propiedades físicas del sonido (fase de transmisión). La perceptiva estudia los mecanismos de audición y percepción del habla (fase de recepción).' },
+
+    // --- 1.2 Estructuralismo y generativismo ---
+    { section: '1.2', widget: 'detecta_errores_1_2', type: 'mc',
+      text: 'Según los estructuralistas, ¿qué es el "habla"?',
+      options: ['Las reglas compartidas por una comunidad.', 'La colección de todas las emisiones producidas por los hablantes.', 'Solo las emisiones que siguen la norma.', 'Las distinciones funcionales de una lengua.'],
+      correct: 1, explanation: 'El habla incluye TODAS las emisiones, con toda su variación. La norma recoge los modelos compartidos, y la lengua las distinciones funcionales.' },
+    { section: '1.2', widget: 'detecta_errores_1_2', type: 'mc',
+      text: '¿Qué significa que la fonología es multimodal?',
+      options: ['Que existen varios alfabetos fonéticos.', 'Que los fonemas se asocian a información de diferentes modalidades sensoriales (auditiva, visual, táctil).', 'Que se puede estudiar la fonología con diferentes métodos.', 'Que cada fonema tiene varios alófonos.'],
+      correct: 1, explanation: 'La multimodalidad se refiere a que los fonemas no son solo auditivos: se asocian a información táctil/motora (producción) y visual/auditiva (recepción).' },
+    { section: '1.2', widget: 'detecta_errores_1_2', type: 'error',
+      text: 'Identifica el error en esta afirmación:',
+      statement: 'La ruta directa es la que usamos cuando analizamos una palabra nueva fonema a fonema. Es la ruta más importante para el aprendizaje.',
+      error: 'Confunde directa e indirecta. La ruta indirecta es la que descompone en fonemas y es fundamental para el aprendizaje. La directa procesa palabras como un todo.',
+      rubrica: [
+        { descripcion: 'Identifica que la descripción corresponde a la ruta indirecta, no a la directa.' },
+        { descripcion: 'Explica correctamente qué es la ruta directa.' }
+      ] },
+    { section: '1.2', widget: 'detecta_errores_1_2', type: 'mc',
+      text: '¿Qué es una pseudopalabra?',
+      options: ['Una palabra técnica poco conocida.', 'Una palabra de otro idioma.', 'Una expresión inventada que suena a español pero no tiene significado.', 'Un error de pronunciación.'],
+      correct: 2, explanation: 'Una pseudopalabra es una expresión inventada que respeta las reglas fonológicas de la lengua pero no tiene significado. Se usa en logopedia para evaluar la ruta indirecta.' },
+
+    // --- 1.3.1 Fonemas ---
+    { section: '1.3.1', widget: 'define_fonema', type: 'open',
+      text: 'Define "fonema" con tus propias palabras.',
+      rubrica: [
+        { descripcion: 'Menciona que es una clase o categoría de sonidos.' },
+        { descripcion: 'Menciona que es una representación mental.' },
+        { descripcion: 'No lo confunde con letra, sílaba o sonido concreto.' }
+      ],
+      referencia: 'Un fonema es una clase de sonidos tales que todos permiten transmitir el mismo contenido semántico. También es una representación mental que nos permite producir e interpretar sonidos. No es un sonido concreto ni una letra.' },
+
+    // --- 1.3.2 Fonema vs alófono vs sonido ---
+    { section: '1.3.2', widget: 'clasificacion_pa_ba', type: 'mc',
+      text: 'Si dices "gato" con /g/ oclusiva [g] o con /g/ aproximante [ɣ], ¿qué tipo de cambio se produce?',
+      options: ['Un cambio fonológico: cambia el significado.', 'Un cambio alofónico: cambia el matiz pero no el significado.', 'Un error de pronunciación.', 'No hay ningún cambio.'],
+      correct: 1, explanation: 'Son dos alófonos del mismo fonema /g/. El significado no cambia, solo el matiz fonético.' },
+    { section: '1.3.2', widget: 'clasificacion_pa_ba', type: 'mc',
+      text: '¿Por qué necesitamos el nivel intermedio de los alófonos?',
+      options: ['Porque hay demasiados fonemas.', 'Porque entre el fonema abstracto y el sonido concreto existe una variación sistemática y predecible.', 'Porque los alófonos cambian el significado.', 'Porque cada persona tiene sus propios fonemas.'],
+      correct: 1, explanation: 'Los alófonos describen variaciones regulares condicionadas por el contexto, no aleatorias. Permiten describir patrones sin perder de vista que pertenecen al mismo fonema.' },
+
+    // --- 1.3.3 Sílaba ---
+    { section: '1.3.3', widget: 'analisis_silabas', type: 'mc',
+      text: '¿Cuál es la estructura de una sílaba?',
+      options: ['Consonante + Vocal obligatoriamente.', 'Inicio (opcional) + Núcleo (obligatorio, vocal) + Coda (opcional).', 'Cualquier combinación de letras.', 'Siempre tiene inicio y coda.'],
+      correct: 1, explanation: 'La sílaba tiene: Inicio (consonantes antes del núcleo, opcional) + Núcleo (siempre una vocal) + Coda (consonantes después del núcleo, opcional).' },
+    { section: '1.3.3', widget: 'analisis_silabas', type: 'mc',
+      text: '¿Qué principio determina qué sonidos pueden aparecer en cada posición de la sílaba?',
+      options: ['El principio de la doble ruta.', 'La jerarquía de sonoridad.', 'El principio estructural.', 'La multimodalidad.'],
+      correct: 1, explanation: 'La jerarquía de sonoridad establece que los sonidos más sonoros (vocales) van en el núcleo y los menos sonoros se alejan de él.' },
+
+    // --- 1.3.4 Rasgos ---
+    { section: '1.3.4', widget: null, type: 'mc',
+      text: '¿Qué es un rasgo distintivo?',
+      options: ['Un tipo de alófono.', 'Una señal fonética capaz de cambiar un fonema en otro por sustitución.', 'Una regla fonotáctica.', 'Un nivel de sonoridad.'],
+      correct: 1, explanation: 'Un rasgo distintivo es una propiedad fonética binaria que, al cambiar, puede convertir un fonema en otro (ej: sonoro/sordo).' },
+
+    // --- 1.4 Alfabetos ---
+    { section: '1.4', widget: null, type: 'mc',
+      text: '¿Cuándo se usan barras / / y cuándo corchetes [ ]?',
+      options: ['Barras para sonidos concretos, corchetes para fonemas.', 'Barras para fonemas (transcripción fonológica), corchetes para alófonos/sonidos (transcripción fonética).', 'Son intercambiables.', 'Barras para vocales, corchetes para consonantes.'],
+      correct: 1, explanation: 'Las barras /.../ representan fonemas (nivel abstracto) y los corchetes [...] representan alófonos/sonidos (nivel concreto).' },
+    { section: '1.4', widget: null, type: 'mc',
+      text: '¿Por qué son importantes los alfabetos fonéticos para la logopedia?',
+      options: ['Porque permiten enseñar a leer.', 'Porque permiten describir con precisión tanto el habla estándar como las variantes de los pacientes.', 'Porque son más fáciles que la ortografía.', 'Porque solo existen en español.'],
+      correct: 1, explanation: 'Los alfabetos fonéticos ofrecen un medio de descripción sistemático del habla estándar y de las variantes que producen los pacientes, facilitando la práctica logopédica.' },
+
+    // --- Preguntas basadas en ejercicios de práctica ---
+    { section: '1.3.1', practice: 'clasificacion_pa_ba', type: 'mc',
+      text: 'En el ejercicio de clasificación de sílabas «pa», ¿qué demostró el hecho de que un mismo locutor produzca la /p/ de formas diferentes?',
+      options: ['Que el locutor no sabe hablar bien.', 'Que dentro de un mismo fonema (clase) hay variación: los sonidos no son idénticos aunque pertenezcan a la misma categoría.', 'Que /p/ y /b/ son el mismo fonema.', 'Que la grabación tenía errores.'],
+      correct: 1, explanation: 'El ejercicio muestra que un fonema es una clase de sonidos: todos son /p/ pero suenan ligeramente diferente. Eso es la variación alofónica.' },
+    { section: '1.3.1', practice: 'representacion_mental', type: 'mc',
+      text: 'En el ejercicio de la representación mental, ¿qué demostró el hecho de que reconocieras la letra «A» en 12 tipografías diferentes?',
+      options: ['Que todas las «A» tienen la misma forma.', 'Que tenemos una representación mental abstracta que nos permite reconocer la «A» pese a su variación física.', 'Que la tipografía no importa.', 'Que memorizamos cada variante posible.'],
+      correct: 1, explanation: 'Reconocemos la «A» porque tenemos una representación mental abstracta, igual que reconocemos un fonema pese a la variación de los sonidos concretos.' },
+    { section: '1.3.3', practice: 'analisis_silabas', type: 'mc',
+      text: 'En la palabra "piedra", ¿cuántas sílabas hay y cuál es la estructura de la primera?',
+      options: ['3 sílabas: pi-e-dra', '2 sílabas: pie-dra. La primera tiene inicio=p, núcleo=ie, coda=∅', '2 sílabas: pi-edra', '1 sílaba: piedra'],
+      correct: 1, explanation: '"Piedra" tiene 2 sílabas: pie-dra. En "pie", el diptongo "ie" forma el núcleo junto con la consonante "p" como inicio.' },
+    { section: '1.2', practice: 'pseudopalabras', type: 'mc',
+      text: '¿Por qué las pseudopalabras son útiles para evaluar el procesamiento fonológico?',
+      options: ['Porque son más fáciles de pronunciar que las palabras reales.', 'Porque al no tener significado, obligan al hablante a usar la ruta indirecta (procesamiento fonema a fonema).', 'Porque los niños las prefieren a las palabras reales.', 'Porque permiten medir la memoria a largo plazo.'],
+      correct: 1, explanation: 'Como las pseudopalabras no están memorizadas, no se pueden procesar por la ruta directa. Obligan a usar la ruta indirecta, que es la que evalúa el procesamiento fonológico.' },
+    { section: '1.2', practice: 'reflexion_lengua_social', type: 'mc',
+      text: '¿Qué demuestra el hecho de que identifiquemos la procedencia de una persona por su forma de hablar?',
+      options: ['Que cada región tiene un idioma diferente.', 'Que el lenguaje es un hecho social que nos define como miembros de grupos y transmite información sobre nuestra identidad.', 'Que hay formas correctas e incorrectas de hablar.', 'Que la fonología no tiene relación con la sociedad.'],
+      correct: 1, explanation: 'El lenguaje como hecho social nos marca como miembros de grupos. La variación dialectal no es un error sino parte de la riqueza de la lengua.' }
+];
+
+var SECTION_NAMES = {
+    '1.1': '1.1. Fonología y fonética',
+    '1.2': '1.2. Diferentes formas de concebir la fonología',
+    '1.3.1': '1.3.1. Los fonemas',
+    '1.3.2': '1.3.2. Fonema vs alófono vs sonido',
+    '1.3.3': '1.3.3. La sílaba',
+    '1.3.4': '1.3.4. Rasgos distintivos',
+    '1.4': '1.4. Los alfabetos fonéticos'
+};
+
+// Exercises that count for progress (evaluaciones)
+var PROGRESS_WIDGETS = [
+    { id: 'pregunta_foneticas', name: 'Pregunta: las tres fonéticas', section: '1.1' },
+    { id: 'detecta_errores_1_2', name: 'Detecta el error (sección 1.2)', section: '1.2' },
+    { id: 'define_fonema', name: 'Define "fonema"', section: '1.3.1' },
+    { id: 'eval_final_tema1', name: 'Evaluación final', section: 'global' }
+];
+
+// Practice exercises (no cuentan para progreso, pero se reconocen)
+var PRACTICE_WIDGETS = [
+    { id: 'clasificacion_pa_ba', name: 'Clasifica 15 sílabas «pa»', section: '1.3.1' },
+    { id: 'representacion_mental', name: '¿Qué es una representación mental?', section: '1.3.1' },
+    { id: 'reflexion_lengua_social', name: 'Reflexión: Lengua e identidad social', section: '1.2' },
+    { id: 'pseudopalabras', name: 'Crea pseudopalabras', section: '1.2' },
+    { id: 'analisis_silabas', name: 'Análisis de sílabas', section: '1.3.3' }
+];
+
+var currentQuestions = [];
+var currentIdx = 0;
+var results = []; // {section, correct, total}
+
+// ── Mode selection ──
+function showModeSelection() {
+    var progress = getProgress();
+
+    var html = '<h2>Evaluación final — Tema 1</h2>';
+    html += '<p class="subtitle">Comprueba tu dominio de todos los contenidos del Tema 1.</p>';
+
+    html += '<div class="mode-card">';
+
+    // Progress exercises (count for advancement)
+    html += '<div class="mode-title">📊 Ejercicios de progreso</div>';
+    html += '<div class="progress-overview">';
+    var progressDone = 0;
+    PROGRESS_WIDGETS.forEach(function(w) {
+        var p = progress[w.id];
+        var done = p && p.completed;
+        if (done) progressDone++;
+        html += '<div class="progress-row">';
+        html += '<span class="progress-icon">' + (done ? '✓' : '○') + '</span>';
+        html += '<span class="progress-name">' + w.name + ' <span style="color:#94a3b8;font-size:11px;">(' + (SECTION_NAMES[w.section] || w.section) + ')</span></span>';
+        html += '<span class="progress-score ' + (done ? 'done' : 'pending') + '">' + (p ? p.score + '%' : 'Pendiente') + '</span>';
+        html += '</div>';
+    });
+    html += '</div>';
+
+    // Practice exercises (recognition)
+    html += '<div class="mode-title" style="margin-top:16px;">🎮 Ejercicios de práctica realizados</div>';
+    html += '<div class="progress-overview">';
+    var practiceDone = 0;
+    PRACTICE_WIDGETS.forEach(function(w) {
+        var p = progress[w.id];
+        var done = p && p.completed;
+        if (done) practiceDone++;
+        html += '<div class="progress-row">';
+        html += '<span class="progress-icon">' + (done ? '✓' : '·') + '</span>';
+        html += '<span class="progress-name">' + w.name + '</span>';
+        html += '<span class="progress-score" style="color:' + (done ? '#16a34a' : '#cbd5e1') + ';">' + (done ? 'Realizado' : '—') + '</span>';
+        html += '</div>';
+    });
+    html += '</div>';
+
+    if (practiceDone > 0) {
+        html += '<p style="font-size:12px;color:#64748b;margin-top:8px;">La evaluación incluirá preguntas relacionadas con los ejercicios de práctica que hayas realizado.</p>';
+    }
+
+    // Count pending progress widgets
+    var pendingProgressIds = PROGRESS_WIDGETS.filter(function(w) {
+        var p = progress[w.id];
+        return !p || !p.completed;
+    }).map(function(w) { return w.id; });
+
+    // Get sections that have pending progress widgets
+    var pendingSections = [];
+    PROGRESS_WIDGETS.forEach(function(w) {
+        var p = progress[w.id];
+        if ((!p || !p.completed) && pendingSections.indexOf(w.section) < 0) pendingSections.push(w.section);
+    });
+
+    html += '<div class="mode-buttons" style="margin-top:16px;">';
+    html += '<button class="mode-btn" onclick="startEval(\'full\')">';
+    html += '<h4>Evaluación completa</h4>';
+    html += '<p>' + ALL_QUESTIONS.length + ' preguntas de todas las secciones</p>';
+    html += '</button>';
+
+    if (pendingSections.length > 0 && pendingSections.length < Object.keys(SECTION_NAMES).length) {
+        var pendingQs = ALL_QUESTIONS.filter(function(q) { return pendingSections.indexOf(q.section) >= 0; });
+        html += '<button class="mode-btn" onclick="startEval(\'pending\')">';
+        html += '<h4>Solo secciones pendientes</h4>';
+        html += '<p>' + pendingQs.length + ' preguntas de las secciones con ejercicios de progreso pendientes</p>';
+        html += '</button>';
+    }
+    html += '</div></div>';
+
+    document.getElementById('mode-area').innerHTML = html;
+    document.getElementById('quiz-area').innerHTML = '';
+    document.getElementById('results-area').innerHTML = '';
+}
+
+// ── Start evaluation ──
+function startEvalFailed() {
+    var failed = window._failedSections || [];
+    if (failed.length === 0) { showModeSelection(); return; }
+    currentQuestions = ALL_QUESTIONS.filter(function(q) { return failed.indexOf(q.section) >= 0; });
+    currentQuestions.sort(function() { return Math.random() - 0.5; });
+    currentIdx = 0;
+    results = [];
+    document.getElementById('mode-area').innerHTML = '';
+    document.getElementById('results-area').innerHTML = '';
+    renderQuestion();
+}
+
+function startEval(mode) {
+    var progress = getProgress();
+    if (mode === 'pending') {
+        // Find sections with pending progress widgets
+        var pendingSections = [];
+        PROGRESS_WIDGETS.forEach(function(w) {
+            var p = progress[w.id];
+            if ((!p || !p.completed) && pendingSections.indexOf(w.section) < 0) pendingSections.push(w.section);
+        });
+        currentQuestions = ALL_QUESTIONS.filter(function(q) { return pendingSections.indexOf(q.section) >= 0; });
+    } else {
+        currentQuestions = ALL_QUESTIONS.slice();
+    }
+    // Shuffle
+    currentQuestions.sort(function() { return Math.random() - 0.5; });
+    currentIdx = 0;
+    results = [];
+    document.getElementById('mode-area').innerHTML = '';
+    renderQuestion();
+}
+
+// ── Render question ──
+function renderQuestion() {
+    if (currentIdx >= currentQuestions.length) { showFinalResults(); return; }
+    var q = currentQuestions[currentIdx];
+    var html = '';
+
+    html += '<div class="progress-text">Pregunta ' + (currentIdx + 1) + ' de ' + currentQuestions.length + '</div>';
+    html += '<div class="progress-bar"><div class="progress-fill" style="width:' + (currentIdx / currentQuestions.length * 100) + '%"></div></div>';
+
+    html += '<div class="question-card">';
+    html += '<div class="q-section">' + SECTION_NAMES[q.section] + '</div>';
+    html += '<div class="q-type">' + (q.type === 'mc' ? 'Opción múltiple' : q.type === 'open' ? 'Respuesta abierta' : 'Detecta el error') + '</div>';
+
+    if (q.type === 'mc') {
+        html += '<div class="q-text">' + q.text + '</div>';
+        html += '<div class="options">';
+        q.options.forEach(function(opt, i) {
+            html += '<button class="option-btn" id="opt-' + i + '" onclick="answerMC(' + i + ')">' + opt + '</button>';
+        });
+        html += '</div>';
+        html += '<div class="feedback-inline" id="feedback"></div>';
+        html += '<div class="nav-buttons" id="nav-btns" style="display:none;">';
+        html += '<button class="btn btn-primary" onclick="nextQuestion()">Siguiente →</button></div>';
+
+    } else if (q.type === 'open') {
+        html += '<div class="q-text">' + q.text + '</div>';
+        html += '<textarea id="open-answer" placeholder="Escribe tu respuesta..."></textarea>';
+        html += '<div class="nav-buttons"><button class="btn btn-primary" id="btn-submit-open" onclick="answerOpen()">Evaluar</button></div>';
+        html += '<div class="loading" id="loading"><div class="spinner"></div> Evaluando...</div>';
+        html += '<div class="feedback-inline" id="feedback"></div>';
+        html += '<div class="nav-buttons" id="nav-btns" style="display:none;">';
+        html += '<button class="btn btn-review" id="btn-review-open" onclick="requestReview(\'btn-review-open\')">📩 Pedir revisión al profesor</button>';
+        html += '<button class="btn btn-primary" onclick="nextQuestion()">Siguiente →</button></div>';
+
+    } else if (q.type === 'error') {
+        html += '<div class="q-text">' + q.text + '</div>';
+        html += '<div class="statement-box">"' + q.statement + '"</div>';
+        html += '<textarea id="error-answer" placeholder="¿Cuál es el error? Explica la corrección..."></textarea>';
+        html += '<div class="nav-buttons"><button class="btn btn-primary" id="btn-submit-error" onclick="answerError()">Evaluar</button></div>';
+        html += '<div class="loading" id="loading"><div class="spinner"></div> Evaluando...</div>';
+        html += '<div class="feedback-inline" id="feedback"></div>';
+        html += '<div class="nav-buttons" id="nav-btns" style="display:none;">';
+        html += '<button class="btn btn-review" id="btn-review-error" onclick="requestReview(\'btn-review-error\')">📩 Pedir revisión al profesor</button>';
+        html += '<button class="btn btn-primary" onclick="nextQuestion()">Siguiente →</button></div>';
+    }
+
+    html += '</div>';
+    document.getElementById('quiz-area').innerHTML = html;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Answer handlers ──
+function answerMC(chosen) {
+    var q = currentQuestions[currentIdx];
+    var isCorrect = chosen === q.correct;
+    results.push({ section: q.section, correct: isCorrect ? 1 : 0, total: 1 });
+
+    q.options.forEach(function(_, i) {
+        var btn = document.getElementById('opt-' + i);
+        btn.classList.add('disabled');
+        if (i === q.correct) btn.classList.add('correct');
+        if (i === chosen && !isCorrect) btn.classList.add('wrong');
+    });
+
+    var fb = document.getElementById('feedback');
+    fb.className = 'feedback-inline show ' + (isCorrect ? 'ok' : 'fail');
+    fb.innerHTML = (isCorrect ? '<strong>✓ Correcto.</strong> ' : '<strong>✗ Incorrecto.</strong> ') + q.explanation;
+    document.getElementById('nav-btns').style.display = '';
+}
+
+async function answerOpen() {
+    var q = currentQuestions[currentIdx];
+    var text = document.getElementById('open-answer').value.trim();
+    if (text.length < 15) { alert('Escribe al menos 15 caracteres.'); return; }
+
+    document.getElementById('btn-submit-open').disabled = true;
+    document.getElementById('loading').classList.add('show');
+
+    try {
+        var res = await fetch('/api/public-agent/eulalia/evaluar-definicion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ concepto: q.text, definicion: text, rubrica: q.rubrica, referencia: q.referencia })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+        var criterios = data.criterios || [];
+        if (criterios.length === 0) throw new Error('La LLM no devolvió criterios');
+        var passed = criterios.filter(function(c) { return c.cumplido; }).length;
+        results.push({ section: q.section, correct: passed, total: criterios.length });
+
+        var fb = document.getElementById('feedback');
+        var allOk = passed === criterios.length;
+        fb.className = 'feedback-inline show ' + (allOk ? 'ok' : passed > 0 ? 'partial' : 'fail');
+        fb.innerHTML = '<strong>' + (allOk ? '✓' : '~') + ' ' + passed + '/' + criterios.length + ' criterios.</strong> ' + (data.comentario_general || '');
+    } catch(e) {
+        document.getElementById('loading').classList.remove('show');
+        document.getElementById('btn-submit-open').disabled = false;
+        var fb = document.getElementById('feedback');
+        fb.className = 'feedback-inline show fail';
+        fb.innerHTML = '<strong>Error técnico:</strong> ' + e.message + '. Pulsa "Evaluar" para reintentar.';
+        return;
+    }
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('nav-btns').style.display = '';
+}
+
+async function answerError() {
+    var q = currentQuestions[currentIdx];
+    var text = document.getElementById('error-answer').value.trim();
+    if (text.length < 15) { alert('Escribe al menos 15 caracteres.'); return; }
+
+    document.getElementById('btn-submit-error').disabled = true;
+    document.getElementById('loading').classList.add('show');
+
+    try {
+        var res = await fetch('/api/public-agent/eulalia/evaluar-definicion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                concepto: 'Detectar error',
+                definicion: 'Afirmación: "' + q.statement + '"\nExplicación: ' + text,
+                rubrica: q.rubrica,
+                referencia: 'El error es: ' + q.error
+            })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+        var criterios = data.criterios || [];
+        if (criterios.length === 0) throw new Error('La LLM no devolvió criterios');
+        var passed = criterios.filter(function(c) { return c.cumplido; }).length;
+        results.push({ section: q.section, correct: passed, total: criterios.length });
+
+        var fb = document.getElementById('feedback');
+        var allOk = passed === criterios.length;
+        fb.className = 'feedback-inline show ' + (allOk ? 'ok' : passed > 0 ? 'partial' : 'fail');
+        var fbHtml = '<strong>' + (allOk ? '✓' : '~') + ' ' + passed + '/' + criterios.length + ' criterios.</strong> ' + (data.comentario_general || '');
+        if (!allOk) fbHtml += '<br><br><strong>El error era:</strong> ' + q.error;
+        fb.innerHTML = fbHtml;
+    } catch(e) {
+        document.getElementById('loading').classList.remove('show');
+        document.getElementById('btn-submit-error').disabled = false;
+        var fb = document.getElementById('feedback');
+        fb.className = 'feedback-inline show fail';
+        fb.innerHTML = '<strong>Error técnico:</strong> ' + e.message + '. Pulsa "Evaluar" para reintentar.';
+        return;
+    }
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('nav-btns').style.display = '';
+}
+
+function nextQuestion() {
+    currentIdx++;
+    renderQuestion();
+}
+
+// ── Final results ──
+function showFinalResults() {
+    document.getElementById('quiz-area').innerHTML = '';
+
+    // Aggregate by section
+    var sectionScores = {};
+    results.forEach(function(r) {
+        if (!sectionScores[r.section]) sectionScores[r.section] = { correct: 0, total: 0 };
+        sectionScores[r.section].correct += r.correct;
+        sectionScores[r.section].total += r.total;
+    });
+
+    var totalCorrect = 0, totalTotal = 0;
+    Object.keys(sectionScores).forEach(function(s) {
+        totalCorrect += sectionScores[s].correct;
+        totalTotal += sectionScores[s].total;
+    });
+
+    var pct = totalTotal > 0 ? Math.round(totalCorrect / totalTotal * 100) : 0;
+    var cls = pct >= 80 ? 'pass' : pct >= 50 ? 'mid' : 'fail';
+    var msg = pct >= 80 ? '¡Excelente! Dominas los contenidos del Tema 1.' :
+              pct >= 50 ? 'Buen trabajo, pero hay secciones que debes reforzar.' :
+              'Necesitas repasar el Tema 1 antes de continuar.';
+
+    var html = '<div class="results-card">';
+    html += '<div class="score-circle ' + cls + '">' + pct + '%<div class="sc-label">' + totalCorrect + '/' + totalTotal + '</div></div>';
+    html += '<div class="result-msg">' + msg + '</div>';
+
+    // Per-section breakdown
+    html += '<div class="section-results">';
+    var failedSections = [];
+    Object.keys(SECTION_NAMES).forEach(function(sec) {
+        var s = sectionScores[sec];
+        if (!s) return;
+        var secPct = Math.round(s.correct / s.total * 100);
+        var icon = secPct >= 75 ? '✓' : '✗';
+        if (secPct < 75) failedSections.push(sec);
+        html += '<div class="sec-row">';
+        html += '<span class="sec-icon">' + icon + '</span>';
+        html += '<span class="sec-name">' + SECTION_NAMES[sec] + '</span>';
+        html += '<span class="sec-score" style="color:' + (secPct >= 75 ? '#16a34a' : '#dc2626') + '">' + secPct + '%</span>';
+        html += '</div>';
+    });
+    html += '</div>';
+
+    // Review suggestions
+    if (failedSections.length > 0) {
+        html += '<div class="review-box"><h3>Repasa estas secciones:</h3><ul>';
+        failedSections.forEach(function(sec) {
+            html += '<li><strong>' + SECTION_NAMES[sec] + '</strong></li>';
+        });
+        html += '</ul></div>';
+    }
+
+    html += '<div class="result-buttons">';
+    if (failedSections.length > 0) {
+        html += '<button class="btn btn-primary" onclick="startEvalFailed()">Repetir solo las secciones falladas (' + failedSections.length + ')</button>';
+    }
+    html += '<button class="btn btn-secondary" onclick="showModeSelection()">Repetir evaluación completa</button>';
+    html += '<button class="btn btn-secondary" onclick="window.close()">Volver al curso</button>';
+    html += '</div></div>';
+
+    // Store failed sections for retry
+    window._failedSections = failedSections;
+
+    // Save global progress
+    saveProgress('eval_final_tema1', totalCorrect, totalTotal);
+
+    // Save per-section progress — mark progress widgets as completed
+    // if their section scored >= 75%
+    Object.keys(sectionScores).forEach(function(sec) {
+        var s = sectionScores[sec];
+        var secPct = Math.round(s.correct / s.total * 100);
+        if (secPct >= 75) {
+            PROGRESS_WIDGETS.forEach(function(w) {
+                if (w.section === sec) saveProgress(w.id, secPct, 100);
+            });
+        }
+    });
+
+    document.getElementById('results-area').innerHTML = html;
+}
+
+// Init
+showModeSelection();
+
+// ── Consultar al profesor ──
+var CONSULT_WIDGET = 'Evaluación final — Tema 1';
+function consultOpen() {
+    document.getElementById('consult-overlay').classList.add('show');
+    document.getElementById('consult-form').style.display = '';
+    document.getElementById('consult-ok').classList.remove('show');
+    document.getElementById('consult-text').value = '';
+    document.getElementById('consult-count').textContent = '0';
+    document.getElementById('consult-send').disabled = true;
+}
+function consultClose() {
+    document.getElementById('consult-overlay').classList.remove('show');
+}
+function consultCount() {
+    var n = document.getElementById('consult-text').value.trim().length;
+    document.getElementById('consult-count').textContent = n;
+    document.getElementById('consult-send').disabled = n < 10;
+}
+async function consultSend() {
+    var text = document.getElementById('consult-text').value.trim();
+    if (text.length < 10) return;
+    document.getElementById('consult-send').disabled = true;
+    document.getElementById('consult-send').textContent = 'Enviando...';
+    try {
+        var res = await fetch('/api/public-agent/eulalia/consulta-profesor', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ consulta: text, widget: CONSULT_WIDGET, contexto: document.title })
+        });
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+        document.getElementById('consult-form').style.display = 'none';
+        document.getElementById('consult-ok').classList.add('show');
+    } catch(e) {
+        alert('Error al enviar: ' + e.message);
+    } finally {
+        document.getElementById('consult-send').textContent = 'Enviar consulta';
+    }
+}
+</script>
+
+</body>
+</html>

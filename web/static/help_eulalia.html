@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ayuda — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.nav { background: #4250b3; padding: 12px 24px; display: flex; align-items: center; gap: 12px; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 20px; text-decoration: none; }
+.nav-sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.nav-current { color: #fff; font-size: 16px; font-weight: 600; }
+.content { max-width: 700px; margin: 0 auto; padding: 32px 24px 48px; line-height: 1.7; font-size: 15px; }
+h1 { font-size: 1.6rem; color: #7c3aed; margin-bottom: 8px; }
+h2 { font-size: 1.2rem; color: #1e293b; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3rem; }
+h3 { font-size: 1.05rem; color: #374151; margin-top: 1.2rem; margin-bottom: 0.3rem; }
+p { margin: 0.6em 0; }
+ul, ol { padding-left: 1.5em; margin: 0.6em 0; }
+li { margin-bottom: 0.4em; }
+.example { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin: 8px 0; font-size: 14px; }
+.warning { background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin: 12px 0; font-size: 14px; }
+.warning strong { color: #92400e; }
+.icon-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.icon-row img { height: 24px; width: 24px; background: rgba(0,0,0,0.05); border-radius: 4px; padding: 2px; }
+.reliability-box { border-radius: 8px; padding: 10px 14px; margin: 6px 0; font-size: 14px; }
+.rel-green { background: #dcfce7; border: 1px solid #86efac; }
+.rel-yellow { background: #fef9c3; border: 1px solid #fde047; }
+.rel-red { background: #fee2e2; border: 1px solid #fca5a5; }
+.back-link { display: inline-block; margin-top: 24px; color: #7c3aed; text-decoration: none; font-size: 14px; }
+.back-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="/tutores-virtuales" class="nav-brand">Tutores virtuales</a>
+    <span class="nav-sep">/</span>
+    <span class="nav-current">Eulalia — Ayuda</span>
+</div>
+
+<div class="content">
+<h1>Tutor virtual de LALI</h1>
+<p>Este tutor te ayuda a estudiar la asignatura <strong>Lingüística Aplicada a la Logopedia I</strong>. Puedes hacerle preguntas sobre los contenidos de la asignatura, pedirle transcripciones y practicar con ejercicios.</p>
+
+<h2>¿Qué puedes preguntar?</h2>
+
+<h3>Conceptos teóricos</h3>
+<div class="example">¿Qué diferencia hay entre fonema y alófono?</div>
+<div class="example">¿Qué es un espectrograma?</div>
+<div class="example">Explícame los rasgos distintivos</div>
+
+<h3>Transcripciones fonológicas</h3>
+<div class="example">Transcribe fonológicamente la palabra "encender"</div>
+<div class="example">¿Cómo se transcribe fonológicamente "el niño come pan"?</div>
+<p>Las transcripciones fonológicas se generan <strong>automáticamente</strong> mediante un algoritmo verificado — no las produce la IA. El tutor añade después una explicación pedagógica.</p>
+
+<h3>Errores fonológicos</h3>
+<div class="example">¿Qué error fonológico hay en "comprar" → "tompar"?</div>
+<div class="example">Dame un ejercicio de errores fonológicos</div>
+
+<h3>Fonética y alófonos</h3>
+<div class="example">¿Cuáles son los alófonos de /b/?</div>
+<div class="example">¿Cómo se pronuncia la /d/ entre vocales?</div>
+
+<h3>Praat</h3>
+<div class="example">¿Cómo grabo un sonido en Praat?</div>
+<div class="example">¿Cómo anoto un archivo de sonido en Praat?</div>
+
+<h2>⚠️ Niveles de fiabilidad — ¡Importante!</h2>
+
+<p>No todas las respuestas del tutor tienen el mismo nivel de fiabilidad. Cada respuesta lleva un <strong>indicador de color</strong> que debes comprobar:</p>
+
+<div class="reliability-box rel-green">
+    <strong>🟢 Verde — Datos verificados</strong><br>
+    La respuesta proviene directamente de los materiales de la asignatura o de un algoritmo verificado (como las transcripciones fonológicas automáticas). <strong>Puedes fiarte de esta información.</strong>
+</div>
+
+<div class="reliability-box rel-yellow">
+    <strong>🟡 Amarillo — Comentario de IA basado en los materiales</strong><br>
+    La IA ha generado la respuesta basándose en los apuntes de la asignatura. En general es correcta, pero <strong>puede contener errores de interpretación</strong>. Contrasta con tus apuntes si tienes dudas.
+</div>
+
+<div class="reliability-box rel-red">
+    <strong>🔴 Rojo — Generado por IA sin base en los materiales</strong><br>
+    La IA no ha encontrado información relevante en los apuntes y ha generado la respuesta con su conocimiento general. <strong>Puede contener errores.</strong> Verifica siempre esta información con el profesor/a o con los apuntes.
+</div>
+
+<div class="warning">
+    <strong>⚠️ Advertencia:</strong> El tutor virtual es una herramienta de apoyo al estudio, <strong>no sustituye a los apuntes ni al profesor/a</strong>. La IA puede cometer errores, especialmente con:
+    <ul style="margin-top:6px;">
+        <li><strong>Símbolos fonéticos (AFI)</strong>: puede confundir símbolos similares (ɾ/r, β̞/b, ð̞/d)</li>
+        <li><strong>Clasificación de errores fonológicos</strong>: puede equivocarse en el tipo de error</li>
+        <li><strong>Transcripciones fonéticas</strong>: las reglas alofónicas tienen excepciones que la IA puede no conocer</li>
+    </ul>
+    <p style="margin-top:8px;"><strong>Usa siempre el indicador de color</strong> para saber cuánto puedes fiarte de cada respuesta.</p>
+</div>
+
+<h2>Transcripciones automáticas</h2>
+<p>Cuando pides una transcripción fonológica, el tutor usa un <strong>algoritmo programado</strong> (no la IA) para generarla. Esto garantiza que:</p>
+<ul>
+    <li>Los símbolos fonológicos son correctos</li>
+    <li>La separación silábica sigue las reglas del español</li>
+    <li>El acento se coloca según las reglas de acentuación</li>
+</ul>
+<p>Sin embargo, hay casos que el algoritmo no puede resolver automáticamente:</p>
+<ul>
+    <li><strong>Hiatos vs diptongos</strong>: en algunos casos la decisión depende del hablante o del dialecto</li>
+    <li><strong>Palabras irregulares</strong>: el acento de algunas palabras no sigue las reglas generales</li>
+    <li><strong>Extranjerismos</strong>: palabras como "software" o "jazz" no pueden transcribirse con las reglas del español — el tutor te avisará</li>
+</ul>
+
+<h2>Convenciones usadas</h2>
+<ul>
+    <li><strong>Transcripción fonológica</strong>: entre barras / ... / con puntos entre sílabas y apóstrofo antes de la sílaba tónica</li>
+    <li><strong>Transcripción fonética</strong>: entre corchetes [ ... ]</li>
+    <li><strong>Dialecto de referencia</strong>: español peninsular distinguidor (diferencia /s/ de /θ/), salvo que se indique lo contrario</li>
+</ul>
+
+<h2>Iconos de la barra lateral</h2>
+<div class="icon-row">
+    <img src="/static/icon_crystal_box.svg" alt="Crystal box">
+    <span><strong>Caja de cristal</strong> — El tutor muestra cómo genera sus respuestas (máxima transparencia)</span>
+</div>
+<div class="icon-row">
+    <img src="/static/icon_reliability_on.svg" alt="Reliability on">
+    <span><strong>Indicadores de fiabilidad activados</strong> — Cada respuesta muestra su nivel de fiabilidad</span>
+</div>
+<p>El icono <span style="font-size:14px;background:rgba(0,0,0,0.05);border-radius:4px;padding:2px 5px;">🟢</span> indica que el nivel de prompt es <strong>estricto</strong>: el tutor prioriza la precisión.</p>
+
+<h2>Consejos para aprovechar el tutor</h2>
+<ol>
+    <li><strong>Usa el tutor para practicar</strong>, no solo para obtener respuestas. Intenta hacer la transcripción tú primero y luego compara.</li>
+    <li><strong>Pide ejercicios</strong>: el tutor puede darte ejercicios de transcripción y errores fonológicos para que practiques.</li>
+    <li><strong>Mira el color</strong>: si la respuesta es amarilla o roja, contrástala con los apuntes.</li>
+    <li><strong>Da feedback</strong>: si encuentras un error, usa los botones 👍/👎 debajo de cada respuesta. Esto nos ayuda a mejorar el tutor.</li>
+    <li><strong>Pregunta en español</strong>: el tutor está diseñado para responder en español.</li>
+</ol>
+
+<h2>Materiales de la asignatura</h2>
+<p>El tutor tiene acceso a los siguientes materiales:</p>
+<ul>
+    <li><strong>Tema 1</strong>: Introducción a la fonología (fonemas, alófonos, fonos, perspectivas)</li>
+    <li><strong>Tema 2</strong>: Fonología y errores fonológicos (cuadro de consonantes, errores sistémicos y de estructura)</li>
+    <li><strong>Tema 3</strong>: Fonética articulatoria (tabla de símbolos fonéticos, ejercicios de transcripción)</li>
+    <li><strong>Tema 4</strong>: Fonética acústica y Praat (espectrogramas, formantes, prosodia, consonantes, anotación)</li>
+    <li><strong>Glosario</strong>: Definiciones de los conceptos principales de la asignatura</li>
+</ul>
+
+<a href="/tutores-virtuales" class="back-link">&larr; Volver a Tutores virtuales</a>
+</div>
+</body>
+</html>

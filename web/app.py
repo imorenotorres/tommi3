@@ -80,6 +80,7 @@ def log_conversation(
     session_id: str = "",
     transparency_level: str = None,
     username: str = None,
+    extra: dict = None,
 ):
     """Registra una conversación en el log (si está habilitado).
     Writes a per-agent .log file and a per-agent .jsonl file."""
@@ -109,6 +110,8 @@ def log_conversation(
         "question": question,
         "response": response[:500] + "..." if len(response) > 500 else response
     }
+    if extra:
+        entry.update(extra)
 
     # Per-agent .log (human-readable, pretty-printed)
     try:
@@ -163,14 +166,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
         is_rag_study2 = "rag_study2_" in request.query_params.get("agent_id", "")
         is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/projects-search", "/project-topic-search", "/pdf-list")) and any(f"/{aid}/" in path for aid in ("responsible_ai3", "health_wellbeing_sistems"))
         is_tutores = path.startswith("/api/tutores/")
-        is_lali_public = path in ("/api/lali-tutor/auth-level", "/api/agent/lali_tutor/transcripcion-config")
+        is_lali_public = path in ("/api/eulalia/auth-level", "/api/agent/eulalia/transcripcion-config")
         if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/interaction-log" not in path and "/public-tools" not in path and "/public-agent/" not in path and "/api/feedback" != path and not is_study and not is_public_search and not is_rag_study2 and not is_tutores and not is_lali_public:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
                 token = request.query_params.get("token", "")
             if not token or not get_session(token):
-                # Also accept tutores tokens for lali_tutor agent
-                is_lali_chat = (request.query_params.get("agent_id") == "lali_tutor"
+                # Also accept tutores tokens for eulalia agent
+                is_lali_chat = (request.query_params.get("agent_id") == "eulalia"
                                 and token and tutores_get_session(token))
                 if not is_lali_chat:
                     return JSONResponse(status_code=401, content={"detail": "Authentication required"})
@@ -178,6 +181,141 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(AuthMiddleware)
+
+
+# ── Rate limiting middleware ──────────────────────────────────────────
+import time as _rl_time
+from collections import defaultdict
+
+class RateLimiter:
+    """In-memory rate limiter per key (IP or user)."""
+
+    def __init__(self):
+        self._buckets = defaultdict(list)  # key -> list of timestamps
+        self._cleanup_counter = 0
+
+    def is_allowed(self, key: str, max_requests: int, window_seconds: int) -> bool:
+        now = _rl_time.time()
+        cutoff = now - window_seconds
+        # Remove old entries
+        self._buckets[key] = [t for t in self._buckets[key] if t > cutoff]
+        if len(self._buckets[key]) >= max_requests:
+            return False
+        self._buckets[key].append(now)
+        # Periodic cleanup of stale keys (every 100 checks)
+        self._cleanup_counter += 1
+        if self._cleanup_counter % 100 == 0:
+            stale = [k for k, v in self._buckets.items() if not v or v[-1] < cutoff]
+            for k in stale:
+                del self._buckets[k]
+        return True
+
+
+_rate_limiter = RateLimiter()
+
+# Rate limit tiers
+_RL_CHAT = (5, 60)       # 5 requests per 60 seconds
+_RL_CHAT_HOUR = (100, 3600)  # 100 per hour
+_RL_DATA = (30, 60)      # 30 per minute
+_RL_WRITE = (5, 60)      # 5 per minute
+_RL_LOGIN = (3, 60)      # 3 per minute
+
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        path = request.url.path
+        method = request.method
+
+        # Only rate-limit API calls
+        if not path.startswith("/api/"):
+            return await call_next(request)
+
+        # Identify the caller: prefer username > session_id > IP
+        client_ip = request.client.host if request.client else "unknown"
+        token = request.query_params.get("token", "")
+        session_id = request.query_params.get("session_id", "")
+        caller_key = client_ip
+
+        # 1. Best: authenticated user
+        if token:
+            try:
+                from auth_tutores import get_session as _rl_get_session
+                session = _rl_get_session(token)
+                if session:
+                    caller_key = "user:" + session.get("username", client_ip)
+            except Exception:
+                pass
+
+        # 2. Fallback: chat session_id (unique per browser tab)
+        if caller_key == client_ip and session_id:
+            caller_key = "session:" + session_id
+
+        # Determine tier based on path
+        if "moodle-login" in path or "login" in path:
+            tier = _RL_LOGIN
+            tier_key = "login:" + client_ip  # Always by IP for login
+        elif "chat/stream" in path:
+            # Chat: check both per-minute and per-hour limits
+            minute_key = "chat_min:" + caller_key
+            hour_key = "chat_hr:" + caller_key
+            if not _rate_limiter.is_allowed(minute_key, *_RL_CHAT):
+                return JSONResponse(
+                    {"error": "Demasiadas consultas al chat. Espera un momento antes de enviar otra."},
+                    status_code=429
+                )
+            if not _rate_limiter.is_allowed(hour_key, *_RL_CHAT_HOUR):
+                return JSONResponse(
+                    {"error": "Has alcanzado el límite de consultas por hora. Inténtalo más tarde."},
+                    status_code=429
+                )
+            return await call_next(request)
+        elif method == "POST" and any(w in path for w in ("consulta", "progreso", "retos", "revision", "registrar", "solicitar")):
+            tier = _RL_WRITE
+            tier_key = "write:" + caller_key
+        else:
+            tier = _RL_DATA
+            tier_key = "data:" + caller_key
+
+        if not _rate_limiter.is_allowed(tier_key, *tier):
+            return JSONResponse(
+                {"error": "Demasiadas peticiones. Espera un momento."},
+                status_code=429
+            )
+
+        return await call_next(request)
+
+
+app.add_middleware(RateLimitMiddleware)
+
+# Security headers middleware
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # Prevent clickjacking: only allow framing from same origin
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        # Prevent MIME type sniffing
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        # XSS protection (legacy browsers)
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        # Referrer policy: don't leak full URL to external sites
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # HSTS: force HTTPS (only effective on HTTPS, ignored on localhost)
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        # CSP: restrict sources while allowing CDNs used by agents
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
+            "style-src 'self' 'unsafe-inline' https://unpkg.com; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' https:; "
+            "connect-src 'self'; "
+            "frame-src 'self' https:; "
+            "frame-ancestors 'self'"
+        )
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Servir archivos estáticos
 app.mount("/static", StaticFiles(directory=SCRIPT_DIR / "static"), name="static")
@@ -1142,23 +1280,23 @@ async def tutores_virtuales_page():
     return FileResponse(SCRIPT_DIR / "static" / "tutores_virtuales.html")
 
 
-@app.get("/tutores-virtuales/help/lali-tutor")
-async def help_lali_tutor():
+@app.get("/tutores-virtuales/help/eulalia")
+async def help_eulalia():
     """Help page for the LALI tutor"""
-    return FileResponse(SCRIPT_DIR / "static" / "help_lali_tutor.html")
+    return FileResponse(SCRIPT_DIR / "static" / "help_eulalia.html")
 
 
-@app.get("/tutores-virtuales/lali-tutor")
+@app.get("/tutores-virtuales/eulalia")
 async def tutores_lali():
     """Serve the LALI tutor page"""
-    return FileResponse(SCRIPT_DIR / "static" / "uma_lali.html")
+    return FileResponse(SCRIPT_DIR / "static" / "eulalia.html")
 
 
-@app.get("/tutores-virtuales/lali-tutor/widgets/{widget_name}")
+@app.get("/tutores-virtuales/eulalia/widgets/{widget_name}")
 async def lali_widget(widget_name: str):
     """Serve LALI tutor interactive widgets"""
     safe_name = widget_name.replace("/", "").replace("..", "")
-    path = SCRIPT_DIR / "static" / "widgets" / f"{safe_name}.html"
+    path = SCRIPT_DIR / "static" / "lalitutor" / "widgets" / f"{safe_name}.html"
     if not path.is_file():
         return JSONResponse({"error": "Widget not found"}, status_code=404)
     return FileResponse(path)
@@ -1354,10 +1492,10 @@ async def tutores_validate_invite_endpoint(token: str = Query(...)):
 
 # ── LALI tutor: course data API ────────────────────────────────────────
 
-_LALI_DIR = Path(__file__).parent.parent / "agents" / "lali_tutor"
+_LALI_DIR = Path(__file__).parent.parent / "agents" / "eulalia"
 
 
-@app.get("/api/public-agent/lali_tutor/docentes")
+@app.get("/api/public-agent/eulalia/docentes")
 async def lali_get_docentes():
     """Get teaching staff info (public)."""
     path = _LALI_DIR / "docentes.json"
@@ -1367,7 +1505,7 @@ async def lali_get_docentes():
         return json.load(f)
 
 
-@app.get("/api/public-agent/lali_tutor/progreso-temas")
+@app.get("/api/public-agent/eulalia/progreso-temas")
 async def lali_get_progreso_temas(request: Request):
     """Get student progress across all themes (requires auth)."""
     tutores_token = _get_tutores_token(request)
@@ -1392,7 +1530,231 @@ async def lali_get_progreso_temas(request: Request):
         return {"temas": [], "tema_recomendado": 1, "error": str(e)}
 
 
-@app.post("/api/public-agent/lali_tutor/registrar-actividad")
+@app.post("/api/public-agent/eulalia/solicitar-revision")
+async def lali_solicitar_revision(request: Request):
+    """A student requests a professor review of an AI-evaluated answer."""
+    body = await request.json()
+    pregunta = body.get("pregunta", "")
+    respuesta_alumno = body.get("respuesta_alumno", "")
+    evaluacion_ia = body.get("evaluacion_ia", "")
+    widget = body.get("widget", "")
+    email = body.get("email", "")
+
+    # Try to get username if authenticated
+    tutores_token = _get_tutores_token(request)
+    session = tutores_get_session(tutores_token) if tutores_token else None
+    username = session.get("username", email or "anónimo") if session else (email or "anónimo")
+
+    revision = {
+        "timestamp": datetime.now().isoformat(),
+        "username": username,
+        "email": email,
+        "widget": widget,
+        "pregunta": pregunta,
+        "respuesta_alumno": respuesta_alumno,
+        "evaluacion_ia": evaluacion_ia,
+        "estado": "pendiente"
+    }
+
+    revision_path = _LALI_DIR / "revisiones_pendientes.json"
+    try:
+        existing = json.loads(revision_path.read_text(encoding="utf-8")) if revision_path.exists() else []
+    except Exception:
+        existing = []
+    existing.append(revision)
+    revision_path.write_text(json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return {"status": "ok", "message": "Solicitud de revisión registrada"}
+
+
+@app.get("/api/public-agent/eulalia/revisiones")
+async def lali_get_revisiones(request: Request):
+    """Get all pending review requests (professor only)."""
+    revision_path = _LALI_DIR / "revisiones_pendientes.json"
+    try:
+        revisiones = json.loads(revision_path.read_text(encoding="utf-8")) if revision_path.exists() else []
+    except Exception:
+        revisiones = []
+    return {"revisiones": revisiones}
+
+
+@app.post("/api/public-agent/eulalia/responder-revision")
+async def lali_responder_revision(request: Request):
+    """Professor responds to a review request."""
+    body = await request.json()
+    idx = body.get("index")
+    respuesta_profesor = body.get("respuesta", "")
+    decision = body.get("decision", "")  # "aceptar" or "mantener"
+
+    revision_path = _LALI_DIR / "revisiones_pendientes.json"
+    try:
+        revisiones = json.loads(revision_path.read_text(encoding="utf-8")) if revision_path.exists() else []
+    except Exception:
+        revisiones = []
+
+    if idx is None or idx < 0 or idx >= len(revisiones):
+        raise HTTPException(status_code=400, detail="Índice de revisión inválido")
+
+    revisiones[idx]["estado"] = "respondida"
+    revisiones[idx]["decision"] = decision
+    revisiones[idx]["respuesta_profesor"] = respuesta_profesor
+    revisiones[idx]["fecha_respuesta"] = datetime.now().isoformat()
+
+    revision_path.write_text(json.dumps(revisiones, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"status": "ok"}
+
+
+# ── LALI tutor: student consultations to professor ───────────────────
+
+_LALI_CONSULTAS_PATH = _LALI_DIR / "consultas_profesor.json"
+
+
+# ── LALI tutor: student practice progress ────────────────────────────
+
+_LALI_PROGRESO_PATH = _LALI_DIR / "data" / "progreso_practica.json"
+
+
+def _load_progreso():
+    try:
+        if _LALI_PROGRESO_PATH.exists():
+            return json.loads(_LALI_PROGRESO_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return {}
+
+
+def _save_progreso(data):
+    _LALI_PROGRESO_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+@app.post("/api/public-agent/eulalia/progreso-practica")
+async def lali_save_progreso(request: Request):
+    """Save a student's practice progress for a specific exercise."""
+    body = await request.json()
+    ejercicio = body.get("ejercicio", "")
+    score = body.get("score", 0)
+    max_score = body.get("max_score", 0)
+    detalles = body.get("detalles", {})
+
+    if not ejercicio:
+        return JSONResponse({"error": "Falta el ID del ejercicio"}, status_code=400)
+
+    tutores_token = _get_tutores_token(request)
+    session = tutores_get_session(tutores_token) if tutores_token else None
+    username = session.get("username", "anónimo") if session else "anónimo"
+
+    all_progress = _load_progreso()
+    if username not in all_progress:
+        all_progress[username] = {}
+
+    pct = round(score / max_score * 100) if max_score > 0 else 0
+    prev = all_progress[username].get(ejercicio, {})
+
+    # Only update if better score or not yet saved
+    if not prev or pct > prev.get("score", 0):
+        all_progress[username][ejercicio] = {
+            "score": pct,
+            "completed": pct >= 75,
+            "raw_score": score,
+            "max_score": max_score,
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "detalles": detalles,
+        }
+        _save_progreso(all_progress)
+
+    return {"ok": True, "score": pct}
+
+
+@app.get("/api/public-agent/eulalia/progreso-practica")
+async def lali_get_progreso(request: Request):
+    """Get practice progress. Students see only their own; professors see all."""
+    tutores_token = _get_tutores_token(request)
+    session = tutores_get_session(tutores_token) if tutores_token else None
+    username = session.get("username", "anónimo") if session else "anónimo"
+    role = session.get("role", "student") if session else "student"
+
+    all_progress = _load_progreso()
+
+    if role in ("admin", "editor", "superuser"):
+        # Professor: return all students
+        return {"role": "profesor", "progreso": all_progress}
+    else:
+        # Student: return only their own
+        return {"role": "estudiante", "username": username, "progreso": all_progress.get(username, {})}
+
+
+@app.post("/api/public-agent/eulalia/consulta-profesor")
+async def lali_consulta_profesor(request: Request):
+    """A student sends a question/consultation to the professor from a widget."""
+    body = await request.json()
+    consulta = body.get("consulta", "").strip()
+    widget = body.get("widget", "")
+    contexto = body.get("contexto", "")  # optional: what the student was doing
+    email = body.get("email", "")
+
+    if not consulta:
+        return JSONResponse({"error": "La consulta no puede estar vacía"}, status_code=400)
+
+    tutores_token = _get_tutores_token(request)
+    session = tutores_get_session(tutores_token) if tutores_token else None
+    username = session.get("username", email or "anónimo") if session else (email or "anónimo")
+
+    entry = {
+        "timestamp": datetime.now().isoformat(),
+        "username": username,
+        "email": email,
+        "widget": widget,
+        "contexto": contexto,
+        "tipo": body.get("tipo", ""),
+        "ubicacion": body.get("ubicacion", ""),
+        "consulta": consulta,
+        "estado": "pendiente",
+    }
+
+    try:
+        existing = json.loads(_LALI_CONSULTAS_PATH.read_text(encoding="utf-8")) if _LALI_CONSULTAS_PATH.exists() else []
+    except Exception:
+        existing = []
+    existing.append(entry)
+    _LALI_CONSULTAS_PATH.write_text(json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return {"status": "ok", "message": "Consulta enviada al profesor"}
+
+
+@app.get("/api/public-agent/eulalia/consultas-profesor")
+async def lali_get_consultas():
+    """Get all student consultations (professor view)."""
+    try:
+        consultas = json.loads(_LALI_CONSULTAS_PATH.read_text(encoding="utf-8")) if _LALI_CONSULTAS_PATH.exists() else []
+    except Exception:
+        consultas = []
+    return {"consultas": consultas}
+
+
+@app.post("/api/public-agent/eulalia/responder-consulta")
+async def lali_responder_consulta(request: Request):
+    """Professor responds to a student consultation."""
+    body = await request.json()
+    idx = body.get("index")
+    respuesta = body.get("respuesta", "")
+
+    try:
+        consultas = json.loads(_LALI_CONSULTAS_PATH.read_text(encoding="utf-8")) if _LALI_CONSULTAS_PATH.exists() else []
+    except Exception:
+        consultas = []
+
+    if idx is None or idx < 0 or idx >= len(consultas):
+        raise HTTPException(status_code=400, detail="Índice de consulta inválido")
+
+    consultas[idx]["estado"] = "respondida"
+    consultas[idx]["respuesta_profesor"] = respuesta
+    consultas[idx]["fecha_respuesta"] = datetime.now().isoformat()
+
+    _LALI_CONSULTAS_PATH.write_text(json.dumps(consultas, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"status": "ok"}
+
+
+@app.post("/api/public-agent/eulalia/registrar-actividad")
 async def lali_registrar_actividad(request: Request):
     """Register a student activity in a theme (concept viewed, exercise done, etc.)."""
     tutores_token = _get_tutores_token(request)
@@ -1418,7 +1780,7 @@ async def lali_registrar_actividad(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/public-agent/lali_tutor/autoeval-progreso")
+@app.get("/api/public-agent/eulalia/autoeval-progreso")
 async def lali_get_autoeval_progreso(
     request: Request,
     tema_id: int = Query(None),
@@ -1452,7 +1814,7 @@ _MOODLE_SSO_SECRET = os.environ.get("LALI_MOODLE_SECRET", "cambiar-este-secreto-
 _MOODLE_SSO_EXPIRY = 300  # 5 minutos de validez
 
 
-@app.get("/api/public-agent/lali_tutor/moodle-login")
+@app.get("/api/public-agent/eulalia/moodle-login")
 async def lali_moodle_login(
     request: Request,
     user: str = Query(...),
@@ -1464,7 +1826,7 @@ async def lali_moodle_login(
     """SSO desde Moodle. Verifica firma HMAC, crea sesión, redirige al tutor.
 
     URL generada por el bloque HTML de Moodle:
-        /api/public-agent/lali_tutor/moodle-login?user=EMAIL&ts=TIMESTAMP&sig=HMAC&name=NOMBRE&role=estudiante
+        /api/public-agent/eulalia/moodle-login?user=EMAIL&ts=TIMESTAMP&sig=HMAC&name=NOMBRE&role=estudiante
     """
     import hashlib
     import hmac
@@ -1507,11 +1869,10 @@ async def lali_moodle_login(
     users = tutores_load_users()
 
     if username not in users:
-        # Crear usuario automáticamente con contraseña aleatoria
-        import secrets as _secrets
-        temp_pwd = _secrets.token_urlsafe(16)
-        tutores_create_user(username, temp_pwd, role=role, nombre=nombre, activo=True)
-        users = tutores_load_users()
+        raise HTTPException(
+            status_code=403,
+            detail="Tu cuenta de Moodle no está registrada en Eulalia. Contacta con el profesor para que te dé de alta."
+        )
 
     # Actualizar nombre si viene de Moodle y ha cambiado
     if nombre and users[username].get("nombre") != nombre:
@@ -1532,11 +1893,11 @@ async def lali_moodle_login(
     }
 
     # 5. Redirigir al tutor con el token en la URL
-    redirect_url = f"/tutores-virtuales/lali-tutor?moodle_token={token}"
+    redirect_url = f"/tutores-virtuales/eulalia?moodle_token={token}"
     return RedirectResponse(url=redirect_url, status_code=302)
 
 
-@app.get("/api/public-agent/lali_tutor/temas")
+@app.get("/api/public-agent/eulalia/temas")
 async def lali_get_temas():
     """Get course topics structure (public)."""
     path = _LALI_DIR / "temas.json"
@@ -1546,7 +1907,7 @@ async def lali_get_temas():
         return json.load(f)
 
 
-@app.get("/api/public-agent/lali_tutor/contenido-seccion")
+@app.get("/api/public-agent/eulalia/contenido-seccion")
 async def lali_get_contenido_seccion(
     doc: str = Query(..., description="Nombre del archivo markdown (ej: Tema1_Introduccion.md)"),
     seccion: str = Query("", description="Título de la sección a extraer (ej: '1. Fonología y fonética')"),
@@ -1570,16 +1931,17 @@ async def lali_get_contenido_seccion(
     if not seccion:
         return {"doc": safe_doc, "seccion": "", "contenido": contenido}
 
-    # Buscar la sección por título (## o ###)
-    # Escapar caracteres regex en el título
+    # Buscar la sección por título (## o ### o ####)
+    # Los encabezados pueden tener HTML inline como <a id="..."></a>
     titulo_escaped = _re.escape(seccion.strip())
-    pattern = r'^(#{2,3})\s+' + titulo_escaped + r'\s*$'
+    # Permitir HTML tags opcionales entre los # y el título
+    pattern = r'^(#{2,4})\s+(?:<[^>]*>\s*)*' + titulo_escaped + r'\s*$'
     match = _re.search(pattern, contenido, _re.MULTILINE)
     if not match:
         # Intentar búsqueda parcial (sin número de sección)
-        titulo_sin_num = _re.sub(r'^\d+\.\s*', '', seccion.strip())
+        titulo_sin_num = _re.sub(r'^\d+[\.\d]*\.?\s*', '', seccion.strip())
         titulo_escaped2 = _re.escape(titulo_sin_num)
-        pattern2 = r'^(#{2,3})\s+(?:\d+\.?\s*)?' + titulo_escaped2 + r'\s*$'
+        pattern2 = r'^(#{2,4})\s+(?:<[^>]*>\s*)*(?:\d+[\.\d]*\.?\s*)?' + titulo_escaped2 + r'\s*$'
         match = _re.search(pattern2, contenido, _re.MULTILINE | _re.IGNORECASE)
 
     if not match:
@@ -1605,7 +1967,218 @@ async def lali_get_contenido_seccion(
 
 _LALI_CONFIG_PATH = _LALI_DIR / "transcripcion_config.json"
 
-@app.get("/api/public-agent/lali_tutor/transcripcion-config")
+
+@app.post("/api/public-agent/eulalia/evaluar-definicion")
+async def lali_evaluar_definicion(request: Request):
+    """Evaluate a student's definition of a concept using LLM with a closed rubric."""
+    from llm_client import LLMClient
+
+    body = await request.json()
+    concepto = body.get("concepto", "")
+    definicion_alumno = body.get("definicion", "")
+    rubrica = body.get("rubrica", [])
+    definicion_referencia = body.get("referencia", "")
+
+    if not concepto or not definicion_alumno or not rubrica:
+        return JSONResponse({"error": "Faltan campos obligatorios"}, status_code=400)
+
+    criterios_text = "\n".join(
+        f"- Criterio {i+1}: {c['descripcion']}" for i, c in enumerate(rubrica)
+    )
+
+    prompt = f"""Eres un tutor de fonología que evalúa definiciones. Dirígete al estudiante de tú, con un tono cercano y constructivo (por ejemplo: "Tu definición...", "Debes repasar...", "Has captado bien...").
+
+DEFINICIÓN DE REFERENCIA (del temario):
+{definicion_referencia}
+
+DEFINICIÓN DEL ESTUDIANTE:
+{definicion_alumno}
+
+RÚBRICA — Evalúa cada criterio como true (cumplido) o false (no cumplido):
+{criterios_text}
+
+INSTRUCCIONES:
+- Evalúa si la definición del estudiante cubre cada criterio, no si usa las mismas palabras exactas.
+- Sé justo y generoso: si el concepto está expresado con otras palabras, con sinónimos o de forma implícita pero clara, marca true. Por ejemplo, si el criterio pide que asocie una subdisciplina a la "fase de producción" y el estudiante dice "cómo se producen los sonidos", eso CUMPLE el criterio aunque no use la palabra "fase".
+- Solo marca false si el concepto realmente falta o es incorrecto.
+- IMPORTANTE: Asegúrate de que el valor "cumplido" (true/false) es coherente con tu comentario. Si tu comentario dice que la respuesta es correcta, el valor debe ser true.
+- Responde ÚNICAMENTE con un JSON válido, sin texto adicional, con esta estructura:
+{{
+  "criterios": [
+    {{"cumplido": true/false, "comentario": "breve explicación"}},
+    ...
+  ],
+  "comentario_general": "retroalimentación constructiva en 1-2 frases"
+}}"""
+
+    try:
+        client = LLMClient()
+        response = client.chat.complete(
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1024,
+        )
+        llm_text = response.choices[0].message.content.strip()
+        # Extract JSON from response (handle markdown code blocks)
+        if "```" in llm_text:
+            import re
+            match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", llm_text, re.DOTALL)
+            if match:
+                llm_text = match.group(1)
+        result = json.loads(llm_text)
+        return result
+    except json.JSONDecodeError:
+        return JSONResponse({"error": "La LLM no devolvió JSON válido", "raw": llm_text}, status_code=502)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+# ── LALI tutor: syllable frequency data ──────────────────────────────
+
+@app.get("/api/public-agent/eulalia/silabas-frecuencia")
+async def lali_get_silabas_frecuencia():
+    """Return phonological syllable frequency data."""
+    sil_path = _LALI_DIR / "data" / "silabas_frecuencia.json"
+    if not sil_path.exists():
+        return []
+    with open(sil_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+# ── LALI tutor: transcription exercises (programmatic) ───────────────
+
+@app.get("/api/public-agent/eulalia/ejercicio-transcripcion")
+async def lali_ejercicio_transcripcion(nivel: int = Query(1, ge=1, le=5), items: int = Query(5, ge=1, le=15)):
+    """Generate a transcription exercise with random words/phrases for levels 1-5."""
+    import random
+    import sys
+
+    ej_path = _LALI_DIR / "data" / "ejercicios_transcripcion.json"
+    if not ej_path.exists():
+        raise HTTPException(status_code=500, detail="Banco de ejercicios no encontrado")
+
+    with open(ej_path, "r", encoding="utf-8") as f:
+        banco = json.load(f)
+
+    nivel_key = f"nivel{nivel}"
+    if nivel_key not in banco:
+        raise HTTPException(status_code=400, detail=f"Nivel {nivel} no existe")
+
+    nivel_data = banco[nivel_key]
+
+    if nivel == 5:
+        # Level 5: phrases with pre-computed solutions
+        frases = nivel_data["frases"]
+        seleccion = random.sample(frases, min(items, len(frases)))
+        ejercicios = [{"palabra": f["frase"], "solucion": f["solucion"]} for f in seleccion]
+    else:
+        # Levels 1-4: words, transcribe programmatically
+        palabras = nivel_data["palabras"]
+        seleccion = random.sample(palabras, min(items, len(palabras)))
+
+        base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
+        if str(base_dir) not in sys.path:
+            sys.path.insert(0, str(base_dir))
+        from transcriptor import transcribir_palabra
+
+        ejercicios = []
+        for palabra in seleccion:
+            t = transcribir_palabra(palabra)
+            if isinstance(t, tuple):
+                continue
+            ejercicios.append({"palabra": palabra, "solucion": t})
+
+    return {
+        "nivel": nivel,
+        "nombre": nivel_data["nombre"],
+        "descripcion": nivel_data["descripcion"],
+        "ejercicios": ejercicios
+    }
+
+
+
+# ── LALI tutor: empathy challenge (shared contributions) ─────────────
+
+_LALI_EMPATIA_PATH = _LALI_DIR / "data" / "retos_empatia.json"
+
+
+@app.get("/api/public-agent/eulalia/retos-empatia")
+async def lali_get_retos_empatia():
+    """Return all shared empathy contributions."""
+    if not _LALI_EMPATIA_PATH.exists():
+        return []
+    with open(_LALI_EMPATIA_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+@app.post("/api/public-agent/eulalia/retos-empatia")
+async def lali_post_reto_empatia(request: Request):
+    """Save a new empathy contribution (shared across students)."""
+    body = await request.json()
+    perfil = body.get("perfil", "").strip()
+    situacion = body.get("situacion", "").strip()
+    tiene_dificultad = body.get("tiene_dificultad")  # True / False
+    explicacion = body.get("explicacion", "").strip()
+    autor = body.get("autor", "").strip() or "Anónimo"
+
+    if not perfil or not situacion or tiene_dificultad is None or not explicacion:
+        return JSONResponse({"error": "Faltan campos obligatorios"}, status_code=400)
+
+    entry = {
+        "perfil": perfil,
+        "situacion": situacion,
+        "tiene_dificultad": bool(tiene_dificultad),
+        "explicacion": explicacion,
+        "autor": autor,
+        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
+    }
+
+    # Load existing
+    entries = []
+    if _LALI_EMPATIA_PATH.exists():
+        with open(_LALI_EMPATIA_PATH, "r", encoding="utf-8") as f:
+            entries = json.load(f)
+
+    entries.append(entry)
+
+    with open(_LALI_EMPATIA_PATH, "w", encoding="utf-8") as f:
+        json.dump(entries, f, ensure_ascii=False, indent=2)
+
+    return {"ok": True, "total": len(entries)}
+
+
+@app.put("/api/public-agent/eulalia/retos-empatia/{idx}")
+async def lali_put_reto_empatia(idx: int, request: Request):
+    """Edit an existing empathy contribution by index."""
+    body = await request.json()
+
+    entries = []
+    if _LALI_EMPATIA_PATH.exists():
+        with open(_LALI_EMPATIA_PATH, "r", encoding="utf-8") as f:
+            entries = json.load(f)
+
+    if idx < 0 or idx >= len(entries):
+        raise HTTPException(status_code=400, detail="Índice inválido")
+
+    # Only allow editing if same author
+    autor_req = body.get("autor", "").strip()
+    if entries[idx].get("autor", "") != autor_req:
+        raise HTTPException(status_code=403, detail="Solo puedes editar tus propias contribuciones")
+
+    if body.get("situacion"):
+        entries[idx]["situacion"] = body["situacion"].strip()
+    if body.get("explicacion"):
+        entries[idx]["explicacion"] = body["explicacion"].strip()
+    if body.get("tiene_dificultad") is not None:
+        entries[idx]["tiene_dificultad"] = bool(body["tiene_dificultad"])
+    entries[idx]["editado"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    with open(_LALI_EMPATIA_PATH, "w", encoding="utf-8") as f:
+        json.dump(entries, f, ensure_ascii=False, indent=2)
+
+    return {"ok": True}
+
+
+@app.get("/api/public-agent/eulalia/transcripcion-config")
 async def lali_get_transcripcion_config():
     """Get current transcription config (public, read-only)."""
     if not _LALI_CONFIG_PATH.exists():
@@ -1625,7 +2198,7 @@ class TranscripcionConfigUpdate(BaseModel):
     s_coda: Optional[str] = None
 
 
-@app.put("/api/agent/lali_tutor/transcripcion-config")
+@app.put("/api/agent/eulalia/transcripcion-config")
 async def lali_update_transcripcion_config(body: TranscripcionConfigUpdate, request: Request):
     """Update transcription config (requires docente role)."""
     session = tutores_get_session(_get_tutores_token(request))
@@ -1661,7 +2234,7 @@ async def lali_update_transcripcion_config(body: TranscripcionConfigUpdate, requ
 
     # Reload config in transcriptor (if loaded)
     try:
-        agent = runner.get_agent("lali_tutor")
+        agent = runner.get_agent("eulalia")
         if agent and hasattr(agent, '_instance'):
             import importlib
             transcriptor = importlib.import_module("transcriptor")
@@ -1671,7 +2244,7 @@ async def lali_update_transcripcion_config(body: TranscripcionConfigUpdate, requ
 
     username = session.get("username", "unknown")
     if ENABLE_LOGGING:
-        logger = _get_agent_logger("lali_tutor")
+        logger = _get_agent_logger("eulalia")
         logger.info(f"CONFIG_UPDATE by {username}: sibilantes={body.sibilantes}, nasalizacion={body.nasalizacion_vocalica}, s_coda={body.s_coda}")
 
     return {"status": "ok", "config": {
@@ -1681,7 +2254,7 @@ async def lali_update_transcripcion_config(body: TranscripcionConfigUpdate, requ
     }}
 
 
-@app.get("/api/lali-tutor/auth-level")
+@app.get("/api/eulalia/auth-level")
 async def lali_auth_level(request: Request):
     """Check if current user has editor access to LALI tutor config (tutores auth)."""
     session = tutores_get_session(_get_tutores_token(request))
@@ -2507,7 +3080,7 @@ async def get_public_tools():
 # ---------------------------------------------------------------------------
 
 # Set of agent IDs that are allowed to be accessed publicly
-_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos", "pisha5", "algoria_map", "lali_tutor", "sonic_composer", "sonic_composer2"}
+_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos", "pisha5", "algoria_map", "eulalia", "sonic_composer", "sonic_composer2"}
 
 
 @app.get("/api/public-agent/{agent_id}/config")
@@ -3920,17 +4493,37 @@ async def agent_interaction_log(request: Request, agent_id: str):
     if not ENABLE_LOGGING:
         return {"ok": True}
     body = await request.json()
-    action = body.get("action", "unknown")
-    details = body.get("details", "")
-    client_ip = request.client.host if request.client else "unknown"
-    session_id = body.get("session_id", "")
+    action = str(body.get("action", "unknown"))[:100]
+    details = str(body.get("details", ""))[:500]
+    session_id = str(body.get("session_id", ""))[:64]
+
+    # Referer: keep only the domain
+    referer = request.headers.get("referer", "")
+    try:
+        from urllib.parse import urlparse
+        referer_domain = urlparse(referer).hostname or "directo"
+    except Exception:
+        referer_domain = "directo"
+
+    # User-Agent: classify into category
+    ua = (request.headers.get("user-agent") or "").lower()
+    if any(b in ua for b in ("googlebot", "bingbot", "yandex", "baidu", "crawler", "spider")):
+        client_type = "bot"
+    elif any(s in ua for s in ("python", "curl", "wget", "httpie", "postman", "scrapy")):
+        client_type = "script"
+    elif any(br in ua for br in ("mozilla", "chrome", "safari", "firefox", "edge", "opera")):
+        client_type = "browser"
+    else:
+        client_type = "unknown"
+
     log_conversation(
-        client_ip=client_ip,
+        client_ip="proxy",
         agent_id=agent_id,
         agent_name="Algoria Map",
         question=f"[interaction] {action}",
         response=str(details)[:500],
         session_id=session_id,
+        extra={"referer_domain": referer_domain, "client_type": client_type},
     )
     return {"ok": True}
 

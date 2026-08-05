@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crea pseudopalabras — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header a:hover { opacity: 0.85; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+
+.container { max-width: 680px; margin: 0 auto; padding: 32px 20px; }
+
+h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+.info-box {
+    background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px;
+    padding: 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.6; color: #3730a3;
+}
+
+.task-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 24px; margin-bottom: 16px;
+}
+
+.word-row {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+    padding: 12px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;
+}
+.word-label { font-size: 13px; color: #64748b; width: 110px; flex-shrink: 0; }
+.word-real { font-size: 16px; font-weight: 700; color: #4250b3; width: 120px; flex-shrink: 0; }
+.word-arrow { color: #94a3b8; font-size: 18px; flex-shrink: 0; }
+.word-input {
+    flex: 1; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px;
+    font-family: inherit; font-size: 14px; transition: border-color 0.2s;
+}
+.word-input:focus { outline: none; border-color: #4250b3; }
+.word-input:disabled { background: #f1f5f9; color: #64748b; }
+
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.btn-primary { background: #4250b3; color: #fff; }
+.btn-primary:hover { background: #3740a0; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.submit-row { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+
+.loading { display: none; align-items: center; gap: 10px; margin-top: 16px; font-size: 14px; color: #64748b; }
+.loading.show { display: flex; }
+.spinner {
+    width: 20px; height: 20px; border: 3px solid #e2e8f0; border-top-color: #4250b3;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.feedback { display: none; animation: fadeIn 0.4s ease; }
+.feedback.show { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.result-row {
+    display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px;
+    margin-bottom: 8px; border-radius: 8px; border: 1px solid #e2e8f0;
+}
+.result-row.pass { border-color: #bbf7d0; background: #f0fdf4; }
+.result-row.fail { border-color: #fecaca; background: #fef2f2; }
+.result-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.result-text { font-size: 13px; line-height: 1.5; }
+.result-word { font-weight: 700; }
+.result-comment { color: #64748b; margin-top: 2px; }
+
+.general-feedback {
+    background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px;
+    padding: 16px; font-size: 14px; line-height: 1.6; color: #3730a3;
+    margin: 16px 0;
+}
+
+.result-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">›</span>
+    <span class="title">Practica</span>
+    <span class="sep">›</span>
+    <span class="title">Tema 1</span>
+    <span class="sep">›</span>
+    <span class="title">Pseudopalabras</span>
+</div>
+
+<div class="container">
+
+    <h2>Crea pseudopalabras</h2>
+    <p class="subtitle">
+        Una pseudopalabra es una expresión que se parece fonológicamente a una palabra real,
+        pero que no tiene significado. Tu tarea es crear una pseudopalabra a partir de la palabra que se te presenta.
+    </p>
+
+    <div class="info-box">
+        <strong>¿Cómo crear una buena pseudopalabra?</strong> Debe cumplir estas condiciones:
+        <ul style="margin: 8px 0 0 18px;">
+            <li>No ser una palabra real del español.</li>
+            <li>Respetar las reglas fonotácticas del español (que suene como si pudiera ser una palabra del español).</li>
+            <li>Tener el <strong>mismo número de sílabas</strong> que la palabra original.</li>
+            <li>Que cada sílaba tenga la <strong>misma complejidad</strong> (p.ej., si la original tiene una sílaba CCV como «bro», la pseudopalabra debe tener también una sílaba CCV en esa posición, como «pli»).</li>
+            <li>Tener el <strong>acento en la misma sílaba</strong> que la palabra original (p.ej., si la original es llana, la pseudopalabra también debe ser llana).</li>
+        </ul>
+        <div style="margin-top:8px;">Ejemplo: <em>mesa</em> (CV.CV, llana) → <em>tesa</em> (CV.CV, llana). Ejemplo incorrecto: <em>mesa</em> → <em>trán</em> (distinto número de sílabas, distinta complejidad).</div>
+        <div style="margin-top:10px; padding-top:8px; border-top:1px solid #e2e8f0; font-size:12px; color:#94a3b8;"><strong>Nota:</strong> El sistema comprueba automáticamente las reglas fonotácticas y detecta muchas palabras reales, pero no conoce todas las palabras del español. <strong>Asegúrate tú mismo de que tu pseudopalabra no es una palabra real</strong> (puedes buscarla en un diccionario si tienes dudas).</div>
+    </div>
+
+    <div class="task-card" id="task-card">
+        <div id="word-rows"></div>
+
+        <div class="submit-row">
+            <button class="btn btn-primary" id="btn-submit" onclick="submitPseudowords()" disabled>Comprobar</button>
+        </div>
+    </div>
+
+    <div class="feedback" id="feedback">
+        <div id="results-list"></div>
+        <div class="general-feedback" id="general-feedback"></div>
+        <div class="result-buttons">
+            <button class="btn btn-secondary" onclick="newRound()">Otra palabra</button>
+            <button class="btn btn-primary" onclick="window.close()">Volver al curso</button>
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+// ── Progress tracking ──
+function saveProgress(widgetId, score, maxScore) {
+    try {
+        var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
+        var pct = Math.round(score / maxScore * 100);
+        var prev = progress[widgetId];
+        // Only update if better score or not yet saved
+        if (!prev || pct > prev.score) {
+            progress[widgetId] = { completed: pct >= 75, score: pct, date: new Date().toISOString().split('T')[0] };
+            localStorage.setItem('lali_progress', JSON.stringify(progress));
+        }
+    } catch(e) {}
+}
+
+// Word bank — common Spanish words of varying syllable count
+var WORD_BANK = [
+    'mesa', 'gato', 'perro', 'casa', 'libro', 'agua', 'pelo', 'boca', 'mano', 'dedo',
+    'zapato', 'maleta', 'camisa', 'botella', 'cocina', 'ventana', 'cabeza', 'pelota', 'comida', 'moneda',
+    'mariposa', 'elefante', 'chocolate', 'bicicleta', 'zanahoria', 'telefono', 'ordenador', 'cocodrilo',
+    'cuchara', 'tenedor', 'sombrero', 'escalera', 'paraguas', 'cuaderno', 'mochila', 'alfombra'
+];
+
+var currentWords = [];
+var currentWordIndex = 0;
+
+function pickWord() {
+    var idx = Math.floor(Math.random() * WORD_BANK.length);
+    return WORD_BANK[idx];
+}
+
+function buildUI() {
+    currentWords = [pickWord()];
+    currentWordIndex = 0;
+    var container = document.getElementById('word-rows');
+    container.innerHTML = '';
+
+    var syls = syllabify(currentWords[0]);
+    var row = document.createElement('div');
+    row.className = 'word-row';
+    row.innerHTML =
+        '<span class="word-label">Palabra:</span>' +
+        '<span class="word-real">' + currentWords[0] + '</span>' +
+        '<span style="font-size:12px; color:#94a3b8; margin-left:4px;">(' + formatSyllables(syls) + ')</span>' +
+        '<span class="word-arrow">→</span>' +
+        '<input type="text" class="word-input" id="pseudo-0" placeholder="Tu pseudopalabra..." oninput="checkReady()">';
+    container.appendChild(row);
+
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('btn-submit').textContent = 'Comprobar';
+    document.getElementById('feedback').classList.remove('show');
+}
+
+function checkReady() {
+    var val = document.getElementById('pseudo-0').value.trim();
+    document.getElementById('btn-submit').disabled = val.length < 2;
+}
+
+// ── Local Spanish dictionary for pre-validation ──
+// Common Spanish words including short/tricky ones students might accidentally use
+var SPANISH_DICT = new Set([
+    // 2-letter
+    'al','da','de','di','do','el','en','es','fe','si','no','ya','yo',
+    // 3-letter
+    'ajo','ala','amo','ano','ara','aro','asa','ave','bar','boa','bol','cal','col',
+    'con','cos','dar','del','den','dio','dos','eco','eje','era','esa','ese','eso',
+    'eta','fin','gas','gen','gol','han','hay','hez','hoy','iba','ida','ira','ley',
+    'lid','los','luz','mal','mar','mas','mes','mia','mil','mis','mon','muy','nao',
+    'nos','oca','ojo','ola','oso','par','pan','pas','paz','pes','pie','pis','por',
+    'pro','pus','que','red','res','rey','rio','rol','ron','roo','ropa','ros','rua',
+    'ruin','ruso','sal','san','sed','ser','sin','sol','son','sor','sur','sus',
+    'tal','tan','tos','tul','tun','tus','una','uno','uva','van','vas','ver','vez',
+    'vid','vil','vio','vos','voz','yen','zar',
+    // 3-letter with accents (normalized)
+    'dia','lio','mio','pio','rio','tio','via',
+    // 4-letter
+    'acto','agua','algo','alma','alto','ambo','amor','ancho','ando','arco','area',
+    'asno','atun','auto','ayer','bala','balo','bano','bata','beso','bien','boca',
+    'boda','bola','bolo','bota','buho','cabo','caja','cala','cama','cana','caos',
+    'cara','caso','cebo','celo','cena','cero','chal','cien','cima','cine','cita',
+    'clan','clon','coba','coca','coco','codo','cola','como','copa','coro','cosa',
+    'dato','dama','dedo','dios','don','dona','dote','duda','duro','ecos','ella',
+    'ello','ellos','faja','fama','faro','fea','feo','fila','filo','fino','foca',
+    'foco','foro','gala','gana','gasa','gato','gema','giro','goma','gota','gris',
+    'guia','haba','hada','halo','higo','hija','hijo','hilo','hobo','hoja','hora',
+    'horno','humo','idea','isla','jefe','jugo','jura','kilo','laca','lado','lago',
+    'lana','lata','lava','leal','leon','liga','lima','limo','lino','liso','loba',
+    'lobo','loco','lodo','logo','loma','lona','losa','lote','luna','lujo','mago',
+    'mala','malo','mama','mano','mapa','masa','mate','mayo','mega','mena','menu',
+    'mesa','meta','miel','mimo','mina','misa','mito','moco','modo','mono','mora',
+    'moro','mota','moto','mudo','mula','mulo','muro','musa','nada','nata','nave',
+    'nene','nido','niña','niño','nodo','noma','nota','nova','nube','nuca','nudo',
+    'obra','ocio','odio','oido','once','oral','orca','orco','orla','orlo','ostra',
+    'otra','otro','paca','paco','paga','pago','paja','pala','palo','papa','para',
+    'paro','pata','pato','pavo','peca','pega','pena','peña','peon','pera','pero',
+    'pesa','peso','pica','pico','piel','pila','pino','pipa','piso','plan','poco',
+    'polo','pomo','pozo','puma','puro','rabo','ramo','rana','raro','rasa','raso',
+    'rata','rato','raya','rayo','raza','real','reed','reja','reno','repo','reta',
+    'reto','rico','rima','risa','rito','rizo','roca','roda','rojo','roma','ropa',
+    'rosa','rota','roto','rubi','ruda','rudo','ruta','saco','sala','sano','sapo',
+    'seda','seis','seno','seña','sera','seta','sido','silo','sima','sino','sofa',
+    'soga','soja','solo','soma','sota','sumo','taco','tajo','tala','tapa','taza',
+    'tela','tema','tero','teta','tipo','tiro','tiza','tono','tope','topo','toro',
+    'tosa','tubo','tufo','tuna','tuya','tuyo','urna','urea','vaca','vago','vale',
+    'vano','vara','vaso','vela','vena','vera','veta','vida','viga','vilo','vino',
+    'visa','yema','yeso','yuca','zaga','zapa','zona','zorro',
+    // 5+ letter common words (subset)
+    'abeja','abono','abrir','acaso','aceite','acera','acero','acido','acoso',
+    'actor','adios','adobe','agrio','ahora','album','aldea','aleta','alga',
+    'alien','altar','amigo','ancho','angel','animo','antes','anzuelo','arbol',
+    'arena','arroz','asado','asilo','asunto','atlas','avena','avion','ayuda',
+    'azote','azucar','azul','bahia','baile','balsa','banca','banco','banda',
+    'barba','barco','barra','barro','basta','bello','bicho','bisne','blanco',
+    'bloque','bolsa','bomba','bonito','borla','brazo','breve','brisa','brote',
+    'bruja','bueno','buque','burla','burro','busca','cable','cabra','cabeza',
+    'calma','calor','calvo','calle','campo','capaz','carne','carta','cerdo',
+    'cerro','chica','chico','cinco','clase','clavo','clima','cobra','coche',
+    'cofre','collar','comer','corto','crema','cruel','crudo','cubo','cuello',
+    'cuero','cueva','culpa','curso','danza','decir','delta','demás','dicha',
+    'digno','disco','dolor','donde','drama','dulce','duque','elite','enano',
+    'enero','falda','falso','feria','fibra','ficha','finca','firma','flaco',
+    'flojo','flota','forma','fresa','fruta','fuego','fuera','fuerte','fumar',
+    'gallo','globo','golpe','gordo','gorra','grado','grano','grave','gripe',
+    'grito','grupo','guapo','hielo','hierba','hierro','hueso','huevo','humor',
+    'jamon','jarra','jaula','joven','juego','jugar','junco','junto','justo',
+    'labor','lapiz','largo','latin','leche','lento','letra','libre','licor',
+    'limon','lindo','linea','listo','llama','llano','llave','lleno','lluvia',
+    'logro','lucha','lugar','madre','magia','mango','marca','marzo','mayor',
+    'media','medio','mejor','menor','melon','menta','merda','mocho','molde',
+    'monte','morir','mosca','motor','mucho','mundo','musica','nacer','nadie',
+    'nariz','negro','nieve','noble','noche','norte','novia','novio','nuevo',
+    'nunca','obeso','obvio','ocho','oliva','opaco','orden','oveja','padre',
+    'pagar','pájaro','palma','palmo','parar','pardo','pared','parte','pasto',
+    'pecho','perro','pesado','piano','pieza','pista','placa','plana','plano',
+    'plata','plato','playa','plaza','plena','pleno','plomo','pluma','pobre',
+    'poder','polvo','poner','porta','poste','prado','prensa','primo','prisa',
+    'probar','punto','queso','quien','quieto','quince','radio','racha','reina',
+    'reloj','resto','ritmo','rival','roble','rocio','rodeo','rombo','sabio',
+    'sacar','salir','salsa','salud','santo','sello','selva','senda','señor',
+    'señora','serie','sigma','signo','siglo','sitio','sobre','sonar','suave',
+    'subir','sudar','suelo','sueño','suero','sumar','tabla','tallo','tango',
+    'tanto','tarea','techo','temer','tener','tenso','terco','tigre','tinta',
+    'tomar','tonto','toque','torre','total','traer','traje','tramo','trece',
+    'trigo','trozo','truco','turno','unico','unido','unir','usado','usual',
+    'valer','valle','valor','vapor','vario','varon','veinte','venir','verde',
+    'verso','viaje','viejo','vigor','vivir','volar','vuelo','vuelta','yerba',
+    'acento','acierto','actriz','aguja','aldaba','amplio','animal','armado',
+    'asalto','astro','ataque','ave','aviso','basura','blando','blusa','boleto',
+    'bonita','cabello','cadena','camino','camisa','cancer','cancion','capote',
+    'carbon','caries','casado','casino','caucho','centro','cerebro','cereza',
+    'charla','chiste','cielo','cifra','circo','clamor','clarin','cocina',
+    'codigo','colina','comida','compra','conejo','contra','copiar','corona',
+    'correa','correo','cortez','crimen','crisis','cuadro','cuando','cuarto',
+    'cuenta','cuerda','cuerpo','cumbre','debate','decimo','detras','diario',
+    'dibujo','dinero','diente','disfraz','doctor','dragon','efecto','empleo',
+    'encima','energía','enlace','ensayo','equipo','escape','escena','escudo',
+    'espada','espejo','estado','europa','exacto','examen','exceso','excusa',
+    'fábrica','famoso','famosa','farol','filtro','flecha','fondos','fragil',
+    'frente','fuerza','futbol','futuro','gastar','genero','genial','germen',
+    'gestor','gigante','globos','gracia','granja','grueso','guerra','hambre',
+    'harina','helado','hierba','hombre','honrar','humano','iglesia','imagen',
+    'impuro','indice','infame','inicio','insecto','jardin','jinete','joroba',
+    'jugada','labios','laguna','lagrima','lengua','librar','limpiar','litros',
+    'locura','madera','maleta','mancha','marcha','marino','materia','medida',
+    'mirada','modelo','molino','moneda','montón','morena','muerte','muñeca',
+    'musica','nación','nervio','ninguno','novela','numero','objeto','opcion',
+    'origen','oscuro','paisaje','paloma','patron','pecado','pedido','pelota',
+    'pintar','pintor','pirata','poesia','policia','postre','precio','prensa',
+    'propio','prueba','pueblo','puente','puerta','puesto','pulgar','receta',
+    'recreo','reflejo','regalo','reglamento','relato','relleno','remedio',
+    'repaso','resumen','revista','riesgo','rumbo','semana','sentido','sierra',
+    'simple','social','sonido','suerte','talento','teatro','tejido','templo',
+    'tercio','timbre','toalla','trabajo','trueno','tumba','turista','unico',
+    'unidad','unirse','urbano','vacuna','valiente','vecino','vender','veneno',
+    'verdad','viernes','vinagre','violin','volcan','zapato','zumo',
+    // Words from WORD_BANK that might be created as pseudo
+    'bicicleta','botella','cabeza','cuchara','cuaderno','chocolate','cocodrilo',
+    'elefante','escalera','mariposa','mochila','alfombra','ordenador','paraguas',
+    'pelota','sombrero','tenedor','teléfono','ventana','zanahoria','libro','pelo',
+    'gato','perro','casa'
+]);
+
+function isRealWord(w) {
+    // Normalize: lowercase, remove accents for matching
+    var normalized = w.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return SPANISH_DICT.has(normalized);
+}
+
+// ── Phonotactic validation for Spanish ──
+// Returns null if valid, or an error message string if invalid.
+function checkPhonotactics(word) {
+    var w = word.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    // Pre-process: handle digraphs and mute h
+    w = w.replace(/rr/g, 'R').replace(/ch/g, 'C').replace(/ll/g, 'L').replace(/qu/g, 'K');
+    w = w.replace(/h/g, '');  // mute h (ch already handled above)
+
+    // No repeated consonants (ff, ss, pp, tt, etc.)
+    var doubleMatch = w.match(/([bcdfgjkmnpqstvwxyz])\1/);  // R,C,L,K are placeholders, not real doubles
+    if (doubleMatch) {
+        return 'La secuencia «' + doubleMatch[0] + '» no es posible en español (consonante doble).';
+    }
+
+    // Classify each character as C (consonant) or V (vowel)
+    var vowels = 'aeiou';
+    var pattern = '';
+    for (var i = 0; i < w.length; i++) {
+        if (vowels.indexOf(w[i]) >= 0) pattern += 'V';
+        else if (/[a-z]/.test(w[i])) pattern += 'C';
+    }
+
+    // Check for 4+ consecutive consonants — impossible in Spanish
+    if (/CCCC/.test(pattern)) {
+        // Find the actual consonant cluster
+        var m = w.match(/[bcdfghjklmnpqrstvwxyz]{4,}/);
+        return 'La secuencia «' + (m ? m[0] : '????') + '» tiene demasiadas consonantes seguidas. En español no hay grupos de 4 o más consonantes.';
+    }
+
+    // Valid onset clusters in Spanish (two consonants before a vowel)
+    var validOnsets = [
+        'pr','br','pl','bl','fr','fl','gr','gl','kr','kl','dr','tr',
+        // Orthographic equivalents
+        'cr','cl'
+    ];
+
+    // Check CCC clusters: only valid if split as C + CC(onset) at syllable boundary
+    // e.g., "ins-tru" is ok (C.CCV), but "fco" is not
+    var ccMatches = w.match(/[bcdfghjklmnpqrstvwxyz]{3}/g);
+    if (ccMatches) {
+        for (var j = 0; j < ccMatches.length; j++) {
+            var trio = ccMatches[j];
+            // Valid: first C is coda, last two CC form a valid onset
+            var lastTwo = trio.substring(1);
+            // Valid: first two CC form coda+onset, last is onset
+            var firstTwo = trio.substring(0, 2);
+            var validAsCodaPlusOnset = validOnsets.indexOf(lastTwo) >= 0;
+            // Also check if first two could be onset + single coda (less common)
+            if (!validAsCodaPlusOnset) {
+                return 'La secuencia «' + trio + '» no es posible en español. No se puede dividir en sílabas válidas.';
+            }
+        }
+    }
+
+    // Check CC clusters that are NOT at word start and NOT valid onsets
+    // Find all two-consonant sequences
+    for (var k = 0; k < w.length - 1; k++) {
+        if (vowels.indexOf(w[k]) < 0 && /[a-z]/.test(w[k]) &&
+            vowels.indexOf(w[k+1]) < 0 && /[a-z]/.test(w[k+1])) {
+            var pair = w[k] + w[k+1];
+            // If followed by a vowel, it could be an onset cluster
+            var followedByVowel = (k + 2 < w.length && vowels.indexOf(w[k+2]) >= 0);
+            // If preceded by a vowel, first C could be coda and second C onset
+            var precededByVowel = (k > 0 && vowels.indexOf(w[k-1]) >= 0);
+
+            if (followedByVowel && !precededByVowel) {
+                // Word-initial or post-consonant: must be valid onset
+                if (validOnsets.indexOf(pair) < 0) {
+                    return 'La secuencia «' + pair + '» no puede ir al inicio de sílaba en español.';
+                }
+            }
+            // If preceded by vowel and followed by vowel: C.C boundary (always ok, any consonant can be coda before any onset)
+            // If preceded by vowel and followed by consonant: C.CC — check the CC
+        }
+    }
+
+    // Must contain at least one vowel
+    if (!/[aeiou]/.test(w)) {
+        return 'La pseudopalabra debe contener al menos una vocal.';
+    }
+
+    // Must not start with sequences impossible in Spanish
+    var initialCC = w.match(/^([bcdfghjklmnpqrstvwxyz]{2})/);
+    if (initialCC) {
+        if (validOnsets.indexOf(initialCC[1]) < 0) {
+            return 'La secuencia «' + initialCC[1] + '» no puede aparecer al inicio de palabra en español.';
+        }
+    }
+
+    // Must not start with 3+ consonants
+    if (/^[bcdfghjklmnpqrstvwxyz]{3}/.test(w)) {
+        return 'Una palabra en español no puede empezar con tres consonantes.';
+    }
+
+    return null; // valid
+}
+
+// ── Spanish syllabifier ──
+// Returns an array of syllable objects: [{text, pattern}]
+// pattern uses C (consonant) and V (vowel)
+function syllabify(word) {
+    var w = word.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    // Pre-process digraphs: treat as single consonants
+    w = w.replace(/rr/g, 'R');  // R = /r/ vibrante múltiple
+    w = w.replace(/ch/g, 'C');  // C = /ʧ/ africada
+    w = w.replace(/ll/g, 'L');  // L = /ʝ/ lateral palatal (yeísmo)
+    w = w.replace(/qu/g, 'K');  // K = /k/ ante e,i
+    // Remove mute "h" (already handled "ch" above, so remaining h is mute)
+    w = w.replace(/h/g, '');
+
+    var vowelSet = 'aeiou';
+    var strongVowels = 'aeo';
+    var weakVowels = 'iu';
+
+    // Valid two-consonant onsets in Spanish
+    var validOnsets2 = ['pr','br','pl','bl','fr','fl','gr','gl','kr','kl','dr','tr','cr','cl'];
+
+    function isVowel(ch) { return vowelSet.indexOf(ch) >= 0; }
+    function isConsonant(ch) { return /[a-zA-Z]/.test(ch) && !isVowel(ch); }
+    function isStrong(ch) { return strongVowels.indexOf(ch) >= 0; }
+    function isWeak(ch) { return weakVowels.indexOf(ch) >= 0; }
+
+    // Step 1: classify each character
+    var chars = [];
+    for (var i = 0; i < w.length; i++) {
+        if (/[a-z]/.test(w[i])) {
+            chars.push({ ch: w[i], type: isVowel(w[i]) ? 'V' : 'C' });
+        }
+    }
+    if (chars.length === 0) return [];
+
+    // Step 2: find syllable boundaries
+    // Strategy: find nucleus (vowel clusters), then distribute consonants
+    var boundaries = []; // indices where a new syllable starts
+    boundaries.push(0);
+
+    var idx = 0;
+    while (idx < chars.length) {
+        // Skip to next vowel (start of nucleus)
+        while (idx < chars.length && chars[idx].type === 'C') idx++;
+        if (idx >= chars.length) break;
+
+        // Consume the nucleus (handle diphthongs/triphthongs/hiatus)
+        var nucleusStart = idx;
+        idx++;
+        while (idx < chars.length && chars[idx].type === 'V') {
+            // Check if this is a diphthong (weak+strong, strong+weak, weak+weak)
+            // or hiatus (strong+strong)
+            var prev = chars[idx - 1].ch;
+            var curr = chars[idx].ch;
+            if (isStrong(prev) && isStrong(curr)) {
+                // Hiatus: strong + strong → new syllable
+                boundaries.push(idx);
+                break;
+            }
+            // weak + weak with same vowel → hiatus (e.g., "chiita")
+            if (prev === curr && isWeak(prev)) {
+                boundaries.push(idx);
+                break;
+            }
+            // Otherwise: diphthong or triphthong, same syllable
+            idx++;
+        }
+
+        // Now we're past the nucleus, find consonants between this and next vowel
+        var consonantStart = idx;
+        while (idx < chars.length && chars[idx].type === 'C') idx++;
+        var consonantEnd = idx;
+        var nCons = consonantEnd - consonantStart;
+
+        if (idx >= chars.length) break; // word ends with consonants, no more syllables
+
+        // Distribute consonants between coda of current syllable and onset of next
+        if (nCons === 0) {
+            // V.V boundary
+            boundaries.push(idx);
+        } else if (nCons === 1) {
+            // Single consonant → onset of next syllable: V.CV
+            boundaries.push(consonantStart);
+        } else if (nCons === 2) {
+            var pair = chars[consonantStart].ch + chars[consonantStart + 1].ch;
+            if (validOnsets2.indexOf(pair) >= 0) {
+                // Valid onset cluster → V.CCV
+                boundaries.push(consonantStart);
+            } else {
+                // Split: VC.CV
+                boundaries.push(consonantStart + 1);
+            }
+        } else if (nCons === 3) {
+            // Check if last two form valid onset
+            var lastTwo = chars[consonantStart + 1].ch + chars[consonantStart + 2].ch;
+            if (validOnsets2.indexOf(lastTwo) >= 0) {
+                // VC.CCV
+                boundaries.push(consonantStart + 1);
+            } else {
+                // VCC.CV
+                boundaries.push(consonantStart + 2);
+            }
+        } else {
+            // 4+ consonants: try last two as onset, rest as coda
+            var lt = chars[consonantEnd - 2].ch + chars[consonantEnd - 1].ch;
+            if (validOnsets2.indexOf(lt) >= 0) {
+                boundaries.push(consonantEnd - 2);
+            } else {
+                boundaries.push(consonantEnd - 1);
+            }
+        }
+    }
+
+    // Step 3: build syllables from boundaries
+    // Remove duplicate boundaries and sort
+    var uniqueBounds = [0];
+    for (var b = 1; b < boundaries.length; b++) {
+        if (boundaries[b] > uniqueBounds[uniqueBounds.length - 1]) {
+            uniqueBounds.push(boundaries[b]);
+        }
+    }
+
+    var syllables = [];
+    for (var s = 0; s < uniqueBounds.length; s++) {
+        var start = uniqueBounds[s];
+        var end = (s + 1 < uniqueBounds.length) ? uniqueBounds[s + 1] : chars.length;
+        var sylText = '';
+        var sylPattern = '';
+        for (var c = start; c < end; c++) {
+            sylText += chars[c].ch;
+            sylPattern += chars[c].type;
+        }
+        // Restore digraphs for display
+        sylText = sylText.replace(/R/g, 'rr').replace(/C/g, 'ch').replace(/L/g, 'll').replace(/K/g, 'qu');
+        if (sylText.length > 0) {
+            syllables.push({ text: sylText, pattern: sylPattern });
+        }
+    }
+
+    return syllables;
+}
+
+// Format syllables for display: "me.sa (CV.CV)"
+function formatSyllables(syls) {
+    var texts = syls.map(function(s) { return s.text; });
+    var patterns = syls.map(function(s) { return s.pattern; });
+    return texts.join('.') + ' (' + patterns.join('.') + ')';
+}
+
+// Compare syllable structures between original and pseudoword
+// Returns { ok: true/false, errors: [string] }
+function compareSyllables(original, pseudo) {
+    var sylOrig = syllabify(original);
+    var sylPseudo = syllabify(pseudo);
+    var errors = [];
+
+    // Check syllable count
+    if (sylOrig.length !== sylPseudo.length) {
+        errors.push('Número de sílabas diferente: «' + original + '» tiene ' + sylOrig.length +
+            ' (' + formatSyllables(sylOrig) + ') pero «' + pseudo + '» tiene ' + sylPseudo.length +
+            ' (' + formatSyllables(sylPseudo) + ').');
+    }
+
+    // Check complexity of each syllable (only if same count)
+    if (sylOrig.length === sylPseudo.length) {
+        for (var i = 0; i < sylOrig.length; i++) {
+            if (sylOrig[i].pattern !== sylPseudo[i].pattern) {
+                errors.push('La sílaba ' + (i + 1) + ' tiene distinta complejidad: «' +
+                    sylOrig[i].text + '» es ' + sylOrig[i].pattern + ' pero «' +
+                    sylPseudo[i].text + '» es ' + sylPseudo[i].pattern + '.');
+            }
+        }
+    }
+
+    return { ok: errors.length === 0, errors: errors, sylOrig: sylOrig, sylPseudo: sylPseudo };
+}
+
+async function submitPseudowords() {
+    var origWord = currentWords[0];
+    var pseudoWord = document.getElementById('pseudo-0').value.trim();
+
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('feedback').classList.remove('show');
+
+    // Check if real word
+    if (isRealWord(pseudoWord)) {
+        renderSingleFeedback({
+            original: origWord, pseudo: pseudoWord,
+            sylOrig: syllabify(origWord), sylPseudo: syllabify(pseudoWord),
+            syllableOk: false, syllableErrors: [],
+            isReal: true, phonoError: null
+        });
+        return;
+    }
+
+    // Check phonotactics
+    var phonoErr = checkPhonotactics(pseudoWord);
+    if (phonoErr) {
+        renderSingleFeedback({
+            original: origWord, pseudo: pseudoWord,
+            sylOrig: syllabify(origWord), sylPseudo: syllabify(pseudoWord),
+            syllableOk: false, syllableErrors: [],
+            isReal: false, phonoError: phonoErr
+        });
+        return;
+    }
+
+    // Syllable comparison
+    var cmp = compareSyllables(origWord, pseudoWord);
+
+    renderSingleFeedback({
+        original: origWord, pseudo: pseudoWord,
+        sylOrig: cmp.sylOrig, sylPseudo: cmp.sylPseudo,
+        syllableOk: cmp.errors.length === 0,
+        syllableErrors: cmp.errors,
+        isReal: false, phonoError: null
+    });
+}
+
+function renderSingleFeedback(r) {
+    var listEl = document.getElementById('results-list');
+    listEl.innerHTML = '';
+
+    var allOk = r.syllableOk && !r.isReal && !r.phonoError;
+
+    var div = document.createElement('div');
+    div.className = 'result-row ' + (allOk ? 'pass' : 'fail');
+
+    var html = '<span class="result-icon">' + (allOk ? '✓' : '✗') + '</span>';
+    html += '<div class="result-text">';
+    html += '<div class="result-word">«' + r.original + '» → «' + r.pseudo + '»</div>';
+
+    html += '<div class="result-comment" style="margin-top:6px;">';
+    html += '<strong>Original:</strong> ' + formatSyllables(r.sylOrig) + '<br>';
+    html += '<strong>Pseudopalabra:</strong> ' + formatSyllables(r.sylPseudo) + '<br>';
+
+    if (r.isReal) {
+        html += '<span style="color:#dc2626;">«' + r.pseudo + '» es una palabra real del español.</span><br>';
+    }
+    if (r.phonoError) {
+        html += '<span style="color:#dc2626;">' + r.phonoError + '</span><br>';
+    }
+    if (r.syllableOk && !r.isReal && !r.phonoError) {
+        html += '<span style="color:#16a34a;">Número de sílabas y complejidad correctos.</span>';
+    } else {
+        r.syllableErrors.forEach(function(e) {
+            html += '<span style="color:#dc2626;">' + e + '</span><br>';
+        });
+    }
+
+    html += '</div></div>';
+    div.innerHTML = html;
+    listEl.appendChild(div);
+
+    // General feedback
+    document.getElementById('general-feedback').textContent = allOk
+        ? 'Correcto. Recuerda verificar que no sea una palabra real que el sistema no haya detectado.'
+        : 'Revisa los errores indicados y vuelve a intentarlo.';
+
+    document.getElementById('feedback').classList.add('show');
+    if (allOk) saveProgress('pseudopalabras', 1, 1);
+
+    // Re-enable input and button
+    document.getElementById('pseudo-0').disabled = false;
+    document.getElementById('btn-submit').disabled = false;
+
+    document.getElementById('general-feedback').textContent = data.comentario_general || '';
+    document.getElementById('feedback').classList.add('show');
+    var passed = criterios.filter(function(c){return c.cumplido;}).length;
+    saveProgress('pseudopalabras', passed, rubrica.length);
+}
+
+function newRound() {
+    buildUI();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Init
+buildUI();
+
+</script>
+
+<script src="/static/lalitutor/progreso.js"></script>
+<script src="/static/lalitutor/informar_profesor.js"></script>
+</body>
+</html>

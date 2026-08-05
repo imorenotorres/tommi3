@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lenguaje como hecho social — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header a:hover { opacity: 0.85; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+
+.container { max-width: 740px; margin: 0 auto; padding: 32px 20px; }
+
+h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+/* Progress bar */
+.progress-bar { display: flex; gap: 6px; margin-bottom: 28px; }
+.progress-dot { width: 10px; height: 10px; border-radius: 50%; background: #cbd5e1; transition: background 0.3s; }
+.progress-dot.active { background: #4250b3; }
+.progress-dot.done { background: #16a34a; }
+
+/* Scenario card */
+.scenario { display: none; animation: fadeIn 0.4s ease; }
+.scenario.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+.scenario-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 24px; margin-bottom: 20px;
+}
+.scenario-num { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
+.scenario-text { font-size: 15px; line-height: 1.7; color: #1e293b; margin-bottom: 16px; }
+.scenario-question { font-size: 15px; font-weight: 600; color: #4250b3; margin-bottom: 16px; line-height: 1.5; }
+
+textarea {
+    width: 100%; min-height: 120px; padding: 14px; border: 2px solid #e2e8f0;
+    border-radius: 8px; font-family: inherit; font-size: 14px; line-height: 1.6;
+    resize: vertical; transition: border-color 0.2s;
+}
+textarea:focus { outline: none; border-color: #4250b3; }
+.char-count { font-size: 12px; color: #94a3b8; margin-top: 4px; text-align: right; }
+
+/* Feedback */
+.feedback-box {
+    display: none; margin-top: 16px; border-radius: 10px; padding: 16px 20px;
+    font-size: 14px; line-height: 1.6; animation: fadeIn 0.4s ease;
+}
+.feedback-box.show { display: block; }
+.feedback-box.correct { background: #f0fdf4; border: 2px solid #bbf7d0; color: #166534; }
+.feedback-box.partial { background: #fffbeb; border: 2px solid #fde68a; color: #92400e; }
+.feedback-box h4 { margin-bottom: 6px; font-size: 14px; }
+.feedback-box .ref-answer { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1); font-style: italic; }
+
+/* Buttons */
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.btn-primary { background: #4250b3; color: #fff; }
+.btn-primary:hover { background: #3740a0; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+
+/* Loading */
+.loading { display: none; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; color: #64748b; }
+.loading.show { display: flex; }
+.spinner {
+    width: 20px; height: 20px; border: 3px solid #e2e8f0; border-top-color: #4250b3;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Final results */
+.results-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 24px; margin-bottom: 20px;
+}
+.score-box {
+    background: #eef2ff; border: 2px solid #c7d2fe; border-radius: 12px;
+    padding: 20px 24px; margin: 20px 0; text-align: center;
+}
+.score-box .score-num { font-size: 48px; font-weight: 800; color: #4250b3; }
+.score-box .score-label { font-size: 14px; color: #3730a3; margin-top: 4px; }
+
+.result-row {
+    padding: 12px 0; border-bottom: 1px solid #f1f5f9;
+}
+.result-row:last-child { border-bottom: none; }
+.result-scenario { font-size: 13px; font-weight: 700; color: #94a3b8; margin-bottom: 4px; }
+.result-status { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.result-status.pass { color: #16a34a; }
+.result-status.partial { color: #f59e0b; }
+.result-comment { font-size: 13px; color: #64748b; line-height: 1.5; }
+
+.conclusion-box {
+    background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 12px;
+    padding: 20px 24px; margin: 20px 0; font-size: 14px; line-height: 1.7; color: #166534;
+}
+.conclusion-box h3 { margin-bottom: 8px; font-size: 16px; }
+
+.result-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">&rsaquo;</span>
+    <span class="title">Tema 1 &mdash; Lenguaje como hecho social</span>
+</div>
+
+<div class="container">
+
+    <h2>El lenguaje y la sociabilidad</h2>
+    <p class="subtitle">
+        En este ejercicio te planteamos seis situaciones diferentes. En cada una debes valorar
+        <strong>cómo se vería afectada la capacidad de interacción social</strong> de la persona descrita.
+        Tras escribir tu respuesta, recibirás feedback automático.
+    </p>
+
+    <div class="progress-bar" id="progress-bar"></div>
+
+    <!-- Scenarios are generated by JS -->
+    <div id="scenarios-container"></div>
+
+    <!-- Final results -->
+    <div class="scenario" id="step-results">
+        <h2>Resultados</h2>
+        <p class="subtitle">Aquí tienes un resumen de tus respuestas y la valoración de cada una.</p>
+
+        <div class="score-box">
+            <div class="score-num" id="score-num"></div>
+            <div class="score-label">escenarios valorados correctamente de 6</div>
+        </div>
+
+        <div class="results-card" id="results-list"></div>
+
+        <div class="conclusion-box">
+            <h3>Conclusión</h3>
+            Estos ejemplos muestran que el lenguaje no es solo un instrumento de comunicación,
+            sino un <strong>hecho social</strong> que condiciona profundamente nuestras posibilidades
+            de interacción con los demás. La edad de exposición a una lengua, la modalidad (oral vs. signada),
+            y las condiciones de recepción determinan en gran medida el grado de integración social
+            que una persona puede alcanzar. Esta es una de las razones por las que la logopedia
+            tiene un impacto tan importante en la vida de las personas.
+        </div>
+
+        <div class="result-buttons">
+            <button class="btn btn-secondary" onclick="resetAll()">Repetir ejercicio</button>
+            <button class="btn btn-primary" onclick="window.location.href='/tutores-virtuales/eulalia'">Volver al tutor</button>
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+// ── Progress tracking ──
+function saveProgress(widgetId, score, maxScore) {
+    try {
+        var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
+        var pct = Math.round(score / maxScore * 100);
+        var prev = progress[widgetId];
+        if (!prev || pct > prev.score) {
+            progress[widgetId] = { completed: pct >= 75, score: pct, date: new Date().toISOString().split('T')[0] };
+            localStorage.setItem('lali_progress', JSON.stringify(progress));
+        }
+    } catch(e) {}
+}
+
+// ── Scenario data ──
+var SCENARIOS = [
+    {
+        text: 'Imagina un bebé que nace con una sordera profunda bilateral. Sus padres son oyentes y no conocen ninguna lengua de signos. El niño crece sin acceso a la lengua oral (no oye) ni a una lengua de signos (nadie de su entorno la usa). Llega a los 5 años sin haber desarrollado ninguna lengua.',
+        question: 'En términos de sociabilidad, ¿cómo crees que se vería afectado este niño? ¿Podría tener una interacción social típica con sus iguales?',
+        answer: 'El niño no podría tener una interacción social típica con sus iguales. Sin acceso a ninguna lengua (ni oral ni signada), estaría comunicativamente aislado: no podría expresar ideas complejas, entender instrucciones, participar en juegos con reglas verbales, ni establecer relaciones de amistad de la forma habitual. Su sociabilidad quedaría muy limitada.',
+        keywords: ['aislado', 'aislamiento', 'no podr', 'limitad', 'dificultad', 'comunicar', 'interacci']
+    },
+    {
+        text: 'Partimos del mismo caso anterior: un niño con sordera profunda. Pero ahora imaginemos que sus padres aprenden una lengua de signos y el niño la adquiere como primera lengua. A los 5 años domina la lengua de signos y se comunica con fluidez con su familia y con otras personas signantes.',
+        question: 'El niño domina una lengua, pero no es la lengua oral mayoritaria. ¿Cómo afectaría esto a su sociabilidad?',
+        answer: 'El niño podría comunicarse de forma óptima con personas que dominan la lengua de signos (familia, comunidad sorda, intérpretes). Sin embargo, la mayoría de la población no conoce la lengua de signos, lo que limitaría significativamente sus opciones de sociabilidad en contextos como la escuela ordinaria, el comercio o las actividades sociales con oyentes. Su mundo social quedaría restringido a quienes comparten su lengua.',
+        keywords: ['limitad', 'restringid', 'solo', 'signos', 'oyente', 'comunidad', 'mayorit']
+    },
+    {
+        text: 'Ahora imaginemos un tercer escenario para el mismo niño. Gracias a un implante coclear recibido a los 2 años y a una intervención logopédica intensiva, el niño aprende la lengua oral. Sin embargo, la habla con bastante dificultad (articulación poco clara, prosodia atípica) y para entender a los demás necesita apoyarse en la lectura labial, lo que exige que el interlocutor esté de frente y en buenas condiciones de iluminación y ruido.',
+        question: '¿Cómo afectarían estas limitaciones a su sociabilidad en el día a día?',
+        answer: 'El niño podría comunicarse, pero con muchas dificultades prácticas. Dependería de que las condiciones fueran óptimas: interlocutor de frente, buena iluminación, poco ruido de fondo. En situaciones cotidianas como una clase con mucho ruido, una conversación en grupo, o una llamada telefónica, la comunicación sería muy difícil o imposible. Su habla poco clara podría además generar reacciones sociales negativas (incomprensión, impaciencia, estigma).',
+        keywords: ['dificultad', 'condicion', 'ruido', 'labial', 'limitad', 'optim', 'frente']
+    },
+    {
+        text: 'Cambiamos ahora de escenario. Un niño de 2 años llega con su familia desde Albania a España. No ha tenido ningún contacto previo con el español. Empieza a ir a la guardería, donde todos los niños y educadores hablan español.',
+        question: '¿Qué crees que ocurrirá con su capacidad de comunicarse en español? ¿Tendrá problemas de sociabilidad a medio plazo?',
+        answer: 'No tendría mayor problema. A los 2 años los niños están en pleno proceso de adquisición del lenguaje y tienen una capacidad extraordinaria para aprender lenguas nuevas. En pocas semanas o meses empezaría a entender y producir español, y en uno o dos años sería prácticamente indistinguible de sus compañeros nativos. A esa edad la plasticidad cerebral es máxima y la adquisición es casi automática por inmersión.',
+        keywords: ['no', 'problema', 'facilidad', 'aprend', 'rapido', 'pequeno', 'edad', 'plasticidad', 'inmersion', 'natural']
+    },
+    {
+        text: 'El mismo niño albanés, pero ahora llega a España con 10 años. Empieza a ir al colegio sin saber español.',
+        question: '¿Crees que aprenderá español con la misma facilidad que en el caso anterior? ¿Cómo podría afectar a su integración social a largo plazo?',
+        answer: 'Podría costarle bastante más que al niño de 2 años. Aunque a los 10 años todavía hay bastante plasticidad, el período crítico de adquisición del lenguaje ya está avanzado. Probablemente aprendería a comunicarse funcionalmente, pero salvo que tenga unos buenos apoyos educativos y sociales, seguramente mantendría ciertos errores gramaticales y un acento extranjero perceptible durante toda la vida. Esto podría tener consecuencias sociales: ser identificado siempre como "extranjero", posibles dificultades académicas al principio, y en algunos casos discriminación.',
+        keywords: ['cost', 'dificil', 'acento', 'error', 'gramatic', 'extranjero', 'period', 'critico', 'apoyo']
+    },
+    {
+        text: 'Ahora imaginemos que es un adulto de 30 años quien llega desde Albania a España. Necesita aprender español para trabajar y desenvolverse socialmente.',
+        question: '¿Qué dificultades lingüísticas podría encontrar? ¿Cómo podrían afectar a su integración social?',
+        answer: 'Podría costarle mucho hablar español correctamente. Un adulto puede aprender vocabulario y gramática de forma consciente, pero la pronunciación y la fluidez son mucho más difíciles de adquirir a esta edad. Si hace un gran esfuerzo y tiene buenos apoyos (clases, inmersión, práctica), podría llegar a dominar la lengua funcionalmente, pero muy probablemente mantendría un acento marcado de por vida. Muchas personas en esta situación quedan limitadas socialmente: dificultades para acceder a empleos cualificados, para participar en conversaciones informales con fluidez, o para integrarse plenamente en la comunidad. El dominio imperfecto de la lengua puede generar inseguridad, aislamiento parcial y, en algunos casos, discriminación.',
+        keywords: ['cost', 'dificil', 'acento', 'marcado', 'limitad', 'esfuerzo', 'funcional', 'social', 'integr', 'discrimin']
+    }
+];
+
+var N = SCENARIOS.length;
+var responses = new Array(N).fill(null);   // user text
+var evaluated = new Array(N).fill(false);  // whether feedback shown
+var scores = new Array(N).fill(0);         // 0 or 1
+var currentStep = 0;
+
+// ── Build UI ──
+var progressBar = document.getElementById('progress-bar');
+var container = document.getElementById('scenarios-container');
+
+for (var i = 0; i < N; i++) {
+    // Progress dot
+    var dot = document.createElement('div');
+    dot.className = 'progress-dot' + (i === 0 ? ' active' : '');
+    dot.id = 'dot-' + i;
+    progressBar.appendChild(dot);
+}
+// Extra dot for results
+var dotR = document.createElement('div');
+dotR.className = 'progress-dot';
+dotR.id = 'dot-results';
+progressBar.appendChild(dotR);
+
+for (var i = 0; i < N; i++) {
+    (function(idx) {
+        var s = SCENARIOS[idx];
+        var div = document.createElement('div');
+        div.className = 'scenario' + (idx === 0 ? ' active' : '');
+        div.id = 'step-' + idx;
+        div.innerHTML =
+            '<div class="scenario-card">' +
+                '<div class="scenario-num">Escenario ' + (idx + 1) + ' de ' + N + '</div>' +
+                '<div class="scenario-text">' + s.text + '</div>' +
+                '<div class="scenario-question">' + s.question + '</div>' +
+                '<textarea id="input-' + idx + '" placeholder="Escribe tu respuesta..." oninput="onInput(' + idx + ')"></textarea>' +
+                '<div class="char-count"><span id="count-' + idx + '">0</span> caracteres</div>' +
+                '<div class="loading" id="loading-' + idx + '">' +
+                    '<div class="spinner"></div> Evaluando tu respuesta...' +
+                '</div>' +
+                '<div class="feedback-box" id="feedback-' + idx + '"></div>' +
+            '</div>' +
+            '<div class="nav-buttons">' +
+                (idx > 0 ? '<button class="btn btn-secondary" onclick="goTo(' + (idx - 1) + ')">&#8249; Anterior</button>' : '<span></span>') +
+                '<button class="btn btn-primary" id="btn-' + idx + '" onclick="submitOrNext(' + idx + ')" disabled>Comprobar</button>' +
+            '</div>';
+        container.appendChild(div);
+    })(i);
+}
+
+function onInput(idx) {
+    var n = document.getElementById('input-' + idx).value.trim().length;
+    document.getElementById('count-' + idx).textContent = n;
+    if (!evaluated[idx]) {
+        document.getElementById('btn-' + idx).disabled = n < 30;
+    }
+}
+
+function goTo(n) {
+    // Hide current
+    if (currentStep < N) {
+        document.getElementById('step-' + currentStep).classList.remove('active');
+    } else {
+        document.getElementById('step-results').classList.remove('active');
+    }
+
+    // Show target
+    if (n < N) {
+        document.getElementById('step-' + n).classList.add('active');
+    } else {
+        buildResults();
+        document.getElementById('step-results').classList.add('active');
+    }
+
+    // Update dots
+    for (var i = 0; i < N; i++) {
+        var d = document.getElementById('dot-' + i);
+        d.classList.remove('active', 'done');
+        if (i < n) d.classList.add('done');
+        else if (i === n) d.classList.add('active');
+    }
+    var dr = document.getElementById('dot-results');
+    dr.classList.remove('active', 'done');
+    if (n >= N) dr.classList.add('active');
+    else if (n > N) dr.classList.add('done');
+
+    currentStep = n;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function submitOrNext(idx) {
+    if (evaluated[idx]) {
+        // Already evaluated, go to next
+        goTo(idx + 1);
+        return;
+    }
+
+    var text = document.getElementById('input-' + idx).value.trim();
+    if (text.length < 30) return;
+    responses[idx] = text;
+
+    var btn = document.getElementById('btn-' + idx);
+    btn.disabled = true;
+    document.getElementById('loading-' + idx).classList.add('show');
+
+    try {
+        var res = await fetch('/api/public-agent/eulalia/evaluar-definicion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                concepto: 'Impacto social del lenguaje - Escenario ' + (idx + 1),
+                definicion: text,
+                rubrica: [
+                    { descripcion: 'La respuesta aborda correctamente cómo se vería afectada la sociabilidad de la persona descrita en el escenario.' },
+                    { descripcion: 'La respuesta muestra comprensión de la relación entre lenguaje y sociabilidad.' }
+                ],
+                referencia: SCENARIOS[idx].answer
+            })
+        });
+
+        if (!res.ok) throw new Error('Error del servidor');
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        showFeedback(idx, data);
+    } catch(e) {
+        // Fallback: keyword-based evaluation
+        showFeedbackLocal(idx, text);
+    } finally {
+        document.getElementById('loading-' + idx).classList.remove('show');
+    }
+}
+
+function showFeedback(idx, data) {
+    var criterios = data.criterios || [];
+    var passed = criterios.filter(function(c) { return c.cumplido; }).length;
+    var total = criterios.length || 1;
+    var ok = passed >= total;
+    scores[idx] = ok ? 1 : 0;
+    evaluated[idx] = true;
+
+    var fb = document.getElementById('feedback-' + idx);
+    fb.className = 'feedback-box show ' + (ok ? 'correct' : 'partial');
+    fb.innerHTML =
+        '<h4>' + (ok ? 'Bien razonado' : 'Respuesta parcial') + '</h4>' +
+        (data.comentario_general ? '<div>' + data.comentario_general + '</div>' : '') +
+        '<div class="ref-answer"><strong>Respuesta de referencia:</strong> ' + SCENARIOS[idx].answer + '</div>';
+
+    var btn = document.getElementById('btn-' + idx);
+    btn.disabled = false;
+    btn.textContent = (idx < N - 1) ? 'Siguiente >' : 'Ver resultados >';
+}
+
+function showFeedbackLocal(idx, text) {
+    var textLower = text.toLowerCase();
+    var kws = SCENARIOS[idx].keywords;
+    var hits = 0;
+    kws.forEach(function(kw) {
+        if (textLower.indexOf(kw.toLowerCase()) >= 0) hits++;
+    });
+    var ok = hits >= 2;
+    scores[idx] = ok ? 1 : 0;
+    evaluated[idx] = true;
+
+    var fb = document.getElementById('feedback-' + idx);
+    fb.className = 'feedback-box show ' + (ok ? 'correct' : 'partial');
+    fb.innerHTML =
+        '<h4>' + (ok ? 'Bien razonado' : 'Tu respuesta podría completarse') + '</h4>' +
+        '<div class="ref-answer"><strong>Respuesta de referencia:</strong> ' + SCENARIOS[idx].answer + '</div>';
+
+    var btn = document.getElementById('btn-' + idx);
+    btn.disabled = false;
+    btn.textContent = (idx < N - 1) ? 'Siguiente >' : 'Ver resultados >';
+}
+
+function buildResults() {
+    var total = 0;
+    scores.forEach(function(s) { total += s; });
+
+    document.getElementById('score-num').textContent = total + ' / ' + N;
+    saveProgress('lenguaje_hecho_social', total, N);
+
+    var list = document.getElementById('results-list');
+    list.innerHTML = '';
+    for (var i = 0; i < N; i++) {
+        var row = document.createElement('div');
+        row.className = 'result-row';
+        row.innerHTML =
+            '<div class="result-scenario">Escenario ' + (i + 1) + '</div>' +
+            '<div class="result-status ' + (scores[i] ? 'pass' : 'partial') + '">' +
+                (scores[i] ? 'Correcto' : 'Parcial / a mejorar') +
+            '</div>' +
+            '<div class="result-comment">' + SCENARIOS[i].answer + '</div>';
+        list.appendChild(row);
+    }
+}
+
+function resetAll() {
+    responses.fill(null);
+    evaluated.fill(false);
+    scores.fill(0);
+    for (var i = 0; i < N; i++) {
+        document.getElementById('input-' + i).value = '';
+        document.getElementById('count-' + i).textContent = '0';
+        document.getElementById('btn-' + i).disabled = true;
+        document.getElementById('btn-' + i).textContent = 'Comprobar';
+        document.getElementById('feedback-' + i).className = 'feedback-box';
+        document.getElementById('feedback-' + i).innerHTML = '';
+    }
+    goTo(0);
+}
+
+</script>
+
+<script src="/static/lalitutor/informar_profesor.js"></script>
+</body>
+</html>

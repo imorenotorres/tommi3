@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analiza sílabas — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header a:hover { opacity: 0.85; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+
+.container { max-width: 720px; margin: 0 auto; padding: 32px 20px; }
+h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+.task-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 24px; margin-bottom: 20px;
+}
+
+.word-display {
+    text-align: center; font-size: 32px; font-weight: 800; color: #4250b3;
+    padding: 16px; margin-bottom: 16px; letter-spacing: 4px;
+}
+
+.slots-area { margin-bottom: 20px; }
+.slots-label { font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px; }
+
+.syllable-slots {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px;
+}
+.syl-slot {
+    min-width: 80px; padding: 10px 16px; border: 2px dashed #c7d2fe; border-radius: 8px;
+    text-align: center; font-size: 16px; font-weight: 600; color: #4250b3; background: #f5f3ff;
+}
+.syl-slot input {
+    width: 70px; padding: 6px; border: 2px solid #e2e8f0; border-radius: 6px;
+    font-family: inherit; font-size: 16px; text-align: center; font-weight: 600;
+}
+.syl-slot input:focus { outline: none; border-color: #4250b3; }
+
+.structure-table {
+    width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;
+}
+.structure-table th {
+    background: #4250b3; color: #fff; padding: 8px 12px; font-weight: 600; text-align: center;
+}
+.structure-table td {
+    padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center;
+}
+.structure-table select {
+    padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px;
+    font-family: inherit; font-size: 13px;
+}
+
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.btn-primary { background: #4250b3; color: #fff; }
+.btn-primary:hover { background: #3740a0; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+
+.btn-row { display: flex; justify-content: space-between; margin-top: 16px; }
+
+/* Results */
+.result-box { display: none; animation: fadeIn 0.4s; }
+.result-box.show { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.result-item {
+    padding: 12px 14px; margin-bottom: 8px; border-radius: 8px;
+    border: 1px solid #e2e8f0; font-size: 14px; line-height: 1.6;
+}
+.result-item.pass { border-color: #bbf7d0; background: #f0fdf4; }
+.result-item.fail { border-color: #fecaca; background: #fef2f2; }
+.result-icon { font-size: 16px; margin-right: 8px; }
+
+.score-summary {
+    text-align: center; padding: 16px; margin-bottom: 16px;
+    background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;
+}
+.score-num { font-size: 36px; font-weight: 800; }
+.score-num.good { color: #16a34a; }
+.score-num.mid { color: #f59e0b; }
+.score-num.bad { color: #dc2626; }
+
+.result-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+.info-box {
+    background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px;
+    padding: 14px; margin-bottom: 20px; font-size: 13px; line-height: 1.6; color: #3730a3;
+}
+
+/* Consultar al profesor */
+.consult-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 90;
+    background: #7c3aed; color: #fff; border: none; border-radius: 50%;
+    width: 56px; height: 56px; font-size: 24px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(124,58,237,0.4); transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+}
+.consult-fab:hover { background: #6d28d9; transform: scale(1.08); }
+.consult-fab .fab-tooltip {
+    position: absolute; right: 64px; background: #1e293b; color: #fff;
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.consult-fab:hover .fab-tooltip { opacity: 1; }
+
+.consult-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 100; align-items: center; justify-content: center;
+}
+.consult-overlay.show { display: flex; }
+.consult-modal {
+    background: #fff; border-radius: 14px; padding: 28px; width: 90%; max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease;
+}
+.consult-modal h3 { font-size: 18px; color: #7c3aed; margin-bottom: 6px; }
+.consult-modal .cm-sub { font-size: 13px; color: #64748b; margin-bottom: 16px; line-height: 1.5; }
+.consult-modal textarea {
+    width: 100%; min-height: 100px; padding: 12px; border: 2px solid #e2e8f0;
+    border-radius: 8px; font-family: inherit; font-size: 14px; line-height: 1.5;
+    resize: vertical; transition: border-color 0.2s;
+}
+.consult-modal textarea:focus { outline: none; border-color: #7c3aed; }
+.consult-modal .cm-count { font-size: 11px; color: #94a3b8; text-align: right; margin-top: 4px; }
+.consult-modal .cm-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.consult-modal .cm-btn {
+    padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.consult-modal .cm-cancel { background: #e2e8f0; color: #475569; }
+.consult-modal .cm-cancel:hover { background: #cbd5e1; }
+.consult-modal .cm-send { background: #7c3aed; color: #fff; }
+.consult-modal .cm-send:hover { background: #6d28d9; }
+.consult-modal .cm-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.consult-modal .cm-ok { display: none; text-align: center; padding: 20px 0; }
+.consult-modal .cm-ok.show { display: block; }
+.consult-modal .cm-ok p { font-size: 15px; color: #16a34a; font-weight: 600; margin-bottom: 4px; }
+.consult-modal .cm-ok span { font-size: 13px; color: #64748b; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">›</span>
+    <span class="title">Tema 1 — Análisis de sílabas</span>
+</div>
+
+<div class="container">
+    <h2>Analiza la estructura silábica</h2>
+    <p class="subtitle">
+        Para cada palabra, divide en sílabas e identifica la estructura de cada una (Inicio, Núcleo, Coda).
+    </p>
+
+    <div class="info-box">
+        <strong>Recuerda:</strong> Cada sílaba tiene una estructura: <strong>Inicio</strong> (consonante/s antes del núcleo, opcional)
+        + <strong>Núcleo</strong> (siempre una vocal) + <strong>Coda</strong> (consonante/s después del núcleo, opcional).
+        Por ejemplo: en "sal", Inicio=s, Núcleo=a, Coda=l.
+    </div>
+
+    <div class="task-card" id="task-card">
+        <div class="word-display" id="word-display"></div>
+
+        <div class="slots-area">
+            <div class="slots-label">1. Divide la palabra en sílabas:</div>
+            <div class="syllable-slots" id="syllable-slots"></div>
+        </div>
+
+        <div id="structure-area" style="display:none;">
+            <div class="slots-label">2. Identifica la estructura de cada sílaba:</div>
+            <div id="structure-tables"></div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="newWord()">Otra palabra</button>
+            <button class="btn btn-primary" id="btn-check" onclick="checkStep()">Comprobar sílabas</button>
+        </div>
+    </div>
+
+    <div class="result-box" id="result-box">
+        <div class="score-summary" id="score-summary"></div>
+        <div id="result-details"></div>
+        <div class="result-buttons">
+            <button class="btn btn-secondary" onclick="newWord()">Otra palabra</button>
+            <button class="btn btn-primary" onclick="window.close()">Volver al curso</button>
+        </div>
+    </div>
+</div>
+
+<!-- Consultar al profesor -->
+<button class="consult-fab" onclick="consultOpen()" title="Consultar al profesor">
+    <span class="fab-tooltip">Consultar al profesor</span>
+    &#9993;
+</button>
+<div class="consult-overlay" id="consult-overlay" onclick="if(event.target===this)consultClose()">
+    <div class="consult-modal">
+        <div id="consult-form">
+            <h3>Consultar al profesor</h3>
+            <p class="cm-sub">Escribe tu duda sobre este ejercicio. El profesor la recibirá y te responderá.</p>
+            <textarea id="consult-text" placeholder="Escribe tu consulta aquí..." oninput="consultCount()"></textarea>
+            <div class="cm-count"><span id="consult-count">0</span> caracteres</div>
+            <div class="cm-btns">
+                <button class="cm-btn cm-cancel" onclick="consultClose()">Cancelar</button>
+                <button class="cm-btn cm-send" id="consult-send" onclick="consultSend()" disabled>Enviar consulta</button>
+            </div>
+        </div>
+        <div class="cm-ok" id="consult-ok">
+            <p>&#10003; Consulta enviada</p>
+            <span>El profesor la revisará y te responderá.</span>
+            <div class="cm-btns" style="justify-content:center; margin-top:16px;">
+                <button class="cm-btn cm-cancel" onclick="consultClose()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// ── Progress tracking ──
+function saveProgress(widgetId, score, maxScore) {
+    try {
+        var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
+        var pct = Math.round(score / maxScore * 100);
+        var prev = progress[widgetId];
+        // Only update if better score or not yet saved
+        if (!prev || pct > prev.score) {
+            progress[widgetId] = { completed: pct >= 75, score: pct, date: new Date().toISOString().split('T')[0] };
+            localStorage.setItem('lali_progress', JSON.stringify(progress));
+        }
+    } catch(e) {}
+}
+
+// ── Word bank with correct syllabification ──
+var WORDS = [
+    { word: 'mesa', syls: ['me','sa'] },
+    { word: 'sal', syls: ['sal'] },
+    { word: 'agua', syls: ['a','gua'] },
+    { word: 'libro', syls: ['li','bro'] },
+    { word: 'estrella', syls: ['es','tre','lla'] },
+    { word: 'ventana', syls: ['ven','ta','na'] },
+    { word: 'piedra', syls: ['pie','dra'] },
+    { word: 'camisa', syls: ['ca','mi','sa'] },
+    { word: 'maleta', syls: ['ma','le','ta'] },
+    { word: 'puerta', syls: ['puer','ta'] },
+    { word: 'hombre', syls: ['hom','bre'] },
+    { word: 'campo', syls: ['cam','po'] },
+    { word: 'planta', syls: ['plan','ta'] },
+    { word: 'brazo', syls: ['bra','zo'] },
+    { word: 'clase', syls: ['cla','se'] },
+    { word: 'flor', syls: ['flor'] },
+    { word: 'pan', syls: ['pan'] },
+    { word: 'tren', syls: ['tren'] },
+    { word: 'isla', syls: ['is','la'] },
+    { word: 'arbol', syls: ['ár','bol'] },
+    { word: 'escalera', syls: ['es','ca','le','ra'] },
+    { word: 'instrumento', syls: ['ins','tru','men','to'] },
+    { word: 'transporte', syls: ['trans','por','te'] },
+    { word: 'comprar', syls: ['com','prar'] },
+    { word: 'Jaén', syls: ['Ja','én'] },
+    { word: 'caer', syls: ['ca','er'] },
+    { word: 'poeta', syls: ['po','e','ta'] },
+    { word: 'toalla', syls: ['to','a','lla'] },
+    { word: 'marea', syls: ['ma','re','a'] },
+    { word: 'león', syls: ['le','ón'] },
+    { word: 'héroe', syls: ['hé','ro','e'] },
+    { word: 'aéreo', syls: ['a','é','re','o'] },
+    { word: 'crear', syls: ['cre','ar'] },
+    { word: 'María', syls: ['Ma','rí','a'] },
+    { word: 'día', syls: ['dí','a'] },
+    { word: 'oír', syls: ['o','ír'] },
+    { word: 'maíz', syls: ['ma','íz'] },
+    { word: 'país', syls: ['pa','ís'] }
+];
+
+var currentWord = null;
+var step = 1; // 1=syllables, 2=structure
+
+function getStructure(syl) {
+    var vowels = 'aeiouáéíóú';
+    var chars = syl.toLowerCase().replace('ll','ʎ').replace('ch','ʧ').replace('rr','ř').replace('qu','k').replace('gu','g');
+    var inicio = '', nucleo = '', coda = '';
+    var phase = 'inicio';
+    for (var i = 0; i < chars.length; i++) {
+        var c = chars[i];
+        if (phase === 'inicio') {
+            if (vowels.indexOf(c) >= 0) { nucleo += c; phase = 'nucleo'; }
+            else { inicio += c; }
+        } else if (phase === 'nucleo') {
+            if (vowels.indexOf(c) >= 0) { nucleo += c; }
+            else { coda += c; phase = 'coda'; }
+        } else {
+            coda += c;
+        }
+    }
+    // Map back display chars
+    var mapBack = function(s) {
+        return s.replace('ʎ','ll').replace('ʧ','ch').replace('ř','rr').replace('k','qu');
+    };
+    return { inicio: mapBack(inicio), nucleo: mapBack(nucleo), coda: mapBack(coda) };
+}
+
+function newWord() {
+    step = 1;
+    currentWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+    document.getElementById('word-display').textContent = currentWord.word;
+    document.getElementById('result-box').classList.remove('show');
+    document.getElementById('structure-area').style.display = 'none';
+    document.getElementById('btn-check').textContent = 'Comprobar sílabas';
+    document.getElementById('btn-check').disabled = false;
+
+    // Create input slots (max possible syllables = length of word)
+    var maxSyls = Math.min(currentWord.word.length, 6);
+    var html = '';
+    for (var i = 0; i < maxSyls; i++) {
+        html += '<div class="syl-slot"><input type="text" id="syl-' + i + '" placeholder="' + (i+1) + '" oninput="this.value=this.value.toLowerCase()"></div>';
+    }
+    document.getElementById('syllable-slots').innerHTML = html;
+    document.getElementById('syl-0').focus();
+}
+
+function getUserSyls() {
+    var syls = [];
+    for (var i = 0; i < 6; i++) {
+        var el = document.getElementById('syl-' + i);
+        if (!el) break;
+        var v = el.value.trim().toLowerCase();
+        if (v) syls.push(v);
+    }
+    return syls;
+}
+
+function checkStep() {
+    if (step === 1) {
+        checkSyllables();
+    } else {
+        checkStructure();
+    }
+}
+
+function checkSyllables() {
+    var userSyls = getUserSyls();
+    if (userSyls.length === 0) { alert('Escribe al menos una sílaba.'); return; }
+
+    var correct = currentWord.syls;
+    var userJoined = userSyls.join('').replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u');
+    var correctJoined = correct.join('').replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u');
+
+    // Normalize h for comparison
+    var normalize = function(s) { return s.replace(/h/g,'').replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u'); };
+
+    var sylsMatch = userSyls.length === correct.length;
+    if (sylsMatch) {
+        for (var i = 0; i < correct.length; i++) {
+            if (normalize(userSyls[i]) !== normalize(correct[i])) { sylsMatch = false; break; }
+        }
+    }
+
+    if (sylsMatch) {
+        // Move to structure step
+        step = 2;
+        document.getElementById('structure-area').style.display = '';
+        document.getElementById('btn-check').textContent = 'Comprobar estructura';
+
+        // Disable syllable inputs
+        for (var j = 0; j < 6; j++) {
+            var el = document.getElementById('syl-' + j);
+            if (el) el.disabled = true;
+        }
+
+        // Build structure tables
+        var html = '';
+        correct.forEach(function(syl, idx) {
+            html += '<table class="structure-table" style="margin-bottom:12px;">';
+            html += '<tr><th colspan="3">Sílaba: <strong>' + syl + '</strong></th></tr>';
+            html += '<tr><th>Inicio</th><th>Núcleo</th><th>Coda</th></tr>';
+            html += '<tr>';
+            html += '<td><input type="text" id="inicio-' + idx + '" style="width:60px;padding:4px;text-align:center;border:1px solid #e2e8f0;border-radius:4px;" placeholder="—"></td>';
+            html += '<td><input type="text" id="nucleo-' + idx + '" style="width:60px;padding:4px;text-align:center;border:1px solid #e2e8f0;border-radius:4px;" placeholder="—"></td>';
+            html += '<td><input type="text" id="coda-' + idx + '" style="width:60px;padding:4px;text-align:center;border:1px solid #e2e8f0;border-radius:4px;" placeholder="—"></td>';
+            html += '</tr></table>';
+        });
+        document.getElementById('structure-tables').innerHTML = html;
+    } else {
+        // Show error
+        var details = document.getElementById('result-details');
+        details.innerHTML =
+            '<div class="result-item fail"><span class="result-icon">✗</span>' +
+            'Tu división: <strong>' + userSyls.join(' · ') + '</strong><br>' +
+            'División correcta: <strong>' + correct.join(' · ') + '</strong></div>';
+        document.getElementById('score-summary').innerHTML =
+            '<div class="score-num bad">Revisa</div>' +
+            '<div style="font-size:14px;color:#64748b;">La división en sílabas no es correcta. Inténtalo de nuevo.</div>';
+        document.getElementById('result-box').classList.add('show');
+    }
+}
+
+function checkStructure() {
+    var correct = currentWord.syls;
+    var total = correct.length * 3; // 3 fields per syllable
+    var hits = 0;
+    var html = '';
+
+    var errorTypes = { inicio: 0, nucleo: 0, coda: 0 };
+
+    // Build comparison table
+    html += '<table class="structure-table">';
+    html += '<tr><th>Sílaba</th><th></th><th>Inicio</th><th>Núcleo</th><th>Coda</th></tr>';
+
+    correct.forEach(function(syl, idx) {
+        var expected = getStructure(syl);
+        var userInicio = (document.getElementById('inicio-' + idx).value || '').trim().toLowerCase();
+        var userNucleo = (document.getElementById('nucleo-' + idx).value || '').trim().toLowerCase();
+        var userCoda = (document.getElementById('coda-' + idx).value || '').trim().toLowerCase();
+
+        var clean = function(s) { return s === '—' || s === '-' ? '' : s; };
+        userInicio = clean(userInicio); userNucleo = clean(userNucleo); userCoda = clean(userCoda);
+
+        var iOk = userInicio === expected.inicio;
+        var nOk = userNucleo === expected.nucleo;
+        var cOk = userCoda === expected.coda;
+
+        if (iOk) hits++; else errorTypes.inicio++;
+        if (nOk) hits++; else errorTypes.nucleo++;
+        if (cOk) hits++; else errorTypes.coda++;
+
+        var cellStyle = function(ok) { return ok ? 'background:#f0fdf4;color:#166534;' : 'background:#fef2f2;color:#991b1b;font-weight:700;'; };
+        var display = function(val) { return val || '—'; };
+
+        // User row
+        html += '<tr>';
+        html += '<td rowspan="2" style="font-weight:700;font-size:16px;color:#4250b3;vertical-align:middle;">' + syl + '</td>';
+        html += '<td style="font-size:11px;color:#94a3b8;">Tú</td>';
+        html += '<td style="' + cellStyle(iOk) + '">' + display(userInicio) + '</td>';
+        html += '<td style="' + cellStyle(nOk) + '">' + display(userNucleo) + '</td>';
+        html += '<td style="' + cellStyle(cOk) + '">' + display(userCoda) + '</td>';
+        html += '</tr>';
+
+        // Correct row (only show if there's an error)
+        if (!iOk || !nOk || !cOk) {
+            html += '<tr>';
+            html += '<td style="font-size:11px;color:#94a3b8;">Correcto</td>';
+            html += '<td style="font-size:12px;color:#64748b;">' + display(expected.inicio) + '</td>';
+            html += '<td style="font-size:12px;color:#64748b;">' + display(expected.nucleo) + '</td>';
+            html += '<td style="font-size:12px;color:#64748b;">' + display(expected.coda) + '</td>';
+            html += '</tr>';
+        } else {
+            html += '<tr><td colspan="4" style="font-size:11px;color:#16a34a;text-align:center;">✓ Correcto</td></tr>';
+        }
+    });
+    html += '</table>';
+
+    // Suggestions if there are errors
+    var totalErrors = total - hits;
+    if (totalErrors > 0) {
+        html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px;margin-top:16px;font-size:13px;line-height:1.7;color:#78350f;">';
+        html += '<strong>Sugerencias de práctica:</strong><ul style="margin:6px 0 0 16px;">';
+        if (errorTypes.inicio > 0) {
+            html += '<li><strong>Inicio (ataque):</strong> Recuerda que el inicio incluye todas las consonantes que preceden a la vocal. En grupos como "br", "pl", "tr", ambas consonantes forman parte del inicio.</li>';
+        }
+        if (errorTypes.nucleo > 0) {
+            html += '<li><strong>Núcleo:</strong> El núcleo es siempre una vocal. En diptongos como "ie", "ue", las dos vocales forman parte del núcleo juntas.</li>';
+        }
+        if (errorTypes.coda > 0) {
+            html += '<li><strong>Coda:</strong> La coda incluye las consonantes que van después del núcleo, dentro de la misma sílaba. Recuerda que en español la coda tiende a ser simple (una sola consonante), excepto en casos como "trans-" o "ins-".</li>';
+        }
+        html += '<li>Practica con más palabras pulsando "Otra palabra".</li>';
+        html += '</ul></div>';
+    }
+
+    var pct = Math.round(hits / total * 100);
+    var cls = pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad';
+    var msg = pct === 100 ? '¡Perfecto!' : pct >= 80 ? '¡Muy bien! Solo algunos detalles por pulir.' : pct >= 50 ? 'Vas por buen camino, pero conviene repasar.' : 'Necesitas practicar más. Revisa las sugerencias.';
+
+    document.getElementById('score-summary').innerHTML =
+        '<div class="score-num ' + cls + '">' + hits + '/' + total + '</div>' +
+        '<div style="font-size:14px;color:#64748b;">' + msg + '</div>';
+    document.getElementById('result-details').innerHTML = html;
+    document.getElementById('result-box').classList.add('show');
+    document.getElementById('btn-check').disabled = true;
+    saveProgress('analisis_silabas', hits, total);
+}
+
+// Init
+newWord();
+
+// ── Consultar al profesor ──
+var CONSULT_WIDGET = 'Analiza sílabas';
+function consultOpen() {
+    document.getElementById('consult-overlay').classList.add('show');
+    document.getElementById('consult-form').style.display = '';
+    document.getElementById('consult-ok').classList.remove('show');
+    document.getElementById('consult-text').value = '';
+    document.getElementById('consult-count').textContent = '0';
+    document.getElementById('consult-send').disabled = true;
+}
+function consultClose() {
+    document.getElementById('consult-overlay').classList.remove('show');
+}
+function consultCount() {
+    var n = document.getElementById('consult-text').value.trim().length;
+    document.getElementById('consult-count').textContent = n;
+    document.getElementById('consult-send').disabled = n < 10;
+}
+async function consultSend() {
+    var text = document.getElementById('consult-text').value.trim();
+    if (text.length < 10) return;
+    document.getElementById('consult-send').disabled = true;
+    document.getElementById('consult-send').textContent = 'Enviando...';
+    try {
+        var res = await fetch('/api/public-agent/eulalia/consulta-profesor', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ consulta: text, widget: CONSULT_WIDGET, contexto: document.title })
+        });
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+        document.getElementById('consult-form').style.display = 'none';
+        document.getElementById('consult-ok').classList.add('show');
+    } catch(e) {
+        alert('Error al enviar: ' + e.message);
+    } finally {
+        document.getElementById('consult-send').textContent = 'Enviar consulta';
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+{
+  "secciones": [
+    {"id": "resumen", "nombre": "Resumen", "icono": "📋"},
+    {"id": "contenidos", "nombre": "Contenidos y conceptos clave", "icono": "📖"},
+    {"id": "ejercicios", "nombre": "Ejercicios prácticos", "icono": "✏️"},
+    {"id": "autoevaluacion", "nombre": "Autoevaluación y progreso", "icono": "📊"},
+    {"id": "mas_alla", "nombre": "Más allá de este tema", "icono": "🔗"}
+  ],
+  "temas": [
+    {
+      "id": 1,
+      "titulo": "Introducción a la fonología",
+      "color": "#4250b3",
+      "resumen": "Este tema sienta las bases teóricas de toda la asignatura. Es el único realmente teórico de la asignatura. Tiene tres apartados \n\nEl primero introduce la distinción fundamental entre fonología (estudio de los sonidos como unidades abstractas del sistema lingüístico) y fonética (estudio de los sonidos como realidades físicas y articulatorias). También introduce las unidades más importantes: fonema, alófono y sonido. Debes aprender a diferenciar los conceptos y, muy importante, debes saber redactar una definición de los mismos. Para ello no debes de hacer el ejercicio con corrección automática. \n\nEl segundo bloque del tema examina el lenguaje desde diferentes perspectivas complementarias: \n- La perspectiva estructural: que nos ayuda a entender el lenguaje como fenómeno social \n- La perspectiva cognitiva o generativa: que nos ayuda a empenzar a entender cómo funciona la maquinaria neuronal del cerebro. \n- Y la perspectiva evolutiva: que describe las fases de adquisición del lenguaje en el niño \n\nEl tercer bloque profundiza sobre las unidades lingüísticas. En el último presentamos los sistemas de transcripción fonológica y fonética.",
+      "doc": "Tema1_Introduccion.md",
+      "contenidos": [
+        {
+          "bloque": "1.1. Fonología y fonética",
+          "seccion_doc": "1.1. Fonología y fonética",
+          "conceptos": [
+            {"nombre": "Fonología vs fonética", "consulta": "¿Qué diferencia hay entre fonología y fonética?"},
+            {"nombre": "Fonética articulatoria", "consulta": "¿Qué estudia la fonética articulatoria?"},
+            {"nombre": "Fonética acústica", "consulta": "¿Qué estudia la fonética acústica?"},
+            {"nombre": "Fonética perceptiva", "consulta": "¿Qué estudia la fonética perceptiva?"}
+          ]
+        },
+        {
+          "bloque": "1.2. Diferentes formas de concebir la fonología",
+          "seccion_doc": "1.2. Diferentes formas de concebir la fonología",
+          "subbloques": [
+            {
+              "nombre": "¿Qué nos enseña el estructuralismo?",
+              "conceptos": [
+                {"nombre": "Habla, norma y lengua", "consulta": "¿Qué son el habla, la norma y la lengua según los estructuralistas?"},
+                {"nombre": "Principio estructural", "consulta": "¿Cuál es el principio estructural para clasificar sonidos y fonemas?"},
+                {"nombre": "Par mínimo", "consulta": "¿Qué es un par mínimo?"},
+                {"nombre": "Fonema (definición estructural)", "consulta": "¿Qué es un fonema desde la perspectiva estructural?"}
+              ]
+            },
+            {
+              "nombre": "¿Qué nos enseña el generativismo?",
+              "conceptos": [
+                {"nombre": "Modelo generativo lingüístico", "consulta": "¿Cuáles son los pasos del proceso de generación lingüística, desde la idea pre-lingüística hasta los sonidos?"},
+                {"nombre": "Fonología multimodal", "consulta": "¿Qué quiere decir que la fonología es multimodal?"},
+                {"nombre": "Doble ruta (directa e indirecta)", "consulta": "¿Qué es el principio de la doble ruta en fonología?"},
+                {"nombre": "Pseudopalabras", "consulta": "¿Qué es una pseudopalabra y para qué se usa en logopedia?"},
+                {"nombre": "La Palabra Complementada", "consulta": "¿Qué es la Palabra Complementada y qué relación tiene con la fonología multimodal?"}
+              ]
+            }
+          ]
+        },
+        {
+          "bloque": "1.3. Unidades",
+          "seccion_doc": "1.3. Unidades",
+          "subbloques": [
+            {
+              "nombre": "1.3.1. Los fonemas",
+              "conceptos": [
+                {"nombre": "Fonema como clase", "consulta": "¿Qué es un fonema como clase de sonidos?"},
+                {"nombre": "Fonema como representación mental", "consulta": "¿Qué es un fonema como representación mental?"}
+              ]
+            },
+            {
+              "nombre": "1.3.2. Fonema vs alófono vs sonido",
+              "conceptos": [
+                {"nombre": "Fonema vs alófono vs sonido", "consulta": "¿Qué diferencia hay entre fonema, alófono y sonido?"},
+                {"nombre": "Por qué necesitamos los alófonos", "consulta": "¿Por qué necesitamos el nivel intermedio de los alófonos?"}
+              ]
+            },
+            {
+              "nombre": "1.3.3. La sílaba",
+              "conceptos": [
+                {"nombre": "Estructura de la sílaba", "consulta": "¿Cuál es la estructura de la sílaba?"},
+                {"nombre": "Sonorantes vs obstruyentes", "consulta": "¿Qué diferencia hay entre consonantes sonorantes y obstruyentes?"},
+                {"nombre": "Jerarquía de sonoridad", "consulta": "¿Qué es la jerarquía de sonoridad?"},
+                {"nombre": "Reglas fonotácticas", "consulta": "¿Qué son las reglas fonotácticas?"}
+              ]
+            },
+            {
+              "nombre": "1.3.4. Otras unidades: los rasgos distintivos",
+              "conceptos": [
+                {"nombre": "Rasgos distintivos", "consulta": "¿Qué son los rasgos distintivos?"},
+                {"nombre": "Jakobson-Halle vs Chomsky-Halle", "consulta": "¿Qué diferencia hay entre los rasgos de Jakobson-Halle y los de Chomsky-Halle?"}
+              ]
+            }
+          ]
+        },
+        {
+          "bloque": "1.4. Los alfabetos fonéticos",
+          "seccion_doc": "1.4. Los alfabetos fonéticos",
+          "conceptos": [
+            {"nombre": "Alfabeto Fonético Internacional (AFI)", "consulta": "¿Qué es el Alfabeto Fonético Internacional?"},
+            {"nombre": "Alfabeto RFE", "consulta": "¿Qué es el alfabeto de la Revista de Filología Española?"},
+            {"nombre": "Transcripción fonológica vs fonética", "consulta": "¿Qué diferencia hay entre transcripción fonológica y fonética?"},
+            {"nombre": "Notación / / vs [ ]", "consulta": "¿Cuándo se usan barras / / y cuándo corchetes [ ]?"},
+            {"nombre": "Importancia para la logopedia", "consulta": "¿Por qué son importantes los alfabetos fonéticos para la logopedia?"}
+          ]
+        }
+      ],
+      "ejercicios": [],
+      "autoevaluacion": [
+        "¿Puedo explicar la diferencia entre fonema y alófono con un ejemplo?",
+        "¿Sé identificar pares mínimos en español?",
+        "¿Sé cuándo usar la notación / / y cuándo [ ]?",
+        "¿Puedo explicar qué es la doble ruta y por qué es importante en logopedia?",
+        "¿Sé qué es una pseudopalabra y para qué se usa?",
+        "¿Puedo describir las 4 fases de adquisición del lenguaje?",
+        "¿Entiendo el concepto de daños en cascada con un ejemplo (pérdida auditiva)?",
+        "¿Puedo explicar qué es el Síndrome de Acento Extranjero desde la doble ruta?",
+        "¿Sé qué condiciones necesita un niño sordo con implante coclear para desarrollar el lenguaje?",
+        "¿Puedo describir la estructura de una sílaba (inicio, núcleo, coda)?",
+        "¿Distingo entre consonantes sonorantes y obstruyentes?",
+        "¿Entiendo la jerarquía de sonoridad y por qué los ataques complejos combinan oclusiva + líquida?"
+      ],
+      "mas_alla": [
+        {"texto": "Tema 2: aplica estos conceptos al inventario fonológico del español y a la transcripción fonológica.", "tema_destino": 2},
+        {"texto": "Tema 3: los alófonos que aquí se introducen brevemente se estudian en detalle.", "tema_destino": 3},
+        {"texto": "Tema 5: la percepción del habla (bandas críticas, análisis temporal) conecta con la fonología multimodal y los implantes cocleares.", "tema_destino": 5},
+        {"texto": "Tema 6: puedes investigar la doble ruta comparando errores en palabras y pseudopalabras.", "tema_destino": 6}
+      ]
+    },
+    {
+      "id": 2,
+      "titulo": "Fonología del español",
+      "color": "#166534",
+      "doc": "Tema2_Apuntes_Fonologia.md",
+      "resumen": "Este tema aborda el sistema fonológico del español: su inventario de fonemas (5 vocálicos y 18 consonánticos en el dialecto peninsular distinguidor, 23 en total) y las reglas de transcripción fonológica. Es el tema con mayor carga práctica de la asignatura y donde más ejercitación necesitan los estudiantes.\n\nLa transcripción fonológica requiere dominar la conversión de grafemas a fonemas (muchas letras no corresponden directamente a un fonema), la silabificación (separar en sílabas según las reglas del español), y la acentuación (marcar la sílaba tónica con ˈ). Los errores más frecuentes de los estudiantes son: confundir letras con fonemas (la «c» no es un fonema, representa /k/ o /θ/ según el contexto), olvidar la silabificación, y colocar mal el acento.\n\nLa segunda parte del tema trata el análisis de errores fonológicos y rítmicos. Se distinguen dos tipos de medidas: cuantitativas (PPC — porcentaje de palabras correctas; PFC — porcentaje de fonemas correctos; estabilidad) y cualitativas. Las medidas cualitativas se organizan en tres niveles: errores de estructura de palabra (asimilación, metátesis, omisión de sílaba), errores de estructura de sílaba (omisión de ataque, simplificación de ataque, simplificación de núcleo, omisión de coda) y errores sistémicos (afectan al fonema: sonorización, ensordecimiento, adelantamiento, posteriorización, nasalización, desnasalización). También existen errores rítmicos (pausas indebidas, titubeos, autocorrecciones, lentitud articulatoria) que no alteran fonemas pero afectan a la comunicación.\n\nLos estudiantes deben practicar la transcripción fonológica extensivamente y ser capaces de elaborar un informe completo de errores fonológicos a partir de una muestra de habla.",
+      "contenidos": [
+        {
+          "bloque": "2.1. Introducción",
+          "seccion_doc": "2.1. Introducción",
+          "conceptos": [
+            {"nombre": "Inventario de fonemas", "consulta": "¿Cuántos fonemas tiene el español peninsular distinguidor?"},
+            {"nombre": "Grafema vs fonema", "consulta": "¿Qué diferencia hay entre grafema y fonema?"}
+          ]
+        },
+        {
+          "bloque": "2.2. Los rasgos segmentales",
+          "seccion_doc": "2.2. Los rasgos segmentales",
+          "subbloques": [
+            {"nombre": "2.2.1. Rasgos de las consonantes", "seccion_doc": "2.2.1. Rasgos de las consonantes"},
+            {"nombre": "2.2.2. Rasgos de las vocales", "seccion_doc": "2.2.2. Rasgos de las vocales"},
+            {"nombre": "2.2.3. Fonemas y ortografía", "seccion_doc": "2.2.3. Fonemas del español y relación con la ortografía"},
+            {"nombre": "2.2.4. Transcripción fonológica", "seccion_doc": "2.2.4. Transcripción fonológica"},
+            {"nombre": "2.2.5. Frecuencia de los fonemas", "seccion_doc": "2.2.5. Frecuencia de los fonemas del español"}
+          ],
+          "conceptos": [
+            {"nombre": "Rasgos de las consonantes", "consulta": "¿Cuáles son los rasgos que definen las consonantes del español?"},
+            {"nombre": "Rasgos de las vocales", "consulta": "¿Cómo se clasifican las vocales según el modo y el lugar de articulación?"},
+            {"nombre": "Triángulo vocálico", "consulta": "¿Qué es el triángulo vocálico y qué representan sus ejes?"},
+            {"nombre": "Reglas de transcripción", "consulta": "¿Cómo se hace una transcripción fonológica?"},
+            {"nombre": "Tilde vs acento", "consulta": "¿Qué diferencia hay entre tilde y acento?"}
+          ]
+        },
+        {
+          "bloque": "2.3. Estructuras suprasegmentales",
+          "seccion_doc": "2.3. Estructuras suprasegmentales",
+          "subbloques": [
+            {"nombre": "2.3.1. La sílaba", "seccion_doc": "2.3.1. La sílaba"},
+            {"nombre": "2.3.2. Palabras prosódicas", "seccion_doc": "2.3.2. Palabras prosódicas"}
+          ],
+          "conceptos": [
+            {"nombre": "Estructura de la sílaba", "consulta": "¿Cuáles son los componentes de la sílaba (ataque, núcleo, coda)?"},
+            {"nombre": "Tipos de sílaba en español", "consulta": "¿Cuáles son los tipos de sílaba más frecuentes en español?"},
+            {"nombre": "Palabra prosódica", "consulta": "¿Qué es una palabra prosódica?"},
+            {"nombre": "Palabras átonas y tónicas", "consulta": "¿Qué palabras son átonas y cuáles son tónicas en español?"}
+          ]
+        },
+        {
+          "bloque": "2.4. Pseudopalabras (2ª parte)",
+          "seccion_doc": "2.4. Pseudopalabras (2ª parte)",
+          "conceptos": [
+            {"nombre": "Pseudopalabras y frecuencia", "consulta": "¿Cómo se diseñan pseudopalabras teniendo en cuenta la frecuencia de los fonemas y las sílabas?"},
+            {"nombre": "Frecuencia silábica", "consulta": "¿Cuáles son las sílabas más frecuentes y menos frecuentes del español?"}
+          ]
+        },
+        {
+          "bloque": "2.5. Análisis de errores fonológicos y rítmicos",
+          "seccion_doc": "2.5. Análisis de errores fonológicos y rítmicos",
+          "subbloques": [
+            {"nombre": "2.5.1. Medidas cuantitativas", "seccion_doc": "2.5.1. Medidas cuantitativas"},
+            {"nombre": "2.5.2. Errores segmentales cualitativos", "seccion_doc": "2.5.2. Errores segmentales cualitativos"},
+            {"nombre": "2.5.3. Errores rítmicos", "seccion_doc": "2.5.3. Errores rítmicos"},
+            {"nombre": "2.5.4. Elaboración de un informe de errores", "seccion_doc": "2.5.4. Elaboración de un informe de errores"},
+            {"nombre": "2.5.5. Imprevistos", "seccion_doc": "2.5.5. Imprevistos"}
+          ],
+          "conceptos": [
+            {"nombre": "PPC y PFC", "consulta": "¿Qué es el porcentaje de palabras correctas (PPC) y el porcentaje de fonemas correctos (PFC)?"},
+            {"nombre": "Estabilidad", "consulta": "¿Qué es la estabilidad en el análisis de errores fonológicos?"},
+            {"nombre": "Errores de estructura de palabra", "consulta": "¿Qué son los errores de estructura de palabra? Explica la asimilación, la metátesis y la omisión de sílaba."},
+            {"nombre": "Errores de estructura de sílaba", "consulta": "¿Qué son los errores de estructura de sílaba? Explica la omisión de ataque, simplificación de ataque, simplificación de núcleo y omisión de coda."},
+            {"nombre": "Errores sistémicos", "consulta": "¿Qué son los errores sistémicos? Explica la sonorización, ensordecimiento, adelantamiento y posteriorización."},
+            {"nombre": "Errores rítmicos", "consulta": "¿Qué son los errores rítmicos? Explica las pausas indebidas, titubeos y autocorrecciones."},
+            {"nombre": "Informe de errores", "consulta": "¿Cómo se elabora un informe de errores fonológicos?"},
+            {"nombre": "Imprevistos", "consulta": "¿Qué son las lexicalizaciones y los sonidos no inteligibles en un informe de errores?"}
+          ]
+        }
+      ],
+      "ejercicios": [
+        {"nombre": "Transcripción fonológica (por niveles)", "tipo": "panel_transcripcion"},
+        {"nombre": "Análisis de errores fonológicos", "tipo": "panel_errores"}
+      ],
+      "autoevaluacion": [
+        "¿Puedo transcribir fonológicamente cualquier palabra del español?",
+        "¿Distingo entre grafema y fonema (ej: «c» no es un fonema)?",
+        "¿Sé silabificar correctamente palabras con diptongos e hiatos?",
+        "¿Sé calcular el PPC y el PFC a partir de una muestra de habla?",
+        "¿Puedo clasificar un error como de estructura de palabra, de sílaba o sistémico?",
+        "¿Sé distinguir una asimilación regresiva de una progresiva?",
+        "¿Puedo elaborar un informe completo de errores fonológicos?"
+      ],
+      "mas_alla": [
+        {"texto": "Tema 1: revisa los conceptos de fonema, alófono y sílaba si no los dominas.", "tema_destino": 1},
+        {"texto": "Tema 3: la transcripción fonética parte de la fonológica y añade los alófonos.", "tema_destino": 3},
+        {"texto": "Tema 6 (Trabajo práctico): puedes analizar una muestra de habla con errores o comprobar un inventario fonológico.", "tema_destino": 6},
+        {"texto": "Vídeo: ¿Es lo mismo «tilde» que «acento»? Una explicación clara de la diferencia.", "url": "https://www.youtube.com/watch?v=5GEr6PaMc-g"}
+      ]
+    },
+    {
+      "id": 3,
+      "titulo": "Fonética articulatoria",
+      "color": "#7c3aed",
+      "imagen": {"src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/IPA_articulation_%28es%29.svg/800px-IPA_articulation_%28es%29.svg.png", "alt": "Articulación de sonidos del habla", "credito": "Wikimedia Commons, CC BY-SA"},
+      "resumen": "Este tema estudia cómo se producen físicamente los sonidos del habla y, sobre todo, los alófonos del español. Mientras que el tema 2 trabaja con representaciones abstractas (fonemas), aquí se trabaja con realizaciones concretas (alófonos) y se aprende a describir cada sonido según sus propiedades articulatorias: modo de articulación (oclusiva, fricativa, aproximante, nasal, lateral, vibrante), lugar de articulación (bilabial, dental, alveolar, palatal, velar) y sonoridad (sorda, sonora).\n\nEl aspecto más importante y que más dificultad genera es la alofonía de las oclusivas sonoras: los fonemas /b, d, g/ tienen dos alófonos cada uno — oclusivo [b, d, g] (tras pausa o nasal; /d/ también tras lateral) y aproximante [β̞, ð̞, ɣ̞] (en el resto de contextos). Los estudiantes deben ser capaces de predecir qué alófono aparecerá en cada contexto, incluso entre palabras.\n\nOtro punto clave es la asimilación de las nasales: el fonema /n/ tiene 7 alófonos diferentes según la consonante que le siga ([m] ante bilabial, [ɱ] ante labiodental, [n̟] ante interdental, [n̪] ante dental, [n] alveolar, [nʲ] ante palatal, [ŋ] ante velar). Esta asimilación también opera entre palabras (ej: «en Barcelona» → [em]).\n\nLa transcripción fonética ([...]) integra todos estos conocimientos: a partir de la transcripción fonológica, se aplican las reglas alofónicas para obtener la realización concreta. Los estudiantes deben practicar sistemáticamente esta conversión.",
+      "contenidos": [
+        {
+          "bloque": "Descripción articulatoria",
+          "conceptos": [
+            {"nombre": "Modo, lugar y sonoridad", "consulta": "¿Cómo se describe articulatoriamente un sonido del habla?"},
+            {"nombre": "Reconocer alófonos", "consulta": "¿Qué alófono es una aproximante bilabial sonora?"},
+            {"nombre": "Describir alófonos", "consulta": "¿Qué es [ð̞]?"}
+          ]
+        },
+        {
+          "bloque": "Alofonía de oclusivas sonoras",
+          "conceptos": [
+            {"nombre": "Alófonos de /b, d, g/", "consulta": "¿Cuáles son los alófonos de /b/?"},
+            {"nombre": "Oclusiva vs aproximante", "consulta": "¿Cuándo se realiza /b/ como [b] y cuándo como [β̞]?"}
+          ]
+        },
+        {
+          "bloque": "Asimilaciones",
+          "conceptos": [
+            {"nombre": "Asimilación de nasales (7 alófonos de /n/)", "consulta": "Alófonos de /n/"},
+            {"nombre": "Asimilación de laterales", "consulta": "Alófonos de /l/"}
+          ]
+        },
+        {
+          "bloque": "Otros alófonos",
+          "conceptos": [
+            {"nombre": "Semiconsonantes y semivocales", "consulta": "¿Qué diferencia hay entre semiconsonante y semivocal?"},
+            {"nombre": "Vibrantes", "consulta": "¿Cuáles son los alófonos de /ɾ/?"}
+          ]
+        }
+      ],
+      "ejercicios": [
+        {"nombre": "Transcripción fonética", "tipo": "transcripcion_fonetica"},
+        {"nombre": "Identificar alófonos por descripción", "tipo": "consulta", "consulta": "¿Qué alófono es una nasal velar sonora?"},
+        {"nombre": "Listar alófonos de un fonema", "tipo": "consulta", "consulta": "Alófonos de /d/"}
+      ],
+      "autoevaluacion": [
+        "¿Puedo predecir si /b/ se realiza como [b] o [β̞] en un contexto dado?",
+        "¿Conozco los 7 alófonos de /n/ y sus contextos?",
+        "¿Sé hacer una transcripción fonética completa a partir de la fonológica?",
+        "¿Puedo describir cualquier alófono con modo, lugar y sonoridad?"
+      ],
+      "mas_alla": [
+        {"texto": "Tema 2: repasa la transcripción fonológica, que es la base de la fonética.", "tema_destino": 2},
+        {"texto": "Tema 4: los alófonos que aquí describes articulatoriamente se estudian acústicamente.", "tema_destino": 4},
+        {"texto": "Tema 6 (Trabajo práctico): puedes analizar diferencias dialectales en la realización de alófonos.", "tema_destino": 6}
+      ]
+    },
+    {
+      "id": 4,
+      "titulo": "Fonética acústica",
+      "color": "#b45309",
+      "imagen": {"src": "/static/lalitutor/tema1/img/fonetica_acustica.jpg", "alt": "Oscilograma y espectrograma de una señal de habla en Praat"},
+      "resumen": "Este tema introduce el análisis acústico del habla: cómo representar y medir las propiedades físicas de los sonidos. Es un tema esencialmente visual y práctico, centrado en la lectura de espectrogramas y el uso del programa Praat.\n\nLos conceptos fundamentales son: la frecuencia fundamental (F0), que corresponde a la vibración de las cuerdas vocales y determina el tono percibido; los formantes (F1, F2, F3...), que son las frecuencias de resonancia del tracto vocal y permiten identificar las vocales; y el VOT (Voice Onset Time), que mide el tiempo entre la explosión de una oclusiva y el inicio de la sonoridad.\n\nPara las vocales, los estudiantes deben memorizar la relación entre formantes y articulación: F1 correlaciona inversamente con la altura de la lengua (F1 alto = vocal abierta /a/; F1 bajo = vocal cerrada /i, u/) y F2 correlaciona con la anterioridad (F2 alto = vocal anterior /i, e/; F2 bajo = vocal posterior /u, o/). Estos valores permiten identificar vocales en un espectrograma.\n\nPara las consonantes, cada clase tiene una firma acústica característica: las oclusivas muestran silencio + explosión, las fricativas muestran ruido turbulento, las nasales tienen formantes con baja intensidad, y las aproximantes muestran formantes debilitados sin interrupción.\n\nLos estudiantes deben aprender a usar Praat para grabar, visualizar y anotar señales de habla. También deben ser capaces de leer un espectrograma e identificar los sonidos que contiene.",
+      "contenidos": [
+        {
+          "bloque": "Representaciones acústicas",
+          "conceptos": [
+            {"nombre": "Espectrograma", "consulta": "¿Qué es un espectrograma?"},
+            {"nombre": "Frecuencia fundamental (F0)", "consulta": "¿Qué es la frecuencia fundamental?"},
+            {"nombre": "VOT", "consulta": "¿Qué es el VOT?"}
+          ]
+        },
+        {
+          "bloque": "Vocales",
+          "conceptos": [
+            {"nombre": "Formantes", "consulta": "¿Qué son los formantes?"},
+            {"nombre": "Formantes de las vocales", "consulta": "¿Cuáles son los formantes de las vocales del español?"}
+          ]
+        },
+        {
+          "bloque": "Consonantes en el espectrograma",
+          "conceptos": [
+            {"nombre": "Oclusivas", "consulta": "¿Cómo se ven las oclusivas en un espectrograma?"},
+            {"nombre": "Fricativas", "consulta": "¿Cómo se ven las fricativas en un espectrograma?"},
+            {"nombre": "Nasales y laterales", "consulta": "¿Cómo se ven las nasales en un espectrograma?"}
+          ]
+        },
+        {
+          "bloque": "Prosodia",
+          "conceptos": [
+            {"nombre": "Entonación", "consulta": "¿Qué es la entonación?"}
+          ]
+        },
+        {
+          "bloque": "Praat",
+          "conceptos": [
+            {"nombre": "Instalar Praat", "consulta": "¿Cómo instalo Praat?"},
+            {"nombre": "Grabar en Praat", "consulta": "¿Cómo grabo un sonido en Praat?"},
+            {"nombre": "Anotar en Praat", "consulta": "¿Cómo anoto un archivo de sonido en Praat?"}
+          ]
+        }
+      ],
+      "ejercicios": [
+        {"nombre": "Espectrogramas de ejemplo", "tipo": "espectrogramas"},
+        {"nombre": "Analizar mi audio", "tipo": "audio"}
+      ],
+      "autoevaluacion": [
+        "¿Puedo identificar las vocales en un espectrograma por sus formantes?",
+        "¿Sé distinguir una oclusiva de una fricativa en un espectrograma?",
+        "¿Puedo medir el F0 y los formantes en Praat?",
+        "¿Entiendo la relación F1-apertura y F2-anterioridad?"
+      ],
+      "mas_alla": [
+        {"texto": "Tema 3: cada alófono que estudiaste articulatoriamente tiene una firma acústica característica.", "tema_destino": 3},
+        {"texto": "Tema 5: la percepción del habla se basa en el análisis de estas propiedades acústicas.", "tema_destino": 5},
+        {"texto": "Tema 6 (Trabajo práctico): puedes usar Praat para analizar acústicamente diferencias dialectales.", "tema_destino": 6}
+      ]
+    },
+    {
+      "id": 5,
+      "titulo": "Fonética perceptiva",
+      "color": "#dc2626",
+      "imagen": {"src": "/static/lalitutor/tema1/img/fonetica_perceptiva.gif", "alt": "Anatomía del oído humano", "credito": "Martin Weisser, Phonetics Course"},
+      "resumen": "Este tema cierra el ciclo producción-señal-percepción, estudiando cómo el sistema auditivo analiza la señal del habla para reconocer los sonidos. Es un tema especialmente relevante para logopedia porque permite entender qué ocurre cuando un paciente tiene dificultades perceptivas (por pérdida auditiva, implante coclear, o envejecimiento).\n\nEl sistema auditivo realiza dos tipos de análisis simultáneos: el análisis espectral (descomposición de la señal en bandas de frecuencia, mediante las bandas críticas) y el análisis temporal (detección de cambios en la señal a lo largo del tiempo). El análisis temporal se subdivide en tres escalas: cambios lentos (envolvente, ~5-10 Hz, asociados al ritmo silábico), cambios rápidos (periodicidad, ~100-300 Hz, asociados a la sonoridad y la entonación) y cambios muy rápidos (estructura temporal fina o ETF, >300 Hz, asociados a los formantes y las transiciones formánticas).\n\nUna idea clave es que cada propiedad lingüística depende de eventos acústicos específicos: el modo de articulación depende de la envolvente (cambios lentos), la sonoridad depende de la periodicidad (cambios rápidos), y el lugar de articulación depende de las transiciones formánticas (cambios muy rápidos). Por tanto, si el sistema auditivo se degrada, primero se pierde la percepción del lugar de articulación, luego la sonoridad, y por último el modo.\n\nLos estudiantes deben entender esta jerarquía y ser capaces de predecir qué dificultades perceptivas tendrá un paciente según el tipo de pérdida auditiva. También deben conocer la noción de redundancia acústica: cada sonido tiene múltiples pistas, lo que permite reconocerlo incluso cuando se pierde parte de la información.",
+      "contenidos": [
+        {
+          "bloque": "Análisis espectral",
+          "conceptos": [
+            {"nombre": "Bandas críticas", "consulta": "¿Qué son las bandas críticas?"},
+            {"nombre": "Enmascaramiento", "consulta": "¿Qué es el enmascaramiento sonoro?"}
+          ]
+        },
+        {
+          "bloque": "Análisis temporal",
+          "conceptos": [
+            {"nombre": "Envolvente (cambios lentos)", "consulta": "¿Qué es la envolvente del habla?"},
+            {"nombre": "Periodicidad (cambios rápidos)", "consulta": "¿Qué tipos de análisis temporal del habla hay?"},
+            {"nombre": "Estructura temporal fina (cambios muy rápidos)", "consulta": "¿Qué es la estructura temporal fina?"}
+          ]
+        },
+        {
+          "bloque": "Reconocimiento de la señal",
+          "conceptos": [
+            {"nombre": "Eventos acústicos y pistas", "consulta": "¿Qué eventos acústicos permiten reconocer las vocales?"},
+            {"nombre": "Redundancia acústica", "consulta": "¿Qué es la redundancia acústica en la percepción del habla?"},
+            {"nombre": "Resistencia al ruido", "consulta": "¿Qué fonemas del español son más resistentes al ruido?"},
+            {"nombre": "Banana auditiva", "consulta": "¿Qué es la banana auditiva?"}
+          ]
+        }
+      ],
+      "ejercicios": [
+        {"nombre": "Simular pérdida espectral en Praat", "tipo": "consulta", "consulta": "¿Cómo puedo simular una pérdida espectral en Praat?"},
+        {"nombre": "Simular implante coclear", "tipo": "consulta", "consulta": "¿Cómo simulo un implante coclear con un vocoder en Praat?"}
+      ],
+      "autoevaluacion": [
+        "¿Puedo explicar qué son las bandas críticas y su relación con el enmascaramiento?",
+        "¿Distingo entre los tres niveles de análisis temporal (envolvente, periodicidad, ETF)?",
+        "¿Sé predecir qué dificultades tendrá un paciente con pérdida auditiva según el tipo?",
+        "¿Entiendo el concepto de redundancia acústica?"
+      ],
+      "mas_alla": [
+        {"texto": "Tema 4: revisa las propiedades acústicas (formantes, F0, espectrogramas) que aquí se perciben.", "tema_destino": 4},
+        {"texto": "Tema 1: la pérdida auditiva y los daños en cascada se entienden mejor desde la perspectiva perceptiva.", "tema_destino": 1},
+        {"texto": "Tema 6 (Trabajo práctico): puedes usar los ejercicios de Praat (filtrado, vocoder) como base de un proyecto.", "tema_destino": 6}
+      ]
+    },
+    {
+      "id": 6,
+      "titulo": "Trabajo práctico (por parejas)",
+      "color": "#0d9488",
+      "resumen": "En este tema los estudiantes realizan un pequeño trabajo de investigación por parejas. El objetivo es aplicar los conocimientos adquiridos en los temas 1-5 a un problema concreto, recogiendo y analizando datos reales de habla.\n\nHay cuatro tipos de proyecto entre los que elegir:\n\n1) **Comprobar el inventario fonológico de un hablante.** Se trata de verificar si un hablante produce todos los fonemas del español, diseñando una lista de palabras, grabando y analizando.\n\n2) **Comprobar si los errores en palabras y pseudopalabras coinciden.** Investiga la doble ruta (Tema 1) comparando errores en palabras reales vs. pseudopalabras equivalentes.\n\n3) **Analizar una muestra de habla con errores.** Transcripción fonológica y clasificación de errores (Tema 2) a partir de habla real.\n\n4) **Análisis de diferencias entre dialectos.** Comparación de variedades del español identificando diferencias fonológicas y fonéticas.\n\nEl trabajo se estructura en: introducción, método, resultados y discusión.",
+      "contenidos": [
+        {
+          "bloque": "Tipos de proyecto",
+          "conceptos": [
+            {"nombre": "Comprobar inventario fonológico", "consulta": "¿Cómo se comprueba el inventario fonológico de un hablante?"},
+            {"nombre": "Palabras vs pseudopalabras", "consulta": "¿Cómo se diseña un estudio comparando errores en palabras y pseudopalabras?"},
+            {"nombre": "Analizar muestra con errores", "consulta": "¿Cómo se analiza una muestra de habla con errores fonológicos?"},
+            {"nombre": "Diferencias dialectales", "consulta": "¿Cómo se analizan las diferencias fonológicas entre dialectos del español?"}
+          ]
+        },
+        {
+          "bloque": "Metodología",
+          "conceptos": [
+            {"nombre": "Estructura del trabajo", "consulta": "¿Qué estructura debe tener el proyecto de investigación?"},
+            {"nombre": "Diseñar lista de palabras", "consulta": "¿Cómo diseño una lista de palabras para comprobar el inventario fonológico?"},
+            {"nombre": "Diseñar pseudopalabras", "consulta": "¿Cómo diseño pseudopalabras equivalentes a una lista de palabras reales?"}
+          ]
+        }
+      ],
+      "ejercicios": [
+        {"nombre": "Elegir tipo de proyecto", "tipo": "consulta", "consulta": "¿Qué tipos de proyecto de investigación puedo hacer en esta asignatura?"},
+        {"nombre": "Transcribir muestra de habla", "tipo": "consulta", "consulta": "¿Cómo transcribo y analizo una muestra de habla con errores?"},
+        {"nombre": "Comparar dialectos", "tipo": "consulta", "consulta": "¿Qué diferencias fonológicas hay entre español distinguidor y seseante?"}
+      ],
+      "autoevaluacion": [
+        "¿He elegido un tipo de proyecto y tengo claro qué voy a investigar?",
+        "¿He diseñado los materiales (lista de palabras, pseudopalabras, o grabaciones)?",
+        "¿Sé transcribir fonológicamente las producciones de mi hablante?",
+        "¿Puedo clasificar los errores encontrados según la tipología del Tema 2?",
+        "¿Tengo el trabajo estructurado en introducción, método, resultados y discusión?"
+      ],
+      "mas_alla": [
+        {"texto": "Temas 1-5: el proyecto integra contenidos de todos los temas anteriores.", "tema_destino": 1}
+      ]
+    }
+  ]
+}

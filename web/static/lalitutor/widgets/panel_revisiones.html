@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de revisiones — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #7c3aed; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+.header .badge { background: #fbbf24; color: #78350f; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 10px; margin-left: 8px; }
+
+.container { max-width: 800px; margin: 0 auto; padding: 32px 20px; }
+h2 { font-size: 22px; margin-bottom: 8px; color: #7c3aed; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+.stats { display: flex; gap: 16px; margin-bottom: 24px; }
+.stat-card {
+    flex: 1; padding: 16px; background: #fff; border-radius: 10px;
+    border: 1px solid #e2e8f0; text-align: center;
+}
+.stat-num { font-size: 28px; font-weight: 800; }
+.stat-num.pending { color: #f59e0b; }
+.stat-num.done { color: #16a34a; }
+.stat-label { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+.filter-row { margin-bottom: 16px; display: flex; gap: 8px; }
+.filter-btn {
+    padding: 6px 16px; border-radius: 6px; border: 1px solid #e2e8f0;
+    background: #fff; font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.filter-btn.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+
+.review-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 20px; margin-bottom: 16px;
+}
+.review-card.pending { border-left: 4px solid #f59e0b; }
+.review-card.done { border-left: 4px solid #16a34a; opacity: 0.7; }
+
+.review-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #64748b; margin-bottom: 10px; }
+.review-meta b { color: #475569; }
+
+.review-section { margin-bottom: 10px; }
+.review-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 3px; }
+.review-text { font-size: 13px; line-height: 1.6; color: #1e293b; padding: 8px 12px; background: #f8fafc; border-radius: 6px; }
+.review-text.eval { background: #fef9c3; }
+.review-text.resp { background: #f0fdf4; }
+
+textarea {
+    width: 100%; min-height: 80px; padding: 10px; border: 2px solid #e2e8f0;
+    border-radius: 6px; font-family: inherit; font-size: 13px; line-height: 1.5; resize: vertical;
+}
+textarea:focus { outline: none; border-color: #7c3aed; }
+
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; font-family: inherit;
+}
+.btn-accept { background: #16a34a; color: #fff; }
+.btn-accept:hover { background: #15803d; }
+.btn-maintain { background: #f59e0b; color: #fff; }
+.btn-maintain:hover { background: #d97706; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+
+.action-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+.action-row span { font-size: 12px; color: #64748b; }
+
+.empty-msg { text-align: center; padding: 40px; color: #94a3b8; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">›</span>
+    <span class="title">Panel de revisiones</span>
+    <span class="badge" id="pending-badge"></span>
+</div>
+
+<div class="container">
+    <h2>Solicitudes de revisión</h2>
+    <p class="subtitle">Los estudiantes han solicitado que revises la evaluación automática de sus respuestas.</p>
+
+    <div class="stats" id="stats"></div>
+    <div class="filter-row" id="filters"></div>
+    <div id="reviews-list"></div>
+</div>
+
+<script>
+var revisiones = [];
+var currentFilter = 'pending';
+
+async function loadRevisiones() {
+    try {
+        var res = await fetch('/api/public-agent/eulalia/revisiones');
+        var data = await res.json();
+        revisiones = data.revisiones || [];
+    } catch(e) {
+        revisiones = [];
+    }
+    render();
+}
+
+function render() {
+    var pending = revisiones.filter(function(r) { return r.estado === 'pendiente'; });
+    var done = revisiones.filter(function(r) { return r.estado === 'respondida'; });
+
+    // Badge
+    document.getElementById('pending-badge').textContent = pending.length > 0 ? pending.length + ' pendiente(s)' : '';
+
+    // Stats
+    document.getElementById('stats').innerHTML =
+        '<div class="stat-card"><div class="stat-num pending">' + pending.length + '</div><div class="stat-label">Pendientes</div></div>' +
+        '<div class="stat-card"><div class="stat-num done">' + done.length + '</div><div class="stat-label">Respondidas</div></div>' +
+        '<div class="stat-card"><div class="stat-num" style="color:#4250b3;">' + revisiones.length + '</div><div class="stat-label">Total</div></div>';
+
+    // Filters
+    document.getElementById('filters').innerHTML =
+        '<button class="filter-btn ' + (currentFilter === 'pending' ? 'active' : '') + '" onclick="setFilter(\'pending\')">Pendientes (' + pending.length + ')</button>' +
+        '<button class="filter-btn ' + (currentFilter === 'done' ? 'active' : '') + '" onclick="setFilter(\'done\')">Respondidas (' + done.length + ')</button>' +
+        '<button class="filter-btn ' + (currentFilter === 'all' ? 'active' : '') + '" onclick="setFilter(\'all\')">Todas (' + revisiones.length + ')</button>';
+
+    // List
+    var filtered = revisiones.map(function(r, i) { return { rev: r, idx: i }; });
+    if (currentFilter === 'pending') filtered = filtered.filter(function(r) { return r.rev.estado === 'pendiente'; });
+    else if (currentFilter === 'done') filtered = filtered.filter(function(r) { return r.rev.estado === 'respondida'; });
+
+    if (filtered.length === 0) {
+        document.getElementById('reviews-list').innerHTML = '<div class="empty-msg">No hay solicitudes ' + (currentFilter === 'pending' ? 'pendientes' : '') + '.</div>';
+        return;
+    }
+
+    var html = '';
+    filtered.forEach(function(item) {
+        var r = item.rev;
+        var idx = item.idx;
+        var isPending = r.estado === 'pendiente';
+
+        html += '<div class="review-card ' + (isPending ? 'pending' : 'done') + '">';
+
+        // Meta
+        html += '<div class="review-meta">';
+        html += '<span><b>Estudiante:</b> ' + (r.email || r.username || 'anónimo') + '</span>';
+        html += '<span><b>Fecha:</b> ' + (r.timestamp || '').replace('T', ' ').substring(0, 16) + '</span>';
+        html += '<span><b>Widget:</b> ' + (r.widget || '-') + '</span>';
+        html += '</div>';
+
+        // Pregunta
+        html += '<div class="review-section"><div class="review-label">Pregunta</div>';
+        html += '<div class="review-text">' + escapeHtml(r.pregunta || '') + '</div></div>';
+
+        // Respuesta del alumno
+        html += '<div class="review-section"><div class="review-label">Respuesta del estudiante</div>';
+        html += '<div class="review-text">' + escapeHtml(r.respuesta_alumno || '') + '</div></div>';
+
+        // Evaluación IA
+        html += '<div class="review-section"><div class="review-label">Evaluación de la IA</div>';
+        html += '<div class="review-text eval">' + escapeHtml(r.evaluacion_ia || '') + '</div></div>';
+
+        if (isPending) {
+            // Response form
+            html += '<div class="review-section"><div class="review-label">Tu respuesta al estudiante</div>';
+            html += '<textarea id="resp-' + idx + '" placeholder="Escribe tu valoración..."></textarea></div>';
+            html += '<div class="action-row">';
+            html += '<button class="btn btn-accept" onclick="respond(' + idx + ',\'aceptar\')">✓ Dar la razón al estudiante</button>';
+            html += '<button class="btn btn-maintain" onclick="respond(' + idx + ',\'mantener\')">Mantener evaluación IA</button>';
+            html += '<span>(tu comentario se guardará en ambos casos)</span>';
+            html += '</div>';
+        } else {
+            // Already responded
+            html += '<div class="review-section"><div class="review-label">Respuesta del profesor (' + (r.decision === 'aceptar' ? '✓ Dio la razón al estudiante' : 'Mantuvo evaluación IA') + ')</div>';
+            html += '<div class="review-text resp">' + escapeHtml(r.respuesta_profesor || '') + '</div></div>';
+        }
+
+        html += '</div>';
+    });
+
+    document.getElementById('reviews-list').innerHTML = html;
+}
+
+function setFilter(f) { currentFilter = f; render(); }
+
+async function respond(idx, decision) {
+    var textarea = document.getElementById('resp-' + idx);
+    var respuesta = textarea ? textarea.value.trim() : '';
+
+    try {
+        var res = await fetch('/api/public-agent/eulalia/responder-revision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ index: idx, decision: decision, respuesta: respuesta })
+        });
+        if (!res.ok) throw new Error('Error');
+        revisiones[idx].estado = 'respondida';
+        revisiones[idx].decision = decision;
+        revisiones[idx].respuesta_profesor = respuesta;
+        render();
+    } catch(e) {
+        alert('Error al guardar la respuesta.');
+    }
+}
+
+function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+loadRevisiones();
+</script>
+
+</body>
+</html>

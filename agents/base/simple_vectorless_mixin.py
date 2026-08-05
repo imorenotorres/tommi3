@@ -17,6 +17,11 @@ _OFF_TOPIC_PHRASES = [
     "outside my scope", "outside the scope", "outside my area",
     "beyond my scope", "not within my scope", "outside my expertise",
     "i don't have information about that",
+    # Spanish equivalents
+    "fuera de mi alcance", "fuera del alcance", "no dispongo de esa información",
+    "no tengo información sobre", "no aparece en los materiales",
+    "no se encuentra en los materiales", "no está en los materiales",
+    "no dispongo de información", "fuera del ámbito",
 ]
 
 

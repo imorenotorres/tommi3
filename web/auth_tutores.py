@@ -260,17 +260,29 @@ def authenticate(username: str, password: str) -> Optional[dict]:
     }
 
 
+SESSION_INACTIVITY_TIMEOUT = 1800  # 30 minutes
+SESSION_MAX_LIFETIME = 86400       # 24 hours absolute max
+
+
 def get_session(token: str) -> Optional[dict]:
-    """Get session info. Returns None if invalid or expired (24h)."""
+    """Get session info. Returns None if invalid, expired (24h), or inactive (30min)."""
     if not token:
         return None
     session = _sessions.get(token)
     if not session:
         return None
-    # Expire after 24 hours
-    if time.time() - session["created"] > 86400:
+    now = time.time()
+    # Expire after 24 hours absolute
+    if now - session["created"] > SESSION_MAX_LIFETIME:
         del _sessions[token]
         return None
+    # Expire after 30 minutes of inactivity
+    last_activity = session.get("last_activity", session["created"])
+    if now - last_activity > SESSION_INACTIVITY_TIMEOUT:
+        del _sessions[token]
+        return None
+    # Update last activity
+    session["last_activity"] = now
     return session
 
 

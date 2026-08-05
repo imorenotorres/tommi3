@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" integrity="sha384-H+hy9ULve6xfxRkWIh/YOtvDdpXgV2fmAGQkIDTxIgZwNoaoBal14Di2YTMR6MzR" crossorigin="anonymous"></script>
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; background: #f8fafc; color: #1e293b; }
+
+/* Barra de navegación */
+.nav { background: #4250b3; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.nav-brand { color: #fff; font-weight: 700; font-size: 20px; text-decoration: none; }
+.nav-brand:hover { opacity: 0.9; }
+.nav-sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.nav-current { color: #fff; font-size: 16px; font-weight: 600; }
+.nav-logos { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.nav-auth-link { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 13px; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; padding: 3px 10px; }
+.nav-auth-link:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+/* Diseño principal */
+.layout { flex: 1; display: flex; overflow: hidden; }
+
+/* Barra lateral */
+.sidebar {
+    width: 280px; min-width: 280px; background: #4250b3; color: #e2e8f0;
+    display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+}
+.sidebar-content { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.info-icons { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.info-icons img { height: 24px; width: 24px; cursor: help; background: rgba(255,255,255,0.85); border-radius: 4px; padding: 2px; }
+.info-icons .prompt-dot { font-size: 14px; cursor: help; background: rgba(255,255,255,0.85); border-radius: 4px; padding: 2px 5px; }
+
+/* Panel de preguntas de ejemplo */
+.examples-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
+.examples-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e293b; user-select: none;
+}
+.examples-panel summary:hover { background: #f1f5f9; }
+.example-btn {
+    display: block; width: 100%; padding: 8px 12px; margin: 0;
+    background: #fff; border: none; border-bottom: 1px solid #e2e8f0;
+    color: #000; font-size: 13px; text-align: left; cursor: pointer;
+    transition: background 0.15s; line-height: 1.4;
+}
+.example-btn:last-child { border-bottom: none; }
+.example-btn:hover { background: #f1f5f9; }
+
+/* Panel de temas */
+.tema-section { padding: 0 12px 10px; }
+.tema-header {
+    display: flex; align-items: center; gap: 6px; padding: 8px 0 4px;
+    font-size: 12px; font-weight: 700; cursor: pointer; user-select: none;
+}
+.tema-header:hover { opacity: 0.8; }
+.tema-header .tema-toggle { font-size: 10px; transition: transform 0.2s; }
+.tema-header.open .tema-toggle { transform: rotate(90deg); }
+.tema-body { display: none; padding: 0 0 4px 4px; }
+.tema-body.open { display: block; }
+.tema-summary { font-size: 11.5px; color: #475569; line-height: 1.5; margin-bottom: 6px; }
+.tema-label { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin: 6px 0 3px; }
+.tema-link {
+    display: block; padding: 4px 8px; margin: 1px 0; border-radius: 4px;
+    font-size: 12px; color: #334155; cursor: pointer; transition: background 0.15s;
+    border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+}
+.tema-link:hover { background: #f1f5f9; }
+details[open] > summary .sub-arrow { transform: rotate(90deg); }
+.tema-exercise {
+    display: inline-block; padding: 3px 8px; margin: 2px 2px; border-radius: 4px;
+    font-size: 11px; cursor: pointer; border: 1px solid; background: none; font-family: inherit;
+}
+
+/* Historial */
+.history-panel { margin-top: 4px; }
+.history-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
+.history-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e293b; user-select: none;
+}
+.history-panel summary:hover { background: #f1f5f9; }
+.history-container { max-height: 400px; overflow-y: auto; }
+.history-item {
+    padding: 8px 12px; border-top: 1px solid #e2e8f0; cursor: pointer;
+    transition: all 0.15s; border-left: 3px solid transparent; background: #fff;
+}
+.history-item:hover { background: #f1f5f9; border-left-color: #3b82f6; }
+.history-question { font-size: 13px; color: #1e293b; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+.history-meta { font-size: 11px; color: #64748b; margin-top: 3px; }
+.history-empty { padding: 12px; color: #94a3b8; font-size: 13px; font-style: italic; }
+
+/* Pie de barra lateral */
+.sidebar-footer { margin-top: auto; padding-top: 16px; text-align: center; }
+.sidebar-footer img { width: 100%; }
+.help-btn {
+    font-size: 12px; color: #cbd5e1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px; padding: 3px 8px; cursor: pointer; text-decoration: none; white-space: nowrap;
+}
+.help-btn:hover { background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; }
+
+/* Área de chat */
+.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+.message { display: flex; flex-direction: column; gap: 4px; }
+.message.user .bubble { background: #2563eb; color: #fff; align-self: flex-end; border-radius: 12px 12px 4px 12px; }
+.message.agent .bubble { background: #fff; color: #1e293b; align-self: flex-start; border-radius: 12px 12px 12px 4px; border: 1px solid #e2e8f0; }
+.bubble { padding: 12px 16px; max-width: 98%; font-size: 14px; line-height: 1.6; word-wrap: break-word; overflow: visible; }
+.bubble p { margin: 0 0 8px; }
+.bubble p:last-child { margin-bottom: 0; }
+.bubble ul, .bubble ol { margin: 4px 0 8px 20px; }
+.bubble table { border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.bubble th, .bubble td { border: 1px solid #e2e8f0; padding: 6px 10px; text-align: left; }
+.bubble th { background: #f1f5f9; font-weight: 600; }
+.bubble strong { font-weight: 600; }
+.bubble a { color: #2563eb; }
+.bubble code { background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 13px; }
+.bubble pre { background: #f1f5f9; padding: 10px; border-radius: 6px; overflow-x: auto; margin: 8px 0; }
+.bubble pre code { background: none; padding: 0; }
+.bubble h1, .bubble h2, .bubble h3, .bubble h4 { margin: 12px 0 6px; }
+.loading { color: #94a3b8; font-style: italic; }
+
+/* Bienvenida / Landing */
+.welcome-chat { padding: 30px 20px; color: #64748b; font-size: 14px; line-height: 1.6; text-align: center; }
+.welcome-chat h2 { color: #1e293b; font-size: 18px; margin-bottom: 8px; }
+.landing-view, .tema-detail-view, .tema-section-view { overflow-y: auto; flex: 1; }
+.section-card {
+    display: flex; align-items: center; gap: 14px;
+    background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;
+    padding: 16px; cursor: pointer; transition: all 0.15s; text-align: left;
+    margin-bottom: 10px;
+}
+.section-card:hover { border-color: #94a3b8; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.section-card-icon { font-size: 24px; flex-shrink: 0; width: 36px; text-align: center; }
+.section-card-body { flex: 1; }
+.section-card-title { font-weight: 600; font-size: 14px; color: #1e293b; }
+.section-card-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+.content-block { background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 20px 24px; margin-bottom: 14px; font-size: 14px; color: #1e293b; line-height: 1.8; }
+.content-block h2 { font-size: 18px; color: #1e293b; margin: 0 0 16px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+.content-block h3 { font-size: 15px; color: #334155; margin: 24px 0 10px; padding: 10px 14px; background: #f8fafc; border-left: 3px solid #4250b3; border-radius: 4px; }
+.content-block h4 { font-size: 14px; color: #1e293b; margin: 20px 0 8px; }
+.content-block p { margin: 0 0 12px; }
+.content-block ul, .content-block ol { margin: 8px 0 16px 20px; padding: 0; }
+.content-block li { margin: 4px 0; padding-left: 4px; }
+.content-block strong { color: #1e293b; }
+.content-block blockquote { border-left: 3px solid #c7d2fe; background: #f8fafc; padding: 12px 16px; margin: 12px 0; border-radius: 4px; font-style: italic; color: #475569; }
+.content-block img { max-width: 100%; border-radius: 6px; margin: 12px 0; border: 1px solid #e2e8f0; }
+.content-block .img-caption { font-size: 12px; color: #94a3b8; font-style: italic; margin-top: -8px; margin-bottom: 12px; }
+.content-block table { border-collapse: collapse; margin: 12px 0; font-size: 13px; width: 100%; }
+.content-block th, .content-block td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; }
+.content-block th { background: #f1f5f9; font-weight: 600; }
+.tema-card {
+    display: flex; align-items: center; gap: 14px;
+    background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;
+    padding: 14px 16px; cursor: pointer; transition: all 0.15s; text-align: left;
+}
+.tema-card:hover { border-color: #94a3b8; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.tema-card-num {
+    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-weight: 700; font-size: 16px; color: #fff; flex-shrink: 0;
+}
+.tema-card-body { flex: 1; min-width: 0; }
+.tema-card-title { font-weight: 600; font-size: 14px; color: #1e293b; }
+.tema-card-desc { font-size: 12px; color: #64748b; margin-top: 2px; line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Entrada */
+.input-area { padding: 12px 20px 16px; border-top: 1px solid #e2e8f0; background: #fff; flex-shrink: 0; }
+.input-row { display: flex; gap: 8px; }
+.input-row textarea {
+    flex: 1; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 14px; font-family: inherit; resize: none; outline: none;
+    min-height: 44px; max-height: 120px;
+}
+.input-row textarea:focus { border-color: #2563eb; }
+.input-row button {
+    background: #2563eb; color: #fff; border: none; border-radius: 8px;
+    padding: 10px 20px; font-size: 14px; cursor: pointer; white-space: nowrap;
+}
+.input-row button:hover { background: #1d4ed8; }
+.input-row button:disabled { background: #94a3b8; cursor: not-allowed; }
+.disclaimer { padding: 6px 20px; text-align: center; font-size: 11px; color: #94a3b8; }
+
+/* Feedback widget */
+.feedback-widget { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; padding: 4px 0; flex-wrap: wrap; }
+.feedback-btn { background: none; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; padding: 2px 8px; font-size: 14px; opacity: 0.55; transition: opacity 0.15s, transform 0.15s; }
+.feedback-btn:hover { opacity: 1; transform: scale(1.15); }
+.feedback-report-panel { display: flex; flex-direction: column; gap: 6px; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8f9fa; width: 100%; max-width: 600px; margin-top: 4px; }
+.feedback-report-panel.hidden { display: none; }
+.feedback-notes { font-size: 13px; padding: 4px 6px; border: 1px solid #e2e8f0; border-radius: 4px; resize: vertical; font-family: inherit; width: 100%; box-sizing: border-box; }
+.feedback-submit-btn { align-self: flex-end; font-size: 12px; padding: 4px 14px; border: 1px solid #2563eb; border-radius: 4px; background: #2563eb; color: #fff; cursor: pointer; transition: background 0.15s; margin-top: 2px; }
+.feedback-submit-btn:hover { background: #1d4ed8; }
+.feedback-thanks { font-size: 13px; color: #64748b; }
+
+/* Panel de ejercicios */
+.exercise-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
+.exercise-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e293b; user-select: none; background: #eef2ff;
+}
+.exercise-panel summary:hover { background: #e0e7ff; }
+.exercise-options { padding: 10px 12px; }
+.exercise-options label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin: 6px 0 3px; }
+.exercise-options select {
+    width: 100%; padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px;
+    font-size: 13px; background: #fff; color: #1e293b;
+}
+.exercise-btn {
+    display: block; width: 100%; margin-top: 10px; padding: 8px;
+    background: #4250b3; color: #fff; border: none; border-radius: 6px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.exercise-btn:hover { background: #374399; }
+
+/* Panel de configuración del profesor */
+.config-panel { display: none; }
+.config-panel details { background: #fff; border-radius: 8px; overflow: hidden; border: 2px solid #f59e0b; }
+.config-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #92400e; user-select: none; background: #fffbeb;
+}
+.config-panel summary:hover { background: #fef3c7; }
+.config-options { padding: 10px 12px; }
+.config-options label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin: 8px 0 3px; }
+.config-options label:first-child { margin-top: 0; }
+.config-options select {
+    width: 100%; padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px;
+    font-size: 13px; background: #fff; color: #1e293b;
+}
+.config-save-btn {
+    display: block; width: 100%; margin-top: 10px; padding: 8px;
+    background: #f59e0b; color: #fff; border: none; border-radius: 6px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.config-save-btn:hover { background: #d97706; }
+.config-status { font-size: 12px; margin-top: 6px; text-align: center; min-height: 18px; }
+.config-status.ok { color: #16a34a; }
+.config-status.err { color: #dc2626; }
+.config-editor-badge {
+    display: inline-block; font-size: 11px; background: #fef3c7; color: #92400e;
+    border: 1px solid #fde68a; border-radius: 4px; padding: 1px 6px; margin-left: 6px;
+}
+
+/* Panel de gestión de usuarios (docente) */
+.users-panel { display: none; }
+.users-panel details { background: #fff; border-radius: 8px; overflow: hidden; border: 2px solid #f59e0b; }
+.users-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #92400e; user-select: none; background: #fffbeb;
+}
+.users-panel summary:hover { background: #fef3c7; }
+.users-body { padding: 10px 12px; }
+.users-list { max-height: 200px; overflow-y: auto; margin-bottom: 8px; }
+.user-row {
+    display: flex; align-items: center; gap: 6px; padding: 4px 0;
+    border-bottom: 1px solid #f1f5f9; font-size: 12px;
+}
+.user-row:last-child { border-bottom: none; }
+.user-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-role { font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+.role-docente { background: #fef3c7; color: #92400e; }
+.role-estudiante { background: #e0f2fe; color: #0369a1; }
+.user-del-btn { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 14px; padding: 0 2px; opacity: 0.5; }
+.user-del-btn:hover { opacity: 1; }
+.add-user-form { border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 4px; }
+.add-user-form input, .add-user-form select {
+    width: 100%; padding: 5px 8px; border: 1px solid #e2e8f0; border-radius: 6px;
+    font-size: 12px; margin-bottom: 4px; font-family: inherit;
+}
+.add-user-btn {
+    width: 100%; padding: 6px; background: #f59e0b; color: #fff; border: none;
+    border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 2px;
+}
+.add-user-btn:hover { background: #d97706; }
+.users-status { font-size: 11px; margin-top: 4px; text-align: center; min-height: 16px; }
+.users-status.ok { color: #16a34a; }
+.users-status.err { color: #dc2626; }
+
+/* Botones de ejercicio (Corregir / Solución) */
+.ejercicio-btns { display: flex; gap: 10px; margin-top: 12px; }
+.ejercicio-btns button {
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; transition: background 0.15s, transform 0.1s;
+}
+.ejercicio-btns button:active { transform: scale(0.97); }
+.btn-corregir { background: #2563eb; color: #fff; }
+.btn-corregir:hover { background: #1d4ed8; }
+.btn-solucion { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0 !important; }
+.btn-solucion:hover { background: #e2e8f0; }
+
+/* Transcripciones fonológicas en ejercicios */
+.phonetic { font-family: 'Doulos SIL', 'Charis SIL', 'Gentium', 'Noto Sans', serif; }
+.error-highlight { background: #fef2f2; color: #991b1b; padding: 1px 3px; border-radius: 3px; border-bottom: 2px solid #dc3545; }
+.correct-highlight { background: #d4edda; color: #155724; padding: 1px 3px; border-radius: 3px; }
+
+/* Teclado AFI */
+.afi-keyboard { display: none; padding: 4px 20px 0; background: #fff; border-top: 1px solid #e2e8f0; }
+.afi-row { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 3px; align-items: center; }
+.afi-row-label { font-size: 10px; color: #94a3b8; min-width: 70px; font-weight: 600; }
+.afi-btn {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;
+    padding: 3px 7px; font-size: 14px; font-family: 'Doulos SIL', 'Charis SIL', 'Gentium', serif;
+    cursor: pointer; min-width: 28px; text-align: center; line-height: 1.3;
+    transition: background 0.1s;
+}
+.afi-btn:hover { background: #e2e8f0; }
+.afi-btn.afi-special { background: #eef2ff; border-color: #c7d2fe; color: #4250b3; font-weight: 600; }
+.afi-btn.afi-special:hover { background: #c7d2fe; }
+.afi-toggle { font-size: 11px; color: #64748b; cursor: pointer; background: none; border: none; padding: 2px 6px; }
+.afi-toggle:hover { color: #1e293b; }
+
+/* Móvil */
+@media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 0; max-height: 200px; flex-shrink: 0; }
+    .sidebar-content { flex-direction: row; flex-wrap: wrap; gap: 8px; padding: 10px; }
+    .sidebar-footer { display: none; }
+    .chat-area { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="javascript:void(0)" class="nav-brand" id="nav-lali" onclick="showLanding()" style="cursor:pointer;">Eulalia</a>
+    <span class="nav-sep" id="nav-tema-sep" style="display:none;">/</span>
+    <a href="javascript:void(0)" class="nav-current" id="nav-tema-name" style="display:none;cursor:pointer;text-decoration:none;" onclick="if(_currentTemaId)showTemaDetail(_currentTemaId)"></a>
+    <span class="nav-sep" id="nav-seccion-sep" style="display:none;">/</span>
+    <span class="nav-current" id="nav-seccion-name" style="display:none;font-weight:400;font-size:14px;"></span>
+    <div class="nav-logos">
+        <span id="nav-auth" style="font-size:13px;color:rgba(255,255,255,0.7);margin-right:8px;"></span>
+        <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:44px;">
+        <img src="/static/logo_uma.png" alt="UMA" style="height:44px;">
+    </div>
+</div>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="sidebar-content">
+            <div>
+                <div class="info-icons" id="info-icons"></div>
+            </div>
+
+            <!-- Panel dinámico: temas + progreso (se genera desde JS) -->
+            <div class="examples-panel">
+                <details open>
+                    <summary id="sidebar-temas-title">Temas de la asignatura</summary>
+                    <div id="sidebar-temas-content">
+                        <!-- Se rellena dinámicamente por updateSidebar() -->
+                    </div>
+                </details>
+            </div>
+
+
+            <div class="exercise-panel" id="panel-transcripcion" style="display:none;">
+                <details>
+                    <summary>Ejercicios de transcripción fonológica</summary>
+                    <div class="exercise-options">
+                        <label>Nivel:</label>
+                        <select id="trans-nivel">
+                            <option value="1">1 — Palabras CV, fonemas = grafías</option>
+                            <option value="2">2 — Diptongos e hiatos</option>
+                            <option value="3">3 — Fonemas ≠ grafías (v, c, z, qu, ll…)</option>
+                            <option value="4">4 — Casos atípicos (h muda, x, r/rr…)</option>
+                            <option value="5">5 — Sintagmas y frases con palabras átonas</option>
+                        </select>
+                        <label>Nº de ítems:</label>
+                        <select id="trans-items">
+                            <option value="1">1</option>
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="8">8</option>
+                            <option value="10">10</option>
+                        </select>
+                        <button class="exercise-btn" onclick="requestTranscripcion()">Generar ejercicio</button>
+                    </div>
+                </details>
+            </div>
+
+            <div class="exercise-panel" id="panel-errores" style="display:none;">
+                <details>
+                    <summary>Ejercicios de errores</summary>
+                    <div class="exercise-options">
+                        <label>Tipo de error:</label>
+                        <select id="exercise-type">
+                            <option value="">Todos los tipos</option>
+                            <option value="sistemico">Sistémicos (fonema)</option>
+                            <option value="silaba">De sílaba</option>
+                            <option value="palabra">De palabra</option>
+                        </select>
+                        <label>Nivel:</label>
+                        <select id="exercise-level">
+                            <option value="basico">Básico</option>
+                            <option value="intermedio">Intermedio</option>
+                            <option value="avanzado">Avanzado</option>
+                        </select>
+                        <button class="exercise-btn" onclick="requestExercise()">Generar ejercicio</button>
+                    </div>
+                </details>
+            </div>
+
+            <div class="config-panel" id="config-panel">
+                <details>
+                    <summary>Configuración de transcripción</summary>
+                    <div class="config-options">
+                        <label>Sibilantes:</label>
+                        <select id="cfg-sibilantes">
+                            <option value="distinguidor">Distinguidor (/θ/ y /s/)</option>
+                            <option value="seseo">Seseo (solo /s/)</option>
+                            <option value="ceceo">Ceceo (solo /θ/)</option>
+                        </select>
+
+                        <label>Nasalización vocálica:</label>
+                        <select id="cfg-nasalizacion">
+                            <option value="false">No</option>
+                            <option value="true">Sí (vocal → [ã] ante nasal)</option>
+                        </select>
+
+                        <label>/s/ en coda:</label>
+                        <select id="cfg-s-coda">
+                            <option value="sibilante">Sibilante (se mantiene [s])</option>
+                            <option value="aspiracion">Aspiración ([h])</option>
+                            <option value="omision">Omisión (se elimina)</option>
+                            <option value="alargamiento">Alargamiento vocálico ([aː])</option>
+                        </select>
+
+                        <button class="config-save-btn" onclick="saveConfig()">Guardar configuración</button>
+                        <div class="config-status" id="config-status"></div>
+                    </div>
+                </details>
+            </div>
+
+            <div class="users-panel" id="users-panel">
+                <details>
+                    <summary>Gestión de usuarios</summary>
+                    <div class="users-body">
+                        <div class="users-list" id="users-list">
+                            <div style="color:#94a3b8;font-size:12px;font-style:italic;">Cargando...</div>
+                        </div>
+                        <div class="add-user-form">
+                            <input type="text" id="new-user-name" placeholder="Nombre completo">
+                            <input type="text" id="new-user-username" placeholder="Usuario (ej: nombre.apellido)">
+                            <input type="text" id="new-user-password" placeholder="Contraseña">
+                            <select id="new-user-role">
+                                <option value="estudiante">Estudiante</option>
+                                <option value="docente">Docente</option>
+                            </select>
+                            <button class="add-user-btn" onclick="addUser()">Añadir usuario</button>
+                        </div>
+                        <div class="users-status" id="users-status"></div>
+                    </div>
+                </details>
+            </div>
+
+            <div class="sidebar-footer">
+                <a class="help-btn" href="/tutores-virtuales/help/eulalia" style="display:block;text-align:center;margin-top:10px;">? Ayuda</a>
+                <div style="margin-top:8px; font-size:11px; color:#94a3b8; line-height:1.5;">
+                    Desarrollado con <strong style="color:#cbd5e1;">TOMMI</strong> por el equipo TIC de UNINOVIS-UMA.
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="chat-area">
+        <!-- ═══ Vista 1: Landing (equipo + temario) ═══ -->
+        <div class="landing-view" id="landing-view">
+            <div style="max-width:800px;margin:0 auto;padding:24px 20px;">
+                <h2 style="color:#1e293b;margin-bottom:4px;">Eulalia</h2>
+                <p style="color:#64748b;font-size:13px;margin-bottom:4px;">Lingüística Aplicada a la Logopedia I — Grado en Logopedia, Universidad de Málaga</p>
+                <p style="color:#94a3b8;font-size:12px;font-style:italic;margin-bottom:24px;">Del griego <em>eulalos</em> (eu = bueno, lalia = habla): «la bien hablada»</p>
+
+                <!-- ¿Eulalia? -->
+                <details style="background:#fff;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:20px;" open>
+                    <summary style="padding:12px 16px;cursor:pointer;font-weight:600;font-size:14px;color:#1e293b;">🤖 ¿Qué es Eulalia?</summary>
+                    <div style="padding:4px 16px 16px;font-size:13px;color:#475569;line-height:1.8;">
+                        <p><strong>Eulalia</strong> es una asistente virtual diseñada para ayudarte a aprender más rápidamente los contenidos de la asignatura <strong>Lingüística Aplicada a la Logopedia I</strong>.</p>
+                        
+                        <p style="margin-top:8px;"><strong>¿Qué puedo hacer con Eulalia?</strong></p>
+                        <ul style="margin:6px 0 6px 20px;">
+                            <li>Puedes ir estudiando cada apartado de cada tema, resolviendo los ejercicios que te propone.</li>
+                            <li>Si tienes dudas concretas, puedes pedirle que te las resuelva. Aquí debes tener cuidado, estas respuestas son fiables en un porcentaje muy alto pero al ser generadas por una LLM (Large Language Model) podrían tener errores. Si ves algo que no te cuadra, usa el botón "Informar al profesor" para informarnos.</li>
+                            <li>Puedes hacer múltiples ejercicios prácticos, que te ayudarán a dominar la asignatura.</li>
+                            <li>Puedes evaluar tus progresos usando la sección <strong>EVALÚA TU PROGRESO</strong> que hay al final de cada tema (y al final de la lista de temas).</li>
+                            <li>Puedes evaluar <strong>tu progreso</strong> y así podrás saber si has alcanzado el nivel suficiente para superar la asignatura</li> 
+                        </ul>
+
+                        <p style="margin-top:8px;"><strong>¿Qué NO puede hacer Eulalia?</strong></p>
+                        <ul style="margin:6px 0 6px 20px;">
+                            <li><strong>Sustituir al profesor ni a las clases presenciales</strong>. Estas serán muy importantes para aclarar dudas, profundizar sobre diversos conceptos o conocer aspectos no recogidos en Eulalia</li>
+                            <li><strong>Evaluar tu nota final</strong>. La nota no se evaluará usando Eulalia ni los progresos que esta recoge. Estos últimos son aproximaciones para cada estudiante. <strong>La nota final se valorará mediante un examen escrito corregido por el equipo docente</strong>(eso sí, con preguntas del mismo tipo de las propuestas por Eulalia</li>
+                            <li><strong>Realizar las prácticas grupales</strong>. </li>
+                        </ul>
+
+                        <p style="margin-top:8px;"><strong>¿Nos ayudas a mejorar Eulalia?</strong></p>
+                        <p>Eulalia es un proyecto en curso con tres objetivos:</p>
+                        <ol style="margin:6px 0 6px 20px;">
+                            <li>A corto plazo: desarrollar un instrumento que ayude a dominar la asignatura de Lingüística Aplicada a la Logopedia I, y explorar si sirve de referente para otras asignaturas de tu carrera.</li>
+                            <li>A medio plazo: contar con un instrumento para que el estudiantado de logopedia pueda revisar conceptos de esta asignatura a lo largo de la carrera.</li>
+                            <li>A largo plazo: contar con un instrumento que cualquier logopeda pueda usar para ayudarle en tareas profesionales que requieran un conocimiento de la fonética y la fonología.</li>
+                        </ol>
+
+                        <p style="margin-top:8px;"><strong>¿Es Eulalia una IA? ¿Es fiable?</strong></p>
+                        <ul style="margin:6px 0 6px 20px;">
+                            <li>Eulalia no es una IA, y en general no tiene el carácter no predecible de las IA (como Claude, Gemini o ChatGPT). Eso sí, hay algunas funcionalidades que usan una LLM (Mistral). En los casos en que se use una LLM se te informará para que lo tengas en cuenta y valores si puedes o no aceptar la información que te da Eulalia.</li>
+                        </ul>
+
+                        <p style="margin-top:8px;"><strong>¿Puede Eulalia recoger datos personales del estudiantado? ¿Cumple la normativa europea al respecto?</strong></p>
+                        <ul style="margin:6px 0 6px 20px;">
+                            <li>Eulalia no recopila datos personales del estudiantado. Los datos a los que tiene acceso son las cuentas de correo electrónico, información que se obtiene de Moodle.</li>
+                            <li><strong>Todas las interacciones con Eulalia quedan registradas tras anonimizar el nombre del usuario que las generó.</strong> Esto es algo obligatorio para cumplir la normativa europea (GDPR).</li>
+                            <li>Registrar las interacciones (sin identificar a quien hace las preguntas) permite al profesorado asegurarse de que Eulalia no proporciona información falsa que pudiera penalizar al estudiante a la hora del examen final.</li>
+                        </ul>
+
+                        <p style="margin-top:8px;"><strong>De acuerdo, ¿y cómo empiezo a usar Eulalia?</strong></p>
+                            
+                        <p style="margin-top:10px;color:#94a3b8;font-size:12px;">Usa el menú lateral para navegar por los temas, o escribe directamente en el chat para hacer alguna consultar.</p>
+                    </div>
+                </details>
+
+                <div id="temario-cards" style="display:none;">
+                    <!-- Se mantiene oculto, los temas se navegan desde el sidebar -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ Vista 2: Detalle de un tema (índice de secciones) ═══ -->
+        <div class="tema-detail-view" id="tema-detail-view" style="display:none;">
+            <div style="max-width:800px;margin:0 auto;padding:20px;">
+                <button onclick="showLanding()" style="background:none;border:none;color:#4250b3;cursor:pointer;font-size:13px;padding:0;margin-bottom:12px;">← Volver al principio</button>
+                <h2 id="tema-detail-titulo" style="margin-bottom:16px;"></h2>
+                <div id="tema-detail-index">
+                    <!-- Se genera dinámicamente: 5 tarjetas de sección -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ Vista 2b: Contenido de una sección ═══ -->
+        <div class="tema-section-view" id="tema-section-view" style="display:none;">
+            <div style="max-width:800px;margin:0 auto;padding:20px;">
+                <button id="section-back-btn" onclick="showLanding()" style="background:none;border:none;color:#4250b3;cursor:pointer;font-size:13px;padding:0;margin-bottom:12px;display:none;">← Inicio</button>
+                <h3 id="section-titulo" style="margin-bottom:16px;"></h3>
+                <div id="section-content"></div>
+            </div>
+        </div>
+
+        <!-- ═══ Vista: Evalúa tu progreso ═══ -->
+        <div class="landing-view" id="eval-view" style="display:none;">
+            <div style="max-width:800px;margin:0 auto;padding:24px 20px;" id="eval-content"></div>
+        </div>
+
+        <!-- ═══ Vista 3: Chat (existente) ═══ -->
+        <div id="welcome" style="display:none;"></div>
+        <div id="chat-notice" style="display:none;max-width:700px;margin:24px auto 0;padding:0 20px;">
+            <div style="background:#fffbeb;border:2px solid #fde68a;border-radius:10px;padding:16px 20px;font-size:13px;color:#78350f;line-height:1.7;">
+                <strong style="font-size:14px;">⚠️ Pregunta a Eulalia</strong><br>
+                En esta sección puedes preguntar cualquier concepto o duda sobre la asignatura. Las respuestas se obtienen con la ayuda de una LLM que tiene acceso a todos los documentos del curso. Ten en cuenta que al hacerse uso de una LLM es posible que haya errores y/o alucinaciones. Por ello debes comprobar que las respuestas son fiables consultando las fuentes originales. Si observas algún error o tienes alguna duda puedes informar al profesor.
+            </div>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <div class="afi-keyboard" id="afi-keyboard">
+            <div class="afi-row">
+                <span class="afi-row-label">Fonemas</span>
+                <button class="afi-btn" onclick="insertAfi('θ')" title="interdental sorda (z, ce, ci)">θ</button>
+                <button class="afi-btn" onclick="insertAfi('ɲ')" title="nasal palatal (ñ)">ɲ</button>
+                <button class="afi-btn" onclick="insertAfi('ʝ')" title="fricativa palatal (y, ll)">ʝ</button>
+                <button class="afi-btn" onclick="insertAfi('tʃ')" title="africada (ch)">tʃ</button>
+                <button class="afi-btn" onclick="insertAfi('ɾ')" title="vibrante simple (r intervocálica)">ɾ</button>
+                <button class="afi-btn" onclick="insertAfi('r')" title="vibrante múltiple (rr, r inicial)">r</button>
+                <button class="afi-btn afi-special" onclick="insertAfi('ˈ')" title="acento (antes de sílaba tónica)">ˈ</button>
+                <button class="afi-btn afi-special" onclick="insertAfi('.')" title="separador de sílabas">.</button>
+                <button class="afi-btn afi-special" onclick="insertAfi('/')" title="barra de transcripción fonológica">/</button>
+                <button class="afi-btn afi-special" onclick="insertAfi('[')" title="corchete (transcripción fonética)">[</button>
+                <button class="afi-btn afi-special" onclick="insertAfi(']')" title="corchete (transcripción fonética)">]</button>
+            </div>
+            <div class="afi-row" id="afi-row-alofonos" style="display:none;">
+                <span class="afi-row-label">Alófonos</span>
+                <button class="afi-btn" onclick="insertAfi('β̞')" title="aproximante bilabial">β̞</button>
+                <button class="afi-btn" onclick="insertAfi('ð̞')" title="aproximante dental">ð̞</button>
+                <button class="afi-btn" onclick="insertAfi('ɣ̞')" title="aproximante velar">ɣ̞</button>
+                <button class="afi-btn" onclick="insertAfi('ʤ')" title="africada sonora">ʤ</button>
+                <button class="afi-btn" onclick="insertAfi('ɱ')" title="nasal labiodental">ɱ</button>
+                <button class="afi-btn" onclick="insertAfi('ŋ')" title="nasal velar">ŋ</button>
+                <button class="afi-btn" onclick="insertAfi('ɹ')" title="aproximante alveolar">ɹ</button>
+                <button class="afi-btn" onclick="insertAfi('n̪')" title="nasal dental">n̪</button>
+                <button class="afi-btn" onclick="insertAfi('n̟')" title="nasal interdental">n̟</button>
+                <button class="afi-btn" onclick="insertAfi('nʲ')" title="nasal palatalizada">nʲ</button>
+                <button class="afi-btn" onclick="insertAfi('l̪')" title="lateral dental">l̪</button>
+                <button class="afi-btn" onclick="insertAfi('l̟')" title="lateral interdental">l̟</button>
+                <button class="afi-btn" onclick="insertAfi('j')" title="semiconsonante palatal">j</button>
+                <button class="afi-btn" onclick="insertAfi('w')" title="semiconsonante velar">w</button>
+                <button class="afi-btn" onclick="insertAfi('i̯')" title="semivocal palatal">i̯</button>
+                <button class="afi-btn" onclick="insertAfi('u̯')" title="semivocal velar">u̯</button>
+            </div>
+            <div class="afi-row" id="afi-row-otros" style="display:none;">
+                <span class="afi-row-label">Otros</span>
+                <button class="afi-btn" onclick="insertAfi('ã')" title="a nasalizada">ã</button>
+                <button class="afi-btn" onclick="insertAfi('ẽ')" title="e nasalizada">ẽ</button>
+                <button class="afi-btn" onclick="insertAfi('ĩ')" title="i nasalizada">ĩ</button>
+                <button class="afi-btn" onclick="insertAfi('õ')" title="o nasalizada">õ</button>
+                <button class="afi-btn" onclick="insertAfi('ũ')" title="u nasalizada">ũ</button>
+                <button class="afi-btn" onclick="insertAfi('ː')" title="alargamiento vocálico">ː</button>
+                <button class="afi-btn" onclick="insertAfi('h')" title="aspiración">h</button>
+                <button class="afi-btn" onclick="insertAfi('v')" title="labiodental sonora">v</button>
+                <button class="afi-btn" onclick="insertAfi('z')" title="alveolar sonora">z</button>
+                <button class="afi-btn" onclick="insertAfi('ʃ')" title="fricativa postalveolar">ʃ</button>
+            </div>
+            <div style="text-align:right;padding:2px 0;">
+                <button class="afi-toggle" id="afi-toggle-more" onclick="toggleAfiRows()">Más símbolos ▼</button>
+            </div>
+        </div>
+        <div class="input-area">
+            <div class="input-row">
+                <textarea id="message-input" placeholder="Pregunta sobre fonología, fonética, transcripciones..." rows="1"></textarea>
+                <input type="file" id="audio-file-input" accept="audio/*,.wav,.mp3,.ogg,.flac,.webm" style="display:none" />
+                <button id="audio-btn" title="Subir audio para análisis acústico" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:16px;" onclick="document.getElementById('audio-file-input').click()">🎤</button>
+                <button id="send-btn">Enviar</button>
+            </div>
+        </div>
+        <div class="disclaimer">
+            Las respuestas se basan en los materiales de la asignatura. Consulta los apuntes para más detalle.
+        </div>
+    </div>
+</div>
+
+<script>
+var AGENT_ID = 'eulalia';
+
+var _currentSeccion = null;  // 'resumen', 'contenidos', 'ejercicios', 'autoevaluacion', 'mas_alla'
+var _seccionesData = null;   // loaded from temas.json
+
+// ── Breadcrumb de navegación ──
+function updateBreadcrumb() {
+    var temaSep = document.getElementById('nav-tema-sep');
+    var temaName = document.getElementById('nav-tema-name');
+    var secSep = document.getElementById('nav-seccion-sep');
+    var secName = document.getElementById('nav-seccion-name');
+
+    if (_currentTemaId && _temasData) {
+        var tema = _temasData.find(function(t) { return t.id === _currentTemaId; });
+        if (tema) {
+            temaSep.style.display = '';
+            temaName.style.display = '';
+            temaName.textContent = 'Tema ' + tema.id;
+            temaName.title = tema.titulo;
+
+            if (_currentSeccion && _seccionesData) {
+                var sec = _seccionesData.find(function(s) { return s.id === _currentSeccion; });
+                if (sec) {
+                    secSep.style.display = '';
+                    secName.style.display = '';
+                    secName.textContent = sec.nombre;
+                    return;
+                }
+            }
+            secSep.style.display = 'none';
+            secName.style.display = 'none';
+            return;
+        }
+    }
+    temaSep.style.display = 'none';
+    temaName.style.display = 'none';
+    secSep.style.display = 'none';
+    secName.style.display = 'none';
+}
+
+// ── Acordeón de temas ──
+function toggleTema(header) {
+    var body = header.nextElementSibling;
+    var isOpen = header.classList.toggle('open');
+    body.classList.toggle('open', isOpen);
+}
+
+// ── Espectrogramas de ejemplo ──
+var _espectrogramas = {
+    vocales: {
+        titulo: 'Vocales del español',
+        intro: 'Espectrogramas de las 5 vocales en contexto /lV/. Las líneas rojas, azules y verdes muestran los formantes F1, F2 y F3. Observa cómo F1 correlaciona con la apertura (más alto = más abierta) y F2 con la anterioridad (más alto = más anterior).',
+        imgs: [
+            {src: '/static/lalitutor/tema4/img/ej_vocal_a.png', cap: '/a/ — vocal abierta central (F1 alto, F2 medio)'},
+            {src: '/static/lalitutor/tema4/img/ej_vocal_e.png', cap: '/e/ — vocal media anterior (F1 medio, F2 alto)'},
+            {src: '/static/lalitutor/tema4/img/ej_vocal_i.png', cap: '/i/ — vocal cerrada anterior (F1 bajo, F2 muy alto)'},
+            {src: '/static/lalitutor/tema4/img/ej_vocal_o.png', cap: '/o/ — vocal media posterior (F1 medio, F2 bajo)'},
+            {src: '/static/lalitutor/tema4/img/ej_vocal_u.png', cap: '/u/ — vocal cerrada posterior (F1 bajo, F2 bajo)'},
+        ]
+    },
+    oclusivas_sordas: {
+        titulo: 'Oclusivas sordas /p t k/',
+        intro: 'Observa la interrupción (silencio) seguida de la explosión (barra de energía vertical). El VOT (tiempo entre explosión e inicio de sonoridad) es corto en español.',
+        imgs: [
+            {src: '/static/lalitutor/tema4/img/ej_pa.png', cap: '/pa/ — oclusiva bilabial sorda'},
+            {src: '/static/lalitutor/tema4/img/ej_ta.png', cap: '/ta/ — oclusiva dental sorda'},
+            {src: '/static/lalitutor/tema4/img/ej_ka.png', cap: '/ka/ — oclusiva velar sorda'},
+        ]
+    },
+    oclusivas_sonoras: {
+        titulo: 'Oclusivas sonoras /b d g/',
+        intro: 'Compara con las sordas: aquí se observa una barra de sonoridad (energía en frecuencias bajas) durante la oclusión. En posición inicial absoluta se realizan como oclusivas [b d g].',
+        imgs: [
+            {src: '/static/lalitutor/tema4/img/ej_ba.png', cap: '/ba/ — oclusiva bilabial sonora'},
+            {src: '/static/lalitutor/tema4/img/ej_da.png', cap: '/da/ — oclusiva dental sonora'},
+            {src: '/static/lalitutor/tema4/img/ej_ga.png', cap: '/ga/ — oclusiva velar sonora'},
+        ]
+    },
+    fricativas: {
+        titulo: 'Fricativas /f θ s x ʝ/',
+        intro: 'Las fricativas muestran energía turbulenta (ruido) en zonas frecuenciales características. La /s/ concentra energía alta (~3000-5000 Hz), mientras que /f/ y /θ/ son más débiles y difusas.',
+        imgs: [
+            {src: '/static/lalitutor/tema4/img/ej_fa.png', cap: '/fa/ — fricativa labiodental sorda'},
+            {src: '/static/lalitutor/tema4/img/ej_za.png', cap: '/θa/ — fricativa interdental sorda'},
+            {src: '/static/lalitutor/tema4/img/ej_sa.png', cap: '/sa/ — fricativa alveolar sorda'},
+            {src: '/static/lalitutor/tema4/img/ej_xa.png', cap: '/xa/ — fricativa velar sorda'},
+            {src: '/static/lalitutor/tema4/img/ej_ya.png', cap: '/ʝa/ — fricativa palatal sonora'},
+        ]
+    },
+    africada: {
+        titulo: 'Africada /ʧ/',
+        intro: 'La africada combina una fase oclusiva (silencio) con una fase fricativa (ruido). Observa la secuencia silencio → explosión → fricción.',
+        imgs: [
+            {src: '/static/lalitutor/tema4/img/ej_cha.png', cap: '/ʧa/ — africada palatal sorda'},
+        ]
+    },
+    nasales: {
+        titulo: 'Nasales /m n/',
+        intro: 'Las nasales muestran estructura formántica similar a las vocales pero con menor intensidad y un formante nasal bajo (~300 Hz). La diferencia entre /m/ y /n/ se observa en las transiciones formánticas hacia la vocal.',
+        imgs: [
+            {src: '/static/lalitutor/tema4/img/ej_ma.png', cap: '/ma/ — nasal bilabial'},
+            {src: '/static/lalitutor/tema4/img/ej_na.png', cap: '/na/ — nasal alveolar'},
+        ]
+    },
+    lateral_vibrante: {
+        titulo: 'Lateral /l/ y vibrante /r/',
+        intro: 'La lateral muestra formantes similares a las nasales con mayor energía en altas frecuencias. La vibrante múltiple muestra interrupciones breves repetidas.',
+        imgs: [
+            {src: '/static/lalitutor/tema4/img/ej_la.png', cap: '/la/ — lateral alveolar'},
+            {src: '/static/lalitutor/tema4/img/ej_rra.png', cap: '/ra/ — vibrante múltiple alveolar'},
+        ]
+    },
+};
+
+function mostrarEspectrogramas(grupo) {
+    var data = _espectrogramas[grupo];
+    if (!data) return;
+
+    // Add as agent message in chat
+    if (welcome) welcome.style.display = 'none';
+    var userBubble = addMessage('Mostrar espectrogramas: ' + data.titulo, 'user');
+    var agentBubble = addMessage('', 'agent');
+
+    var html = '<div style="padding:8px 12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;font-size:13px;color:#92400e;margin-bottom:8px;">📊 Espectrogramas de ejemplo del corpus de sílabas CV.</div>';
+    html += '<h3>' + data.titulo + '</h3>';
+    html += '<p style="font-size:13px;color:#475569;margin-bottom:12px;">' + data.intro + '</p>';
+
+    for (var i = 0; i < data.imgs.length; i++) {
+        var img = data.imgs[i];
+        html += '<div style="margin-bottom:16px;">';
+        html += '<img src="' + img.src + '" style="max-width:100%;border-radius:6px;border:1px solid #e2e8f0;" alt="' + img.cap + '" />';
+        html += '<div style="font-size:12px;color:#64748b;margin-top:4px;font-style:italic;">' + img.cap + '</div>';
+        html += '</div>';
+    }
+
+    agentBubble.innerHTML = html;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+var sessionId = null;
+var isLoading = false;
+var queryHistory = [];
+var _temasData = null;
+var _currentTemaId = null;
+
+// ── Navegación entre vistas ──
+function showView(viewId) {
+    ['landing-view', 'tema-detail-view', 'tema-section-view', 'eval-view'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = id === viewId ? '' : 'none';
+    });
+    // Show/hide chat elements
+    var showChat = (viewId === 'chat');
+    document.getElementById('chat-messages').style.display = showChat ? '' : 'none';
+    var chatNotice = document.getElementById('chat-notice');
+    if (chatNotice) chatNotice.style.display = showChat ? '' : 'none';
+    var afi = document.getElementById('afi-keyboard');
+    if (afi) afi.style.display = showChat ? '' : 'none';
+    var inputArea = document.querySelector('.input-area');
+    if (inputArea) inputArea.style.display = showChat ? '' : 'none';
+    var disclaimer = document.querySelector('.disclaimer');
+    if (disclaimer) disclaimer.style.display = showChat ? '' : 'none';
+    if (viewId === 'chat' || viewId === 'eval-view') {
+        document.getElementById('landing-view').style.display = 'none';
+        document.getElementById('tema-detail-view').style.display = 'none';
+        document.getElementById('tema-section-view').style.display = 'none';
+    }
+}
+
+function showLanding() {
+    _currentTemaId = null;
+    _currentSeccion = null;
+    showView('landing-view');
+    updateBreadcrumb();
+    updateSidebar();
+}
+
+// ── Vista: Evalúa tu progreso ──
+var _evalItems = {
+    1: [
+        {label: 'Define conceptos', widget: 'conceptos?tema=1', desc: 'Define los conceptos clave del tema con tus propias palabras.'},
+        {label: 'Autoevaluación Tema 1', widget: 'eval_final_tema1', desc: 'Test completo con preguntas de todas las secciones del tema.'}
+    ],
+    2: [
+        {label: 'Define conceptos', widget: 'conceptos?tema=2', desc: 'Define los conceptos clave del tema con tus propias palabras.'},
+        {label: 'Transcripción fonológica', widget: 'transcripcion_ejercicio', desc: 'Ejercicios de transcripción fonológica de los niveles 1 al 5 con corrección automática.'},
+        {label: 'Análisis de errores fonológicos', widget: 'ejercicio_errores', desc: 'Clasifica errores fonológicos por tipo y subtipo.'}
+    ]
+};
+
+function showEvalView() {
+    _currentTemaId = null;
+    _currentSeccion = null;
+    showView('eval-view');
+    updateBreadcrumb();
+
+    var progress = {};
+    try { progress = JSON.parse(localStorage.getItem('lali_progress') || '{}'); } catch(e) {}
+
+    var html = '<h2 style="color:#7c3aed;margin-bottom:4px;">Evalúa tu progreso</h2>';
+    html += '<p style="color:#64748b;font-size:13px;margin-bottom:24px;">Estos ejercicios miden tu progreso en cada tema. Asegúrate de haber estudiado el contenido antes de realizarlos.</p>';
+
+    var temas = _temasData || [];
+    temas.forEach(function(tema) {
+        var items = _evalItems[tema.id];
+        if (!items || items.length === 0) return;
+
+        html += '<div style="background:#fff;border:2px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:16px;">';
+        html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">';
+        html += '<div style="width:28px;height:28px;border-radius:50%;background:' + (tema.color || '#7c3aed') + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">' + tema.id + '</div>';
+        html += '<div style="font-size:15px;font-weight:700;color:#1e293b;">Tema ' + tema.id + ' — ' + tema.titulo + '</div>';
+        html += '</div>';
+
+        items.forEach(function(item) {
+            var p = progress[item.widget.split('?')[0]] || progress['concepto_' + item.widget.split('?')[0]];
+            var pct = p ? p.score : 0;
+            var done = p && p.completed;
+            var barColor = done ? '#16a34a' : pct > 0 ? '#f59e0b' : '#e2e8f0';
+            var statusText = done ? '✓ ' + pct + '%' : pct > 0 ? pct + '%' : 'Pendiente';
+            var statusColor = done ? '#16a34a' : pct > 0 ? '#f59e0b' : '#94a3b8';
+
+            html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-top:1px solid #f1f5f9;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'#fff\'" onclick="window.open(\'/tutores-virtuales/eulalia/widgets/' + item.widget + '\',\'_blank\')">';
+            html += '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#1e293b;">' + item.label + '</div>';
+            html += '<div style="font-size:11px;color:#64748b;margin-top:2px;">' + item.desc + '</div></div>';
+            html += '<div style="text-align:right;min-width:70px;"><div style="font-size:12px;font-weight:700;color:' + statusColor + ';">' + statusText + '</div>';
+            html += '<div style="background:#e2e8f0;border-radius:3px;height:4px;width:60px;margin-top:4px;"><div style="background:' + barColor + ';border-radius:3px;height:4px;width:' + pct + '%;"></div></div></div>';
+            html += '</div>';
+        });
+
+        html += '</div>';
+    });
+
+    html += '<div style="text-align:center;margin-top:8px;">';
+    html += '<button onclick="window.open(\'/tutores-virtuales/eulalia/widgets/mi_progreso\',\'_blank\')" style="background:#f5f3ff;border:2px solid #e9e5ff;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:600;color:#7c3aed;cursor:pointer;font-family:inherit;">📊 Ver progreso detallado</button>';
+    html += '</div>';
+
+    document.getElementById('eval-content').innerHTML = html;
+}
+
+function showTemaDetail(temaId) {
+    if (!_temasData) return;
+    var tema = _temasData.find(function(t) { return t.id === temaId; });
+    if (!tema) return;
+    _currentTemaId = temaId;
+    _currentSeccion = null;
+
+    var titleEl = document.getElementById('tema-detail-titulo');
+    titleEl.textContent = 'Tema ' + tema.id + ' — ' + tema.titulo;
+    titleEl.style.color = tema.color;
+
+    var indexDiv = document.getElementById('tema-detail-index');
+    var html = '';
+
+    // Progress bar
+    var prog = _progresoData ? _progresoData.find(function(p) { return p.tema_id === tema.id; }) : null;
+    if (prog) {
+        var pct = prog.porcentaje;
+        var barColor = pct >= 100 ? '#22c55e' : tema.color;
+        html += '<div style="margin-bottom:20px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">';
+        html += '<div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:4px;"><span>Progreso</span><span>' + pct + '%</span></div>';
+        html += '<div style="background:#e2e8f0;border-radius:6px;height:8px;"><div style="background:' + barColor + ';border-radius:6px;height:8px;width:' + pct + '%;transition:width 0.3s;"></div></div>';
+        if (prog.recomendacion) html += '<p style="font-size:12px;color:#64748b;margin-top:6px;">' + prog.recomendacion + '</p>';
+        html += '</div>';
+    }
+
+    // Brief description
+    if (tema.resumen) {
+        html += '<h3 style="font-size:15px;color:#1e293b;margin-bottom:10px;">Resumen del tema</h3>';
+        html += '<p style="font-size:14px;color:#64748b;line-height:1.6;margin-bottom:20px;white-space:pre-line;">' + tema.resumen + '</p>';
+    }
+
+    indexDiv.innerHTML = html;
+
+    showView('tema-detail-view');
+    updateBreadcrumb();
+    updateSidebar();
+}
+
+function showSection(temaId, seccionId) {
+    if (!_temasData) return;
+    var tema = _temasData.find(function(t) { return t.id === temaId; });
+    if (!tema) return;
+    _currentTemaId = temaId;
+    _currentSeccion = seccionId;
+
+    var sec = (_seccionesData || []).find(function(s) { return s.id === seccionId; });
+    var titleEl = document.getElementById('section-titulo');
+    titleEl.textContent = sec ? (sec.icono + ' ' + sec.nombre) : seccionId;
+    titleEl.style.color = tema.color;
+
+    var contentDiv = document.getElementById('section-content');
+    contentDiv.innerHTML = '';
+
+    if (seccionId === 'resumen') {
+        contentDiv.innerHTML = '<div class="content-block"><div style="font-size:13px;color:#475569;line-height:1.7;white-space:pre-line;">' + tema.resumen + '</div></div>';
+
+    } else if (seccionId === 'contenidos') {
+        (tema.contenidos || []).forEach(function(bloque) {
+            var html = '<div class="content-block"><h4>' + bloque.bloque + '</h4>';
+            // Bloque con subbloques (ej: "2. Perspectivas" tiene 3 sub-perspectivas)
+            if (bloque.subbloques) {
+                bloque.subbloques.forEach(function(sub) {
+                    html += '<div style="margin:10px 0 6px;font-size:13px;font-weight:600;color:#475569;">' + sub.nombre + '</div>';
+                    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">';
+                    sub.conceptos.forEach(function(c) {
+                        html += '<button style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 12px;font-size:12px;color:' + tema.color + ';cursor:pointer;font-family:inherit;" onclick="trackConceptAndSend(' + tema.id + ',\'' + escapeJs(c.nombre) + '\',\'' + escapeJs(c.consulta) + '\')">' + c.nombre + '</button>';
+                    });
+                    html += '</div>';
+                });
+            }
+            // Bloque con conceptos directos
+            if (bloque.conceptos) {
+                html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+                bloque.conceptos.forEach(function(c) {
+                    html += '<button style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 12px;font-size:12px;color:' + tema.color + ';cursor:pointer;font-family:inherit;" onclick="trackConceptAndSend(' + tema.id + ',\'' + escapeJs(c.nombre) + '\',\'' + escapeJs(c.consulta) + '\')">' + c.nombre + '</button>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+            contentDiv.innerHTML += html;
+        });
+
+    } else if (seccionId === 'ejercicios') {
+        var html = '<div class="content-block">';
+        html += '<p style="font-size:13px;color:#64748b;margin-bottom:14px;">Haz clic en un ejercicio para empezar. Eulalia te guiará paso a paso.</p><div>';
+        (tema.ejercicios || []).forEach(function(ej) {
+            var onclick = '';
+            if (ej.tipo === 'panel_transcripcion') onclick = "showChatAndSend('Dame un ejercicio de transcripción fonológica')";
+            else if (ej.tipo === 'panel_errores') onclick = "showChatAndSend('Dame un ejercicio de errores fonológicos')";
+            else if (ej.tipo === 'transcripcion_fonetica') onclick = "showChatAndSend('Dame un ejercicio de transcripción fonética')";
+            else if (ej.tipo === 'espectrogramas') onclick = "mostrarEspectrogramas('vocales')";
+            else if (ej.tipo === 'audio') onclick = "document.getElementById('audio-file-input').click()";
+            else if (ej.tipo === 'consulta') onclick = "showChatAndSend('" + escapeJs(ej.consulta) + "')";
+            html += '<button style="display:block;width:100%;margin:6px 0;padding:12px 16px;border-radius:8px;border:2px solid ' + tema.color + '30;color:' + tema.color + ';background:#fff;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;text-align:left;transition:all 0.15s;" onmouseover="this.style.background=\'' + tema.color + '10\'" onmouseout="this.style.background=\'#fff\'" onclick="' + onclick + '">' + (ej.tipo === 'audio' ? '🎤 ' : '✏️ ') + ej.nombre + '</button>';
+        });
+        html += '</div></div>';
+        contentDiv.innerHTML = html;
+
+    } else if (seccionId === 'autoevaluacion') {
+        var html = '<div class="content-block"><p style="font-size:13px;color:#64748b;margin-bottom:12px;">Comprueba si dominas los contenidos de este tema. Responde mentalmente a cada pregunta:</p><ul style="font-size:13px;color:#475569;line-height:2;padding-left:20px;">';
+        tema.autoevaluacion.forEach(function(q) {
+            html += '<li>' + q + '</li>';
+        });
+        html += '</ul></div>';
+        // Progress bar if available
+        var prog = _progresoData ? _progresoData.find(function(p) { return p.tema_id === tema.id; }) : null;
+        if (prog) {
+            var pct = prog.porcentaje;
+            var barColor = pct >= 100 ? '#22c55e' : tema.color;
+            html += '<div class="content-block"><h4>Tu progreso</h4>';
+            html += '<div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:4px;"><span>Completado</span><span>' + pct + '%</span></div>';
+            html += '<div style="background:#e2e8f0;border-radius:6px;height:8px;"><div style="background:' + barColor + ';border-radius:6px;height:8px;width:' + pct + '%;transition:width 0.3s;"></div></div>';
+            if (prog.recomendacion) html += '<p style="font-size:12px;color:#64748b;margin-top:8px;">' + prog.recomendacion + '</p>';
+            html += '</div>';
+        }
+        contentDiv.innerHTML = html;
+
+    } else if (seccionId === 'mas_alla') {
+        var html = '<div class="content-block"><p style="font-size:13px;color:#64748b;margin-bottom:12px;">Conexiones de este tema con el resto de la asignatura:</p>';
+        (tema.mas_alla || []).forEach(function(link) {
+            html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;cursor:pointer;" onclick="showTemaDetail(' + link.tema_destino + ')">';
+            html += '<span style="font-size:18px;">→</span>';
+            html += '<span style="font-size:13px;color:#1e293b;">' + link.texto + '</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+        contentDiv.innerHTML = html;
+    }
+
+    showView('tema-section-view');
+    updateBreadcrumb();
+    updateSidebar();
+}
+
+function showChatAndSend(message) {
+    showView('chat');
+    updateBreadcrumb();
+    sendMessage(message);
+}
+
+// Execute <script> tags inside dynamically inserted HTML
+function appendFeedbackFooter(container) {
+    var footer = document.createElement('div');
+    footer.style.cssText = 'margin-top:20px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-align:center;font-size:13px;color:#64748b;';
+    footer.innerHTML = '¿Has encontrado algún fallo en esta sección o ejercicio? ¿Algo que crees mejorable? <a href="javascript:void(0)" onclick="informarOpen()" style="color:#7c3aed;font-weight:600;">Informa al profesor</a>';
+    container.appendChild(footer);
+}
+
+function runEmbeddedScripts(container) {
+    var scripts = container.querySelectorAll('script');
+    scripts.forEach(function(oldScript) {
+        var newScript = document.createElement('script');
+        if (oldScript.src) {
+            newScript.src = oldScript.src;
+        } else {
+            newScript.textContent = oldScript.textContent;
+        }
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+}
+
+function showBloqueContenido(temaId, bloqueIdx) {
+    if (!_temasData) return;
+    var tema = _temasData.find(function(t) { return t.id === temaId; });
+    if (!tema || !tema.contenidos || !tema.contenidos[bloqueIdx]) return;
+    var bloque = tema.contenidos[bloqueIdx];
+    var doc = tema.doc;
+    var seccion = bloque.seccion_doc || bloque.bloque;
+
+    _currentTemaId = temaId;
+    _currentSeccion = 'contenidos';
+
+    var titleEl = document.getElementById('section-titulo');
+    titleEl.textContent = '';
+    titleEl.style.display = 'none';
+
+    var contentDiv = document.getElementById('section-content');
+    contentDiv.innerHTML = '<div style="color:#94a3b8;font-style:italic;">Cargando contenido...</div>';
+
+    showView('tema-section-view');
+    updateBreadcrumb();
+    updateSidebar();
+
+    if (doc && seccion) {
+        fetch('/api/public-agent/eulalia/contenido-seccion?doc=' + encodeURIComponent(doc) + '&seccion=' + encodeURIComponent(seccion))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.contenido) {
+                contentDiv.innerHTML = '<div class="content-block">' + marked.parse(data.contenido) + '</div>';
+                runEmbeddedScripts(contentDiv);
+                appendFeedbackFooter(contentDiv);
+            } else {
+                contentDiv.innerHTML = '<div class="content-block"><p style="color:#94a3b8;">Contenido no disponible. Consulta al tutor.</p></div>';
+            }
+        })
+        .catch(function() {
+            contentDiv.innerHTML = '<div class="content-block"><p style="color:#dc2626;">Error al cargar el contenido.</p></div>';
+        });
+    } else {
+        // Fallback: mostrar conceptos como botones
+        showSection(temaId, 'contenidos');
+    }
+}
+
+function showSubbloqueContenido(temaId, subName) {
+    if (!_temasData) return;
+    var tema = _temasData.find(function(t) { return t.id === temaId; });
+    if (!tema) return;
+    var doc = tema.doc;
+
+    _currentTemaId = temaId;
+    _currentSeccion = 'contenidos';
+
+    var titleEl = document.getElementById('section-titulo');
+    titleEl.textContent = '';
+    titleEl.style.display = 'none';
+
+    var contentDiv = document.getElementById('section-content');
+    contentDiv.innerHTML = '<div style="color:#94a3b8;font-style:italic;">Cargando contenido...</div>';
+
+    showView('tema-section-view');
+    updateBreadcrumb();
+    updateSidebar();
+
+    // Find the seccion_doc for this subbloque name
+    var seccionDoc = subName;
+    if (tema.contenidos) {
+        tema.contenidos.forEach(function(bloque) {
+            if (bloque.subbloques) {
+                bloque.subbloques.forEach(function(sub) {
+                    if (sub.nombre === subName && sub.seccion_doc) {
+                        seccionDoc = sub.seccion_doc;
+                    }
+                });
+            }
+        });
+    }
+
+    if (doc && seccionDoc) {
+        fetch('/api/public-agent/eulalia/contenido-seccion?doc=' + encodeURIComponent(doc) + '&seccion=' + encodeURIComponent(seccionDoc))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.contenido) {
+                contentDiv.innerHTML = '<div class="content-block">' + marked.parse(data.contenido) + '</div>';
+                runEmbeddedScripts(contentDiv);
+                appendFeedbackFooter(contentDiv);
+            } else {
+                contentDiv.innerHTML = '<div class="content-block"><p style="color:#94a3b8;">Contenido no disponible. Consulta al tutor.</p></div>';
+            }
+        })
+        .catch(function() {
+            contentDiv.innerHTML = '<div class="content-block"><p style="color:#dc2626;">Error al cargar el contenido.</p></div>';
+        });
+    }
+}
+
+function startChatFromTema() {
+    showView('chat');
+    if (_currentTemaId && _temasData) {
+        var tema = _temasData.find(function(t) { return t.id === _currentTemaId; });
+        if (tema) {
+            document.getElementById('message-input').placeholder = 'Pregunta sobre Tema ' + tema.id + ' — ' + tema.titulo + '...';
+        }
+    }
+    document.getElementById('message-input').focus();
+}
+
+// ── Cargar datos del curso ──
+function loadCourseData() {
+    // Cargar equipo docente
+    fetch('/api/public-agent/eulalia/docentes')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        var div = document.getElementById('docentes-content');
+        if (!data || !data.equipo) { div.innerHTML = '<em>No disponible</em>'; return; }
+        var html = '<p><strong>' + (data.asignatura||'') + '</strong> — ' + (data.grado||'') + '</p>';
+        html += '<p>' + (data.universidad||'') + ' · Curso ' + (data.curso||'') + '</p>';
+        if (data.equipo.length > 0) {
+            html += '<table style="width:100%;margin-top:8px;border-collapse:collapse;font-size:12px;">';
+            html += '<tr style="border-bottom:1px solid #e2e8f0;"><th style="text-align:left;padding:4px;">Nombre</th><th style="text-align:left;padding:4px;">Rol</th><th style="text-align:left;padding:4px;">Horario clases</th><th style="text-align:left;padding:4px;">Tutorías</th></tr>';
+            data.equipo.forEach(function(d) {
+                html += '<tr style="border-bottom:1px solid #f1f5f9;">';
+                html += '<td style="padding:4px;">' + d.nombre + '</td>';
+                html += '<td style="padding:4px;">' + d.rol + '</td>';
+                html += '<td style="padding:4px;">' + (d.horario_clases||'') + '</td>';
+                html += '<td style="padding:4px;">' + (d.horario_tutorias||'') + '</td>';
+                html += '</tr>';
+            });
+            html += '</table>';
+        }
+        if (data.nota) html += '<p style="margin-top:8px;font-style:italic;font-size:11px;color:#94a3b8;">' + data.nota + '</p>';
+        div.innerHTML = html;
+    })
+    .catch(function() {
+        document.getElementById('docentes-content').innerHTML = '<em>No se pudo cargar</em>';
+    });
+
+    // Cargar temario
+    fetch('/api/public-agent/eulalia/temas')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        _temasData = data.temas || [];
+        _seccionesData = data.secciones || [];
+        var container = document.getElementById('temario-cards');
+        container.innerHTML = '';
+        _temasData.forEach(function(tema) {
+            var card = document.createElement('div');
+            card.className = 'tema-card';
+            card.onclick = function() { showTemaDetail(tema.id); };
+
+            var firstLine = tema.resumen.split('\n')[0];
+            if (firstLine.length > 120) firstLine = firstLine.substring(0, 120) + '...';
+
+            var imgHtml = '';
+            if (tema.imagen) {
+                imgHtml = '<img src="' + tema.imagen.src + '" alt="' + (tema.imagen.alt||'') + '" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-top:8px;">';
+                if (tema.imagen.credito) {
+                    imgHtml += '<div style="font-size:10px;color:#94a3b8;margin-top:2px;">' + tema.imagen.credito + '</div>';
+                }
+            }
+
+            card.innerHTML = '<div class="tema-card-num" style="background:' + tema.color + ';">' + tema.id + '</div>'
+                + '<div class="tema-card-body">'
+                + '<div class="tema-card-title">Tema ' + tema.id + ' — ' + tema.titulo + '</div>'
+                + '<div class="tema-card-desc">' + firstLine + '</div>'
+                + imgHtml
+                + '</div>';
+            container.appendChild(card);
+        });
+    })
+    .catch(function() {
+        document.getElementById('temario-cards').innerHTML = '<em>No se pudo cargar el temario</em>';
+    });
+}
+
+// ── Sidebar dinámica ──
+var _progresoData = null;
+
+function updateSidebar() {
+    if (!_temasData) return;
+    var container = document.getElementById('sidebar-temas-content');
+    var titleEl = document.getElementById('sidebar-temas-title');
+
+    if (_currentTemaId) {
+        // Modo: tema activo → mostrar solo ese tema con detalle
+        var tema = _temasData.find(function(t) { return t.id === _currentTemaId; });
+        if (!tema) return;
+        // Botón volver antes del título
+        titleEl.textContent = '';
+        var headerHtml = '<button class="tema-link" style="color:#4250b3;font-weight:600;font-size:12px;padding:0 0 6px;" onclick="clearCurrentTema()">← Todos los temas</button>';
+        headerHtml += '<div style="font-size:13px;font-weight:700;color:#1e293b;">Tema ' + tema.id + ' — ' + tema.titulo + '</div>';
+        titleEl.innerHTML = headerHtml;
+        var html = '';
+
+        // Barra de progreso
+        var prog = _progresoData ? _progresoData.find(function(p) { return p.tema_id === tema.id; }) : null;
+        if (prog) {
+            var pct = prog.porcentaje;
+            var barColor = pct >= 100 ? '#22c55e' : tema.color;
+            html += '<div style="padding:8px 12px;">';
+            html += '<div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-bottom:3px;"><span>Progreso</span><span>' + pct + '%</span></div>';
+            html += '<div style="background:#e2e8f0;border-radius:4px;height:6px;"><div style="background:' + barColor + ';border-radius:4px;height:6px;width:' + pct + '%;transition:width 0.3s;"></div></div>';
+            if (prog.recomendacion) html += '<div style="font-size:11px;color:#64748b;margin-top:4px;">' + prog.recomendacion + '</div>';
+            html += '</div>';
+        }
+
+        // Índice de contenidos: bloques y subbloques, todo visible
+        html += '<div style="padding:4px 12px;"><div class="tema-label">Contenidos</div>';
+        (tema.contenidos || []).forEach(function(bloque, idx) {
+            html += '<button class="tema-link" style="font-weight:600;" onclick="showBloqueContenido(' + tema.id + ',' + idx + ')">' + bloque.bloque + '</button>';
+            if (bloque.subbloques) {
+                bloque.subbloques.forEach(function(sub) {
+                    html += '<button class="tema-link" style="padding-left:20px;font-size:11px;" onclick="showSubbloqueContenido(' + tema.id + ',\'' + escapeJs(sub.nombre) + '\')">' + sub.nombre + '</button>';
+                });
+            }
+        });
+        html += '</div>';
+
+        // Ejercicios are accessed from the main content view, not duplicated in sidebar
+
+        // Pregunta a Eulalia
+        html += '<div style="padding:4px 12px; margin-top:8px; border-top:1px solid #e2e8f0;">';
+        html += '<button class="tema-link" style="font-weight:700;color:#4250b3;font-size:13px;" onclick="showView(\'chat\');document.getElementById(\'message-input\').focus();">⚠️ Pregunta a Eulalia</button>';
+        html += '</div>';
+
+        // Evalúa tu progreso
+        html += '<div style="padding:4px 12px; margin-top:8px; border-top:1px solid #e2e8f0;">';
+        html += '<button class="tema-link" style="font-weight:700;color:#7c3aed;font-size:13px;" onclick="showEvalView()">📊 Evalúa tu progreso</button>';
+        html += '</div>';
+
+        // Espectrogramas de ejemplo (solo tema 4)
+        if (tema.id === 4) {
+            html += '<div style="padding:4px 12px;"><div class="tema-label">Espectrogramas de ejemplo</div>';
+            ['vocales','oclusivas_sordas','oclusivas_sonoras','fricativas','africada','nasales','lateral_vibrante'].forEach(function(g) {
+                var names = {vocales:'Vocales',oclusivas_sordas:'Oclusivas sordas',oclusivas_sonoras:'Oclusivas sonoras',fricativas:'Fricativas',africada:'Africada',nasales:'Nasales',lateral_vibrante:'Lateral y vibrante'};
+                html += '<button class="tema-link" style="font-weight:600;" onclick="showChatAndSend(\'espectrogramas\');mostrarEspectrogramas(\'' + g + '\')">' + names[g] + '</button>';
+            });
+            html += '</div>';
+        }
+
+        container.innerHTML = html;
+    } else {
+        // Modo: vista general → lista de temas con progreso
+        titleEl.textContent = 'Temas de la asignatura';
+        var html = '';
+        _temasData.forEach(function(tema) {
+            var prog = _progresoData ? _progresoData.find(function(p) { return p.tema_id === tema.id; }) : null;
+            var pct = prog ? prog.porcentaje : 0;
+            var icon = pct >= 100 ? '✓' : tema.id;
+            var iconBg = pct >= 100 ? '#22c55e' : tema.color;
+            html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;border-bottom:1px solid #f1f5f9;" onclick="selectTemaFromSidebar(' + tema.id + ')">';
+            html += '<div style="width:24px;height:24px;border-radius:50%;background:' + iconBg + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">' + icon + '</div>';
+            html += '<div style="flex:1;min-width:0;">';
+            html += '<div style="font-size:12px;font-weight:600;color:#1e293b;">Tema ' + tema.id + '</div>';
+            html += '<div style="font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + tema.titulo + '</div>';
+            if (pct > 0 && pct < 100) {
+                html += '<div style="background:#e2e8f0;border-radius:3px;height:4px;margin-top:2px;"><div style="background:' + tema.color + ';border-radius:3px;height:4px;width:' + pct + '%;"></div></div>';
+            }
+            html += '</div></div>';
+        });
+
+        // Pregunta a Eulalia — vista general
+        html += '<div style="padding:4px 12px; margin-top:8px; border-top:2px solid #e2e8f0;">';
+        html += '<button class="tema-link" style="font-weight:700;color:#4250b3;font-size:13px;" onclick="showView(\'chat\');document.getElementById(\'message-input\').focus();">⚠️ Pregunta a Eulalia</button>';
+        html += '</div>';
+
+        // Evalúa tu progreso
+        html += '<div style="padding:4px 12px; margin-top:8px; border-top:2px solid #e2e8f0;">';
+        html += '<button class="tema-link" style="font-weight:700;color:#7c3aed;font-size:13px;" onclick="showEvalView()">📊 Evalúa tu progreso</button>';
+        html += '</div>';
+
+        container.innerHTML = html;
+    }
+
+    // Paneles de ejercicios según tema
+    updateExercisePanels();
+    // Panel de progreso global
+    updateProgressPanel();
+}
+
+function updateExercisePanels() {
+    var panelTrans = document.getElementById('panel-transcripcion');
+    var panelErrores = document.getElementById('panel-errores');
+    // Transcripción: tema 2 (fonológica) o tema 3 (fonética)
+    panelTrans.style.display = (_currentTemaId === 2 || _currentTemaId === 3) ? '' : 'none';
+    // Si tema 3, preseleccionar tipo "fonética"
+    if (_currentTemaId === 3) {
+        var sel = document.getElementById('trans-tipo');
+        if (sel) sel.value = 'fonetica';
+    } else if (_currentTemaId === 2) {
+        var sel = document.getElementById('trans-tipo');
+        if (sel) sel.value = 'fonologica';
+    }
+    // Errores: solo tema 2
+    panelErrores.style.display = (_currentTemaId === 2) ? '' : 'none';
+}
+
+function updateProgressPanel() {
+    // Progress is now shown in the "Evalúa tu progreso" central view
+}
+
+function selectTemaFromSidebar(temaId) {
+    _currentTemaId = temaId;
+    showTemaDetail(temaId);
+    updateSidebar();
+}
+
+function clearCurrentTema() {
+    _currentTemaId = null;
+    showLanding();
+    updateSidebar();
+}
+
+function escapeJs(s) {
+    return s.replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+function trackConceptAndSend(temaId, conceptName, query) {
+    // Registrar que el alumno consultó este concepto
+    fetch('/api/public-agent/eulalia/registrar-actividad', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({tema_id: temaId, tipo: 'concepto', detalle: conceptName}),
+    }).then(function() { loadProgreso(); }).catch(function() {});
+    showChatAndSend(query);
+}
+
+function loadProgreso() {
+    fetch(authUrl('/api/public-agent/eulalia/progreso-temas'))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        _progresoData = data.temas || [];
+        updateSidebar();
+    })
+    .catch(function() {});
+}
+
+// Initialize: show landing, load data
+showView('landing-view');
+loadCourseData();
+setTimeout(loadProgreso, 500);
+
+var chatMessages = document.getElementById('chat-messages');
+var messageInput = document.getElementById('message-input');
+var sendBtn = document.getElementById('send-btn');
+var welcome = document.getElementById('welcome');
+var historyContainer = document.getElementById('history-container');
+
+marked.setOptions({
+    breaks: true,
+    gfm: true,
+    renderer: (function() {
+        var renderer = new marked.Renderer();
+        var origHtml = renderer.html.bind(renderer);
+        renderer.html = function(token) {
+            var text = typeof token === 'object' ? (token.raw || token.text || '') : String(token);
+            // Strip dangerous tags: script, iframe, object, embed, form
+            text = text.replace(/<\s*(script|iframe|object|embed|form)[^>]*>[\s\S]*?<\/\s*\1\s*>/gi, '');
+            text = text.replace(/<\s*(script|iframe|object|embed|form)[^>]*\/?>/gi, '');
+            // Strip event handlers (onclick, onerror, onload, etc.)
+            text = text.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '');
+            return text;
+        };
+        return renderer;
+    })()
+});
+
+// ── Moodle SSO: detectar token en URL ──
+(function() {
+    var params = new URLSearchParams(window.location.search);
+    var moodleToken = params.get('moodle_token');
+    if (moodleToken) {
+        localStorage.setItem('tutores_token', moodleToken);
+        // Limpiar la URL para no exponer el token
+        var cleanUrl = window.location.pathname;
+        window.history.replaceState({}, '', cleanUrl);
+    }
+})();
+
+function getToken() {
+    return localStorage.getItem('tutores_token') || '';
+}
+
+function authUrl(url) {
+    var token = getToken();
+    if (!token) return url;
+    var sep = url.includes('?') ? '&' : '?';
+    return url + sep + 'token=' + encodeURIComponent(token);
+}
+
+// Require login — redirect if no token
+if (!getToken()) {
+    window.location.href = '/tutores-virtuales/login?redirect=/tutores-virtuales/eulalia';
+}
+
+// Detect expired session on any fetch error (401/403)
+function handleSessionExpired() {
+    localStorage.removeItem('tutores_token');
+    var msg = 'Tu sesión ha expirado por inactividad. Vuelve a acceder desde Moodle.';
+    alert(msg);
+    window.location.href = '/tutores-virtuales/login?redirect=/tutores-virtuales/eulalia';
+}
+
+// Wrap fetch to detect session expiration
+var _originalFetch = window.fetch;
+window.fetch = function(url, options) {
+    return _originalFetch.apply(this, arguments).then(function(response) {
+        if (response.status === 401 || response.status === 403) {
+            var urlStr = typeof url === 'string' ? url : url.url || '';
+            if (urlStr.indexOf('/api/') >= 0 && urlStr.indexOf('token=') >= 0) {
+                handleSessionExpired();
+            }
+        }
+        return response;
+    });
+};
+
+// Load icons on start
+loadIcons();
+
+// Check auth level: show config panel for editors (professors)
+checkAuthLevel();
+
+function checkAuthLevel() {
+    var authEl = document.getElementById('nav-auth');
+    var token = getToken();
+    if (!token) {
+        authEl.innerHTML = '<a href="/tutores-virtuales/login?redirect=/tutores-virtuales/eulalia" class="nav-auth-link">Iniciar sesión</a>';
+        return;
+    }
+    fetch(authUrl('/api/tutores/auth-level'))
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+            if (!data || !data.authenticated) {
+                authEl.innerHTML = '<a href="/tutores-virtuales/login?redirect=/tutores-virtuales/eulalia" class="nav-auth-link">Iniciar sesión</a>';
+                return;
+            }
+            var name = data.nombre || data.username || '';
+            var rolBadge = data.level === 'docente'
+                ? '<span class="config-editor-badge" style="margin:0 6px;">Docente</span>'
+                : '';
+            authEl.innerHTML = '<span style="margin-right:2px;">' + name + '</span>' + rolBadge + '<a href="#" class="nav-auth-link" onclick="doLogout();return false;">Cerrar sesión</a>';
+
+            if (data.level === 'docente') {
+                document.getElementById('config-panel').style.display = 'block';
+                document.getElementById('users-panel').style.display = 'block';
+                loadConfig();
+                loadUsers();
+            }
+        })
+        .catch(function() {
+            authEl.innerHTML = '<a href="/tutores-virtuales/login?redirect=/tutores-virtuales/eulalia" class="nav-auth-link">Iniciar sesión</a>';
+        });
+}
+
+function doLogout() {
+    fetch(authUrl('/api/tutores/logout'), { method: 'POST' }).catch(function(){});
+    localStorage.removeItem('tutores_token');
+    localStorage.removeItem('tutores_username');
+    localStorage.removeItem('tutores_role');
+    window.location.href = '/tutores-virtuales/login';
+}
+
+function loadConfig() {
+    fetch('/api/public-agent/eulalia/transcripcion-config')
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(cfg) {
+            if (!cfg) return;
+            document.getElementById('cfg-sibilantes').value = cfg.sibilantes || 'distinguidor';
+            document.getElementById('cfg-nasalizacion').value = String(cfg.nasalizacion_vocalica || false);
+            document.getElementById('cfg-s-coda').value = cfg.s_coda || 'sibilante';
+        })
+        .catch(function() {});
+}
+
+function saveConfig() {
+    var body = {
+        sibilantes: document.getElementById('cfg-sibilantes').value,
+        nasalizacion_vocalica: document.getElementById('cfg-nasalizacion').value === 'true',
+        s_coda: document.getElementById('cfg-s-coda').value,
+    };
+    var status = document.getElementById('config-status');
+    status.textContent = 'Guardando...';
+    status.className = 'config-status';
+
+    fetch(authUrl('/api/agent/eulalia/transcripcion-config'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function(data) {
+        status.textContent = 'Configuración guardada';
+        status.className = 'config-status ok';
+        setTimeout(function() { status.textContent = ''; }, 3000);
+    })
+    .catch(function(err) {
+        status.textContent = err.message || 'Error al guardar';
+        status.className = 'config-status err';
+    });
+}
+
+// ── Gestión de usuarios (docente) ──
+function loadUsers() {
+    fetch(authUrl('/api/tutores/users'))
+        .then(function(r) { return r.ok ? r.json() : []; })
+        .then(function(users) {
+            var container = document.getElementById('users-list');
+            if (!users.length) { container.innerHTML = '<div style="color:#94a3b8;font-size:12px;font-style:italic;">Sin usuarios</div>'; return; }
+            container.innerHTML = '';
+            users.forEach(function(u) {
+                var row = document.createElement('div'); row.className = 'user-row';
+                var name = document.createElement('span'); name.className = 'user-name';
+                name.textContent = (u.nombre || u.username);
+                name.title = u.username;
+                var role = document.createElement('span');
+                role.className = 'user-role ' + (u.role === 'docente' ? 'role-docente' : 'role-estudiante');
+                role.textContent = u.role === 'docente' ? 'Docente' : 'Estudiante';
+                // Status indicator
+                if (!u.activo) {
+                    var pending = document.createElement('span');
+                    pending.style.cssText = 'font-size:10px;color:#f59e0b;margin-left:2px;';
+                    pending.textContent = '(pendiente)';
+                    pending.title = 'Cuenta sin activar';
+                    name.appendChild(pending);
+                }
+                // Invite link button
+                var invite = document.createElement('button'); invite.className = 'user-del-btn';
+                invite.innerHTML = '\uD83D\uDD17'; invite.title = 'Generar enlace de activación';
+                invite.style.color = '#2563eb';
+                invite.addEventListener('click', function() { generateInvite(u.username); });
+                // Delete button
+                var del = document.createElement('button'); del.className = 'user-del-btn';
+                del.innerHTML = '\u00D7'; del.title = 'Eliminar ' + u.username;
+                del.addEventListener('click', function() { deleteUser(u.username); });
+                row.appendChild(name); row.appendChild(role); row.appendChild(invite); row.appendChild(del);
+                container.appendChild(row);
+            });
+        })
+        .catch(function() {});
+}
+
+function generateInvite(username) {
+    var status = document.getElementById('users-status');
+    fetch(authUrl('/api/tutores/users/' + encodeURIComponent(username) + '/invite'), { method: 'POST' })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function(data) {
+        // Copy link to clipboard and show it
+        navigator.clipboard.writeText(data.link).then(function() {
+            status.textContent = 'Enlace copiado al portapapeles';
+            status.className = 'users-status ok';
+        }).catch(function() {
+            // Fallback: show in prompt
+            prompt('Enlace de activación para ' + username + ':', data.link);
+            status.textContent = 'Enlace generado';
+            status.className = 'users-status ok';
+        });
+        setTimeout(function() { status.textContent = ''; }, 5000);
+    })
+    .catch(function(err) { status.textContent = err.message; status.className = 'users-status err'; });
+}
+
+function addUser() {
+    var nombre = document.getElementById('new-user-name').value.trim();
+    var username = document.getElementById('new-user-username').value.trim();
+    var password = document.getElementById('new-user-password').value.trim();
+    var role = document.getElementById('new-user-role').value;
+    var status = document.getElementById('users-status');
+
+    if (!username || !password) { status.textContent = 'Introduce usuario y contraseña'; status.className = 'users-status err'; return; }
+
+    fetch(authUrl('/api/tutores/users'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password, role: role, nombre: nombre }),
+    })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function() {
+        status.textContent = 'Usuario creado'; status.className = 'users-status ok';
+        document.getElementById('new-user-name').value = '';
+        document.getElementById('new-user-username').value = '';
+        document.getElementById('new-user-password').value = '';
+        loadUsers();
+        setTimeout(function() { status.textContent = ''; }, 3000);
+    })
+    .catch(function(err) { status.textContent = err.message; status.className = 'users-status err'; });
+}
+
+function deleteUser(username) {
+    if (!confirm('¿Eliminar el usuario "' + username + '"?')) return;
+    var status = document.getElementById('users-status');
+    fetch(authUrl('/api/tutores/users/' + encodeURIComponent(username)), { method: 'DELETE' })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function() {
+        status.textContent = 'Usuario eliminado'; status.className = 'users-status ok';
+        loadUsers();
+        setTimeout(function() { status.textContent = ''; }, 3000);
+    })
+    .catch(function(err) { status.textContent = err.message; status.className = 'users-status err'; });
+}
+
+// Historial
+function addToHistory(query) {
+    queryHistory = queryHistory.filter(function(h) { return h.query !== query; });
+    queryHistory.unshift({ query: query, time: new Date() });
+    if (queryHistory.length > 30) queryHistory.pop();
+    renderHistory();
+}
+function renderHistory() {
+    if (!historyContainer) return;
+    historyContainer.innerHTML = '';
+    if (queryHistory.length === 0) { historyContainer.innerHTML = '<div class="history-empty">Sin consultas aún</div>'; return; }
+    queryHistory.forEach(function(h) {
+        var item = document.createElement('div'); item.className = 'history-item';
+        var q = document.createElement('div'); q.className = 'history-question'; q.textContent = h.query;
+        var m = document.createElement('div'); m.className = 'history-meta'; m.textContent = formatTime(h.time);
+        item.appendChild(q); item.appendChild(m);
+        item.addEventListener('click', function() { sendMessage(h.query); });
+        historyContainer.appendChild(item);
+    });
+}
+function formatTime(date) {
+    var d = new Date(date); var now = new Date(); var diff = now - d;
+    if (diff < 60000) return 'Ahora';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' min';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + ' h';
+    return d.toLocaleDateString();
+}
+
+function addMessage(text, role) {
+    if (welcome.style.display !== 'none') welcome.style.display = 'none';
+    var msg = document.createElement('div'); msg.className = 'message ' + role;
+    var bubble = document.createElement('div'); bubble.className = 'bubble';
+    if (role === 'user') bubble.textContent = text;
+    msg.appendChild(bubble);
+    chatMessages.appendChild(msg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return bubble;
+}
+
+function injectExerciseButtons(bubble) {
+    var placeholder = bubble.querySelector('.ejercicio-btns-placeholder');
+    if (!placeholder) return;
+
+    var btns = document.createElement('div');
+    btns.className = 'ejercicio-btns';
+
+    var btnCorregir = document.createElement('button');
+    btnCorregir.className = 'btn-corregir';
+    btnCorregir.textContent = 'Corregir mis respuestas';
+    btnCorregir.addEventListener('click', function() { sendMessage('corregir'); });
+
+    var btnSolucion = document.createElement('button');
+    btnSolucion.className = 'btn-solucion';
+    btnSolucion.textContent = 'Ver solución';
+    btnSolucion.addEventListener('click', function() { sendMessage('solución'); });
+
+    btns.appendChild(btnCorregir);
+    btns.appendChild(btnSolucion);
+    placeholder.replaceWith(btns);
+}
+
+function sendMessage(message) {
+    if (isLoading || !message.trim()) return;
+    isLoading = true; sendBtn.disabled = true; messageInput.value = '';
+    var cn = document.getElementById('chat-notice');
+    if (cn) cn.style.display = 'none';
+    addToHistory(message);
+    var userBubble = addMessage(message, 'user');
+    var userMsg = userBubble.closest('.message');
+    var agentBubble = addMessage('', 'agent');
+    agentBubble.innerHTML = '<span class="loading">Preparando respuesta...</span>';
+
+    var params = new URLSearchParams({ message: message });
+    if (sessionId) params.append('session_id', sessionId);
+
+    // Always use public endpoint — it handles tutores auth (username/role)
+    var chatBase = '/api/public-agent/' + AGENT_ID + '/chat/stream?' + params;
+    var chatUrl = authUrl(chatBase);
+    var eventSource = new EventSource(chatUrl);
+    var responseText = '';
+    var badgeHtml = '';
+    var bannerHtml = '';
+    var traceHtml = '';
+    var hasScrolled = false;
+
+    function scrollToUser() {
+        if (hasScrolled) return; hasScrolled = true;
+        if (userMsg) {
+            var cr = chatMessages.getBoundingClientRect();
+            var mr = userMsg.getBoundingClientRect();
+            chatMessages.scrollTop += mr.top - cr.top;
+        }
+    }
+
+    eventSource.addEventListener('session', function(e) { sessionId = e.data; });
+    eventSource.addEventListener('status', function(e) { agentBubble.innerHTML = '<span class="loading">' + e.data + '</span>'; });
+    eventSource.addEventListener('badge', function(e) { badgeHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml; scrollToUser(); });
+    eventSource.addEventListener('procedural_banner', function(e) { bannerHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml; scrollToUser(); });
+    eventSource.onmessage = function(e) {
+        var chunk = e.data.replace(/\\n/g, '\n'); responseText += chunk;
+        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText); scrollToUser();
+    };
+    eventSource.addEventListener('replace', function(e) { responseText = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText); });
+    eventSource.addEventListener('trace', function(e) { traceHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText) + traceHtml; });
+    eventSource.addEventListener('done', function() {
+        eventSource.close();
+        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText) + traceHtml;
+        agentBubble.querySelectorAll('a').forEach(function(a) { a.target = '_blank'; a.rel = 'noopener'; });
+        // Replace exercise button markers with actual buttons
+        injectExerciseButtons(agentBubble);
+        // Show/hide AFI keyboard based on exercise state
+        checkExerciseActive(responseText);
+        // Add feedback widget
+        var parentMsg = agentBubble.closest('.message') || agentBubble.parentElement;
+        if (parentMsg) createFeedbackWidget(parentMsg, message, responseText);
+        isLoading = false; sendBtn.disabled = false; messageInput.focus();
+    });
+    eventSource.addEventListener('error', function() {
+        eventSource.close();
+        if (!responseText) agentBubble.innerHTML = '<span style="color:#dc3545;">Error de conexión. Inténtalo de nuevo.</span>';
+        isLoading = false; sendBtn.disabled = false;
+    });
+}
+
+// ── Análisis acústico (subida de audio) ──
+document.getElementById('audio-file-input').addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';  // Reset for re-upload
+
+    if (file.size > 10 * 1024 * 1024) {
+        alert('El archivo es demasiado grande (máximo 10 MB).');
+        return;
+    }
+
+    isLoading = true; sendBtn.disabled = true;
+    var userBubble = addMessage('🎤 Analizando audio: ' + file.name, 'user');
+    var agentBubble = addMessage('', 'agent');
+    agentBubble.innerHTML = '<span class="loading">Generando espectrograma y análisis acústico...</span>';
+
+    var formData = new FormData();
+    formData.append('file', file);
+
+    fetch('/api/public-agent/analyze-audio?mostrar_formantes=true&mostrar_pitch=true', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(function(resp) {
+        if (!resp.ok) return resp.json().then(function(err) { throw new Error(err.detail || 'Error'); });
+        return resp.json();
+    })
+    .then(function(data) {
+        var html = '<div style="padding:8px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:13px;color:#166534;margin-bottom:8px;">📊 Análisis acústico generado automáticamente (verificado, sin IA).</div>';
+        html += marked.parse(data.analisis_md || '');
+        html += '<div style="margin-top:12px;">';
+        html += '<p><strong>Espectrograma</strong> (con formantes F1-F4 y F0):</p>';
+        html += '<img src="' + data.espectrograma_url + '" style="max-width:100%;border-radius:6px;border:1px solid #e2e8f0;" alt="Espectrograma" />';
+        html += '<p style="margin-top:12px;"><strong>Oscilograma</strong>:</p>';
+        html += '<img src="' + data.oscilograma_url + '" style="max-width:100%;border-radius:6px;border:1px solid #e2e8f0;" alt="Oscilograma" />';
+        html += '</div>';
+        agentBubble.innerHTML = html;
+        isLoading = false; sendBtn.disabled = false; messageInput.focus();
+    })
+    .catch(function(err) {
+        agentBubble.innerHTML = '<span style="color:#dc3545;">Error: ' + err.message + '</span>';
+        isLoading = false; sendBtn.disabled = false;
+    });
+});
+
+// ── Ejercicios de errores fonológicos ──
+// ── Teclado AFI ──
+function insertAfi(symbol) {
+    var input = document.getElementById('message-input');
+    var start = input.selectionStart;
+    var end = input.selectionEnd;
+    var text = input.value;
+    input.value = text.substring(0, start) + symbol + text.substring(end);
+    input.selectionStart = input.selectionEnd = start + symbol.length;
+    input.focus();
+    // Auto-resize
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+}
+
+var afiExpanded = false;
+function toggleAfiRows() {
+    afiExpanded = !afiExpanded;
+    document.getElementById('afi-row-alofonos').style.display = afiExpanded ? 'flex' : 'none';
+    document.getElementById('afi-row-otros').style.display = afiExpanded ? 'flex' : 'none';
+    document.getElementById('afi-toggle-more').textContent = afiExpanded ? 'Menos símbolos ▲' : 'Más símbolos ▼';
+}
+
+function showAfiKeyboard(includeAlofonos) {
+    document.getElementById('afi-keyboard').style.display = 'block';
+    // If fonética mode, show allophones row automatically
+    if (includeAlofonos) {
+        document.getElementById('afi-row-alofonos').style.display = 'flex';
+        afiExpanded = true;
+        document.getElementById('afi-toggle-more').textContent = 'Menos símbolos \u25B2';
+    }
+}
+
+function hideAfiKeyboard() {
+    document.getElementById('afi-keyboard').style.display = 'none';
+    document.getElementById('afi-row-alofonos').style.display = 'none';
+    document.getElementById('afi-row-otros').style.display = 'none';
+    afiExpanded = false;
+    document.getElementById('afi-toggle-more').textContent = 'Más símbolos \u25BC';
+}
+
+// Show keyboard when exercise is active (detected from response)
+var _exerciseActive = false;
+function checkExerciseActive(responseText) {
+    if (responseText.indexOf('ejercicio-btns-placeholder') !== -1 ||
+        responseText.indexOf('Respuestas recibidas') !== -1 ||
+        responseText.indexOf('Responde copiando esta plantilla') !== -1) {
+        _exerciseActive = true;
+        // Check if it's a fonética exercise (needs allophones)
+        var isFonetica = responseText.indexOf('fonética') !== -1 || responseText.indexOf('[ ]') !== -1;
+        showAfiKeyboard(isFonetica);
+    }
+    // Hide after correction
+    if (responseText.indexOf('Informe de errores') !== -1 || responseText.indexOf('Sin errores') !== -1) {
+        _exerciseActive = false;
+        hideAfiKeyboard();
+    }
+}
+
+function requestTranscripcion() {
+    var nivel = document.getElementById('trans-nivel').value;
+    var items = document.getElementById('trans-items').value;
+    // Todos los niveles usan el widget programático
+    window.open('/tutores-virtuales/eulalia/widgets/transcripcion_ejercicio?nivel=' + nivel + '&items=' + items, '_blank');
+}
+
+function requestExercise() {
+    var tipo = document.getElementById('exercise-type').value;
+    var nivel = document.getElementById('exercise-level').value;
+    var niveles = { basico: 'básico', intermedio: 'intermedio', avanzado: 'avanzado' };
+    var tipos = { '': 'combinados', sistemico: 'sistémicos', silaba: 'de sílaba', palabra: 'de palabra' };
+    var msg = 'Dame un ejercicio de errores ' + (tipos[tipo] || 'fonológicos') + ' nivel ' + (niveles[nivel] || nivel);
+    showChatAndSend(msg);
+}
+
+sendBtn.addEventListener('click', function() { sendMessage(messageInput.value); });
+messageInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(messageInput.value); } });
+messageInput.addEventListener('input', function() { messageInput.style.height = 'auto'; messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px'; });
+
+// Iconos de información
+function loadIcons() {
+    var token = getToken();
+    fetch('/api/public-agent/' + AGENT_ID + '/info')
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(agent) {
+            if (!agent) return;
+            var row = document.getElementById('info-icons');
+
+            if (agent.agent_type) {
+                var img = document.createElement('img');
+                img.src = '/img/' + agent.agent_type + '.svg';
+                img.title = 'Tipo: ' + agent.agent_type;
+                row.appendChild(img);
+            }
+
+            if (agent.prompt_level) {
+                var dots = { stringent: '\uD83D\uDFE2', tolerant: '\uD83D\uDFE1', lax: '\uD83D\uDD34' };
+                var labels = { stringent: 'Estricto', tolerant: 'Tolerante', lax: 'Relajado' };
+                var span = document.createElement('span');
+                span.className = 'prompt-dot';
+                span.textContent = dots[agent.prompt_level] || dots.stringent;
+                span.title = 'Nivel de prompt: ' + (labels[agent.prompt_level] || agent.prompt_level);
+                row.appendChild(span);
+            }
+
+            if (agent.decision_trace) {
+                var isCrystal = agent.decision_trace === 'crystal_box' || agent.decision_trace === 'crystal_box_testers';
+                var img2 = document.createElement('img');
+                img2.src = isCrystal ? '/static/icon_crystal_box.svg' : '/static/icon_black_box.svg';
+                img2.title = 'Transparencia: ' + (isCrystal ? 'Caja de cristal' : 'Caja negra');
+                row.appendChild(img2);
+            }
+
+            if (agent.reliability_cues) {
+                var img3 = document.createElement('img');
+                img3.src = agent.reliability_cues === 'shown' ? '/static/icon_reliability_on.svg' : '/static/icon_reliability_off.svg';
+                img3.title = 'Indicadores de fiabilidad: ' + (agent.reliability_cues === 'shown' ? 'Visibles' : 'Ocultos');
+                row.appendChild(img3);
+            }
+        })
+        .catch(function() {});
+}
+
+// ── Feedback widget ──
+function createFeedbackWidget(parentMsg, userQuestion, responseText) {
+    var widget = document.createElement('div');
+    widget.className = 'feedback-widget';
+
+    var btnUp = document.createElement('button');
+    btnUp.className = 'feedback-btn';
+    btnUp.innerHTML = '\uD83D\uDC4D';
+    btnUp.title = 'Respuesta correcta';
+    btnUp.addEventListener('click', function() { submitFeedback(widget, 'up', '', userQuestion, responseText); });
+
+    var btnDown = document.createElement('button');
+    btnDown.className = 'feedback-btn';
+    btnDown.innerHTML = '\uD83D\uDC4E';
+    btnDown.title = 'Reportar un problema';
+
+    var panel = document.createElement('div');
+    panel.className = 'feedback-report-panel hidden';
+
+    btnDown.addEventListener('click', function() {
+        if (!panel.dataset.built) {
+            var notes = document.createElement('textarea');
+            notes.className = 'feedback-notes';
+            notes.placeholder = '¿Qué error has encontrado? (opcional)';
+            notes.rows = 2;
+            var submitBtn = document.createElement('button');
+            submitBtn.className = 'feedback-submit-btn';
+            submitBtn.textContent = 'Enviar';
+            submitBtn.addEventListener('click', function() { submitFeedback(widget, 'down', notes.value, userQuestion, responseText); });
+            panel.appendChild(notes);
+            panel.appendChild(submitBtn);
+            panel.dataset.built = 'true';
+        }
+        panel.classList.toggle('hidden');
+    });
+
+    widget.appendChild(btnUp);
+    widget.appendChild(btnDown);
+    widget.appendChild(panel);
+    parentMsg.appendChild(widget);
+}
+
+function submitFeedback(widget, rating, notes, userQuestion, responseText) {
+    fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            agent_id: AGENT_ID,
+            session_id: sessionId || '',
+            message_index: document.querySelectorAll('.message.agent').length,
+            mode: 'public',
+            rating: rating,
+            error_code: '',
+            severity: '',
+            notes: notes || '',
+            user_question: userQuestion || '',
+            full_response: responseText || '',
+        })
+    }).then(function() {
+        widget.innerHTML = '<span class="feedback-thanks">¡Gracias por tu feedback!</span>';
+    }).catch(function() {
+        widget.innerHTML = '<span class="feedback-thanks">No se pudo enviar el feedback.</span>';
+    });
+}
+</script>
+<script src="/static/lalitutor/informar_profesor.js"></script>
+</body>
+</html>

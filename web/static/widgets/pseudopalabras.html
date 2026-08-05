@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crea pseudopalabras — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header a:hover { opacity: 0.85; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+
+.container { max-width: 680px; margin: 0 auto; padding: 32px 20px; }
+
+h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+.info-box {
+    background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px;
+    padding: 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.6; color: #3730a3;
+}
+
+.task-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 24px; margin-bottom: 16px;
+}
+
+.word-row {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+    padding: 12px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;
+}
+.word-label { font-size: 13px; color: #64748b; width: 110px; flex-shrink: 0; }
+.word-real { font-size: 16px; font-weight: 700; color: #4250b3; width: 120px; flex-shrink: 0; }
+.word-arrow { color: #94a3b8; font-size: 18px; flex-shrink: 0; }
+.word-input {
+    flex: 1; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px;
+    font-family: inherit; font-size: 14px; transition: border-color 0.2s;
+}
+.word-input:focus { outline: none; border-color: #4250b3; }
+.word-input:disabled { background: #f1f5f9; color: #64748b; }
+
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.btn-primary { background: #4250b3; color: #fff; }
+.btn-primary:hover { background: #3740a0; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.submit-row { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+
+.loading { display: none; align-items: center; gap: 10px; margin-top: 16px; font-size: 14px; color: #64748b; }
+.loading.show { display: flex; }
+.spinner {
+    width: 20px; height: 20px; border: 3px solid #e2e8f0; border-top-color: #4250b3;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.feedback { display: none; animation: fadeIn 0.4s ease; }
+.feedback.show { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.result-row {
+    display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px;
+    margin-bottom: 8px; border-radius: 8px; border: 1px solid #e2e8f0;
+}
+.result-row.pass { border-color: #bbf7d0; background: #f0fdf4; }
+.result-row.fail { border-color: #fecaca; background: #fef2f2; }
+.result-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.result-text { font-size: 13px; line-height: 1.5; }
+.result-word { font-weight: 700; }
+.result-comment { color: #64748b; margin-top: 2px; }
+
+.general-feedback {
+    background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px;
+    padding: 16px; font-size: 14px; line-height: 1.6; color: #3730a3;
+    margin: 16px 0;
+}
+
+.result-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Consultar al profesor */
+.consult-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 90;
+    background: #7c3aed; color: #fff; border: none; border-radius: 50%;
+    width: 56px; height: 56px; font-size: 24px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(124,58,237,0.4); transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+}
+.consult-fab:hover { background: #6d28d9; transform: scale(1.08); }
+.consult-fab .fab-tooltip {
+    position: absolute; right: 64px; background: #1e293b; color: #fff;
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.consult-fab:hover .fab-tooltip { opacity: 1; }
+
+.consult-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 100; align-items: center; justify-content: center;
+}
+.consult-overlay.show { display: flex; }
+.consult-modal {
+    background: #fff; border-radius: 14px; padding: 28px; width: 90%; max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: fadeIn 0.3s ease;
+}
+.consult-modal h3 { font-size: 18px; color: #7c3aed; margin-bottom: 6px; }
+.consult-modal .cm-sub { font-size: 13px; color: #64748b; margin-bottom: 16px; line-height: 1.5; }
+.consult-modal textarea {
+    width: 100%; min-height: 100px; padding: 12px; border: 2px solid #e2e8f0;
+    border-radius: 8px; font-family: inherit; font-size: 14px; line-height: 1.5;
+    resize: vertical; transition: border-color 0.2s;
+}
+.consult-modal textarea:focus { outline: none; border-color: #7c3aed; }
+.consult-modal .cm-count { font-size: 11px; color: #94a3b8; text-align: right; margin-top: 4px; }
+.consult-modal .cm-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.consult-modal .cm-btn {
+    padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.consult-modal .cm-cancel { background: #e2e8f0; color: #475569; }
+.consult-modal .cm-cancel:hover { background: #cbd5e1; }
+.consult-modal .cm-send { background: #7c3aed; color: #fff; }
+.consult-modal .cm-send:hover { background: #6d28d9; }
+.consult-modal .cm-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.consult-modal .cm-ok { display: none; text-align: center; padding: 20px 0; }
+.consult-modal .cm-ok.show { display: block; }
+.consult-modal .cm-ok p { font-size: 15px; color: #16a34a; font-weight: 600; margin-bottom: 4px; }
+.consult-modal .cm-ok span { font-size: 13px; color: #64748b; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">›</span>
+    <span class="title">Tema 1 — Crea pseudopalabras</span>
+</div>
+
+<div class="container">
+
+    <h2>Crea pseudopalabras</h2>
+    <p class="subtitle">
+        Una pseudopalabra es una expresión que se parece fonológicamente a una palabra real,
+        pero que no tiene significado. Tu tarea es crear una pseudopalabra a partir de cada palabra real.
+    </p>
+
+    <div class="info-box">
+        <strong>¿Cómo crear una buena pseudopalabra?</strong> Debe cumplir estas condiciones:
+        <ul style="margin: 8px 0 0 18px;">
+            <li>No ser una palabra real del español.</li>
+            <li>Respetar las reglas fonotácticas del español (que suene como si pudiera ser una palabra del español).</li>
+            <li>Tener el <strong>mismo número de sílabas</strong> que la palabra original.</li>
+            <li>Que cada sílaba tenga la <strong>misma complejidad</strong> (p.ej., si la original tiene una sílaba CCV como «bro», la pseudopalabra debe tener también una sílaba CCV en esa posición, como «pli»).</li>
+            <li>Tener el <strong>acento en la misma sílaba</strong> que la palabra original (p.ej., si la original es llana, la pseudopalabra también debe ser llana).</li>
+        </ul>
+        <div style="margin-top:8px;">Ejemplo: <em>mesa</em> (CV.CV, llana) → <em>tesa</em> (CV.CV, llana). Ejemplo incorrecto: <em>mesa</em> → <em>trán</em> (distinto número de sílabas, distinta complejidad).</div>
+    </div>
+
+    <div class="task-card" id="task-card">
+        <div id="word-rows"></div>
+
+        <div class="submit-row">
+            <span style="font-size:12px; color:#94a3b8;">Completa las 5 pseudopalabras</span>
+            <button class="btn btn-primary" id="btn-submit" onclick="submitPseudowords()" disabled>Evaluar</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            Evaluando tus pseudopalabras...
+        </div>
+    </div>
+
+    <div class="feedback" id="feedback">
+        <div id="results-list"></div>
+        <div class="general-feedback" id="general-feedback"></div>
+        <div class="result-buttons">
+            <button class="btn btn-secondary" onclick="newRound()">Nuevas palabras</button>
+            <button class="btn btn-primary" onclick="window.close()">Volver al curso</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Consultar al profesor -->
+<button class="consult-fab" onclick="consultOpen()" title="Consultar al profesor">
+    <span class="fab-tooltip">Consultar al profesor</span>
+    &#9993;
+</button>
+<div class="consult-overlay" id="consult-overlay" onclick="if(event.target===this)consultClose()">
+    <div class="consult-modal">
+        <div id="consult-form">
+            <h3>Consultar al profesor</h3>
+            <p class="cm-sub">Escribe tu duda sobre este ejercicio. El profesor la recibirá y te responderá.</p>
+            <textarea id="consult-text" placeholder="Escribe tu consulta aquí..." oninput="consultCount()"></textarea>
+            <div class="cm-count"><span id="consult-count">0</span> caracteres</div>
+            <div class="cm-btns">
+                <button class="cm-btn cm-cancel" onclick="consultClose()">Cancelar</button>
+                <button class="cm-btn cm-send" id="consult-send" onclick="consultSend()" disabled>Enviar consulta</button>
+            </div>
+        </div>
+        <div class="cm-ok" id="consult-ok">
+            <p>&#10003; Consulta enviada</p>
+            <span>El profesor la revisará y te responderá.</span>
+            <div class="cm-btns" style="justify-content:center; margin-top:16px;">
+                <button class="cm-btn cm-cancel" onclick="consultClose()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// ── Progress tracking ──
+function saveProgress(widgetId, score, maxScore) {
+    try {
+        var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
+        var pct = Math.round(score / maxScore * 100);
+        var prev = progress[widgetId];
+        // Only update if better score or not yet saved
+        if (!prev || pct > prev.score) {
+            progress[widgetId] = { completed: pct >= 75, score: pct, date: new Date().toISOString().split('T')[0] };
+            localStorage.setItem('lali_progress', JSON.stringify(progress));
+        }
+    } catch(e) {}
+}
+
+// Word bank — common Spanish words of varying syllable count
+var WORD_BANK = [
+    'mesa', 'gato', 'perro', 'casa', 'libro', 'agua', 'pelo', 'boca', 'mano', 'dedo',
+    'zapato', 'maleta', 'camisa', 'botella', 'cocina', 'ventana', 'cabeza', 'pelota', 'comida', 'moneda',
+    'mariposa', 'elefante', 'chocolate', 'bicicleta', 'zanahoria', 'telefono', 'ordenador', 'cocodrilo',
+    'cuchara', 'tenedor', 'sombrero', 'escalera', 'paraguas', 'cuaderno', 'mochila', 'alfombra'
+];
+
+var currentWords = [];
+
+function pickWords(n) {
+    var shuffled = WORD_BANK.slice().sort(function() { return Math.random() - 0.5; });
+    return shuffled.slice(0, n);
+}
+
+function buildUI() {
+    currentWords = pickWords(5);
+    var container = document.getElementById('word-rows');
+    container.innerHTML = '';
+
+    currentWords.forEach(function(word, i) {
+        var row = document.createElement('div');
+        row.className = 'word-row';
+        row.innerHTML =
+            '<span class="word-label">Palabra ' + (i + 1) + ':</span>' +
+            '<span class="word-real">' + word + '</span>' +
+            '<span class="word-arrow">→</span>' +
+            '<input type="text" class="word-input" id="pseudo-' + i + '" placeholder="Tu pseudopalabra..." oninput="checkReady()">';
+        container.appendChild(row);
+    });
+
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('feedback').classList.remove('show');
+}
+
+function checkReady() {
+    var allFilled = true;
+    for (var i = 0; i < currentWords.length; i++) {
+        if (document.getElementById('pseudo-' + i).value.trim().length < 2) {
+            allFilled = false;
+            break;
+        }
+    }
+    document.getElementById('btn-submit').disabled = !allFilled;
+}
+
+// ── Local Spanish dictionary for pre-validation ──
+// Common Spanish words including short/tricky ones students might accidentally use
+var SPANISH_DICT = new Set([
+    // 2-letter
+    'al','da','de','di','do','el','en','es','fe','si','no','ya','yo',
+    // 3-letter
+    'ajo','ala','amo','ano','ara','aro','asa','ave','bar','boa','bol','cal','col',
+    'con','cos','dar','del','den','dio','dos','eco','eje','era','esa','ese','eso',
+    'eta','fin','gas','gen','gol','han','hay','hez','hoy','iba','ida','ira','ley',
+    'lid','los','luz','mal','mar','mas','mes','mia','mil','mis','mon','muy','nao',
+    'nos','oca','ojo','ola','oso','par','pan','pas','paz','pes','pie','pis','por',
+    'pro','pus','que','red','res','rey','rio','rol','ron','roo','ropa','ros','rua',
+    'ruin','ruso','sal','san','sed','ser','sin','sol','son','sor','sur','sus',
+    'tal','tan','tos','tul','tun','tus','una','uno','uva','van','vas','ver','vez',
+    'vid','vil','vio','vos','voz','yen','zar',
+    // 3-letter with accents (normalized)
+    'dia','lio','mio','pio','rio','tio','via',
+    // 4-letter
+    'acto','agua','algo','alma','alto','ambo','amor','ancho','ando','arco','area',
+    'asno','atun','auto','ayer','bala','balo','bano','bata','beso','bien','boca',
+    'boda','bola','bolo','bota','buho','cabo','caja','cala','cama','cana','caos',
+    'cara','caso','cebo','celo','cena','cero','chal','cien','cima','cine','cita',
+    'clan','clon','coba','coca','coco','codo','cola','como','copa','coro','cosa',
+    'dato','dama','dedo','dios','don','dona','dote','duda','duro','ecos','ella',
+    'ello','ellos','faja','fama','faro','fea','feo','fila','filo','fino','foca',
+    'foco','foro','gala','gana','gasa','gato','gema','giro','goma','gota','gris',
+    'guia','haba','hada','halo','higo','hija','hijo','hilo','hobo','hoja','hora',
+    'horno','humo','idea','isla','jefe','jugo','jura','kilo','laca','lado','lago',
+    'lana','lata','lava','leal','leon','liga','lima','limo','lino','liso','loba',
+    'lobo','loco','lodo','logo','loma','lona','losa','lote','luna','lujo','mago',
+    'mala','malo','mama','mano','mapa','masa','mate','mayo','mega','mena','menu',
+    'mesa','meta','miel','mimo','mina','misa','mito','moco','modo','mono','mora',
+    'moro','mota','moto','mudo','mula','mulo','muro','musa','nada','nata','nave',
+    'nene','nido','niña','niño','nodo','noma','nota','nova','nube','nuca','nudo',
+    'obra','ocio','odio','oido','once','oral','orca','orco','orla','orlo','ostra',
+    'otra','otro','paca','paco','paga','pago','paja','pala','palo','papa','para',
+    'paro','pata','pato','pavo','peca','pega','pena','peña','peon','pera','pero',
+    'pesa','peso','pica','pico','piel','pila','pino','pipa','piso','plan','poco',
+    'polo','pomo','pozo','puma','puro','rabo','ramo','rana','raro','rasa','raso',
+    'rata','rato','raya','rayo','raza','real','reed','reja','reno','repo','reta',
+    'reto','rico','rima','risa','rito','rizo','roca','roda','rojo','roma','ropa',
+    'rosa','rota','roto','rubi','ruda','rudo','ruta','saco','sala','sano','sapo',
+    'seda','seis','seno','seña','sera','seta','sido','silo','sima','sino','sofa',
+    'soga','soja','solo','soma','sota','sumo','taco','tajo','tala','tapa','taza',
+    'tela','tema','tero','teta','tipo','tiro','tiza','tono','tope','topo','toro',
+    'tosa','tubo','tufo','tuna','tuya','tuyo','urna','urea','vaca','vago','vale',
+    'vano','vara','vaso','vela','vena','vera','veta','vida','viga','vilo','vino',
+    'visa','yema','yeso','yuca','zaga','zapa','zona','zorro',
+    // 5+ letter common words (subset)
+    'abeja','abono','abrir','acaso','aceite','acera','acero','acido','acoso',
+    'actor','adios','adobe','agrio','ahora','album','aldea','aleta','alga',
+    'alien','altar','amigo','ancho','angel','animo','antes','anzuelo','arbol',
+    'arena','arroz','asado','asilo','asunto','atlas','avena','avion','ayuda',
+    'azote','azucar','azul','bahia','baile','balsa','banca','banco','banda',
+    'barba','barco','barra','barro','basta','bello','bicho','bisne','blanco',
+    'bloque','bolsa','bomba','bonito','borla','brazo','breve','brisa','brote',
+    'bruja','bueno','buque','burla','burro','busca','cable','cabra','cabeza',
+    'calma','calor','calvo','calle','campo','capaz','carne','carta','cerdo',
+    'cerro','chica','chico','cinco','clase','clavo','clima','cobra','coche',
+    'cofre','collar','comer','corto','crema','cruel','crudo','cubo','cuello',
+    'cuero','cueva','culpa','curso','danza','decir','delta','demás','dicha',
+    'digno','disco','dolor','donde','drama','dulce','duque','elite','enano',
+    'enero','falda','falso','feria','fibra','ficha','finca','firma','flaco',
+    'flojo','flota','forma','fresa','fruta','fuego','fuera','fuerte','fumar',
+    'gallo','globo','golpe','gordo','gorra','grado','grano','grave','gripe',
+    'grito','grupo','guapo','hielo','hierba','hierro','hueso','huevo','humor',
+    'jamon','jarra','jaula','joven','juego','jugar','junco','junto','justo',
+    'labor','lapiz','largo','latin','leche','lento','letra','libre','licor',
+    'limon','lindo','linea','listo','llama','llano','llave','lleno','lluvia',
+    'logro','lucha','lugar','madre','magia','mango','marca','marzo','mayor',
+    'media','medio','mejor','menor','melon','menta','merda','mocho','molde',
+    'monte','morir','mosca','motor','mucho','mundo','musica','nacer','nadie',
+    'nariz','negro','nieve','noble','noche','norte','novia','novio','nuevo',
+    'nunca','obeso','obvio','ocho','oliva','opaco','orden','oveja','padre',
+    'pagar','pájaro','palma','palmo','parar','pardo','pared','parte','pasto',
+    'pecho','perro','pesado','piano','pieza','pista','placa','plana','plano',
+    'plata','plato','playa','plaza','plena','pleno','plomo','pluma','pobre',
+    'poder','polvo','poner','porta','poste','prado','prensa','primo','prisa',
+    'probar','punto','queso','quien','quieto','quince','radio','racha','reina',
+    'reloj','resto','ritmo','rival','roble','rocio','rodeo','rombo','sabio',
+    'sacar','salir','salsa','salud','santo','sello','selva','senda','señor',
+    'señora','serie','sigma','signo','siglo','sitio','sobre','sonar','suave',
+    'subir','sudar','suelo','sueño','suero','sumar','tabla','tallo','tango',
+    'tanto','tarea','techo','temer','tener','tenso','terco','tigre','tinta',
+    'tomar','tonto','toque','torre','total','traer','traje','tramo','trece',
+    'trigo','trozo','truco','turno','unico','unido','unir','usado','usual',
+    'valer','valle','valor','vapor','vario','varon','veinte','venir','verde',
+    'verso','viaje','viejo','vigor','vivir','volar','vuelo','vuelta','yerba',
+    'acento','acierto','actriz','aguja','aldaba','amplio','animal','armado',
+    'asalto','astro','ataque','ave','aviso','basura','blando','blusa','boleto',
+    'bonita','cabello','cadena','camino','camisa','cancer','cancion','capote',
+    'carbon','caries','casado','casino','caucho','centro','cerebro','cereza',
+    'charla','chiste','cielo','cifra','circo','clamor','clarin','cocina',
+    'codigo','colina','comida','compra','conejo','contra','copiar','corona',
+    'correa','correo','cortez','crimen','crisis','cuadro','cuando','cuarto',
+    'cuenta','cuerda','cuerpo','cumbre','debate','decimo','detras','diario',
+    'dibujo','dinero','diente','disfraz','doctor','dragon','efecto','empleo',
+    'encima','energía','enlace','ensayo','equipo','escape','escena','escudo',
+    'espada','espejo','estado','europa','exacto','examen','exceso','excusa',
+    'fábrica','famoso','famosa','farol','filtro','flecha','fondos','fragil',
+    'frente','fuerza','futbol','futuro','gastar','genero','genial','germen',
+    'gestor','gigante','globos','gracia','granja','grueso','guerra','hambre',
+    'harina','helado','hierba','hombre','honrar','humano','iglesia','imagen',
+    'impuro','indice','infame','inicio','insecto','jardin','jinete','joroba',
+    'jugada','labios','laguna','lagrima','lengua','librar','limpiar','litros',
+    'locura','madera','maleta','mancha','marcha','marino','materia','medida',
+    'mirada','modelo','molino','moneda','montón','morena','muerte','muñeca',
+    'musica','nación','nervio','ninguno','novela','numero','objeto','opcion',
+    'origen','oscuro','paisaje','paloma','patron','pecado','pedido','pelota',
+    'pintar','pintor','pirata','poesia','policia','postre','precio','prensa',
+    'propio','prueba','pueblo','puente','puerta','puesto','pulgar','receta',
+    'recreo','reflejo','regalo','reglamento','relato','relleno','remedio',
+    'repaso','resumen','revista','riesgo','rumbo','semana','sentido','sierra',
+    'simple','social','sonido','suerte','talento','teatro','tejido','templo',
+    'tercio','timbre','toalla','trabajo','trueno','tumba','turista','unico',
+    'unidad','unirse','urbano','vacuna','valiente','vecino','vender','veneno',
+    'verdad','viernes','vinagre','violin','volcan','zapato','zumo',
+    // Words from WORD_BANK that might be created as pseudo
+    'bicicleta','botella','cabeza','cuchara','cuaderno','chocolate','cocodrilo',
+    'elefante','escalera','mariposa','mochila','alfombra','ordenador','paraguas',
+    'pelota','sombrero','tenedor','teléfono','ventana','zanahoria','libro','pelo',
+    'gato','perro','casa'
+]);
+
+function isRealWord(w) {
+    // Normalize: lowercase, remove accents for matching
+    var normalized = w.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return SPANISH_DICT.has(normalized);
+}
+
+async function submitPseudowords() {
+    var pairs = currentWords.map(function(word, i) {
+        return word + ' → ' + document.getElementById('pseudo-' + i).value.trim();
+    });
+
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('feedback').classList.remove('show');
+
+    // Disable inputs
+    for (var i = 0; i < currentWords.length; i++) {
+        document.getElementById('pseudo-' + i).disabled = true;
+    }
+
+    // Pre-validate locally: check for real Spanish words
+    var localErrors = [];
+    for (var k = 0; k < currentWords.length; k++) {
+        var pseudo = document.getElementById('pseudo-' + k).value.trim().toLowerCase();
+        if (isRealWord(pseudo)) {
+            localErrors.push('«' + pseudo + '» (pseudopalabra para «' + currentWords[k] + '») es una palabra real del español.');
+        }
+    }
+
+    if (localErrors.length > 0) {
+        alert('Algunas de tus pseudopalabras son palabras reales del español:\n\n' + localErrors.join('\n') + '\n\nRecuerda: una pseudopalabra no debe ser una palabra existente.');
+        for (var j2 = 0; j2 < currentWords.length; j2++) {
+            document.getElementById('pseudo-' + j2).disabled = false;
+        }
+        document.getElementById('btn-submit').disabled = false;
+        document.getElementById('loading').classList.remove('show');
+        return;
+    }
+
+    var rubrica = [
+        { descripcion: 'Ninguna de las pseudopalabras es una palabra real del español. Revisa con cuidado palabras cortas que podrían existir (lío, río, pío, oca, ola, aro, etc.).' },
+        { descripcion: 'Las pseudopalabras respetan las reglas fonotácticas del español (las combinaciones de consonantes y vocales son posibles en español).' },
+        { descripcion: 'Cada pseudopalabra tiene el mismo número de sílabas que su palabra original.' },
+        { descripcion: 'Cada sílaba de la pseudopalabra tiene la misma complejidad que la sílaba correspondiente de la palabra original (p.ej., si la original tiene una sílaba CCV, la pseudopalabra también debe tener CCV en esa posición; si tiene CVC, debe tener CVC).' },
+        { descripcion: 'El acento prosódico cae en la misma sílaba que en la palabra original (si la original es llana, la pseudopalabra es llana; si es aguda, aguda; si es esdrújula, esdrújula).' }
+    ];
+
+    var definicion = pairs.join('\n');
+
+    try {
+        var res = await fetch('/api/public-agent/eulalia/evaluar-definicion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                concepto: 'Pseudopalabras',
+                definicion: definicion,
+                rubrica: rubrica,
+                referencia: 'Una pseudopalabra es una expresión que se parece fonológicamente a una palabra real del español, pero que no tiene un significado asociado. Debe cumplir estos requisitos: (1) No ser una palabra real del español — ¡cuidado con palabras cortas como lío, río, pío, oca, aro, ola, etc.! (2) Respetar las reglas fonotácticas del español. (3) Tener el mismo número de sílabas que la palabra original. (4) Cada sílaba debe tener la misma complejidad que la correspondiente de la palabra original — si la original tiene una sílaba CCV (como «bro» en «libro»), la pseudopalabra debe tener CCV en esa posición (como «pli» en «piplo»); si tiene CV, debe tener CV. (5) El acento debe caer en la misma sílaba: si la original es llana, la pseudopalabra debe ser llana; si es aguda, aguda. Ejemplos correctos: mesa (CV.CV llana) → tesa (CV.CV llana), libro (CV.CCV llana) → pipro (CV.CCV llana). Ejemplos incorrectos: mesa → lío (es palabra real), mesa → tran (distinto número de sílabas), libro → lipro (la primera sílaba pasa de CVC a CVC, pero la segunda de CCV a CCV, correcto) vs libro → liro (pierde la complejidad CCV de la segunda sílaba).'
+            })
+        });
+
+        if (!res.ok) throw new Error('Error del servidor');
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        renderFeedback(data, rubrica);
+    } catch (e) {
+        alert('Error al evaluar: ' + e.message);
+        for (var j = 0; j < currentWords.length; j++) {
+            document.getElementById('pseudo-' + j).disabled = false;
+        }
+        document.getElementById('btn-submit').disabled = false;
+    } finally {
+        document.getElementById('loading').classList.remove('show');
+    }
+}
+
+function renderFeedback(data, rubrica) {
+    var criterios = data.criterios || [];
+    var listEl = document.getElementById('results-list');
+    listEl.innerHTML = '';
+
+    criterios.forEach(function(c, i) {
+        var div = document.createElement('div');
+        div.className = 'result-row ' + (c.cumplido ? 'pass' : 'fail');
+        div.innerHTML =
+            '<span class="result-icon">' + (c.cumplido ? '✓' : '✗') + '</span>' +
+            '<div class="result-text">' +
+            '<div class="result-word">' + rubrica[i].descripcion + '</div>' +
+            '<div class="result-comment">' + (c.comentario || '') + '</div>' +
+            '</div>';
+        listEl.appendChild(div);
+    });
+
+    document.getElementById('general-feedback').textContent = data.comentario_general || '';
+    document.getElementById('feedback').classList.add('show');
+    var passed = criterios.filter(function(c){return c.cumplido;}).length;
+    saveProgress('pseudopalabras', passed, rubrica.length);
+}
+
+function newRound() {
+    buildUI();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Init
+buildUI();
+
+// ── Consultar al profesor ──
+var CONSULT_WIDGET = 'Crea pseudopalabras';
+function consultOpen() {
+    document.getElementById('consult-overlay').classList.add('show');
+    document.getElementById('consult-form').style.display = '';
+    document.getElementById('consult-ok').classList.remove('show');
+    document.getElementById('consult-text').value = '';
+    document.getElementById('consult-count').textContent = '0';
+    document.getElementById('consult-send').disabled = true;
+}
+function consultClose() {
+    document.getElementById('consult-overlay').classList.remove('show');
+}
+function consultCount() {
+    var n = document.getElementById('consult-text').value.trim().length;
+    document.getElementById('consult-count').textContent = n;
+    document.getElementById('consult-send').disabled = n < 10;
+}
+async function consultSend() {
+    var text = document.getElementById('consult-text').value.trim();
+    if (text.length < 10) return;
+    document.getElementById('consult-send').disabled = true;
+    document.getElementById('consult-send').textContent = 'Enviando...';
+    try {
+        var res = await fetch('/api/public-agent/eulalia/consulta-profesor', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ consulta: text, widget: CONSULT_WIDGET, contexto: document.title })
+        });
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+        document.getElementById('consult-form').style.display = 'none';
+        document.getElementById('consult-ok').classList.add('show');
+    } catch(e) {
+        alert('Error al enviar: ' + e.message);
+    } finally {
+        document.getElementById('consult-send').textContent = 'Enviar consulta';
+    }
+}
+</script>
+
+</body>
+</html>
