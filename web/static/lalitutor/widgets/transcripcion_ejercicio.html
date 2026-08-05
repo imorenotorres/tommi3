@@ -161,6 +161,17 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
         <button class="btn btn-secondary" onclick="generateExercise()">Nuevo ejercicio</button>
     </div>
 
+    <!-- Transcripción libre -->
+    <div style="margin-top:32px;padding-top:20px;border-top:2px solid #e2e8f0;">
+        <h3 style="font-size:16px;color:#475569;margin-bottom:8px;">Consulta una transcripción</h3>
+        <p style="font-size:12px;color:#94a3b8;margin-bottom:12px;">Escribe una palabra o frase corta para ver su transcripción fonológica. La transcripción se genera automáticamente (sin IA).</p>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="free-input" placeholder="Ej: mariposa, el gato come" style="flex:1;padding:10px 14px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;" onkeydown="if(event.key==='Enter')transcribirLibre()">
+            <button class="btn btn-primary" onclick="transcribirLibre()">Transcribir</button>
+        </div>
+        <div id="free-result" style="margin-top:12px;display:none;"></div>
+    </div>
+
 </div>
 
 </div>
@@ -498,6 +509,44 @@ function showSolutions() {
 }
 
 updateDesc();
+
+function transcribirLibre() {
+    var input = document.getElementById('free-input');
+    var result = document.getElementById('free-result');
+    var texto = input.value.trim();
+    if (!texto) return;
+
+    result.style.display = 'block';
+    result.innerHTML = '<span style="color:#94a3b8;font-size:13px;">Transcribiendo...</span>';
+
+    fetch('/api/public-agent/eulalia/transcribir?texto=' + encodeURIComponent(texto))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (!data.ok) {
+            result.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#991b1b;">' + (data.error || data.detail || 'No se pudo transcribir') + '</div>';
+            return;
+        }
+        var html = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px;">';
+        html += '<div style="font-size:11px;color:#16a34a;font-weight:600;margin-bottom:6px;">Transcripción verificada (sin IA)</div>';
+        html += '<div style="font-size:18px;font-family:\'Doulos SIL\',serif;color:#1e293b;margin-bottom:8px;">' + data.transcripcion + '</div>';
+        if (data.detalle && data.detalle.length > 1) {
+            html += '<div style="font-size:12px;color:#475569;border-top:1px solid #bbf7d0;padding-top:8px;margin-top:4px;">';
+            data.detalle.forEach(function(d) {
+                if (d.transcripcion) {
+                    html += '<span style="margin-right:12px;"><strong>' + d.palabra + '</strong> → /' + d.transcripcion + '/</span>';
+                } else if (d.error) {
+                    html += '<span style="margin-right:12px;color:#dc2626;"><strong>' + d.palabra + '</strong> → ⚠️ ' + d.error + '</span>';
+                }
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+        result.innerHTML = html;
+    })
+    .catch(function(err) {
+        result.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#991b1b;">Error: ' + err.message + '</div>';
+    });
+}
 
 </script>
 <script src="/static/lalitutor/progreso.js"></script>

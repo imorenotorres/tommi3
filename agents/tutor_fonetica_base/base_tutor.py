@@ -321,30 +321,53 @@ def _generar_respuesta_transcripcion(texto: str) -> tuple:
 
 
 def _corregir_transcripciones_en_texto(texto: str) -> str:
-    """Postprocesa la respuesta del LLM para corregir transcripciones fonológicas.
-    Busca patrones /.../ en el texto y los reemplaza por la transcripción programática."""
+    """Postprocesa la respuesta del LLM para reemplazar transcripciones fonológicas
+    por las generadas programáticamente. Busca patrones como:
+      "palabra" → /transcripción/
+      «palabra» → /transcripción/
+      palabra → /transcripción/
+    y reemplaza la transcripción del LLM por la programática."""
 
-    def reemplazar_match(m):
-        contenido = m.group(1).strip()
-        # Si ya parece una transcripción IPA válida (con puntos silábicos), dejar
-        if '.' in contenido and any(c in contenido for c in 'θʝɲʧɾβðɣ'):
-            return m.group(0)
-        # Si parece una palabra española, transcribir
-        palabra = contenido.replace('ˈ', '').replace('.', '').strip()
-        if re.match(r'^[a-záéíóúüñ]+$', palabra):
-            resultado = transcribir(palabra)
-            if isinstance(resultado, str):
-                return resultado
+    # 1. Buscar "palabra" → /.../ y reemplazar con transcripción programática
+    def reemplazar_con_programatica(m):
+        palabra = m.group(1).strip()
+        transcripcion_llm = m.group(2)
+        resultado = transcribir(palabra)
+        if isinstance(resultado, str):
+            return m.group(0).replace('/' + transcripcion_llm + '/', resultado)
         return m.group(0)
 
-    # Buscar /palabra/ donde palabra parece español (no IPA)
+    # Patrón: "palabra" → /transcripción/ (con comillas, «», o sin)
     texto = re.sub(
-        r'/([a-záéíóúüñ]{2,}(?:\s+[a-záéíóúüñ]+)*)/',
-        reemplazar_match,
+        r'[""«]([a-záéíóúüñ]+(?:\s+[a-záéíóúüñ]+)*)[""»]'
+        r'\s*→\s*/([^/]+)/',
+        reemplazar_con_programatica,
         texto
     )
-    # Reemplazar ʎ por ʝ en cualquier transcripción
+    # Sin comillas: palabra → /transcripción/
+    texto = re.sub(
+        r'(?<!\w)([a-záéíóúüñ]+(?:\s+[a-záéíóúüñ]+)*)\s*→\s*/([^/]+)/',
+        reemplazar_con_programatica,
+        texto
+    )
+
+    # 2. Buscar /palabra_española/ (sin IPA) y transcribir
+    def reemplazar_palabra_plana(m):
+        palabra = m.group(1).strip()
+        resultado = transcribir(palabra)
+        if isinstance(resultado, str):
+            return resultado
+        return m.group(0)
+
+    texto = re.sub(
+        r'/([a-záéíóúüñ]{2,}(?:\s+[a-záéíóúüñ]+)*)/',
+        reemplazar_palabra_plana,
+        texto
+    )
+
+    # 3. Reemplazar ʎ por ʝ (yeísmo)
     texto = texto.replace('ʎ', 'ʝ')
+
     return texto
 
 

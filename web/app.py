@@ -2087,6 +2087,42 @@ async def lali_ejercicio_transcripcion(nivel: int = Query(1, ge=1, le=5), items:
 
 
 
+@app.get("/api/public-agent/eulalia/transcribir")
+async def lali_transcribir(texto: str = Query(..., max_length=200)):
+    """Transcribe a word or short phrase phonologically (programmatic, no LLM)."""
+    import sys
+    base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
+    if str(base_dir) not in sys.path:
+        sys.path.insert(0, str(base_dir))
+    from transcriptor import transcribir, transcribir_palabra
+
+    texto = texto.strip()
+    if not texto:
+        raise HTTPException(status_code=400, detail="Texto vacío")
+
+    # Check for inappropriate content
+    from base_tutor import _contiene_palabra_inapropiada
+    if _contiene_palabra_inapropiada(texto):
+        raise HTTPException(status_code=400, detail="Contenido no permitido")
+
+    resultado = transcribir(texto)
+    if isinstance(resultado, tuple):
+        return {"ok": False, "error": resultado[1]}
+
+    # Per-word detail
+    import re
+    palabras = re.findall(r"[a-záéíóúüñ]+", texto.lower())
+    detalle = []
+    for p in palabras:
+        t = transcribir_palabra(p)
+        if isinstance(t, tuple):
+            detalle.append({"palabra": p, "error": t[1]})
+        elif t:
+            detalle.append({"palabra": p, "transcripcion": t})
+
+    return {"ok": True, "texto": texto, "transcripcion": resultado, "detalle": detalle}
+
+
 # ── LALI tutor: empathy challenge (shared contributions) ─────────────
 
 _LALI_EMPATIA_PATH = _LALI_DIR / "data" / "retos_empatia.json"
