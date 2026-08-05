@@ -441,14 +441,18 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                             <div style="color:#94a3b8;font-size:12px;font-style:italic;">Cargando...</div>
                         </div>
                         <div class="add-user-form">
-                            <input type="text" id="new-user-name" placeholder="Nombre completo">
-                            <input type="text" id="new-user-username" placeholder="Usuario (ej: nombre.apellido)">
-                            <input type="text" id="new-user-password" placeholder="Contraseña">
+                            <input type="email" id="new-user-username" placeholder="Email (ej: nombre@uma.es)">
                             <select id="new-user-role">
                                 <option value="estudiante">Estudiante</option>
                                 <option value="docente">Docente</option>
                             </select>
                             <button class="add-user-btn" onclick="addUser()">Añadir usuario</button>
+                        </div>
+                        <div style="border-top:1px solid #e2e8f0;margin-top:10px;padding-top:10px;">
+                            <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:4px;">Importar lista</div>
+                            <div style="font-size:10px;color:#94a3b8;margin-bottom:6px;line-height:1.4;">Un usuario por línea: <code>email, rol</code> (rol opcional, por defecto Estudiante).<br>Ej: <code>ana@uma.es, estudiante</code></div>
+                            <textarea id="bulk-users-text" rows="4" style="width:100%;font-size:11px;font-family:monospace;padding:6px;border:1px solid #e2e8f0;border-radius:6px;resize:vertical;" placeholder="ana.lopez@uma.es, estudiante&#10;pedro.garcia@uma.es, estudiante&#10;prof@uma.es, docente"></textarea>
+                            <button class="add-user-btn" onclick="bulkAddUsers()" style="margin-top:4px;">Importar</button>
                         </div>
                         <div class="users-status" id="users-status"></div>
                     </div>
@@ -468,49 +472,48 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
         <!-- ═══ Vista 1: Landing (equipo + temario) ═══ -->
         <div class="landing-view" id="landing-view">
             <div style="max-width:800px;margin:0 auto;padding:24px 20px;">
-                <h2 style="color:#1e293b;margin-bottom:4px;">Eulalia</h2>
-                <p style="color:#64748b;font-size:13px;margin-bottom:4px;">Lingüística Aplicada a la Logopedia I — Grado en Logopedia, Universidad de Málaga</p>
-                <p style="color:#94a3b8;font-size:12px;font-style:italic;margin-bottom:24px;">Del griego <em>eulalos</em> (eu = bueno, lalia = habla): «la bien hablada»</p>
+                <h2 style="color:#1e293b;margin-bottom:4px;">Hola. Has entrado al espacio virtual de Eulalia</h2>
 
                 <!-- ¿Eulalia? -->
                 <details style="background:#fff;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:20px;" open>
-                    <summary style="padding:12px 16px;cursor:pointer;font-weight:600;font-size:14px;color:#1e293b;">🤖 ¿Qué es Eulalia?</summary>
+                    <summary style="padding:12px 16px;cursor:pointer;font-weight:600;font-size:14px;color:#1e293b;">🤖 ¿Quién es Eulalia?</summary>
                     <div style="padding:4px 16px 16px;font-size:13px;color:#475569;line-height:1.8;">
-                        <p><strong>Eulalia</strong> es una asistente virtual diseñada para ayudarte a aprender más rápidamente los contenidos de la asignatura <strong>Lingüística Aplicada a la Logopedia I</strong>.</p>
+                        <p><strong>Eulalia</strong> es una asistente virtual diseñada para ayudarte a superar la la asignatura <strong>Lingüística Aplicada a la Logopedia I</strong>.</p>
                         
-                        <p style="margin-top:8px;"><strong>¿Qué puedo hacer con Eulalia?</strong></p>
+                        <p style="margin-top:8px;"><strong>¿Qué puedes hacer con Eulalia?</strong></p>
                         <ul style="margin:6px 0 6px 20px;">
-                            <li>Puedes ir estudiando cada apartado de cada tema, resolviendo los ejercicios que te propone.</li>
-                            <li>Si tienes dudas concretas, puedes pedirle que te las resuelva. Aquí debes tener cuidado, estas respuestas son fiables en un porcentaje muy alto pero al ser generadas por una LLM (Large Language Model) podrían tener errores. Si ves algo que no te cuadra, usa el botón "Informar al profesor" para informarnos.</li>
-                            <li>Puedes hacer múltiples ejercicios prácticos, que te ayudarán a dominar la asignatura.</li>
-                            <li>Puedes evaluar tus progresos usando la sección <strong>EVALÚA TU PROGRESO</strong> que hay al final de cada tema (y al final de la lista de temas).</li>
-                            <li>Puedes evaluar <strong>tu progreso</strong> y así podrás saber si has alcanzado el nivel suficiente para superar la asignatura</li> 
+                            <li>Puedes estudiar los diferentes temas, pues contiene todos los documentos del temario.</li>
+                            <li>Puedes hacer múltiples ejercicios prácticos, para los que ofrecerá soluciones. </li>
+                            <li>Puedes evaluar tus progresos usando la sección <strong>Evalúa tu progreso</strong>.</li>
+                             <li>Si tienes dudas concretas, puedes pedirle que te las resuelva. Pero debes tener cuidado, las respuestas las genera una LLM (Large Language Model) y podría contener errores. Si ves algo que no te cuadra, usa el botón "Informar al profesor" y te resolveremos las dudas.<br>
+                             <strong>¿Por qué contiene errores? </strong>Los sistema de inteligencia artificial generativa como ChatGPT, Gemini, Kimi K3 o Mistral ¡SIEMPRE pueden cometer errores imprevistos!</li>
+ 
                         </ul>
 
                         <p style="margin-top:8px;"><strong>¿Qué NO puede hacer Eulalia?</strong></p>
                         <ul style="margin:6px 0 6px 20px;">
-                            <li><strong>Sustituir al profesor ni a las clases presenciales</strong>. Estas serán muy importantes para aclarar dudas, profundizar sobre diversos conceptos o conocer aspectos no recogidos en Eulalia</li>
-                            <li><strong>Evaluar tu nota final</strong>. La nota no se evaluará usando Eulalia ni los progresos que esta recoge. Estos últimos son aproximaciones para cada estudiante. <strong>La nota final se valorará mediante un examen escrito corregido por el equipo docente</strong>(eso sí, con preguntas del mismo tipo de las propuestas por Eulalia</li>
-                            <li><strong>Realizar las prácticas grupales</strong>. </li>
+                            <li><strong>Sustituir al profesor ni a las clases presenciales</strong>. Aprovechando que tenemos este tutor, esperamos lograr que las clases sean más dinámicas y centradas en trabajos en grupo, tarea con la que Eulalia no será de gran ayuda. Por tanto, no deberías faltar a clase o deberías hacerlo lo menos posible.</li>
+                            <li><strong>Evaluar tu nota final</strong>. Cuando Eulalia mide tus progresos se basa en lo que cada estudiante dice haber hecho, pero no se puede comprobar si ha recibido ayuda o no. Por ello <strong>la nota final se valorará mediante un examen escrito corregido por el equipo docente</strong>(eso sí, con preguntas del mismo tipo de las propuestas por Eulalia</li>
+                            <li><strong>Realizar las prácticas grupales</strong>. Como ya hemos indicado estas prácticas requerirán abordar retos para los que Eulalia no ha sido entrenada. </li>
                         </ul>
 
                         <p style="margin-top:8px;"><strong>¿Nos ayudas a mejorar Eulalia?</strong></p>
                         <p>Eulalia es un proyecto en curso con tres objetivos:</p>
                         <ol style="margin:6px 0 6px 20px;">
-                            <li>A corto plazo: desarrollar un instrumento que ayude a dominar la asignatura de Lingüística Aplicada a la Logopedia I, y explorar si sirve de referente para otras asignaturas de tu carrera.</li>
+                            <li>A corto plazo: desarrollar un instrumento que ayude a dominar la asignatura de Lingüística Aplicada a la Logopedia I.</li>
                             <li>A medio plazo: contar con un instrumento para que el estudiantado de logopedia pueda revisar conceptos de esta asignatura a lo largo de la carrera.</li>
                             <li>A largo plazo: contar con un instrumento que cualquier logopeda pueda usar para ayudarle en tareas profesionales que requieran un conocimiento de la fonética y la fonología.</li>
                         </ol>
 
                         <p style="margin-top:8px;"><strong>¿Es Eulalia una IA? ¿Es fiable?</strong></p>
                         <ul style="margin:6px 0 6px 20px;">
-                            <li>Eulalia no es una IA, y en general no tiene el carácter no predecible de las IA (como Claude, Gemini o ChatGPT). Eso sí, hay algunas funcionalidades que usan una LLM (Mistral). En los casos en que se use una LLM se te informará para que lo tengas en cuenta y valores si puedes o no aceptar la información que te da Eulalia.</li>
+                            <li>Eulalia no es una IA, y no tiene el carácter impredecible de las IA (como Claude, Gemini o ChatGPT). Eso sí, hay funcionalidades que usan una LLM (Mistral). En los casos en que se use una LLM se te informará para que lo tengas en cuenta y valores si puedes o no aceptar la información que te da Eulalia.</li>
                         </ul>
 
                         <p style="margin-top:8px;"><strong>¿Puede Eulalia recoger datos personales del estudiantado? ¿Cumple la normativa europea al respecto?</strong></p>
                         <ul style="margin:6px 0 6px 20px;">
                             <li>Eulalia no recopila datos personales del estudiantado. Los datos a los que tiene acceso son las cuentas de correo electrónico, información que se obtiene de Moodle.</li>
-                            <li><strong>Todas las interacciones con Eulalia quedan registradas tras anonimizar el nombre del usuario que las generó.</strong> Esto es algo obligatorio para cumplir la normativa europea (GDPR).</li>
+                            <li>Todas las interacciones con Eulalia quedan registradas en un servidor de la UMA (pero no se identifica al autor o autora de cada pregunta). Esto es algo obligatorio para cumplir la normativa europea (GDPR).</li>
                             <li>Registrar las interacciones (sin identificar a quien hace las preguntas) permite al profesorado asegurarse de que Eulalia no proporciona información falsa que pudiera penalizar al estudiante a la hora del examen final.</li>
                         </ul>
 
@@ -1548,66 +1551,29 @@ function loadUsers() {
                 var role = document.createElement('span');
                 role.className = 'user-role ' + (u.role === 'docente' ? 'role-docente' : 'role-estudiante');
                 role.textContent = u.role === 'docente' ? 'Docente' : 'Estudiante';
-                // Status indicator
-                if (!u.activo) {
-                    var pending = document.createElement('span');
-                    pending.style.cssText = 'font-size:10px;color:#f59e0b;margin-left:2px;';
-                    pending.textContent = '(pendiente)';
-                    pending.title = 'Cuenta sin activar';
-                    name.appendChild(pending);
-                }
-                // Invite link button
-                var invite = document.createElement('button'); invite.className = 'user-del-btn';
-                invite.innerHTML = '\uD83D\uDD17'; invite.title = 'Generar enlace de activación';
-                invite.style.color = '#2563eb';
-                invite.addEventListener('click', function() { generateInvite(u.username); });
                 // Delete button
                 var del = document.createElement('button'); del.className = 'user-del-btn';
                 del.innerHTML = '\u00D7'; del.title = 'Eliminar ' + u.username;
                 del.addEventListener('click', function() { deleteUser(u.username); });
-                row.appendChild(name); row.appendChild(role); row.appendChild(invite); row.appendChild(del);
+                row.appendChild(name); row.appendChild(role); row.appendChild(del);
                 container.appendChild(row);
             });
         })
         .catch(function() {});
 }
 
-function generateInvite(username) {
-    var status = document.getElementById('users-status');
-    fetch(authUrl('/api/tutores/users/' + encodeURIComponent(username) + '/invite'), { method: 'POST' })
-    .then(function(r) {
-        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
-        return r.json();
-    })
-    .then(function(data) {
-        // Copy link to clipboard and show it
-        navigator.clipboard.writeText(data.link).then(function() {
-            status.textContent = 'Enlace copiado al portapapeles';
-            status.className = 'users-status ok';
-        }).catch(function() {
-            // Fallback: show in prompt
-            prompt('Enlace de activación para ' + username + ':', data.link);
-            status.textContent = 'Enlace generado';
-            status.className = 'users-status ok';
-        });
-        setTimeout(function() { status.textContent = ''; }, 5000);
-    })
-    .catch(function(err) { status.textContent = err.message; status.className = 'users-status err'; });
-}
 
 function addUser() {
-    var nombre = document.getElementById('new-user-name').value.trim();
-    var username = document.getElementById('new-user-username').value.trim();
-    var password = document.getElementById('new-user-password').value.trim();
+    var username = document.getElementById('new-user-username').value.trim().toLowerCase();
     var role = document.getElementById('new-user-role').value;
     var status = document.getElementById('users-status');
 
-    if (!username || !password) { status.textContent = 'Introduce usuario y contraseña'; status.className = 'users-status err'; return; }
+    if (!username) { status.textContent = 'Introduce el email del usuario'; status.className = 'users-status err'; return; }
 
     fetch(authUrl('/api/tutores/users'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, password: password, role: role, nombre: nombre }),
+        body: JSON.stringify({ username: username, role: role }),
     })
     .then(function(r) {
         if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
@@ -1615,9 +1581,7 @@ function addUser() {
     })
     .then(function() {
         status.textContent = 'Usuario creado'; status.className = 'users-status ok';
-        document.getElementById('new-user-name').value = '';
         document.getElementById('new-user-username').value = '';
-        document.getElementById('new-user-password').value = '';
         loadUsers();
         setTimeout(function() { status.textContent = ''; }, 3000);
     })
@@ -1636,6 +1600,50 @@ function deleteUser(username) {
         status.textContent = 'Usuario eliminado'; status.className = 'users-status ok';
         loadUsers();
         setTimeout(function() { status.textContent = ''; }, 3000);
+    })
+    .catch(function(err) { status.textContent = err.message; status.className = 'users-status err'; });
+}
+
+function bulkAddUsers() {
+    var text = document.getElementById('bulk-users-text').value.trim();
+    var status = document.getElementById('users-status');
+    if (!text) { status.textContent = 'Pega la lista de usuarios'; status.className = 'users-status err'; return; }
+
+    var users = [];
+    text.split('\n').forEach(function(line) {
+        line = line.trim();
+        if (!line || line.startsWith('#')) return;
+        // Support: "email, rol" or "email\trol" or just "email"
+        var parts = line.split(/[,;\t]+/).map(function(s) { return s.trim().toLowerCase(); });
+        var email = parts[0];
+        if (!email || email.indexOf('@') < 0) return;
+        var role = 'estudiante';
+        if (parts[1] && (parts[1] === 'docente' || parts[1] === 'profesor' || parts[1] === 'profesora')) role = 'docente';
+        users.push({ username: email, role: role, nombre: '', password: '' });
+    });
+
+    if (users.length === 0) { status.textContent = 'No se encontraron emails válidos'; status.className = 'users-status err'; return; }
+
+    status.textContent = 'Importando ' + users.length + ' usuarios...';
+    status.className = 'users-status';
+
+    fetch(authUrl('/api/tutores/users/bulk'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ users: users }),
+    })
+    .then(function(r) {
+        if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return r.json();
+    })
+    .then(function(data) {
+        var msg = (data.created || 0) + ' creados';
+        if (data.skipped) msg += ', ' + data.skipped + ' ya existían';
+        if (data.errors) msg += ', ' + data.errors + ' errores';
+        status.textContent = msg; status.className = 'users-status ok';
+        document.getElementById('bulk-users-text').value = '';
+        loadUsers();
+        setTimeout(function() { status.textContent = ''; }, 5000);
     })
     .catch(function(err) { status.textContent = err.message; status.className = 'users-status err'; });
 }

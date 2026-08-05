@@ -22,5 +22,140 @@
     "activo": true,
     "password_hash": "824c2ce0a83c938e5886de60112f970ff7f509de0138d0f4a8c19600db74425a",
     "salt": "1d068732697d0d34a91dc762783729f6"
+  },
+  "claudiaaguisant@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "hibaarbituni@uma.es": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "candelabecerril806@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "ncamcor@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "lugamezpere@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "ajgaro713@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "libegoiburu@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "luciagutierrezburgos@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "nereajc2008@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "nuriamanci@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "martinezcamposc@icloud.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "jarmedero@uma.es": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "moralesdecasasana@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "asunmartinezduarte@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "tmorreguma@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "violetanavarroserrano@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "ortegapelaezmj@hotmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "mirymar94@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "marinapazjor@hotmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "angelaperezvico8@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "lramallor02@educarex.es": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "arodvaz768@ieslitoral.es": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "losaga16@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "encagilgonz@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "imts1965@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
+  },
+  "jpuerma@uma.es": {
+    "role": "docente",
+    "nombre": "",
+    "activo": true
+  },
+  "hkrohn@gmail.com": {
+    "role": "estudiante",
+    "nombre": "",
+    "activo": true
   }
 }

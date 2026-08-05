@@ -1398,7 +1398,7 @@ async def tutores_get_users(request: Request):
 
 class TutoresCreateUserRequest(BaseModel):
     username: str
-    password: str
+    password: str = ""
     role: str = "estudiante"
     nombre: str = ""
 
@@ -1410,7 +1410,7 @@ async def tutores_add_user(req: TutoresCreateUserRequest, request: Request):
     if not session or not tutores_is_docente(session):
         raise HTTPException(status_code=403, detail="Solo el profesorado puede crear usuarios")
     try:
-        ok = tutores_create_user(req.username, req.password, req.role, req.nombre)
+        ok = tutores_create_user(req.username, req.password or None, req.role, req.nombre, activo=True)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     if not ok:

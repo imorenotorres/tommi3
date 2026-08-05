@@ -129,7 +129,7 @@ def bulk_create(entries: list[dict]) -> dict:
     """
     Create multiple users at once.
 
-    Each entry: {"username": str, "password": str, "role": str, "nombre": str}
+    Each entry: {"username": str, "role": str, "nombre": str, "password": str (optional)}
 
     Returns {"created": int, "skipped": int, "errors": list}
     """
@@ -138,14 +138,14 @@ def bulk_create(entries: list[dict]) -> dict:
     errors = []
     for e in entries:
         username = e.get("username", "").strip()
-        password = e.get("password", "").strip()
+        password = e.get("password", "").strip() or None
         role = e.get("role", "estudiante").strip()
         nombre = e.get("nombre", "").strip()
-        if not username or not password:
-            errors.append(f"Falta usuario o contraseña: {e}")
+        if not username:
+            errors.append(f"Falta usuario: {e}")
             continue
         try:
-            if create_user(username, password, role, nombre):
+            if create_user(username, password, role, nombre, activo=True):
                 created += 1
             else:
                 skipped += 1
