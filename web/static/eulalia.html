@@ -519,7 +519,7 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
 
                         <p style="margin-top:8px;"><strong>De acuerdo, ¿y cómo empiezo a usar Eulalia?</strong></p>
                             
-                        <p style="margin-top:10px;color:#94a3b8;font-size:12px;">Usa el menú lateral para navegar por los temas, o escribe directamente en el chat para hacer alguna consultar.</p>
+                        <p style="margin-top:10px;color:#94a3b8;font-size:12px;">Usa el menú lateral para navegar por los temas, o haz clic en "Pregunta a Eulalia" o haz una primera evaluación de tus conocimientos.</p>
                     </div>
                 </details>
 
@@ -1467,11 +1467,11 @@ function checkAuthLevel() {
                 authEl.innerHTML = '<a href="/tutores-virtuales/login?redirect=/tutores-virtuales/eulalia" class="nav-auth-link">Iniciar sesión</a>';
                 return;
             }
-            var name = data.nombre || data.username || '';
+            var email = data.username || '';
             var rolBadge = data.level === 'docente'
                 ? '<span class="config-editor-badge" style="margin:0 6px;">Docente</span>'
-                : '';
-            authEl.innerHTML = '<span style="margin-right:2px;">' + name + '</span>' + rolBadge + '<a href="#" class="nav-auth-link" onclick="doLogout();return false;">Cerrar sesión</a>';
+                : '<span style="background:#e0f2fe;color:#0369a1;font-size:10px;padding:2px 8px;border-radius:10px;margin:0 6px;">Estudiante</span>';
+            authEl.innerHTML = '<span style="margin-right:2px;font-size:12px;">' + email + '</span>' + rolBadge + '<a href="#" class="nav-auth-link" onclick="doLogout();return false;">Cerrar sesión</a>';
 
             if (data.level === 'docente') {
                 document.getElementById('config-panel').style.display = 'block';

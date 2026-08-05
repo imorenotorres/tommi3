@@ -1820,13 +1820,11 @@ async def lali_moodle_login(
     user: str = Query(...),
     ts: str = Query(...),
     sig: str = Query(...),
-    name: str = Query(""),
-    role: str = Query("estudiante"),
 ):
     """SSO desde Moodle. Verifica firma HMAC, crea sesión, redirige al tutor.
 
     URL generada por el bloque HTML de Moodle:
-        /api/public-agent/eulalia/moodle-login?user=EMAIL&ts=TIMESTAMP&sig=HMAC&name=NOMBRE&role=estudiante
+        /api/public-agent/eulalia/moodle-login?user=EMAIL&ts=TIMESTAMP&sig=HMAC
     """
     import hashlib
     import hmac
@@ -1846,49 +1844,28 @@ async def lali_moodle_login(
         _MOODLE_SSO_SECRET.encode(), mensaje.encode(), hashlib.sha256
     ).hexdigest()
     if not hmac.compare_digest(sig, firma_esperada):
-        # Debug: log para diagnosticar
-        print(f"[MOODLE-SSO] FIRMA INVÁLIDA")
-        print(f"  user={repr(user)} ts={repr(ts)}")
-        print(f"  mensaje={repr(mensaje)}")
-        print(f"  sig_recibida={sig}")
-        print(f"  sig_esperada={firma_esperada}")
-        print(f"  secret={repr(_MOODLE_SSO_SECRET[:10])}...")
+        print(f"[MOODLE-SSO] FIRMA INVÁLIDA user={repr(user)} ts={repr(ts)}")
         raise HTTPException(status_code=403, detail="Firma inválida. Acceso denegado.")
 
-    # 3. Buscar o crear el usuario en el sistema de tutores
+    # 3. Buscar el usuario en el sistema de tutores
     username = user.strip().lower()
-    nombre = name.strip()
-
-    # Intentar autenticar con auth_tutores (si ya existe)
-    from auth_tutores import (
-        create_user as tutores_create_user,
-        authenticate as tutores_authenticate,
-        _load_users as tutores_load_users,
-        _hash_password, _save_users,
-    )
+    from auth_tutores import _load_users as tutores_load_users
     users = tutores_load_users()
 
     if username not in users:
         raise HTTPException(
             status_code=403,
-            detail="Tu cuenta de Moodle no está registrada en Eulalia. Contacta con el profesor para que te dé de alta."
+            detail=f"El usuario '{username}' no está registrado en Eulalia. Contacta con el profesor para que te dé de alta."
         )
-
-    # Actualizar nombre si viene de Moodle y ha cambiado
-    if nombre and users[username].get("nombre") != nombre:
-        users[username]["nombre"] = nombre
-        _save_users(users)
 
     # 4. Crear sesión directamente (sin requerir contraseña)
     import secrets as _secrets
-    import time as _time
     from auth_tutores import _sessions
     token = _secrets.token_hex(32)
     user_role = users[username].get("role", "estudiante")
     _sessions[token] = {
         "username": username,
         "role": user_role,
-        "nombre": users[username].get("nombre", ""),
         "created": _time.time(),
     }
 

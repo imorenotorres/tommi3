@@ -32,38 +32,34 @@
         'lali20267'; // Mismo valor que LALI_MOODLE_SECRET
       // ══════════════════════════════════════════════════════════════
 
-      // Leer datos del usuario logueado en Moodle
+      // Leer email del usuario logueado en Moodle
       var userEmail = '';
-      var userName = '';
 
-      // Método 1: buscar email en el menú de usuario de Moodle
-      var userMenu = document.querySelector('.usermenu .usertext') ||
-        document.querySelector('.userbutton .usertext') ||
-        document.querySelector('.logininfo .username') ||
-        document.querySelector('[data-action="user-menu"] .usertext');
-      if (userMenu) {
-        userName = userMenu.textContent.trim();
-      }
-
-      // Método 2: buscar en el perfil visible
+      // Método 1: buscar email en el perfil visible
       var emailEl = document.querySelector('.userprofile .email a') ||
         document.querySelector('.myprofileitem.email a');
       if (emailEl) {
         userEmail = emailEl.textContent.trim();
       }
 
-      // Si no tenemos email, usar el nombre normalizado como username
-      if (!userEmail && userName) {
-        userEmail = userName.toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-          .replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '');
+      // Método 2: buscar en el menú de usuario (si muestra el email)
+      if (!userEmail) {
+        var userMenu = document.querySelector('.usermenu .usertext') ||
+          document.querySelector('.userbutton .usertext') ||
+          document.querySelector('[data-action="user-menu"] .usertext');
+        if (userMenu) {
+          var text = userMenu.textContent.trim();
+          if (text.indexOf('@') >= 0) userEmail = text;
+        }
       }
 
       if (!userEmail) {
         document.getElementById('eulalia-status').textContent =
-          'No se pudo detectar tu usuario de Moodle.';
+          'No se pudo detectar tu email de Moodle. Contacta con el profesor.';
         return;
       }
+
+      userEmail = userEmail.toLowerCase();
 
       // Generar firma HMAC-SHA256
       var timestamp = Math.floor(Date.now() / 1000).toString();
@@ -85,15 +81,13 @@
           .join('');
         var url = SERVIDOR_TOMMI +
           '/api/public-agent/eulalia/moodle-login' +
-          '?user=' + encodeURIComponent(userEmail) + '&ts=' + timestamp +
-          '&sig=' + sig +
-          '&name=' + encodeURIComponent(userName) +
-          '&role=estudiante';
+          '?user=' + encodeURIComponent(userEmail) +
+          '&ts=' + timestamp + '&sig=' + sig;
 
         document.getElementById('eulalia-link').href = url;
         document.getElementById('eulalia-link').target = '_blank';
         document.getElementById('eulalia-status').textContent =
-          'Accediendo como: ' + userName;
+          'Accediendo como: ' + userEmail;
       }).catch(function(err) {
         document.getElementById('eulalia-status').textContent =
           'Error al generar acceso: ' + err.message;
