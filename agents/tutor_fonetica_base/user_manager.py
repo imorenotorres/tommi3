@@ -106,9 +106,11 @@ class UserManager:
     # -- CRUD --
 
     def añadir_usuario(self, username: str, password: str, *,
-                       nombre: str = "", rol: str = "estudiante",
+                       nombre: str = "", apellidos: str = "",
+                       rol: str = "estudiante",
                        grupo: str = "", email: str = "") -> bool:
         """Añade un usuario. Devuelve True si se creó, False si ya existe."""
+        rol = rol.strip().lower()
         if rol not in ROLES_VALIDOS:
             raise ValueError(f"Rol inválido: {rol}. Debe ser: {', '.join(sorted(ROLES_VALIDOS))}")
         error = _validar_password(password)
@@ -122,6 +124,7 @@ class UserManager:
         hash_hex, salt = _hash_password(password)
         users[username] = {
             "nombre": nombre,
+            "apellidos": apellidos,
             "rol": rol,
             "grupo": grupo,
             "email": email or username,
@@ -143,6 +146,7 @@ class UserManager:
 
     def modificar_usuario(self, username: str, *,
                           nombre: str | None = None,
+                          apellidos: str | None = None,
                           rol: str | None = None,
                           grupo: str | None = None,
                           email: str | None = None,
@@ -156,7 +160,10 @@ class UserManager:
         user = users[username]
         if nombre is not None:
             user["nombre"] = nombre
+        if apellidos is not None:
+            user["apellidos"] = apellidos
         if rol is not None:
+            rol = rol.strip().lower()
             if rol not in ROLES_VALIDOS:
                 raise ValueError(f"Rol inválido: {rol}")
             user["rol"] = rol
@@ -185,6 +192,7 @@ class UserManager:
         return {
             "username": username,
             "nombre": user.get("nombre", ""),
+            "apellidos": user.get("apellidos", ""),
             "rol": user.get("rol", "estudiante"),
             "grupo": user.get("grupo", ""),
             "email": user.get("email", ""),
@@ -202,6 +210,7 @@ class UserManager:
             resultado.append({
                 "username": username,
                 "nombre": data.get("nombre", ""),
+                "apellidos": data.get("apellidos", ""),
                 "rol": data.get("rol", "estudiante"),
                 "grupo": data.get("grupo", ""),
                 "email": data.get("email", ""),
@@ -229,6 +238,7 @@ class UserManager:
         return {
             "username": username,
             "nombre": user.get("nombre", ""),
+            "apellidos": user.get("apellidos", ""),
             "rol": user.get("rol", "estudiante"),
             "grupo": user.get("grupo", ""),
             "email": user.get("email", ""),
@@ -265,17 +275,49 @@ class UserManager:
 
     # -- Importación / Exportación TSV --
 
-    _TSV_COLUMNS = ["username", "password", "nombre", "rol", "grupo", "email"]
+    _TSV_COLUMNS = ["username", "password", "nombre", "apellidos", "rol", "grupo", "email"]
+
+    # Map common Spanish/Moodle column names to internal field names
+    _COLUMN_ALIASES = {
+        "correo electrónico": "username",
+        "correo electronico": "username",
+        "correo": "username",
+        "email": "username",
+        "nombre": "nombre",
+        "apellido/s": "apellidos",
+        "apellidos": "apellidos",
+        "apellido": "apellidos",
+        "rol": "rol",
+        "role": "rol",
+        "password": "password",
+        "contraseña": "password",
+        "grupo": "grupo",
+        "username": "username",
+    }
+
+    def _normalize_columns(self, fieldnames: list[str]) -> dict[str, str]:
+        """Map TSV column headers to internal field names (case-insensitive)."""
+        mapping = {}
+        for col in fieldnames:
+            key = col.strip().lower()
+            if key in self._COLUMN_ALIASES:
+                mapping[col] = self._COLUMN_ALIASES[key]
+        return mapping
 
     def importar_tsv(self, path: Path | str, *, sobreescribir: bool = False) -> dict:
         """Importa usuarios desde un archivo TSV.
 
-        Columnas esperadas (con cabecera):
-            username  password  nombre  rol  grupo  email
+        Columnas esperadas (con cabecera). Acepta dos formatos:
 
-        Las columnas password, nombre, rol, grupo y email son opcionales.
-        Si password está vacía, se genera una contraseña aleatoria.
-        Si rol está vacío, se asigna 'estudiante'.
+        Formato técnico:
+            username  password  nombre  apellidos  rol  grupo  email
+
+        Formato Moodle:
+            Nombre  Apellido/s  Correo electrónico  Rol
+
+        Las columnas son case-insensitive. El correo electrónico se usa como username.
+        Si password está vacía o no existe, se genera una contraseña aleatoria.
+        Si rol está vacío, se asigna 'estudiante'. El rol acepta mayúsculas/minúsculas.
 
         Args:
             path: ruta al archivo TSV
@@ -299,25 +341,42 @@ class UserManager:
 
         reader = csv.DictReader(io.StringIO(content), delimiter="\t")
 
-        # Validate header
-        if not reader.fieldnames or "username" not in reader.fieldnames:
+        # Validate header and build column mapping
+        if not reader.fieldnames:
+            result["errores"].append("El archivo TSV está vacío o no tiene cabecera.")
+            return result
+
+        col_map = self._normalize_columns(reader.fieldnames)
+        # Build reverse lookup: internal_name -> original_column
+        reverse = {}
+        for orig, internal in col_map.items():
+            reverse.setdefault(internal, orig)
+
+        if "username" not in reverse:
             result["errores"].append(
-                "El archivo TSV debe tener cabecera con al menos la columna 'username'. "
-                f"Columnas válidas: {', '.join(self._TSV_COLUMNS)}"
+                "No se encontró columna de usuario. Se acepta: "
+                "'username', 'Correo electrónico', 'correo', 'email'. "
+                f"Columnas encontradas: {', '.join(reader.fieldnames)}"
             )
             return result
 
+        def get_field(row, field_name, default=""):
+            col = reverse.get(field_name)
+            if col is None:
+                return default
+            return (row.get(col) or default).strip()
+
         for line_num, row in enumerate(reader, start=2):
-            username = (row.get("username") or "").strip()
+            username = get_field(row, "username").lower()
             if not username:
-                result["errores"].append(f"Línea {line_num}: username vacío")
+                result["errores"].append(f"Línea {line_num}: correo/username vacío")
                 continue
 
-            password = (row.get("password") or "").strip()
-            nombre = (row.get("nombre") or "").strip()
-            rol = (row.get("rol") or "estudiante").strip()
-            grupo = (row.get("grupo") or "").strip()
-            email = (row.get("email") or "").strip()
+            password = get_field(row, "password")
+            nombre = get_field(row, "nombre")
+            apellidos = get_field(row, "apellidos")
+            rol = get_field(row, "rol", "estudiante").strip().lower()
+            grupo = get_field(row, "grupo")
 
             if rol not in ROLES_VALIDOS:
                 result["errores"].append(
@@ -328,8 +387,9 @@ class UserManager:
             if self.existe_usuario(username):
                 if sobreescribir:
                     try:
-                        self.modificar_usuario(username, nombre=nombre, rol=rol,
-                                               grupo=grupo, email=email)
+                        self.modificar_usuario(username, nombre=nombre,
+                                               apellidos=apellidos, rol=rol,
+                                               grupo=grupo)
                         result["actualizados"] += 1
                     except ValueError as e:
                         result["errores"].append(f"Línea {line_num} ({username}): {e}")
@@ -351,7 +411,7 @@ class UserManager:
 
             try:
                 self.añadir_usuario(username, password, nombre=nombre,
-                                    rol=rol, grupo=grupo, email=email)
+                                    apellidos=apellidos, rol=rol, grupo=grupo)
                 result["creados"] += 1
             except ValueError as e:
                 result["errores"].append(f"Línea {line_num} ({username}): {e}")
@@ -372,7 +432,7 @@ class UserManager:
         usuarios = self.listar_usuarios()
         path = Path(path)
 
-        columns = ["username", "nombre", "rol", "grupo", "email"]
+        columns = ["username", "nombre", "apellidos", "rol", "grupo", "email"]
         if incluir_passwords:
             columns.insert(1, "password")
 
@@ -448,7 +508,8 @@ Ejemplos:
     # -- añadir --
     p_add = sub.add_parser("añadir", help="Añadir un usuario")
     p_add.add_argument("username", help="Nombre de usuario (ej: email)")
-    p_add.add_argument("--nombre", default="", help="Nombre completo")
+    p_add.add_argument("--nombre", default="", help="Nombre")
+    p_add.add_argument("--apellidos", default="", help="Apellidos")
     p_add.add_argument("--rol", default="estudiante", choices=sorted(ROLES_VALIDOS))
     p_add.add_argument("--grupo", default="", help="Grupo (ej: A, B)")
     p_add.add_argument("--email", default="", help="Email (si distinto del username)")
@@ -461,6 +522,7 @@ Ejemplos:
     p_mod = sub.add_parser("modificar", help="Modificar un usuario")
     p_mod.add_argument("username")
     p_mod.add_argument("--nombre", default=None)
+    p_mod.add_argument("--apellidos", default=None)
     p_mod.add_argument("--rol", default=None, choices=sorted(ROLES_VALIDOS))
     p_mod.add_argument("--grupo", default=None)
     p_mod.add_argument("--email", default=None)
@@ -492,11 +554,11 @@ Ejemplos:
             print("No hay usuarios registrados.")
             return
         # Table header
-        print(f"{'Username':<30} {'Nombre':<25} {'Rol':<12} {'Grupo':<8} {'Activo'}")
-        print("-" * 85)
+        print(f"{'Username':<30} {'Nombre':<15} {'Apellidos':<20} {'Rol':<12} {'Grupo':<8} {'Activo'}")
+        print("-" * 95)
         for u in usuarios:
             activo = "Sí" if u["activo"] else "No"
-            print(f"{u['username']:<30} {u['nombre']:<25} {u['rol']:<12} {u['grupo']:<8} {activo}")
+            print(f"{u['username']:<30} {u['nombre']:<15} {u.get('apellidos',''):<20} {u['rol']:<12} {u['grupo']:<8} {activo}")
         print(f"\nTotal: {len(usuarios)}")
 
     elif args.comando == "añadir":
@@ -506,7 +568,8 @@ Ejemplos:
             print(f"Contraseña generada: {password}")
         try:
             ok = um.añadir_usuario(args.username, password, nombre=args.nombre,
-                                   rol=args.rol, grupo=args.grupo, email=args.email)
+                                   apellidos=args.apellidos, rol=args.rol,
+                                   grupo=args.grupo, email=args.email)
             if ok:
                 print(f"Usuario '{args.username}' creado.")
             else:
@@ -527,6 +590,8 @@ Ejemplos:
         kwargs = {}
         if args.nombre is not None:
             kwargs["nombre"] = args.nombre
+        if args.apellidos is not None:
+            kwargs["apellidos"] = args.apellidos
         if args.rol is not None:
             kwargs["rol"] = args.rol
         if args.grupo is not None:

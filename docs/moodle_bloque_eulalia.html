@@ -32,17 +32,40 @@
         'lali20267'; // Mismo valor que LALI_MOODLE_SECRET
       // ══════════════════════════════════════════════════════════════
 
-      // Leer email del usuario logueado en Moodle
+      // Obtener email del usuario logueado en Moodle via API interna
       var userEmail = '';
+      var sessKey = M && M.cfg && M.cfg.sesskey ? M.cfg.sesskey : '';
 
-      // Método 1: buscar email en el perfil visible
-      var emailEl = document.querySelector('.userprofile .email a') ||
-        document.querySelector('.myprofileitem.email a');
-      if (emailEl) {
-        userEmail = emailEl.textContent.trim();
+      if (!sessKey) {
+        document.getElementById('eulalia-status').textContent =
+          'No se pudo acceder a la sesión de Moodle.';
+        return;
       }
 
-      // Método 2: buscar en el menú de usuario (si muestra el email)
+      // Llamada a la API interna de Moodle para obtener datos del usuario
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/lib/ajax/service.php?sesskey=' + sessKey, false);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify([{
+          index: 0,
+          methodname: 'core_user_get_users_by_field',
+          args: { field: 'id', values: [M.cfg.userId] }
+        }]));
+        if (xhr.status === 200) {
+          var resp = JSON.parse(xhr.responseText);
+          if (resp[0] && !resp[0].error && resp[0].data && resp[0].data[0]) {
+            userEmail = resp[0].data[0].email || '';
+          }
+        }
+      } catch (e) {}
+
+      // Fallback: buscar email en el DOM
+      if (!userEmail) {
+        var emailEl = document.querySelector('.userprofile .email a') ||
+          document.querySelector('.myprofileitem.email a');
+        if (emailEl) userEmail = emailEl.textContent.trim();
+      }
       if (!userEmail) {
         var userMenu = document.querySelector('.usermenu .usertext') ||
           document.querySelector('.userbutton .usertext') ||
