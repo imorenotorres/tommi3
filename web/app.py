@@ -231,7 +231,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Identify the caller: prefer username > session_id > IP
-        client_ip = request.client.host if request.client else "unknown"
+        # Use X-Forwarded-For from reverse proxy to get the real client IP
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            client_ip = forwarded.split(",")[0].strip()
+        else:
+            client_ip = request.client.host if request.client else "unknown"
         token = request.query_params.get("token", "")
         session_id = request.query_params.get("session_id", "")
         caller_key = client_ip
@@ -1287,9 +1292,18 @@ async def help_eulalia():
 
 
 @app.get("/tutores-virtuales/eulalia")
-async def tutores_lali():
-    """Serve the LALI tutor page"""
-    return FileResponse(SCRIPT_DIR / "static" / "eulalia.html")
+async def tutores_lali(request: Request, moodle_token: str = Query(None)):
+    """Serve the LALI tutor page. Requires tutores auth or moodle_token."""
+    # Allow if coming from Moodle SSO (token will be stored in localStorage by JS)
+    if moodle_token and tutores_get_session(moodle_token):
+        return FileResponse(SCRIPT_DIR / "static" / "eulalia.html")
+    # Check existing tutores session
+    token = _get_tutores_token(request)
+    if token and tutores_get_session(token):
+        return FileResponse(SCRIPT_DIR / "static" / "eulalia.html")
+    # Not authenticated — redirect to login
+    from starlette.responses import RedirectResponse
+    return RedirectResponse(url="/tutores-virtuales/login?redirect=/tutores-virtuales/eulalia")
 
 
 @app.get("/tutores-virtuales/eulalia/widgets/{widget_name}")
