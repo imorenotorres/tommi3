@@ -40,7 +40,7 @@ def _banner_verified_es(detail=""):
     )
 
 def _banner_database_es(detail=""):
-    text = detail or "La respuesta ha sido generada por el modelo de IA a partir de los materiales de la asignatura."
+    text = detail or "Aunque para responder se han tenido en cuenta los materiales de la asignatura, estos han sido procesados por una IA que puede cometer errores."
     return (
         f'<div style="background-color:#fff3cd;border-left:4px solid #ffc107;{_BANNER_STYLE}">'
         f'\U0001F7E1 <strong>Comentario IA</strong> \u2014 {text}'
@@ -606,6 +606,7 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
         # 1. Transcription request
         texto = _es_peticion_transcripcion(user_message)
         if texto == "__BLOCKED__":
+            yield ("metadata", {"response_type": "programmatic", "category": "blocked_content"})
             yield "Lo siento, no puedo transcribir ese tipo de contenido. Estoy aquí para ayudarte con la asignatura. ¿Quieres practicar con otra palabra?"
             return
         if texto:
@@ -619,10 +620,12 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
             respuesta, es_error = _generar_respuesta_transcripcion(texto)
 
             if es_error:
+                yield ("metadata", {"response_type": "programmatic", "category": "transcription_error"})
                 yield ("procedural_banner", '<div style="padding:8px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;font-size:13px;color:#991b1b;margin-bottom:8px;">⚠️ Palabra no transcribible con las reglas del español.</div>')
                 yield respuesta
                 return
 
+            yield ("metadata", {"response_type": "mixed", "category": "transcription"})
             yield ("procedural_banner", _banner_verified_es(
                 "Transcripción generada automáticamente (verificada, sin IA)."))
             yield respuesta
@@ -647,6 +650,7 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
             if es_abandono_ejercicio(user_message):
                 self._session_state.pop('ejercicio_actual', None)
                 self._session_state.pop('ejercicio_tipo', None)
+                yield ("metadata", {"response_type": "programmatic", "category": "exercise_abandon"})
                 yield "De acuerdo, dejamos el ejercicio. ¿En qué puedo ayudarte?"
                 return
 
@@ -660,10 +664,12 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
                 if _es_peticion_correccion(user_message):
                     respuestas = self._session_state.get('respuestas_alumno', '')
                     if not respuestas:
+                        yield ("metadata", {"response_type": "programmatic", "category": "exercise_prompt"})
                         yield "No he recibido tus respuestas todavía. Escríbelas primero y luego pulsa **Corregir**."
                         return
                 else:
                     self._session_state['respuestas_alumno'] = user_message
+                    yield ("metadata", {"response_type": "programmatic", "category": "exercise_answer"})
                     yield 'Respuestas recibidas.\n\n<div class="ejercicio-btns-placeholder"></div>'
                     return
 
@@ -671,6 +677,7 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
                     yield ("status", "Preparando...")
                     self._init_chromadb()
 
+                yield ("metadata", {"response_type": "programmatic", "category": "exercise_correction"})
                 yield ("procedural_banner", _banner_verified_es(
                     "Corrección generada automáticamente (verificada, sin IA)."))
 
@@ -704,6 +711,7 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
             agent_dir = os.path.dirname(os.path.abspath(self._AGENT_FILE))
             resp = _respuesta_sobre_tema(tema_pregunta, agent_dir)
             if resp:
+                yield ("metadata", {"response_type": "programmatic", "category": "tema_info"})
                 yield ("procedural_banner", _banner_verified_es(
                     "Información del programa de la asignatura (verificada, sin IA)."))
                 yield resp
@@ -712,6 +720,7 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
         # 4. Allophone query
         peticion_alofono = _es_peticion_alofono(user_message)
         if peticion_alofono:
+            yield ("metadata", {"response_type": "programmatic", "category": "allophone"})
             yield ("procedural_banner", _banner_verified_es(
                 "Información generada desde el inventario de alófonos (verificada, sin IA)."))
             yield _dispatch_alofono(peticion_alofono)
@@ -731,6 +740,7 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
 
             respuesta = dispatch_errores(peticion, self._session_state)
             if respuesta:
+                yield ("metadata", {"response_type": "programmatic", "category": "exercise_" + peticion.get('accion', 'unknown')})
                 if peticion['accion'] == 'ejercicio_transcripcion':
                     yield ("procedural_banner", _banner_verified_es(
                         "Ejercicio generado automáticamente."))
@@ -748,8 +758,9 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
                 return
 
         # 5. Normal RAG streaming (corregir transcripciones del LLM en cada chunk)
+        yield ("metadata", {"response_type": "llm", "category": "rag_qa"})
         yield ("procedural_banner", _banner_database_es(
-            "La respuesta ha sido generada por el modelo de IA a partir de los materiales de la asignatura. Podría contener errores."))
+            "Aunque para responder se han tenido en cuenta los materiales de la asignatura, estos han sido procesados por una IA que puede cometer errores."))
         async for item in super().chat_stream(user_message, history, **kwargs):
             if isinstance(item, str):
                 yield item.replace('ʎ', 'ʝ')

@@ -3214,6 +3214,7 @@ async def public_agent_chat_stream(
     async def event_generator():
         new_session_id = None
         full_response = ""
+        response_metadata = {}
         try:
             async for event_type, content, returned_session_id in runner.run_query_stream(
                 agent_id=agent_id,
@@ -3226,7 +3227,11 @@ async def public_agent_chat_stream(
                     new_session_id = returned_session_id
                     yield f"event: session\ndata: {new_session_id}\n\n"
 
-                if event_type == "status":
+                if event_type == "metadata":
+                    # Capture metadata (not sent to client)
+                    if isinstance(content, dict):
+                        response_metadata.update(content)
+                elif event_type == "status":
                     yield f"event: status\ndata: {content}\n\n"
                 elif event_type == "badge":
                     escaped = content.replace("\n", "\\n")
@@ -3255,6 +3260,7 @@ async def public_agent_chat_stream(
                 session_id=new_session_id or session_id or "",
                 transparency_level=None,
                 username=None,
+                extra=response_metadata if response_metadata else None,
             )
             yield "event: done\ndata: complete\n\n"
         except Exception as e:
