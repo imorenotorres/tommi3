@@ -296,7 +296,8 @@ app.add_middleware(RateLimitMiddleware)
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         response = await call_next(request)
-        # Prevent clickjacking: only allow framing from same origin
+        # Allow framing from same origin and trusted UMA domains
+        # X-Frame-Options SAMEORIGIN as baseline (no ALLOW-FROM, not supported in modern browsers)
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         # Prevent MIME type sniffing
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -315,7 +316,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "font-src 'self' https:; "
             "connect-src 'self'; "
             "frame-src 'self' https:; "
-            "frame-ancestors 'self'"
+            "frame-ancestors 'self' https://relacionesi.uma.es https://*.uma.es"
         )
         return response
 
