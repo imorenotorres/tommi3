@@ -291,7 +291,7 @@ const COUNTRY_ALIASES = {
 let map, clusterGroup;
 
 // ── Interaction logging ──
-const SESSION_ID = crypto.randomUUID();
+const SESSION_ID = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
 function logInteraction(action, details) {
     fetch('/api/agents/algoria_map/interaction-log', {
         method: 'POST',
