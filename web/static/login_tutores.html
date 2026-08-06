@@ -90,7 +90,9 @@ var loginBtn = document.getElementById('login-btn');
             var data = JSON.parse(xhr.responseText);
             if (data && data.authenticated) {
                 var redirect = new URLSearchParams(window.location.search).get('redirect') || '/tutores-virtuales';
-                window.location.href = redirect;
+                // Append token so the server-side route check can verify auth
+                var sep = redirect.indexOf('?') >= 0 ? '&' : '?';
+                window.location.href = redirect + sep + 'token=' + encodeURIComponent(existingToken);
                 return;
             }
         }
@@ -130,7 +132,8 @@ function doLogin() {
         localStorage.setItem('tutores_role', data.role);
 
         var redirect = new URLSearchParams(window.location.search).get('redirect') || '/tutores-virtuales';
-        window.location.href = redirect;
+        var sep = redirect.indexOf('?') >= 0 ? '&' : '?';
+        window.location.href = redirect + sep + 'token=' + encodeURIComponent(data.token);
     })
     .catch(function(err) {
         showError(err.message || 'Usuario o contraseña incorrectos');

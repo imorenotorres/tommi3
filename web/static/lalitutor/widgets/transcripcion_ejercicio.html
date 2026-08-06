@@ -111,15 +111,22 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
     <span class="sep">›</span>
     <span class="title">Tema 2</span>
     <span class="sep">›</span>
-    <span class="title">Transcripción fonológica</span>
+    <span class="title" id="header-title">Transcripción fonológica</span>
 </div>
 
 <div class="container">
 
-    <h2>Transcripción fonológica</h2>
+    <h2 id="widget-title">Transcripción fonológica</h2>
     <p class="subtitle" id="level-desc">Selecciona un nivel y genera un ejercicio.</p>
 
     <div class="controls">
+        <div class="control-group">
+            <label>Tipo</label>
+            <select id="sel-tipo" onchange="updateTipo()">
+                <option value="fonologica">Fonológica</option>
+                <option value="fonetica">Fonética</option>
+            </select>
+        </div>
         <div class="control-group">
             <label>Nivel</label>
             <select id="sel-nivel" onchange="updateDesc()">
@@ -128,6 +135,14 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
                 <option value="3">3 — Fonemas ≠ grafías</option>
                 <option value="4">4 — Casos atípicos (h, x, r…)</option>
                 <option value="5">5 — Sintagmas y frases con palabras átonas</option>
+            </select>
+        </div>
+        <div class="control-group" id="grp-dificultad" style="display:none;">
+            <label>Dificultad</label>
+            <select id="sel-dificultad">
+                <option value="con_pista">Con transcripción fonológica</option>
+                <option value="sin_pista">Solo texto</option>
+                <option value="audio" disabled>Con audio (próximamente)</option>
             </select>
         </div>
         <div class="control-group">
@@ -211,14 +226,67 @@ function insertAtCursor(sym) {
     inp.focus();
 }
 
+var NIVELES_FONOLOGICA = {
+    '1': 'Nivel 1: Palabras con sílabas CV donde cada grafía = un fonema. Divide en sílabas y marca el acento.',
+    '2': 'Nivel 2: Palabras con diptongos e hiatos. Distingue cuándo dos vocales van en la misma sílaba.',
+    '3': 'Nivel 3: Palabras donde la grafía no coincide con el fonema (v, c, z, qu, ll, ch, rr…).',
+    '4': 'Nivel 4: Casos atípicos: h muda, x, r inicial vs. no inicial, hie-, hue-…',
+    '5': 'Nivel 5: Sintagmas y frases completas. Las palabras átonas NO llevan marca de acento.'
+};
+var NIVELES_FONETICA = {
+    '1': 'Nivel 1: Diptongos e hiatos — semiconsonantes [j, w] y semivocales [i̯, u̯].',
+    '2': 'Nivel 2: Oclusivas — alófonos oclusivos [b, d, g] vs. aproximantes [β̞, ð̞, ɣ̞].',
+    '3': 'Nivel 3: Africada y fricativas.',
+    '4': 'Nivel 4: Nasales — asimilación de punto de articulación.',
+    '5': 'Nivel 5: Laterales y vibrantes.',
+    '6': 'Nivel 6: Oraciones completas con todos los procesos fonéticos.'
+};
+var OPTIONS_FONOLOGICA = [
+    {value: '1', text: '1 — Palabras CV, fonemas = grafías'},
+    {value: '2', text: '2 — Diptongos e hiatos'},
+    {value: '3', text: '3 — Fonemas ≠ grafías'},
+    {value: '4', text: '4 — Casos atípicos (h, x, r…)'},
+    {value: '5', text: '5 — Sintagmas y frases con palabras átonas'}
+];
+var OPTIONS_FONETICA = [
+    {value: '1', text: '1 — Diptongos e hiatos'},
+    {value: '2', text: '2 — Oclusivas / aproximantes'},
+    {value: '3', text: '3 — Africada y fricativas'},
+    {value: '4', text: '4 — Nasales'},
+    {value: '5', text: '5 — Laterales y vibrantes'},
+    {value: '6', text: '6 — Oraciones completas'}
+];
+
+var currentTipo = 'fonologica';
+
+function updateTipo() {
+    currentTipo = document.getElementById('sel-tipo').value;
+    var titleEl = document.getElementById('widget-title');
+    titleEl.textContent = currentTipo === 'fonetica' ? 'Transcripción fonética' : 'Transcripción fonológica';
+    var headerEl = document.getElementById('header-title');
+    if (headerEl) headerEl.textContent = titleEl.textContent;
+    document.getElementById('grp-dificultad').style.display = currentTipo === 'fonetica' ? '' : 'none';
+
+    // Update level options
+    var sel = document.getElementById('sel-nivel');
+    var options = currentTipo === 'fonetica' ? OPTIONS_FONETICA : OPTIONS_FONOLOGICA;
+    sel.innerHTML = '';
+    options.forEach(function(o) {
+        var opt = document.createElement('option');
+        opt.value = o.value;
+        opt.textContent = o.text;
+        sel.appendChild(opt);
+    });
+    updateDesc();
+
+    // Clear exercise area
+    document.getElementById('exercise-area').innerHTML = '';
+    document.getElementById('results-bar').classList.remove('show');
+    document.getElementById('action-bar').style.display = 'none';
+}
+
 function updateDesc() {
-    var descs = {
-        '1': 'Nivel 1: Palabras con sílabas CV donde cada grafía = un fonema. Divide en sílabas y marca el acento.',
-        '2': 'Nivel 2: Palabras con diptongos e hiatos. Distingue cuándo dos vocales van en la misma sílaba.',
-        '3': 'Nivel 3: Palabras donde la grafía no coincide con el fonema (v, c, z, qu, ll, ch, rr…).',
-        '4': 'Nivel 4: Casos atípicos: h muda, x, r inicial vs. no inicial, hie-, hue-…',
-        '5': 'Nivel 5: Sintagmas y frases completas. Las palabras átonas (artículos, preposiciones, conjunciones, auxiliares) NO llevan marca de acento.'
-    };
+    var descs = currentTipo === 'fonetica' ? NIVELES_FONETICA : NIVELES_FONOLOGICA;
     document.getElementById('level-desc').textContent = descs[document.getElementById('sel-nivel').value] || '';
 }
 
@@ -230,8 +298,12 @@ async function generateExercise() {
     document.getElementById('results-bar').classList.remove('show');
     document.getElementById('action-bar').style.display = 'none';
 
+    var endpoint = currentTipo === 'fonetica'
+        ? '/api/public-agent/eulalia/ejercicio-transcripcion-fonetica'
+        : '/api/public-agent/eulalia/ejercicio-transcripcion';
+
     try {
-        var res = await fetch('/api/public-agent/eulalia/ejercicio-transcripcion?nivel=' + nivel + '&items=' + items);
+        var res = await fetch(endpoint + '?nivel=' + nivel + '&items=' + items);
         if (!res.ok) throw new Error('Error del servidor');
         var data = await res.json();
         currentExercises = data.ejercicios;
@@ -248,11 +320,17 @@ function renderExercises() {
     html += '<th style="width:30px;">#</th><th>Palabra</th><th class="input-cell">Tu transcripción</th><th style="width:30px;"></th>';
     html += '</tr></thead><tbody>';
 
+    var placeholder = currentTipo === 'fonetica' ? '[' : '/';
+    var dificultad = currentTipo === 'fonetica' ? document.getElementById('sel-dificultad').value : 'sin_pista';
     currentExercises.forEach(function(ej, i) {
         html += '<tr id="row-' + i + '">';
         html += '<td style="font-size:12px;color:#94a3b8;font-weight:700;">' + (i + 1) + '</td>';
-        html += '<td class="word-cell">' + ej.palabra + '</td>';
-        html += '<td class="input-cell"><input type="text" class="word-input" id="input-' + i + '" placeholder="/" onfocus="activeInput=this"></td>';
+        html += '<td class="word-cell">' + ej.palabra;
+        if (currentTipo === 'fonetica' && dificultad === 'con_pista' && ej.fonologica) {
+            html += '<div style="font-size:11px;color:#94a3b8;margin-top:2px;">Fonológica: ' + ej.fonologica + '</div>';
+        }
+        html += '</td>';
+        html += '<td class="input-cell"><input type="text" class="word-input" id="input-' + i + '" placeholder="' + placeholder + '" onfocus="activeInput=this"></td>';
         html += '<td class="fb-cell" id="icon-' + i + '"></td>';
         html += '</tr>';
         html += '<tr class="word-feedback" id="fb-' + i + '"><td colspan="4" style="padding:4px 12px;"></td></tr>';
@@ -508,7 +586,17 @@ function showSolutions() {
     });
 }
 
-updateDesc();
+// Init: detect ?tipo=fonetica in URL
+(function() {
+    var params = new URLSearchParams(window.location.search);
+    var tipo = params.get('tipo');
+    if (tipo === 'fonetica') {
+        document.getElementById('sel-tipo').value = 'fonetica';
+        updateTipo();
+    } else {
+        updateDesc();
+    }
+})();
 
 function transcribirLibre() {
     var input = document.getElementById('free-input');

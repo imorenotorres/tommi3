@@ -214,11 +214,11 @@ class RateLimiter:
 _rate_limiter = RateLimiter()
 
 # Rate limit tiers
-_RL_CHAT = (5, 60)       # 5 requests per 60 seconds
-_RL_CHAT_HOUR = (100, 3600)  # 100 per hour
-_RL_DATA = (30, 60)      # 30 per minute
-_RL_WRITE = (5, 60)      # 5 per minute
-_RL_LOGIN = (3, 60)      # 3 per minute
+_RL_CHAT = (15, 60)      # 15 requests per 60 seconds
+_RL_CHAT_HOUR = (300, 3600)  # 300 per hour
+_RL_DATA = (120, 60)     # 120 per minute
+_RL_WRITE = (20, 60)     # 20 per minute
+_RL_LOGIN = (10, 60)     # 10 per minute
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -228,6 +228,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Only rate-limit API calls
         if not path.startswith("/api/"):
+            return await call_next(request)
+
+        # Skip rate limiting for localhost (development)
+        raw_ip = request.client.host if request.client else ""
+        if raw_ip in ("127.0.0.1", "::1", "localhost"):
             return await call_next(request)
 
         # Identify the caller: prefer username > session_id > IP
@@ -1294,17 +1299,13 @@ async def help_eulalia():
 
 @app.get("/tutores-virtuales/eulalia")
 async def tutores_lali(request: Request, moodle_token: str = Query(None)):
-    """Serve the LALI tutor page. Requires tutores auth or moodle_token."""
-    # Allow if coming from Moodle SSO (token will be stored in localStorage by JS)
-    if moodle_token and tutores_get_session(moodle_token):
-        return FileResponse(SCRIPT_DIR / "static" / "eulalia.html")
-    # Check existing tutores session
-    token = _get_tutores_token(request)
-    if token and tutores_get_session(token):
-        return FileResponse(SCRIPT_DIR / "static" / "eulalia.html")
-    # Not authenticated — redirect to login
-    from starlette.responses import RedirectResponse
-    return RedirectResponse(url="/tutores-virtuales/login?redirect=/tutores-virtuales/eulalia")
+    """Serve the LALI tutor page.
+
+    Auth is handled client-side: the frontend checks localStorage for a token
+    and redirects to login if needed. The API endpoints verify auth independently.
+    If moodle_token is present, it's passed through so the frontend can store it.
+    """
+    return FileResponse(SCRIPT_DIR / "static" / "eulalia.html")
 
 
 @app.get("/tutores-virtuales/eulalia/widgets/{widget_name}")
@@ -2086,6 +2087,86 @@ async def lali_ejercicio_transcripcion(nivel: int = Query(1, ge=1, le=5), items:
         "ejercicios": ejercicios
     }
 
+
+
+@app.get("/api/public-agent/eulalia/ejercicio-transcripcion-fonetica")
+async def lali_ejercicio_transcripcion_fonetica(nivel: int = Query(1, ge=1, le=6), items: int = Query(5, ge=1, le=15)):
+    """Generate a phonetic transcription exercise for levels 1-6."""
+    import random
+    import sys
+
+    ej_path = _LALI_DIR / "data" / "ejercicios_transcripcion_fonetica.json"
+    if not ej_path.exists():
+        raise HTTPException(status_code=500, detail="Banco de ejercicios fonéticos no encontrado")
+
+    with open(ej_path, "r", encoding="utf-8") as f:
+        banco = json.load(f)
+
+    nivel_key = f"nivel{nivel}"
+    if nivel_key not in banco:
+        raise HTTPException(status_code=400, detail=f"Nivel {nivel} no existe")
+
+    nivel_data = banco[nivel_key]
+
+    if nivel == 6:
+        # Level 6: phrases with pre-computed solutions
+        frases = nivel_data["frases"]
+        seleccion = random.sample(frases, min(items, len(frases)))
+        ejercicios = [{"palabra": f["frase"], "solucion": f["solucion"]} for f in seleccion]
+    else:
+        # Levels 1-5: words/phrases, transcribe programmatically
+        palabras = nivel_data["palabras"]
+        seleccion = random.sample(palabras, min(items, len(palabras)))
+
+        base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
+        if str(base_dir) not in sys.path:
+            sys.path.insert(0, str(base_dir))
+        from transcriptor import transcripcion_fonetica_palabra, transcribir_palabra
+
+        ejercicios = []
+        for texto in seleccion:
+            palabras_txt = texto.split()
+            partes_fon = []
+            partes_fonet = []
+            error = False
+            for i, p in enumerate(palabras_txt):
+                is_start = (i == 0)
+                # Inter-word context
+                prev_last = None
+                next_first = None
+                if i > 0:
+                    prev_t = transcribir_palabra(palabras_txt[i - 1])
+                    if isinstance(prev_t, str) and prev_t:
+                        prev_last = prev_t.replace("ˈ", "").replace(".", "")[-1]
+                if i + 1 < len(palabras_txt):
+                    next_t = transcribir_palabra(palabras_txt[i + 1])
+                    if isinstance(next_t, str) and next_t:
+                        next_first = next_t.replace("ˈ", "").replace(".", "")[0]
+
+                tf = transcripcion_fonetica_palabra(p, is_utterance_start=is_start,
+                                                     prev_word_last_fonema=prev_last,
+                                                     next_word_first_fonema=next_first)
+                tl = transcribir_palabra(p)
+                if isinstance(tf, tuple) or isinstance(tl, tuple):
+                    error = True
+                    break
+                partes_fon.append(f"/ {tl} /")
+                partes_fonet.append(f"[{tf}]")
+
+            if not error:
+                ejercicios.append({
+                    "palabra": texto,
+                    "fonologica": " ".join(partes_fon),
+                    "solucion": " ".join(partes_fonet)
+                })
+
+    return {
+        "nivel": nivel,
+        "nombre": nivel_data["nombre"],
+        "descripcion": nivel_data["descripcion"],
+        "pista": nivel_data.get("pista", ""),
+        "ejercicios": ejercicios
+    }
 
 
 @app.get("/api/public-agent/eulalia/transcribir")

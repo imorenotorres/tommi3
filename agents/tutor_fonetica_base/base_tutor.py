@@ -60,7 +60,7 @@ _svm._banner_verified = _banner_verified_es
 _svm._banner_database = _banner_database_es
 _svm._banner_unverified = _banner_unverified_es
 
-from tutor_fonetica_base.transcriptor import transcribir, transcribir_palabra
+from tutor_fonetica_base.transcriptor import transcribir, transcribir_palabra, transcripcion_fonetica_palabra
 from tutor_fonetica_base.errores_fonologicos.dispatch import (
     detectar_peticion_errores, dispatch_errores, dispatch_correccion,
     es_respuesta_ejercicio, es_abandono_ejercicio
@@ -228,9 +228,14 @@ def _contiene_palabra_inapropiada(texto: str) -> bool:
     return False
 
 
-def _es_peticion_transcripcion(msg: str) -> str | None:
+def _es_peticion_transcripcion(msg: str) -> str | tuple | None:
     """Detect if the user is asking for a transcription (phonological or phonetic).
-    Returns the text to transcribe, or None."""
+    Returns:
+        - (text, "fonetica") if phonetic transcription requested
+        - text (str) if phonological transcription requested (or generic)
+        - "__BLOCKED__" if inappropriate content
+        - None if not a transcription request
+    """
     msg_lower = msg.lower().strip()
 
     if any(kw in msg_lower for kw in ['ejercicio', 'practicar', 'práctica', 'entrenar']):
@@ -242,6 +247,12 @@ def _es_peticion_transcripcion(msg: str) -> str | None:
                 msg_lower):
         return None
 
+    # Detect if the request is explicitly phonetic
+    _es_fonetica = bool(re.search(
+        r'fonética|fonetica|fonéticamente|foneticamente|alófono|alofono',
+        msg_lower
+    )) and not re.search(r'fonológica|fonologica|fonológicamente|fonologicamente', msg_lower)
+
     patterns = [
         # Peticiones explícitas de transcripción fonológica
         r'transcri(?:be|pción)\s+fonológica(?:mente)?\s+(?:de\s+)?(?:la\s+(?:palabra|frase|oración|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
@@ -252,17 +263,19 @@ def _es_peticion_transcripcion(msg: str) -> str | None:
         # Peticiones explícitas de transcripción fonética
         r'transcri(?:be|pción)\s+fonética(?:mente)?\s+(?:de\s+)?(?:la\s+(?:palabra|frase|oración|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
         r'transcri(?:be|bir)\s+fonéticamente\s+(?:(?:la\s+)?(?:palabra|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
+        r'transcripción\s+fonética\s+(?:de\s+)?["\']?(.+?)["\']?\s*$',
+        r'(?:haz|hazme|dame|dime)\s+(?:la\s+)?transcripción\s+fonética\s+(?:de\s+)?["\']?(.+?)["\']?\s*$',
         # Peticiones genéricas de transcripción (sin especificar tipo)
         r'transcri(?:be|pción)\s+(?:de\s+)?(?:la\s+(?:palabra|frase|oración|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
         r'transcri(?:be|bir)\s+(?:(?:la\s+)?(?:palabra|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
         # "cómo se transcribe X", "cuál es la transcripción de X"
-        r'¿?cómo\s+se\s+transcribe\s+(?:fonológicamente\s+)?["\']?(.+?)["\']?\s*\??$',
-        r'¿?(?:cuál|cual)\s+es\s+la\s+transcripción\s+(?:fonológica\s+)?(?:de\s+)?(?:la\s+(?:palabra|frase|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*\??$',
+        r'¿?cómo\s+se\s+transcribe\s+(?:fonológicamente\s+|fonéticamente\s+)?["\']?(.+?)["\']?\s*\??$',
+        r'¿?(?:cuál|cual)\s+es\s+la\s+transcripción\s+(?:fonológica\s+|fonética\s+)?(?:de\s+)?(?:la\s+(?:palabra|frase|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*\??$',
         # "fonemas de X", "qué fonemas tiene X"
         r'(?:los\s+)?fonemas\s+de\s+["\']?(.+?)["\']?\s*\??$',
         r'¿?(?:qué|cuáles?\s+son\s+los)\s+fonemas\s+(?:de\s+|que\s+tiene\s+|tiene\s+)["\']?(.+?)["\']?\s*\??$',
-        # "cómo se pronuncia X" (fonológicamente)
-        r'¿?cómo\s+se\s+(?:pronuncia|dice)\s+(?:fonológicamente\s+)?["\']?(.+?)["\']?\s*\??$',
+        # "cómo se pronuncia X"
+        r'¿?cómo\s+se\s+(?:pronuncia|dice)\s+(?:fonológicamente\s+|fonéticamente\s+)?["\']?(.+?)["\']?\s*\??$',
     ]
 
     for pattern in patterns:
@@ -280,12 +293,19 @@ def _es_peticion_transcripcion(msg: str) -> str | None:
             # Bloquear palabras obscenas, insultos y escatológicas
             if _contiene_palabra_inapropiada(texto):
                 return "__BLOCKED__"
+            if _es_fonetica:
+                return (texto, "fonetica")
             return texto
     return None
 
 
-def _generar_respuesta_transcripcion(texto: str) -> tuple:
-    """Generate a programmatic transcription response."""
+def _generar_respuesta_transcripcion(texto: str, tipo: str = "fonologica") -> tuple:
+    """Generate a programmatic transcription response.
+
+    Args:
+        texto: text to transcribe
+        tipo: "fonologica" or "fonetica"
+    """
     transcripcion = transcribir(texto)
 
     if isinstance(transcripcion, tuple):
@@ -300,20 +320,67 @@ def _generar_respuesta_transcripcion(texto: str) -> tuple:
         return respuesta, True
 
     palabras = re.findall(r"[a-záéíóúüñ]+", texto.lower())
-    detalle = []
-    for p in palabras:
-        t = transcribir_palabra(p)
-        if isinstance(t, tuple):
-            detalle.append(f"- **{p}** → ⚠️ {t[1]}")
-        elif t:
-            detalle.append(f"- **{p}** → / {t} /")
 
-    respuesta = f"**Transcripción fonológica** (español peninsular distinguidor):\n\n"
-    respuesta += f"> {transcripcion}\n\n"
+    if tipo == "fonetica":
+        # Generate phonetic transcription (with allophones)
+        partes_foneticas = []
+        detalle = []
+        for i, p in enumerate(palabras):
+            is_start = (i == 0)
+            prev_last = None
+            next_first = None
+            # Context between words
+            if i > 0:
+                prev_t = transcribir_palabra(palabras[i - 1])
+                if isinstance(prev_t, str) and prev_t:
+                    prev_last = prev_t.replace("ˈ", "").replace(".", "")[-1]
+            if i + 1 < len(palabras):
+                next_t = transcribir_palabra(palabras[i + 1])
+                if isinstance(next_t, str) and next_t:
+                    next_first = next_t.replace("ˈ", "").replace(".", "")[0]
 
-    if len(palabras) > 1:
-        respuesta += "**Detalle por palabra:**\n\n"
-        respuesta += "\n".join(detalle) + "\n\n"
+            tf = transcripcion_fonetica_palabra(p, is_utterance_start=is_start,
+                                                 prev_word_last_fonema=prev_last,
+                                                 next_word_first_fonema=next_first)
+            if isinstance(tf, tuple):
+                detalle.append(f"- **{p}** → ⚠️ {tf[1]}")
+                partes_foneticas.append(p)
+            elif tf:
+                partes_foneticas.append(f"[{tf}]")
+                # Also show phonological for comparison
+                tl = transcribir_palabra(p)
+                if isinstance(tl, str):
+                    detalle.append(f"- **{p}** → / {tl} / → [{tf}]")
+                else:
+                    detalle.append(f"- **{p}** → [{tf}]")
+
+        transcripcion_fon = " ".join(partes_foneticas)
+        respuesta = f"**Transcripción fonética** (español peninsular distinguidor):\n\n"
+        respuesta += f"> {transcripcion_fon}\n\n"
+
+        if len(palabras) > 1:
+            respuesta += "**Detalle por palabra** (fonológica → fonética):\n\n"
+            respuesta += "\n".join(detalle) + "\n\n"
+        elif detalle:
+            respuesta += "**Fonológica → fonética:**\n\n"
+            respuesta += "\n".join(detalle) + "\n\n"
+
+    else:
+        # Phonological transcription (original behavior)
+        detalle = []
+        for p in palabras:
+            t = transcribir_palabra(p)
+            if isinstance(t, tuple):
+                detalle.append(f"- **{p}** → ⚠️ {t[1]}")
+            elif t:
+                detalle.append(f"- **{p}** → / {t} /")
+
+        respuesta = f"**Transcripción fonológica** (español peninsular distinguidor):\n\n"
+        respuesta += f"> {transcripcion}\n\n"
+
+        if len(palabras) > 1:
+            respuesta += "**Detalle por palabra:**\n\n"
+            respuesta += "\n".join(detalle) + "\n\n"
 
     respuesta += '<p style="font-size:11px;color:#94a3b8;margin-top:8px;">Transcripción generada mediante un algoritmo programado en Python (no por IA).</p>'
 
@@ -493,12 +560,24 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
         """Prompt del sistema para la explicación pedagógica tras transcripción.
         Las subclases pueden sobreescribirlo para personalizar."""
         return (
-            "Eres un tutor de fonología del español. "
-            "El sistema ha generado automáticamente la transcripción fonológica que aparece abajo. "
+            "Eres un tutor de fonología y fonética del español. "
+            "El sistema ha generado automáticamente la transcripción que aparece abajo. "
             "Tu tarea es añadir una breve explicación pedagógica (3-5 líneas máximo). "
             "NO modifiques la transcripción — es correcta. "
             "NO empieces con 'Explicación' ni 'Explicación pedagógica' — ve directo al contenido. "
-            "Responde en español. Sé breve y claro."
+            "Responde en español. Sé breve y claro.\n\n"
+            "TERMINOLOGÍA OBLIGATORIA (no uses otros términos):\n"
+            "- [β̞], [ð̞], [ɣ̞] son APROXIMANTES (NO fricativas). "
+            "Son los alófonos de /b,d,g/ en posición intervocálica y otros contextos no reforzados. "
+            "También son los alófonos de /p,t,k/ en posición de coda (implosiva).\n"
+            "- [b], [d], [g] son OCLUSIVAS. Aparecen tras pausa, tras nasal, y /d/ también tras lateral.\n"
+            "- [j] es una SEMICONSONANTE palatal (alófono de /i/ en posición prenuclear, diptongo creciente). "
+            "NO es 'como la y en hoy' — es el alófono de /i/.\n"
+            "- [i̯] es una SEMIVOCAL palatal (alófono de /i/ en posición postnuclear, diptongo decreciente).\n"
+            "- [w] es una SEMICONSONANTE velar (alófono de /u/ prenuclear). "
+            "[u̯] es una SEMIVOCAL velar (alófono de /u/ postnuclear).\n"
+            "- [ɹ] es una APROXIMANTE alveolar (alófono de /ɾ/ en coda).\n"
+            "- NO digas que un sonido 'se elide' o 'desaparece' si aparece en la transcripción."
         )
 
     # -- Chat síncrono --
@@ -509,11 +588,15 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
             self._session_state['username'] = username
 
         # 1. Check transcription request
-        texto = _es_peticion_transcripcion(user_message)
-        if texto == "__BLOCKED__":
+        resultado = _es_peticion_transcripcion(user_message)
+        if resultado == "__BLOCKED__":
             return "Lo siento, no puedo transcribir ese tipo de contenido. Estoy aquí para ayudarte con la asignatura. ¿Quieres practicar con otra palabra?"
-        if texto:
-            respuesta, es_error = _generar_respuesta_transcripcion(texto)
+        if resultado:
+            if isinstance(resultado, tuple):
+                texto, tipo = resultado
+            else:
+                texto, tipo = resultado, "fonologica"
+            respuesta, es_error = _generar_respuesta_transcripcion(texto, tipo=tipo)
             if es_error:
                 return respuesta
 
@@ -527,6 +610,7 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
             return (respuesta
                     + '\n\n<details style="margin-top:8px;"><summary style="cursor:pointer;color:#4250b3;font-weight:600;font-size:13px;">Explicación</summary>'
                     + '<div style="margin-top:8px;font-size:13px;line-height:1.6;">\n\n'
+                    + _banner_database_es("Comentario generado por IA. Puede contener errores.")
                     + explicacion
                     + '\n\n</div></details>')
 
@@ -604,12 +688,17 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
             self._session_state['username'] = username
 
         # 1. Transcription request
-        texto = _es_peticion_transcripcion(user_message)
-        if texto == "__BLOCKED__":
+        resultado = _es_peticion_transcripcion(user_message)
+        if resultado == "__BLOCKED__":
             yield ("metadata", {"response_type": "programmatic", "category": "blocked_content"})
             yield "Lo siento, no puedo transcribir ese tipo de contenido. Estoy aquí para ayudarte con la asignatura. ¿Quieres practicar con otra palabra?"
             return
-        if texto:
+        if resultado:
+            if isinstance(resultado, tuple):
+                texto, tipo = resultado
+            else:
+                texto, tipo = resultado, "fonologica"
+
             if not self._chromadb_initialized:
                 init_msg = getattr(self, '_init_status_message', "Preparando...")
                 yield ("status", init_msg)
@@ -617,7 +706,7 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
 
             yield ("status", "Transcribiendo...")
 
-            respuesta, es_error = _generar_respuesta_transcripcion(texto)
+            respuesta, es_error = _generar_respuesta_transcripcion(texto, tipo=tipo)
 
             if es_error:
                 yield ("metadata", {"response_type": "programmatic", "category": "transcription_error"})
@@ -630,7 +719,9 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
                 "Transcripción generada automáticamente (verificada, sin IA)."))
             yield respuesta
 
-            yield '\n\n<details style="margin-top:8px;"><summary style="cursor:pointer;color:#4250b3;font-weight:600;font-size:13px;">Explicación</summary><div style="margin-top:8px;font-size:13px;line-height:1.6;">\n\n'
+            yield ('\n\n<details style="margin-top:8px;"><summary style="cursor:pointer;color:#4250b3;font-weight:600;font-size:13px;">Explicación</summary>'
+                   '<div style="margin-top:8px;font-size:13px;line-height:1.6;">\n\n')
+            yield _banner_database_es("Comentario generado por IA. Puede contener errores.")
 
             model = kwargs.get('model_override') or self.model
             messages = [

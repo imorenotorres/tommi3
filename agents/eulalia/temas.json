@@ -222,39 +222,140 @@
       "color": "#7c3aed",
       "imagen": {"src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/IPA_articulation_%28es%29.svg/800px-IPA_articulation_%28es%29.svg.png", "alt": "Articulación de sonidos del habla", "credito": "Wikimedia Commons, CC BY-SA"},
       "resumen": "Este tema estudia cómo se producen físicamente los sonidos del habla y, sobre todo, los alófonos del español. Mientras que el tema 2 trabaja con representaciones abstractas (fonemas), aquí se trabaja con realizaciones concretas (alófonos) y se aprende a describir cada sonido según sus propiedades articulatorias: modo de articulación (oclusiva, fricativa, aproximante, nasal, lateral, vibrante), lugar de articulación (bilabial, dental, alveolar, palatal, velar) y sonoridad (sorda, sonora).\n\nEl aspecto más importante y que más dificultad genera es la alofonía de las oclusivas sonoras: los fonemas /b, d, g/ tienen dos alófonos cada uno — oclusivo [b, d, g] (tras pausa o nasal; /d/ también tras lateral) y aproximante [β̞, ð̞, ɣ̞] (en el resto de contextos). Los estudiantes deben ser capaces de predecir qué alófono aparecerá en cada contexto, incluso entre palabras.\n\nOtro punto clave es la asimilación de las nasales: el fonema /n/ tiene 7 alófonos diferentes según la consonante que le siga ([m] ante bilabial, [ɱ] ante labiodental, [n̟] ante interdental, [n̪] ante dental, [n] alveolar, [nʲ] ante palatal, [ŋ] ante velar). Esta asimilación también opera entre palabras (ej: «en Barcelona» → [em]).\n\nLa transcripción fonética ([...]) integra todos estos conocimientos: a partir de la transcripción fonológica, se aplican las reglas alofónicas para obtener la realización concreta. Los estudiantes deben practicar sistemáticamente esta conversión.",
+      "doc": "Tema3_Fonetica_Articulatoria.md",
       "contenidos": [
         {
-          "bloque": "Descripción articulatoria",
-          "conceptos": [
-            {"nombre": "Modo, lugar y sonoridad", "consulta": "¿Cómo se describe articulatoriamente un sonido del habla?"},
-            {"nombre": "Reconocer alófonos", "consulta": "¿Qué alófono es una aproximante bilabial sonora?"},
-            {"nombre": "Describir alófonos", "consulta": "¿Qué es [ð̞]?"}
+          "bloque": "1. Introducción",
+          "seccion_doc": "1. Introducción",
+          "subbloques": [
+            {
+              "nombre": "¿Qué es un alófono?",
+              "seccion_doc": "¿Qué es un alófono?",
+              "conceptos": [
+                {"nombre": "Alófono y distribución complementaria", "consulta": "¿Qué es un alófono y qué es la distribución complementaria?"}
+              ]
+            },
+            {
+              "nombre": "¿Por qué existen los alófonos?",
+              "seccion_doc": "¿Por qué existen los alófonos?",
+              "conceptos": [
+                {"nombre": "Coordinación articulatoria", "consulta": "¿Qué elementos móviles y fijos se coordinan para articular un sonido?"},
+                {"nombre": "Coarticulación secuencial", "consulta": "¿Por qué un fonema puede sonar diferente según los sonidos que le rodean?"}
+              ]
+            },
+            {
+              "nombre": "Importancia logopédica de los alófonos",
+              "seccion_doc": "En términos logopédicos, ¿qué importancia tienen los alófonos?",
+              "conceptos": [
+                {"nombre": "Fonemas vs sonidos en la práctica", "consulta": "¿Por qué en logopedia no basta con conocer los fonemas sino también los alófonos?"},
+                {"nombre": "Alófonos e interpretación de errores", "consulta": "¿Cómo nos ayuda conocer los alófonos a interpretar errores fonológicos y fonéticos?"}
+              ]
+            }
           ]
         },
         {
-          "bloque": "Alofonía de oclusivas sonoras",
-          "conceptos": [
-            {"nombre": "Alófonos de /b, d, g/", "consulta": "¿Cuáles son los alófonos de /b/?"},
-            {"nombre": "Oclusiva vs aproximante", "consulta": "¿Cuándo se realiza /b/ como [b] y cuándo como [β̞]?"}
+          "bloque": "2. Vocales",
+          "seccion_doc": "2. Vocales",
+          "subbloques": [
+            {
+              "nombre": "2.1. Vocales abiertas y medias: /a/, /e/, /o/",
+              "seccion_doc": "2.1. Vocales abiertas y medias: /a/, /e/, /o/",
+              "conceptos": [
+                {"nombre": "Alófonos de /a/, /e/, /o/", "consulta": "¿Cuántos alófonos tienen las vocales abiertas y medias del español?"}
+              ]
+            },
+            {
+              "nombre": "2.2. Vocales cerradas: /i/, /u/",
+              "seccion_doc": "2.2. Vocales cerradas: /i/, /u/",
+              "conceptos": [
+                {"nombre": "Alófonos de /i/", "consulta": "¿Cuáles son los alófonos de /i/?"},
+                {"nombre": "Alófonos de /u/", "consulta": "¿Cuáles son los alófonos de /u/?"},
+                {"nombre": "Semiconsonantes y semivocales", "consulta": "¿Qué diferencia hay entre semiconsonante y semivocal?"}
+              ]
+            }
           ]
         },
         {
-          "bloque": "Asimilaciones",
-          "conceptos": [
-            {"nombre": "Asimilación de nasales (7 alófonos de /n/)", "consulta": "Alófonos de /n/"},
-            {"nombre": "Asimilación de laterales", "consulta": "Alófonos de /l/"}
+          "bloque": "3. Consonantes",
+          "seccion_doc": "3. Consonantes",
+          "subbloques": [
+            {
+              "nombre": "3.1. Consonantes oclusivas",
+              "seccion_doc": "3.1. Consonantes oclusivas",
+              "conceptos": [
+                {"nombre": "Espirantización", "consulta": "¿Qué es la espirantización de las oclusivas?"},
+                {"nombre": "Alófonos de /b/", "consulta": "¿Cuáles son los alófonos de /b/?"},
+                {"nombre": "Alófonos de /d/", "consulta": "¿Cuáles son los alófonos de /d/?"},
+                {"nombre": "Alófonos de /g/", "consulta": "¿Cuáles son los alófonos de /g/?"},
+                {"nombre": "Oclusivas sordas en coda", "consulta": "¿Qué les pasa a /p/, /t/, /k/ en posición de coda?"},
+                {"nombre": "Oclusiva vs aproximante", "consulta": "¿Cuándo se realiza /b/ como [b] y cuándo como [β̞]?"}
+              ]
+            },
+            {
+              "nombre": "3.2. Consonantes fricativas",
+              "seccion_doc": "3.2. Consonantes fricativas",
+              "conceptos": [
+                {"nombre": "Alófonos de /f/, /θ/, /s/, /x/", "consulta": "¿Cuántos alófonos tienen /f/, /θ/, /s/ y /x/?"},
+                {"nombre": "Alófonos de /ʝ/", "consulta": "¿Cuáles son los alófonos de /ʝ/?"}
+              ]
+            },
+            {
+              "nombre": "3.3. Consonante africada",
+              "seccion_doc": "3.3. Consonante africada",
+              "conceptos": [
+                {"nombre": "Alófono de /ʧ/", "consulta": "¿Cuántos alófonos tiene /ʧ/?"}
+              ]
+            },
+            {
+              "nombre": "3.4. Consonantes nasales",
+              "seccion_doc": "3.4. Consonantes nasales",
+              "conceptos": [
+                {"nombre": "Asimilación de nasales", "consulta": "¿Qué es la asimilación de las consonantes nasales?"},
+                {"nombre": "7 alófonos de /n/", "consulta": "¿Cuáles son los 7 alófonos de /n/?"},
+                {"nombre": "Alófonos de /m/ y /ɲ/", "consulta": "¿Cuántos alófonos tienen /m/ y /ɲ/?"}
+              ]
+            },
+            {
+              "nombre": "3.5. Consonantes laterales",
+              "seccion_doc": "3.5. Consonantes laterales",
+              "conceptos": [
+                {"nombre": "Asimilación de laterales", "consulta": "¿Cuáles son los alófonos de /l/?"}
+              ]
+            },
+            {
+              "nombre": "3.6. Consonantes vibrantes",
+              "seccion_doc": "3.6. Consonantes vibrantes",
+              "conceptos": [
+                {"nombre": "Alófonos de /ɾ/", "consulta": "¿Cuáles son los alófonos de /ɾ/?"},
+                {"nombre": "Alófono de /r/", "consulta": "¿Cuántos alófonos tiene /r/?"}
+              ]
+            }
           ]
         },
         {
-          "bloque": "Otros alófonos",
-          "conceptos": [
-            {"nombre": "Semiconsonantes y semivocales", "consulta": "¿Qué diferencia hay entre semiconsonante y semivocal?"},
-            {"nombre": "Vibrantes", "consulta": "¿Cuáles son los alófonos de /ɾ/?"}
+          "bloque": "4. Otros fenómenos",
+          "seccion_doc": "4. Otros fenómenos",
+          "subbloques": [
+            {
+              "nombre": "4.1. Nasalización vocálica",
+              "seccion_doc": "4.1. Nasalización vocálica",
+              "conceptos": [
+                {"nombre": "Nasalización vocálica", "consulta": "¿Qué es la nasalización vocálica?"}
+              ]
+            },
+            {
+              "nombre": "4.2. Suavización de coda y alteración de vocal previa",
+              "seccion_doc": "4.2. Suavización de coda y alteración de vocal previa",
+              "conceptos": [
+                {"nombre": "Suavización de coda", "consulta": "¿Qué es la suavización de coda?"},
+                {"nombre": "Alteración de vocal previa", "consulta": "¿Qué es la alteración de la vocal previa a una coda suavizada?"}
+              ]
+            }
           ]
         }
       ],
       "ejercicios": [
-        {"nombre": "Transcripción fonética", "tipo": "transcripcion_fonetica"},
+        {"nombre": "Transcripción fonética (por niveles)", "tipo": "panel_transcripcion_fonetica"},
         {"nombre": "Identificar alófonos por descripción", "tipo": "consulta", "consulta": "¿Qué alófono es una nasal velar sonora?"},
         {"nombre": "Listar alófonos de un fonema", "tipo": "consulta", "consulta": "Alófonos de /d/"}
       ],
@@ -262,7 +363,9 @@
         "¿Puedo predecir si /b/ se realiza como [b] o [β̞] en un contexto dado?",
         "¿Conozco los 7 alófonos de /n/ y sus contextos?",
         "¿Sé hacer una transcripción fonética completa a partir de la fonológica?",
-        "¿Puedo describir cualquier alófono con modo, lugar y sonoridad?"
+        "¿Puedo describir cualquier alófono con modo, lugar y sonoridad?",
+        "¿Entiendo la nasalización vocálica y cuándo ocurre?",
+        "¿Puedo explicar qué es la suavización de coda?"
       ],
       "mas_alla": [
         {"texto": "Tema 2: repasa la transcripción fonológica, que es la base de la fonética.", "tema_destino": 2},

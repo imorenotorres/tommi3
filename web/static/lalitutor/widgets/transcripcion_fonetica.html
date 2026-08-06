@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transcripción fonética - Eulalia</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; padding: 20px; }
+.container { max-width: 800px; margin: 0 auto; }
+h2 { color: #7c3aed; margin-bottom: 4px; }
+.subtitle { color: #64748b; font-size: 14px; margin-bottom: 16px; }
+.controls { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
+.control-group { display: flex; flex-direction: column; gap: 4px; }
+.control-group label { font-size: 12px; color: #64748b; font-weight: 600; }
+select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+.btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 600; }
+.btn-primary { background: #7c3aed; color: #fff; }
+.btn-primary:hover { background: #6d28d9; }
+.btn-secondary { background: #e2e8f0; color: #334155; }
+.btn-secondary:hover { background: #cbd5e1; }
+.pista { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: #92400e; margin-bottom: 16px; }
+
+.exercise-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.exercise-item .word { font-size: 18px; font-weight: 600; color: #334155; margin-bottom: 4px; }
+.exercise-item .fonologica { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+.exercise-item input { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; font-family: 'Doulos SIL', 'Noto Sans', serif; }
+.exercise-item input.correct { border-color: #22c55e; background: #f0fdf4; }
+.exercise-item input.incorrect { border-color: #ef4444; background: #fef2f2; }
+.exercise-item .solution { font-size: 14px; color: #16a34a; margin-top: 6px; display: none; }
+.exercise-item .solution.show { display: block; }
+
+.pk { margin-bottom: 16px; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.pk-label { font-size: 12px; color: #64748b; margin-right: 4px; }
+.pk button { background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 8px; font-size: 16px; cursor: pointer; font-family: 'Doulos SIL', 'Noto Sans', serif; }
+.pk button:hover { background: #e0e7ff; border-color: #7c3aed; }
+
+.results-bar { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin-top: 16px; display: none; }
+.results-bar h3 { color: #166534; margin-bottom: 8px; }
+.score { font-size: 24px; font-weight: 700; color: #166534; }
+
+.action-bar { display: none; gap: 8px; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Transcripción fonética</h2>
+    <p class="subtitle" id="level-desc">Selecciona un nivel y genera un ejercicio.</p>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Nivel</label>
+            <select id="sel-nivel" onchange="updateDesc()">
+                <option value="1">1 - Diptongos e hiatos</option>
+                <option value="2">2 - Oclusivas</option>
+                <option value="3">3 - Africada y fricativas</option>
+                <option value="4">4 - Nasales</option>
+                <option value="5">5 - Laterales y vibrantes</option>
+                <option value="6">6 - Oraciones completas</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Items</label>
+            <select id="sel-items">
+                <option value="3">3</option>
+                <option value="5" selected>5</option>
+                <option value="8">8</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateExercise()">Generar ejercicio</button>
+    </div>
+
+    <!-- Phoneme keyboard -->
+    <div class="pk" id="pk">
+        <span class="pk-label">Simbolos:</span>
+    </div>
+
+    <div id="pista-box" style="display:none;" class="pista"></div>
+
+    <div id="exercise-area"></div>
+
+    <div class="results-bar" id="results-bar">
+        <h3>Resultado</h3>
+        <div class="score" id="score-text"></div>
+    </div>
+
+    <div class="action-bar" id="action-bar" style="display:none;">
+        <button class="btn btn-primary" id="btn-check" onclick="checkAll()">Comprobar</button>
+        <button class="btn btn-secondary" onclick="showSolutions()">Ver soluciones</button>
+        <button class="btn btn-secondary" onclick="generateExercise()">Nuevo ejercicio</button>
+    </div>
+
+</div>
+
+<script>
+// Phonetic symbols keyboard
+var symbols = ['β̞','ð̞','ɣ̞','ɾ','ɹ','r','θ','ʝ','ʤ','ʧ','x','ɲ','ŋ','ɱ','n̟','n̪','nʲ','l̟','l̪',
+               'j','i̯','w','u̯','ˈ','.','f','s','m','n','l','p','b','t','d','k','g'];
+var pkDiv = document.getElementById('pk');
+symbols.forEach(function(s) {
+    var btn = document.createElement('button');
+    btn.textContent = s;
+    btn.onclick = function() { insertSymbol(s); };
+    pkDiv.appendChild(btn);
+});
+
+var lastFocusedInput = null;
+function insertSymbol(s) {
+    if (!lastFocusedInput) return;
+    var inp = lastFocusedInput;
+    var start = inp.selectionStart, end = inp.selectionEnd;
+    inp.value = inp.value.substring(0, start) + s + inp.value.substring(end);
+    inp.selectionStart = inp.selectionEnd = start + s.length;
+    inp.focus();
+}
+
+var currentExercises = [];
+
+function updateDesc() {
+    var descs = {
+        '1': 'Identifica si /i/ y /u/ son vocales, semiconsonantes o semivocales.',
+        '2': 'Identifica oclusivas [b,d,g] vs aproximantes [β̞,ð̞,ɣ̞]. También /p,t,k/ en coda.',
+        '3': 'Transcribe /ʧ/, /f/, /θ/, /s/, /ʝ/, /x/. Atención a los alófonos de /ʝ/.',
+        '4': 'Identifica los 7 alófonos de /n/ según la consonante siguiente.',
+        '5': 'Alófonos de /l/ (asimilación) y /ɾ/ (vibrante [ɾ] vs aproximante [ɹ]).',
+        '6': 'Transcripción fonética completa con todas las reglas.'
+    };
+    document.getElementById('level-desc').textContent = descs[document.getElementById('sel-nivel').value] || '';
+}
+
+async function generateExercise() {
+    var nivel = document.getElementById('sel-nivel').value;
+    var items = document.getElementById('sel-items').value;
+    document.getElementById('results-bar').style.display = 'none';
+
+    try {
+        var res = await fetch('/api/public-agent/eulalia/ejercicio-transcripcion-fonetica?nivel=' + nivel + '&items=' + items);
+        if (!res.ok) throw new Error('Error ' + res.status);
+        var data = await res.json();
+        currentExercises = data.ejercicios;
+
+        // Show hint
+        var pistaBox = document.getElementById('pista-box');
+        if (data.pista) {
+            pistaBox.textContent = data.pista;
+            pistaBox.style.display = 'block';
+        } else {
+            pistaBox.style.display = 'none';
+        }
+
+        // Render exercises
+        var area = document.getElementById('exercise-area');
+        area.innerHTML = '';
+        data.ejercicios.forEach(function(ej, idx) {
+            var div = document.createElement('div');
+            div.className = 'exercise-item';
+            var fonLine = ej.fonologica ? '<div class="fonologica">Fonologica: ' + ej.fonologica + '</div>' : '';
+            div.innerHTML =
+                '<div class="word">' + (idx+1) + '. ' + ej.palabra + '</div>' +
+                fonLine +
+                '<input type="text" id="resp-' + idx + '" placeholder="[ ... ]" onfocus="lastFocusedInput=this">' +
+                '<div class="solution" id="sol-' + idx + '">Solucion: ' + ej.solucion + '</div>';
+            area.appendChild(div);
+        });
+
+        document.getElementById('action-bar').style.display = 'flex';
+    } catch(e) {
+        document.getElementById('exercise-area').innerHTML = '<p style="color:#dc2626;">Error al generar el ejercicio: ' + e.message + '</p>';
+    }
+}
+
+function normalize(s) {
+    return s.replace(/[\[\]\/ ]/g, '').replace(/'/g, 'ˈ').trim().toLowerCase();
+}
+
+function checkAll() {
+    var correct = 0;
+    var total = currentExercises.length;
+    currentExercises.forEach(function(ej, idx) {
+        var inp = document.getElementById('resp-' + idx);
+        var sol = document.getElementById('sol-' + idx);
+        var userAns = normalize(inp.value);
+        var expected = normalize(ej.solucion);
+        if (userAns === expected) {
+            inp.className = 'correct';
+            correct++;
+        } else {
+            inp.className = 'incorrect';
+            sol.className = 'solution show';
+        }
+    });
+
+    var pct = total > 0 ? Math.round(100 * correct / total) : 0;
+    document.getElementById('score-text').textContent = correct + '/' + total + ' (' + pct + '%)';
+    document.getElementById('results-bar').style.display = 'block';
+
+    // Save progress
+    if (typeof guardarProgreso === 'function') {
+        guardarProgreso('transcripcion_fonetica', correct, total, {nivel: document.getElementById('sel-nivel').value});
+    }
+}
+
+function showSolutions() {
+    currentExercises.forEach(function(ej, idx) {
+        document.getElementById('sol-' + idx).className = 'solution show';
+    });
+}
+</script>
+
+<!-- Progress script -->
+<script src="/static/lalitutor/progreso.js"></script>
+
+</body>
+</html>

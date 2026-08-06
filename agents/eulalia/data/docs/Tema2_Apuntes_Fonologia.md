@@ -496,10 +496,31 @@ sílaba precede a la cerrada. Ejemplos: paisano, euforia.
 Como veremos en el tema 4, en estos casos, el núcleo silábico es siempre la 
 segunda vocal. Ejemplos: ruido, ciudad. 
  
-#### Coda consonántica 
-En español hay pocas consonantes que pueden aparecer en posición de coda. Son estas: /ɾ/, /n/, /s/, /l/, /d/ y, con menor frecuencia, la /θ/. Se trata por tanto de una posición poco usada. Sin embargo, ello no quiere decir que no sea importante: esta posición responsable de transmitir gran cantidad 
-de información. Por ejemplo, observa el caso de las codas en esta oración: 
- 
+#### Coda consonántica
+En español hay pocas consonantes que pueden aparecer en posición de coda. Son estas: /ɾ/, /n/, /s/, /l/, /d/ y, con menor frecuencia, la /θ/. Se trata por tanto de una posición poco usada. Sin embargo, ello no quiere decir que no sea importante: esta posición responsable de transmitir gran cantidad
+de información. Por ejemplo, observa el caso de las codas en esta oración:
+
+#### La sílaba desde la perspectiva logopédica
+
+Aunque los fonemas son considerados habitualmente el centro de la descripción fonológica, a nivel neurocognitivo las sílabas podrían ser más importantes. De hecho, podríamos decir que **hablamos combinando sílabas**: además de un inventario de fonemas, los hablantes disponemos de un **silabario** (un diccionario mental de sílabas) que nos permite encadenar los movimientos articulatorios de forma fluida.
+
+Hay dos factores relacionados con las sílabas que parecen explicar muchos de los errores que cometemos los hablantes:
+
+**1. Frecuencia silábica**
+
+Cuanto más frecuente es una sílaba, menos errores cometemos al producirla. Esto podría deberse a que las sílabas frecuentes se han practicado tantas veces que su programa motor está muy automatizado. Por el contrario, las sílabas poco frecuentes requieren un mayor esfuerzo de planificación y son más vulnerables a errores.
+
+**2. Estructura silábica**
+
+La posición dentro de la sílaba (ataque, núcleo, coda) y el número de fonemas en cada posición influyen en la probabilidad de error:
+
+- Los errores son más comunes en posiciones **débiles** (como la coda) que en posiciones fuertes (como el ataque).
+- Los errores son más probables cuando hay **más de un fonema** en una misma posición (ataque complejo como /tɾ/, o núcleo complejo como un diptongo /ei/).
+
+**¿Por qué importa esto en logopedia?**
+
+Estos factores son clave a la hora de interpretar los errores de un paciente. No tiene la misma gravedad un error observado en una **posición débil** (coda) en una **sílaba poco frecuente** (/ɾan/) o cuando hay **dos fonemas en una posición** (*tren* /tɾen/, *reino* /ˈrei.no/), que un error en una **posición fuerte con un solo fonema** en una **sílaba muy frecuente** (*tu* /tu/). El segundo caso sería mucho más preocupante desde el punto de vista clínico, ya que implica una dificultad con programas motores que deberían estar completamente automatizados.
+
 ### 2.3.2. Palabras prosódicas
 
 Una palabra prosódica es una unidad formada por una palabra léxica (tónica) junto con las palabras átonas que se le asocian (artículos, preposiciones, pronombres clíticos, etc.), de modo que el conjunto se pronuncia como un bloque con un único acento principal. 

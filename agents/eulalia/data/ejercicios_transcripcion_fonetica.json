@@ -1,0 +1,80 @@
+{
+  "nivel1": {
+    "nombre": "Diptongos e hiatos",
+    "descripcion": "Identifica si /i/ y /u/ se realizan como vocales [i, u], semiconsonantes [j, w] o semivocales [i̯, u̯].",
+    "pista": "Prenuclear (diptongo creciente) → semiconsonante [j, w]. Postnuclear (diptongo decreciente) → semivocal [i̯, u̯]. Núcleo → vocal [i, u].",
+    "palabras": [
+      "pie", "fue", "aire", "causa", "ciudad", "cuidado", "veinte", "huevo",
+      "fuego", "viuda", "pausa", "cielo", "ruido", "bueno", "deuda",
+      "hielo", "puerta", "hueso", "auto", "paisaje", "peine", "Laura",
+      "fui", "bou", "piano", "suave", "cuota", "diario", "fuente", "reina"
+    ]
+  },
+  "nivel2": {
+    "nombre": "Oclusivas",
+    "descripcion": "Identifica cuándo /b, d, g/ se realizan como oclusivas [b, d, g] o aproximantes [β̞, ð̞, ɣ̞]. También /p, t, k/ en coda.",
+    "pista": "Oclusiva tras pausa o nasal (y /d/ también tras lateral). Aproximante en el resto. En coda: /p/→[β̞], /t/→[ð̞], /k/→[ɣ̞].",
+    "palabras": [
+      "boda", "nada", "lago", "apto", "acto", "atlas",
+      "un gato", "la boda", "el dato", "un vaso", "su dedo", "ambos",
+      "obtener", "doctor", "caldo", "signo", "apto", "admitir",
+      "un día", "la guerra", "el banco", "su gato", "banda", "falda",
+      "enviar", "adquirir", "acción", "cobrar", "abuelo", "bodega"
+    ]
+  },
+  "nivel3": {
+    "nombre": "Africada y fricativas",
+    "descripcion": "Transcribe fonéticamente palabras con /ʧ/, /f/, /θ/, /s/, /ʝ/, /x/. Atención a /ʝ/ que tiene dos alófonos.",
+    "pista": "/f, θ, s, x/ → siempre igual. /ʝ/ → [ʤ] tras nasal, [ʝ] en el resto. /ʧ/ → siempre [ʧ].",
+    "palabras": [
+      "chico", "foca", "cena", "sala", "jota", "mayo",
+      "un yate", "su yeso", "con yema", "chaqueta", "fiesta", "zumo",
+      "reja", "ceja", "saco", "jefe", "zapato", "mucho",
+      "cereza", "inyección", "cuchara", "concha", "ancho", "conyuge",
+      "con llave", "la llave", "un chico", "su jefe", "lechuga", "cosecha"
+    ]
+  },
+  "nivel4": {
+    "nombre": "Nasales",
+    "descripcion": "Identifica los 7 alófonos de /n/ según la consonante siguiente. /m/ y /ɲ/ tienen un solo alófono.",
+    "pista": "/n/ → [m] ante bilabial, [ɱ] ante /f/, [n̟] ante /θ/, [n̪] ante dental, [nʲ] ante palatal, [ŋ] ante velar, [n] en el resto.",
+    "palabras": [
+      "un beso", "un foco", "once", "antes", "ancho", "tengo",
+      "un peso", "enfermo", "un diente", "un chico", "un gato",
+      "un jefe", "mano", "año", "ánfora", "Monte", "mancha",
+      "un zapato", "en casa", "cansado", "en fin", "un niño",
+      "angustia", "un yerno", "con todo", "en cambio", "canción",
+      "enviar", "concha", "infame"
+    ]
+  },
+  "nivel5": {
+    "nombre": "Laterales y vibrantes",
+    "descripcion": "Identifica los alófonos de /l/ (asimilación) y de /ɾ/ (vibrante simple [ɾ] en ataque, aproximante [ɹ] en coda). /r/ siempre [r].",
+    "pista": "/l/ → [l̟] ante /θ/, [l̪] ante dental, [l] en el resto. /ɾ/ → [ɾ] en ataque, [ɹ] en coda. /r/ → siempre [r].",
+    "palabras": [
+      "alto", "calzar", "perro", "pero", "carta", "caro",
+      "el dato", "el zapato", "el sol", "carro", "puerta",
+      "armar", "saltar", "color", "collar", "caldera",
+      "portal", "alcalde", "peor", "parlamento", "albañil",
+      "reloj", "altar", "cristal", "moral", "largo",
+      "correr", "parar", "barrer", "firmar", "torcer"
+    ]
+  },
+  "nivel6": {
+    "nombre": "Oraciones completas",
+    "descripcion": "Transcripción fonética completa de oraciones. Aplica todas las reglas: oclusivas, fricativas, nasales, laterales, vibrantes y contexto entre palabras.",
+    "pista": "Recuerda el contexto entre palabras: 'un beso' → [um.ˈβ̞e.so], 'el gato' → [el.ˈɣ̞a.to].",
+    "frases": [
+      {"frase": "un buen dato", "solucion": "[um.ˈbwen̪.ˈda.to]"},
+      {"frase": "el gato duerme", "solucion": "[el.ˈɣ̞a.to.ˈdweɹ.me]"},
+      {"frase": "pon la carta", "solucion": "[ˈpon.la.ˈkaɹ.ta]"},
+      {"frase": "con mucho ancho", "solucion": "[kom.ˈmu.ʧo.ˈanʲ.ʧo]"},
+      {"frase": "un jefe alto", "solucion": "[uŋ.ˈxe.fe.ˈal̪.to]"},
+      {"frase": "el perro corre", "solucion": "[el.ˈpe.ro.ˈko.re]"},
+      {"frase": "la ciudad entera", "solucion": "[la.θju.ˈð̞að̞.enˈ.te.ɾa]"},
+      {"frase": "un niño bueno", "solucion": "[un̪.ˈni.ɲo.ˈβ̞we.no]"},
+      {"frase": "coge un vaso de agua", "solucion": "[ˈko.xe.um.ˈβ̞a.so.ð̞e.ˈa.ɣ̞wa]"},
+      {"frase": "en fin de semana", "solucion": "[eɱ.ˈfin̪.de.se.ˈma.na]"}
+    ]
+  }
+}
