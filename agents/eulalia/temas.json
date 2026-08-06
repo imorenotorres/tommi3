@@ -375,7 +375,7 @@
     },
     {
       "id": 4,
-      "titulo": "Fonética acústica",
+      "titulo": "Fonética acústica (En preparación)",
       "color": "#b45309",
       "imagen": {"src": "/static/lalitutor/tema1/img/fonetica_acustica.jpg", "alt": "Oscilograma y espectrograma de una señal de habla en Praat"},
       "resumen": "Este tema introduce el análisis acústico del habla: cómo representar y medir las propiedades físicas de los sonidos. Es un tema esencialmente visual y práctico, centrado en la lectura de espectrogramas y el uso del programa Praat.\n\nLos conceptos fundamentales son: la frecuencia fundamental (F0), que corresponde a la vibración de las cuerdas vocales y determina el tono percibido; los formantes (F1, F2, F3...), que son las frecuencias de resonancia del tracto vocal y permiten identificar las vocales; y el VOT (Voice Onset Time), que mide el tiempo entre la explosión de una oclusiva y el inicio de la sonoridad.\n\nPara las vocales, los estudiantes deben memorizar la relación entre formantes y articulación: F1 correlaciona inversamente con la altura de la lengua (F1 alto = vocal abierta /a/; F1 bajo = vocal cerrada /i, u/) y F2 correlaciona con la anterioridad (F2 alto = vocal anterior /i, e/; F2 bajo = vocal posterior /u, o/). Estos valores permiten identificar vocales en un espectrograma.\n\nPara las consonantes, cada clase tiene una firma acústica característica: las oclusivas muestran silencio + explosión, las fricativas muestran ruido turbulento, las nasales tienen formantes con baja intensidad, y las aproximantes muestran formantes debilitados sin interrupción.\n\nLos estudiantes deben aprender a usar Praat para grabar, visualizar y anotar señales de habla. También deben ser capaces de leer un espectrograma e identificar los sonidos que contiene.",
@@ -436,7 +436,7 @@
     },
     {
       "id": 5,
-      "titulo": "Fonética perceptiva",
+      "titulo": "Fonética perceptiva (En preparación)",
       "color": "#dc2626",
       "imagen": {"src": "/static/lalitutor/tema1/img/fonetica_perceptiva.gif", "alt": "Anatomía del oído humano", "credito": "Martin Weisser, Phonetics Course"},
       "resumen": "Este tema cierra el ciclo producción-señal-percepción, estudiando cómo el sistema auditivo analiza la señal del habla para reconocer los sonidos. Es un tema especialmente relevante para logopedia porque permite entender qué ocurre cuando un paciente tiene dificultades perceptivas (por pérdida auditiva, implante coclear, o envejecimiento).\n\nEl sistema auditivo realiza dos tipos de análisis simultáneos: el análisis espectral (descomposición de la señal en bandas de frecuencia, mediante las bandas críticas) y el análisis temporal (detección de cambios en la señal a lo largo del tiempo). El análisis temporal se subdivide en tres escalas: cambios lentos (envolvente, ~5-10 Hz, asociados al ritmo silábico), cambios rápidos (periodicidad, ~100-300 Hz, asociados a la sonoridad y la entonación) y cambios muy rápidos (estructura temporal fina o ETF, >300 Hz, asociados a los formantes y las transiciones formánticas).\n\nUna idea clave es que cada propiedad lingüística depende de eventos acústicos específicos: el modo de articulación depende de la envolvente (cambios lentos), la sonoridad depende de la periodicidad (cambios rápidos), y el lugar de articulación depende de las transiciones formánticas (cambios muy rápidos). Por tanto, si el sistema auditivo se degrada, primero se pierde la percepción del lugar de articulación, luego la sonoridad, y por último el modo.\n\nLos estudiantes deben entender esta jerarquía y ser capaces de predecir qué dificultades perceptivas tendrá un paciente según el tipo de pérdida auditiva. También deben conocer la noción de redundancia acústica: cada sonido tiene múltiples pistas, lo que permite reconocerlo incluso cuando se pierde parte de la información.",
@@ -484,7 +484,7 @@
     },
     {
       "id": 6,
-      "titulo": "Trabajo práctico (por parejas)",
+      "titulo": "Trabajo práctico (por parejas) (En preparación)",
       "color": "#0d9488",
       "resumen": "En este tema los estudiantes realizan un pequeño trabajo de investigación por parejas. El objetivo es aplicar los conocimientos adquiridos en los temas 1-5 a un problema concreto, recogiendo y analizando datos reales de habla.\n\nHay cuatro tipos de proyecto entre los que elegir:\n\n1) **Comprobar el inventario fonológico de un hablante.** Se trata de verificar si un hablante produce todos los fonemas del español, diseñando una lista de palabras, grabando y analizando.\n\n2) **Comprobar si los errores en palabras y pseudopalabras coinciden.** Investiga la doble ruta (Tema 1) comparando errores en palabras reales vs. pseudopalabras equivalentes.\n\n3) **Analizar una muestra de habla con errores.** Transcripción fonológica y clasificación de errores (Tema 2) a partir de habla real.\n\n4) **Análisis de diferencias entre dialectos.** Comparación de variedades del español identificando diferencias fonológicas y fonéticas.\n\nEl trabajo se estructura en: introducción, método, resultados y discusión.",
       "contenidos": [
