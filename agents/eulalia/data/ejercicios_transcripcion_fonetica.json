@@ -64,17 +64,12 @@
     "nombre": "Oraciones completas",
     "descripcion": "Transcripción fonética completa de oraciones. Aplica todas las reglas: oclusivas, fricativas, nasales, laterales, vibrantes y contexto entre palabras.",
     "pista": "Recuerda el contexto entre palabras: 'un beso' → [um.ˈβ̞e.so], 'el gato' → [el.ˈɣ̞a.to].",
-    "frases": [
-      {"frase": "un buen dato", "solucion": "[um.ˈbwen̪.ˈda.to]"},
-      {"frase": "el gato duerme", "solucion": "[el.ˈɣ̞a.to.ˈdweɹ.me]"},
-      {"frase": "pon la carta", "solucion": "[ˈpon.la.ˈkaɹ.ta]"},
-      {"frase": "con mucho ancho", "solucion": "[kom.ˈmu.ʧo.ˈanʲ.ʧo]"},
-      {"frase": "un jefe alto", "solucion": "[uŋ.ˈxe.fe.ˈal̪.to]"},
-      {"frase": "el perro corre", "solucion": "[el.ˈpe.ro.ˈko.re]"},
-      {"frase": "la ciudad entera", "solucion": "[la.θju.ˈð̞að̞.enˈ.te.ɾa]"},
-      {"frase": "un niño bueno", "solucion": "[un̪.ˈni.ɲo.ˈβ̞we.no]"},
-      {"frase": "coge un vaso de agua", "solucion": "[ˈko.xe.um.ˈβ̞a.so.ð̞e.ˈa.ɣ̞wa]"},
-      {"frase": "en fin de semana", "solucion": "[eɱ.ˈfin̪.de.se.ˈma.na]"}
+    "palabras": [
+      "un buen dato", "el gato duerme", "pon la carta",
+      "con mucho ancho", "un jefe alto", "el perro corre",
+      "la ciudad entera", "un niño bueno", "coge un vaso de agua",
+      "en fin de semana", "dame la llave roja", "el doctor viene",
+      "con todo el cariño", "un chico alto y fuerte"
     ]
   }
 }

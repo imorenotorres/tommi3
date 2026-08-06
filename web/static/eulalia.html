@@ -356,28 +356,7 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
 
 
             <div class="exercise-panel" id="panel-transcripcion" style="display:none;">
-                <details>
-                    <summary id="trans-panel-title">Ejercicios de transcripción fonológica</summary>
-                    <div class="exercise-options">
-                        <label>Nivel:</label>
-                        <select id="trans-nivel">
-                            <option value="1">1 — Palabras CV, fonemas = grafías</option>
-                            <option value="2">2 — Diptongos e hiatos</option>
-                            <option value="3">3 — Fonemas ≠ grafías (v, c, z, qu, ll…)</option>
-                            <option value="4">4 — Casos atípicos (h muda, x, r/rr…)</option>
-                            <option value="5">5 — Sintagmas y frases con palabras átonas</option>
-                        </select>
-                        <label>Nº de ítems:</label>
-                        <select id="trans-items">
-                            <option value="1">1</option>
-                            <option value="3">3</option>
-                            <option value="5" selected>5</option>
-                            <option value="8">8</option>
-                            <option value="10">10</option>
-                        </select>
-                        <button class="exercise-btn" onclick="requestTranscripcion()">Generar ejercicio</button>
-                    </div>
-                </details>
+                <button class="exercise-btn" id="trans-panel-btn" onclick="requestTranscripcion()" style="width:100%;padding:10px 16px;border-radius:8px;border:2px solid #7c3aed30;color:#7c3aed;background:#fff;cursor:pointer;font-size:14px;font-weight:600;text-align:left;">✏️ <span id="trans-panel-title">Ejercicios de transcripción fonológica</span></button>
             </div>
 
             <div class="exercise-panel" id="panel-errores" style="display:none;">
@@ -851,7 +830,7 @@ var _evalItems = {
         {label: 'Análisis de errores fonológicos', widget: 'ejercicio_errores', desc: 'Clasifica errores fonológicos por tipo y subtipo.'}
     ],
     3: [
-        {label: 'Transcripción fonética', widget: 'transcripcion_ejercicio?tipo=fonetica', desc: 'Ejercicios de transcripción fonética en 6 niveles: diptongos, oclusivas, fricativas, nasales, laterales/vibrantes, y oraciones completas.'}
+        {label: 'Transcripción fonética', widget: 'transcripcion_fonetica', desc: 'Ejercicios de transcripción fonética en 6 niveles: diptongos, oclusivas, fricativas, nasales, laterales/vibrantes, y oraciones completas.'}
     ]
 };
 
@@ -1351,16 +1330,11 @@ function updateExercisePanels() {
     var panelErrores = document.getElementById('panel-errores');
     // Transcripción: tema 2 (fonológica) o tema 3 (fonética)
     panelTrans.style.display = (_currentTemaId === 2 || _currentTemaId === 3) ? '' : 'none';
-    // Actualizar título y tipo según tema
     var titleEl = document.getElementById('trans-panel-title');
     if (_currentTemaId === 3) {
         if (titleEl) titleEl.textContent = 'Ejercicios de transcripción fonética';
-        var sel = document.getElementById('trans-tipo');
-        if (sel) sel.value = 'fonetica';
     } else {
         if (titleEl) titleEl.textContent = 'Ejercicios de transcripción fonológica';
-        var sel = document.getElementById('trans-tipo');
-        if (sel) sel.value = 'fonologica';
     }
     // Errores: solo tema 2
     panelErrores.style.display = (_currentTemaId === 2) ? '' : 'none';
@@ -1916,10 +1890,11 @@ function checkExerciseActive(responseText) {
 }
 
 function requestTranscripcion() {
-    var nivel = document.getElementById('trans-nivel').value;
-    var items = document.getElementById('trans-items').value;
-    // Todos los niveles usan el widget programático
-    window.open('/tutores-virtuales/eulalia/widgets/transcripcion_ejercicio?nivel=' + nivel + '&items=' + items, '_blank');
+    if (_currentTemaId === 3) {
+        window.open('/tutores-virtuales/eulalia/widgets/transcripcion_fonetica', '_blank');
+    } else {
+        window.open('/tutores-virtuales/eulalia/widgets/transcripcion_ejercicio', '_blank');
+    }
 }
 
 function requestExercise() {

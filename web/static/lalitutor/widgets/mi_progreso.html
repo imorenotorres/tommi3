@@ -113,6 +113,8 @@ var EXERCISES = [
     {id: 'concepto_medidas_cuantitativas', nombre: 'Define: Medidas cuantitativas', tema: 2, tipo: 'concepto'},
     {id: 'transcripcion_ejercicio', nombre: 'Transcripción fonológica', tema: 2, tipo: 'ejercicio'},
     {id: 'ejercicio_errores', nombre: 'Análisis de errores', tema: 2, tipo: 'ejercicio'},
+    // Tema 3 — Evaluación continua
+    {id: 'transcripcion_fonetica', nombre: 'Transcripción fonética', tema: 3, tipo: 'ejercicio'},
 ];
 
 function getToken() {
@@ -152,6 +154,28 @@ function render(data) {
     }
 }
 
+// Map exercise IDs to widget URLs
+var WIDGET_URLS = {
+    'conceptos': '/tutores-virtuales/eulalia/widgets/conceptos?tema=1',
+    'concepto_fonema': '/tutores-virtuales/eulalia/widgets/conceptos?tema=1',
+    'concepto_alofono': '/tutores-virtuales/eulalia/widgets/conceptos?tema=1',
+    'concepto_representacion_mental': '/tutores-virtuales/eulalia/widgets/conceptos?tema=1',
+    'concepto_pseudopalabra': '/tutores-virtuales/eulalia/widgets/conceptos?tema=1',
+    'eval_final_tema1': '/tutores-virtuales/eulalia/widgets/eval_final_tema1',
+    'concepto_silaba': '/tutores-virtuales/eulalia/widgets/conceptos?tema=2',
+    'concepto_palabra_prosodica': '/tutores-virtuales/eulalia/widgets/conceptos?tema=2',
+    'concepto_transcripcion_fonologica': '/tutores-virtuales/eulalia/widgets/conceptos?tema=2',
+    'concepto_ppc': '/tutores-virtuales/eulalia/widgets/conceptos?tema=2',
+    'concepto_asimilacion': '/tutores-virtuales/eulalia/widgets/conceptos?tema=2',
+    'concepto_errores_sistemicos': '/tutores-virtuales/eulalia/widgets/conceptos?tema=2',
+    'concepto_errores_estructura_palabra': '/tutores-virtuales/eulalia/widgets/conceptos?tema=2',
+    'concepto_errores_estructura_silaba': '/tutores-virtuales/eulalia/widgets/conceptos?tema=2',
+    'concepto_medidas_cuantitativas': '/tutores-virtuales/eulalia/widgets/conceptos?tema=2',
+    'transcripcion_ejercicio': '/tutores-virtuales/eulalia/widgets/transcripcion_ejercicio',
+    'ejercicio_errores': '/tutores-virtuales/eulalia/widgets/ejercicio_errores',
+    'transcripcion_fonetica': '/tutores-virtuales/eulalia/widgets/transcripcion_fonetica',
+};
+
 function scoreClass(pct) {
     if (pct >= 75) return 'good';
     if (pct >= 50) return 'mid';
@@ -181,9 +205,10 @@ function renderEstudiante(username, progreso, container) {
     html += '</div></div>';
 
     // By tema
-    var temas = [1, 2];
+    var temas = [1, 2, 3];
     temas.forEach(function(tema) {
         var exs = EXERCISES.filter(function(e) { return e.tema === tema; });
+        if (exs.length === 0) return;
         html += '<div class="progress-section">';
         html += '<div class="section-title">Tema ' + tema + '</div>';
         html += '<div class="progress-grid">';
@@ -193,8 +218,13 @@ function renderEstudiante(username, progreso, container) {
             if (p && typeof p === 'object') { pct = p.score || 0; date = p.date || ''; }
             else if (typeof p === 'number') { pct = p; }
             var c = scoreClass(pct);
+            var widgetUrl = WIDGET_URLS[ex.id] || '';
             html += '<div class="progress-row">';
-            html += '<div class="prog-label">' + ex.nombre + '</div>';
+            if (pct < 75 && widgetUrl) {
+                html += '<div class="prog-label"><a href="' + widgetUrl + '" target="_blank" style="color:#4250b3;text-decoration:none;" title="Hacer este ejercicio">' + ex.nombre + ' →</a></div>';
+            } else {
+                html += '<div class="prog-label">' + ex.nombre + '</div>';
+            }
             html += '<div class="prog-bar-track"><div class="prog-bar-fill ' + c + '" style="width:' + pct + '%"></div></div>';
             html += '<div class="prog-score ' + c + '">' + (pct > 0 ? pct + '%' : '—') + '</div>';
             html += '<div class="prog-date">' + date + '</div>';

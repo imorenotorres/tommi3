@@ -196,9 +196,24 @@ function checkAll() {
     document.getElementById('score-text').textContent = correct + '/' + total + ' (' + pct + '%)';
     document.getElementById('results-bar').style.display = 'block';
 
-    // Save progress
+    // Save progress per level, then compute global across all 6 levels
+    var nivel = document.getElementById('sel-nivel').value;
+    var nivelKey = 'transcripcion_fonetica_n' + nivel;
+
     if (typeof guardarProgreso === 'function') {
-        guardarProgreso('transcripcion_fonetica', correct, total, {nivel: document.getElementById('sel-nivel').value});
+        // Save this level's score
+        guardarProgreso(nivelKey, correct, total, {nivel: nivel});
+
+        // Compute global: count levels passed (≥60%) out of 6
+        var progress = {};
+        try { progress = JSON.parse(localStorage.getItem('lali_progress') || '{}'); } catch(e) {}
+        var nivelesAprobados = 0;
+        for (var n = 1; n <= 6; n++) {
+            var k = 'transcripcion_fonetica_n' + n;
+            var p = progress[k];
+            if (p && p.score >= 60) nivelesAprobados++;
+        }
+        guardarProgreso('transcripcion_fonetica', nivelesAprobados, 6, {niveles_aprobados: nivelesAprobados}, true);
     }
 }
 

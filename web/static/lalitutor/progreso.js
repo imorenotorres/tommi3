@@ -6,14 +6,14 @@
  *   guardarProgreso('ejercicio_id', score, maxScore, {optional details});
  */
 
-function guardarProgreso(ejercicioId, score, maxScore, detalles) {
+function guardarProgreso(ejercicioId, score, maxScore, detalles, forceOverwrite) {
     var pct = maxScore > 0 ? Math.round(score / maxScore * 100) : 0;
 
     // Save to localStorage (backwards compatible)
     try {
         var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
         var prev = progress[ejercicioId];
-        if (!prev || pct > prev.score) {
+        if (!prev || pct > prev.score || forceOverwrite) {
             progress[ejercicioId] = {
                 completed: pct >= 75,
                 score: pct,
@@ -36,7 +36,8 @@ function guardarProgreso(ejercicioId, score, maxScore, detalles) {
                 ejercicio: ejercicioId,
                 score: score,
                 max_score: maxScore,
-                detalles: detalles || {}
+                detalles: detalles || {},
+                force: !!forceOverwrite
             })
         }).catch(function() {}); // silently fail if server unavailable
     } catch(e) {}

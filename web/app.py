@@ -1665,9 +1665,10 @@ async def lali_save_progreso(request: Request):
 
     pct = round(score / max_score * 100) if max_score > 0 else 0
     prev = all_progress[username].get(ejercicio, {})
+    force = body.get("force", False)
 
-    # Only update if better score or not yet saved
-    if not prev or pct > prev.get("score", 0):
+    # Only update if better score, not yet saved, or forced overwrite
+    if not prev or pct > prev.get("score", 0) or force:
         all_progress[username][ejercicio] = {
             "score": pct,
             "completed": pct >= 75,
@@ -2108,57 +2109,50 @@ async def lali_ejercicio_transcripcion_fonetica(nivel: int = Query(1, ge=1, le=6
 
     nivel_data = banco[nivel_key]
 
-    if nivel == 6:
-        # Level 6: phrases with pre-computed solutions
-        frases = nivel_data["frases"]
-        seleccion = random.sample(frases, min(items, len(frases)))
-        ejercicios = [{"palabra": f["frase"], "solucion": f["solucion"]} for f in seleccion]
-    else:
-        # Levels 1-5: words/phrases, transcribe programmatically
-        palabras = nivel_data["palabras"]
-        seleccion = random.sample(palabras, min(items, len(palabras)))
+    # All levels: words/phrases, transcribe programmatically
+    palabras = nivel_data["palabras"]
+    seleccion = random.sample(palabras, min(items, len(palabras)))
 
-        base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
-        if str(base_dir) not in sys.path:
-            sys.path.insert(0, str(base_dir))
-        from transcriptor import transcripcion_fonetica_palabra, transcribir_palabra
+    base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
+    if str(base_dir) not in sys.path:
+        sys.path.insert(0, str(base_dir))
+    from transcriptor import transcripcion_fonetica_palabra, transcribir_palabra
 
-        ejercicios = []
-        for texto in seleccion:
-            palabras_txt = texto.split()
-            partes_fon = []
-            partes_fonet = []
-            error = False
-            for i, p in enumerate(palabras_txt):
-                is_start = (i == 0)
-                # Inter-word context
-                prev_last = None
-                next_first = None
-                if i > 0:
-                    prev_t = transcribir_palabra(palabras_txt[i - 1])
-                    if isinstance(prev_t, str) and prev_t:
-                        prev_last = prev_t.replace("ˈ", "").replace(".", "")[-1]
-                if i + 1 < len(palabras_txt):
-                    next_t = transcribir_palabra(palabras_txt[i + 1])
-                    if isinstance(next_t, str) and next_t:
-                        next_first = next_t.replace("ˈ", "").replace(".", "")[0]
+    ejercicios = []
+    for texto in seleccion:
+        palabras_txt = texto.split()
+        partes_fon = []
+        partes_fonet = []
+        error = False
+        for i, p in enumerate(palabras_txt):
+            is_start = (i == 0)
+            prev_last = None
+            next_first = None
+            if i > 0:
+                prev_t = transcribir_palabra(palabras_txt[i - 1])
+                if isinstance(prev_t, str) and prev_t:
+                    prev_last = prev_t.replace("ˈ", "").replace(".", "")[-1]
+            if i + 1 < len(palabras_txt):
+                next_t = transcribir_palabra(palabras_txt[i + 1])
+                if isinstance(next_t, str) and next_t:
+                    next_first = next_t.replace("ˈ", "").replace(".", "")[0]
 
-                tf = transcripcion_fonetica_palabra(p, is_utterance_start=is_start,
-                                                     prev_word_last_fonema=prev_last,
-                                                     next_word_first_fonema=next_first)
-                tl = transcribir_palabra(p)
-                if isinstance(tf, tuple) or isinstance(tl, tuple):
-                    error = True
-                    break
-                partes_fon.append(f"/ {tl} /")
-                partes_fonet.append(f"[{tf}]")
+            tf = transcripcion_fonetica_palabra(p, is_utterance_start=is_start,
+                                                 prev_word_last_fonema=prev_last,
+                                                 next_word_first_fonema=next_first)
+            tl = transcribir_palabra(p)
+            if isinstance(tf, tuple) or isinstance(tl, tuple):
+                error = True
+                break
+            partes_fon.append(tl)
+            partes_fonet.append(tf)
 
-            if not error:
-                ejercicios.append({
-                    "palabra": texto,
-                    "fonologica": " ".join(partes_fon),
-                    "solucion": " ".join(partes_fonet)
-                })
+        if not error:
+            ejercicios.append({
+                "palabra": texto,
+                "fonologica": "/ " + ".".join(partes_fon) + " /",
+                "solucion": "[" + ".".join(partes_fonet) + "]"
+            })
 
     return {
         "nivel": nivel,

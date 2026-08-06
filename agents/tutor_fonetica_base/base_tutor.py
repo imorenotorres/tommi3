@@ -346,7 +346,7 @@ def _generar_respuesta_transcripcion(texto: str, tipo: str = "fonologica") -> tu
                 detalle.append(f"- **{p}** → ⚠️ {tf[1]}")
                 partes_foneticas.append(p)
             elif tf:
-                partes_foneticas.append(f"[{tf}]")
+                partes_foneticas.append(tf)
                 # Also show phonological for comparison
                 tl = transcribir_palabra(p)
                 if isinstance(tl, str):
@@ -354,7 +354,7 @@ def _generar_respuesta_transcripcion(texto: str, tipo: str = "fonologica") -> tu
                 else:
                     detalle.append(f"- **{p}** → [{tf}]")
 
-        transcripcion_fon = " ".join(partes_foneticas)
+        transcripcion_fon = "[" + ".".join(partes_foneticas) + "]"
         respuesta = f"**Transcripción fonética** (español peninsular distinguidor):\n\n"
         respuesta += f"> {transcripcion_fon}\n\n"
 
