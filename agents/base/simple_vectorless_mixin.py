@@ -87,6 +87,7 @@ class SimpleVectorlessMixin(VectorlessMixin):
         # -- Stage 1: Perception (receive user input and session context) --
         # -- Stage 2: Reasoning (retrieve context, build prompt) --
         context = self._retrieve_context(user_message)
+        self._last_retrieved_context = context or ""
 
         system_with_context = self._build_system_prompt()
         if context:
@@ -142,6 +143,7 @@ class SimpleVectorlessMixin(VectorlessMixin):
         # -- Stage 1: Perception (receive user input and session context) --
         # -- Stage 2: Reasoning (retrieve context, build prompt) --
         context = self._retrieve_context(user_message)
+        self._last_retrieved_context = context or ""
 
         system_with_context = self._build_system_prompt()
         if context:

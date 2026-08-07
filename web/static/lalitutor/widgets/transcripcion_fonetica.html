@@ -24,9 +24,11 @@ select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-
 table.ejercicios { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
 table.ejercicios th { background: #f8fafc; color: #475569; font-size: 12px; font-weight: 700; text-transform: uppercase; padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
 table.ejercicios td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-table.ejercicios td.col-word { font-weight: 600; color: #334155; font-size: 15px; white-space: nowrap; }
+table.ejercicios td.col-word { font-weight: 600; color: #334155; font-size: 15px; width: 33%; }
+table.ejercicios td.col-fon { width: 33%; }
+table.ejercicios td.col-resp { width: 33%; }
 table.ejercicios td.col-fon { font-size: 14px; color: #64748b; font-family: 'Doulos SIL', 'Noto Sans', serif; }
-table.ejercicios td.col-resp { min-width: 220px; }
+table.ejercicios td.col-resp { }
 table.ejercicios input { width: 100%; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-family: 'Doulos SIL', 'Noto Sans', serif; }
 table.ejercicios input.correct { border-color: #22c55e; background: #f0fdf4; }
 table.ejercicios input.incorrect { border-color: #ef4444; background: #fef2f2; }
@@ -79,6 +81,7 @@ table.ejercicios input.incorrect { border-color: #ef4444; background: #fef2f2; }
                 <option value="4">4</option>
                 <option value="5" selected>5</option>
                 <option value="6">6</option>
+                <option value="12">12 (examen)</option>
             </select>
         </div>
         <div class="control-group">

@@ -112,9 +112,17 @@ var EXERCISES = [
     {id: 'concepto_errores_estructura_silaba', nombre: 'Define: Errores de estructura de sílaba', tema: 2, tipo: 'concepto'},
     {id: 'concepto_medidas_cuantitativas', nombre: 'Define: Medidas cuantitativas', tema: 2, tipo: 'concepto'},
     {id: 'transcripcion_ejercicio', nombre: 'Transcripción fonológica', tema: 2, tipo: 'ejercicio'},
-    {id: 'ejercicio_errores', nombre: 'Análisis de errores', tema: 2, tipo: 'ejercicio'},
+    {id: 'ejercicio_errores', nombre: 'Clasificar errores (individual)', tema: 2, tipo: 'ejercicio'},
+    {id: 'informe_errores', nombre: 'Informe de errores (completo)', tema: 2, tipo: 'ejercicio'},
     // Tema 3 — Evaluación continua
-    {id: 'transcripcion_fonetica', nombre: 'Transcripción fonética', tema: 3, tipo: 'ejercicio'},
+    {id: 'transcripcion_fonetica', nombre: 'Transcripción fonética (global)', tema: 3, tipo: 'ejercicio'},
+    {id: 'transcripcion_fonetica_n1', nombre: 'Nivel 1: Diptongos e hiatos', tema: 3, tipo: 'ejercicio'},
+    {id: 'transcripcion_fonetica_n2', nombre: 'Nivel 2: Oclusivas', tema: 3, tipo: 'ejercicio'},
+    {id: 'transcripcion_fonetica_n3', nombre: 'Nivel 3: Fricativas y africadas', tema: 3, tipo: 'ejercicio'},
+    {id: 'transcripcion_fonetica_n4', nombre: 'Nivel 4: Nasales', tema: 3, tipo: 'ejercicio'},
+    {id: 'transcripcion_fonetica_n5', nombre: 'Nivel 5: Laterales y vibrantes', tema: 3, tipo: 'ejercicio'},
+    {id: 'transcripcion_fonetica_n6', nombre: 'Nivel 6: Oraciones completas', tema: 3, tipo: 'ejercicio'},
+    {id: 'transcripcion_fonetica_n7', nombre: 'Nivel 7: Fonosintaxis', tema: 3, tipo: 'ejercicio'},
 ];
 
 function getToken() {
@@ -127,21 +135,87 @@ function esc(str) {
     return d.innerHTML;
 }
 
+var _evalConfig = null;
+
 async function loadProgress() {
     var token = getToken();
     var url = '/api/public-agent/eulalia/progreso-practica';
     if (token) url += '?token=' + encodeURIComponent(token);
 
+    // Load eval config
+    try {
+        var cfgRes = await fetch('/api/public-agent/eulalia/evaluacion-config');
+        if (cfgRes.ok) _evalConfig = await cfgRes.json();
+    } catch(e) {}
+
+    // Load from localStorage first
+    var local = {};
+    try { local = JSON.parse(localStorage.getItem('lali_progress') || '{}'); } catch(e2) {}
+
     try {
         var res = await fetch(url);
         var data = await res.json();
-        render(data);
+        // Merge: use the best score from either source
+        var serverProg = data.progreso || {};
+        var merged = Object.assign({}, serverProg);
+        Object.keys(local).forEach(function(key) {
+            var lp = local[key];
+            var sp = merged[key];
+            if (!sp || (lp && lp.score > (sp.score || 0))) {
+                merged[key] = lp;
+            }
+        });
+        render({role: data.role, username: data.username, progreso: merged});
     } catch(e) {
-        // Fallback to localStorage
-        var local = {};
-        try { local = JSON.parse(localStorage.getItem('lali_progress') || '{}'); } catch(e2) {}
         render({role: 'estudiante', username: 'local', progreso: local});
     }
+}
+
+function calcularCalificacion(progreso) {
+    if (!_evalConfig || !_evalConfig.temas) return null;
+    var resultado = { temas: {}, total: 0, maximo: 0 };
+
+    Object.keys(_evalConfig.temas).forEach(function(temaId) {
+        var tema = _evalConfig.temas[temaId];
+        var notaTema = 0;
+
+        (tema.componentes || []).forEach(function(comp) {
+            if (comp.tipo === 'conceptos') {
+                var aprobados = 0;
+                (comp.ejercicios || []).forEach(function(ejId) {
+                    var p = progreso[ejId];
+                    if (p && ((p.completed) || (p.score >= 75))) aprobados++;
+                });
+                var items = Math.min(aprobados, comp.minimo_items || aprobados);
+                notaTema += items * (comp.puntos_por_item || 0);
+                notaTema = Math.min(notaTema, comp.puntuacion_maxima || 999);
+            }
+            else if (comp.tipo === 'test') {
+                (comp.ejercicios || []).forEach(function(ejId) {
+                    var p = progreso[ejId];
+                    if (p && p.score >= (comp.umbral_aprobado || 75)) {
+                        notaTema += comp.puntuacion_maxima || 0;
+                    }
+                });
+            }
+            else if (comp.tipo === 'transcripcion_examen' && comp.examen) {
+                // Based on best score in level 6 with 12 items
+                var p = progreso['transcripcion_fonetica'];
+                if (p) {
+                    // Use the global score as proxy
+                    notaTema += (comp.examen.puntuacion_maxima || 2) * (p.score / 100);
+                }
+            }
+        });
+
+        notaTema = Math.min(notaTema, tema.puntuacion_maxima || 2);
+        resultado.temas[temaId] = { nota: Math.round(notaTema * 100) / 100, maximo: tema.puntuacion_maxima };
+        resultado.total += notaTema;
+        resultado.maximo += tema.puntuacion_maxima;
+    });
+
+    resultado.total = Math.round(resultado.total * 100) / 100;
+    return resultado;
 }
 
 function render(data) {
@@ -173,7 +247,15 @@ var WIDGET_URLS = {
     'concepto_medidas_cuantitativas': '/tutores-virtuales/eulalia/widgets/conceptos?tema=2',
     'transcripcion_ejercicio': '/tutores-virtuales/eulalia/widgets/transcripcion_ejercicio',
     'ejercicio_errores': '/tutores-virtuales/eulalia/widgets/ejercicio_errores',
+    'informe_errores': '/tutores-virtuales/eulalia/widgets/informe_errores',
     'transcripcion_fonetica': '/tutores-virtuales/eulalia/widgets/transcripcion_fonetica',
+    'transcripcion_fonetica_n1': '/tutores-virtuales/eulalia/widgets/transcripcion_fonetica',
+    'transcripcion_fonetica_n2': '/tutores-virtuales/eulalia/widgets/transcripcion_fonetica',
+    'transcripcion_fonetica_n3': '/tutores-virtuales/eulalia/widgets/transcripcion_fonetica',
+    'transcripcion_fonetica_n4': '/tutores-virtuales/eulalia/widgets/transcripcion_fonetica',
+    'transcripcion_fonetica_n5': '/tutores-virtuales/eulalia/widgets/transcripcion_fonetica',
+    'transcripcion_fonetica_n6': '/tutores-virtuales/eulalia/widgets/transcripcion_fonetica',
+    'transcripcion_fonetica_n7': '/tutores-virtuales/eulalia/widgets/transcripcion_fonetica',
 };
 
 function scoreClass(pct) {
@@ -195,14 +277,39 @@ function renderEstudiante(username, progreso, container) {
     var cls = scoreClass(globalPct);
 
     var html = '';
-    html += '<div class="summary-card">';
-    html += '<div class="summary-circle ' + cls + '">' + completed + '/' + total + '<div class="sc-label">completados</div></div>';
+
+    // Two summary cards: practice + grade
+    html += '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">';
+
+    // Card 1: % practicado
+    html += '<div class="summary-card" style="flex:1;min-width:200px;">';
+    html += '<div class="summary-circle ' + cls + '">' + completed + '/' + total + '<div class="sc-label">practicados</div></div>';
     html += '<div class="summary-text">';
     if (globalPct >= 75) html += '<strong>¡Buen trabajo!</strong> Has completado la mayoría de los ejercicios.';
-    else if (globalPct >= 50) html += 'Vas por buen camino. Sigue practicando los ejercicios que te faltan.';
-    else if (completed > 0) html += 'Has empezado a practicar. ¡Ánimo, aún quedan ejercicios por hacer!';
-    else html += 'Aún no has completado ningún ejercicio. ¡Empieza a practicar!';
+    else if (globalPct >= 50) html += 'Vas por buen camino. Sigue practicando.';
+    else if (completed > 0) html += 'Has empezado. ¡Ánimo!';
+    else html += 'Aún no has completado ningún ejercicio.';
     html += '</div></div>';
+
+    // Card 2: Calificación estimada
+    var calif = calcularCalificacion(progreso);
+    if (calif) {
+        var califCls = scoreClass(Math.round(calif.total / calif.maximo * 100));
+        html += '<div class="summary-card" style="flex:1;min-width:200px;">';
+        html += '<div class="summary-circle ' + califCls + '">' + calif.total + '/' + calif.maximo + '<div class="sc-label">calificación</div></div>';
+        html += '<div class="summary-text" style="font-size:12px;">';
+        Object.keys(calif.temas).forEach(function(tid) {
+            var t = calif.temas[tid];
+            if (t.maximo > 0) {
+                var tCls = t.nota >= t.maximo * 0.75 ? 'color:#16a34a' : t.nota > 0 ? 'color:#f59e0b' : 'color:#94a3b8';
+                html += '<div style="' + tCls + '">Tema ' + tid + ': ' + t.nota + '/' + t.maximo + '</div>';
+            }
+        });
+        html += '<div style="margin-top:4px;color:#94a3b8;font-size:11px;">Estimación basada en ejercicios realizados</div>';
+        html += '</div></div>';
+    }
+
+    html += '</div>';
 
     // By tema
     var temas = [1, 2, 3];
@@ -221,7 +328,8 @@ function renderEstudiante(username, progreso, container) {
             var widgetUrl = WIDGET_URLS[ex.id] || '';
             html += '<div class="progress-row">';
             if (pct < 75 && widgetUrl) {
-                html += '<div class="prog-label"><a href="' + widgetUrl + '" target="_blank" style="color:#4250b3;text-decoration:none;" title="Hacer este ejercicio">' + ex.nombre + ' →</a></div>';
+                var widgetName = widgetUrl.replace('/tutores-virtuales/eulalia/widgets/', '');
+                html += '<div class="prog-label"><a href="#" onclick="try{parent.openWidget(\'' + widgetName + '\')}catch(e){window.open(\'' + widgetUrl + '\',\'_blank\')};return false;" style="color:#4250b3;text-decoration:none;" title="Hacer este ejercicio">' + ex.nombre + ' →</a></div>';
             } else {
                 html += '<div class="prog-label">' + ex.nombre + '</div>';
             }

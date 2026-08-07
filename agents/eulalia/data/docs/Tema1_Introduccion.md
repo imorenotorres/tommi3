@@ -24,18 +24,9 @@ En este tema inicial aprenderás:
 
 ## 1. Conceptos básicos
 
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:13px;">
-📍 <strong>Tema 1</strong> › <strong>1. Conceptos básicos</strong><br>
-<span style="color:#64748b;">Subapartados: <a href="#sec-1-1">1.1. Fonología y fonética</a> · <a href="#sec-1-2">1.2. Diferentes formas de concebir la fonología</a> · <a href="#sec-1-3">1.3. Unidades</a> · <a href="#sec-1-4">1.4. Los alfabetos fonéticos</a></span>
-</div>
-
 ---
 
 ### <a id="sec-1-1"></a>1.1. Fonología y fonética
-
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 14px; margin-bottom:16px; font-size:12px; color:#64748b;">
-📍 Tema 1 › 1. Conceptos básicos › <strong>1.1. Fonología y fonética</strong>
-</div>
 
 - La **fonología** es la parte de la lingüística que estudia las unidades formales básicas en la comunicación oral, los **fonemas**, así como las propiedades de estos, y su forma de combinación en unidades mayores.
 
@@ -71,15 +62,9 @@ Estudia los mecanismos de audición y percepción del habla, y busca modelos de 
 
 > ✏️ **Pregunta de sección:** <a href="/tutores-virtuales/eulalia/widgets/pregunta_foneticas" target="_blank">¿Cuáles son las diferencias entre fonética articulatoria y acústica?</a> — Responde con tus palabras y recibe feedback automático.
 
-<div style="text-align:right; font-size:13px; margin-top:12px;"><a href="#sec-1-2">Siguiente: 1.2. Diferentes formas de concebir la fonología →</a></div>
-
 ---
 
 ### <a id="sec-1-2"></a>1.2. Diferentes formas de concebir la fonología
-
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 14px; margin-bottom:16px; font-size:12px; color:#64748b;">
-📍 Tema 1 › 1. Conceptos básicos › <strong>1.2. Diferentes formas de concebir la fonología</strong>
-</div>
 
 El lenguaje forma parte de nuestras vidas de al menos estad dos formas:
 
@@ -103,11 +88,9 @@ Históricamente, estas dos formas de acercarse al lenguaje y a la fonología han
 
 Cada una de estas perspectivas nos enseña cosas diferentes y muy relevantes para la logopedia, y por ello vamos a estudiarlas brevemente.
 
-#### 1.2.1. ¿Qué nos enseña el estructuralismo?
-
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 14px; margin-bottom:16px; font-size:12px; color:#64748b;">
-📍 Tema 1 › 1. Conceptos básicos › 1.2. Diferentes formas de concebir la fonología › <strong>¿Qué nos enseña el estructuralismo?</strong>
-</div>
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:14px;color:#1e293b;background:#f8fafc;border-radius:8px;">1.2.1. ¿Qué nos enseña el estructuralismo?</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 
 El carácter social del lenguaje fue objeto de especial interés de una corriente teórica denominada **estructuralismo**, cuyo más importante representante es Ferdinand de Saussure. Saussure y los estructuralistas centraron sus análisis en observar las producciones ya emitidas por los hablantes y en ver las propiedades que estas tenían. Ello les llevó a observar lo siguiente:
 - La variación en la producción de sonidos es enorme. Ello es fácil de comprobar si atendemos a la producción de sonidos concretos. El tamaño y la forma exacta del sistema articulatorio no es idéntico en dos hablantes, lo que hace que nuestras voces sean diferentes. Además, el grado de abertura de la boca o la posición exacta de los articuladores varía de producción a producción, incluso en un mismo hablante.
@@ -131,13 +114,12 @@ Este tipo de observaciones llevaron a estructuralistas como Saussure y luego a C
 
 > 🎮 **Reto de empatía:** <a href="/tutores-virtuales/eulalia/widgets/reto_empatia" target="_blank">Ponte en su piel</a> — Imagina situaciones concretas en las que una persona con dificultades lingüísticas tendría (o no) problemas. Tus ejemplos quedarán visibles para todos tus compañeros.
 
-<div style="text-align:right; font-size:13px; margin-top:12px;"><a href="#sec-1-2">↑ Volver a 1.2</a></div>
-
-#### 1.2.2. ¿Qué nos enseña el generativismo?
-
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 14px; margin-bottom:16px; font-size:12px; color:#64748b;">
-📍 Tema 1 › 1. Conceptos básicos › 1.2. Diferentes formas de concebir la fonología › <strong>¿Qué nos enseña el generativismo?</strong>
 </div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:14px;color:#1e293b;background:#f8fafc;border-radius:8px;">1.2.2. ¿Qué nos enseña el generativismo?</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 
 ##### 1) Nos ayuda a comprender cómo es el proceso de producción
 
@@ -235,22 +217,16 @@ Desde la aparición de los implantes cocleares, el interés clínico por la LPC 
 
 > 🎮 **Ejercicio interactivo:** <a href="/tutores-virtuales/eulalia/widgets/detecta_errores_1_2" target="_blank">Detecta el error</a> — Lee afirmaciones sobre fonología que contienen errores. Identifica qué está mal y explica la corrección.
 
-<div style="text-align:right; font-size:13px; margin-top:12px;"><a href="#sec-1-2">↑ Volver a 1.2</a> · <a href="#sec-1-3">Siguiente: 1.3. Unidades →</a></div>
+</div>
+</details>
 
 ---
 
 ### <a id="sec-1-3"></a>1.3. Unidades
 
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 14px; margin-bottom:16px; font-size:12px; color:#64748b;">
-📍 Tema 1 › 1. Conceptos básicos › <strong>1.3. Unidades</strong><br>
-<a href="#sec-1-3-1">1.3.1. Los fonemas</a> · <a href="#sec-1-3-2">1.3.2. Fonema vs alófono vs sonido</a> · <a href="#sec-1-3-3">1.3.3. La sílaba</a> · <a href="#sec-1-3-4">1.3.4. Rasgos distintivos</a>
-</div>
-
-#### <a id="sec-1-3-1"></a>1.3.1. Los fonemas
-
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 14px; margin-bottom:16px; font-size:12px; color:#64748b;">
-📍 Tema 1 › 1. Conceptos básicos › 1.3. Unidades › <strong>1.3.1. Los fonemas</strong>
-</div>
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:14px;color:#1e293b;background:#f8fafc;border-radius:8px;"><a id="sec-1-3-1"></a>1.3.1. Los fonemas</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 
 La primera unidad que debemos aprender en esta asignatura es la de **fonema**. Para explicar lo que es un fonema podemos empezar por un ejemplo:
 
@@ -292,6 +268,8 @@ Veamos ahora qué ocurre a nivel sonoro. Para ello hemos grabado a un locutor qu
 </div>
 
 </div>
+
+Si no detectas las diferencias, es posible que se deba a que estás usando unos auriculares de poca calidad o a que hay ruido de fondo. Si es así, intenta mejorar las condiciones para poder diferenciar los tres sonidos.
 
 Una vez hayas detectado las diferencias, haz el siguiente ejercicio.
 
@@ -337,13 +315,12 @@ Para profundizar sobre este concepto, haz este ejercicio interactivo:
 
 > 🎮 **Ejercicio interactivo:** <a href="/tutores-virtuales/eulalia/widgets/representacion_mental" target="_blank">¿Qué es una representación mental?</a> — Descubre cómo tu cerebro reconoce y produce símbolos a partir de representaciones mentales.
 
-<div style="text-align:right; font-size:13px; margin-top:12px;"><a href="#sec-1-3">↑ Volver a 1.3</a> · <a href="#sec-1-3-2">Siguiente: 1.3.2 →</a></div>
-
-#### <a id="sec-1-3-2"></a>1.3.2. Fonema vs alófono vs sonido
-
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 14px; margin-bottom:16px; font-size:12px; color:#64748b;">
-📍 Tema 1 › 1. Conceptos básicos › 1.3. Unidades › <strong>1.3.2. Fonema vs alófono vs sonido</strong>
 </div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:14px;color:#1e293b;background:#f8fafc;border-radius:8px;"><a id="sec-1-3-2"></a>1.3.2. Fonema vs alófono vs sonido</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 
 Ya sabemos que un fonema es una clase de sonidos y una representación mental. Pero para entender bien cómo funciona el sistema fonológico, necesitamos distinguir **tres niveles**:
 
@@ -416,13 +393,12 @@ El Audio 1 y el Audio 2 dicen la misma palabra — "gato" — pero la /g/ suena 
 
 > ✏️ **Ejercicio de redacción:** <a href="/tutores-virtuales/eulalia/widgets/define_fonema" target="_blank">Define "fonema" con tus palabras</a> — Escribe tu propia definición y recibe una evaluación automática.
 
-<div style="text-align:right; font-size:13px; margin-top:12px;"><a href="#sec-1-3">↑ Volver a 1.3</a> · <a href="#sec-1-3-3">Siguiente: 1.3.3 →</a></div>
-
-#### <a id="sec-1-3-3"></a>1.3.3. La sílaba
-
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 14px; margin-bottom:16px; font-size:12px; color:#64748b;">
-📍 Tema 1 › 1. Conceptos básicos › 1.3. Unidades › <strong>1.3.3. La sílaba</strong>
 </div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:14px;color:#1e293b;background:#f8fafc;border-radius:8px;"><a id="sec-1-3-3"></a>1.3.3. La sílaba</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 
 Una sílaba es una agrupación de sonidos emitidos como una unidad y en la que aparece: prenúcleo (opcional) + núcleo + postnúcleo (opcional). Por ejemplo:
 
@@ -463,13 +439,12 @@ Los sonidos más sonoros (las vocales) son los únicos que pueden ser núcleos s
 
 > 🎮 **Ejercicio interactivo:** <a href="/tutores-virtuales/eulalia/widgets/analisis_silabas" target="_blank">Analiza sílabas</a> — Divide palabras en sílabas e identifica su estructura (Inicio, Núcleo, Coda).
 
-<div style="text-align:right; font-size:13px; margin-top:12px;"><a href="#sec-1-3">↑ Volver a 1.3</a> · <a href="#sec-1-3-4">Siguiente: 1.3.4 →</a></div>
-
-#### <a id="sec-1-3-4"></a>1.3.4. Otras unidades: los rasgos distintivos
-
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 14px; margin-bottom:16px; font-size:12px; color:#64748b;">
-📍 Tema 1 › 1. Conceptos básicos › 1.3. Unidades › <strong>1.3.4. Rasgos distintivos</strong>
 </div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:14px;color:#1e293b;background:#f8fafc;border-radius:8px;"><a id="sec-1-3-4"></a>1.3.4. Otras unidades: los rasgos distintivos</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 
 El estudio de los fonemas ha permitido mostrar que hay grupos de sonidos que comparten propiedades. Por ejemplo:
 
@@ -497,15 +472,12 @@ No hay acuerdo sobre cuáles son los rasgos necesarios para describir las lengua
 
 Los rasgos de Chomsky-Halle son más y suponen una malla taxonómica tal vez más fina, pero más centrada en la Fonología y más alejada, por tanto, de la Fonética. En el tema 2 veremos algunas propuestas de clasificación fonológica del español en las que se observa la utilización de distintas colecciones de rasgos distintivos.
 
-<div style="text-align:right; font-size:13px; margin-top:12px;"><a href="#sec-1-3">↑ Volver a 1.3</a> · <a href="#sec-1-4">Siguiente: 1.4. Los alfabetos fonéticos →</a></div>
+</div>
+</details>
 
 ---
 
 ### <a id="sec-1-4"></a>1.4. Los alfabetos fonéticos
-
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 14px; margin-bottom:16px; font-size:12px; color:#64748b;">
-📍 Tema 1 › 1. Conceptos básicos › <strong>1.4. Los alfabetos fonéticos</strong>
-</div>
 
 Los alfabetos fonéticos son un medio para poder describir de forma sistemática los tipos de sonidos y sonidos concretos de las diferentes lenguas. Históricamente, los sistemas ortográficos ejercían esta función: la ortografía de una lengua era, en su origen, un intento de representar los sonidos del habla. Sin embargo, los sistemas ortográficos presentan varias limitaciones importantes:
 
@@ -538,7 +510,5 @@ Desde la perspectiva de la logopedia, los sistemas de transcripción fonética n
 - Un **medio de descripción sistemático del habla estándar**: permiten establecer con claridad cuál es la producción esperada (el objetivo) para cada sonido del español.
 - Un **medio para describir las variantes** que pueden producir nuestros pacientes: cuando un paciente produce un sonido de forma atípica, la transcripción fonética nos permite describir con precisión qué sonido ha producido realmente y en qué se diferencia del esperado.
 - Son, por ello, un **medio esencial para facilitar la práctica logopédica**: sin un sistema de transcripción preciso, la descripción de los errores del habla dependería de apreciaciones subjetivas difíciles de comunicar entre profesionales.
-
-<div style="text-align:right; font-size:13px; margin-top:12px;"><a href="#sec-1-3">↑ Volver a 1.3</a> · <a href="#sec-1-1">↑ Volver al inicio</a></div>
 
 ---

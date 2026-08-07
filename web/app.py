@@ -2090,6 +2090,260 @@ async def lali_ejercicio_transcripcion(nivel: int = Query(1, ge=1, le=5), items:
 
 
 
+@app.get("/api/public-agent/eulalia/ejercicio-informe-errores")
+async def lali_ejercicio_informe_errores(
+    num_errores: int = Query(5, ge=3, le=10),
+    seed: int = Query(None),
+):
+    """Generate a phonological error report exercise dynamically."""
+    import random
+    import sys
+
+    base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
+    if str(base_dir) not in sys.path:
+        sys.path.insert(0, str(base_dir))
+    from transcriptor import transcribir
+    from errores_fonologicos.generador import generar_errores
+
+    rng = random.Random(seed)
+
+    # Bank of sentences (ortographic)
+    ORACIONES = [
+        "La mariposa bonita vuela por el jardín grande con flores",
+        "Mi hermana pequeña compra tres platos blancos en la tienda",
+        "El niño pequeño tiene un perro grande que corre mucho por la plaza",
+        "El tren sale a las tres de la tarde con mi amigo Pedro",
+        "Dame el plato grande de la mesa blanca con la cuchara",
+        "Los pájaros cantan en las ramas del árbol grande del parque",
+        "La casa de mi abuela está en la calle estrecha del pueblo grande",
+        "El zapato rojo de la entrada está roto y sucio como un trapo",
+        "La profesora explica la lección a los estudiantes del primer grupo",
+        "El gato blanco duerme en la cama grande de mi hermana",
+        "Quiero un vaso de agua fresca con un poco de limón",
+        "El médico receta unas pastillas para el dolor de cabeza",
+        "La chica rubia lleva una chaqueta verde y zapatos negros",
+        "Mi padre trabaja en la fábrica grande que está cerca del río",
+        "El perro del vecino ladra cuando viene el cartero a las tres",
+        "La enfermera atiende con cuidado al paciente que está dormido",
+        "Los niños juegan en la plaza grande del barrio con sus amigos",
+        "El anciano camina despacio bajo un cielo gris y frío",
+        "Mi madre prepara la comida mientras escucha la radio en la cocina",
+        "El maestro pone un examen difícil sobre gramática y fonología",
+        "Las flores del jardín crecen con la lluvia de primavera",
+        "El autobús sale del centro a las cuatro de la tarde",
+        "La ventana grande de la clase da a la calle principal del pueblo",
+        "El carpintero trabaja con madera de roble para hacer la mesa",
+        "Los alumnos practican la transcripción fonológica en clase de lingüística",
+        "La biblioteca del campus está abierta los fines de semana por la tarde",
+        "El río que pasa por la ciudad tiene un puente de piedra muy antiguo",
+        "Mi vecina tiene tres gatos blancos y un perro grande y negro",
+        "El director del colegio habla con los padres sobre el plan de estudios",
+        "La farmacia de la esquina cierra los domingos por la tarde",
+        "El electricista repara el cable roto que está cerca de la puerta",
+        "La cocinera prepara un plato especial con verduras frescas del mercado",
+        "El pintor trabaja en un cuadro grande con colores muy brillantes",
+        "La secretaria escribe una carta urgente para el director del centro",
+        "Los bomberos apagan el fuego que empezó en la cocina del restaurante",
+        "Mi primo estudia medicina en la universidad de la capital del país",
+        "El fontanero arregla el grifo roto del cuarto de baño del segundo piso",
+        "La cantante tiene una voz bonita que gusta a todo el público",
+        "El cartero reparte las cartas por la mañana en todas las calles del barrio",
+        "La policía busca al ladrón que robó en la tienda de la esquina",
+    ]
+
+    oracion = rng.choice(ORACIONES)
+    correcta = transcribir(oracion)
+    if isinstance(correcta, tuple):
+        # Fallback if transcription fails
+        oracion = "El niño pequeño tiene un perro grande"
+        correcta = transcribir(oracion)
+
+    # Apply errors using patient profiles
+    palabras_ort = oracion.split()
+    palabras_fon = correcta.strip().split(' ')
+
+    # Patient profiles: consistent error tendencies
+    PERFILES = {
+        'lenicion': {
+            'tipos': ['sonorizacion', 'omision_coda', 'simplificacion_ataque',
+                      'simplificacion_nucleo', 'omision_silaba_atona', 'lenicion'],
+            'desc': 'Perfil de lenición: tendencia a debilitar sonidos'
+        },
+        'forticion': {
+            'tipos': ['ensordecimiento', 'forticion', 'posteriorización',
+                      'simplificacion_ataque'],
+            'desc': 'Perfil de fortición: tendencia a reforzar sonidos'
+        },
+        'mixto': {
+            'tipos': ['sonorizacion', 'ensordecimiento', 'adelantamiento',
+                      'simplificacion_ataque', 'omision_coda', 'omision_silaba_atona',
+                      'simplificacion_nucleo'],
+            'desc': 'Perfil mixto'
+        }
+    }
+
+    perfil_nombre = rng.choice(list(PERFILES.keys()))
+    perfil = PERFILES[perfil_nombre]
+    tipos_preferidos = perfil['tipos']
+
+    # First pass: apply phonological errors to content words
+    producidas = []
+    todos_errores = []
+    errores_ritmicos = []
+    palabras_con_error = set()
+
+    # Function words that can be omitted in lenition profile
+    _PALABRAS_ATONAS = {'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas',
+                        'de', 'en', 'con', 'por', 'a', 'y', 'que', 'del', 'al'}
+
+    for idx, pf in enumerate(palabras_fon):
+        pf_clean = pf.strip()
+        if not pf_clean:
+            continue
+        n_sil = pf_clean.count('.') + 1
+        is_content = n_sil >= 2 or (len(pf_clean.replace("ˈ", "").replace(".", "")) > 3)
+        word_ort_lower = palabras_ort[idx].lower() if idx < len(palabras_ort) else ''
+
+        # Lenition profile: occasional omission of function words
+        if (perfil_nombre == 'lenicion'
+                and word_ort_lower in _PALABRAS_ATONAS
+                and not is_content
+                and len(todos_errores) < num_errores
+                and rng.random() < 0.25):
+            word_ort = palabras_ort[idx] if idx < len(palabras_ort) else '?'
+            todos_errores.append({
+                'tipo': 'omision_palabra_atona',
+                'categoria': 'palabra',
+                'palabra': word_ort,
+                'descripcion': f"Omisión de palabra átona: '{word_ort}'"
+            })
+            palabras_con_error.add(idx)
+            # Don't add this word to producidas (it's omitted)
+            continue
+
+        if is_content and len(todos_errores) < num_errores:
+            # Words with complex onsets (tɾ, pɾ, bɾ, kɾ, gɾ, pl, bl, fl, etc.) get 2 errors
+            has_complex_onset = any(c in pf_clean for c in ['ɾ', 'l'] if pf_clean.find(c) > 0)
+            n_err_word = 2 if has_complex_onset and rng.random() < 0.6 else 1
+            n_err_word = min(n_err_word, num_errores - len(todos_errores))
+
+            # Use profile-consistent error types
+            prod, errs = generar_errores(pf_clean, tipos=tipos_preferidos,
+                                          num_errores=n_err_word, seed=rng.randint(0, 100000))
+
+            # Filter out tonic syllable omissions (very rare)
+            errs = [e for e in errs if e.get('tipo') != 'omision_silaba_tonica']
+
+            if errs and prod != pf_clean:
+                word_ort = palabras_ort[idx] if idx < len(palabras_ort) else '?'
+                palabras_con_error.add(idx)
+                for e in errs:
+                    e['palabra'] = word_ort
+                    if e['tipo'] in ('sonorizacion', 'ensordecimiento', 'adelantamiento',
+                                     'posteriorización', 'nasalizacion', 'desnasalizacion',
+                                     'lenicion', 'forticion'):
+                        e['categoria'] = 'sistemico'
+                    elif e['tipo'] in ('omision_ataque', 'simplificacion_ataque',
+                                       'simplificacion_nucleo', 'omision_coda'):
+                        e['categoria'] = 'silaba'
+                    elif e['tipo'] in ('asimilacion_regresiva', 'asimilacion_progresiva',
+                                       'metátesis', 'omision_silaba_atona'):
+                        e['categoria'] = 'palabra'
+                    else:
+                        e['categoria'] = 'sistemico'
+                    todos_errores.append(e)
+                producidas.append(prod)
+                continue
+
+        producidas.append(pf_clean)
+
+    # Second pass: rhythmic errors on words WITHOUT phonological errors
+    palabras_sin_error = [i for i in range(len(producidas))
+                          if i not in palabras_con_error
+                          and producidas[i].strip()
+                          and producidas[i] != '#'
+                          and (producidas[i].count('.') + 1) >= 2]
+    rng.shuffle(palabras_sin_error)
+    max_ritmicos = rng.randint(1, max(1, min(3, len(palabras_sin_error))))
+
+    for idx in palabras_sin_error[:max_ritmicos]:
+        pf = producidas[idx]
+        if not pf or pf == '#':
+            continue
+        word_ort = palabras_ort[idx] if idx < len(palabras_ort) else '?'
+        n_sil = pf.count('.') + 1
+        r = rng.random()
+
+        if r < 0.33 and n_sil >= 3:
+            sils = pf.split('.')
+            split_at = rng.randint(1, len(sils) - 1)
+            producidas[idx] = '.'.join(sils[:split_at]) + ' # ' + '.'.join(sils[split_at:])
+            errores_ritmicos.append(f"Pausa indebida dentro de '{word_ort}'")
+        elif r < 0.66 and n_sil >= 2:
+            sils = pf.split('.')
+            first_sil = sils[0].replace('ˈ', '')
+            producidas[idx] = first_sil + '.' + pf
+            errores_ritmicos.append(f"Titubeo (repetición de sílaba) en '{word_ort}'")
+        else:
+            producidas.insert(idx + 1, '#')
+            errores_ritmicos.append(f"Pausa indebida después de '{word_ort}'")
+
+    producido_str = '/ ' + ' '.join(producidas) + ' /'
+
+    # Calculate PFC and PPC
+    fonemas_correcta = [c for c in correcta.replace('/', '').replace(' ', '').replace('.', '').replace('ˈ', '') if c.isalpha() or c in 'θʝʧɲɾ']
+    total_fonemas = len(fonemas_correcta)
+    fonemas_erroneos = len(todos_errores)
+    pfc = round((total_fonemas - fonemas_erroneos) / total_fonemas * 100) if total_fonemas > 0 else 100
+
+    total_palabras = len([p for p in palabras_ort if len(p) > 2])
+    palabras_con_error = len(set(e.get('palabra', '') for e in todos_errores))
+    ppc = round((total_palabras - palabras_con_error) / total_palabras * 100) if total_palabras > 0 else 100
+
+    ritmicos = '. '.join(errores_ritmicos) if errores_ritmicos else 'Ninguno'
+
+    # Format errors for the frontend
+    errores_fmt = []
+    for e in todos_errores:
+        subtipo_map = {
+            'sonorizacion': 'Sonorización', 'ensordecimiento': 'Ensordecimiento',
+            'adelantamiento': 'Adelantamiento', 'posteriorización': 'Posteriorización',
+            'nasalizacion': 'Nasalización', 'desnasalizacion': 'Desnasalización',
+            'lenicion': 'Lenición', 'forticion': 'Fortición',
+            'omision_ataque': 'Omisión de ataque', 'simplificacion_ataque': 'Simplificación de ataque',
+            'simplificacion_nucleo': 'Simplificación de núcleo', 'omision_coda': 'Omisión de coda',
+            'asimilacion_regresiva': 'Asimilación regresiva', 'asimilacion_progresiva': 'Asimilación progresiva',
+            'metátesis': 'Metátesis', 'omision_silaba_atona': 'Omisión de sílaba átona',
+            'omision_silaba_tonica': 'Omisión de sílaba tónica',
+            'omision_palabra_atona': 'Omisión de palabra átona',
+        }
+        errores_fmt.append({
+            'tipo': e.get('categoria', 'sistemico'),
+            'subtipo': subtipo_map.get(e['tipo'], e['tipo']),
+            'detalle': e.get('descripcion', '') + " en '" + e.get('palabra', '') + "'"
+        })
+
+    return {
+        'ortografia': oracion,
+        'producido': producido_str,
+        'correcta': correcta,
+        'pfc': pfc,
+        'ppc': ppc,
+        'errores': errores_fmt,
+        'ritmicos': ritmicos
+    }
+
+
+@app.get("/api/public-agent/eulalia/evaluacion-config")
+async def lali_evaluacion_config():
+    """Get the evaluation configuration (grading weights, criteria)."""
+    config_path = _LALI_DIR / "evaluacion_config.json"
+    if not config_path.exists():
+        return {}
+    with open(config_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
 @app.get("/api/public-agent/eulalia/ejercicio-transcripcion-fonetica")
 async def lali_ejercicio_transcripcion_fonetica(
     nivel: int = Query(1, ge=1, le=7),
@@ -3333,6 +3587,9 @@ async def public_agent_chat_stream(
                 elif event_type == "procedural_banner":
                     escaped = content.replace("\n", "\\n")
                     yield f"event: procedural_banner\ndata: {escaped}\n\n"
+                elif event_type == "replace_banner":
+                    escaped = content.replace("\n", "\\n")
+                    yield f"event: replace_banner\ndata: {escaped}\n\n"
                 elif event_type == "replace":
                     full_response = content
                     escaped = content.replace("\n", "\\n")
@@ -4330,6 +4587,9 @@ async def chat_stream(
                     # Procedural banner — separate event, persists through replace events
                     escaped = content.replace("\n", "\\n")
                     yield f"event: procedural_banner\ndata: {escaped}\n\n"
+                elif event_type == "replace_banner":
+                    escaped = content.replace("\n", "\\n")
+                    yield f"event: replace_banner\ndata: {escaped}\n\n"
                 elif event_type == "replace":
                     # Replace full response (e.g. after stripping map links)
                     full_response = content
@@ -4568,6 +4828,7 @@ async def agent_agreements_search(
     degree_level: Optional[str] = Query(None),
     university: Optional[str] = Query(None),
     uninovis: Optional[bool] = Query(None),
+    session_id: Optional[str] = Query(None),
 ):
     """Returns JSON data for the agreements map (markers, center, zoom)."""
     agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
@@ -4606,6 +4867,7 @@ async def agent_agreements_search(
         agent_name="Algoria Map",
         question=question,
         response=response,
+        session_id=session_id or "",
     )
 
     return result

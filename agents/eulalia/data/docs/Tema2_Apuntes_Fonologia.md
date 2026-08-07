@@ -592,14 +592,16 @@ Este documento debe ayudarte a hacer un informe de los errores fonológicos de u
 1. Medidas cuantitativas.
 En este apartado se describen medidas numéricas que se obtienen considerando solo si la unidad en cuestión (palabra, fonema…) es correcta o incorrecta (esto es, no tienen en cuenta de qué tipo de error se trata).
 
-2. Errores segmentales cualitativos
+2. Errores cualitativos
 Se describen medidas que se obtienen analizando a qué tipo de unidad afecta el error (fonemas, sílabas o palabras) y el tipo de error concreto (por ejemplo según el rasgo fonológico). Son más lentas de obtener, pero nos dan una información mucho más fina. Al final de este apartado explicamos cómo hacer un informe de este tipo de errores.
 
 3. Errores rítmicos
 En esta parte describimos errores que no afectan propiamente a los fonemas, sílabas o palabras, pero que alteran el ritmo y por ello pueden tener un efecto muy negativo sobre la capacidad de comunicar: pausas indebidas,
 autocorrecciones, etc.
 
-### 2.5.1. Medidas cuantitativas
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">2.5.1. Medidas cuantitativas</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 Se trata de recuentos del número de veces que una unidad como una palabra, o
 un fonema son producidas correctamente. Son medidas muy útiles en la práctica logopédica debido a que nos dan una idea intuitiva y rápida del grado de afectación de la fonología en nuestros pacientes. Además, se pueden obtener con relativa facilidad y de hecho no requieren un conocimiento especializado.
 El inconveniente que presentan es que a menudo ofrecen una información muy
@@ -682,179 +684,133 @@ c) Si el paciente es **andaluz**, la aspiración de /s/ en "loh" y la omisión d
 </div>
 </details>
 
-### 2.5.2. Errores segmentales cualitativos
-Estas medidas examinan aspectos lingüísticos específicos. Distinguimos cuatro tipos principales, según afecten al ritmo, a las palabras, a las sílabas o a fonemas concretos.
+</div>
+</details>
 
-#### Errores de estructura de palabra
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">2.5.2. Errores cualitativos</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 
-##### Asimilación
-Consiste en producir un sonido como otro próximo. La
-asimilación puede ser de dos tipos:
+Los errores cualitativos se analizan en tres niveles, de mayor a menor alcance. Es importante seguir este orden: si un fonema está afectado por un error de palabra, no se analiza como error de sílaba ni sistémico.
 
-1. Regresiva: un sonido cambia por efecto de otro que viene después.
-§ /'ka.na/ > /'na.na/
-§ /ma.'ɲa.na/ > /ma.'na.na/
-§ /ma.'θe.ta/ > /ma.'te.ta/
+<div style="background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;padding:16px 20px;margin:12px 0;font-size:13px;line-height:1.8;">
+<strong style="font-size:14px;">Clasificación de errores cualitativos</strong><br><br>
+<strong>1. Errores de estructura de palabra</strong> (afectan a la palabra entera)<br>
+&nbsp;&nbsp;&nbsp;├─ Asimilación regresiva<br>
+&nbsp;&nbsp;&nbsp;├─ Asimilación progresiva<br>
+&nbsp;&nbsp;&nbsp;├─ Metátesis<br>
+&nbsp;&nbsp;&nbsp;├─ Omisión de sílaba átona<br>
+&nbsp;&nbsp;&nbsp;└─ Omisión de sílaba tónica (rara)<br><br>
+<strong>2. Errores de estructura de sílaba</strong> (afectan a una posición en la sílaba)<br>
+&nbsp;&nbsp;&nbsp;├─ Omisión de ataque<br>
+&nbsp;&nbsp;&nbsp;├─ Simplificación de ataque<br>
+&nbsp;&nbsp;&nbsp;├─ Simplificación de núcleo<br>
+&nbsp;&nbsp;&nbsp;└─ Omisión de coda<br><br>
+<strong>3. Errores sistémicos</strong> (afectan a un rasgo del fonema)<br>
+&nbsp;&nbsp;&nbsp;├─ Sonoridad: sonorización / ensordecimiento<br>
+&nbsp;&nbsp;&nbsp;├─ Nasalidad: nasalización / desnasalización<br>
+&nbsp;&nbsp;&nbsp;├─ Modo: lenición / fortición<br>
+&nbsp;&nbsp;&nbsp;└─ Lugar: adelantamiento / posteriorización
+</div>
 
-2. Progresiva: un sonido cambia por efecto de otro anterior.
-§ /'ke.so/ > /'ke.ko/
-§ /'ta.θa/ > /'ta.ta/
-§ /ka.'si.ta/ > /ka.'ki.ta
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">1. Errores de estructura de palabra</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 
--
-##### Metátesis
-consiste en cambiar dos sonidos o sílabas entre sí.
-Ejemplo:
-o /'me.sa/ > /'se.ma/
-o /'ma.laga > /'ma.ga.la/
-o /'kɾi.sis > 'si.kɾis
+**Asimilación**: consiste en producir un sonido como otro próximo.
 
--
-##### Omisión de sílaba átona
-Consiste en omitir una o varias sílabas
-átonas. Ejemplo:
-o /ma.ɾi.'posa/ > /'po.sa/
-o /max.da.'le.na > /ma.'le.na/
-o /θa.'pa.to/ > /'pa.to/
+- **Regresiva**: un sonido cambia por efecto de otro que viene después.
+  - /ˈka.na/ → /ˈna.na/ (la /k/ se asimila a la /n/ posterior)
+  - /ma.ˈɲa.na/ → /ma.ˈna.na/
+  - /ma.ˈθe.ta/ → /ma.ˈte.ta/
 
--
-##### Omisión de sílaba tónica
-Consiste en omitir una sílaba tónica (y posiblemente también una o más sílabas átonas). Ejemplos:
+- **Progresiva**: un sonido cambia por efecto de otro anterior.
+  - /ˈke.so/ → /ˈke.ko/ (la /s/ se asimila a la /k/ anterior)
+  - /ˈta.θa/ → /ˈta.ta/
 
-o / ma.ɾi.'posa/ > /sa/
-o /θa.'pa.to/ > /'θa.to/
+**Metátesis**: consiste en intercambiar dos sonidos o sílabas entre sí.
+- /ˈme.sa/ → /ˈse.ma/
+- /ˈma.la.ga/ → /ˈma.ga.la/
+- /ˈkɾi.sis/ → /ˈsi.kɾis/
 
-#### Errores estructurales (en el marco de la sílaba)
-Toda sílaba tiene tres partes (de las que solo la central, el núcleo, aparecerá siempre). Estas partes son las siguientes:
+**Omisión de sílaba átona**: consiste en omitir una o varias sílabas átonas. Es relativamente frecuente.
+- /ma.ɾi.ˈpo.sa/ → /ˈpo.sa/
+- /max.da.ˈle.na/ → /ma.ˈle.na/
+- /θa.ˈpa.to/ → /ˈpa.to/
 
-- Núcleo
-La vocal o vocales de la sílaba. En negrita se indican los
-núcleos silábicos de algunas sílabas:
-t**ie** / n**e**s / **a** / g**uei**s / p**a**n / **oi** /k**ua** / g**ua**
+**Omisión de sílaba tónica**: consiste en omitir la sílaba tónica (y posiblemente sílabas átonas). Es muy rara.
+- /ma.ɾi.ˈpo.sa/ → /sa/
+- /θa.ˈpa.to/ → /ˈθa.to/
 
-- Ataque: la consonantes o consonantes que preceden al núcleo. En
-muchas sílabas no hay ataque, por ejemplo en las sílabas:
-**'on**θe  **as**tɾo  **e**.'li.xo
+</div>
+</details>
 
-Pero en general sí tenemos ataque:
-/**p**on  **tɾ**as **k**e…/
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">2. Errores de estructura de sílaba</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 
-- Coda
-La consonante que sigue al núcleo:
-/po**n**  tɾa**s**  ka**ɾ**lo**s**/
+Recordemos que toda sílaba tiene tres partes (de las que solo el núcleo aparece siempre):
 
-En muchas sílabas no hay
-coda, como por ejemplo en:
-/po  tɾa ke…/
+- **Ataque**: la(s) consonante(s) antes del núcleo: /**p**on/, /**tɾ**as/
+- **Núcleo**: la(s) vocal(es) de la sílaba: /t**ie**/, /p**a**n/
+- **Coda**: la consonante después del núcleo: /po**n**/, /ka**ɾ**.los/
 
-En otras sí tenemos coda, aunque como sabemos en andaluz tiende a
-debilitarse o incluso omitirse:
+**Omisión de ataque**: se omite la consonante en posición de ataque.
+- /ˈten/ → /ˈen/
+- /ˈpie/ → /ˈie/
 
-/'põ  'tɾah  'ka:loh/
+**Simplificación de ataque**: se reduce un ataque complejo (dos consonantes) a una sola.
+- /ˈtɾen/ → /ˈten/
+- /ˈplan/ → /ˈpan/
 
-Una vez tenemos clara la estructura de la sílaba es fácil comprender los
-posibles tipos de error de estructura silábica:
+**Simplificación de núcleo**: se omite la semiconsonante o semivocal de un diptongo.
+- /ˈtie.ne/ → /ˈte.ne/
+- /ˈpie/ → /ˈpe/
 
-##### Omisión de ataque
-Consiste en omitir la consonante (o consonantes) que ocupa la posición de ataque.
-o ten > en
-o pie > ie
+**Omisión de coda**: se omite la consonante en posición de coda (final de sílaba).
+- /ˈten/ → /ˈte/
+- /ˈpaθ/ → /ˈpa/
 
+*Advertencia*: en Andalucía y otras zonas, las consonantes en coda pueden suavizarse o desaparecer. Esto es un rasgo dialectal, no un error.
 
-##### Simplificación de ataque silábico
-Consiste en omitir una de las dos consonantes que forman parte de un ataque complejo, o fusionar ambas consonantes en una nueva. Ejemplo:
-o tɾen > ten
-o plan > pan
+</div>
+</details>
 
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">3. Errores sistémicos</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 
-##### Simplificación de núcleo silábico
-Consiste en omitir la semiconsonante o semivocal de un diptongo.
-o tiene > tene
-o pie > pe
+El objetivo es identificar si uno o más de los 4 rasgos propios de cada fonema ha sido producido de forma incorrecta:
 
-##### Omisión de coda
-Consiste en omitir la consonante que ocupa la posición de coda (final de sílaba).
-- ten > te
-- paθ > pa
+**Sonoridad**
+- **Sonorización**: se sonoriza un sonido sordo. Ej: /t/ → /d/
+- **Ensordecimiento**: se ensordece un sonido sonoro. Ej: /d/ → /t/
 
-Advertencia: Como ya hemos indicado en Andalucía y en otras zonas de habla
-española las consonantes en posición de coda pueden suavizarse, aspirarse o
-hasta desaparecer. Por ello debemos considerarlas como error solo si no es una característica de la variedad dialectal del hablante.
+**Nasalidad**
+- **Nasalización**: se produce como nasal un sonido no nasal. Ej: /b/ → /m/
+- **Desnasalización**: se produce como no nasal un sonido nasal. Ej: /m/ → /b/
 
-#### Errores sistémicos
+*Nota*: en español no existen vocales nasales, por lo que nasalizar una vocal es un error fonético (menos grave). Las consonantes que más se nasalizan son las oclusivas sonoras (/b/, /d/, /g/).
 
-El objetivo de este análisis es identificar si uno o más de los 4 rasgos propios de cada fonema ha sido producido de forma incorrecta. A continuación indicamos los nombres de los 4 rasgos los subtipos de error que pueden ocurrir (en los apuntes del Tema 2 se describen estos cuatro rasgos):
+**Modo de articulación** (grado de apertura, de menor a mayor):
 
-##### Sonoridad
+1. Oclusivos y africados → 2. Fricativos → 3. Nasales/líquidos → 4. Vocales cerradas → 5. Vocales medias → 6. Vocal abierta
 
-Hay dos posible patrones:
+- **Lenición o suavización**: apertura mayor de la cuenta. Ej: /k/ → /x/, /b/ → /a/
+- **Fortición o refuerzo**: apertura menor de la cuenta. Ej: /x/ → /k/, /a/ → /u/
 
-- Sonorización: sonoriza un sonido sordo. Ejemplo: t > d
-- Ensordecimiento: ensordece un sonido sonoro. Ejemplo: d> t
+**Lugar de articulación** (de más anterior a más posterior):
 
-##### Nasalidad
+1. Bilabiales → 2. Labiodentales → 3. Interdentales → 4. Dentales → 5. Alveolares → 6. Palatales → 7. Velares
 
-En este caso distinguimos dos patrones de error:
-- **Nasalización**
-Producir como nasal un sonido que no es nasal (b > m)
+- **Adelantamiento**: se adelanta el lugar. Ej: /k/ → /p/
+- **Posteriorización**: se atrasa el lugar. Ej: /p/ → /k/
 
-- **Desnasalización**
-producir como no nasal un sonido que es nasal (m > b)
-
-Nota: La nasalización puede afectar a las vocales o a las consonantes. Como en español, no existen vocales nasales, nasalizar una vocal no es un error fonológico sino fonético (esto es, es menos grave que en otras lenguas). Con respecto a las consonantes, las que más frecuentemente pueden nasalizarse son las oclusivas sonoras (b, d, g).
-
-
-##### Modo de articulación
-El modo de articulación se refiere al grado de apertura de los articuladores. Los mayor cierre ocurre con los oclusivos y africados, la mayor apertura ocurre con la vocal /a/. Aquí tienes la lista ordenada:
-
-1. Oclusivos y africados
-2. Fricativos
-3. Nasales/líquidos
-4. Vocales cerradas
-5. Vocales medias
-6. Vocal abierta
-
-Por ello, se distinguen dos subtipos de erroresd e modo de articulación.
-
-**Lenición o suavización**
-El grado de apertura es mayor de la cuenta. Por ejemplo:
-
-- k > x    Lenición
-- b > a    Lenición
-- u > a    Lenición
-
-**Fortición o refuerzo**
-El grado de apertura es mejor de la cuenta. Por ejemplo:
-
-x > k    Refuerzo
-a > b    Refuerzo
-a > u    Refuerzo
+</div>
+</details>
 
 
-##### Lugar de articulación
-El lugar de articulación se refiere a la parte de la boca en la que se produce el contacto articulatorio.  Al igual que en los errores de modo, hay varios lugares de articulación (consúltalos en los apuntes del Tema 2). Los lugares de articulación se pueden ordenar como sigue (de más adelantados a más posteriores:
-
-1. Bilabiales
-2. Labiodentales
-3. Interdentales
-4. Dentales
-5. Alveolares
-6. Palatales
-7. Velares
-
-Y podemos distinguir dos patrones de error:
-
-- **Adelantamiento**
-Se adelanta el lugar de articulación (por ejemplo se hace
-bilabial un sonido dental, o dental un sonido palatal…). Ejemplo:
-- k > p
-
-- **Posteriorización**
-Se atrasa el lugar de articulación. Ejemplo:
-- p > k
-
-
-**Ejercicio: Errores segmentales cualitativos**
+**Ejercicio 1: Errores cualitativos (nivel básico)**
 
 Un niño debía decir las siguientes palabras y produjo lo indicado. Clasifica cada error (estructura de palabra, estructura de sílaba o sistémico) e indica el subtipo concreto:
 
@@ -883,7 +839,72 @@ Un niño debía decir las siguientes palabras y produjo lo indicado. Clasifica c
 </div>
 </details>
 
-### 2.5.3. Errores rítmicos
+**Ejercicio 2: Errores cualitativos (nivel intermedio)**
+
+Clasifica cada error. Algunos ítems pueden tener más de un error:
+
+1. /ˈblan.ko/ → /ˈban.ko/
+2. /ˈpla.θa/ → /ˈpa.θa/
+3. /ˈbo.ka/ → /ˈmo.ka/
+4. /ˈxa.mon/ → /ˈka.mon/
+5. /θa.ˈpa.to/ → /ˈpa.to/
+6. /ˈgɾan.de/ → /ˈgan.de/
+7. /ˈma.no/ → /ˈba.no/
+8. /ˈpe.ro/ → /ˈke.ro/
+9. /ˈkɾi.sis/ → /ˈsi.kɾis/
+10. /ˈfue.go/ → /ˈfe.go/
+
+<details>
+<summary style="cursor:pointer; color:#4250b3; font-weight:600; font-size:13px;">Ver solución</summary>
+<div style="padding:8px 0; font-size:13px; line-height:1.8;">
+
+1. /ˈblan.ko/ → /ˈban.ko/ — **Simplificación de ataque** (/bl/ → /b/).
+2. /ˈpla.θa/ → /ˈpa.θa/ — **Simplificación de ataque** (/pl/ → /p/).
+3. /ˈbo.ka/ → /ˈmo.ka/ — **Nasalización** (la oclusiva sonora /b/ se sustituye por la nasal /m/).
+4. /ˈxa.mon/ → /ˈka.mon/ — **Fortición** (la fricativa /x/ se refuerza a la oclusiva /k/).
+5. /θa.ˈpa.to/ → /ˈpa.to/ — **Omisión de sílaba átona** (se omite la primera sílaba /θa/).
+6. /ˈgɾan.de/ → /ˈgan.de/ — **Simplificación de ataque** (/gɾ/ → /g/).
+7. /ˈma.no/ → /ˈba.no/ — **Desnasalización** (la nasal /m/ se sustituye por la oral /b/).
+8. /ˈpe.ro/ → /ˈke.ro/ — **Posteriorización** (la bilabial /p/ se sustituye por la velar /k/).
+9. /ˈkɾi.sis/ → /ˈsi.kɾis/ — **Metátesis** (se intercambian sílabas).
+10. /ˈfue.go/ → /ˈfe.go/ — **Simplificación de núcleo** (se pierde la semiconsonante /u/ del diptongo /ue/).
+
+</div>
+</details>
+
+**Ejercicio 3: Errores cualitativos (nivel avanzado)**
+
+En cada ítem puede haber más de un error. Clasifícalos todos y razona el orden de análisis (primero palabra, luego sílaba, luego sistémico):
+
+1. /es.ˈtɾe.ʝa/ → /e.ˈte.ʝa/
+2. /ma.ɾi.ˈpo.sa/ → /ˈsa/
+3. /ˈtie.ne/ → /ˈde.ne/
+4. /ˈko.ko.ˈdɾi.lo/ → /ˈko.ˈdi.lo/
+5. /ˈbɾu.xa/ → /ˈpu.xa/
+
+<details>
+<summary style="cursor:pointer; color:#4250b3; font-weight:600; font-size:13px;">Ver solución</summary>
+<div style="padding:8px 0; font-size:13px; line-height:1.8;">
+
+1. /es.ˈtɾe.ʝa/ → /e.ˈte.ʝa/ — **Omisión de coda** (/s/) + **Simplificación de ataque** (/tɾ/ → /t/). Dos errores de sílaba.
+2. /ma.ɾi.ˈpo.sa/ → /ˈsa/ — **Omisión de sílaba tónica** (se pierde la sílaba tónica /ˈpo/ y las átonas /ma.ɾi/). Error de palabra. Los fonemas afectados no se analizan como errores sistémicos.
+3. /ˈtie.ne/ → /ˈde.ne/ — **Simplificación de núcleo** (/ie/ → /e/) + **Sonorización** (/t/ → /d/). Primero clasificamos el error de sílaba, luego el sistémico.
+4. /ˈko.ko.ˈdɾi.lo/ → /ˈko.ˈdi.lo/ — **Omisión de sílaba átona** (/ko/, 2ª sílaba) + **Simplificación de ataque** (/dɾ/ → /d/). Primero error de palabra, luego de sílaba.
+5. /ˈbɾu.xa/ → /ˈpu.xa/ — **Simplificación de ataque** (/bɾ/ → /b/) + **Ensordecimiento** (/b/ → /p/). Primero sílaba, luego sistémico. (Nota: ¿podría ser /bɾ/ → /p/ directamente? Sí, pero analizamos por capas.)
+
+</div>
+</details>
+
+> 🎮 **Practica con el widget interactivo:** [Clasificar errores →](/widget/ejercicio_errores) — Ejercicios de clasificación de errores individuales con corrección automática.
+
+> 🎮 **Informe completo:** [Informe de errores fonológicos →](/widget/informe_errores) — Elabora un informe paso a paso con transcripción, medidas cuantitativas, errores cualitativos y rítmicos.
+
+</div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">2.5.3. Errores rítmicos</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
 Estos errores pueden tener diversos orígenes, pero el más común es que al tener dificultades en la planificación y producción de determinados sonidos el hablante pierde el ritmo, resultando en una producción aprosódica. 
 
 
@@ -992,37 +1013,28 @@ Resumen: 2 titubeos, 2 pausas indebidas, 2 muletillas, 0 autocorrecciones.
 </div>
 </details>
 
+</div>
+</details>
+
 ### 2.5.4. Elaboración de un informe de errores
+
+Suponemos que inicialmente contamos con la transcripción fonológica de lo que ha dicho el sujeto.
 
 Seguimos estos pasos:
 
-#### Paso 1. Identificamos en Praat los fragmentos en los que hay muestras de
-habla y los diferentes errores rítmicos
+#### Paso 1. Hacemos la transcripción fonológica de la expresión correcta
 
-#### Paso 2. Contamos los errores rítmicos y calculamos la velocidad articulatoria a partir de una muestra de habla continua
+#### Paso 2. Obtenemos las medidas cuantitativas (% fonemas correctos, etc.)
 
-Por ejemplo:
-Pausas indebidas: 5
-Titubeos: 4
-Autocorrecciones: 7
-Muletillas: 13
-Velocidad articulatoria: 4,5
+#### Paso 3. Errores cualitativos
 
-#### Paso 3. Hacemos la transcripción fonológica correcta (lo que debería haber dicho el paciente)
+##### Paso 3.1. Identificamos los tipos de errores de palabra (y si un fonema está afectado por este tipo de error no lo consideraremos en adelante)
 
-#### Paso 4. Hacemos la transcripción fonológica real (lo que ha dicho el
-paciente)
+##### Paso 3.2. Identificamos los tipos de errores de sílaba (nuevamente, si un fonema está afectado por este tipo de error en adelante lo ignoramos)
 
-#### Paso 5. Obtenemos las medidas cuantitativas (% fonemas correctos, etc.)
+##### Paso 3.3. Identificamos los errores sistémicos
 
-#### Paso 6. Errores cualitativos
-
-##### Paso 6.1. Identificamos los tipos de errores de palabra (y si un fonema está afectado por este tipo de error no lo consideraremos en adelante)
-
-##### Paso 6.2. Identificamos los tipos de errores de sílaba (nuevamente, si un fonema está afectado por este tipo de error en adelante lo ignoramos)
-
-##### Paso 6.3. Identificamos los errores sistémicos
-
+> 🎮 **Practica el informe completo:** [Informe de errores fonológicos →](/widget/informe_errores) — Elabora un informe paso a paso siguiendo estos pasos, con corrección automática.
 
 ### 2.5.5. Imprevistos
 

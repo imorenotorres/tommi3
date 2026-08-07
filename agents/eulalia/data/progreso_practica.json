@@ -70,5 +70,25 @@
         "nivel": "6"
       }
     }
+  },
+  "imoreno@uma.es": {
+    "concepto_fonema": {
+      "score": 75,
+      "completed": true,
+      "raw_score": 3,
+      "max_score": 4,
+      "date": "2026-08-07 18:52",
+      "detalles": {
+        "concepto": "Fonema"
+      }
+    },
+    "informe_errores": {
+      "score": 100,
+      "completed": true,
+      "raw_score": 100,
+      "max_score": 100,
+      "date": "2026-08-07 19:49",
+      "detalles": {}
+    }
   }
 }

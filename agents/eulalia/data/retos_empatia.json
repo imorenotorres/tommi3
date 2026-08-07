@@ -14,5 +14,21 @@
     "explicacion": "En estas situaciones nadie puede usar la comunicación oral, independientemente de su capacidad auditiva. El implante coclear no supone ninguna desventaja porque las condiciones impiden la comunicación oral para todos por igual.",
     "autor": "Profesor",
     "fecha": "2026-08-01 09:00"
+  },
+  {
+    "perfil": "Persona con implante coclear",
+    "situacion": "En una cafetería con mucho ruido",
+    "tiene_dificultad": true,
+    "explicacion": "El implante coclear no nos deja oír tan bien como queríríamos",
+    "autor": "Ignacio",
+    "fecha": "2026-08-07 21:40"
+  },
+  {
+    "perfil": "Persona con implante coclear",
+    "situacion": "En una conversación con una sola persona que se tiene en cuenta sus dificultades",
+    "tiene_dificultad": false,
+    "explicacion": "El implante ofrece suficiente información como para tener una comunicación satisfactoria cuando las condiciones son óptimas",
+    "autor": "Ignacio",
+    "fecha": "2026-08-07 21:40"
   }
 ]

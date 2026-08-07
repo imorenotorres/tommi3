@@ -5,7 +5,7 @@ Este documento debe ayudarte a hacer un informe de los errores fonológicos de u
 1. Medidas cuantitativas. 
 En este apartado se describen medidas numéricas que se obtienen considerando solo si la unidad en cuestión (palabra, fonema…) es correcta o incorrecta (esto es, no tienen en cuenta de qué tipo de error se trata).  
  
-2. Errores segmentales cualitativos
+2. Errores cualitativos
 Se describen medidas que se obtienen analizando a qué tipo de unidad afecta el error (fonemas, sílabas o palabras) y el tipo de error concreto (por ejemplo según el rasgo fonológico). Son más lentas de obtener, pero nos dan una información mucho más fina. Al final de este apartado explicamos cómo hacer un informe de este tipo de errores.  
  
 3. Errores rítmicos
@@ -78,7 +78,7 @@ replicarlo una y otra vez (el 100% de sus emisiones son idénticas). Por el cont
 Un procedimiento para cuantificar la estabilidad consiste en hacer repetir a 
 un sujeto una palabra tres veces, y comprobar si la producción es idéntica en los tres casos. Si de 10 palabras (repetidas cada una 3 veces), solo produce idénticas 4 palabras, diríamos que su estabilidad es del 40% (puesto que de 10 palabras, hay un cuarenta por ciento que produce de forma estable). Observa que en esta medida no importa que el sujeto produzca o no correctamente, lo que nos importa es que siempre produzca de la misma manera.  
  
-## 4.2. Errores segmentales cualitativos 
+## 4.2. Errores cualitativos 
 Estas medidas examinan aspectos lingüísticos específicos. Distinguimos cuatro tipos principales, según afecten al ritmo, a las palabras, a las sílabas o a fonemas concretos. 
 
 ### 4.2.1. Errores de estructura de palabra

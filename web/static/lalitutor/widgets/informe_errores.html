@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informe de errores fonológicos — Eulalia</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.header { background: #166534; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+.container { max-width: 800px; margin: 0 auto; padding: 24px 20px; }
+h2 { font-size: 20px; margin-bottom: 6px; color: #166534; }
+.subtitle { font-size: 13px; color: #64748b; margin-bottom: 20px; line-height: 1.5; }
+.btn { padding: 8px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
+.btn-primary { background: #166534; color: #fff; }
+.btn-primary:hover { background: #14532d; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+
+.step { background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; }
+.step.locked { opacity: 0.5; pointer-events: none; }
+.step.done { border-color: #16a34a; }
+.step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.step-num { width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; color: #475569; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+.step.done .step-num { background: #16a34a; color: #fff; }
+.step-title { font-size: 15px; font-weight: 700; color: #1e293b; }
+.step-desc { font-size: 12px; color: #64748b; margin-bottom: 10px; }
+
+.stimulus { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
+.stimulus-label { font-size: 11px; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 4px; }
+.stimulus-text { font-size: 16px; font-weight: 600; color: #1e293b; }
+.stimulus-transcr { font-size: 16px; font-family: 'Doulos SIL', serif; color: #dc2626; font-weight: 600; margin-top: 6px; }
+
+input[type="text"], textarea { width: 100%; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px; font-family: 'Doulos SIL', 'Noto Sans', serif; }
+input:focus, textarea:focus { outline: none; border-color: #166534; }
+input.correct, textarea.correct { border-color: #16a34a; background: #f0fdf4; }
+input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2; }
+.solution { font-size: 13px; color: #16a34a; margin-top: 4px; display: none; }
+.solution.show { display: block; }
+
+.error-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+.error-row select { padding: 6px 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 13px; font-family: inherit; }
+.error-row input { flex: 1; min-width: 120px; }
+.error-row .remove-btn { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 16px; }
+
+.pk { margin-bottom: 12px; background: #f1f5f9; padding: 6px 12px; border-radius: 6px; display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+.pk-label { font-size: 11px; color: #64748b; margin-right: 4px; }
+.pk button { background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; font-size: 14px; cursor: pointer; font-family: 'Doulos SIL', serif; }
+.pk button:hover { background: #e0f2fe; border-color: #166534; }
+
+.results-bar { background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 12px; padding: 16px; margin-top: 16px; display: none; }
+.results-bar h3 { color: #166534; margin-bottom: 8px; }
+.score { font-size: 28px; font-weight: 700; color: #166534; }
+.score-detail { font-size: 13px; color: #475569; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">›</span>
+    <span class="title">Tema 2</span>
+    <span class="sep">›</span>
+    <span class="title">Informe de errores fonológicos</span>
+</div>
+
+<div class="container">
+    <h2>Informe de errores fonológicos</h2>
+    <p class="subtitle">Analiza la producción de un paciente siguiendo los pasos del informe: transcripción correcta, medidas cuantitativas, errores cualitativos y errores rítmicos.</p>
+
+    <div style="margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="generateExercise()">Nuevo ejercicio</button>
+    </div>
+
+    <!-- Stimulus -->
+    <div class="stimulus" id="stimulus" style="display:none;">
+        <div class="stimulus-label">Oración objetivo (lo que debería decir)</div>
+        <div class="stimulus-text" id="stim-ortografia"></div>
+        <div style="margin-top:10px;">
+            <div class="stimulus-label">Producción del paciente (lo que ha dicho)</div>
+            <div class="stimulus-transcr" id="stim-producido"></div>
+        </div>
+    </div>
+
+    <!-- Phoneme keyboard (collapsible) -->
+    <div id="pk-area" style="display:none;">
+        <a href="#" onclick="var el=document.getElementById('pk-keys');el.style.display=el.style.display==='none'?'':'none';return false;" style="font-size:12px;color:#166534;font-weight:600;text-decoration:none;">▶ Símbolos fonológicos</a>
+        <div id="pk-keys" style="display:none;margin-top:4px;">
+            <div class="pk" id="pk-row"></div>
+        </div>
+    </div>
+
+    <!-- Step 1: Transcripción correcta -->
+    <div class="step locked" id="step1">
+        <div class="step-header"><div class="step-num">1</div><div class="step-title">Transcripción fonológica correcta</div></div>
+        <div class="step-desc">Escribe la transcripción fonológica de lo que debería haber dicho el paciente. <strong>Este paso es un prerrequisito: si no es correcta, la calificación será 0.</strong></div>
+        <input type="text" id="resp-transcripcion" placeholder="/ ... /" onfocus="lastFocusedInput=this">
+        <div class="solution" id="sol-transcripcion"></div>
+        <div style="margin-top:8px;"><button class="btn btn-secondary" onclick="checkStep1()">Comprobar paso 1</button></div>
+    </div>
+
+    <!-- Step 2: Medidas cuantitativas -->
+    <div class="step locked" id="step2">
+        <div class="step-header"><div class="step-num">2</div><div class="step-title">Medidas cuantitativas</div></div>
+        <div class="step-desc">Calcula el porcentaje de fonemas correctos (PFC) y el porcentaje de palabras correctas (PPC).</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            <div><label style="font-size:12px;font-weight:600;color:#64748b;">PFC (%)</label><br>
+                <input type="number" id="resp-pfc" style="width:100px;" min="0" max="100"></div>
+            <div><label style="font-size:12px;font-weight:600;color:#64748b;">PPC (%)</label><br>
+                <input type="number" id="resp-ppc" style="width:100px;" min="0" max="100"></div>
+        </div>
+        <div class="solution" id="sol-cuantitativo"></div>
+        <div style="margin-top:8px;"><button class="btn btn-secondary" onclick="checkStep2()">Comprobar paso 2</button></div>
+    </div>
+
+    <!-- Step 3: Errores cualitativos -->
+    <div class="step locked" id="step3">
+        <div class="step-header"><div class="step-num">3</div><div class="step-title">Errores cualitativos</div></div>
+
+        <!-- 3.1 Errores de palabra -->
+        <div style="margin-bottom:14px;">
+            <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:6px;">3.1. Errores de estructura de palabra</div>
+            <div class="step-desc">Identifica asimilaciones, metátesis u omisiones de sílaba. Los fonemas afectados no se consideran en los pasos siguientes.</div>
+            <div id="errores-palabra"></div>
+            <button class="btn btn-secondary" style="font-size:12px;padding:4px 12px;" onclick="addErrorRow('palabra')">+ Añadir error de palabra</button>
+        </div>
+
+        <!-- 3.2 Errores de sílaba -->
+        <div style="margin-bottom:14px;">
+            <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:6px;">3.2. Errores de estructura de sílaba</div>
+            <div class="step-desc">Identifica omisiones de ataque/coda, simplificaciones de ataque o núcleo.</div>
+            <div id="errores-silaba"></div>
+            <button class="btn btn-secondary" style="font-size:12px;padding:4px 12px;" onclick="addErrorRow('silaba')">+ Añadir error de sílaba</button>
+        </div>
+
+        <!-- 3.3 Errores sistémicos -->
+        <div style="margin-bottom:14px;">
+            <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:6px;">3.3. Errores sistémicos</div>
+            <div class="step-desc">Identifica sustituciones de fonemas: sonorización, ensordecimiento, adelantamiento, posteriorización, etc.</div>
+            <div id="errores-sistemico"></div>
+            <button class="btn btn-secondary" style="font-size:12px;padding:4px 12px;" onclick="addErrorRow('sistemico')">+ Añadir error sistémico</button>
+        </div>
+
+        <div class="solution" id="sol-cualitativos"></div>
+        <div style="margin-top:8px;"><button class="btn btn-secondary" onclick="checkStep3()">Comprobar paso 3</button></div>
+    </div>
+
+    <!-- Step 4: Errores rítmicos -->
+    <div class="step locked" id="step4">
+        <div class="step-header"><div class="step-num">4</div><div class="step-title">Errores rítmicos</div></div>
+        <div class="step-desc">¿Hay pausas indebidas (#), titubeos, autocorrecciones o lentitud articulatoria?</div>
+        <textarea id="resp-ritmicos" rows="2" placeholder="Describe los errores rítmicos, o escribe 'ninguno'"></textarea>
+        <div class="solution" id="sol-ritmicos"></div>
+        <div style="margin-top:8px;"><button class="btn btn-secondary" onclick="checkStep4()">Comprobar paso 4</button></div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-bar" id="results-bar">
+        <h3>Resultado del informe</h3>
+        <div class="score" id="score-text"></div>
+        <div class="score-detail" id="score-detail"></div>
+    </div>
+
+    <div style="margin-top:12px;display:none;gap:8px;" id="action-bar">
+        <button class="btn btn-primary" onclick="generateExercise()">Nuevo ejercicio</button>
+    </div>
+</div>
+
+<script>
+// Phoneme keyboard
+var pkSymbols = ['θ','ʝ','ʧ','ɲ','ɾ','r','ˈ','.','ʤ','x'];
+var pkRow = document.getElementById('pk-row');
+pkSymbols.forEach(function(s) {
+    var btn = document.createElement('button');
+    btn.textContent = s;
+    btn.onclick = function() { insertSymbol(s); };
+    pkRow.appendChild(btn);
+});
+
+var lastFocusedInput = null;
+function insertSymbol(s) {
+    if (!lastFocusedInput) return;
+    var inp = lastFocusedInput;
+    var start = inp.selectionStart, end = inp.selectionEnd;
+    inp.value = inp.value.substring(0, start) + s + inp.value.substring(end);
+    inp.selectionStart = inp.selectionEnd = start + s.length;
+    inp.focus();
+}
+
+// Error subtypes
+var SUBTYPES = {
+    palabra: ['Asimilación regresiva','Asimilación progresiva','Metátesis','Omisión de sílaba átona','Omisión de sílaba tónica'],
+    silaba: ['Omisión de ataque','Simplificación de ataque','Simplificación de núcleo','Omisión de coda'],
+    sistemico: ['Sonorización','Ensordecimiento','Nasalización','Desnasalización','Lenición','Fortición','Adelantamiento','Posteriorización']
+};
+
+var _errorCounter = 0;
+function addErrorRow(tipo) {
+    _errorCounter++;
+    var container = document.getElementById('errores-' + tipo);
+    var div = document.createElement('div');
+    div.className = 'error-row';
+    div.id = 'err-' + _errorCounter;
+
+    var options = '<option value="">— Subtipo —</option>';
+    (SUBTYPES[tipo] || []).forEach(function(st) {
+        options += '<option value="' + st + '">' + st + '</option>';
+    });
+
+    div.innerHTML =
+        '<select>' + options + '</select>' +
+        '<input type="text" placeholder="Fonema(s) afectado(s): ej. /k/→/t/" style="font-size:12px;" onfocus="lastFocusedInput=this">' +
+        '<input type="text" placeholder="Palabra afectada" style="font-size:12px;max-width:120px;" onfocus="lastFocusedInput=this">' +
+        '<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
+    container.appendChild(div);
+}
+
+// Exercise data — loaded from server
+var currentExercise = null;
+
+function normalize(s) {
+    return s.replace(/[\[\]\/ ]/g, '').replace(/'/g, 'ˈ').replace(/#/g, '').trim().toLowerCase();
+}
+
+async function generateExercise() {
+    try {
+        var res = await fetch('/api/public-agent/eulalia/ejercicio-informe-errores?num_errores=5&seed=' + Math.floor(Math.random() * 100000));
+        if (!res.ok) throw new Error('Error ' + res.status);
+        currentExercise = await res.json();
+    } catch(e) {
+        document.getElementById('stimulus').innerHTML = '<p style="color:#dc2626;">Error al generar el ejercicio: ' + e.message + '</p>';
+        document.getElementById('stimulus').style.display = '';
+        return;
+    }
+
+    // Show stimulus
+    document.getElementById('stimulus').style.display = '';
+    document.getElementById('stim-ortografia').textContent = currentExercise.ortografia;
+    document.getElementById('stim-producido').textContent = currentExercise.producido;
+
+    // Show keyboard
+    document.getElementById('pk-area').style.display = '';
+
+    // Unlock step 1, lock others
+    ['step1','step2','step3','step4'].forEach(function(id, i) {
+        var el = document.getElementById(id);
+        el.className = i === 0 ? 'step' : 'step locked';
+    });
+
+    // Clear all inputs
+    document.getElementById('resp-transcripcion').value = '';
+    document.getElementById('resp-transcripcion').className = '';
+    document.getElementById('resp-pfc').value = '';
+    document.getElementById('resp-ppc').value = '';
+    document.getElementById('resp-ritmicos').value = '';
+    ['sol-transcripcion','sol-cuantitativo','sol-cualitativos','sol-ritmicos'].forEach(function(id) {
+        document.getElementById(id).className = 'solution';
+        document.getElementById(id).textContent = '';
+    });
+    ['errores-palabra','errores-silaba','errores-sistemico'].forEach(function(id) {
+        document.getElementById(id).innerHTML = '';
+    });
+    document.getElementById('results-bar').style.display = 'none';
+    document.getElementById('action-bar').style.display = 'none';
+    _errorCounter = 0;
+    _score = {step1: 0, step2: 0, step3: 0, step4: 0};
+}
+
+var _score = {step1: 0, step2: 0, step3: 0, step4: 0};
+
+function checkStep1() {
+    var inp = document.getElementById('resp-transcripcion');
+    var sol = document.getElementById('sol-transcripcion');
+    var userAns = normalize(inp.value);
+    var expected = normalize(currentExercise.correcta);
+
+    if (userAns === expected) {
+        inp.className = 'correct';
+        _score.step1 = 1;
+        // Unlock step 2
+        document.getElementById('step1').className = 'step done';
+        document.getElementById('step2').className = 'step';
+    } else {
+        inp.className = 'incorrect';
+        sol.textContent = 'Correcto: ' + currentExercise.correcta;
+        sol.className = 'solution show';
+        _score.step1 = 0;
+        // Failed prerequisite — show zero and stop
+        document.getElementById('step1').className = 'step done';
+        showResults();
+    }
+}
+
+function checkStep2() {
+    var pfcInput = document.getElementById('resp-pfc');
+    var ppcInput = document.getElementById('resp-ppc');
+    var sol = document.getElementById('sol-cuantitativo');
+
+    var userPfc = parseInt(pfcInput.value) || 0;
+    var userPpc = parseInt(ppcInput.value) || 0;
+
+    var pfcOk = Math.abs(userPfc - currentExercise.pfc) <= 5;
+    var ppcOk = Math.abs(userPpc - currentExercise.ppc) <= 5;
+
+    _score.step2 = ((pfcOk ? 1 : 0) + (ppcOk ? 1 : 0)) / 2;
+
+    pfcInput.className = pfcOk ? 'correct' : 'incorrect';
+    ppcInput.className = ppcOk ? 'correct' : 'incorrect';
+
+    sol.textContent = 'PFC correcto: ' + currentExercise.pfc + '% | PPC correcto: ' + currentExercise.ppc + '%';
+    sol.className = 'solution show';
+
+    document.getElementById('step2').className = 'step done';
+    document.getElementById('step3').className = 'step';
+}
+
+function checkStep3() {
+    var sol = document.getElementById('sol-cualitativos');
+
+    // Collect user answers
+    var userErrors = [];
+    ['palabra','silaba','sistemico'].forEach(function(tipo) {
+        var rows = document.getElementById('errores-' + tipo).querySelectorAll('.error-row');
+        rows.forEach(function(row) {
+            var select = row.querySelector('select');
+            var inputs = row.querySelectorAll('input');
+            if (select.value) {
+                userErrors.push({tipo: tipo, subtipo: select.value, detalle: (inputs[0] || {}).value || ''});
+            }
+        });
+    });
+
+    // Compare with expected
+    var expectedErrors = currentExercise.errores || [];
+    var matched = 0;
+
+    expectedErrors.forEach(function(exp) {
+        var found = userErrors.some(function(u) {
+            return u.tipo === exp.tipo && u.subtipo === exp.subtipo;
+        });
+        if (found) matched++;
+    });
+
+    // Penalize extra errors
+    var extras = Math.max(0, userErrors.length - expectedErrors.length);
+    var rawScore = expectedErrors.length > 0 ? matched / expectedErrors.length : (userErrors.length === 0 ? 1 : 0);
+    _score.step3 = Math.max(0, rawScore - extras * 0.2);
+
+    // Show solution
+    var solText = 'Errores esperados:\n';
+    expectedErrors.forEach(function(e) {
+        solText += '• ' + e.tipo + ' — ' + e.subtipo + ': ' + e.detalle + '\n';
+    });
+    if (expectedErrors.length === 0) solText += '(Ningún error cualitativo)\n';
+    solText += '\nTu respuesta: ' + matched + '/' + expectedErrors.length + ' errores identificados correctamente.';
+    if (extras > 0) solText += ' (' + extras + ' error(es) de más)';
+    sol.textContent = solText;
+    sol.style.whiteSpace = 'pre-line';
+    sol.className = 'solution show';
+
+    document.getElementById('step3').className = 'step done';
+    document.getElementById('step4').className = 'step';
+}
+
+function checkStep4() {
+    var inp = document.getElementById('resp-ritmicos');
+    var sol = document.getElementById('sol-ritmicos');
+
+    var expected = (currentExercise.ritmicos || 'Ninguno').toLowerCase();
+    var userAns = inp.value.trim().toLowerCase();
+
+    // Simple check: if expected is "ninguno", accept "ninguno/no/no hay"
+    var isNone = expected.indexOf('ninguno') >= 0;
+    if (isNone) {
+        var userNone = userAns.indexOf('ninguno') >= 0 || userAns === 'no' || userAns.indexOf('no hay') >= 0;
+        _score.step4 = userNone ? 1 : 0;
+        inp.className = userNone ? 'correct' : 'incorrect';
+    } else {
+        // Check if user mentions key elements (pausas, #, titubeos)
+        var hasKey = userAns.indexOf('pausa') >= 0 || userAns.indexOf('#') >= 0 || userAns.indexOf('titubeo') >= 0;
+        _score.step4 = hasKey ? 1 : 0;
+        inp.className = hasKey ? 'correct' : 'incorrect';
+    }
+
+    sol.textContent = 'Respuesta esperada: ' + currentExercise.ritmicos;
+    sol.className = 'solution show';
+
+    document.getElementById('step4').className = 'step done';
+
+    // Show final results
+    showResults();
+}
+
+function showResults() {
+    var pct;
+    var detailText;
+
+    if (_score.step1 === 0) {
+        // Prerequisite failed: automatic zero
+        pct = 0;
+        detailText = 'La transcripción correcta es un prerrequisito. Sin ella, la calificación es 0.';
+    } else {
+        // Step 1 doesn't score, but steps 2-4 do (out of 100)
+        var total = (_score.step2 * 30 + _score.step3 * 50 + _score.step4 * 20);
+        pct = Math.round(total);
+        detailText =
+            'Cuantitativo: ' + Math.round(_score.step2 * 30) + '/30 | ' +
+            'Cualitativo: ' + Math.round(_score.step3 * 50) + '/50 | ' +
+            'Rítmico: ' + Math.round(_score.step4 * 20) + '/20';
+    }
+
+    document.getElementById('score-text').textContent = pct + '%';
+    document.getElementById('score-detail').textContent = detailText;
+
+    document.getElementById('results-bar').style.display = '';
+    document.getElementById('action-bar').style.display = 'flex';
+
+    if (typeof guardarProgreso === 'function') {
+        guardarProgreso('informe_errores', pct, 100, {});
+    }
+}
+</script>
+
+<script src="/static/lalitutor/progreso.js"></script>
+<script src="/static/lalitutor/informar_profesor.js"></script>
+
+</body>
+</html>

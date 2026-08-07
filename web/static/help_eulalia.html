@@ -24,6 +24,7 @@ li { margin-bottom: 0.4em; }
 .info-yellow { background: #fef9c3; border: 1px solid #fde68a; }
 .info-green { background: #f0fdf4; border: 1px solid #bbf7d0; }
 .info-red { background: #fef2f2; border: 1px solid #fecaca; }
+.info-red { background: #fef2f2; border: 1px solid #fecaca; }
 .comparison-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
 .comparison-table th { background: #4250b3; color: #fff; padding: 10px 14px; text-align: left; font-size: 13px; }
 .comparison-table td { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
@@ -65,7 +66,7 @@ li { margin-bottom: 0.4em; }
 </ul>
 
 
-<h2>¿Qué no es Eulalia? (o ¿qué no debería ser?</h2>
+<h2>¿Qué no es Eulalia? (o ¿qué no debería ser?)</h2>
 <ul>
     <li>Un <strong>sustituto del equipo docente o de las clases presenciales</strong>. Aprovechando que tenemos Eulalia, esperamos lograr que las clases sean más dinámicas, con más tiempo para tareas de reflexión y trabajos en grupo en las que Eulalia no será de gran ayuda.</li>
     <li><strong>Evaluar tu nota final</strong>.  Eulalia debería ayudarte a comprobar cómo vas avanzando, pero <strong>La nota final se valorará mediante un examen escrito corregido por el equipo docente</strong> (eso sí, con preguntas del mismo tipo de las propuestas por Eulalia).</li>
@@ -73,78 +74,82 @@ li { margin-bottom: 0.4em; }
 </ul>
 
 <!-- ═══════════════════════════════════════════════ -->
-<h2>3. Las dos fuentes de información de Eulalia</h2>
+<h2>3. ¿De dónde saca Eulalia la información?</h2>
 
-<p>Eulalia obtiene información de <strong>dos maneras muy diferentes</strong>. Es fundamental que aprendas a distinguirlas, porque su fiabilidad no es la misma.</p>
+<p>Para entender cuándo puedes fiarte de Eulalia y cuándo no, necesitas saber dos cosas: <strong>qué datos usa</strong> y <strong>cómo accede a ellos</strong>.</p>
+
+<h3>Los datos: revisados vs. no revisados</h3>
+
+<p>Eulalia tiene acceso a los <strong>apuntes de la asignatura</strong>, que han sido escritos y revisados por el profesor. Son los mismos documentos que ves cuando navegas por los temas. A estos datos los llamamos <strong>datos revisados</strong>.</p>
+
+<p>Pero cuando le haces una pregunta, la IA puede ir más allá de esos apuntes: puede inventar ejemplos, extrapolar aplicaciones o incluso confundir conceptos. Todo lo que la IA añade por su cuenta son <strong>datos no revisados</strong>.</p>
+
+<h3>¿Cómo se accede a los datos?</h3>
+
+<p>Eulalia accede a la información de dos formas distintas:</p>
 
 <div style="display:flex;gap:16px;margin:20px 0;flex-wrap:wrap;">
-    <div style="flex:1;min-width:280px;background:#f0fdf4;border:2px solid #86efac;border-radius:12px;padding:20px;text-align:center;">
-        <div style="font-size:40px;margin-bottom:8px;">🟢</div>
-        <div style="font-size:16px;font-weight:800;color:#166534;margin-bottom:6px;">Respuesta programática</div>
-        <div style="font-size:13px;color:#166534;line-height:1.6;">Generada por un <strong>programa informático</strong> diseñado y verificado por el profesor. El resultado es <strong>siempre correcto</strong> (salvo errores de programación, que se corrigen al detectarlos).</div>
+    <div style="flex:1;min-width:280px;background:#f0fdf4;border:2px solid #86efac;border-radius:12px;padding:20px;">
+        <div style="font-size:28px;margin-bottom:8px;">🟢 Acceso programático</div>
+        <div style="font-size:13px;color:#166534;line-height:1.7;">Un <strong>programa informático</strong> diseñado y verificado por el profesor genera la respuesta. No interviene ninguna IA. El resultado es <strong>siempre correcto</strong>.<br><br>
+        <strong>Ejemplos:</strong> transcripciones fonológicas, corrección de ejercicios, información sobre alófonos, contenido de los temas.</div>
     </div>
-    <div style="flex:1;min-width:280px;background:#fef9c3;border:2px solid #fde047;border-radius:12px;padding:20px;text-align:center;">
-        <div style="font-size:40px;margin-bottom:8px;">🟡</div>
-        <div style="font-size:16px;font-weight:800;color:#92400e;margin-bottom:6px;">Respuesta con IA (LLM)</div>
-        <div style="font-size:13px;color:#92400e;line-height:1.6;">Generada por un <strong>modelo de lenguaje</strong> (como ChatGPT o Mistral). Puede ser útil y generalmente correcta, pero <strong>puede contener errores</strong> que ni el propio sistema detecta.</div>
+    <div style="flex:1;min-width:280px;background:#fef9c3;border:2px solid #fde047;border-radius:12px;padding:20px;">
+        <div style="font-size:28px;margin-bottom:8px;">🟡 Acceso vía IA</div>
+        <div style="font-size:13px;color:#92400e;line-height:1.7;">Un <strong>modelo de lenguaje</strong> (similar a ChatGPT) lee los apuntes y genera una respuesta. Aunque se basa en datos revisados, <strong>la IA puede cometer errores</strong>: confundir un concepto, inventar un ejemplo o extrapolar.<br><br>
+        <strong>Ejemplos:</strong> respuestas a preguntas en el chat, explicaciones tras transcripciones, evaluación de definiciones.</div>
     </div>
 </div>
 
-<div class="info-yellow">
-    <strong>¿Por qué es esto importante?</strong> Los modelos de lenguaje (LLM) son herramientas poderosas, pero <strong>siempre pueden cometer errores imprevistos</strong>: inventar datos, confundir conceptos o presentar información incorrecta con total apariencia de certeza. Aprender a distinguir cuándo una fuente de información es fiable y cuándo necesita verificación es una <strong>competencia esencial</strong> tanto en el ámbito académico como en el profesional. Eulalia te ayuda a desarrollar esta competencia.
+<h3>¿Y si la IA va más allá de los apuntes?</h3>
+
+<p>Eulalia tiene un sistema de <strong>evaluación automática</strong> que analiza cada respuesta de la IA y comprueba si se basa realmente en los apuntes. Si detecta que la IA ha ido más allá, el indicador cambia:</p>
+
+<div style="display:flex;gap:16px;margin:20px 0;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px;background:#fef9c3;border:2px solid #fde047;border-radius:12px;padding:16px;text-align:center;">
+        <div style="font-size:28px;">🟡</div>
+        <div style="font-size:13px;font-weight:700;color:#92400e;margin-top:4px;">La IA se basa en los apuntes</div>
+        <div style="font-size:12px;color:#92400e;margin-top:4px;">Útil, pero contrasta con los materiales</div>
+    </div>
+    <div style="flex:1;min-width:200px;background:#fef2f2;border:2px solid #fca5a5;border-radius:12px;padding:16px;text-align:center;">
+        <div style="font-size:28px;">🔴</div>
+        <div style="font-size:13px;font-weight:700;color:#991b1b;margin-top:4px;">La IA ha ido más allá</div>
+        <div style="font-size:12px;color:#991b1b;margin-top:4px;">No uses como material de estudio</div>
+    </div>
 </div>
 
-<h3>¿Qué funcionalidades son programáticas y cuáles usan IA?</h3>
+<p style="font-size:13px;color:#64748b;">El indicador aparece al inicio de la respuesta. Inicialmente es 🟡, y puede cambiar a 🔴 si el sistema detecta que la respuesta no está respaldada por los apuntes. Esto tarda unos segundos porque primero se genera la respuesta y luego se evalúa.</p>
+
+<h3>Resumen: los tres indicadores</h3>
 
 <table class="comparison-table">
 <tr>
-    <th style="width:50%;">🟢 Programático (verificado)</th>
-    <th style="width:50%;">🟡 IA / LLM (contrastar)</th>
+    <th>Indicador</th>
+    <th>Significado</th>
+    <th>¿Puedo fiarme?</th>
 </tr>
 <tr>
-    <td>Transcripciones fonológicas</td>
-    <td>Respuestas a preguntas teóricas en el chat</td>
+    <td style="font-size:20px;text-align:center;">🟢</td>
+    <td><strong>Datos verificados</strong> — generado por un programa, sin IA</td>
+    <td><strong>Sí</strong>, siempre</td>
 </tr>
 <tr>
-    <td>Ejercicios de transcripción (generación y corrección)</td>
-    <td>Explicaciones pedagógicas tras una transcripción</td>
+    <td style="font-size:20px;text-align:center;">🟡</td>
+    <td><strong>Comentario IA</strong> — la IA se ha basado en los apuntes</td>
+    <td><strong>En general sí</strong>, pero contrasta con los apuntes</td>
 </tr>
 <tr>
-    <td>Análisis de errores fonológicos</td>
-    <td>Evaluación de definiciones (widget «Define conceptos»)</td>
-</tr>
-<tr>
-    <td>Información sobre alófonos y fonemas</td>
-    <td>Respuestas a dudas fuera de los ejercicios</td>
-</tr>
-<tr>
-    <td>Contenido de los temas (apuntes del profesor)</td>
-    <td></td>
-</tr>
-<tr>
-    <td>Ejercicios de «Evalúa tu progreso»</td>
-    <td></td>
+    <td style="font-size:20px;text-align:center;">🔴</td>
+    <td><strong>Respuesta no basada en los apuntes</strong> — la IA ha ido más allá</td>
+    <td><strong>No</strong>. No la uses como material de estudio</td>
 </tr>
 </table>
 
-<h3>Los indicadores en Eulalia</h3>
-<p>Cada vez que Eulalia responde en el chat, verás uno de estos indicadores:</p>
-
-<div class="info-box info-green">
-    <strong>🟢 Datos verificados</strong> — Respuesta programática. Puedes fiarte.
-</div>
-
-<div class="info-box info-yellow">
-    <strong>🟡 Comentario IA</strong> — Respuesta generada por un modelo de lenguaje. Puede contener errores. Contrasta con los apuntes.
-</div>
-
-<p style="font-size:13px;color:#64748b;margin-top:12px;"><strong>Recuerda</strong>: el indicador 🟢 o 🟡 aparece siempre al inicio de cada respuesta. Acostúmbrate a mirarlo antes de aceptar la información.</p>
-
 <h3>¿Cómo ser un usuario crítico?</h3>
 <ol>
-    <li><strong>Mira el indicador</strong> (🟢 o 🟡) antes de aceptar una respuesta.</li>
-    <li><strong>Si una respuesta tiene un indicador amarillo 🟡</strong> contrasta las respuestas con los materiales de la asignatura.</li>
-    <li><strong>Usa «Transcribe X»</strong> en el chat para obtener transcripciones verificadas 🟢 (sin IA).</li>
+    <li><strong>Mira el indicador</strong> (🟢, 🟡 o 🔴) antes de aceptar una respuesta.</li>
+    <li><strong>Si es amarillo 🟡</strong>, la respuesta probablemente es correcta, pero contrasta con los apuntes si tienes dudas.</li>
+    <li><strong>Si es rojo 🔴</strong>, no la uses como material de estudio. La IA puede haberse inventado cosas.</li>
     <li><strong>Informa al profesor</strong> si algo no te cuadra — el botón ✉ está siempre disponible.</li>
 </ol>
 

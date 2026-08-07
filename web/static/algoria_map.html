@@ -608,6 +608,7 @@ async function fetchAndRender(filters, rawQuery) {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([k, v]) => { if (v) params.append(k, v); });
     if (rawQuery) params.append('q', rawQuery);
+    params.append('session_id', SESSION_ID);
     const url = '/api/agents/algoria_map/agreements-search?' + params.toString();
 
     document.getElementById('summary').textContent = T.loading || 'Loading...';

@@ -360,25 +360,7 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
             </div>
 
             <div class="exercise-panel" id="panel-errores" style="display:none;">
-                <details>
-                    <summary>Ejercicios de errores</summary>
-                    <div class="exercise-options">
-                        <label>Tipo de error:</label>
-                        <select id="exercise-type">
-                            <option value="">Todos los tipos</option>
-                            <option value="sistemico">Sistémicos (fonema)</option>
-                            <option value="silaba">De sílaba</option>
-                            <option value="palabra">De palabra</option>
-                        </select>
-                        <label>Nivel:</label>
-                        <select id="exercise-level">
-                            <option value="basico">Básico</option>
-                            <option value="intermedio">Intermedio</option>
-                            <option value="avanzado">Avanzado</option>
-                        </select>
-                        <button class="exercise-btn" onclick="requestExercise()">Generar ejercicio</button>
-                    </div>
-                </details>
+                <button class="exercise-btn" onclick="openWidget('informe_errores')" style="width:100%;padding:10px 16px;border-radius:8px;border:2px solid #7c3aed30;color:#7c3aed;background:#fff;cursor:pointer;font-size:14px;font-weight:600;text-align:left;">✏️ Informe de errores fonológicos</button>
             </div>
 
             <div class="config-panel" id="config-panel">
@@ -468,6 +450,13 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
  
                         </ul>
 
+                        <p style="margin-top:8px; font-size:14px;"><strong>¿Y hay cosas que no puedo aprender con Eulalia?</strong></p>
+                        <p style="margin:6px 0;font-size:13px;">Sí, ciertamente, hay muchas. Pero dos son fundamentales:</p>
+                        <ul style="margin:6px 0 6px 20px;">
+                            <li><strong>A escuchar y reconocer los sonidos.</strong> La tecnología de reconocimiento del habla es mucho menos certera que el oído humano, de manera que esta tarea la tendremos que aprender sin ayuda de la tecnología (o solo usándola instrumentalmente).</li>
+                            <li><strong>A comprender cómo la logopedia debe estar por encima de la tecnología.</strong> Una herramienta como Eulalia puede ayudarte a dominar conceptos y practicar ejercicios, pero la capacidad de escuchar, empatizar y tomar decisiones clínicas con un paciente es algo que ninguna IA puede sustituir.</li>
+                        </ul>
+
                         <p style="margin-top:8px; font-size:14px;"><strong>¿Hay algo que no deba hacer con Eulalia?</strong></p>
                         <ul style="margin:6px 0 6px 20px;">
                             <li><strong>No debes usarla como sustituta del equipo docente o las clases presenciales</strong>. Aprovéchate de contar con esta herramienta para aprender más rápidamente conceptos básicos o tareas más mecánicas, pero hay muchas cosas que no pueden aprenderse con Eulalia, como por ejemplo reflexionar sobre si una IA puede reemplazar a una logopeda en ejercicio. Hablémoslo en clase. </li>
@@ -519,8 +508,13 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                             <p style="margin-top:6px;"><strong>Respuesta corta: NO.</strong><br><br>Explicación: Eulalia es una herramienta que pretende ayudar a: 1) superar la asignatura de Lingüística Aplicada a la Logopedia; y 2) hacernos conscientes sobre el papel de la IA. Para superar la asignatura <strong>no es en absoluto indispensable</strong> usar Eulalia. Pero para hacerte consciente de las limitaciones de la IA puede ser muy útil. En cualquier caso, <strong>no usar Eulalia no afectará en absoluto a la nota final</strong>.</p>
                         </details>
 
+                        <details style="margin-top:8px;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
+                            <summary style="cursor:pointer;font-weight:600;color:#334155;">¿Puedo usar Eulalia desde el móvil?</summary>
+                            <p style="margin-top:6px;">Eulalia está diseñada para usarse en un <strong>ordenador o tablet en posición horizontal</strong> (pantalla de al menos 768 píxeles de ancho). Desde un móvil puedes acceder, pero la experiencia será limitada: el menú lateral se comprime, las tablas de ejercicios pueden requerir desplazamiento horizontal y el teclado de símbolos fonéticos resulta difícil de usar. Si no tienes otro dispositivo disponible, prueba a poner el móvil en posición horizontal.</p>
+                        </details>
+
                         <details style="margin-top:8px;">
-                            <summary style="cursor:pointer;font-weight:600;color:#334155;">¿Nos ayudas a mejorar Eulalia?</summary>
+                            <summary style="cursor:pointer;font-weight:600;color:#334155;">¿Cuál es el fin de hacer Eulalia? ¿Solo ayudar en las clases de LALI?</summary>
                             <div style="margin-top:6px;">
                                 <p>Eulalia es un proyecto en curso con tres objetivos:</p>
                                 <ol style="margin:6px 0 6px 20px;">
@@ -563,6 +557,14 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
         <!-- ═══ Vista: Evalúa tu progreso ═══ -->
         <div class="landing-view" id="eval-view" style="display:none;">
             <div style="max-width:800px;margin:0 auto;padding:24px 20px;" id="eval-content"></div>
+        </div>
+
+        <!-- ═══ Vista: Widget embebido ═══ -->
+        <div id="widget-view" style="display:none;">
+            <div style="max-width:900px;margin:0 auto;padding:12px 20px;">
+                <button onclick="closeWidget()" style="background:none;border:none;color:#4250b3;cursor:pointer;font-size:13px;padding:0;margin-bottom:8px;">← Volver</button>
+                <iframe id="widget-iframe" style="width:100%;border:none;border-radius:8px;height:calc(100vh - 120px);"></iframe>
+            </div>
         </div>
 
         <!-- ═══ Vista 3: Chat (existente) ═══ -->
@@ -647,6 +649,8 @@ var _currentSeccion = null;  // 'resumen', 'contenidos', 'ejercicios', 'autoeval
 var _seccionesData = null;   // loaded from temas.json
 
 // ── Breadcrumb de navegación ──
+var _currentBloqueNombre = '';
+
 function updateBreadcrumb() {
     var temaSep = document.getElementById('nav-tema-sep');
     var temaName = document.getElementById('nav-tema-name');
@@ -661,6 +665,13 @@ function updateBreadcrumb() {
             temaName.textContent = 'Tema ' + tema.id;
             temaName.title = tema.titulo;
 
+            // Show block name if available, otherwise section name
+            if (_currentBloqueNombre) {
+                secSep.style.display = '';
+                secName.style.display = '';
+                secName.textContent = _currentBloqueNombre;
+                return;
+            }
             if (_currentSeccion && _seccionesData) {
                 var sec = _seccionesData.find(function(s) { return s.id === _currentSeccion; });
                 if (sec) {
@@ -788,7 +799,7 @@ var _currentTemaId = null;
 
 // ── Navegación entre vistas ──
 function showView(viewId) {
-    ['landing-view', 'tema-detail-view', 'tema-section-view', 'eval-view'].forEach(function(id) {
+    ['landing-view', 'tema-detail-view', 'tema-section-view', 'eval-view', 'widget-view'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.style.display = id === viewId ? '' : 'none';
     });
@@ -810,9 +821,44 @@ function showView(viewId) {
     }
 }
 
+var _viewBeforeWidget = 'eval-view';
+
+function openWidget(widgetPath) {
+    _viewBeforeWidget = _getCurrentView();
+    var iframe = document.getElementById('widget-iframe');
+    iframe.src = '/tutores-virtuales/eulalia/widgets/' + widgetPath;
+    iframe.onload = function() {
+        try {
+            // Hide the widget's own header when embedded
+            var style = iframe.contentDocument.createElement('style');
+            style.textContent = '.header { display: none !important; } .informar-fab, .informar-overlay { display: none !important; }';
+            iframe.contentDocument.head.appendChild(style);
+        } catch(e) {}
+    };
+    showView('widget-view');
+}
+
+function closeWidget() {
+    var iframe = document.getElementById('widget-iframe');
+    iframe.src = '';
+    showView(_viewBeforeWidget);
+    // Refresh eval view in case progress was updated inside the widget
+    if (_viewBeforeWidget === 'eval-view') showEvalView();
+}
+
+function _getCurrentView() {
+    var views = ['landing-view', 'tema-detail-view', 'tema-section-view', 'eval-view'];
+    for (var i = 0; i < views.length; i++) {
+        var el = document.getElementById(views[i]);
+        if (el && el.style.display !== 'none') return views[i];
+    }
+    return 'eval-view';
+}
+
 function showLanding() {
     _currentTemaId = null;
     _currentSeccion = null;
+    _currentBloqueNombre = '';
     showView('landing-view');
     updateBreadcrumb();
     updateSidebar();
@@ -827,7 +873,8 @@ var _evalItems = {
     2: [
         {label: 'Define conceptos', widget: 'conceptos?tema=2', desc: 'Define los conceptos clave del tema con tus propias palabras.'},
         {label: 'Transcripción fonológica', widget: 'transcripcion_ejercicio', desc: 'Ejercicios de transcripción fonológica de los niveles 1 al 5 con corrección automática.'},
-        {label: 'Análisis de errores fonológicos', widget: 'ejercicio_errores', desc: 'Clasifica errores fonológicos por tipo y subtipo.'}
+        {label: 'Clasificar errores (individual)', widget: 'ejercicio_errores', desc: 'Clasifica errores fonológicos individuales por tipo y subtipo.'},
+        {label: 'Informe de errores (completo)', widget: 'informe_errores', desc: 'Elabora un informe completo: transcripción, medidas cuantitativas, errores cualitativos y rítmicos.'}
     ],
     3: [
         {label: 'Transcripción fonética', widget: 'transcripcion_fonetica', desc: 'Ejercicios de transcripción fonética en 6 niveles: diptongos, oclusivas, fricativas, nasales, laterales/vibrantes, y oraciones completas.'}
@@ -858,16 +905,39 @@ function showEvalView() {
         html += '</div>';
 
         items.forEach(function(item) {
-            var p = progress[item.widget.split('?')[0]] || progress['concepto_' + item.widget.split('?')[0]];
+            var p = null;
+            var widgetBase = item.widget.split('?')[0];
+            if (widgetBase === 'conceptos') {
+                // Aggregate: count concepto_* keys for this tema that are completed
+                var temaParam = (item.widget.match(/tema=(\d+)/) || [])[1];
+                var conceptIds = {
+                    '1': ['concepto_fonema','concepto_alofono','concepto_representacion_mental','concepto_pseudopalabra'],
+                    '2': ['concepto_silaba','concepto_palabra_prosodica','concepto_transcripcion_fonologica','concepto_ppc','concepto_asimilacion','concepto_errores_sistemicos','concepto_errores_estructura_palabra','concepto_errores_estructura_silaba','concepto_medidas_cuantitativas']
+                };
+                var ids = conceptIds[temaParam] || [];
+                if (ids.length > 0) {
+                    var done_count = 0;
+                    ids.forEach(function(cid) {
+                        var cp = progress[cid];
+                        if (cp && cp.completed) done_count++;
+                    });
+                    var aggPct = Math.round(100 * done_count / ids.length);
+                    p = { score: aggPct, completed: aggPct >= 75 };
+                }
+            } else {
+                p = progress[widgetBase];
+            }
             var pct = p ? p.score : 0;
             var done = p && p.completed;
             var barColor = done ? '#16a34a' : pct > 0 ? '#f59e0b' : '#e2e8f0';
             var statusText = done ? '✓ ' + pct + '%' : pct > 0 ? pct + '%' : 'Pendiente';
             var statusColor = done ? '#16a34a' : pct > 0 ? '#f59e0b' : '#94a3b8';
 
-            html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-top:1px solid #f1f5f9;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'#fff\'" onclick="window.open(\'/tutores-virtuales/eulalia/widgets/' + item.widget + '\',\'_blank\')">';
+            html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-top:1px solid #f1f5f9;">';
             html += '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#1e293b;">' + item.label + '</div>';
-            html += '<div style="font-size:11px;color:#64748b;margin-top:2px;">' + item.desc + '</div></div>';
+            html += '<div style="font-size:11px;color:#64748b;margin-top:2px;">' + item.desc + '</div>';
+            html += '<a href="#" onclick="openWidget(\'' + item.widget + '\');return false;" style="font-size:12px;color:#4250b3;text-decoration:none;font-weight:600;margin-top:4px;display:inline-block;">' + (done ? '✓ Repetir ejercicio' : '→ Seguir practicando') + '</a>';
+            html += '</div>';
             html += '<div style="text-align:right;min-width:70px;"><div style="font-size:12px;font-weight:700;color:' + statusColor + ';">' + statusText + '</div>';
             html += '<div style="background:#e2e8f0;border-radius:3px;height:4px;width:60px;margin-top:4px;"><div style="background:' + barColor + ';border-radius:3px;height:4px;width:' + pct + '%;"></div></div></div>';
             html += '</div>';
@@ -877,7 +947,7 @@ function showEvalView() {
     });
 
     html += '<div style="text-align:center;margin-top:8px;">';
-    html += '<button onclick="window.open(\'/tutores-virtuales/eulalia/widgets/mi_progreso\',\'_blank\')" style="background:#f5f3ff;border:2px solid #e9e5ff;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:600;color:#7c3aed;cursor:pointer;font-family:inherit;">📊 Ver progreso detallado</button>';
+    html += '<button onclick="openWidget(\'mi_progreso\')" style="background:#f5f3ff;border:2px solid #e9e5ff;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:600;color:#7c3aed;cursor:pointer;font-family:inherit;">📊 Ver progreso detallado</button>';
     html += '</div>';
 
     document.getElementById('eval-content').innerHTML = html;
@@ -972,8 +1042,9 @@ function showSection(temaId, seccionId) {
         (tema.ejercicios || []).forEach(function(ej) {
             var onclick = '';
             if (ej.tipo === 'panel_transcripcion') onclick = "showChatAndSend('Dame un ejercicio de transcripción fonológica')";
-            else if (ej.tipo === 'panel_errores') onclick = "showChatAndSend('Dame un ejercicio de errores fonológicos')";
-            else if (ej.tipo === 'panel_transcripcion_fonetica') onclick = "window.open('/tutores-virtuales/eulalia/widgets/transcripcion_fonetica', '_blank')";
+            else if (ej.tipo === 'panel_errores') onclick = "openWidget('ejercicio_errores')";
+            else if (ej.tipo === 'panel_informe_errores') onclick = "openWidget('informe_errores')";
+            else if (ej.tipo === 'panel_transcripcion_fonetica') onclick = "openWidget('transcripcion_fonetica')";
             else if (ej.tipo === 'transcripcion_fonetica') onclick = "showChatAndSend('Dame un ejercicio de transcripción fonética')";
             else if (ej.tipo === 'espectrogramas') onclick = "mostrarEspectrogramas('vocales')";
             else if (ej.tipo === 'audio') onclick = "document.getElementById('audio-file-input').click()";
@@ -1046,6 +1117,18 @@ function runEmbeddedScripts(container) {
     });
 }
 
+// Intercept clicks on /widget/... links in rendered markdown content
+document.addEventListener('click', function(e) {
+    var a = e.target.closest('a');
+    if (!a) return;
+    var href = a.getAttribute('href') || '';
+    if (href.startsWith('/widget/')) {
+        e.preventDefault();
+        var widgetName = href.replace('/widget/', '');
+        openWidget(widgetName);
+    }
+});
+
 function showBloqueContenido(temaId, bloqueIdx) {
     if (!_temasData) return;
     var tema = _temasData.find(function(t) { return t.id === temaId; });
@@ -1056,6 +1139,7 @@ function showBloqueContenido(temaId, bloqueIdx) {
 
     _currentTemaId = temaId;
     _currentSeccion = 'contenidos';
+    _currentBloqueNombre = bloque.bloque || '';
 
     var titleEl = document.getElementById('section-titulo');
     titleEl.textContent = '';
@@ -1097,6 +1181,7 @@ function showSubbloqueContenido(temaId, subName) {
 
     _currentTemaId = temaId;
     _currentSeccion = 'contenidos';
+    _currentBloqueNombre = subName || '';
 
     var titleEl = document.getElementById('section-titulo');
     titleEl.textContent = '';
@@ -1477,7 +1562,11 @@ function checkAuthLevel() {
         .then(function(r) { return r.ok ? r.json() : null; })
         .then(function(data) {
             if (!data || !data.authenticated) {
-                authEl.innerHTML = '<a href="/tutores-virtuales/login?redirect=/tutores-virtuales/eulalia" class="nav-auth-link">Iniciar sesión</a>';
+                // Token exists but session expired — clear and redirect to login
+                localStorage.removeItem('tutores_token');
+                localStorage.removeItem('tutores_username');
+                localStorage.removeItem('tutores_role');
+                window.location.href = '/tutores-virtuales/login?redirect=/tutores-virtuales/eulalia';
                 return;
             }
             var email = data.username || '';
@@ -1759,6 +1848,7 @@ function sendMessage(message) {
     eventSource.addEventListener('status', function(e) { agentBubble.innerHTML = '<span class="loading">' + e.data + '</span>'; });
     eventSource.addEventListener('badge', function(e) { badgeHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml; scrollToUser(); });
     eventSource.addEventListener('procedural_banner', function(e) { bannerHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml; scrollToUser(); });
+    eventSource.addEventListener('replace_banner', function(e) { bannerHtml = e.data.replace(/\\n/g, '\n'); agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText) + traceHtml; scrollToUser(); });
     eventSource.onmessage = function(e) {
         var chunk = e.data.replace(/\\n/g, '\n'); responseText += chunk;
         agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(responseText); scrollToUser();
@@ -1891,9 +1981,9 @@ function checkExerciseActive(responseText) {
 
 function requestTranscripcion() {
     if (_currentTemaId === 3) {
-        window.open('/tutores-virtuales/eulalia/widgets/transcripcion_fonetica', '_blank');
+        openWidget('transcripcion_fonetica');
     } else {
-        window.open('/tutores-virtuales/eulalia/widgets/transcripcion_ejercicio', '_blank');
+        openWidget('transcripcion_ejercicio');
     }
 }
 

@@ -1,0 +1,107 @@
+{
+  "nota_maxima_por_tema": 2,
+  "temas": {
+    "1": {
+      "titulo": "Introducción a la fonología",
+      "puntuacion_maxima": 2,
+      "componentes": [
+        {
+          "id": "conceptos_t1",
+          "nombre": "Conceptos",
+          "tipo": "conceptos",
+          "ejercicios": ["concepto_fonema", "concepto_alofono", "concepto_representacion_mental", "concepto_pseudopalabra"],
+          "minimo_items": 4,
+          "puntos_por_item": 0.25,
+          "puntuacion_maxima": 1.0,
+          "nota": "4 conceptos × 0.25 = 1 punto. Si hay más de 4 no se valoran extra."
+        },
+        {
+          "id": "test_t1",
+          "nombre": "Autoevaluación",
+          "tipo": "test",
+          "ejercicios": ["eval_final_tema1"],
+          "puntuacion_maxima": 1.0,
+          "umbral_aprobado": 75,
+          "nota": "Test completo: 1 punto si ≥75%."
+        }
+      ]
+    },
+    "2": {
+      "titulo": "Fonología del español",
+      "puntuacion_maxima": 2,
+      "componentes": [
+        {
+          "id": "conceptos_t2",
+          "nombre": "Conceptos",
+          "tipo": "conceptos",
+          "ejercicios": ["concepto_silaba", "concepto_palabra_prosodica", "concepto_transcripcion_fonologica", "concepto_ppc", "concepto_asimilacion", "concepto_errores_sistemicos", "concepto_errores_estructura_palabra", "concepto_errores_estructura_silaba", "concepto_medidas_cuantitativas"],
+          "minimo_items": 8,
+          "puntos_por_item": 0.125,
+          "puntuacion_maxima": 1.0,
+          "nota": "8 conceptos mínimo × 0.125 = 1 punto. Si hay más de 8 no se valoran extra."
+        },
+        {
+          "id": "transcripcion_fonologica_t2",
+          "nombre": "Transcripción fonológica",
+          "tipo": "transcripcion_niveles",
+          "ejercicios": ["transcripcion_ejercicio"],
+          "niveles": [
+            {
+              "descripcion": "Al menos 3 ítems correctos de niveles 1-3",
+              "puntuacion": 0.5
+            },
+            {
+              "descripcion": "Lo anterior + al menos 6 oraciones del nivel 5",
+              "puntuacion": 1.0
+            }
+          ],
+          "puntuacion_maxima": 1.0,
+          "nota": "Escalonado: 0.5 si niveles básicos OK; 1.0 si además oraciones OK."
+        },
+        {
+          "id": "analisis_errores_t2",
+          "nombre": "Análisis de errores",
+          "tipo": "informe",
+          "ejercicios": ["ejercicio_errores"],
+          "puntuacion_maxima": 2.0,
+          "penalizacion_por_fallo": 0.1,
+          "nota": "Informe completo: 2 puntos. Por cada fallo se resta 0.1. Requiere widget de informe completo (pendiente)."
+        }
+      ]
+    },
+    "3": {
+      "titulo": "Fonética articulatoria",
+      "puntuacion_maxima": 2,
+      "componentes": [
+        {
+          "id": "transcripcion_fonetica_t3",
+          "nombre": "Transcripción fonética",
+          "tipo": "transcripcion_examen",
+          "ejercicios": ["transcripcion_fonetica"],
+          "examen": {
+            "nivel": 6,
+            "num_items": 12,
+            "puntuacion_maxima": 2.0,
+            "criterio": "2 puntos si 0 errores en 12 oraciones de nivel 6. Se descuenta proporcionalmente."
+          },
+          "puntuacion_maxima": 2.0
+        }
+      ]
+    },
+    "4": {
+      "titulo": "Fonética acústica (En preparación)",
+      "puntuacion_maxima": 2,
+      "componentes": []
+    },
+    "5": {
+      "titulo": "Fonética perceptiva (En preparación)",
+      "puntuacion_maxima": 2,
+      "componentes": []
+    },
+    "6": {
+      "titulo": "Trabajo práctico (En preparación)",
+      "puntuacion_maxima": 2,
+      "componentes": []
+    }
+  }
+}

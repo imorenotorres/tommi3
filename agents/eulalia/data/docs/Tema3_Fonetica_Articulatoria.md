@@ -1,6 +1,6 @@
 # Tema 3. Fonética articulatoria
 
-## 1. Introducción
+## 3.1. Introducción
 
 En este tema estudiamos los **alófonos** del español peninsular (variedad distinguidora): para cada fonema, qué alófonos tiene, cuándo aparece cada uno y por qué.
 
@@ -38,7 +38,7 @@ Y para decir **[ma]** debemos:
 - Mantener la vibración de las cuerdas vocales durante todo el tiempo
 - Descender el velo durante la emisión de la [m] y elevarlo con la [a]
 
-Observa que en ambos casos el movimiento del velo no es instantáneo: al pasar de [a] a [m] el velo empieza a descender durante la vocal, nasalizando su parte final → [ãm]. Al pasar de [m] a [a] el velo tarda en elevarse, aunque ello no tiene efectos perceptuales claros → [ma]. Este es un ejemplo claro de cómo el contexto modifica la realización de un fonema (ver sección 4.1, nasalización vocálica).
+Observa que en ambos casos el movimiento del velo no es instantáneo: al pasar de [a] a [m] el velo empieza a descender durante la vocal, nasalizando su parte final → [ãm]. Al pasar de [m] a [a] el velo tarda en elevarse, aunque ello no tiene efectos perceptuales claros → [ma]. Este es un ejemplo claro de cómo el contexto modifica la realización de un fonema (ver sección 3.4.1, nasalización vocálica).
 
 Todo esto puede llevar a que un fonema suene de forma muy diferente en función de los sonidos que le rodean. **Cuando este fenómeno es sistemático** (ocurre a la mayoría de los hablantes y en el mismo contexto) **tendríamos dos o más alófonos de un mismo fonema**.
 
@@ -52,11 +52,11 @@ Hay dos motivos por los que debemos prestar atención a los alófonos:
 
 ---
 
-## 2. Vocales
+## 3.2. Vocales
 
 El español tiene 5 fonemas vocálicos. Las vocales se clasifican según la **abertura** (posición vertical de la lengua) y el **punto de articulación** (posición horizontal).
 
-### 2.1. Vocales abiertas y medias: /a/, /e/, /o/
+### 3.2.1. Vocales abiertas y medias: /a/, /e/, /o/
 
 Estos tres fonemas tienen un único alófono cada uno: no varían según el contexto.
 
@@ -66,7 +66,7 @@ Estos tres fonemas tienen un único alófono cada uno: no varían según el cont
 | /e/ | [e] | vocal media anterior | Siempre | *mesa* [ˈme.sa] |
 | /o/ | [o] | vocal media posterior | Siempre | *cosa* [ˈko.sa] |
 
-**Ejercicio 3.1.** Transcribe fonéticamente las siguientes palabras, prestando atención a las vocales:
+**Ejercicio 3.2.1.** Transcribe fonéticamente las siguientes palabras, prestando atención a las vocales:
 
 1. *pelota*
 2. *tomate*
@@ -80,7 +80,7 @@ Estos tres fonemas tienen un único alófono cada uno: no varían según el cont
 
 </details>
 
-### 2.2. Vocales cerradas: /i/, /u/
+### 3.2.2. Vocales cerradas: /i/, /u/
 
 Las vocales cerradas son más complejas: tienen **tres alófonos** cada una, dependiendo de su posición en la sílaba.
 
@@ -100,7 +100,7 @@ Las vocales cerradas son más complejas: tienen **tres alófonos** cada una, dep
 | [w] | semiconsonante velar | Posición prenuclear (diptongo creciente) | *fuego* [ˈfwe.ɣ̞o] |
 | [u̯] | semivocal velar | Posición postnuclear (diptongo decreciente) | *pausa* [ˈpau̯.sa] |
 
-**Ejercicio 3.2.** Transcribe fonéticamente, identificando si /i/ y /u/ son vocales, semiconsonantes o semivocales:
+**Ejercicio 3.2.2.** Transcribe fonéticamente, identificando si /i/ y /u/ son vocales, semiconsonantes o semivocales:
 
 1. *ciudad*
 2. *cuidado*
@@ -118,9 +118,9 @@ Las vocales cerradas son más complejas: tienen **tres alófonos** cada una, dep
 
 ---
 
-## 3. Consonantes
+## 3.3. Consonantes
 
-### 3.1. Consonantes oclusivas
+### 3.3.1. Consonantes oclusivas
 
 Las oclusivas se producen con un **cierre completo** del tracto vocal seguido de una liberación brusca. En español hay 6 fonemas oclusivos organizados en tres pares sordo/sonoro según el punto de articulación.
 
@@ -168,7 +168,7 @@ Un fenómeno clave es la **espirantización**: las oclusivas sonoras (/b/, /d/, 
 | [g] | oclusiva velar sonora | Tras pausa o nasal | *gato* [ˈga.to] |
 | [ɣ̞] | aproximante velar sonora | Resto de contextos | *lago* [ˈla.ɣ̞o] |
 
-**Ejercicio 3.1.** Transcribe fonéticamente, identificando qué alófono corresponde a cada oclusiva:
+**Ejercicio 3.3.1.** Transcribe fonéticamente, identificando qué alófono corresponde a cada oclusiva:
 
 1. *boda*
 2. *la boda*
@@ -188,7 +188,7 @@ Un fenómeno clave es la **espirantización**: las oclusivas sonoras (/b/, /d/, 
 
 </details>
 
-### 3.2. Consonantes fricativas
+### 3.3.2. Consonantes fricativas
 
 Las fricativas se producen con un **estrechamiento** del tracto vocal que genera turbulencia. En español peninsular (distinguidor) hay 5 fonemas fricativos.
 
@@ -210,7 +210,7 @@ El fonema /ʝ/ es la excepción: tiene dos alófonos.
 | [ʝ] | fricativa palatal sonora | Todos los contextos excepto tras nasal | *mayo* [ˈma.ʝo] |
 | [ʤ] | africada palatal sonora | Tras nasal | *un yate* [unʲ.ˈʤa.te] |
 
-**Ejercicio 3.2.** Transcribe fonéticamente:
+**Ejercicio 3.3.2.** Transcribe fonéticamente:
 
 1. *una ceja*
 2. *un jefe*
@@ -226,7 +226,7 @@ El fonema /ʝ/ es la excepción: tiene dos alófonos.
 
 </details>
 
-### 3.3. Consonante africada
+### 3.3.3. Consonante africada
 
 Las africadas combinan una fase oclusiva seguida de una fase fricativa.
 
@@ -236,7 +236,7 @@ Las africadas combinan una fase oclusiva seguida de una fase fricativa.
 |---------|-------------|----------|---------|
 | [ʧ] | africada palatal sorda | Siempre | *chico* [ˈʧi.ko] |
 
-### 3.4. Consonantes nasales
+### 3.3.4. Consonantes nasales
 
 Las nasales se producen con un **cierre oral** y salida del aire por la nariz. El fonema /n/ es especialmente interesante porque tiene **7 alófonos** que dependen de la consonante siguiente: la nasal se articula en el mismo punto que la consonante que le sigue (**asimilación**).
 
@@ -264,7 +264,7 @@ Las nasales se producen con un **cierre oral** y salida del aire por la nariz. E
 |---------|-------------|----------|---------|
 | [ɲ] | nasal palatal sonora | Siempre | *año* [ˈa.ɲo] |
 
-**Ejercicio 3.4.** Transcribe fonéticamente, prestando atención a los alófonos de /n/:
+**Ejercicio 3.3.4.** Transcribe fonéticamente, prestando atención a los alófonos de /n/:
 
 1. *un foco*
 2. *un diente*
@@ -282,7 +282,7 @@ Las nasales se producen con un **cierre oral** y salida del aire por la nariz. E
 
 </details>
 
-### 3.5. Consonantes laterales
+### 3.3.5. Consonantes laterales
 
 Las laterales se producen con un contacto central de la lengua y salida del aire por los lados. El fonema /l/, como /n/, presenta **asimilación** al punto de articulación de la consonante siguiente.
 
@@ -294,7 +294,7 @@ Las laterales se producen con un contacto central de la lengua y salida del aire
 | [l̟] | lateral interdental | Ante interdental (/θ/) | *calzar* [kal̟.ˈθaɹ] |
 | [l̪] | lateral dental | Ante dental (/t/, /d/) | *alto* [ˈal̪.to] |
 
-**Ejercicio 3.5.** Transcribe fonéticamente:
+**Ejercicio 3.3.5.** Transcribe fonéticamente:
 
 1. *el zapato*
 2. *el dato*
@@ -308,7 +308,7 @@ Las laterales se producen con un contacto central de la lengua y salida del aire
 
 </details>
 
-### 3.6. Consonantes vibrantes
+### 3.3.6. Consonantes vibrantes
 
 Las vibrantes se producen con uno o más contactos rápidos de la punta de la lengua contra los alvéolos.
 
@@ -325,7 +325,7 @@ Las vibrantes se producen con uno o más contactos rápidos de la punta de la le
 |---------|-------------|----------|---------|
 | [r] | vibrante múltiple alveolar | Siempre | *perro* [ˈpe.ro] |
 
-**Ejercicio 3.6.** Transcribe fonéticamente, distinguiendo [ɾ], [ɹ] y [r]:
+**Ejercicio 3.3.6.** Transcribe fonéticamente, distinguiendo [ɾ], [ɹ] y [r]:
 
 1. *caro*
 2. *carro*
@@ -343,9 +343,9 @@ Las vibrantes se producen con uno o más contactos rápidos de la punta de la le
 
 ---
 
-## 4. Otros fenómenos
+## 3.4. Otros fenómenos
 
-### 4.1. Nasalización vocálica
+### 3.4.1. Nasalización vocálica
 
 En la producción de las consonantes nasales el velo del paladar desciende para permitir la salida del aire por la nariz. Cuando una vocal aparece junto a una consonante nasal, el velo no se cierra (o no se abre) de forma instantánea: comienza a descender antes de la nasal o permanece descendido después de ella. El resultado es que parte de la vocal se produce con paso de aire simultáneo por la boca y la nariz. A esto se le llama **nasalización vocálica**.
 
@@ -365,7 +365,7 @@ En esta asignatura **no es obligatorio** marcar la nasalización vocálica en la
 - En logopedia, un paciente con **insuficiencia velofaríngea** (por ejemplo, por fisura palatina) puede presentar nasalización excesiva de todas las vocales, incluso las no adyacentes a nasales.
 - Saber que la nasalización es normal junto a nasales permite distinguir una nasalización patológica de una fisiológica.
 
-**Ejercicio 4.1.** Indica en qué vocales esperarías nasalización en las siguientes palabras:
+**Ejercicio 3.4.1.** Indica en qué vocales esperarías nasalización en las siguientes palabras:
 
 1. *mañana*
 2. *pelota*
@@ -381,7 +381,7 @@ En esta asignatura **no es obligatorio** marcar la nasalización vocálica en la
 
 </details>
 
-### 4.2. Suavización de coda y alteración de vocal previa
+### 3.4.2. Suavización de coda y alteración de vocal previa
 
 En español, las consonantes obstruyentes (oclusivas y fricativas) tienden a **debilitarse** cuando se encuentran en posición de coda (final de sílaba). Este debilitamiento se denomina **suavización de coda** y consiste en que la consonante pierde su modo de articulación original y se realiza como una aproximante.
 
@@ -422,7 +422,7 @@ Este fenómeno es relevante para la logopedia porque:
 
 La suavización de coda es un fenómeno de **economía articulatoria**: en posición final de sílaba, la consonante no necesita ser tan precisa como en posición de ataque (donde distingue significados). El sistema tiende a relajar el esfuerzo articulatorio cuando la precisión no es necesaria.
 
-**Ejercicio 4.2.** Transcribe fonéticamente las siguientes palabras, identificando las codas suavizadas:
+**Ejercicio 3.4.2.** Transcribe fonéticamente las siguientes palabras, identificando las codas suavizadas:
 
 1. *captar*
 2. *doctor*
@@ -442,11 +442,11 @@ La suavización de coda es un fenómeno de **economía articulatoria**: en posic
 
 ---
 
-## 5. Fonosintaxis
+## 3.5. Fonosintaxis
 
 La **fonosintaxis** es el estudio de las modificaciones que sufren los fonemas al agruparse las palabras dentro de un enunciado. Hasta ahora hemos visto las reglas alofónicas dentro de una palabra; en esta sección estudiamos qué ocurre **entre palabras** en la cadena hablada.
 
-### 5.1. El sirrema
+### 3.5.1. El sirrema
 
 Un **sirrema** es la agrupación de dos o más palabras que constituyen una unidad gramatical, tonal y de sentido. Es la unidad sintáctica intermedia entre la palabra y la frase. En otras tradiciones coincide con la **palabra prosódica** que veíamos en el Tema 2.
 
@@ -464,7 +464,7 @@ Las palabras que constituyen un sirrema permanecen siempre íntimamente unidas y
 
 La necesidad de agruparse de artículos, pronombres átonos, preposiciones y conjunciones responde a una **necesidad de apoyo acentual**: al carecer de acento, no pueden tener existencia fónica por sí mismos y necesitan apoyarse en otra palabra que lleve acento.
 
-### 5.2. Concatenación
+### 3.5.2. Concatenación
 
 En español la cadena hablada es una **concatenación continua** de palabras entre las que no se produce ningún fenómeno fonético que las separe, a excepción de la pausa. Esto hace que a menudo se encuentren en contacto fonemas iguales entre el final de una palabra y el inicio de la siguiente. A este fenómeno se le llama **concurrencia de homólogos**.
 
@@ -491,7 +491,7 @@ Cuando dos consonantes iguales se encuentran en contacto entre palabras, la solu
 | [l] + [l] | Una sola [l] | *el loro* → [e.ˈlo.ɾo] |
 | [ð̞] + [ð̞] | Una sola [ð̞] | *Madrid de Carlos* → [ma.ˈð̞ɾi.ð̞e.ˈkaɹ.los] |
 
-### 5.3. Importancia para la logopedia
+### 3.5.3. Importancia para la logopedia
 
 La fonosintaxis es relevante en logopedia porque los pacientes con dificultades articulatorias pueden tener problemas específicamente en los **límites entre palabras**, donde se producen estos fenómenos de concatenación. Un logopeda debe ser capaz de:
 
@@ -499,7 +499,7 @@ La fonosintaxis es relevante en logopedia porque los pacientes con dificultades 
 - Distinguir una simplificación normal (como la fusión de vocales homólogas) de un error patológico
 - Evaluar si el paciente mantiene la fluidez en los sirremas o introduce pausas indebidas
 
-**Ejercicio 5.1.** Transcribe fonéticamente las siguientes expresiones, aplicando las reglas de fonosintaxis:
+**Ejercicio 3.5.1.** Transcribe fonéticamente las siguientes expresiones, aplicando las reglas de fonosintaxis:
 
 1. *las salas*
 2. *con nata*

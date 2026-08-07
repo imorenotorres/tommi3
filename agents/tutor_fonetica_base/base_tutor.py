@@ -491,6 +491,75 @@ def _respuesta_sobre_tema(tema_id: int, agent_dir: str) -> str | None:
     return "\n".join(lineas)
 
 
+def _evaluar_fidelidad(client, model, contexto: str, pregunta: str, respuesta: str) -> dict:
+    """Evalúa con un LLM-juez cuánto se basa la respuesta en el contexto recuperado.
+
+    Returns dict con:
+        - puntuacion: 1-5 (1=totalmente inventado, 5=completamente fiel)
+        - justificacion: texto breve
+    """
+    prompt_juez = (
+        "Eres un evaluador de calidad de respuestas en un sistema RAG educativo. "
+        "Se te proporcionan: el CONTEXTO recuperado de los apuntes, la PREGUNTA del estudiante, "
+        "y la RESPUESTA generada por la IA.\n\n"
+        "Evalúa del 1 al 5 cuánto se basa la RESPUESTA en el CONTEXTO:\n"
+        "- 5: Toda la información de la respuesta está en el contexto\n"
+        "- 4: La mayor parte está en el contexto, con alguna inferencia razonable\n"
+        "- 3: Mezcla información del contexto con extrapolaciones significativas\n"
+        "- 2: La mayor parte es extrapolación o invención, aunque usa terminología correcta\n"
+        "- 1: La respuesta no tiene relación con el contexto o es completamente inventada\n\n"
+        "CASO ESPECIAL: Si la respuesta rechaza correctamente una pregunta que no es sobre la asignatura "
+        "(ej: temas personales, políticos, etc.), puntúa con 5 — es el comportamiento esperado.\n\n"
+        "Responde SOLO con este formato exacto (sin más texto):\n"
+        "PUNTUACION: N\n"
+        "JUSTIFICACION: una frase breve"
+    )
+
+    messages = [
+        {"role": "system", "content": prompt_juez},
+        {"role": "user", "content": (
+            f"CONTEXTO:\n{contexto[:2000]}\n\n"
+            f"PREGUNTA: {pregunta}\n\n"
+            f"RESPUESTA:\n{respuesta[:1500]}"
+        )}
+    ]
+
+    try:
+        result = client.chat.complete(model=model, messages=messages)
+        text = result.choices[0].message.content.strip()
+        # Parse
+        puntuacion = 3  # default
+        justificacion = ""
+        for line in text.split('\n'):
+            if line.startswith('PUNTUACION:'):
+                try:
+                    puntuacion = int(line.split(':')[1].strip()[0])
+                except (ValueError, IndexError):
+                    pass
+            elif line.startswith('JUSTIFICACION:'):
+                justificacion = line.split(':', 1)[1].strip()
+        return {'puntuacion': puntuacion, 'justificacion': justificacion}
+    except Exception:
+        return {'puntuacion': 3, 'justificacion': 'No se pudo evaluar'}
+
+
+def _es_pregunta_ludica(msg: str) -> bool:
+    """Detecta preguntas lúdicas/creativas que no buscan aprender un concepto.
+    Ej: 'Dime qué le diría un fonema a un alófono', 'Escribe un poema sobre la fonología'."""
+    msg_lower = msg.lower().strip()
+    # Patterns that suggest creative/playful requests
+    patrones_ludicos = [
+        r'qué (?:le )?diría', r'qué pensaría', r'qué sentiría',
+        r'imagina que', r'si fueras un', r'escribe un (?:poema|cuento|chiste|historia|relato|canción)',
+        r'inventa', r'cuenta(?:me)? (?:un|una) (?:historia|chiste|cuento)',
+        r'haz(?:me)? (?:un|una) (?:broma|chiste|adivinanza)',
+        r'dibuja', r'crea (?:un|una) (?:historia|diálogo|conversación)',
+        r'ponme (?:un|una) (?:ejemplo gracioso|broma)',
+        r'si (?:un fonema|una vocal|una consonante) (?:fuera|pudiera|tuviera)',
+    ]
+    return any(re.search(p, msg_lower) for p in patrones_ludicos)
+
+
 def _es_pregunta_general(msg: str) -> bool:
     """Detecta si el mensaje es una pregunta general (no una respuesta de ejercicio).
     Permite que el alumno haga preguntas mientras tiene un ejercicio activo."""
@@ -677,8 +746,18 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
                 return respuesta
 
         # 5. Normal RAG (postprocesar transcripciones del LLM)
+        # Detect playful/creative questions and add disclaimer
+        aviso_ludico = ''
+        if _es_pregunta_ludica(user_message):
+            aviso_ludico = (
+                '<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:8px 12px;'
+                'border-radius:6px;font-size:12px;color:#92400e;margin-bottom:12px;">'
+                '⚠️ Esta pregunta no está directamente relacionada con los contenidos de la asignatura. '
+                'La respuesta es generada libremente por la IA y <strong>no se basa en los apuntes</strong>. '
+                'Tómala como una curiosidad, no como material de estudio.</div>\n\n'
+            )
         respuesta = super().chat(user_message, history, **kwargs)
-        return _corregir_transcripciones_en_texto(respuesta)
+        return aviso_ludico + _corregir_transcripciones_en_texto(respuesta)
 
     # -- Chat streaming --
 
@@ -850,12 +929,58 @@ class BaseTutorFonetica(SimpleVectorlessMixin, SimpleRAGMixin, BaseRAGAgent):
 
         # 5. Normal RAG streaming (corregir transcripciones del LLM en cada chunk)
         yield ("metadata", {"response_type": "llm", "category": "rag_qa"})
-        yield ("procedural_banner", _banner_database_es(
-            "Aunque para responder se han tenido en cuenta los materiales de la asignatura, estos han sido procesados por una IA que puede cometer errores."))
+        es_ludica = _es_pregunta_ludica(user_message)
+        if es_ludica:
+            yield ("procedural_banner", _banner_database_es(
+                "Esta pregunta no está directamente relacionada con los contenidos de la asignatura. "
+                "La respuesta es generada libremente por la IA y no se basa en los apuntes."))
+        else:
+            yield ("procedural_banner", _banner_database_es(
+                "Aunque para responder se han tenido en cuenta los materiales de la asignatura, estos han sido procesados por una IA que puede cometer errores."))
+
+        # Stream the response and collect it for judge evaluation
+        full_rag_response = ""
         async for item in super().chat_stream(user_message, history, **kwargs):
             if isinstance(item, str):
-                yield item.replace('ʎ', 'ʝ')
+                corrected = item.replace('ʎ', 'ʝ')
+                full_rag_response += corrected
+                yield corrected
             elif isinstance(item, tuple) and len(item) == 2 and isinstance(item[1], str):
                 yield (item[0], item[1].replace('ʎ', 'ʝ'))
             else:
                 yield item
+
+        # LLM-as-judge: evaluate faithfulness (post-response, non-blocking)
+        # Skip if: playful question, short response, or response is a refusal
+        _refusal_phrases = ['no puedo ayudarte', 'no dispongo de', 'fuera de mi alcance',
+                            'no está en los materiales', 'no tengo información',
+                            'no es sobre la asignatura', 'temas personales']
+        _is_refusal = any(p in full_rag_response.lower() for p in _refusal_phrases)
+        if not es_ludica and not _is_refusal and full_rag_response and len(full_rag_response) > 100:
+            try:
+                contexto = getattr(self, '_last_retrieved_context', '')
+                if contexto:
+                    model = kwargs.get('model_override') or self.model
+                    evaluacion = _evaluar_fidelidad(
+                        self.client, model, contexto, user_message, full_rag_response
+                    )
+                    punt = evaluacion.get('puntuacion', 3)
+                    justif = evaluacion.get('justificacion', '')
+
+                    if punt <= 3:
+                        banner_rojo = (
+                            '<div style="background:#fef2f2;border-left:4px solid #dc2626;'
+                            'padding:8px 12px;border-radius:6px;font-size:13px;color:#991b1b;'
+                            'margin-bottom:8px;">'
+                            '🔴 <strong>Respuesta no basada en los apuntes</strong> — '
+                            'La IA ha ido más allá de los materiales de la asignatura. '
+                            'No uses esta respuesta como material de estudio. '
+                            + (f'<em>{justif}</em> ' if justif else '')
+                            + '</div>\n\n'
+                        )
+                        yield ("replace_banner", banner_rojo)
+                    # punt >= 4: keep yellow banner
+
+                    yield ("metadata", {"faithfulness_score": punt, "faithfulness_detail": justif})
+            except Exception:
+                pass  # Don't break the response if judge fails
