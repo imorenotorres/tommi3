@@ -547,7 +547,7 @@ class Agent:
             count = len(agreements)
             # Build popup with expandable agreement details
             # Build popup HTML and also a data key for the "open in new window" feature
-            data_key = f"algoria_uni_{abs(hash(uni))}"
+            data_key = uni.replace("'", "\\'").replace('"', "&quot;")
             popup = (
                 f"<div style='min-width:320px;'>"
                 f"<b style='font-size:13px;'>{_display_name(uni)}</b><br>"
