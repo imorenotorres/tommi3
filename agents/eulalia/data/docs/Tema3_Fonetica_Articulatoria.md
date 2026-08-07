@@ -38,7 +38,7 @@ Y para decir **[ma]** debemos:
 - Mantener la vibración de las cuerdas vocales durante todo el tiempo
 - Descender el velo durante la emisión de la [m] y elevarlo con la [a]
 
-Observa que en ambos casos el movimiento del velo no es instantáneo: al pasar de [a] a [m] el velo empieza a descender durante la vocal, nasalizando su parte final → [ãm]. Al pasar de [m] a [a] el velo tarda en elevarse, nasalizando el inicio de la vocal → [mã]. Este es un ejemplo claro de cómo el contexto modifica la realización de un fonema (ver sección 4.1, nasalización vocálica).
+Observa que en ambos casos el movimiento del velo no es instantáneo: al pasar de [a] a [m] el velo empieza a descender durante la vocal, nasalizando su parte final → [ãm]. Al pasar de [m] a [a] el velo tarda en elevarse, aunque ello no tiene efectos perceptuales claros → [ma]. Este es un ejemplo claro de cómo el contexto modifica la realización de un fonema (ver sección 4.1, nasalización vocálica).
 
 Todo esto puede llevar a que un fonema suene de forma muy diferente en función de los sonidos que le rodean. **Cuando este fenómeno es sistemático** (ocurre a la mayoría de los hablantes y en el mismo contexto) **tendríamos dos o más alófonos de un mismo fonema**.
 
@@ -437,5 +437,82 @@ La suavización de coda es un fenómeno de **economía articulatoria**: en posic
 3. *acción* → [aɣ̞.ˈθjon] — /k/ en coda → [ɣ̞]
 4. *apto* → [ˈaβ̞.to] — /p/ en coda → [β̞]
 5. *obtuso* → [oβ̞.ˈtu.so] — /b/ en coda → [β̞]
+
+</details>
+
+---
+
+## 5. Fonosintaxis
+
+La **fonosintaxis** es el estudio de las modificaciones que sufren los fonemas al agruparse las palabras dentro de un enunciado. Hasta ahora hemos visto las reglas alofónicas dentro de una palabra; en esta sección estudiamos qué ocurre **entre palabras** en la cadena hablada.
+
+### 5.1. El sirrema
+
+Un **sirrema** es la agrupación de dos o más palabras que constituyen una unidad gramatical, tonal y de sentido. Es la unidad sintáctica intermedia entre la palabra y la frase. En otras tradiciones coincide con la **palabra prosódica** que veíamos en el Tema 2.
+
+Las palabras que constituyen un sirrema permanecen siempre íntimamente unidas y **no permiten una pausa** en su interior. Forman sirremas las siguientes agrupaciones:
+
+1. El artículo y el sustantivo: *el carro*, *las mesas*
+2. El pronombre átono y el elemento al que se une: *le dijeron*, *dile que venga*
+3. El adjetivo y el sustantivo (o viceversa): *el perro blanco*
+4. El sustantivo y su complemento determinativo: *el perro de Luis*
+5. Los tiempos compuestos de los verbos: *he comido muy bien*
+6. Las perífrasis verbales: *hemos dejado de ser nosotros mismos*
+7. El adverbio y su verbo, adjetivo o adverbio: *pasaron bien*
+8. La conjunción y la parte del discurso que introduce: *Juan y Pedro*
+9. La preposición con su término: *la cama de Antonio*, *voy con Juan*
+
+La necesidad de agruparse de artículos, pronombres átonos, preposiciones y conjunciones responde a una **necesidad de apoyo acentual**: al carecer de acento, no pueden tener existencia fónica por sí mismos y necesitan apoyarse en otra palabra que lleve acento.
+
+### 5.2. Concatenación
+
+En español la cadena hablada es una **concatenación continua** de palabras entre las que no se produce ningún fenómeno fonético que las separe, a excepción de la pausa. Esto hace que a menudo se encuentren en contacto fonemas iguales entre el final de una palabra y el inicio de la siguiente. A este fenómeno se le llama **concurrencia de homólogos**.
+
+#### 5.2.1. Concurrencia de vocales homólogas
+
+Cuando dos vocales iguales se encuentran en contacto entre palabras, se fusionan en una sola vocal:
+
+| Caso | Resultado | Ejemplo |
+|------|-----------|---------|
+| Dos tónicas en contacto | Vocal tónica (normal o larga) | *Papá anda* → [pa.ˈpan̪.da] |
+| Dos átonas en contacto | Vocal átona normal | *La fruta ajena* → [la.ˈfɾu.ta.ˈxe.na] |
+| Átona + tónica | Vocal tónica normal | *su uso* → [ˈsu.so] |
+| Tónica + átona | Vocal tónica normal | *Juan está atento* → [ˈxwa.nes.ˈta.ˈten̪.to] |
+
+#### 5.2.2. Concurrencia de consonantes homólogas
+
+Cuando dos consonantes iguales se encuentran en contacto entre palabras, la solución general es una sola consonante:
+
+| Consonantes | Resultado | Ejemplo |
+|-------------|-----------|---------|
+| [s] + [s] | Una sola [s] | *las sombras* → [la.ˈsom.bɾas] |
+| [n] + [n] | Una sola [n] | *con nata* → [ko.ˈna.ta] |
+| [r] + [r] | Una sola [r] (vibrante múltiple) | *coger rocas* → [ko.xe.ˈro.kas] |
+| [l] + [l] | Una sola [l] | *el loro* → [e.ˈlo.ɾo] |
+| [ð̞] + [ð̞] | Una sola [ð̞] | *Madrid de Carlos* → [ma.ˈð̞ɾi.ð̞e.ˈkaɹ.los] |
+
+### 5.3. Importancia para la logopedia
+
+La fonosintaxis es relevante en logopedia porque los pacientes con dificultades articulatorias pueden tener problemas específicamente en los **límites entre palabras**, donde se producen estos fenómenos de concatenación. Un logopeda debe ser capaz de:
+
+- Identificar si un error ocurre dentro de una palabra o en la transición entre palabras
+- Distinguir una simplificación normal (como la fusión de vocales homólogas) de un error patológico
+- Evaluar si el paciente mantiene la fluidez en los sirremas o introduce pausas indebidas
+
+**Ejercicio 5.1.** Transcribe fonéticamente las siguientes expresiones, aplicando las reglas de fonosintaxis:
+
+1. *las salas*
+2. *con nata*
+3. *el loro*
+4. *Papá anda*
+5. *Juan está atento*
+
+<details><summary>Solución</summary>
+
+1. *las salas* → [la.ˈsa.las] — las dos /s/ se fusionan en una sola [s]
+2. *con nata* → [ko.ˈna.ta] — las dos /n/ se fusionan en una sola [n]
+3. *el loro* → [e.ˈlo.ɾo] — las dos /l/ se fusionan en una sola [l]
+4. *Papá anda* → [pa.ˈpan̪.da] — las dos /a/ se fusionan en una sola vocal tónica
+5. *Juan está atento* → [ˈxwa.nes.ˈta.ˈten̪.to] — las dos /a/ (tónica + átona) se fusionan
 
 </details>

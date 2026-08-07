@@ -352,6 +352,35 @@
               ]
             }
           ]
+        },
+        {
+          "bloque": "5. Fonosintaxis",
+          "seccion_doc": "5. Fonosintaxis",
+          "subbloques": [
+            {
+              "nombre": "5.1. El sirrema",
+              "seccion_doc": "5.1. El sirrema",
+              "conceptos": [
+                {"nombre": "Sirrema", "consulta": "¿Qué es un sirrema?"},
+                {"nombre": "Agrupaciones que forman sirremas", "consulta": "¿Qué agrupaciones de palabras forman sirremas en español?"}
+              ]
+            },
+            {
+              "nombre": "5.2. Concatenación",
+              "seccion_doc": "5.2. Concatenación",
+              "conceptos": [
+                {"nombre": "Concurrencia de vocales homólogas", "consulta": "¿Qué ocurre cuando dos vocales iguales se encuentran entre palabras?"},
+                {"nombre": "Concurrencia de consonantes homólogas", "consulta": "¿Qué ocurre cuando dos consonantes iguales se encuentran entre palabras?"}
+              ]
+            },
+            {
+              "nombre": "5.3. Importancia para la logopedia",
+              "seccion_doc": "5.3. Importancia para la logopedia",
+              "conceptos": [
+                {"nombre": "Fonosintaxis y logopedia", "consulta": "¿Por qué es importante la fonosintaxis en logopedia?"}
+              ]
+            }
+          ]
         }
       ],
       "ejercicios": [
@@ -365,7 +394,9 @@
         "¿Sé hacer una transcripción fonética completa a partir de la fonológica?",
         "¿Puedo describir cualquier alófono con modo, lugar y sonoridad?",
         "¿Entiendo la nasalización vocálica y cuándo ocurre?",
-        "¿Puedo explicar qué es la suavización de coda?"
+        "¿Puedo explicar qué es la suavización de coda?",
+        "¿Sé qué es un sirrema y puedo identificarlos en una oración?",
+        "¿Sé qué ocurre cuando dos vocales o consonantes iguales se encuentran entre palabras?"
       ],
       "mas_alla": [
         {"texto": "Tema 2: repasa la transcripción fonológica, que es la base de la fonética.", "tema_destino": 2},

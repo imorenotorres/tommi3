@@ -2091,8 +2091,12 @@ async def lali_ejercicio_transcripcion(nivel: int = Query(1, ge=1, le=5), items:
 
 
 @app.get("/api/public-agent/eulalia/ejercicio-transcripcion-fonetica")
-async def lali_ejercicio_transcripcion_fonetica(nivel: int = Query(1, ge=1, le=6), items: int = Query(5, ge=1, le=15)):
-    """Generate a phonetic transcription exercise for levels 1-6."""
+async def lali_ejercicio_transcripcion_fonetica(
+    nivel: int = Query(1, ge=1, le=7),
+    items: int = Query(5, ge=1, le=15),
+    exclude: str = Query("", description="Comma-separated list of words to exclude"),
+):
+    """Generate a phonetic transcription exercise for levels 1-7."""
     import random
     import sys
 
@@ -2111,7 +2115,18 @@ async def lali_ejercicio_transcripcion_fonetica(nivel: int = Query(1, ge=1, le=6
 
     # All levels: words/phrases, transcribe programmatically
     palabras = nivel_data["palabras"]
-    seleccion = random.sample(palabras, min(items, len(palabras)))
+
+    # Exclude already-used words in this session
+    if exclude:
+        excl_set = set(e.strip() for e in exclude.split(",") if e.strip())
+        disponibles = [p for p in palabras if p not in excl_set]
+        # If all exhausted, reset
+        if len(disponibles) < items:
+            disponibles = palabras
+    else:
+        disponibles = palabras
+
+    seleccion = random.sample(disponibles, min(items, len(disponibles)))
 
     base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
     if str(base_dir) not in sys.path:
