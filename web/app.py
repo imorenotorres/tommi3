@@ -164,7 +164,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         is_study = path.startswith("/study/api/") or path.startswith("/rag-study/api/") or path.startswith("/sql-study/api/")
         # rag_study2 agents are public (research study participants don't need accounts)
         is_rag_study2 = "rag_study2_" in request.query_params.get("agent_id", "")
-        is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/projects-search", "/project-topic-search", "/pdf-list")) and any(f"/{aid}/" in path for aid in ("responsible_ai3", "health_wellbeing_sistems"))
+        is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/collaboration-map", "/projects-search", "/project-topic-search", "/publications-map", "/pdf-list")) and any(f"/{aid}/" in path for aid in ("responsible_ai3", "health_wellbeing_sistems"))
         is_tutores = path.startswith("/api/tutores/")
         is_lali_public = path in ("/api/eulalia/auth-level", "/api/agent/eulalia/transcripcion-config")
         if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/interaction-log" not in path and "/public-tools" not in path and "/public-agent/" not in path and "/api/feedback" != path and not is_study and not is_public_search and not is_rag_study2 and not is_tutores and not is_lali_public:
@@ -4917,6 +4917,274 @@ async def agent_interaction_log(request: Request, agent_id: str):
 # ============================================================================
 # PDF Document Endpoint
 # ============================================================================
+
+# ============================================================================
+# Responsible AI Research Explorer — Filter & Search endpoints
+# ============================================================================
+
+_RAI_DIR = AGENTS_PATH / "responsible_ai3"
+
+@app.get("/api/public-agent/responsible_ai3/filters")
+async def rai_get_filters():
+    """Get filterable fields for the Responsible AI research explorer."""
+    meta_path = _RAI_DIR / "data" / "metadata.json"
+    if not meta_path.exists():
+        return {"universities": [], "years": [], "types": [], "topics": []}
+
+    with open(meta_path, "r", encoding="utf-8") as f:
+        meta = json.load(f)
+
+    universities = []
+    years = set()
+    types = set()
+    topic_counts = {}
+
+    # Topics to exclude (generic/irrelevant OpenAlex concepts)
+    _EXCLUDE_TOPICS = {
+        # Misclassified
+        "key (lock)", "context (archaeology)", "feature (linguistics)",
+        "pattern recognition (psychology)", "transparency (behavior)",
+        "process (computing)", "generalizability theory", "work (physics)",
+        "field (mathematics)", "generative grammar", "perception",
+        # Generic academic disciplines
+        "computer science", "psychology", "business", "medicine",
+        "sociology", "political science", "marketing", "engineering",
+        "mathematics", "philosophy", "economics", "biology", "chemistry",
+        "physics", "law", "education", "history", "geography", "linguistics",
+        "public relations", "management science", "medical education",
+        "algorithm",
+        # Generic tech terms (too broad)
+        "artificial intelligence", "machine learning", "data science",
+        "data mining", "big data", "deep learning", "random forest",
+        "support vector machine", "software deployment",
+        "applications of artificial intelligence",
+        "knowledge management", "health care", "health informatics",
+        "higher education", "corporate governance",
+        # More noise
+        "affect (linguistics)", "classifier (uml)", "curriculum",
+        "discriminative model", "domain (mathematical analysis)",
+        "feature selection", "informatics", "internal medicine",
+        "oncology", "perspective (graphical)", "pipeline (software)",
+        "tourism", "yearbook", "risk analysis (engineering)",
+        "artificial neural network", "inertial measurement unit",
+        "information retrieval", "narrative", "pedagogy",
+        "relevance (law)", "wearable computer", "epistemology",
+        "equity (law)", "confidentiality",
+        "computational biology", "distributed computing",
+        "electroencephalography", "ensemble learning",
+        "identification (biology)", "population",
+        "qualitative research", "set (abstract data type)",
+        "task (project management)", "workflow",
+        "european union", "robotics",
+    }
+
+    for uid, udata in meta.get("universities", {}).items():
+        universities.append({"id": uid, "name": udata.get("name", uid)})
+        for paper in udata.get("papers", []):
+            if paper.get("publication_year"):
+                years.add(paper["publication_year"])
+            if paper.get("type"):
+                types.add(paper["type"])
+            for concept in paper.get("concepts", []):
+                cname = concept.get("name", "")
+                if cname and concept.get("score", 0) > 0.3 and cname.lower() not in _EXCLUDE_TOPICS:
+                    topic_counts[cname] = topic_counts.get(cname, 0) + 1
+
+    # Top topics by frequency (from OpenAlex concepts, filtered, min 4 papers)
+    top_topics = [(n, c) for n, c in sorted(topic_counts.items(), key=lambda x: -x[1]) if c >= 4][:15]
+
+    # Also add curated Responsible AI topics from config
+    config_path = _RAI_DIR / "config.json"
+    curated_terms = set()
+    if config_path.exists():
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        curated_terms = set(t.lower() for t in cfg.get("extra_scope_terms", []))
+
+    # Terms to skip from curated list (generic, duplicates, internal)
+    _SKIP_CURATED = {
+        "uninovis", "llm", "language model", "large language model",
+        # Duplicates (keep the better variant)
+        "data minimisation",        # keep "data minimization"
+        "ai standards",             # keep "ai standardization"
+        "ai existential",           # keep "existential risk"
+        "lethal autonomous",        # keep "autonomous weapons"
+        "red teaming",              # keep "ai red-teaming"
+        "ai and labor",             # keep "ai and employment"
+        "algorithmic decision",     # keep "ai decision-making"
+        "ai colonialism",           # keep "data colonialism"
+        "ai and copyright",         # keep "ai and intellectual property"
+        "value alignment",          # keep "ai alignment"
+        "ai sentience",             # keep "ai consciousness"
+        "agi safety",               # keep "artificial general intelligence"
+        "algorithmic impact",       # keep "ai impact assessment"
+        "energy consumption of ai", # keep "carbon footprint of ai"
+        "ai legislation",           # keep "ai regulation"
+        "ai policy",                # keep "ai regulation"
+    }
+
+    # Merge: OpenAlex topics + curated terms (dedup, capitalize)
+    seen = set(t[0].lower() for t in top_topics)
+    for term in sorted(curated_terms):
+        if term not in seen and term not in _SKIP_CURATED:
+            top_topics.append((term.title(), 0))
+            seen.add(term)
+
+    return {
+        "universities": sorted(universities, key=lambda u: u["name"]),
+        "years": sorted(years, reverse=True),
+        "types": sorted(types),
+        "topics": [{"name": t[0], "count": t[1]} for t in top_topics]
+    }
+
+
+@app.get("/api/public-agent/responsible_ai3/search")
+async def rai_search(
+    request: Request,
+    university: str = Query("", description="University ID filter"),
+    year: str = Query("", description="Publication year filter"),
+    year_op: str = Query("=", description="Year operator: =, ≥, ≤"),
+    pub_type: str = Query("", description="Publication type filter"),
+    topic: str = Query("", description="Topic/concept filter"),
+    author: str = Query("", description="Author name filter"),
+):
+    """Search research papers with filters."""
+    meta_path = _RAI_DIR / "data" / "metadata.json"
+    if not meta_path.exists():
+        return {"results": [], "total": 0}
+
+    with open(meta_path, "r", encoding="utf-8") as f:
+        meta = json.load(f)
+
+    # Build affiliation-to-university mapping
+    _uni_name_map = {}
+    for _uid, _udata in meta.get("universities", {}).items():
+        _uni_name_map[_uid] = _udata.get("name", _uid)
+    _aff_keywords = {
+        "UMA": ["universidad de málaga", "universidad de malaga", "university of malaga"],
+        "USPN": ["sorbonne paris nord"],
+        "UDCLV": ["campania \"luigi vanvitelli\"", "campania luigi vanvitelli", "vanvitelli"],
+        "KK": ["kauno kolegija"],
+        "UT": ["university of tirana"],
+        "THWS": ["technische hochschule würzburg", "technische hochschule wurzburg", "thws", "technical university of applied sciences würzburg", "technical university of applied sciences wurzburg"],
+        "TAMK": ["tampere university of applied sciences"],
+        "THUAS": ["hague university of applied sciences", "haagse hogeschool"],
+    }
+
+    def _match_affiliations(affiliations):
+        """Match affiliations to UNINOVIS university IDs."""
+        matched = set()
+        for aff in affiliations:
+            aff_lower = aff.lower()
+            for uid, keywords in _aff_keywords.items():
+                if any(kw in aff_lower for kw in keywords):
+                    matched.add(uid)
+        return matched
+
+    results = []
+    for uid, udata in meta.get("universities", {}).items():
+        uni_name = udata.get("name", uid)
+        for paper in udata.get("papers", []):
+            # Year filter with operator
+            if year:
+                try:
+                    y_filter = int(year)
+                    y_paper = int(paper.get("publication_year", 0))
+                    if year_op == "≥" and y_paper < y_filter:
+                        continue
+                    elif year_op == "≤" and y_paper > y_filter:
+                        continue
+                    elif year_op == "=" and y_paper != y_filter:
+                        continue
+                except (ValueError, TypeError):
+                    pass
+            # Type filter
+            if pub_type and paper.get("type", "") != pub_type:
+                continue
+            # Topic filter (substring match on concept names and paper title/abstract)
+            if topic:
+                topic_lower = topic.lower()
+                concepts = " ".join(c.get("name", "") for c in paper.get("concepts", [])).lower()
+                title = paper.get("title", "").lower()
+                abstract = paper.get("abstract", "").lower()
+                if topic_lower not in concepts and topic_lower not in title and topic_lower not in abstract:
+                    continue
+            # Author filter
+            if author:
+                author_lower = author.lower()
+                author_names = [a.get("name", "").lower() for a in paper.get("authors", [])]
+                if not any(author_lower in name for name in author_names):
+                    continue
+
+            # Build result
+            authors = paper.get("authors", [])
+            author_names = ", ".join(a.get("name", "") for a in authors[:4])
+            if len(authors) > 4:
+                author_names += f" et al. ({len(authors)} authors)"
+
+            concepts_list = [c.get("name", "") for c in paper.get("concepts", [])
+                            if c.get("score", 0) > 0.3]
+
+            # Detect all affiliated UNINOVIS universities
+            affiliated_unis = {uid}
+            affiliated_unis.update(_match_affiliations(paper.get("affiliations", [])))
+
+            # University filter: check if the selected university is among the affiliated ones
+            if university and university not in affiliated_unis:
+                continue
+
+            results.append({
+                "id": paper.get("id", ""),
+                "title": paper.get("title", ""),
+                "authors": author_names,
+                "university": ", ".join(_uni_name_map.get(u, u) for u in sorted(affiliated_unis)),
+                "university_id": ", ".join(sorted(affiliated_unis)),
+                "year": paper.get("publication_year", ""),
+                "type": paper.get("type", ""),
+                "doi": paper.get("doi", ""),
+                "cited_by": paper.get("cited_by_count", 0),
+                "topics": concepts_list[:5],
+            })
+
+    # Deduplicate by paper ID (same paper may appear under multiple universities)
+    seen = {}
+    deduped = []
+    for r in results:
+        pid = r.get("id", "")
+        if pid in seen:
+            # Merge university info
+            existing = deduped[seen[pid]]
+            if r["university_id"] not in existing["university_id"]:
+                existing["university_id"] += ", " + r["university_id"]
+                existing["university"] += ", " + r["university"]
+        else:
+            seen[pid] = len(deduped)
+            deduped.append(r)
+
+    # Sort by year desc, then citations desc
+    deduped.sort(key=lambda r: (-r.get("year", 0), -r.get("cited_by", 0)))
+
+    # Log the filter search
+    filters_used = []
+    if university: filters_used.append(f"university={university}")
+    if year: filters_used.append(f"year{year_op}{year}")
+    if pub_type: filters_used.append(f"type={pub_type}")
+    if topic: filters_used.append(f"topic={topic}")
+    if author: filters_used.append(f"author={author}")
+    query_str = "[filter] " + ", ".join(filters_used) if filters_used else "[filter] all"
+
+    client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "proxy")
+    log_conversation(
+        client_ip=client_ip,
+        agent_id="responsible_ai3",
+        agent_name="EH: Responsible AI",
+        question=query_str,
+        response=f"{len(deduped)} results",
+        extra={"search_type": "filter", "result_count": len(deduped)},
+    )
+
+    return {"results": deduped, "total": len(deduped)}
+
 
 @app.get("/api/agents/{agent_id}/pdf-list")
 async def agent_pdf_list(agent_id: str):

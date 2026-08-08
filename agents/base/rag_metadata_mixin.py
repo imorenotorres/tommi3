@@ -156,7 +156,7 @@ class MetadataRAGMixin:
     UNINOVIS_AFFILIATION_KEYWORDS = {
         "USPN":  ["sorbonne paris nord", "paris 13", "universite sorbonne paris nord"],
         "UDCLV": ["vanvitelli", "university of campania"],
-        "UMA":   ["universidad de malaga", "malaga university", "malaga"],
+        "UMA":   ["universidad de málaga", "universidad de malaga", "malaga university", "málaga", "malaga"],
         "KK":    ["kauno kolegija", "kaunas kolegija"],
         "UT":    ["universiteti i tiranes", "universiteti i tiranes",
                   "=university of tirana"],
