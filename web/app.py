@@ -1219,6 +1219,28 @@ async def research_explorers_page():
     return FileResponse(SCRIPT_DIR / "static" / "research_explorers.html")
 
 
+@app.get("/quiron")
+async def quiron_public_page():
+    """Serve the public Quirón research assistant page (no auth required)"""
+    return FileResponse(SCRIPT_DIR / "static" / "quiron.html")
+
+@app.get("/api/public-agent/quiron/fuentes")
+async def quiron_list_sources():
+    """List all source documents available to Quirón."""
+    meta_path = Path(__file__).parent.parent / "agents" / "quiron" / "data" / "papers_metadata.json"
+    if meta_path.exists():
+        with open(meta_path, "r", encoding="utf-8") as f:
+            papers = json.load(f)
+        return {"total": len(papers), "papers": papers}
+    # Fallback: list files in docs/
+    docs_dir = Path(__file__).parent.parent / "agents" / "quiron" / "data" / "docs"
+    if docs_dir.exists():
+        files = sorted(f for f in docs_dir.iterdir() if f.suffix.lower() == ".pdf")
+        papers = [{"filename": f.name, "title": f.stem.replace("_", " ")} for f in files]
+        return {"total": len(papers), "papers": papers}
+    return {"total": 0, "papers": []}
+
+
 @app.get("/responsible-ai")
 async def responsible_ai_public_page():
     """Serve the public Responsible AI Research Assistant page (no auth required)"""
@@ -3452,7 +3474,7 @@ async def get_public_tools():
 # ---------------------------------------------------------------------------
 
 # Set of agent IDs that are allowed to be accessed publicly
-_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos", "pisha5", "algoria_map", "eulalia", "sonic_composer", "sonic_composer2"}
+_PUBLIC_AGENT_IDS = {"responsible_ai3", "health_wellbeing_sistems", "proyectoseuopeos", "pisha5", "algoria_map", "eulalia", "sonic_composer", "sonic_composer2", "quiron"}
 
 
 @app.get("/api/public-agent/{agent_id}/config")
