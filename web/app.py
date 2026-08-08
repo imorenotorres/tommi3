@@ -5047,6 +5047,7 @@ async def rai_search(
     pub_type: str = Query("", description="Publication type filter"),
     topic: str = Query("", description="Topic/concept filter"),
     author: str = Query("", description="Author name filter"),
+    nl_query: str = Query("", description="Original natural language query (if routed from NL input)"),
 ):
     """Search research papers with filters."""
     meta_path = _RAI_DIR / "data" / "metadata.json"
@@ -5171,7 +5172,10 @@ async def rai_search(
     if pub_type: filters_used.append(f"type={pub_type}")
     if topic: filters_used.append(f"topic={topic}")
     if author: filters_used.append(f"author={author}")
-    query_str = "[filter] " + ", ".join(filters_used) if filters_used else "[filter] all"
+    search_type = "nl" if nl_query else "filter"
+    query_str = "[" + search_type + "] " + ", ".join(filters_used) if filters_used else "[" + search_type + "] all"
+    if nl_query:
+        query_str = f"[nl] \"{nl_query}\" → {', '.join(filters_used)}"
 
     client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "proxy")
     log_conversation(
@@ -5180,7 +5184,12 @@ async def rai_search(
         agent_name="EH: Responsible AI",
         question=query_str,
         response=f"{len(deduped)} results",
-        extra={"search_type": "filter", "result_count": len(deduped)},
+        extra={
+            "search_type": search_type,
+            "result_count": len(deduped),
+            "nl_query": nl_query or None,
+            "resolved_as": ", ".join(filters_used) if nl_query else None,
+        },
     )
 
     return {"results": deduped, "total": len(deduped)}

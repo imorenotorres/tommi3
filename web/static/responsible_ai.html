@@ -692,6 +692,7 @@ function tryStructuredQuery(message) {
         document.getElementById('chat-area-wrapper').style.display = 'none';
         document.getElementById('filter-summary').textContent = 'Searching: ' + description.join(', ') + '...';
 
+        params.append('nl_query', message);
         fetch('/api/public-agent/responsible_ai3/search?' + params.toString())
             .then(function(resp) { return resp.json(); })
             .then(function(data) {
