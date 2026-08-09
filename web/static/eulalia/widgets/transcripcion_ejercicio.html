@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ejercicio de transcripción — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header a:hover { opacity: 0.85; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+
+.container { max-width: 700px; margin: 0 auto; padding: 32px 20px; }
+
+h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+/* Controls */
+.controls {
+    display: flex; gap: 12px; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap;
+}
+.control-group { display: flex; flex-direction: column; gap: 4px; }
+.control-group label { font-size: 12px; font-weight: 600; color: #475569; }
+.control-group select {
+    padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px;
+    font-family: inherit; font-size: 14px;
+}
+.btn {
+    padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.btn-primary { background: #4250b3; color: #fff; }
+.btn-primary:hover { background: #3740a0; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+
+/* Exercise table */
+.exercise-table {
+    width: 100%; border-collapse: collapse; background: #fff;
+    border: 2px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 12px;
+}
+.exercise-table th {
+    background: #f1f5f9; padding: 8px 12px; font-size: 12px; font-weight: 700;
+    color: #64748b; text-align: left; text-transform: uppercase;
+}
+.exercise-table td { padding: 6px 12px; border-top: 1px solid #f1f5f9; vertical-align: middle; }
+.exercise-table .word-cell { font-size: 16px; font-weight: 700; color: #1e293b; white-space: nowrap; }
+.exercise-table .input-cell { width: 55%; }
+.word-input {
+    width: 100%; padding: 6px 10px; border: 2px solid #e2e8f0; border-radius: 6px;
+    font-family: 'Doulos SIL', 'Charis SIL', 'Gentium Plus', serif;
+    font-size: 15px; transition: border-color 0.2s;
+}
+.word-input:focus { outline: none; border-color: #4250b3; }
+.word-input.correct { border-color: #16a34a; background: #f0fdf4; }
+.word-input.incorrect { border-color: #dc2626; background: #fef2f2; }
+.fb-cell { font-size: 12px; min-width: 20px; text-align: center; }
+
+.word-feedback {
+    font-size: 12px; line-height: 1.5; display: none; padding: 4px 12px;
+    background: #f8fafc; color: #475569;
+}
+.word-feedback.show { display: table-row; }
+.fb-correct { color: #16a34a; font-weight: 600; }
+.fb-incorrect { color: #dc2626; }
+.fb-solution span { font-family: 'Doulos SIL', serif; font-weight: 700; color: #4250b3; }
+
+/* Phoneme keyboard */
+.pk {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 8px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+    position: sticky; top: 0; z-index: 10;
+}
+.pk-label { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-right: 4px; }
+.pk-btn {
+    padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px;
+    background: #fff; font-family: 'Doulos SIL', 'Charis SIL', serif;
+    font-size: 16px; cursor: pointer; min-width: 28px; text-align: center;
+}
+.pk-btn:hover { background: #4250b3; color: #fff; border-color: #4250b3; }
+.pk-sep { width: 8px; }
+
+/* Results */
+.results-bar {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 16px 24px; margin-top: 20px; display: none;
+}
+.results-bar.show { display: block; }
+.results-bar h3 { font-size: 16px; color: #4250b3; margin-bottom: 8px; }
+.score { font-size: 36px; font-weight: 800; }
+.score.good { color: #16a34a; }
+.score.mid { color: #f59e0b; }
+.score.bad { color: #dc2626; }
+.results-detail { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+.action-bar { display: flex; gap: 8px; margin-top: 16px; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">›</span>
+    <span class="title">Practica</span>
+    <span class="sep">›</span>
+    <span class="title">Tema 2</span>
+    <span class="sep">›</span>
+    <span class="title" id="header-title">Transcripción fonológica</span>
+</div>
+
+<div class="container">
+
+    <h2 id="widget-title">Transcripción fonológica</h2>
+    <p class="subtitle" id="level-desc">Selecciona un nivel y genera un ejercicio.</p>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Tipo</label>
+            <select id="sel-tipo" onchange="updateTipo()">
+                <option value="fonologica">Fonológica</option>
+                <option value="fonetica">Fonética</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Nivel</label>
+            <select id="sel-nivel" onchange="updateDesc()">
+                <option value="1">1 — Palabras CV, fonemas = grafías</option>
+                <option value="2">2 — Diptongos e hiatos</option>
+                <option value="3">3 — Fonemas ≠ grafías</option>
+                <option value="4">4 — Casos atípicos (h, x, r…)</option>
+                <option value="5">5 — Sintagmas y frases con palabras átonas</option>
+            </select>
+        </div>
+        <div class="control-group" id="grp-dificultad" style="display:none;">
+            <label>Dificultad</label>
+            <select id="sel-dificultad">
+                <option value="con_pista">Con transcripción fonológica</option>
+                <option value="sin_pista">Solo texto</option>
+                <option value="audio" disabled>Con audio (próximamente)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Ítems</label>
+            <select id="sel-items">
+                <option value="3">3</option>
+                <option value="5" selected>5</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateExercise()">Generar ejercicio</button>
+    </div>
+
+    <!-- Phoneme keyboard -->
+    <div class="pk" id="pk">
+        <span class="pk-label">Símbolos:</span>
+    </div>
+
+    <div id="exercise-area"></div>
+
+    <div class="results-bar" id="results-bar">
+        <h3>Resultado</h3>
+        <div class="score" id="score-text"></div>
+        <div class="results-detail" id="results-detail"></div>
+    </div>
+
+    <div class="action-bar" id="action-bar" style="display:none;">
+        <button class="btn btn-primary" id="btn-check" onclick="checkAll()">Comprobar</button>
+        <button class="btn btn-secondary" onclick="showSolutions()">Ver soluciones</button>
+        <button class="btn btn-secondary" onclick="generateExercise()">Nuevo ejercicio</button>
+    </div>
+
+    <!-- Transcripción libre -->
+    <div style="margin-top:32px;padding-top:20px;border-top:2px solid #e2e8f0;">
+        <h3 style="font-size:16px;color:#475569;margin-bottom:8px;">Consulta una transcripción</h3>
+        <p style="font-size:12px;color:#94a3b8;margin-bottom:12px;">Escribe una palabra o frase corta para ver su transcripción fonológica. La transcripción se genera automáticamente (sin IA).</p>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="free-input" placeholder="Ej: mariposa, el gato come" style="flex:1;padding:10px 14px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;" onkeydown="if(event.key==='Enter')transcribirLibre()">
+            <button class="btn btn-primary" onclick="transcribirLibre()">Transcribir</button>
+        </div>
+        <div id="free-result" style="margin-top:12px;display:none;"></div>
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+var currentExercises = [];
+var activeInput = null;
+
+var PK_SYMBOLS = ['a','e','i','o','u', null, 'b','d','f','g','k','l','m','n','p','s','t', null, 'θ','ɾ','r','ʝ','ʧ','ɲ','x', null, 'ˈ', '.'];
+
+// Build keyboard
+(function() {
+    var pk = document.getElementById('pk');
+    PK_SYMBOLS.forEach(function(sym) {
+        if (sym === null) {
+            var sep = document.createElement('span');
+            sep.className = 'pk-sep';
+            pk.appendChild(sep);
+        } else {
+            var btn = document.createElement('button');
+            btn.className = 'pk-btn';
+            btn.textContent = sym;
+            btn.onclick = function() { insertAtCursor(sym); };
+            pk.appendChild(btn);
+        }
+    });
+})();
+
+function insertAtCursor(sym) {
+    if (!activeInput) return;
+    var inp = activeInput;
+    var start = inp.selectionStart;
+    var end = inp.selectionEnd;
+    inp.value = inp.value.substring(0, start) + sym + inp.value.substring(end);
+    inp.selectionStart = inp.selectionEnd = start + sym.length;
+    inp.focus();
+}
+
+var NIVELES_FONOLOGICA = {
+    '1': 'Nivel 1: Palabras con sílabas CV donde cada grafía = un fonema. Divide en sílabas y marca el acento.',
+    '2': 'Nivel 2: Palabras con diptongos e hiatos. Distingue cuándo dos vocales van en la misma sílaba.',
+    '3': 'Nivel 3: Palabras donde la grafía no coincide con el fonema (v, c, z, qu, ll, ch, rr…).',
+    '4': 'Nivel 4: Casos atípicos: h muda, x, r inicial vs. no inicial, hie-, hue-…',
+    '5': 'Nivel 5: Sintagmas y frases completas. Las palabras átonas NO llevan marca de acento.'
+};
+var NIVELES_FONETICA = {
+    '1': 'Nivel 1: Diptongos e hiatos — semiconsonantes [j, w] y semivocales [i̯, u̯].',
+    '2': 'Nivel 2: Oclusivas — alófonos oclusivos [b, d, g] vs. aproximantes [β̞, ð̞, ɣ̞].',
+    '3': 'Nivel 3: Africada y fricativas.',
+    '4': 'Nivel 4: Nasales — asimilación de punto de articulación.',
+    '5': 'Nivel 5: Laterales y vibrantes.',
+    '6': 'Nivel 6: Oraciones completas con todos los procesos fonéticos.'
+};
+var OPTIONS_FONOLOGICA = [
+    {value: '1', text: '1 — Palabras CV, fonemas = grafías'},
+    {value: '2', text: '2 — Diptongos e hiatos'},
+    {value: '3', text: '3 — Fonemas ≠ grafías'},
+    {value: '4', text: '4 — Casos atípicos (h, x, r…)'},
+    {value: '5', text: '5 — Sintagmas y frases con palabras átonas'}
+];
+var OPTIONS_FONETICA = [
+    {value: '1', text: '1 — Diptongos e hiatos'},
+    {value: '2', text: '2 — Oclusivas / aproximantes'},
+    {value: '3', text: '3 — Africada y fricativas'},
+    {value: '4', text: '4 — Nasales'},
+    {value: '5', text: '5 — Laterales y vibrantes'},
+    {value: '6', text: '6 — Oraciones completas'}
+];
+
+var currentTipo = 'fonologica';
+
+function updateTipo() {
+    currentTipo = document.getElementById('sel-tipo').value;
+    var titleEl = document.getElementById('widget-title');
+    titleEl.textContent = currentTipo === 'fonetica' ? 'Transcripción fonética' : 'Transcripción fonológica';
+    var headerEl = document.getElementById('header-title');
+    if (headerEl) headerEl.textContent = titleEl.textContent;
+    document.getElementById('grp-dificultad').style.display = currentTipo === 'fonetica' ? '' : 'none';
+
+    // Update level options
+    var sel = document.getElementById('sel-nivel');
+    var options = currentTipo === 'fonetica' ? OPTIONS_FONETICA : OPTIONS_FONOLOGICA;
+    sel.innerHTML = '';
+    options.forEach(function(o) {
+        var opt = document.createElement('option');
+        opt.value = o.value;
+        opt.textContent = o.text;
+        sel.appendChild(opt);
+    });
+    updateDesc();
+
+    // Clear exercise area
+    document.getElementById('exercise-area').innerHTML = '';
+    document.getElementById('results-bar').classList.remove('show');
+    document.getElementById('action-bar').style.display = 'none';
+}
+
+function updateDesc() {
+    var descs = currentTipo === 'fonetica' ? NIVELES_FONETICA : NIVELES_FONOLOGICA;
+    document.getElementById('level-desc').textContent = descs[document.getElementById('sel-nivel').value] || '';
+}
+
+async function generateExercise() {
+    var nivel = document.getElementById('sel-nivel').value;
+    var items = document.getElementById('sel-items').value;
+
+    document.getElementById('exercise-area').innerHTML = '<div style="color:#94a3b8;font-style:italic;">Cargando...</div>';
+    document.getElementById('results-bar').classList.remove('show');
+    document.getElementById('action-bar').style.display = 'none';
+
+    var endpoint = currentTipo === 'fonetica'
+        ? '/api/public-agent/eulalia/ejercicio-transcripcion-fonetica'
+        : '/api/public-agent/eulalia/ejercicio-transcripcion';
+
+    try {
+        var res = await fetch(endpoint + '?nivel=' + nivel + '&items=' + items);
+        if (!res.ok) throw new Error('Error del servidor');
+        var data = await res.json();
+        currentExercises = data.ejercicios;
+        renderExercises();
+    } catch(e) {
+        document.getElementById('exercise-area').innerHTML = '<div style="color:#dc2626;">Error al generar el ejercicio: ' + e.message + '</div>';
+    }
+}
+
+function renderExercises() {
+    var area = document.getElementById('exercise-area');
+
+    var html = '<table class="exercise-table"><thead><tr>';
+    html += '<th style="width:30px;">#</th><th>Palabra</th><th class="input-cell">Tu transcripción</th><th style="width:30px;"></th>';
+    html += '</tr></thead><tbody>';
+
+    var placeholder = currentTipo === 'fonetica' ? '[' : '/';
+    var dificultad = currentTipo === 'fonetica' ? document.getElementById('sel-dificultad').value : 'sin_pista';
+    currentExercises.forEach(function(ej, i) {
+        html += '<tr id="row-' + i + '">';
+        html += '<td style="font-size:12px;color:#94a3b8;font-weight:700;">' + (i + 1) + '</td>';
+        html += '<td class="word-cell">' + ej.palabra;
+        if (currentTipo === 'fonetica' && dificultad === 'con_pista' && ej.fonologica) {
+            html += '<div style="font-size:11px;color:#94a3b8;margin-top:2px;">Fonológica: ' + ej.fonologica + '</div>';
+        }
+        html += '</td>';
+        html += '<td class="input-cell"><input type="text" class="word-input" id="input-' + i + '" placeholder="' + placeholder + '" onfocus="activeInput=this"></td>';
+        html += '<td class="fb-cell" id="icon-' + i + '"></td>';
+        html += '</tr>';
+        html += '<tr class="word-feedback" id="fb-' + i + '"><td colspan="4" style="padding:4px 12px;"></td></tr>';
+    });
+
+    html += '</tbody></table>';
+    area.innerHTML = html;
+
+    document.getElementById('action-bar').style.display = 'flex';
+    document.getElementById('results-bar').classList.remove('show');
+
+    // Focus first input
+    if (currentExercises.length > 0) {
+        var first = document.getElementById('input-0');
+        first.focus();
+        activeInput = first;
+    }
+}
+
+function normalize(s) {
+    // Remove slashes, spaces at edges, normalize accent marks
+    return s.replace(/^[\s\/]+|[\s\/]+$/g, '').replace(/'/g, 'ˈ').trim().toLowerCase();
+}
+
+// ── Detailed error analysis ──
+function analyzeErrors(userStr, solutionStr) {
+    var errors = [];
+    var user = normalize(userStr);
+    var sol = normalize(solutionStr);
+
+    if (!user) return { errors: [{type: 'sin_respuesta', msg: 'Sin respuesta.'}], isCorrect: false };
+    if (user === sol) return { errors: [], isCorrect: true };
+
+    // 1. Check notation: apostrophe instead of ˈ
+    if (/['\u0027\u2019\u2018]/.test(userStr)) {
+        errors.push({type: 'notacion', msg: 'Has usado apóstrofo (\') en vez del símbolo de acento ˈ (U+02C8).'});
+    }
+
+    // 2. Parse into syllables (split by .)
+    // For level 5 (phrases), split by space first into words, then by . into syllables
+    var userSyls = user.replace(/\s+/g, ' ').split('.');
+    var solSyls = sol.replace(/\s+/g, ' ').split('.');
+
+    // 3. Extract phonemes (strip ˈ and .)
+    var userPhonemes = user.replace(/[ˈ.\s]/g, '');
+    var solPhonemes = sol.replace(/[ˈ.\s]/g, '');
+
+    // 4. Check stress position
+    var userStressIdx = -1;
+    var solStressIdx = -1;
+    var userStresses = [];
+    var solStresses = [];
+
+    userSyls.forEach(function(s, i) {
+        if (s.indexOf('ˈ') >= 0) userStresses.push(i);
+    });
+    solSyls.forEach(function(s, i) {
+        if (s.indexOf('ˈ') >= 0) solStresses.push(i);
+    });
+
+    // Compare stress count
+    if (userStresses.length === 0 && solStresses.length > 0) {
+        errors.push({type: 'acento', msg: 'Falta la marca de acento ˈ. Debe ir antes de cada sílaba tónica.'});
+    } else if (userStresses.length !== solStresses.length) {
+        errors.push({type: 'acento', msg: 'Número de acentos incorrecto: has puesto ' + userStresses.length + ', debería haber ' + solStresses.length + '.'});
+    } else if (userSyls.length === solSyls.length) {
+        // Same number of syllables: compare stress positions
+        for (var si = 0; si < solStresses.length; si++) {
+            var found = false;
+            for (var ui = 0; ui < userStresses.length; ui++) {
+                if (userStresses[ui] === solStresses[si]) { found = true; break; }
+            }
+            if (!found) {
+                errors.push({type: 'acento', msg: 'El acento en la sílaba ' + (solStresses[si] + 1) + ' es incorrecto.'});
+            }
+        }
+    }
+
+    // 5. Check syllable count
+    if (userSyls.length !== solSyls.length) {
+        errors.push({type: 'silabificacion', msg: 'Número de sílabas incorrecto: has puesto ' + userSyls.length + ' (' + userSyls.join('.') + '), debería haber ' + solSyls.length + ' (' + solSyls.join('.') + ').'});
+    }
+
+    // 6. Compare phonemes (ignoring . and ˈ)
+    if (userPhonemes !== solPhonemes) {
+        // Find specific phoneme differences
+        var maxLen = Math.max(userPhonemes.length, solPhonemes.length);
+        var phonemeErrors = [];
+
+        // Simple alignment: compare character by character
+        var ui2 = 0, si2 = 0;
+        while (ui2 < userPhonemes.length && si2 < solPhonemes.length) {
+            if (userPhonemes[ui2] !== solPhonemes[si2]) {
+                // Check if it's a substitution or insertion/deletion
+                // Look ahead to see if it's a single substitution
+                if (ui2 + 1 < userPhonemes.length && si2 + 1 < solPhonemes.length &&
+                    userPhonemes[ui2 + 1] === solPhonemes[si2 + 1]) {
+                    // Substitution
+                    phonemeErrors.push('/' + solPhonemes[si2] + '/ → /' + userPhonemes[ui2] + '/ (sustitución)');
+                    ui2++; si2++;
+                } else if (si2 + 1 < solPhonemes.length && userPhonemes[ui2] === solPhonemes[si2 + 1]) {
+                    // Deletion in user
+                    phonemeErrors.push('/' + solPhonemes[si2] + '/ omitido');
+                    si2++;
+                } else if (ui2 + 1 < userPhonemes.length && userPhonemes[ui2 + 1] === solPhonemes[si2]) {
+                    // Insertion in user
+                    phonemeErrors.push('/' + userPhonemes[ui2] + '/ añadido (no debería estar)');
+                    ui2++;
+                } else {
+                    phonemeErrors.push('/' + solPhonemes[si2] + '/ → /' + userPhonemes[ui2] + '/');
+                    ui2++; si2++;
+                }
+            } else {
+                ui2++; si2++;
+            }
+        }
+        // Remaining in solution = omissions
+        while (si2 < solPhonemes.length) {
+            phonemeErrors.push('/' + solPhonemes[si2] + '/ omitido al final');
+            si2++;
+        }
+        // Remaining in user = extras
+        while (ui2 < userPhonemes.length) {
+            phonemeErrors.push('/' + userPhonemes[ui2] + '/ añadido al final (no debería estar)');
+            ui2++;
+        }
+
+        if (phonemeErrors.length > 0) {
+            errors.push({type: 'fonema', msg: 'Errores de fonema: ' + phonemeErrors.join('; ') + '.'});
+        }
+    } else if (userSyls.length === solSyls.length) {
+        // Phonemes correct, same syllable count: check syllable boundaries
+        var boundaryErrors = [];
+        for (var bi = 0; bi < solSyls.length; bi++) {
+            var uSyl = userSyls[bi].replace(/ˈ/g, '').trim();
+            var sSyl = solSyls[bi].replace(/ˈ/g, '').trim();
+            if (uSyl !== sSyl) {
+                boundaryErrors.push('sílaba ' + (bi + 1) + ': escribiste «' + uSyl + '», correcto «' + sSyl + '»');
+            }
+        }
+        if (boundaryErrors.length > 0) {
+            errors.push({type: 'silabificacion', msg: 'División silábica incorrecta: ' + boundaryErrors.join('; ') + '.'});
+        }
+    }
+
+    return { errors: errors, isCorrect: false };
+}
+
+function formatErrorFeedback(analysis, solucion) {
+    if (analysis.isCorrect) return '<span class="fb-correct">Correcto</span>';
+
+    var html = '';
+    var typeLabels = {
+        sin_respuesta: '',
+        notacion: '📝 Notación',
+        acento: '🔊 Acentuación',
+        silabificacion: '📐 Silabificación',
+        fonema: '🔤 Fonemas'
+    };
+
+    analysis.errors.forEach(function(err) {
+        var label = typeLabels[err.type] || '';
+        if (label) label = '<strong style="color:#4250b3;">' + label + ':</strong> ';
+        html += '<div style="margin:2px 0;">' + label + '<span style="color:#dc2626;">' + err.msg + '</span></div>';
+    });
+
+    html += '<div style="margin-top:4px;">Solución: <span style="font-family:\'Doulos SIL\',serif;font-weight:700;color:#4250b3;">/' + solucion + '/</span></div>';
+    return html;
+}
+
+function checkAll() {
+    var correct = 0;
+    var total = currentExercises.length;
+    var allErrors = [];
+
+    currentExercises.forEach(function(ej, i) {
+        var input = document.getElementById('input-' + i);
+        var fb = document.getElementById('fb-' + i);
+        var icon = document.getElementById('icon-' + i);
+
+        var analysis = analyzeErrors(input.value, ej.solucion);
+
+        fb.classList.add('show');
+        var fbContent = fb.querySelector('td');
+
+        if (analysis.isCorrect) {
+            correct++;
+            input.className = 'word-input correct';
+            icon.innerHTML = '<span style="color:#16a34a;">✓</span>';
+            fbContent.innerHTML = '<span class="fb-correct">Correcto</span>';
+        } else {
+            input.className = 'word-input incorrect';
+            icon.innerHTML = '<span style="color:#dc2626;">✗</span>';
+            fbContent.innerHTML = formatErrorFeedback(analysis, ej.solucion);
+            analysis.errors.forEach(function(e) { allErrors.push(e); });
+        }
+    });
+
+    // Show results with error summary
+    var pct = Math.round(correct / total * 100);
+    var scoreEl = document.getElementById('score-text');
+    scoreEl.textContent = correct + ' / ' + total;
+    scoreEl.className = 'score ' + (pct >= 80 ? 'good' : (pct >= 50 ? 'mid' : 'bad'));
+
+    // Summarize error types
+    var typeCounts = {};
+    allErrors.forEach(function(e) {
+        if (e.type !== 'sin_respuesta') {
+            typeCounts[e.type] = (typeCounts[e.type] || 0) + 1;
+        }
+    });
+    var typeNames = { fonema: 'fonema', acento: 'acentuación', silabificacion: 'silabificación', notacion: 'notación' };
+    var summary = pct + '% de aciertos';
+    var typeList = Object.keys(typeCounts).map(function(t) { return typeCounts[t] + ' de ' + (typeNames[t] || t); });
+    if (typeList.length > 0) summary += '. Errores: ' + typeList.join(', ');
+    document.getElementById('results-detail').textContent = summary;
+    document.getElementById('results-bar').classList.add('show');
+
+    // Save progress (localStorage + server)
+    try {
+        var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
+        var prev = progress['transcripcion_ejercicio'];
+        if (!prev || pct > prev.score) {
+            progress['transcripcion_ejercicio'] = { completed: pct >= 75, score: pct, date: new Date().toISOString().split('T')[0] };
+            localStorage.setItem('lali_progress', JSON.stringify(progress));
+        }
+    } catch(e) {}
+    if (typeof guardarProgreso === 'function') {
+        guardarProgreso('transcripcion_ejercicio', correct, total, {nivel: document.getElementById('sel-nivel').value});
+    }
+}
+
+function showSolutions() {
+    currentExercises.forEach(function(ej, i) {
+        var input = document.getElementById('input-' + i);
+        var fb = document.getElementById('fb-' + i);
+        var icon = document.getElementById('icon-' + i);
+        var userAnswer = normalize(input.value);
+        var solution = normalize(ej.solucion);
+
+        fb.classList.add('show');
+        var fbContent = fb.querySelector('td');
+
+        if (userAnswer && userAnswer === solution) {
+            input.className = 'word-input correct';
+            icon.innerHTML = '<span style="color:#16a34a;">✓</span>';
+            fbContent.innerHTML = '<span class="fb-correct">Correcto</span>';
+        } else {
+            input.className = 'word-input incorrect';
+            icon.innerHTML = '<span style="color:#dc2626;">✗</span>';
+            fbContent.innerHTML = 'Solución: <span style="font-family:\'Doulos SIL\',serif;font-weight:700;color:#4250b3;">/' + ej.solucion + '/</span>';
+        }
+    });
+}
+
+// Init: detect ?tipo=fonetica in URL
+(function() {
+    var params = new URLSearchParams(window.location.search);
+    var tipo = params.get('tipo');
+    if (tipo === 'fonetica') {
+        document.getElementById('sel-tipo').value = 'fonetica';
+        updateTipo();
+    } else {
+        updateDesc();
+    }
+})();
+
+function transcribirLibre() {
+    var input = document.getElementById('free-input');
+    var result = document.getElementById('free-result');
+    var texto = input.value.trim();
+    if (!texto) return;
+
+    result.style.display = 'block';
+    result.innerHTML = '<span style="color:#94a3b8;font-size:13px;">Transcribiendo...</span>';
+
+    fetch('/api/public-agent/eulalia/transcribir?texto=' + encodeURIComponent(texto))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (!data.ok) {
+            result.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#991b1b;">' + (data.error || data.detail || 'No se pudo transcribir') + '</div>';
+            return;
+        }
+        var html = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px;">';
+        html += '<div style="font-size:11px;color:#16a34a;font-weight:600;margin-bottom:6px;">Transcripción verificada (sin IA)</div>';
+        html += '<div style="font-size:18px;font-family:\'Doulos SIL\',serif;color:#1e293b;margin-bottom:8px;">' + data.transcripcion + '</div>';
+        if (data.detalle && data.detalle.length > 1) {
+            html += '<div style="font-size:12px;color:#475569;border-top:1px solid #bbf7d0;padding-top:8px;margin-top:4px;">';
+            data.detalle.forEach(function(d) {
+                if (d.transcripcion) {
+                    html += '<span style="margin-right:12px;"><strong>' + d.palabra + '</strong> → /' + d.transcripcion + '/</span>';
+                } else if (d.error) {
+                    html += '<span style="margin-right:12px;color:#dc2626;"><strong>' + d.palabra + '</strong> → ⚠️ ' + d.error + '</span>';
+                }
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+        result.innerHTML = html;
+    })
+    .catch(function(err) {
+        result.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#991b1b;">Error: ' + err.message + '</div>';
+    });
+}
+
+</script>
+<script src="/static/eulalia/progreso.js"></script>
+<script src="/static/eulalia/informar_profesor.js"></script>
+</body>
+</html>

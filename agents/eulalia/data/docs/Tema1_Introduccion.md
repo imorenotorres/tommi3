@@ -40,7 +40,7 @@ En este tema inicial aprenderás:
 
 Estudia el proceso de fonación y articulación de los sonidos del habla, y elabora modelos de producción de habla. En el **tema 3** estudiaremos la fonética articulatoria del español.
 
-<img src="/static/lalitutor/tema1/img/placesArtic.jpg" alt="" style="max-width:35%;">
+<img src="/static/eulalia/tema1/img/placesArtic.jpg" alt="" style="max-width:35%;">
 
 *Imagen: Puntos de articulación de los sonidos del habla.*
 
@@ -48,7 +48,7 @@ Estudia el proceso de fonación y articulación de los sonidos del habla, y elab
 
 Estudia las propiedades físicas, acústicas, de los sonidos durante su transmisión. Gracias a los avances informáticos, hoy en día cualquier estudiante puede acercarse al estudio acústico del lenguaje. En esta asignatura la estudiaremos en el **tema 4**.
 
-<img src="/static/lalitutor/tema1/img/fonetica_acustica.jpg" alt="" style="max-width:35%;">
+<img src="/static/eulalia/tema1/img/fonetica_acustica.jpg" alt="" style="max-width:35%;">
 
 *Imagen: Oscilograma (arriba) y espectrograma (abajo) de una señal de habla en Praat.*
 
@@ -56,7 +56,7 @@ Estudia las propiedades físicas, acústicas, de los sonidos durante su transmis
 
 Estudia los mecanismos de audición y percepción del habla, y busca modelos de percepción del habla. Aunque la percepción será objeto de otras asignaturas a lo largo de la carrera, en el **tema 5** veremos algunas de las propiedades perceptivas de diferentes unidades lingüísticas. Y en particular prestaremos atención a qué ocurre cuando las condiciones de recepción no son óptimas.
 
-<img src="/static/lalitutor/tema1/img/fonetica_perceptiva.gif" alt="" style="max-width:30%;">
+<img src="/static/eulalia/tema1/img/fonetica_perceptiva.gif" alt="" style="max-width:30%;">
 
 *Imagen: Anatomía del oído humano (Martin Weisser, Phonetics Course).*
 
@@ -70,14 +70,14 @@ El lenguaje forma parte de nuestras vidas de al menos estad dos formas:
 
 1. El lenguaje como **hecho social**
 
-<img src="/static/lalitutor/tema1/img/lenguaje_hecho_social.jpeg" alt="" style="max-width:40%;">
+<img src="/static/eulalia/tema1/img/lenguaje_hecho_social.jpeg" alt="" style="max-width:40%;">
 
 Forma parte de la experiencia compartida con nuestros iguales, y nos ayuda a definirnos como miembros de diferentes grupos sociales: de nuestro barrio o pueblo, de nuestra región, de nuestro país…
 El estudio del lenguaje como hecho social se enfoca a menudo a las emisiones ya producidas. Históricamente los lingüistas empezaron a acercarse al lenguaje primero de esta forma, que es la más intuitiva, razón por la que la colocamos aquí en primer lugar.
 
 2. El lenguaje es un **hecho interno, biológico**.
 
-<img src="/static/lalitutor/tema1/img/lenguaje_hecho_cognitivo.jpg" alt="" style="max-width:40%;">
+<img src="/static/eulalia/tema1/img/lenguaje_hecho_cognitivo.jpg" alt="" style="max-width:40%;">
 
 Esto es, hay una parte (zona, redes neurales...) del cerebro que hacen posible ejecutar las funciones lingüísticas. La idea de que el lenguaje tenía un sustrato biológico no se tuvo en consideración hasta el siglo XIX, y la debemos a neurólogos como Broca y Wernicke.
 
@@ -125,7 +125,7 @@ Este tipo de observaciones llevaron a estructuralistas como Saussure y luego a C
 
 El siguiente gráfico muestra una representación de cómo podría ser el proceso de producción. Es una versión muy simplificada, pero tiene algunos elementos que son muy útiles para nosotros. 
 
-<img src="/static/lalitutor/tema1/img/produccionHabla.jpg" alt="" style="max-width:40%;">
+<img src="/static/eulalia/tema1/img/produccionHabla.jpg" alt="" style="max-width:40%;">
 
 El modelo de generación lingüística se lee de arriba abajo y muestra cómo vamos actuando hasta que generamos una oración. El proceso sigue estos pasos:
 
@@ -195,12 +195,12 @@ La **Palabra Complementada** (LPC, o *Cued Speech* en inglés) es un sistema aum
 **¿Cómo funciona?** 
 Las vocales se codifican mediante **3 posiciones de la mano** respecto al rostro: al lado (para /a/), en la barbilla (para /e, o/) y en la garganta (para /i, u/):
 
-<img src="/static/lalitutor/tema1/img/LPC_Vocales.jpg" alt="Las 3 posiciones de la mano para las vocales en LPC" style="max-width:50%;">
+<img src="/static/eulalia/tema1/img/LPC_Vocales.jpg" alt="Las 3 posiciones de la mano para las vocales en LPC" style="max-width:50%;">
 *Imagen: Las 3 posiciones de la mano para las vocales en LPC.*
 
 Las consonantes se codifican mediante **8 formas de la mano** (llamadas *kinemas*). Cada forma agrupa consonantes que se distinguen bien por lectura labial, de modo que la combinación mano + labios identifica cada consonante de forma única:
 
-<img src="/static/lalitutor/tema1/img/LPC_Consonantes.jpg" alt="Las 8 formas de la mano en LPC" style="max-width:60%;">
+<img src="/static/eulalia/tema1/img/LPC_Consonantes.jpg" alt="Las 8 formas de la mano en LPC" style="max-width:60%;">
 
 *Imagen: Las 8 formas de la mano para las consonantes en LPC (adaptado de Torres, 1988).*
 
@@ -247,7 +247,7 @@ Lo podemos definir de dos formas diferentes.
 
 Para entender a qué nos referimos recurriremos a una representación visual. En la siguiente imagen se observan muchos colores diferentes, pero todos pertenecen a la clase "Rojo":
 
-<img src="/static/lalitutor/tema1/img/Tema1_1_Colores.jpg" alt="Diferentes tonos de rojo — todos son rojo" style="max-width:25%;">
+<img src="/static/eulalia/tema1/img/Tema1_1_Colores.jpg" alt="Diferentes tonos de rojo — todos son rojo" style="max-width:25%;">
 
 *Imagen: Todos estos colores son "rojo", aunque cada uno es ligeramente diferente. De la misma manera, un fonema agrupa sonidos parecidos pero no idénticos.*
 
@@ -256,15 +256,15 @@ Veamos ahora qué ocurre a nivel sonoro. Para ello hemos grabado a un locutor qu
 <div style="background:#f0f4ff; border:1px solid #c7d2fe; border-radius:10px; padding:16px 20px; margin:12px 0;">
 
 <div style="margin-bottom:10px;">
-<strong>pa normal</strong>  <audio controls src="/static/lalitutor/tema1/audio/pa01.wav"></audio>
+<strong>pa normal</strong>  <audio controls src="/static/eulalia/tema1/audio/pa01.wav"></audio>
 </div>
 
 <div style="margin-bottom:10px;">
-<strong>ba fuerte</strong> <audio controls src="/static/lalitutor/tema1/audio/pa05.wav"></audio>
+<strong>ba fuerte</strong> <audio controls src="/static/eulalia/tema1/audio/pa05.wav"></audio>
 </div>
 
 <div>
-<strong>ba suave </strong> <audio controls src="/static/lalitutor/tema1/audio/pa04.wav"></audio>
+<strong>ba suave </strong> <audio controls src="/static/eulalia/tema1/audio/pa04.wav"></audio>
 </div>
 
 </div>
@@ -360,7 +360,7 @@ Veámoslo con dos ejemplos:
 
 **Ejemplo visual: el semáforo.** Todos sabemos que en un semáforo hay tres colores: rojo, amarillo y verde. Esos tres colores serían como los fonemas — cada uno transmite un significado distinto (parar, precaución, avanzar).
 
-<img src="/static/lalitutor/tema1/img/semaforo_normal.png" alt="" style="max-width:10%;"> <img src="/static/lalitutor/tema1/img/semaforo_matiz.png" alt="" style="max-width:10%;"> <img src="/static/lalitutor/tema1/img/semaforo_cambio.png" alt="" style="max-width:10%;">
+<img src="/static/eulalia/tema1/img/semaforo_normal.png" alt="" style="max-width:10%;"> <img src="/static/eulalia/tema1/img/semaforo_matiz.png" alt="" style="max-width:10%;"> <img src="/static/eulalia/tema1/img/semaforo_cambio.png" alt="" style="max-width:10%;">
 
 *Izquierda: Colores típicos. Centro: Rojo apagado. Derecha: Colores atípicos.*
 
@@ -373,17 +373,17 @@ Si pasamos a describir los colores en sí pueden darse dos circunstancias.
 <div style="background:#f0f4ff; border:1px solid #c7d2fe; border-radius:10px; padding:16px 20px; margin:12px 0;">
 
 <div style="margin-bottom:14px;">
-<audio controls src="/static/lalitutor/tema1/audio/gato_naranja_aproximante.wav"></audio><br>
+<audio controls src="/static/eulalia/tema1/audio/gato_naranja_aproximante.wav"></audio><br>
 <em>Audio 1: "Voy a comerme <strong>gato</strong> a la naranja" — con /g/ aproximante (pronunciación normal entre vocales).</em>
 </div>
 
 <div style="margin-bottom:14px;">
-<audio controls src="/static/lalitutor/tema1/audio/gato_naranja_oclusiva.wav"></audio><br>
+<audio controls src="/static/eulalia/tema1/audio/gato_naranja_oclusiva.wav"></audio><br>
 <em>Audio 2: "Voy a comerme <strong>gato</strong> a la naranja" — con /g/ oclusiva (como tras una pausa o como lo pronunciaría un extranjero).</em>
 </div>
 
 <div>
-<audio controls src="/static/lalitutor/tema1/audio/pato_naranja_oclusiva.wav"></audio><br>
+<audio controls src="/static/eulalia/tema1/audio/pato_naranja_oclusiva.wav"></audio><br>
 <em>Audio 3: "Voy a comerme <strong>pato</strong> a la naranja" — con /p/ oclusiva.</em>
 </div>
 

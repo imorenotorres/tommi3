@@ -763,84 +763,228 @@
     },
     {
       "id": 4,
-      "titulo": "Fonética acústica (En preparación)",
+      "titulo": "Fonética acústica",
       "color": "#b45309",
       "imagen": {
-        "src": "/static/lalitutor/tema1/img/fonetica_acustica.jpg",
+        "src": "/static/eulalia/tema1/img/fonetica_acustica.jpg",
         "alt": "Oscilograma y espectrograma de una señal de habla en Praat"
       },
+      "doc": "Tema4_Fonetica_Acustica.md",
       "resumen": "Este tema introduce el análisis acústico del habla: cómo representar y medir las propiedades físicas de los sonidos. Es un tema esencialmente visual y práctico, centrado en la lectura de espectrogramas y el uso del programa Praat.\n\nLos conceptos fundamentales son: la frecuencia fundamental (F0), que corresponde a la vibración de las cuerdas vocales y determina el tono percibido; los formantes (F1, F2, F3...), que son las frecuencias de resonancia del tracto vocal y permiten identificar las vocales; y el VOT (Voice Onset Time), que mide el tiempo entre la explosión de una oclusiva y el inicio de la sonoridad.\n\nPara las vocales, los estudiantes deben memorizar la relación entre formantes y articulación: F1 correlaciona inversamente con la altura de la lengua (F1 alto = vocal abierta /a/; F1 bajo = vocal cerrada /i, u/) y F2 correlaciona con la anterioridad (F2 alto = vocal anterior /i, e/; F2 bajo = vocal posterior /u, o/). Estos valores permiten identificar vocales en un espectrograma.\n\nPara las consonantes, cada clase tiene una firma acústica característica: las oclusivas muestran silencio + explosión, las fricativas muestran ruido turbulento, las nasales tienen formantes con baja intensidad, y las aproximantes muestran formantes debilitados sin interrupción.\n\nLos estudiantes deben aprender a usar Praat para grabar, visualizar y anotar señales de habla. También deben ser capaces de leer un espectrograma e identificar los sonidos que contiene.",
       "contenidos": [
         {
-          "bloque": "Representaciones acústicas",
-          "conceptos": [
-            {
-              "nombre": "Espectrograma",
-              "consulta": "¿Qué es un espectrograma?"
-            },
-            {
-              "nombre": "Frecuencia fundamental (F0)",
-              "consulta": "¿Qué es la frecuencia fundamental?"
-            },
-            {
-              "nombre": "VOT",
-              "consulta": "¿Qué es el VOT?"
-            }
-          ]
-        },
-        {
-          "bloque": "Vocales",
-          "conceptos": [
-            {
-              "nombre": "Formantes",
-              "consulta": "¿Qué son los formantes?"
-            },
-            {
-              "nombre": "Formantes de las vocales",
-              "consulta": "¿Cuáles son los formantes de las vocales del español?"
-            }
-          ]
-        },
-        {
-          "bloque": "Consonantes en el espectrograma",
-          "conceptos": [
-            {
-              "nombre": "Oclusivas",
-              "consulta": "¿Cómo se ven las oclusivas en un espectrograma?"
-            },
-            {
-              "nombre": "Fricativas",
-              "consulta": "¿Cómo se ven las fricativas en un espectrograma?"
-            },
-            {
-              "nombre": "Nasales y laterales",
-              "consulta": "¿Cómo se ven las nasales en un espectrograma?"
-            }
-          ]
-        },
-        {
-          "bloque": "Prosodia",
-          "conceptos": [
-            {
-              "nombre": "Entonación",
-              "consulta": "¿Qué es la entonación?"
-            }
-          ]
-        },
-        {
-          "bloque": "Praat",
+          "bloque": "4.1. Preparación: el programa Praat",
+          "seccion_doc": "4.1. Preparación: el programa Praat",
           "conceptos": [
             {
               "nombre": "Instalar Praat",
               "consulta": "¿Cómo instalo Praat?"
             },
             {
-              "nombre": "Grabar en Praat",
-              "consulta": "¿Cómo grabo un sonido en Praat?"
+              "nombre": "Anotar archivos de sonido",
+              "consulta": "¿Cómo anoto un archivo de sonido en Praat?"
+            }
+          ]
+        },
+        {
+          "bloque": "4.2. El sonido",
+          "seccion_doc": "4.2. El sonido",
+          "subbloques": [
+            {
+              "nombre": "4.2.1. Propiedades físicas del sonido",
+              "seccion_doc": "4.2.1. Propiedades físicas del sonido",
+              "conceptos": [
+                {
+                  "nombre": "Amplitud y frecuencia",
+                  "consulta": "¿Qué son la amplitud y la frecuencia de una onda sonora?"
+                }
+              ]
             },
             {
-              "nombre": "Anotar en Praat",
-              "consulta": "¿Cómo anoto un archivo de sonido en Praat?"
+              "nombre": "4.2.2. Ondas complejas",
+              "seccion_doc": "4.2.2. Ondas complejas",
+              "conceptos": [
+                {
+                  "nombre": "Fuente y resonancia",
+                  "consulta": "¿Qué son la fuente y la resonancia en la producción del sonido?"
+                },
+                {
+                  "nombre": "Armónicos y F0",
+                  "consulta": "¿Qué son los armónicos y la frecuencia fundamental?"
+                }
+              ]
+            },
+            {
+              "nombre": "4.2.3. Representación gráfica",
+              "seccion_doc": "4.2.3. Representación gráfica del sonido",
+              "conceptos": [
+                {
+                  "nombre": "Oscilograma",
+                  "consulta": "¿Qué es un oscilograma?"
+                },
+                {
+                  "nombre": "Espectrograma",
+                  "consulta": "¿Qué es un espectrograma y qué tipos hay?"
+                }
+              ]
+            },
+            {
+              "nombre": "4.2.4. Propiedades lingüísticas",
+              "seccion_doc": "4.2.4. Propiedades lingüísticas del sonido",
+              "conceptos": [
+                {
+                  "nombre": "Sonoridad",
+                  "consulta": "¿Cómo se distingue un sonido sonoro de uno sordo en un espectrograma?"
+                },
+                {
+                  "nombre": "Tono (F0)",
+                  "consulta": "¿Qué es el tono y cómo se mide en Praat?"
+                },
+                {
+                  "nombre": "Intensidad",
+                  "consulta": "¿Qué es la intensidad y cómo se mide en Praat?"
+                },
+                {
+                  "nombre": "Duración",
+                  "consulta": "¿Cómo se mide la duración de un sonido en Praat?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "bloque": "4.3. Prosodia",
+          "seccion_doc": "4.3. Prosodia",
+          "subbloques": [
+            {
+              "nombre": "4.3.1. El acento",
+              "seccion_doc": "4.3.1. El acento",
+              "conceptos": [
+                {
+                  "nombre": "Tipos de acento",
+                  "consulta": "¿Qué tipos de acento existen y cuáles se usan en español?"
+                }
+              ]
+            },
+            {
+              "nombre": "4.3.2. La entonación",
+              "seccion_doc": "4.3.2. La entonación",
+              "conceptos": [
+                {
+                  "nombre": "Curva melódica",
+                  "consulta": "¿Qué es la curva melódica y cómo se divide?"
+                },
+                {
+                  "nombre": "Entonación enunciativa vs interrogativa",
+                  "consulta": "¿Cómo se diferencia la entonación enunciativa de la interrogativa?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "bloque": "4.4. Las vocales",
+          "seccion_doc": "4.4. Las vocales",
+          "subbloques": [
+            {
+              "nombre": "4.4.1. Los formantes",
+              "seccion_doc": "4.4.1. Los formantes",
+              "conceptos": [
+                {
+                  "nombre": "Formantes vocálicos",
+                  "consulta": "¿Qué son los formantes y cuáles son los valores de las vocales del español?"
+                },
+                {
+                  "nombre": "Carta de formantes",
+                  "consulta": "¿Qué es la carta de formantes o triángulo vocálico?"
+                }
+              ]
+            },
+            {
+              "nombre": "4.4.2. Relación articulación-acústica",
+              "seccion_doc": "4.4.2. Relación entre rasgos articulatorios y acústicos",
+              "conceptos": [
+                {
+                  "nombre": "F1 y modo de articulación",
+                  "consulta": "¿Qué relación hay entre F1 y la altura de la lengua?"
+                },
+                {
+                  "nombre": "F2 y lugar de articulación",
+                  "consulta": "¿Qué relación hay entre F2 y la posición anteroposterior de la lengua?"
+                }
+              ]
+            },
+            {
+              "nombre": "4.4.3. Vocales en contexto: diptongos e hiatos",
+              "seccion_doc": "4.4.3. Vocales en contexto: diptongos e hiatos",
+              "conceptos": [
+                {
+                  "nombre": "Transiciones formánticas",
+                  "consulta": "¿Qué son las transiciones formánticas?"
+                },
+                {
+                  "nombre": "Diptongos vs hiatos acústicamente",
+                  "consulta": "¿Cómo se diferencian acústicamente los diptongos de los hiatos?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "bloque": "4.5. Las consonantes",
+          "seccion_doc": "4.5. Las consonantes",
+          "subbloques": [
+            {
+              "nombre": "4.5.1. Oclusivas",
+              "seccion_doc": "4.5.1. Oclusivas",
+              "conceptos": [
+                {
+                  "nombre": "Oclusivas en el espectrograma",
+                  "consulta": "¿Cómo se ven las oclusivas en un espectrograma?"
+                },
+                {
+                  "nombre": "VOT",
+                  "consulta": "¿Qué es el VOT (Voice Onset Time)?"
+                }
+              ]
+            },
+            {
+              "nombre": "4.5.2. Fricativas",
+              "seccion_doc": "4.5.2. Fricativas",
+              "conceptos": [
+                {
+                  "nombre": "Fricativas en el espectrograma",
+                  "consulta": "¿Cómo se ven las fricativas en un espectrograma?"
+                }
+              ]
+            },
+            {
+              "nombre": "4.5.3. Africada",
+              "seccion_doc": "4.5.3. Africada"
+            },
+            {
+              "nombre": "4.5.4. Nasales",
+              "seccion_doc": "4.5.4. Nasales",
+              "conceptos": [
+                {
+                  "nombre": "Nasales en el espectrograma",
+                  "consulta": "¿Cómo se ven las nasales en un espectrograma?"
+                }
+              ]
+            },
+            {
+              "nombre": "4.5.5. Líquidas",
+              "seccion_doc": "4.5.5. Líquidas (laterales y vibrantes)",
+              "conceptos": [
+                {
+                  "nombre": "Laterales y vibrantes",
+                  "consulta": "¿Cómo se diferencian las laterales y las vibrantes en un espectrograma?"
+                }
+              ]
+            },
+            {
+              "nombre": "4.5.6. Guía rápida de espectrogramas",
+              "seccion_doc": "4.5.6. Interpretación de espectrogramas: guía rápida"
             }
           ]
         }
@@ -858,8 +1002,11 @@
       "autoevaluacion": [
         "¿Puedo identificar las vocales en un espectrograma por sus formantes?",
         "¿Sé distinguir una oclusiva de una fricativa en un espectrograma?",
-        "¿Puedo medir el F0 y los formantes en Praat?",
-        "¿Entiendo la relación F1-apertura y F2-anterioridad?"
+        "¿Puedo medir F0 y formantes en Praat?",
+        "¿Entiendo la relación F1-apertura y F2-anterioridad?",
+        "¿Puedo describir las tres partes de la curva melódica?",
+        "¿Sé diferenciar diptongos e hiatos acústicamente?",
+        "¿Puedo interpretar un espectrograma identificando los tipos de sonidos?"
       ],
       "mas_alla": [
         {
@@ -881,7 +1028,7 @@
       "titulo": "Fonética perceptiva (En preparación)",
       "color": "#dc2626",
       "imagen": {
-        "src": "/static/lalitutor/tema1/img/fonetica_perceptiva.gif",
+        "src": "/static/eulalia/tema1/img/fonetica_perceptiva.gif",
         "alt": "Anatomía del oído humano",
         "credito": "Martin Weisser, Phonetics Course"
       },

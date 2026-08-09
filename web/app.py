@@ -1334,7 +1334,7 @@ async def tutores_lali(request: Request, moodle_token: str = Query(None)):
 async def lali_widget(widget_name: str):
     """Serve LALI tutor interactive widgets"""
     safe_name = widget_name.replace("/", "").replace("..", "")
-    path = SCRIPT_DIR / "static" / "lalitutor" / "widgets" / f"{safe_name}.html"
+    path = SCRIPT_DIR / "static" / "eulalia" / "widgets" / f"{safe_name}.html"
     if not path.is_file():
         return JSONResponse({"error": "Widget not found"}, status_code=404)
     return FileResponse(path)
@@ -1911,6 +1911,230 @@ async def lali_moodle_login(
     # 5. Redirigir al tutor con el token en la URL
     redirect_url = f"/tutores-virtuales/eulalia?moodle_token={token}"
     return RedirectResponse(url=redirect_url, status_code=302)
+
+
+# ── LALI tutor: Proyecto de investigación (Tema 6) ─────────────────
+
+_LALI_PROYECTOS_DIR = _LALI_DIR / "proyectos"
+_LALI_PROYECTOS_DIR.mkdir(exist_ok=True)
+
+
+def _load_proyecto(project_id: str) -> dict | None:
+    path = _LALI_PROYECTOS_DIR / f"{project_id}.json"
+    if not path.exists():
+        return None
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _save_proyecto(proyecto: dict):
+    path = _LALI_PROYECTOS_DIR / f"{proyecto['id']}.json"
+    proyecto["updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(proyecto, f, ensure_ascii=False, indent=2)
+
+
+def _get_user_email(request: Request) -> str | None:
+    token = _get_tutores_token(request)
+    session = tutores_get_session(token) if token else None
+    return session.get("username") if session else None
+
+
+@app.get("/api/public-agent/eulalia/proyectos")
+async def lali_list_proyectos(request: Request):
+    """List projects for the current user (member or docente)."""
+    email = _get_user_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Autenticación requerida")
+
+    session = tutores_get_session(_get_tutores_token(request))
+    is_prof = tutores_is_docente(session) if session else False
+
+    proyectos = []
+    for f in _LALI_PROYECTOS_DIR.glob("*.json"):
+        try:
+            p = json.loads(f.read_text(encoding="utf-8"))
+            if is_prof or email in p.get("grupo", []):
+                # Don't send full chat in list view
+                summary = {k: v for k, v in p.items() if k != "chat"}
+                summary["n_chat"] = len(p.get("chat", []))
+                proyectos.append(summary)
+        except Exception:
+            pass
+
+    proyectos.sort(key=lambda x: x.get("updated", ""), reverse=True)
+    return {"proyectos": proyectos}
+
+
+@app.post("/api/public-agent/eulalia/proyectos")
+async def lali_create_proyecto(request: Request):
+    """Create a new project. The creator is automatically added to the group."""
+    email = _get_user_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Autenticación requerida")
+    body = await request.json()
+    titulo = body.get("titulo", "").strip()
+    if not titulo:
+        raise HTTPException(status_code=400, detail="Falta el título")
+
+    import uuid
+    project_id = str(uuid.uuid4())[:8]
+    proyecto = {
+        "id": project_id,
+        "titulo": titulo,
+        "grupo": [email],
+        "created": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "fases": {
+            "introduccion": {"texto": "", "ultima_edicion": "", "editado_por": ""},
+            "metodologia": {"texto": "", "ultima_edicion": "", "editado_por": ""},
+            "resultados": {"texto": "", "ultima_edicion": "", "editado_por": ""},
+            "discusion": {"texto": "", "ultima_edicion": "", "editado_por": ""},
+        },
+        "chat": [],
+    }
+    _save_proyecto(proyecto)
+    return {"ok": True, "id": project_id}
+
+
+@app.get("/api/public-agent/eulalia/proyectos/{project_id}")
+async def lali_get_proyecto(project_id: str, request: Request):
+    """Get a project by ID. Only group members and docentes can access."""
+    email = _get_user_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Autenticación requerida")
+    proyecto = _load_proyecto(project_id)
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    session = tutores_get_session(_get_tutores_token(request))
+    is_prof = tutores_is_docente(session) if session else False
+    if not is_prof and email not in proyecto.get("grupo", []):
+        raise HTTPException(status_code=403, detail="No tienes acceso a este proyecto")
+    return proyecto
+
+
+@app.put("/api/public-agent/eulalia/proyectos/{project_id}/fases/{fase_id}")
+async def lali_update_fase(project_id: str, fase_id: str, request: Request):
+    """Update the text of a project phase."""
+    email = _get_user_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Autenticación requerida")
+    proyecto = _load_proyecto(project_id)
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    if email not in proyecto.get("grupo", []):
+        raise HTTPException(status_code=403, detail="No tienes acceso a este proyecto")
+    if fase_id not in ("introduccion", "metodologia", "resultados", "discusion"):
+        raise HTTPException(status_code=400, detail="Fase no válida")
+
+    body = await request.json()
+    texto = body.get("texto", "")
+    proyecto["fases"][fase_id] = {
+        "texto": texto,
+        "ultima_edicion": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "editado_por": email,
+    }
+    _save_proyecto(proyecto)
+    return {"ok": True}
+
+
+@app.post("/api/public-agent/eulalia/proyectos/{project_id}/invitar")
+async def lali_invite_member(project_id: str, request: Request):
+    """Invite a member to the project."""
+    email = _get_user_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Autenticación requerida")
+    proyecto = _load_proyecto(project_id)
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    if email not in proyecto.get("grupo", []):
+        raise HTTPException(status_code=403, detail="No tienes acceso a este proyecto")
+
+    body = await request.json()
+    new_email = body.get("email", "").strip().lower()
+    if not new_email or "@" not in new_email:
+        raise HTTPException(status_code=400, detail="Email no válido")
+    if new_email in proyecto["grupo"]:
+        raise HTTPException(status_code=409, detail="Ya es miembro del proyecto")
+
+    proyecto["grupo"].append(new_email)
+    _save_proyecto(proyecto)
+    return {"ok": True}
+
+
+@app.post("/api/public-agent/eulalia/proyectos/{project_id}/chat")
+async def lali_project_chat(project_id: str, request: Request):
+    """Send a chat message within the project context. Uses LLM with phase context."""
+    email = _get_user_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Autenticación requerida")
+    proyecto = _load_proyecto(project_id)
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    if email not in proyecto.get("grupo", []):
+        raise HTTPException(status_code=403, detail="No tienes acceso a este proyecto")
+
+    body = await request.json()
+    mensaje = body.get("mensaje", "").strip()
+    fase = body.get("fase", "")
+    contexto_fase = body.get("contexto_fase", "")
+
+    if not mensaje:
+        raise HTTPException(status_code=400, detail="Mensaje vacío")
+
+    # Build LLM prompt with project context
+    agent = runner.get_agent("eulalia")
+    if not agent:
+        raise HTTPException(status_code=500, detail="Agente no disponible")
+
+    agent_instance = runner._load_agent_module("eulalia")
+    model = agent_instance.model
+
+    fase_nombres = {"introduccion": "Introducción", "metodologia": "Metodología",
+                    "resultados": "Resultados", "discusion": "Discusión y conclusiones"}
+    fase_nombre = fase_nombres.get(fase, fase)
+
+    system_prompt = (
+        "Eres Eulalia, tutora de Lingüística Aplicada a la Logopedia. "
+        "Estás ayudando a un grupo de estudiantes con su proyecto de investigación fonológica. "
+        f"El grupo está trabajando en la fase: {fase_nombre}.\n\n"
+        "Tu rol es ser un interlocutor crítico: ayuda al estudiante a mejorar su trabajo, "
+        "señala inconsistencias, sugiere mejoras, pero NO hagas el trabajo por ellos.\n\n"
+        "IMPORTANTE: Tus respuestas son generadas por IA y pueden contener errores. "
+        "Los estudiantes deben contrastar con otras fuentes.\n\n"
+        "Responde en español. Sé conciso (máximo 200 palabras)."
+    )
+
+    if contexto_fase:
+        system_prompt += f"\n\nContenido actual de la fase '{fase_nombre}' escrito por el grupo:\n{contexto_fase}"
+
+    # Recent chat history for context
+    recent = [m for m in proyecto.get("chat", []) if m.get("fase") == fase][-6:]
+    messages = [{"role": "system", "content": system_prompt}]
+    for m in recent:
+        messages.append({"role": "user", "content": m["mensaje"]})
+        if m.get("respuesta"):
+            messages.append({"role": "assistant", "content": m["respuesta"]})
+    messages.append({"role": "user", "content": mensaje})
+
+    try:
+        response = agent_instance.client.chat.complete(model=model, messages=messages)
+        respuesta = response.choices[0].message.content
+    except Exception as e:
+        respuesta = f"Error al consultar la IA: {str(e)}"
+
+    # Save to project
+    chat_entry = {
+        "autor": email,
+        "mensaje": mensaje,
+        "respuesta": respuesta,
+        "fase": fase,
+        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "response_type": "llm",
+    }
+    proyecto["chat"].append(chat_entry)
+    _save_proyecto(proyecto)
+
+    return {"respuesta": respuesta, "response_type": "llm"}
 
 
 @app.get("/api/public-agent/eulalia/temas")

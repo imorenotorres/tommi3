@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transcripción fonética - Eulalia</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; padding: 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h2 { color: #7c3aed; margin-bottom: 4px; }
+.subtitle { color: #64748b; font-size: 14px; margin-bottom: 16px; }
+.controls { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
+.control-group { display: flex; flex-direction: column; gap: 4px; }
+.control-group label { font-size: 12px; color: #64748b; font-weight: 600; }
+select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+.btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 600; }
+.btn-primary { background: #7c3aed; color: #fff; }
+.btn-primary:hover { background: #6d28d9; }
+.btn-secondary { background: #e2e8f0; color: #334155; }
+.btn-secondary:hover { background: #cbd5e1; }
+.pista { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: #92400e; margin-bottom: 16px; }
+
+table.ejercicios { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+table.ejercicios th { background: #f8fafc; color: #475569; font-size: 12px; font-weight: 700; text-transform: uppercase; padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+table.ejercicios td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+table.ejercicios td.col-word { font-weight: 600; color: #334155; font-size: 15px; width: 33%; }
+table.ejercicios td.col-fon { width: 33%; }
+table.ejercicios td.col-resp { width: 33%; }
+table.ejercicios td.col-fon { font-size: 14px; color: #64748b; font-family: 'Doulos SIL', 'Noto Sans', serif; }
+table.ejercicios td.col-resp { }
+table.ejercicios input { width: 100%; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-family: 'Doulos SIL', 'Noto Sans', serif; }
+table.ejercicios input.correct { border-color: #22c55e; background: #f0fdf4; }
+table.ejercicios input.incorrect { border-color: #ef4444; background: #fef2f2; }
+.solution { font-size: 13px; color: #16a34a; margin-top: 4px; display: none; }
+.solution.show { display: block; }
+
+.pk { margin-bottom: 4px; background: #f1f5f9; padding: 6px 12px; border-radius: 6px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+#pk { margin-bottom: 16px; }
+.pk-label { font-size: 12px; color: #64748b; margin-right: 4px; }
+.pk button { background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 8px; font-size: 16px; cursor: pointer; font-family: 'Doulos SIL', 'Noto Sans', serif; }
+.pk button:hover { background: #e0e7ff; border-color: #7c3aed; }
+
+.results-bar { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin-top: 16px; display: none; }
+.results-bar h3 { color: #166534; margin-bottom: 8px; }
+.score { font-size: 24px; font-weight: 700; color: #166534; }
+
+.action-bar { display: none; gap: 8px; margin-top: 12px; }
+#help-alofonos td { padding: 4px 8px; border-bottom: 1px solid #f1f5f9; font-family: 'Doulos SIL', 'Noto Sans', serif; }
+#help-alofonos td:first-child { font-weight: 600; color: #334155; }
+#help-alofonos td:nth-child(2) { color: #7c3aed; font-weight: 600; }
+#help-alofonos td:nth-child(4) { font-size: 11px; color: #64748b; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Transcripción fonética</h2>
+    <p class="subtitle" id="level-desc">Selecciona un nivel y genera un ejercicio.</p>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Nivel</label>
+            <select id="sel-nivel" onchange="updateDesc()">
+                <option value="1">1 - Diptongos e hiatos</option>
+                <option value="2">2 - Oclusivas</option>
+                <option value="3">3 - Africada y fricativas</option>
+                <option value="4">4 - Nasales</option>
+                <option value="5">5 - Laterales y vibrantes</option>
+                <option value="6">6 - Oraciones completas</option>
+                <option value="7">7 - Fonosintaxis</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Items</label>
+            <select id="sel-items">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5" selected>5</option>
+                <option value="6">6</option>
+                <option value="12">12 (examen)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Mostrar fonológica</label>
+            <select id="sel-fon">
+                <option value="si" selected>Sí</option>
+                <option value="no">No</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateExercise()">Generar ejercicio</button>
+    </div>
+
+    <!-- Símbolos y ayuda -->
+    <div style="margin-bottom:16px; display:flex; gap:16px; font-size:13px;">
+        <a href="#" onclick="var el=document.getElementById('pk'); el.style.display=el.style.display==='none'?'':'none'; this.textContent=el.style.display==='none'?'▶ Símbolos no convencionales (por tipo de fonema)':'▼ Ocultar símbolos'; return false;" style="color:#4250b3; text-decoration:none; font-weight:600;">▶ Símbolos no convencionales (por tipo de fonema)</a>
+        <a href="#" onclick="var el=document.getElementById('help-alofonos'); el.style.display=el.style.display==='none'?'':'none'; this.textContent=el.style.display==='none'?'▶ Tabla de alófonos':'▼ Ocultar tabla de alófonos'; return false;" style="color:#4250b3; text-decoration:none; font-weight:600;">▶ Tabla de alófonos</a>
+    </div>
+
+    <div id="pk" style="display:none;">
+        <div class="pk"><span class="pk-label">Vocales:</span><span id="pk-vocales"></span> <span class="pk-label" style="margin-left:12px;">Oclusivas:</span><span id="pk-oclusivas"></span> <span class="pk-label" style="margin-left:12px;">Fricativas y africadas:</span><span id="pk-fricativas"></span></div>
+        <div class="pk"><span class="pk-label">Nasales:</span><span id="pk-nasales"></span> <span class="pk-label" style="margin-left:12px;">Laterales:</span><span id="pk-laterales"></span> <span class="pk-label" style="margin-left:12px;">Vibrantes:</span><span id="pk-vibrantes"></span></div>
+        <div class="pk"><span class="pk-label">Otros:</span><span id="pk-otros"></span></div>
+    </div>
+
+    <div id="help-alofonos" style="display:none; margin-bottom:16px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+        <thead><tr style="background:#f8fafc;">
+            <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #e2e8f0;">Fonema</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #e2e8f0;">Alófono</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #e2e8f0;">Descripción</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #e2e8f0;">Contexto</th>
+        </tr></thead>
+        <tbody>
+        <tr><td colspan="4" style="padding:4px 8px;background:#f0f9ff;font-weight:700;color:#1e40af;">Vocales</td></tr>
+        <tr><td>/a/</td><td>[a]</td><td>Vocal abierta central</td><td>Siempre</td></tr>
+        <tr><td>/e/</td><td>[e]</td><td>Vocal media anterior</td><td>Siempre</td></tr>
+        <tr><td>/o/</td><td>[o]</td><td>Vocal media posterior</td><td>Siempre</td></tr>
+        <tr><td rowspan="3">/i/</td><td>[i]</td><td>Vocal cerrada anterior</td><td>Núcleo silábico</td></tr>
+        <tr><td>[j]</td><td>Semiconsonante palatal</td><td>Prenuclear (dipt. creciente)</td></tr>
+        <tr><td>[i̯]</td><td>Semivocal palatal</td><td>Postnuclear (dipt. decreciente)</td></tr>
+        <tr><td rowspan="3">/u/</td><td>[u]</td><td>Vocal cerrada posterior</td><td>Núcleo silábico</td></tr>
+        <tr><td>[w]</td><td>Semiconsonante velar</td><td>Prenuclear (dipt. creciente)</td></tr>
+        <tr><td>[u̯]</td><td>Semivocal velar</td><td>Postnuclear (dipt. decreciente)</td></tr>
+
+        <tr><td colspan="4" style="padding:4px 8px;background:#f0f9ff;font-weight:700;color:#1e40af;">Oclusivas</td></tr>
+        <tr><td rowspan="2">/p/</td><td>[p]</td><td>Oclusiva bilabial sorda</td><td>Ataque</td></tr>
+        <tr><td>[β̞]</td><td>Aproximante bilabial sonora</td><td>Coda</td></tr>
+        <tr><td rowspan="2">/b/</td><td>[b]</td><td>Oclusiva bilabial sonora</td><td>Tras pausa o nasal</td></tr>
+        <tr><td>[β̞]</td><td>Aproximante bilabial sonora</td><td>Resto</td></tr>
+        <tr><td rowspan="2">/t/</td><td>[t]</td><td>Oclusiva dental sorda</td><td>Ataque</td></tr>
+        <tr><td>[ð̞]</td><td>Aproximante interdental sonora</td><td>Coda</td></tr>
+        <tr><td rowspan="2">/d/</td><td>[d]</td><td>Oclusiva dental sonora</td><td>Tras pausa, nasal o lateral</td></tr>
+        <tr><td>[ð̞]</td><td>Aproximante interdental sonora</td><td>Resto</td></tr>
+        <tr><td rowspan="2">/k/</td><td>[k]</td><td>Oclusiva velar sorda</td><td>Ataque</td></tr>
+        <tr><td>[ɣ̞]</td><td>Aproximante velar sonora</td><td>Coda</td></tr>
+        <tr><td rowspan="2">/g/</td><td>[g]</td><td>Oclusiva velar sonora</td><td>Tras pausa o nasal</td></tr>
+        <tr><td>[ɣ̞]</td><td>Aproximante velar sonora</td><td>Resto</td></tr>
+
+        <tr><td colspan="4" style="padding:4px 8px;background:#f0f9ff;font-weight:700;color:#1e40af;">Fricativas y africadas</td></tr>
+        <tr><td>/f/</td><td>[f]</td><td>Fricativa labiodental sorda</td><td>Siempre</td></tr>
+        <tr><td>/θ/</td><td>[θ]</td><td>Fricativa interdental sorda</td><td>Siempre</td></tr>
+        <tr><td>/s/</td><td>[s]</td><td>Fricativa alveolar sorda</td><td>Siempre</td></tr>
+        <tr><td rowspan="2">/ʝ/</td><td>[ʝ]</td><td>Fricativa palatal sonora</td><td>No tras nasal</td></tr>
+        <tr><td>[ʤ]</td><td>Africada palatal sonora</td><td>Tras nasal</td></tr>
+        <tr><td>/x/</td><td>[x]</td><td>Fricativa velar sorda</td><td>Siempre</td></tr>
+        <tr><td>/ʧ/</td><td>[ʧ]</td><td>Africada palatal sorda</td><td>Siempre</td></tr>
+
+        <tr><td colspan="4" style="padding:4px 8px;background:#f0f9ff;font-weight:700;color:#1e40af;">Nasales</td></tr>
+        <tr><td>/m/</td><td>[m]</td><td>Nasal bilabial</td><td>Siempre</td></tr>
+        <tr><td>/ɲ/</td><td>[ɲ]</td><td>Nasal palatal</td><td>Siempre</td></tr>
+        <tr><td rowspan="7">/n/</td><td>[n]</td><td>Nasal alveolar</td><td>Ataque, coda ante alveolar/pausa</td></tr>
+        <tr><td>[m]</td><td>Nasal bilabial</td><td>Ante /p, b/</td></tr>
+        <tr><td>[ɱ]</td><td>Nasal labiodental</td><td>Ante /f/</td></tr>
+        <tr><td>[n̟]</td><td>Nasal interdental</td><td>Ante /θ/</td></tr>
+        <tr><td>[n̪]</td><td>Nasal dental</td><td>Ante /t, d/</td></tr>
+        <tr><td>[nʲ]</td><td>Nasal palatalizada</td><td>Ante /ʧ, ʝ, ɲ/</td></tr>
+        <tr><td>[ŋ]</td><td>Nasal velar</td><td>Ante /k, g, x/</td></tr>
+
+        <tr><td colspan="4" style="padding:4px 8px;background:#f0f9ff;font-weight:700;color:#1e40af;">Laterales y vibrantes</td></tr>
+        <tr><td rowspan="3">/l/</td><td>[l]</td><td>Lateral alveolar</td><td>Ataque, coda ante alveolar/pausa</td></tr>
+        <tr><td>[l̟]</td><td>Lateral interdental</td><td>Ante /θ/</td></tr>
+        <tr><td>[l̪]</td><td>Lateral dental</td><td>Ante /t, d/</td></tr>
+        <tr><td rowspan="2">/ɾ/</td><td>[ɾ]</td><td>Vibrante simple</td><td>Ataque</td></tr>
+        <tr><td>[ɹ]</td><td>Aproximante alveolar</td><td>Coda</td></tr>
+        <tr><td>/r/</td><td>[r]</td><td>Vibrante múltiple</td><td>Siempre</td></tr>
+        </tbody>
+        </table>
+    </div>
+
+    <div id="pista-box" style="display:none;" class="pista"></div>
+
+    <div id="exercise-area"></div>
+
+    <div class="results-bar" id="results-bar">
+        <h3>Resultado</h3>
+        <div class="score" id="score-text"></div>
+    </div>
+
+    <div class="action-bar" id="action-bar" style="display:none;">
+        <button class="btn btn-primary" id="btn-check" onclick="checkAll()">Comprobar</button>
+        <button class="btn btn-secondary" onclick="showSolutions()">Ver soluciones</button>
+        <button class="btn btn-secondary" onclick="generateExercise()">Nuevo ejercicio</button>
+    </div>
+
+</div>
+
+<script>
+// Símbolos no convencionales — solo los que no están en un teclado estándar
+var symbolGroups = {
+    vocales:    ['j','i̯','w','u̯'],
+    oclusivas:  ['β̞','ð̞','ɣ̞'],
+    fricativas: ['θ','ʝ','ʧ','ʤ'],
+    nasales:    ['ɲ','ŋ','ɱ','n̟','n̪','nʲ'],
+    laterales:  ['l̟','l̪'],
+    vibrantes:  ['ɾ','ɹ'],
+    otros:      ['ˈ','ã','ẽ','ĩ','õ','ũ','ː']
+};
+function addButtons(containerId, symbols) {
+    var el = document.getElementById(containerId);
+    symbols.forEach(function(s) {
+        var btn = document.createElement('button');
+        btn.textContent = s;
+        btn.onclick = function() { insertSymbol(s); };
+        el.appendChild(btn);
+    });
+}
+Object.keys(symbolGroups).forEach(function(group) {
+    addButtons('pk-' + group, symbolGroups[group]);
+});
+
+var lastFocusedInput = null;
+function insertSymbol(s) {
+    if (!lastFocusedInput) return;
+    var inp = lastFocusedInput;
+    var start = inp.selectionStart, end = inp.selectionEnd;
+    inp.value = inp.value.substring(0, start) + s + inp.value.substring(end);
+    inp.selectionStart = inp.selectionEnd = start + s.length;
+    inp.focus();
+}
+
+var currentExercises = [];
+var usedWords = {};  // per level: {1: ['pie','auto',...], 2: [...], ...}
+
+function updateDesc() {
+    var descs = {
+        '1': 'Identifica si /i/ y /u/ son vocales, semiconsonantes o semivocales.',
+        '2': 'Identifica oclusivas [b,d,g] vs aproximantes [β̞,ð̞,ɣ̞]. También /p,t,k/ en coda.',
+        '3': 'Transcribe /ʧ/, /f/, /θ/, /s/, /ʝ/, /x/. Atención a los alófonos de /ʝ/.',
+        '4': 'Identifica los 7 alófonos de /n/ según la consonante siguiente.',
+        '5': 'Alófonos de /l/ (asimilación) y /ɾ/ (vibrante [ɾ] vs aproximante [ɹ]).',
+        '6': 'Transcripción fonética completa con todas las reglas.',
+        '7': 'Fonosintaxis: fusión de vocales y consonantes homólogas entre palabras.'
+    };
+    document.getElementById('level-desc').textContent = descs[document.getElementById('sel-nivel').value] || '';
+}
+
+var _showFon = true;
+
+async function generateExercise() {
+    var nivel = document.getElementById('sel-nivel').value;
+    var items = document.getElementById('sel-items').value;
+    _showFon = document.getElementById('sel-fon').value === 'si';
+    document.getElementById('results-bar').style.display = 'none';
+
+    try {
+        var excludeList = (usedWords[nivel] || []).join(',');
+        var url = '/api/public-agent/eulalia/ejercicio-transcripcion-fonetica?nivel=' + nivel + '&items=' + items;
+        if (excludeList) url += '&exclude=' + encodeURIComponent(excludeList);
+        var res = await fetch(url);
+        if (!res.ok) throw new Error('Error ' + res.status);
+        var data = await res.json();
+        currentExercises = data.ejercicios;
+
+        // Track used words for this level
+        if (!usedWords[nivel]) usedWords[nivel] = [];
+        data.ejercicios.forEach(function(ej) { usedWords[nivel].push(ej.palabra); });
+
+        // Show hint
+        var pistaBox = document.getElementById('pista-box');
+        if (data.pista) {
+            pistaBox.textContent = data.pista;
+            pistaBox.style.display = 'block';
+        } else {
+            pistaBox.style.display = 'none';
+        }
+
+        // Render as table
+        var area = document.getElementById('exercise-area');
+        var html = '<table class="ejercicios"><thead><tr>';
+        html += '<th>Texto</th>';
+        html += '<th>Fonológica</th>';
+        html += '<th>Fonética</th>';
+        html += '</tr></thead><tbody>';
+
+        data.ejercicios.forEach(function(ej, idx) {
+            html += '<tr>';
+            html += '<td class="col-word">' + (idx+1) + '. ' + ej.palabra + '</td>';
+            if (_showFon) {
+                html += '<td class="col-fon">' + (ej.fonologica || '') + '</td>';
+            } else {
+                html += '<td class="col-resp">';
+                html += '<input type="text" id="resp-fon-' + idx + '" placeholder="/ ... /" onfocus="lastFocusedInput=this">';
+                html += '<div class="solution" id="sol-fon-' + idx + '">' + (ej.fonologica || '') + '</div>';
+                html += '</td>';
+            }
+            html += '<td class="col-resp">';
+            html += '<input type="text" id="resp-' + idx + '" placeholder="[ ... ]" onfocus="lastFocusedInput=this">';
+            html += '<div class="solution" id="sol-' + idx + '">' + ej.solucion + '</div>';
+            html += '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        area.innerHTML = html;
+
+        document.getElementById('action-bar').style.display = 'flex';
+    } catch(e) {
+        document.getElementById('exercise-area').innerHTML = '<p style="color:#dc2626;">Error al generar el ejercicio: ' + e.message + '</p>';
+    }
+}
+
+function normalize(s) {
+    return s.replace(/[\[\]\/ ]/g, '').replace(/'/g, 'ˈ').trim().toLowerCase();
+}
+
+function checkAll() {
+    var correct = 0;
+    var total = 0;
+    currentExercises.forEach(function(ej, idx) {
+        // Check fonética (always)
+        total++;
+        var inp = document.getElementById('resp-' + idx);
+        var sol = document.getElementById('sol-' + idx);
+        var userAns = normalize(inp.value);
+        var expected = normalize(ej.solucion);
+        if (userAns === expected) {
+            inp.className = 'correct';
+            correct++;
+        } else {
+            inp.className = 'incorrect';
+            sol.className = 'solution show';
+        }
+
+        // Check fonológica (only when not shown)
+        if (!_showFon) {
+            total++;
+            var inpFon = document.getElementById('resp-fon-' + idx);
+            var solFon = document.getElementById('sol-fon-' + idx);
+            var userFon = normalize(inpFon.value);
+            var expectedFon = normalize(ej.fonologica || '');
+            if (userFon === expectedFon) {
+                inpFon.className = 'correct';
+                correct++;
+            } else {
+                inpFon.className = 'incorrect';
+                solFon.className = 'solution show';
+            }
+        }
+    });
+
+    var pct = total > 0 ? Math.round(100 * correct / total) : 0;
+    document.getElementById('score-text').textContent = correct + '/' + total + ' (' + pct + '%)';
+    document.getElementById('results-bar').style.display = 'block';
+
+    // Save progress per level, then compute global across all 7 levels
+    var nivel = document.getElementById('sel-nivel').value;
+    var nivelKey = 'transcripcion_fonetica_n' + nivel;
+
+    if (typeof guardarProgreso === 'function') {
+        // Save this level's score
+        guardarProgreso(nivelKey, correct, total, {nivel: nivel});
+
+        // Compute global: count levels passed (≥60%) out of 7
+        var progress = {};
+        try { progress = JSON.parse(localStorage.getItem('lali_progress') || '{}'); } catch(e) {}
+        var nivelesAprobados = 0;
+        for (var n = 1; n <= 7; n++) {
+            var k = 'transcripcion_fonetica_n' + n;
+            var p = progress[k];
+            if (p && p.score >= 60) nivelesAprobados++;
+        }
+        guardarProgreso('transcripcion_fonetica', nivelesAprobados, 7, {niveles_aprobados: nivelesAprobados}, true);
+    }
+}
+
+function showSolutions() {
+    currentExercises.forEach(function(ej, idx) {
+        document.getElementById('sol-' + idx).className = 'solution show';
+        if (!_showFon) {
+            var solFon = document.getElementById('sol-fon-' + idx);
+            if (solFon) solFon.className = 'solution show';
+        }
+    });
+}
+</script>
+
+<!-- Progress script -->
+<script src="/static/eulalia/progreso.js"></script>
+
+</body>
+</html>

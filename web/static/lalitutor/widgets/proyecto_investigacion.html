@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto de investigación — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; height: 100vh; display: flex; flex-direction: column; }
+
+/* Header */
+.header { background: #4250b3; padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.header .title { color: #fff; font-size: 15px; font-weight: 600; flex: 1; }
+.header .grupo-info { color: rgba(255,255,255,0.7); font-size: 12px; }
+
+/* Layout */
+.layout { flex: 1; display: flex; overflow: hidden; }
+
+/* Sidebar */
+.sidebar { width: 220px; background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; }
+.fase-nav { flex: 1; padding: 12px 0; }
+.fase-btn {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 16px;
+    border: none; background: none; cursor: pointer; font-family: inherit;
+    font-size: 13px; color: #475569; text-align: left; transition: all 0.15s;
+    border-left: 3px solid transparent;
+}
+.fase-btn:hover { background: #f8fafc; }
+.fase-btn.active { background: #f5f3ff; color: #4250b3; font-weight: 700; border-left-color: #4250b3; }
+.fase-btn .fase-num {
+    width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;
+    background: #e2e8f0; color: #64748b;
+}
+.fase-btn.active .fase-num { background: #4250b3; color: #fff; }
+.fase-btn.done .fase-num { background: #16a34a; color: #fff; }
+.fase-btn .fase-status { font-size: 10px; color: #94a3b8; margin-left: auto; }
+
+.sidebar-actions { padding: 12px 16px; border-top: 1px solid #e2e8f0; }
+.sidebar-actions button {
+    width: 100%; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    border: 1px solid #e2e8f0; background: #fff; color: #475569; cursor: pointer;
+    font-family: inherit; margin-bottom: 6px; transition: all 0.15s;
+}
+.sidebar-actions button:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+/* Main content area */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Phase content */
+.fase-content { flex: 1; overflow-y: auto; padding: 24px; }
+.fase-header { margin-bottom: 16px; }
+.fase-header h2 { font-size: 18px; color: #1e293b; margin-bottom: 4px; }
+.fase-header p { font-size: 13px; color: #64748b; line-height: 1.6; }
+
+.fase-instructions {
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;
+    padding: 14px 18px; margin-bottom: 20px; font-size: 13px; line-height: 1.7; color: #1e40af;
+}
+
+.editor-area { margin-bottom: 20px; }
+.editor-area label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 6px; }
+.editor-area textarea {
+    width: 100%; min-height: 200px; padding: 14px; border: 2px solid #e2e8f0;
+    border-radius: 8px; font-family: inherit; font-size: 14px; line-height: 1.7;
+    resize: vertical; transition: border-color 0.2s;
+}
+.editor-area textarea:focus { outline: none; border-color: #4250b3; }
+.save-status { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+/* Chat panel */
+.chat-panel {
+    height: 300px; border-top: 2px solid #e2e8f0; display: flex; flex-direction: column;
+    background: #fff; flex-shrink: 0;
+}
+.chat-toggle {
+    padding: 8px 20px; cursor: pointer; font-size: 12px; font-weight: 700;
+    color: #4250b3; display: flex; align-items: center; gap: 6px;
+    border-bottom: 1px solid #f1f5f9; user-select: none;
+}
+.chat-toggle:hover { background: #f8fafc; }
+.chat-messages {
+    flex: 1; overflow-y: auto; padding: 12px 20px; display: flex;
+    flex-direction: column; gap: 10px; font-size: 13px;
+}
+.chat-messages .msg { padding: 8px 12px; border-radius: 8px; max-width: 85%; line-height: 1.6; }
+.chat-messages .msg.user { background: #eff6ff; align-self: flex-end; color: #1e40af; }
+.chat-messages .msg.assistant { background: #f8fafc; border: 1px solid #e2e8f0; align-self: flex-start; }
+.chat-messages .msg .msg-meta { font-size: 10px; color: #94a3b8; margin-top: 4px; }
+.chat-input-row { display: flex; gap: 8px; padding: 8px 16px; border-top: 1px solid #f1f5f9; }
+.chat-input-row input {
+    flex: 1; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px;
+    font-family: inherit; font-size: 13px;
+}
+.chat-input-row input:focus { outline: none; border-color: #4250b3; }
+.chat-input-row button {
+    padding: 8px 16px; background: #4250b3; color: #fff; border: none;
+    border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit;
+}
+.chat-input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+.chat-collapsed .chat-messages, .chat-collapsed .chat-input-row { display: none; }
+.chat-collapsed { height: auto; }
+
+/* Welcome / project selection */
+.welcome { padding: 32px; max-width: 600px; margin: 0 auto; }
+.welcome h2 { color: #4250b3; margin-bottom: 12px; }
+.welcome p { color: #64748b; font-size: 14px; line-height: 1.7; margin-bottom: 16px; }
+.project-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 10px;
+    padding: 16px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s;
+}
+.project-card:hover { border-color: #4250b3; background: #f5f3ff; }
+.project-card h3 { font-size: 14px; color: #1e293b; margin-bottom: 4px; }
+.project-card .meta { font-size: 12px; color: #94a3b8; }
+
+.btn { padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
+.btn-primary { background: #4250b3; color: #fff; }
+.btn-primary:hover { background: #3740a0; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 14px; padding: 28px; width: 90%; max-width: 450px; }
+.modal h3 { font-size: 16px; color: #4250b3; margin-bottom: 16px; }
+.modal label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; margin-top: 12px; }
+.modal input, .modal textarea { width: 100%; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-family: inherit; font-size: 13px; }
+.modal input:focus, .modal textarea:focus { outline: none; border-color: #4250b3; }
+.modal .modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+@media (max-width: 768px) {
+    .sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">></span>
+    <span class="title" id="header-title">Proyecto de investigación</span>
+    <span class="grupo-info" id="header-grupo"></span>
+</div>
+
+<div class="layout">
+    <!-- Sidebar: phases + actions -->
+    <aside class="sidebar" id="sidebar" style="display:none;">
+        <div class="fase-nav">
+            <button class="fase-btn active" onclick="showFase(0)" id="fase-btn-0">
+                <span class="fase-num">1</span>
+                <span>Introducción</span>
+                <span class="fase-status" id="fase-status-0"></span>
+            </button>
+            <button class="fase-btn" onclick="showFase(1)" id="fase-btn-1">
+                <span class="fase-num">2</span>
+                <span>Metodología</span>
+                <span class="fase-status" id="fase-status-1"></span>
+            </button>
+            <button class="fase-btn" onclick="showFase(2)" id="fase-btn-2">
+                <span class="fase-num">3</span>
+                <span>Resultados</span>
+                <span class="fase-status" id="fase-status-2"></span>
+            </button>
+            <button class="fase-btn" onclick="showFase(3)" id="fase-btn-3">
+                <span class="fase-num">4</span>
+                <span>Discusión</span>
+                <span class="fase-status" id="fase-status-3"></span>
+            </button>
+        </div>
+        <div class="sidebar-actions">
+            <button onclick="showInviteModal()">+ Invitar compañero/a</button>
+            <button onclick="showProjectList()">Mis proyectos</button>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="main">
+        <!-- Welcome / project list -->
+        <div id="welcome-view" class="fase-content">
+            <div class="welcome">
+                <h2>Proyecto de investigación</h2>
+                <p>Este proyecto te guiará en la realización de un mini-estudio fonológico. Trabajarás en grupo,
+                buscarás un paciente, analizarás su habla y redactarás un informe siguiendo la estructura de
+                un trabajo de investigación.</p>
+                <p>Eulalia te asistirá en cada fase, pero recuerda: sus respuestas usan IA (🟡) y pueden contener errores.
+                Tu espíritu crítico es parte de la evaluación.</p>
+
+                <div id="my-projects"></div>
+
+                <div style="margin-top:16px;">
+                    <button class="btn btn-primary" onclick="showCreateModal()">Crear nuevo proyecto</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase editor (hidden until project loaded) -->
+        <div id="editor-view" style="display:none;flex:1;display:none;flex-direction:column;overflow:hidden;">
+            <div class="fase-content" id="fase-content">
+                <!-- Filled dynamically -->
+            </div>
+
+            <!-- Chat panel -->
+            <div class="chat-panel" id="chat-panel">
+                <div class="chat-toggle" onclick="toggleChat()">
+                    <span>💬</span> <span id="chat-toggle-text">Consulta a Eulalia sobre esta fase</span> <span style="margin-left:auto;font-size:10px;">▼</span>
+                </div>
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-input-row">
+                    <input type="text" id="chat-input" placeholder="Pregunta a Eulalia..." onkeydown="if(event.key==='Enter')sendProjectChat()">
+                    <button onclick="sendProjectChat()" id="chat-send-btn">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create project modal -->
+<div class="modal-overlay" id="create-modal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal">
+        <h3>Crear nuevo proyecto</h3>
+        <label>Título del proyecto</label>
+        <input type="text" id="create-titulo" placeholder="Ej: Análisis fonológico de un caso de dislalia">
+        <div class="modal-btns">
+            <button class="btn btn-secondary" onclick="document.getElementById('create-modal').classList.remove('show')">Cancelar</button>
+            <button class="btn btn-primary" onclick="createProject()">Crear</button>
+        </div>
+    </div>
+</div>
+
+<!-- Invite modal -->
+<div class="modal-overlay" id="invite-modal" onclick="if(event.target===this)this.classList.remove('show')">
+    <div class="modal">
+        <h3>Invitar compañero/a</h3>
+        <label>Email del compañero/a</label>
+        <input type="email" id="invite-email" placeholder="compañero@uma.es">
+        <div id="invite-status" style="font-size:12px;margin-top:8px;"></div>
+        <div class="modal-btns">
+            <button class="btn btn-secondary" onclick="document.getElementById('invite-modal').classList.remove('show')">Cancelar</button>
+            <button class="btn btn-primary" onclick="inviteMember()">Invitar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// ── Config ──
+var FASES = [
+    {
+        id: 'introduccion',
+        titulo: 'Introducción',
+        instrucciones: 'En esta fase debes presentar a tu paciente y formular tus preguntas de investigación.<br><br>' +
+            '<strong>Tareas:</strong><ul style="margin:8px 0 0 16px;">' +
+            '<li>Describe al paciente: edad, contexto, habilidades cognitivas, motivo de consulta.</li>' +
+            '<li>Revisa la literatura sobre los macro-patrones fonológicos (lenición, fortición, en desarrollo, prosódico). Puedes preguntar a Eulalia, pero contrasta con otras fuentes.</li>' +
+            '<li>Formula una o varias preguntas de investigación / hipótesis.</li></ul>',
+        placeholder: 'Describe al paciente y formula tus preguntas de investigación...'
+    },
+    {
+        id: 'metodologia',
+        titulo: 'Metodología',
+        instrucciones: 'Diseña las pruebas de evaluación y justifica por qué son adecuadas para tu hipótesis.<br><br>' +
+            '<strong>Tareas:</strong><ul style="margin:8px 0 0 16px;">' +
+            '<li>Describe qué pruebas vas a usar para evaluar al paciente.</li>' +
+            '<li>Justifica por qué son coherentes con las preguntas planteadas en la introducción.</li>' +
+            '<li>Puedes preguntar a Eulalia si tu metodología es adecuada.</li></ul>',
+        placeholder: 'Describe tu metodología...'
+    },
+    {
+        id: 'resultados',
+        titulo: 'Resultados',
+        instrucciones: 'Presenta los datos obtenidos de tu paciente.<br><br>' +
+            '<strong>Tareas:</strong><ul style="margin:8px 0 0 16px;">' +
+            '<li>Incluye transcripciones (fonológicas y/o fonéticas).</li>' +
+            '<li>Presenta informes de errores y medidas cuantitativas.</li>' +
+            '<li>Describe observaciones prosódicas.</li>' +
+            '<li>Puedes pasar los resultados a Eulalia para ver si se ajustan a tu metodología.</li></ul>',
+        placeholder: 'Presenta tus resultados: transcripciones, errores, observaciones...'
+    },
+    {
+        id: 'discusion',
+        titulo: 'Discusión y conclusiones',
+        instrucciones: 'Resume los resultados e intenta responder a tus preguntas de investigación.<br><br>' +
+            '<strong>Tareas:</strong><ul style="margin:8px 0 0 16px;">' +
+            '<li>¿Los datos confirman tu hipótesis?</li>' +
+            '<li>¿Hay resultados inesperados?</li>' +
+            '<li>¿Qué limitaciones tiene tu estudio?</li>' +
+            '<li>¿Qué preguntas quedan abiertas?</li></ul>',
+        placeholder: 'Discute tus resultados y formula conclusiones...'
+    }
+];
+
+var currentProject = null;
+var currentFase = 0;
+var saveTimer = null;
+
+function getToken() { return localStorage.getItem('tutores_token') || ''; }
+function authUrl(url) {
+    var t = getToken();
+    if (!t) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(t);
+}
+
+// ── Project list ──
+async function loadProjects() {
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos'));
+        if (!res.ok) return;
+        var data = await res.json();
+        renderProjectList(data.proyectos || []);
+    } catch(e) {}
+}
+
+function renderProjectList(proyectos) {
+    var el = document.getElementById('my-projects');
+    if (!proyectos.length) {
+        el.innerHTML = '<p style="color:#94a3b8;font-size:13px;font-style:italic;">No tienes proyectos aún.</p>';
+        return;
+    }
+    var html = '<h3 style="font-size:14px;color:#475569;margin-bottom:10px;">Mis proyectos</h3>';
+    proyectos.forEach(function(p) {
+        var miembros = (p.grupo || []).join(', ');
+        var fases_done = 0;
+        FASES.forEach(function(f) { if (p.fases && p.fases[f.id] && p.fases[f.id].texto) fases_done++; });
+        html += '<div class="project-card" onclick="loadProject(\'' + p.id + '\')">';
+        html += '<h3>' + (p.titulo || 'Sin título') + '</h3>';
+        html += '<div class="meta">' + miembros + ' · ' + fases_done + '/4 fases · ' + (p.updated || '') + '</div>';
+        html += '</div>';
+    });
+    el.innerHTML = html;
+}
+
+function showProjectList() {
+    document.getElementById('welcome-view').style.display = '';
+    document.getElementById('editor-view').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'none';
+    loadProjects();
+}
+
+// ── Create project ──
+function showCreateModal() {
+    document.getElementById('create-titulo').value = '';
+    document.getElementById('create-modal').classList.add('show');
+}
+
+async function createProject() {
+    var titulo = document.getElementById('create-titulo').value.trim();
+    if (!titulo) { alert('Introduce un título'); return; }
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titulo: titulo })
+        });
+        if (!res.ok) { var e = await res.json(); alert(e.detail || 'Error'); return; }
+        var data = await res.json();
+        document.getElementById('create-modal').classList.remove('show');
+        loadProject(data.id);
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── Load project ──
+async function loadProject(id) {
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + id));
+        if (!res.ok) { alert('No se pudo cargar el proyecto'); return; }
+        currentProject = await res.json();
+        showEditor();
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+function showEditor() {
+    document.getElementById('welcome-view').style.display = 'none';
+    document.getElementById('editor-view').style.display = 'flex';
+    document.getElementById('sidebar').style.display = '';
+    document.getElementById('header-title').textContent = currentProject.titulo || 'Proyecto';
+    document.getElementById('header-grupo').textContent = (currentProject.grupo || []).join(', ');
+    updateFaseButtons();
+    showFase(0);
+}
+
+// ── Phases ──
+function showFase(idx) {
+    currentFase = idx;
+    // Update nav
+    document.querySelectorAll('.fase-btn').forEach(function(btn, i) {
+        btn.className = 'fase-btn' + (i === idx ? ' active' : '');
+        // Mark done
+        var faseId = FASES[i].id;
+        var texto = currentProject.fases && currentProject.fases[faseId] ? currentProject.fases[faseId].texto || '' : '';
+        if (texto.length > 50) btn.classList.add('done');
+    });
+
+    var fase = FASES[idx];
+    var faseData = (currentProject.fases && currentProject.fases[fase.id]) || {};
+    var html = '<div class="fase-header"><h2>' + fase.titulo + '</h2></div>';
+    html += '<div class="fase-instructions">' + fase.instrucciones + '</div>';
+    html += '<div class="editor-area">';
+    html += '<label>Tu trabajo</label>';
+    html += '<textarea id="fase-editor" placeholder="' + fase.placeholder + '" oninput="onEditorInput()">' + (faseData.texto || '') + '</textarea>';
+    html += '<div class="save-status" id="save-status">' + (faseData.ultima_edicion ? 'Guardado: ' + faseData.ultima_edicion : '') + '</div>';
+    html += '</div>';
+    document.getElementById('fase-content').innerHTML = html;
+
+    // Load chat for this phase
+    loadFaseChat();
+}
+
+function updateFaseButtons() {
+    FASES.forEach(function(f, i) {
+        var texto = currentProject.fases && currentProject.fases[f.id] ? currentProject.fases[f.id].texto || '' : '';
+        var status = document.getElementById('fase-status-' + i);
+        if (texto.length > 50) status.textContent = '✓';
+        else if (texto.length > 0) status.textContent = '...';
+        else status.textContent = '';
+    });
+}
+
+// ── Auto-save ──
+function onEditorInput() {
+    document.getElementById('save-status').textContent = 'Guardando...';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveFase, 2000);
+}
+
+async function saveFase() {
+    if (!currentProject) return;
+    var fase = FASES[currentFase];
+    var texto = document.getElementById('fase-editor').value;
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + currentProject.id + '/fases/' + fase.id), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ texto: texto })
+        });
+        if (res.ok) {
+            var now = new Date().toLocaleString('es-ES', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+            document.getElementById('save-status').textContent = 'Guardado: ' + now;
+            if (!currentProject.fases) currentProject.fases = {};
+            currentProject.fases[fase.id] = { texto: texto, ultima_edicion: now };
+            updateFaseButtons();
+        }
+    } catch(e) {
+        document.getElementById('save-status').textContent = 'Error al guardar';
+    }
+}
+
+// ── Chat ──
+var chatCollapsed = false;
+
+function toggleChat() {
+    chatCollapsed = !chatCollapsed;
+    document.getElementById('chat-panel').className = 'chat-panel' + (chatCollapsed ? ' chat-collapsed' : '');
+    document.getElementById('chat-toggle-text').textContent = chatCollapsed ? 'Mostrar chat con Eulalia' : 'Consulta a Eulalia sobre esta fase';
+}
+
+function loadFaseChat() {
+    var msgs = document.getElementById('chat-messages');
+    msgs.innerHTML = '';
+    if (!currentProject || !currentProject.chat) return;
+    var fase = FASES[currentFase].id;
+    currentProject.chat.filter(function(m) { return m.fase === fase; }).forEach(function(m) {
+        appendChatMsg(m.mensaje, 'user', m.autor, m.fecha);
+        if (m.respuesta) appendChatMsg(m.respuesta, 'assistant', 'Eulalia', m.fecha);
+    });
+}
+
+function appendChatMsg(text, role, author, date) {
+    var msgs = document.getElementById('chat-messages');
+    var div = document.createElement('div');
+    div.className = 'msg ' + role;
+    div.innerHTML = text + '<div class="msg-meta">' + (author || '') + (date ? ' · ' + date : '') + '</div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendProjectChat() {
+    if (!currentProject) return;
+    var input = document.getElementById('chat-input');
+    var msg = input.value.trim();
+    if (!msg) return;
+
+    var btn = document.getElementById('chat-send-btn');
+    btn.disabled = true;
+    input.value = '';
+
+    var fase = FASES[currentFase];
+    var textoFase = document.getElementById('fase-editor') ? document.getElementById('fase-editor').value : '';
+
+    appendChatMsg(msg, 'user', 'Tú', '');
+
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + currentProject.id + '/chat'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mensaje: msg,
+                fase: fase.id,
+                contexto_fase: textoFase.substring(0, 2000)
+            })
+        });
+        if (!res.ok) throw new Error('Error del servidor');
+        var data = await res.json();
+        appendChatMsg(data.respuesta, 'assistant', 'Eulalia', '');
+        // Update local project chat
+        if (!currentProject.chat) currentProject.chat = [];
+        currentProject.chat.push({
+            autor: 'yo', mensaje: msg, respuesta: data.respuesta,
+            fase: fase.id, fecha: new Date().toLocaleString('es-ES'),
+            response_type: data.response_type || 'llm'
+        });
+    } catch(e) {
+        appendChatMsg('Error de conexión. Inténtalo de nuevo.', 'assistant', 'Sistema', '');
+    }
+    btn.disabled = false;
+    input.focus();
+}
+
+// ── Invite ──
+function showInviteModal() {
+    document.getElementById('invite-email').value = '';
+    document.getElementById('invite-status').textContent = '';
+    document.getElementById('invite-modal').classList.add('show');
+}
+
+async function inviteMember() {
+    if (!currentProject) return;
+    var email = document.getElementById('invite-email').value.trim().toLowerCase();
+    if (!email || email.indexOf('@') < 0) { document.getElementById('invite-status').textContent = 'Email no válido'; return; }
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + currentProject.id + '/invitar'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        });
+        var data = await res.json();
+        if (!res.ok) { document.getElementById('invite-status').textContent = data.detail || 'Error'; return; }
+        document.getElementById('invite-status').innerHTML = '<span style="color:#16a34a;">Invitación enviada</span>';
+        if (!currentProject.grupo) currentProject.grupo = [];
+        if (currentProject.grupo.indexOf(email) < 0) currentProject.grupo.push(email);
+        document.getElementById('header-grupo').textContent = currentProject.grupo.join(', ');
+    } catch(e) { document.getElementById('invite-status').textContent = 'Error: ' + e.message; }
+}
+
+// ── Init ──
+loadProjects();
+
+</script>
+</body>
+</html>

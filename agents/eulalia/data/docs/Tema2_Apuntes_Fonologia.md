@@ -35,7 +35,7 @@ Mientras estudies este tema, debes tener presente que, aunque vamos a describir 
 
 En esta asignatura describimos las consonantes a partir de estos cuatro rasgos: sonoridad, nasalidad, modo de articulación y lugar de articulación. Los presentamos en el orden en que intervienen en en la configuración del sonido. 
 
-<img src="/static/lalitutor/tema2/img/Tema2_SistemaProduccionHabla.jpg" alt="Sistema de producción del habla" style="max-width:80%;">
+<img src="/static/eulalia/tema2/img/Tema2_SistemaProduccionHabla.jpg" alt="Sistema de producción del habla" style="max-width:80%;">
 
 *Imagen: Sistema de producción del habla. Observa que las cuerdas vocales son determinantes para la sonoridad, el velo para la nasalidad, y el resto de los elementos son los que determinan el lugar y el modo de articulación*
    
@@ -124,7 +124,7 @@ representación siguiente: el triángulo de las vocales.
 <strong style="font-size:16px; color:#3730a3;">Cuadro de fonemas consonánticos del español</strong>
 </div>
 
-<img src="/static/lalitutor/tema2/img/Tema2_CuadroConsonantes.jpg" alt="Cuadro de fonemas consonánticos del español: modo de articulación (filas) y lugar de articulación (columnas), con distinción sorda/sonora" style="max-width:90%;">
+<img src="/static/eulalia/tema2/img/Tema2_CuadroConsonantes.jpg" alt="Cuadro de fonemas consonánticos del español: modo de articulación (filas) y lugar de articulación (columnas), con distinción sorda/sonora" style="max-width:90%;">
 
 *Imagen: Los 18 fonemas consonánticos del español organizados por modo de articulación (filas: oclusiva, africada, fricativa, nasal, lateral, vibrante simple, vibrante múltiple) y lugar de articulación (columnas: bilabial, labiodental, interdental, dental, alveolar, palatal, velar). Cada celda distingue entre sorda (Sor) y sonora (Son).*
 

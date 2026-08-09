@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Define conceptos — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header a:hover { opacity: 0.85; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+
+.container { max-width: 700px; margin: 0 auto; padding: 32px 20px; }
+
+h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+/* Concept selector */
+.concept-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.concept-chip {
+    padding: 8px 16px; border-radius: 20px; border: 2px solid #e2e8f0;
+    font-size: 13px; font-weight: 600; cursor: pointer; background: #fff;
+    font-family: inherit; transition: all 0.2s; color: #475569;
+}
+.concept-chip:hover { border-color: #4250b3; color: #4250b3; }
+.concept-chip.active { background: #4250b3; color: #fff; border-color: #4250b3; }
+.concept-chip .chip-tema { font-size: 10px; color: #94a3b8; margin-right: 4px; }
+.concept-chip.active .chip-tema { color: rgba(255,255,255,0.7); }
+.concept-chip.done { border-color: #bbf7d0; }
+.concept-chip.done::after { content: ' ✓'; color: #16a34a; font-size: 11px; }
+.concept-chip.active.done::after { color: rgba(255,255,255,0.8); }
+
+/* Task card */
+.task-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 24px; margin-bottom: 24px; display: none;
+}
+.task-card.show { display: block; }
+.task-label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
+.concept-name { font-size: 20px; font-weight: 700; color: #4250b3; margin-bottom: 6px; }
+.concept-hint { font-size: 13px; color: #64748b; margin-bottom: 16px; line-height: 1.5; }
+
+textarea {
+    width: 100%; min-height: 120px; padding: 14px; border: 2px solid #e2e8f0;
+    border-radius: 8px; font-family: inherit; font-size: 14px; line-height: 1.6;
+    resize: vertical; transition: border-color 0.2s;
+}
+textarea:focus { outline: none; border-color: #4250b3; }
+.char-count { font-size: 12px; color: #94a3b8; margin-top: 4px; text-align: right; }
+
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.btn-primary { background: #4250b3; color: #fff; }
+.btn-primary:hover { background: #3740a0; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.submit-row { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+
+.loading { display: none; align-items: center; gap: 10px; margin-top: 16px; font-size: 14px; color: #64748b; }
+.loading.show { display: flex; }
+.spinner { width: 20px; height: 20px; border: 3px solid #e2e8f0; border-top-color: #4250b3; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Results */
+.results { display: none; animation: fadeIn 0.4s ease; }
+.results.show { display: block; }
+
+.score-bar {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    padding: 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;
+}
+.score-circle {
+    width: 60px; height: 60px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; flex-direction: column;
+    font-size: 22px; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.score-circle.pass { background: linear-gradient(135deg, #16a34a, #22c55e); }
+.score-circle.partial { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+.score-circle.fail { background: linear-gradient(135deg, #dc2626, #ef4444); }
+.score-circle .score-label { font-size: 9px; font-weight: 600; opacity: 0.9; }
+.score-text { font-size: 15px; line-height: 1.5; }
+.score-text strong { color: #1e293b; }
+
+.criteria-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.criterion { display: flex; gap: 12px; padding: 12px 14px; border-radius: 8px; border: 1px solid #e2e8f0; }
+.criterion-icon { font-size: 20px; flex-shrink: 0; }
+.criterion-text { font-size: 13px; line-height: 1.5; }
+.criterion-desc { font-weight: 600; color: #1e293b; }
+.criterion-comment { color: #64748b; margin-top: 2px; }
+.criterion.pass { border-color: #bbf7d0; background: #f0fdf4; }
+.criterion.fail { border-color: #fecaca; background: #fef2f2; }
+
+.general-feedback {
+    background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px;
+    padding: 16px; font-size: 14px; line-height: 1.6; color: #3730a3; margin-bottom: 20px;
+}
+
+.result-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">›</span>
+    <span class="title">Practica</span>
+    <span class="sep">›</span>
+    <span class="title" id="header-tema">Conceptos</span>
+</div>
+
+<div class="container">
+
+    <h2>Define conceptos con tus palabras</h2>
+    <p class="subtitle">
+        Elige un concepto y escribe tu propia definición. No se trata de repetir el temario de memoria,
+        sino de demostrar que comprendes la idea.
+    </p>
+
+    <div class="concept-grid" id="concept-grid"></div>
+
+    <div class="task-card" id="task-card">
+        <div class="task-label">Concepto a definir</div>
+        <div class="concept-name" id="concept-name"></div>
+        <div class="concept-hint" id="concept-hint"></div>
+
+        <textarea id="def-input" placeholder="Escribe aquí tu definición..." oninput="updateCount()"></textarea>
+        <div class="char-count"><span id="char-count">0</span> caracteres</div>
+
+        <div class="submit-row">
+            <span style="font-size:12px; color:#94a3b8;">Mínimo 30 caracteres</span>
+            <button class="btn btn-primary" id="btn-submit" onclick="submitDefinition()" disabled>Evaluar</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            Evaluando tu definición...
+        </div>
+    </div>
+
+    <div class="results" id="results">
+        <div class="score-bar" id="score-bar"></div>
+        <div class="criteria-list" id="criteria-list"></div>
+        <div class="general-feedback" id="general-feedback"></div>
+        <div class="result-buttons">
+            <button class="btn btn-secondary" onclick="retry()">Intentar de nuevo</button>
+            <button class="btn btn-secondary" onclick="nextConcept()">Otro concepto</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+// ── Concept bank ──
+var CONCEPTOS = [
+    // Tema 1
+    {
+        id: 'fonema', tema: 1, nombre: 'Fonema',
+        pista: 'Piensa en qué distingue a un fonema de un sonido concreto y de una letra.',
+        referencia: 'Un fonema se puede definir de dos formas: (1) Es una clase de sonidos, tales que todos los sonidos de la clase permiten transmitir el mismo contenido semántico. (2) Es una representación mental que nos permite producir sonidos concretos e interpretar los sonidos que oímos. Los fonemas no son sonidos concretos ni letras. Se representan entre barras: /p/.',
+        rubrica: [
+            {descripcion: 'Menciona que un fonema es una clase o categoría de sonidos (no un sonido concreto individual).'},
+            {descripcion: 'Menciona que un fonema es una representación mental o abstracción cognitiva.'},
+            {descripcion: 'Indica o implica que los sonidos dentro de una misma clase permiten transmitir el mismo significado.'},
+            {descripcion: 'No confunde fonema con letra, sílaba o sonido concreto (alófono).'}
+        ]
+    },
+    {
+        id: 'alofono', tema: 1, nombre: 'Alófono',
+        pista: 'Piensa en la relación entre alófono y fonema. ¿Qué diferencia hay entre [b] y [β̞]?',
+        referencia: 'Un alófono es cada una de las variantes concretas en que se realiza un fonema, condicionadas por el contexto fonológico. Por ejemplo, el fonema /b/ tiene dos alófonos: [b] (oclusivo, tras pausa o nasal) y [β̞] (aproximante, entre vocales). Los alófonos se representan entre corchetes. Cambiar un alófono por otro del mismo fonema no cambia el significado.',
+        rubrica: [
+            {descripcion: 'Define alófono como una variante o realización concreta de un fonema.'},
+            {descripcion: 'Indica que los alófonos dependen del contexto fonológico.'},
+            {descripcion: 'Indica que cambiar un alófono por otro del mismo fonema no cambia el significado.'},
+            {descripcion: 'Usa un ejemplo correcto o diferencia claramente alófono de fonema.'}
+        ]
+    },
+    {
+        id: 'representacion_mental', tema: 1, nombre: 'Representación mental',
+        pista: 'Piensa en qué tienes "en la cabeza" cuando reconoces una letra o un sonido.',
+        referencia: 'Una representación mental es un modelo interno que el cerebro almacena y que permite reconocer, producir e interpretar algo del mundo exterior sin tenerlo delante. Son abstractas (generalizaciones, no copias), multimodales (visual, auditiva, motora) y son la base tanto de la producción como de la percepción.',
+        rubrica: [
+            {descripcion: 'Define como un modelo o imagen interna del cerebro.'},
+            {descripcion: 'Indica que permite reconocer o producir algo sin tenerlo delante.'},
+            {descripcion: 'Menciona que es abstracta (no es una copia exacta de un estímulo).'},
+            {descripcion: 'Usa un ejemplo o conecta con la fonología.'}
+        ]
+    },
+    {
+        id: 'pseudopalabra', tema: 1, nombre: 'Pseudopalabra',
+        pista: 'Piensa en para qué se usan en logopedia y qué las diferencia de una palabra real.',
+        referencia: 'Una pseudopalabra es una expresión que se parece fonológicamente a una palabra real, pero que no tiene un significado asociado. Ejemplos: apregue, droti. Se usan en logopedia para evaluar el procesamiento fonológico por vía indirecta, ya que al no poder usar la ruta directa (memorización), el hablante debe procesar fonema a fonema.',
+        rubrica: [
+            {descripcion: 'Define como una expresión sin significado que suena a palabra posible.'},
+            {descripcion: 'Indica que respeta las reglas fonotácticas de la lengua.'},
+            {descripcion: 'Menciona su uso en evaluación logopédica o en la vía indirecta.'},
+            {descripcion: 'Da un ejemplo o distingue de una palabra real.'}
+        ]
+    },
+    // Tema 2
+    {
+        id: 'silaba', tema: 2, nombre: 'Sílaba',
+        pista: 'Piensa en los componentes de una sílaba y cuál es obligatorio.',
+        referencia: 'La sílaba es una unidad fonológica formada por un núcleo (siempre una vocal) y opcionalmente un ataque (consonantes antes del núcleo) y una coda (consonantes después del núcleo). El núcleo es el único componente obligatorio.',
+        rubrica: [
+            {descripcion: 'Menciona que la sílaba tiene un núcleo que es una vocal.'},
+            {descripcion: 'Menciona el ataque y/o la coda como componentes opcionales.'},
+            {descripcion: 'Indica que el núcleo es obligatorio.'},
+            {descripcion: 'Da un ejemplo correcto de sílaba analizada.'}
+        ]
+    },
+    {
+        id: 'palabra_prosodica', tema: 2, nombre: 'Palabra prosódica',
+        pista: 'Piensa en qué pasa con los artículos y preposiciones cuando hablamos.',
+        referencia: 'Una palabra prosódica es una unidad formada por una palabra léxica (tónica) junto con las palabras átonas que se le asocian (artículos, preposiciones, clíticos), de modo que el conjunto se pronuncia como un bloque con un único acento principal. Por ejemplo, "la mesa" es una sola palabra prosódica.',
+        rubrica: [
+            {descripcion: 'Define como una unidad que agrupa palabra tónica + palabras átonas.'},
+            {descripcion: 'Menciona que tiene un único acento principal.'},
+            {descripcion: 'Da ejemplos de palabras átonas (artículos, preposiciones, etc.).'},
+            {descripcion: 'Da un ejemplo correcto (como "la mesa" = una palabra prosódica).'}
+        ]
+    },
+    {
+        id: 'transcripcion_fonologica', tema: 2, nombre: 'Transcripción fonológica',
+        pista: 'Piensa en qué la diferencia de la ortografía y de la transcripción fonética.',
+        referencia: 'La transcripción fonológica es un sistema de representación que asocia un símbolo gráfico a cada fonema de forma sistemática (cada fonema = un símbolo, cada símbolo = un fonema). Se representa entre barras /.../ con separación silábica (puntos) y marca de acento (ˈ). A diferencia de la ortografía, es completamente sistemática.',
+        rubrica: [
+            {descripcion: 'Indica que representa fonemas (no sonidos concretos ni letras).'},
+            {descripcion: 'Menciona que se usan barras / / y la separación silábica con puntos.'},
+            {descripcion: 'Indica que la relación fonema-símbolo es sistemática (biunívoca).'},
+            {descripcion: 'La diferencia de la ortografía o de la transcripción fonética.'}
+        ]
+    },
+    {
+        id: 'ppc', tema: 2, nombre: 'PPC (Porcentaje de palabras correctas)',
+        pista: 'Piensa en cómo se calcula y para qué sirve en la práctica logopédica.',
+        referencia: 'El PPC es una medida cuantitativa que indica qué porcentaje de las palabras producidas por un hablante son completamente correctas. Se calcula dividiendo las palabras correctas entre el total. Es rápida pero de información limitada.',
+        rubrica: [
+            {descripcion: 'Define como porcentaje de palabras producidas correctamente.'},
+            {descripcion: 'Indica cómo se calcula (correctas / total).'},
+            {descripcion: 'Menciona que es una medida cuantitativa o rápida.'},
+            {descripcion: 'Menciona alguna limitación o ventaja.'}
+        ]
+    },
+    {
+        id: 'asimilacion', tema: 2, nombre: 'Asimilación (error fonológico)',
+        pista: 'Piensa en la diferencia entre asimilación regresiva y progresiva.',
+        referencia: 'La asimilación es un error de estructura de palabra que consiste en producir un sonido como otro próximo. Puede ser regresiva (un sonido cambia por efecto de otro que viene después: /ˈka.na/ → /ˈna.na/) o progresiva (por efecto de otro anterior: /ˈke.so/ → /ˈke.ko/).',
+        rubrica: [
+            {descripcion: 'Define como un sonido que se hace similar a otro cercano.'},
+            {descripcion: 'Distingue entre regresiva (influencia del siguiente) y progresiva (del anterior).'},
+            {descripcion: 'Lo clasifica como error de estructura de palabra.'},
+            {descripcion: 'Da al menos un ejemplo correcto.'}
+        ]
+    },
+    {
+        id: 'errores_sistemicos', tema: 2, nombre: 'Errores sistémicos',
+        pista: 'Piensa en qué rasgos del fonema pueden verse afectados.',
+        referencia: 'Los errores sistémicos afectan a la identidad del fonema, es decir, a uno de sus rasgos: sonoridad (sonorización/ensordecimiento), nasalidad (nasalización/desnasalización), modo de articulación (lenición/fortición) o lugar de articulación (adelantamiento/posteriorización).',
+        rubrica: [
+            {descripcion: 'Define como errores que afectan a la identidad del fonema o a sus rasgos.'},
+            {descripcion: 'Menciona al menos dos de los cuatro rasgos (sonoridad, nasalidad, modo, lugar).'},
+            {descripcion: 'Da un ejemplo correcto de error sistémico con nombre del subtipo.'},
+            {descripcion: 'Lo diferencia de los errores de estructura de sílaba o de palabra.'}
+        ]
+    },
+    {
+        id: 'errores_estructura_palabra', tema: 2, nombre: 'Errores de estructura de palabra',
+        pista: 'Piensa en qué le ocurre a la palabra como un todo: ¿se pierden sílabas? ¿se intercambian sonidos?',
+        referencia: 'Los errores de estructura de palabra afectan a la organización de la palabra. Incluyen: asimilación (regresiva o progresiva), metátesis (intercambio de sonidos o sílabas), omisión de sílaba átona y omisión de sílaba tónica.',
+        rubrica: [
+            {descripcion: 'Define como errores que afectan a la organización de la palabra completa.'},
+            {descripcion: 'Menciona al menos dos subtipos (asimilación, metátesis, omisión de sílaba).'},
+            {descripcion: 'Da al menos un ejemplo correcto.'},
+            {descripcion: 'Lo diferencia de los errores sistémicos o de estructura de sílaba.'}
+        ]
+    },
+    {
+        id: 'errores_estructura_silaba', tema: 2, nombre: 'Errores de estructura de sílaba',
+        pista: 'Piensa en los tres componentes de la sílaba (ataque, núcleo, coda) y qué puede fallar en cada uno.',
+        referencia: 'Los errores de estructura de sílaba afectan a la composición interna de la sílaba. Incluyen: omisión de ataque (ten→en), simplificación de ataque (tren→ten), simplificación de núcleo (tiene→tene) y omisión de coda (pan→pa).',
+        rubrica: [
+            {descripcion: 'Define como errores que afectan a la estructura interna de la sílaba.'},
+            {descripcion: 'Menciona al menos dos subtipos (omisión de ataque, simplificación de ataque, simplificación de núcleo, omisión de coda).'},
+            {descripcion: 'Relaciona cada subtipo con un componente de la sílaba (ataque, núcleo o coda).'},
+            {descripcion: 'Da al menos un ejemplo correcto.'}
+        ]
+    },
+    {
+        id: 'medidas_cuantitativas', tema: 2, nombre: 'Medidas cuantitativas (PPC, PFC, estabilidad)',
+        pista: 'Piensa en qué información dan y cuáles son sus limitaciones.',
+        referencia: 'Las medidas cuantitativas son recuentos de unidades correctas. El PPC (porcentaje de palabras correctas) cuenta palabras correctas. El PFC (porcentaje de fonemas correctos) cuenta fonemas correctos. La estabilidad mide si el hablante produce siempre la misma forma. Son rápidas pero dan información limitada.',
+        rubrica: [
+            {descripcion: 'Define PPC como porcentaje de palabras correctas y PFC como porcentaje de fonemas correctos.'},
+            {descripcion: 'Menciona la estabilidad como medida de consistencia.'},
+            {descripcion: 'Indica alguna ventaja (rapidez, facilidad).'},
+            {descripcion: 'Indica alguna limitación (información pobre, no dicen el tipo de error).'}
+        ]
+    }
+];
+
+var currentConcept = null;
+
+function saveProgress(widgetId, score, maxScore) {
+    try {
+        var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
+        var pct = Math.round(score / maxScore * 100);
+        var prev = progress[widgetId];
+        if (!prev || pct > prev.score) {
+            progress[widgetId] = { completed: pct >= 75, score: pct, date: new Date().toISOString().split('T')[0] };
+            localStorage.setItem('lali_progress', JSON.stringify(progress));
+        }
+    } catch(e) {}
+}
+
+function getProgress() {
+    try { return JSON.parse(localStorage.getItem('lali_progress') || '{}'); } catch(e) { return {}; }
+}
+
+// ── Build concept grid ──
+function buildGrid() {
+    var grid = document.getElementById('concept-grid');
+    grid.innerHTML = '';
+    var progress = getProgress();
+
+    // Check URL param
+    var urlParams = new URLSearchParams(window.location.search);
+    var preselect = urlParams.get('concepto');
+    var temaFilter = urlParams.get('tema');
+
+    CONCEPTOS.forEach(function(c) {
+        if (temaFilter && c.tema != temaFilter) return;
+
+        var chip = document.createElement('button');
+        var isDone = progress['concepto_' + c.id] && progress['concepto_' + c.id].completed;
+        chip.className = 'concept-chip' + (isDone ? ' done' : '');
+        chip.innerHTML = '<span class="chip-tema">T' + c.tema + '</span>' + c.nombre;
+        chip.onclick = function() { selectConcept(c.id); };
+        grid.appendChild(chip);
+    });
+
+    // Update header
+    if (temaFilter) {
+        document.getElementById('header-tema').textContent = 'Tema ' + temaFilter + ' › Conceptos';
+    }
+
+    if (preselect) selectConcept(preselect);
+}
+
+function selectConcept(id) {
+    currentConcept = CONCEPTOS.find(function(c) { return c.id === id; });
+    if (!currentConcept) return;
+
+    // Update chips
+    document.querySelectorAll('.concept-chip').forEach(function(chip) { chip.classList.remove('active'); });
+    // Find and activate the right chip
+    var chips = document.querySelectorAll('.concept-chip');
+    chips.forEach(function(chip) {
+        if (chip.textContent.indexOf(currentConcept.nombre) >= 0) chip.classList.add('active');
+    });
+
+    // Show task
+    document.getElementById('concept-name').textContent = currentConcept.nombre;
+    document.getElementById('concept-hint').textContent = currentConcept.pista;
+    document.getElementById('def-input').placeholder = 'Escribe aquí tu definición de ' + currentConcept.nombre.toLowerCase() + '...';
+    document.getElementById('def-input').value = '';
+    document.getElementById('char-count').textContent = '0';
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('task-card').classList.add('show');
+    document.getElementById('results').classList.remove('show');
+    document.getElementById('def-input').focus();
+}
+
+function updateCount() {
+    var n = document.getElementById('def-input').value.trim().length;
+    document.getElementById('char-count').textContent = n;
+    document.getElementById('btn-submit').disabled = n < 30;
+}
+
+async function submitDefinition() {
+    if (!currentConcept) return;
+    var def = document.getElementById('def-input').value.trim();
+    if (def.length < 30) return;
+
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('results').classList.remove('show');
+
+    try {
+        var res = await fetch('/api/public-agent/eulalia/evaluar-definicion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                concepto: currentConcept.nombre,
+                definicion: def,
+                rubrica: currentConcept.rubrica,
+                referencia: currentConcept.referencia
+            })
+        });
+        if (!res.ok) throw new Error('Error del servidor');
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+        renderResults(data);
+    } catch(e) {
+        alert('Error al evaluar: ' + e.message);
+        document.getElementById('btn-submit').disabled = false;
+    } finally {
+        document.getElementById('loading').classList.remove('show');
+    }
+}
+
+function renderResults(data) {
+    var criterios = data.criterios || [];
+    var total = criterios.length;
+    var passed = criterios.filter(function(c) { return c.cumplido; }).length;
+    var pct = Math.round((passed / total) * 100);
+
+    var scoreClass = pct >= 75 ? 'pass' : pct >= 50 ? 'partial' : 'fail';
+    var scoreMsg = pct >= 75 ? '¡Muy bien! Tu definición cubre los aspectos esenciales.' :
+                   pct >= 50 ? 'Tu definición es parcialmente correcta. Revisa los criterios que faltan.' :
+                   'Tu definición necesita mejorar. Repasa el concepto en el temario.';
+
+    document.getElementById('score-bar').innerHTML =
+        '<div class="score-circle ' + scoreClass + '">' + passed + '/' + total +
+        '<div class="score-label">criterios</div></div>' +
+        '<div class="score-text"><strong>' + scoreMsg + '</strong></div>';
+
+    var listEl = document.getElementById('criteria-list');
+    listEl.innerHTML = '';
+    criterios.forEach(function(c, i) {
+        var div = document.createElement('div');
+        div.className = 'criterion ' + (c.cumplido ? 'pass' : 'fail');
+        div.innerHTML =
+            '<span class="criterion-icon">' + (c.cumplido ? '✓' : '✗') + '</span>' +
+            '<div class="criterion-text">' +
+            '<div class="criterion-desc">' + currentConcept.rubrica[i].descripcion + '</div>' +
+            '<div class="criterion-comment">' + (c.comentario || '') + '</div></div>';
+        listEl.appendChild(div);
+    });
+
+    document.getElementById('general-feedback').textContent = data.comentario_general || '';
+    document.getElementById('results').classList.add('show');
+    guardarProgreso('concepto_' + currentConcept.id, passed, total, {concepto: currentConcept.nombre});
+
+    // Update chip to show done
+    buildGrid();
+    // Re-activate current
+    document.querySelectorAll('.concept-chip').forEach(function(chip) {
+        if (chip.textContent.indexOf(currentConcept.nombre) >= 0) chip.classList.add('active');
+    });
+}
+
+function retry() {
+    document.getElementById('def-input').value = '';
+    document.getElementById('char-count').textContent = '0';
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('results').classList.remove('show');
+    document.getElementById('def-input').focus();
+}
+
+function nextConcept() {
+    // Pick a random concept that hasn't been completed
+    var progress = getProgress();
+    var pending = CONCEPTOS.filter(function(c) {
+        var p = progress['concepto_' + c.id];
+        return !p || !p.completed;
+    });
+    if (pending.length === 0) pending = CONCEPTOS;
+    var next = pending[Math.floor(Math.random() * pending.length)];
+    selectConcept(next.id);
+}
+
+// Init
+buildGrid();
+</script>
+<script src="/static/eulalia/progreso.js"></script>
+<script src="/static/eulalia/informar_profesor.js"></script>
+</body>
+</html>

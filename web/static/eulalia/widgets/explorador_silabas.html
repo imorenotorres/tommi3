@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explorador de sílabas — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header a:hover { opacity: 0.85; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+
+.container { max-width: 800px; margin: 0 auto; padding: 32px 20px; }
+
+h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
+.subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+
+/* Filters */
+.filters-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 20px;
+}
+.filters-card h3 { font-size: 15px; color: #4250b3; margin-bottom: 14px; }
+
+.filter-row { display: flex; gap: 16px; align-items: flex-end; margin-bottom: 14px; flex-wrap: wrap; }
+.filter-group { flex: 1; min-width: 180px; }
+.filter-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+.filter-group input, .filter-group select {
+    width: 100%; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px;
+    font-family: inherit; font-size: 14px; transition: border-color 0.2s;
+}
+.filter-group input:focus, .filter-group select:focus { outline: none; border-color: #4250b3; }
+
+/* Range slider */
+.range-row { display: flex; align-items: center; gap: 10px; }
+.range-row input[type=number] { width: 60px; text-align: center; padding: 6px; }
+.range-row span { font-size: 13px; color: #64748b; }
+.range-labels { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+/* Pattern help */
+.pattern-help {
+    background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;
+    padding: 10px 14px; font-size: 12px; color: #92400e; line-height: 1.6;
+    margin-bottom: 14px;
+}
+.pattern-help code { background: #fef3c7; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+
+/* Stats */
+.stats-bar {
+    display: flex; gap: 12px; margin-bottom: 16px; font-size: 13px; color: #64748b;
+    flex-wrap: wrap;
+}
+.stats-bar strong { color: #4250b3; }
+
+/* Results grid */
+.results-grid {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+}
+.syl-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 8px; font-size: 13px;
+    border: 1px solid #e2e8f0; background: #fff; cursor: pointer;
+    transition: all 0.15s; position: relative;
+}
+.syl-chip:hover { border-color: #4250b3; box-shadow: 0 2px 8px rgba(66,80,179,0.15); transform: translateY(-1px); }
+.syl-chip .syl-text { font-family: 'Doulos SIL', 'Charis SIL', serif; font-size: 15px; font-weight: 700; }
+.syl-chip .syl-norm { font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 10px; }
+.syl-chip .syl-cv { font-size: 10px; color: #94a3b8; }
+
+/* Color by frequency */
+.freq-high { border-color: #bbf7d0; }
+.freq-high .syl-norm { background: #f0fdf4; color: #16a34a; }
+.freq-mid { border-color: #fde68a; }
+.freq-mid .syl-norm { background: #fffbeb; color: #92400e; }
+.freq-low { border-color: #fecaca; }
+.freq-low .syl-norm { background: #fef2f2; color: #dc2626; }
+
+/* Detail popup */
+.syl-detail {
+    display: none; position: fixed; z-index: 50;
+    background: #fff; border: 2px solid #4250b3; border-radius: 10px;
+    padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    min-width: 220px; font-size: 13px;
+}
+.syl-detail.show { display: block; }
+.syl-detail h4 { font-size: 18px; color: #4250b3; margin-bottom: 8px; font-family: 'Doulos SIL', serif; }
+.syl-detail .detail-row { display: flex; justify-content: space-between; padding: 3px 0; }
+.syl-detail .detail-label { color: #64748b; }
+.syl-detail .detail-value { font-weight: 600; }
+
+/* Pagination / show more */
+.show-more {
+    text-align: center; margin: 16px 0;
+}
+.show-more button {
+    padding: 8px 24px; border-radius: 8px; border: 2px solid #e2e8f0;
+    background: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit; color: #475569; transition: all 0.2s;
+}
+.show-more button:hover { border-color: #4250b3; color: #4250b3; }
+
+.empty-msg { text-align: center; padding: 30px; color: #94a3b8; font-size: 14px; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">›</span>
+    <span class="title">Herramientas</span>
+    <span class="sep">›</span>
+    <span class="title">Explorador de sílabas</span>
+</div>
+
+<div class="container">
+
+    <h2>Explorador de sílabas del español</h2>
+    <p class="subtitle">
+        Consulta la frecuencia de las sílabas fonológicas del español. La frecuencia está normalizada
+        de 1 (muy rara) a 100 (la más frecuente). Datos basados en Justicia (1995).
+        Las sílabas se muestran en tres colores: <span style="color:#16a34a; font-weight:600;">verde</span> (frecuencia alta, 60–100),
+        <span style="color:#f59e0b; font-weight:600;">naranja</span> (frecuencia media, 30–59) y
+        <span style="color:#dc2626; font-weight:600;">rojo</span> (frecuencia baja, 1–29).
+    </p>
+
+    <div class="filters-card">
+        <h3>Filtros</h3>
+
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>Rango de frecuencia</label>
+                <div class="range-row">
+                    <input type="number" id="freq-min" value="1" min="1" max="100" oninput="applyFilters()">
+                    <span>a</span>
+                    <input type="number" id="freq-max" value="100" min="1" max="100" oninput="applyFilters()">
+                </div>
+                <div class="range-labels"><span>1 = muy rara</span><span>100 = muy frecuente</span></div>
+            </div>
+            <div class="filter-group">
+                <label>Patrón de estructura</label>
+                <select id="cv-filter" onchange="applyFilters()">
+                    <option value="">Todos</option>
+                    <option value="V">V</option>
+                    <option value="CV">CV</option>
+                    <option value="VC">VC</option>
+                    <option value="CVC">CVC</option>
+                    <option value="CVV">CVV</option>
+                    <option value="CCV">CCV</option>
+                    <option value="CVVC">CVVC</option>
+                    <option value="CCVC">CCVC</option>
+                    <option value="VV">VV</option>
+                    <option value="VVC">VVC</option>
+                    <option value="CCVV">CCVV</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-group" style="flex:2;">
+                <label>Buscar por patrón fonológico</label>
+                <input type="text" id="pattern-input" placeholder="Ej: pV, CVe, ɾV, bɾV..." oninput="applyFilters()">
+            </div>
+        </div>
+
+        <div class="pattern-help">
+            <strong>Cómo buscar:</strong> Usa <code>C</code> = cualquier consonante, <code>V</code> = cualquier vocal,
+            y letras minúsculas para fonemas concretos.<br>
+            Ejemplos: <code>pVV</code> → pie, pue, pua... &nbsp;
+            <code>Cie</code> → bie, pie, tie... &nbsp;
+            <code>bɾV</code> → bɾa, bɾe, bɾi... &nbsp;
+            <code>CVs</code> → kas, tes, pos...
+        </div>
+    </div>
+
+    <div class="stats-bar" id="stats-bar"></div>
+
+    <div class="results-grid" id="results-grid"></div>
+    <div class="show-more" id="show-more" style="display:none;">
+        <button onclick="showMore()">Mostrar más</button>
+    </div>
+
+</div>
+
+<div class="syl-detail" id="syl-detail" onclick="this.classList.remove('show')"></div>
+
+</div>
+
+<script>
+
+var allData = [];
+var filtered = [];
+var displayCount = 100;
+
+var VOWELS = 'aeiou';
+var CONSONANTS = 'bcdfgklmnpstθɾʝʧɲrx';
+
+// Load data
+(async function() {
+    try {
+        var res = await fetch('/api/public-agent/eulalia/silabas-frecuencia');
+        allData = await res.json();
+    } catch(e) {
+        // Fallback: try static file
+        try {
+            var res2 = await fetch('/static/eulalia/data/silabas_frecuencia.json');
+            allData = await res2.json();
+        } catch(e2) {
+            document.getElementById('results-grid').innerHTML = '<div class="empty-msg">Error al cargar los datos.</div>';
+            return;
+        }
+    }
+    applyFilters();
+})();
+
+function matchesPattern(syl, pattern) {
+    if (!pattern) return true;
+    var p = pattern;
+    // Build regex from pattern: C→consonant, V→vowel, lowercase→literal
+    var regex = '^';
+    for (var i = 0; i < p.length; i++) {
+        var ch = p[i];
+        if (ch === 'C') {
+            regex += '[' + CONSONANTS + ']';
+        } else if (ch === 'V') {
+            regex += '[' + VOWELS + ']';
+        } else {
+            // Literal phoneme — escape regex special chars
+            regex += ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+    }
+    regex += '$';
+    try {
+        return new RegExp(regex).test(syl);
+    } catch(e) {
+        return false;
+    }
+}
+
+function applyFilters() {
+    var fMin = parseInt(document.getElementById('freq-min').value) || 1;
+    var fMax = parseInt(document.getElementById('freq-max').value) || 100;
+    var cvFilter = document.getElementById('cv-filter').value;
+    var patternInput = document.getElementById('pattern-input').value.trim();
+
+    filtered = allData.filter(function(d) {
+        if (d.norm < fMin || d.norm > fMax) return false;
+        if (cvFilter && d.cv !== cvFilter) return false;
+        if (patternInput && !matchesPattern(d.sil, patternInput)) return false;
+        return true;
+    });
+
+    displayCount = 100;
+    render();
+}
+
+function render() {
+    // Stats
+    var statsEl = document.getElementById('stats-bar');
+    statsEl.innerHTML = '<span><strong>' + filtered.length + '</strong> sílabas encontradas</span>';
+    if (filtered.length > 0) {
+        var avgNorm = filtered.reduce(function(s, d) { return s + d.norm; }, 0) / filtered.length;
+        statsEl.innerHTML += '<span>Frecuencia media: <strong>' + avgNorm.toFixed(1) + '</strong></span>';
+    }
+
+    // Results
+    var gridEl = document.getElementById('results-grid');
+    var showing = filtered.slice(0, displayCount);
+
+    if (showing.length === 0) {
+        gridEl.innerHTML = '<div class="empty-msg">No se encontraron sílabas con estos filtros.</div>';
+        document.getElementById('show-more').style.display = 'none';
+        return;
+    }
+
+    gridEl.innerHTML = '';
+    showing.forEach(function(d, idx) {
+        var freqClass = d.norm >= 60 ? 'freq-high' : (d.norm >= 30 ? 'freq-mid' : 'freq-low');
+        var chip = document.createElement('div');
+        chip.className = 'syl-chip ' + freqClass;
+        chip.innerHTML =
+            '<span class="syl-text">/' + d.sil + '/</span>' +
+            '<span class="syl-norm">' + d.norm + '</span>' +
+            '<span class="syl-cv">' + d.cv + '</span>';
+        chip.onclick = function(e) { showDetail(d, e); };
+        gridEl.appendChild(chip);
+    });
+
+    // Show more button
+    var moreEl = document.getElementById('show-more');
+    if (filtered.length > displayCount) {
+        moreEl.style.display = '';
+        moreEl.querySelector('button').textContent = 'Mostrar más (' + (filtered.length - displayCount) + ' restantes)';
+    } else {
+        moreEl.style.display = 'none';
+    }
+}
+
+function showMore() {
+    displayCount += 100;
+    render();
+}
+
+function showDetail(d, event) {
+    var detail = document.getElementById('syl-detail');
+    var freqLabel = d.norm >= 60 ? 'Alta (frecuente)' : (d.norm >= 30 ? 'Media' : 'Baja (poco frecuente)');
+    detail.innerHTML =
+        '<h4>/' + d.sil + '/</h4>' +
+        '<div class="detail-row"><span class="detail-label">Patrón:</span><span class="detail-value">' + d.cv + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Frecuencia normalizada:</span><span class="detail-value">' + d.norm + ' / 100</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Frecuencia absoluta:</span><span class="detail-value">' + d.freq + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Porcentaje:</span><span class="detail-value">' + d.pct + '%</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Categoría:</span><span class="detail-value">' + freqLabel + '</span></div>' +
+        '<div style="font-size:11px; color:#94a3b8; margin-top:8px; text-align:center;">Clic para cerrar</div>';
+
+    // Position near click
+    var x = event.clientX;
+    var y = event.clientY;
+    detail.style.left = Math.min(x + 10, window.innerWidth - 250) + 'px';
+    detail.style.top = Math.min(y - 20, window.innerHeight - 200) + 'px';
+    detail.classList.add('show');
+}
+
+// Close detail on click outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.syl-chip') && !e.target.closest('.syl-detail')) {
+        document.getElementById('syl-detail').classList.remove('show');
+    }
+});
+
+</script>
+<script src="/static/eulalia/informar_profesor.js"></script>
+</body>
+</html>
