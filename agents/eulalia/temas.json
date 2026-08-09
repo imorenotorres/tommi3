@@ -1159,8 +1159,8 @@
               "seccion_doc": "Macro-patrones de error",
               "conceptos": [
                 {
-                  "nombre": "Errores esperables por patología",
-                  "consulta": "¿Qué macro-patrones de error se esperan en disfemia, afasia, disfunción velofaríngea e implante coclear?"
+                  "nombre": "Macro-patrones lingüísticos",
+                  "consulta": "¿Qué macro-patrones de error existen (lenición, fortición, en desarrollo, prosódico-rítmico) y cómo se relacionan con cada patología?"
                 }
               ]
             },
@@ -1246,6 +1246,10 @@
         }
       ],
       "ejercicios": [
+        {
+          "nombre": "Abrir mi proyecto de investigación",
+          "tipo": "panel_proyecto_investigacion"
+        },
         {
           "nombre": "Elegir tema de trabajo",
           "tipo": "consulta",

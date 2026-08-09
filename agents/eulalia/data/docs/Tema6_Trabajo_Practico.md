@@ -49,15 +49,23 @@ Lo primero es elegir qué tipo de habla patológica vais a analizar. Algunos eje
 
 ### Macro-patrones de error
 
-Según el tipo de patología, podemos esperar encontrar diferentes macro-patrones de error:
+Para analizar los errores de un paciente es útil pensar en términos de **macro-patrones lingüísticos**, que son tendencias generales que agrupan muchos errores individuales. Los principales son:
 
-| Patología | Macro-patrones esperables |
-|-----------|--------------------------|
-| **Disfemia** | No hay errores fonológicos propiamente dichos, sino alteraciones de la fluidez: repeticiones de sílabas, prolongaciones de sonidos, bloqueos silenciosos |
-| **Afasia** | Parafasias fonológicas (sustitución, omisión, adición o transposición de fonemas), a veces con intentos de autocorrección |
-| **Disfunción velofaríngea** | Sustituciones nasales (oclusivas → nasales), debilitamiento/omisión de fricativas, golpe de glotis compensatorio |
-| **Implante coclear** | Confusiones de sonoridad (p/b, t/d, k/g), omisiones de fricativas débiles (/f/, /θ/), errores en el lugar de articulación |
-| **Retraso fonológico** | Procesos de simplificación sistemáticos: frontalización, posteriorización, reducción de grupos, omisión de coda |
+- **Lenición**: tendencia a producir los fonemas con un modo de articulación más abierto (más débil) del esperado. Por ejemplo: oclusiva → fricativa, fricativa → aproximante, consonante → omisión. Es el patrón más frecuente en muchas patologías.
+- **Fortición**: tendencia contraria — producir fonemas con un modo de articulación más cerrado (más fuerte). Por ejemplo: fricativa → oclusiva, aproximante → oclusiva. Es menos frecuente.
+- **En desarrollo** (simplificación): errores típicos del desarrollo fonológico normal que persisten más allá de la edad esperada. Incluyen: frontalización, posteriorización, reducción de grupos consonánticos, omisión de coda, asimilaciones. Son el patrón habitual en el retraso fonológico.
+- **Prosódico-rítmico**: alteraciones que afectan al ritmo y la fluidez del habla, no a los fonemas individuales. Incluyen: repeticiones de sílabas, prolongaciones, bloqueos, omisión de sílabas átonas, alteraciones del acento.
+
+Según el tipo de patología, podemos esperar encontrar diferentes macro-patrones:
+
+| Patología | Macro-patrón dominante | Errores esperables |
+|-----------|----------------------|---------------------|
+| **Disfemia** | Prosódico-rítmico | Repeticiones de sílabas, prolongaciones de sonidos, bloqueos silenciosos. No hay errores fonológicos propiamente dichos |
+| **Afasia** | Lenición + otros | Parafasias fonológicas (sustitución, omisión, adición o transposición de fonemas), a veces con intentos de autocorrección |
+| **Disfunción velofaríngea** | Lenición + fortición compensatoria | Sustituciones nasales (oclusivas → nasales = lenición), debilitamiento de fricativas, pero también golpe de glotis compensatorio (= fortición) |
+| **Implante coclear** | Variable (según percepción) | Confusiones de sonoridad (p/b, t/d, k/g), omisiones de fricativas débiles (/f/, /θ/), errores en el lugar de articulación |
+| **Retraso fonológico** | En desarrollo | Procesos de simplificación sistemáticos: frontalización, posteriorización, reducción de grupos, omisión de coda |
+| **Trastorno de los sonidos del habla** | Variable | Errores articulatorios específicos (rotacismo, sigmatismo), que pueden ser de lenición o simplificación |
 
 ### Escribir la introducción
 
