@@ -1046,6 +1046,7 @@ function showSection(temaId, seccionId) {
             else if (ej.tipo === 'panel_informe_errores') onclick = "openWidget('informe_errores')";
             else if (ej.tipo === 'panel_transcripcion_fonetica') onclick = "openWidget('transcripcion_fonetica')";
             else if (ej.tipo === 'transcripcion_fonetica') onclick = "showChatAndSend('Dame un ejercicio de transcripción fonética')";
+            else if (ej.tipo === 'panel_proyecto_investigacion') onclick = "openWidget('proyecto_investigacion')";
             else if (ej.tipo === 'espectrogramas') onclick = "mostrarEspectrogramas('vocales')";
             else if (ej.tipo === 'audio') onclick = "document.getElementById('audio-file-input').click()";
             else if (ej.tipo === 'consulta') onclick = "showChatAndSend('" + escapeJs(ej.consulta) + "')";
