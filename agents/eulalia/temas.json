@@ -1121,77 +1121,169 @@
     },
     {
       "id": 6,
-      "titulo": "Trabajo práctico (por parejas) (En preparación)",
+      "titulo": "Trabajo práctico (por parejas)",
       "color": "#0d9488",
-      "resumen": "En este tema los estudiantes realizan un pequeño trabajo de investigación por parejas. El objetivo es aplicar los conocimientos adquiridos en los temas 1-5 a un problema concreto, recogiendo y analizando datos reales de habla.\n\nHay cuatro tipos de proyecto entre los que elegir:\n\n1) **Comprobar el inventario fonológico de un hablante.** Se trata de verificar si un hablante produce todos los fonemas del español, diseñando una lista de palabras, grabando y analizando.\n\n2) **Comprobar si los errores en palabras y pseudopalabras coinciden.** Investiga la doble ruta (Tema 1) comparando errores en palabras reales vs. pseudopalabras equivalentes.\n\n3) **Analizar una muestra de habla con errores.** Transcripción fonológica y clasificación de errores (Tema 2) a partir de habla real.\n\n4) **Análisis de diferencias entre dialectos.** Comparación de variedades del español identificando diferencias fonológicas y fonéticas.\n\nEl trabajo se estructura en: introducción, método, resultados y discusión.",
+      "doc": "Tema6_Trabajo_Practico.md",
+      "resumen": "En este tema vais a realizar, por parejas, un pequeño trabajo de investigación consistente en analizar una grabación de habla patológica. Eulalia os guiará en cada paso del proceso.\n\nEl resultado será un documento con cuatro secciones: introducción, método, resultados y discusión. Además, haréis una presentación oral en clase.\n\nPodéis usar la IA que incluye Eulalia en todas las fases, pero lo que se valora no es el resultado final sino el proceso: las preguntas que habéis formulado, las decisiones que habéis tomado y cómo habéis interpretado los datos. Si usáis la LLM, debéis guardar el prompt usado.",
       "contenidos": [
         {
-          "bloque": "Tipos de proyecto",
+          "bloque": "6.1. Introducción",
+          "seccion_doc": "6.1. Introducción",
           "conceptos": [
             {
-              "nombre": "Comprobar inventario fonológico",
-              "consulta": "¿Cómo se comprueba el inventario fonológico de un hablante?"
+              "nombre": "¿Qué vamos a hacer?",
+              "consulta": "¿En qué consiste el trabajo práctico del tema 6?"
             },
             {
-              "nombre": "Palabras vs pseudopalabras",
-              "consulta": "¿Cómo se diseña un estudio comparando errores en palabras y pseudopalabras?"
-            },
-            {
-              "nombre": "Analizar muestra con errores",
-              "consulta": "¿Cómo se analiza una muestra de habla con errores fonológicos?"
-            },
-            {
-              "nombre": "Diferencias dialectales",
-              "consulta": "¿Cómo se analizan las diferencias fonológicas entre dialectos del español?"
+              "nombre": "Uso de la IA",
+              "consulta": "¿Cómo puedo usar Eulalia en el trabajo práctico? ¿Qué se valora?"
             }
           ]
         },
         {
-          "bloque": "Metodología",
+          "bloque": "6.2. Preparando el tema y la introducción",
+          "seccion_doc": "6.2. Preparando el tema del trabajo y la introducción",
+          "subbloques": [
+            {
+              "nombre": "6.2.1. Elegir el tema",
+              "seccion_doc": "Elegir el tema",
+              "conceptos": [
+                {
+                  "nombre": "Tipos de habla patológica",
+                  "consulta": "¿Qué tipos de habla patológica puedo analizar en el trabajo práctico?"
+                }
+              ]
+            },
+            {
+              "nombre": "6.2.2. Macro-patrones de error",
+              "seccion_doc": "Macro-patrones de error",
+              "conceptos": [
+                {
+                  "nombre": "Errores esperables por patología",
+                  "consulta": "¿Qué macro-patrones de error se esperan en disfemia, afasia, disfunción velofaríngea e implante coclear?"
+                }
+              ]
+            },
+            {
+              "nombre": "6.2.3. Escribir la introducción",
+              "seccion_doc": "Escribir la introducción",
+              "conceptos": [
+                {
+                  "nombre": "Estructura de la introducción",
+                  "consulta": "¿Qué debe incluir la introducción del trabajo práctico?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "bloque": "6.3. Diseño de la metodología",
+          "seccion_doc": "6.3. Diseño de la metodología",
+          "subbloques": [
+            {
+              "nombre": "6.3.1. Obtención de datos",
+              "seccion_doc": "¿De dónde sacamos los datos?",
+              "conceptos": [
+                {
+                  "nombre": "Fuentes de datos",
+                  "consulta": "¿De dónde puedo obtener grabaciones de habla patológica para el trabajo?"
+                }
+              ]
+            },
+            {
+              "nombre": "6.3.2. Diseñar la prueba",
+              "seccion_doc": "Diseñar la prueba",
+              "conceptos": [
+                {
+                  "nombre": "Diseño de la prueba",
+                  "consulta": "¿Cómo diseño una prueba de evaluación fonológica para mi paciente?"
+                }
+              ]
+            },
+            {
+              "nombre": "6.3.3. Describir el método",
+              "seccion_doc": "Describir el método",
+              "conceptos": [
+                {
+                  "nombre": "Sección de método",
+                  "consulta": "¿Qué debe incluir la sección de método del trabajo práctico?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "bloque": "6.4. Resultados",
+          "seccion_doc": "6.4. Resultados",
           "conceptos": [
             {
-              "nombre": "Estructura del trabajo",
-              "consulta": "¿Qué estructura debe tener el proyecto de investigación?"
+              "nombre": "Pasos del análisis",
+              "consulta": "¿Qué pasos debo seguir para analizar los resultados del trabajo práctico?"
             },
             {
-              "nombre": "Diseñar lista de palabras",
-              "consulta": "¿Cómo diseño una lista de palabras para comprobar el inventario fonológico?"
+              "nombre": "Uso de Eulalia en resultados",
+              "consulta": "¿Cómo puedo usar Eulalia para revisar mis resultados?"
             },
             {
-              "nombre": "Diseñar pseudopalabras",
-              "consulta": "¿Cómo diseño pseudopalabras equivalentes a una lista de palabras reales?"
+              "nombre": "Presentar los resultados",
+              "consulta": "¿Cómo debo organizar y presentar los resultados del trabajo?"
+            }
+          ]
+        },
+        {
+          "bloque": "6.5. Discusión y conclusiones",
+          "seccion_doc": "6.5. Discusión y conclusiones",
+          "conceptos": [
+            {
+              "nombre": "Estructura de la discusión",
+              "consulta": "¿Qué debe incluir la discusión del trabajo práctico?"
+            },
+            {
+              "nombre": "Limitaciones",
+              "consulta": "¿Qué tipo de limitaciones debo mencionar en mi trabajo?"
             }
           ]
         }
       ],
       "ejercicios": [
         {
-          "nombre": "Elegir tipo de proyecto",
+          "nombre": "Elegir tema de trabajo",
           "tipo": "consulta",
-          "consulta": "¿Qué tipos de proyecto de investigación puedo hacer en esta asignatura?"
+          "consulta": "Quiero hacer el trabajo práctico sobre un paciente con disfunción velofaríngea. ¿Qué errores puedo esperar encontrar?"
         },
         {
-          "nombre": "Transcribir muestra de habla",
+          "nombre": "Diseñar prueba",
           "tipo": "consulta",
-          "consulta": "¿Cómo transcribo y analizo una muestra de habla con errores?"
+          "consulta": "¿Qué palabras puedo usar para evaluar las oclusivas en un paciente con disfunción velofaríngea?"
         },
         {
-          "nombre": "Comparar dialectos",
+          "nombre": "Revisar transcripción",
           "tipo": "consulta",
-          "consulta": "¿Qué diferencias fonológicas hay entre español distinguidor y seseante?"
+          "consulta": "He transcrito /péɾo/ donde el paciente dice [péo]. ¿Es correcto clasificar esto como una omisión de vibrante simple?"
         }
       ],
       "autoevaluacion": [
-        "¿He elegido un tipo de proyecto y tengo claro qué voy a investigar?",
-        "¿He diseñado los materiales (lista de palabras, pseudopalabras, o grabaciones)?",
-        "¿Sé transcribir fonológicamente las producciones de mi hablante?",
-        "¿Puedo clasificar los errores encontrados según la tipología del Tema 2?",
-        "¿Tengo el trabajo estructurado en introducción, método, resultados y discusión?"
+        "¿He elegido un tema y tengo claro qué patología voy a analizar?",
+        "¿He formulado una hipótesis sobre los errores que espero encontrar?",
+        "¿He diseñado una prueba válida para mi paciente?",
+        "¿He transcrito fonológicamente las producciones del paciente?",
+        "¿He clasificado los errores según la tipología del Tema 2?",
+        "¿He calculado medidas cuantitativas (PCC, porcentaje de errores)?",
+        "¿He comparado mis resultados con mi hipótesis inicial?",
+        "¿He guardado los prompts que he usado con Eulalia?"
       ],
       "mas_alla": [
         {
-          "texto": "Temas 1-5: el proyecto integra contenidos de todos los temas anteriores.",
+          "texto": "Tema 1: la doble ruta léxica explica por qué los errores en palabras y pseudopalabras pueden diferir.",
           "tema_destino": 1
+        },
+        {
+          "texto": "Tema 2: la tipología de errores fonológicos es la herramienta principal para clasificar los errores del paciente.",
+          "tema_destino": 2
+        },
+        {
+          "texto": "Tema 3: la transcripción fonética permite un análisis más fino de las producciones del paciente.",
+          "tema_destino": 3
         }
       ]
     }
