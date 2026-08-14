@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de convenios de la UMA — Informe de uso</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.header { background: #2D3876; padding: 14px 24px; color: #fff; display: flex; align-items: center; gap: 12px; }
+.header h1 { font-size: 18px; font-weight: 700; }
+.header a { color: rgba(255,255,255,0.7); font-size: 13px; text-decoration: none; }
+.header a:hover { color: #fff; }
+.container { max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+
+.stats-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; flex: 1; min-width: 140px; text-align: center; }
+.stat-num { font-size: 32px; font-weight: 800; color: #2D3876; }
+.stat-label { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+
+.section { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.section h2 { font-size: 15px; color: #1e293b; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13px; }
+.bar-label { min-width: 120px; color: #475569; font-weight: 600; text-align: right; }
+.bar-track { flex: 1; height: 20px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; display: flex; align-items: center; padding-left: 6px; font-size: 11px; color: #fff; font-weight: 700; }
+.bar-count { min-width: 40px; text-align: right; color: #94a3b8; font-size: 12px; }
+
+.ranking-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ranking-table th { background: #f8fafc; padding: 8px 12px; text-align: left; color: #64748b; font-size: 11px; border-bottom: 2px solid #e2e8f0; }
+.ranking-table td { padding: 6px 12px; border-bottom: 1px solid #f1f5f9; }
+.ranking-table tr:hover td { background: #f8fafc; }
+.rank-num { color: #94a3b8; font-weight: 700; width: 30px; }
+.rank-bar { height: 6px; background: #2D3876; border-radius: 3px; display: inline-block; vertical-align: middle; margin-left: 6px; }
+
+.loading { text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; }
+.error { color: #dc2626; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Mapa de convenios de la UMA — Informe de uso</h1>
+    <a href="/" style="margin-left:auto;">← Intranet</a>
+</div>
+
+<div class="container">
+    <div id="content"><div class="loading">Cargando datos...</div></div>
+</div>
+
+<script>
+
+function getToken() {
+    return localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || localStorage.getItem('tutores_token') || '';
+}
+
+async function loadReport() {
+    var token = getToken();
+    var url = '/api/logs/algoria-map-report';
+    if (token) url += '?token=' + encodeURIComponent(token);
+
+    try {
+        var res = await fetch(url);
+        if (!res.ok) {
+            document.getElementById('content').innerHTML = '<div class="error">Error: ' + res.status + ' — ¿Tienes permisos de superuser?</div>';
+            return;
+        }
+        var data = await res.json();
+        renderReport(data);
+    } catch(e) {
+        document.getElementById('content').innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+    }
+}
+
+function renderReport(data) {
+    var html = '';
+
+    // Summary cards
+    html += '<div class="stats-row">';
+    html += '<div class="stat-card"><div class="stat-num">' + data.total_entries + '</div><div class="stat-label">Acciones totales</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">' + data.total_sessions + '</div><div class="stat-label">Sesiones</div></div>';
+    var searchActions = (data.action_types.filters || 0) + (data.action_types.NL || 0);
+    html += '<div class="stat-card"><div class="stat-num">' + searchActions + '</div><div class="stat-label">Búsquedas</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">' + (data.action_types.interaction || 0) + '</div><div class="stat-label">Interacciones</div></div>';
+    html += '</div>';
+
+    // 1. Sessions by action count
+    html += '<div class="section">';
+    html += '<h2>1. Sesiones según número de acciones</h2>';
+    var sessionKeys = ['1', '2', '3', '4', '5', '6+'];
+    var maxSession = Math.max.apply(null, sessionKeys.map(function(k) { return data.session_by_actions[k] || 0; })) || 1;
+    var colors = { '1': '#94a3b8', '2': '#64748b', '3': '#4250b3', '4': '#2563eb', '5': '#1d4ed8', '6+': '#1e3a5f' };
+    sessionKeys.forEach(function(k) {
+        var val = data.session_by_actions[k] || 0;
+        if (val === 0 && k !== '1') return;
+        var pct = Math.round(val / maxSession * 100);
+        var label = k === '1' ? '1 acción (solo init)' : k === '6+' ? '6+ acciones' : k + ' acciones';
+        html += '<div class="bar-row">';
+        html += '<div class="bar-label">' + label + '</div>';
+        html += '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:' + (colors[k] || '#2D3876') + ';">' + (pct > 15 ? val : '') + '</div></div>';
+        html += '<div class="bar-count">' + val + '</div>';
+        html += '</div>';
+    });
+    html += '</div>';
+
+    // 2. Action type ratios
+    html += '<div class="section">';
+    html += '<h2>2. Ratio de acciones por tipo</h2>';
+    var typeLabels = { init: 'Init (carga)', filters: 'Filtros', NL: 'Lenguaje natural', interaction: 'Interacción (clics)' };
+    var typeColors = { init: '#94a3b8', filters: '#2563eb', NL: '#7c3aed', interaction: '#0d9488' };
+    var totalActions = Object.values(data.action_types).reduce(function(s, v) { return s + v; }, 0) || 1;
+    var maxType = Math.max.apply(null, Object.values(data.action_types)) || 1;
+    ['init', 'filters', 'NL', 'interaction'].forEach(function(t) {
+        var val = data.action_types[t] || 0;
+        var pctBar = Math.round(val / maxType * 100);
+        var pctTotal = Math.round(val / totalActions * 100);
+        html += '<div class="bar-row">';
+        html += '<div class="bar-label">' + typeLabels[t] + '</div>';
+        html += '<div class="bar-track"><div class="bar-fill" style="width:' + pctBar + '%;background:' + typeColors[t] + ';">' + (pctBar > 15 ? pctTotal + '%' : '') + '</div></div>';
+        html += '<div class="bar-count">' + pctTotal + '% (' + val + ')</div>';
+        html += '</div>';
+    });
+    html += '</div>';
+
+    // 3. Country ranking
+    html += '<div class="section">';
+    html += '<h2>3. Ranking de países más buscados</h2>';
+    if (data.country_ranking.length === 0) {
+        html += '<p style="color:#94a3b8;font-style:italic;">Sin datos suficientes</p>';
+    } else {
+        var maxCountry = data.country_ranking[0][1];
+        var totalCountry = data.country_ranking.reduce(function(s, r) { return s + r[1]; }, 0) || 1;
+        html += '<table class="ranking-table"><thead><tr><th>#</th><th>País</th><th>Búsquedas</th><th></th></tr></thead><tbody>';
+        data.country_ranking.forEach(function(r, i) {
+            var pct = Math.round(r[1] / maxCountry * 100);
+            var pctTotal = Math.round(r[1] / totalCountry * 100);
+            html += '<tr><td class="rank-num">' + (i + 1) + '</td><td>' + r[0] + '</td><td>' + r[1] + ' (' + pctTotal + '%)</td>';
+            html += '<td><span class="rank-bar" style="width:' + pct + 'px;"></span></td></tr>';
+        });
+        html += '</tbody></table>';
+    }
+    html += '</div>';
+
+    // 4. University ranking
+    html += '<div class="section">';
+    html += '<h2>4. Ranking de universidades más consultadas</h2>';
+    if (data.university_ranking.length === 0) {
+        html += '<p style="color:#94a3b8;font-style:italic;">Sin datos suficientes</p>';
+    } else {
+        var maxUni = data.university_ranking[0][1];
+        var totalUni = data.university_ranking.reduce(function(s, r) { return s + r[1]; }, 0) || 1;
+        html += '<table class="ranking-table"><thead><tr><th>#</th><th>Universidad</th><th>País</th><th>Consultas</th><th></th></tr></thead><tbody>';
+        data.university_ranking.forEach(function(r, i) {
+            var pct = Math.round(r[1] / maxUni * 100);
+            var pctTotal = Math.round(r[1] / totalUni * 100);
+            var country = r[2] || '';
+            html += '<tr><td class="rank-num">' + (i + 1) + '</td><td style="max-width:350px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + r[0] + '">' + r[0] + '</td><td style="font-size:12px;color:#64748b;">' + country + '</td><td>' + r[1] + ' (' + pctTotal + '%)</td>';
+            html += '<td><span class="rank-bar" style="width:' + pct + 'px;"></span></td></tr>';
+        });
+        html += '</tbody></table>';
+    }
+    html += '</div>';
+
+    document.getElementById('content').innerHTML = html;
+}
+
+loadReport();
+
+</script>
+</body>
+</html>

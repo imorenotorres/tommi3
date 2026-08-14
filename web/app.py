@@ -6,6 +6,7 @@ Tommi Web Interface - FastAPI server para interactuar con agentes Tommi
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "apps"))
+sys.path.insert(0, str(Path(__file__).parent.parent))  # project root — for 'agents.*' imports
 from venv_helper import ensure_venv
 ensure_venv()
 
@@ -172,10 +173,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             if not token:
                 token = request.query_params.get("token", "")
             if not token or not get_session(token):
-                # Also accept tutores tokens for eulalia agent
+                # Also accept tutores tokens for eulalia agent or report pages
                 is_lali_chat = (request.query_params.get("agent_id") == "eulalia"
                                 and token and tutores_get_session(token))
-                if not is_lali_chat:
+                is_report = ("report" in path and token and tutores_get_session(token)
+                             and tutores_is_docente(tutores_get_session(token)))
+                if not is_lali_chat and not is_report:
                     return JSONResponse(status_code=401, content={"detail": "Authentication required"})
         return await call_next(request)
 
@@ -1374,7 +1377,7 @@ async def tutores_login_page():
 
 class TutoresLoginRequest(BaseModel):
     username: str
-    password: str
+    password: str = ""
 
 
 @app.post("/api/tutores/login")
@@ -1427,33 +1430,16 @@ async def tutores_auth_level(request: Request):
 
 @app.get("/api/tutores/users")
 async def tutores_get_users(request: Request):
-    """List tutores users (docente only)."""
+    """List tutores users (docente only). Reads from users.tsv via UserManager."""
     session = tutores_get_session(_get_tutores_token(request))
     if not session or not tutores_is_docente(session):
         raise HTTPException(status_code=403, detail="Solo el profesorado puede ver el listado de usuarios")
-    return tutores_list_users()
-
-
-class TutoresCreateUserRequest(BaseModel):
-    username: str
-    password: str = ""
-    role: str = "estudiante"
-    nombre: str = ""
-
-
-@app.post("/api/tutores/users")
-async def tutores_add_user(req: TutoresCreateUserRequest, request: Request):
-    """Add a tutores user (docente only)."""
-    session = tutores_get_session(_get_tutores_token(request))
-    if not session or not tutores_is_docente(session):
-        raise HTTPException(status_code=403, detail="Solo el profesorado puede crear usuarios")
-    try:
-        ok = tutores_create_user(req.username, req.password or None, req.role, req.nombre, activo=True)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    if not ok:
-        raise HTTPException(status_code=409, detail=f"El usuario '{req.username}' ya existe")
-    return {"ok": True, "username": req.username}
+    from agents.tutor_fonetica_base.user_manager import UserManager
+    um = UserManager(_LALI_DIR)
+    users = um.listar_usuarios()
+    # Map to format expected by frontend
+    return [{"username": u["email"], "nombre": u["nombre"], "apellidos": u.get("apellidos", ""),
+             "role": u["rol"], "grado": u.get("grado", ""), "grupo": u.get("grupo", "")} for u in users]
 
 
 @app.delete("/api/tutores/users/{username}")
@@ -1462,22 +1448,69 @@ async def tutores_remove_user(username: str, request: Request):
     session = tutores_get_session(_get_tutores_token(request))
     if not session or not tutores_is_docente(session):
         raise HTTPException(status_code=403, detail="Solo el profesorado puede eliminar usuarios")
-    if not tutores_delete_user(username):
+    from agents.tutor_fonetica_base.user_manager import UserManager
+    um = UserManager(_LALI_DIR)
+    if not um.eliminar_usuario(username):
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return {"ok": True}
 
 
 class TutoresBulkRequest(BaseModel):
-    users: list[dict]
+    tsv: str = ""
+    users: list[dict] = []  # backwards compat
 
 
 @app.post("/api/tutores/users/bulk")
 async def tutores_bulk_add(req: TutoresBulkRequest, request: Request):
-    """Bulk create tutores users from a list (docente only)."""
+    """Bulk import users from TSV content (docente only).
+
+    Accepts raw TSV (with or without header). If no header with recognized
+    column names is found, assumes: email, rol.
+    """
     session = tutores_get_session(_get_tutores_token(request))
     if not session or not tutores_is_docente(session):
         raise HTTPException(status_code=403, detail="Solo el profesorado puede crear usuarios")
-    result = tutores_bulk_create(req.users)
+
+    from agents.tutor_fonetica_base.user_manager import UserManager
+    um = UserManager(_LALI_DIR)
+
+    tsv_text = req.tsv.strip()
+    if not tsv_text:
+        # Backwards compat: old format with list of {username, role}
+        if req.users:
+            lines = ["email\trol"]
+            for u in req.users:
+                email = u.get("username", u.get("email", ""))
+                role = u.get("role", u.get("rol", "estudiante"))
+                lines.append(f"{email}\t{role}")
+            tsv_text = "\n".join(lines)
+        else:
+            raise HTTPException(status_code=400, detail="No se proporcionaron datos")
+
+    # Detect if first line is a header (contains known column names)
+    first_line = tsv_text.split("\n")[0].lower()
+    has_header = any(kw in first_line for kw in ("email", "correo", "username", "nombre", "rol"))
+    if not has_header:
+        # No header: assume email\trol per line (or just email)
+        lines = tsv_text.strip().split("\n")
+        new_lines = ["email\trol"]
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            parts = [p.strip() for p in line.split("\t")]
+            if len(parts) == 1:
+                parts = [p.strip() for p in line.split(",")]
+            email = parts[0].lower()
+            rol = "estudiante"
+            if len(parts) > 1:
+                r = parts[1].lower()
+                if r in ("docente", "profesor", "profesora"):
+                    rol = "docente"
+            new_lines.append(f"{email}\t{rol}")
+        tsv_text = "\n".join(new_lines)
+
+    result = um._importar_tsv_content(tsv_text, sobreescribir=False)
     return result
 
 
@@ -1886,12 +1919,13 @@ async def lali_moodle_login(
         print(f"[MOODLE-SSO] FIRMA INVÁLIDA user={repr(user)} ts={repr(ts)}")
         raise HTTPException(status_code=403, detail="Firma inválida. Acceso denegado.")
 
-    # 3. Buscar el usuario en tutores_users.json
+    # 3. Buscar el usuario en users.tsv del agente
     username = user.strip().lower()
-    from auth_tutores import _load_users as tutores_load_users
-    users = tutores_load_users()
+    from agents.tutor_fonetica_base.user_manager import UserManager
+    um = UserManager(_LALI_DIR)
+    user_data = um.obtener_usuario(username)
 
-    if username not in users:
+    if not user_data:
         raise HTTPException(
             status_code=403,
             detail=f"El usuario '{username}' no está registrado en Eulalia. Contacta con el profesor para que te dé de alta."
@@ -1901,7 +1935,7 @@ async def lali_moodle_login(
     import secrets as _secrets
     from auth_tutores import _sessions
     token = _secrets.token_hex(32)
-    user_role = users[username].get("role", "estudiante")
+    user_role = user_data.get("rol", "estudiante")
     _sessions[token] = {
         "username": username,
         "role": user_role,
@@ -2012,6 +2046,22 @@ async def lali_get_proyecto(project_id: str, request: Request):
     return proyecto
 
 
+@app.delete("/api/public-agent/eulalia/proyectos/{project_id}")
+async def lali_delete_proyecto(project_id: str, request: Request):
+    """Delete a project (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede eliminar proyectos")
+    proyecto = _load_proyecto(project_id)
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    # Delete the project file
+    project_file = _LALI_PROYECTOS_DIR / f"{project_id}.json"
+    if project_file.exists():
+        project_file.unlink()
+    return {"ok": True, "deleted": project_id}
+
+
 @app.put("/api/public-agent/eulalia/proyectos/{project_id}/fases/{fase_id}")
 async def lali_update_fase(project_id: str, fase_id: str, request: Request):
     """Update the text of a project phase."""
@@ -2023,15 +2073,38 @@ async def lali_update_fase(project_id: str, fase_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
     if email not in proyecto.get("grupo", []):
         raise HTTPException(status_code=403, detail="No tienes acceso a este proyecto")
-    if fase_id not in ("introduccion", "metodologia", "resultados", "discusion"):
+    if fase_id not in ("introduccion", "metodologia", "resultados", "discusion", "valoracion"):
         raise HTTPException(status_code=400, detail="Fase no válida")
 
     body = await request.json()
     texto = body.get("texto", "")
+
+    # Valoracion phase: store per-user survey responses
+    if fase_id == "valoracion":
+        try:
+            data = json.loads(texto)
+            if data.get("_survey"):
+                survey_email = data.get("email", email)
+                respuestas = data.get("respuestas", {})
+                if "fases" not in proyecto:
+                    proyecto["fases"] = {}
+                if "valoracion" not in proyecto["fases"]:
+                    proyecto["fases"]["valoracion"] = {"texto": "", "respuestas": {}}
+                if "respuestas" not in proyecto["fases"]["valoracion"]:
+                    proyecto["fases"]["valoracion"]["respuestas"] = {}
+                proyecto["fases"]["valoracion"]["respuestas"][survey_email] = respuestas
+                proyecto["fases"]["valoracion"]["ultima_edicion"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                _save_proyecto(proyecto)
+                return {"ok": True}
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    delivery_filename = body.get("delivery_filename", "")
     proyecto["fases"][fase_id] = {
         "texto": texto,
         "ultima_edicion": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "editado_por": email,
+        "delivery_filename": delivery_filename,
     }
     _save_proyecto(proyecto)
     return {"ok": True}
@@ -2055,6 +2128,13 @@ async def lali_invite_member(project_id: str, request: Request):
         raise HTTPException(status_code=400, detail="Email no válido")
     if new_email in proyecto["grupo"]:
         raise HTTPException(status_code=409, detail="Ya es miembro del proyecto")
+
+    # Group size limit: 3 for students, 4 for docentes
+    session = tutores_get_session(_get_tutores_token(request))
+    is_prof = tutores_is_docente(session) if session else False
+    max_size = 4 if is_prof else 3
+    if len(proyecto["grupo"]) >= max_size:
+        raise HTTPException(status_code=400, detail=f"El grupo ya tiene el máximo de {max_size} miembros")
 
     proyecto["grupo"].append(new_email)
     _save_proyecto(proyecto)
@@ -2093,16 +2173,50 @@ async def lali_project_chat(project_id: str, request: Request):
                     "resultados": "Resultados", "discusion": "Discusión y conclusiones"}
     fase_nombre = fase_nombres.get(fase, fase)
 
+    # Retrieve RAG context from the knowledge base
+    if not agent_instance._chromadb_initialized:
+        agent_instance._init_chromadb()
+    rag_context = agent_instance._retrieve_context(mensaje)
+
     system_prompt = (
         "Eres Eulalia, tutora de Lingüística Aplicada a la Logopedia. "
         "Estás ayudando a un grupo de estudiantes con su proyecto de investigación fonológica. "
         f"El grupo está trabajando en la fase: {fase_nombre}.\n\n"
-        "Tu rol es ser un interlocutor crítico: ayuda al estudiante a mejorar su trabajo, "
-        "señala inconsistencias, sugiere mejoras, pero NO hagas el trabajo por ellos.\n\n"
-        "IMPORTANTE: Tus respuestas son generadas por IA y pueden contener errores. "
-        "Los estudiantes deben contrastar con otras fuentes.\n\n"
-        "Responde en español. Sé conciso (máximo 200 palabras)."
+        "INVENTARIO FONOLÓGICO del español peninsular distinguidor: 5 vocales (/a, e, i, o, u/) "
+        "+ 18 consonantes: 6 oclusivas (/p, b, t, d, k, g/), 5 fricativas (/f, θ, s, ʝ, x/), "
+        "1 africada (/ʧ/), 3 nasales (/m, n, ɲ/), 1 lateral (/l/), 2 vibrantes (/ɾ, r/) "
+        "= 23 fonemas en total.\n"
+        "YEÍSMO: NO existe el fonema /ʎ/ en nuestro inventario. La grafía «ll» se transcribe "
+        "SIEMPRE como /ʝ/ (fricativa palatal sonora). NUNCA uses /ʎ/ ni /tʃ/ — usa /ʧ/.\n\n"
+        "Tu rol es GUIAR al estudiante:\n"
+        "- Si el estudiante te explica su objetivo, oriéntale sobre cómo enfocar esa fase.\n"
+        "- Si te muestra su trabajo, señala inconsistencias y sugiere mejoras concretas.\n"
+        "- Haz preguntas para que reflexionen: '¿Has considerado...?', '¿Qué pasaría si...?'\n\n"
+        "ESTRATEGIA PEDAGÓGICA — REGLA CRÍTICA, NO LA VIOLES:\n"
+        "Cuando el estudiante pida ayuda para REDACTAR una sección (introducción, metodología, "
+        "resultados o discusión), ESCRIBE DIRECTAMENTE EL TEXTO de esa sección como si fuera "
+        "un párrafo (o varios) del trabajo final. NO des pasos, NO des pautas, NO hagas listas "
+        "de lo que debería incluir. ESCRIBE EL TEXTO DIRECTAMENTE.\n"
+        "Usa la estructura de las plantillas del documento 'Plantillas para el proyecto de "
+        "investigación'. Rellena con la información que el estudiante te haya proporcionado. "
+        "Si faltan datos, completa con lo más razonable pero MARCA entre corchetes [así] "
+        "lo que el estudiante debe verificar.\n"
+        "Al final del texto, añade solo una línea: «Lee este borrador y dime qué quieres "
+        "cambiar, añadir o corregir.»\n"
+        "Permite un máximo de 2 REFINAMIENTOS. Después del segundo, di: "
+        "«Este es el borrador final. Trabaja sobre él en tu editor de textos.»\n\n"
+        "LÍMITES DE TU CONOCIMIENTO:\n"
+        "- Basa tus respuestas PRIMERO en el contexto recuperado de los materiales de la asignatura (abajo).\n"
+        "- Si necesitas información que NO está en los materiales (ej: sobre una patología concreta), "
+        "puedes complementar con tu conocimiento general, pero DEBES advertir al estudiante: "
+        "«⚠️ Esta información no proviene de los materiales de la asignatura. Debes contrastarla con otras fuentes.»\n"
+        "- NUNCA inventes referencias bibliográficas ni cites autores que no aparezcan en los materiales.\n"
+        "- Sé conciso (máximo 200 palabras).\n\n"
+        "Responde en español."
     )
+
+    if rag_context:
+        system_prompt += f"\n\nContexto recuperado de los materiales de la asignatura:\n{rag_context}"
 
     if contexto_fase:
         system_prompt += f"\n\nContenido actual de la fase '{fase_nombre}' escrito por el grupo:\n{contexto_fase}"
@@ -2111,7 +2225,7 @@ async def lali_project_chat(project_id: str, request: Request):
     recent = [m for m in proyecto.get("chat", []) if m.get("fase") == fase][-6:]
     messages = [{"role": "system", "content": system_prompt}]
     for m in recent:
-        messages.append({"role": "user", "content": m["mensaje"]})
+        messages.append({"role": "user", "content": m.get("prompt") or m.get("mensaje", "")})
         if m.get("respuesta"):
             messages.append({"role": "assistant", "content": m["respuesta"]})
     messages.append({"role": "user", "content": mensaje})
@@ -2123,18 +2237,251 @@ async def lali_project_chat(project_id: str, request: Request):
         respuesta = f"Error al consultar la IA: {str(e)}"
 
     # Save to project
+    texto_fase_antes = body.get("texto_fase_antes", "")
     chat_entry = {
         "autor": email,
-        "mensaje": mensaje,
+        "prompt": mensaje,
         "respuesta": respuesta,
         "fase": fase,
         "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "response_type": "llm",
+        "texto_fase_antes": texto_fase_antes[:5000],
+        "decision": None,
     }
     proyecto["chat"].append(chat_entry)
     _save_proyecto(proyecto)
 
     return {"respuesta": respuesta, "response_type": "llm"}
+
+
+@app.post("/api/public-agent/eulalia/proyectos/{project_id}/decision")
+async def lali_project_decision(project_id: str, request: Request):
+    """Record the student's decision about an LLM response."""
+    email = _get_user_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Autenticación requerida")
+    proyecto = _load_proyecto(project_id)
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    if email not in proyecto.get("grupo", []):
+        raise HTTPException(status_code=403, detail="No tienes acceso a este proyecto")
+
+    body = await request.json()
+    chat_index = body.get("chat_index")
+    accion = body.get("accion", "")
+    justificacion = body.get("justificacion", "")
+
+    if chat_index is None or chat_index < 0 or chat_index >= len(proyecto.get("chat", [])):
+        raise HTTPException(status_code=400, detail="Índice de chat no válido")
+    if accion not in ("aplicado", "no_aplicado", "parcialmente"):
+        raise HTTPException(status_code=400, detail="Acción no válida")
+
+    proyecto["chat"][chat_index]["decision"] = {
+        "accion": accion,
+        "justificacion": justificacion,
+        "autor": email,
+        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
+    }
+    _save_proyecto(proyecto)
+    return {"ok": True}
+
+
+@app.post("/api/public-agent/eulalia/proyectos/{project_id}/score")
+async def lali_project_score(project_id: str, request: Request):
+    """Set teacher score for a chat interaction (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo disponible para docentes")
+    proyecto = _load_proyecto(project_id)
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    body = await request.json()
+    chat_index = body.get("chat_index")
+    score = body.get("score")
+    if chat_index is None or chat_index < 0 or chat_index >= len(proyecto.get("chat", [])):
+        raise HTTPException(status_code=400, detail="Índice no válido")
+    if score is None or score < 0 or score > 4:
+        raise HTTPException(status_code=400, detail="Puntuación debe ser 0-4")
+    proyecto["chat"][chat_index]["teacher_score"] = score
+    _save_proyecto(proyecto)
+    return {"ok": True}
+
+
+@app.post("/api/public-agent/eulalia/proyectos/{project_id}/autoscore")
+async def lali_project_autoscore(project_id: str, request: Request):
+    """AI auto-scoring of interactions (docente only). Does NOT overwrite existing scores."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo disponible para docentes")
+    proyecto = _load_proyecto(project_id)
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+
+    body = await request.json()
+    interactions = body.get("interactions", [])
+    if not interactions:
+        return {"scores": []}
+
+    rubric = (
+        "0: No hay justificación o la justificación es incorrecta o no relevante\n"
+        "1: Justificación muy pobre, no se aprecia lectura crítica de la respuesta de la IA\n"
+        "2: Justificación intermedia: se aprecia que se ha leído el texto, pero falta actitud crítica\n"
+        "3: Respuesta correcta: han leído el texto de manera crítica\n"
+        "4: Respuesta excelente: alto nivel de comprensión y pensamiento crítico"
+    )
+
+    items_text = ""
+    for i, inter in enumerate(interactions[:30]):
+        items_text += (
+            f"\n--- Interacción {i+1} (índice {inter['index']}) ---\n"
+            f"Prompt del estudiante: {inter.get('prompt', '')}\n"
+            f"Decisión: {inter.get('decision', 'sin_decision')}\n"
+            f"Justificación: {inter.get('justificacion', '(ninguna)')}\n"
+        )
+
+    system_prompt = (
+        "Eres un evaluador académico. Debes puntuar cada interacción de un estudiante con una IA "
+        "según la calidad de su DECISIÓN y JUSTIFICACIÓN (no el prompt ni la respuesta de la IA).\n\n"
+        f"RÚBRICA:\n{rubric}\n\n"
+        "Responde SOLO con un JSON array de objetos: [{\"index\": N, \"score\": S}, ...]\n"
+        "Donde N es el índice de la interacción y S la puntuación 0-4.\n"
+        "NO incluyas explicaciones, solo el JSON."
+    )
+
+    agent_instance = runner._load_agent_module("eulalia")
+    model = agent_instance.model
+
+    try:
+        response = agent_instance.client.chat.complete(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Puntúa estas interacciones:\n{items_text}"},
+            ],
+        )
+        raw = response.choices[0].message.content.strip()
+        # Parse JSON from response
+        import re as _re
+        json_match = _re.search(r'\[.*\]', raw, _re.DOTALL)
+        if json_match:
+            scores = json.loads(json_match.group())
+        else:
+            scores = []
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error IA: {e}")
+
+    # Apply scores (only for unscored interactions)
+    applied = []
+    for s in scores:
+        idx = s.get("index")
+        score_val = s.get("score")
+        if idx is not None and 0 <= idx < len(proyecto["chat"]) and 0 <= score_val <= 4:
+            existing = proyecto["chat"][idx].get("teacher_score")
+            if existing is None or existing < 0:
+                proyecto["chat"][idx]["teacher_score"] = score_val
+                applied.append(s)
+
+    _save_proyecto(proyecto)
+    return {"scores": applied}
+
+
+@app.post("/api/public-agent/eulalia/proyectos/{project_id}/precorreccion")
+async def lali_project_precorreccion(project_id: str, request: Request):
+    """Generate AI pre-correction for a project (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo disponible para docentes")
+
+    proyecto = _load_proyecto(project_id)
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+
+    body = await request.json()
+    fases = body.get("fases", {})
+    decisiones = body.get("decisiones", [])
+    titulo = body.get("titulo", "")
+    grupo = body.get("grupo", [])
+
+    # Build a summary of AI interactions and decisions
+    decisiones_texto = ""
+    for d in decisiones[:30]:  # limit
+        decisiones_texto += (
+            f"- Fase: {d.get('fase','?')} | Prompt: {d.get('prompt','')[:200]} | "
+            f"Decisión: {d.get('decision','?')}"
+        )
+        if d.get("justificacion"):
+            decisiones_texto += f" | Justificación: {d['justificacion'][:200]}"
+        decisiones_texto += "\n"
+
+    system_prompt = (
+        "Eres un evaluador académico experto en lingüística aplicada a la logopedia. "
+        "Debes hacer una PRE-CORRECCIÓN orientativa de un proyecto de investigación "
+        "realizado por estudiantes de grado. Tu evaluación la leerá el docente, NO los estudiantes.\n\n"
+        "IMPORTANTE:\n"
+        "- NO des notas numéricas. Da COMENTARIOS cualitativos por cada criterio.\n"
+        "- Señala fortalezas y debilidades concretas.\n"
+        "- Indica qué aspectos necesitan revisión del docente (ej: no puedes evaluar transcripciones porque no has oído la grabación).\n"
+        "- Sé directo y específico, no genérico.\n\n"
+        "CRITERIOS DE EVALUACIÓN:\n"
+        "1. Pensamiento crítico frente a la IA (35%): ¿Han reflexionado sobre las respuestas de Eulalia? "
+        "¿Han justificado sus decisiones? ¿Han rechazado sugerencias cuando era apropiado?\n"
+        "2. Calidad de transcripciones y análisis de errores (20%): NO puedes evaluar esto directamente "
+        "(no has oído la grabación). Señala si la presentación es coherente internamente.\n"
+        "3. Calidad de la introducción (15%): ¿Describen bien la patología? ¿Formulan hipótesis razonables?\n"
+        "4. Coherencia de la metodología (15%): ¿La prueba es adecuada para el paciente y la pregunta?\n"
+        "5. Discusión crítica (15%): ¿Interpretan los resultados? ¿Mencionan limitaciones?\n\n"
+        "Responde en español con formato estructurado por criterio."
+    )
+
+    user_prompt = f"PROYECTO: {titulo}\nGRUPO: {', '.join(grupo)}\n\n"
+    user_prompt += f"INTRODUCCIÓN:\n{fases.get('introduccion', '(vacío)')}\n\n"
+    user_prompt += f"METODOLOGÍA:\n{fases.get('metodologia', '(vacío)')}\n\n"
+    user_prompt += f"RESULTADOS:\n{fases.get('resultados', '(vacío)')}\n\n"
+    user_prompt += f"DISCUSIÓN:\n{fases.get('discusion', '(vacío)')}\n\n"
+    user_prompt += f"INTERACCIONES CON LA IA Y DECISIONES ({len(decisiones)} interacciones):\n"
+    user_prompt += decisiones_texto if decisiones_texto else "(Sin interacciones registradas)\n"
+
+    agent_instance = runner._load_agent_module("eulalia")
+    model = agent_instance.model
+
+    try:
+        response = agent_instance.client.chat.complete(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+        respuesta_raw = response.choices[0].message.content
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al consultar la IA: {e}")
+
+    # Parse response into criteria blocks
+    criterios = []
+    criterio_names = [
+        ("Pensamiento crítico", "35%"),
+        ("Transcripciones", "20%"),
+        ("Introducción", "15%"),
+        ("Metodología", "15%"),
+        ("Discusión", "15%"),
+    ]
+
+    # Try to split by numbered sections or bold headers
+    import re as _re
+    sections = _re.split(r'\n(?=\d+[\.\)]\s|\*\*\d)', respuesta_raw)
+    if len(sections) >= 4:
+        for i, sec in enumerate(sections):
+            sec = sec.strip()
+            if not sec:
+                continue
+            name = criterio_names[i][0] if i < len(criterio_names) else f"Criterio {i+1}"
+            peso = criterio_names[i][1] if i < len(criterio_names) else ""
+            criterios.append({"nombre": name, "peso": peso, "comentario": sec})
+    else:
+        # Could not split — return as general comment
+        return {"criterios": [], "comentario_general": respuesta_raw}
+
+    return {"criterios": criterios, "comentario_general": ""}
 
 
 @app.get("/api/public-agent/eulalia/temas")
@@ -4510,6 +4857,156 @@ async def logs_summary(
             "unique_users": len(totals["users"]),
         },
         "per_agent": per_agent,
+    }
+
+
+@app.get("/algoria-map-report")
+async def algoria_map_report_page():
+    return FileResponse(SCRIPT_DIR / "static" / "algoria_map_report.html")
+
+
+@app.get("/api/logs/algoria-map-report")
+async def algoria_map_report(request: Request):
+    """Generate a detailed analytics report for Algoria Map. Requires superuser or docente."""
+    # Check TOMMI auth
+    token = _get_token(request)
+    session = get_session(token) if token else None
+    # Fallback: check tutores auth (docente)
+    if not session:
+        tutores_token = _get_tutores_token(request)
+        tutores_session = tutores_get_session(tutores_token) if tutores_token else None
+        if not tutores_session or not tutores_is_docente(tutores_session):
+            raise HTTPException(status_code=401, detail="Requiere permisos de superuser o docente")
+    import re as _re
+    log_file = LOGS_DIR / "algoria_map_conversations.jsonl"
+    if not log_file.exists():
+        return {"error": "No log file found"}
+
+    entries = []
+    with open(log_file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entries.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+
+    # Group by session
+    sessions = {}
+    for e in entries:
+        sid = e.get("session_id", "") or "no_session"
+        if sid not in sessions:
+            sessions[sid] = []
+        sessions[sid].append(e)
+
+    # 1. Session summary by action count
+    action_counts = {}
+    for sid, acts in sessions.items():
+        n = len(acts)
+        key = str(n) if n <= 5 else "6+"
+        action_counts[key] = action_counts.get(key, 0) + 1
+
+    # 2. Action type ratios
+    type_counts = {"init": 0, "filters": 0, "NL": 0, "interaction": 0, "other": 0}
+    for e in entries:
+        q = e.get("question", "")
+        if q.startswith("[init]"):
+            type_counts["init"] += 1
+        elif q.startswith("[filters]"):
+            type_counts["filters"] += 1
+        elif q.startswith("[NL]"):
+            type_counts["NL"] += 1
+        elif q.startswith("[interaction]"):
+            type_counts["interaction"] += 1
+        else:
+            type_counts["other"] += 1
+
+    # 3. Country ranking (from filters and interactions)
+    country_counts = {}
+    for e in entries:
+        q = e.get("question", "")
+        r = e.get("response", "")
+        # From filter queries
+        if "[filters]" in q or "[NL]" in q:
+            try:
+                filters = json.loads(q.split("]", 1)[1].strip().split("→")[0].strip() if "→" in q else q.split("]", 1)[1].strip())
+                if isinstance(filters, dict) and "country" in filters:
+                    c = filters["country"]
+                    country_counts[c] = country_counts.get(c, 0) + 1
+            except (json.JSONDecodeError, IndexError):
+                pass
+        # From interaction details (marker_click, cluster_click)
+        if "[interaction]" in q:
+            try:
+                details = e.get("response", "")
+                if isinstance(details, str) and "'country'" in details:
+                    # Parse Python dict repr
+                    details = details.replace("'", '"').replace("True", "true").replace("False", "false").replace("None", "null")
+                    d = json.loads(details)
+                    if "country" in d:
+                        c = d["country"]
+                        country_counts[c] = country_counts.get(c, 0) + 1
+                    if "countries" in d:
+                        for c in d["countries"]:
+                            country_counts[c] = country_counts.get(c, 0) + 1
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+    # 4. University ranking (from open_detail interactions)
+    uni_counts = {}
+    for e in entries:
+        q = e.get("question", "")
+        if "[interaction] open_detail" in q:
+            try:
+                details = e.get("response", "")
+                if isinstance(details, str) and "'key'" in details:
+                    details = details.replace("'", '"').replace("True", "true").replace("False", "false").replace("None", "null")
+                    d = json.loads(details)
+                    if "key" in d:
+                        uni_counts[d["key"]] = uni_counts.get(d["key"], 0) + 1
+                    elif "title" in d:
+                        uni_counts[d["title"]] = uni_counts.get(d["title"], 0) + 1
+            except (json.JSONDecodeError, ValueError):
+                pass
+        # Also from marker_click detail_key
+        if "[interaction] marker_click" in q:
+            try:
+                details = e.get("response", "")
+                if isinstance(details, str):
+                    details = details.replace("'", '"').replace("True", "true").replace("False", "false").replace("None", "null")
+                    d = json.loads(details)
+                    if "detail_key" in d and d["detail_key"]:
+                        uni_counts[d["detail_key"]] = uni_counts.get(d["detail_key"], 0) + 1
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+    # Build university → country mapping from destinations DB
+    uni_country_map = {}
+    try:
+        import sqlite3
+        db_path = Path(__file__).parent.parent / "agents" / "algoria_map" / "data" / "destinations.db"
+        if db_path.exists():
+            conn = sqlite3.connect(str(db_path))
+            for row in conn.execute("SELECT DISTINCT host_institution, destination_country FROM destinations"):
+                uni_country_map[row[0]] = row[1]
+            conn.close()
+    except Exception:
+        pass
+
+    # Sort rankings
+    country_ranking = sorted(country_counts.items(), key=lambda x: -x[1])[:20]
+    uni_ranking_raw = sorted(uni_counts.items(), key=lambda x: -x[1])[:20]
+    uni_ranking = [[name, count, uni_country_map.get(name, "")] for name, count in uni_ranking_raw]
+
+    return {
+        "total_entries": len(entries),
+        "total_sessions": len(sessions),
+        "session_by_actions": action_counts,
+        "action_types": type_counts,
+        "country_ranking": country_ranking,
+        "university_ranking": uni_ranking,
     }
 
 

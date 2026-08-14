@@ -1385,7 +1385,8 @@ async function laLoadFiles() {
                 + '<td style="padding:4px 6px;white-space:nowrap;color:#666;">' + mod + '</td>'
                 + '<td style="text-align:center;padding:4px 6px;">'
                 + '<button onclick="laViewFile(\'' + esc + '\')" style="background:none;border:1px solid #2D3876;color:#2D3876;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;margin-right:3px;">View</button>'
-                + '<button onclick="laDeleteFile(\'' + esc + '\')" style="background:none;border:1px solid #ccc;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;">Reset</button>'
+                + '<button onclick="laDeleteFile(\'' + esc + '\')" style="background:none;border:1px solid #ccc;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:0.7rem;margin-right:3px;">Reset</button>'
+                + (f.name.indexOf('algoria_map') >= 0 ? '<a href="/algoria-map-report" target="_blank" style="border:1px solid #2563eb;color:#2563eb;border-radius:3px;padding:2px 6px;font-size:0.7rem;text-decoration:none;">Report</a>' : '')
                 + '</td></tr>';
         });
 
