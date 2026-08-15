@@ -1,0 +1,78 @@
+{
+  "id": "ef697c10",
+  "titulo": "Estudio IC",
+  "grupo": [
+    "imoreno@uma.es"
+  ],
+  "created": "2026-08-13 16:36",
+  "fases": {
+    "introduccion": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "metodologia": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "resultados": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "discusion": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    }
+  },
+  "chat": [
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Cómo puedo estructurar la introducción",
+      "respuesta": "Para estructurar la **Introducción** de tu proyecto de investigación fonológica, sigue este esquema claro y lógico:\n\n1. **Contexto teórico**:\n   - Presenta el tema central (ej.: adquisición fonológica, trastornos del habla, variación dialectal).\n   - Menciona estudios previos relevantes (cita autores clave).\n   - Justifica por qué es importante investigar este aspecto (brecha en la literatura, problema social, etc.).\n\n2. **Objetivo general**:\n   - Formula una frase clara y específica (ej.: *\"Analizar los patrones de sustitución de fonemas en niños con dislalia\"*).\n   - Relaciónalo con el contexto anterior.\n\n3. **Preguntas de investigación o hipótesis**:\n   - Ejemplo: *\"¿Existen diferencias significativas en la producción de /r/ vibrante entre niños bilingües y monolingües?\"*.\n   - Si es un estudio exploratorio, usa preguntas; si es explicativo, hipótesis.\n\n4. **Estructura del trabajo**:\n   - Breve mención de cómo se desarrollará el proyecto (ej.: *\"Este estudio se divide en cuatro fases: introducción, metodología...\"*).\n\n**Consejo clave**: Usa un lenguaje formal pero accesible. Cada párrafo debe fluir hacia el siguiente. ¿Has revisado artículos científicos para definir mejor el contexto? ¿Qué enfoque teórico sustenta tu investigación?",
+      "fase": "introduccion",
+      "fecha": "2026-08-13 16:36",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Parece ok",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-14 00:36"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Mi proyecto es sobre la adquisición de la fonología en niños sordos con implante coclear. Haz una versión del contexto histórico",
+      "respuesta": "**Contexto histórico de la adquisición fonológica en niños sordos con implante coclear**\n\nLa adquisición de la fonología en niños sordos ha evolucionado significativamente con los avances tecnológicos y pedagógicos. Hasta mediados del siglo XX, la educación de niños sordos se centraba en el método oral puro (lectura labial y habla), lo que limitaba su acceso al lenguaje fonológico natural. La aparición de los **implantes cocleares (IC)** en los años 70-80 marcó un hito, al proporcionar estimulación auditiva directa a la cóclea, permitiendo a muchos niños sordos desarrollar habilidades fonológicas similares a las de sus pares oyentes (Gantz et al., 2000).\n\nInicialmente, los IC se implantaban en adultos, pero en los 90 se extendieron a niños, generando debates sobre su impacto en el lenguaje. Estudios pioneros como los de **Kirk et al. (2002)** demostraron que la edad de implantación era clave: los niños intervenidos antes de los 2 años mostraban mejores resultados fonológicos. Hoy, la tendencia es la **implantación temprana** (antes de los 12 meses), respaldada por investigaciones que vinculan la plasticidad cerebral con la adquisición del lenguaje (Pisoni et al., 2011).\n\nSin embargo, persisten desafíos: la variabilidad en los resultados fonológicos depende de factores como el **entorno lingüístico**, la **estimulación temprana** y las características individuales del implante. ¿Has considerado cómo estos antecedentes influyen en tu enfoque metodológico? ¿Qué aspectos históricos crees que son más relevantes para tu investigación?",
+      "fase": "introduccion",
+      "fecha": "2026-08-14 00:36",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "La descripción es correcta y se ajusta a lo que necesito.",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-14 00:37"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Escribe un objetivo general válido para mi estudio de un niño con 4 años, que recibió el IC a los 24 meses.",
+      "respuesta": "**Objetivo general válido para tu estudio:**\n\n*\"Analizar el desarrollo fonológico de un niño de 4 años con implante coclear (IC) implantado a los 24 meses, comparando su producción de fonemas con los patrones típicos de adquisición en niños oyentes de la misma edad.\"*\n\n**¿Por qué este objetivo funciona?**\n1. **Especificidad**: Menciona la edad del niño, la edad de implantación y el enfoque comparativo.\n2. **Enfoque fonológico**: Se centra en la producción de fonemas, clave en tu proyecto.\n3. **Viabilidad**: Es alcanzable con una muestra pequeña (caso único) y metodología clara.\n\n**Sugerencia adicional**:\nSi tu estudio es **exploratorio**, podrías reformularlo como pregunta:\n*\"¿Cómo se desarrolla la adquisición fonológica en un niño de 4 años con IC implantado a los 24 meses, en comparación con niños oyentes?\"*\n\n¿Has definido ya las variables que compararás (ej.: fonemas adquiridos, errores típicos)? ¿Qué pruebas fonológicas usarás para evaluar?",
+      "fase": "introduccion",
+      "fecha": "2026-08-14 00:38",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Es correcto todo",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-14 00:39"
+      }
+    }
+  ],
+  "updated": "2026-08-14 00:39"
+}

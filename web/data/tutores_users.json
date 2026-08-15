@@ -16,13 +16,6 @@
     "nombre": "Carlos Ruiz Fernández",
     "activo": false
   },
-  "ignacio": {
-    "role": "estudiante",
-    "nombre": "Ignacio",
-    "activo": true,
-    "password_hash": "824c2ce0a83c938e5886de60112f970ff7f509de0138d0f4a8c19600db74425a",
-    "salt": "1d068732697d0d34a91dc762783729f6"
-  },
   "claudiaaguisant@gmail.com": {
     "role": "estudiante",
     "nombre": "",

@@ -394,28 +394,54 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                 </details>
             </div>
 
+            <div class="config-panel" id="proyectos-panel" style="display:none;">
+                <details>
+                    <summary>Proyectos de investigación</summary>
+                    <div style="padding:10px 14px;">
+                        <a href="/tutores-virtuales/eulalia/widgets/proyectos_docente" target="_blank"
+                           style="display:block;padding:8px 12px;background:#4250b3;color:#fff;border-radius:6px;text-align:center;text-decoration:none;font-size:13px;font-weight:600;">
+                            Ver todos los proyectos
+                        </a>
+                    </div>
+                </details>
+            </div>
+
             <div class="users-panel" id="users-panel">
                 <details>
-                    <summary>Gestión de usuarios</summary>
+                    <summary id="users-summary-title">Gestión de usuarios</summary>
                     <div class="users-body">
                         <div class="users-list" id="users-list">
                             <div style="color:#94a3b8;font-size:12px;font-style:italic;">Cargando...</div>
                         </div>
-                        <div class="add-user-form">
-                            <input type="email" id="new-user-username" placeholder="Email (ej: nombre@uma.es)">
-                            <select id="new-user-role">
-                                <option value="estudiante">Estudiante</option>
-                                <option value="docente">Docente</option>
-                            </select>
+                        <div class="add-user-form" style="display:flex;flex-direction:column;gap:4px;">
+                            <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:2px;">Añadir usuario</div>
+                            <input type="email" id="new-user-email" placeholder="Email (obligatorio)" style="font-size:11px;padding:5px 8px;">
+                            <div style="display:flex;gap:4px;">
+                                <input type="text" id="new-user-nombre" placeholder="Nombre" style="flex:1;font-size:11px;padding:5px 8px;">
+                                <input type="text" id="new-user-apellidos" placeholder="Apellidos" style="flex:1;font-size:11px;padding:5px 8px;">
+                            </div>
+                            <div style="display:flex;gap:4px;">
+                                <select id="new-user-rol" style="flex:1;font-size:11px;padding:5px 4px;">
+                                    <option value="estudiante">Estudiante</option>
+                                    <option value="docente">Docente</option>
+                                </select>
+                                <select id="new-user-grado" style="flex:1;font-size:11px;padding:5px 4px;">
+                                    <option value="">— Grado —</option>
+                                    <option value="Logopedia">Logopedia</option>
+                                    <option value="Doble Psicología-Logopedia">Doble Psicología-Logopedia</option>
+                                </select>
+                            </div>
                             <button class="add-user-btn" onclick="addUser()">Añadir usuario</button>
+                            <div class="users-status" id="users-status-add"></div>
                         </div>
                         <div style="border-top:1px solid #e2e8f0;margin-top:10px;padding-top:10px;">
                             <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:4px;">Importar lista</div>
                             <div style="font-size:10px;color:#94a3b8;margin-bottom:6px;line-height:1.4;">Un usuario por línea: <code>email, rol</code> (rol opcional, por defecto Estudiante).<br>Ej: <code>ana@uma.es, estudiante</code></div>
-                            <textarea id="bulk-users-text" rows="4" style="width:100%;font-size:11px;font-family:monospace;padding:6px;border:1px solid #e2e8f0;border-radius:6px;resize:vertical;" placeholder="ana.lopez@uma.es, estudiante&#10;pedro.garcia@uma.es, estudiante&#10;prof@uma.es, docente"></textarea>
+                            <textarea id="bulk-users-text" rows="5" style="width:100%;font-size:11px;font-family:monospace;padding:6px;border:1px solid #e2e8f0;border-radius:6px;resize:vertical;" placeholder="email&#9;nombre&#9;apellidos&#9;rol&#9;grado&#10;ana@uma.es&#9;Ana&#9;García&#9;estudiante&#9;Logopedia&#10;pedro@uma.es&#9;Pedro&#9;Ruiz&#9;estudiante&#9;Doble Psicología-Logopedia"></textarea>
+                            <div style="font-size:10px;color:#94a3b8;margin-top:2px;line-height:1.4;">Pega desde Excel/Numbers con columnas separadas por tabulador. Columna obligatoria: <code>email</code>. Opcionales: <code>nombre</code>, <code>apellidos</code>, <code>rol</code>, <code>grado</code>, <code>grupo</code>. Si no hay cabecera, se interpreta como: email, rol.</div>
                             <button class="add-user-btn" onclick="bulkAddUsers()" style="margin-top:4px;">Importar</button>
+                            <div class="users-status" id="users-status-bulk"></div>
                         </div>
-                        <div class="users-status" id="users-status"></div>
                     </div>
                 </details>
             </div>
@@ -572,7 +598,13 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
         <div id="chat-notice" style="display:none;max-width:700px;margin:24px auto 0;padding:0 20px;">
             <div style="background:#fffbeb;border:2px solid #fde68a;border-radius:10px;padding:16px 20px;font-size:13px;color:#78350f;line-height:1.7;">
                 <strong style="font-size:14px;">⚠️ Pregunta a Eulalia</strong><br>
-                En esta sección puedes preguntar cualquier concepto o duda sobre la asignatura. Las respuestas se obtienen con la ayuda de una LLM que tiene acceso a todos los documentos del curso. Ten en cuenta que al hacerse uso de una LLM es posible que haya errores y/o alucinaciones. Por ello debes comprobar que las respuestas son fiables consultando las fuentes originales. Si observas algún error o tienes alguna duda puedes informar al profesor.
+                En esta sección puedes preguntar cualquier concepto o duda sobre la asignatura. Las respuestas se obtienen con la ayuda de una LLM que tiene acceso a todos los documentos del curso. Ten en cuenta que al hacerse uso de una LLM es posible que haya errores y/o alucinaciones. Por ello debes comprobar que las respuestas son fiables consultando las fuentes originales. Si observas algún error o tienes alguna duda puedes informar al profesorado.
+            </div>
+        </div>
+        <div id="chat-proyecto-warning" style="display:none;max-width:700px;margin:8px auto 0;padding:0 20px;">
+            <div style="background:#fef2f2;border:2px solid #fecaca;border-radius:10px;padding:12px 16px;font-size:13px;color:#991b1b;line-height:1.6;">
+                <strong>📝 ¿Estás trabajando en el proyecto del Tema 5?</strong><br>
+                Las consultas hechas aquí <strong>NO quedan registradas</strong> en tu proyecto y <strong>no se evaluarán</strong>. Para que tus interacciones con la IA cuenten en la evaluación, usa el chat del <a href="javascript:void(0)" onclick="openWidget('proyecto_investigacion')" style="color:#991b1b;font-weight:700;">Proyecto de investigación →</a>
             </div>
         </div>
         <div class="chat-messages" id="chat-messages"></div>
@@ -808,6 +840,8 @@ function showView(viewId) {
     document.getElementById('chat-messages').style.display = showChat ? '' : 'none';
     var chatNotice = document.getElementById('chat-notice');
     if (chatNotice) chatNotice.style.display = showChat ? '' : 'none';
+    var proyWarning = document.getElementById('chat-proyecto-warning');
+    if (proyWarning) proyWarning.style.display = (showChat && _currentTemaId === 5) ? '' : 'none';
     var afi = document.getElementById('afi-keyboard');
     if (afi) afi.style.display = showChat ? '' : 'none';
     var inputArea = document.querySelector('.input-area');
@@ -1037,22 +1071,36 @@ function showSection(temaId, seccionId) {
         });
 
     } else if (seccionId === 'ejercicios') {
+        var ejercicios = tema.ejercicios || [];
         var html = '<div class="content-block">';
-        html += '<p style="font-size:13px;color:#64748b;margin-bottom:14px;">Haz clic en un ejercicio para empezar. Eulalia te guiará paso a paso.</p><div>';
-        (tema.ejercicios || []).forEach(function(ej) {
-            var onclick = '';
-            if (ej.tipo === 'panel_transcripcion') onclick = "showChatAndSend('Dame un ejercicio de transcripción fonológica')";
-            else if (ej.tipo === 'panel_errores') onclick = "openWidget('ejercicio_errores')";
-            else if (ej.tipo === 'panel_informe_errores') onclick = "openWidget('informe_errores')";
-            else if (ej.tipo === 'panel_transcripcion_fonetica') onclick = "openWidget('transcripcion_fonetica')";
-            else if (ej.tipo === 'transcripcion_fonetica') onclick = "showChatAndSend('Dame un ejercicio de transcripción fonética')";
-            else if (ej.tipo === 'panel_proyecto_investigacion') onclick = "openWidget('proyecto_investigacion')";
-            else if (ej.tipo === 'espectrogramas') onclick = "mostrarEspectrogramas('vocales')";
-            else if (ej.tipo === 'audio') onclick = "document.getElementById('audio-file-input').click()";
-            else if (ej.tipo === 'consulta') onclick = "showChatAndSend('" + escapeJs(ej.consulta) + "')";
-            html += '<button style="display:block;width:100%;margin:6px 0;padding:12px 16px;border-radius:8px;border:2px solid ' + tema.color + '30;color:' + tema.color + ';background:#fff;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;text-align:left;transition:all 0.15s;" onmouseover="this.style.background=\'' + tema.color + '10\'" onmouseout="this.style.background=\'#fff\'" onclick="' + onclick + '">' + (ej.tipo === 'audio' ? '🎤 ' : '✏️ ') + ej.nombre + '</button>';
-        });
-        html += '</div></div>';
+        html += '<p style="font-size:13px;color:#64748b;margin-bottom:14px;">Haz clic en un ejercicio para empezar. Eulalia te guiará paso a paso.</p>';
+
+        if (ejercicios.length > 0) {
+            html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+            html += '<thead><tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;">';
+            html += '<th style="padding:8px 10px;text-align:left;color:#64748b;font-size:11px;font-weight:700;">Apartado</th>';
+            html += '<th style="padding:8px 10px;text-align:left;color:#64748b;font-size:11px;font-weight:700;">Ejercicio</th>';
+            html += '<th style="padding:8px 10px;text-align:left;color:#64748b;font-size:11px;font-weight:700;">Descripción</th>';
+            html += '<th style="padding:8px 10px;text-align:center;color:#64748b;font-size:11px;font-weight:700;width:60px;"></th>';
+            html += '</tr></thead><tbody>';
+
+            ejercicios.forEach(function(ej) {
+                var onclick = _buildEjercicioOnclick(ej);
+                var icon = ej.tipo === 'audio' ? '🎤' : (ej.tipo.startsWith('panel_') ? '🔧' : '✏️');
+                html += '<tr style="border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background 0.1s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'#fff\'" onclick="' + onclick + '">';
+                html += '<td style="padding:8px 10px;color:#94a3b8;font-size:12px;white-space:nowrap;">' + (ej.apartado || '') + '</td>';
+                html += '<td style="padding:8px 10px;font-weight:600;color:' + tema.color + ';">' + icon + ' ' + ej.nombre + '</td>';
+                html += '<td style="padding:8px 10px;color:#475569;font-size:12px;">' + (ej.descripcion || '') + '</td>';
+                html += '<td style="padding:8px 10px;text-align:center;"><span style="color:' + tema.color + ';font-size:16px;">→</span></td>';
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+        } else {
+            html += '<p style="color:#94a3b8;font-style:italic;">No hay ejercicios disponibles para este tema.</p>';
+        }
+
+        html += '</div>';
         contentDiv.innerHTML = html;
 
     } else if (seccionId === 'autoevaluacion') {
@@ -1361,8 +1409,8 @@ function updateSidebar() {
         html += '<button class="tema-link" style="font-weight:700;color:#7c3aed;font-size:13px;" onclick="showEvalView()">📊 Evalúa tu progreso</button>';
         html += '</div>';
 
-        // Proyecto de investigación (solo tema 6)
-        if (tema.id === 6) {
+        // Proyecto de investigación (solo tema 5)
+        if (tema.id === 5) {
             html += '<div style="padding:8px 12px;">';
             html += '<button onclick="openWidget(\'proyecto_investigacion\')" style="width:100%;padding:10px 14px;border-radius:8px;border:2px solid ' + tema.color + '40;color:#fff;background:' + tema.color + ';cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;text-align:center;">📝 Abrir mi proyecto</button>';
             html += '</div>';
@@ -1456,6 +1504,19 @@ function clearCurrentTema() {
 
 function escapeJs(s) {
     return s.replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+function _buildEjercicioOnclick(ej) {
+    if (ej.tipo === 'panel_transcripcion') return "showChatAndSend('Dame un ejercicio de transcripción fonológica')";
+    if (ej.tipo === 'panel_errores') return "openWidget('ejercicio_errores')";
+    if (ej.tipo === 'panel_informe_errores') return "openWidget('informe_errores')";
+    if (ej.tipo === 'panel_transcripcion_fonetica') return "openWidget('transcripcion_fonetica')";
+    if (ej.tipo === 'transcripcion_fonetica') return "showChatAndSend('Dame un ejercicio de transcripción fonética')";
+    if (ej.tipo === 'panel_proyecto_investigacion') return "openWidget('proyecto_investigacion')";
+    if (ej.tipo === 'espectrogramas') return "mostrarEspectrogramas('vocales')";
+    if (ej.tipo === 'audio') return "document.getElementById('audio-file-input').click()";
+    if (ej.tipo === 'consulta') return "showChatAndSend('" + escapeJs(ej.consulta) + "')";
+    return '';
 }
 
 function trackConceptAndSend(temaId, conceptName, query) {
@@ -1590,6 +1651,7 @@ function checkAuthLevel() {
 
             if (data.level === 'docente') {
                 document.getElementById('config-panel').style.display = 'block';
+                document.getElementById('proyectos-panel').style.display = 'block';
                 document.getElementById('users-panel').style.display = 'block';
                 loadConfig();
                 loadUsers();
@@ -1657,15 +1719,30 @@ function loadUsers() {
         .then(function(users) {
             var container = document.getElementById('users-list');
             if (!users.length) { container.innerHTML = '<div style="color:#94a3b8;font-size:12px;font-style:italic;">Sin usuarios</div>'; return; }
+
+            // Update summary title
+            var nDoc = users.filter(function(u) { return u.role === 'docente'; }).length;
+            var nEst = users.length - nDoc;
+            var summary = document.getElementById('users-summary-title');
+            if (summary) summary.textContent = 'Gestión de usuarios (Prof.: ' + nDoc + ' / Est.: ' + nEst + ')';
+
+            // Sort: docentes first, then alphabetically by email
+            users.sort(function(a, b) {
+                if (a.role === 'docente' && b.role !== 'docente') return -1;
+                if (a.role !== 'docente' && b.role === 'docente') return 1;
+                return a.username.localeCompare(b.username);
+            });
+
             container.innerHTML = '';
             users.forEach(function(u) {
                 var row = document.createElement('div'); row.className = 'user-row';
                 var name = document.createElement('span'); name.className = 'user-name';
-                name.textContent = (u.nombre || u.username);
-                name.title = u.username;
+                name.textContent = u.username;
+                name.title = (u.nombre ? u.nombre + ' ' + (u.apellidos || '') : '') + (u.grado ? ' — ' + u.grado : '');
+                name.style.color = '#1e293b';
                 var role = document.createElement('span');
                 role.className = 'user-role ' + (u.role === 'docente' ? 'role-docente' : 'role-estudiante');
-                role.textContent = u.role === 'docente' ? 'Docente' : 'Estudiante';
+                role.textContent = u.role === 'docente' ? 'Doc' : 'Est';
                 // Delete button
                 var del = document.createElement('button'); del.className = 'user-del-btn';
                 del.innerHTML = '\u00D7'; del.title = 'Eliminar ' + u.username;
@@ -1679,24 +1756,39 @@ function loadUsers() {
 
 
 function addUser() {
-    var username = document.getElementById('new-user-username').value.trim().toLowerCase();
-    var role = document.getElementById('new-user-role').value;
-    var status = document.getElementById('users-status');
+    var email = document.getElementById('new-user-email').value.trim().toLowerCase();
+    var nombre = document.getElementById('new-user-nombre').value.trim();
+    var apellidos = document.getElementById('new-user-apellidos').value.trim();
+    var rol = document.getElementById('new-user-rol').value;
+    var grado = document.getElementById('new-user-grado').value;
+    var status = document.getElementById('users-status-add');
 
-    if (!username) { status.textContent = 'Introduce el email del usuario'; status.className = 'users-status err'; return; }
+    if (!email) { status.textContent = 'Introduce el email del usuario'; status.className = 'users-status err'; return; }
 
-    fetch(authUrl('/api/tutores/users'), {
+    // Build a single-line TSV and use bulk endpoint
+    var tsv = 'email\tnombre\tapellidos\trol\tgrado\n' +
+              email + '\t' + nombre + '\t' + apellidos + '\t' + rol + '\t' + grado;
+
+    fetch(authUrl('/api/tutores/users/bulk'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, role: role }),
+        body: JSON.stringify({ tsv: tsv }),
     })
     .then(function(r) {
         if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
         return r.json();
     })
-    .then(function() {
-        status.textContent = 'Usuario creado'; status.className = 'users-status ok';
-        document.getElementById('new-user-username').value = '';
+    .then(function(data) {
+        if (data.creados > 0) {
+            status.textContent = 'Usuario creado'; status.className = 'users-status ok';
+            document.getElementById('new-user-email').value = '';
+            document.getElementById('new-user-nombre').value = '';
+            document.getElementById('new-user-apellidos').value = '';
+        } else if (data.saltados > 0) {
+            status.textContent = 'El usuario ya existe'; status.className = 'users-status err';
+        } else {
+            status.textContent = (data.errores && data.errores[0]) || 'Error'; status.className = 'users-status err';
+        }
         loadUsers();
         setTimeout(function() { status.textContent = ''; }, 3000);
     })
@@ -1705,7 +1797,7 @@ function addUser() {
 
 function deleteUser(username) {
     if (!confirm('¿Eliminar el usuario "' + username + '"?')) return;
-    var status = document.getElementById('users-status');
+    var status = document.getElementById('users-status-add');
     fetch(authUrl('/api/tutores/users/' + encodeURIComponent(username)), { method: 'DELETE' })
     .then(function(r) {
         if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
@@ -1721,43 +1813,33 @@ function deleteUser(username) {
 
 function bulkAddUsers() {
     var text = document.getElementById('bulk-users-text').value.trim();
-    var status = document.getElementById('users-status');
+    var status = document.getElementById('users-status-bulk');
     if (!text) { status.textContent = 'Pega la lista de usuarios'; status.className = 'users-status err'; return; }
 
-    var users = [];
-    text.split('\n').forEach(function(line) {
-        line = line.trim();
-        if (!line || line.startsWith('#')) return;
-        // Support: "email, rol" or "email\trol" or just "email"
-        var parts = line.split(/[,;\t]+/).map(function(s) { return s.trim().toLowerCase(); });
-        var email = parts[0];
-        if (!email || email.indexOf('@') < 0) return;
-        var role = 'estudiante';
-        if (parts[1] && (parts[1] === 'docente' || parts[1] === 'profesor' || parts[1] === 'profesora')) role = 'docente';
-        users.push({ username: email, role: role, nombre: '', password: '' });
-    });
-
-    if (users.length === 0) { status.textContent = 'No se encontraron emails válidos'; status.className = 'users-status err'; return; }
-
-    status.textContent = 'Importando ' + users.length + ' usuarios...';
+    // Send raw TSV to server — let UserManager parse it
+    status.textContent = 'Importando...';
     status.className = 'users-status';
 
     fetch(authUrl('/api/tutores/users/bulk'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ users: users }),
+        body: JSON.stringify({ tsv: text }),
     })
     .then(function(r) {
         if (!r.ok) return r.json().then(function(d) { throw new Error(d.detail || 'Error'); });
         return r.json();
     })
     .then(function(data) {
-        var msg = (data.created || 0) + ' creados';
-        if (data.skipped) msg += ', ' + data.skipped + ' ya existían';
-        if (data.errors) msg += ', ' + data.errors + ' errores';
+        var msg = (data.creados || 0) + ' creados';
+        if (data.actualizados) msg += ', ' + data.actualizados + ' actualizados';
+        if (data.saltados) msg += ', ' + data.saltados + ' ya existían';
+        if (data.errores && data.errores.length) msg += ', ' + data.errores.length + ' errores';
         status.textContent = msg; status.className = 'users-status ok';
         document.getElementById('bulk-users-text').value = '';
         loadUsers();
+        if (data.errores && data.errores.length) {
+            console.warn('Errores de importación:', data.errores);
+        }
         setTimeout(function() { status.textContent = ''; }, 5000);
     })
     .catch(function(err) { status.textContent = err.message; status.className = 'users-status err'; });

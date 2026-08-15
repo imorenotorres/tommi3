@@ -2006,6 +2006,21 @@ async def lali_create_proyecto(request: Request):
     email = _get_user_email(request)
     if not email:
         raise HTTPException(status_code=401, detail="Autenticación requerida")
+    # Check if student already has a project (limit: 1 per student, docentes exempt)
+    session = tutores_get_session(_get_tutores_token(request))
+    is_prof = tutores_is_docente(session) if session else False
+    if not is_prof:
+        for f in _LALI_PROYECTOS_DIR.glob("*.json"):
+            try:
+                with open(f, "r", encoding="utf-8") as fh:
+                    p = json.load(fh)
+                if email in p.get("grupo", []):
+                    raise HTTPException(status_code=409, detail="Ya tienes un proyecto. Solo se permite un proyecto por estudiante.")
+            except (json.JSONDecodeError, HTTPException) as e:
+                if isinstance(e, HTTPException):
+                    raise
+                continue
+
     body = await request.json()
     titulo = body.get("titulo", "").strip()
     if not titulo:
@@ -2046,20 +2061,46 @@ async def lali_get_proyecto(project_id: str, request: Request):
     return proyecto
 
 
+_LALI_PROYECTOS_DELETED_DIR = _LALI_DIR / "proyectos_eliminados"
+_LALI_PROYECTOS_DELETED_DIR.mkdir(exist_ok=True)
+
+
 @app.delete("/api/public-agent/eulalia/proyectos/{project_id}")
 async def lali_delete_proyecto(project_id: str, request: Request):
-    """Delete a project (docente only)."""
+    """Move a project to 'proyectos_eliminados' (docente only). Does NOT delete permanently."""
     session = tutores_get_session(_get_tutores_token(request))
     if not session or not tutores_is_docente(session):
         raise HTTPException(status_code=403, detail="Solo el profesorado puede eliminar proyectos")
     proyecto = _load_proyecto(project_id)
     if not proyecto:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
-    # Delete the project file
+    # Move to deleted folder (not permanent deletion)
     project_file = _LALI_PROYECTOS_DIR / f"{project_id}.json"
+    deleted_file = _LALI_PROYECTOS_DELETED_DIR / f"{project_id}.json"
     if project_file.exists():
-        project_file.unlink()
+        import shutil
+        shutil.move(str(project_file), str(deleted_file))
     return {"ok": True, "deleted": project_id}
+
+
+@app.delete("/api/public-agent/eulalia/proyectos/{project_id}/miembro")
+async def lali_remove_member(project_id: str, request: Request):
+    """Remove a member from a project (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede editar miembros")
+    proyecto = _load_proyecto(project_id)
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    body = await request.json()
+    email = body.get("email", "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email no proporcionado")
+    if email not in proyecto.get("grupo", []):
+        raise HTTPException(status_code=404, detail="El usuario no es miembro de este proyecto")
+    proyecto["grupo"].remove(email)
+    _save_proyecto(proyecto)
+    return {"ok": True}
 
 
 @app.put("/api/public-agent/eulalia/proyectos/{project_id}/fases/{fase_id}")
@@ -4866,7 +4907,12 @@ async def algoria_map_report_page():
 
 
 @app.get("/api/logs/algoria-map-report")
-async def algoria_map_report(request: Request):
+async def algoria_map_report(
+    request: Request,
+    period: str = Query("all"),
+    start: str = Query(None),
+    end: str = Query(None),
+):
     """Generate a detailed analytics report for Algoria Map. Requires superuser or docente."""
     # Check TOMMI auth
     token = _get_token(request)
@@ -4882,6 +4928,26 @@ async def algoria_map_report(request: Request):
     if not log_file.exists():
         return {"error": "No log file found"}
 
+    # Determine time filter
+    from datetime import timedelta
+    t_start = None
+    t_end = None
+    if start and end:
+        try:
+            t_start = datetime.fromisoformat(start)
+            t_end = datetime.fromisoformat(end) + timedelta(days=1)
+        except ValueError:
+            pass
+    elif period != "all":
+        now = datetime.now()
+        t_end = now
+        if period == "week":
+            t_start = now - timedelta(days=7)
+        elif period == "month":
+            t_start = now - timedelta(days=30)
+        elif period == "3months":
+            t_start = now - timedelta(days=90)
+
     entries = []
     with open(log_file, "r", encoding="utf-8") as f:
         for line in f:
@@ -4889,9 +4955,18 @@ async def algoria_map_report(request: Request):
             if not line:
                 continue
             try:
-                entries.append(json.loads(line))
+                entry = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            # Apply time filter
+            if t_start:
+                try:
+                    ts = datetime.fromisoformat(entry.get("timestamp", ""))
+                    if ts < t_start or ts > t_end:
+                        continue
+                except (ValueError, TypeError):
+                    continue
+            entries.append(entry)
 
     # Group by session
     sessions = {}
@@ -4905,7 +4980,7 @@ async def algoria_map_report(request: Request):
     action_counts = {}
     for sid, acts in sessions.items():
         n = len(acts)
-        key = str(n) if n <= 5 else "6+"
+        key = str(n) if n <= 9 else "10+"
         action_counts[key] = action_counts.get(key, 0) + 1
 
     # 2. Action type ratios
@@ -4925,9 +5000,11 @@ async def algoria_map_report(request: Request):
 
     # 3. Country ranking (from filters and interactions)
     country_counts = {}
+    country_sessions = {}  # country -> set of session_ids
     for e in entries:
         q = e.get("question", "")
         r = e.get("response", "")
+        sid = e.get("session_id", "") or "no_session"
         # From filter queries
         if "[filters]" in q or "[NL]" in q:
             try:
@@ -4935,6 +5012,7 @@ async def algoria_map_report(request: Request):
                 if isinstance(filters, dict) and "country" in filters:
                     c = filters["country"]
                     country_counts[c] = country_counts.get(c, 0) + 1
+                    country_sessions.setdefault(c, set()).add(sid)
             except (json.JSONDecodeError, IndexError):
                 pass
         # From interaction details (marker_click, cluster_click)
@@ -4948,9 +5026,11 @@ async def algoria_map_report(request: Request):
                     if "country" in d:
                         c = d["country"]
                         country_counts[c] = country_counts.get(c, 0) + 1
+                        country_sessions.setdefault(c, set()).add(sid)
                     if "countries" in d:
                         for c in d["countries"]:
                             country_counts[c] = country_counts.get(c, 0) + 1
+                            country_sessions.setdefault(c, set()).add(sid)
             except (json.JSONDecodeError, ValueError):
                 pass
 
@@ -4996,7 +5076,10 @@ async def algoria_map_report(request: Request):
         pass
 
     # Sort rankings
-    country_ranking = sorted(country_counts.items(), key=lambda x: -x[1])[:20]
+    country_ranking = [
+        [name, count, len(country_sessions.get(name, set()))]
+        for name, count in sorted(country_counts.items(), key=lambda x: -x[1])[:20]
+    ]
     uni_ranking_raw = sorted(uni_counts.items(), key=lambda x: -x[1])[:20]
     uni_ranking = [[name, count, uni_country_map.get(name, "")] for name, count in uni_ranking_raw]
 

@@ -512,3 +512,65 @@ Desde la perspectiva de la logopedia, los sistemas de transcripción fonética n
 - Son, por ello, un **medio esencial para facilitar la práctica logopédica**: sin un sistema de transcripción preciso, la descripción de los errores del habla dependería de apreciaciones subjetivas difíciles de comunicar entre profesionales.
 
 ---
+
+## Ejercicio: ¿Verdadero o falso? No te fíes de lo primero que leas
+
+Las siguientes afirmaciones podrían aparecer en una respuesta generada por una IA. Algunas son verdaderas y otras son falsas. Tu tarea es decidir si cada una es verdadera o falsa, y **justificar tu respuesta**. No te fíes de tu intuición: documéntate antes de responder.
+
+<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">1. «Eulalia es la patrona de las logopedas»</summary>
+<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
+<strong>Falso.</strong> El nombre Eulalia viene del griego <em>eulalos</em> (eu = bueno, lalia = habla), y significa «la bien hablada». Existe Santa Eulalia de Barcelona y Santa Eulalia de Mérida, pero ninguna de ellas es patrona de la logopedia ni de las logopedas. Es una conexión que una IA podría fabricar por la coincidencia entre el significado del nombre y la profesión.
+</div>
+</details>
+
+<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">2. «Los niños con implante coclear solo se comunican bien usando lengua de signos»</summary>
+<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
+<strong>Falso.</strong> Con implantación temprana y rehabilitación adecuada, muchos niños con implante coclear desarrollan lenguaje oral funcional. La lengua de signos es una opción válida, pero no es la única vía de comunicación para estos niños. Afirmar que «solo» pueden comunicarse con signos es incorrecto y puede generar expectativas erróneas en las familias.
+</div>
+</details>
+
+<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">3. «Las últimas IAs pueden evaluar el habla de cualquier paciente sin importar su lengua»</summary>
+<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
+<strong>Falso.</strong> Los sistemas de reconocimiento del habla actuales tienen un rendimiento muy desigual según la lengua, el dialecto y el tipo de habla. Funcionan razonablemente bien con habla normativa en lenguas mayoritarias, pero su fiabilidad disminuye mucho con habla patológica, dialectos minoritarios o lenguas con pocos recursos tecnológicos. La evaluación clínica del habla sigue requiriendo un profesional cualificado.
+</div>
+</details>
+
+<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">4. «Los andaluces hablan muy mal el español»</summary>
+<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
+<strong>Falso.</strong> El andaluz es un conjunto de variedades dialectales del español tan legítimas como cualquier otra. Fenómenos como el seseo, la aspiración de /s/ o la pérdida de consonantes finales no son «errores» sino rasgos dialectales con siglos de historia. Desde la lingüística, ningún dialecto es mejor ni peor que otro. Confundir variación dialectal con «hablar mal» es un prejuicio sociolingüístico que un logopeda debe saber identificar y evitar.
+</div>
+</details>
+
+<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">5. «La tartamudez se cura si el niño respira hondo antes de hablar»</summary>
+<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
+<strong>Falso.</strong> La disfemia (tartamudez) tiene componentes neurológicos y no se resuelve con técnicas simples de respiración. La intervención logopédica en la tartamudez es un proceso complejo que puede incluir técnicas de fluidez, gestión de la ansiedad comunicativa y modificación del entorno. Reducirla a «respirar hondo» trivializa el trastorno y la labor del logopeda.
+</div>
+</details>
+
+<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">6. «Los bebés bilingües tardan más en hablar y esto puede causar problemas de lenguaje»</summary>
+<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
+<strong>Falso.</strong> La investigación ha demostrado que el bilingüismo temprano no causa retraso patológico del lenguaje. Los niños bilingües pueden mezclar lenguas al principio (code-switching), pero esto es un fenómeno normal y no un signo de confusión ni de retraso. Recomendar a una familia que deje de hablar una de sus lenguas es un consejo sin base científica que puede perjudicar al niño.
+</div>
+</details>
+
+<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">7. «Hablar a un bebé en tono infantil perjudica su desarrollo lingüístico»</summary>
+<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
+<strong>Falso.</strong> El habla dirigida al niño (prosodia exagerada, frases cortas, vocabulario simplificado) no perjudica el desarrollo del lenguaje. Al contrario, la investigación muestra que facilita la adquisición porque ayuda al bebé a segmentar la señal del habla y a identificar las unidades lingüísticas relevantes. Lo que sí puede ser contraproducente es no hablarle al bebé o ignorar sus intentos comunicativos.
+</div>
+</details>
+
+<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">8. «Hoy en día, la logopedia es secundaria porque hay IAs que pueden diagnosticar y evaluar cualquier patología»</summary>
+<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
+<strong>Falso.</strong> La IA puede ser una herramienta de apoyo, pero no sustituye al logopeda. El diagnóstico y la intervención logopédica requieren escucha clínica, empatía, adaptación al paciente y toma de decisiones que ninguna IA puede hacer. Además, las IAs actuales no pueden escuchar ni transcribir habla patológica con fiabilidad, y sus «diagnósticos» carecen de validez clínica. La logopedia es y seguirá siendo una profesión esencialmente humana.
+</div>
+</details>
+
+> **Reflexión:** Todas las afirmaciones anteriores son falsas, pero todas suenan razonables. Una IA podría generar cualquiera de ellas con total convicción. Por eso es fundamental verificar siempre lo que te dice una IA, especialmente cuando se trata de información clínica o profesional. Este es uno de los objetivos del Tema 5: aprender a usar la IA de forma responsable.

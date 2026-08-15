@@ -1316,9 +1316,6 @@ function laRenderSummary(data, container) {
         + '<div style="background:#fff;padding:10px 16px;border-radius:8px;border:1px solid #e2e8f0;text-align:center;min-width:100px;">'
         + '<div style="font-size:1.4rem;font-weight:700;color:#2D3876;">' + t.sessions + '</div>'
         + '<div style="font-size:0.72rem;color:#888;">Sessions</div></div>'
-        + '<div style="background:#fff;padding:10px 16px;border-radius:8px;border:1px solid #e2e8f0;text-align:center;min-width:100px;">'
-        + '<div style="font-size:1.4rem;font-weight:700;color:#2D3876;">' + t.unique_users + '</div>'
-        + '<div style="font-size:0.72rem;color:#888;">Unique Users</div></div>'
         + '</div>';
 
     html += '<div style="font-size:0.75rem;color:#888;margin-bottom:6px;">' + periodLabel + '</div>';
@@ -1337,15 +1334,13 @@ function laRenderSummary(data, container) {
         html += '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'
             + '<tr style="border-bottom:2px solid #e2e8f0;"><th style="text-align:left;padding:4px 6px;">Agent</th>'
             + '<th style="text-align:right;padding:4px 6px;">Requests</th>'
-            + '<th style="text-align:right;padding:4px 6px;">Sessions</th>'
-            + '<th style="text-align:right;padding:4px 6px;">Users</th></tr>';
+            + '<th style="text-align:right;padding:4px 6px;">Sessions</th></tr>';
         agents.forEach(function(aid) {
             var a = data.per_agent[aid];
             html += '<tr style="border-bottom:1px solid #f0f0f0;">'
                 + '<td style="padding:4px 6px;">' + (EXPLORER_AGENTS[aid] || aid) + '</td>'
                 + '<td style="text-align:right;padding:4px 6px;">' + a.requests + '</td>'
-                + '<td style="text-align:right;padding:4px 6px;">' + a.sessions + '</td>'
-                + '<td style="text-align:right;padding:4px 6px;">' + a.unique_users + '</td></tr>';
+                + '<td style="text-align:right;padding:4px 6px;">' + a.sessions + '</td></tr>';
         });
         html += '</table>';
     } else {
@@ -1376,6 +1371,7 @@ async function laLoadFiles() {
             + '<th style="text-align:left;padding:4px 6px;">Modified</th>'
             + '<th style="text-align:center;padding:4px 6px;">Actions</th></tr>';
 
+        files = files.filter(function(f) { return f.name.endsWith('.jsonl'); });
         files.forEach(function(f) {
             var esc = f.name.replace(/'/g, "\\'");
             var mod = f.modified.split('T')[0] + ' ' + f.modified.split('T')[1].substring(0, 5);

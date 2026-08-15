@@ -240,9 +240,12 @@ def authenticate(username: str, password: str) -> Optional[dict]:
     if not user.get("activo", False):
         return None  # Account pending activation
     if "password_hash" not in user:
-        return None  # No password set
-    if not _verify_password(password, user["password_hash"], user["salt"]):
-        return None
+        # No password set — allow login with empty password (Moodle SSO users)
+        if password:
+            return None  # Password provided but none expected
+    else:
+        if not _verify_password(password, user["password_hash"], user["salt"]):
+            return None
 
     token = secrets.token_hex(32)
     role = user.get("role", "estudiante")

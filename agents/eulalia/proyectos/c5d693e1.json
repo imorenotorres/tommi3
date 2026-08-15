@@ -1,0 +1,43 @@
+{
+  "id": "c5d693e1",
+  "titulo": "0 Prueba",
+  "grupo": [
+    "imoreno@uma.es"
+  ],
+  "created": "2026-08-14 12:02",
+  "fases": {
+    "introduccion": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "metodologia": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "resultados": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "discusion": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    }
+  },
+  "chat": [
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Cómo puedo organizaer la introducción sobre un trabajo que trata sobre la adquisición de la fonología en un niño de 3 años de Málaga",
+      "respuesta": "Para organizar la **Introducción** de tu proyecto sobre la adquisición fonológica en un niño de 3 años de Málaga, sigue este esquema:\n\n1. **Contexto general**:\n   - Breve marco teórico: ¿qué es la adquisición fonológica? (ej.: etapas según Jakobson, Ingram, etc.).\n   - Importancia del tema: ¿por qué estudiar la fonología en niños? (ej.: base para el lenguaje, detección temprana de trastornos).\n\n2. **Contexto específico**:\n   - **Variación dialectal**: Menciona que el español de Málaga tiene rasgos distintivos (ej.: yeísmo, aspiración de /-s/ final, etc.).\n   - **Edad del niño**: 3 años es clave para evaluar la adquisición de consonantes y vocales (¿qué fonemas debería dominar?).\n\n3. **Objetivo**:\n   - Ejemplo: *\"Analizar el inventario fonológico de un niño de 3 años de Málaga, comparándolo con el sistema estándar peninsular\"*.\n\n4. **Preguntas de investigación**:\n   - Ejemplos:\n     - ¿Qué fonemas están adquiridos/ausentes en su habla?\n     - ¿Hay rasgos dialectales en su producción?\n\n**Consejo**: Usa el inventario fonológico que te proporcioné para contrastar. Si el niño omite /θ/ o /ʧ/, ¿es típico de su edad o del dialecto?\n\n¿Has revisado estudios previos sobre adquisición en Andalucía? Podrían darte pistas sobre expectativas.",
+      "fase": "introduccion",
+      "fecha": "2026-08-14 15:14",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": null
+    }
+  ],
+  "updated": "2026-08-14 15:14"
+}

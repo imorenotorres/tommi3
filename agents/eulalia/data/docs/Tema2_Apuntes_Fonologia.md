@@ -1131,6 +1131,130 @@ El paciente presenta un patrón claro de **omisión de codas** y **simplificaci�
 </div>
 </details>
 
+### 2.5.6. Macro-patrones fonológicos
+
+Una vez elaborado el informe de errores, puede ser útil intentar identificar si el conjunto de errores del hablante sigue un **macro-patrón** fonológico. Esto solo será posible si se dispone de suficiente material y si los errores son lo bastante frecuentes y coherentes como para permitir una clasificación global.
+
+Los macro-patrones son tendencias generales que agrupan muchos errores individuales:
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">Lenición (habla patológica)</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
+
+La lenición se caracteriza por un **debilitamiento generalizado** del habla. Puede afectar a distintos niveles:
+
+**Nivel fonema:**
+- Uso indebido de alófonos débiles (ej: [β̞] donde debería haber [b])
+- Debilitamientos atípicos de consonantes (ej: oclusiva → fricativa, fricativa → aproximante)
+- Omisiones de fonemas
+
+**Nivel sílaba** (los errores más frecuentes):
+- Simplificación de ataque complejo (ej: /pɾ/ → /p/)
+- Simplificación de núcleo / reducción de diptongo (ej: /ie/ → /e/)
+- Omisión de coda
+
+**Nivel palabra:**
+- Omisión de palabras átonas (artículos, preposiciones)
+- Omisión de sílabas átonas (especialmente pretónicas)
+
+**Severidad:** La lenición puede presentarse en distintos grados. En casos leves solo afecta al nivel de sílaba; en casos moderados, también al nivel de fonema; en casos graves, a todos los niveles incluyendo omisiones frecuentes.
+
+</div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">En desarrollo (habla infantil normal)</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
+
+Este patrón refleja los errores **normales del desarrollo** y no debe confundirse con patología. Se caracteriza por:
+
+**Nivel fonema:**
+- **Frontalización**: tendencia a producir fonemas con un punto de articulación más anterior (ej: /k/ → /t/). La posteriorización NO es un proceso del desarrollo normal.
+- **Ensordecimiento**: tendencia a producir fonemas sordos en lugar de sonoros (ej: /b/ → /p/, /d/ → /t/)
+- Refuerzos de modo: sustituciones que refuerzan consonantes (ej: fricativa → oclusiva)
+
+**Nivel sílaba:**
+- Simplificaciones de ataque complejo (ej: /pɾ/ → /p/)
+- Simplificaciones de núcleo (reducción de diptongo)
+
+**Clave:** Estos errores tienden a desaparecer con la edad. Un logopeda debe saber distinguir este patrón del patológico.
+
+</div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">Fortición (sobreesfuerzo)</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
+
+La fortición refleja un **sobreesfuerzo articulatorio**. El sujeto "se esfuerza de más" al hablar, lo que produce:
+
+**Rasgo principal:**
+- Preferencia por alófonos NO débiles: usa oclusivos [b, d, g] donde deberían aparecer aproximantes [β̞, ð̞, ɣ̞]
+
+**Consecuencia del sobreesfuerzo (fatiga):**
+- El esfuerzo no es sostenible → aparecen errores arbitrarios:
+  - Errores segmentales sin patrón claro
+  - Errores rítmicos: pausas indebidas (entre palabras, dentro de palabra)
+- Estos errores pueden aumentar a lo largo del enunciado (fatiga acumulada)
+
+</div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">Prosódico-rítmico (Síndrome de Acento Extranjero)</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
+
+Se caracteriza por dificultades rítmicas que afectan secundariamente a los alófonos:
+
+- Ritmo staccato: tendencia a acentuar cada sílaba
+- La suavización de oclusivas sonoras (/b,d,g/ → [β̞,ð̞,ɣ̞]) no se observa — las oclusivas se mantienen como tales debido al ritmo silábico marcado
+- Pausas indebidas entre sílabas o palabras
+
+**Clave:** El problema con los alófonos es CONSECUENCIA del ritmo, no un error segmental primario.
+
+</div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">Prosódico-repetición (Disfemia)</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
+
+Déficit prosódico asociado a repeticiones y autocorrecciones:
+
+- Repeticiones de sílabas o palabras
+- Autocorrecciones (falsos inicios)
+- Bloqueos (pausas tensas antes de ciertos sonidos)
+
+</div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">Prosódico-entonación</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
+
+Problemas de entonación emocional:
+
+- Entonación monótona o inadecuada al contexto emocional
+- Puede ser consecuencia de las dificultades rítmicas o un problema emocional puro
+
+</div>
+</details>
+
+<details style="margin:12px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:10px 16px;cursor:pointer;font-weight:700;font-size:15px;color:#1e293b;background:#f8fafc;border-radius:8px;">Combinaciones</summary>
+<div style="padding:12px 16px;font-size:13px;line-height:1.8;">
+
+Los macro-patrones pueden combinarse en un mismo hablante. Por ejemplo:
+- Lenición + prosódico-rítmico
+- Fortición + prosódico-repetición
+
+El objetivo del análisis es identificar el macro-patrón **dominante** y, si los hay, los patrones secundarios.
+
+</div>
+</details>
+
+> **Nota:** La identificación de un macro-patrón como colofón del informe de errores solo será posible en algunos casos y cuando se disponga de suficiente material. No todos los hablantes encajan limpiamente en un solo patrón.
+
 ## Anexo 1. Sistemas vocálicos en diferentes lenguas
  
 Recogemos aquí los sistemas vocálicos de algunas lenguas del planeta. No tienes que estudiarte los diferentes sistemas vocálicos. Pero sí debes saber: 

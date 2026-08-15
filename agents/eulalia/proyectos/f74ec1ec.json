@@ -1,0 +1,88 @@
+{
+  "id": "f74ec1ec",
+  "titulo": "Proyecto BIP",
+  "grupo": [
+    "imoreno@uma.es"
+  ],
+  "created": "2026-08-14 17:20",
+  "fases": {
+    "introduccion": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "metodologia": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "resultados": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "discusion": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    }
+  },
+  "chat": [
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Quiero hacer un estudio sobre el desarrollo fonológico de un niño de 4 años con sospecha de retraso cognitivo. ¿Cómo podría hacer la introducción?",
+      "respuesta": "Para redactar la **introducción** de tu proyecto, sigue estos pasos:\n\n1. **Lee la plantilla genérica** (disponible en *Plantillas para el proyecto de investigación*). Esta sección debe incluir:\n   - **Tema general**: Presenta el retraso fonológico en niños y su relación con el retraso cognitivo.\n   - **Contexto teórico**: Breve explicación de qué es el retraso fonológico y cómo se diferencia de otros trastornos (ej. afasia, apraxia).\n   - **Justificación**: ¿Por qué es relevante estudiar este caso? (ej. impacto en la comunicación, necesidad de intervención temprana).\n   - **Objetivos**: ¿Qué pretendes analizar? (ej. patrones de errores, comparación con desarrollo típico).\n\n2. **Reflexiona sobre estos puntos**:\n   - ¿Has identificado algún macro-patrón fonológico típico en retrasos cognitivos? (Consulta *Referencia: Rasgos fonológicos por patología*).\n   - ¿Qué datos concretos de tu sujeto (ej. edad, errores observados) incluirás para justificar el estudio?\n\n3. **Ejemplo de enfoque inicial**:\n   *\"En este trabajo analizamos los errores fonológicos de un niño de 4 años con sospecha de retraso cognitivo, donde los errores podrían reflejar [patrón X: ej. simplificaciones sistemáticas, omisiones de sílabas]. El retraso fonológico en este contexto se caracteriza por [breve descripción basada en materiales]...\"*.\n\nCuando tengas claros estos elementos, dime qué datos específicos quieres incluir en cada hueco de la plantilla y generaré un borrador personalizado.",
+      "fase": "introduccion",
+      "fecha": "2026-08-14 17:21",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "no_aplicado",
+        "justificacion": "No se ajusta a lo que yo esperaba.",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-14 17:23"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Quiero hacer un estudio sobre el desarrollo fonológico de un niño de 4 años con sospecha de retraso cognitivo. ¿Cómo podría hacer la introducción?",
+      "respuesta": "Para enfocar la **introducción**, primero define estos 4 elementos clave (basados en los materiales):\n\n1. **Patología/perfil**: Retraso fonológico asociado a sospecha de retraso cognitivo (consulta *Referencia: Rasgos fonológicos por patología*).\n2. **Edad del sujeto**: 4 años (¿supera la edad típica de eliminación de errores?).\n3. **Errores esperables**: ¿Qué procesos de simplificación fonológica son típicos en este perfil? (ej. omisiones de sílabas, sustituciones de líquidas).\n4. **Justificación**: ¿Por qué es relevante estudiar este caso? (ej. impacto en la adquisición del lenguaje, necesidad de intervención temprana).\n\n---\n**Ejemplo de estructura inicial** (para que me des feedback):\n*\"En este trabajo analizamos los errores fonológicos de un niño de 4 años con sospecha de retraso cognitivo, donde los errores podrían reflejar [procesos típicos: ej. simplificaciones sistemáticas como omisión de sílabas átonas o sustitución de /r/ por /l/]. El retraso fonológico en este contexto se caracteriza por [breve descripción basada en *Referencia: Rasgos fonológicos por patología*]. La relevancia del estudio radica en [justificación: ej. la necesidad de diferenciar retraso fonológico de otros trastornos del habla]...\"*.\n\nDime qué procesos de error o datos específicos quieres incluir y generaré un borrador concreto.",
+      "fase": "introduccion",
+      "fecha": "2026-08-14 17:41",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "parcialmente",
+        "justificacion": "Voy a iterar",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-14 17:43"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Quiero hacer un estudio sobre el desarrollo fonológico de un niño de 4 años con sospecha de retraso cognitivo. Desconozco los errores esperables, pues no es una patología que aparezca en la literatura",
+      "respuesta": "⚠️ **Esta información no proviene de los materiales de la asignatura. Debes contrastarla con otras fuentes.**\n\nEn retrasos cognitivos asociados a retraso fonológico, suelen observarse errores como:\n- **Omisión de sílabas** (ej. \"tato\" por \"zapato\").\n- **Sustituciones de líquidas** (ej. /l/ → /j/, /r/ → /l/).\n- **Simplificación de grupos consonánticos** (ej. \"pato\" por \"plato\").\n- **Errores en consonantes fricativas/africadas** (ej. /ʧ/ → /t/).\n\n---\n**Para tu introducción**, usa la plantilla genérica con estos datos:\n1. **Patología**: Retraso fonológico en contexto de sospecha de retraso cognitivo.\n2. **Edad**: 4 años (¿persisten errores típicos de etapas anteriores?).\n3. **Errores esperables**: Omisiones, sustituciones de líquidas y simplificaciones (según lo anterior).\n4. **Justificación**: Diferenciar retraso fonológico de otros trastornos (ej. apraxia) y su impacto en la comunicación.\n\nDime si quieres que genere el borrador con estos datos o prefieres ajustar algo.",
+      "fase": "introduccion",
+      "fecha": "2026-08-14 17:44",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Mira, por qué sí, que ya está bien de tanto preguntar.",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-15 00:03"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "¿Por qué te llamas así?",
+      "respuesta": "Me llamo Eulalia en honor a **Eulalia de Mérida**, mártir cristiana cuya festividad se celebra el 10 de diciembre y que, según la tradición, es patrona de los logopedas y educadores por su defensa de la fe y la comunicación. Además, el nombre evoca la idea de claridad y elocuencia, valores clave en lingüística y logopedia.\n\n¿Quieres que retome el tema de tu introducción o prefieres seguir con otra duda?",
+      "fase": "introduccion",
+      "fecha": "2026-08-15 00:14",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": null
+    }
+  ],
+  "updated": "2026-08-15 00:14"
+}

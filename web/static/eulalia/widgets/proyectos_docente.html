@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" integrity="sha384-H+hy9ULve6xfxRkWIh/YOtvDdpXgV2fmAGQkIDTxIgZwNoaoBal14Di2YTMR6MzR" crossorigin="anonymous"></script>
+<title>Proyectos — Vista docente — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.header .title { color: #fff; font-size: 15px; font-weight: 600; }
+
+.container { max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+h2 { font-size: 20px; color: #1e293b; margin-bottom: 16px; }
+
+/* Project list */
+.project-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 24px; }
+.project-table th { background: #4250b3; color: #fff; padding: 10px 12px; text-align: left; font-size: 12px; }
+.project-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+.project-table tr:hover td { background: #f8fafc; cursor: pointer; }
+.fase-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 2px; }
+.fase-dot.done { background: #16a34a; }
+.fase-dot.wip { background: #f59e0b; }
+.fase-dot.empty { background: #e2e8f0; }
+
+/* Project detail */
+.detail-back { font-size: 13px; color: #4250b3; cursor: pointer; margin-bottom: 16px; display: inline-block; }
+.detail-back:hover { text-decoration: underline; }
+.detail-header { margin-bottom: 20px; }
+.detail-header h2 { margin-bottom: 4px; }
+.detail-header .meta { font-size: 13px; color: #64748b; }
+
+/* Phase tabs */
+.fase-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+.fase-tab {
+    padding: 8px 16px; border-radius: 6px 6px 0 0; font-size: 13px; font-weight: 600;
+    border: 1px solid #e2e8f0; border-bottom: none; background: #fff; color: #64748b;
+    cursor: pointer; font-family: inherit;
+}
+.fase-tab.active { background: #4250b3; color: #fff; border-color: #4250b3; }
+
+/* Phase content */
+.fase-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 0 8px 8px 8px; padding: 20px; margin-bottom: 24px; }
+.fase-card h3 { font-size: 15px; color: #1e293b; margin-bottom: 4px; }
+.fase-card .fase-meta { font-size: 11px; color: #94a3b8; margin-bottom: 12px; }
+.fase-text { font-size: 14px; line-height: 1.7; color: #374151; border: 1px solid #f1f5f9; border-radius: 6px; padding: 14px; background: #fafafa; min-height: 60px; }
+.fase-text:empty::before { content: '(vacío)'; color: #cbd5e1; font-style: italic; }
+
+/* Timeline */
+.timeline { margin-top: 20px; }
+.timeline h3 { font-size: 14px; color: #475569; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+.timeline-entry { border-left: 3px solid #e2e8f0; padding: 0 0 16px 16px; margin-left: 6px; position: relative; }
+.timeline-entry::before { content: ''; position: absolute; left: -6px; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: #94a3b8; }
+.timeline-entry.llm::before { background: #f59e0b; }
+.timeline-entry .tl-meta { font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
+.tl-prompt { background: #eff6ff; border-radius: 6px; padding: 8px 12px; font-size: 13px; color: #1e40af; margin-bottom: 6px; }
+.tl-response { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; font-size: 13px; margin-bottom: 6px; max-height: 200px; overflow-y: auto; }
+.tl-decision { font-size: 12px; padding: 6px 10px; border-radius: 6px; }
+.tl-decision.applied { background: #f0fdf4; color: #166534; }
+.tl-decision.not-applied { background: #fef2f2; color: #991b1b; }
+.tl-decision.partial { background: #fffbeb; color: #92400e; }
+.tl-decision.pending { background: #f1f5f9; color: #94a3b8; font-style: italic; }
+
+/* Scoring */
+.tl-scoring { margin-top: 6px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.tl-scoring label { font-size: 11px; font-weight: 700; color: #475569; margin-right: 2px; }
+.score-btn {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid #e2e8f0;
+    background: #fff; font-size: 12px; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: all 0.15s; color: #64748b;
+}
+.score-btn:hover { border-color: #4250b3; color: #4250b3; }
+.score-btn.selected { background: #4250b3; color: #fff; border-color: #4250b3; }
+.score-btn.score-0.selected { background: #dc2626; border-color: #dc2626; }
+.score-btn.score-1.selected { background: #f59e0b; border-color: #f59e0b; }
+.score-btn.score-2.selected { background: #eab308; border-color: #eab308; }
+.score-btn.score-3.selected { background: #22c55e; border-color: #22c55e; }
+.score-btn.score-4.selected { background: #16a34a; border-color: #16a34a; }
+.score-saved { font-size: 10px; color: #16a34a; margin-left: 4px; }
+
+/* Score summary */
+.score-summary { margin-top: 16px; padding: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; }
+.score-summary h4 { font-size: 13px; color: #475569; margin-bottom: 8px; }
+.score-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12px; }
+.score-bar-label { width: 20px; text-align: center; font-weight: 700; }
+.score-bar { flex: 1; height: 14px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
+.score-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+.score-bar-count { width: 30px; text-align: right; color: #94a3b8; }
+.score-rubric { font-size: 10px; color: #94a3b8; margin-top: 8px; line-height: 1.5; }
+
+/* Stats */
+.stats-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 120px; text-align: center; }
+.stat-num { font-size: 24px; font-weight: 800; color: #4250b3; }
+.stat-label { font-size: 11px; color: #94a3b8; }
+
+/* Pre-correction */
+.btn-precorr {
+    padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 700;
+    border: none; background: #b45309; color: #fff; cursor: pointer;
+    font-family: inherit; transition: background 0.15s;
+}
+.btn-precorr:hover { background: #92400e; }
+.btn-precorr:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#precorreccion-panel {
+    margin-top: 24px; padding: 24px; background: #fffbeb;
+    border: 2px solid #f59e0b; border-radius: 12px;
+}
+#precorreccion-panel h2 { font-size: 17px; color: #92400e; margin-bottom: 4px; }
+.precorr-disclaimer {
+    font-size: 12px; color: #b45309; margin-bottom: 16px; line-height: 1.5;
+    padding: 8px 12px; background: #fef3c7; border-radius: 6px;
+}
+.precorr-criterio {
+    margin-bottom: 14px; padding: 12px 16px; background: #fff;
+    border-radius: 8px; border: 1px solid #fde68a;
+}
+.precorr-criterio h3 { font-size: 14px; color: #1e293b; margin-bottom: 4px; }
+.precorr-peso { font-size: 11px; color: #92400e; font-weight: 600; }
+.precorr-comentario { font-size: 13px; color: #475569; line-height: 1.7; margin-top: 6px; }
+.precorr-loading { text-align: center; padding: 24px; color: #92400e; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">></span>
+    <span class="title">Proyectos — Vista docente</span>
+</div>
+
+<div class="container">
+    <div id="list-view">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+            <h2 style="margin:0;">Proyectos de investigación</h2>
+            <button onclick="showSurveyGlobal()" style="padding:6px 14px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📊 Resumen valoraciones</button>
+        </div>
+        <div id="projects-container"><p style="color:#94a3b8;">Cargando...</p></div>
+    </div>
+
+    <div id="survey-global-view" style="display:none;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <span class="detail-back" onclick="hideSurveyGlobal()">← Volver a la lista</span>
+            <h2 style="margin:0;font-size:18px;">Resumen global de valoraciones</h2>
+        </div>
+        <div id="survey-global-content"></div>
+    </div>
+
+    <div id="detail-view" style="display:none;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+            <span class="detail-back" onclick="showList()" style="margin-bottom:0;">← Volver a la lista</span>
+            <button onclick="solicitarPreCorreccion()" class="btn-precorr" id="btn-precorr">🔍 Pre-corrección IA</button>
+            <button onclick="showEditMembers()" style="padding:6px 14px;background:#fff;color:#4250b3;border:1px solid #c7d2fe;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">👥 Editar miembros</button>
+            <button onclick="deleteProject()" style="margin-left:auto;padding:6px 14px;background:#fff;color:#dc2626;border:1px solid #fecaca;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">🗑 Eliminar proyecto</button>
+        </div>
+        <div class="detail-header">
+            <h2 id="detail-title"></h2>
+            <div class="meta" id="detail-meta"></div>
+        </div>
+        <div class="stats-row" id="detail-stats"></div>
+        <div class="fase-tabs" id="fase-tabs"></div>
+        <div id="detail-content"></div>
+        <div id="precorreccion-panel" style="display:none;"></div>
+    </div>
+</div>
+
+<!-- Edit members modal -->
+<div class="modal-overlay" id="members-modal" onclick="if(event.target===this)this.classList.remove('show')" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:14px;padding:28px;width:90%;max-width:500px;">
+        <h3 style="font-size:16px;color:#4250b3;margin-bottom:16px;">👥 Editar miembros del proyecto</h3>
+        <div id="members-list" style="margin-bottom:12px;"></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input type="email" id="add-member-email" placeholder="Añadir email..." style="flex:1;padding:8px 12px;border:2px solid #e2e8f0;border-radius:8px;font-size:13px;">
+            <button onclick="addMemberDocente()" style="padding:8px 16px;background:#4250b3;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Añadir</button>
+        </div>
+        <div id="members-status" style="font-size:12px;min-height:16px;margin-bottom:8px;"></div>
+        <div style="text-align:right;">
+            <button onclick="document.getElementById('members-modal').style.display='none'" style="padding:8px 16px;background:#e2e8f0;color:#475569;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+var FASES = ['introduccion', 'metodologia', 'resultados', 'discusion', 'valoracion'];
+var FASE_NOMBRES = { introduccion: 'Introducción', metodologia: 'Metodología', resultados: 'Resultados', discusion: 'Discusión', valoracion: 'Valoración' };
+
+var SURVEY_QUESTIONS = [
+    { id: 'q1', text: '¿Te ha servido este trabajo para aprender o madurar los conceptos de la asignatura?', type: 'likert' },
+    { id: 'q2', text: '¿Te ha servido la experiencia para aprender a usar o madurar sobre cómo usar la IA?', type: 'likert' },
+    { id: 'q3', text: 'Aspectos negativos de la experiencia', type: 'text' },
+    { id: 'q4', text: 'Aspectos mejorables', type: 'text' },
+    { id: 'q5', text: 'Aspectos positivos (lo que no debería cambiar)', type: 'text' }
+];
+var LIKERT_LABELS = { 1: 'Nada', 2: 'Poco', 3: 'Algo', 4: 'Bastante', 5: 'Mucho' };
+var allProjects = [];
+var currentDetail = null;
+var currentDetailFase = 0;
+
+function getToken() { return localStorage.getItem('tutores_token') || ''; }
+function authUrl(url) {
+    var t = getToken();
+    if (!t) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(t);
+}
+
+function stripHtml(html) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+}
+
+// ── List view ──
+async function loadProjects() {
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos'));
+        if (!res.ok) { document.getElementById('projects-container').innerHTML = '<p style="color:#dc2626;">Error al cargar. ¿Tienes permisos de docente?</p>'; return; }
+        var data = await res.json();
+        allProjects = data.proyectos || [];
+        renderList();
+    } catch(e) {
+        document.getElementById('projects-container').innerHTML = '<p style="color:#dc2626;">Error: ' + e.message + '</p>';
+    }
+}
+
+function renderList() {
+    if (!allProjects.length) {
+        document.getElementById('projects-container').innerHTML = '<p style="color:#94a3b8;font-style:italic;">No hay proyectos aún.</p>';
+        return;
+    }
+    var html = '<table class="project-table"><thead><tr>';
+    html += '<th>Título</th><th>Grupo</th><th>Fases</th><th>Interacciones</th><th>Última actividad</th>';
+    html += '</tr></thead><tbody>';
+
+    allProjects.forEach(function(p) {
+        html += '<tr onclick="openProject(\'' + p.id + '\')">';
+        html += '<td><strong>' + (p.titulo || 'Sin título') + '</strong></td>';
+        html += '<td style="font-size:11px;">' + (p.grupo || []).join('<br>') + '</td>';
+
+        // Phase dots
+        html += '<td>';
+        FASES.forEach(function(f) {
+            var cls = 'empty';
+            if (f === 'valoracion') {
+                var resp = p.fases && p.fases.valoracion && p.fases.valoracion.respuestas;
+                cls = resp && Object.keys(resp).length > 0 ? 'done' : 'empty';
+            } else {
+                var texto = p.fases && p.fases[f] ? stripHtml(p.fases[f].texto || '') : '';
+                cls = texto.length > 50 ? 'done' : texto.length > 0 ? 'wip' : 'empty';
+            }
+            html += '<span class="fase-dot ' + cls + '" title="' + FASE_NOMBRES[f] + '"></span>';
+        });
+        html += '</td>';
+
+        html += '<td style="text-align:center;">' + (p.n_chat || 0) + '</td>';
+        html += '<td style="font-size:11px;">' + (p.updated || '') + '</td>';
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('projects-container').innerHTML = html;
+}
+
+function showList() {
+    document.getElementById('list-view').style.display = '';
+    document.getElementById('detail-view').style.display = 'none';
+    loadProjects();
+}
+
+// ── Detail view ──
+async function openProject(id) {
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + id));
+        if (!res.ok) { alert('No se pudo cargar el proyecto'); return; }
+        currentDetail = await res.json();
+        renderDetail();
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+function renderDetail() {
+    document.getElementById('list-view').style.display = 'none';
+    document.getElementById('detail-view').style.display = '';
+
+    document.getElementById('detail-title').textContent = currentDetail.titulo || 'Sin título';
+    document.getElementById('detail-meta').innerHTML =
+        '<strong>Grupo:</strong> ' + (currentDetail.grupo || []).join(', ') +
+        ' · <strong>Creado:</strong> ' + (currentDetail.created || '') +
+        ' · <strong>Última edición:</strong> ' + (currentDetail.updated || '');
+
+    // Stats
+    var chat = currentDetail.chat || [];
+    var nInteracciones = chat.length;
+    var nAplicadas = chat.filter(function(m) { return m.decision && m.decision.accion === 'aplicado'; }).length;
+    var nNoAplicadas = chat.filter(function(m) { return m.decision && m.decision.accion === 'no_aplicado'; }).length;
+    var nParcial = chat.filter(function(m) { return m.decision && m.decision.accion === 'parcialmente'; }).length;
+    var nPendientes = chat.filter(function(m) { return !m.decision || !m.decision.accion; }).length;
+
+    document.getElementById('detail-stats').innerHTML =
+        '<div class="stat-card"><div class="stat-num">' + nInteracciones + '</div><div class="stat-label">Consultas a Eulalia</div></div>' +
+        '<div class="stat-card"><div class="stat-num" style="color:#16a34a;">' + nAplicadas + '</div><div class="stat-label">Aplicadas</div></div>' +
+        '<div class="stat-card"><div class="stat-num" style="color:#f59e0b;">' + nParcial + '</div><div class="stat-label">Parcialmente</div></div>' +
+        '<div class="stat-card"><div class="stat-num" style="color:#dc2626;">' + nNoAplicadas + '</div><div class="stat-label">No aplicadas</div></div>' +
+        '<div class="stat-card"><div class="stat-num" style="color:#94a3b8;">' + nPendientes + '</div><div class="stat-label">Sin decisión</div></div>';
+
+    // Phase tabs
+    var tabsHtml = '';
+    FASES.forEach(function(f, i) {
+        tabsHtml += '<button class="fase-tab' + (i === currentDetailFase ? ' active' : '') + '" onclick="showDetailFase(' + i + ')">' + FASE_NOMBRES[f] + '</button>';
+    });
+    document.getElementById('fase-tabs').innerHTML = tabsHtml;
+
+    showDetailFase(currentDetailFase);
+}
+
+function showDetailFase(idx) {
+    currentDetailFase = idx;
+    // Update tabs
+    document.querySelectorAll('.fase-tab').forEach(function(tab, i) {
+        tab.className = 'fase-tab' + (i === idx ? ' active' : '');
+    });
+
+    var faseId = FASES[idx];
+    var faseData = (currentDetail.fases && currentDetail.fases[faseId]) || {};
+
+    // Valoración phase: show survey responses
+    if (faseId === 'valoracion') {
+        renderDetailValoracion(faseData);
+        return;
+    }
+
+    var allChat = currentDetail.chat || [];
+    var chat = allChat.filter(function(m) { return m.fase === faseId; });
+
+    var html = '';
+
+    // Timeline with scoring
+    if (chat.length > 0) {
+        html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
+        html += '<h3 style="margin:0;font-size:14px;color:#475569;">Interacciones con Eulalia (' + chat.length + ')</h3>';
+        html += '<button onclick="autoScorePhase(\'' + faseId + '\')" style="font-size:11px;padding:4px 10px;border:1px solid #f59e0b;background:#fffbeb;color:#92400e;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:600;">🤖 Pre-puntuar con IA</button>';
+        html += '</div>';
+
+        chat.forEach(function(m) {
+            var globalIdx = allChat.indexOf(m);
+            var currentScore = (m.teacher_score !== undefined && m.teacher_score !== null) ? m.teacher_score : -1;
+
+            html += '<div class="timeline-entry llm">';
+            html += '<div class="tl-meta">' + (m.autor || '') + ' · ' + (m.fecha || '') + '</div>';
+            html += '<div class="tl-prompt"><strong>Prompt:</strong> ' + (m.prompt || m.mensaje || '') + '</div>';
+            html += '<div class="tl-response">' + (typeof marked !== 'undefined' ? marked.parse(m.respuesta || '') : (m.respuesta || '')) + '</div>';
+
+            if (m.decision && m.decision.accion) {
+                var labels = { aplicado: '✓ Aplicado', no_aplicado: '✗ No aplicado', parcialmente: '~ Parcialmente' };
+                var cls = m.decision.accion === 'aplicado' ? 'applied' : m.decision.accion === 'no_aplicado' ? 'not-applied' : 'partial';
+                html += '<div class="tl-decision ' + cls + '">';
+                html += '<strong>' + (labels[m.decision.accion] || m.decision.accion) + '</strong>';
+                if (m.decision.justificacion) html += ': ' + m.decision.justificacion;
+                html += '</div>';
+            } else {
+                html += '<div class="tl-decision pending">⏳ Sin decisión</div>';
+            }
+
+            // Teacher scoring
+            html += '<div class="tl-scoring">';
+            html += '<label>Puntuación:</label>';
+            for (var s = 0; s <= 4; s++) {
+                var sel = currentScore === s ? ' selected' : '';
+                html += '<button class="score-btn score-' + s + sel + '" onclick="setScore(' + globalIdx + ',' + s + ',this)" title="' + SCORE_RUBRIC[s] + '">' + s + '</button>';
+            }
+            if (currentScore >= 0) html += '<span class="score-saved">✓</span>';
+            html += '</div>';
+
+            html += '</div>';
+        });
+
+        // Score summary
+        html += renderScoreSummary(chat);
+    } else {
+        html += '<p style="color:#94a3b8;font-size:13px;font-style:italic;margin-top:12px;">No hay interacciones con Eulalia en esta fase.</p>';
+    }
+
+    document.getElementById('detail-content').innerHTML = html;
+}
+
+// ── Scoring rubric ──
+var SCORE_RUBRIC = {
+    0: 'No hay justificación o la justificación es incorrecta o no relevante',
+    1: 'Justificación muy pobre, no se aprecia una lectura crítica de la respuesta de la IA',
+    2: 'Justificación intermedia: se aprecia que se ha leído el texto, pero falta actitud crítica',
+    3: 'Respuesta correcta: han leído el texto de manera crítica',
+    4: 'Respuesta excelente: alto nivel de comprensión de la tarea y pensamiento crítico'
+};
+var SCORE_COLORS = { 0: '#dc2626', 1: '#f59e0b', 2: '#eab308', 3: '#22c55e', 4: '#16a34a' };
+
+async function setScore(chatIdx, score, btnEl) {
+    if (!currentDetail) return;
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + currentDetail.id + '/score'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_index: chatIdx, score: score })
+        });
+        if (!res.ok) throw new Error('Error');
+        currentDetail.chat[chatIdx].teacher_score = score;
+
+        // Update UI: deselect siblings, select this one
+        var row = btnEl.parentElement;
+        row.querySelectorAll('.score-btn').forEach(function(b) { b.classList.remove('selected'); });
+        btnEl.classList.add('selected');
+        // Add/update saved indicator
+        var saved = row.querySelector('.score-saved');
+        if (!saved) { saved = document.createElement('span'); saved.className = 'score-saved'; row.appendChild(saved); }
+        saved.textContent = '✓';
+
+        // Update summary
+        var faseId = FASES[currentDetailFase];
+        var chat = currentDetail.chat.filter(function(m) { return m.fase === faseId; });
+        var summaryEl = document.getElementById('score-summary');
+        if (summaryEl) summaryEl.outerHTML = renderScoreSummary(chat);
+    } catch(e) { alert('Error al guardar puntuación'); }
+}
+
+function renderScoreSummary(chat) {
+    var counts = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+    var scored = 0;
+    chat.forEach(function(m) {
+        if (m.teacher_score !== undefined && m.teacher_score !== null && m.teacher_score >= 0) {
+            counts[m.teacher_score]++;
+            scored++;
+        }
+    });
+    var total = chat.length;
+    var avg = scored > 0 ? (Object.keys(counts).reduce(function(s, k) { return s + parseInt(k) * counts[k]; }, 0) / scored).toFixed(1) : '—';
+
+    var html = '<div class="score-summary" id="score-summary">';
+    html += '<h4>Resumen de puntuaciones (' + scored + '/' + total + ' puntuadas · Media: ' + avg + '/4)</h4>';
+    for (var s = 0; s <= 4; s++) {
+        var pct = total > 0 ? Math.round(counts[s] / total * 100) : 0;
+        html += '<div class="score-bar-row">';
+        html += '<div class="score-bar-label" style="color:' + SCORE_COLORS[s] + ';">' + s + '</div>';
+        html += '<div class="score-bar"><div class="score-bar-fill" style="width:' + pct + '%;background:' + SCORE_COLORS[s] + ';"></div></div>';
+        html += '<div class="score-bar-count">' + counts[s] + '</div>';
+        html += '</div>';
+    }
+    html += '<div class="score-rubric">';
+    for (var s = 0; s <= 4; s++) {
+        html += '<strong>' + s + '</strong>: ' + SCORE_RUBRIC[s] + '<br>';
+    }
+    html += '</div>';
+    html += '</div>';
+    return html;
+}
+
+// ── Auto-score with AI ──
+async function autoScorePhase(faseId) {
+    if (!currentDetail) return;
+    if (!confirm('¿Generar pre-puntuación con IA para las interacciones de esta fase? Las puntuaciones existentes NO se sobreescribirán.')) return;
+
+    var allChat = currentDetail.chat || [];
+    var chat = allChat.filter(function(m) { return m.fase === faseId; });
+    var unscored = chat.filter(function(m) { return m.teacher_score === undefined || m.teacher_score === null || m.teacher_score < 0; });
+
+    if (unscored.length === 0) { alert('Todas las interacciones ya tienen puntuación.'); return; }
+
+    // Build payload for AI
+    var interactions = [];
+    unscored.forEach(function(m) {
+        interactions.push({
+            index: allChat.indexOf(m),
+            prompt: (m.prompt || m.mensaje || '').substring(0, 500),
+            decision: m.decision ? m.decision.accion : 'sin_decision',
+            justificacion: m.decision ? (m.decision.justificacion || '').substring(0, 500) : ''
+        });
+    });
+
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + currentDetail.id + '/autoscore'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fase: faseId, interactions: interactions })
+        });
+        if (!res.ok) throw new Error('Error del servidor');
+        var data = await res.json();
+
+        // Apply scores locally
+        (data.scores || []).forEach(function(s) {
+            if (s.index >= 0 && s.index < allChat.length) {
+                allChat[s.index].teacher_score = s.score;
+            }
+        });
+
+        // Refresh view
+        showDetailFase(currentDetailFase);
+        alert('Pre-puntuación completada. Revisa y ajusta las puntuaciones si es necesario.');
+    } catch(e) {
+        alert('Error: ' + e.message);
+    }
+}
+
+// ── Pre-correction ──
+async function solicitarPreCorreccion() {
+    if (!currentDetail) return;
+
+    var btn = document.getElementById('btn-precorr');
+    btn.disabled = true;
+    btn.textContent = '⏳ Generando...';
+
+    var panel = document.getElementById('precorreccion-panel');
+    panel.style.display = '';
+    panel.innerHTML = '<div class="precorr-loading">Solicitando pre-corrección a la IA... (puede tardar hasta 30 segundos)</div>';
+    panel.scrollIntoView({ behavior: 'smooth' });
+
+    // Build payload
+    var fasesTexto = {};
+    FASES.forEach(function(f) {
+        var faseData = (currentDetail.fases && currentDetail.fases[f]) || {};
+        fasesTexto[f] = stripHtml(faseData.texto || '').substring(0, 3000);
+    });
+
+    var decisiones = [];
+    (currentDetail.chat || []).forEach(function(m) {
+        var entry = { fase: FASE_NOMBRES[m.fase] || m.fase, prompt: (m.prompt || m.mensaje || '').substring(0, 200) };
+        if (m.decision && m.decision.accion) {
+            entry.decision = m.decision.accion;
+            entry.justificacion = (m.decision.justificacion || '').substring(0, 200);
+        } else {
+            entry.decision = 'sin_registrar';
+        }
+        decisiones.push(entry);
+    });
+
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + currentDetail.id + '/precorreccion'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fases: fasesTexto,
+                decisiones: decisiones,
+                titulo: currentDetail.titulo || '',
+                grupo: currentDetail.grupo || []
+            })
+        });
+        if (!res.ok) {
+            var errData = await res.json().catch(function() { return {}; });
+            throw new Error(errData.detail || 'Error del servidor');
+        }
+        var data = await res.json();
+        renderPreCorreccion(data);
+    } catch(e) {
+        panel.innerHTML = '<div class="precorr-loading" style="color:#dc2626;">Error: ' + e.message + '</div>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🔍 Pre-corrección IA';
+}
+
+function renderPreCorreccion(data) {
+    var panel = document.getElementById('precorreccion-panel');
+    var html = '<h2>Pre-corrección orientativa</h2>';
+    html += '<div class="precorr-disclaimer">';
+    html += 'Esta pre-corrección ha sido generada por IA y es <strong>solo orientativa</strong>. ';
+    html += 'La IA no ha escuchado la grabación del paciente, por lo que no puede evaluar la calidad de las transcripciones. ';
+    html += 'Las notas finales las decide el equipo docente.';
+    html += '</div>';
+
+    var criterios = data.criterios || [];
+    if (criterios.length === 0 && data.comentario_general) {
+        html += '<div class="precorr-criterio"><div class="precorr-comentario">' + data.comentario_general + '</div></div>';
+    } else {
+        criterios.forEach(function(c) {
+            html += '<div class="precorr-criterio">';
+            html += '<h3>' + (c.nombre || '') + '</h3>';
+            if (c.peso) html += '<span class="precorr-peso">' + c.peso + '</span>';
+            html += '<div class="precorr-comentario">' + (c.comentario || '') + '</div>';
+            html += '</div>';
+        });
+    }
+
+    if (data.comentario_general && criterios.length > 0) {
+        html += '<div class="precorr-criterio" style="border-color:#f59e0b;">';
+        html += '<h3>Comentario general</h3>';
+        html += '<div class="precorr-comentario">' + data.comentario_general + '</div>';
+        html += '</div>';
+    }
+
+    panel.innerHTML = html;
+}
+
+// ── Valoración detail (per project) ──
+function renderDetailValoracion(faseData) {
+    var respuestas = (faseData && faseData.respuestas) || {};
+    var respondents = Object.keys(respuestas);
+
+    var html = '<div class="fase-card">';
+    html += '<h3>Valoración de la experiencia</h3>';
+
+    if (respondents.length === 0) {
+        html += '<p style="color:#94a3b8;font-style:italic;">Ningún miembro ha respondido aún.</p>';
+    } else {
+        html += '<div class="fase-meta">' + respondents.length + ' de ' + (currentDetail.grupo || []).length + ' miembros han respondido</div>';
+
+        respondents.forEach(function(email) {
+            var r = respuestas[email];
+            html += '<div style="margin:12px 0;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">';
+            html += '<div style="font-size:12px;font-weight:700;color:#4250b3;margin-bottom:8px;">' + email + '</div>';
+            SURVEY_QUESTIONS.forEach(function(q) {
+                if (r[q.id] !== undefined && r[q.id] !== '') {
+                    html += '<div style="margin-bottom:6px;font-size:13px;">';
+                    html += '<strong style="color:#475569;">' + q.text + '</strong><br>';
+                    if (q.type === 'likert') {
+                        var val = r[q.id];
+                        html += '<span style="font-weight:700;color:#4250b3;">' + val + '/5</span> — ' + (LIKERT_LABELS[val] || '');
+                    } else {
+                        html += '<span style="color:#374151;">' + r[q.id] + '</span>';
+                    }
+                    html += '</div>';
+                }
+            });
+            html += '</div>';
+        });
+    }
+
+    html += '</div>';
+    document.getElementById('detail-content').innerHTML = html;
+}
+
+// ── Global survey summary (all projects) ──
+function showSurveyGlobal() {
+    document.getElementById('list-view').style.display = 'none';
+    document.getElementById('detail-view').style.display = 'none';
+    document.getElementById('survey-global-view').style.display = '';
+    renderSurveyGlobal();
+}
+
+function hideSurveyGlobal() {
+    document.getElementById('survey-global-view').style.display = 'none';
+    document.getElementById('list-view').style.display = '';
+}
+
+async function renderSurveyGlobal() {
+    var container = document.getElementById('survey-global-content');
+    container.innerHTML = '<p style="color:#94a3b8;">Cargando proyectos...</p>';
+
+    // Load all projects with full data
+    var projects = [];
+    for (var i = 0; i < allProjects.length; i++) {
+        try {
+            var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + allProjects[i].id));
+            if (res.ok) projects.push(await res.json());
+        } catch(e) {}
+    }
+
+    // Aggregate likert responses
+    var likertTotals = {};
+    var likertCounts = {};
+    var textResponses = {};
+    var totalRespondents = 0;
+
+    SURVEY_QUESTIONS.forEach(function(q) {
+        if (q.type === 'likert') { likertTotals[q.id] = 0; likertCounts[q.id] = 0; }
+        else { textResponses[q.id] = []; }
+    });
+
+    projects.forEach(function(p) {
+        var resp = (p.fases && p.fases.valoracion && p.fases.valoracion.respuestas) || {};
+        Object.keys(resp).forEach(function(email) {
+            totalRespondents++;
+            var r = resp[email];
+            SURVEY_QUESTIONS.forEach(function(q) {
+                if (r[q.id] !== undefined && r[q.id] !== '') {
+                    if (q.type === 'likert') {
+                        likertTotals[q.id] += r[q.id];
+                        likertCounts[q.id]++;
+                    } else {
+                        textResponses[q.id].push({ text: r[q.id], email: email, proyecto: p.titulo });
+                    }
+                }
+            });
+        });
+    });
+
+    var html = '<p style="font-size:13px;color:#64748b;margin-bottom:16px;">' +
+        totalRespondents + ' respuestas de ' + projects.length + ' proyectos</p>';
+
+    // Likert summary
+    SURVEY_QUESTIONS.forEach(function(q) {
+        if (q.type === 'likert') {
+            var avg = likertCounts[q.id] > 0 ? (likertTotals[q.id] / likertCounts[q.id]).toFixed(1) : '—';
+            var barPct = likertCounts[q.id] > 0 ? Math.round(likertTotals[q.id] / likertCounts[q.id] * 20) : 0;
+            html += '<div style="margin-bottom:16px;padding:14px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;">';
+            html += '<div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:8px;">' + q.text + '</div>';
+            html += '<div style="display:flex;align-items:center;gap:10px;">';
+            html += '<div style="font-size:28px;font-weight:800;color:#4250b3;">' + avg + '</div>';
+            html += '<div style="flex:1;">';
+            html += '<div style="background:#e2e8f0;border-radius:4px;height:8px;"><div style="background:#4250b3;border-radius:4px;height:8px;width:' + barPct + '%;"></div></div>';
+            html += '</div>';
+            html += '<div style="font-size:11px;color:#94a3b8;">' + likertCounts[q.id] + ' resp.</div>';
+            html += '</div></div>';
+        }
+    });
+
+    // Text responses
+    SURVEY_QUESTIONS.forEach(function(q) {
+        if (q.type !== 'text' || textResponses[q.id].length === 0) return;
+        html += '<div style="margin-bottom:16px;padding:14px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;">';
+        html += '<div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:8px;">' + q.text + ' (' + textResponses[q.id].length + ')</div>';
+        textResponses[q.id].forEach(function(r) {
+            html += '<div style="font-size:12px;padding:6px 10px;margin-bottom:4px;background:#f8fafc;border-radius:6px;border-left:3px solid #e2e8f0;">';
+            html += '<span style="color:#374151;">' + r.text + '</span>';
+            html += ' <span style="color:#94a3b8;font-size:10px;">— ' + r.proyecto + '</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+    });
+
+    container.innerHTML = html;
+}
+
+// ── Edit members ──
+function showEditMembers() {
+    if (!currentDetail) return;
+    renderMembersList();
+    document.getElementById('members-status').textContent = '';
+    document.getElementById('add-member-email').value = '';
+    document.getElementById('members-modal').style.display = 'flex';
+}
+
+function renderMembersList() {
+    var el = document.getElementById('members-list');
+    var grupo = currentDetail.grupo || [];
+    var html = '';
+    grupo.forEach(function(email) {
+        html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9;">';
+        html += '<span style="flex:1;font-size:13px;color:#1e293b;">' + email + '</span>';
+        html += '<button onclick="removeMember(\'' + email + '\')" style="padding:2px 8px;background:none;color:#dc2626;border:1px solid #fecaca;border-radius:4px;font-size:11px;cursor:pointer;font-family:inherit;" title="Eliminar miembro">✕</button>';
+        html += '</div>';
+    });
+    if (!grupo.length) html = '<p style="color:#94a3b8;font-size:12px;font-style:italic;">Sin miembros</p>';
+    el.innerHTML = html;
+}
+
+async function addMemberDocente() {
+    if (!currentDetail) return;
+    var email = document.getElementById('add-member-email').value.trim().toLowerCase();
+    var status = document.getElementById('members-status');
+    if (!email || email.indexOf('@') < 0) { status.textContent = 'Email no válido'; status.style.color = '#dc2626'; return; }
+
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + currentDetail.id + '/invitar'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        });
+        var data = await res.json();
+        if (!res.ok) { status.textContent = data.detail || 'Error'; status.style.color = '#dc2626'; return; }
+        status.textContent = email + ' añadido'; status.style.color = '#16a34a';
+        if (!currentDetail.grupo) currentDetail.grupo = [];
+        if (currentDetail.grupo.indexOf(email) < 0) currentDetail.grupo.push(email);
+        renderMembersList();
+        document.getElementById('add-member-email').value = '';
+        document.getElementById('detail-meta').innerHTML =
+            '<strong>Grupo:</strong> ' + currentDetail.grupo.join(', ') +
+            ' · <strong>Creado:</strong> ' + (currentDetail.created || '');
+    } catch(e) { status.textContent = 'Error: ' + e.message; status.style.color = '#dc2626'; }
+}
+
+async function removeMember(email) {
+    if (!currentDetail) return;
+    if (!confirm('¿Eliminar a ' + email + ' del proyecto?')) return;
+
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + currentDetail.id + '/miembro'), {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        });
+        if (!res.ok) { var d = await res.json(); alert(d.detail || 'Error'); return; }
+        currentDetail.grupo = currentDetail.grupo.filter(function(e) { return e !== email; });
+        renderMembersList();
+        document.getElementById('members-status').textContent = email + ' eliminado';
+        document.getElementById('members-status').style.color = '#16a34a';
+        document.getElementById('detail-meta').innerHTML =
+            '<strong>Grupo:</strong> ' + currentDetail.grupo.join(', ') +
+            ' · <strong>Creado:</strong> ' + (currentDetail.created || '');
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── Delete project ──
+async function deleteProject() {
+    if (!currentDetail) return;
+    var titulo = currentDetail.titulo || 'Sin título';
+    var grupo = (currentDetail.grupo || []).join(', ');
+    var nChat = (currentDetail.chat || []).length;
+
+    // First confirmation: show what will be deleted
+    var msg = '⚠️ Vas a ELIMINAR el proyecto:\n\n' +
+        '  «' + titulo + '»\n' +
+        '  Grupo: ' + grupo + '\n' +
+        '  Interacciones: ' + nChat + '\n\n' +
+        'Esta acción NO se puede deshacer. ¿Continuar?';
+    if (!confirm(msg)) return;
+
+    // Second confirmation: type project title
+    var typed = prompt('Para confirmar, escribe el título del proyecto:\n\n«' + titulo + '»');
+    if (!typed || typed.trim() !== titulo.trim()) {
+        alert('El título no coincide. Operación cancelada.');
+        return;
+    }
+
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + currentDetail.id), {
+            method: 'DELETE'
+        });
+        if (!res.ok) {
+            var data = await res.json().catch(function() { return {}; });
+            alert(data.detail || 'Error al eliminar');
+            return;
+        }
+        alert('Proyecto eliminado.');
+        currentDetail = null;
+        showList();
+    } catch(e) {
+        alert('Error: ' + e.message);
+    }
+}
+
+// ── Init ──
+loadProjects();
+
+</script>
+</body>
+</html>

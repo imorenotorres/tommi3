@@ -28,6 +28,39 @@
   ],
   "temas": [
     {
+      "id": 0,
+      "titulo": "Presentación de la asignatura",
+      "color": "#475569",
+      "doc": "Tema0_Presentacion.md",
+      "resumen": "Presentación general de la asignatura: qué se aprende, cómo se evalúa y el papel de la IA y Eulalia.",
+      "contenidos": [
+        {
+          "bloque": "¿Qué se aprende?",
+          "seccion_doc": "¿Qué se aprende en esta asignatura?"
+        },
+        {
+          "bloque": "¿Cómo se evalúa?",
+          "seccion_doc": "¿Cómo se evalúa?"
+        },
+        {
+          "bloque": "El papel de la IA y Eulalia",
+          "seccion_doc": "El papel de la IA y de Eulalia"
+        }
+      ],
+      "ejercicios": [],
+      "autoevaluacion": [],
+      "mas_alla": [
+        {
+          "texto": "Tema 1: empieza aquí tu recorrido por la fonología.",
+          "tema_destino": 1
+        },
+        {
+          "texto": "Tema 5: el trabajo en grupo con IA.",
+          "tema_destino": 5
+        }
+      ]
+    },
+    {
       "id": 1,
       "titulo": "Introducción a la fonología",
       "color": "#4250b3",
@@ -201,7 +234,22 @@
           ]
         }
       ],
-      "ejercicios": [],
+      "ejercicios": [
+        {
+          "nombre": "Define: fonema, alófono, sonido",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio para definir fonema, alófono y sonido",
+          "apartado": "1.1",
+          "descripcion": "Practica la redacción de definiciones de los conceptos fundamentales"
+        },
+        {
+          "nombre": "Doble ruta léxica",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio sobre la doble ruta léxica",
+          "apartado": "1.3",
+          "descripcion": "Ejercicio sobre la ruta léxica y subléxica de lectura"
+        }
+      ],
       "autoevaluacion": [
         "¿Puedo explicar la diferencia entre fonema y alófono con un ejemplo?",
         "¿Sé identificar pares mínimos en español?",
@@ -226,12 +274,8 @@
           "tema_destino": 3
         },
         {
-          "texto": "Tema 5: la percepción del habla (bandas críticas, análisis temporal) conecta con la fonología multimodal y los implantes cocleares.",
+          "texto": "Tema 5: puedes investigar la doble ruta comparando errores en palabras y pseudopalabras.",
           "tema_destino": 5
-        },
-        {
-          "texto": "Tema 6: puedes investigar la doble ruta comparando errores en palabras y pseudopalabras.",
-          "tema_destino": 6
         }
       ]
     },
@@ -373,6 +417,16 @@
             {
               "nombre": "2.5.5. Imprevistos",
               "seccion_doc": "2.5.5. Imprevistos"
+            },
+            {
+              "nombre": "2.5.6. Macro-patrones fonológicos",
+              "seccion_doc": "2.5.6. Macro-patrones fonológicos",
+              "conceptos": [
+                {
+                  "nombre": "Macro-patrones",
+                  "consulta": "¿Qué macro-patrones fonológicos existen (lenición, fortición, en desarrollo, prosódico) y cómo se identifican?"
+                }
+              ]
             }
           ],
           "conceptos": [
@@ -414,15 +468,91 @@
       "ejercicios": [
         {
           "nombre": "Transcripción fonológica (por niveles)",
-          "tipo": "panel_transcripcion"
+          "tipo": "panel_transcripcion",
+          "apartado": "2.1-2.4",
+          "descripcion": "Ejercicios progresivos de transcripción fonológica con corrección automática"
+        },
+        {
+          "nombre": "Practica: grafemas simples",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio de transcripción fonológica con palabras sencillas",
+          "apartado": "2.1",
+          "descripcion": "Palabras con correspondencia directa grafema-fonema"
+        },
+        {
+          "nombre": "Practica: diptongos e hiatos",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio de transcripción con diptongos e hiatos",
+          "apartado": "2.2",
+          "descripcion": "Identificar y transcribir diptongos, hiatos y triptongos"
+        },
+        {
+          "nombre": "Practica: grafemas complejos",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio de transcripción con grafemas complejos (c, g, r, x, qu, gu)",
+          "apartado": "2.3",
+          "descripcion": "Grafemas dependientes del contexto: c/qu/z, g/gu/j, r/rr, x"
+        },
+        {
+          "nombre": "Explorador de sílabas",
+          "tipo": "consulta",
+          "consulta": "¿Cómo funciona el explorador de sílabas?",
+          "apartado": "2.4",
+          "descripcion": "Consulta la frecuencia de las 1058 sílabas fonológicas del español"
+        },
+        {
+          "nombre": "Pseudopalabras y frecuencia",
+          "tipo": "consulta",
+          "consulta": "¿Cómo creo pseudopalabras controlando la frecuencia?",
+          "apartado": "2.4",
+          "descripcion": "Crea pseudopalabras controlando la dificultad según frecuencia"
+        },
+        {
+          "nombre": "Medidas cuantitativas",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio sobre medidas cuantitativas de errores fonológicos (PPC, PFC)",
+          "apartado": "2.5.1",
+          "descripcion": "Calcula PPC y PFC a partir de una muestra de habla"
         },
         {
           "nombre": "Clasificar errores (individual)",
-          "tipo": "panel_errores"
+          "tipo": "panel_errores",
+          "apartado": "2.5.2",
+          "descripcion": "Clasifica errores fonológicos individuales con corrección automática"
+        },
+        {
+          "nombre": "Errores cualitativos (básico)",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio básico de clasificación de errores cualitativos",
+          "apartado": "2.5.2",
+          "descripcion": "Identifica tipos de errores en muestras sencillas"
+        },
+        {
+          "nombre": "Errores cualitativos (avanzado)",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio avanzado de clasificación de errores cualitativos",
+          "apartado": "2.5.2",
+          "descripcion": "Clasifica errores en muestras con múltiples tipos de error"
+        },
+        {
+          "nombre": "Errores rítmicos",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio sobre errores rítmicos",
+          "apartado": "2.5.3",
+          "descripcion": "Identifica pausas, titubeos y muletillas en una transcripción"
         },
         {
           "nombre": "Informe de errores (completo)",
-          "tipo": "panel_informe_errores"
+          "tipo": "panel_informe_errores",
+          "apartado": "2.5.4",
+          "descripcion": "Elabora un informe completo: transcripción, medidas cuantitativas, errores cualitativos y rítmicos"
+        },
+        {
+          "nombre": "Macro-patrones fonológicos",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio para identificar macro-patrones fonológicos",
+          "apartado": "2.5.6",
+          "descripcion": "Identifica si un conjunto de errores sigue un patrón de lenición, fortición, etc."
         }
       ],
       "autoevaluacion": [
@@ -444,8 +574,8 @@
           "tema_destino": 3
         },
         {
-          "texto": "Tema 6 (Trabajo práctico): puedes analizar una muestra de habla con errores o comprobar un inventario fonológico.",
-          "tema_destino": 6
+          "texto": "Tema 5 (Trabajo práctico): puedes analizar una muestra de habla con errores o comprobar un inventario fonológico.",
+          "tema_destino": 5
         },
         {
           "texto": "Vídeo: ¿Es lo mismo «tilde» que «acento»? Una explicación clara de la diferencia.",
@@ -723,17 +853,37 @@
       "ejercicios": [
         {
           "nombre": "Transcripción fonética (por niveles)",
-          "tipo": "panel_transcripcion_fonetica"
+          "tipo": "panel_transcripcion_fonetica",
+          "apartado": "3.1-3.5",
+          "descripcion": "7 niveles: diptongos, oclusivas, fricativas, nasales, laterales/vibrantes, oraciones, fonosintaxis"
         },
         {
           "nombre": "Identificar alófonos por descripción",
           "tipo": "consulta",
-          "consulta": "¿Qué alófono es una nasal velar sonora?"
+          "consulta": "¿Qué alófono es una nasal velar sonora?",
+          "apartado": "3.3",
+          "descripcion": "Dado un modo, lugar y sonoridad, identifica el alófono"
         },
         {
           "nombre": "Listar alófonos de un fonema",
           "tipo": "consulta",
-          "consulta": "Alófonos de /d/"
+          "consulta": "Alófonos de /d/",
+          "apartado": "3.3",
+          "descripcion": "Enumera los alófonos de un fonema y sus contextos"
+        },
+        {
+          "nombre": "Predecir el alófono en contexto",
+          "tipo": "consulta",
+          "consulta": "¿Cómo se realiza /b/ en la palabra 'ambos'?",
+          "apartado": "3.3",
+          "descripcion": "Dado un fonema en una palabra, predice qué alófono se produce"
+        },
+        {
+          "nombre": "Fonosintaxis",
+          "tipo": "consulta",
+          "consulta": "Dame un ejercicio de fonosintaxis",
+          "apartado": "3.5",
+          "descripcion": "Fenómenos fonéticos entre palabras: sirremas, concatenación"
         }
       ],
       "autoevaluacion": [
@@ -756,8 +906,8 @@
           "tema_destino": 4
         },
         {
-          "texto": "Tema 6 (Trabajo práctico): puedes analizar diferencias dialectales en la realización de alófonos.",
-          "tema_destino": 6
+          "texto": "Tema 5 (Trabajo práctico): puedes analizar diferencias dialectales en la realización de alófonos.",
+          "tema_destino": 5
         }
       ]
     },
@@ -992,11 +1142,36 @@
       "ejercicios": [
         {
           "nombre": "Espectrogramas de ejemplo",
-          "tipo": "espectrogramas"
+          "tipo": "espectrogramas",
+          "apartado": "4.5",
+          "descripcion": "Visualiza espectrogramas reales de vocales, oclusivas, fricativas, nasales, etc."
         },
         {
           "nombre": "Analizar mi audio",
-          "tipo": "audio"
+          "tipo": "audio",
+          "apartado": "4.1-4.5",
+          "descripcion": "Sube un archivo de audio y analiza su espectrograma en Praat"
+        },
+        {
+          "nombre": "Identificar vocales por formantes",
+          "tipo": "consulta",
+          "consulta": "Si F1=700 Hz y F2=1470 Hz, ¿qué vocal es?",
+          "apartado": "4.4.1",
+          "descripcion": "Identifica vocales a partir de sus valores de F1 y F2"
+        },
+        {
+          "nombre": "Relación F1-F2 y articulación",
+          "tipo": "consulta",
+          "consulta": "¿Por qué la /i/ tiene F1 bajo y F2 alto?",
+          "apartado": "4.4.2",
+          "descripcion": "Relaciona formantes con rasgos articulatorios"
+        },
+        {
+          "nombre": "Interpretar espectrograma",
+          "tipo": "consulta",
+          "consulta": "Veo silencio seguido de una explosión y luego formantes. ¿Qué sonido es?",
+          "apartado": "4.5.6",
+          "descripcion": "A partir de una descripción del espectrograma, identifica el tipo de sonido"
         }
       ],
       "autoevaluacion": [
@@ -1014,256 +1189,111 @@
           "tema_destino": 3
         },
         {
-          "texto": "Tema 5: la percepción del habla se basa en el análisis de estas propiedades acústicas.",
+          "texto": "Tema 5 (Trabajo práctico): puedes usar Praat para analizar acústicamente diferencias dialectales.",
           "tema_destino": 5
-        },
-        {
-          "texto": "Tema 6 (Trabajo práctico): puedes usar Praat para analizar acústicamente diferencias dialectales.",
-          "tema_destino": 6
         }
       ]
     },
     {
       "id": 5,
-      "titulo": "Fonética perceptiva (En preparación)",
-      "color": "#dc2626",
-      "imagen": {
-        "src": "/static/eulalia/tema1/img/fonetica_perceptiva.gif",
-        "alt": "Anatomía del oído humano",
-        "credito": "Martin Weisser, Phonetics Course"
-      },
-      "resumen": "Este tema cierra el ciclo producción-señal-percepción, estudiando cómo el sistema auditivo analiza la señal del habla para reconocer los sonidos. Es un tema especialmente relevante para logopedia porque permite entender qué ocurre cuando un paciente tiene dificultades perceptivas (por pérdida auditiva, implante coclear, o envejecimiento).\n\nEl sistema auditivo realiza dos tipos de análisis simultáneos: el análisis espectral (descomposición de la señal en bandas de frecuencia, mediante las bandas críticas) y el análisis temporal (detección de cambios en la señal a lo largo del tiempo). El análisis temporal se subdivide en tres escalas: cambios lentos (envolvente, ~5-10 Hz, asociados al ritmo silábico), cambios rápidos (periodicidad, ~100-300 Hz, asociados a la sonoridad y la entonación) y cambios muy rápidos (estructura temporal fina o ETF, >300 Hz, asociados a los formantes y las transiciones formánticas).\n\nUna idea clave es que cada propiedad lingüística depende de eventos acústicos específicos: el modo de articulación depende de la envolvente (cambios lentos), la sonoridad depende de la periodicidad (cambios rápidos), y el lugar de articulación depende de las transiciones formánticas (cambios muy rápidos). Por tanto, si el sistema auditivo se degrada, primero se pierde la percepción del lugar de articulación, luego la sonoridad, y por último el modo.\n\nLos estudiantes deben entender esta jerarquía y ser capaces de predecir qué dificultades perceptivas tendrá un paciente según el tipo de pérdida auditiva. También deben conocer la noción de redundancia acústica: cada sonido tiene múltiples pistas, lo que permite reconocerlo incluso cuando se pierde parte de la información.",
-      "contenidos": [
-        {
-          "bloque": "Análisis espectral",
-          "conceptos": [
-            {
-              "nombre": "Bandas críticas",
-              "consulta": "¿Qué son las bandas críticas?"
-            },
-            {
-              "nombre": "Enmascaramiento",
-              "consulta": "¿Qué es el enmascaramiento sonoro?"
-            }
-          ]
-        },
-        {
-          "bloque": "Análisis temporal",
-          "conceptos": [
-            {
-              "nombre": "Envolvente (cambios lentos)",
-              "consulta": "¿Qué es la envolvente del habla?"
-            },
-            {
-              "nombre": "Periodicidad (cambios rápidos)",
-              "consulta": "¿Qué tipos de análisis temporal del habla hay?"
-            },
-            {
-              "nombre": "Estructura temporal fina (cambios muy rápidos)",
-              "consulta": "¿Qué es la estructura temporal fina?"
-            }
-          ]
-        },
-        {
-          "bloque": "Reconocimiento de la señal",
-          "conceptos": [
-            {
-              "nombre": "Eventos acústicos y pistas",
-              "consulta": "¿Qué eventos acústicos permiten reconocer las vocales?"
-            },
-            {
-              "nombre": "Redundancia acústica",
-              "consulta": "¿Qué es la redundancia acústica en la percepción del habla?"
-            },
-            {
-              "nombre": "Resistencia al ruido",
-              "consulta": "¿Qué fonemas del español son más resistentes al ruido?"
-            },
-            {
-              "nombre": "Banana auditiva",
-              "consulta": "¿Qué es la banana auditiva?"
-            }
-          ]
-        }
-      ],
-      "ejercicios": [
-        {
-          "nombre": "Simular pérdida espectral en Praat",
-          "tipo": "consulta",
-          "consulta": "¿Cómo puedo simular una pérdida espectral en Praat?"
-        },
-        {
-          "nombre": "Simular implante coclear",
-          "tipo": "consulta",
-          "consulta": "¿Cómo simulo un implante coclear con un vocoder en Praat?"
-        }
-      ],
-      "autoevaluacion": [
-        "¿Puedo explicar qué son las bandas críticas y su relación con el enmascaramiento?",
-        "¿Distingo entre los tres niveles de análisis temporal (envolvente, periodicidad, ETF)?",
-        "¿Sé predecir qué dificultades tendrá un paciente con pérdida auditiva según el tipo?",
-        "¿Entiendo el concepto de redundancia acústica?"
-      ],
-      "mas_alla": [
-        {
-          "texto": "Tema 4: revisa las propiedades acústicas (formantes, F0, espectrogramas) que aquí se perciben.",
-          "tema_destino": 4
-        },
-        {
-          "texto": "Tema 1: la pérdida auditiva y los daños en cascada se entienden mejor desde la perspectiva perceptiva.",
-          "tema_destino": 1
-        },
-        {
-          "texto": "Tema 6 (Trabajo práctico): puedes usar los ejercicios de Praat (filtrado, vocoder) como base de un proyecto.",
-          "tema_destino": 6
-        }
-      ]
-    },
-    {
-      "id": 6,
-      "titulo": "Trabajo práctico (por parejas)",
+      "titulo": "Trabajo en grupo",
       "color": "#0d9488",
-      "doc": "Tema6_Trabajo_Practico.md",
-      "resumen": "En este tema vais a realizar, por parejas, un pequeño trabajo de investigación consistente en analizar una grabación de habla patológica. Eulalia os guiará en cada paso del proceso.\n\nEl resultado será un documento con cuatro secciones: introducción, método, resultados y discusión. Además, haréis una presentación oral en clase.\n\nPodéis usar la IA que incluye Eulalia en todas las fases, pero lo que se valora no es el resultado final sino el proceso: las preguntas que habéis formulado, las decisiones que habéis tomado y cómo habéis interpretado los datos. Si usáis la LLM, debéis guardar el prompt usado.",
+      "doc": "Tema5_Trabajo_Grupo.md",
+      "resumen": "En este tema recibiréis indicaciones precisas para realizar una pequeña práctica en grupos de 3 estudiantes. El objetivo de la práctica es analizar una muestra de habla y ver el tipo de errores que contiene. La muestra puede ser de cualquier hablante que cometa errores en cantidad y tipo suficientemente variado. Entre otros:\n- un niño típico de 2-3 años\n- un niño con desarrollo atípico\n- un extranjero que no habla bien español\n- un paciente con cualquier patología del habla)\n\n Una novedad importante de esta práctica es que se espera que uséis una IA para poder completar el trabajo. \n\nSon dos los objetivos fundamentales de la práctica: \n- Aprender a usar una IA de forma responsable, y \n - Aplicar los conceptos estudiados en los temas anteriores.\n\nLa evaluación de esta parte de la asignatura (un 30% del total) se basará en: \n- la capacidad de razonamiento crítico empleado en al hacer el trabajo, \n- en el manejo correcto de los conceptos básicos, y \n- en la presentación oral que deberéis hacer.",
       "contenidos": [
         {
-          "bloque": "6.1. Introducción",
-          "seccion_doc": "6.1. Introducción",
-          "conceptos": [
-            {
-              "nombre": "¿Qué vamos a hacer?",
-              "consulta": "¿En qué consiste el trabajo práctico del tema 6?"
-            },
-            {
-              "nombre": "Uso de la IA",
-              "consulta": "¿Cómo puedo usar Eulalia en el trabajo práctico? ¿Qué se valora?"
-            }
-          ]
-        },
-        {
-          "bloque": "6.2. Preparando el tema y la introducción",
-          "seccion_doc": "6.2. Preparando el tema del trabajo y la introducción",
+          "bloque": "5.1. Introducción",
+          "seccion_doc": "5.1. Introducción",
           "subbloques": [
             {
-              "nombre": "6.2.1. Elegir el tema",
-              "seccion_doc": "Elegir el tema",
-              "conceptos": [
-                {
-                  "nombre": "Tipos de habla patológica",
-                  "consulta": "¿Qué tipos de habla patológica puedo analizar en el trabajo práctico?"
-                }
-              ]
+              "nombre": "5.1.1. Objetivos del trabajo",
+              "seccion_doc": "5.1.1. Objetivos del trabajo"
             },
             {
-              "nombre": "6.2.2. Macro-patrones de error",
-              "seccion_doc": "Macro-patrones de error",
-              "conceptos": [
-                {
-                  "nombre": "Macro-patrones lingüísticos",
-                  "consulta": "¿Qué macro-patrones de error existen (lenición, fortición, en desarrollo, prosódico-rítmico) y cómo se relacionan con cada patología?"
-                }
-              ]
+              "nombre": "5.1.2. Escribir un texto breve con IA",
+              "seccion_doc": "5.1.2. Escribir un texto breve con IA"
             },
             {
-              "nombre": "6.2.3. Escribir la introducción",
-              "seccion_doc": "Escribir la introducción",
-              "conceptos": [
-                {
-                  "nombre": "Estructura de la introducción",
-                  "consulta": "¿Qué debe incluir la introducción del trabajo práctico?"
-                }
-              ]
+              "nombre": "5.1.3. Escribir un texto extenso con IA",
+              "seccion_doc": "5.1.3. Escribir un texto extenso con IA"
+            },
+            {
+              "nombre": "5.1.4. Buenas prácticas",
+              "seccion_doc": "5.1.4. Buenas prácticas"
+            },
+            {
+              "nombre": "5.1.5. Documentación del proceso",
+              "seccion_doc": "5.1.5. Documentación del proceso"
+            },
+            {
+              "nombre": "5.1.6. Criterios de evaluación",
+              "seccion_doc": "5.1.6. Criterios de evaluación del trabajo"
+            },
+            {
+              "nombre": "5.1.7. ¿Debo usar Eulalia?",
+              "seccion_doc": "5.1.7. ¿Debo usar Eulalia?; ¿no puedo usar otra IA?"
             }
           ]
         },
         {
-          "bloque": "6.3. Diseño de la metodología",
-          "seccion_doc": "6.3. Diseño de la metodología",
+          "bloque": "5.2. Vuestro trabajo paso a paso",
+          "seccion_doc": "5.2. Vuestro trabajo paso a paso",
           "subbloques": [
             {
-              "nombre": "6.3.1. Obtención de datos",
-              "seccion_doc": "¿De dónde sacamos los datos?",
-              "conceptos": [
-                {
-                  "nombre": "Fuentes de datos",
-                  "consulta": "¿De dónde puedo obtener grabaciones de habla patológica para el trabajo?"
-                }
-              ]
+              "nombre": "Antes de empezar",
+              "seccion_doc": "Antes de empezar"
             },
             {
-              "nombre": "6.3.2. Diseñar la prueba",
-              "seccion_doc": "Diseñar la prueba",
-              "conceptos": [
-                {
-                  "nombre": "Diseño de la prueba",
-                  "consulta": "¿Cómo diseño una prueba de evaluación fonológica para mi paciente?"
-                }
-              ]
+              "nombre": "Paso 1: La introducción",
+              "seccion_doc": "Paso 1: La introducción"
             },
             {
-              "nombre": "6.3.3. Describir el método",
-              "seccion_doc": "Describir el método",
-              "conceptos": [
-                {
-                  "nombre": "Sección de método",
-                  "consulta": "¿Qué debe incluir la sección de método del trabajo práctico?"
-                }
-              ]
+              "nombre": "Paso 2: La metodología",
+              "seccion_doc": "Paso 2: La metodología"
+            },
+            {
+              "nombre": "Paso 3: Los resultados",
+              "seccion_doc": "Paso 3: Los resultados"
+            },
+            {
+              "nombre": "Paso 4: Discusión y conclusiones",
+              "seccion_doc": "Paso 4: Discusión y conclusiones"
             }
           ]
         },
         {
-          "bloque": "6.4. Resultados",
-          "seccion_doc": "6.4. Resultados",
-          "conceptos": [
+          "bloque": "5.3. Uso de Eulalia en el proyecto",
+          "seccion_doc": "5.3. Uso de Eulalia en el proyecto",
+          "subbloques": [
             {
-              "nombre": "Pasos del análisis",
-              "consulta": "¿Qué pasos debo seguir para analizar los resultados del trabajo práctico?"
+              "nombre": "Lo que Eulalia puede hacer",
+              "seccion_doc": "Lo que Eulalia puede hacer (con limitaciones)"
             },
             {
-              "nombre": "Uso de Eulalia en resultados",
-              "consulta": "¿Cómo puedo usar Eulalia para revisar mis resultados?"
+              "nombre": "Lo que Eulalia NO puede hacer",
+              "seccion_doc": "Lo que Eulalia NO puede hacer"
             },
             {
-              "nombre": "Presentar los resultados",
-              "consulta": "¿Cómo debo organizar y presentar los resultados del trabajo?"
+              "nombre": "Registro de tus intervenciones",
+              "seccion_doc": "Registro de tus intervenciones"
             }
           ]
         },
         {
-          "bloque": "6.5. Discusión y conclusiones",
-          "seccion_doc": "6.5. Discusión y conclusiones",
-          "conceptos": [
-            {
-              "nombre": "Estructura de la discusión",
-              "consulta": "¿Qué debe incluir la discusión del trabajo práctico?"
-            },
-            {
-              "nombre": "Limitaciones",
-              "consulta": "¿Qué tipo de limitaciones debo mencionar en mi trabajo?"
-            }
-          ]
+          "bloque": "5.4. Criterios de evaluación",
+          "seccion_doc": "5.4. Criterios de evaluación"
+        },
+        {
+          "bloque": "5.5. Calendario orientativo",
+          "seccion_doc": "5.5. Calendario orientativo"
         }
       ],
       "ejercicios": [
         {
           "nombre": "Abrir mi proyecto de investigación",
-          "tipo": "panel_proyecto_investigacion"
-        },
-        {
-          "nombre": "Elegir tema de trabajo",
-          "tipo": "consulta",
-          "consulta": "Quiero hacer el trabajo práctico sobre un paciente con disfunción velofaríngea. ¿Qué errores puedo esperar encontrar?"
-        },
-        {
-          "nombre": "Diseñar prueba",
-          "tipo": "consulta",
-          "consulta": "¿Qué palabras puedo usar para evaluar las oclusivas en un paciente con disfunción velofaríngea?"
-        },
-        {
-          "nombre": "Revisar transcripción",
-          "tipo": "consulta",
-          "consulta": "He transcrito /péɾo/ donde el paciente dice [péo]. ¿Es correcto clasificar esto como una omisión de vibrante simple?"
+          "tipo": "panel_proyecto_investigacion",
+          "apartado": "5.2",
+          "descripcion": "Abre el editor del proyecto para redactar tu trabajo en grupo"
         }
       ],
       "autoevaluacion": [

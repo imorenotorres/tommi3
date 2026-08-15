@@ -111,8 +111,8 @@ usernameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') p
 function doLogin() {
     var username = usernameInput.value.trim();
     var password = passwordInput.value;
-    if (!username || !password) {
-        showError('Introduce usuario y contraseña');
+    if (!username) {
+        showError('Introduce tu correo electrónico');
         return;
     }
     loginBtn.disabled = true;
