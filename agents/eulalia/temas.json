@@ -1314,12 +1314,6 @@
         }
       ],
       "ejercicios": [
-        {
-          "nombre": "Abrir mi proyecto de investigación",
-          "tipo": "panel_proyecto_investigacion",
-          "apartado": "5.2",
-          "descripcion": "Abre el editor del proyecto para redactar tu trabajo en grupo"
-        }
       ],
       "autoevaluacion": [
         "¿He elegido un tema y tengo claro qué patología voy a analizar?",

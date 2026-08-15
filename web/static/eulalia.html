@@ -216,6 +216,13 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
 .exercise-btn:hover { background: #374399; }
 
 /* Panel de configuración del profesor */
+.tools-panel details { background: #eff6ff; border-radius: 8px; overflow: hidden; border: 2px solid #93c5fd; }
+.tools-panel summary {
+    padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+    color: #1e40af; user-select: none; background: #dbeafe;
+}
+.tools-panel summary:hover { background: #bfdbfe; }
+
 .config-panel { display: none; }
 .config-panel details { background: #fff; border-radius: 8px; overflow: hidden; border: 2px solid #f59e0b; }
 .config-panel summary {
@@ -356,6 +363,16 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                 </details>
             </div>
 
+            <!-- Panel fijo: herramientas de la asignatura -->
+            <div class="tools-panel" id="tools-panel">
+                <details open>
+                    <summary>Herramientas</summary>
+                    <div style="padding:6px 12px;">
+                        <button class="tema-link" style="font-weight:700;color:#7c3aed;font-size:13px;" onclick="showEvalView()">📊 Evalúa tu progreso <span title="Si usas esta opción, los resultados de los ejercicios se almacenan. Ello permite valorar si tienes los conocimientos suficientes para superar el examen o los parciales." style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#7c3aed;color:#fff;font-size:10px;text-align:center;line-height:16px;cursor:help;font-style:normal;vertical-align:middle;margin-left:4px;">i</span></button>
+                        <button class="tema-link" style="font-weight:700;color:#4250b3;font-size:13px;" onclick="showView('chat');document.getElementById('message-input').focus();">⚠️ Pregunta a Eulalia</button>
+                    </div>
+                </details>
+            </div>
 
             <div class="config-panel" id="config-panel">
                 <details>
@@ -572,7 +589,7 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
         <div id="widget-view" style="display:none;">
             <div style="max-width:900px;margin:0 auto;padding:12px 20px;">
                 <button onclick="closeWidget()" style="background:none;border:none;color:#4250b3;cursor:pointer;font-size:13px;padding:0;margin-bottom:8px;">← Volver</button>
-                <iframe id="widget-iframe" style="width:100%;border:none;border-radius:8px;height:calc(100vh - 120px);"></iframe>
+                <iframe id="widget-iframe" style="width:100%;border:none;border-radius:8px;height:calc(100vh - 120px);" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads"></iframe>
             </div>
         </div>
 
@@ -869,11 +886,13 @@ var _WIDGET_NAMES = {
 };
 var _currentWidgetName = null;
 
-function openWidget(widgetPath) {
+function openWidget(widgetPath, evaluacion) {
     _viewBeforeWidget = _getCurrentView();
     _currentWidgetName = _WIDGET_NAMES[widgetPath] || widgetPath;
     var iframe = document.getElementById('widget-iframe');
-    iframe.src = '/tutores-virtuales/eulalia/widgets/' + widgetPath;
+    var url = '/tutores-virtuales/eulalia/widgets/' + widgetPath;
+    if (evaluacion) url += '?modo=evaluacion';
+    iframe.src = url;
     iframe.onload = function() {
         try {
             var style = iframe.contentDocument.createElement('style');
@@ -984,7 +1003,7 @@ function showEvalView() {
             html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-top:1px solid #f1f5f9;">';
             html += '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#1e293b;">' + item.label + '</div>';
             html += '<div style="font-size:11px;color:#64748b;margin-top:2px;">' + item.desc + '</div>';
-            html += '<a href="#" onclick="openWidget(\'' + item.widget + '\');return false;" style="font-size:12px;color:#4250b3;text-decoration:none;font-weight:600;margin-top:4px;display:inline-block;">' + (done ? '✓ Repetir ejercicio' : '→ Seguir practicando') + '</a>';
+            html += '<a href="#" onclick="openWidget(\'' + item.widget + '\',true);return false;" style="font-size:12px;color:#4250b3;text-decoration:none;font-weight:600;margin-top:4px;display:inline-block;">' + (done ? '✓ Repetir ejercicio' : '→ Seguir practicando') + '</a>';
             html += '</div>';
             html += '<div style="text-align:right;min-width:70px;"><div style="font-size:12px;font-weight:700;color:' + statusColor + ';">' + statusText + '</div>';
             html += '<div style="background:#e2e8f0;border-radius:3px;height:4px;width:60px;margin-top:4px;"><div style="background:' + barColor + ';border-radius:3px;height:4px;width:' + pct + '%;"></div></div></div>';
@@ -1387,6 +1406,9 @@ function updateSidebar() {
         titleEl.innerHTML = headerHtml;
         var html = '';
 
+        // ═══ CUADRO 1: Contenido del tema ═══
+        html += '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 0;margin-bottom:8px;">';
+
         // Barra de progreso
         var prog = _progresoData ? _progresoData.find(function(p) { return p.tema_id === tema.id; }) : null;
         if (prog) {
@@ -1399,7 +1421,7 @@ function updateSidebar() {
             html += '</div>';
         }
 
-        // Índice de contenidos: bloques y subbloques, todo visible
+        // Índice de contenidos
         html += '<div style="padding:4px 12px;"><div class="tema-label">Contenidos</div>';
         (tema.contenidos || []).forEach(function(bloque, idx) {
             html += '<button class="tema-link" style="font-weight:600;" onclick="showBloqueContenido(' + tema.id + ',' + idx + ')">' + bloque.bloque + '</button>';
@@ -1411,31 +1433,14 @@ function updateSidebar() {
         });
         html += '</div>';
 
-        // Ejercicios link (if tema has exercises)
+        // Ejercicios
         if (tema.ejercicios && tema.ejercicios.length > 0) {
             html += '<div style="padding:4px 12px; margin-top:4px; border-top:1px solid #e2e8f0;">';
             html += '<button class="tema-link" style="font-weight:700;color:' + tema.color + ';font-size:13px;" onclick="showSection(' + tema.id + ',\'ejercicios\')">✏️ Ejercicios prácticos (' + tema.ejercicios.length + ')</button>';
             html += '</div>';
         }
 
-        // Pregunta a Eulalia
-        html += '<div style="padding:4px 12px; margin-top:8px; border-top:1px solid #e2e8f0;">';
-        html += '<button class="tema-link" style="font-weight:700;color:#4250b3;font-size:13px;" onclick="showView(\'chat\');document.getElementById(\'message-input\').focus();">⚠️ Pregunta a Eulalia</button>';
-        html += '</div>';
-
-        // Evalúa tu progreso
-        html += '<div style="padding:4px 12px; margin-top:8px; border-top:1px solid #e2e8f0;">';
-        html += '<button class="tema-link" style="font-weight:700;color:#7c3aed;font-size:13px;" onclick="showEvalView()">📊 Evalúa tu progreso</button>';
-        html += '</div>';
-
-        // Proyecto de investigación (solo tema 5)
-        if (tema.id === 5) {
-            html += '<div style="padding:8px 12px;">';
-            html += '<button onclick="openWidget(\'proyecto_investigacion\')" style="width:100%;padding:10px 14px;border-radius:8px;border:2px solid ' + tema.color + '40;color:#fff;background:' + tema.color + ';cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;text-align:center;">📝 Abrir mi proyecto</button>';
-            html += '</div>';
-        }
-
-        // Espectrogramas de ejemplo (solo tema 4)
+        // Espectrogramas (solo tema 4)
         if (tema.id === 4) {
             html += '<div style="padding:4px 12px;"><div class="tema-label">Espectrogramas de ejemplo</div>';
             ['vocales','oclusivas_sordas','oclusivas_sonoras','fricativas','africada','nasales','lateral_vibrante'].forEach(function(g) {
@@ -1444,6 +1449,15 @@ function updateSidebar() {
             });
             html += '</div>';
         }
+
+        // Proyecto (solo tema 5)
+        if (tema.id === 5) {
+            html += '<div style="padding:8px 12px;">';
+            html += '<button onclick="openWidget(\'proyecto_investigacion\')" style="width:100%;padding:10px 14px;border-radius:8px;border:2px solid ' + tema.color + '40;color:#fff;background:' + tema.color + ';cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;text-align:center;">📝 Abrir mi proyecto</button>';
+            html += '</div>';
+        }
+
+        html += '</div>'; // fin cuadro tema
 
         container.innerHTML = html;
     } else {
@@ -1466,19 +1480,9 @@ function updateSidebar() {
             html += '</div></div>';
         });
 
-        // Proyecto de investigación — vista general
-        html += '<div style="padding:4px 12px; margin-top:8px; border-top:2px solid #e2e8f0;">';
-        html += '<button class="tema-link" style="font-weight:700;color:#0d9488;font-size:13px;" onclick="openWidget(\'proyecto_investigacion\')">📝 Mi proyecto de investigación</button>';
-        html += '</div>';
-
-        // Pregunta a Eulalia — vista general
-        html += '<div style="padding:4px 12px; margin-top:4px;">';
-        html += '<button class="tema-link" style="font-weight:700;color:#4250b3;font-size:13px;" onclick="showView(\'chat\');document.getElementById(\'message-input\').focus();">⚠️ Pregunta a Eulalia</button>';
-        html += '</div>';
-
-        // Evalúa tu progreso
-        html += '<div style="padding:4px 12px; margin-top:4px;">';
-        html += '<button class="tema-link" style="font-weight:700;color:#7c3aed;font-size:13px;" onclick="showEvalView()">📊 Evalúa tu progreso</button>';
+        // Mi proyecto de investigación — debajo del listado de temas
+        html += '<div style="padding:8px 12px;border-top:1px solid #e2e8f0;">';
+        html += '<button onclick="openWidget(\'proyecto_investigacion\')" style="width:100%;padding:8px 14px;border-radius:8px;border:2px solid #0d948840;color:#0d9488;background:#fff;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;text-align:left;">📝 Mi proyecto de investigación</button>';
         html += '</div>';
 
         container.innerHTML = html;
