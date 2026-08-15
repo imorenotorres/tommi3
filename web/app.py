@@ -1947,6 +1947,48 @@ async def lali_moodle_login(
     return RedirectResponse(url=redirect_url, status_code=302)
 
 
+@app.get("/api/public-agent/eulalia/invite-login")
+async def lali_invite_login(user: str = Query(...), key: str = Query(...)):
+    """Direct login via invitation link (no Moodle required).
+
+    URL: /api/public-agent/eulalia/invite-login?user=EMAIL&key=SECRET_KEY
+    The key is a simple HMAC of the email using LALI_MOODLE_SECRET.
+    """
+    import hashlib
+    import hmac
+    import time as _time
+
+    username = user.strip().lower()
+
+    # Verify key
+    expected_key = hmac.new(
+        _MOODLE_SSO_SECRET.encode(), username.encode(), hashlib.sha256
+    ).hexdigest()[:16]
+    if not hmac.compare_digest(key, expected_key):
+        raise HTTPException(status_code=403, detail="Enlace no válido.")
+
+    # Check user exists
+    from agents.tutor_fonetica_base.user_manager import UserManager
+    um = UserManager(_LALI_DIR)
+    user_data = um.obtener_usuario(username)
+    if not user_data:
+        raise HTTPException(status_code=403, detail=f"El usuario '{username}' no está registrado.")
+
+    # Create session
+    import secrets as _secrets
+    from auth_tutores import _sessions
+    token = _secrets.token_hex(32)
+    user_role = user_data.get("rol", "estudiante")
+    _sessions[token] = {
+        "username": username,
+        "role": user_role,
+        "created": _time.time(),
+    }
+
+    redirect_url = f"/tutores-virtuales/eulalia?moodle_token={token}"
+    return RedirectResponse(url=redirect_url, status_code=302)
+
+
 # ── LALI tutor: Proyecto de investigación (Tema 6) ─────────────────
 
 _LALI_PROYECTOS_DIR = _LALI_DIR / "proyectos"
