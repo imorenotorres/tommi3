@@ -100,9 +100,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
 <div class="container">
     <div class="intro">
         <h2>Conviértete en detective de bulos</h2>
-        <p>Investiga en tus redes sociales, foros o medios de comunicación. Si encuentras una afirmación
-        sospechosa sobre logopedia, habla o lenguaje, añádela aquí. Documenta tus fuentes y argumenta
-        si es un bulo o no. Entre todos construiremos una base de datos de bulos detectados.</p>
+        <p>Esta es una base de datos colaborativa de bulos sobre logopedia/fonoaudiología, habla y lenguaje. ¿Puedes aportar un bulo o un hecho cierto, o indicar la veracidad o no de una afirmación añadida anteriormente?</p>
     </div>
 
     <!-- Stats -->
@@ -187,7 +185,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
         <select id="filter-conclusion" onchange="applyFilters()" style="padding:5px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;">
             <option value="">Todos los estados</option>
             <option value="bulo">Es bulo</option>
-            <option value="no_bulo">Es cierto</option>
+            <option value="no_bulo">No es bulo</option>
             <option value="pendiente">Pendiente</option>
         </select>
         <select id="filter-red" onchange="applyFilters()" style="padding:5px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;">
@@ -359,7 +357,7 @@ function applyFilters() {
     empty.style.display = 'none';
     table.style.display = '';
 
-    var concLabel = { bulo: 'Bulo', no_bulo: 'Cierto', pendiente: 'Pendiente' };
+    var concLabel = { bulo: 'Bulo', no_bulo: 'No es bulo', pendiente: 'Pendiente' };
     var concClass = { bulo: 'bulo', no_bulo: 'no-bulo', pendiente: 'pendiente' };
 
     var html = '';
@@ -378,7 +376,7 @@ function showDetail(id) {
     var b = allBulos.find(function(x) { return x.id === id; });
     if (!b) return;
 
-    var concLabel = { bulo: 'Bulo confirmado', no_bulo: 'No es un bulo (cierto)', pendiente: 'Pendiente de verificar' };
+    var concLabel = { bulo: 'Bulo confirmado', no_bulo: 'No es un bulo', pendiente: 'Pendiente de verificar' };
     var concClass = { bulo: 'bulo', no_bulo: 'no-bulo', pendiente: 'pendiente' };
 
     document.getElementById('detail-title').innerHTML = '«' + b.descripcion + '» <span class="bulo-conclusion ' + (concClass[b.conclusion] || 'pendiente') + '">' + (concLabel[b.conclusion] || b.conclusion) + '</span>';
@@ -404,7 +402,7 @@ function renderStats(bulos) {
     bar.innerHTML =
         '<span class="stat-pill">' + bulos.length + ' detectados</span>' +
         '<span class="stat-pill" style="background:#fef2f2;color:#991b1b;">' + nBulo + ' bulos confirmados</span>' +
-        '<span class="stat-pill" style="background:#f0fdf4;color:#166534;">' + nNoBulo + ' verificados como ciertos</span>' +
+        '<span class="stat-pill" style="background:#f0fdf4;color:#166534;">' + nNoBulo + ' no son bulo</span>' +
         '<span class="stat-pill" style="background:#fefce8;color:#854d0e;">' + nPendiente + ' pendientes</span>';
 }
 

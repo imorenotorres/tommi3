@@ -67,7 +67,7 @@
           "descripcion": "Ejercicio por parejas: ¿verdadero o falso? Investiga si estas afirmaciones sobre logopedia son ciertas o son bulos."
         },
         {
-          "nombre": "Base de datos de bulos sobre logopedia",
+          "nombre": "LogoCheck: Base de datos de bulos sobre logopedia",
           "tipo": "panel_logocheck",
           "apartado": "Presentación",
           "descripcion": "Busca bulos sobre logopedia en redes sociales y añádelos a la base de datos de la clase."
