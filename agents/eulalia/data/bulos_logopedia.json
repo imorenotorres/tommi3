@@ -32,14 +32,6 @@
       "categoria": "Sociolingüística"
     },
     {
-      "id": "b05",
-      "texto": "La tartamudez se cura si el niño respira hondo antes de hablar.",
-      "respuesta": false,
-      "explicacion": "La disfemia tiene componentes neurológicos y no se resuelve con técnicas simples de respiración. La intervención logopédica es un proceso complejo que incluye técnicas de fluidez, gestión de la ansiedad y modificación del entorno.",
-      "fuente": "bermologopedia.com",
-      "categoria": "Patologías"
-    },
-    {
       "id": "b06",
       "texto": "Si le hablas en dos idiomas a un niño, le confundes y le causas un retraso del lenguaje.",
       "respuesta": false,
@@ -61,22 +53,6 @@
       "respuesta": false,
       "explicacion": "La IA puede ser una herramienta de apoyo, pero no sustituye al logopeda. El diagnóstico requiere escucha clínica, empatía y toma de decisiones que ninguna IA puede hacer. Las IAs actuales no pueden transcribir habla patológica con fiabilidad.",
       "categoria": "IA y logopedia"
-    },
-    {
-      "id": "b09",
-      "texto": "Si un niño no habla a los 2 años, lo mejor es esperar: ya hablará.",
-      "respuesta": false,
-      "explicacion": "Es el mito del «ya hablará» (wait and see). Aunque algunos niños tardíos acaban hablando sin intervención, en muchos casos el retraso indica un trastorno. La intervención temprana es mucho más eficaz que esperar.",
-      "fuente": "bermologopedia.com",
-      "categoria": "Desarrollo del lenguaje"
-    },
-    {
-      "id": "b10",
-      "texto": "La logopedia solo trata problemas de pronunciación, como el ceceo o la tartamudez.",
-      "respuesta": false,
-      "explicacion": "La logopedia abarca trastornos de voz, deglución (disfagia), lenguaje escrito, comunicación aumentativa, rehabilitación cognitivo-comunicativa tras daño cerebral, y trastornos del lenguaje en niños y adultos.",
-      "fuente": "bermologopedia.com",
-      "categoria": "La profesión"
     },
     {
       "id": "b11",
@@ -137,22 +113,6 @@
       "explicacion": "Los retrasos del habla y del lenguaje pueden ser difíciles de detectar, especialmente si son leves. Un niño puede hablar con claridad pero tener dificultades para comprender el lenguaje o comunicarse socialmente. Por eso es importante que los padres conozcan los hitos del desarrollo y, ante cualquier duda, consulten a un logopeda. Los logopedas pueden identificar problemas que no son evidentes para los padres.",
       "fuente": "thehomeofcando.com",
       "categoria": "Desarrollo del lenguaje"
-    },
-    {
-      "id": "b19",
-      "texto": "El autismo está causado por las vacunas.",
-      "respuesta": false,
-      "explicacion": "Esta afirmación se basa en un estudio fraudulento de Andrew Wakefield (1998), publicado en The Lancet y posteriormente retractado. Múltiples estudios con millones de participantes han demostrado que no existe relación entre las vacunas y el autismo. El origen del autismo es multifactorial (genético y ambiental), pero las vacunas no son un factor. Este bulo ha provocado un descenso de la vacunación en algunos países con consecuencias graves para la salud pública.",
-      "fuente": "OMS, CDC, The Lancet (retractación 2010)",
-      "categoria": "Salud pública"
-    },
-    {
-      "id": "b20",
-      "texto": "El MMS (dióxido de cloro o «lejía milagrosa») puede curar el autismo y otros trastornos del desarrollo.",
-      "respuesta": false,
-      "explicacion": "El MMS (Miracle Mineral Supplement) es en realidad dióxido de cloro, un blanqueador industrial. No tiene ninguna propiedad curativa y su ingesta es extremadamente peligrosa: puede provocar quemaduras internas, deshidratación grave e incluso la muerte. Su promoción como tratamiento del autismo es un fraude que ha sido perseguido legalmente en varios países. Ninguna agencia sanitaria lo reconoce como tratamiento válido para ninguna enfermedad.",
-      "fuente": "FDA, AEMPS (Agencia Española de Medicamentos)",
-      "categoria": "Salud pública"
     }
   ]
 }

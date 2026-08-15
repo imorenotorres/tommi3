@@ -357,14 +357,6 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
             </div>
 
 
-            <div class="exercise-panel" id="panel-transcripcion" style="display:none;">
-                <button class="exercise-btn" id="trans-panel-btn" onclick="requestTranscripcion()" style="width:100%;padding:10px 16px;border-radius:8px;border:2px solid #7c3aed30;color:#7c3aed;background:#fff;cursor:pointer;font-size:14px;font-weight:600;text-align:left;">✏️ <span id="trans-panel-title">Ejercicios de transcripción fonológica</span></button>
-            </div>
-
-            <div class="exercise-panel" id="panel-errores" style="display:none;">
-                <button class="exercise-btn" onclick="openWidget('informe_errores')" style="width:100%;padding:10px 16px;border-radius:8px;border:2px solid #7c3aed30;color:#7c3aed;background:#fff;cursor:pointer;font-size:14px;font-weight:600;text-align:left;">✏️ Informe de errores fonológicos</button>
-            </div>
-
             <div class="config-panel" id="config-panel">
                 <details>
                     <summary>Configuración de transcripción</summary>
@@ -1493,24 +1485,6 @@ function updateSidebar() {
     }
 
     // Paneles de ejercicios según tema
-    updateExercisePanels();
-    // Panel de progreso global
-    updateProgressPanel();
-}
-
-function updateExercisePanels() {
-    var panelTrans = document.getElementById('panel-transcripcion');
-    var panelErrores = document.getElementById('panel-errores');
-    // Transcripción: tema 2 (fonológica) o tema 3 (fonética)
-    panelTrans.style.display = (_currentTemaId === 2 || _currentTemaId === 3) ? '' : 'none';
-    var titleEl = document.getElementById('trans-panel-title');
-    if (_currentTemaId === 3) {
-        if (titleEl) titleEl.textContent = 'Ejercicios de transcripción fonética';
-    } else {
-        if (titleEl) titleEl.textContent = 'Ejercicios de transcripción fonológica';
-    }
-    // Errores: solo tema 2
-    panelErrores.style.display = (_currentTemaId === 2) ? '' : 'none';
 }
 
 function updateProgressPanel() {
