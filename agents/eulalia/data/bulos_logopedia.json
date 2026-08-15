@@ -1,0 +1,158 @@
+{
+  "titulo": "Detecta los bulos: ¿Verdadero o falso?",
+  "instrucciones": "Para cada afirmación, investigad si es verdadera o falsa. Justificad vuestra decisión con argumentos y fuentes. Tenéis 20 minutos.",
+  "bulos": [
+    {
+      "id": "b01",
+      "texto": "Eulalia es la patrona de las logopedas.",
+      "respuesta": false,
+      "explicacion": "El nombre Eulalia viene del griego eulalos (eu=bueno, lalia=habla) y significa «la bien hablada». Existe Santa Eulalia de Barcelona y Santa Eulalia de Mérida, pero ninguna es patrona de la logopedia. Es una conexión que una IA podría fabricar por la coincidencia entre el nombre y la profesión.",
+      "categoria": "IA y logopedia"
+    },
+    {
+      "id": "b02",
+      "texto": "Los niños con implante coclear solo se comunican bien usando lengua de signos.",
+      "respuesta": false,
+      "explicacion": "Con implantación temprana y rehabilitación adecuada, muchos niños con implante coclear desarrollan lenguaje oral funcional. La lengua de signos es una opción válida, pero no es la única vía de comunicación.",
+      "fuente": "bermologopedia.com",
+      "categoria": "Patologías"
+    },
+    {
+      "id": "b03",
+      "texto": "Las últimas IAs pueden evaluar el habla de cualquier paciente sin importar su lengua.",
+      "respuesta": false,
+      "explicacion": "Los sistemas de reconocimiento del habla actuales tienen un rendimiento muy desigual según la lengua, el dialecto y el tipo de habla. Su fiabilidad disminuye mucho con habla patológica o dialectos minoritarios. La evaluación clínica sigue requiriendo un profesional cualificado.",
+      "categoria": "IA y logopedia"
+    },
+    {
+      "id": "b04",
+      "texto": "Los andaluces hablan muy mal el español.",
+      "respuesta": false,
+      "explicacion": "El andaluz es un conjunto de variedades dialectales tan legítimas como cualquier otra. Fenómenos como el seseo, la aspiración de /s/ o la pérdida de consonantes finales son rasgos dialectales, no errores. Desde la lingüística, ningún dialecto es mejor ni peor que otro.",
+      "categoria": "Sociolingüística"
+    },
+    {
+      "id": "b05",
+      "texto": "La tartamudez se cura si el niño respira hondo antes de hablar.",
+      "respuesta": false,
+      "explicacion": "La disfemia tiene componentes neurológicos y no se resuelve con técnicas simples de respiración. La intervención logopédica es un proceso complejo que incluye técnicas de fluidez, gestión de la ansiedad y modificación del entorno.",
+      "fuente": "bermologopedia.com",
+      "categoria": "Patologías"
+    },
+    {
+      "id": "b06",
+      "texto": "Si le hablas en dos idiomas a un niño, le confundes y le causas un retraso del lenguaje.",
+      "respuesta": false,
+      "explicacion": "La investigación ha demostrado que el bilingüismo temprano no causa retraso patológico. Los niños bilingües pueden mezclar lenguas (code-switching), pero es un proceso normal. Recomendar que una familia deje de hablar su lengua materna no tiene base científica.",
+      "fuente": "bermologopedia.com",
+      "categoria": "Desarrollo del lenguaje"
+    },
+    {
+      "id": "b07",
+      "texto": "Hablar a un bebé en tono infantil perjudica su desarrollo lingüístico.",
+      "respuesta": false,
+      "explicacion": "El habla dirigida al niño (prosodia exagerada, frases cortas) facilita la adquisición del lenguaje porque ayuda al bebé a segmentar la señal del habla. Lo contraproducente es no hablarle al bebé.",
+      "fuente": "bermologopedia.com",
+      "categoria": "Desarrollo del lenguaje"
+    },
+    {
+      "id": "b08",
+      "texto": "Hoy en día, la logopedia es secundaria porque hay IAs que pueden diagnosticar y evaluar cualquier patología.",
+      "respuesta": false,
+      "explicacion": "La IA puede ser una herramienta de apoyo, pero no sustituye al logopeda. El diagnóstico requiere escucha clínica, empatía y toma de decisiones que ninguna IA puede hacer. Las IAs actuales no pueden transcribir habla patológica con fiabilidad.",
+      "categoria": "IA y logopedia"
+    },
+    {
+      "id": "b09",
+      "texto": "Si un niño no habla a los 2 años, lo mejor es esperar: ya hablará.",
+      "respuesta": false,
+      "explicacion": "Es el mito del «ya hablará» (wait and see). Aunque algunos niños tardíos acaban hablando sin intervención, en muchos casos el retraso indica un trastorno. La intervención temprana es mucho más eficaz que esperar.",
+      "fuente": "bermologopedia.com",
+      "categoria": "Desarrollo del lenguaje"
+    },
+    {
+      "id": "b10",
+      "texto": "La logopedia solo trata problemas de pronunciación, como el ceceo o la tartamudez.",
+      "respuesta": false,
+      "explicacion": "La logopedia abarca trastornos de voz, deglución (disfagia), lenguaje escrito, comunicación aumentativa, rehabilitación cognitivo-comunicativa tras daño cerebral, y trastornos del lenguaje en niños y adultos.",
+      "fuente": "bermologopedia.com",
+      "categoria": "La profesión"
+    },
+    {
+      "id": "b11",
+      "texto": "Existen métodos científicos que permiten a personas no verbales comunicarse a través de un facilitador que les guía la mano para escribir.",
+      "respuesta": false,
+      "explicacion": "La «comunicación facilitada» es un método no científico. Múltiples estudios con pruebas ciegas han demostrado que los mensajes proceden del facilitador, no del paciente. Está desacreditado por la comunidad científica.",
+      "fuente": "bermologopedia.com",
+      "categoria": "Pseudociencia"
+    },
+    {
+      "id": "b12",
+      "texto": "En Andalucía se necesitan más logopedas que en otras comunidades porque los andaluces cometen más errores fonológicos.",
+      "respuesta": false,
+      "explicacion": "Los rasgos fonológicos del andaluz (seseo, aspiración de /s/, pérdida de -d- intervocálica) son variaciones dialectales normativas, no errores. Un logopeda debe saber distinguir entre variación dialectal y patología. La necesidad de logopedas depende de factores sanitarios y demográficos, no del dialecto.",
+      "categoria": "Sociolingüística"
+    },
+    {
+      "id": "b13",
+      "texto": "El Alfabeto Fonético Internacional (AFI) fue creado por la Real Academia Española.",
+      "respuesta": false,
+      "explicacion": "El AFI fue creado por la International Phonetic Association (fundada en París en 1886). La RAE se ocupa de la norma ortográfica y gramatical del español, no de la transcripción fonética universal.",
+      "categoria": "Lingüística"
+    },
+    {
+      "id": "b14",
+      "texto": "El español tiene 5 vocales.",
+      "respuesta": true,
+      "explicacion": "Correcto. El español (peninsular distinguidor) tiene 5 fonemas vocálicos: /a, e, i, o, u/. A diferencia de lenguas como el francés (16 vocales) o el inglés (12-20 según el dialecto), el español tiene un sistema vocálico sencillo y simétrico.",
+      "categoria": "Lingüística"
+    },
+    {
+      "id": "b15",
+      "texto": "En España, cualquier persona puede abrir una consulta de logopedia sin titulación oficial.",
+      "respuesta": false,
+      "explicacion": "Se requiere el título de Grado en Logopedia para ejercer como logopeda en España. Es una profesión sanitaria regulada.",
+      "categoria": "La profesión"
+    },
+    {
+      "id": "b16",
+      "texto": "Los niños que usan mucho el chupete pueden desarrollar problemas de habla.",
+      "respuesta": true,
+      "explicacion": "Correcto. El uso prolongado del chupete (más allá de los 2-3 años) puede afectar al desarrollo de la mordida y la posición de la lengua, lo que a su vez puede influir en la articulación de ciertos sonidos. No es una causa directa de trastornos graves, pero sí puede contribuir a dificultades articulatorias.",
+      "fuente": "bermologopedia.com",
+      "categoria": "Desarrollo del lenguaje"
+    },
+    {
+      "id": "b17",
+      "texto": "Los niños bilingües tienen más probabilidades de necesitar logopedia que los monolingües.",
+      "respuesta": false,
+      "explicacion": "No hay evidencia de que crecer en un entorno bilingüe cause retraso del habla o del lenguaje. Es normal que los niños bilingües mezclen lenguas o tarden algo más en expresarse en cada idioma, pero esto no es signo de un trastorno. De hecho, el bilingüismo ofrece beneficios cognitivos. La logopedia solo es necesaria si el niño muestra signos de un trastorno real en su lengua dominante.",
+      "fuente": "thehomeofcando.com",
+      "categoria": "Desarrollo del lenguaje"
+    },
+    {
+      "id": "b18",
+      "texto": "Los padres pueden detectar fácilmente cuándo su hijo necesita logopedia.",
+      "respuesta": false,
+      "explicacion": "Los retrasos del habla y del lenguaje pueden ser difíciles de detectar, especialmente si son leves. Un niño puede hablar con claridad pero tener dificultades para comprender el lenguaje o comunicarse socialmente. Por eso es importante que los padres conozcan los hitos del desarrollo y, ante cualquier duda, consulten a un logopeda. Los logopedas pueden identificar problemas que no son evidentes para los padres.",
+      "fuente": "thehomeofcando.com",
+      "categoria": "Desarrollo del lenguaje"
+    },
+    {
+      "id": "b19",
+      "texto": "El autismo está causado por las vacunas.",
+      "respuesta": false,
+      "explicacion": "Esta afirmación se basa en un estudio fraudulento de Andrew Wakefield (1998), publicado en The Lancet y posteriormente retractado. Múltiples estudios con millones de participantes han demostrado que no existe relación entre las vacunas y el autismo. El origen del autismo es multifactorial (genético y ambiental), pero las vacunas no son un factor. Este bulo ha provocado un descenso de la vacunación en algunos países con consecuencias graves para la salud pública.",
+      "fuente": "OMS, CDC, The Lancet (retractación 2010)",
+      "categoria": "Salud pública"
+    },
+    {
+      "id": "b20",
+      "texto": "El MMS (dióxido de cloro o «lejía milagrosa») puede curar el autismo y otros trastornos del desarrollo.",
+      "respuesta": false,
+      "explicacion": "El MMS (Miracle Mineral Supplement) es en realidad dióxido de cloro, un blanqueador industrial. No tiene ninguna propiedad curativa y su ingesta es extremadamente peligrosa: puede provocar quemaduras internas, deshidratación grave e incluso la muerte. Su promoción como tratamiento del autismo es un fraude que ha sido perseguido legalmente en varios países. Ninguna agencia sanitaria lo reconoce como tratamiento válido para ninguna enfermedad.",
+      "fuente": "FDA, AEMPS (Agencia Española de Medicamentos)",
+      "categoria": "Salud pública"
+    }
+  ]
+}

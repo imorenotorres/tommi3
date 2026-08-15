@@ -2525,6 +2525,162 @@ async def lali_project_precorreccion(project_id: str, request: Request):
     return {"criterios": criterios, "comentario_general": ""}
 
 
+# ── LALI tutor: Detecta bulos exercise ─────────────────────────────
+
+_BULOS_FILE = _LALI_DIR / "data" / "bulos_logopedia.json"
+_BULOS_RESPONSES_DIR = _LALI_DIR / "bulos_respuestas"
+_BULOS_RESPONSES_DIR.mkdir(exist_ok=True)
+_BULOS_REVEALED_FILE = _BULOS_RESPONSES_DIR / "_revealed.json"
+
+
+@app.get("/api/public-agent/eulalia/bulos")
+async def lali_get_bulos():
+    """Get the list of bulos (public). Also indicates if answers are revealed."""
+    if not _BULOS_FILE.exists():
+        return {"bulos": [], "revealed": False}
+    with open(_BULOS_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    # Strip answers if not revealed
+    revealed = _BULOS_REVEALED_FILE.exists()
+    bulos = data.get("bulos", [])
+    if not revealed:
+        bulos = [{k: v for k, v in b.items() if k not in ("respuesta", "explicacion")} for b in bulos]
+    return {"bulos": bulos, "revealed": revealed}
+
+
+@app.post("/api/public-agent/eulalia/bulos/respuestas")
+async def lali_submit_bulos(request: Request):
+    """Submit pair responses for the bulos exercise."""
+    body = await request.json()
+    email1 = body.get("email1", "").strip().lower()
+    email2 = body.get("email2", "").strip().lower()
+    respuestas = body.get("respuestas", {})
+    if not email1:
+        raise HTTPException(status_code=400, detail="Email requerido")
+
+    pair_id = email1 + ("_" + email2 if email2 else "")
+    pair_file = _BULOS_RESPONSES_DIR / f"{pair_id.replace('@', '_at_')}.json"
+    data = {
+        "email1": email1,
+        "email2": email2,
+        "respuestas": respuestas,
+        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
+    }
+    with open(pair_file, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return {"ok": True}
+
+
+@app.get("/api/public-agent/eulalia/bulos/respuestas")
+async def lali_get_bulos_respuestas(request: Request, email: str = ""):
+    """Get responses for a pair (by email) or all responses (docente)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    is_prof = tutores_is_docente(session) if session else False
+
+    if email and not is_prof:
+        # Student: only their own
+        for f in _BULOS_RESPONSES_DIR.glob("*.json"):
+            if f.name.startswith("_"):
+                continue
+            try:
+                with open(f, "r", encoding="utf-8") as fh:
+                    data = json.load(fh)
+                if data.get("email1") == email or data.get("email2") == email:
+                    return data
+            except (json.JSONDecodeError, KeyError):
+                continue
+        return {"respuestas": {}}
+
+    if is_prof:
+        # Docente: all responses
+        all_responses = []
+        for f in _BULOS_RESPONSES_DIR.glob("*.json"):
+            if f.name.startswith("_"):
+                continue
+            try:
+                with open(f, "r", encoding="utf-8") as fh:
+                    all_responses.append(json.load(fh))
+            except (json.JSONDecodeError, KeyError):
+                continue
+        return {"todas": all_responses}
+
+    return {"respuestas": {}}
+
+
+@app.post("/api/public-agent/eulalia/bulos/revelar")
+async def lali_reveal_bulos(request: Request):
+    """Reveal answers (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede revelar respuestas")
+    with open(_BULOS_REVEALED_FILE, "w") as f:
+        json.dump({"revealed": True, "fecha": datetime.now().strftime("%Y-%m-%d %H:%M")}, f)
+    return {"ok": True}
+
+
+@app.post("/api/public-agent/eulalia/bulos/ocultar")
+async def lali_hide_bulos(request: Request):
+    """Hide answers again (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado")
+    if _BULOS_REVEALED_FILE.exists():
+        _BULOS_REVEALED_FILE.unlink()
+    return {"ok": True}
+
+
+# ── LALI tutor: Detector de bulos (crowdsourced) ──────────────────
+
+_DETECTOR_BULOS_FILE = _LALI_DIR / "data" / "detector_bulos.json"
+
+
+def _load_detector_bulos() -> list:
+    if not _DETECTOR_BULOS_FILE.exists():
+        return []
+    with open(_DETECTOR_BULOS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _save_detector_bulos(bulos: list):
+    with open(_DETECTOR_BULOS_FILE, "w", encoding="utf-8") as f:
+        json.dump(bulos, f, ensure_ascii=False, indent=2)
+
+
+@app.get("/api/public-agent/eulalia/detector-bulos")
+async def lali_get_detector_bulos():
+    """Get all crowdsourced bulos."""
+    bulos = _load_detector_bulos()
+    return {"bulos": bulos}
+
+
+@app.post("/api/public-agent/eulalia/detector-bulos")
+async def lali_add_detector_bulo(request: Request):
+    """Add a new bulo to the crowdsourced database."""
+    email = _get_user_email(request)
+    body = await request.json()
+
+    descripcion = body.get("descripcion", "").strip()
+    if not descripcion:
+        raise HTTPException(status_code=400, detail="Descripción requerida")
+
+    bulo = {
+        "id": f"d{int(datetime.now().timestamp())}",
+        "descripcion": descripcion,
+        "patologia": body.get("patologia", ""),
+        "redes": body.get("redes", []),
+        "otras_fuentes": body.get("otras_fuentes", ""),
+        "explicacion": body.get("explicacion", ""),
+        "conclusion": body.get("conclusion", "pendiente"),
+        "autor": email or "anónimo",
+        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
+    }
+
+    bulos = _load_detector_bulos()
+    bulos.insert(0, bulo)  # newest first
+    _save_detector_bulos(bulos)
+    return {"ok": True, "id": bulo["id"]}
+
+
 @app.get("/api/public-agent/eulalia/temas")
 async def lali_get_temas():
     """Get course topics structure (public)."""

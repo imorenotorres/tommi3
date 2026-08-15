@@ -35,19 +35,44 @@
       "resumen": "Presentación general de la asignatura: qué se aprende, cómo se evalúa y el papel de la IA y Eulalia.",
       "contenidos": [
         {
-          "bloque": "¿Qué se aprende?",
-          "seccion_doc": "¿Qué se aprende en esta asignatura?"
+          "bloque": "¿Qué aprenderé?",
+          "seccion_doc": "¿Qué competencias o conocimientos aprenderé en esta asignatura?"
+        },
+        {
+          "bloque": "¿Cómo se aprende?",
+          "seccion_doc": "¿Cómo se aprende en esta asignatura?"
         },
         {
           "bloque": "¿Cómo se evalúa?",
           "seccion_doc": "¿Cómo se evalúa?"
         },
         {
-          "bloque": "El papel de la IA y Eulalia",
-          "seccion_doc": "El papel de la IA y de Eulalia"
+          "bloque": "Preparar el examen",
+          "seccion_doc": "Consejos para preparar el examen"
+        },
+        {
+          "bloque": "El trabajo en grupo",
+          "seccion_doc": "Consejos para completar el trabajo en grupo"
+        },
+        {
+          "bloque": "Usar la IA de forma responsable",
+          "seccion_doc": "Aprender a usar la IA de forma responsable"
         }
       ],
-      "ejercicios": [],
+      "ejercicios": [
+        {
+          "nombre": "Detecta los bulos",
+          "tipo": "panel_detecta_bulos",
+          "apartado": "Presentación",
+          "descripcion": "Ejercicio por parejas: ¿verdadero o falso? Investiga si estas afirmaciones sobre logopedia son ciertas o son bulos."
+        },
+        {
+          "nombre": "Base de datos de bulos sobre logopedia",
+          "tipo": "panel_logocheck",
+          "apartado": "Presentación",
+          "descripcion": "Busca bulos sobre logopedia en redes sociales y añádelos a la base de datos de la clase."
+        }
+      ],
       "autoevaluacion": [],
       "mas_alla": [
         {

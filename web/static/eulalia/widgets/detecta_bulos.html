@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detecta los bulos — Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #4250b3; padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.header .title { color: #fff; font-size: 15px; font-weight: 600; flex: 1; }
+.header .pair-info { color: rgba(255,255,255,0.7); font-size: 12px; }
+
+.container { max-width: 800px; margin: 0 auto; padding: 24px 20px; }
+
+.intro { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; font-size: 13px; line-height: 1.7; color: #1e40af; }
+.intro h2 { font-size: 16px; margin-bottom: 6px; }
+
+/* Pair setup */
+.pair-setup { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.pair-setup h3 { font-size: 14px; margin-bottom: 10px; }
+.pair-setup input { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 13px; width: 250px; }
+.pair-setup input:focus { outline: none; border-color: #4250b3; }
+
+/* Bulo card */
+.bulo-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; transition: border-color 0.2s; }
+.bulo-card.answered { border-color: #4250b3; }
+.bulo-card .bulo-num { font-size: 11px; color: #94a3b8; font-weight: 700; margin-bottom: 4px; }
+.bulo-card .bulo-text { font-size: 14px; font-weight: 600; color: #1e293b; line-height: 1.5; margin-bottom: 12px; }
+.bulo-card .bulo-category { font-size: 10px; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-bottom: 8px; }
+
+.answer-btns { display: flex; gap: 8px; margin-bottom: 10px; }
+.answer-btn {
+    padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 700;
+    border: 2px solid #e2e8f0; background: #fff; cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+}
+.answer-btn:hover { border-color: #4250b3; }
+.answer-btn.selected-true { background: #f0fdf4; border-color: #22c55e; color: #166534; }
+.answer-btn.selected-false { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+.answer-btn.selected-unknown { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+
+.justification { width: 100%; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-family: inherit; font-size: 12px; min-height: 60px; resize: vertical; }
+.justification:focus { outline: none; border-color: #4250b3; }
+
+/* Results */
+.result-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+.result-correct { background: #f0fdf4; color: #166534; }
+.result-incorrect { background: #fef2f2; color: #991b1b; }
+.result-pending { background: #f1f5f9; color: #94a3b8; }
+
+.explanation { margin-top: 10px; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; line-height: 1.6; color: #475569; display: none; }
+.explanation.show { display: block; }
+.explanation strong { color: #1e293b; }
+
+/* Summary */
+.summary { background: #fff; border: 2px solid #4250b3; border-radius: 10px; padding: 20px; margin-top: 20px; text-align: center; }
+.summary .score { font-size: 36px; font-weight: 800; color: #4250b3; }
+.summary .score-label { font-size: 13px; color: #64748b; }
+
+/* Buttons */
+.btn { padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; font-family: inherit; }
+.btn-primary { background: #4250b3; color: #fff; }
+.btn-primary:hover { background: #3740a0; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+
+/* Timer */
+.timer { font-size: 14px; font-weight: 700; color: #4250b3; }
+.timer.warning { color: #dc2626; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">></span>
+    <span class="title">Detecta los bulos</span>
+    <span class="timer" id="timer"></span>
+    <span class="pair-info" id="pair-info"></span>
+</div>
+
+<div class="container">
+    <!-- Setup view -->
+    <div id="setup-view">
+        <div class="intro">
+            <h2>Detecta los bulos: ¿Verdadero o falso?</h2>
+            <p>Trabajaréis por parejas. Se os presentarán varias afirmaciones sobre logopedia, lingüística e IA.
+            Para cada una debéis: (1) investigar si es verdadera o falsa, (2) marcar vuestra respuesta, y (3) justificar vuestra decisión.</p>
+        </div>
+        <div class="pair-setup">
+            <h3>Identificaos</h3>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+                <input type="email" id="email1" placeholder="Email estudiante 1">
+                <input type="email" id="email2" placeholder="Email estudiante 2">
+            </div>
+            <button class="btn btn-primary" onclick="startExercise()">Empezar</button>
+        </div>
+    </div>
+
+    <!-- Exercise view -->
+    <div id="exercise-view" style="display:none;">
+        <div id="bulos-container"></div>
+        <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+            <button class="btn btn-primary" id="submit-btn" onclick="submitAnswers()">Enviar respuestas</button>
+            <span id="submit-status" style="font-size:12px;color:#94a3b8;"></span>
+        </div>
+    </div>
+
+    <!-- Results view (after teacher reveals) -->
+    <div id="results-view" style="display:none;">
+        <div class="summary" id="summary"></div>
+        <div id="results-container" style="margin-top:20px;"></div>
+    </div>
+</div>
+
+<script>
+
+var bulos = [];
+var answers = {};
+var pair = { email1: '', email2: '' };
+var revealed = false;
+var timerInterval = null;
+var timeLeft = 20 * 60; // 20 minutes
+
+function getToken() { return localStorage.getItem('tutores_token') || ''; }
+function authUrl(url) {
+    var t = getToken();
+    if (!t) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(t);
+}
+
+// Load bulos from server
+async function loadBulos() {
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/bulos'));
+        if (!res.ok) return;
+        var data = await res.json();
+        bulos = data.bulos || [];
+        revealed = data.revealed || false;
+    } catch(e) {}
+}
+
+function startExercise() {
+    pair.email1 = document.getElementById('email1').value.trim().toLowerCase();
+    pair.email2 = document.getElementById('email2').value.trim().toLowerCase();
+    if (!pair.email1) { alert('Introduce al menos el email del estudiante 1'); return; }
+
+    document.getElementById('setup-view').style.display = 'none';
+    document.getElementById('exercise-view').style.display = '';
+    document.getElementById('pair-info').textContent = pair.email1 + (pair.email2 ? ' + ' + pair.email2 : '');
+
+    renderBulos();
+    startTimer();
+    loadPreviousAnswers();
+}
+
+function renderBulos() {
+    var html = '';
+    bulos.forEach(function(b, i) {
+        html += '<div class="bulo-card" id="card-' + b.id + '">';
+        html += '<div class="bulo-num">Afirmación ' + (i + 1) + ' de ' + bulos.length + '</div>';
+        html += '<div class="bulo-category">' + (b.categoria || '') + '</div>';
+        html += '<div class="bulo-text">«' + b.texto + '»</div>';
+        html += '<div class="answer-btns">';
+        html += '<button class="answer-btn" id="btn-true-' + b.id + '" onclick="setAnswer(\'' + b.id + '\', true)">Verdadero</button>';
+        html += '<button class="answer-btn" id="btn-false-' + b.id + '" onclick="setAnswer(\'' + b.id + '\', false)">Falso</button>';
+        html += '<button class="answer-btn" id="btn-unknown-' + b.id + '" onclick="setAnswer(\'' + b.id + '\', \'unknown\')">No lo sé</button>';
+        html += '</div>';
+        html += '<textarea class="justification" id="just-' + b.id + '" placeholder="Justificad vuestra decisión..." oninput="saveJustification(\'' + b.id + '\')"></textarea>';
+        html += '<div class="explanation" id="expl-' + b.id + '"></div>';
+        html += '</div>';
+    });
+    document.getElementById('bulos-container').innerHTML = html;
+}
+
+function setAnswer(id, value) {
+    answers[id] = answers[id] || {};
+    answers[id].respuesta = value;
+    // Update UI
+    document.getElementById('btn-true-' + id).className = 'answer-btn' + (value === true ? ' selected-true' : '');
+    document.getElementById('btn-false-' + id).className = 'answer-btn' + (value === false ? ' selected-false' : '');
+    document.getElementById('btn-unknown-' + id).className = 'answer-btn' + (value === 'unknown' ? ' selected-unknown' : '');
+    document.getElementById('card-' + id).className = 'bulo-card answered';
+    // Auto-save
+    autoSave();
+}
+
+var autoSaveTimer = null;
+function autoSave() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(function() { saveToServer(true); }, 2000);
+}
+
+function saveJustification(id) {
+    answers[id] = answers[id] || {};
+    answers[id].justificacion = document.getElementById('just-' + id).value;
+    autoSave();
+}
+
+function startTimer() {
+    updateTimer();
+    timerInterval = setInterval(function() {
+        timeLeft--;
+        updateTimer();
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            submitAnswers();
+        }
+    }, 1000);
+}
+
+function updateTimer() {
+    var m = Math.floor(timeLeft / 60);
+    var s = timeLeft % 60;
+    var el = document.getElementById('timer');
+    el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    el.className = 'timer' + (timeLeft < 120 ? ' warning' : '');
+}
+
+async function saveToServer(silent) {
+    // Collect all answers
+    bulos.forEach(function(b) {
+        if (!answers[b.id]) answers[b.id] = {};
+        var el = document.getElementById('just-' + b.id);
+        if (el && answers[b.id].justificacion === undefined) answers[b.id].justificacion = el.value;
+    });
+
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/bulos/respuestas'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email1: pair.email1,
+                email2: pair.email2,
+                respuestas: answers
+            })
+        });
+        if (!silent && res.ok) return true;
+    } catch(e) {
+        if (!silent) throw e;
+    }
+    return false;
+}
+
+async function submitAnswers() {
+    clearInterval(timerInterval);
+    var btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    document.getElementById('submit-status').textContent = 'Enviando...';
+
+    try {
+        await saveToServer(false);
+        document.getElementById('submit-status').textContent = 'Respuestas enviadas. Espera a que el profesorado revele las soluciones.';
+        btn.textContent = 'Enviado ✓';
+
+        // Check if already revealed
+        if (revealed) showResults();
+        else pollForReveal();
+    } catch(e) {
+        document.getElementById('submit-status').textContent = 'Error: ' + e.message;
+        btn.disabled = false;
+    }
+}
+
+function pollForReveal() {
+    var pollInterval = setInterval(async function() {
+        try {
+            var res = await fetch(authUrl('/api/public-agent/eulalia/bulos'));
+            if (!res.ok) return;
+            var data = await res.json();
+            if (data.revealed) {
+                clearInterval(pollInterval);
+                revealed = true;
+                showResults();
+            }
+        } catch(e) {}
+    }, 5000);
+}
+
+function showResults() {
+    var correct = 0;
+    var total = bulos.length;
+    var answered = 0;
+
+    bulos.forEach(function(b) {
+        var a = answers[b.id];
+        var expl = document.getElementById('expl-' + b.id);
+        if (!expl) return;
+
+        var isUnknown = a && a.respuesta === 'unknown';
+        var isCorrect = a && !isUnknown && a.respuesta === b.respuesta;
+        var wasAnswered = a && a.respuesta !== undefined && !isUnknown;
+        if (wasAnswered) answered++;
+        if (isCorrect) correct++;
+
+        // Show badge
+        var card = document.getElementById('card-' + b.id);
+        var badge;
+        if (isUnknown) {
+            badge = '<span class="result-badge result-pending">🤷 No lo sabía</span>';
+        } else if (!a || a.respuesta === undefined) {
+            badge = '<span class="result-badge result-pending">Sin respuesta</span>';
+        } else if (isCorrect) {
+            badge = '<span class="result-badge result-correct">✓ Correcto</span>';
+        } else {
+            badge = '<span class="result-badge result-incorrect">✗ Incorrecto</span>';
+        }
+
+        var numEl = card.querySelector('.bulo-num');
+        numEl.innerHTML += badge;
+
+        // Show explanation
+        expl.innerHTML = '<strong>' + (b.respuesta ? 'Verdadero' : 'Falso') + '.</strong> ' + b.explicacion +
+            (b.fuente ? '<br><em style="font-size:11px;color:#94a3b8;">Fuente: ' + b.fuente + '</em>' : '');
+        expl.className = 'explanation show';
+
+        // Disable inputs
+        document.getElementById('btn-true-' + b.id).disabled = true;
+        document.getElementById('btn-false-' + b.id).disabled = true;
+        document.getElementById('btn-unknown-' + b.id).disabled = true;
+        document.getElementById('just-' + b.id).disabled = true;
+    });
+
+    // Show summary
+    var summaryEl = document.getElementById('summary');
+    var unknowns = bulos.filter(function(b) { var a = answers[b.id]; return a && a.respuesta === 'unknown'; }).length;
+    var unanswered = total - answered - unknowns;
+    var pct = answered > 0 ? Math.round(correct / answered * 100) : 0;
+    summaryEl.innerHTML = '<div class="score">' + correct + '/' + total + '</div>' +
+        '<div class="score-label">' + pct + '% de aciertos en las respondidas · ' + correct + ' correctas, ' + (answered - correct) + ' incorrectas, ' + unknowns + ' «no lo sé», ' + unanswered + ' sin responder</div>';
+
+    document.getElementById('results-view').style.display = '';
+    document.getElementById('submit-btn').style.display = 'none';
+}
+
+async function loadPreviousAnswers() {
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/bulos/respuestas?email=' + encodeURIComponent(pair.email1)));
+        if (!res.ok) return;
+        var data = await res.json();
+        if (data.respuestas) {
+            answers = data.respuestas;
+            // Restore UI
+            Object.keys(answers).forEach(function(id) {
+                var a = answers[id];
+                if (a.respuesta !== undefined) setAnswer(id, a.respuesta);
+                if (a.justificacion) {
+                    var el = document.getElementById('just-' + id);
+                    if (el) el.value = a.justificacion;
+                }
+            });
+        }
+        if (revealed) {
+            showResults();
+        }
+    } catch(e) {}
+}
+
+// Init
+loadBulos().then(function() {
+    // Pre-fill email from auth if available
+    var token = getToken();
+    if (token) {
+        fetch('/api/eulalia/auth-level?token=' + encodeURIComponent(token))
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function(data) {
+                if (data && data.username) document.getElementById('email1').value = data.username;
+            }).catch(function() {});
+    }
+});
+
+</script>
+</body>
+</html>

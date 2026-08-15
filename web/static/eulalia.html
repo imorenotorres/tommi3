@@ -329,7 +329,9 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
     <span class="nav-sep" id="nav-tema-sep" style="display:none;">/</span>
     <a href="javascript:void(0)" class="nav-current" id="nav-tema-name" style="display:none;cursor:pointer;text-decoration:none;" onclick="if(_currentTemaId)showTemaDetail(_currentTemaId)"></a>
     <span class="nav-sep" id="nav-seccion-sep" style="display:none;">/</span>
-    <span class="nav-current" id="nav-seccion-name" style="display:none;font-weight:400;font-size:14px;"></span>
+    <a href="javascript:void(0)" class="nav-current" id="nav-seccion-name" style="display:none;font-weight:400;font-size:14px;cursor:pointer;text-decoration:none;" onclick="if(_currentTemaId!==null&&_currentSeccion)showSection(_currentTemaId,_currentSeccion)"></a>
+    <span class="nav-sep" id="nav-widget-sep" style="display:none;">/</span>
+    <span class="nav-current" id="nav-widget-name" style="display:none;font-weight:400;font-size:14px;"></span>
     <div class="nav-logos">
         <span id="nav-auth" style="font-size:13px;color:rgba(255,255,255,0.7);margin-right:8px;"></span>
         <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="height:44px;">
@@ -689,12 +691,12 @@ function updateBreadcrumb() {
     var secSep = document.getElementById('nav-seccion-sep');
     var secName = document.getElementById('nav-seccion-name');
 
-    if (_currentTemaId && _temasData) {
+    if (_currentTemaId !== null && _temasData) {
         var tema = _temasData.find(function(t) { return t.id === _currentTemaId; });
         if (tema) {
             temaSep.style.display = '';
             temaName.style.display = '';
-            temaName.textContent = 'Tema ' + tema.id;
+            temaName.textContent = tema.id === 0 ? 'Presentación' : 'Tema ' + tema.id;
             temaName.title = tema.titulo;
 
             // Show block name if available, otherwise section name
@@ -710,11 +712,23 @@ function updateBreadcrumb() {
                     secSep.style.display = '';
                     secName.style.display = '';
                     secName.textContent = sec.nombre;
-                    return;
                 }
+            } else {
+                secSep.style.display = 'none';
+                secName.style.display = 'none';
             }
-            secSep.style.display = 'none';
-            secName.style.display = 'none';
+
+            // Widget name (4th level)
+            var widgetSep = document.getElementById('nav-widget-sep');
+            var widgetName = document.getElementById('nav-widget-name');
+            if (_currentWidgetName) {
+                widgetSep.style.display = '';
+                widgetName.style.display = '';
+                widgetName.textContent = _currentWidgetName;
+            } else {
+                widgetSep.style.display = 'none';
+                widgetName.style.display = 'none';
+            }
             return;
         }
     }
@@ -722,6 +736,8 @@ function updateBreadcrumb() {
     temaName.style.display = 'none';
     secSep.style.display = 'none';
     secName.style.display = 'none';
+    document.getElementById('nav-widget-sep').style.display = 'none';
+    document.getElementById('nav-widget-name').style.display = 'none';
 }
 
 // ── Acordeón de temas ──
@@ -857,24 +873,41 @@ function showView(viewId) {
 
 var _viewBeforeWidget = 'eval-view';
 
+var _WIDGET_NAMES = {
+    'transcripcion_ejercicio': 'Transcripción fonológica',
+    'transcripcion_fonetica': 'Transcripción fonética',
+    'ejercicio_errores': 'Clasificar errores',
+    'informe_errores': 'Informe de errores',
+    'proyecto_investigacion': 'Mi proyecto',
+    'detecta_bulos': 'Detecta los bulos',
+    'logocheck': 'LogoCheck',
+    'mi_progreso': 'Mi progreso',
+    'conceptos': 'Conceptos',
+    'explorador_silabas': 'Explorador de sílabas',
+    'pseudopalabras_frecuencia': 'Pseudopalabras',
+};
+var _currentWidgetName = null;
+
 function openWidget(widgetPath) {
     _viewBeforeWidget = _getCurrentView();
+    _currentWidgetName = _WIDGET_NAMES[widgetPath] || widgetPath;
     var iframe = document.getElementById('widget-iframe');
     iframe.src = '/tutores-virtuales/eulalia/widgets/' + widgetPath;
     iframe.onload = function() {
         try {
-            // Hide the widget's own header when embedded
             var style = iframe.contentDocument.createElement('style');
             style.textContent = '.header { display: none !important; } .informar-fab, .informar-overlay { display: none !important; }';
             iframe.contentDocument.head.appendChild(style);
         } catch(e) {}
     };
     showView('widget-view');
+    updateBreadcrumb();
 }
 
 function closeWidget() {
     var iframe = document.getElementById('widget-iframe');
     iframe.src = '';
+    _currentWidgetName = null;
     showView(_viewBeforeWidget);
     // Refresh eval view in case progress was updated inside the widget
     if (_viewBeforeWidget === 'eval-view') showEvalView();
@@ -995,7 +1028,7 @@ function showTemaDetail(temaId) {
     _currentSeccion = null;
 
     var titleEl = document.getElementById('tema-detail-titulo');
-    titleEl.textContent = 'Tema ' + tema.id + ' — ' + tema.titulo;
+    titleEl.textContent = tema.id === 0 ? tema.titulo : 'Tema ' + tema.id + ' — ' + tema.titulo;
     titleEl.style.color = tema.color;
 
     var indexDiv = document.getElementById('tema-detail-index');
@@ -1277,10 +1310,10 @@ function showSubbloqueContenido(temaId, subName) {
 
 function startChatFromTema() {
     showView('chat');
-    if (_currentTemaId && _temasData) {
+    if (_currentTemaId !== null && _temasData) {
         var tema = _temasData.find(function(t) { return t.id === _currentTemaId; });
         if (tema) {
-            document.getElementById('message-input').placeholder = 'Pregunta sobre Tema ' + tema.id + ' — ' + tema.titulo + '...';
+            document.getElementById('message-input').placeholder = 'Pregunta sobre ' + (tema.id === 0 ? 'la asignatura' : 'Tema ' + tema.id + ' — ' + tema.titulo) + '...';
         }
     }
     document.getElementById('message-input').focus();
@@ -1362,7 +1395,7 @@ function updateSidebar() {
     var container = document.getElementById('sidebar-temas-content');
     var titleEl = document.getElementById('sidebar-temas-title');
 
-    if (_currentTemaId) {
+    if (_currentTemaId !== null) {
         // Modo: tema activo → mostrar solo ese tema con detalle
         var tema = _temasData.find(function(t) { return t.id === _currentTemaId; });
         if (!tema) return;
@@ -1397,7 +1430,12 @@ function updateSidebar() {
         });
         html += '</div>';
 
-        // Ejercicios are accessed from the main content view, not duplicated in sidebar
+        // Ejercicios link (if tema has exercises)
+        if (tema.ejercicios && tema.ejercicios.length > 0) {
+            html += '<div style="padding:4px 12px; margin-top:4px; border-top:1px solid #e2e8f0;">';
+            html += '<button class="tema-link" style="font-weight:700;color:' + tema.color + ';font-size:13px;" onclick="showSection(' + tema.id + ',\'ejercicios\')">✏️ Ejercicios prácticos (' + tema.ejercicios.length + ')</button>';
+            html += '</div>';
+        }
 
         // Pregunta a Eulalia
         html += '<div style="padding:4px 12px; margin-top:8px; border-top:1px solid #e2e8f0;">';
@@ -1513,6 +1551,8 @@ function _buildEjercicioOnclick(ej) {
     if (ej.tipo === 'panel_transcripcion_fonetica') return "openWidget('transcripcion_fonetica')";
     if (ej.tipo === 'transcripcion_fonetica') return "showChatAndSend('Dame un ejercicio de transcripción fonética')";
     if (ej.tipo === 'panel_proyecto_investigacion') return "openWidget('proyecto_investigacion')";
+    if (ej.tipo === 'panel_detecta_bulos') return "openWidget('detecta_bulos')";
+    if (ej.tipo === 'panel_logocheck') return "openWidget('logocheck')";
     if (ej.tipo === 'espectrogramas') return "mostrarEspectrogramas('vocales')";
     if (ej.tipo === 'audio') return "document.getElementById('audio-file-input').click()";
     if (ej.tipo === 'consulta') return "showChatAndSend('" + escapeJs(ej.consulta) + "')";

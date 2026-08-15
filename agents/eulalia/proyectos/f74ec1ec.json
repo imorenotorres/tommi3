@@ -81,8 +81,13 @@
       "fecha": "2026-08-15 00:14",
       "response_type": "llm",
       "texto_fase_antes": "",
-      "decision": null
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Pos mira, no tengo ni idea",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-15 12:45"
+      }
     }
   ],
-  "updated": "2026-08-15 00:14"
+  "updated": "2026-08-15 12:45"
 }
