@@ -376,48 +376,53 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
 
             <div class="config-panel" id="config-panel">
                 <details>
-                    <summary>Configuración de transcripción</summary>
-                    <div class="config-options">
-                        <label>Sibilantes:</label>
-                        <select id="cfg-sibilantes">
-                            <option value="distinguidor">Distinguidor (/θ/ y /s/)</option>
-                            <option value="seseo">Seseo (solo /s/)</option>
-                            <option value="ceceo">Ceceo (solo /θ/)</option>
-                        </select>
+                    <summary>Panel docente</summary>
+                    <div style="padding:8px 12px;">
 
-                        <label>Nasalización vocálica:</label>
-                        <select id="cfg-nasalizacion">
-                            <option value="false">No</option>
-                            <option value="true">Sí (vocal → [ã] ante nasal)</option>
-                        </select>
+                        <!-- Ver como estudiante -->
+                        <button onclick="toggleStudentView()" id="btn-student-view" style="width:100%;padding:8px 12px;margin-bottom:8px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">👁 Ver como estudiante</button>
 
-                        <label>/s/ en coda:</label>
-                        <select id="cfg-s-coda">
-                            <option value="sibilante">Sibilante (se mantiene [s])</option>
-                            <option value="aspiracion">Aspiración ([h])</option>
-                            <option value="omision">Omisión (se elimina)</option>
-                            <option value="alargamiento">Alargamiento vocálico ([aː])</option>
-                        </select>
-
-                        <button class="config-save-btn" onclick="saveConfig()">Guardar configuración</button>
-                        <div class="config-status" id="config-status"></div>
-                    </div>
-                </details>
-            </div>
-
-            <div class="config-panel" id="proyectos-panel" style="display:none;">
-                <details>
-                    <summary>Proyectos de investigación</summary>
-                    <div style="padding:10px 14px;">
+                        <!-- Proyectos -->
                         <a href="/tutores-virtuales/eulalia/widgets/proyectos_docente" target="_blank"
-                           style="display:block;padding:8px 12px;background:#4250b3;color:#fff;border-radius:6px;text-align:center;text-decoration:none;font-size:13px;font-weight:600;">
-                            Ver todos los proyectos
+                           style="display:block;padding:8px 12px;margin-bottom:8px;background:#4250b3;color:#fff;border-radius:6px;text-align:center;text-decoration:none;font-size:12px;font-weight:600;">
+                            📋 Ver todos los proyectos
                         </a>
-                    </div>
-                </details>
-            </div>
 
-            <div class="users-panel" id="users-panel">
+                        <!-- Configuración de transcripción -->
+                        <details style="margin-bottom:8px;">
+                            <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;">⚙️ Configuración de transcripción</summary>
+                            <div class="config-options">
+                                <label>Sibilantes:</label>
+                                <select id="cfg-sibilantes">
+                                    <option value="distinguidor">Distinguidor (/θ/ y /s/)</option>
+                                    <option value="seseo">Seseo (solo /s/)</option>
+                                    <option value="ceceo">Ceceo (solo /θ/)</option>
+                                </select>
+
+                                <label>Nasalización vocálica:</label>
+                                <select id="cfg-nasalizacion">
+                                    <option value="false">No</option>
+                                    <option value="true">Sí (vocal → [ã] ante nasal)</option>
+                                </select>
+
+                                <label>/s/ en coda:</label>
+                                <select id="cfg-s-coda">
+                                    <option value="sibilante">Sibilante (se mantiene [s])</option>
+                                    <option value="aspiracion">Aspiración ([h])</option>
+                                    <option value="omision">Omisión (se elimina)</option>
+                                    <option value="alargamiento">Alargamiento vocálico ([aː])</option>
+                                </select>
+
+                                <button class="config-save-btn" onclick="saveConfig()">Guardar configuración</button>
+                                <div class="config-status" id="config-status"></div>
+                            </div>
+                        </details>
+
+                        <!-- Gestión de usuarios (inline) -->
+                        <details>
+                            <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;" id="users-summary-title">👥 Gestión de usuarios</summary>
+
+            <div class="users-panel" id="users-panel" style="display:block !important;">
                 <details>
                     <summary id="users-summary-title">Gestión de usuarios</summary>
                     <div class="users-body">
@@ -453,6 +458,10 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                             <button class="add-user-btn" onclick="bulkAddUsers()" style="margin-top:4px;">Importar</button>
                             <div class="users-status" id="users-status-bulk"></div>
                         </div>
+                    </div>
+                </details>
+            </div>
+                        </details>
                     </div>
                 </details>
             </div>
@@ -589,7 +598,7 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
         <div id="widget-view" style="display:none;">
             <div style="max-width:900px;margin:0 auto;padding:12px 20px;">
                 <button onclick="closeWidget()" style="background:none;border:none;color:#4250b3;cursor:pointer;font-size:13px;padding:0;margin-bottom:8px;">← Volver</button>
-                <iframe id="widget-iframe" style="width:100%;border:none;border-radius:8px;height:calc(100vh - 120px);" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads"></iframe>
+                <iframe id="widget-iframe" style="width:100%;border:none;border-radius:8px;height:calc(100vh - 120px);" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-top-navigation-by-user-activation"></iframe>
             </div>
         </div>
 
@@ -1507,6 +1516,30 @@ function clearCurrentTema() {
     updateSidebar();
 }
 
+var _studentViewActive = false;
+function toggleStudentView() {
+    _studentViewActive = !_studentViewActive;
+    var panel = document.getElementById('config-panel');
+    var restoreBtn = document.getElementById('btn-restore-docente');
+    if (_studentViewActive) {
+        // Hide entire docente panel
+        panel.style.display = 'none';
+        // Show floating restore button
+        if (!restoreBtn) {
+            restoreBtn = document.createElement('button');
+            restoreBtn.id = 'btn-restore-docente';
+            restoreBtn.onclick = toggleStudentView;
+            restoreBtn.style.cssText = 'width:100%;padding:8px 12px;margin-top:8px;background:#fef2f2;color:#991b1b;border:2px solid #fecaca;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;';
+            restoreBtn.textContent = '👁 Volver a vista docente';
+            panel.parentNode.insertBefore(restoreBtn, panel.nextSibling);
+        }
+        restoreBtn.style.display = '';
+    } else {
+        panel.style.display = '';
+        if (restoreBtn) restoreBtn.style.display = 'none';
+    }
+}
+
 function escapeJs(s) {
     return s.replace(/'/g, "\\'").replace(/"/g, '\\"');
 }
@@ -1658,8 +1691,6 @@ function checkAuthLevel() {
 
             if (data.level === 'docente') {
                 document.getElementById('config-panel').style.display = 'block';
-                document.getElementById('proyectos-panel').style.display = 'block';
-                document.getElementById('users-panel').style.display = 'block';
                 loadConfig();
                 loadUsers();
             }
