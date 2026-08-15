@@ -2723,6 +2723,38 @@ async def lali_add_detector_bulo(request: Request):
     return {"ok": True, "id": bulo["id"]}
 
 
+@app.post("/api/public-agent/eulalia/detector-bulos/{bulo_id}/validar")
+async def lali_validate_bulo(bulo_id: str, request: Request):
+    """Validate or reject a bulo entry (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede validar")
+    email = session.get("username", "")
+
+    body = await request.json()
+    estado = body.get("estado", "")
+    if estado not in ("validado", "rechazado"):
+        raise HTTPException(status_code=400, detail="Estado debe ser 'validado' o 'rechazado'")
+
+    bulos = _load_detector_bulos()
+    found = False
+    for b in bulos:
+        if b.get("id") == bulo_id:
+            b["validacion"] = {
+                "estado": estado,
+                "validado_por": email,
+                "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            }
+            found = True
+            break
+
+    if not found:
+        raise HTTPException(status_code=404, detail="Bulo no encontrado")
+
+    _save_detector_bulos(bulos)
+    return {"ok": True}
+
+
 @app.get("/api/public-agent/eulalia/temas")
 async def lali_get_temas():
     """Get course topics structure (public)."""

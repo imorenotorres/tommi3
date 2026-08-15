@@ -188,6 +188,12 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
             <option value="no_bulo">No es bulo</option>
             <option value="pendiente">Pendiente</option>
         </select>
+        <select id="filter-validacion" onchange="applyFilters()" style="padding:5px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;">
+            <option value="">Toda validación</option>
+            <option value="validado">Validados</option>
+            <option value="rechazado">Rechazados</option>
+            <option value="pendiente">Sin validar</option>
+        </select>
         <select id="filter-red" onchange="applyFilters()" style="padding:5px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;">
             <option value="">Todas las redes</option>
             <option value="TikTok">TikTok</option>
@@ -208,7 +214,8 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
                     <th style="padding:8px 10px;text-align:left;color:#64748b;font-size:11px;font-weight:700;">Afirmación</th>
                     <th style="padding:8px 10px;text-align:left;color:#64748b;font-size:11px;font-weight:700;width:120px;">Patología</th>
                     <th style="padding:8px 10px;text-align:left;color:#64748b;font-size:11px;font-weight:700;width:120px;">Redes</th>
-                    <th style="padding:8px 10px;text-align:center;color:#64748b;font-size:11px;font-weight:700;width:90px;">Estado</th>
+                    <th style="padding:8px 10px;text-align:center;color:#64748b;font-size:11px;font-weight:700;width:90px;">Conclusión</th>
+                    <th style="padding:8px 10px;text-align:center;color:#64748b;font-size:11px;font-weight:700;width:90px;">Validación</th>
                 </tr>
             </thead>
             <tbody id="bulos-tbody"></tbody>
@@ -331,12 +338,17 @@ function renderBulos(bulos) {
 function applyFilters() {
     var patFilter = document.getElementById('filter-patologia').value;
     var concFilter = document.getElementById('filter-conclusion').value;
+    var valFilter = document.getElementById('filter-validacion').value;
     var redFilter = document.getElementById('filter-red').value;
 
     var filtered = allBulos.filter(function(b) {
         if (patFilter && b.patologia !== patFilter) return false;
         if (concFilter && b.conclusion !== concFilter) return false;
         if (redFilter && (!b.redes || b.redes.indexOf(redFilter) < 0)) return false;
+        if (valFilter) {
+            var bVal = b.validacion ? b.validacion.estado : 'pendiente';
+            if (bVal !== valFilter) return false;
+        }
         return true;
     });
 
@@ -359,14 +371,18 @@ function applyFilters() {
 
     var concLabel = { bulo: 'Bulo', no_bulo: 'No es bulo', pendiente: 'Pendiente' };
     var concClass = { bulo: 'bulo', no_bulo: 'no-bulo', pendiente: 'pendiente' };
+    var valLabel = { validado: '✓', rechazado: '✗' };
+    var valStyle = { validado: 'color:#16a34a;font-weight:700;', rechazado: 'color:#dc2626;font-weight:700;' };
 
     var html = '';
     filtered.forEach(function(b, i) {
+        var val = b.validacion ? b.validacion.estado : '';
         html += '<tr style="border-bottom:1px solid #f1f5f9;cursor:pointer;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'#fff\'" onclick="showDetail(\'' + b.id + '\')">';
         html += '<td style="padding:8px 10px;font-weight:500;">«' + b.descripcion + '»</td>';
         html += '<td style="padding:8px 10px;font-size:11px;color:#64748b;">' + (b.patologia || '—') + '</td>';
         html += '<td style="padding:8px 10px;font-size:11px;color:#94a3b8;">' + (b.redes && b.redes.length ? b.redes.join(', ') : '—') + '</td>';
         html += '<td style="padding:8px 10px;text-align:center;"><span class="bulo-conclusion ' + (concClass[b.conclusion] || 'pendiente') + '">' + (concLabel[b.conclusion] || b.conclusion) + '</span></td>';
+        html += '<td style="padding:8px 10px;text-align:center;' + (valStyle[val] || 'color:#94a3b8;') + '">' + (valLabel[val] || '—') + '</td>';
         html += '</tr>';
     });
     tbody.innerHTML = html;
@@ -387,7 +403,28 @@ function showDetail(id) {
     if (b.otras_fuentes) html += '<p><strong>Otras fuentes:</strong> ' + b.otras_fuentes + '</p>';
     if (b.explicacion) html += '<p style="margin-top:8px;"><strong>Análisis:</strong> ' + b.explicacion + '</p>';
     else html += '<p style="margin-top:8px;color:#f59e0b;font-style:italic;">Este bulo aún no tiene explicación. ¿Puedes investigarlo?</p>';
-    html += '<p style="font-size:11px;color:#94a3b8;margin-top:8px;">Reportado por ' + (b.autor || '—') + ' · ' + (b.fecha || '') + '</p>';
+    html += '<p style="font-size:11px;color:#94a3b8;margin-top:8px;">Conclusión de: ' + (b.autor || '—') + ' · ' + (b.fecha || '') + '</p>';
+
+    // Validation status
+    if (b.validacion && b.validacion.estado) {
+        var vLabel = { validado: '✓ Validado por el profesorado', rechazado: '✗ Rechazado por el profesorado' };
+        var vColor = { validado: '#16a34a', rechazado: '#dc2626' };
+        html += '<div style="margin-top:8px;padding:8px 12px;border-radius:6px;background:' + (b.validacion.estado === 'validado' ? '#f0fdf4' : '#fef2f2') + ';border:1px solid ' + (b.validacion.estado === 'validado' ? '#bbf7d0' : '#fecaca') + ';font-size:12px;color:' + (vColor[b.validacion.estado] || '#475569') + ';">';
+        html += '<strong>' + (vLabel[b.validacion.estado] || b.validacion.estado) + '</strong>';
+        html += ' <span style="color:#94a3b8;">(' + (b.validacion.validado_por || '') + ' · ' + (b.validacion.fecha || '') + ')</span>';
+        html += '</div>';
+    } else {
+        html += '<div style="margin-top:8px;padding:6px 12px;border-radius:6px;background:#f1f5f9;font-size:12px;color:#94a3b8;font-style:italic;">Pendiente de validación por el profesorado</div>';
+    }
+
+    // Docente validation buttons
+    if (isDocente) {
+        html += '<div style="margin-top:10px;display:flex;gap:8px;align-items:center;">';
+        html += '<span style="font-size:12px;font-weight:700;color:#475569;">Validar:</span>';
+        html += '<button onclick="validateBulo(\'' + b.id + '\',\'validado\')" style="padding:6px 14px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">✓ Validar</button>';
+        html += '<button onclick="validateBulo(\'' + b.id + '\',\'rechazado\')" style="padding:6px 14px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">✗ Rechazar</button>';
+        html += '</div>';
+    }
 
     document.getElementById('detail-body').innerHTML = html;
     document.getElementById('bulo-detail').style.display = '';
@@ -407,9 +444,11 @@ function renderStats(bulos) {
 }
 
 // Init
+var isDocente = false;
+var currentUserEmail = '';
 loadBulos();
 
-// Show form only if authenticated
+// Detect auth level
 (function() {
     var token = getToken();
     if (token) {
@@ -418,10 +457,28 @@ loadBulos();
             .then(function(data) {
                 if (data && data.authenticated) {
                     document.getElementById('form-section').style.display = '';
+                    currentUserEmail = data.username || '';
+                    if (data.level === 'editor') {
+                        isDocente = true;
+                    }
                 }
             }).catch(function() {});
     }
 })();
+
+// ── Docente: validate a bulo ──
+async function validateBulo(buloId, estado) {
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/detector-bulos/' + buloId + '/validar'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: estado })
+        });
+        if (!res.ok) { var d = await res.json(); alert(d.detail || 'Error'); return; }
+        loadBulos();
+        showDetail(buloId);
+    } catch(e) { alert('Error: ' + e.message); }
+}
 
 </script>
 </body>
