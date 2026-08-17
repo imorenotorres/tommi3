@@ -388,15 +388,21 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                             📋 Ver todos los proyectos
                         </a>
 
+                        <!-- Valoración -->
+                        <div style="display:flex;gap:4px;margin-bottom:8px;">
+                            <button onclick="toggleValoracion()" id="btn-toggle-valoracion" style="flex:1;padding:6px 10px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Mostrar valoración</button>
+                            <button onclick="exportValoracionDocente()" style="padding:6px 10px;background:#fff;color:#7c3aed;border:1px solid #7c3aed;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">📥 Exportar</button>
+                        </div>
+
                         <!-- Generador de transcripciones -->
                         <details style="margin-bottom:8px;">
-                            <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;">📝 Generador de transcripciones</summary>
+                            <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;">📝 Generar transcripciones</summary>
                             <div style="padding:6px 0;">
                                 <input type="text" id="trans-gen-input" placeholder="Escribe una oración..." style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;margin-bottom:6px;">
                                 <button onclick="generateTranscription()" style="padding:5px 12px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">Transcribir</button>
                                 <div id="trans-gen-result" style="margin-top:8px;font-size:12px;line-height:1.8;display:none;">
-                                    <div><strong>Fonológica:</strong> <span id="trans-gen-fono" style="font-family:monospace;color:#4250b3;user-select:all;"></span></div>
-                                    <div><strong>Fonética:</strong> <span id="trans-gen-fone" style="font-family:monospace;color:#7c3aed;user-select:all;"></span></div>
+                                    <div style="color:#1e293b;"><strong>Fonológica:</strong> <span id="trans-gen-fono" style="font-family:monospace;color:#4250b3;user-select:all;"></span></div>
+                                    <div style="color:#1e293b;"><strong>Fonética:</strong> <span id="trans-gen-fone" style="font-family:monospace;color:#7c3aed;user-select:all;"></span></div>
                                     <button id="btn-copy-trans" onclick="copyBothTranscriptions()" style="margin-top:4px;padding:5px 12px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">📋 Copiar</button>
                                 </div>
                             </div>
@@ -404,7 +410,7 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
 
                         <!-- Generador de informes de errores -->
                         <details style="margin-bottom:8px;">
-                            <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;">🔍 Informe de errores</summary>
+                            <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;">🔍 Generar informes de errores</summary>
                             <div style="padding:6px 0;">
                                 <label style="font-size:11px;font-weight:600;color:#475569;">Transcripción correcta (fonológica):</label>
                                 <input type="text" id="err-gen-correcta" placeholder="ej: / el ˈni.ɲo ˈko.me ˈpan /" style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;font-family:monospace;margin-bottom:4px;">
@@ -1533,8 +1539,16 @@ function updateSidebar() {
         html += '<button onclick="openWidget(\'proyecto_investigacion\')" style="width:100%;padding:8px 14px;border-radius:8px;border:2px solid #0d948840;color:#0d9488;background:#fff;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;text-align:left;">📝 Mi proyecto de investigación</button>';
         html += '</div>';
 
+        // Valora a Eulalia — solo visible si el profesor lo ha activado
+        html += '<div id="sidebar-valoracion" style="padding:4px 12px;display:none;">';
+        html += '<button onclick="openWidget(\'valoracion\')" style="width:100%;padding:8px 14px;border-radius:8px;border:2px solid #7c3aed40;color:#7c3aed;background:#fff;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;text-align:left;">📋 Valora a Eulalia</button>';
+        html += '</div>';
+
         container.innerHTML = html;
     }
+
+    // Apply valoracion visibility after sidebar is rendered
+    applyValoracionVisibility();
 
     // Paneles de ejercicios según tema
 }
@@ -1704,6 +1718,83 @@ loadIcons();
 
 // Check auth level: show config panel for editors (professors)
 checkAuthLevel();
+checkValoracionVisible();
+
+var _valoracionVisible = false;
+
+function checkValoracionVisible() {
+    fetch('/api/public-agent/eulalia/valoracion-visible')
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+            _valoracionVisible = data && data.visible;
+            applyValoracionVisibility();
+            updateValoracionButton();
+        })
+        .catch(function() {});
+}
+
+function applyValoracionVisibility() {
+    var el = document.getElementById('sidebar-valoracion');
+    if (el) el.style.display = _valoracionVisible ? '' : 'none';
+}
+
+function updateValoracionButton() {
+    var btn = document.getElementById('btn-toggle-valoracion');
+    if (!btn) return;
+    btn.textContent = _valoracionVisible ? '📋 Ocultar valoración' : '📋 Mostrar valoración';
+}
+
+function toggleValoracion() {
+    var newState = !_valoracionVisible;
+    var btn = document.getElementById('btn-toggle-valoracion');
+    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
+    fetch(authUrl('/api/public-agent/eulalia/valoracion-visible'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visible: newState })
+    })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+        if (data) {
+            _valoracionVisible = data.visible;
+            var el = document.getElementById('sidebar-valoracion');
+            if (el) el.style.display = _valoracionVisible ? '' : 'none';
+        }
+        updateValoracionButton();
+        if (btn) btn.disabled = false;
+    })
+    .catch(function() { if (btn) { btn.disabled = false; updateValoracionButton(); } });
+}
+
+async function exportValoracionDocente() {
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/valoracion/export'));
+        if (!res.ok) { alert('Error al exportar'); return; }
+        var data = await res.json();
+        var all = data.respuestas || {};
+        var emails = Object.keys(all);
+        if (emails.length === 0) { alert('No hay respuestas aún.'); return; }
+
+        var qIds = ['q1','q2','q3','q4','q5','q6','q7a','q7b','q7c','q7d','q7e','q7f','q7g','q8','q9','q10','q11','q12'];
+        var header = ['Email'].concat(qIds);
+        var rows = [header.join('\t')];
+        emails.forEach(function(email) {
+            var r = all[email];
+            var row = [email];
+            qIds.forEach(function(qid) { row.push(r[qid] !== undefined ? String(r[qid]) : ''); });
+            rows.push(row.join('\t'));
+        });
+
+        var tsv = rows.join('\n');
+        var blob = new Blob(['\uFEFF' + tsv], { type: 'text/tab-separated-values;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'valoracion_eulalia.tsv'; a.style.display = 'none';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+    } catch(e) { alert('Error: ' + e.message); }
+}
 
 function checkAuthLevel() {
     var authEl = document.getElementById('nav-auth');

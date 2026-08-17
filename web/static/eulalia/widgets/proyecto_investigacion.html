@@ -416,14 +416,13 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
                 <span>Discusión</span>
                 <span class="fase-status" id="fase-status-3"></span>
             </button>
-            <button class="fase-btn" onclick="showFase(4)" id="fase-btn-4">
-                <span class="fase-num">5</span>
-                <span>Valoración</span>
-                <span class="fase-status" id="fase-status-4"></span>
-            </button>
         </div>
         <div class="sidebar-actions">
-            <button onclick="exportInteractions()" style="background:#0d9488;color:#fff;border-color:#0d9488;font-weight:700;">📥 Exportar interacciones</button>
+            <div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:2px;">Exportar mis interacciones</div>
+            <div style="display:flex;gap:4px;">
+                <button onclick="exportInteractionsHTML()" style="flex:1;background:#0d9488;color:#fff;border-color:#0d9488;font-weight:700;padding:6px;">HTML</button>
+                <button onclick="exportInteractions()" style="flex:1;background:#fff;color:#0d9488;border-color:#0d9488;font-weight:600;padding:6px;">TSV</button>
+            </div>
             <button onclick="showInviteModal()" id="btn-invite">+ Invitar compañero/a</button>
             <button onclick="showProjectList()">Mis proyectos</button>
         </div>
@@ -456,7 +455,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
             <div id="fase-instructions-bar" style="flex-shrink:0;"></div>
 
             <!-- Main area: chat + delivery -->
-            <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+            <div id="chat-area" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
 
                 <!-- Chat with Eulalia (main area) -->
                 <div class="chat-panel-main" id="chat-panel">
@@ -573,13 +572,6 @@ var FASES = [
             'Consulta a Eulalia para contrastar tus conclusiones, pero recuerda ser crítico/a con sus respuestas.<br><br>' +
             '<strong>Al final de esta fase deberías tener:</strong> una discusión de los resultados, conclusiones, y limitaciones del estudio.',
         placeholder: 'Discute tus resultados y formula conclusiones...'
-    },
-    {
-        id: 'valoracion',
-        titulo: 'Valoración de la experiencia',
-        tipo: 'encuesta',
-        instrucciones: 'Esta última fase es <strong>individual</strong> (cada miembro del grupo responde por separado). ' +
-            'Reflexiona sobre la experiencia de haber realizado este trabajo.'
     }
 ];
 
@@ -705,7 +697,14 @@ function showEditor() {
     document.getElementById('header-grupo').textContent = (currentProject.grupo || []).join(', ');
     updateInviteButton();
     updateFaseButtons();
-    showFase(0);
+    // Check if URL specifies a phase (e.g. ?fase=valoracion)
+    var urlParams = new URLSearchParams(window.location.search);
+    var faseParam = urlParams.get('fase');
+    var faseIdx = 0;
+    if (faseParam) {
+        FASES.forEach(function(f, i) { if (f.id === faseParam) faseIdx = i; });
+    }
+    showFase(faseIdx);
 }
 
 function updateInviteButton() {
@@ -743,8 +742,7 @@ function showFase(idx) {
     if (fase.tipo === 'encuesta') {
         var html = '<div class="fase-header"><h2>' + fase.titulo + '</h2></div>';
         html += '<div class="fase-instructions">' + fase.instrucciones + '</div>';
-        document.getElementById('chat-panel').style.display = 'none';
-        document.getElementById('delivery-reminder').style.display = 'none';
+        document.getElementById('chat-area').style.display = 'none';
         document.getElementById('fase-instructions-bar').innerHTML = '';
         document.getElementById('fase-content').style.display = '';
         renderSurveyPhase(fase, faseData, html);
@@ -753,6 +751,7 @@ function showFase(idx) {
 
     // Normal phases: show instructions bar + chat
     document.getElementById('fase-content').style.display = 'none';
+    document.getElementById('chat-area').style.display = '';
     document.getElementById('chat-panel').style.display = '';
 
     // Instructions bar (collapsible)
@@ -981,12 +980,16 @@ function appendChatMsg(text, role, author, date) {
     div.className = 'msg ' + role;
     // Render markdown for assistant messages
     var rendered = (role === 'assistant' && typeof marked !== 'undefined') ? marked.parse(text) : text;
+    var bannerHtml = '';
+    if (role === 'assistant') {
+        bannerHtml = '<div style="background:#fff3cd;border-left:4px solid #ffc107;padding:6px 10px;border-radius:4px;font-size:11px;margin-bottom:6px;color:#92400e;">🟡 <strong>Respuesta generada por IA</strong> — Aunque se basa en los materiales de la asignatura, puede contener errores. Verifica antes de aceptar.</div>';
+    }
     var metaHtml = '<div class="msg-meta">' + (author || '') + (date ? ' · ' + date : '') + '</div>';
     // Add verify reminder after assistant messages
     if (role === 'assistant') {
         metaHtml += '<div class="msg-verify"><img src="/static/eulalia/tema5/img/pev_verifica.jpg" alt="Verifica" style="height:20px;vertical-align:middle;margin-right:4px;">Consulta evaluable — verifica esta respuesta antes de aceptarla</div>';
     }
-    div.innerHTML = rendered + metaHtml;
+    div.innerHTML = bannerHtml + rendered + metaHtml;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
 }
@@ -1167,35 +1170,44 @@ async function inviteMember() {
 }
 
 // ── Survey phase (Valoración) ──
+var SURVEY_SECTIONS = [
+    { title: 'Sección 1. Experiencia previa con IA', questions: ['q1','q2','q3','q4'] },
+    { title: 'Sección 2. Sobre la experiencia de aprendizaje', questions: ['q5','q6','q7a','q7b','q7c','q7d','q7e','q7f','q7g'] },
+    { title: 'Sección 3. Uso responsable de la IA', questions: ['q8','q9','q10','q11'] },
+    { title: 'Sección 4. Valoración final', questions: ['q12'] }
+];
+
 var SURVEY_QUESTIONS = [
-    {
-        id: 'q1',
-        text: '¿Te ha servido este trabajo para aprender o madurar los conceptos de la asignatura?',
-        type: 'likert'
-    },
-    {
-        id: 'q2',
-        text: '¿Te ha servido la experiencia para aprender a usar o madurar sobre cómo usar la IA como estudiante y futuro profesional?',
-        type: 'likert'
-    },
-    {
-        id: 'q3',
-        text: 'Indica uno o más aspectos que crees negativos de esta experiencia',
-        type: 'text',
-        optional: true
-    },
-    {
-        id: 'q4',
-        text: 'Indica algún aspecto mejorable',
-        type: 'text',
-        optional: true
-    },
-    {
-        id: 'q5',
-        text: 'Indica algún aspecto positivo (lo que no debería cambiar)',
-        type: 'text',
-        optional: true
-    }
+    // Sección 1
+    { id: 'q1', text: '1. ¿Anteriormente habías usado alguna IA para estudiar?', type: 'choices',
+      options: ['Nunca', 'En 1 o 2 cursos', 'En 3 o 4 cursos', 'En más cursos'] },
+    { id: 'q2', text: '2. Anteriormente, ¿con qué frecuencia consultabas alguna IA?', type: 'choices',
+      options: ['Nunca', '1 o 2 veces al mes', '1 o 2 veces a la semana', 'Diariamente'] },
+    { id: 'q3', text: '3. ¿Alguna vez te habías planteado que la IA podría ofrecer información no fiable?', type: 'choices',
+      options: ['No, nunca', 'Alguna vez', 'Sí, era algo de lo que ya era consciente'] },
+    { id: 'q4', text: '4. ¿Alguna vez te habías planteado cómo hacer un uso responsable de la IA?', type: 'choices',
+      options: ['No, nunca', 'Alguna vez', 'Sí, era algo que me preocupaba bastante'] },
+    // Sección 2
+    { id: 'q5', text: '5. Indica el grado de utilidad de Eulalia en general', type: 'choices',
+      options: ['No sirve de nada', 'Ayuda un poco, pero es prescindible', 'Es una buena ayuda', 'Es una gran ayuda, hace que todo sea más fácil'] },
+    { id: 'q6', text: '6. Indica el grado de utilidad de la aplicación Proyecto de investigación', type: 'choices',
+      options: ['No sirve de nada', 'Ayuda un poco, pero es prescindible', 'Es una buena ayuda', 'Es una gran ayuda, hace que todo sea más fácil'] },
+    { id: 'q7a', text: '7a. Ejercicios prácticos', type: 'likert4' },
+    { id: 'q7b', text: '7b. Transcripciones fonéticas y fonológicas', type: 'likert4' },
+    { id: 'q7c', text: '7c. Informes de errores fonológicos', type: 'likert4' },
+    { id: 'q7e', text: '7e. Evalúa tu progreso', type: 'likert4' },
+    { id: 'q7f', text: '7f. Pregunta a Eulalia', type: 'likert4' },
+    { id: 'q7g', text: '7g. En conjunto, Eulalia me parece', type: 'likert4' },
+    // Sección 3
+    { id: 'q8', text: '8. ¿Has aprendido en este curso sobre cómo usar la IA de forma responsable?', type: 'choices',
+      options: ['He aprendido mucho', 'He aprendido bastante', 'He aprendido algo', 'No he aprendido nada nuevo'] },
+    { id: 'q9', text: '9. ¿Crees que lo aprendido te servirá durante la carrera?', type: 'choices',
+      options: ['Sí, pienso que será muy útil', 'Espero que me sea útil', 'De algo servirá', 'No creo que sea muy útil'] },
+    { id: 'q10', text: '10. Como futuro logopeda, ¿crees importante hacer un uso responsable de la IA?', type: 'text', optional: true },
+    { id: 'q11', text: '11. Hay muchas herramientas de IA. Si conoces alguna más, ¿crees que merece la pena la herramienta que hemos usado?', type: 'choices',
+      options: ['Sí, se adapta a nuestras necesidades', 'Está bien, pero no estoy seguro de si la seguiría usando', 'No, prefiero usar herramientas generales como Claude / ChatGPT', 'No sé'] },
+    // Sección 4
+    { id: 'q12', text: '12. Deja tu opinión final sobre Eulalia', type: 'text', optional: true }
 ];
 
 var LIKERT_OPTIONS = [
@@ -1204,6 +1216,12 @@ var LIKERT_OPTIONS = [
     { value: 3, label: 'Algo' },
     { value: 4, label: 'Bastante' },
     { value: 5, label: 'Mucho' }
+];
+var LIKERT4_OPTIONS = [
+    { value: 1, label: 'Muy poco útil' },
+    { value: 2, label: 'Poco útil' },
+    { value: 3, label: 'Útil' },
+    { value: 4, label: 'Muy útil' }
 ];
 
 function renderSurveyPhase(fase, faseData, headerHtml) {
@@ -1217,28 +1235,62 @@ function renderSurveyPhase(fase, faseData, headerHtml) {
     var html = headerHtml;
     html += '<div class="survey-form">';
 
-    SURVEY_QUESTIONS.forEach(function(q) {
-        html += '<div class="survey-question">';
-        html += '<label>' + q.text;
-        if (q.optional) html += ' <span class="sq-optional">(Opcional)</span>';
-        html += '</label>';
+    var qMap = {};
+    SURVEY_QUESTIONS.forEach(function(q) { qMap[q.id] = q; });
 
-        if (q.type === 'likert') {
-            html += '<div class="likert-scale">';
-            LIKERT_OPTIONS.forEach(function(opt) {
-                var checked = savedAnswers[q.id] == opt.value ? ' checked' : '';
-                html += '<label>';
-                html += '<input type="radio" name="' + q.id + '" value="' + opt.value + '"' + checked + ' onchange="markSurveyDirty()">';
-                html += '<span class="likert-dot">' + opt.value + '</span>';
-                html += '<span class="likert-label">' + opt.label + '</span>';
-                html += '</label>';
-            });
+    SURVEY_SECTIONS.forEach(function(section) {
+        html += '<div style="margin-top:20px;margin-bottom:8px;font-size:14px;font-weight:700;color:#4250b3;border-bottom:2px solid #e2e8f0;padding-bottom:4px;">' + section.title + '</div>';
+
+        section.questions.forEach(function(qid) {
+            var q = qMap[qid];
+            if (!q) return;
+            if (qid === 'q7a') {
+                html += '<div style="font-size:13px;font-weight:600;color:#475569;margin:12px 0 4px;padding:8px 0;border-top:1px solid #e2e8f0;">7. Valora de 1 (muy poco útil) a 4 (muy útil) estas herramientas de Eulalia <span style="font-weight:400;color:#94a3b8;">(valora solo las herramientas usadas)</span>:</div>';
+            }
+            html += '<div class="survey-question">';
+            html += '<label>' + q.text;
+            if (q.optional) html += ' <span class="sq-optional">(Opcional)</span>';
+            html += '</label>';
+
+            if (q.type === 'likert') {
+                html += '<div class="likert-scale">';
+                LIKERT_OPTIONS.forEach(function(opt) {
+                    var checked = savedAnswers[q.id] == opt.value ? ' checked' : '';
+                    html += '<label>';
+                    html += '<input type="radio" name="' + q.id + '" value="' + opt.value + '"' + checked + ' onchange="markSurveyDirty()">';
+                    html += '<span class="likert-dot">' + opt.value + '</span>';
+                    html += '<span class="likert-label">' + opt.label + '</span>';
+                    html += '</label>';
+                });
+                html += '</div>';
+            } else if (q.type === 'likert4') {
+                html += '<div class="likert-scale">';
+                LIKERT4_OPTIONS.forEach(function(opt) {
+                    var checked = savedAnswers[q.id] == opt.value ? ' checked' : '';
+                    html += '<label>';
+                    html += '<input type="radio" name="' + q.id + '" value="' + opt.value + '"' + checked + ' onchange="markSurveyDirty()">';
+                    html += '<span class="likert-dot">' + opt.value + '</span>';
+                    html += '<span class="likert-label">' + opt.label + '</span>';
+                    html += '</label>';
+                });
+                html += '</div>';
+            } else if (q.type === 'choices') {
+                html += '<div class="likert-scale">';
+                q.options.forEach(function(opt, idx) {
+                    var checked = savedAnswers[q.id] === opt ? ' checked' : '';
+                    html += '<label>';
+                    html += '<input type="radio" name="' + q.id + '" value="' + opt + '"' + checked + ' onchange="markSurveyDirty()">';
+                    html += '<span class="likert-dot">' + (idx + 1) + '</span>';
+                    html += '<span class="likert-label">' + opt + '</span>';
+                    html += '</label>';
+                });
+                html += '</div>';
+            } else {
+                html += '<textarea id="survey-' + q.id + '" placeholder="Escribe aquí..." oninput="markSurveyDirty()">' + (savedAnswers[q.id] || '') + '</textarea>';
+            }
+
             html += '</div>';
-        } else {
-            html += '<textarea id="survey-' + q.id + '" placeholder="Escribe aquí..." oninput="markSurveyDirty()">' + (savedAnswers[q.id] || '') + '</textarea>';
-        }
-
-        html += '</div>';
+        });
     });
 
     html += '<div style="margin-top:16px;">';
@@ -1291,18 +1343,22 @@ async function saveSurvey() {
 
     var answers = {};
     SURVEY_QUESTIONS.forEach(function(q) {
-        if (q.type === 'likert') {
+        if (q.type === 'likert' || q.type === 'likert4') {
             var checked = document.querySelector('input[name="' + q.id + '"]:checked');
             if (checked) answers[q.id] = parseInt(checked.value);
+        } else if (q.type === 'choices') {
+            var checked = document.querySelector('input[name="' + q.id + '"]:checked');
+            if (checked) answers[q.id] = checked.value;
         } else {
             var el = document.getElementById('survey-' + q.id);
             if (el && el.value.trim()) answers[q.id] = el.value.trim();
         }
     });
 
-    // Check required questions
-    if (!answers.q1 || !answers.q2) {
-        alert('Por favor, responde a las dos primeras preguntas antes de guardar.');
+    // Check required questions (first 6 are required)
+    var missing = SURVEY_QUESTIONS.filter(function(q) { return !q.optional && !answers[q.id]; });
+    if (missing.length > 0) {
+        alert('Por favor, responde a las preguntas obligatorias antes de guardar.');
         return;
     }
 
@@ -1361,15 +1417,94 @@ function exportInteractions() {
 
     var tsv = rows.join('\n');
     var blob = new Blob(['\uFEFF' + tsv], { type: 'text/tab-separated-values;charset=utf-8' }); // BOM for Excel
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = (currentProject.titulo || 'proyecto').replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_') + '_interacciones.tsv';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+    var filename = (currentProject.titulo || 'proyecto').replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_') + '_interacciones.tsv';
+
+    // Try parent window first (works better from iframe)
+    try {
+        var url = URL.createObjectURL(blob);
+        var a = (window.parent || window).document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        (window.parent || window).document.body.appendChild(a);
+        a.click();
+        (window.parent || window).document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+    } catch(e) {
+        // Fallback: use navigator.msSaveBlob or open in new tab
+        if (navigator.msSaveBlob) {
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            var url2 = URL.createObjectURL(blob);
+            window.open(url2, '_blank');
+            setTimeout(function() { URL.revokeObjectURL(url2); }, 5000);
+        }
+    }
+}
+
+function exportInteractionsHTML() {
+    if (!currentProject) { alert('No hay ningún proyecto abierto.'); return; }
+    var chat = currentProject.chat || [];
+    if (chat.length === 0) { alert('No hay interacciones para exportar.'); return; }
+
+    var faseNames = { introduccion: 'Introducción', metodologia: 'Metodología', resultados: 'Resultados', discusion: 'Discusión' };
+    var decisionLabels = { aplicado: '✓ Aplicado', no_aplicado: '✗ No aplicado', parcialmente: '~ Parcialmente' };
+    var decisionColors = { aplicado: '#f0fdf4', no_aplicado: '#fef2f2', parcialmente: '#fffbeb' };
+
+    var html = '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">';
+    html += '<title>Interacciones — ' + (currentProject.titulo || 'Proyecto') + '</title>';
+    html += '<style>';
+    html += 'body{font-family:system-ui,sans-serif;max-width:900px;margin:0 auto;padding:24px;color:#1e293b;font-size:14px;line-height:1.7;}';
+    html += 'h1{font-size:20px;color:#4250b3;margin-bottom:4px;}';
+    html += '.meta{font-size:12px;color:#64748b;margin-bottom:20px;}';
+    html += '.entry{margin-bottom:20px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;}';
+    html += '.entry-header{background:#f8fafc;padding:8px 14px;font-size:12px;color:#64748b;display:flex;justify-content:space-between;}';
+    html += '.prompt{background:#eff6ff;padding:10px 14px;font-size:13px;color:#1e40af;}';
+    html += '.response{padding:10px 14px;font-size:13px;color:#374151;border-top:1px solid #f1f5f9;}';
+    html += '.decision{padding:8px 14px;font-size:12px;border-top:1px solid #f1f5f9;}';
+    html += '@media print{body{padding:10px;font-size:12px;}.entry{break-inside:avoid;}}';
+    html += '</style></head><body>';
+
+    html += '<h1>Informe de interacciones</h1>';
+    html += '<div class="meta"><strong>Proyecto:</strong> ' + (currentProject.titulo || 'Sin título') + '<br>';
+    html += '<strong>Autores:</strong> ' + (currentProject.grupo || []).join(', ') + '<br>';
+    html += chat.length + ' interacciones</div>';
+
+    chat.forEach(function(m, i) {
+        var fase = faseNames[m.fase] || m.fase || '';
+        var decision = m.decision && m.decision.accion ? decisionLabels[m.decision.accion] || m.decision.accion : 'Sin decisión';
+        var decBg = m.decision && m.decision.accion ? decisionColors[m.decision.accion] || '#f8fafc' : '#f8fafc';
+
+        html += '<div class="entry">';
+        html += '<div class="entry-header"><span><strong>#' + (i + 1) + '</strong> · ' + fase + '</span><span>' + (m.fecha || '') + ' · ' + (m.autor || '') + '</span></div>';
+        html += '<div class="prompt"><strong>Prompt:</strong> ' + (m.prompt || m.mensaje || '') + '</div>';
+        html += '<div class="response">' + (typeof marked !== 'undefined' ? marked.parse(m.respuesta || '') : (m.respuesta || '')) + '</div>';
+        html += '<div class="decision" style="background:' + decBg + ';"><strong>Decisión:</strong> ' + decision;
+        if (m.decision && m.decision.justificacion) html += ' — ' + m.decision.justificacion;
+        html += '</div>';
+        html += '</div>';
+    });
+
+    html += '<div style="margin-top:24px;font-size:11px;color:#94a3b8;text-align:center;">Exportado desde Eulalia · ' + new Date().toLocaleString('es-ES') + '</div>';
+    html += '</body></html>';
+
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    try {
+        var url = URL.createObjectURL(blob);
+        var w = (window.parent || window).open(url, '_blank');
+        if (!w) {
+            var a = (window.parent || window).document.createElement('a');
+            a.href = url;
+            a.download = (currentProject.titulo || 'proyecto').replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_') + '_interacciones.html';
+            a.style.display = 'none';
+            (window.parent || window).document.body.appendChild(a);
+            a.click();
+            (window.parent || window).document.body.removeChild(a);
+        }
+        setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
+    } catch(e) {
+        alert('Error al exportar: ' + e.message);
+    }
 }
 
 // ── Preview: full work ──

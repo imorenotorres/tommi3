@@ -172,47 +172,143 @@ function renderReport(data) {
     });
     html += '</div>';
 
-    // 3. Country ranking
+    // 3. Country ranking (sortable)
     html += '<div class="section">';
     html += '<h2>3. Ranking de países más buscados</h2>';
-    if (data.country_ranking.length === 0) {
-        html += '<p style="color:#94a3b8;font-style:italic;">Sin datos suficientes</p>';
-    } else {
-        var maxCountry = data.country_ranking[0][1];
-        var totalCountry = data.country_ranking.reduce(function(s, r) { return s + r[1]; }, 0) || 1;
-        html += '<table class="ranking-table"><thead><tr><th>#</th><th>País</th><th>Búsquedas</th><th>Sesiones</th><th></th></tr></thead><tbody>';
-        data.country_ranking.forEach(function(r, i) {
-            var pct = Math.round(r[1] / maxCountry * 100);
-            var pctTotal = Math.round(r[1] / totalCountry * 100);
-            var sessions = r[2] || 0;
-            html += '<tr><td class="rank-num">' + (i + 1) + '</td><td>' + r[0] + '</td><td>' + r[1] + ' (' + pctTotal + '%)</td><td>' + sessions + '</td>';
-            html += '<td><span class="rank-bar" style="width:' + pct + 'px;"></span></td></tr>';
-        });
-        html += '</tbody></table>';
-    }
+    html += '<div id="country-table-container"></div>';
     html += '</div>';
+    // Store data for sorting
+    window._countryData = data.country_ranking;
 
-    // 4. University ranking
+    // 4. University ranking (sortable)
     html += '<div class="section">';
     html += '<h2>4. Ranking de universidades más consultadas</h2>';
-    if (data.university_ranking.length === 0) {
-        html += '<p style="color:#94a3b8;font-style:italic;">Sin datos suficientes</p>';
-    } else {
-        var maxUni = data.university_ranking[0][1];
-        var totalUni = data.university_ranking.reduce(function(s, r) { return s + r[1]; }, 0) || 1;
-        html += '<table class="ranking-table"><thead><tr><th>#</th><th>Universidad</th><th>País</th><th>Consultas</th><th></th></tr></thead><tbody>';
-        data.university_ranking.forEach(function(r, i) {
-            var pct = Math.round(r[1] / maxUni * 100);
-            var pctTotal = Math.round(r[1] / totalUni * 100);
-            var country = r[2] || '';
-            html += '<tr><td class="rank-num">' + (i + 1) + '</td><td style="max-width:350px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + r[0] + '">' + r[0] + '</td><td style="font-size:12px;color:#64748b;">' + country + '</td><td>' + r[1] + ' (' + pctTotal + '%)</td>';
-            html += '<td><span class="rank-bar" style="width:' + pct + 'px;"></span></td></tr>';
-        });
-        html += '</tbody></table>';
-    }
+    html += '<div id="uni-table-container"></div>';
     html += '</div>';
+    window._uniData = data.university_ranking;
 
     document.getElementById('content').innerHTML = html;
+
+    // Render sortable tables after main content is in DOM
+    renderCountryTable();
+    renderUniTable();
+}
+
+// ── Sortable country table ──
+var _countrySortCol = 1; // default: sort by Búsquedas
+var _countrySortAsc = false; // default: descending
+
+function renderCountryTable() {
+    var container = document.getElementById('country-table-container');
+    if (!container) return;
+    var rows = window._countryData || [];
+    if (!rows.length) { container.innerHTML = '<p style="color:#94a3b8;font-style:italic;">Sin datos suficientes</p>'; return; }
+
+    // Sort
+    var sorted = rows.slice().sort(function(a, b) {
+        var va = a[_countrySortCol], vb = b[_countrySortCol];
+        if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+        if (va < vb) return _countrySortAsc ? -1 : 1;
+        if (va > vb) return _countrySortAsc ? 1 : -1;
+        return 0;
+    });
+
+    var maxVal = Math.max.apply(null, rows.map(function(r) { return r[1]; })) || 1;
+    var total = rows.reduce(function(s, r) { return s + r[1]; }, 0) || 1;
+    var arrows = ['', '', ''];
+    arrows[_countrySortCol] = _countrySortAsc ? ' ▲' : ' ▼';
+
+    var html = '<table class="ranking-table"><thead><tr>';
+    html += '<th>#</th>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(0)">País' + arrows[0] + '</th>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(2)">Sesiones' + arrows[2] + '</th>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(1)">Búsquedas' + arrows[1] + '</th>';
+    html += '<th></th></tr></thead><tbody>';
+
+    sorted.forEach(function(r, i) {
+        var pct = Math.round(r[1] / maxVal * 100);
+        var pctTotal = Math.round(r[1] / total * 100);
+        html += '<tr><td class="rank-num">' + (i + 1) + '</td>';
+        html += '<td>' + r[0] + '</td>';
+        html += '<td>' + (r[2] || 0) + '</td>';
+        html += '<td>' + r[1] + ' (' + pctTotal + '%)</td>';
+        html += '<td><span class="rank-bar" style="width:' + pct + 'px;"></span></td></tr>';
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function sortCountry(col) {
+    if (_countrySortCol === col) {
+        _countrySortAsc = !_countrySortAsc;
+    } else {
+        _countrySortCol = col;
+        _countrySortAsc = col === 0;
+    }
+    renderCountryTable();
+}
+
+// ── Sortable university table ──
+// Data format: [name, búsquedas, país, sesiones]
+var _uniSortCol = 3; // default: sort by Sesiones
+var _uniSortAsc = false;
+
+function renderUniTable() {
+    var container = document.getElementById('uni-table-container');
+    if (!container) return;
+    var rows = window._uniData || [];
+    if (!rows.length) { container.innerHTML = '<p style="color:#94a3b8;font-style:italic;">Sin datos suficientes</p>'; return; }
+
+    var colMap = { 0: 0, 1: 2, 2: 1, 3: 3 }; // header idx → data idx (Universidad, País, Búsquedas, Sesiones)
+    var dataIdx = colMap[_uniSortCol];
+
+    var sorted = rows.slice().sort(function(a, b) {
+        var va = a[dataIdx], vb = b[dataIdx];
+        if (va === undefined) va = '';
+        if (vb === undefined) vb = '';
+        if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb || '').toLowerCase(); }
+        if (va < vb) return _uniSortAsc ? -1 : 1;
+        if (va > vb) return _uniSortAsc ? 1 : -1;
+        return 0;
+    });
+
+    var maxVal = Math.max.apply(null, rows.map(function(r) { return r[1]; })) || 1;
+    var total = rows.reduce(function(s, r) { return s + r[1]; }, 0) || 1;
+    var arrows = ['', '', '', ''];
+    arrows[_uniSortCol] = _uniSortAsc ? ' ▲' : ' ▼';
+
+    var html = '<table class="ranking-table"><thead><tr>';
+    html += '<th>#</th>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortUni(0)">Universidad' + arrows[0] + '</th>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortUni(1)">País' + arrows[1] + '</th>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortUni(3)">Sesiones' + arrows[3] + '</th>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortUni(2)">Búsquedas' + arrows[2] + '</th>';
+    html += '<th></th></tr></thead><tbody>';
+
+    sorted.forEach(function(r, i) {
+        var pct = Math.round(r[1] / maxVal * 100);
+        var pctTotal = Math.round(r[1] / total * 100);
+        html += '<tr><td class="rank-num">' + (i + 1) + '</td>';
+        html += '<td style="max-width:350px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + r[0] + '">' + r[0] + '</td>';
+        html += '<td style="font-size:12px;color:#64748b;">' + (r[2] || '') + '</td>';
+        html += '<td>' + (r[3] || 0) + '</td>';
+        html += '<td>' + r[1] + ' (' + pctTotal + '%)</td>';
+        html += '<td><span class="rank-bar" style="width:' + pct + 'px;"></span></td></tr>';
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function sortUni(col) {
+    if (_uniSortCol === col) {
+        _uniSortAsc = !_uniSortAsc;
+    } else {
+        _uniSortCol = col;
+        _uniSortAsc = col <= 1; // alphabetical ascending, numbers descending
+    }
+    renderUniTable();
 }
 
 loadReport();

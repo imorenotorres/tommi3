@@ -139,7 +139,7 @@ Lee estos escenarios e identifica el problema:
 
 Para que los modelos PEV y POEV esbozados más arriba ofrezcan resultados óptimos es recomendable tener en cuenta lo siguiente:
 
-**Fragmenta tus peticiones (divide y vencerás).** Evita peticiones genéricas como *"Escribe mi proyecto de investigación sobre el habla de niños con disfunción velofaríngea"*. Una petición así de amplia podría ser útil en teoría, pues te permitiría hacer tu trabajo en pocos minutos. En la práctica no es así:
+**✂️ Fragmenta tus peticiones (divide y vencerás).** Evita peticiones genéricas como *"Escribe mi proyecto de investigación sobre el habla de niños con disfunción velofaríngea"*. Una petición así de amplia podría ser útil en teoría, pues te permitiría hacer tu trabajo en pocos minutos. En la práctica no es así:
 
 - La IA no tiene suficiente contexto para generar algo útil con una petición tan amplia.
 - Llevaría mucho tiempo revisar el texto que genere la IA con una pregunta tan abierta. 
@@ -154,15 +154,23 @@ La pregunta anterior se podría sustituir por una que se centre solo en definir 
 
 Una vez des con la estructura apropiada, podrías centrarte en el contenido y redacción cada apartado en sucesivas preguntas.  
 
-**Ofrece tantos detalles como puedas.** La IA responderá si cuenta con la información suficiente. Y siempre es mejor ofrecer información redundante que dar por sentado que la IA entenderá sin más. Por ejemplo: 
+**🔍 Ofrece tantos detalles como puedas.** La IA responderá si cuenta con la información suficiente. Y siempre es mejor ofrecer información redundante que dar por sentado que la IA entenderá sin más. Por ejemplo: 
 
 - ❌ *"¿Qué pruebas puedo emplear en mi trabajo?"*
 - ✅ "Para evaluar la disfemia en un niño de 4 años, ¿qué pruebas de evaluación fonológica podría emplear?
 
-**Refina tus peticiones iterativamente.** Si la primera respuesta de la IA no es satisfactoria, no la aceptes tal cual ni la descartes sin más. Modifica tu pregunta para acercarte a lo que buscas o proporciónale la información que sea precisa. Por ejemplo:
+**🔁 Refina tus peticiones iterativamente.** Si la primera respuesta de la IA no es satisfactoria, no la aceptes tal cual ni la descartes sin más. Modifica tu pregunta para acercarte a lo que buscas o proporciónale la información que sea precisa. Por ejemplo:
 
 1. Primera petición: *"¿Qué errores fonológicos cometen los niños con implante coclear?"* → Respuesta demasiado genérica y sin información detallada. Puede que la IA responda bien, pero puede que aparezcan alucinaciones difíciles de comprobar. 
 2. Segunda petición: *"Describe las dificultades fonológicas de los niños con implante coclear, prestando atención a los macro-patrones de error estudiados en la asignatura"* → Respuesta conectada con los macro-patrones
+
+**⚠️ Los indicadores de fiabilidad en el proyecto son diferentes.** Cuando usas el chat general de Eulalia ("Pregunta a Eulalia"), las respuestas llevan indicadores de color que te avisan del nivel de fiabilidad:
+
+- 🟢 **Verde**: información verificada programáticamente (transcripciones, ejercicios). Puedes fiarte.
+- 🟡 **Amarillo**: respuesta generada por IA basándose en los materiales de la asignatura. Puede contener errores.
+- 🔴 **Rojo**: la IA ha ido más allá de los materiales de la asignatura. Requiere especial precaución.
+
+Sin embargo, en el chat del **Proyecto de investigación**, todas las respuestas llevan siempre el indicador **🟡 amarillo**. Esto se debe a que en el proyecto es habitual hacer preguntas que van más allá de los materiales (sobre patologías concretas, sobre metodología, etc.), y el sistema no puede distinguir automáticamente cuándo la IA se basa en los apuntes y cuándo no. **Eres tú quien debe valorar si la información es fiable**, contrastándola con otras fuentes. Esta capacidad de verificación es precisamente lo que se evalúa.
 
 ### 5.1.5. Documentación del proceso
 

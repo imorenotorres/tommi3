@@ -140,6 +140,7 @@ h2 { font-size: 20px; color: #1e293b; margin-bottom: 16px; }
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
             <h2 style="margin:0;">Proyectos de investigación</h2>
             <button onclick="showSurveyGlobal()" style="padding:6px 14px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📊 Resumen valoraciones</button>
+            <button onclick="exportSurveyTSV()" style="padding:6px 14px;background:#fff;color:#7c3aed;border:1px solid #7c3aed;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">📥 Exportar encuesta (TSV)</button>
         </div>
         <div id="projects-container"><p style="color:#94a3b8;">Cargando...</p></div>
     </div>
@@ -191,14 +192,33 @@ h2 { font-size: 20px; color: #1e293b; margin-bottom: 16px; }
 var FASES = ['introduccion', 'metodologia', 'resultados', 'discusion', 'valoracion'];
 var FASE_NOMBRES = { introduccion: 'Introducción', metodologia: 'Metodología', resultados: 'Resultados', discusion: 'Discusión', valoracion: 'Valoración' };
 
+var SURVEY_SECTIONS = [
+    { title: 'Sección 1. Experiencia previa con IA', questions: ['q1','q2','q3','q4'] },
+    { title: 'Sección 2. Sobre la experiencia de aprendizaje', questions: ['q5','q6','q7a','q7b','q7c','q7d','q7e','q7f','q7g'] },
+    { title: 'Sección 3. Uso responsable de la IA', questions: ['q8','q9','q10','q11'] },
+    { title: 'Sección 4. Valoración final', questions: ['q12'] }
+];
 var SURVEY_QUESTIONS = [
-    { id: 'q1', text: '¿Te ha servido este trabajo para aprender o madurar los conceptos de la asignatura?', type: 'likert' },
-    { id: 'q2', text: '¿Te ha servido la experiencia para aprender a usar o madurar sobre cómo usar la IA?', type: 'likert' },
-    { id: 'q3', text: 'Aspectos negativos de la experiencia', type: 'text' },
-    { id: 'q4', text: 'Aspectos mejorables', type: 'text' },
-    { id: 'q5', text: 'Aspectos positivos (lo que no debería cambiar)', type: 'text' }
+    { id: 'q1', text: '1. ¿Habías usado IA para estudiar?', type: 'choices' },
+    { id: 'q2', text: '2. ¿Con qué frecuencia consultabas IA?', type: 'choices' },
+    { id: 'q3', text: '3. ¿Te habías planteado que la IA podría no ser fiable?', type: 'choices' },
+    { id: 'q4', text: '4. ¿Te habías planteado el uso responsable de la IA?', type: 'choices' },
+    { id: 'q5', text: '5. Utilidad de Eulalia en general', type: 'choices' },
+    { id: 'q6', text: '6. Utilidad del Proyecto de investigación', type: 'choices' },
+    { id: 'q7a', text: '7a. Ejercicios prácticos', type: 'likert4' },
+    { id: 'q7b', text: '7b. Transcripciones fonéticas y fonológicas', type: 'likert4' },
+    { id: 'q7c', text: '7c. Informes de errores fonológicos', type: 'likert4' },
+    { id: 'q7e', text: '7e. Evalúa tu progreso', type: 'likert4' },
+    { id: 'q7f', text: '7f. Pregunta a Eulalia', type: 'likert4' },
+    { id: 'q7g', text: '7g. Eulalia en conjunto', type: 'likert4' },
+    { id: 'q8', text: '8. ¿Has aprendido sobre cómo usar la IA de forma responsable?', type: 'choices' },
+    { id: 'q9', text: '9. ¿Te servirá durante la carrera?', type: 'choices' },
+    { id: 'q10', text: '10. ¿Crees importante el uso responsable de la IA como logopeda?', type: 'text' },
+    { id: 'q11', text: '11. ¿Merece la pena esta herramienta?', type: 'choices' },
+    { id: 'q12', text: '12. Opinión final sobre Eulalia', type: 'text' }
 ];
 var LIKERT_LABELS = { 1: 'Nada', 2: 'Poco', 3: 'Algo', 4: 'Bastante', 5: 'Mucho' };
+var LIKERT4_LABELS = { 1: 'Muy poco útil', 2: 'Poco útil', 3: 'Útil', 4: 'Muy útil' };
 var allProjects = [];
 var currentDetail = null;
 var currentDetailFase = 0;
@@ -614,8 +634,9 @@ function renderDetailValoracion(faseData) {
                     html += '<div style="margin-bottom:6px;font-size:13px;">';
                     html += '<strong style="color:#475569;">' + q.text + '</strong><br>';
                     if (q.type === 'likert') {
-                        var val = r[q.id];
-                        html += '<span style="font-weight:700;color:#4250b3;">' + val + '/5</span> — ' + (LIKERT_LABELS[val] || '');
+                        html += '<span style="font-weight:700;color:#4250b3;">' + r[q.id] + '/5</span> — ' + (LIKERT_LABELS[r[q.id]] || '');
+                    } else if (q.type === 'likert4') {
+                        html += '<span style="font-weight:700;color:#4250b3;">' + r[q.id] + '/4</span> — ' + (LIKERT4_LABELS[r[q.id]] || '');
                     } else {
                         html += '<span style="color:#374151;">' + r[q.id] + '</span>';
                     }
@@ -828,6 +849,51 @@ async function deleteProject() {
     } catch(e) {
         alert('Error: ' + e.message);
     }
+}
+
+// ── Export survey as TSV ──
+async function exportSurveyTSV() {
+    // Load all projects with full data
+    var projects = [];
+    for (var i = 0; i < allProjects.length; i++) {
+        try {
+            var res = await fetch(authUrl('/api/public-agent/eulalia/proyectos/' + allProjects[i].id));
+            if (res.ok) projects.push(await res.json());
+        } catch(e) {}
+    }
+
+    // Build header
+    var qIds = SURVEY_QUESTIONS.map(function(q) { return q.id; });
+    var header = ['Proyecto', 'Email'].concat(SURVEY_QUESTIONS.map(function(q) { return q.text; }));
+    var rows = [header.join('\t')];
+
+    // Build rows
+    projects.forEach(function(p) {
+        var resp = (p.fases && p.fases.valoracion && p.fases.valoracion.respuestas) || {};
+        Object.keys(resp).forEach(function(email) {
+            var r = resp[email];
+            var row = [p.titulo || '', email];
+            SURVEY_QUESTIONS.forEach(function(q) {
+                var val = r[q.id];
+                row.push(val !== undefined && val !== null ? String(val) : '');
+            });
+            rows.push(row.join('\t'));
+        });
+    });
+
+    if (rows.length <= 1) { alert('No hay respuestas de encuesta para exportar.'); return; }
+
+    var tsv = rows.join('\n');
+    var blob = new Blob(['\uFEFF' + tsv], { type: 'text/tab-separated-values;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'encuesta_valoracion_eulalia.tsv';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
 }
 
 // ── Init ──

@@ -2904,6 +2904,77 @@ async def lali_informe_errores(
         raise HTTPException(status_code=500, detail=f"Error al analizar: {e}")
 
 
+# ── Valoración visibility toggle ──
+_LALI_VALORACION_PATH = _LALI_DIR / "data" / "valoracion_visible.json"
+
+
+@app.get("/api/public-agent/eulalia/valoracion-visible")
+async def lali_valoracion_visible():
+    """Check if the survey is visible to students."""
+    if _LALI_VALORACION_PATH.exists():
+        data = json.loads(_LALI_VALORACION_PATH.read_text(encoding="utf-8"))
+        return {"visible": data.get("visible", False)}
+    return {"visible": False}
+
+
+@app.post("/api/public-agent/eulalia/valoracion-visible")
+async def lali_set_valoracion_visible(request: Request):
+    """Toggle survey visibility (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede cambiar esto")
+    body = await request.json()
+    visible = bool(body.get("visible", False))
+    _LALI_VALORACION_PATH.write_text(
+        json.dumps({"visible": visible}), encoding="utf-8"
+    )
+    return {"ok": True, "visible": visible}
+
+
+_LALI_VALORACION_DATA_PATH = _LALI_DIR / "data" / "valoracion_respuestas.json"
+
+
+@app.get("/api/public-agent/eulalia/valoracion")
+async def lali_get_valoracion(request: Request):
+    """Get current user's survey answers."""
+    email = _get_user_email(request)
+    if not email:
+        return {"respuestas": {}}
+    if not _LALI_VALORACION_DATA_PATH.exists():
+        return {"respuestas": {}}
+    data = json.loads(_LALI_VALORACION_DATA_PATH.read_text(encoding="utf-8"))
+    return {"respuestas": data.get(email, {})}
+
+
+@app.post("/api/public-agent/eulalia/valoracion")
+async def lali_save_valoracion(request: Request):
+    """Save current user's survey answers."""
+    email = _get_user_email(request)
+    if not email:
+        raise HTTPException(status_code=401, detail="Autenticación requerida")
+    body = await request.json()
+    respuestas = body.get("respuestas", {})
+
+    data = {}
+    if _LALI_VALORACION_DATA_PATH.exists():
+        data = json.loads(_LALI_VALORACION_DATA_PATH.read_text(encoding="utf-8"))
+    data[email] = respuestas
+    _LALI_VALORACION_DATA_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"ok": True}
+
+
+@app.get("/api/public-agent/eulalia/valoracion/export")
+async def lali_export_valoracion(request: Request):
+    """Export all survey answers as JSON (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede exportar")
+    if not _LALI_VALORACION_DATA_PATH.exists():
+        return {"respuestas": {}}
+    data = json.loads(_LALI_VALORACION_DATA_PATH.read_text(encoding="utf-8"))
+    return {"respuestas": data}
+
+
 @app.get("/api/public-agent/eulalia/temas")
 async def lali_get_temas():
     """Get course topics structure (public)."""
@@ -5415,18 +5486,20 @@ async def algoria_map_report(
 
     # 4. University ranking (from open_detail interactions)
     uni_counts = {}
+    uni_sessions = {}  # university -> set of session_ids
     for e in entries:
         q = e.get("question", "")
+        sid = e.get("session_id", "") or "no_session"
         if "[interaction] open_detail" in q:
             try:
                 details = e.get("response", "")
                 if isinstance(details, str) and "'key'" in details:
                     details = details.replace("'", '"').replace("True", "true").replace("False", "false").replace("None", "null")
                     d = json.loads(details)
-                    if "key" in d:
-                        uni_counts[d["key"]] = uni_counts.get(d["key"], 0) + 1
-                    elif "title" in d:
-                        uni_counts[d["title"]] = uni_counts.get(d["title"], 0) + 1
+                    name = d.get("key") or d.get("title")
+                    if name:
+                        uni_counts[name] = uni_counts.get(name, 0) + 1
+                        uni_sessions.setdefault(name, set()).add(sid)
             except (json.JSONDecodeError, ValueError):
                 pass
         # Also from marker_click detail_key
@@ -5437,7 +5510,9 @@ async def algoria_map_report(
                     details = details.replace("'", '"').replace("True", "true").replace("False", "false").replace("None", "null")
                     d = json.loads(details)
                     if "detail_key" in d and d["detail_key"]:
-                        uni_counts[d["detail_key"]] = uni_counts.get(d["detail_key"], 0) + 1
+                        name = d["detail_key"]
+                        uni_counts[name] = uni_counts.get(name, 0) + 1
+                        uni_sessions.setdefault(name, set()).add(sid)
             except (json.JSONDecodeError, ValueError):
                 pass
 
@@ -5460,7 +5535,10 @@ async def algoria_map_report(
         for name, count in sorted(country_counts.items(), key=lambda x: -x[1])[:20]
     ]
     uni_ranking_raw = sorted(uni_counts.items(), key=lambda x: -x[1])[:20]
-    uni_ranking = [[name, count, uni_country_map.get(name, "")] for name, count in uni_ranking_raw]
+    uni_ranking = [
+        [name, count, uni_country_map.get(name, ""), len(uni_sessions.get(name, set()))]
+        for name, count in uni_ranking_raw
+    ]
 
     return {
         "total_entries": len(entries),

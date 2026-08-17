@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valora a Eulalia</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+.header { background: #7c3aed; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 18px; }
+.header .sep { color: rgba(255,255,255,0.5); margin: 0 2px; }
+.header .title { color: #fff; font-size: 15px; font-weight: 600; }
+.container { max-width: 700px; margin: 0 auto; padding: 24px 20px 48px; }
+h2 { font-size: 20px; color: #7c3aed; margin-bottom: 8px; }
+.subtitle { font-size: 13px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
+.section-title { margin-top: 20px; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: #4250b3; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; }
+.survey-question { margin-bottom: 16px; padding: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; }
+.survey-question label { display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 10px; line-height: 1.5; }
+.sq-optional { font-weight: 400; color: #94a3b8; font-size: 12px; }
+.likert-scale { display: flex; gap: 0; justify-content: center; margin: 4px 0; }
+.likert-scale label { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; cursor: pointer; border: 2px solid #e2e8f0; margin: 0 -1px; font-size: 11px; font-weight: 400; color: #64748b; text-align: center; transition: all 0.15s; background: #fff; }
+.likert-scale label:first-child { border-radius: 8px 0 0 8px; }
+.likert-scale label:last-child { border-radius: 0 8px 8px 0; }
+.likert-scale input[type="radio"] { display: none; }
+.likert-scale input[type="radio"]:checked + span { background: #7c3aed; color: #fff; border-radius: 50%; }
+.likert-scale label span.likert-dot { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 13px; font-weight: 700; border: 2px solid #e2e8f0; transition: all 0.15s; }
+.likert-scale input[type="radio"]:checked ~ span.likert-label { color: #7c3aed; font-weight: 600; }
+.survey-question textarea { width: 100%; min-height: 80px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-family: inherit; font-size: 13px; line-height: 1.6; resize: vertical; }
+.survey-question textarea:focus { outline: none; border-color: #7c3aed; }
+.btn-save { padding: 12px 32px; background: #7c3aed; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.btn-save:hover { background: #6d28d9; }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.saved-msg { display: inline-block; margin-left: 12px; font-size: 13px; color: #16a34a; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/tutores-virtuales/eulalia">Eulalia</a>
+    <span class="sep">></span>
+    <span class="title">Valora a Eulalia</span>
+</div>
+
+<div class="container">
+    <h2>Valora a Eulalia</h2>
+    <p class="subtitle">Esta encuesta es <strong>individual</strong> y no contará para la calificación final, pero nos ayudará a saber si el hecho de usar Eulalia ha resultado interesante y qué aspectos podrían mejorarse.</p>
+    <div id="survey-content"><p style="color:#94a3b8;">Cargando...</p></div>
+</div>
+
+<script>
+
+var SURVEY_SECTIONS = [
+    { title: 'Sección 1. Experiencia previa con IA', questions: ['q1','q2','q3','q4'] },
+    { title: 'Sección 2. Sobre la experiencia de aprendizaje', questions: ['q5','q6','q7a','q7b','q7c','q7d','q7e','q7f','q7g'] },
+    { title: 'Sección 3. Uso responsable de la IA', questions: ['q8','q9','q10','q11'] },
+    { title: 'Sección 4. Valoración final', questions: ['q12','q13'] }
+];
+
+var SURVEY_QUESTIONS = [
+    { id: 'q1', text: '1. ¿Anteriormente habías usado alguna IA para estudiar?', type: 'choices', options: ['Nunca', 'En 1 o 2 cursos', 'En 3 o 4 cursos', 'En más cursos'] },
+    { id: 'q2', text: '2. Anteriormente, ¿con qué frecuencia consultabas alguna IA?', type: 'choices', options: ['Nunca', '1 o 2 veces al mes', '1 o 2 veces a la semana', 'Diariamente'] },
+    { id: 'q3', text: '3. ¿Alguna vez te habías planteado que la IA podría ofrecer información no fiable?', type: 'choices', options: ['No, nunca', 'Alguna vez', 'Sí, era algo de lo que ya era consciente'] },
+    { id: 'q4', text: '4. ¿Alguna vez te habías planteado cómo hacer un uso responsable de la IA?', type: 'choices', options: ['No, nunca', 'Alguna vez', 'Sí, era algo que me preocupaba bastante'] },
+    { id: 'q5', text: '5. Indica el grado de utilidad de Eulalia en general', type: 'choices', options: ['No sirve de nada', 'Ayuda un poco, pero es prescindible', 'Es una buena ayuda', 'Es una gran ayuda, hace que todo sea más fácil'] },
+    { id: 'q6', text: '6. Indica el grado de utilidad de la aplicación Proyecto de investigación', type: 'choices', options: ['No sirve de nada', 'Ayuda un poco, pero es prescindible', 'Es una buena ayuda', 'Es una gran ayuda, hace que todo sea más fácil'] },
+    { id: 'q7a', text: '7a. Ejercicios prácticos', type: 'likert4' },
+    { id: 'q7b', text: '7b. Transcripciones fonéticas y fonológicas', type: 'likert4' },
+    { id: 'q7c', text: '7c. Informes de errores fonológicos', type: 'likert4' },
+    { id: 'q7e', text: '7e. Evalúa tu progreso', type: 'likert4' },
+    { id: 'q7f', text: '7f. Pregunta a Eulalia', type: 'likert4' },
+    { id: 'q7g', text: '7g. En conjunto, Eulalia me parece', type: 'likert4' },
+    { id: 'q8', text: '8. ¿Has aprendido en este curso sobre cómo usar la IA de forma responsable?', type: 'choices', options: ['He aprendido mucho', 'He aprendido bastante', 'He aprendido algo', 'No he aprendido nada nuevo'] },
+    { id: 'q9', text: '9. ¿Crees que lo aprendido te servirá durante la carrera?', type: 'choices', options: ['Sí, pienso que será muy útil', 'Espero que me sea útil', 'De algo servirá', 'No creo que sea muy útil'] },
+    { id: 'q10', text: '10. ¿Crees que lo aprendido te servirá para ejercer como logopeda de forma más responsable y profesional?', type: 'choices', options: ['Sí, pienso que será muy útil', 'Espero que me sea útil', 'De algo servirá', 'No creo que sea muy útil'] },
+    { id: 'q11', text: '11. Hay muchas herramientas de IA. Si conoces alguna más, ¿crees que merece la pena la herramienta que hemos usado?', type: 'choices', options: ['Sí, se adapta a nuestras necesidades', 'Está bien, pero no estoy seguro de si la seguiría usando', 'No, prefiero usar herramientas generales como Claude / ChatGPT', 'No sé'] },
+    { id: 'q12', text: '12. ¿Te gustaría que cada asignatura tuviera un tutor virtual parecido a "Eulalia"?', type: 'choices', options: ['Sí, sería genial', 'No estaría mal', 'No es buena idea, puede ser una pérdida de tiempo'] },
+    { id: 'q13', text: '13. ¿Algo más que te gustaría comentar?', type: 'text', optional: true }
+
+];
+
+var LIKERT4_OPTIONS = [
+    { value: 1, label: 'Muy poco útil' },
+    { value: 2, label: 'Poco útil' },
+    { value: 3, label: 'Útil' },
+    { value: 4, label: 'Muy útil' }
+];
+
+function getToken() {
+    var t = localStorage.getItem('tutores_token') || '';
+    if (!t) { try { t = window.parent.localStorage.getItem('tutores_token') || ''; } catch(e) {} }
+    return t;
+}
+function authUrl(url) {
+    var t = getToken();
+    if (!t) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(t);
+}
+
+// Get current user email
+var _userEmail = '';
+(function() {
+    var token = getToken();
+    if (!token) return;
+    fetch('/api/tutores/auth-level?token=' + encodeURIComponent(token))
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+            if (data && data.username) _userEmail = data.username;
+        })
+        .catch(function() {});
+})();
+
+// Load saved answers
+async function loadAndRender() {
+    var savedAnswers = {};
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/valoracion'));
+        if (res.ok) {
+            var data = await res.json();
+            savedAnswers = data.respuestas || {};
+        }
+    } catch(e) {}
+
+    var qMap = {};
+    SURVEY_QUESTIONS.forEach(function(q) { qMap[q.id] = q; });
+
+    var html = '';
+    SURVEY_SECTIONS.forEach(function(section) {
+        html += '<div class="section-title">' + section.title + '</div>';
+        section.questions.forEach(function(qid) {
+            var q = qMap[qid];
+            if (!q) return;
+            if (qid === 'q7a') {
+                html += '<div style="font-size:13px;font-weight:600;color:#475569;margin:12px 0 4px;padding:8px 0;border-top:1px solid #e2e8f0;">7. Valora de 1 (muy poco útil) a 4 (muy útil) estas herramientas de Eulalia <span style="font-weight:400;color:#94a3b8;">(valora solo las herramientas usadas)</span>:</div>';
+            }
+            html += '<div class="survey-question">';
+            html += '<label>' + q.text;
+            if (q.optional) html += ' <span class="sq-optional">(Opcional)</span>';
+            html += '</label>';
+
+            if (q.type === 'likert4') {
+                html += '<div class="likert-scale">';
+                LIKERT4_OPTIONS.forEach(function(opt) {
+                    var checked = savedAnswers[q.id] == opt.value ? ' checked' : '';
+                    html += '<label><input type="radio" name="' + q.id + '" value="' + opt.value + '"' + checked + '>';
+                    html += '<span class="likert-dot">' + opt.value + '</span>';
+                    html += '<span class="likert-label">' + opt.label + '</span></label>';
+                });
+                html += '</div>';
+            } else if (q.type === 'choices') {
+                html += '<div class="likert-scale">';
+                q.options.forEach(function(opt, idx) {
+                    var checked = savedAnswers[q.id] === opt ? ' checked' : '';
+                    html += '<label><input type="radio" name="' + q.id + '" value="' + opt + '"' + checked + '>';
+                    html += '<span class="likert-dot">' + (idx + 1) + '</span>';
+                    html += '<span class="likert-label">' + opt + '</span></label>';
+                });
+                html += '</div>';
+            } else {
+                html += '<textarea id="survey-' + q.id + '" placeholder="Escribe aquí...">' + (savedAnswers[q.id] || '') + '</textarea>';
+            }
+            html += '</div>';
+        });
+    });
+
+    html += '<div style="margin-top:20px;">';
+    html += '<button class="btn-save" id="btn-save" onclick="saveValoracion()">Guardar mis respuestas</button>';
+    html += '<span class="saved-msg" id="saved-msg" style="display:none;">✓ Guardado</span>';
+    html += '</div>';
+
+    document.getElementById('survey-content').innerHTML = html;
+}
+
+async function saveValoracion() {
+    var answers = {};
+    SURVEY_QUESTIONS.forEach(function(q) {
+        if (q.type === 'likert4') {
+            var checked = document.querySelector('input[name="' + q.id + '"]:checked');
+            if (checked) answers[q.id] = parseInt(checked.value);
+        } else if (q.type === 'choices') {
+            var checked = document.querySelector('input[name="' + q.id + '"]:checked');
+            if (checked) answers[q.id] = checked.value;
+        } else {
+            var el = document.getElementById('survey-' + q.id);
+            if (el && el.value.trim()) answers[q.id] = el.value.trim();
+        }
+    });
+
+    var missing = SURVEY_QUESTIONS.filter(function(q) { return !q.optional && !answers[q.id]; });
+    if (missing.length > 0) {
+        alert('Por favor, responde a las preguntas obligatorias antes de guardar.');
+        return;
+    }
+
+    var btn = document.getElementById('btn-save');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+
+    try {
+        var res = await fetch(authUrl('/api/public-agent/eulalia/valoracion'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ respuestas: answers })
+        });
+        if (res.ok) {
+            document.getElementById('saved-msg').style.display = '';
+        } else {
+            var err = await res.json().catch(function() { return {}; });
+            alert('Error al guardar: ' + (err.detail || res.status));
+        }
+    } catch(e) { alert('Error de conexión: ' + e.message); }
+    btn.disabled = false; btn.textContent = 'Guardar mis respuestas';
+}
+
+loadAndRender();
+
+</script>
+</body>
+</html>
