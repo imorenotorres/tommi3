@@ -446,6 +446,21 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                             </div>
                         </details>
 
+                        <!-- Generar enlace de invitación -->
+                        <details style="margin-bottom:8px;">
+                            <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;">🔗 Generar enlace de invitación</summary>
+                            <div style="padding:6px 0;">
+                                <div style="font-size:11px;color:#64748b;margin-bottom:6px;line-height:1.4;">Genera un enlace de acceso directo a Eulalia (sin Moodle). El usuario debe existir en la gestión de usuarios.</div>
+                                <input type="email" id="invite-link-email" placeholder="Email del usuario" style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;margin-bottom:4px;">
+                                <button onclick="generateInviteLink()" style="padding:5px 12px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">Generar enlace</button>
+                                <div id="invite-link-result" style="display:none;margin-top:6px;">
+                                    <input type="text" id="invite-link-url" readonly style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;font-family:monospace;background:#f8fafc;">
+                                    <button id="btn-copy-invite" onclick="copyInviteLink()" style="margin-top:4px;padding:5px 12px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">📋 Copiar enlace</button>
+                                </div>
+                                <div id="invite-link-error" style="font-size:11px;color:#dc2626;margin-top:4px;"></div>
+                            </div>
+                        </details>
+
                         <!-- Gestión de usuarios (inline) -->
                         <details>
                             <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;" id="users-summary-title">👥 Gestión de usuarios</summary>
@@ -1752,6 +1767,32 @@ function copyInforme() {
         var btn = document.getElementById('btn-copy-informe');
         btn.textContent = '✓ Copiado';
         setTimeout(function() { btn.textContent = '📋 Copiar'; }, 1500);
+    });
+}
+
+async function generateInviteLink() {
+    var email = document.getElementById('invite-link-email').value.trim().toLowerCase();
+    var errorEl = document.getElementById('invite-link-error');
+    var resultEl = document.getElementById('invite-link-result');
+    errorEl.textContent = '';
+    resultEl.style.display = 'none';
+    if (!email || email.indexOf('@') < 0) { errorEl.textContent = 'Introduce un email válido'; return; }
+    try {
+        var token = localStorage.getItem('tutores_token') || '';
+        var res = await fetch('/api/public-agent/eulalia/generate-invite?email=' + encodeURIComponent(email) + '&token=' + encodeURIComponent(token));
+        if (!res.ok) { var d = await res.json(); errorEl.textContent = d.detail || 'Error'; return; }
+        var data = await res.json();
+        document.getElementById('invite-link-url').value = data.url;
+        resultEl.style.display = '';
+    } catch(e) { errorEl.textContent = 'Error: ' + e.message; }
+}
+
+function copyInviteLink() {
+    var url = document.getElementById('invite-link-url').value;
+    navigator.clipboard.writeText(url).then(function() {
+        var btn = document.getElementById('btn-copy-invite');
+        btn.textContent = '✓ Copiado';
+        setTimeout(function() { btn.textContent = '📋 Copiar enlace'; }, 1500);
     });
 }
 

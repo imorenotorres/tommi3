@@ -1947,6 +1947,33 @@ async def lali_moodle_login(
     return RedirectResponse(url=redirect_url, status_code=302)
 
 
+@app.get("/api/public-agent/eulalia/generate-invite")
+async def lali_generate_invite(request: Request, email: str = Query(...)):
+    """Generate an invitation URL for a user (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not session or not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo el profesorado puede generar invitaciones")
+
+    import hashlib, hmac
+    email = email.strip().lower()
+
+    # Check user exists
+    from agents.tutor_fonetica_base.user_manager import UserManager
+    um = UserManager(_LALI_DIR)
+    if not um.existe_usuario(email):
+        raise HTTPException(status_code=404, detail=f"El usuario '{email}' no está registrado. Añádelo primero en Gestión de usuarios.")
+
+    key = hmac.new(
+        _MOODLE_SSO_SECRET.encode(), email.encode(), hashlib.sha256
+    ).hexdigest()[:16]
+
+    host = request.headers.get("host", "localhost:8000")
+    scheme = request.headers.get("x-forwarded-proto", "https" if "uma.es" in host else "http")
+    url = f"{scheme}://{host}/api/public-agent/eulalia/invite-login?user={email}&key={key}"
+
+    return {"url": url, "email": email}
+
+
 @app.get("/api/public-agent/eulalia/invite-login")
 async def lali_invite_login(user: str = Query(...), key: str = Query(...)):
     """Direct login via invitation link (no Moodle required).
