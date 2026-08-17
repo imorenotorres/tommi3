@@ -37,9 +37,24 @@ class BaseRAGAgent:
         self._progress_callback = progress_callback
         # Resolve agent directory FIRST — needed by _load_config and everything else
         self.__agent_dir = self._resolve_agent_dir()
+        # Load agent-specific .env if it exists (overrides global settings for this agent)
+        agent_env = os.path.join(self.__agent_dir, ".env")
+        _saved_env = {}
+        if os.path.exists(agent_env):
+            from dotenv import dotenv_values
+            agent_vars = dotenv_values(agent_env)
+            for k, v in agent_vars.items():
+                _saved_env[k] = os.environ.get(k)  # save original
+                os.environ[k] = v  # override
         self.client = LLMClient()
         self.model = self._get_model()
         self._is_local_llm = os.getenv("LLM_PROVIDER", "mistral").lower() in ("ollama", "vllm")
+        # Restore original env so other agents are not affected
+        for k, orig in _saved_env.items():
+            if orig is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = orig
         self.model_display_name = self._resolve_model_display_name()
         self._config = self._load_config()
         self._prompt_level = self._config.get("prompt_level", "stringent")
