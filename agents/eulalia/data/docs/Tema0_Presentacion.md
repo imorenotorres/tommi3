@@ -46,7 +46,7 @@ Ahora bien, una parte del examen final puede superarse mediante pruebas de **eva
 1. Mantente siempre informad@ sobre la asignatura en el Campus Virtual. Ahí:
 
 - Encontrarás los apuntes y ejercicios
-- Encontrarás el acceso a EULALIA, nuestro tutor virtual 
+- Encontrarás el acceso a EULALIA 
 - Podrás entregar el trabajo en grupo, y dejar tus dudas a través del foro 
 
 2. No dejes de venir a las clases, insistiremos en los conceptos más importantes, y haremos ejercicios que serán muy parecidos a los que aparecerán en el examen. 
@@ -75,7 +75,7 @@ Si logras esto, ¡habrás ganado mucho tiempo! En las próximas semanas iremos i
 
 ## Aprender a usar la IA de forma responsable  
 
-- La aparición de la IA ha creado todo un problema para el profesorado. Veamos este problema y una forma de solucionarlo:
+- La aparición de la IA ha creado todo un problema en relación con la realización de trabajos escritos (como el que haremos en esta asignatura). Veamos este problema y una forma de solucionarlo:
 
 	1. Como seguramente sabes las IAs pueden hacer trabajos escritos con gran facilidad. Por ello, **no tiene mucho sentido que la nota se base en algo que puede haber hecho una IA**. 
 
@@ -83,9 +83,11 @@ Si logras esto, ¡habrás ganado mucho tiempo! En las próximas semanas iremos i
 
 	3. Pero, **¿cómo se puede evaluar el proceso?** Pues deberás guardar las interacciones que haces con la IA y que te permiten realizar tu trabajo. Es más, deberás justificar por qué aceptas, modificas o rechazas las sugerencias de la IA. 
 
-	4. **¿No es muy complicado hacer eso?** No te preocupes si ahora te parece algo extraño o complicado: EULALIA permite almacenar las interacciones usuario-IA de forma que no te roba mucho tiempo, y además la decisión de documentar siempre necesitará tu aprobación.   
+	4. **¿No es muy complicado hacer eso?** No te preocupes si ahora te parece algo extraño o complicado: EULALIA permite almacenar las interacciones usuario-IA de forma que no te roba mucho tiempo, y además la decisión de documentar siempre necesitará tu aprobación.  
 
-Esperamos que estas reflexiones te sirvan para animarte a usar de forma responsable una IA. Puede servirte en esta asignatura, pero esperamos que sobre todo te ayude a formarte como logopeda responsable.
+La siguiente figura muestra un ejemplo de interacción. Primero, el usuario hace su pregunta: "Teniendo en cuenta mi introducción, ¿cómo puedo organizar la metodología de mi trabajo?". Luego viene la respuesta de Eulalia. Finalmente, hay una sección para informar sobre si aplicaremos o no este comentario en nuestro trabajo.  
+
+![Ejemplo de interacción con Eulalia: el estudiante pregunta, Eulalia responde, y el estudiante decide si aplica, modifica o rechaza la respuesta](/static/img/tema0/interaccionEulalia.jpg)
 
 ---
 
@@ -101,83 +103,30 @@ Las siguientes afirmaciones podrían aparecer en una respuesta generada por una 
 </details>
 
 <details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">2. «Los niños con implante coclear solo se comunican bien usando lengua de signos»</summary>
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">2. «Gracias a los avances en IA, hoy en día cualquiera puede hacer una evaluación logopédica»</summary>
 <div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> Con implantación temprana y rehabilitación adecuada, muchos niños con implante coclear desarrollan lenguaje oral funcional. La lengua de signos es una opción válida, pero no es la única vía de comunicación para estos niños. Afirmar que «solo» pueden comunicarse con signos es incorrecto y puede generar expectativas erróneas en las familias.
+<strong>Falso.</strong> La IA puede ser una herramienta de apoyo, pero no sustituye al logopeda. El diagnóstico y la intervención logopédica requieren escucha clínica, empatía, adaptación al paciente y toma de decisiones que ninguna IA puede hacer. Además, las IAs actuales no pueden escuchar ni transcribir habla patológica con fiabilidad. La evaluación logopédica requiere un profesional titulado.
 </div>
 </details>
 
 <details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">3. «Las últimas IAs pueden evaluar el habla de cualquier paciente sin importar su lengua»</summary>
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">3. «Los andaluces hablan muy mal el español y no deberían ser logopedas»</summary>
 <div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> Los sistemas de reconocimiento del habla actuales tienen un rendimiento muy desigual según la lengua, el dialecto y el tipo de habla. Funcionan razonablemente bien con habla normativa en lenguas mayoritarias, pero su fiabilidad disminuye mucho con habla patológica, dialectos minoritarios o lenguas con pocos recursos tecnológicos. La evaluación clínica del habla sigue requiriendo un profesional cualificado.
+<strong>Falso.</strong> Desde un punto de vista lingüístico, un hablante «habla bien» si hace uso de los recursos lingüísticos de su lengua o variedad dialectal. El andaluz es un conjunto de variedades dialectales tan legítimas como cualquier otra. Un logopeda debe saber distinguir entre variación dialectal y patología, independientemente de su origen geográfico.
 </div>
 </details>
 
 <details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">4. «Los andaluces hablan muy mal el español»</summary>
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">4. «Los padres pueden detectar fácilmente cuándo su hijo necesita logopedia»</summary>
 <div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> El andaluz es un conjunto de variedades dialectales del español tan legítimas como cualquier otra. Fenómenos como el seseo, la aspiración de /s/ o la pérdida de consonantes finales no son «errores» sino rasgos dialectales con siglos de historia. Desde la lingüística, ningún dialecto es mejor ni peor que otro. Confundir variación dialectal con «hablar mal» es un prejuicio sociolingüístico que un logopeda debe saber identificar y evitar.
+<strong>Falso.</strong> Los retrasos del habla y del lenguaje pueden ser difíciles de detectar, especialmente si son leves. Un niño puede hablar con claridad pero tener dificultades para comprender el lenguaje o comunicarse socialmente. Por eso es importante que los padres conozcan los hitos del desarrollo y, ante cualquier duda, consulten a un logopeda.
 </div>
 </details>
 
 <details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">5. «La tartamudez se cura si el niño respira hondo antes de hablar»</summary>
+<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">5. «En la gran mayoría de los casos el causante del retraso en el lenguaje son las vacunas»</summary>
 <div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> La disfemia (tartamudez) tiene componentes neurológicos y no se resuelve con técnicas simples de respiración. La intervención logopédica en la tartamudez es un proceso complejo que puede incluir técnicas de fluidez, gestión de la ansiedad comunicativa y modificación del entorno. Reducirla a «respirar hondo» trivializa el trastorno y la labor del logopeda.
-</div>
-</details>
-
-<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">6. «Los bebés bilingües tardan más en hablar y esto puede causar problemas de lenguaje»</summary>
-<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> La investigación ha demostrado que el bilingüismo temprano no causa retraso patológico del lenguaje. Los niños bilingües pueden mezclar lenguas al principio (code-switching), pero esto es un fenómeno normal y no un signo de confusión ni de retraso. Recomendar a una familia que deje de hablar una de sus lenguas es un consejo sin base científica que puede perjudicar al niño.
-</div>
-</details>
-
-<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">7. «Hablar a un bebé en tono infantil perjudica su desarrollo lingüístico»</summary>
-<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> El habla dirigida al niño (prosodia exagerada, frases cortas, vocabulario simplificado) no perjudica el desarrollo del lenguaje. Al contrario, la investigación muestra que facilita la adquisición porque ayuda al bebé a segmentar la señal del habla y a identificar las unidades lingüísticas relevantes. Lo que sí puede ser contraproducente es no hablarle al bebé o ignorar sus intentos comunicativos.
-</div>
-</details>
-
-<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">8. «Hoy en día, la logopedia es secundaria porque hay IAs que pueden diagnosticar y evaluar cualquier patología»</summary>
-<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> La IA puede ser una herramienta de apoyo, pero no sustituye al logopeda. El diagnóstico y la intervención logopédica requieren escucha clínica, empatía, adaptación al paciente y toma de decisiones que ninguna IA puede hacer. Además, las IAs actuales no pueden escuchar ni transcribir habla patológica con fiabilidad, y sus «diagnósticos» carecen de validez clínica. La logopedia es y seguirá siendo una profesión esencialmente humana.
-</div>
-</details>
-
-<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">9. «Si un niño no habla a los 2 años, lo mejor es esperar: ya hablará»</summary>
-<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> Es el llamado mito del «ya hablará» (<em>wait and see</em>). Aunque algunos niños que tardan en hablar acaban desarrollando el lenguaje sin intervención, en muchos casos el retraso es un indicador temprano de un trastorno del lenguaje o del desarrollo. La intervención temprana es mucho más eficaz que esperar. Un logopeda puede evaluar si el retraso es preocupante y actuar antes de que se agraven las dificultades.<br>
-<em>Fuente: <a href="https://bermologopedia.com/esku-hartzea-hizkuntzan/intervencion-lenguaje-esku-hartzea-hizkuntzan/mitos-y-realidades-sobre-la-logopedia/" target="_blank">Bermologopedia — Mitos y realidades sobre la logopedia</a></em>
-</div>
-</details>
-
-<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">10. «La logopedia solo trata problemas de pronunciación (como el ceceo o la tartamudez)»</summary>
-<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> La logopedia abarca mucho más que la pronunciación. Los logopedas trabajan en trastornos de la voz, deglución (disfagia), lenguaje escrito (lectoescritura), comunicación aumentativa y alternativa, rehabilitación cognitivo-comunicativa tras daño cerebral, y trastornos del lenguaje en niños y adultos. Reducir la logopedia a «corregir la erre» o «curar la tartamudez» es una visión muy limitada de la profesión.<br>
-<em>Fuente: <a href="https://bermologopedia.com/esku-hartzea-hizkuntzan/intervencion-lenguaje-esku-hartzea-hizkuntzan/mitos-y-realidades-sobre-la-logopedia/" target="_blank">Bermologopedia — Mitos y realidades sobre la logopedia</a></em>
-</div>
-</details>
-
-<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">11. «Si le hablas en dos idiomas a un niño, le confundes y le causas un retraso del lenguaje»</summary>
-<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> La investigación ha demostrado consistentemente que el bilingüismo temprano no causa retraso patológico. Los niños bilingües pueden mezclar lenguas al principio (<em>code-switching</em>), pero esto es un proceso normal de desarrollo, no una señal de confusión. Recomendar a una familia que deje de hablar su lengua materna es un consejo sin base científica que puede perjudicar tanto al niño como a la dinámica familiar.<br>
-<em>Fuente: <a href="https://bermologopedia.com/esku-hartzea-hizkuntzan/intervencion-lenguaje-esku-hartzea-hizkuntzan/mitos-y-realidades-sobre-la-logopedia/" target="_blank">Bermologopedia — Mitos y realidades sobre la logopedia</a></em>
-</div>
-</details>
-
-<details style="margin:8px 0;border:1px solid #e2e8f0;border-radius:8px;">
-<summary style="padding:10px 14px;cursor:pointer;font-weight:600;font-size:13px;color:#1e293b;">12. «Existen métodos que permiten a personas no verbales comunicarse a través de un facilitador que les guía la mano para escribir»</summary>
-<div style="padding:10px 14px;font-size:13px;line-height:1.6;">
-<strong>Falso.</strong> Se refiere a la «comunicación facilitada» (<em>Facilitated Communication</em>), un método no científico que afirma que personas no verbales pueden escribir mensajes complejos si alguien les sostiene la mano o el brazo. Múltiples estudios con pruebas ciegas han demostrado que los mensajes proceden del facilitador, no del paciente. Pese a estar desacreditado por la comunidad científica, este método sigue apareciendo periódicamente en medios de comunicación, lo que lo convierte en un buen ejemplo de por qué hay que verificar las fuentes.<br>
-<em>Fuente: <a href="https://bermologopedia.com/esku-hartzea-hizkuntzan/intervencion-lenguaje-esku-hartzea-hizkuntzan/mitos-y-realidades-sobre-la-logopedia/" target="_blank">Bermologopedia — Mitos y realidades sobre la logopedia</a></em>
+<strong>Falso.</strong> Esta afirmación se basa en un estudio fraudulento de Andrew Wakefield (1998), publicado en The Lancet y posteriormente retractado. Múltiples estudios con millones de participantes han demostrado que no existe relación entre las vacunas y los trastornos del desarrollo o del lenguaje. El origen de los retrasos del lenguaje es multifactorial (genético, neurológico, ambiental), pero las vacunas no son un factor.
 </div>
 </details>
 

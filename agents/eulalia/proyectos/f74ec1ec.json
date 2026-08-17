@@ -87,7 +87,17 @@
         "autor": "imoreno@uma.es",
         "fecha": "2026-08-15 12:45"
       }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Teniendo en cuenta mi introducción, cómo puedo organizar la metodología de mi trabajo.",
+      "respuesta": "Para organizar la metodología, primero debes asegurarte de que sea coherente con tu pregunta de investigación y con el tipo de datos que vas a recoger. Si tu introducción plantea analizar los errores fonológicos de un niño de 5 años con retraso fonológico, la metodología debe describir cómo obtendrás esos datos (prueba utilizada, materiales, procedimiento) y cómo los analizarás (criterios de transcripción, clasificación de errores, etc.).\n\nSi quieres, dime:\n1. **Qué prueba usaste** (ej: repetición de palabras, denominación de imágenes, etc.).\n2. **Qué datos recogiste** (ej: grabaciones, transcripciones, número de palabras/items).\n3. **Cómo analizarás los errores** (ej: según el inventario fonológico del español, clasificando por tipo de error: sustituciones, omisiones, etc.).\n\nCon esa información, te redacto la sección de metodología directamente.",
+      "fase": "metodologia",
+      "fecha": "2026-08-16 21:08",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": null
     }
   ],
-  "updated": "2026-08-15 12:45"
+  "updated": "2026-08-16 21:08"
 }

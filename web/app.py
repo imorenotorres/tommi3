@@ -2304,13 +2304,25 @@ async def lali_project_chat(project_id: str, request: Request):
     if contexto_fase:
         system_prompt += f"\n\nContenido actual de la fase '{fase_nombre}' escrito por el grupo:\n{contexto_fase}"
 
-    # Recent chat history for context
+    # Recent chat history for context (with decision annotations)
     recent = [m for m in proyecto.get("chat", []) if m.get("fase") == fase][-6:]
     messages = [{"role": "system", "content": system_prompt}]
     for m in recent:
         messages.append({"role": "user", "content": m.get("prompt") or m.get("mensaje", "")})
         if m.get("respuesta"):
-            messages.append({"role": "assistant", "content": m["respuesta"]})
+            resp_text = m["respuesta"]
+            # Annotate with student's decision so Eulalia knows what was accepted/rejected
+            decision = m.get("decision")
+            if decision and decision.get("accion"):
+                labels = {"aplicado": "ACEPTADA", "no_aplicado": "RECHAZADA", "parcialmente": "ACEPTADA PARCIALMENTE"}
+                label = labels.get(decision["accion"], "")
+                justif = decision.get("justificacion", "")
+                annotation = f"\n[El estudiante {label} esta respuesta"
+                if justif:
+                    annotation += f": {justif}"
+                annotation += "]"
+                resp_text += annotation
+            messages.append({"role": "assistant", "content": resp_text})
     messages.append({"role": "user", "content": mensaje})
 
     try:
@@ -2753,6 +2765,116 @@ async def lali_validate_bulo(bulo_id: str, request: Request):
 
     _save_detector_bulos(bulos)
     return {"ok": True}
+
+
+# ── LALI tutor: Spanish dictionary for pseudoword validation ──────
+
+_DICCIONARIO_ES = None
+
+def _load_diccionario():
+    global _DICCIONARIO_ES
+    if _DICCIONARIO_ES is None:
+        dict_path = _LALI_DIR / "data" / "diccionario_es.json"
+        if dict_path.exists():
+            with open(dict_path, "r", encoding="utf-8") as f:
+                _DICCIONARIO_ES = set(json.load(f))
+        else:
+            _DICCIONARIO_ES = set()
+    return _DICCIONARIO_ES
+
+
+@app.get("/api/public-agent/eulalia/diccionario")
+async def lali_get_diccionario():
+    """Return the full Spanish dictionary as a JSON array. Cached by browser."""
+    dict_path = _LALI_DIR / "data" / "diccionario_es.json"
+    if not dict_path.exists():
+        return JSONResponse([], headers={"Cache-Control": "public, max-age=86400"})
+    return FileResponse(dict_path, media_type="application/json",
+                        headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/api/public-agent/eulalia/check-word")
+async def lali_check_word(word: str = Query(...)):
+    """Check if a word exists in the Spanish dictionary. Returns {exists: bool}."""
+    diccionario = _load_diccionario()
+    normalized = word.strip().lower()
+    return {"word": normalized, "exists": normalized in diccionario}
+
+
+# ── LALI tutor: Transcription tool (docente) ─────────────────────
+
+@app.get("/api/public-agent/eulalia/transcribir")
+async def lali_transcribir(texto: str = Query(..., description="Texto a transcribir")):
+    """Transcribe text phonologically and phonetically. Public endpoint."""
+    import sys, os
+    sys.path.insert(0, str(Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"))
+    from transcriptor import transcribir, transcripcion_fonetica
+
+    texto = texto.strip()
+    if not texto or len(texto) > 500:
+        raise HTTPException(status_code=400, detail="Texto vacío o demasiado largo (máx 500 chars)")
+
+    result_fono = transcribir(texto)
+    if isinstance(result_fono, tuple):
+        result_fono = result_fono[0]
+
+    result_fone = transcripcion_fonetica(texto)
+    if isinstance(result_fone, tuple):
+        result_fone = result_fone[0]
+
+    return {
+        "texto": texto,
+        "fonologica": result_fono,
+        "fonetica": result_fone,
+    }
+
+
+@app.get("/api/public-agent/eulalia/informe-errores")
+async def lali_informe_errores(
+    correcta: str = Query(..., description="Transcripción fonológica correcta"),
+    produccion: str = Query(..., description="Producción del paciente"),
+):
+    """Generate an error report comparing correct vs patient production."""
+    import importlib, sys
+    base_path = str(Path(__file__).parent.parent / "agents" / "tutor_fonetica_base")
+    if base_path not in sys.path:
+        sys.path.insert(0, base_path)
+    # Force fresh import to avoid stale cache
+    if 'errores_fonologicos.analizador' in sys.modules:
+        analizar = sys.modules['errores_fonologicos.analizador'].analizar
+    else:
+        from errores_fonologicos.analizador import analizar
+
+    correcta = correcta.strip()
+    produccion = produccion.strip()
+    if not correcta or not produccion:
+        raise HTTPException(status_code=400, detail="Ambas transcripciones son necesarias")
+
+    try:
+        informe = analizar(correcta, produccion)
+
+        errores = []
+        for cat in ['errores_palabra', 'errores_silaba', 'errores_sistemicos']:
+            for e in informe.get(cat, []):
+                errores.append({
+                    "tipo": cat.replace('errores_', ''),
+                    "subtipo": e.get("tipo", e.get("nombre", "")),
+                    "detalle": e.get("detalle", e.get("descripcion", str(e))),
+                })
+
+        mc = informe.get("medidas_cuantitativas", {})
+        return {
+            "correcta": correcta,
+            "produccion": produccion,
+            "pfc": mc.get("PFC", 0),
+            "ppc": mc.get("PPC", 0),
+            "fonemas_objetivo": mc.get("total_fonemas_objetivo", 0),
+            "fonemas_correctos": mc.get("fonemas_correctos", 0),
+            "errores": errores,
+            "resumen": informe.get("resumen", ""),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al analizar: {e}")
 
 
 @app.get("/api/public-agent/eulalia/temas")

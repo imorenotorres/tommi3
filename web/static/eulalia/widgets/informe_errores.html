@@ -337,11 +337,33 @@ function checkStep3() {
     var expectedErrors = currentExercise.errores || [];
     var matched = 0;
 
-    expectedErrors.forEach(function(exp) {
-        var found = userErrors.some(function(u) {
-            return u.tipo === exp.tipo && u.subtipo === exp.subtipo;
+    // Match: tipo + subtipo + detalle must all match
+    var usedExpected = [];
+    var usedUser = [];
+    expectedErrors.forEach(function(exp, ei) {
+        var found = false;
+        userErrors.forEach(function(u, ui) {
+            if (found || usedUser.indexOf(ui) >= 0) return;
+            if (u.tipo !== exp.tipo || u.subtipo !== exp.subtipo) return;
+            // Check detalle: normalize and compare key parts
+            var expDetail = (exp.detalle || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            var userDetail = (u.detalle || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            if (!userDetail) return; // Empty detail = not valid
+            // Extract key phonemes/syllables from expected detail
+            var expParts = expDetail.match(/\/[^/]+\//g) || [];
+            var hasAllParts = expParts.length === 0 || expParts.every(function(p) {
+                return userDetail.indexOf(p) >= 0;
+            });
+            // Also check if the word is mentioned
+            var expWord = (exp.palabra || '').toLowerCase();
+            var hasWord = !expWord || userDetail.indexOf(expWord) >= 0;
+            if (hasAllParts || hasWord) {
+                found = true;
+                usedExpected.push(ei);
+                usedUser.push(ui);
+                matched++;
+            }
         });
-        if (found) matched++;
     });
 
     // Penalize extra errors
@@ -357,6 +379,10 @@ function checkStep3() {
     if (expectedErrors.length === 0) solText += '(Ningún error cualitativo)\n';
     solText += '\nTu respuesta: ' + matched + '/' + expectedErrors.length + ' errores identificados correctamente.';
     if (extras > 0) solText += ' (' + extras + ' error(es) de más)';
+    if (matched < expectedErrors.length) {
+        var missing = expectedErrors.length - matched;
+        solText += '\n⚠️ ' + missing + ' error(es) sin identificar o sin detalle suficiente. Recuerda indicar los fonemas o sílabas afectados.';
+    }
     sol.textContent = solText;
     sol.style.whiteSpace = 'pre-line';
     sol.className = 'solution show';

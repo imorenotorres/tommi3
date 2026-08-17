@@ -120,7 +120,7 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
             <li>Tener el <strong>acento en la misma sílaba</strong> que la palabra original (p.ej., si la original es llana, la pseudopalabra también debe ser llana).</li>
         </ul>
         <div style="margin-top:8px;">Ejemplo: <em>mesa</em> (CV.CV, llana) → <em>tesa</em> (CV.CV, llana). Ejemplo incorrecto: <em>mesa</em> → <em>trán</em> (distinto número de sílabas, distinta complejidad).</div>
-        <div style="margin-top:10px; padding-top:8px; border-top:1px solid #e2e8f0; font-size:12px; color:#94a3b8;"><strong>Nota:</strong> El sistema comprueba automáticamente las reglas fonotácticas y detecta muchas palabras reales, pero no conoce todas las palabras del español. <strong>Asegúrate tú mismo de que tu pseudopalabra no es una palabra real</strong> (puedes buscarla en un diccionario si tienes dudas).</div>
+        <div style="margin-top:10px; padding-top:8px; border-top:1px solid #e2e8f0; font-size:12px; color:#94a3b8;"><strong>Nota:</strong> El sistema comprueba automáticamente las reglas fonotácticas y verifica si tu pseudopalabra es una palabra real del español (diccionario de más de 160.000 palabras).</div>
     </div>
 
     <div class="task-card" id="task-card">
@@ -328,10 +328,41 @@ var SPANISH_DICT = new Set([
 ]);
 
 function isRealWord(w) {
-    // Normalize: lowercase, remove accents for matching
+    // Quick local check first
     var normalized = w.toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     return SPANISH_DICT.has(normalized);
+}
+
+// Load full dictionary from server on init
+var _serverDict = null;
+(async function() {
+    try {
+        var res = await fetch('/api/public-agent/eulalia/diccionario');
+        if (res.ok) {
+            var data = await res.json();
+            _serverDict = new Set(data);
+        }
+    } catch(e) { console.warn('Could not load server dictionary'); }
+})();
+
+async function isRealWordAsync(w) {
+    // Local check first (fast)
+    if (isRealWord(w)) return true;
+    // Server dictionary check (loaded on init)
+    if (_serverDict) {
+        var normalized = w.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return _serverDict.has(normalized) || _serverDict.has(w.toLowerCase());
+    }
+    // Fallback: API call
+    try {
+        var res = await fetch('/api/public-agent/eulalia/check-word?word=' + encodeURIComponent(w));
+        if (res.ok) {
+            var data = await res.json();
+            return data.exists;
+        }
+    } catch(e) {}
+    return false;
 }
 
 // ── Phonotactic validation for Spanish ──
@@ -461,7 +492,7 @@ function syllabify(word) {
     // Step 1: classify each character
     var chars = [];
     for (var i = 0; i < w.length; i++) {
-        if (/[a-z]/.test(w[i])) {
+        if (/[a-zA-Z]/.test(w[i])) {
             chars.push({ ch: w[i], type: isVowel(w[i]) ? 'V' : 'C' });
         }
     }
@@ -616,8 +647,9 @@ async function submitPseudowords() {
     document.getElementById('btn-submit').disabled = true;
     document.getElementById('feedback').classList.remove('show');
 
-    // Check if real word
-    if (isRealWord(pseudoWord)) {
+    // Check if real word (async — uses server dictionary)
+    var realWord = await isRealWordAsync(pseudoWord);
+    if (realWord) {
         renderSingleFeedback({
             original: origWord, pseudo: pseudoWord,
             sylOrig: syllabify(origWord), sylPseudo: syllabify(pseudoWord),

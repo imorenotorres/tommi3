@@ -64,13 +64,7 @@
           "nombre": "Detecta los bulos",
           "tipo": "panel_detecta_bulos",
           "apartado": "Presentación",
-          "descripcion": "Ejercicio por parejas: ¿verdadero o falso? Investiga si estas afirmaciones sobre logopedia son ciertas o son bulos."
-        },
-        {
-          "nombre": "LogoCheck: Base de datos de bulos sobre logopedia",
-          "tipo": "panel_logocheck",
-          "apartado": "Presentación",
-          "descripcion": "Busca bulos sobre logopedia en redes sociales y añádelos a la base de datos de la clase."
+          "descripcion": "Los cambios tecnológicos (IAs, Redes sociales...) están haciendo que la información sobre cualquier tema, también logopédica, se genere y propague a gran velocidad. Ello hace difícil discriminar lo cierto de lo falso, y en casos como el nuestro, puede tener consecuencias graves (por ej., si un niño deja de recibir la atención que necesita por desinformación de sus padres). La única medicina contra esta situación es desarrollar un sentido crítico y contrastar la información que no llegue de fuentes plenamente fiables. Te proponemos un pequeño ejercicio para empezar a desarrollar esta habilidad de detectar bulos."
         }
       ],
       "autoevaluacion": [],
@@ -261,18 +255,74 @@
       ],
       "ejercicios": [
         {
-          "nombre": "Define: fonema, alófono, sonido",
-          "tipo": "consulta",
-          "consulta": "Dame un ejercicio para definir fonema, alófono y sonido",
+          "nombre": "Fonética articulatoria vs acústica",
+          "tipo": "widget",
+          "widget": "pregunta_foneticas",
           "apartado": "1.1",
-          "descripcion": "Practica la redacción de definiciones de los conceptos fundamentales"
+          "descripcion": "Responde con tus palabras y recibe feedback automático"
         },
         {
-          "nombre": "Doble ruta léxica",
-          "tipo": "consulta",
-          "consulta": "Dame un ejercicio sobre la doble ruta léxica",
+          "nombre": "Lengua e identidad social",
+          "tipo": "widget",
+          "widget": "reflexion_lengua_social",
+          "apartado": "1.2",
+          "descripcion": "Reflexión sobre cómo el dominio de una lengua afecta a la interacción social"
+        },
+        {
+          "nombre": "Lenguaje y sociabilidad",
+          "tipo": "widget",
+          "widget": "lenguaje_hecho_social",
+          "apartado": "1.2",
+          "descripcion": "Escenarios sobre cómo las dificultades lingüísticas afectan a la sociabilidad"
+        },
+        {
+          "nombre": "Ponte en su piel",
+          "tipo": "widget",
+          "widget": "reto_empatia",
+          "apartado": "1.2",
+          "descripcion": "Imagina situaciones de personas con dificultades lingüísticas"
+        },
+        {
+          "nombre": "Crea pseudopalabras",
+          "tipo": "widget",
+          "widget": "pseudopalabras",
+          "apartado": "1.2",
+          "descripcion": "Inventa pseudopalabras a partir de palabras reales"
+        },
+        {
+          "nombre": "Detecta el error",
+          "tipo": "widget",
+          "widget": "detecta_errores_1_2",
+          "apartado": "1.2",
+          "descripcion": "Identifica qué está mal en afirmaciones sobre fonología y explica la corrección"
+        },
+        {
+          "nombre": "Clasifica sílabas «pa» y «ba»",
+          "tipo": "widget",
+          "widget": "clasificacion_pa_ba",
+          "apartado": "1.2",
+          "descripcion": "Clasifica 15 sílabas y descubre por qué los fonemas son categorías abstractas"
+        },
+        {
+          "nombre": "¿Qué es una representación mental?",
+          "tipo": "widget",
+          "widget": "representacion_mental",
+          "apartado": "1.2",
+          "descripcion": "Descubre cómo el cerebro reconoce y produce símbolos"
+        },
+        {
+          "nombre": "Define «fonema» con tus palabras",
+          "tipo": "widget",
+          "widget": "define_fonema",
           "apartado": "1.3",
-          "descripcion": "Ejercicio sobre la ruta léxica y subléxica de lectura"
+          "descripcion": "Escribe tu propia definición y recibe evaluación automática"
+        },
+        {
+          "nombre": "Analiza sílabas",
+          "tipo": "widget",
+          "widget": "analisis_silabas",
+          "apartado": "1.3",
+          "descripcion": "Divide palabras en sílabas e identifica Inicio, Núcleo y Coda"
         }
       ],
       "autoevaluacion": [
@@ -520,15 +570,15 @@
         },
         {
           "nombre": "Explorador de sílabas",
-          "tipo": "consulta",
-          "consulta": "¿Cómo funciona el explorador de sílabas?",
+          "tipo": "widget",
+          "widget": "explorador_silabas",
           "apartado": "2.4",
           "descripcion": "Consulta la frecuencia de las 1058 sílabas fonológicas del español"
         },
         {
           "nombre": "Pseudopalabras y frecuencia",
-          "tipo": "consulta",
-          "consulta": "¿Cómo creo pseudopalabras controlando la frecuencia?",
+          "tipo": "widget",
+          "widget": "pseudopalabras_frecuencia",
           "apartado": "2.4",
           "descripcion": "Crea pseudopalabras controlando la dificultad según frecuencia"
         },
@@ -938,7 +988,7 @@
     },
     {
       "id": 4,
-      "titulo": "Fonética acústica",
+      "titulo": "Fonética acústica (En preparación)",
       "color": "#b45309",
       "imagen": {
         "src": "/static/eulalia/tema1/img/fonetica_acustica.jpg",
@@ -1165,39 +1215,6 @@
         }
       ],
       "ejercicios": [
-        {
-          "nombre": "Espectrogramas de ejemplo",
-          "tipo": "espectrogramas",
-          "apartado": "4.5",
-          "descripcion": "Visualiza espectrogramas reales de vocales, oclusivas, fricativas, nasales, etc."
-        },
-        {
-          "nombre": "Analizar mi audio",
-          "tipo": "audio",
-          "apartado": "4.1-4.5",
-          "descripcion": "Sube un archivo de audio y analiza su espectrograma en Praat"
-        },
-        {
-          "nombre": "Identificar vocales por formantes",
-          "tipo": "consulta",
-          "consulta": "Si F1=700 Hz y F2=1470 Hz, ¿qué vocal es?",
-          "apartado": "4.4.1",
-          "descripcion": "Identifica vocales a partir de sus valores de F1 y F2"
-        },
-        {
-          "nombre": "Relación F1-F2 y articulación",
-          "tipo": "consulta",
-          "consulta": "¿Por qué la /i/ tiene F1 bajo y F2 alto?",
-          "apartado": "4.4.2",
-          "descripcion": "Relaciona formantes con rasgos articulatorios"
-        },
-        {
-          "nombre": "Interpretar espectrograma",
-          "tipo": "consulta",
-          "consulta": "Veo silencio seguido de una explosión y luego formantes. ¿Qué sonido es?",
-          "apartado": "4.5.6",
-          "descripcion": "A partir de una descripción del espectrograma, identifica el tipo de sonido"
-        }
       ],
       "autoevaluacion": [
         "¿Puedo identificar las vocales en un espectrograma por sus formantes?",

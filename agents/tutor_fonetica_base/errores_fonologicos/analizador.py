@@ -17,22 +17,42 @@ from .inventario import es_consonante, es_vocal, clasificar_error_sistemico
 from .silaba import parsear_silabas, Palabra, Silaba
 
 
+def _extraer_palabras(transcripcion: str) -> list[str]:
+    """Extrae palabras individuales de una transcripción fonológica.
+    Limpia barras / /, espacios y separa por espacios entre sílabas no separadas por punto.
+    Ejemplo: '/ me ˈka.go en ˈdios /' → ['me', 'ˈka.go', 'en', 'ˈdios']
+    """
+    import re
+    t = transcripcion.strip().strip('/')
+    # Split by spaces, filter empty
+    tokens = [w.strip() for w in t.split() if w.strip()]
+    # Filter out stray markers
+    palabras = [w for w in tokens if any(c.isalpha() or c in 'ˈˌ.θʝʧɲɾʎ' for c in w)]
+    return palabras
+
+
 def analizar(objetivo: str, producido: str) -> dict:
     """
     Analiza los errores entre una transcripción objetivo y una producida.
+    Soporta oraciones completas: divide por palabras y analiza cada par.
 
     Args:
-        objetivo: Transcripción fonológica correcta (ej: "ˈka.sa")
-        producido: Transcripción fonológica real (ej: "ˈta.sa")
+        objetivo: Transcripción fonológica correcta (ej: "/ me ˈka.go en ˈdios /")
+        producido: Transcripción fonológica real (ej: "/ me ˈka.o en ˈios /")
 
     Returns:
         dict con errores_palabra, errores_silaba, errores_sistemicos,
         medidas_cuantitativas y resumen.
     """
-    p_obj = parsear_silabas(objetivo)
-    p_prod = parsear_silabas(producido)
+    # Split into words and analyze word by word
+    palabras_obj = _extraer_palabras(objetivo)
+    palabras_prod = _extraer_palabras(producido)
 
-    informe = {
+    # Align words using simple positional alignment
+    # (handles omission of whole words)
+    pares_palabras = _alinear_palabras(palabras_obj, palabras_prod)
+
+    informe_global = {
         'objetivo': objetivo,
         'producido': producido,
         'medidas_cuantitativas': {},
@@ -41,9 +61,117 @@ def analizar(objetivo: str, producido: str) -> dict:
         'errores_sistemicos': [],
     }
 
-    # ══════════════════════════════════════════════════════════════════
-    # PASO 1: Alineación sílaba a sílaba → errores de PALABRA
-    # ══════════════════════════════════════════════════════════════════
+    total_fonemas_obj = 0
+    total_fonemas_prod = 0
+    total_correctos = 0
+    palabras_correctas = 0
+    total_palabras = 0
+
+    for w_obj, w_prod in pares_palabras:
+        if w_obj is None:
+            continue  # inserted word in production, skip
+        total_palabras += 1
+
+        if w_prod is None:
+            # Whole word omitted
+            p_obj = parsear_silabas(w_obj)
+            informe_global['errores_palabra'].append({
+                'tipo': 'omision_palabra',
+                'descripcion': f'Omisión de palabra: /{w_obj}/',
+            })
+            total_fonemas_obj += len(p_obj.fonemas)
+            continue
+
+        # Analyze this word pair
+        resultado = _analizar_palabra(w_obj, w_prod)
+
+        # Aggregate results
+        mc = resultado['medidas_cuantitativas']
+        total_fonemas_obj += mc['total_fonemas_objetivo']
+        total_fonemas_prod += mc['total_fonemas_producidos']
+        total_correctos += mc['fonemas_correctos']
+
+        if mc['fonemas_correctos'] == mc['total_fonemas_objetivo']:
+            palabras_correctas += 1
+
+        # Add word context to errors
+        for e in resultado['errores_palabra']:
+            e['palabra'] = w_obj
+            informe_global['errores_palabra'].append(e)
+        for e in resultado['errores_silaba']:
+            e['palabra'] = w_obj
+            informe_global['errores_silaba'].append(e)
+        for e in resultado['errores_sistemicos']:
+            e['palabra'] = w_obj
+            informe_global['errores_sistemicos'].append(e)
+
+    # Global quantitative measures
+    informe_global['medidas_cuantitativas'] = {
+        'total_fonemas_objetivo': total_fonemas_obj,
+        'total_fonemas_producidos': total_fonemas_prod,
+        'fonemas_correctos': total_correctos,
+        'PFC': round(total_correctos / total_fonemas_obj * 100, 1) if total_fonemas_obj > 0 else 0,
+        'PPC': round(palabras_correctas / total_palabras * 100, 1) if total_palabras > 0 else 0,
+        'palabras_correctas': palabras_correctas,
+        'total_palabras': total_palabras,
+    }
+
+    informe_global['resumen'] = _generar_resumen(informe_global)
+    return informe_global
+
+
+def _alinear_palabras(obj: list[str], prod: list[str]) -> list[tuple]:
+    """Align words between objective and production using Needleman-Wunsch."""
+    n, m = len(obj), len(prod)
+    if n == m:
+        return list(zip(obj, prod))
+
+    GAP = -2
+    def score(w1, w2):
+        # Simple: first phoneme match = good
+        if w1 and w2 and w1[0] == w2[0]:
+            return 2
+        return -1
+
+    dp = [[0] * (m + 1) for _ in range(n + 1)]
+    for i in range(n + 1): dp[i][0] = GAP * i
+    for j in range(m + 1): dp[0][j] = GAP * j
+
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            dp[i][j] = max(
+                dp[i-1][j-1] + score(obj[i-1], prod[j-1]),
+                dp[i-1][j] + GAP,
+                dp[i][j-1] + GAP,
+            )
+
+    alineacion = []
+    i, j = n, m
+    while i > 0 or j > 0:
+        if i > 0 and j > 0 and dp[i][j] == dp[i-1][j-1] + score(obj[i-1], prod[j-1]):
+            alineacion.append((obj[i-1], prod[j-1]))
+            i -= 1; j -= 1
+        elif i > 0 and dp[i][j] == dp[i-1][j] + GAP:
+            alineacion.append((obj[i-1], None))
+            i -= 1
+        else:
+            alineacion.append((None, prod[j-1]))
+            j -= 1
+    alineacion.reverse()
+    return alineacion
+
+
+def _analizar_palabra(objetivo: str, producido: str) -> dict:
+    """Analyze errors for a single word pair."""
+    p_obj = parsear_silabas(objetivo)
+    p_prod = parsear_silabas(producido)
+
+    informe = {
+        'medidas_cuantitativas': {},
+        'errores_palabra': [],
+        'errores_silaba': [],
+        'errores_sistemicos': [],
+    }
 
     alineacion_silabas = _alinear_silabas(p_obj, p_prod)
     fonemas_explicados = set()  # (indice_silaba_obj, indice_fonema) ya explicados
@@ -163,12 +291,6 @@ def analizar(objetivo: str, producido: str) -> dict:
         'num_silabas_objetivo': p_obj.num_silabas,
         'num_silabas_producidas': p_prod.num_silabas,
     }
-
-    # ══════════════════════════════════════════════════════════════════
-    # Resumen
-    # ══════════════════════════════════════════════════════════════════
-
-    informe['resumen'] = _generar_resumen(informe)
 
     return informe
 
@@ -415,7 +537,11 @@ def _generar_resumen(informe: dict) -> str:
     lineas.append(f"- Producido: /{informe['producido']}/")
     lineas.append(f"- PFC (Porcentaje de Fonemas Correctos): {mc['PFC']}%")
     lineas.append(f"- Fonemas correctos: {mc['fonemas_correctos']}/{mc['total_fonemas_objetivo']}")
-    lineas.append(f"- Sílabas: {mc['num_silabas_producidas']}/{mc['num_silabas_objetivo']}\n")
+    if 'num_silabas_objetivo' in mc:
+        lineas.append(f"- Sílabas: {mc.get('num_silabas_producidas', '?')}/{mc['num_silabas_objetivo']}")
+    if 'total_palabras' in mc:
+        lineas.append(f"- Palabras correctas: {mc['palabras_correctas']}/{mc['total_palabras']} (PPC: {mc['PPC']}%)")
+    lineas.append("")
 
     lineas.append("### Paso 1 — Errores de palabra")
     if informe['errores_palabra']:

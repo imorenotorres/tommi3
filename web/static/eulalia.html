@@ -334,9 +334,9 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
 <div class="nav">
     <a href="javascript:void(0)" class="nav-brand" id="nav-lali" onclick="showLanding()" style="cursor:pointer;">Eulalia</a>
     <span class="nav-sep" id="nav-tema-sep" style="display:none;">/</span>
-    <a href="javascript:void(0)" class="nav-current" id="nav-tema-name" style="display:none;cursor:pointer;text-decoration:none;" onclick="if(_currentTemaId)showTemaDetail(_currentTemaId)"></a>
+    <a href="javascript:void(0)" class="nav-current" id="nav-tema-name" style="display:none;cursor:pointer;text-decoration:none;" onclick="_currentWidgetName=null;if(_currentTemaId!==null)showTemaDetail(_currentTemaId)"></a>
     <span class="nav-sep" id="nav-seccion-sep" style="display:none;">/</span>
-    <a href="javascript:void(0)" class="nav-current" id="nav-seccion-name" style="display:none;font-weight:400;font-size:14px;cursor:pointer;text-decoration:none;" onclick="if(_currentTemaId!==null&&_currentSeccion)showSection(_currentTemaId,_currentSeccion)"></a>
+    <a href="javascript:void(0)" class="nav-current" id="nav-seccion-name" style="display:none;font-weight:400;font-size:14px;cursor:pointer;text-decoration:none;" onclick="_currentWidgetName=null;if(_currentTemaId!==null&&_currentSeccion){showSection(_currentTemaId,_currentSeccion);updateBreadcrumb();}"></a>
     <span class="nav-sep" id="nav-widget-sep" style="display:none;">/</span>
     <span class="nav-current" id="nav-widget-name" style="display:none;font-weight:400;font-size:14px;"></span>
     <div class="nav-logos">
@@ -388,6 +388,34 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                             📋 Ver todos los proyectos
                         </a>
 
+                        <!-- Generador de transcripciones -->
+                        <details style="margin-bottom:8px;">
+                            <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;">📝 Generador de transcripciones</summary>
+                            <div style="padding:6px 0;">
+                                <input type="text" id="trans-gen-input" placeholder="Escribe una oración..." style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;margin-bottom:6px;">
+                                <button onclick="generateTranscription()" style="padding:5px 12px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">Transcribir</button>
+                                <div id="trans-gen-result" style="margin-top:8px;font-size:12px;line-height:1.8;display:none;">
+                                    <div><strong>Fonológica:</strong> <span id="trans-gen-fono" style="font-family:monospace;color:#4250b3;user-select:all;"></span></div>
+                                    <div><strong>Fonética:</strong> <span id="trans-gen-fone" style="font-family:monospace;color:#7c3aed;user-select:all;"></span></div>
+                                    <button id="btn-copy-trans" onclick="copyBothTranscriptions()" style="margin-top:4px;padding:5px 12px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">📋 Copiar</button>
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- Generador de informes de errores -->
+                        <details style="margin-bottom:8px;">
+                            <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;">🔍 Informe de errores</summary>
+                            <div style="padding:6px 0;">
+                                <label style="font-size:11px;font-weight:600;color:#475569;">Transcripción correcta (fonológica):</label>
+                                <input type="text" id="err-gen-correcta" placeholder="ej: / el ˈni.ɲo ˈko.me ˈpan /" style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;font-family:monospace;margin-bottom:4px;">
+                                <label style="font-size:11px;font-weight:600;color:#475569;">Producción del paciente (fonológica):</label>
+                                <input type="text" id="err-gen-produccion" placeholder="ej: / e ˈni.ɲo ˈto.me ˈpa /" style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;font-family:monospace;margin-bottom:6px;">
+                                <button onclick="generateErrorReport()" style="padding:5px 12px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">Generar informe</button>
+                                <button id="btn-copy-informe" onclick="copyInforme()" style="display:none;padding:5px 12px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;margin-left:4px;">📋 Copiar</button>
+                                <div id="err-gen-result" style="margin-top:8px;font-size:12px;line-height:1.6;display:none;background:#fff;padding:10px 14px;border-radius:6px;border:1px solid #e2e8f0;color:#1e293b;"></div>
+                            </div>
+                        </details>
+
                         <!-- Configuración de transcripción -->
                         <details style="margin-bottom:8px;">
                             <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;">⚙️ Configuración de transcripción</summary>
@@ -421,11 +449,7 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                         <!-- Gestión de usuarios (inline) -->
                         <details>
                             <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;" id="users-summary-title">👥 Gestión de usuarios</summary>
-
-            <div class="users-panel" id="users-panel" style="display:block !important;">
-                <details>
-                    <summary id="users-summary-title">Gestión de usuarios</summary>
-                    <div class="users-body">
+                    <div class="users-body" style="padding:6px 0;">
                         <div class="users-list" id="users-list">
                             <div style="color:#94a3b8;font-size:12px;font-style:italic;">Cargando...</div>
                         </div>
@@ -463,13 +487,12 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
             </div>
                         </details>
                     </div>
-                </details>
-            </div>
+                        </details>
 
             <div class="sidebar-footer">
                 <a class="help-btn" href="/tutores-virtuales/help/eulalia" target="_blank" style="display:block;text-align:center;margin-top:10px;">Acerca de Eulalia</a>
                 <div style="margin-top:8px; font-size:11px; color:#94a3b8; line-height:1.5;">
-                    Desarrollado con <strong style="color:#cbd5e1;">TOMMI</strong> por el equipo TIC de UNINOVIS-UMA.
+                    Desarrollado con <strong style="color:#cbd5e1;">TOMMI</strong> por Ignacio Moreno-Torres, Universidad de Málaga.
                 </div>
             </div>
         </div>
@@ -489,10 +512,10 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                         
                         <p style="margin-top:8px; font-size:14px;"><strong>Como estudiante, ¿qué puedo hacer con Eulalia?</strong></p>
                         <ul style="margin:6px 0 6px 20px;">
-                            <li>Puedes estudiar los diferentes temas, pues contiene todos los documentos del temario.</li>
-                            <li>Puedes hacer múltiples ejercicios prácticos, para los que ofrecerá soluciones. </li>
-                            <li>Puedes evaluar tus progresos usando la sección <strong>Evalúa tu progreso</strong>.</li>
-                             <li>Si tienes dudas concretas, puedes pedirle que te las resuelva. Pero debes tener cuidado, las respuestas las genera una LLM (Large Language Model) y podría contener errores. Si ves algo que no te cuadra, usa el botón "Informar al profesor" y te resolveremos las dudas.</li>
+                            <li>Puedes <strong>estudiar los diferentes temas</strong>.</li>
+                            <li>Puedes hacer múltiples <strong>ejercicios prácticos</strong>, y consultar las soluciones. </li>
+                            <li>Puedes evaluar tus progresos usando la sección <strong>Evalúa tu progreso</strong>. Te servirá para saber si tienes el nivel suficiente para superar el examen.</li>
+                            <li>Puedes <strong>preguntar dudas</strong> a Eulalia. Aquí debes tener cuidado: aunque responde una IA entrenada con el material de la asignatura, ¡puede cometer errores!</li>
  
                         </ul>
 
@@ -500,7 +523,7 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                         <p style="margin:6px 0;font-size:13px;">Sí, ciertamente, hay muchas. Pero dos son fundamentales:</p>
                         <ul style="margin:6px 0 6px 20px;">
                             <li><strong>A escuchar y reconocer los sonidos.</strong> La tecnología de reconocimiento del habla es mucho menos certera que el oído humano, de manera que esta tarea la tendremos que aprender sin ayuda de la tecnología (o solo usándola instrumentalmente).</li>
-                            <li><strong>A comprender cómo la logopedia debe estar por encima de la tecnología.</strong> Una herramienta como Eulalia puede ayudarte a dominar conceptos y practicar ejercicios, pero la capacidad de escuchar, empatizar y tomar decisiones clínicas con un paciente es algo que ninguna IA puede sustituir.</li>
+                            <li><strong>A hacer una evaluación fonológica rigurosa que tenga en cuenta el contexto.</strong> Eulalia te ayudará con los datos objetivos (como el número y tipo de errores), pero la interpretación de la importancia de estos errores te corresponde a ti.</li>
                         </ul>
 
                         <p style="margin-top:8px; font-size:14px;"><strong>¿Hay algo que no deba hacer con Eulalia?</strong></p>
@@ -527,12 +550,12 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
 
                         <details style="margin-top:8px;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
                             <summary style="cursor:pointer;font-weight:600;color:#334155;">¿Por qué algunas respuestas de Eulalia pueden contener errores?</summary>
-                            <p style="margin-top:6px;">Los sistemas de inteligencia artificial generativa como ChatGPT, Gemini, Kimi K3 o Mistral <strong>siempre pueden cometer errores imprevistos</strong>. Eulalia usa un LLM (Mistral) para algunas funcionalidades, como responder preguntas abiertas o generar explicaciones. Cuando esto ocurre, se te avisa con un indicador amarillo (🟡). Si ves algo que no te cuadra, usa el botón "Informar al profesor".</p>
+                            <p style="margin-top:6px;">Los sistemas de inteligencia artificial generativa como ChatGPT, Gemini, Kimi K3 o Mistral <strong>siempre pueden cometer errores imprevistos</strong>. Eulalia usa un LLM (Mistral) para algunas funcionalidades, como responder preguntas abiertas o generar explicaciones. Verás que te avisa cuando una respuesta o un ejercicio se hace mediante una IA. En esos casos tendrás que decidir si fiarte o no de Eulalia.".</p>
                         </details>
 
                         <details style="margin-top:8px;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
                             <summary style="cursor:pointer;font-weight:600;color:#334155;">¿Es Eulalia una IA? ¿Es fiable?</summary>
-                            <p style="margin-top:6px;">Eulalia <strong>no es una IA</strong> y no tiene el carácter impredecible de las IA (como Claude, Gemini o ChatGPT). La mayor parte de sus funcionalidades (transcripciones, ejercicios, correcciones) son <strong>programáticas</strong>: están verificadas y no usan IA. Eso sí, algunas funcionalidades usan un LLM (Mistral). En esos casos siempre se te informará con un indicador amarillo (🟡) para que lo tengas en cuenta y valores si puedes o no aceptar esa información.</p>
+                            <p style="margin-top:6px;">La mayor parte de las funcionalidades (transcripciones, ejercicios, correcciones) de Eulalia son <strong>programáticas</strong>: están verificadas y por tanto son <strong>fiables</strong>. La IA se usa solo en algunos casos, principalmente con la opción "Pregunta a Eulalia", y en las <strong>interacciones del Proyecto de investigación</strong>. Siempre se te avisará para que lo tengas en cuenta y valores si puedes o no aceptar esa información.</p>
                         </details>
 
                         <details style="margin-top:8px;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
@@ -541,9 +564,9 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                         </details>
 
                         <details style="margin-top:8px;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
-                            <summary style="cursor:pointer;font-weight:600;color:#334155;">¿Puede Eulalia recoger datos personales? ¿Cumple la normativa europea?</summary>
+                            <summary style="cursor:pointer;font-weight:600;color:#334155;">¿Puede Eulalia recoger datos personales? </summary>
                             <div style="margin-top:6px;">
-                                <p>Eulalia no recopila datos personales del estudiantado. Los únicos datos a los que tiene acceso son las cuentas de correo electrónico, información que se obtiene de Moodle.</p>
+                                <p>No. Eulalia no recopila datos personales. Los únicos datos a los que tiene acceso son las cuentas de correo electrónico, información que se obtiene de Moodle.</p>
                                 <p style="margin-top:6px;">Todas las interacciones con Eulalia quedan registradas en un servidor de la UMA, pero <strong>no se identifica al autor o autora de cada pregunta</strong>. Esto es obligatorio para cumplir la normativa europea (GDPR).</p>
                                 <p style="margin-top:6px;">Registrar las interacciones (sin identificar a quien hace las preguntas) permite al profesorado asegurarse de que Eulalia no proporciona información falsa que pudiera penalizar al estudiante a la hora del examen final.</p>
                             </div>
@@ -551,7 +574,7 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
 
                         <details style="margin-top:8px;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
                             <summary style="cursor:pointer;font-weight:600;color:#334155;">¿Es obligatorio usar Eulalia?</summary>
-                            <p style="margin-top:6px;">Eulalia solo es <strong>indispensable para hacer el trabajo en grupo</strong>, pues permitirá documentar el uso responsable de la IA. Para el resto de la asignatura es un instrumento que puedes usar o no.</p>
+                            <p style="margin-top:6px;">Eulalia solo es <strong>indispensable para hacer el trabajo en grupo</strong>, pues permitirá <strong>documentar el proceso de redacción mediante IA</strong>. Además, al usar Eulalia podrás tener en cuenta las interacciones previas.<br><br>Para el resto de la asignatura es un instrumento que puedes usar o no.</p>
                         </details>
 
                         <details style="margin-top:8px;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
@@ -918,6 +941,7 @@ function closeWidget() {
     iframe.src = '';
     _currentWidgetName = null;
     showView(_viewBeforeWidget);
+    updateBreadcrumb();
     // Refresh eval view in case progress was updated inside the widget
     if (_viewBeforeWidget === 'eval-view') showEvalView();
 }
@@ -1535,7 +1559,7 @@ function toggleStudentView() {
         }
         restoreBtn.style.display = '';
     } else {
-        panel.style.display = '';
+        panel.style.display = 'block';
         if (restoreBtn) restoreBtn.style.display = 'none';
     }
 }
@@ -1555,6 +1579,7 @@ function _buildEjercicioOnclick(ej) {
     if (ej.tipo === 'panel_logocheck') return "openWidget('logocheck')";
     if (ej.tipo === 'espectrogramas') return "mostrarEspectrogramas('vocales')";
     if (ej.tipo === 'audio') return "document.getElementById('audio-file-input').click()";
+    if (ej.tipo === 'widget') return "openWidget('" + escapeJs(ej.widget) + "')";
     if (ej.tipo === 'consulta') return "showChatAndSend('" + escapeJs(ej.consulta) + "')";
     return '';
 }
@@ -1718,6 +1743,69 @@ function loadConfig() {
             document.getElementById('cfg-s-coda').value = cfg.s_coda || 'sibilante';
         })
         .catch(function() {});
+}
+
+var _lastInformeResumen = '';
+function copyInforme() {
+    var text = _lastInformeResumen || document.getElementById('err-gen-result').innerText;
+    navigator.clipboard.writeText(text).then(function() {
+        var btn = document.getElementById('btn-copy-informe');
+        btn.textContent = '✓ Copiado';
+        setTimeout(function() { btn.textContent = '📋 Copiar'; }, 1500);
+    });
+}
+
+function copyBothTranscriptions() {
+    var fono = document.getElementById('trans-gen-fono').textContent;
+    var fone = document.getElementById('trans-gen-fone').textContent;
+    var text = 'Fonológica: ' + fono + '\nFonética: ' + fone;
+    navigator.clipboard.writeText(text).then(function() {
+        var btn = document.getElementById('btn-copy-trans');
+        btn.textContent = '✓ Copiado';
+        setTimeout(function() { btn.textContent = '📋 Copiar'; }, 1500);
+    });
+}
+
+async function generateTranscription() {
+    var texto = document.getElementById('trans-gen-input').value.trim();
+    if (!texto) return;
+    try {
+        var res = await fetch('/api/public-agent/eulalia/transcribir?texto=' + encodeURIComponent(texto));
+        if (!res.ok) { alert('Error al transcribir'); return; }
+        var data = await res.json();
+        document.getElementById('trans-gen-fono').textContent = data.fonologica;
+        document.getElementById('trans-gen-fone').textContent = data.fonetica;
+        document.getElementById('trans-gen-result').style.display = '';
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function generateErrorReport() {
+    var correcta = document.getElementById('err-gen-correcta').value.trim();
+    var produccion = document.getElementById('err-gen-produccion').value.trim();
+    if (!correcta || !produccion) { alert('Introduce ambas transcripciones'); return; }
+    try {
+        var res = await fetch('/api/public-agent/eulalia/informe-errores?correcta=' + encodeURIComponent(correcta) + '&produccion=' + encodeURIComponent(produccion));
+        if (!res.ok) { alert('Error al generar informe'); return; }
+        var data = await res.json();
+        var el = document.getElementById('err-gen-result');
+        var html = '<div>';
+        html += '<div style="font-weight:700;color:#1e293b;margin-bottom:6px;">PFC: ' + (data.pfc || '—') + '% · Fonemas: ' + (data.fonemas_correctos || '—') + '/' + (data.fonemas_objetivo || '—') + '</div>';
+        if (data.errores && data.errores.length) {
+            html += '<div style="font-weight:700;color:#1e293b;margin-top:6px;">Errores (' + data.errores.length + '):</div>';
+            html += '<ul style="margin:4px 0 0 16px;color:#374151;">';
+            data.errores.forEach(function(e) {
+                html += '<li><strong style="color:#4250b3;">' + e.tipo + '</strong> — ' + e.subtipo + ': ' + (e.detalle || '') + '</li>';
+            });
+            html += '</ul>';
+        } else {
+            html += '<div style="margin-top:6px;color:#16a34a;font-weight:600;">Sin errores detectados</div>';
+        }
+        _lastInformeResumen = data.resumen || '';
+        html += '</div>';
+        el.innerHTML = html;
+        el.style.display = '';
+        document.getElementById('btn-copy-informe').style.display = '';
+    } catch(e) { alert('Error: ' + e.message); }
 }
 
 function saveConfig() {

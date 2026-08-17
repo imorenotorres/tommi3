@@ -254,18 +254,19 @@ def _es_peticion_transcripcion(msg: str) -> str | tuple | None:
     )) and not re.search(r'fonológica|fonologica|fonológicamente|fonologicamente', msg_lower)
 
     patterns = [
-        # Peticiones explícitas de transcripción fonológica
-        r'transcri(?:be|pción)\s+fonológica(?:mente)?\s+(?:de\s+)?(?:la\s+(?:palabra|frase|oración|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
-        r'transcri(?:be|pción)\s+fonológica(?:mente)?\s*:\s*["\']?(.+?)["\']?\s*$',
-        r'(?:haz|hazme|dame)\s+(?:la\s+)?transcripción\s+(?:fonológica\s+)?(?:de\s+)?["\']?(.+?)["\']?\s*$',
-        r'transcri(?:be|bir)\s+fonológicamente\s+["\']?(.+?)["\']?\s*$',
-        r'transcripción\s+fonológica\s+(?:de\s+)?["\']?(.+?)["\']?\s*$',
-        # Peticiones explícitas de transcripción fonética
+        # Peticiones explícitas de transcripción fonética (ANTES de las genéricas)
         r'transcri(?:be|pción)\s+fonética(?:mente)?\s+(?:de\s+)?(?:la\s+(?:palabra|frase|oración|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
         r'transcri(?:be|bir)\s+fonéticamente\s+(?:(?:la\s+)?(?:palabra|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
         r'transcripción\s+fonética\s+(?:de\s+)?["\']?(.+?)["\']?\s*$',
         r'(?:haz|hazme|dame|dime)\s+(?:la\s+)?transcripción\s+fonética\s+(?:de\s+)?["\']?(.+?)["\']?\s*$',
-        # Peticiones genéricas de transcripción (sin especificar tipo)
+        # Peticiones explícitas de transcripción fonológica
+        r'transcri(?:be|pción)\s+fonológica(?:mente)?\s+(?:de\s+)?(?:la\s+(?:palabra|frase|oración|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
+        r'transcri(?:be|pción)\s+fonológica(?:mente)?\s*:\s*["\']?(.+?)["\']?\s*$',
+        r'(?:haz|hazme|dame)\s+(?:la\s+)?transcripción\s+fonológica\s+(?:de\s+)?["\']?(.+?)["\']?\s*$',
+        r'transcri(?:be|bir)\s+fonológicamente\s+["\']?(.+?)["\']?\s*$',
+        r'transcripción\s+fonológica\s+(?:de\s+)?["\']?(.+?)["\']?\s*$',
+        # Peticiones genéricas de transcripción (sin especificar tipo — excluyen fonética/fonológica en el texto capturado)
+        r'(?:haz|hazme|dame)\s+(?:la\s+)?transcripción\s+(?:de\s+)?(?:la\s+(?:palabra|frase|oración|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
         r'transcri(?:be|pción)\s+(?:de\s+)?(?:la\s+(?:palabra|frase|oración|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
         r'transcri(?:be|bir)\s+(?:(?:la\s+)?(?:palabra|pseudopalabra)\s+)?["\']?(.+?)["\']?\s*$',
         # "cómo se transcribe X", "cuál es la transcripción de X"
