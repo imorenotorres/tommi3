@@ -213,14 +213,14 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
                 <select id="f-type" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:90px;"><option value="">Type</option></select>
                 <input type="text" id="f-topic" placeholder="Topic..." style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:120px;">
                 <input type="text" id="f-author" placeholder="Author..." style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:100px;">
-                <select id="f-output" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:110px;"><option value="table">Table</option><option value="list">List</option><option value="map-papers">Map: papers</option><option value="map-collab">Map: collaborations</option><option value="map-projects">Map: projects</option></select>
+                <select id="f-output" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:140px;"><option value="">Show results as</option><option value="table">Table</option><option value="list">List</option><option value="map-papers">Map: papers</option><option value="map-collab">Map: collaborations</option><option value="map-projects">Map: projects</option></select>
                 <button onclick="searchWithFilters()" style="padding:3px 14px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;width:60px;">Search</button>
                 <button onclick="clearFilters()" style="padding:3px 8px;background:#e2e8f0;color:#475569;border:none;border-radius:4px;font-size:12px;cursor:pointer;">Clear</button>
                 <span id="filter-summary" style="font-size:11px;color:#64748b;"></span>
             </div>
             <!-- Line 2: Natural language (input width matches combined filter fields above) -->
             <div style="display:flex;gap:6px;align-items:center;">
-                <span style="color:#166534;font-weight:800;font-size:13px;white-space:nowrap;width:120px;">Or write your query</span>
+                <span style="color:#166534;font-weight:800;font-size:13px;white-space:nowrap;width:120px;">Or write a query</span>
                 <input type="text" id="message-input" placeholder="Show a map of publications/collaborations, List papers about Health and Wellbeing" style="padding:3px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;" id="nl-input">
                 <button id="send-btn" style="padding:3px 14px;background:#166534;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;width:60px;">Ask</button>
             </div>
@@ -365,7 +365,7 @@ async function searchWithFilters() {
         }
 
         window._lastResults = data.results;
-        const outputFormat = document.getElementById('f-output').value;
+        const outputFormat = document.getElementById('f-output').value || 'table';
         renderResults(data.results, outputFormat, resultsDiv);
     } catch(e) {
         resultsDiv.innerHTML = '<p style="color:#dc2626;">Error: ' + e.message + '</p>';
