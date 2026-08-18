@@ -201,7 +201,18 @@ class MetadataRAGMixin:
                 with open(papers_json_path, "r", encoding="utf-8") as f:
                     pdata = json.load(f)
                 for acronym, uni_data in pdata.get("universities", {}).items():
-                    self._all_uni_papers[acronym] = uni_data.get("papers", [])
+                    papers = uni_data.get("papers", [])
+                    # Normalise paper fields for consistent access
+                    for p in papers:
+                        # Authors: convert plain strings to {"name": "..."}
+                        p["authors"] = [
+                            a if isinstance(a, dict) else {"name": a}
+                            for a in p.get("authors", [])
+                        ]
+                        # Year: ensure "publication_year" exists (some use "year")
+                        if "publication_year" not in p and "year" in p:
+                            p["publication_year"] = p["year"]
+                    self._all_uni_papers[acronym] = papers
                 total_p = sum(len(v) for v in self._all_uni_papers.values())
                 print(f"Papers cache loaded: {total_p} papers across {len(self._all_uni_papers)} universities")
             except Exception as e:

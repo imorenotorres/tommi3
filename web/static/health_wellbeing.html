@@ -34,7 +34,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 .nav-current { color: #fff; font-size: 16px; font-weight: 600; }
 
 /* Main layout */
-.layout { flex: 1; display: flex; overflow: hidden; }
+.layout { flex: 1; display: flex; overflow: hidden; min-height: 0; }
 
 /* Sidebar */
 .sidebar {
@@ -52,7 +52,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 }
 .help-btn:hover { background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; }
 .sidebar-desc { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
-.status-badge { display: inline-block; font-size: 13px; font-weight: 600; padding: 3px 12px; border-radius: 10px; color: #856404; background: #fff3cd; vertical-align: middle; }
+.status-badge { display: inline-block; font-size: 13px; font-weight: 600; padding: 3px 12px; border-radius: 10px; color: #0c5460; background: #d1ecf1; vertical-align: middle; }
 
 /* Example queries panel */
 .examples-panel details { background: #fff; border-radius: 8px; overflow: hidden; }
@@ -97,7 +97,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 .sidebar-footer img { width: 100%; }
 
 /* Chat area */
-.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; min-height: 0; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
 .message { display: flex; flex-direction: column; gap: 4px; }
 .message.user .bubble { background: #2563eb; color: #fff; align-self: flex-end; border-radius: 12px 12px 4px 12px; }
@@ -117,7 +117,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 .bubble img { max-width: 100%; border-radius: 6px; }
 .bubble h1, .bubble h2, .bubble h3, .bubble h4 { margin: 12px 0 6px; }
 .loading { color: #94a3b8; font-style: italic; }
-.inline-map { width: calc(100vw - 340px); height: 600px; border-radius: 8px; margin: 8px 0; border: 1px solid #e2e8f0; }
+.inline-map { width: 100%; max-width: 900px; height: 450px; border-radius: 8px; margin: 8px 0; border: 1px solid #e2e8f0; }
 .inline-map-container { position: relative; }
 .inline-map-header { font-weight: 600; font-size: 14px; padding: 8px 0 4px; }
 .inline-map-panel {
@@ -139,7 +139,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
 .panel-open-btn:hover { background: #e2e8f0; }
 
 /* Welcome message in chat area */
-.welcome-chat { padding: 30px 20px; color: #64748b; font-size: 14px; line-height: 1.6; text-align: center; }
+.welcome-chat { padding: 20px; color: #64748b; font-size: 14px; line-height: 1.6; text-align: left; overflow-y: auto; flex: 1; min-height: 0; }
 .welcome-chat h2 { color: #1e293b; font-size: 18px; margin-bottom: 8px; }
 
 /* Input area */
@@ -198,62 +198,50 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
     <a href="/research-explorers" class="nav-brand" style="text-decoration:none;">UNINOVIS Research Explorers</a>
     <span class="nav-sep">/</span>
     <span class="nav-current">Health &amp; Wellbeing Systems</span>
-    <span class="status-badge" title="This agent's knowledge base is being curated. Data may be incomplete or contain errors at this stage. Your feedback is welcome and helps us improve." style="margin-left:10px;">Status: Data curation</span>
+    <span class="status-badge" title="This agent is in pilot phase. You may encounter errors or unexpected responses. Your feedback is welcome and helps us improve." style="margin-left:10px;">Status: Pilot</span>
 </div>
 
-<div class="layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-content">
-            <div>
-                <div class="sidebar-title" id="sidebar-title"></div>
-                <div class="info-icons" id="info-icons">
-                </div>
+<div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <!-- Filter bar (always visible, fixed at top) -->
+    <div id="filter-bar" style="background:#f1f5f9;border-bottom:1px solid #e2e8f0;padding:8px 16px;flex-shrink:0;">
+        <div style="max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:6px;font-size:12px;">
+            <!-- Line 1: Filters -->
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                <span style="color:#4250b3;font-weight:800;font-size:13px;white-space:nowrap;width:120px;">Filter the database</span>
+                <select id="f-university" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:80px;"><option value="">Univ.</option></select>
+                <span style="display:inline-flex;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;"><select id="f-year-op" style="padding:3px 4px;border:none;font-size:12px;width:36px;background:#eef2ff;"><option value="=">=</option><option value="≥">≥</option><option value="≤">≤</option></select><select id="f-year" style="padding:3px 6px;border:none;border-left:1px solid #cbd5e1;font-size:12px;width:60px;"><option value="">Year</option></select></span>
+                <select id="f-type" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:90px;"><option value="">Type</option></select>
+                <input type="text" id="f-topic" placeholder="Topic..." style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:120px;">
+                <input type="text" id="f-author" placeholder="Author..." style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:100px;">
+                <select id="f-output" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:110px;"><option value="table">Table</option><option value="list">List</option><option value="map-papers">Map: papers</option><option value="map-collab">Map: collaborations</option></select>
+                <button onclick="searchWithFilters()" style="padding:3px 14px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;width:60px;">Search</button>
+                <button onclick="clearFilters()" style="padding:3px 8px;background:#e2e8f0;color:#475569;border:none;border-radius:4px;font-size:12px;cursor:pointer;">Clear</button>
+                <span id="filter-summary" style="font-size:11px;color:#64748b;"></span>
             </div>
-
-            <div class="examples-panel">
-                <details>
-                    <summary>Example queries</summary>
-                    <div class="examples-container" id="examples-container"></div>
-                </details>
-            </div>
-
-            <div class="history-panel">
-                <details id="history-details" open>
-                    <summary>Query history</summary>
-                    <div class="history-container" id="history-container">
-                        <div class="history-empty">No queries yet</div>
-                    </div>
-                </details>
-            </div>
-
-            <div class="sidebar-footer">
-                <img src="/static/logo_uninovis_sidebar.png" alt="UNINOVIS" style="width:100%;">
-                <a class="help-btn" href="javascript:void(0)" onclick="showInChat('/api/agents/health_wellbeing_sistems/quickguide')" title="Quick guide — how this agent works" style="display:block; text-align:center; margin-top:10px;">? Help</a>
-                <div style="margin-top:8px; font-size:11px; color:#94a3b8; line-height:1.5;">
-                    Built with <strong style="color:#cbd5e1;">TOMMI</strong>, an agentic framework by the UNINOVIS-UMA ICT Team. Licensed under the <a href="javascript:void(0)" onclick="showInChat('/static/license.html')" style="color:#cbd5e1;">EUPL v1.2</a> | <a href="javascript:void(0)" onclick="showInChat('/static/privacy.html')" style="color:#cbd5e1;">Privacy Policy</a>
-                </div>
+            <!-- Line 2: Natural language (input width matches combined filter fields above) -->
+            <div style="display:flex;gap:6px;align-items:center;">
+                <span style="color:#166534;font-weight:800;font-size:13px;white-space:nowrap;width:120px;">Or write your query</span>
+                <input type="text" id="message-input" placeholder="Show a map of publications/collaborations, List papers about Health and Wellbeing" style="padding:3px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;" id="nl-input">
+                <button id="send-btn" style="padding:3px 14px;background:#166534;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;width:60px;">Ask</button>
             </div>
         </div>
-    </aside>
+    </div>
 
-    <!-- Chat area -->
-    <div class="chat-area">
-        <div class="welcome-chat" id="welcome">
-            <h2>Health &amp; Wellbeing Systems Research Explorer</h2>
-            <p id="welcome-text">Ask about health and wellbeing systems research papers, researchers, projects, and topics across the UNINOVIS alliance.</p>
-        </div>
+    <!-- Content area: search results OR chat -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;">
+        <!-- Search results (shown when filtering, scrollable) -->
+        <div id="search-results" style="display:none;flex:1;overflow-y:auto;padding:12px 16px;"></div>
 
-        <div class="chat-messages" id="chat-messages"></div>
-
-        <div class="input-area">
-            <div class="input-row">
-                <textarea id="message-input" placeholder="Ask about health and wellbeing systems research..." rows="1"></textarea>
-                <button id="send-btn">Send</button>
+        <!-- Chat (shown by default) -->
+        <div class="chat-area" id="chat-area-wrapper" style="max-width:100%;flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;">
+            <div class="welcome-chat" id="welcome"></div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div style="padding:4px 16px;text-align:center;font-size:10px;color:#94a3b8;flex-shrink:0;">
+                Filter results: verified. Chat responses: AI-generated.
+                · <a href="javascript:void(0)" onclick="showInChat('/api/agents/health_wellbeing_sistems/quickguide')" style="color:#94a3b8;">Help</a>
+                · <a href="javascript:void(0)" onclick="showInChat('/static/license.html')" style="color:#94a3b8;">EUPL v1.2</a>
+                · <a href="javascript:void(0)" onclick="showInChat('/static/privacy.html')" style="color:#94a3b8;">Privacy</a>
             </div>
-        </div>
-        <div class="disclaimer">
-            Some responses are AI-generated and may contain inaccuracies. Reliability cues indicate the source of each response.
         </div>
     </div>
 </div>
@@ -299,6 +287,444 @@ async function loadConfig() {
         }
     } catch (e) { console.warn('Could not load config'); }
 }
+
+// ── Filter-based search ──
+async function loadFilters() {
+    try {
+        const resp = await fetch('/api/public-agent/health_wellbeing_sistems/filters');
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        const uniSel = document.getElementById('f-university');
+        window._uniMap = {};
+        (data.universities || []).forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id; opt.textContent = u.id;
+            opt.title = u.name;
+            uniSel.appendChild(opt);
+            window._uniMap[u.name] = u.id;
+            window._uniMap[u.id] = u.name;
+        });
+
+        const yearSel = document.getElementById('f-year');
+        (data.years || []).forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y; opt.textContent = y;
+            yearSel.appendChild(opt);
+        });
+
+        const typeSel = document.getElementById('f-type');
+        (data.types || []).forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t; opt.textContent = t;
+            typeSel.appendChild(opt);
+        });
+
+        // Topics: free text input, no dropdown needed
+    } catch(e) { console.warn('Could not load filters'); }
+}
+
+async function searchWithFilters() {
+    const params = new URLSearchParams();
+    const uni = document.getElementById('f-university').value;
+    const year = document.getElementById('f-year').value;
+    const yearOp = document.getElementById('f-year-op').value;
+    const type = document.getElementById('f-type').value;
+    const topic = document.getElementById('f-topic').value;
+    const author = document.getElementById('f-author').value.trim();
+
+    if (uni) params.append('university', uni);
+    if (year) { params.append('year', year); params.append('year_op', yearOp); }
+    if (type) params.append('pub_type', type);
+    if (topic) params.append('topic', topic);
+    if (author) params.append('author', author);
+
+    const resultsDiv = document.getElementById('search-results');
+    resultsDiv.style.display = '';
+    resultsDiv.innerHTML = '<p style="color:#94a3b8;font-style:italic;">Searching...</p>';
+    // Hide chat, show results
+    document.getElementById('chat-area-wrapper').style.display = 'none';
+
+    try {
+        const resp = await fetch('/api/public-agent/health_wellbeing_sistems/search?' + params.toString());
+        if (!resp.ok) throw new Error('Error ' + resp.status);
+        const data = await resp.json();
+
+        const summary = document.getElementById('filter-summary');
+        summary.textContent = data.total + ' paper' + (data.total !== 1 ? 's' : '') + ' found.';
+
+        if (data.results.length === 0) {
+            resultsDiv.innerHTML = '<p style="color:#94a3b8;">No papers match the selected filters.</p>';
+            return;
+        }
+
+        window._lastResults = data.results;
+        const outputFormat = document.getElementById('f-output').value;
+        renderResults(data.results, outputFormat, resultsDiv);
+    } catch(e) {
+        resultsDiv.innerHTML = '<p style="color:#dc2626;">Error: ' + e.message + '</p>';
+    }
+}
+
+function renderFilterMap(mapId, mapType, result) {
+    try {
+        var mapDiv = document.getElementById(mapId);
+        mapDiv.innerHTML = '';
+        var map = L.map(mapId, {minZoom: 3, maxZoom: 10, zoomControl: true, attributionControl: false});
+        map.setView([48, 12], 3);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {maxZoom: 10}).addTo(map);
+
+        var mapContainer = mapDiv.closest('.inline-map-container');
+
+        function showPanel(title, subtitle, countText, papersHtml, lon) {
+            var existing = mapContainer.querySelector('.inline-map-panel');
+            if (existing) existing.remove();
+            var panel = document.createElement('div');
+            var isWest = lon < 10;
+            panel.className = 'inline-map-panel ' + (isWest ? 'panel-left' : 'panel-right');
+            var html = '<button class="panel-close">&times;</button>';
+            html += '<div class="panel-title">' + title + '</div>';
+            if (subtitle) html += '<div class="panel-country">' + subtitle + '</div>';
+            html += '<button class="panel-open-btn" style="margin-bottom:10px;">Open in new window</button>';
+            html += '<div class="panel-count">' + countText + '</div>';
+            if (papersHtml) html += '<div class="panel-papers">' + papersHtml + '</div>';
+            if (papersHtml) html += '<button class="panel-open-btn">Open in new window</button>';
+            panel.innerHTML = html;
+            mapContainer.appendChild(panel);
+            panel.querySelector('.panel-close').addEventListener('click', function(e) { e.stopPropagation(); panel.remove(); });
+            panel.querySelectorAll('.panel-open-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var w = window.open('', '_blank', 'width=700,height=600');
+                    w.document.write('<html><head><title>' + title + '</title><style>body{font-family:system-ui,sans-serif;padding:20px;color:#1e293b;}a{color:#4250b3;}</style></head><body>');
+                    w.document.write('<h2>' + title + '</h2>');
+                    if (subtitle) w.document.write('<p>' + subtitle + '</p>');
+                    w.document.write('<p><strong>' + countText + '</strong></p>');
+                    if (papersHtml) w.document.write(papersHtml);
+                    w.document.write('</body></html>');
+                    w.document.close();
+                });
+            });
+        }
+
+        if (mapType === 'collaboration') {
+            var unis = result.universities || {};
+            var connections = result.connections || [];
+            var maxConnCount = Math.max.apply(null, connections.map(function(c){return c.count;}).concat([1]));
+
+            connections.forEach(function(conn) {
+                var fromUni = unis[conn.from], toUni = unis[conn.to];
+                if (!fromUni || !toUni || !fromUni.lat || !toUni.lat) return;
+                var latlngs = [[fromUni.lat, fromUni.lon], [toUni.lat, toUni.lon]];
+                var weight = Math.max(1.5, Math.min(5, 1.5 + (conn.count / maxConnCount) * 3.5));
+                L.polyline(latlngs, {color: '#7c3aed', weight: weight, opacity: 0.7}).addTo(map);
+                var midLat = (fromUni.lat + toUni.lat) / 2, midLon = (fromUni.lon + toUni.lon) / 2;
+                var labelIcon = L.divIcon({className: '', html: '<div style="background:#7c3aed;color:#fff;font-weight:700;font-size:13px;border-radius:12px;padding:2px 8px;text-align:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.25);">' + conn.count + '</div>', iconSize: [32, 24], iconAnchor: [16, 12]});
+                var labelMarker = L.marker([midLat, midLon], {icon: labelIcon, interactive: true, zIndexOffset: 1000}).addTo(map);
+                var papersHtml = '';
+                (conn.papers || []).forEach(function(p) {
+                    var doi = p.doi ? ' — <a href="' + p.doi + '" target="_blank" style="color:#7c3aed;">DOI</a>' : '';
+                    papersHtml += '<div style="padding:4px 0;border-bottom:1px solid #e2e8f0;"><b>' + (p.title || '') + '</b>' + (p.year ? ' (' + p.year + ')' : '') + doi + '</div>';
+                });
+                labelMarker.on('click', function() {
+                    showPanel(conn.from + ' ↔ ' + conn.to, '', conn.count + ' joint paper(s)', papersHtml, midLon);
+                });
+            });
+
+            Object.keys(unis).forEach(function(acronym) {
+                var uni = unis[acronym];
+                if (!uni.lat || !uni.lon) return;
+                var hasCollabs = (uni.collab_count || 0) > 0;
+                var size = 32, color = hasCollabs ? '#7c3aed' : '#cbd5e1';
+                var icon = L.divIcon({className: '', html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + color + ';border:2px solid #fff;opacity:' + (hasCollabs ? 0.9 : 0.6) + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:11px;text-shadow:0 1px 2px rgba(0,0,0,0.4);">' + acronym + '</div>', iconSize: [size, size], iconAnchor: [size/2, size/2]});
+                L.marker([uni.lat, uni.lon], {icon: icon}).addTo(map).on('click', function() {
+                    showPanel(acronym + ' — ' + uni.name, '', (uni.collab_count || 0) + ' collaboration paper(s)', '', uni.lon);
+                });
+            });
+        } else {
+            // Publications map
+            var data = result.universities || {};
+            var counts = Object.values(data).map(function(u){return u.count || 0;});
+            var maxCount = Math.max.apply(null, counts.concat([1]));
+            Object.keys(data).forEach(function(acronym) {
+                var uni = data[acronym];
+                if (!uni.lat || !uni.lon) return;
+                var size = uni.count > 0 ? Math.max(36, Math.min(56, 36 + (uni.count / maxCount) * 20)) : 24;
+                var color = uni.count > 0 ? '#2563eb' : '#cbd5e1';
+                var icon = L.divIcon({className: '', html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + color + ';border:2px solid #fff;opacity:' + (uni.count > 0 ? 0.9 : 0.6) + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,0.5);">' + uni.count + '</div>', iconSize: [size, size], iconAnchor: [size/2, size/2]});
+                var marker = L.marker([uni.lat, uni.lon], {icon: icon}).addTo(map);
+
+                var papersHtml = '';
+                (uni.papers || []).forEach(function(p) {
+                    var authors = Array.isArray(p.authors) ? (p.authors.length > 5 ? p.authors.slice(0,5).join(', ') + ' et al.' : p.authors.join(', ')) : (p.authors || '');
+                    var doi = p.doi ? ' — <a href="' + p.doi + '" target="_blank" style="color:#2563eb;">DOI</a>' : '';
+                    papersHtml += '<div style="padding:6px 0;border-bottom:1px solid #e2e8f0;"><b>' + (p.title || '') + '</b><br><span style="color:#64748b;">' + authors + (p.year ? ' (' + p.year + ')' : '') + (p.cited_by_count ? ' — Cited: ' + p.cited_by_count : '') + doi + '</span></div>';
+                });
+
+                marker.on('click', function() {
+                    showPanel(acronym + ' — ' + uni.name, '', uni.count + ' paper(s)', papersHtml, uni.lon);
+                });
+            });
+        }
+    } catch(e) {
+        document.getElementById(mapId).innerHTML = '<p style="color:#dc2626;padding:12px;">Error rendering map: ' + e.message + '</p>';
+    }
+}
+
+var _sortField = 'year';
+var _sortAsc = false;
+
+function renderResults(results, format, container) {
+    if (format === 'map-papers' || format === 'map-collab') {
+        // Convert filtered results into the format expected by renderInlineMapPlaceholders
+        var mapType = (format === 'map-collab') ? 'collaboration' : 'publications';
+
+        // Build data in the same format as the agent's search endpoints
+        var _coords = {USPN:[48.9566,2.3522],UDCLV:[41.0742,14.3272],UMA:[36.7213,-4.4214],KK:[54.8985,23.9036],UT:[41.3275,19.8187],THWS:[49.7913,9.9534],TAMK:[61.4978,23.761],THUAS:[52.0705,4.3007]};
+
+        if (mapType === 'publications') {
+            // Build format: {universities: {ID: {name, count, lat, lon, papers: [{title, authors, doi, year, cited_by_count}]}}}
+            var pubData = {universities: {}};
+            results.forEach(function(r) {
+                var uids = (r.university_id || '').split(', ');
+                uids.forEach(function(uid) {
+                    uid = uid.trim();
+                    if (!uid) return;
+                    if (!pubData.universities[uid]) {
+                        pubData.universities[uid] = {name: window._uniMap[uid] || uid, count: 0, lat: (_coords[uid]||[])[0], lon: (_coords[uid]||[])[1], papers: []};
+                    }
+                    pubData.universities[uid].count++;
+                    pubData.universities[uid].papers.push({title: r.title, authors: r.authors ? r.authors.split(', ') : [], doi: r.doi, year: r.year, cited_by_count: r.cited_by});
+                });
+            });
+            window._filterMapData = pubData;
+        } else {
+            // Build collaboration format: {universities: {...}, connections: [...]}
+            var collabData = {universities: {}, connections: []};
+            var connMap = {};
+            results.forEach(function(r) {
+                var uids = (r.university_id || '').split(', ').map(function(u){return u.trim();}).filter(Boolean);
+                uids.forEach(function(uid) {
+                    if (!collabData.universities[uid]) {
+                        collabData.universities[uid] = {name: window._uniMap[uid] || uid, lat: (_coords[uid]||[])[0], lon: (_coords[uid]||[])[1], collab_count: 0};
+                    }
+                });
+                // Multi-university papers create connections
+                if (uids.length >= 2) {
+                    uids.forEach(function(uid) { collabData.universities[uid].collab_count = (collabData.universities[uid].collab_count || 0) + 1; });
+                    for (var i = 0; i < uids.length; i++) {
+                        for (var j = i + 1; j < uids.length; j++) {
+                            var key = [uids[i], uids[j]].sort().join('-');
+                            if (!connMap[key]) connMap[key] = {from: uids[i], to: uids[j], count: 0, papers: []};
+                            connMap[key].count++;
+                            connMap[key].papers.push({title: r.title, doi: r.doi || '', year: r.year});
+                        }
+                    }
+                }
+            });
+            collabData.connections = Object.values(connMap);
+            window._filterMapData = collabData;
+        }
+
+        // Render map directly using the same code as renderInlineMapPlaceholders
+        var mapId = 'filter-map-' + Date.now();
+        var title = (mapType === 'collaboration' ? 'Collaboration map' : 'Publications map') + ' (' + results.length + ' papers)';
+        container.innerHTML = '<div class="inline-map-container"><div class="inline-map-header" style="font-weight:600;font-size:14px;padding:8px 0 4px;">' + title + '</div><div id="' + mapId + '" class="inline-map" style="height:500px;"></div></div>';
+
+        setTimeout(function() {
+            renderFilterMap(mapId, mapType, window._filterMapData);
+        }, 100);
+        return;
+    } else if (format === 'list') {
+        let html = '<div style="max-width:900px;">';
+        results.forEach((r, i) => {
+            const doiLink = r.doi ? '<a href="' + r.doi + '" target="_blank" style="color:#4250b3;">' + r.title + '</a>' : r.title;
+            const uniId = window._uniMap && window._uniMap[r.university] ? window._uniMap[r.university] : r.university_id;
+            html += '<div style="padding:10px 0;border-bottom:1px solid #f1f5f9;">';
+            html += '<div style="font-size:14px;font-weight:600;">' + (i+1) + '. ' + doiLink + '</div>';
+            html += '<div style="font-size:12px;color:#475569;margin-top:2px;">' + r.authors + '</div>';
+            html += '<div style="font-size:11px;color:#94a3b8;margin-top:2px;">' + uniId + ' · ' + r.year + ' · ' + r.type + ' · Cited: ' + r.cited_by + '</div>';
+            if (r.topics.length) html += '<div style="font-size:11px;color:#94a3b8;margin-top:2px;">Topics: ' + r.topics.join(', ') + '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } else {
+        // Table with sortable columns
+        const thStyle = 'padding:6px 8px;text-align:left;border-bottom:2px solid #e2e8f0;cursor:pointer;user-select:none;white-space:nowrap;';
+        const arrow = (field) => _sortField === field ? (_sortAsc ? ' ▲' : ' ▼') : '';
+
+        let html = '<table style="width:100%;border-collapse:collapse;font-size:12px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">';
+        html += '<thead><tr style="background:#f8fafc;">';
+        html += '<th style="' + thStyle + '" onclick="sortResults(\'title\')">Title' + arrow('title') + '</th>';
+        html += '<th style="' + thStyle + '" onclick="sortResults(\'authors\')">Authors' + arrow('authors') + '</th>';
+        html += '<th style="' + thStyle + '" onclick="sortResults(\'university_id\')">Univ.' + arrow('university_id') + '</th>';
+        html += '<th style="' + thStyle + '" onclick="sortResults(\'year\')">Year' + arrow('year') + '</th>';
+        html += '<th style="' + thStyle + '" onclick="sortResults(\'cited_by\')">Cited' + arrow('cited_by') + '</th>';
+        html += '</tr></thead><tbody>';
+
+        results.forEach(r => {
+            const doiLink = r.doi ? '<a href="' + r.doi + '" target="_blank" style="color:#4250b3;text-decoration:none;">' + r.title + '</a>' : r.title;
+            const uniId = window._uniMap && window._uniMap[r.university] ? window._uniMap[r.university] : r.university_id;
+            html += '<tr style="border-bottom:1px solid #f1f5f9;">';
+            html += '<td style="padding:6px 8px;font-weight:600;max-width:400px;">' + doiLink + '</td>';
+            html += '<td style="padding:6px 8px;color:#475569;max-width:200px;overflow:hidden;text-overflow:ellipsis;">' + r.authors + '</td>';
+            html += '<td style="padding:6px 8px;color:#475569;" title="' + r.university + '">' + uniId + '</td>';
+            html += '<td style="padding:6px 8px;text-align:center;">' + r.year + '</td>';
+            html += '<td style="padding:6px 8px;text-align:center;">' + r.cited_by + '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+}
+
+function sortResults(field) {
+    if (!window._lastResults) return;
+    if (_sortField === field) {
+        _sortAsc = !_sortAsc;
+    } else {
+        _sortField = field;
+        _sortAsc = (field === 'title' || field === 'authors' || field === 'university_id');
+    }
+    window._lastResults.sort((a, b) => {
+        let va = a[field] || '', vb = b[field] || '';
+        if (typeof va === 'number') return _sortAsc ? va - vb : vb - va;
+        va = String(va).toLowerCase(); vb = String(vb).toLowerCase();
+        return _sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+    const fmt = 'table'; // Sorting always renders as table
+    renderResults(window._lastResults, fmt, document.getElementById('search-results'));
+}
+
+function clearFilters() {
+    document.getElementById('f-university').value = '';
+    document.getElementById('f-year').value = '';
+    document.getElementById('f-year-op').value = '=';
+    document.getElementById('f-type').value = '';
+    document.getElementById('f-topic').value = '';
+    document.getElementById('f-author').value = '';
+    document.getElementById('f-output').value = 'table';
+    document.getElementById('search-results').style.display = 'none';
+    document.getElementById('filter-summary').textContent = '';
+    // Restore chat
+    document.getElementById('chat-area-wrapper').style.display = '';
+}
+
+// Also search on Enter in text field
+document.getElementById('f-author').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); searchWithFilters(); }
+});
+document.getElementById('f-topic').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); searchWithFilters(); }
+});
+
+// Intercept "list papers" type NL queries and route to filter search
+function tryStructuredQuery(message) {
+    var msg = message.toLowerCase().trim();
+
+    // Handle format switching for previous results
+    var formatMatch = msg.match(/^(?:show|display|view)\s+(?:as\s+)?(?:a\s+)?(table|list|map)/i);
+    if (formatMatch && window._lastResults && window._lastResults.length > 0) {
+        var fmt = formatMatch[1].toLowerCase();
+        if (fmt === 'map') fmt = 'map-papers';
+        document.getElementById('search-results').style.display = '';
+        document.getElementById('chat-area-wrapper').style.display = 'none';
+        document.getElementById('filter-summary').textContent = window._lastResults.length + ' papers (format: ' + fmt + ')';
+        renderResults(window._lastResults, fmt, document.getElementById('search-results'));
+        return true;
+    }
+
+    // Detect "list papers on/about X" patterns
+    var listMatch = msg.match(/^(?:list|show|find|search|get)\s+(?:all\s+)?(?:papers?|publications?|articles?|studies)\s+(?:on|about|related\s+to|regarding|of)\s+(.+)/i);
+    if (!listMatch) listMatch = msg.match(/^(?:papers?|publications?|articles?)\s+(?:on|about|related\s+to)\s+(.+)/i);
+
+    // Detect "list papers by AUTHOR"
+    var authorMatch = msg.match(/^(?:list|show|find|search|get)\s+(?:all\s+)?(?:papers?|publications?|articles?)\s+(?:by|from|of\s+author)\s+(.+)/i);
+
+    // Detect "list papers from UNIVERSITY"
+    var uniMatch = msg.match(/^(?:list|show|find|search|get)\s+(?:all\s+)?(?:papers?|publications?|articles?)\s+(?:from|at|of)\s+(uma|uspn|udclv|kk|ut|thws|tamk|thuas)\b/i);
+
+    // Detect "list papers YEAR" or "list papers from YEAR"
+    var yearMatch = msg.match(/^(?:list|show|find|search|get)\s+(?:all\s+)?(?:papers?|publications?|articles?)\s+(?:from|in|of)\s+(20\d{2})\b/i);
+
+    if (listMatch || authorMatch || uniMatch || yearMatch) {
+        var params = new URLSearchParams();
+        var description = [];
+
+        if (listMatch) {
+            // Use the topic query directly (backend does substring search on concepts + title + abstract)
+            var topicQuery = listMatch[1].replace(/[?.!]/g, '').trim();
+            if (topicQuery) {
+                params.append('topic', topicQuery);
+                description.push('topic: ' + topicQuery);
+            }
+        }
+        if (authorMatch) {
+            params.append('author', authorMatch[1].trim());
+            description.push('author: ' + authorMatch[1].trim());
+        }
+        if (uniMatch) {
+            params.append('university', uniMatch[1].toUpperCase());
+            description.push('university: ' + uniMatch[1].toUpperCase());
+        }
+        if (yearMatch) {
+            params.append('year', yearMatch[1]);
+            description.push('year: ' + yearMatch[1]);
+        }
+
+        // Also extract year/university from combined queries like "list papers on ethics from 2025"
+        var extraYear = msg.match(/(?:from|in|since)\s+(20\d{2})/);
+        if (extraYear && !yearMatch) {
+            params.append('year', extraYear[1]);
+            if (msg.includes('since')) params.append('year_op', '≥');
+            description.push('year: ' + extraYear[1]);
+        }
+        var extraUni = msg.match(/(?:from|at|by)\s+(uma|uspn|udclv|kk|ut|thws|tamk|thuas)\b/i);
+        if (extraUni && !uniMatch) {
+            params.append('university', extraUni[1].toUpperCase());
+            description.push('university: ' + extraUni[1].toUpperCase());
+        }
+
+        // Execute the structured search — always as table, and reset dropdown
+        document.getElementById('f-output').value = 'table';
+        document.getElementById('search-results').style.display = '';
+        document.getElementById('chat-area-wrapper').style.display = 'none';
+        document.getElementById('filter-summary').textContent = 'Searching: ' + description.join(', ') + '...';
+
+        params.append('nl_query', message);
+        fetch('/api/public-agent/health_wellbeing_sistems/search?' + params.toString())
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                window._lastResults = data.results;
+                document.getElementById('filter-summary').textContent = data.total + ' paper' + (data.total !== 1 ? 's' : '') + ' found (' + description.join(', ') + ')';
+                renderResults(data.results, 'table', document.getElementById('search-results'));
+            })
+            .catch(function(e) {
+                document.getElementById('search-results').innerHTML = '<p style="color:#dc2626;">Error: ' + e.message + '</p>';
+            });
+
+        return true; // Query was handled
+    }
+
+    return false; // Not a structured query, use LLM
+}
+
+// Align NL input width to combined filter fields
+function alignNlInput() {
+    var fields = ['f-university','f-year-op','f-year','f-type','f-topic','f-author','f-output'];
+    var totalWidth = 0;
+    fields.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) totalWidth += el.offsetWidth;
+    });
+    // Add gaps (6px * number of gaps between fields, roughly)
+    totalWidth += (fields.length - 1) * 6;
+    var nlInput = document.getElementById('message-input');
+    if (nlInput && totalWidth > 100) nlInput.style.width = totalWidth + 'px';
+}
+window.addEventListener('load', function() { setTimeout(alignNlInput, 200); });
+window.addEventListener('resize', alignNlInput);
 
 // History management
 function addToHistory(query) {
@@ -362,12 +788,21 @@ function addMessage(text, role) {
 }
 
 async function sendMessage(message) {
-    if (isLoading || !message.trim()) return;
-    isLoading = true;
-    sendBtn.disabled = true;
+    if (!message.trim()) return;
+    if (isLoading) { isLoading = false; sendBtn.disabled = false; }
     messageInput.value = '';
 
-    addToHistory(message);
+    // Try structured query first (list papers, etc.) — renders as table
+    if (tryStructuredQuery(message)) return;
+
+    // Otherwise use LLM chat
+    isLoading = true;
+    sendBtn.disabled = true;
+
+    // Switch from search results to chat view
+    document.getElementById('search-results').style.display = 'none';
+    document.getElementById('chat-area-wrapper').style.display = '';
+    welcome.style.display = 'none';
 
     const userBubble = addMessage(message, 'user');
     const userMsg = userBubble.closest('.message');
@@ -432,7 +867,10 @@ async function sendMessage(message) {
     eventSource.addEventListener('done', () => {
         eventSource.close();
         const processedText = replaceMapLinksWithPlaceholders(cleanPdfLinks(responseText));
-        agentBubble.innerHTML = bannerHtml + badgeHtml + marked.parse(processedText) + traceHtml;
+        // Hide banner if response is primarily a map (little text beyond the map link)
+        const textOnly = responseText.replace(/\[.*?\]\(.*?\)/g, '').replace(/[#*_\n\s]/g, '').trim();
+        const showBanner = textOnly.length > 50;
+        agentBubble.innerHTML = (showBanner ? bannerHtml + badgeHtml : '') + marked.parse(processedText) + traceHtml;
         renderInlineMapPlaceholders(agentBubble);
         addPdfLinks(agentBubble);
         agentBubble.querySelectorAll('a').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
@@ -470,8 +908,6 @@ messageInput.addEventListener('keydown', (e) => {
     }
 });
 messageInput.addEventListener('input', () => {
-    messageInput.style.height = 'auto';
-    messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
 });
 
 // ── Show HTML pages in the chat area ──
@@ -896,6 +1332,7 @@ async function submitFeedback(widget, rating, notes, userQuestion, responseText)
 }
 
 loadConfig();
+loadFilters();
 loadIcons();
 </script>
 </body>

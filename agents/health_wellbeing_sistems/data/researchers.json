@@ -1,54 +1,76 @@
 {
   "KK": [],
-  "TAMK": [],
+  "TAMK": [
+    {
+      "name": "Arja Halkoaho",
+      "paper_count": 25,
+      "topics": [
+        "Aging and Gerontology Research",
+        "BRCA gene mutations in cancer",
+        "Biomedical Ethics and Regulation",
+        "COVID-19 and healthcare impacts",
+        "CRISPR and Genetic Engineering",
+        "Dementia and Cognitive Impairment Research",
+        "Diabetes Management and Education",
+        "Elder Abuse and Neglect",
+        "Ethics in Clinical Research",
+        "Ethics in medical practice"
+      ]
+    }
+  ],
   "THUAS": [],
   "THWS": [],
   "UDCLV": [
     {
-      "name": "Leandro Donisi",
-      "paper_count": 3,
+      "name": "Annalisa Capuano",
+      "paper_count": 1,
       "topics": [
-        "Acceleration",
-        "Accelerometer",
-        "Algorithm",
-        "Artificial intelligence",
-        "Cadence",
+        "Business",
         "Computer science",
-        "Engineering",
-        "Frequency domain",
-        "Gait",
-        "Inertial measurement unit",
-        "Machine learning",
-        "Metric (unit)",
-        "Population",
-        "Receiver operating characteristic",
-        "Sagittal plane",
-        "Simulation",
-        "Step detection",
-        "Support vector machine",
-        "Time domain",
-        "Units of measurement",
-        "Wearable computer",
-        "Work (physics)"
+        "Risk analysis (engineering)"
       ],
       "papers": [
         {
-          "id": "W4386929116",
-          "title": "sEMG Spectral Analysis and Machine Learning Algorithms Are Able to Discriminate Biomechanical Risk Classes Associated with Manual Material Liftings",
-          "year": 2023
-        },
-        {
-          "id": "W4392595776",
-          "title": "Capability of Machine Learning Algorithms to Classify Safe and Unsafe Postures during Weight Lifting Tasks Using Inertial Sensors",
+          "id": "W4392923777",
+          "title": "Artificial intelligence for optimizing benefits and minimizing risks of pharmacological therapies: challenges and opportunities",
           "year": 2024
-        },
+        }
+      ],
+      "affiliations": [
+        "University of Campania \"Luigi Vanvitelli\""
+      ],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Atrin Barzegar",
+      "paper_count": 1,
+      "topics": [
+        "Artificial intelligence",
+        "Computer science",
+        "Ensemble learning",
+        "Feature (linguistics)",
+        "Feature engineering",
+        "Generalizability theory",
+        "Health care",
+        "Key (lock)",
+        "Logistic regression",
+        "Machine learning",
+        "Overfitting",
+        "Pipeline (software)",
+        "Preprocessor",
+        "Supervised learning",
+        "Support vector machine"
+      ],
+      "papers": [
         {
-          "id": "W4414345257",
-          "title": "Validity of a Novel Algorithm to Compute Spatiotemporal Parameters Based on a Single IMU Placed on the Lumbar Region",
+          "id": "W4416074225",
+          "title": "Machine Learning Pipeline for Early Diabetes Detection: A Comparative Study with Explainable AI",
           "year": 2025
         }
       ],
-      "affiliations": [],
+      "affiliations": [
+        "University of Campania \"Luigi Vanvitelli\""
+      ],
       "affiliation_status": "confirmed"
     },
     {
@@ -99,40 +121,35 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Giusy Giugliano",
+      "name": "Giuseppe Viscardi",
       "paper_count": 1,
       "topics": [
         "Artificial intelligence",
-        "Cell biology",
-        "Chemistry",
-        "Computational biology",
         "Computer science",
-        "Computer vision",
-        "Contextual image classification",
-        "Cytometry",
-        "Deep learning",
-        "Feature (linguistics)",
-        "Flow (mathematics)",
-        "Flow cytometry",
-        "Focus (optics)",
-        "Holography",
-        "Image processing",
-        "In silico",
-        "Pattern recognition (psychology)",
-        "Staining"
+        "Data science",
+        "Immunotherapy",
+        "Internal medicine",
+        "Machine learning",
+        "Medicine",
+        "Oncology",
+        "Patient data",
+        "Trustworthiness"
       ],
       "papers": [
         {
-          "id": "W7132822830",
-          "title": "Impact of Image Representation on Deep Learning-Based Single-Cell Classification by Holographic Imaging Flow Cytometry",
-          "year": 2026
+          "id": "W4317718004",
+          "title": "Real-world data to build explainable trustworthy artificial intelligence models for prediction of immunotherapy efficacy in NSCLC patients",
+          "year": 2023
         }
       ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
+      "affiliations": [
+        "Fondazione IRCCS Istituto Nazionale dei Tumori",
+        "University of Campania \"Luigi Vanvitelli\""
+      ],
+      "affiliation_status": "unconfirmed"
     },
     {
-      "name": "Lisa Miccio",
+      "name": "Giusy Giugliano",
       "paper_count": 1,
       "topics": [
         "Artificial intelligence",
@@ -198,7 +215,54 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Pietro Ferraro",
+      "name": "Leandro Donisi",
+      "paper_count": 3,
+      "topics": [
+        "Acceleration",
+        "Accelerometer",
+        "Algorithm",
+        "Artificial intelligence",
+        "Cadence",
+        "Computer science",
+        "Engineering",
+        "Frequency domain",
+        "Gait",
+        "Inertial measurement unit",
+        "Machine learning",
+        "Metric (unit)",
+        "Population",
+        "Receiver operating characteristic",
+        "Sagittal plane",
+        "Simulation",
+        "Step detection",
+        "Support vector machine",
+        "Time domain",
+        "Units of measurement",
+        "Wearable computer",
+        "Work (physics)"
+      ],
+      "papers": [
+        {
+          "id": "W4386929116",
+          "title": "sEMG Spectral Analysis and Machine Learning Algorithms Are Able to Discriminate Biomechanical Risk Classes Associated with Manual Material Liftings",
+          "year": 2023
+        },
+        {
+          "id": "W4392595776",
+          "title": "Capability of Machine Learning Algorithms to Classify Safe and Unsafe Postures during Weight Lifting Tasks Using Inertial Sensors",
+          "year": 2024
+        },
+        {
+          "id": "W4414345257",
+          "title": "Validity of a Novel Algorithm to Compute Spatiotemporal Parameters Based on a Single IMU Placed on the Lumbar Region",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Lisa Miccio",
       "paper_count": 1,
       "topics": [
         "Artificial intelligence",
@@ -264,83 +328,36 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Giuseppe Viscardi",
+      "name": "Pietro Ferraro",
       "paper_count": 1,
       "topics": [
         "Artificial intelligence",
+        "Cell biology",
+        "Chemistry",
+        "Computational biology",
         "Computer science",
-        "Data science",
-        "Immunotherapy",
-        "Internal medicine",
-        "Machine learning",
-        "Medicine",
-        "Oncology",
-        "Patient data",
-        "Trustworthiness"
-      ],
-      "papers": [
-        {
-          "id": "W4317718004",
-          "title": "Real-world data to build explainable trustworthy artificial intelligence models for prediction of immunotherapy efficacy in NSCLC patients",
-          "year": 2023
-        }
-      ],
-      "affiliations": [
-        "Fondazione IRCCS Istituto Nazionale dei Tumori",
-        "University of Campania \"Luigi Vanvitelli\""
-      ],
-      "affiliation_status": "unconfirmed"
-    },
-    {
-      "name": "Annalisa Capuano",
-      "paper_count": 1,
-      "topics": [
-        "Business",
-        "Computer science",
-        "Risk analysis (engineering)"
-      ],
-      "papers": [
-        {
-          "id": "W4392923777",
-          "title": "Artificial intelligence for optimizing benefits and minimizing risks of pharmacological therapies: challenges and opportunities",
-          "year": 2024
-        }
-      ],
-      "affiliations": [
-        "University of Campania \"Luigi Vanvitelli\""
-      ],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Atrin Barzegar",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Computer science",
-        "Ensemble learning",
+        "Computer vision",
+        "Contextual image classification",
+        "Cytometry",
+        "Deep learning",
         "Feature (linguistics)",
-        "Feature engineering",
-        "Generalizability theory",
-        "Health care",
-        "Key (lock)",
-        "Logistic regression",
-        "Machine learning",
-        "Overfitting",
-        "Pipeline (software)",
-        "Preprocessor",
-        "Supervised learning",
-        "Support vector machine"
+        "Flow (mathematics)",
+        "Flow cytometry",
+        "Focus (optics)",
+        "Holography",
+        "Image processing",
+        "In silico",
+        "Pattern recognition (psychology)",
+        "Staining"
       ],
       "papers": [
         {
-          "id": "W4416074225",
-          "title": "Machine Learning Pipeline for Early Diabetes Detection: A Comparative Study with Explainable AI",
-          "year": 2025
+          "id": "W7132822830",
+          "title": "Impact of Image Representation on Deep Learning-Based Single-Cell Classification by Holographic Imaging Flow Cytometry",
+          "year": 2026
         }
       ],
-      "affiliations": [
-        "University of Campania \"Luigi Vanvitelli\""
-      ],
+      "affiliations": [],
       "affiliation_status": "confirmed"
     }
   ],
@@ -405,6 +422,171 @@
       "affiliation_status": "confirmed"
     },
     {
+      "name": "Francisco J. Baldán",
+      "paper_count": 1,
+      "topics": [
+        "Analytics",
+        "Artificial intelligence",
+        "Big data",
+        "Computer science",
+        "Data science",
+        "Generalizability theory",
+        "Interpretability",
+        "Machine learning",
+        "Standardization"
+      ],
+      "papers": [
+        {
+          "id": "W4410953613",
+          "title": "Revolutionizing Sperm Analysis with AI: A Review of Computer-Aided Sperm Analysis Systems",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Francisco Sendra‐Portero",
+      "paper_count": 1,
+      "topics": [
+        "Artificial intelligence",
+        "Computer science",
+        "Machine learning",
+        "Medical education",
+        "Medicine",
+        "Perception",
+        "Primary (astronomy)",
+        "Primary hyperparathyroidism",
+        "Psychology",
+        "Radiology",
+        "Specialty"
+      ],
+      "papers": [
+        {
+          "id": "W4316465182",
+          "title": "Impact of the Rise of Artificial Intelligence in Radiology: What Do Students Think?",
+          "year": 2023
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Ibon Eguíluz‐Gracia",
+      "paper_count": 1,
+      "topics": [
+        "Allergy",
+        "Applications of artificial intelligence",
+        "Artificial intelligence",
+        "Bridge (graph theory)",
+        "Computer science",
+        "Data science",
+        "Engineering ethics",
+        "Medicine",
+        "Narrative review",
+        "Perspective (graphical)"
+      ],
+      "papers": [
+        {
+          "id": "W4414043654",
+          "title": "Artificial intelligence in allergy and immunology: Recent developments, implementation challenges, and the road toward clinical impact",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Isabel Moreno‐Indias",
+      "paper_count": 2,
+      "topics": [
+        "Bioinformatics",
+        "Biology",
+        "Comparability",
+        "Computational biology",
+        "Computer science",
+        "Data science",
+        "Exploit",
+        "Field (mathematics)",
+        "Health care",
+        "Human microbiome",
+        "Key (lock)",
+        "Microbiome",
+        "Risk analysis (engineering)",
+        "Volume (thermodynamics)"
+      ],
+      "papers": [
+        {
+          "id": "W4386921745",
+          "title": "Advancing microbiome research with machine learning: key findings from the ML4Microbiome COST action",
+          "year": 2023
+        },
+        {
+          "id": "W4403442497",
+          "title": "Editorial: Microbiome and machine learning, volume II",
+          "year": 2024
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Javad Rahebi",
+      "paper_count": 1,
+      "topics": [
+        "Algorithm",
+        "Artificial intelligence",
+        "Block (permutation group theory)",
+        "Blockchain",
+        "Computer science",
+        "Confidentiality",
+        "Data center",
+        "Machine learning",
+        "Medical record",
+        "Reliability (semiconductor)"
+      ],
+      "papers": [
+        {
+          "id": "W4210632374",
+          "title": "Patient privacy in smart cities by blockchain technology and feature selection with Harris Hawks Optimization (HHO) algorithm and machine learning",
+          "year": 2022
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Jorge Munilla",
+      "paper_count": 1,
+      "topics": [
+        "Algorithm",
+        "Artificial intelligence",
+        "Artificial neural network",
+        "Block (permutation group theory)",
+        "Blockchain",
+        "Computer science",
+        "Confidentiality",
+        "Data center",
+        "Data mining",
+        "Interpretability",
+        "Machine learning",
+        "Medical record",
+        "Normalization (sociology)",
+        "Outlier",
+        "Pattern recognition (psychology)",
+        "Reliability (semiconductor)"
+      ],
+      "papers": [
+        {
+          "id": "W4210632374",
+          "title": "Patient privacy in smart cities by blockchain technology and feature selection with Harris Hawks Optimization (HHO) algorithm and machine learning",
+          "year": 2022
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
       "name": "Juan E. Arco",
       "paper_count": 1,
       "topics": [
@@ -454,65 +636,90 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Isabel Moreno‐Indias",
-      "paper_count": 2,
+      "name": "Juan José Gómez‐Doblas",
+      "paper_count": 1,
       "topics": [
-        "Bioinformatics",
-        "Biology",
-        "Comparability",
-        "Computational biology",
-        "Computer science",
-        "Data science",
-        "Exploit",
-        "Field (mathematics)",
+        "Artificial intelligence",
+        "Certification",
+        "Generalizability theory",
         "Health care",
-        "Human microbiome",
-        "Key (lock)",
-        "Microbiome",
+        "Medicine",
+        "Pharmacotherapy",
+        "Psychological intervention",
         "Risk analysis (engineering)",
-        "Volume (thermodynamics)"
+        "Standardization",
+        "Transparency (behavior)"
       ],
       "papers": [
         {
-          "id": "W4386921745",
-          "title": "Advancing microbiome research with machine learning: key findings from the ML4Microbiome COST action",
-          "year": 2023
-        },
-        {
-          "id": "W4403442497",
-          "title": "Editorial: Microbiome and machine learning, volume II",
-          "year": 2024
+          "id": "W4412455680",
+          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
+          "year": 2025
         }
       ],
       "affiliations": [],
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Jorge Munilla",
+      "name": "Manuel F. Fernández",
       "paper_count": 1,
       "topics": [
-        "Algorithm",
-        "Artificial intelligence",
-        "Artificial neural network",
-        "Block (permutation group theory)",
-        "Blockchain",
         "Computer science",
-        "Confidentiality",
-        "Data center",
-        "Data mining",
-        "Interpretability",
-        "Machine learning",
-        "Medical record",
-        "Normalization (sociology)",
-        "Outlier",
-        "Pattern recognition (psychology)",
-        "Reliability (semiconductor)"
+        "Internet of Things",
+        "Modulation (music)",
+        "Real-time computing",
+        "Stress (linguistics)"
       ],
       "papers": [
         {
-          "id": "W4210632374",
-          "title": "Patient privacy in smart cities by blockchain technology and feature selection with Harris Hawks Optimization (HHO) algorithm and machine learning",
-          "year": 2022
+          "id": "W4411673845",
+          "title": "Trends and Challenges in Real-Time Stress Detection and Modulation: The Role of the IoT and Artificial Intelligence",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Manuel Paniagua-Gómez",
+      "paper_count": 1,
+      "topics": [
+        "Computer science",
+        "Internet of Things",
+        "Modulation (music)",
+        "Real-time computing",
+        "Stress (linguistics)"
+      ],
+      "papers": [
+        {
+          "id": "W4411673845",
+          "title": "Trends and Challenges in Real-Time Stress Detection and Modulation: The Role of the IoT and Artificial Intelligence",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Marı́a José Torres",
+      "paper_count": 1,
+      "topics": [
+        "Allergy",
+        "Applications of artificial intelligence",
+        "Artificial intelligence",
+        "Bridge (graph theory)",
+        "Computer science",
+        "Data science",
+        "Engineering ethics",
+        "Medicine",
+        "Narrative review",
+        "Perspective (graphical)"
+      ],
+      "papers": [
+        {
+          "id": "W4414043654",
+          "title": "Artificial intelligence in allergy and immunology: Recent developments, implementation challenges, and the road toward clinical impact",
+          "year": 2025
         }
       ],
       "affiliations": [],
@@ -550,199 +757,95 @@
       ],
       "affiliations": [],
       "affiliation_status": "confirmed"
-    },
+    }
+  ],
+  "USPN": [
     {
-      "name": "Francisco Sendra‐Portero",
+      "name": "Akram Redjdal",
       "paper_count": 1,
       "topics": [
         "Artificial intelligence",
-        "Computer science",
-        "Machine learning",
-        "Medical education",
-        "Medicine",
-        "Perception",
-        "Primary (astronomy)",
-        "Primary hyperparathyroidism",
-        "Psychology",
-        "Radiology",
-        "Specialty"
-      ],
-      "papers": [
-        {
-          "id": "W4316465182",
-          "title": "Impact of the Rise of Artificial Intelligence in Radiology: What Do Students Think?",
-          "year": 2023
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Manuel Paniagua-Gómez",
-      "paper_count": 1,
-      "topics": [
-        "Computer science",
-        "Internet of Things",
-        "Modulation (music)",
-        "Real-time computing",
-        "Stress (linguistics)"
-      ],
-      "papers": [
-        {
-          "id": "W4411673845",
-          "title": "Trends and Challenges in Real-Time Stress Detection and Modulation: The Role of the IoT and Artificial Intelligence",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Manuel F. Fernández",
-      "paper_count": 1,
-      "topics": [
-        "Computer science",
-        "Internet of Things",
-        "Modulation (music)",
-        "Real-time computing",
-        "Stress (linguistics)"
-      ],
-      "papers": [
-        {
-          "id": "W4411673845",
-          "title": "Trends and Challenges in Real-Time Stress Detection and Modulation: The Role of the IoT and Artificial Intelligence",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Ibon Eguíluz‐Gracia",
-      "paper_count": 1,
-      "topics": [
-        "Allergy",
-        "Applications of artificial intelligence",
-        "Artificial intelligence",
-        "Bridge (graph theory)",
         "Computer science",
         "Data science",
-        "Engineering ethics",
-        "Medicine",
-        "Narrative review",
-        "Perspective (graphical)"
-      ],
-      "papers": [
-        {
-          "id": "W4414043654",
-          "title": "Artificial intelligence in allergy and immunology: Recent developments, implementation challenges, and the road toward clinical impact",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Marı́a José Torres",
-      "paper_count": 1,
-      "topics": [
-        "Allergy",
-        "Applications of artificial intelligence",
-        "Artificial intelligence",
-        "Bridge (graph theory)",
-        "Computer science",
-        "Data science",
-        "Engineering ethics",
-        "Medicine",
-        "Narrative review",
-        "Perspective (graphical)"
-      ],
-      "papers": [
-        {
-          "id": "W4414043654",
-          "title": "Artificial intelligence in allergy and immunology: Recent developments, implementation challenges, and the road toward clinical impact",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Juan José Gómez‐Doblas",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Certification",
-        "Generalizability theory",
+        "Domain (mathematical analysis)",
         "Health care",
-        "Medicine",
-        "Pharmacotherapy",
-        "Psychological intervention",
-        "Risk analysis (engineering)",
-        "Standardization",
+        "Interpretability",
+        "Knowledge management",
+        "Process (computing)",
         "Transparency (behavior)"
       ],
       "papers": [
         {
-          "id": "W4412455680",
-          "title": "Artificial intelligence in cardiovascular pharmacotherapy: applications and perspectives",
-          "year": 2025
+          "id": "W4401822498",
+          "title": "Exploring Explainable AI Techniques for Text Classification in Healthcare: A Scoping Review",
+          "year": 2024
         }
       ],
-      "affiliations": [],
+      "affiliations": [
+        "Inserm",
+        "Laboratoire d'Informatique Médicale et d'Ingénierie des Connaissances en e-Santé",
+        "Sorbonne Université",
+        "Université Sorbonne Paris Nord"
+      ],
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Francisco J. Baldán",
+      "name": "Alan Balendran",
       "paper_count": 1,
       "topics": [
-        "Analytics",
-        "Artificial intelligence",
-        "Big data",
+        "Adverse effect",
         "Computer science",
         "Data science",
-        "Generalizability theory",
-        "Interpretability",
-        "Machine learning",
-        "Standardization"
+        "Health care",
+        "Medicine",
+        "Pharmacovigilance",
+        "Risk analysis (engineering)",
+        "Software deployment"
       ],
       "papers": [
         {
-          "id": "W4410953613",
-          "title": "Revolutionizing Sperm Analysis with AI: A Review of Computer-Aided Sperm Analysis Systems",
-          "year": 2025
+          "id": "W4403048071",
+          "title": "Algorithmovigilance, lessons from pharmacovigilance",
+          "year": 2024
         }
       ],
       "affiliations": [],
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Javad Rahebi",
+      "name": "Aomar Osmani",
       "paper_count": 1,
       "topics": [
-        "Algorithm",
+        "Activity recognition",
         "Artificial intelligence",
-        "Block (permutation group theory)",
-        "Blockchain",
+        "Class (philosophy)",
+        "Cluster analysis",
+        "Cohesion (chemistry)",
         "Computer science",
-        "Confidentiality",
-        "Data center",
+        "Context (archaeology)",
+        "Dimension (graph theory)",
+        "Duration (music)",
+        "Event (particle physics)",
+        "Hierarchical clustering",
+        "Hyperparameter",
         "Machine learning",
-        "Medical record",
-        "Reliability (semiconductor)"
+        "Perspective (graphical)",
+        "Process (computing)",
+        "Software deployment",
+        "Space (punctuation)",
+        "Speech recognition",
+        "Wireless sensor network"
       ],
       "papers": [
         {
-          "id": "W4210632374",
-          "title": "Patient privacy in smart cities by blockchain technology and feature selection with Harris Hawks Optimization (HHO) algorithm and machine learning",
-          "year": 2022
+          "id": "W3211238343",
+          "title": "Human Activity Recognition: A Dynamic Inductive Bias Selection Perspective",
+          "year": 2021
         }
       ],
       "affiliations": [],
       "affiliation_status": "confirmed"
-    }
-  ],
-  "USPN": [
+    },
     {
       "name": "Brigitte Séroussi",
       "paper_count": 4,
@@ -810,67 +913,25 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Aomar Osmani",
+      "name": "Christel Daniel",
       "paper_count": 1,
       "topics": [
-        "Activity recognition",
-        "Artificial intelligence",
-        "Class (philosophy)",
-        "Cluster analysis",
-        "Cohesion (chemistry)",
+        "Best practice",
         "Computer science",
-        "Context (archaeology)",
-        "Dimension (graph theory)",
-        "Duration (music)",
-        "Event (particle physics)",
-        "Hierarchical clustering",
-        "Hyperparameter",
-        "Machine learning",
-        "Perspective (graphical)",
-        "Process (computing)",
-        "Software deployment",
-        "Space (punctuation)",
-        "Speech recognition",
-        "Wireless sensor network"
-      ],
-      "papers": [
-        {
-          "id": "W3211238343",
-          "title": "Human Activity Recognition: A Dynamic Inductive Bias Selection Perspective",
-          "year": 2021
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Philippe Ravaud",
-      "paper_count": 1,
-      "topics": [
-        "Adverse effect",
-        "Applied psychology",
-        "Computer science",
-        "Credibility",
+        "Data mining",
         "Data science",
         "Field (mathematics)",
-        "Health care",
-        "Medical education",
-        "Medicine",
-        "Observational study",
+        "Health informatics",
+        "Informatics",
+        "Information retrieval",
         "Pharmacovigilance",
-        "Psychological intervention",
-        "Psychology",
-        "Qualitative research",
-        "Risk analysis (engineering)",
-        "Software deployment",
-        "Thematic analysis",
-        "Trustworthiness"
+        "Scope (computer science)"
       ],
       "papers": [
         {
-          "id": "W4403048071",
-          "title": "Algorithmovigilance, lessons from pharmacovigilance",
-          "year": 2024
+          "id": "W3080524808",
+          "title": "Clinical Research Informatics",
+          "year": 2020
         }
       ],
       "affiliations": [],
@@ -899,6 +960,35 @@
         }
       ],
       "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Ibrahim Alaa eddine Madi",
+      "paper_count": 1,
+      "topics": [
+        "Artificial intelligence",
+        "Computer science",
+        "Data science",
+        "Domain (mathematical analysis)",
+        "Health care",
+        "Interpretability",
+        "Knowledge management",
+        "Process (computing)",
+        "Transparency (behavior)"
+      ],
+      "papers": [
+        {
+          "id": "W4401822498",
+          "title": "Exploring Explainable AI Techniques for Text Classification in Healthcare: A Scoping Review",
+          "year": 2024
+        }
+      ],
+      "affiliations": [
+        "Inserm",
+        "Laboratoire d'Informatique Médicale et d'Ingénierie des Connaissances en e-Santé",
+        "Sorbonne Université",
+        "Université Sorbonne Paris Nord"
+      ],
       "affiliation_status": "confirmed"
     },
     {
@@ -942,29 +1032,6 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Alan Balendran",
-      "paper_count": 1,
-      "topics": [
-        "Adverse effect",
-        "Computer science",
-        "Data science",
-        "Health care",
-        "Medicine",
-        "Pharmacovigilance",
-        "Risk analysis (engineering)",
-        "Software deployment"
-      ],
-      "papers": [
-        {
-          "id": "W4403048071",
-          "title": "Algorithmovigilance, lessons from pharmacovigilance",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
       "name": "Mehdi Benchoufi",
       "paper_count": 1,
       "topics": [
@@ -988,25 +1055,33 @@
       "affiliation_status": "confirmed"
     },
     {
-      "name": "Christel Daniel",
+      "name": "Philippe Ravaud",
       "paper_count": 1,
       "topics": [
-        "Best practice",
+        "Adverse effect",
+        "Applied psychology",
         "Computer science",
-        "Data mining",
+        "Credibility",
         "Data science",
         "Field (mathematics)",
-        "Health informatics",
-        "Informatics",
-        "Information retrieval",
+        "Health care",
+        "Medical education",
+        "Medicine",
+        "Observational study",
         "Pharmacovigilance",
-        "Scope (computer science)"
+        "Psychological intervention",
+        "Psychology",
+        "Qualitative research",
+        "Risk analysis (engineering)",
+        "Software deployment",
+        "Thematic analysis",
+        "Trustworthiness"
       ],
       "papers": [
         {
-          "id": "W3080524808",
-          "title": "Clinical Research Informatics",
-          "year": 2020
+          "id": "W4403048071",
+          "title": "Algorithmovigilance, lessons from pharmacovigilance",
+          "year": 2024
         }
       ],
       "affiliations": [],
@@ -1036,140 +1111,9 @@
       ],
       "affiliations": [],
       "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Ibrahim Alaa eddine Madi",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Computer science",
-        "Data science",
-        "Domain (mathematical analysis)",
-        "Health care",
-        "Interpretability",
-        "Knowledge management",
-        "Process (computing)",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4401822498",
-          "title": "Exploring Explainable AI Techniques for Text Classification in Healthcare: A Scoping Review",
-          "year": 2024
-        }
-      ],
-      "affiliations": [
-        "Inserm",
-        "Laboratoire d'Informatique Médicale et d'Ingénierie des Connaissances en e-Santé",
-        "Sorbonne Université",
-        "Université Sorbonne Paris Nord"
-      ],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Akram Redjdal",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Computer science",
-        "Data science",
-        "Domain (mathematical analysis)",
-        "Health care",
-        "Interpretability",
-        "Knowledge management",
-        "Process (computing)",
-        "Transparency (behavior)"
-      ],
-      "papers": [
-        {
-          "id": "W4401822498",
-          "title": "Exploring Explainable AI Techniques for Text Classification in Healthcare: A Scoping Review",
-          "year": 2024
-        }
-      ],
-      "affiliations": [
-        "Inserm",
-        "Laboratoire d'Informatique Médicale et d'Ingénierie des Connaissances en e-Santé",
-        "Sorbonne Université",
-        "Université Sorbonne Paris Nord"
-      ],
-      "affiliation_status": "confirmed"
     }
   ],
   "UT": [
-    {
-      "name": "Kozeta Sevrani",
-      "paper_count": 1,
-      "topics": [
-        "Affect (linguistics)",
-        "Artificial intelligence",
-        "Blueprint",
-        "Business",
-        "Computer science",
-        "Data collection",
-        "Data mining",
-        "Data science",
-        "Emerging markets",
-        "Emerging technologies",
-        "Empirical evidence",
-        "Hospitality",
-        "Hospitality industry",
-        "Image (mathematics)",
-        "Knowledge management",
-        "Marketing",
-        "Operationalization",
-        "Pipeline (software)",
-        "Process (computing)",
-        "Relevance (law)",
-        "Resource (disambiguation)",
-        "Service provider",
-        "Sharing economy",
-        "Survey data collection",
-        "Technology acceptance model",
-        "Tourism"
-      ],
-      "papers": [
-        {
-          "id": "W4415268218",
-          "title": "From Ultrasound Image Collection to De-identification and Re-identification: A Practical Pipeline",
-          "year": 2025
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
-    {
-      "name": "Eliana Ibrahimi",
-      "paper_count": 1,
-      "topics": [
-        "Artificial intelligence",
-        "Atherosclerotic cardiovascular disease",
-        "Bioinformatics",
-        "Classifier (UML)",
-        "Computer science",
-        "Data mining",
-        "Disease",
-        "Domain (mathematical analysis)",
-        "Feature (linguistics)",
-        "Feature selection",
-        "Internal medicine",
-        "Interpretability",
-        "Machine learning",
-        "Medicine",
-        "Metabolomics",
-        "Pattern recognition (psychology)",
-        "Random forest"
-      ],
-      "papers": [
-        {
-          "id": "W4404903329",
-          "title": "Integrating Metabolomics Domain Knowledge with Explainable Machine Learning in Atherosclerotic Cardiovascular Disease Classification",
-          "year": 2024
-        }
-      ],
-      "affiliations": [],
-      "affiliation_status": "confirmed"
-    },
     {
       "name": "Ariola Bacu",
       "paper_count": 1,
@@ -1214,6 +1158,79 @@
         {
           "id": "W4413074216",
           "title": "Artificial Intelligence and Humanoid Robotics: Bioethical Implications of Replacing Human Agency in Healthcare and beyond",
+          "year": 2025
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Eliana Ibrahimi",
+      "paper_count": 1,
+      "topics": [
+        "Artificial intelligence",
+        "Atherosclerotic cardiovascular disease",
+        "Bioinformatics",
+        "Classifier (UML)",
+        "Computer science",
+        "Data mining",
+        "Disease",
+        "Domain (mathematical analysis)",
+        "Feature (linguistics)",
+        "Feature selection",
+        "Internal medicine",
+        "Interpretability",
+        "Machine learning",
+        "Medicine",
+        "Metabolomics",
+        "Pattern recognition (psychology)",
+        "Random forest"
+      ],
+      "papers": [
+        {
+          "id": "W4404903329",
+          "title": "Integrating Metabolomics Domain Knowledge with Explainable Machine Learning in Atherosclerotic Cardiovascular Disease Classification",
+          "year": 2024
+        }
+      ],
+      "affiliations": [],
+      "affiliation_status": "confirmed"
+    },
+    {
+      "name": "Kozeta Sevrani",
+      "paper_count": 1,
+      "topics": [
+        "Affect (linguistics)",
+        "Artificial intelligence",
+        "Blueprint",
+        "Business",
+        "Computer science",
+        "Data collection",
+        "Data mining",
+        "Data science",
+        "Emerging markets",
+        "Emerging technologies",
+        "Empirical evidence",
+        "Hospitality",
+        "Hospitality industry",
+        "Image (mathematics)",
+        "Knowledge management",
+        "Marketing",
+        "Operationalization",
+        "Pipeline (software)",
+        "Process (computing)",
+        "Relevance (law)",
+        "Resource (disambiguation)",
+        "Service provider",
+        "Sharing economy",
+        "Survey data collection",
+        "Technology acceptance model",
+        "Tourism"
+      ],
+      "papers": [
+        {
+          "id": "W4415268218",
+          "title": "From Ultrasound Image Collection to De-identification and Re-identification: A Practical Pipeline",
           "year": 2025
         }
       ],

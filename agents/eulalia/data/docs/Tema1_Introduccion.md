@@ -54,7 +54,7 @@ Estudia las propiedades físicas, acústicas, de los sonidos durante su transmis
 
 #### Fonética perceptiva
 
-Estudia los mecanismos de audición y percepción del habla, y busca modelos de percepción del habla. Aunque la percepción será objeto de otras asignaturas a lo largo de la carrera, en el **tema 5** veremos algunas de las propiedades perceptivas de diferentes unidades lingüísticas. Y en particular prestaremos atención a qué ocurre cuando las condiciones de recepción no son óptimas.
+Estudia los mecanismos de audición y percepción del habla, y busca modelos de percepción del habla. La percepción será objeto de otras asignaturas a lo largo de la carrera.
 
 <img src="/static/eulalia/tema1/img/fonetica_perceptiva.gif" alt="" style="max-width:30%;">
 

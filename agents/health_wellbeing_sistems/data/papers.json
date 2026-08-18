@@ -7,7 +7,632 @@
     },
     "TAMK": {
       "name": "Tampere University of Applied Sciences",
-      "papers": [],
+      "papers": [
+        {
+          "id": "W2987781757",
+          "doi": "https://doi.org/10.1007/978-3-030-30199-6_6",
+          "title": "Qualitative Research: Ethical Considerations",
+          "abstract": "",
+          "year": 2019,
+          "authors": [
+            "Anna‐Maija Pietilä",
+            "Sanna‐Maria Nurmi",
+            "Arja Halkoaho",
+            "Helvi Kyngäs"
+          ],
+          "topics": [
+            "Ethics in Clinical Research",
+            "Qualitative Research Methods and Ethics",
+            "Ethics in medical practice"
+          ],
+          "source": "",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W3111477977",
+          "doi": "https://doi.org/10.1111/dme.14498",
+          "title": "The impact of the COVID‐19 pandemic on people with diabetes and diabetes services: A pan‐European survey of diabetes specialist nurses undertaken by the Foundation of European Nurses in Diabetes survey consortium",
+          "abstract": "AIM: To describe diabetes nurses' perspectives on the impact of the COVID-19 pandemic on people with diabetes and diabetes services across Europe. METHODS: An online survey developed using a rapid Delphi method. The survey was translated into 17 different languages and disseminated electronically in 27 countries via national diabetes nurse networks. RESULTS: Survey responses from 1829 diabetes nurses were included in the analysis. The responses indicated that 28% (n = 504) and 48% (n = 873) of diabetes nurses felt the COVID-19 pandemic had impacted 'a lot' on the physical and psychological risks of people with diabetes, respectively. The following clinical problems were identified as having increased 'a lot': anxiety 82% (n = 1486); diabetes distress 65% (n = 1189); depression 49% (n = 893); acute hyperglycaemia 39% (n = 710) and foot complications 18% (n = 323). Forty-seven percent (n = 771) of respondents identified that the level of care provided to people with diabetes had declined either extremely or quite severely. Self-management support, diabetes education and psychological support were rated by diabetes nurse respondents as having declined extremely or quite severely during the COVID-19 pandemic by 31% (n = 499), 63% (n = 1,027) and 34% (n = 551), respectively. CONCLUSION: The findings show that diabetes nurses across Europe have seen significant increases in both physical and psychological problems in their patient populations during COVID-19. The data also show that clinical diabetes services have been significantly disrupted. As the COVID-19 situation continues, we need to adapt care systems with some urgency to minimise the impact of the pandemic on the diabetes population.",
+          "year": 2020,
+          "authors": [
+            "Rita Forde",
+            "Liga Arente",
+            "Davide Ausili",
+            "Kristin De Backer",
+            "Mette Due‐Christensen",
+            "Amanda Epps",
+            "Anne Fitzpatrick",
+            "Moira Grixti",
+            "S Groen",
+            "Arja Halkoaho",
+            "Claudia Huber",
+            "Marjolein M. Iversen",
+            "Unn‐Britt Johansson",
+            "Claudia Leippert",
+            "Şeyda Özcan",
+            "Julie Parker",
+            "Ana Christina Paiva",
+            "Adina Sanpetreanu",
+            "Marie‐Alice Savet",
+            "Svetic‐Cisic Rosana",
+            "Alicja Szewczyk",
+            "Maite Valverde",
+            "Eugenia Vlachou",
+            "Angus Forbes"
+          ],
+          "topics": [
+            "COVID-19 and healthcare impacts",
+            "Diabetes Management and Education",
+            "Hyperglycemia and glycemic control in critically ill and hospitalized patients"
+          ],
+          "source": "Diabetic Medicine",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4313529275",
+          "doi": "https://doi.org/10.1016/j.teln.2022.11.013",
+          "title": "Nursing students’ genomics literacy: Basis for genomics nursing education course development",
+          "abstract": "This study aimed to investigate the genomics literacy of Finnish and Filipino nursing students as a basis for developing a genomics nursing education course. This is a cross-sectional online survey using the 31-item Genomic Nursing Concept Inventory, IBM SPSS version 27, and item-analysis. A total of 245 nursing students participated in the study; 75% reported that they had not completed any genetics-genomics courses. The GNCI scores ranged from 2 to 31 total correct answers out of a total possible score of 31. The GNCI mean score of the Finnish cohort (9.53; SD = 3.48; 36% correct) was significantly lower compared to the Filipino cohort (16.21; SD = 9.74, 58% correct). These results show that the genomics literacy of nursing students in Finland and the Philippines is weak, particularly in human genome homogeneity and genotype-phenotype association concepts. We recommend designing effective genetic and genomic educational programs and updating the nursing curricula.",
+          "year": 2023,
+          "authors": [
+            "Anndra Parviainen",
+            "Linda Ward",
+            "Arja Halkoaho",
+            "Bobbi Laing",
+            "Jane Maguire",
+            "Marjo Palovaara",
+            "Petra Mandysová",
+            "Gabriel Bacungan",
+            "Jima J. Mamungay",
+            "Reijo Sund",
+            "Santtu Mikkonen",
+            "Carsten Carlberg",
+            "Katri Vehviläinen‐Julkunen"
+          ],
+          "topics": [
+            "BRCA gene mutations in cancer",
+            "Genetics, Bioinformatics, and Biomedical Research",
+            "Genomics and Rare Diseases"
+          ],
+          "source": "Teaching and learning in nursing",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4226211209",
+          "doi": "https://doi.org/10.3389/fgene.2022.849232",
+          "title": "The Development of Education of Public Health Nurses for Applying Genomics in Preventive Health Care",
+          "abstract": "Genetics and genomics have become one of the most important development areas in healthcare. For this reason, it is essential that nursing professionals take their role to offer their skills in implementing genomics in health promotion. The education of public health nurses is taking vital steps in training the health promoters who are able to take the genome-based knowledge into account in precision healthcare. Tampere University of Applied Sciences managed to integrate genomics into the studies of public health nursing. This article describes the process of development and lays emphasis on the importance of genomic education of public health nurses.",
+          "year": 2022,
+          "authors": [
+            "Mari Laaksonen",
+            "Elisa Airikkala",
+            "Arja Halkoaho"
+          ],
+          "topics": [
+            "BRCA gene mutations in cancer",
+            "Nutrition, Genetics, and Disease",
+            "Genomics and Rare Diseases"
+          ],
+          "source": "Frontiers in Genetics",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4377939729",
+          "doi": "https://doi.org/10.1002/nop2.1805",
+          "title": "A Scoping Review: Do instruments measuring genomic competence in nursing incorporate ethics?",
+          "abstract": "AIM: To explore the instruments used in measuring genomic competence in nursing. The objective was to understand how ethical issues are reflected in the instruments. DESIGN: A scoping review. METHODS: A systematically conducted scoping review was conducted by using CINAHL Complete and Medline databases covering the years from January 2010 to January 2022. Two authors inspected potentially eligible papers and assessed their quality independently using the critical appraisal tools of Joanna Briggs Institute. Twenty-five articles were eligible including 19 different instruments. Included articles answered the research question: \"How ethical issues are reflected in instruments measuring genomic competence in nursing?\" The inductive thematic analysis was used in this review. RESULTS: Descriptions of ethical themes were unstructured in the scoped articles and instruments. Not all genomic competence instruments covered ethical aspects. Only three studies asked direct questions by using the word ethics or its derivates, including confidentiality in solving ethical problems, familiarity with the ethical aspects of genetic counselling and ability to identify ethical issues. Thirteen articles included ethics-related themes encompassing knowledge, skills, concerns, advantages and disadvantages.",
+          "year": 2023,
+          "authors": [
+            "Mari Laaksonen",
+            "Elisa Airikkala",
+            "Arja Halkoaho",
+            "Eija Paavilainen"
+          ],
+          "topics": [
+            "BRCA gene mutations in cancer",
+            "Genomics and Rare Diseases",
+            "Ethics in Clinical Research"
+          ],
+          "source": "Nursing Open",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4389727470",
+          "doi": "https://doi.org/10.3389/fpubh.2023.1293874",
+          "title": "Perception of inherited risk in type 2 diabetes: a systematic review",
+          "abstract": "Introduction: A family history is impacting the individual's risk perception. The objective of this systematic review was to describe inherited risk perceptions of type 2 diabetes from the citizen's viewpoint. The aim was to summarize and increase understanding so that the increased knowledge could be used effectively in type 2 diabetes risk communication in health care. Methods: We conducted a systematic review using CINAHL, Medline, and Scopus databases for hereditary, risk, perception, and diabetes related concepts, within the date range of 1.1.2017 to 2.8.2022. Eligible articles were English, peer-reviewed, and addressed the research question: how is hereditary risk of type 2 diabetes perceived? Returns were viewed independently by two authors, and evaluated using the appraisal criteria of the Joanna Briggs Institute. A thematic analysis was used for the synthesis of the data, yielding three themes describing perceptions of inherited risk in type 2 diabetes. Results: A total of 32 articles were included, of which 23 were quantitative, 5 qualitative, and 4 were mixed-methods studies. The extracted themes were (1) Identifying heredity as a risk factor, (2) Diversity of hereditary risk, and (3) Perception of the magnitude of personal risk. Discussion: The perception towards hereditary risk can vary from a desire to actively make a lifestyle change, to the view that diabetes is inevitable regardless of lifestyle. A positive family history increases the risk perception of type 2 diabetes, but the perceived magnitude of the risk may vary from person to person. The findings have the potential to be applied in healthcare's risk communication.",
+          "year": 2023,
+          "authors": [
+            "Elisa Airikkala",
+            "Mari Laaksonen",
+            "Arja Halkoaho",
+            "Marja Kaunonen"
+          ],
+          "topics": [
+            "BRCA gene mutations in cancer",
+            "Genomics and Rare Diseases",
+            "Genetic Associations and Epidemiology"
+          ],
+          "source": "Frontiers in Public Health",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4401499307",
+          "doi": "https://doi.org/10.3389/fmed.2024.1404741",
+          "title": "Developing leadership competencies for genomics integration through globally networked learning and education",
+          "abstract": "Aim: To describe the implementation and evaluation of an education strategy called the globally networked learning-genomics (GNL-G) used in Master's courses in Canada and Finland. The study focused on the feasibility and effectiveness of GNL-G in developing leadership competencies for integrating genomics into practice. Methods: Interpretive description qualitative methodology was used to explore how GNL-G, global exchanges and assignments standardized with the Assessment of Strategies to Integrate Genomics in Nursing (ASIGN) tool influenced competency development. The Reporting Item Standards for Education and its Evaluation in Genomics (RISE2 Genomics) framework guided the design, implementation, evaluation, and reporting of GNL-G. Data included one-to-one interviews, written assignments, and reflections. Results: Interviews and assignment data from three cohorts of students for a total of ten Canadian and 11 Finnish master's students participated in this study. The ASIGN Tool played a crucial role in facilitating students' analysis of their practice context and the development of leadership strategies. Participation in GNL-G enhanced students' confidence to lead efforts to integrate genomics, irrespective of their genomics expertise. Engagement with global peers emphasized the importance of incorporating equity, ethics, and social justice into leadership strategies for genomics integration. Conclusion: The GNL-G strategy enhanced leadership competencies for genomics integration in graduate students from Canada and Finland. The ASIGN Tool and global peer collaboration highlight the importance of innovative educational methods in preparing leaders for the complexities of genomics in healthcare.",
+          "year": 2024,
+          "authors": [
+            "Jacqueline Limoges",
+            "Arja Halkoaho",
+            "Mari Laaksonen",
+            "Muskaan Karwal"
+          ],
+          "topics": [
+            "BRCA gene mutations in cancer",
+            "Ethics in Clinical Research"
+          ],
+          "source": "Frontiers in Medicine",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4413448355",
+          "doi": "https://doi.org/10.1177/09697330251366594",
+          "title": "Genomic competence among nurses: A spotlight on ethics",
+          "abstract": "BackgroundGlobally, ethics is recognized as a critical component for ensuring equitable and sustainable genomic healthcare. However, prior research has largely overlooked the ethical aspects when assessing nurses' genomic competence.Research aimThis study aimed to assess the genomic competence of nurses in Finland, with a specific focus on their perspectives regarding ethics in genomics.Research designThis was a cross-sectional study conducted among registered nurses in Finland.Participants and research contextThe data were collected via an online survey between October 30 and December 31, 2023, using the Canadian Adaptation of the Genetics Genomics Nursing Practice Survey (GGNPS-CA), which evaluates attitudes, receptivity, confidence, competency, knowledge, social systems, and the decision adoption process in genomics with ethical dimensions. A total of 234 registered nurses participated.Ethical considerationsThe study was ethically approved by the Ethics Committee of the Tampere Region, statement number 46/2023.ResultsWhile 76.8% of nurses rated their self-assessed understanding of genomics as poor, their actual Knowledge Score was relatively good (mean 9.12/12, SD 1.44). In addition, nurses reported limited understanding of the ethical issues associated with genomics, particularly concerning equity. The majority (59.4%) believed it was very important for nurses to become more educated on ethical issues, while 28.6% considered it somewhat important.ConclusionsThe findings suggest a strong perceived need among nurses for further education in both genomics and its ethical implications. The discrepancy between self-assessed and actual knowledge may reflect low confidence, which was additionally reported in the ethical issues. Low confidence is possibly influenced by the early stage of genomics integration into nursing practice.",
+          "year": 2025,
+          "authors": [
+            "Mari Laaksonen",
+            "Eija Paavilainen",
+            "Anna‐Maija Koivisto",
+            "Arja Halkoaho"
+          ],
+          "topics": [
+            "BRCA gene mutations in cancer",
+            "Ethics in medical practice",
+            "Ethics in Clinical Research"
+          ],
+          "source": "Nursing Ethics",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W2915258718",
+          "doi": "https://doi.org/10.3389/fsoc.2019.00009",
+          "title": "Creating a Culture of Health in Planning and Implementing Innovative Strategies Addressing Non-communicable Chronic Diseases",
+          "abstract": "Ongoing demographic changes are challenging health systems worldwide especially in relation to increasing longevity and the resultant rise of non-communicable diseases (NCDs). To meet these challenges, a paradigm shift to a more proactive approach to health promotion, and maintenance is needed. This new paradigm focuses on creating and implementing an ecological model of Culture of Health. The conceptualization of the Culture of Health is defined as one where good health and well-being flourish across geographic, demographic, and social sectors; fostering healthy equitable communities where citizens have the opportunity to make choices and be co-producers of healthy lifestyles. Based on Antonovsky's Salutogenesis model which asserts that the experience of health moves along a continuum across the lifespan, we will identify the key drivers for achieving a Culture of Health. These include mindset/expectations, sense of community, and civic engagement. The present article discusses these drivers and identifies areas where policy and research actions are needed to advance positive change on population health and well-being. We highlight empirical evidence of drivers within the EU guided by the activities within the thematic Action Groups of the European Innovation Partnership on Active and Healthy Aging (EIP on AHA), focusing on Lifespan Health Promotion and Prevention of Age-Related Frailty and Disease (A3 Action Group). We will specifically focus on the effect of Culture on Health, highlighting cross-cutting drivers across domains such as innovations at the individual and community level, and in synergies with business, policy, and research entities. We will present examples of drivers for creating a Culture of Health, the barriers, the remaining gaps, and areas of future research to achieve an inclusive and sustainable asset-based community.",
+          "year": 2019,
+          "authors": [
+            "Chariklia Tziraki‐Segal",
+            "Vincenzo De Luca",
+            "Silvina Santana",
+            "Rosa Romano",
+            "Giovanni Tramontano",
+            "Paola Scattola",
+            "Corrado Celata",
+            "G Gelmi",
+            "Sara Ponce Márquez",
+            "Luz López-Samaniego",
+            "Veronica Zavagli",
+            "Arja Halkoaho",
+            "Corrina Grimes",
+            "Ma Teresa Tomás",
+            "Beatriz Fernandes",
+            "Laura Calzà",
+            "Patrizia Speranza",
+            "Liliana Cóppola",
+            "Harriët Jager‐Wittenaar",
+            "Rónán Ó’Caoimh",
+            "Anna‐Maija Pietilä",
+            "Ana María Carriazo",
+            "João Apóstolo",
+            "Guido Iaccarino",
+            "Giuseppe Liotta",
+            "Donatella Tramontano",
+            "William Molloy",
+            "Maria Triassi",
+            "Vincenzo Viggiani",
+            "Maddalena Illario"
+          ],
+          "topics": [
+            "Health, psychology, and well-being",
+            "Aging and Gerontology Research",
+            "Health disparities and outcomes"
+          ],
+          "source": "Frontiers in Sociology",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W2998384292",
+          "doi": "https://doi.org/10.1177/1477750919897379",
+          "title": "The culture of hope and ethical challenges in clinical trials: A qualitative study of oncologists and haematologists’ views",
+          "abstract": "We do not know how much clinical physicians carrying out clinical trials in oncology and haematology struggle with ethical concerns. To our knowledge, no empirical research exists on these questions in a Nordic context. Therefore, this study aims to learn what kinds of ethical challenges physicians in Sweden, Denmark and Finland (n = 29) face when caring for patients in clinical trials; and what strategies, if any, they have developed to deal with them. The main findings were that clinical cancer trials pose ethical challenges related to autonomy issues, unreasonable hope for benefits and the therapeutic misconception. Nevertheless, some physicians expressed that struggling with such challenges was not of great concern. This conveys a culture of hope where health care professionals and patients uphold hope and mutually support belief in clinical trials. This culture being implicit, physicians need opportunities to deliberately reflect over the characteristics that should constitute this culture.",
+          "year": 2019,
+          "authors": [
+            "Tove Godskesen",
+            "Suzanne Petri",
+            "Stefan Eriksson",
+            "Arja Halkoaho",
+            "Margrete Mangset",
+            "Zandra Engelbak Nielsen"
+          ],
+          "topics": [
+            "Ethics in Clinical Research",
+            "Ethics in medical practice",
+            "Biomedical Ethics and Regulation"
+          ],
+          "source": "Clinical Ethics",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W3100940114",
+          "doi": "https://doi.org/10.1111/scs.12932",
+          "title": "The ethical implications of genetic testing in neurodegenerative diseases: A systematic review",
+          "abstract": "BACKGROUND: Availability of genetic testing in neurodegenerative disorders has developed rapidly. This growing ability is providing specific genetic information to individuals and, in turn, their families, raising ethical concerns. However, family members' perspective is a seldom-studied phenomenon. AIM: The aim of this systematic review was to describe the ethical aspect of genetic testing in neurodegenerative diseases from the perspective of at-risk family members. METHOD: A systematic review of data was performed in accordance with the PRISMA statement. The data search was conducted using the CINAHL, PubMed and Scopus databases to identify original peer-reviewed studies published between January 2009 and April 2019. A total of 24 articles were selected. The data were analysed using inductive content analysis. FINDINGS: On the basis of the analysis, four central ethical implications were identified: (i) decision-making in genetic testing as a dilemma: balance between autonomy and responsibility, (ii) the individual's right to make a voluntary and informed decision for genetic testing, (iii) conflicting emotions after knowing one's genetic status and (iv) privacy and confidentiality of genetic information: the fear of genetic discrimination and stigma. CONCLUSIONS: The findings of this review increase understanding about the central ethical implications of genetic testing in neurodegenerative diseases from the perspective of family members, and identify and underline outstanding needs for further research.",
+          "year": 2020,
+          "authors": [
+            "Sanna‐Maria Nurmi",
+            "Arja Halkoaho",
+            "Jukka S. Moilanen",
+            "Anne M. Remes",
+            "Eino Solje"
+          ],
+          "topics": [
+            "BRCA gene mutations in cancer",
+            "Genomics and Rare Diseases",
+            "Genetic Neurodegenerative Diseases"
+          ],
+          "source": "Scandinavian Journal of Caring Sciences",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4396829927",
+          "doi": "https://doi.org/10.1111/ene.16334",
+          "title": "Diverging medical and legal perceptions of the need for legal guardianship in people with dementia: A qualitative study",
+          "abstract": "BACKGROUND: Dementia is assumed to alter mental capacity, which may necessitate legal guardianship. However, only limited research exists on how dementia affects mental capacity, and most studies have focused solely on a medical perspective and concentrate on memory functions. The aim of this qualitative study was to investigate physicians' and legal experts' perceptions on a broad range of cognitive and neuropsychiatric domains potentially affecting mental capacity and the need for guardianship in people with dementia. METHODS: Physicians (N = 30) and legal experts (N = 20) participated in semi-structured individual interviews. The data were analyzed by using content analysis and further semi-quantified according to the cognitive and neuropsychiatric domains. RESULTS: Physicians considered neuropsychiatric symptoms and executive dysfunction to be the most important deficits in the legal context, while legal experts highlighted episodic memory impairment and dyscalculia. Perceptions regarding the importance of several cognitive and neuropsychiatric symptoms varied between and within the professional groups. CONCLUSIONS: Physicians and legal experts diverged in their perceptions of cognitive and neuropsychiatric domains affecting mental capacity and the need for guardianship. The evaluation and influence of medical evidence among legal experts heavily rely on subjective opinions. Given the substantial potential impact on patients' equal access to their rights, developing standardized guidelines is essential.",
+          "year": 2024,
+          "authors": [
+            "Kaisa Näkki",
+            "Anna Mäki‐Petäjä‐Leinonen",
+            "Kaijus Ervasti",
+            "Arja Halkoaho",
+            "Sanna‐Maria Nurmi",
+            "Alina Solomon",
+            "Noora‐Maria Suhonen",
+            "Anne M. Portaankorva",
+            "Johanna Krüger",
+            "Eino Solje"
+          ],
+          "topics": [
+            "Healthcare Decision-Making and Restraints",
+            "Elder Abuse and Neglect",
+            "Dementia and Cognitive Impairment Research"
+          ],
+          "source": "European Journal of Neurology",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4415469193",
+          "doi": "https://doi.org/10.1093/ageing/afaf305",
+          "title": "Visualising dementia in news media: reinforcing ageing, dependency and stigma",
+          "abstract": "BACKGROUND: Media coverage shapes public perceptions of dementia. However, visual representation remains unexplored. This study examines how dementia is portrayed in Finnish news media. METHODS: Visual thematic analysis with quantification was conducted on 255 images published between 2018 and 2021 in Finland's four most-read national tabloids. RESULTS: Media portrayals were predominantly negative and stereotypical, emphasising ageing, dependency and anxiety. People with dementia were mainly depicted as older, with grey hair, wrinkled hands and as individuals in need of assistance. Representations lacked diversity in terms of gender, ethnicity and experiences of dementia in daily life. DISCUSSION: Newspaper images often reinforce stigmatising views of dementia by depicting dementia exclusively as ageing and dependency. Media should use more diverse and accurate visuals to reduce stigma and promote a more inclusive and realistic understanding of dementia.",
+          "year": 2025,
+          "authors": [
+            "Sanna‐Maria Nurmi",
+            "Arja Halkoaho",
+            "Johanna Krüger",
+            "Henna Nikumaa",
+            "Anna Mäki‐Petäjä‐Leinonen",
+            "Kasper Katisko",
+            "Eino Solje"
+          ],
+          "topics": [
+            "Aging and Gerontology Research",
+            "Dementia and Cognitive Impairment Research",
+            "Identity, Memory, and Therapy"
+          ],
+          "source": "Age and Ageing",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4327860554",
+          "doi": "https://doi.org/10.14528/snr.2023.57.1.3223",
+          "title": "Genomics-informed nursing",
+          "abstract": "Nursing and nursing education are about to be revolutionised by the emerging field of genomicsinformed nursing.Every individual has their own personal genetic make-up that determines their health and wellbeing.In recognition of the importance of this fact and the opportunities it presents, it is essential for healthcare educators, students and healthcare professionals to enhance their genomic literacy, i.e., the ability to obtain, process, understand, and use genomic information in health-related decision-making (Hurle et al., 2013;Whitley, Tueller, & Weber, 2020).To improve nurses' ability to integrate genomics into daily nursing practice, it is essential to raise their genomic literacy (Calzone et al., 2018a).To successfully meet this challenge, nurses all around the world must achieve a high level of genomic literacy.Nursing curricula need to be developed to meet these educational needs at the undergraduate and postgraduate levels.Whilst core genomic competencies for nurses are clearly defined, difficulties have been reported regarding the integration of these competencies into existing nursing curricula.To ensure successful integration of genomic competencies into nursing curricula, it has been suggested that instead of developing specific genomic modules, genomic competencies should be embedded into existing elements of nursing curricula so as to facilitate learning (Skirton et al., 2012).Therefore, to meet the demands of future nursing education, it is paramount to develop strategies for incorporating genomic competencies into nursing curricula.This can be achieved through collaboration with multiple stakeholders, including highly involved management, and within a realistic timeframe (Calzone et al., 2018b).Genomics is a fundamental component of precision medicine and has already established itself in research and medicine worldwide.This, however, is not the case in nursing, especially in Europe (Calzone et al., 2018b).The goal of the '1+ Million Genomes' initiative, launched by the European Commission, is to maximise the potential benefits and actions required in the field of genomics.The initiative aims to accelerate the development of precision medicine, various targeted therapies, and other interventions.Such developments can provide people with earlier diagnosis and treatment and, equally important, adequate information on preventive measures.Genomics can have a tangible impact on the accessibility, inclusiveness, and effectiveness of health systems across the European Union (European Commission, 2022).In addition to European initiatives, the International Council of Nurses has encouraged nurses to enhance their knowledge of new practices, including genetics and genomics, as well as of ethical considerations related to this emerging field within nursing (International Council of Nurses, 2021).Genomics-informed nursing is a complex field that encompasses all areas of health care, e.g., diabetes mellitus, cardiac diseases, cerebrovascular diseases, oncology, neurology, paediatrics, pharmacology, and pain management.It is therefore extremely relevant to all nurses, regardless of their field of practice (Wright, Zhao, Birks, & Mills, 2019).In addition, genomic competency applied in offering counselling and support to patients and their families will become a growing component of the nursing profession due to an increased interest in direct-to-consumer genetic",
+          "year": 2023,
+          "authors": [
+            "Arja Halkoaho",
+            "Nina Smolander",
+            "Maria Caples",
+            "Angelo Dante",
+            "Cristina Petrucci",
+            "Marija Milavec Kapun"
+          ],
+          "topics": [
+            "Nutrition, Genetics, and Disease",
+            "BRCA gene mutations in cancer",
+            "CRISPR and Genetic Engineering"
+          ],
+          "source": "Slovenian Nursing Review",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W2898211569",
+          "doi": "https://doi.org/10.1177/1556264618805643",
+          "title": "Privacy of Clinical Research Subjects: An Integrative Literature Review",
+          "abstract": "With changes in clinical research practice, the importance of a study-subject's privacy and the confidentiality of their personal data is growing. However, the body of research is fragmented, and a synthesis of work in this area is lacking. Accordingly, an integrative review was performed, guided by Whittemore and Knafl's work. Data from PubMed, Scopus, and CINAHL searches from January 2012 to February 2017 were analyzed via the constant comparison method. From 16 empirical and theoretical studies, six topical aspects were identified: the evolving nature of health data in clinical research, sharing of health data, the challenges of anonymizing data, collaboration among stakeholders, the complexity of regulation, and ethics-related tension between social benefits and privacy. Study subjects' privacy is an increasingly important ethics principle for clinical research, and privacy protection is rendered even more challenging by changing research practice.",
+          "year": 2018,
+          "authors": [
+            "Sanna‐Maria Nurmi",
+            "Mari Kangasniemi",
+            "Arja Halkoaho",
+            "Anna‐Maija Pietilä"
+          ],
+          "topics": [
+            "Ethics in Clinical Research",
+            "Privacy-Preserving Technologies in Data",
+            "Patient Dignity and Privacy"
+          ],
+          "source": "Journal of Empirical Research on Human Research Ethics",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W2907009671",
+          "doi": "https://doi.org/10.1111/scs.12632",
+          "title": "Intensive care nurses’ perceptions of various ethics concerns affecting clinical research",
+          "abstract": "BACKGROUND: Intensive-care unit (ICU) nurses have an important role in the recruitment of patients for scientific research and in the performance of clinical research. AIM: A study was conducted to examine ICU nurses' perceptions of ethics-related aspects of ICU-based research. The study focused on nurse attitudes and knowledge related to clinical research, with special emphasis on perceptions of the informed-consent process in ICU research. METHOD: The study applied a descriptive qualitative approach, involving semi-structured group interviews and theme-based inductive content analysis. Subjects were ICU nurses (n = 28) at a university hospital ICU who had experience with research protocols applied in that unit. FINDINGS: The nurses had mainly positive perceptions of clinical studies. They found research beneficial for future patients and for society. The nurses considered the information given to them about the studies inadequate. They were concerned about the fact that the consent for research is almost always obtained at the beginning of the ICU care, when patients and relatives are still in the crisis period. This limits the possibility of understanding and assimilating the information provided on the study. CONCLUSIONS: The role of ICU nurses in clinical studies should be more prominent and taken into account in the planning of ICU studies.",
+          "year": 2019,
+          "authors": [
+            "Hannaleena Karjalainen",
+            "Arja Halkoaho",
+            "Anna‐Maija Pietilä",
+            "Stepani Bendel",
+            "Tapani Keränen"
+          ],
+          "topics": [
+            "Ethics in Clinical Research",
+            "Health Sciences Research and Education",
+            "Ethics in medical practice"
+          ],
+          "source": "Scandinavian Journal of Caring Sciences",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4210578872",
+          "doi": "https://doi.org/10.1177/09697330211066573",
+          "title": "Informed consent, genomic research and mental health: A integrative review",
+          "abstract": "BACKGROUND: Research on genomics has increased while the biobank activities are becoming more common in different countries. In the mental health field, the questions concerning the potential participants' vulnerability as well as capacity to give the informed consent can cause reluctancy in recruiting persons with mental health problems, although the knowledge and understanding of mental health problems has remarkable changed, and practice is guided with inclusive approaches, such as recovery approach. AIM: The aim of this study was to describe the current knowledge of informed consent practices in the context of genomic research on mental health from the nurses' viewpoint. METHODS: An integrative review was conducted with search from seven international databases. Data consist 14 publications which were analyzed with thematic analysis. ETHICAL CONSIDERATIONS: Ethical requirements were respected in every phase of the research process. FINDINGS: Most of the papers were published in USA and between 2000-2010. Eight reports were categorized as discussion papers, four qualitative studies and one quantitative study. The thematic analysis provided information on five themes: complexity with the capacity to consent, mixed emotions towards participation, factors influencing the decision to participate, nurses' informed consent process competence and variations between consent procedures. DISCUSSION: In the informed consent practices, there are various aspects which may affect both the willingness to participate in the study and the informed consent process itself. Implications for practice, education, research, and policies are discussed. CONCLUSION: There is a need for more updated international research on the topic in the context of different international and national guidelines, legislation, and directives. This study provided a viewpoint to the more collaborative research activities with people with lived experiences also in this field of research following the ideas of recovery approach.",
+          "year": 2022,
+          "authors": [
+            "Nina Kilkku",
+            "Arja Halkoaho"
+          ],
+          "topics": [
+            "Ethics in Clinical Research",
+            "BRCA gene mutations in cancer",
+            "Mental Health and Patient Involvement"
+          ],
+          "source": "Nursing Ethics",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4403387454",
+          "doi": "https://doi.org/10.23996/fjhw.137992",
+          "title": "Informed consent in the age of smart technologies",
+          "abstract": "Technology is increasingly being brought into the home care of older people. Digitalization is seen as an enabler for efficient and resource-saving operations. In the use of technology, informed consent is considered an ethical practice and part of a responsible home care service system. The aim of this article is to describe the problem of informed consent in situations where emerging technologies, such as artificial intelligence (AI) and mass data, are used as part of welfare services and home care for older people. The article discusses principles and ways to better integrate informed consent as an ethical practice into a responsible home care service system. A qualitative study was carried out to gather the views of experts in the field of elderly care and ethics. A content analysis of a semi-structured focus group was used to explore perceptions of the changing nature of informed consent. According to our findings, the informed consent model requires updating. The key is to embrace the idea that consent is a living process designed to respect people's autonomous choices and protect them from risk. If the nature of the use of the data collected from individuals changes significantly in the future, the consent should also be updated to reflect this change. This aspect is important because new technologies will change the nature of the collection and use of the data. Mass data collection combines multiple databases so that the resulting data can be used even far from the original purpose or context in which it was collected. Therefore, consent should always be tailored to the context, allowing sufficient time for the person seeking and giving consent to clarify the content of the consent. This process highlights the importance of understanding the agency of the consent giver.",
+          "year": 2024,
+          "authors": [
+            "Jaana Leikas",
+            "Arja Halkoaho",
+            "Marinka Lanne"
+          ],
+          "topics": [
+            "Ethics in Clinical Research"
+          ],
+          "source": "Finnish Journal of eHealth and eWelfare",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W3005525576",
+          "doi": "https://doi.org/10.1177/1556264620903563",
+          "title": "Risk Assessment of Medical Study Procedures in the Documents Submitted to a Research Ethics Committee",
+          "abstract": "Several frameworks assist research ethics committees (RECs) in risk assessment of medical studies. However, little is known about how researchers describe risks of the procedures in study protocols and participant information sheets. We examined 349 study protocols and participant information sheets submitted to an REC and evaluated the risk assessments performed for 1,510 study procedures. Risks had been assessed for 399 (26%) procedures in study protocols and for 425 (28%) procedures in participant information sheets. Physical risks were assessed six times more frequently than psychological risks. Risks of medical procedures are not always detailed in study protocols or participant information sheets. Risk descriptions of procedures believed to be familiar to potential participants may be omitted.",
+          "year": 2020,
+          "authors": [
+            "Saara M Happo",
+            "Tapani Keränen",
+            "Arja Halkoaho",
+            "Soili M. Lehto"
+          ],
+          "topics": [
+            "Ethics in Clinical Research",
+            "Ethics in medical practice",
+            "Biomedical Ethics and Regulation"
+          ],
+          "source": "Journal of Empirical Research on Human Research Ethics",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4408809011",
+          "doi": "https://doi.org/10.1111/scs.70025",
+          "title": "Navigating Ethical Dilemmas in Intensive Care Clinical Research From the Perspectives of Nurses: A Qualitative Study",
+          "abstract": "BACKGROUND: Medical research in intensive care is done in patients that are often incapacitated, critically ill and unable to make autonomous decisions. In intensive care unit (ICU) research, patients are admitted to a clinical study without their informed consent, a major deviation from the usual method of conducting research. Nurses caring for patients enrolled in ICU research face potentially ethically challenging situations. AIM: To describe intensive care nurses' views on ethical aspects of ICU research. METHODS: Eleven intensive care unit nurses with experience in clinical research and informed consent procedures were purposively selected for semi-structured interviews. The qualitative semi-structured interviews were analysed using thematic deductive analysis. RESULTS: Nurses considered ICU research as a possibility to advance care for future patients. However, nurses identified ambiguous ethical dilemmas associated with ICU research, such as compromised patient autonomy, navigating between beneficence and maleficence and justifying the research by anticipated results. Consequences from loss of autonomy, deviating from the informed consent process and surrogate decision-making were recognised. CONCLUSION: Research in ICU was perceived as ethically ambiguous, probably beneficial despite the possibility of harms and loss of autonomy and justified by results of the studies that will possibly benefit the patient or patients with similar disorders or society in general.",
+          "year": 2025,
+          "authors": [
+            "Atte Kukkurainen",
+            "Tapani Keränen",
+            "Matti Reinikainen",
+            "Arja Halkoaho"
+          ],
+          "topics": [
+            "Ethics in Clinical Research",
+            "Ethics in medical practice",
+            "Healthcare Decision-Making and Restraints"
+          ],
+          "source": "Scandinavian Journal of Caring Sciences",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4309298915",
+          "doi": "https://doi.org/10.1007/978-3-031-20257-5_13",
+          "title": "Genomic Literacy in the Nursing Field: A Scoping Review Protocol",
+          "abstract": "",
+          "year": 2022,
+          "authors": [
+            "Angelo Dante",
+            "Cristina Petrucci",
+            "Arja Halkoaho",
+            "Nina Smolander",
+            "Mari Laaksonen",
+            "Essi Huhtinen",
+            "Josephine Hegarty",
+            "Maria Caples",
+            "Marija Milavec Kapun",
+            "Tina Kamenšek",
+            "Vittorio Masotta",
+            "Loreto Lancia"
+          ],
+          "topics": [
+            "BRCA gene mutations in cancer",
+            "Health Literacy and Information Accessibility"
+          ],
+          "source": "Lecture notes in networks and systems",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4309491475",
+          "doi": "https://doi.org/10.1007/978-3-031-20257-5_16",
+          "title": "GenoNurse – Project – an International Partnership to Enhance Genetic and Genomic Competence in European Nursing Students",
+          "abstract": "",
+          "year": 2022,
+          "authors": [
+            "Arja Halkoaho",
+            "Nina Smolander",
+            "Mari Laaksonen",
+            "Essi Huhtinen",
+            "Josephine Hegarty",
+            "Maria Caples",
+            "Marija Milavec Kapun",
+            "Tina Kamenšek",
+            "Angelo Dante",
+            "Vittorio Masotta",
+            "Cristina Petrucci",
+            "Loreto Lancia"
+          ],
+          "topics": [
+            "BRCA gene mutations in cancer",
+            "Genomics and Rare Diseases"
+          ],
+          "source": "Lecture notes in networks and systems",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W3006113529",
+          "doi": "https://doi.org/10.23990/sa.89108",
+          "title": "Geenitieto jalkautuu terveydenhuoltoon -väestön ja henkilöstön osaamista kehitettävä",
+          "abstract": "",
+          "year": 2020,
+          "authors": [
+            "Sari Räisänen",
+            "Mari Laaksonen",
+            "Elisa Airikkala",
+            "Arja Halkoaho"
+          ],
+          "topics": [
+            "Interprofessional Education and Collaboration",
+            "Research in Social Sciences",
+            "Primary Care and Health Outcomes"
+          ],
+          "source": "Sosiaalilääketieteellinen Aikakauslehti",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4388668702",
+          "doi": "https://doi.org/10.1136/ebnurs-2023-103762",
+          "title": "Positive attitude does not automatically lead to increased genetic and genomic literacy",
+          "abstract": "Non peer reviewed",
+          "year": 2023,
+          "authors": [
+            "Arja Halkoaho",
+            "Mari Laaksonen"
+          ],
+          "topics": [
+            "Nutrition, Genetics, and Disease",
+            "BRCA gene mutations in cancer"
+          ],
+          "source": "Evidence-Based Nursing",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        },
+        {
+          "id": "W4413345186",
+          "doi": "https://doi.org/10.1177/17470161251358513",
+          "title": "Informed consent for polygenic risk score test in type 2 diabetes: A pilot study",
+          "abstract": "A polygenic risk score (PRS) is a genomic test that can reveal the risk of developing common diseases, such as type 2 diabetes. Before the testing, the participant must have sufficient understanding to give informed consent to participate in genomic testing, which may include a lot of new information and concepts. An additional challenge comes from understanding incidental findings of testing, although these are limited in the context of PRS. The purpose was to explore and describe participants’ perceptions of informed consent and research participation in the context of polygenic risk score testing for type 2 diabetes. The Research Participation and Informed Consent scale was part of a multi-scale study in the DIGIDIA feasibility pilot project. Recruitment targeted participants at increased risk of type 2 diabetes, those with pre-diabetes, or those diagnosed with diabetes in the previous year. After providing informed consent, participants ( n = 60) completed baseline surveys. This article focuses on the data of the consent process collected as part of baseline surveys. Statistical tests, inductive content analysis, and mixed methods were employed. The findings show that the process of informed consent was clear and understandable from a consent perspective, but the purpose of PRS testing raised some ambiguity. Expertise in PRS was not seen as limited to just one profession, but many healthcare professionals were seen as potential experts. Participants emphasized a need for information, especially regarding incidental findings of genomic testing. The participant’s genomic literacy and understanding should be verified before genomic testing and informed consent. It should also be considered whether the possibility of incidental findings ought not to be brought up when the primary aim is solely PRS testing.",
+          "year": 2025,
+          "authors": [
+            "Elisa Airikkala",
+            "Marja Kaunonen",
+            "Elina Pimiä",
+            "Arja Halkoaho"
+          ],
+          "topics": [
+            "Health Systems, Economic Evaluations, Quality of Life",
+            "Obesity and Health Practices",
+            "Genetic Associations and Epidemiology"
+          ],
+          "source": "Research Ethics",
+          "affiliations": [
+            "Tampere University of Applied Sciences"
+          ]
+        }
+      ],
       "papers_count": 0
     },
     "THUAS": {
@@ -14972,5 +15597,6 @@
       ],
       "papers_count": 6
     }
-  }
+  },
+  "total_papers": 195
 }

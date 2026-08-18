@@ -165,7 +165,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         is_study = path.startswith("/study/api/") or path.startswith("/rag-study/api/") or path.startswith("/sql-study/api/")
         # rag_study2 agents are public (research study participants don't need accounts)
         is_rag_study2 = "rag_study2_" in request.query_params.get("agent_id", "")
-        is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/collaboration-map", "/projects-search", "/project-topic-search", "/publications-map", "/pdf-list")) and any(f"/{aid}/" in path for aid in ("responsible_ai3", "health_wellbeing_sistems"))
+        is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/collaboration-map", "/projects-search", "/project-topic-search", "/publications-map", "/pdf-list", "/filters", "/search")) and any(f"/{aid}/" in path for aid in ("responsible_ai3", "health_wellbeing_sistems"))
         is_tutores = path.startswith("/api/tutores/")
         is_lali_public = path in ("/api/eulalia/auth-level", "/api/agent/eulalia/transcripcion-config")
         if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/interaction-log" not in path and "/public-tools" not in path and "/public-agent/" not in path and "/api/feedback" != path and not is_study and not is_public_search and not is_rag_study2 and not is_tutores and not is_lali_public:
@@ -6206,11 +6206,15 @@ async def agent_interaction_log(request: Request, agent_id: str):
 # ============================================================================
 
 _RAI_DIR = AGENTS_PATH / "responsible_ai3"
+_RESEARCH_EXPLORER_AGENTS = {"responsible_ai3", "health_wellbeing_sistems"}
 
-@app.get("/api/public-agent/responsible_ai3/filters")
-async def rai_get_filters():
-    """Get filterable fields for the Responsible AI research explorer."""
-    meta_path = _RAI_DIR / "data" / "metadata.json"
+@app.get("/api/public-agent/{agent_id}/filters")
+async def explorer_get_filters(agent_id: str):
+    """Get filterable fields for a research explorer agent."""
+    if agent_id not in _RESEARCH_EXPLORER_AGENTS:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    agent_dir = AGENTS_PATH / agent_id
+    meta_path = agent_dir / "data" / "metadata.json"
     if not meta_path.exists():
         return {"universities": [], "years": [], "types": [], "topics": []}
 
@@ -6276,8 +6280,8 @@ async def rai_get_filters():
     # Top topics by frequency (from OpenAlex concepts, filtered, min 4 papers)
     top_topics = [(n, c) for n, c in sorted(topic_counts.items(), key=lambda x: -x[1]) if c >= 4][:15]
 
-    # Also add curated Responsible AI topics from config
-    config_path = _RAI_DIR / "config.json"
+    # Also add curated topics from config
+    config_path = agent_dir / "config.json"
     curated_terms = set()
     if config_path.exists():
         with open(config_path, "r", encoding="utf-8") as f:
@@ -6321,8 +6325,9 @@ async def rai_get_filters():
     }
 
 
-@app.get("/api/public-agent/responsible_ai3/search")
-async def rai_search(
+@app.get("/api/public-agent/{agent_id}/search")
+async def explorer_search(
+    agent_id: str,
     request: Request,
     university: str = Query("", description="University ID filter"),
     year: str = Query("", description="Publication year filter"),
@@ -6333,7 +6338,10 @@ async def rai_search(
     nl_query: str = Query("", description="Original natural language query (if routed from NL input)"),
 ):
     """Search research papers with filters."""
-    meta_path = _RAI_DIR / "data" / "metadata.json"
+    if agent_id not in _RESEARCH_EXPLORER_AGENTS:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    agent_dir = AGENTS_PATH / agent_id
+    meta_path = agent_dir / "data" / "metadata.json"
     if not meta_path.exists():
         return {"results": [], "total": 0}
 
@@ -6463,8 +6471,8 @@ async def rai_search(
     client_ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "proxy")
     log_conversation(
         client_ip=client_ip,
-        agent_id="responsible_ai3",
-        agent_name="EH: Responsible AI",
+        agent_id=agent_id,
+        agent_name=f"EH: {agent_id}",
         question=query_str,
         response=f"{len(deduped)} results",
         extra={
