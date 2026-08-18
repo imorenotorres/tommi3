@@ -213,7 +213,7 @@ body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display
                 <select id="f-type" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:90px;"><option value="">Type</option></select>
                 <input type="text" id="f-topic" placeholder="Topic..." style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:120px;">
                 <input type="text" id="f-author" placeholder="Author..." style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:100px;">
-                <select id="f-output" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:110px;"><option value="table">Table</option><option value="list">List</option><option value="map-papers">Map: papers</option><option value="map-collab">Map: collaborations</option></select>
+                <select id="f-output" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px;width:110px;"><option value="table">Table</option><option value="list">List</option><option value="map-papers">Map: papers</option><option value="map-collab">Map: collaborations</option><option value="map-projects">Map: projects</option></select>
                 <button onclick="searchWithFilters()" style="padding:3px 14px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;width:60px;">Search</button>
                 <button onclick="clearFilters()" style="padding:3px 8px;background:#e2e8f0;color:#475569;border:none;border-radius:4px;font-size:12px;cursor:pointer;">Clear</button>
                 <span id="filter-summary" style="font-size:11px;color:#64748b;"></span>
@@ -329,9 +329,13 @@ async function searchWithFilters() {
     const uni = document.getElementById('f-university').value;
     const year = document.getElementById('f-year').value;
     const yearOp = document.getElementById('f-year-op').value;
-    const type = document.getElementById('f-type').value;
+    let type = document.getElementById('f-type').value;
     const topic = document.getElementById('f-topic').value;
     const author = document.getElementById('f-author').value.trim();
+    const outputFormat = document.getElementById('f-output').value;
+
+    // Auto-set type to Project when output is map-projects
+    if (outputFormat === 'map-projects' && !type) { type = 'Project'; }
 
     if (uni) params.append('university', uni);
     if (year) { params.append('year', year); params.append('year_op', yearOp); }
@@ -351,10 +355,12 @@ async function searchWithFilters() {
         const data = await resp.json();
 
         const summary = document.getElementById('filter-summary');
-        summary.textContent = data.total + ' paper' + (data.total !== 1 ? 's' : '') + ' found.';
+        const isProject = document.getElementById('f-type').value === 'Project';
+        const itemLabel = isProject ? 'project' : 'paper';
+        summary.textContent = data.total + ' ' + itemLabel + (data.total !== 1 ? 's' : '') + ' found.';
 
         if (data.results.length === 0) {
-            resultsDiv.innerHTML = '<p style="color:#94a3b8;">No papers match the selected filters.</p>';
+            resultsDiv.innerHTML = '<p style="color:#94a3b8;">No ' + itemLabel + 's match the selected filters.</p>';
             return;
         }
 
@@ -474,6 +480,30 @@ var _sortField = 'year';
 var _sortAsc = false;
 
 function renderResults(results, format, container) {
+    if (format === 'map-projects') {
+        var _coords = {USPN:[48.9566,2.3522],UDCLV:[41.0742,14.3272],UMA:[36.7213,-4.4214],KK:[54.8985,23.9036],UT:[41.3275,19.8187],THWS:[49.7913,9.9534],TAMK:[61.4978,23.761],THUAS:[52.0705,4.3007]};
+        var projData = {universities: {}};
+        results.forEach(function(r) {
+            var uids = (r.university_id || '').split(', ');
+            uids.forEach(function(uid) {
+                uid = uid.trim();
+                if (!uid) return;
+                if (!projData.universities[uid]) {
+                    projData.universities[uid] = {name: window._uniMap[uid] || uid, count: 0, lat: (_coords[uid]||[])[0], lon: (_coords[uid]||[])[1], papers: []};
+                }
+                if (!projData.universities[uid].papers.some(function(p){ return p.title === r.title; })) {
+                    projData.universities[uid].count++;
+                    projData.universities[uid].papers.push({title: r.title, authors: [r.authors], doi: '', year: r.year});
+                }
+            });
+        });
+        window._filterMapData = projData;
+        var mapId = 'filter-map-' + Date.now();
+        var title = 'Projects map (' + results.length + ' projects)';
+        container.innerHTML = '<div class="inline-map-container"><div class="inline-map-header" style="font-weight:600;font-size:14px;padding:8px 0 4px;">' + title + '</div><div id="' + mapId + '" class="inline-map" style="height:500px;"></div></div>';
+        setTimeout(function() { renderFilterMap(mapId, 'publications', window._filterMapData); }, 100);
+        return;
+    }
     if (format === 'map-papers' || format === 'map-collab') {
         // Convert filtered results into the format expected by renderInlineMapPlaceholders
         var mapType = (format === 'map-collab') ? 'collaboration' : 'publications';

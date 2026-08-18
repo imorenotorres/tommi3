@@ -6320,7 +6320,7 @@ async def explorer_get_filters(agent_id: str):
     return {
         "universities": sorted(universities, key=lambda u: u["name"]),
         "years": sorted(years, reverse=True),
-        "types": sorted(types),
+        "types": sorted(types | {"Project"}),
         "topics": [{"name": t[0], "count": t[1]} for t in top_topics]
     }
 
@@ -6373,6 +6373,42 @@ async def explorer_search(
                     matched.add(uid)
         return matched
 
+    # --- Project search ---
+    if pub_type == "Project":
+        agent_instance = runner.get_agent_instance(agent_id) or runner._load_agent_module(agent_id)
+        projects_by_uni = getattr(agent_instance, '_all_uni_projects', {}) if agent_instance else {}
+        results = []
+        seen_titles = set()
+        for uid, proj_list in projects_by_uni.items():
+            uni_name = _uni_name_map.get(uid, uid)
+            if university and uid != university:
+                continue
+            for proj in proj_list:
+                if proj["title"] in seen_titles:
+                    continue
+                # Topic filter
+                if topic:
+                    topic_lower = topic.lower()
+                    searchable = (proj.get("title","") + " " + proj.get("summary","") + " " + " ".join(proj.get("keywords",[]))).lower()
+                    if topic_lower not in searchable:
+                        continue
+                seen_titles.add(proj["title"])
+                partners = proj.get("uninovis_partners", [])
+                results.append({
+                    "id": proj.get("grant_id", proj.get("filename", "")),
+                    "title": proj["title"],
+                    "authors": proj.get("funder", ""),
+                    "university": ", ".join(_uni_name_map.get(u, u) for u in sorted(partners)),
+                    "university_id": ", ".join(sorted(partners)),
+                    "year": proj.get("period", ""),
+                    "type": "Project",
+                    "doi": "",
+                    "cited_by": 0,
+                    "topics": proj.get("keywords", [])[:5],
+                })
+        return {"results": results, "total": len(results)}
+
+    # --- Paper search ---
     results = []
     for uid, udata in meta.get("universities", {}).items():
         uni_name = udata.get("name", uid)
