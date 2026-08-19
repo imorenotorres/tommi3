@@ -125,6 +125,11 @@ async function loadReport() {
 function renderReport(data) {
     var html = '';
 
+    // Date range
+    var firstDate = data.first_date ? data.first_date.split('T')[0] : '—';
+    var lastDate = data.last_date ? data.last_date.split('T')[0] : '—';
+    html += '<div style="font-size:13px;color:#64748b;margin-bottom:12px;">Datos recogidos desde <strong>' + firstDate + '</strong> hasta <strong>' + lastDate + '</strong></div>';
+
     // Summary cards
     html += '<div class="stats-row">';
     html += '<div class="stat-card"><div class="stat-num">' + data.total_entries + '</div><div class="stat-label">Acciones totales</div></div>';

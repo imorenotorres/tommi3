@@ -5540,9 +5540,22 @@ async def algoria_map_report(
         for name, count in uni_ranking_raw
     ]
 
+    # Date range of data
+    first_date = None
+    last_date = None
+    for e in entries:
+        ts = e.get("timestamp", "")
+        if ts:
+            if not first_date or ts < first_date:
+                first_date = ts
+            if not last_date or ts > last_date:
+                last_date = ts
+
     return {
         "total_entries": len(entries),
         "total_sessions": len(sessions),
+        "first_date": first_date,
+        "last_date": last_date,
         "session_by_actions": action_counts,
         "action_types": type_counts,
         "country_ranking": country_ranking,
