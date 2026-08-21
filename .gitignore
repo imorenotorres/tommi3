@@ -24,7 +24,9 @@ agents/*/data/docs/*.pdf
 # Agent logs
 agents/*/logs/
 
-# Web user data (contains credentials and personal data)
+# User data (contains personal data)
+agents/*/users.tsv
+agents/*/users.json
 web/data/users.json
 web/data/invites.json
 web/data/access_requests.json
