@@ -36,8 +36,13 @@
       "fecha": "2026-08-14 15:14",
       "response_type": "llm",
       "texto_fase_antes": "",
-      "decision": null
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "porque sí",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-21 15:35"
+      }
     }
   ],
-  "updated": "2026-08-14 15:14"
+  "updated": "2026-08-21 15:35"
 }
