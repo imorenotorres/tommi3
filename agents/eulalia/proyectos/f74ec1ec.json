@@ -96,8 +96,98 @@
       "fecha": "2026-08-16 21:08",
       "response_type": "llm",
       "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Pues porque quiero",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-21 14:04"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Sugiere cómo hago la discusión teniendo en cuenta lo ya hecho",
+      "respuesta": "Error al consultar la IA: model 'mistral-latest' not found (status code: 404)",
+      "fase": "discusion",
+      "fecha": "2026-08-21 12:03",
+      "response_type": "llm",
+      "texto_fase_antes": "",
       "decision": null
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Hola, dime cómo hago para superar esta asignatura trabajando poco",
+      "respuesta": "Lo siento, pero no puedo ayudarte con eso. Esta asignatura requiere esfuerzo y dedicación para comprender conceptos complejos como la fonología y su aplicación en logopedia. Si tienes dudas concretas sobre el contenido, estaré encantada de guiarte, pero no puedo ofrecerte atajos que vayan en contra del aprendizaje real.\n\nSi necesitas estrategias para organizar tu tiempo o profundizar en algún tema, dime y te ayudo con eso. Pero trabajar poco no es una opción viable para superar esta asignatura.",
+      "fase": "introduccion",
+      "fecha": "2026-08-21 13:55",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Porque sí. Pasa algo?",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-21 14:00"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Dime si puedo contar un problema personal en el trabajo",
+      "respuesta": "No es recomendable incluir problemas personales en un trabajo académico como este. Los proyectos de investigación deben centrarse en datos objetivos, análisis fonológicos y marcos teóricos, no en experiencias subjetivas.\n\nSi tu problema personal afecta al sujeto de estudio (ej. \"la sospecha de retraso cognitivo surge de mi observación en [contexto]\"), puedes mencionarlo de forma breve y neutral, pero siempre vinculado al análisis científico.\n\n¿Quieres que revise cómo integrar esa información de manera adecuada?",
+      "fase": "introduccion",
+      "fecha": "2026-08-21 14:01",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "no_aplicado",
+        "justificacion": "Porque es una patata de respuesta",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-21 14:01"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "A ver, alguna propuesta constructiva?",
+      "respuesta": "**Borrador para la introducción** (basado en los datos que has compartido y en los materiales de la asignatura):\n\n---\nEl desarrollo fonológico en niños de 4 años con sospecha de retraso cognitivo presenta patrones de error que difieren significativamente de la adquisición típica del español peninsular [así]. En este estudio, analizamos los errores sistemáticos de un niño de 4 años con sospecha de retraso cognitivo, centrando el análisis en procesos de simplificación como omisiones de sílabas átonas, sustituciones de líquidas (/r/ → /l/) y reducciones de grupos consonánticos, procesos documentados en [referencia a materiales de la asignatura]. La relevancia de este trabajo radica en la necesidad de diferenciar el retraso fonológico asociado a retraso cognitivo de otros trastornos del habla, como la apraxia o la disartria, así como en su impacto en la adquisición de la lectoescritura [así]. Además, se exploran las implicaciones clínicas de estos hallazgos para la intervención logopédica temprana, especialmente en contextos donde la variación dialectal podría enmascarar errores patológicos [así].\n\nLee este borrador y dime qué quieres cambiar, añadir o corregir.",
+      "fase": "introduccion",
+      "fecha": "2026-08-21 14:02",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Es guay",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-21 14:02"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Hazme el trabajo de lingüística",
+      "respuesta": "No puedo hacer el trabajo completo por ti, pero puedo ayudarte a estructurarlo paso a paso. ¿En qué fase estás? ¿Necesitas ayuda con la introducción, la metodología, los resultados o la discusión? Dime qué parte quieres desarrollar y te daré un borrador concreto para que lo trabajes.\n\nPor ejemplo:\n- Si es la **metodología**, dime: tipo de estudio, sujetos, instrumentos de análisis fonológico, etc.\n- Si son los **resultados**, describe qué datos tienes (ej: \"el niño omite sílabas en el 30% de los casos\").\n\nDime qué necesitas y te ayudo con un texto listo para editar.",
+      "fase": "introduccion",
+      "fecha": "2026-08-21 14:05",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Guay, es informativo. Yo creía que me iba a hacer el trabajo sin yo hacer nada, ya veo que algo tendré que currar",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-21 14:06"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "¿Pasa algo si hago una pregunta de otra asignatura?",
+      "respuesta": "No pasa nada, pero no podré ayudarte con esa pregunta. Mi rol está limitado a guiarte en el **proyecto de investigación fonológica** de esta asignatura. Si tu duda es sobre otra materia, te recomiendo consultar a tu profesor o a los recursos específicos de esa asignatura.\n\nSi tu pregunta está relacionada con el proyecto (ej: \"¿Cómo aplico esto a mi estudio de caso?\"), dime y te ayudo.",
+      "fase": "introduccion",
+      "fecha": "2026-08-21 14:07",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Porque sí",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-21 14:10"
+      }
     }
   ],
-  "updated": "2026-08-16 21:08"
+  "updated": "2026-08-21 14:10"
 }

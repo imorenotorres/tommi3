@@ -1380,6 +1380,7 @@ function loadCourseData() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         var div = document.getElementById('docentes-content');
+        if (!div) return;
         if (!data || !data.equipo) { div.innerHTML = '<em>No disponible</em>'; return; }
         var html = '<p><strong>' + (data.asignatura||'') + '</strong> — ' + (data.grado||'') + '</p>';
         html += '<p>' + (data.universidad||'') + ' · Curso ' + (data.curso||'') + '</p>';
@@ -1400,7 +1401,8 @@ function loadCourseData() {
         div.innerHTML = html;
     })
     .catch(function() {
-        document.getElementById('docentes-content').innerHTML = '<em>No se pudo cargar</em>';
+        var el = document.getElementById('docentes-content');
+        if (el) el.innerHTML = '<em>No se pudo cargar</em>';
     });
 
     // Cargar temario

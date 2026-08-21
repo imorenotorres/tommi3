@@ -6,11 +6,11 @@
 
 Como colofón del curso vamos a realizar, en grupos de 3 estudiantes, un **pequeño trabajo de investigación**. Hay tres aspectos del trabajo que son muy importantes: 
 
-- Consistirá en analizar una muestra de habla que contenga errores (de un niño pequeño, de un extranjero que no habla bien español, o alguien que sufre una patología del habla o lenguaje); ello debe ayudarte a consolidar lo aprendido durante el curso.
+- Consistirá en **analizar una muestra de habla** que contenga errores (de un niño pequeño, de un extranjero que no habla bien español, o alguien que sufre una patología del habla o lenguaje); ello debe ayudarte a consolidar lo aprendido durante el curso.
 
-- Puedes usar IA para hacer tu trabajo pero debes hacerlo de forma responsable. En el siguiente apartado te indicamos cómo hacerlo.  
+- **Puedes usar IA** para hacer tu trabajo pero debes hacerlo de forma responsable. En el siguiente apartado te indicamos cómo hacerlo.  
 
-- En la evaluación, no se valora solo el RESULTADO (el trabajo escrito), sino también el PROCESO que has seguido para llegar a ese resultado. El motivo de que este criterio tenga más peso es que hoy en día, gracias a la IA, es muy fácil completar un trabajo de investigación, sin que el hecho de completarlo suponga una garantía de haber aprendido. Pero no te preocupes, gracias a la aplicación que usaremos durante el curso, será muy fácil documentar tu proceso.
+- En la evaluación, **no se valora solo el RESULTADO (el trabajo escrito), sino también el PROCESO** que has seguido para llegar a ese resultado. El motivo de que este criterio tenga más peso es que hoy en día, gracias a la IA, es muy fácil completar un trabajo de investigación, sin que el hecho de completarlo suponga una garantía de haber aprendido. Pero no te preocupes, gracias a la aplicación que usaremos durante el curso, será muy fácil documentar tu proceso.
 
 Antes de pasar al contenido del trabajo, vamos a centrarnos en un problema para el que aún no hay una solución definitiva consensuada: ¿Cómo se escribe con IA? Para facilitar la explicación, diferenciaresmo dos supuestos extremos:
 
@@ -210,14 +210,90 @@ El trabajo se realiza dentro de Eulalia, pues solo así quedará documentado el 
 ## 5.2. Vuestro trabajo paso a paso
 
 
-### Antes de empezar
+### Antes de empezar: Configurar Eulalia
 
-Como el trabajo lo hacemos en grupo, antes de empezar debes ponerte de acuerdo con dos estudiantes con los que realizar esta tarea. Cuando tengas tu grupo, uno de los miembros debe: 
+Como el trabajo lo hacemos en grupo, antes de empezar debes ponerte de acuerdo con dos estudiantes con los que realizar esta tarea. Cuando tengas tu grupo, uno de los miembros debe:
 
-1. Ir a Eulalia y crear un Proyecto de Investigación 
+1. Ir a Eulalia y crear un Proyecto de Investigación
 2. Añadir los correos electrónicos (usados en el campus virtual) del resto del equipo
 
-A partir de ahora, todos podréis acceder a la información de vuestro proyecto.  
+A partir de ahora, todos podréis acceder a la información de vuestro proyecto.
+
+### Antes de empezar: Eligiendo el tema
+
+Hay dos enfoques posibles para vuestro trabajo:
+
+<details style="margin:10px 0;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;">
+<summary style="padding:12px 16px;cursor:pointer;font-weight:700;font-size:14px;color:#1e40af;">Enfoque A: Estudio experimental (con grabación de audio)</summary>
+<div style="padding:10px 16px 14px;font-size:13px;line-height:1.7;">
+
+Analizáis directamente una muestra de habla grabada de un hablante real.
+
+**¿Qué necesitáis?**
+- Acceso a un hablante: un niño pequeño (desarrollo normal o con trastorno), un hablante con patología del habla (disfemia, disartria, afasia, etc.), un extranjero aprendiendo español, etc.
+- Grabar una muestra de habla (o conseguir una grabación existente, citando la fuente).
+- Transcribir fonológicamente la muestra y analizar los errores.
+
+**Temas posibles:**
+
+| Tema | Tipo de hablante | Acceso habitual |
+|------|-----------------|-----------------|
+| Retraso fonológico infantil | Niño 2-5 años | Prácticas, familia, grabaciones online |
+| Disfemia (tartamudez) | Niño o adulto | Asociaciones, grabaciones online |
+| Disartria | Adulto con daño neurológico | Centros de rehabilitación, grabaciones online |
+| Afasia | Adulto con daño cerebral | Centros de rehabilitación, grabaciones online |
+| Habla con implante coclear | Niño o adulto | Centros audiológicos, grabaciones online |
+| Síndrome de Acento Extranjero | Adulto | Grabaciones online (muy raro) |
+| Disfunción velofaríngea | Niño o adulto | Centros especializados, grabaciones online |
+| Habla infantil en desarrollo | Niño 1-4 años (sin patología) | Familia, escuelas infantiles |
+| Habla de un extranjero | Adulto aprendiendo español | Compañeros Erasmus, conocidos |
+
+**Ventajas:** Trabajáis con datos reales, aprendéis a transcribir y analizar, la experiencia es muy formativa.
+
+**Limitaciones:** Necesitáis acceso a un hablante o a grabaciones de calidad suficiente. La grabación debe permitir una transcripción fonológica fiable. Debéis respetar la confidencialidad del hablante.
+
+**⚠️ Importante:** Solo elegid un tema si tenéis acceso real a hablantes o grabaciones de ese tipo. No elijáis un tema solo porque os parezca interesante si luego no tendréis datos que analizar.
+</div>
+</details>
+
+<details style="margin:10px 0;border:1px solid #bbf7d0;border-radius:8px;background:#f0fdf4;">
+<summary style="padding:12px 16px;cursor:pointer;font-weight:700;font-size:14px;color:#166534;">Enfoque B: Revisión bibliográfica (sin grabación)</summary>
+<div style="padding:10px 16px 14px;font-size:13px;line-height:1.7;">
+
+Revisáis lo que otros investigadores han publicado sobre un tema, sintetizáis los hallazgos y extraéis conclusiones.
+
+**¿Qué necesitáis?**
+- Acceso a artículos científicos (a través de la biblioteca de la UMA, Google Scholar, PubMed, etc.).
+- Capacidad de leer y sintetizar artículos (la mayoría estarán en inglés).
+- No necesitáis grabaciones ni acceso a hablantes.
+
+**Temas posibles:**
+
+| Tema | Pregunta de ejemplo |
+|------|-------------------|
+| Errores fonológicos en una patología concreta | ¿Qué tipos de errores fonológicos son más frecuentes en niños con Síndrome de Down? |
+| Comparación entre patologías | ¿Se diferencian los errores fonológicos de la disartria y la afasia? |
+| Desarrollo fonológico típico | ¿En qué orden se adquieren los fonemas del español? |
+| Efectos de una intervención | ¿Qué evidencia hay sobre la eficacia de la terapia fonológica en el retraso del lenguaje? |
+| Habla y bilingüismo | ¿Cómo afecta el bilingüismo al desarrollo fonológico? |
+| Habla y tecnología | ¿Qué herramientas tecnológicas se usan para el análisis fonológico en logopedia? |
+
+**Ventajas:** No necesitáis acceso a hablantes. Podéis abordar temas más amplios o más raros. Desarrolláis competencias de búsqueda y síntesis bibliográfica.
+
+**Limitaciones:** No practicáis la transcripción ni el análisis de habla real. El trabajo puede ser menos "vivencial". Debéis leer un número suficiente de artículos (mínimo 5-6) para que la revisión tenga sentido.
+</div>
+</details>
+
+**¿Cuál elegir?** Depende de vuestras circunstancias:
+
+<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13px;line-height:1.7;">
+
+- **Si tenéis acceso a un hablante o grabación** → Enfoque A (experimental). Es la opción más formativa para esta asignatura.
+- **Si NO tenéis acceso a datos de audio** → Enfoque B (revisión). Es una alternativa rigurosa y válida.
+- **En caso de duda** → Consultad con el profesorado antes de empezar.
+</div>
+
+Independientemente del enfoque, la estructura del trabajo es la misma: **Introducción, Metodología, Resultados y Discusión**. Lo que cambia es el contenido de cada sección (en el Enfoque A describís vuestro análisis; en el Enfoque B describís vuestra estrategia de búsqueda y síntesis).
 
 ### Paso 1: La introducción
 

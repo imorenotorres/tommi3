@@ -1,0 +1,63 @@
+{
+  "id": "2ba88a02",
+  "titulo": "Análisis de un paciente con DVF",
+  "grupo": [
+    "imoreno@uma.es"
+  ],
+  "created": "2026-08-21 14:11",
+  "fases": {
+    "introduccion": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "metodologia": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "resultados": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    },
+    "discusion": {
+      "texto": "",
+      "ultima_edicion": "",
+      "editado_por": ""
+    }
+  },
+  "chat": [
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "A ver, quiero hacer un estudio de un paciente con disfunción velofaríngea. ¿Por donde empiezo? Me guataría sacar una buena nota, eh",
+      "respuesta": "Para enfocar tu proyecto con un paciente con disfunción velofaríngea (DVF), primero define claramente el objetivo: **analizar los errores fonológicos específicos derivados de la incompetencia velofaríngea** (ej: nasales, oclusivas débiles, fricativas con escape de aire nasal). La introducción debe contextualizar la DVF y justificar por qué es relevante estudiar sus errores en español peninsular.\n\n¿Has considerado qué tipo de errores fonológicos esperas encontrar? Por ejemplo, ¿sabes que en la DVF suelen aparecer:\n- **Nasales en lugar de oclusivas** (/m/ por /b/, /n/ por /d/),\n- **Fricativas con hipernasalidad** (/s/ → [s̪̃] con escape nasal),\n- **Omisión de consonantes en coda** (ej: \"pan\" → [pã])?\n\nSi quieres, dime qué errores concretos quieres analizar y te ayudo a redactar la introducción.",
+      "fase": "introduccion",
+      "fecha": "2026-08-21 14:11",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Parece buena idea",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-21 14:13"
+      }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Pues mira, trabajaré sobre la producción de nasales en lugar de oclusivas",
+      "respuesta": "Este es el borrador de la **Introducción** para tu proyecto:\n\n---\n\nLa disfunción velofaríngea (DVF) es un trastorno que afecta al cierre del esfínter velofaríngeo, impidiendo la separación adecuada entre las cavidades nasal y oral durante la producción del habla. Este déficit conlleva errores fonológicos característicos, como la sustitución de oclusivas por nasales (/b/ → [m], /d/ → [n], /g/ → [ŋ]), fenómeno documentado en el inventario fonológico del español peninsular (Tema5_Referencia_Patologias.md). Dada la relevancia clínica de estos errores en la evaluación logopédica, este estudio analiza la producción de nasales en lugar de oclusivas en un paciente con DVF, comparando su rendimiento con los patrones típicos de adquisición fonológica en español (Tema5_Referencia_Patologias.md). Los resultados podrían contribuir a perfilar estrategias terapéuticas basadas en evidencia.\n\n---\n\nLee este borrador y dime qué quieres cambiar, añadir o corregir.",
+      "fase": "introduccion",
+      "fecha": "2026-08-21 14:13",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": {
+        "accion": "aplicado",
+        "justificacion": "Pues porque sí",
+        "autor": "imoreno@uma.es",
+        "fecha": "2026-08-21 14:24"
+      }
+    }
+  ],
+  "updated": "2026-08-21 14:24"
+}

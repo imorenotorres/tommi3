@@ -72,7 +72,17 @@
         "autor": "imoreno@uma.es",
         "fecha": "2026-08-14 00:39"
       }
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Hola, Cómo puedo hacer la introducción",
+      "respuesta": "Este es el borrador de la **Introducción** para tu proyecto. Léelo y dime qué quieres cambiar, añadir o corregir.\n\n---\n\n**Introducción**\n\nLa adquisición fonológica en niños sordos con implante coclear (IC) constituye un campo de estudio clave en logopedia, dado que estos dispositivos permiten acceder a la percepción auditiva y, en consecuencia, al desarrollo del lenguaje oral. Sin embargo, la variabilidad en los resultados fonológicos observados en esta población —influenciada por factores como la edad de implantación, el tipo de estimulación recibida o las características individuales del implante— plantea interrogantes sobre los mecanismos subyacentes a la adquisición del sistema fonológico en contextos de hipoacusia corregida.\n\nEste trabajo se centra en el análisis del desarrollo fonológico de un niño de 4 años con implante coclear, implantado a los 24 meses, con el objetivo de comparar su producción de fonemas con los patrones típicos de adquisición en niños oyentes de la misma edad. La elección de este caso responde a la necesidad de profundizar en cómo la edad crítica de implantación (antes de los 3 años) impacta en la adquisición de los 23 fonemas del español peninsular, especialmente en un contexto donde la plasticidad cerebral y la exposición temprana al lenguaje son determinantes. Además, este estudio busca contribuir a la literatura existente sobre la eficacia de los IC en la rehabilitación fonológica, un área aún poco explorada en muestras longitudinales con seguimiento detallado.\n\n---\nLee este borrador y dime qué quieres cambiar, añadir o corregir.",
+      "fase": "introduccion",
+      "fecha": "2026-08-21 13:46",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": null
     }
   ],
-  "updated": "2026-08-14 00:39"
+  "updated": "2026-08-21 13:46"
 }

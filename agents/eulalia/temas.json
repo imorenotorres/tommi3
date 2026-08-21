@@ -1282,8 +1282,12 @@
           "seccion_doc": "5.2. Vuestro trabajo paso a paso",
           "subbloques": [
             {
-              "nombre": "Antes de empezar",
-              "seccion_doc": "Antes de empezar"
+              "nombre": "Configurar Eulalia",
+              "seccion_doc": "Antes de empezar: Configurar Eulalia"
+            },
+            {
+              "nombre": "Eligiendo el tema",
+              "seccion_doc": "Antes de empezar: Eligiendo el tema"
             },
             {
               "nombre": "Paso 1: La introducción",

@@ -143,7 +143,17 @@
       "response_type": "llm",
       "texto_fase_antes": "<div><br></div>",
       "decision": null
+    },
+    {
+      "autor": "imoreno@uma.es",
+      "prompt": "Cómo puedo hacer la introducción",
+      "respuesta": "La introducción de vuestro trabajo podría estructurarse así:\n\n---\n\nEl habla es un sistema complejo en el que la producción de sonidos depende de la coordinación precisa de estructuras anatómicas y procesos fisiológicos. Entre estas, el **mecanismo velofaríngeo** —formado por el velo del paladar, las paredes faríngeas y los músculos asociados— desempeña un papel fundamental al regular el flujo de aire entre las cavidades oral y nasal durante la emisión de fonemas orales. Cuando este mecanismo falla, se produce una **disfunción velofaríngea (DVF)**, un trastorno que altera la resonancia, la presión intraoral y, en consecuencia, la inteligibilidad del habla. Este problema es especialmente relevante en la población infantil, donde la DVF puede derivar en dificultades fonológicas persistentes si no se interviene de manera temprana.\n\nEn este contexto, el presente estudio se centra en el análisis del habla de un niño de 4 años con DVF, un caso que ilustra cómo la alteración del cierre velofaríngeo repercute en la producción de fonemas y en la inteligibilidad global. La elección de esta edad no es arbitraria: a los 4 años, los niños ya han adquirido la mayoría de los fonemas del español peninsular, lo que permite identificar patrones de error específicos vinculados a la DVF. Además, este grupo etario es crítico para la intervención logopédica, ya que las alteraciones no corregidas pueden consolidarse y afectar al desarrollo lingüístico futuro.\n\nEl objetivo principal de este trabajo es **identificar y caracterizar los errores fonológicos y de inteligibilidad derivados de la DVF**, así como su relación con los rasgos distintivos del español peninsular. Para ello, se analizará una muestra de habla espontánea y dirigida, prestando especial atención a fenómenos como la hipernasalidad, la emisión nasal de aire en consonantes oclusivas/fricativas y las sustituciones de fonemas. Los resultados obtenidos podrían contribuir a mejorar los protocolos de evaluación y tratamiento en logopedia, especialmente en casos de DVF no asociados a fisura palatina, un perfil menos documentado en la literatura.\n\nLee este borrador y dime qué quieres cambiar, añadir o corregir.",
+      "fase": "introduccion",
+      "fecha": "2026-08-21 13:48",
+      "response_type": "llm",
+      "texto_fase_antes": "",
+      "decision": null
     }
   ],
-  "updated": "2026-08-14 11:30"
+  "updated": "2026-08-21 13:48"
 }

@@ -188,6 +188,71 @@
     </div>
 
     <div class="section">
+        <h2>Technical Details</h2>
+        <p>
+            Detailed documentation of the classifier implementations, benchmark sets, and construction trajectories:
+        </p>
+        <div class="agents-grid">
+            <a class="agent-card" href="/static/rag_study2/production_classifier_details.md" target="_blank">
+                <div class="agent-icon" style="background:#9ca3af;">P</div>
+                <div class="agent-info">
+                    <h3>Production Rule-Based Classifier</h3>
+                    <p>~60 synonym mappings, 12-step classification chain, regex patterns, and analysis of why reactive construction generalises worst.</p>
+                    <span class="agent-tag" style="background:#f1f5f9;color:#64748b;">Technical specification</span>
+                </div>
+            </a>
+            <a class="agent-card" href="/static/rag_study2/auto_rule_based_details.md" target="_blank">
+                <div class="agent-icon" style="background:#f59e0b;">R</div>
+                <div class="agent-info">
+                    <h3>Auto-Constructed Rule-Based Classifier</h3>
+                    <p>~35 synonym families, intent templates, entity-type detection, 13-step classification chain, and construction trajectory.</p>
+                    <span class="agent-tag" style="background:#fef3c7;color:#92400e;">Technical specification</span>
+                </div>
+            </a>
+            <a class="agent-card" href="/static/rag_study2/construction_rule_based.html" target="_blank">
+                <div class="agent-icon" style="background:#f59e0b;">&#9881;</div>
+                <div class="agent-info">
+                    <h3>Construction Trajectory — Rule-Based</h3>
+                    <p>3 iterations from 79.7% to 100%: initial patterns, 14 failures, fixes applied at each step. <span style="color:#f59e0b;font-weight:600;">Changes highlighted.</span></p>
+                    <span class="agent-tag" style="background:#fef3c7;color:#92400e;">Construction log</span>
+                </div>
+            </a>
+            <a class="agent-card" href="/static/rag_study2/construction_llm_based.html" target="_blank">
+                <div class="agent-icon" style="background:#3b82f6;">&#9881;</div>
+                <div class="agent-info">
+                    <h3>Construction Trajectory — LLM-Based</h3>
+                    <p>3 iterations from 95.7% to 100%: initial prompt, 4 refinements, consistency tracking. <span style="color:#3b82f6;font-weight:600;">Changes highlighted.</span></p>
+                    <span class="agent-tag" style="background:#dbeafe;color:#1e40af;">Construction log</span>
+                </div>
+            </a>
+            <a class="agent-card" href="/static/rag_study2/expert_input.md" target="_blank">
+                <div class="agent-icon" style="background:#8b5cf6;">&#128221;</div>
+                <div class="agent-info">
+                    <h3>Expert Input (Phase A)</h3>
+                    <p>Shared input for both classifiers: 12 category definitions, representative examples, 7 boundary rules, response path specifications.</p>
+                    <span class="agent-tag" style="background:#ede9fe;color:#6d28d9;">Source document</span>
+                </div>
+            </a>
+            <a class="agent-card" href="/static/rag_study2/development_set.json" target="_blank">
+                <div class="agent-icon" style="background:#10b981;">D</div>
+                <div class="agent-info">
+                    <h3>Development Set</h3>
+                    <p>69 queries with ground-truth labels across all 12 categories. Used during the automated construction loop.</p>
+                    <span class="agent-tag" style="background:#d1fae5;color:#065f46;">JSON &mdash; 69 queries</span>
+                </div>
+            </a>
+            <a class="agent-card" href="/static/rag_study2/evaluation_set_extended.json" target="_blank">
+                <div class="agent-icon" style="background:#6366f1;">E</div>
+                <div class="agent-info">
+                    <h3>Evaluation Set</h3>
+                    <p>216 unseen queries across 12 categories and 3 difficulty tiers (standard, unusual, adversarial). Never seen during construction.</p>
+                    <span class="agent-tag" style="background:#e0e7ff;color:#3730a3;">JSON &mdash; 216 queries, 3 tiers</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="section">
         <h2>References</h2>
         <div class="reference">
             <p>Rabanser, S., Kapoor, S., Kirgis, P., Liu, K., Utpala, S., &amp; Narayanan, A. (2025).

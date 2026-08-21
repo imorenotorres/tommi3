@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construction Trajectory — Auto Rule-Based Classifier</title>
+<style>
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.7; }
+h1 { color: #1a2255; font-size: 1.3em; border-bottom: 3px solid #f59e0b; padding-bottom: 8px; }
+h2 { color: #1a2255; font-size: 1.1em; margin-top: 28px; }
+h3 { color: #475569; font-size: 0.95em; margin-top: 16px; }
+.iteration { background: #fff; border-radius: 10px; padding: 20px 24px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.iteration-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.accuracy { font-size: 1.4em; font-weight: 700; }
+.acc-low { color: #dc2626; }
+.acc-mid { color: #f59e0b; }
+.acc-high { color: #16a34a; }
+.new { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 8px 12px; margin: 8px 0; border-radius: 0 6px 6px 0; font-size: 0.9em; }
+.failure { background: #fef2f2; border-left: 4px solid #ef4444; padding: 6px 12px; margin: 4px 0; border-radius: 0 6px 6px 0; font-size: 0.85em; }
+.failure code { background: #fee2e2; padding: 1px 4px; border-radius: 3px; }
+.fix { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 6px 12px; margin: 4px 0; border-radius: 0 6px 6px 0; font-size: 0.85em; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.85em; }
+th { background: #f1f5f9; padding: 8px 10px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; }
+.summary { background: #eff6ff; border-radius: 8px; padding: 16px 20px; margin: 20px 0; }
+.summary h2 { margin-top: 0; color: #1e40af; }
+code { font-family: 'Menlo', 'Monaco', monospace; font-size: 0.9em; }
+a { color: #3b82f6; }
+</style>
+</head>
+<body>
+
+<h1>Construction Trajectory — Auto-Constructed Rule-Based Classifier</h1>
+<p>Constructor: <strong>Claude Sonnet 4</strong> (Anthropic) via Claude Code CLI<br>
+Input: <a href="expert_input.md" target="_blank">Expert Input Specification (Phase A)</a><br>
+Development set: <a href="development_set.json" target="_blank">69 queries</a><br>
+Date: 6 June 2025</p>
+
+<!-- Iteration 0 -->
+<div class="iteration">
+    <div class="iteration-header">
+        <h2>Iteration 0 — Initial Construction</h2>
+        <span class="accuracy acc-low">55/69 (79.7%)</span>
+    </div>
+    <p>The constructor translates expert input into initial regex patterns and synonym mappings.</p>
+
+    <h3>Initial patterns created</h3>
+    <div class="new">
+        <strong>Synonym expansion</strong>: ~20 initial mappings (visualise→figure, publications→papers, define→what is, etc.)<br>
+        <strong>Meta</strong>: 8 exact phrase matches (what can you do, how does this work, who are you, etc.)<br>
+        <strong>Non-research</strong>: 6 regex patterns (^write, translate, book, who won, recipe, weather)<br>
+        <strong>Figure</strong>: keyword check for "figure" or "map" after synonym expansion<br>
+        <strong>Project</strong>: keyword "project(s)" + specific project names (TAILOR, IntelliMan, etc.)<br>
+        <strong>Researcher</strong>: database name lookup<br>
+        <strong>Glossary</strong>: "what is" + glossary context check<br>
+        <strong>Gap</strong>: 10 gap phrases (not studied, gaps, missing, etc.)<br>
+        <strong>Off-topic</strong>: topical scope check (~711 terms)
+    </div>
+
+    <h3>14 failures</h3>
+    <table>
+        <tr><th>Query</th><th>Expected</th><th>Got</th><th>Root cause</th></tr>
+        <tr><td>"Which universities are in UNINOVIS?"</td><td>meta</td><td>general</td><td>No UNINOVIS+university pattern</td></tr>
+        <tr><td>"What functionality do you offer?"</td><td>meta</td><td>off_topic</td><td>No synonym for "functionality"</td></tr>
+        <tr><td>"Tell me the UNINOVIS partner universities"</td><td>meta</td><td>general</td><td>No "partner universities" pattern</td></tr>
+        <tr><td>"List research projects on trustworthy AI"</td><td>project</td><td>topic_search</td><td><code>\bprojects?\b</code> not checked before topic_search</td></tr>
+        <tr><td>"Show me projects related to trustworthy AI"</td><td>project</td><td>general</td><td>"projects" not detected (priority)</td></tr>
+        <tr><td>"Research on AI in education within UNINOVIS"</td><td>topic_search</td><td>project</td><td>"UNINOVIS" triggers project path</td></tr>
+        <tr><td>"List all researchers from THUAS"</td><td>papers</td><td>off_topic</td><td>University acronym case not handled</td></tr>
+        <tr><td>"List all papers from UDCLV on AI in healthcare"</td><td>papers</td><td>researcher</td><td>University before researcher not checked</td></tr>
+        <tr><td>"Who are the researchers at THUAS?"</td><td>papers</td><td>off_topic</td><td>University acronym not detected</td></tr>
+        <tr><td>"AI in education research at UNINOVIS"</td><td>topic_search</td><td>project</td><td>"UNINOVIS" triggers project</td></tr>
+        <tr><td>"Is AI dangerous?"</td><td>general</td><td>off_topic</td><td>Not in topical scope (broad AI question)</td></tr>
+        <tr><td>"Can AI be trusted?"</td><td>general</td><td>off_topic</td><td>Same: broad AI not in scope terms</td></tr>
+        <tr><td>"What is a language model?"</td><td>general</td><td>off_topic</td><td>Same</td></tr>
+        <tr><td>"Can AI be harmful?"</td><td>general</td><td>off_topic</td><td>Same</td></tr>
+    </table>
+</div>
+
+<!-- Iteration 1 -->
+<div class="iteration">
+    <div class="iteration-header">
+        <h2>Iteration 1 — First Fix Round</h2>
+        <span class="accuracy acc-mid">63/69 (91.3%)</span>
+    </div>
+    <p>Constructor receives 14 failures and proposes fixes.</p>
+
+    <h3>Fixes applied</h3>
+    <div class="new">
+        <strong>+Meta patterns</strong>: Added UNINOVIS+university/partner/country detection; "new here", "get started", "overview"; "how many universities" + UNINOVIS<br>
+        <strong>+Meta synonyms</strong>: capabilities, functionality, features, purpose → "what can you do"<br>
+        <strong>Fix <code>\bprojects?\b</code></strong>: Moved project check before topic_search in priority chain<br>
+        <strong>University acronym case fix</strong>: Match uppercase acronyms (UMA, THUAS, etc.) in original message, not lowercased<br>
+        <strong>Expanded scope terms</strong>: Added broad AI terms (danger, harmful, trust, safe, bias, rights, replace, regulat, future, challeng, teach, ethic, model) as general-category signals before off_topic check
+    </div>
+
+    <h3>6 remaining failures</h3>
+    <table>
+        <tr><th>Query</th><th>Expected</th><th>Got</th><th>Root cause</th></tr>
+        <tr><td>"What functionality do you offer?"</td><td>meta</td><td>off_topic</td><td>Synonym applied but pattern still misses</td></tr>
+        <tr><td>"Research on AI in education within UNINOVIS"</td><td>topic_search</td><td>project</td><td>"UNINOVIS" still triggers project</td></tr>
+        <tr><td>"List all papers from UDCLV on AI in healthcare"</td><td>papers</td><td>researcher</td><td>Priority ordering issue</td></tr>
+        <tr><td>"AI in education research at UNINOVIS"</td><td>topic_search</td><td>project</td><td>Same UNINOVIS issue</td></tr>
+        <tr><td>"Can AI be trusted?"</td><td>general</td><td>off_topic</td><td>"trusted" not in scope (stemming)</td></tr>
+        <tr><td>"Can AI be harmful?"</td><td>general</td><td>off_topic</td><td>"harmful" not in scope</td></tr>
+    </table>
+</div>
+
+<!-- Iteration 2 -->
+<div class="iteration">
+    <div class="iteration-header">
+        <h2>Iteration 2 — Second Fix Round</h2>
+        <span class="accuracy acc-mid">67/69 (97.1%)</span>
+    </div>
+    <p>Constructor receives 6 failures and proposes structural fixes.</p>
+
+    <h3>Fixes applied</h3>
+    <div class="new">
+        <strong>Reordered university before researcher</strong>: University acronyms now checked before researcher name lookup, preventing UDCLV papers from being caught by researcher patterns<br>
+        <strong>Word-boundary fix for project</strong>: UNINOVIS + project keywords required (not just UNINOVIS alone); topic_search patterns like "research at/in/within UNINOVIS" no longer trigger project<br>
+        <strong>Broad AI patterns expanded</strong>: Added "harmful" synonym → "dangerous"; added more AI+adjective patterns to catch general questions before off_topic
+    </div>
+
+    <h3>2 remaining failures</h3>
+    <table>
+        <tr><th>Query</th><th>Expected</th><th>Got</th><th>Root cause</th></tr>
+        <tr><td>"AI in education research at UNINOVIS"</td><td>topic_search</td><td>general</td><td>Topic_search pattern doesn't match "at UNINOVIS"</td></tr>
+        <tr><td>"Can AI be trusted?"</td><td>general</td><td>off_topic</td><td>"trusted" stems don't match "trust" scope term</td></tr>
+    </table>
+</div>
+
+<!-- Iteration 3 -->
+<div class="iteration">
+    <div class="iteration-header">
+        <h2>Iteration 3 — Final Fix</h2>
+        <span class="accuracy acc-high">69/69 (100.0%)</span>
+    </div>
+    <p>Constructor receives 2 failures and applies targeted fixes.</p>
+
+    <h3>Fixes applied</h3>
+    <div class="new">
+        <strong>Stemming fix</strong>: Added <code>trust\w*</code> pattern to catch "trusted", "trusting", "trustworthy" etc. in the broad AI general-category signal<br>
+        <strong>Topic_search pattern expansion</strong>: Added "at/in/within" as valid prepositions in topic_search patterns: <code>research\b.*\b(?:on|about|in|at|within|exists)\b</code>
+    </div>
+
+    <h3>0 failures — target reached</h3>
+</div>
+
+<!-- Summary -->
+<div class="summary">
+    <h2>Construction Summary</h2>
+    <table>
+        <tr><th>Iteration</th><th>Accuracy</th><th>Failures fixed</th><th>Fix type</th></tr>
+        <tr><td>0 (initial)</td><td>79.7% (55/69)</td><td>—</td><td>Initial patterns from expert examples</td></tr>
+        <tr><td>1</td><td>91.3% (63/69)</td><td>8 of 14</td><td>+meta patterns; project priority; university case; scope expansion</td></tr>
+        <tr><td>2</td><td>97.1% (67/69)</td><td>4 of 6</td><td>Reorder university/researcher; UNINOVIS word-boundary; broad AI patterns</td></tr>
+        <tr><td>3</td><td>100.0% (69/69)</td><td>2 of 2</td><td>Stemming fix; topic_search preposition expansion</td></tr>
+    </table>
+    <p><strong>Total fixes</strong>: 14 pattern additions/modifications across 3 iterations<br>
+    <strong>Fix granularity</strong>: Mix of pattern-specific fixes (stemming, prepositions) and class-level fixes (broad AI signals, priority reordering)<br>
+    <strong>Key difference from production</strong>: Batch feedback (seeing multiple failures at once) led to broader fixes — e.g., the "broad AI" general-category signal catches an entire class of queries, rather than fixing individual phrasings one by one.</p>
+</div>
+
+</body>
+</html>

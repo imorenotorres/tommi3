@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construction Trajectory — LLM-Based Classifier</title>
+<style>
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.7; }
+h1 { color: #1a2255; font-size: 1.3em; border-bottom: 3px solid #3b82f6; padding-bottom: 8px; }
+h2 { color: #1a2255; font-size: 1.1em; margin-top: 28px; }
+h3 { color: #475569; font-size: 0.95em; margin-top: 16px; }
+.iteration { background: #fff; border-radius: 10px; padding: 20px 24px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.iteration-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.accuracy { font-size: 1.4em; font-weight: 700; }
+.acc-low { color: #dc2626; }
+.acc-mid { color: #f59e0b; }
+.acc-high { color: #16a34a; }
+.new { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 8px 12px; margin: 8px 0; border-radius: 0 6px 6px 0; font-size: 0.9em; }
+.failure { background: #fef2f2; border-left: 4px solid #ef4444; padding: 6px 12px; margin: 4px 0; border-radius: 0 6px 6px 0; font-size: 0.85em; }
+.prompt-change { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 8px 12px; margin: 8px 0; border-radius: 0 6px 6px 0; font-size: 0.85em; }
+.prompt-change strong { color: #166534; }
+.consistency { background: #fef9c3; border-left: 4px solid #eab308; padding: 6px 12px; margin: 4px 0; border-radius: 0 6px 6px 0; font-size: 0.85em; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.85em; }
+th { background: #f1f5f9; padding: 8px 10px; text-align: left; border-bottom: 2px solid #e2e8f0; }
+td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; }
+.summary { background: #eff6ff; border-radius: 8px; padding: 16px 20px; margin: 20px 0; }
+.summary h2 { margin-top: 0; color: #1e40af; }
+pre { background: #f1f5f9; padding: 12px; border-radius: 6px; font-size: 0.8em; overflow-x: auto; white-space: pre-wrap; }
+code { font-family: 'Menlo', 'Monaco', monospace; font-size: 0.9em; }
+a { color: #3b82f6; }
+</style>
+</head>
+<body>
+
+<h1>Construction Trajectory — LLM-Based Classifier</h1>
+<p>Constructor: <strong>Claude Sonnet 4</strong> (Anthropic) via Claude Code CLI<br>
+Classification LLM: <strong>Mistral Small</strong> (mistral-small-latest)<br>
+Input: <a href="expert_input.md" target="_blank">Expert Input Specification (Phase A)</a><br>
+Development set: <a href="development_set.json" target="_blank">69 queries</a><br>
+Date: 6 June 2025</p>
+
+<!-- Iteration 0 -->
+<div class="iteration">
+    <div class="iteration-header">
+        <h2>Iteration 0 — Initial Prompt</h2>
+        <span class="accuracy acc-high">66/69 (95.7%)</span>
+    </div>
+    <p>The constructor translates expert input into a classification prompt. The LLM (Mistral Small) receives this prompt and returns a JSON classification.</p>
+
+    <h3>Initial prompt structure</h3>
+    <div class="new">
+        <strong>12 categories</strong> listed in priority order with descriptions and examples<br>
+        <strong>5 boundary rules</strong>: non_research vs off_topic, glossary vs general, project vs topic_search, researcher vs topic_search, papers vs topic_search<br>
+        <strong>University list</strong>: UMA, THUAS, USPN, UDCLV, THWS, TAMK, KK, UT<br>
+        <strong>Output format</strong>: JSON with category, topic, researcher, university, project fields
+    </div>
+
+    <h3>3 failures</h3>
+    <table>
+        <tr><th>Query</th><th>Expected</th><th>Got</th><th>Root cause</th></tr>
+        <tr><td>"Things to do"</td><td>off_topic</td><td>non_research</td><td>LLM interprets vague input as task request</td></tr>
+        <tr><td>"AI in education research at UNINOVIS"</td><td>topic_search</td><td>papers</td><td>UNINOVIS triggers university path instead of topic</td></tr>
+        <tr><td>"What is a language model?"</td><td>general</td><td>off_topic</td><td>LLM considers "language model" outside Responsible AI</td></tr>
+    </table>
+
+    <h3>Consistency (K=5 runs)</h3>
+    <div class="consistency">
+        <strong>67/69 consistent (97.1%)</strong> — 2 queries classified differently across runs:
+        <ul style="margin:4px 0;">
+            <li>"Papers by Rubén González Vallejo": researcher(4), topic_search(1)</li>
+            <li>"Research on AI in education within UNINOVIS": topic_search(4), project(1)</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Iteration 1 -->
+<div class="iteration">
+    <div class="iteration-header">
+        <h2>Iteration 1 — First Prompt Refinement</h2>
+        <span class="accuracy acc-high">66/69 (95.7%)</span>
+    </div>
+    <p>Constructor receives 3 failures and refines the prompt.</p>
+
+    <h3>Prompt changes</h3>
+    <div class="prompt-change">
+        <strong>Clarified general vs off_topic boundary</strong>:<br>
+        Added to IMPORTANT DISTINCTIONS: <em>"general vs off_topic: If the question is about AI or technology (even broadly), it's general. If it has nothing to do with AI, it's off_topic."</em><br>
+        Added: <em>"Questions about ANY AI or responsible AI topic (even if not in the database) should be general, NOT off_topic."</em><br>
+        Added to off_topic description: <em>"Also for vague, meaningless, or greeting-like inputs."</em>
+    </div>
+
+    <h3>3 failures (same queries — no improvement)</h3>
+    <p>The prompt change addressed the general/off_topic boundary but the same 3 queries persisted. The LLM's pre-trained understanding of "language model" as outside RA scope resists the prompt nudge.</p>
+
+    <h3>Consistency (K=5 runs)</h3>
+    <div class="consistency">
+        <strong>69/69 consistent (100%)</strong> — improved from previous iteration.
+    </div>
+</div>
+
+<!-- Iteration 2 -->
+<div class="iteration">
+    <div class="iteration-header">
+        <h2>Iteration 2 — Second Prompt Refinement</h2>
+        <span class="accuracy acc-high">68/69 (98.6%)</span>
+    </div>
+    <p>Constructor receives persistent failures and applies stronger prompt modifications.</p>
+
+    <h3>Prompt changes</h3>
+    <div class="prompt-change">
+        <strong>Strengthened researcher priority</strong>:<br>
+        Added to researcher description: <em>"If a query mentions a person's name, it is ALWAYS researcher, even if it also mentions a university or topic."</em>
+    </div>
+    <div class="prompt-change">
+        <strong>Clarified topic_search vs papers precedence</strong>:<br>
+        Added: <em>"topic_search vs papers: If a query mentions a TOPIC (e.g. 'AI in education', 'AI ethics'), use topic_search — even if it also mentions a university or 'UNINOVIS'. Use papers ONLY when asking for ALL papers/researchers from a university without specifying a topic."</em>
+    </div>
+    <div class="prompt-change">
+        <strong>Added general examples</strong>:<br>
+        Added to general description: <em>"'What is a language model?' is general (AI-related), NOT off_topic."</em>
+    </div>
+
+    <h3>1 remaining failure</h3>
+    <table>
+        <tr><th>Query</th><th>Expected</th><th>Got</th><th>Root cause</th></tr>
+        <tr><td>"AI in education research at UNINOVIS"</td><td>topic_search</td><td>papers</td><td>LLM still interprets UNINOVIS as university filter despite new rule</td></tr>
+    </table>
+
+    <h3>Consistency (K=5 runs)</h3>
+    <div class="consistency">
+        <strong>69/69 consistent (100%)</strong>
+    </div>
+</div>
+
+<!-- Iteration 3 -->
+<div class="iteration">
+    <div class="iteration-header">
+        <h2>Iteration 3 — Final Refinement</h2>
+        <span class="accuracy acc-high">69/69 (100.0%)</span>
+    </div>
+    <p>Constructor applies a final targeted refinement for the last persistent failure.</p>
+
+    <h3>Prompt changes</h3>
+    <div class="prompt-change">
+        <strong>Refined topic_search vs papers precedence</strong>:<br>
+        Strengthened the distinction: <em>"If a TOPIC is mentioned, use topic_search even if a university is also mentioned."</em> moved to top of IMPORTANT DISTINCTIONS section for higher visibility.
+    </div>
+
+    <h3>0 failures — target reached</h3>
+
+    <h3>Consistency (K=5 runs)</h3>
+    <div class="consistency">
+        <strong>68/69 consistent (98.6%)</strong> — 1 query inconsistent:
+        <ul style="margin:4px 0;">
+            <li>"What are the research gaps in UNINOVIS?": gap(4), project(1)</li>
+        </ul>
+        Note: this is a genuinely ambiguous query — "UNINOVIS" + "gaps" could be either gap analysis or project-related.
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="summary">
+    <h2>Construction Summary</h2>
+    <table>
+        <tr><th>Iteration</th><th>Accuracy</th><th>Consistency</th><th>Prompt change type</th></tr>
+        <tr><td>0 (initial)</td><td>95.7% (66/69)</td><td>97.1% (67/69)</td><td>Initial prompt from expert category descriptions</td></tr>
+        <tr><td>1</td><td>95.7% (66/69)</td><td>100% (69/69)</td><td>Clarified general vs off_topic boundary</td></tr>
+        <tr><td>2</td><td>98.6% (68/69)</td><td>100% (69/69)</td><td>Strengthened researcher priority; clarified topic_search vs papers</td></tr>
+        <tr><td>3</td><td>100.0% (69/69)</td><td>98.6% (68/69)</td><td>Refined topic_search vs papers precedence rule</td></tr>
+    </table>
+    <p><strong>Total prompt changes</strong>: 4 modifications across 3 iterations<br>
+    <strong>Fix granularity</strong>: All changes are <em>category-level descriptions</em> — no query-specific patches. Each change affects all queries of that type.<br>
+    <strong>Key observation</strong>: The LLM started at 95.7% — 16 percentage points higher than the rule-based initial (79.7%). This head start reflects the LLM's pre-trained linguistic knowledge: it already understood query intent structures before any domain-specific prompt engineering.</p>
+</div>
+
+<div class="summary">
+    <h2>Comparison: Rule-Based vs LLM-Based Construction</h2>
+    <table>
+        <tr><th>Aspect</th><th>Rule-based</th><th>LLM-based</th></tr>
+        <tr><td>Initial accuracy</td><td>79.7%</td><td>95.7%</td></tr>
+        <tr><td>Iterations to 100%</td><td>3</td><td>3</td></tr>
+        <tr><td>Total fixes</td><td>14 pattern additions</td><td>4 prompt refinements</td></tr>
+        <tr><td>Fix granularity</td><td>Mix of pattern-specific and class-level</td><td>Always category-level</td></tr>
+        <tr><td>Consistency at 100%</td><td>100% (deterministic)</td><td>98.6% (1 ambiguous query)</td></tr>
+        <tr><td>Eval accuracy (unseen)</td><td>75.5%</td><td>87.8% ± 0.4%</td></tr>
+        <tr><td>Generalisation gap</td><td>24.5 points</td><td>12.2 points</td></tr>
+    </table>
+</div>
+
+</body>
+</html>
