@@ -24,9 +24,16 @@ agents/*/data/docs/*.pdf
 # Agent logs
 agents/*/logs/
 
-# User data (contains personal data)
+# User and student data (personal, generated at runtime)
 agents/*/users.tsv
 agents/*/users.json
+agents/*/proyectos/
+agents/*/proyectos_eliminados/
+agents/*/consultas_profesor.json
+agents/*/data/detector_bulos.json
+agents/*/data/progreso_practica.json
+agents/*/data/valoracion_visible.json
+agents/*/data/chunk_db.json
 web/data/users.json
 web/data/invites.json
 web/data/access_requests.json
