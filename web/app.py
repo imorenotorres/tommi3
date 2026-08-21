@@ -318,11 +318,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # CSP: restrict sources while allowing CDNs used by agents
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdn.matomo.cloud; "
             "style-src 'self' 'unsafe-inline' https://unpkg.com; "
             "img-src 'self' data: https:; "
             "font-src 'self' https:; "
-            "connect-src 'self'; "
+            "connect-src 'self' https://*.matomo.cloud; "
             "frame-src 'self' https:; "
             "frame-ancestors 'self' https://relacionesi.uma.es https://*.uma.es"
         )
