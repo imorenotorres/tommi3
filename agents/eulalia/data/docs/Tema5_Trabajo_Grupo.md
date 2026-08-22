@@ -221,79 +221,197 @@ A partir de ahora, todos podréis acceder a la información de vuestro proyecto.
 
 ### Antes de empezar: Eligiendo el tema
 
-Hay dos enfoques posibles para vuestro trabajo:
+El trabajo consiste en un **estudio experimental** en el que analizaréis una muestra de habla grabada de un hablante real. Para ello necesitáis:
 
-<details style="margin:10px 0;border:1px solid #bfdbfe;border-radius:8px;background:#eff6ff;">
-<summary style="padding:12px 16px;cursor:pointer;font-weight:700;font-size:14px;color:#1e40af;">Enfoque A: Estudio experimental (con grabación de audio)</summary>
-<div style="padding:10px 16px 14px;font-size:13px;line-height:1.7;">
-
-Analizáis directamente una muestra de habla grabada de un hablante real.
-
-**¿Qué necesitáis?**
 - Acceso a un hablante: un niño pequeño (desarrollo normal o con trastorno), un hablante con patología del habla (disfemia, disartria, afasia, etc.), un extranjero aprendiendo español, etc.
 - Grabar una muestra de habla (o conseguir una grabación existente, citando la fuente).
 - Transcribir fonológicamente la muestra y analizar los errores.
 
 **Temas posibles:**
 
-| Tema | Tipo de hablante | Acceso habitual |
-|------|-----------------|-----------------|
-| Retraso fonológico infantil | Niño 2-5 años | Prácticas, familia, grabaciones online |
-| Disfemia (tartamudez) | Niño o adulto | Asociaciones, grabaciones online |
-| Disartria | Adulto con daño neurológico | Centros de rehabilitación, grabaciones online |
-| Afasia | Adulto con daño cerebral | Centros de rehabilitación, grabaciones online |
-| Habla con implante coclear | Niño o adulto | Centros audiológicos, grabaciones online |
-| Síndrome de Acento Extranjero | Adulto | Grabaciones online (muy raro) |
-| Disfunción velofaríngea | Niño o adulto | Centros especializados, grabaciones online |
-| Habla infantil en desarrollo | Niño 1-4 años (sin patología) | Familia, escuelas infantiles |
-| Habla de un extranjero | Adulto aprendiendo español | Compañeros Erasmus, conocidos |
+<details style="margin:6px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:8px 14px;cursor:pointer;font-weight:600;font-size:13px;">Retraso fonológico infantil <span style="font-weight:400;color:#64748b;">— Niño 2-5 años · Prácticas, familia, grabaciones online</span></summary>
+<div style="padding:6px 14px 10px;font-size:12px;line-height:1.6;color:#475569;">
 
-**Ventajas:** Trabajáis con datos reales, aprendéis a transcribir y analizar, la experiencia es muy formativa.
+**Macro-patrón: En desarrollo.** El retraso fonológico se diagnostica cuando un niño presenta errores fonológicos normales en edades anteriores pero que persisten más allá de la edad esperada.
 
-**Limitaciones:** Necesitáis acceso a un hablante o a grabaciones de calidad suficiente. La grabación debe permitir una transcripción fonológica fiable. Debéis respetar la confidencialidad del hablante.
+*Procesos de simplificación de estructura silábica:*
+- Reducción de grupos consonánticos: /pɾ/ → /p/, /tɾ/ → /t/, /bl/ → /b/ (eliminación esperada: 4-5 años)
+- Omisión de coda: /pan/ → /pa/, /sol/ → /so/ (eliminación esperada: 3-4 años)
+- Reducción de diptongos: /ˈpuer.ta/ → /ˈper.ta/
 
-**⚠️ Importante:** Solo elegid un tema si tenéis acceso real a hablantes o grabaciones de ese tipo. No elijáis un tema solo porque os parezca interesante si luego no tendréis datos que analizar.
+*Procesos de sustitución (sistémicos):*
+- Frontalización: /k/ → /t/, /g/ → /d/ (eliminación esperada: 3;6 años)
+- Posteriorización: /t/ → /k/ (NO es proceso del desarrollo normal, puede indicar patología)
+- Oclusivización: /f/ → /p/, /s/ → /t/ (eliminación esperada: 3 años)
+- Simplificación de líquidas: /ɾ/ → /l/ o /d/ (eliminación esperada: 5-6 años)
+
+*Procesos de estructura de palabra:*
+- Omisión de sílabas átonas pretónicas: /ma.ɾi.ˈpo.sa/ → /ˈpo.sa/
+- Asimilaciones regresivas: /ˈka.na/ → /ˈna.na/
+
+*Orden de adquisición de fonemas* (orientativo): 2-3 años: /p,b,t,d,k,g,m,n,ɲ/+vocales · 3-4 años: /f,s,ʧ,l/ · 4-5 años: /θ,x,ʝ/+grupos · 5-6 años: /ɾ,r/
+</div></details>
+
+<details style="margin:6px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:8px 14px;cursor:pointer;font-weight:600;font-size:13px;">Disfemia (tartamudez) <span style="font-weight:400;color:#64748b;">— Niño o adulto · Asociaciones, grabaciones online</span></summary>
+<div style="padding:6px 14px 10px;font-size:12px;line-height:1.6;color:#475569;">
+
+**Macro-patrón: Prosódico-repetición.** No presenta errores fonológicos (los fonemas se seleccionan correctamente), sino disfluencias.
+
+*Disfluencias típicas:*
+- Repeticiones de sílabas: "pa-pa-pa-pato"
+- Repeticiones de sonidos: "ssss-sol"
+- Prolongaciones: "mmmmesa"
+- Bloqueos: pausas tensas con esfuerzo visible, especialmente en oclusivas y africadas
+
+*Factores que aumentan la disfluencia:*
+- Inicio de enunciado (primeras palabras más vulnerables)
+- Palabras de contenido (sustantivos, verbos) más que funcionales
+- Palabras largas y poco frecuentes
+- Situaciones de presión comunicativa
+
+*Lo que NO se espera:* errores de sustitución de fonemas, errores de estructura silábica, errores sistémicos.
+
+**Para el análisis:** los errores se clasifican como **errores rítmicos**, no fonológicos.
+</div></details>
+
+<details style="margin:6px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:8px 14px;cursor:pointer;font-weight:600;font-size:13px;">Disartria <span style="font-weight:400;color:#64748b;">— Adulto con daño neurológico · Centros de rehabilitación, grabaciones online</span></summary>
+<div style="padding:6px 14px 10px;font-size:12px;line-height:1.6;color:#475569;">
+
+**Macro-patrón: Variable según el tipo.** Trastorno del habla por lesión neurológica que afecta al control muscular.
+
+*Espástica* (motoneurona superior) — **Fortición**: habla tensa y forzada, alófonos oclusivos [b,d,g] donde deberían aparecer aproximantes [β̞,ð̞,ɣ̞], fatiga progresiva, velocidad reducida.
+
+*Flácida* (motoneurona inferior) — **Lenición**: consonantes debilitadas o nasalizadas, hipernasalidad si afecta al velo, omisiones de coda, voz soplada.
+
+*Atáxica* (lesión cerebelosa) — **Prosódico-rítmico**: habla "escandida" con ritmo irregular, pausas inapropiadas, articulación imprecisa sin patrón sistemático.
+
+*Hipocinética* (Parkinson) — **Lenición + prosódico**: reducción progresiva de amplitud articulatoria, consonantes subarticuladas, monotonía vocal, posible aceleración involuntaria.
+</div></details>
+
+<details style="margin:6px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:8px 14px;cursor:pointer;font-weight:600;font-size:13px;">Afasia <span style="font-weight:400;color:#64748b;">— Adulto con daño cerebral · Centros de rehabilitación, grabaciones online</span></summary>
+<div style="padding:6px 14px 10px;font-size:12px;line-height:1.6;color:#475569;">
+
+**Macro-patrón: Variable** (a menudo asistemático). Los errores se denominan **parafasias fonológicas**.
+
+*Tipos de parafasias:*
+- **Sustitución**: /mesa/ → /nesa/, /kama/ → /tama/ (fonema cercano en rasgos)
+- **Omisión**: /ˈpla.to/ → /ˈpa.to/
+- **Adición**: /ˈpan/ → /ˈplan/
+- **Metátesis**: /es.ˈpal.da/ → /es.ˈda.pal/
+
+*Características:*
+- Afectan más a consonantes que a vocales
+- Más errores en palabras largas y poco frecuentes
+- Autocorrección (conduite d'approche): intentos sucesivos de acercarse a la palabra
+- Inconsistentes: la misma palabra puede producirse bien unas veces y mal otras
+- NO siguen procesos de simplificación sistemáticos (a diferencia del retraso)
+
+*Diferencia con apraxia del habla:* en la afasia los errores son de **selección** de fonemas; en la apraxia son de **programación motora**.
+</div></details>
+
+<details style="margin:6px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:8px 14px;cursor:pointer;font-weight:600;font-size:13px;">Habla con implante coclear <span style="font-weight:400;color:#64748b;">— Niño o adulto · Centros audiológicos, grabaciones online</span></summary>
+<div style="padding:6px 14px 10px;font-size:12px;line-height:1.6;color:#475569;">
+
+**Macro-patrón: Variable (perceptivo).** El implante coclear (IC) proporciona una representación limitada de la señal acústica.
+
+*Errores de lugar de articulación* (los más frecuentes): confusiones /p/-/t/-/k/, /b/-/d/-/g/. El lugar depende de transiciones formánticas rápidas que el IC representa peor.
+
+*Errores de sonoridad:* confusiones /p/-/b/, /t/-/d/, /k/-/g/. La sonoridad depende de la periodicidad que el IC representa razonablemente.
+
+*Errores en fricativas:* omisión o sustitución de /f/ y /θ/ (poca energía). /s/ se percibe mejor.
+
+*Jerarquía de dificultad* (de fácil a difícil): 1. Modo de articulación · 2. Sonoridad · 3. Lugar de articulación
+
+*Factores moduladores:* edad de implantación (ideal <24 meses), tiempo de uso, audición residual, entrenamiento auditivo.
+</div></details>
+
+<details style="margin:6px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:8px 14px;cursor:pointer;font-weight:600;font-size:13px;">Síndrome de Acento Extranjero <span style="font-weight:400;color:#64748b;">— Adulto · Grabaciones online (muy raro)</span></summary>
+<div style="padding:6px 14px 10px;font-size:12px;line-height:1.6;color:#475569;">
+
+**Macro-patrón: Prosódico-rítmico.** Trastorno poco frecuente, generalmente por lesión cerebral.
+
+*Alteraciones prosódicas (rasgo principal):*
+- Ritmo staccato: tendencia a acentuar cada sílaba por igual
+- Duración atípica de sílabas (átonas más largas de lo normal)
+- Entonación plana o con patrones atípicos
+
+*Consecuencias segmentales (secundarias al ritmo):*
+- Ausencia de suavización alofónica: /b,d,g/ se producen como [b,d,g] en todos los contextos, sin aparecer [β̞,ð̞,ɣ̞]
+- Es CONSECUENCIA del ritmo staccato, no un error segmental primario
+
+*Lo que NO se espera:* errores sistemáticos de sustitución, errores de estructura silábica, omisiones de fonemas.
+</div></details>
+
+<details style="margin:6px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:8px 14px;cursor:pointer;font-weight:600;font-size:13px;">Disfunción velofaríngea <span style="font-weight:400;color:#64748b;">— Niño o adulto · Centros especializados, grabaciones online</span></summary>
+<div style="padding:6px 14px 10px;font-size:12px;line-height:1.6;color:#475569;">
+
+**Macro-patrón: Lenición + articulaciones compensatorias.** El velo del paladar no cierra adecuadamente el paso nasal. Frecuente en fisura palatina.
+
+*Errores obligatorios:*
+- **Hipernasalidad**: vocales y consonantes sonoras con resonancia nasal
+- **Emisión nasal audible**: escape de aire por la nariz en oclusivas, fricativas, africada
+- **Debilitamiento** de consonantes de presión (lenición)
+
+*Articulaciones compensatorias:*
+- **Golpe de glotis** [ʔ]: sustitución de oclusivas orales (fortición compensatoria)
+- **Fricativa faríngea**: sustitución de fricativas
+- **Oclusiva faríngea**: sustitución de oclusivas
+
+*Patrón por tipo:* oclusivas sordas → golpe de glotis; oclusivas sonoras → nasalización (/b/→[m], /d/→[n]); fricativas → debilitamiento o fricativa faríngea; nasales → no afectadas.
+</div></details>
+
+<details style="margin:6px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:8px 14px;cursor:pointer;font-weight:600;font-size:13px;">Habla infantil en desarrollo <span style="font-weight:400;color:#64748b;">— Niño 1-4 años (sin patología) · Familia, escuelas infantiles</span></summary>
+<div style="padding:6px 14px 10px;font-size:12px;line-height:1.6;color:#475569;">
+
+**Macro-patrón: En desarrollo.** Errores normales que desaparecen progresivamente con la edad.
+
+*2-3 años:* omisiones de coda (/pan/→/pa/), reducción de grupos (/tɾen/→/ten/), frontalización (/ka.sa/→/ta.sa/), omisión de sílabas átonas, asimilaciones, simplificación de líquidas (/ɾ/→/l/).
+
+*3-4 años:* se reducen omisiones de coda, persiste reducción de grupos, la frontalización suele desaparecer, pueden persistir errores en fricativas.
+
+*4-5 años:* persisten algunos grupos consonánticos (/pɾ/,/tɾ/), errores en /θ/ y /x/, /ɾ/ puede sustituirse por /l/, la /r/ suele ser el último fonema en adquirirse.
+
+*5-6 años:* la mayoría de procesos han desaparecido. A partir de los 6 años, los errores persistentes pueden indicar trastorno fonológico.
+
+**La posteriorización NO es un proceso del desarrollo normal.**
+</div></details>
+
+<details style="margin:6px 0;border:1px solid #e2e8f0;border-radius:8px;">
+<summary style="padding:8px 14px;cursor:pointer;font-weight:600;font-size:13px;">Habla de un extranjero <span style="font-weight:400;color:#64748b;">— Adulto aprendiendo español · Compañeros Erasmus, conocidos</span></summary>
+<div style="padding:6px 14px 10px;font-size:12px;line-height:1.6;color:#475569;">
+
+**Macro-patrón: Variable (transferencia L1).** Errores derivados de la interferencia de la lengua materna.
+
+*Errores segmentales:*
+- Sustitución de fonemas inexistentes en la L1 (ej: anglófono sustituye /θ/ por /s/)
+- Confusión de contrastes inexistentes en la L1 (ej: japonés confunde /ɾ/ y /l/)
+- Refuerzo de aproximantes: [β̞,ð̞,ɣ̞] producidas como [b,d,g] (el ritmo natural rápido es difícil para no nativos)
+
+*Errores de estructura silábica:*
+- Epéntesis (inserción de vocales según restricciones de la L1)
+- Dificultad con grupos consonánticos del español
+
+*Errores prosódicos:*
+- Patrón de acentuación de la L1 transferido al español
+- Entonación inadecuada (curvas melódicas de la L1)
+- Ritmo: hablantes de lenguas acentuales (inglés, alemán) con dificultades en el ritmo silábico del español
+
+**Lo que distingue del habla patológica:** errores predecibles por la L1, consistentes, sin deterioro neurológico, mejoran con práctica.
+</div></details>
+
+<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13px;line-height:1.7;">
+⚠️ <strong>Importante:</strong> Solo elegid un tema si tenéis acceso real a hablantes o grabaciones de ese tipo. Si no disponéis de audio, <strong>consultad con el profesorado</strong>, que os proporcionará material para vuestro trabajo.
 </div>
-</details>
 
-<details style="margin:10px 0;border:1px solid #bbf7d0;border-radius:8px;background:#f0fdf4;">
-<summary style="padding:12px 16px;cursor:pointer;font-weight:700;font-size:14px;color:#166534;">Enfoque B: Revisión bibliográfica (sin grabación)</summary>
-<div style="padding:10px 16px 14px;font-size:13px;line-height:1.7;">
-
-Revisáis lo que otros investigadores han publicado sobre un tema, sintetizáis los hallazgos y extraéis conclusiones.
-
-**¿Qué necesitáis?**
-- Acceso a artículos científicos (a través de la biblioteca de la UMA, Google Scholar, PubMed, etc.).
-- Capacidad de leer y sintetizar artículos (la mayoría estarán en inglés).
-- No necesitáis grabaciones ni acceso a hablantes.
-
-**Temas posibles:**
-
-| Tema | Pregunta de ejemplo |
-|------|-------------------|
-| Errores fonológicos en una patología concreta | ¿Qué tipos de errores fonológicos son más frecuentes en niños con Síndrome de Down? |
-| Comparación entre patologías | ¿Se diferencian los errores fonológicos de la disartria y la afasia? |
-| Desarrollo fonológico típico | ¿En qué orden se adquieren los fonemas del español? |
-| Efectos de una intervención | ¿Qué evidencia hay sobre la eficacia de la terapia fonológica en el retraso del lenguaje? |
-| Habla y bilingüismo | ¿Cómo afecta el bilingüismo al desarrollo fonológico? |
-| Habla y tecnología | ¿Qué herramientas tecnológicas se usan para el análisis fonológico en logopedia? |
-
-**Ventajas:** No necesitáis acceso a hablantes. Podéis abordar temas más amplios o más raros. Desarrolláis competencias de búsqueda y síntesis bibliográfica.
-
-**Limitaciones:** No practicáis la transcripción ni el análisis de habla real. El trabajo puede ser menos "vivencial". Debéis leer un número suficiente de artículos (mínimo 5-6) para que la revisión tenga sentido.
-</div>
-</details>
-
-**¿Cuál elegir?** Depende de vuestras circunstancias:
-
-<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13px;line-height:1.7;">
-
-- **Si tenéis acceso a un hablante o grabación** → Enfoque A (experimental). Es la opción más formativa para esta asignatura.
-- **Si NO tenéis acceso a datos de audio** → Enfoque B (revisión). Es una alternativa rigurosa y válida.
-- **En caso de duda** → Consultad con el profesorado antes de empezar.
-</div>
-
-Independientemente del enfoque, la estructura del trabajo es la misma: **Introducción, Metodología, Resultados y Discusión**. Lo que cambia es el contenido de cada sección (en el Enfoque A describís vuestro análisis; en el Enfoque B describís vuestra estrategia de búsqueda y síntesis).
+La estructura del trabajo es: **Introducción, Metodología, Resultados y Discusión**.
 
 ### Paso 1: La introducción
 

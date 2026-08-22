@@ -161,10 +161,10 @@ La afasia es un trastorno del lenguaje adquirido (por lesión cerebral, generalm
 **Errores característicos:**
 
 *Parafasias fonológicas:*
-- **Sustitución de fonemas**: /mesa/ → /nesa/, /cama/ → /tama/ (sustituye un fonema por otro, a menudo cercano en rasgos)
-- **Omisión de fonemas**: /plato/ → /pato/, /tres/ → /tes/
-- **Adición de fonemas**: /pan/ → /plan/, /sol/ → /solt/
-- **Transposición (metátesis)**: /espalda/ → /espala/ o /esdapal/
+- **Sustitución de fonemas**: /mesa/ → /nesa/, /kama/ → /tama/ (sustituye un fonema por otro, a menudo cercano en rasgos)
+- **Omisión de fonemas**: /'pla.to/ → /'pa.to/, /'tɾes/ → /'tes/
+- **Adición de fonemas**: /'pan/ → /'plan/, /'sol/ → /'solt/
+- **Transposición (metátesis)**: /es.'pal.da/ → /es.'pa.la/ o /es.'da.pal/
 
 *Características de los errores:*
 - Los errores suelen afectar a consonantes más que a vocales
@@ -204,17 +204,15 @@ El implante coclear (IC) proporciona una representación limitada de la señal a
 - /s/ se percibe mejor (más energía en frecuencias altas)
 
 *Jerarquía de dificultad perceptiva (de más fácil a más difícil):*
-1. Modo de articulación (vocales vs consonantes, oclusivas vs fricativas): depende de la envolvente → se percibe bien con IC
-2. Sonoridad: depende de la periodicidad → se percibe razonablemente
-3. Lugar de articulación: depende de transiciones formánticas → se percibe mal con IC
+1. Modo de articulación (vocales vs consonantes, oclusivas vs fricativas): las reconocen bien porque (acústicamente) la información está en la envolvente, que el IC codifica bien (salvo en ambientes ruidosos)
+2. Sonoridad: las reconocen razonablemente.
+3. Lugar de articulación: es lo que más les cuesta trabajo percibir.
 
 *Factores que modulan los errores:*
-- Edad de implantación: cuanto antes, mejores resultados
-- Tiempo de uso del implante
+- Edad de implantación: cuanto antes se recibe el IC, mejores resultados (lo ideal: cerca de los 12 meses, y siempre antes de los 24 meses)
+- Tiempo de uso del implante: se precisa un tiempo para aprender a procesar estas nuevas señales
 - Presencia de audición residual
 - Entrenamiento auditivo
-
-**Relación con el Tema 4 (Fonética acústica):** Los errores de los niños con IC reflejan directamente la jerarquía de análisis temporal del sistema auditivo (envolvente > periodicidad > estructura temporal fina), descrita en los apuntes de fonética acústica.
 
 **Referencias:**
 - Moreno-Torres, I. (2014). The emergence of productive speech and language in Spanish-learning paediatric cochlear implant users. *Journal of Child Language*, 41(3), 575-599.
@@ -303,19 +301,18 @@ Las diferencias entre el registro vulgar y el formal afectan a la fonología de 
 **Rasgos del habla vulgar/informal en español:**
 
 *Debilitamiento consonántico (lenición):*
+- Aspiración exagerada de /s/ en posición de coda: /ˈes.to/ → /ˈeh.to/ o /ˈex.to/
+- Tendencia a la sonorización: /ˈka.sa/  → / /ˈga.sa/
+- Pérdida completa de consonantes en posición final de sílaba: /ˈdok.toɾ/ → /ˈdo.toɾ/, /ˈbeɾ.dad/ → /ˈbeɾ.da/ o /ˈbeɾ.ðá/
 - Pérdida de /d/ intervocálica: /ko.ˈmi.do/ → /ko.ˈmi.o/ ("comío"), /ˈna.da/ → /ˈna.a/ ("ná")
-- Aspiración o pérdida de /s/ en posición de coda: /ˈes.to/ → /ˈeh.to/ o /ˈe.to/
-- Relajación de grupos consonánticos: /ˈdok.toɾ/ → /ˈdo.toɾ/
-- Debilitamiento de consonantes en posición final: /ˈbeɾ.dad/ → /ˈbeɾ.da/ o /ˈbeɾ.ðá/
 
 *Reducción vocálica y silábica:*
-- Contracción de palabras: /ˈpa.ɾa/ → /pa/ ("pa"), /ˈba.mos/ → /ˈba.mo/ ("vamo")
+- Contracción de palabras: /ˈpa.ɾa/ → /pa/ ("pa"), /ˈkla.ɾo/ → /ˈa.ɾo/, /ˈba.mos/ → /ˈa.mo/ 
 - Elisión de sílabas átonas en habla rápida
 
 *Rasgos del habla formal/cuidada:*
 - Mantenimiento de todas las consonantes, incluidas las codas
 - Articulación plena de /d/ intervocálica
-- Mantenimiento de /s/ final
 - Producción completa de grupos consonánticos
 - Ritmo más pausado con menos reducciones
 
@@ -324,6 +321,41 @@ Las diferencias entre el registro vulgar y el formal afectan a la fonología de 
 **Referencias:**
 - Moreno Fernández, F. (2009). *Principios de sociolingüística y sociología del lenguaje* (4ª ed.). Barcelona: Ariel.
 - Lipski, J. M. (1994). *Latin American Spanish*. London: Longman.
+
+---
+
+### B.3. Habla de un extranjero (español como L2)
+
+Un hablante no nativo del español presenta errores fonológicos derivados de la interferencia de su lengua materna (L1). Los errores no se deben a una patología sino a la transferencia de las reglas fonológicas de la L1 al español.
+
+**Macro-patrón dominante:** Variable (depende de la L1)
+
+**Errores característicos:**
+
+*Errores segmentales (sistémicos):*
+- Sustitución de fonemas que no existen en la L1: un anglófono puede sustituir /θ/ por /s/ (ya que el inglés no tiene /θ/ como fonema fricativo interdental del español). Una forma de comprobar esto es examinar los cuadros de fonemas entre el español y la otra lengua. 
+- Confusión de contrastes que no existen en la L1: un hablante de japonés puede confundir /ɾ/ y /l/; un hablante de árabe puede confundir /p/ y /b/
+- Refuerzo de aproximantes: es común que los hablantes extranjeros produzcan las aproximante (β̞ ð̞ ɣ̞) de las oclusivas como los correspondientes alófonos (b, d, g]. A menudo esto se debe a que para pronunciar los alófonos es preciso mantener un ritmo natural rápido que es dicícil mantener para alguien que no domina el español. Mucho sextranjeros también refuerzan el alófono aproximante de la vibrante simple  (/ɾ/ > [ɹ]), produciendo en su lugar una vibrante propiamente (/ɾ/ > [ɾ])
+
+
+*Errores de estructura silábica:*
+- Epéntesis (inserción de vocales): un hablante de japonés puede decir /'ak.to/ → /a.'ka.to/ o insertar vocales entre consonantes
+- Dificultad con los grupos consonánticos del español: /pɾ/, /tɾ/, /bl/ pueden simplificarse según las restricciones fonotácticas de la L1
+
+*Errores prosódicos:*
+- Patrón de acentuación de la L1 transferido al español (ej: acentuación en la primera sílaba si la L1 es húngaro o finés)
+- Entonación inadecuada: las preguntas y afirmaciones pueden tener curvas melódicas de la L1
+- Ritmo: hablantes de lenguas de ritmo acentual (inglés, alemán) pueden tener dificultades con el ritmo silábico del español
+
+**Lo que distingue al habla de un extranjero de una patología:**
+- Los errores son **predecibles** a partir del sistema fonológico de la L1
+- Son **consistentes**: el mismo error aparece siempre en el mismo contexto
+- No hay deterioro neurológico ni motor
+- Mejoran con la exposición y la práctica
+
+**Referencias:**
+- Lleó, C. (Ed.) (2003). *La adquisición de la fonología de la primera lengua y de las lenguas extranjeras*. Lincom Europa.
+- Face, T. L. y Klee, C. A. (2006). *El español en contacto con otras lenguas*. Georgetown University Press.
 
 ---
 
@@ -341,4 +373,5 @@ Las diferencias entre el registro vulgar y el formal afectan a la fonología de 
 | Implante coclear | Variable (perceptivo) | Confusiones de lugar > sonoridad > modo |
 | Síndrome Acento Extranjero | Prosódico-rítmico | Ritmo staccato, ausencia de suavización alofónica |
 | Habla infantil (desarrollo) | En desarrollo | Procesos normales por edad |
+| Habla de un extranjero (L2) | Variable (transferencia L1) | Errores predecibles por la L1, consistentes, mejoran con práctica |
 | Habla vulgar | Lenición | Pérdida de /d/, aspiración de /s/, reducción de codas |
