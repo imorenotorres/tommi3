@@ -132,11 +132,10 @@ function renderReport(data) {
 
     // Summary cards
     html += '<div class="stats-row">';
-    html += '<div class="stat-card"><div class="stat-num">' + data.total_entries + '</div><div class="stat-label">Acciones totales</div></div>';
     html += '<div class="stat-card"><div class="stat-num">' + data.total_sessions + '</div><div class="stat-label">Sesiones</div></div>';
     var searchActions = (data.action_types.filters || 0) + (data.action_types.NL || 0);
     html += '<div class="stat-card"><div class="stat-num">' + searchActions + '</div><div class="stat-label">Búsquedas</div></div>';
-    html += '<div class="stat-card"><div class="stat-num">' + (data.action_types.interaction || 0) + '</div><div class="stat-label">Interacciones</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">' + (data.action_types.interaction || 0) + '</div><div class="stat-label">Clics en el mapa</div></div>';
     html += '</div>';
 
     // 1. Sessions by action count
@@ -196,12 +195,10 @@ function renderReport(data) {
     html += '<div class="section" style="background:#f8fafc;border:1px solid #e2e8f0;">';
     html += '<h2 style="border-bottom:none;margin-top:0;">Leyenda</h2>';
     html += '<table style="width:100%;font-size:13px;border-collapse:collapse;">';
-    html += '<tr><td style="padding:4px 8px;font-weight:700;width:120px;vertical-align:top;">Acción</td><td style="padding:4px 8px;">Cualquier evento registrado por el sistema: una carga de página, una búsqueda con filtros, un clic en un marcador, etc.</td></tr>';
-    html += '<tr><td style="padding:4px 8px;font-weight:700;vertical-align:top;">Sesión</td><td style="padding:4px 8px;">Una visita de un usuario (identificada por un ID único generado al abrir la página). Una sesión puede contener múltiples acciones.</td></tr>';
-    html += '<tr><td style="padding:4px 8px;font-weight:700;vertical-align:top;">Búsqueda</td><td style="padding:4px 8px;">Una acción en la que el usuario aplica filtros (país, facultad, idioma, etc.) o escribe una consulta en lenguaje natural. Se registra como <code>[filters]</code> o <code>[NL]</code>.</td></tr>';
-    html += '<tr><td style="padding:4px 8px;font-weight:700;vertical-align:top;">Interacción</td><td style="padding:4px 8px;">Una acción en la que el usuario hace clic en el mapa: en un marcador (<code>marker_click</code>), en un cluster (<code>cluster_click</code>) o en el botón de detalle (<code>open_detail</code>).</td></tr>';
-    html += '<tr><td style="padding:4px 8px;font-weight:700;vertical-align:top;">Clics <small>(en rankings)</small></td><td style="padding:4px 8px;">Número de veces que un país o universidad aparece en las interacciones del mapa (clics en marcadores y clusters). No incluye búsquedas con filtros.</td></tr>';
-    html += '<tr><td style="padding:4px 8px;font-weight:700;vertical-align:top;">Init</td><td style="padding:4px 8px;">Carga inicial de la página del mapa (se registra automáticamente al abrir la aplicación).</td></tr>';
+    html += '<tr><td style="padding:6px 8px;font-weight:700;width:140px;vertical-align:top;">Sesión</td><td style="padding:6px 8px;">Cada vez que un usuario abre el mapa se genera un identificador único de sesión. Una sesión equivale aproximadamente a una visita. Nota: si el usuario recarga la página se genera una nueva sesión.</td></tr>';
+    html += '<tr><td style="padding:6px 8px;font-weight:700;vertical-align:top;">Búsqueda</td><td style="padding:6px 8px;">El usuario aplica filtros (país, facultad, idioma, etc.) o escribe una consulta en lenguaje natural.</td></tr>';
+    html += '<tr><td style="padding:6px 8px;font-weight:700;vertical-align:top;">Clic en el mapa</td><td style="padding:6px 8px;">El usuario hace clic en un marcador, un cluster o abre el detalle de una universidad.</td></tr>';
+    html += '<tr><td style="padding:6px 8px;font-weight:700;vertical-align:top;">Sesiones <small>(en rankings)</small></td><td style="padding:6px 8px;">Número de sesiones diferentes en las que ese país o universidad apareció, ya sea por búsqueda con filtros o por clic en el mapa.</td></tr>';
     html += '</table></div>';
 
     document.getElementById('content').innerHTML = html;
