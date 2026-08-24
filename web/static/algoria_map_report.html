@@ -212,7 +212,7 @@ function renderReport(data) {
 }
 
 // ── Sortable country table ──
-var _countrySortCol = 1; // default: sort by Búsquedas
+var _countrySortCol = 1; // default: sort by Sesiones
 var _countrySortAsc = false; // default: descending
 
 function renderCountryTable() {
@@ -221,36 +221,34 @@ function renderCountryTable() {
     var rows = window._countryData || [];
     if (!rows.length) { container.innerHTML = '<p style="color:#94a3b8;font-style:italic;">Sin datos suficientes</p>'; return; }
 
-    // Sort
+    // Sort — map display col to data col: 0→0(name), 1→3(sessions)
+    var dataCol = _countrySortCol === 0 ? 0 : 3;
     var sorted = rows.slice().sort(function(a, b) {
-        var va = a[_countrySortCol], vb = b[_countrySortCol];
-        if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+        var va = a[dataCol], vb = b[dataCol];
+        if (typeof va === 'string') { va = va.toLowerCase(); vb = (vb || '').toLowerCase(); }
         if (va < vb) return _countrySortAsc ? -1 : 1;
         if (va > vb) return _countrySortAsc ? 1 : -1;
         return 0;
     });
 
-    // Data format: [name, searches, clicks, sessions]
-    var arrows = ['', '', '', ''];
+    // Show only sessions
+    var arrows = ['', ''];
     arrows[_countrySortCol] = _countrySortAsc ? ' ▲' : ' ▼';
+
+    var maxSessions = Math.max.apply(null, rows.map(function(r) { return r[3] || 0; })) || 1;
 
     var html = '<table class="ranking-table"><thead><tr>';
     html += '<th>#</th>';
     html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(0)">País' + arrows[0] + '</th>';
-    html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(3)">Sesiones' + arrows[3] + '</th>';
-    html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(1)">Búsquedas' + arrows[1] + '</th>';
-    html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(2)">Clics' + arrows[2] + '</th>';
-    html += '</tr></thead><tbody>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(1)">Sesiones' + arrows[1] + '</th>';
+    html += '<th></th></tr></thead><tbody>';
 
-    var maxTotal = Math.max.apply(null, rows.map(function(r) { return r[1] + r[2]; })) || 1;
     sorted.forEach(function(r, i) {
-        var total = r[1] + r[2];
-        var pct = Math.round(total / maxTotal * 100);
+        var sessions = r[3] || 0;
+        var pct = Math.round(sessions / maxSessions * 100);
         html += '<tr><td class="rank-num">' + (i + 1) + '</td>';
         html += '<td>' + r[0] + '</td>';
-        html += '<td>' + (r[3] || 0) + '</td>';
-        html += '<td>' + r[1] + '</td>';
-        html += '<td>' + r[2] + '</td>';
+        html += '<td>' + sessions + '</td>';
         html += '<td><span class="rank-bar" style="width:' + pct + 'px;"></span></td></tr>';
     });
 
@@ -270,7 +268,7 @@ function sortCountry(col) {
 
 // ── Sortable university table ──
 // Data format: [name, búsquedas, país, sesiones]
-var _uniSortCol = 3; // default: sort by Sesiones
+var _uniSortCol = 2; // default: sort by Sesiones
 var _uniSortAsc = false;
 
 function renderUniTable() {
@@ -279,8 +277,10 @@ function renderUniTable() {
     var rows = window._uniData || [];
     if (!rows.length) { container.innerHTML = '<p style="color:#94a3b8;font-style:italic;">Sin datos suficientes</p>'; return; }
 
-    var colMap = { 0: 0, 1: 2, 2: 1, 3: 3 }; // header idx → data idx (Universidad, País, Búsquedas, Sesiones)
-    var dataIdx = colMap[_uniSortCol];
+    // Data format: [name, count, country, sessions]
+    // Sort — map display col: 0→0(name), 1→2(country), 2→3(sessions)
+    var colMap = { 0: 0, 1: 2, 2: 3 };
+    var dataIdx = colMap[_uniSortCol] || 3;
 
     var sorted = rows.slice().sort(function(a, b) {
         var va = a[dataIdx], vb = b[dataIdx];
@@ -292,27 +292,24 @@ function renderUniTable() {
         return 0;
     });
 
-    var maxVal = Math.max.apply(null, rows.map(function(r) { return r[1]; })) || 1;
-    var total = rows.reduce(function(s, r) { return s + r[1]; }, 0) || 1;
-    var arrows = ['', '', '', ''];
+    var maxSessions = Math.max.apply(null, rows.map(function(r) { return r[3] || 0; })) || 1;
+    var arrows = ['', '', ''];
     arrows[_uniSortCol] = _uniSortAsc ? ' ▲' : ' ▼';
 
     var html = '<table class="ranking-table"><thead><tr>';
     html += '<th>#</th>';
     html += '<th style="cursor:pointer;user-select:none;" onclick="sortUni(0)">Universidad' + arrows[0] + '</th>';
     html += '<th style="cursor:pointer;user-select:none;" onclick="sortUni(1)">País' + arrows[1] + '</th>';
-    html += '<th style="cursor:pointer;user-select:none;" onclick="sortUni(3)">Sesiones' + arrows[3] + '</th>';
-    html += '<th style="cursor:pointer;user-select:none;" onclick="sortUni(2)">Búsquedas' + arrows[2] + '</th>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortUni(2)">Sesiones' + arrows[2] + '</th>';
     html += '<th></th></tr></thead><tbody>';
 
     sorted.forEach(function(r, i) {
-        var pct = Math.round(r[1] / maxVal * 100);
-        var pctTotal = Math.round(r[1] / total * 100);
+        var sessions = r[3] || 0;
+        var pct = Math.round(sessions / maxSessions * 100);
         html += '<tr><td class="rank-num">' + (i + 1) + '</td>';
         html += '<td style="max-width:350px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + r[0] + '">' + r[0] + '</td>';
         html += '<td style="font-size:12px;color:#64748b;">' + (r[2] || '') + '</td>';
-        html += '<td>' + (r[3] || 0) + '</td>';
-        html += '<td>' + r[1] + ' (' + pctTotal + '%)</td>';
+        html += '<td>' + sessions + '</td>';
         html += '<td><span class="rank-bar" style="width:' + pct + 'px;"></span></td></tr>';
     });
 
@@ -325,7 +322,7 @@ function sortUni(col) {
         _uniSortAsc = !_uniSortAsc;
     } else {
         _uniSortCol = col;
-        _uniSortAsc = col <= 1; // alphabetical ascending, numbers descending
+        _uniSortAsc = col <= 1; // alphabetical ascending, sessions descending
     }
     renderUniTable();
 }
