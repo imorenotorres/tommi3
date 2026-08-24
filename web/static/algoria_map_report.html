@@ -192,6 +192,18 @@ function renderReport(data) {
     html += '</div>';
     window._uniData = data.university_ranking;
 
+    // Legend
+    html += '<div class="section" style="background:#f8fafc;border:1px solid #e2e8f0;">';
+    html += '<h2 style="border-bottom:none;margin-top:0;">Leyenda</h2>';
+    html += '<table style="width:100%;font-size:13px;border-collapse:collapse;">';
+    html += '<tr><td style="padding:4px 8px;font-weight:700;width:120px;vertical-align:top;">Acción</td><td style="padding:4px 8px;">Cualquier evento registrado por el sistema: una carga de página, una búsqueda con filtros, un clic en un marcador, etc.</td></tr>';
+    html += '<tr><td style="padding:4px 8px;font-weight:700;vertical-align:top;">Sesión</td><td style="padding:4px 8px;">Una visita de un usuario (identificada por un ID único generado al abrir la página). Una sesión puede contener múltiples acciones.</td></tr>';
+    html += '<tr><td style="padding:4px 8px;font-weight:700;vertical-align:top;">Búsqueda</td><td style="padding:4px 8px;">Una acción en la que el usuario aplica filtros (país, facultad, idioma, etc.) o escribe una consulta en lenguaje natural. Se registra como <code>[filters]</code> o <code>[NL]</code>.</td></tr>';
+    html += '<tr><td style="padding:4px 8px;font-weight:700;vertical-align:top;">Interacción</td><td style="padding:4px 8px;">Una acción en la que el usuario hace clic en el mapa: en un marcador (<code>marker_click</code>), en un cluster (<code>cluster_click</code>) o en el botón de detalle (<code>open_detail</code>).</td></tr>';
+    html += '<tr><td style="padding:4px 8px;font-weight:700;vertical-align:top;">Clics <small>(en rankings)</small></td><td style="padding:4px 8px;">Número de veces que un país o universidad aparece en las interacciones del mapa (clics en marcadores y clusters). No incluye búsquedas con filtros.</td></tr>';
+    html += '<tr><td style="padding:4px 8px;font-weight:700;vertical-align:top;">Init</td><td style="padding:4px 8px;">Carga inicial de la página del mapa (se registra automáticamente al abrir la aplicación).</td></tr>';
+    html += '</table></div>';
+
     document.getElementById('content').innerHTML = html;
 
     // Render sortable tables after main content is in DOM
@@ -218,25 +230,27 @@ function renderCountryTable() {
         return 0;
     });
 
-    var maxVal = Math.max.apply(null, rows.map(function(r) { return r[1]; })) || 1;
-    var total = rows.reduce(function(s, r) { return s + r[1]; }, 0) || 1;
-    var arrows = ['', '', ''];
+    // Data format: [name, searches, clicks, sessions]
+    var arrows = ['', '', '', ''];
     arrows[_countrySortCol] = _countrySortAsc ? ' ▲' : ' ▼';
 
     var html = '<table class="ranking-table"><thead><tr>';
     html += '<th>#</th>';
     html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(0)">País' + arrows[0] + '</th>';
-    html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(2)">Sesiones' + arrows[2] + '</th>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(3)">Sesiones' + arrows[3] + '</th>';
     html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(1)">Búsquedas' + arrows[1] + '</th>';
-    html += '<th></th></tr></thead><tbody>';
+    html += '<th style="cursor:pointer;user-select:none;" onclick="sortCountry(2)">Clics' + arrows[2] + '</th>';
+    html += '</tr></thead><tbody>';
 
+    var maxTotal = Math.max.apply(null, rows.map(function(r) { return r[1] + r[2]; })) || 1;
     sorted.forEach(function(r, i) {
-        var pct = Math.round(r[1] / maxVal * 100);
-        var pctTotal = Math.round(r[1] / total * 100);
+        var total = r[1] + r[2];
+        var pct = Math.round(total / maxTotal * 100);
         html += '<tr><td class="rank-num">' + (i + 1) + '</td>';
         html += '<td>' + r[0] + '</td>';
-        html += '<td>' + (r[2] || 0) + '</td>';
-        html += '<td>' + r[1] + ' (' + pctTotal + '%)</td>';
+        html += '<td>' + (r[3] || 0) + '</td>';
+        html += '<td>' + r[1] + '</td>';
+        html += '<td>' + r[2] + '</td>';
         html += '<td><span class="rank-bar" style="width:' + pct + 'px;"></span></td></tr>';
     });
 

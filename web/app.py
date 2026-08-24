@@ -5448,12 +5448,12 @@ async def algoria_map_report(
         else:
             type_counts["other"] += 1
 
-    # 3. Country ranking (from filters and interactions)
-    country_counts = {}
-    country_sessions = {}  # country -> set of session_ids
+    # 3. Country ranking (separate searches vs clicks)
+    country_searches = {}  # from [filters] and [NL]
+    country_clicks = {}    # from [interaction] marker_click, cluster_click
+    country_sessions = {}  # all sessions
     for e in entries:
         q = e.get("question", "")
-        r = e.get("response", "")
         sid = e.get("session_id", "") or "no_session"
         # From filter queries
         if "[filters]" in q or "[NL]" in q:
@@ -5461,7 +5461,7 @@ async def algoria_map_report(
                 filters = json.loads(q.split("]", 1)[1].strip().split("→")[0].strip() if "→" in q else q.split("]", 1)[1].strip())
                 if isinstance(filters, dict) and "country" in filters:
                     c = filters["country"]
-                    country_counts[c] = country_counts.get(c, 0) + 1
+                    country_searches[c] = country_searches.get(c, 0) + 1
                     country_sessions.setdefault(c, set()).add(sid)
             except (json.JSONDecodeError, IndexError):
                 pass
@@ -5470,16 +5470,15 @@ async def algoria_map_report(
             try:
                 details = e.get("response", "")
                 if isinstance(details, str) and "'country'" in details:
-                    # Parse Python dict repr
                     details = details.replace("'", '"').replace("True", "true").replace("False", "false").replace("None", "null")
                     d = json.loads(details)
                     if "country" in d:
                         c = d["country"]
-                        country_counts[c] = country_counts.get(c, 0) + 1
+                        country_clicks[c] = country_clicks.get(c, 0) + 1
                         country_sessions.setdefault(c, set()).add(sid)
                     if "countries" in d:
                         for c in d["countries"]:
-                            country_counts[c] = country_counts.get(c, 0) + 1
+                            country_clicks[c] = country_clicks.get(c, 0) + 1
                             country_sessions.setdefault(c, set()).add(sid)
             except (json.JSONDecodeError, ValueError):
                 pass
@@ -5529,10 +5528,13 @@ async def algoria_map_report(
     except Exception:
         pass
 
-    # Sort rankings
+    # Sort rankings — combine searches + clicks, sorted by total
+    all_countries = set(list(country_searches.keys()) + list(country_clicks.keys()))
+    country_totals = {c: country_searches.get(c, 0) + country_clicks.get(c, 0) for c in all_countries}
     country_ranking = [
-        [name, count, len(country_sessions.get(name, set()))]
-        for name, count in sorted(country_counts.items(), key=lambda x: -x[1])[:20]
+        [name, country_searches.get(name, 0), country_clicks.get(name, 0),
+         len(country_sessions.get(name, set()))]
+        for name, _ in sorted(country_totals.items(), key=lambda x: -x[1])[:20]
     ]
     uni_ranking_raw = sorted(uni_counts.items(), key=lambda x: -x[1])[:20]
     uni_ranking = [
