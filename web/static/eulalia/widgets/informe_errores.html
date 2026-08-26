@@ -85,10 +85,9 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
         </div>
     </div>
 
-    <!-- Phoneme keyboard (collapsible) -->
+    <!-- Phoneme keyboard -->
     <div id="pk-area" style="display:none;">
-        <a href="#" onclick="var el=document.getElementById('pk-keys');el.style.display=el.style.display==='none'?'':'none';return false;" style="font-size:12px;color:#166534;font-weight:600;text-decoration:none;">▶ Símbolos fonológicos</a>
-        <div id="pk-keys" style="display:none;margin-top:4px;">
+        <div id="pk-keys" style="margin-top:4px;">
             <div class="pk" id="pk-row"></div>
         </div>
     </div>
@@ -171,13 +170,23 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
 
 <script>
 // Phoneme keyboard
-var pkSymbols = ['θ','ʝ','ʧ','ɲ','ɾ','r','ˈ','.','ʤ','x'];
+var pkSymbols = ['θ','ɾ','r','ʝ','ʧ','ɲ','x', null, 'ˈ','.','/',null,'[',']'];
 var pkRow = document.getElementById('pk-row');
+var lbl = document.createElement('span');
+lbl.className = 'pk-label';
+lbl.textContent = 'Símbolos:';
+pkRow.appendChild(lbl);
 pkSymbols.forEach(function(s) {
-    var btn = document.createElement('button');
-    btn.textContent = s;
-    btn.onclick = function() { insertSymbol(s); };
-    pkRow.appendChild(btn);
+    if (s === null) {
+        var sep = document.createElement('span');
+        sep.style.width = '8px';
+        pkRow.appendChild(sep);
+    } else {
+        var btn = document.createElement('button');
+        btn.textContent = s;
+        btn.onclick = function() { insertSymbol(s); };
+        pkRow.appendChild(btn);
+    }
 });
 
 var lastFocusedInput = null;
