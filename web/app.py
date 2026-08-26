@@ -2830,30 +2830,7 @@ async def lali_check_word(word: str = Query(...)):
 
 # ── LALI tutor: Transcription tool (docente) ─────────────────────
 
-@app.get("/api/public-agent/eulalia/transcribir")
-async def lali_transcribir(texto: str = Query(..., description="Texto a transcribir")):
-    """Transcribe text phonologically and phonetically. Public endpoint."""
-    import sys, os
-    sys.path.insert(0, str(Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"))
-    from transcriptor import transcribir, transcripcion_fonetica
-
-    texto = texto.strip()
-    if not texto or len(texto) > 500:
-        raise HTTPException(status_code=400, detail="Texto vacío o demasiado largo (máx 500 chars)")
-
-    result_fono = transcribir(texto)
-    if isinstance(result_fono, tuple):
-        result_fono = result_fono[0]
-
-    result_fone = transcripcion_fonetica(texto)
-    if isinstance(result_fone, tuple):
-        result_fone = result_fone[0]
-
-    return {
-        "texto": texto,
-        "fonologica": result_fono,
-        "fonetica": result_fone,
-    }
+## Transcripción endpoint moved to avoid duplication — see line ~3519
 
 
 @app.get("/api/public-agent/eulalia/informe-errores")
@@ -3156,14 +3133,21 @@ async def lali_ejercicio_transcripcion(nivel: int = Query(1, ge=1, le=5), items:
         base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
         if str(base_dir) not in sys.path:
             sys.path.insert(0, str(base_dir))
-        from transcriptor import transcribir_palabra
+        from transcriptor import transcribir_palabra, transcripcion_fonetica_palabra
 
         ejercicios = []
         for palabra in seleccion:
             t = transcribir_palabra(palabra)
             if isinstance(t, tuple):
                 continue
-            ejercicios.append({"palabra": palabra, "solucion": t})
+            ej = {"palabra": palabra, "solucion": t}
+            try:
+                tf = transcripcion_fonetica_palabra(palabra)
+                if tf and not isinstance(tf, tuple):
+                    ej["fonetica"] = tf
+            except Exception:
+                pass
+            ejercicios.append(ej)
 
     return {
         "nivel": nivel,
@@ -3523,7 +3507,7 @@ async def lali_transcribir(texto: str = Query(..., max_length=200)):
     base_dir = Path(__file__).parent.parent / "agents" / "tutor_fonetica_base"
     if str(base_dir) not in sys.path:
         sys.path.insert(0, str(base_dir))
-    from transcriptor import transcribir, transcribir_palabra
+    from transcriptor import transcribir, transcribir_palabra, transcripcion_fonetica
 
     texto = texto.strip()
     if not texto:
@@ -3538,6 +3522,11 @@ async def lali_transcribir(texto: str = Query(..., max_length=200)):
     if isinstance(resultado, tuple):
         return {"ok": False, "error": resultado[1]}
 
+    # Phonetic transcription
+    result_fone = transcripcion_fonetica(texto)
+    if isinstance(result_fone, tuple):
+        result_fone = result_fone[0] if result_fone[0] else None
+
     # Per-word detail
     import re
     palabras = re.findall(r"[a-záéíóúüñ]+", texto.lower())
@@ -3549,7 +3538,7 @@ async def lali_transcribir(texto: str = Query(..., max_length=200)):
         elif t:
             detalle.append({"palabra": p, "transcripcion": t})
 
-    return {"ok": True, "texto": texto, "transcripcion": resultado, "detalle": detalle}
+    return {"ok": True, "texto": texto, "transcripcion": resultado, "fonetica": result_fone, "detalle": detalle}
 
 
 # ── LALI tutor: empathy challenge (shared contributions) ─────────────

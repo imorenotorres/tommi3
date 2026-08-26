@@ -368,8 +368,11 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                 <details open>
                     <summary>Herramientas</summary>
                     <div style="padding:6px 12px;">
-                        <button class="tema-link" style="font-weight:700;color:#7c3aed;font-size:13px;" onclick="showEvalView()">📊 Evalúa tu progreso <span title="Si usas esta opción, los resultados de los ejercicios se almacenan. Ello permite valorar si tienes los conocimientos suficientes para superar el examen o los parciales." style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#7c3aed;color:#fff;font-size:10px;text-align:center;line-height:16px;cursor:help;font-style:normal;vertical-align:middle;margin-left:4px;">i</span></button>
                         <button class="tema-link" style="font-weight:700;color:#4250b3;font-size:13px;" onclick="showView('chat');document.getElementById('message-input').focus();">⚠️ Pregunta a Eulalia</button>
+                        <button class="tema-link" style="font-weight:600;color:#7c3aed;font-size:12px;" onclick="openWidget('conceptos')">📝 Práctica de redacción</button>
+                        <button class="tema-link" style="font-weight:600;color:#4250b3;font-size:12px;" onclick="openWidget('transcripcion_ejercicio')">✏️ Prácticas de transcripción</button>
+                        <button class="tema-link" style="font-weight:600;color:#dc2626;font-size:12px;" onclick="openWidget('informe_errores')">🔍 Análisis de errores</button>
+                        <button class="tema-link" style="font-weight:600;color:#0d9488;font-size:12px;" onclick="openWidget('explorador_silabas')">🔍 Explorador de sílabas</button>
                     </div>
                 </details>
             </div>
@@ -933,7 +936,7 @@ var _WIDGET_NAMES = {
     'detecta_bulos': 'Detecta los bulos',
     'logocheck': 'LogoCheck',
     'mi_progreso': 'Mi progreso',
-    'conceptos': 'Conceptos',
+    'conceptos': 'Práctica de redacción',
     'explorador_silabas': 'Explorador de sílabas',
     'pseudopalabras_frecuencia': 'Pseudopalabras',
 };
@@ -1168,17 +1171,31 @@ function showSection(temaId, seccionId) {
             html += '<th style="padding:8px 10px;text-align:left;color:#64748b;font-size:11px;font-weight:700;">Apartado</th>';
             html += '<th style="padding:8px 10px;text-align:left;color:#64748b;font-size:11px;font-weight:700;">Ejercicio</th>';
             html += '<th style="padding:8px 10px;text-align:left;color:#64748b;font-size:11px;font-weight:700;">Descripción</th>';
-            html += '<th style="padding:8px 10px;text-align:center;color:#64748b;font-size:11px;font-weight:700;width:60px;"></th>';
+            html += '<th style="padding:8px 10px;text-align:center;color:#64748b;font-size:11px;font-weight:700;width:60px;">Tipo</th>';
             html += '</tr></thead><tbody>';
 
+            var _catInfo = {
+                'A': {icon: '🤖', color: '#7c3aed', bg: '#f5f3ff', label: 'Redacción con corrección por IA', tip: 'Escribe tu respuesta y la IA te dará feedback personalizado'},
+                'B': {icon: '✏️', color: '#0d9488', bg: '#f0fdfa', label: 'Ejercicio práctico con corrección automática', tip: 'Ejercicio práctico con corrección programática (sin IA)'},
+                'C': {icon: '💬', color: '#d97706', bg: '#fffbeb', label: 'Redacción sin corrección por IA', tip: 'Actividad de reflexión o redacción — sin corrección automática'},
+                'D': {icon: '🧠', color: '#2563eb', bg: '#eff6ff', label: 'Consulta a la IA', tip: 'Pregunta a Eulalia en el chat — respuesta generada por IA'}
+            };
             ejercicios.forEach(function(ej) {
                 var onclick = _buildEjercicioOnclick(ej);
-                var icon = ej.tipo === 'audio' ? '🎤' : (ej.tipo.startsWith('panel_') ? '🔧' : '✏️');
-                html += '<tr style="border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background 0.1s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'#fff\'" onclick="' + onclick + '">';
+                var cats = (ej.categoria || 'B').split(',');
+                var primaryCat = _catInfo[cats[0]] || _catInfo['B'];
+                // Build badge(s)
+                var badges = '';
+                cats.forEach(function(k) {
+                    var c = _catInfo[k] || _catInfo['B'];
+                    badges += '<span style="font-size:9px;font-weight:700;color:#fff;background:' + c.color + ';padding:2px 6px;border-radius:4px;margin-left:2px;" title="' + c.label + '">' + k + '</span>';
+                });
+                var tip = cats.map(function(k) { return (_catInfo[k]||{}).tip||''; }).join(' + ');
+                html += '<tr style="border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background 0.1s;" onmouseover="this.style.background=\'' + primaryCat.bg + '\'" onmouseout="this.style.background=\'#fff\'" onclick="' + onclick + '" title="' + tip + '">';
                 html += '<td style="padding:8px 10px;color:#94a3b8;font-size:12px;white-space:nowrap;">' + (ej.apartado || '') + '</td>';
-                html += '<td style="padding:8px 10px;font-weight:600;color:' + tema.color + ';">' + icon + ' ' + ej.nombre + '</td>';
+                html += '<td style="padding:8px 10px;font-weight:600;color:' + tema.color + ';">' + primaryCat.icon + ' ' + ej.nombre + '</td>';
                 html += '<td style="padding:8px 10px;color:#475569;font-size:12px;">' + (ej.descripcion || '') + '</td>';
-                html += '<td style="padding:8px 10px;text-align:center;"><span style="color:' + tema.color + ';font-size:16px;">→</span></td>';
+                html += '<td style="padding:8px 10px;text-align:center;">' + badges + '</td>';
                 html += '</tr>';
             });
 
@@ -1186,6 +1203,14 @@ function showSection(temaId, seccionId) {
         } else {
             html += '<p style="color:#94a3b8;font-style:italic;">No hay ejercicios disponibles para este tema.</p>';
         }
+
+        // Legend
+        html += '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;font-size:11px;color:#64748b;">';
+        ['A','B','C','D'].forEach(function(k) {
+            var c = _catInfo[k];
+            html += '<span title="' + c.tip + '"><span style="font-size:9px;font-weight:700;color:#fff;background:' + c.color + ';padding:2px 6px;border-radius:4px;margin-right:4px;">' + k + '</span>' + c.label + '</span>';
+        });
+        html += '</div>';
 
         html += '</div>';
         contentDiv.innerHTML = html;
@@ -1600,7 +1625,7 @@ function escapeJs(s) {
 }
 
 function _buildEjercicioOnclick(ej) {
-    if (ej.tipo === 'panel_transcripcion') return "showChatAndSend('Dame un ejercicio de transcripción fonológica')";
+    if (ej.tipo === 'panel_transcripcion') return "openWidget('transcripcion_ejercicio')";
     if (ej.tipo === 'panel_errores') return "openWidget('ejercicio_errores')";
     if (ej.tipo === 'panel_informe_errores') return "openWidget('informe_errores')";
     if (ej.tipo === 'panel_transcripcion_fonetica') return "openWidget('transcripcion_fonetica')";

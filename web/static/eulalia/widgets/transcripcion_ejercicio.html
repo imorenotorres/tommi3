@@ -15,7 +15,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
 .header .sep { color: rgba(255,255,255,0.5); margin: 0 4px; }
 .header .title { color: #fff; font-size: 16px; font-weight: 600; }
 
-.container { max-width: 700px; margin: 0 auto; padding: 32px 20px; }
+.container { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
 
 h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
 .subtitle { font-size: 15px; color: #64748b; margin-bottom: 24px; line-height: 1.6; }
@@ -50,7 +50,7 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
 }
 .exercise-table td { padding: 6px 12px; border-top: 1px solid #f1f5f9; vertical-align: middle; }
 .exercise-table .word-cell { font-size: 16px; font-weight: 700; color: #1e293b; white-space: nowrap; }
-.exercise-table .input-cell { width: 55%; }
+.exercise-table .input-cell { width: 60%; min-width: 250px; }
 .word-input {
     width: 100%; padding: 6px 10px; border: 2px solid #e2e8f0; border-radius: 6px;
     font-family: 'Doulos SIL', 'Charis SIL', 'Gentium Plus', serif;
@@ -73,10 +73,11 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
 /* Phoneme keyboard */
 .pk {
     background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
-    padding: 8px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+    padding: 8px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;
     position: sticky; top: 0; z-index: 10;
 }
-.pk-label { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-right: 4px; }
+.pk-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.pk-label { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-right: 4px; width: 75px; flex-shrink: 0; }
 .pk-btn {
     padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px;
     background: #fff; font-family: 'Doulos SIL', 'Charis SIL', serif;
@@ -125,6 +126,7 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
             <select id="sel-tipo" onchange="updateTipo()">
                 <option value="fonologica">Fonológica</option>
                 <option value="fonetica">Fonética</option>
+                <option value="ambas">Fonológica y fonética</option>
             </select>
         </div>
         <div class="control-group">
@@ -159,7 +161,9 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
 
     <!-- Phoneme keyboard -->
     <div class="pk" id="pk">
-        <span class="pk-label">Símbolos:</span>
+        <div class="pk-row" id="pk-row-fono"></div>
+        <div class="pk-row" id="pk-row-fone"></div>
+        <div class="pk-row" id="pk-row-otros"></div>
     </div>
 
     <div id="exercise-area"></div>
@@ -196,23 +200,33 @@ h2 { font-size: 22px; margin-bottom: 8px; color: #4250b3; }
 var currentExercises = [];
 var activeInput = null;
 
-var PK_SYMBOLS = ['a','e','i','o','u', null, 'b','d','f','g','k','l','m','n','p','s','t', null, 'θ','ɾ','r','ʝ','ʧ','ɲ','x', null, 'ˈ', '.'];
+var PK_ROWS = [
+    {id: 'pk-row-fono', label: 'Fonológicos', symbols: ['θ','ɾ','r','ʝ','ʧ','ɲ','x']},
+    {id: 'pk-row-fone', label: 'Fonéticos', symbols: ['β̞','ð̞','ɣ̞', null, 'ʤ','j','w','i̯','u̯', null, 'ɱ','n̟','n̪','nʲ','ŋ', null, 'l̟','l̪','ɹ']},
+    {id: 'pk-row-otros', label: 'Otros', symbols: ['[', ']', null, 'ˈ', '.', '/', null, 'ː']}
+];
 
 // Build keyboard
 (function() {
-    var pk = document.getElementById('pk');
-    PK_SYMBOLS.forEach(function(sym) {
-        if (sym === null) {
-            var sep = document.createElement('span');
-            sep.className = 'pk-sep';
-            pk.appendChild(sep);
-        } else {
-            var btn = document.createElement('button');
-            btn.className = 'pk-btn';
-            btn.textContent = sym;
-            btn.onclick = function() { insertAtCursor(sym); };
-            pk.appendChild(btn);
-        }
+    PK_ROWS.forEach(function(row) {
+        var container = document.getElementById(row.id);
+        var label = document.createElement('span');
+        label.className = 'pk-label';
+        label.textContent = row.label;
+        container.appendChild(label);
+        row.symbols.forEach(function(sym) {
+            if (sym === null) {
+                var sep = document.createElement('span');
+                sep.className = 'pk-sep';
+                container.appendChild(sep);
+            } else {
+                var btn = document.createElement('button');
+                btn.className = 'pk-btn';
+                btn.textContent = sym;
+                btn.onclick = function() { insertAtCursor(sym); };
+                container.appendChild(btn);
+            }
+        });
     });
 })();
 
@@ -262,12 +276,13 @@ var currentTipo = 'fonologica';
 function updateTipo() {
     currentTipo = document.getElementById('sel-tipo').value;
     var titleEl = document.getElementById('widget-title');
-    titleEl.textContent = currentTipo === 'fonetica' ? 'Transcripción fonética' : 'Transcripción fonológica';
+    var titles = {'fonologica': 'Transcripción fonológica', 'fonetica': 'Transcripción fonética', 'ambas': 'Transcripción fonológica y fonética'};
+    titleEl.textContent = titles[currentTipo] || 'Transcripción';
     var headerEl = document.getElementById('header-title');
     if (headerEl) headerEl.textContent = titleEl.textContent;
-    document.getElementById('grp-dificultad').style.display = currentTipo === 'fonetica' ? '' : 'none';
+    document.getElementById('grp-dificultad').style.display = (currentTipo === 'fonetica' || currentTipo === 'ambas') ? '' : 'none';
 
-    // Update level options
+    // Update level options — for 'ambas' use fonologica levels (base)
     var sel = document.getElementById('sel-nivel');
     var options = currentTipo === 'fonetica' ? OPTIONS_FONETICA : OPTIONS_FONOLOGICA;
     sel.innerHTML = '';
@@ -286,7 +301,7 @@ function updateTipo() {
 }
 
 function updateDesc() {
-    var descs = currentTipo === 'fonetica' ? NIVELES_FONETICA : NIVELES_FONOLOGICA;
+    var descs = (currentTipo === 'fonetica') ? NIVELES_FONETICA : NIVELES_FONOLOGICA;
     document.getElementById('level-desc').textContent = descs[document.getElementById('sel-nivel').value] || '';
 }
 
@@ -298,7 +313,7 @@ async function generateExercise() {
     document.getElementById('results-bar').classList.remove('show');
     document.getElementById('action-bar').style.display = 'none';
 
-    var endpoint = currentTipo === 'fonetica'
+    var endpoint = (currentTipo === 'fonetica')
         ? '/api/public-agent/eulalia/ejercicio-transcripcion-fonetica'
         : '/api/public-agent/eulalia/ejercicio-transcripcion';
 
@@ -316,12 +331,19 @@ async function generateExercise() {
 function renderExercises() {
     var area = document.getElementById('exercise-area');
 
+    var isAmbas = currentTipo === 'ambas';
     var html = '<table class="exercise-table"><thead><tr>';
-    html += '<th style="width:30px;">#</th><th>Palabra</th><th class="input-cell">Tu transcripción</th><th style="width:30px;"></th>';
+    html += '<th style="width:30px;">#</th><th>Palabra</th>';
+    if (isAmbas) {
+        html += '<th class="input-cell">Fonológica</th><th class="input-cell">Fonética</th>';
+    } else {
+        html += '<th class="input-cell">Tu transcripción</th>';
+    }
+    html += '<th style="width:30px;"></th>';
     html += '</tr></thead><tbody>';
 
     var placeholder = currentTipo === 'fonetica' ? '[' : '/';
-    var dificultad = currentTipo === 'fonetica' ? document.getElementById('sel-dificultad').value : 'sin_pista';
+    var dificultad = (currentTipo === 'fonetica') ? document.getElementById('sel-dificultad').value : 'sin_pista';
     currentExercises.forEach(function(ej, i) {
         html += '<tr id="row-' + i + '">';
         html += '<td style="font-size:12px;color:#94a3b8;font-weight:700;">' + (i + 1) + '</td>';
@@ -330,10 +352,15 @@ function renderExercises() {
             html += '<div style="font-size:11px;color:#94a3b8;margin-top:2px;">Fonológica: ' + ej.fonologica + '</div>';
         }
         html += '</td>';
-        html += '<td class="input-cell"><input type="text" class="word-input" id="input-' + i + '" placeholder="' + placeholder + '" onfocus="activeInput=this"></td>';
+        if (isAmbas) {
+            html += '<td class="input-cell"><input type="text" class="word-input" id="input-fono-' + i + '" placeholder="/" onfocus="activeInput=this"></td>';
+            html += '<td class="input-cell"><input type="text" class="word-input" id="input-fone-' + i + '" placeholder="[" onfocus="activeInput=this"></td>';
+        } else {
+            html += '<td class="input-cell"><input type="text" class="word-input" id="input-' + i + '" placeholder="' + placeholder + '" onfocus="activeInput=this"></td>';
+        }
         html += '<td class="fb-cell" id="icon-' + i + '"></td>';
         html += '</tr>';
-        html += '<tr class="word-feedback" id="fb-' + i + '"><td colspan="4" style="padding:4px 12px;"></td></tr>';
+        html += '<tr class="word-feedback" id="fb-' + i + '"><td colspan="' + (isAmbas ? 5 : 4) + '" style="padding:4px 12px;"></td></tr>';
     });
 
     html += '</tbody></table>';
@@ -344,9 +371,9 @@ function renderExercises() {
 
     // Focus first input
     if (currentExercises.length > 0) {
-        var first = document.getElementById('input-0');
-        first.focus();
-        activeInput = first;
+        var firstId = isAmbas ? 'input-fono-0' : 'input-0';
+        var first = document.getElementById(firstId);
+        if (first) { first.focus(); activeInput = first; }
     }
 }
 
@@ -505,35 +532,63 @@ function checkAll() {
     var correct = 0;
     var total = currentExercises.length;
     var allErrors = [];
+    var totalPhonemes = 0;
+    var correctPhonemes = 0;
 
+    var isAmbas = currentTipo === 'ambas';
     currentExercises.forEach(function(ej, i) {
-        var input = document.getElementById('input-' + i);
+        var input = isAmbas ? document.getElementById('input-fono-' + i) : document.getElementById('input-' + i);
         var fb = document.getElementById('fb-' + i);
         var icon = document.getElementById('icon-' + i);
 
         var analysis = analyzeErrors(input.value, ej.solucion);
 
+        // For 'ambas', also check fonética
+        var inputFone = isAmbas ? document.getElementById('input-fone-' + i) : null;
+        var analysisFone = null;
+        if (isAmbas && inputFone && ej.fonetica) {
+            analysisFone = analyzeErrors(inputFone.value, ej.fonetica);
+        }
+
         fb.classList.add('show');
         var fbContent = fb.querySelector('td');
 
-        if (analysis.isCorrect) {
+        // Count phonemes
+        var solPhon = normalize(ej.solucion).replace(/[ˈ.\s\/\[\]]/g, '');
+        var usrPhon = normalize(input.value).replace(/[ˈ.\s\/\[\]]/g, '');
+        totalPhonemes += solPhon.length;
+        for (var pi = 0; pi < solPhon.length; pi++) {
+            if (pi < usrPhon.length && usrPhon[pi] === solPhon[pi]) correctPhonemes++;
+        }
+
+        var bothCorrect = analysis.isCorrect && (!isAmbas || !analysisFone || analysisFone.isCorrect);
+        if (bothCorrect) {
             correct++;
             input.className = 'word-input correct';
+            if (inputFone) inputFone.className = 'word-input correct';
             icon.innerHTML = '<span style="color:#16a34a;">✓</span>';
             fbContent.innerHTML = '<span class="fb-correct">Correcto</span>';
         } else {
-            input.className = 'word-input incorrect';
+            input.className = analysis.isCorrect ? 'word-input correct' : 'word-input incorrect';
+            if (inputFone) inputFone.className = (analysisFone && analysisFone.isCorrect) ? 'word-input correct' : 'word-input incorrect';
             icon.innerHTML = '<span style="color:#dc2626;">✗</span>';
-            fbContent.innerHTML = formatErrorFeedback(analysis, ej.solucion);
-            analysis.errors.forEach(function(e) { allErrors.push(e); });
+            var fbHtml = '';
+            if (!analysis.isCorrect) {
+                fbHtml += (isAmbas ? '<strong>Fonológica:</strong> ' : '') + formatErrorFeedback(analysis, ej.solucion);
+                analysis.errors.forEach(function(e) { allErrors.push(e); });
+            }
+            if (isAmbas && analysisFone && !analysisFone.isCorrect) {
+                fbHtml += (fbHtml ? '<br>' : '') + '<strong>Fonética:</strong> ' + formatErrorFeedback(analysisFone, ej.fonetica);
+            }
+            fbContent.innerHTML = fbHtml;
         }
     });
 
     // Show results with error summary
     var pct = Math.round(correct / total * 100);
     var scoreEl = document.getElementById('score-text');
-    scoreEl.textContent = correct + ' / ' + total;
-    scoreEl.className = 'score ' + (pct >= 80 ? 'good' : (pct >= 50 ? 'mid' : 'bad'));
+    scoreEl.textContent = correct + '/' + total + ' palabras · ' + correctPhonemes + '/' + totalPhonemes + ' fonemas';
+    scoreEl.className = 'score ' + (pctPhon >= 80 ? 'good' : (pctPhon >= 50 ? 'mid' : 'bad'));
 
     // Summarize error types
     var typeCounts = {};
@@ -543,7 +598,8 @@ function checkAll() {
         }
     });
     var typeNames = { fonema: 'fonema', acento: 'acentuación', silabificacion: 'silabificación', notacion: 'notación' };
-    var summary = pct + '% de aciertos';
+    var pctPhon = totalPhonemes > 0 ? Math.round(correctPhonemes / totalPhonemes * 100) : 0;
+    var summary = 'Palabras: ' + correct + '/' + total + ' (' + pct + '%). Fonemas: ' + correctPhonemes + '/' + totalPhonemes + ' (' + pctPhon + '%)';
     var typeList = Object.keys(typeCounts).map(function(t) { return typeCounts[t] + ' de ' + (typeNames[t] || t); });
     if (typeList.length > 0) summary += '. Errores: ' + typeList.join(', ');
     document.getElementById('results-detail').textContent = summary;
@@ -564,34 +620,49 @@ function checkAll() {
 }
 
 function showSolutions() {
+    var isAmbas = currentTipo === 'ambas';
     currentExercises.forEach(function(ej, i) {
-        var input = document.getElementById('input-' + i);
+        var input = isAmbas ? document.getElementById('input-fono-' + i) : document.getElementById('input-' + i);
+        var inputFone = isAmbas ? document.getElementById('input-fone-' + i) : null;
         var fb = document.getElementById('fb-' + i);
         var icon = document.getElementById('icon-' + i);
-        var userAnswer = normalize(input.value);
-        var solution = normalize(ej.solucion);
 
         fb.classList.add('show');
         var fbContent = fb.querySelector('td');
 
-        if (userAnswer && userAnswer === solution) {
+        var solHtml = 'Solución: <span style="font-family:\'Doulos SIL\',serif;font-weight:700;color:#4250b3;">/' + ej.solucion + '/</span>';
+        if (isAmbas && ej.fonetica) {
+            solHtml += '  <span style="font-family:\'Doulos SIL\',serif;font-weight:700;color:#7c3aed;margin-left:12px;">[' + ej.fonetica.replace(/^\[|\]$/g,'') + ']</span>';
+        }
+
+        var userAnswer = normalize(input.value);
+        var solution = normalize(ej.solucion);
+        var fonoOk = userAnswer && userAnswer === solution;
+        var foneOk = true;
+        if (isAmbas && inputFone && ej.fonetica) {
+            foneOk = normalize(inputFone.value) === normalize(ej.fonetica);
+        }
+
+        if (fonoOk && foneOk) {
             input.className = 'word-input correct';
+            if (inputFone) inputFone.className = 'word-input correct';
             icon.innerHTML = '<span style="color:#16a34a;">✓</span>';
             fbContent.innerHTML = '<span class="fb-correct">Correcto</span>';
         } else {
-            input.className = 'word-input incorrect';
+            input.className = fonoOk ? 'word-input correct' : 'word-input incorrect';
+            if (inputFone) inputFone.className = foneOk ? 'word-input correct' : 'word-input incorrect';
             icon.innerHTML = '<span style="color:#dc2626;">✗</span>';
-            fbContent.innerHTML = 'Solución: <span style="font-family:\'Doulos SIL\',serif;font-weight:700;color:#4250b3;">/' + ej.solucion + '/</span>';
+            fbContent.innerHTML = solHtml;
         }
     });
 }
 
-// Init: detect ?tipo=fonetica in URL
+// Init: detect ?tipo=fonetica or ?tipo=ambas in URL
 (function() {
     var params = new URLSearchParams(window.location.search);
     var tipo = params.get('tipo');
-    if (tipo === 'fonetica') {
-        document.getElementById('sel-tipo').value = 'fonetica';
+    if (tipo === 'fonetica' || tipo === 'ambas') {
+        document.getElementById('sel-tipo').value = tipo;
         updateTipo();
     } else {
         updateDesc();
@@ -616,7 +687,10 @@ function transcribirLibre() {
         }
         var html = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px;">';
         html += '<div style="font-size:11px;color:#16a34a;font-weight:600;margin-bottom:6px;">Transcripción verificada (sin IA)</div>';
-        html += '<div style="font-size:18px;font-family:\'Doulos SIL\',serif;color:#1e293b;margin-bottom:8px;">' + data.transcripcion + '</div>';
+        html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;color:#1e293b;margin-bottom:4px;"><strong>Fonológica:</strong> ' + data.transcripcion + '</div>';
+        if (data.fonetica) {
+            html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;color:#1e293b;margin-bottom:8px;"><strong>Fonética:</strong> ' + data.fonetica + '</div>';
+        }
         if (data.detalle && data.detalle.length > 1) {
             html += '<div style="font-size:12px;color:#475569;border-top:1px solid #bbf7d0;padding-top:8px;margin-top:4px;">';
             data.detalle.forEach(function(d) {

@@ -64,7 +64,8 @@
           "nombre": "Detecta los bulos",
           "tipo": "panel_detecta_bulos",
           "apartado": "Presentación",
-          "descripcion": "Los cambios tecnológicos (IAs, Redes sociales...) están haciendo que la información sobre cualquier tema, también logopédica, se genere y propague a gran velocidad. Ello hace difícil discriminar lo cierto de lo falso, y en casos como el nuestro, puede tener consecuencias graves (por ej., si un niño deja de recibir la atención que necesita por desinformación de sus padres). La única medicina contra esta situación es desarrollar un sentido crítico y contrastar la información que no llegue de fuentes plenamente fiables. Te proponemos un pequeño ejercicio para empezar a desarrollar esta habilidad de detectar bulos."
+          "descripcion": "Los cambios tecnológicos (IAs, Redes sociales...) están haciendo que la información sobre cualquier tema, también logopédica, se genere y propague a gran velocidad. Ello hace difícil discriminar lo cierto de lo falso, y en casos como el nuestro, puede tener consecuencias graves (por ej., si un niño deja de recibir la atención que necesita por desinformación de sus padres). La única medicina contra esta situación es desarrollar un sentido crítico y contrastar la información que no llegue de fuentes plenamente fiables. Te proponemos un pequeño ejercicio para empezar a desarrollar esta habilidad de detectar bulos.",
+          "categoria": "C"
         }
       ],
       "autoevaluacion": [],
@@ -259,70 +260,80 @@
           "tipo": "widget",
           "widget": "pregunta_foneticas",
           "apartado": "1.1",
-          "descripcion": "Responde con tus palabras y recibe feedback automático"
+          "descripcion": "Responde con tus palabras y recibe feedback automático",
+          "categoria": "A"
         },
         {
           "nombre": "Lengua e identidad social",
           "tipo": "widget",
           "widget": "reflexion_lengua_social",
           "apartado": "1.2",
-          "descripcion": "Reflexión sobre cómo el dominio de una lengua afecta a la interacción social"
+          "descripcion": "Reflexión sobre cómo el dominio de una lengua afecta a la interacción social",
+          "categoria": "A"
         },
         {
           "nombre": "Lenguaje y sociabilidad",
           "tipo": "widget",
           "widget": "lenguaje_hecho_social",
           "apartado": "1.2",
-          "descripcion": "Escenarios sobre cómo las dificultades lingüísticas afectan a la sociabilidad"
+          "descripcion": "Escenarios sobre cómo las dificultades lingüísticas afectan a la sociabilidad",
+          "categoria": "A"
         },
         {
           "nombre": "Ponte en su piel",
           "tipo": "widget",
           "widget": "reto_empatia",
           "apartado": "1.2",
-          "descripcion": "Imagina situaciones de personas con dificultades lingüísticas"
+          "descripcion": "Imagina situaciones de personas con dificultades lingüísticas",
+          "categoria": "C"
         },
         {
           "nombre": "Crea pseudopalabras",
           "tipo": "widget",
           "widget": "pseudopalabras",
           "apartado": "1.2",
-          "descripcion": "Inventa pseudopalabras a partir de palabras reales"
+          "descripcion": "Inventa pseudopalabras a partir de palabras reales",
+          "categoria": "B"
         },
         {
           "nombre": "Detecta el error",
           "tipo": "widget",
           "widget": "detecta_errores_1_2",
           "apartado": "1.2",
-          "descripcion": "Identifica qué está mal en afirmaciones sobre fonología y explica la corrección"
+          "descripcion": "Identifica qué está mal en afirmaciones sobre fonología y explica la corrección",
+          "categoria": "B"
         },
         {
           "nombre": "Clasifica sílabas «pa» y «ba»",
           "tipo": "widget",
           "widget": "clasificacion_pa_ba",
           "apartado": "1.2",
-          "descripcion": "Clasifica 15 sílabas y descubre por qué los fonemas son categorías abstractas"
+          "descripcion": "Clasifica 15 sílabas y descubre por qué los fonemas son categorías abstractas",
+          "categoria": "B"
         },
         {
           "nombre": "¿Qué es una representación mental?",
           "tipo": "widget",
           "widget": "representacion_mental",
           "apartado": "1.2",
-          "descripcion": "Descubre cómo el cerebro reconoce y produce símbolos"
+          "descripcion": "Descubre cómo el cerebro reconoce y produce símbolos",
+          "categoria": "C"
         },
         {
           "nombre": "Define «fonema» con tus palabras",
           "tipo": "widget",
           "widget": "define_fonema",
           "apartado": "1.3",
-          "descripcion": "Escribe tu propia definición y recibe evaluación automática"
+          "descripcion": "Escribe tu propia definición y recibe evaluación automática",
+          "categoria": "A"
         },
         {
           "nombre": "Analiza sílabas",
           "tipo": "widget",
           "widget": "analisis_silabas",
           "apartado": "1.3",
-          "descripcion": "Divide palabras en sílabas e identifica Inicio, Núcleo y Coda"
+          "descripcion": "Divide palabras en sílabas e identifica Inicio, Núcleo y Coda",
+          "categoria": "B"
         }
       ],
       "autoevaluacion": [
@@ -545,89 +556,70 @@
           "nombre": "Transcripción fonológica (por niveles)",
           "tipo": "panel_transcripcion",
           "apartado": "2.1-2.4",
-          "descripcion": "Ejercicios progresivos de transcripción fonológica con corrección automática"
-        },
-        {
-          "nombre": "Practica: grafemas simples",
-          "tipo": "consulta",
-          "consulta": "Dame un ejercicio de transcripción fonológica con palabras sencillas",
-          "apartado": "2.1",
-          "descripcion": "Palabras con correspondencia directa grafema-fonema"
-        },
-        {
-          "nombre": "Practica: diptongos e hiatos",
-          "tipo": "consulta",
-          "consulta": "Dame un ejercicio de transcripción con diptongos e hiatos",
-          "apartado": "2.2",
-          "descripcion": "Identificar y transcribir diptongos, hiatos y triptongos"
-        },
-        {
-          "nombre": "Practica: grafemas complejos",
-          "tipo": "consulta",
-          "consulta": "Dame un ejercicio de transcripción con grafemas complejos (c, g, r, x, qu, gu)",
-          "apartado": "2.3",
-          "descripcion": "Grafemas dependientes del contexto: c/qu/z, g/gu/j, r/rr, x"
-        },
-        {
-          "nombre": "Explorador de sílabas",
-          "tipo": "widget",
-          "widget": "explorador_silabas",
-          "apartado": "2.4",
-          "descripcion": "Consulta la frecuencia de las 1058 sílabas fonológicas del español"
+          "descripcion": "Ejercicios progresivos de transcripción fonológica con corrección automática",
+          "categoria": "B"
         },
         {
           "nombre": "Pseudopalabras y frecuencia",
           "tipo": "widget",
           "widget": "pseudopalabras_frecuencia",
           "apartado": "2.4",
-          "descripcion": "Crea pseudopalabras controlando la dificultad según frecuencia"
+          "descripcion": "Crea pseudopalabras controlando la dificultad según frecuencia",
+          "categoria": "B"
         },
         {
           "nombre": "Medidas cuantitativas",
           "tipo": "consulta",
           "consulta": "Dame un ejercicio sobre medidas cuantitativas de errores fonológicos (PPC, PFC)",
           "apartado": "2.5.1",
-          "descripcion": "Calcula PPC y PFC a partir de una muestra de habla"
+          "descripcion": "Calcula PPC y PFC a partir de una muestra de habla",
+          "categoria": "B,D"
         },
         {
           "nombre": "Clasificar errores (individual)",
           "tipo": "panel_errores",
           "apartado": "2.5.2",
-          "descripcion": "Clasifica errores fonológicos individuales con corrección automática"
+          "descripcion": "Clasifica errores fonológicos individuales con corrección automática",
+          "categoria": "B"
         },
         {
           "nombre": "Errores cualitativos (básico)",
           "tipo": "consulta",
           "consulta": "Dame un ejercicio básico de clasificación de errores cualitativos",
           "apartado": "2.5.2",
-          "descripcion": "Identifica tipos de errores en muestras sencillas"
+          "descripcion": "Identifica tipos de errores en muestras sencillas",
+          "categoria": "B,D"
         },
         {
           "nombre": "Errores cualitativos (avanzado)",
           "tipo": "consulta",
           "consulta": "Dame un ejercicio avanzado de clasificación de errores cualitativos",
           "apartado": "2.5.2",
-          "descripcion": "Clasifica errores en muestras con múltiples tipos de error"
+          "descripcion": "Clasifica errores en muestras con múltiples tipos de error",
+          "categoria": "B,D"
         },
         {
           "nombre": "Errores rítmicos",
           "tipo": "consulta",
           "consulta": "Dame un ejercicio sobre errores rítmicos",
           "apartado": "2.5.3",
-          "descripcion": "Identifica pausas, titubeos y muletillas en una transcripción"
+          "descripcion": "Identifica pausas, titubeos y muletillas en una transcripción",
+          "categoria": "B,D"
         },
         {
           "nombre": "Informe de errores (completo)",
           "tipo": "panel_informe_errores",
           "apartado": "2.5.4",
-          "descripcion": "Elabora un informe completo: transcripción, medidas cuantitativas, errores cualitativos y rítmicos"
+          "descripcion": "Elabora un informe completo: transcripción, medidas cuantitativas, errores cualitativos y rítmicos",
+          "categoria": "B"
         },
         {
           "nombre": "Macro-patrones fonológicos",
           "tipo": "consulta",
           "consulta": "Dame un ejercicio para identificar macro-patrones fonológicos",
           "apartado": "2.5.6",
-          "descripcion": "Identifica si un conjunto de errores sigue un patrón de lenición, fortición, etc."
+          "descripcion": "Identifica si un conjunto de errores sigue un patrón de lenición, fortición, etc.",
+          "categoria": "B,D"
         }
       ],
       "autoevaluacion": [
@@ -930,35 +922,40 @@
           "nombre": "Transcripción fonética (por niveles)",
           "tipo": "panel_transcripcion_fonetica",
           "apartado": "3.1-3.5",
-          "descripcion": "7 niveles: diptongos, oclusivas, fricativas, nasales, laterales/vibrantes, oraciones, fonosintaxis"
+          "descripcion": "7 niveles: diptongos, oclusivas, fricativas, nasales, laterales/vibrantes, oraciones, fonosintaxis",
+          "categoria": "B"
         },
         {
           "nombre": "Identificar alófonos por descripción",
           "tipo": "consulta",
           "consulta": "¿Qué alófono es una nasal velar sonora?",
           "apartado": "3.3",
-          "descripcion": "Dado un modo, lugar y sonoridad, identifica el alófono"
+          "descripcion": "Dado un modo, lugar y sonoridad, identifica el alófono",
+          "categoria": "B,D"
         },
         {
           "nombre": "Listar alófonos de un fonema",
           "tipo": "consulta",
           "consulta": "Alófonos de /d/",
           "apartado": "3.3",
-          "descripcion": "Enumera los alófonos de un fonema y sus contextos"
+          "descripcion": "Enumera los alófonos de un fonema y sus contextos",
+          "categoria": "B,D"
         },
         {
           "nombre": "Predecir el alófono en contexto",
           "tipo": "consulta",
           "consulta": "¿Cómo se realiza /b/ en la palabra 'ambos'?",
           "apartado": "3.3",
-          "descripcion": "Dado un fonema en una palabra, predice qué alófono se produce"
+          "descripcion": "Dado un fonema en una palabra, predice qué alófono se produce",
+          "categoria": "B,D"
         },
         {
           "nombre": "Fonosintaxis",
           "tipo": "consulta",
           "consulta": "Dame un ejercicio de fonosintaxis",
           "apartado": "3.5",
-          "descripcion": "Fenómenos fonéticos entre palabras: sirremas, concatenación"
+          "descripcion": "Fenómenos fonéticos entre palabras: sirremas, concatenación",
+          "categoria": "B,D"
         }
       ],
       "autoevaluacion": [
@@ -1214,8 +1211,7 @@
           ]
         }
       ],
-      "ejercicios": [
-      ],
+      "ejercicios": [],
       "autoevaluacion": [
         "¿Puedo identificar las vocales en un espectrograma por sus formantes?",
         "¿Sé distinguir una oclusiva de una fricativa en un espectrograma?",
@@ -1334,8 +1330,7 @@
           "seccion_doc": "5.5. Calendario orientativo"
         }
       ],
-      "ejercicios": [
-      ],
+      "ejercicios": [],
       "autoevaluacion": [
         "¿He elegido un tema y tengo claro qué patología voy a analizar?",
         "¿He formulado una hipótesis sobre los errores que espero encontrar?",
