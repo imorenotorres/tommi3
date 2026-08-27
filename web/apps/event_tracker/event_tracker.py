@@ -77,7 +77,7 @@ _EVENT_TYPE_MAP = {
 # Auth helpers
 # ---------------------------------------------------------------------------
 
-from auth import get_session, ROLES, can_edit as _can_edit_check
+from auth import get_session, ROLES, can_edit as _can_edit_check, user_roles as _user_roles
 
 
 def _get_token(request: Request) -> str | None:
@@ -101,6 +101,16 @@ def _require_editor(session: dict = Depends(_require_auth)) -> dict:
     if not _can_edit_check(session):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return session
+
+
+def _can_modify_event(session: dict, ev: dict) -> bool:
+    """Only the event's creator (or a superuser) may edit/delete a shared event.
+    Catalogue-synced events are never editable, regardless of role."""
+    if ev.get("source") == "catalogue":
+        return False
+    if "superuser" in _user_roles(session):
+        return True
+    return ev.get("created_by") == session["username"]
 
 
 # ---------------------------------------------------------------------------
@@ -635,6 +645,12 @@ def _build_virtual_components(body: EventBody, parent_id: str, username: str) ->
     return components
 
 
+EXTERNAL_CATEGORIES = {
+    "BIP", "Hackathon", "Conference", "Staff Week", "Summer School",
+    "Workshop", "Other public events", "Innovation Camp", "International Week",
+}
+
+
 def _validate_event(body: EventBody, data: dict):
     cats = body.categories if body.categories else ([body.category] if body.category else [])
     if not cats:
@@ -642,6 +658,8 @@ def _validate_event(body: EventBody, data: dict):
     for c in cats:
         if c not in data["categories"]:
             raise HTTPException(400, f"Unknown category: {c}")
+        if c in EXTERNAL_CATEGORIES:
+            raise HTTPException(400, f"'{c}' is reserved for catalogue-synced events and cannot be used for manually created events")
     if body.event_type not in ("Virtual", "Physical"):
         raise HTTPException(400, "event_type must be 'Virtual' or 'Physical'")
     if not body.date_tbc and (not body.start_date or not body.end_date):
@@ -749,10 +767,10 @@ def update_event(event_id: str, body: EventBody, session: dict = Depends(_requir
             save_personal(session["username"], personal)
             return ev
 
-    if not _can_edit_check(session):
-        raise HTTPException(403, "Insufficient permissions")
     for ev in data["events"]:
         if ev["id"] == event_id:
+            if not _can_modify_event(session, ev):
+                raise HTTPException(403, "Only the event's creator can edit it")
             _update_ev_fields(ev, body)
             save_data(data)
             return ev
@@ -760,9 +778,14 @@ def update_event(event_id: str, body: EventBody, session: dict = Depends(_requir
 
 
 @router.put("/api/events/series/{series_id}")
-def update_series(series_id: str, body: EventBody, session: dict = Depends(_require_editor)):
+def update_series(series_id: str, body: EventBody, session: dict = Depends(_require_auth)):
     data = load_data()
     _validate_event(body, data)
+    series_events = [ev for ev in data["events"] if ev.get("series_id") == series_id]
+    if not series_events:
+        raise HTTPException(404, "Series not found")
+    if not _can_modify_event(session, series_events[0]):
+        raise HTTPException(403, "Only the series creator can edit it")
     cats = body.categories if body.categories else ([body.category] if body.category else [])
     unis = body.universities if body.universities else ([body.university] if body.university else [])
     updated = 0
@@ -799,27 +822,28 @@ def delete_event(event_id: str, session: dict = Depends(_require_auth)):
         save_personal(session["username"], personal)
         return {"ok": True}
 
-    if not _can_edit_check(session):
-        raise HTTPException(403, "Insufficient permissions")
     data = load_data()
-    before = len(data["events"])
-    data["events"] = [ev for ev in data["events"] if ev["id"] != event_id]
-    if len(data["events"]) == before:
+    target = next((ev for ev in data["events"] if ev["id"] == event_id), None)
+    if not target:
         raise HTTPException(404, "Event not found")
+    if not _can_modify_event(session, target):
+        raise HTTPException(403, "Only the event's creator can delete it")
+    data["events"] = [ev for ev in data["events"] if ev["id"] != event_id]
     save_data(data)
     return {"ok": True}
 
 
 @router.delete("/api/events/series/{series_id}")
-def delete_series(series_id: str, session: dict = Depends(_require_editor)):
+def delete_series(series_id: str, session: dict = Depends(_require_auth)):
     data = load_data()
-    before = len(data["events"])
-    data["events"] = [ev for ev in data["events"] if ev.get("series_id") != series_id]
-    deleted = before - len(data["events"])
-    if deleted == 0:
+    series_events = [ev for ev in data["events"] if ev.get("series_id") == series_id]
+    if not series_events:
         raise HTTPException(404, "Series not found")
+    if not _can_modify_event(session, series_events[0]):
+        raise HTTPException(403, "Only the series creator can delete it")
+    data["events"] = [ev for ev in data["events"] if ev.get("series_id") != series_id]
     save_data(data)
-    return {"ok": True, "deleted": deleted}
+    return {"ok": True, "deleted": len(series_events)}
 
 
 # ---------------------------------------------------------------------------

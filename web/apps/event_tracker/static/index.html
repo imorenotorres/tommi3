@@ -210,6 +210,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   .filters-label { min-width: auto; }
 }
 </style>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Code -->
 </head>
 <body>
 
@@ -218,8 +233,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 <!-- Agora sync bar (shown to editors only) -->
 <div class="sync-bar" id="syncBar" style="display:none;">
-  <span class="sync-status" id="syncStatus">Agora Catalogue: not synced yet</span>
-  <button class="btn-sync" id="btnSync" onclick="syncCatalogue()">&#127760; Sync from Agora</button>
+  <span class="sync-status" id="syncStatus">Agora Catalogue: not synchronised yet</span>
+  <button class="btn-sync" id="btnSync" onclick="syncCatalogue()">Synchronise from Agora</button>
 </div>
 
 <!-- Filters -->
@@ -256,7 +271,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
     <button class="view-btn" id="btnListToggle" style="border-radius:var(--radius);margin-left:0;">List view</button>
     <span style="width:1px;height:24px;background:var(--border);"></span>
-    <button class="btn-add" id="btnAdd" style="display:none;">+ New Event</button>
+    <button class="btn-add" id="btnAdd" style="display:none;">+ New Internal Event</button>
     <button class="nav-btn" id="btnPersonal" onclick="openEdit(null, 'personal')" style="display:none;font-size:0.82rem;">+ Personal Event</button>
     <div class="io-group" id="ioGroup" style="display:none;">
       <button class="nav-btn" onclick="openExportModal()" title="Export events with filters">Export</button>
@@ -264,7 +279,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <button class="nav-btn" onclick="openKpiModal()" title="Export KPI report" style="font-weight:600;">KPIs</button>
     </div>
     <span style="width:1px;height:24px;background:var(--border);"></span>
-    <button class="nav-btn" onclick="showSubscribe()" title="Subscribe from Apple Calendar, Google Calendar, Outlook...">Subscribe / .ics</button>
+    <button class="nav-btn" id="btnSubscribe" onclick="showSubscribe()" title="Subscribe from Apple Calendar, Google Calendar, Outlook..." style="display:none;">Subscribe / .ics</button>
   </div>
 </div>
 
@@ -520,7 +535,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <label>Registration Link</label>
       <input type="url" id="editLink" placeholder="https://...">
 
-      <details id="virtualComponentsSection" style="margin:12px 0;border:1px solid #e2e8f0;border-radius:6px;padding:8px 12px;">
+      <details id="virtualComponentsSection" style="display:none;margin:12px 0;border:1px solid #e2e8f0;border-radius:6px;padding:8px 12px;">
         <summary style="cursor:pointer;font-weight:600;font-size:0.85rem;color:#2D3876;">Virtual Components (pre/post event)</summary>
         <div style="margin-top:8px;">
           <label style="font-size:0.82rem;font-weight:600;">Pre-event virtual component</label>
@@ -573,6 +588,7 @@ let universities = [];
 let dirGroups = [];
 let dirUsers = [];
 let canEdit = false;
+let isSuperuser = false;
 let authUsername = '';
 let currentView = 'month';
 let currentDate = new Date();
@@ -595,7 +611,8 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/[^A-Za-z0-9]+/g, '_');
     if (userInfoEl) userInfoEl.textContent = auth.username + ' (' + auth.role + ')';
     authUsername = auth.username;
     canEdit = auth.can_edit;
-    if (auth.role !== 'public') document.getElementById('btnPersonal').style.display = '';
+    isSuperuser = (auth.roles || [auth.role]).includes('superuser');
+    // btnPersonal and btnSubscribe stay hidden (display:none in markup) until re-enabled.
     if (canEdit) {
       document.getElementById('btnAdd').style.display = '';
       document.getElementById('ioGroup').style.display = '';
@@ -672,16 +689,16 @@ async function loadCatalogueStatus() {
 function updateSyncStatus(s) {
   const el = document.getElementById('syncStatus');
   if (!s.token_configured) {
-    el.innerHTML = '&#127760; Agora Catalogue: <strong style="color:#ea4335;">token not configured</strong> — add CATALOGUE_API_TOKEN to web/.env';
+    el.innerHTML = 'Synchronised from Agora Catalogue: <strong style="color:#ea4335;">token not configured</strong> — add CATALOGUE_API_TOKEN to web/.env';
     return;
   }
   if (!s.last_sync) {
-    el.innerHTML = '&#127760; Agora Catalogue: <em>not synced yet</em>';
+    el.innerHTML = 'Synchronised from Agora Catalogue: <em>not synced yet</em>';
   } else {
     const d = new Date(s.last_sync);
     const ago = Math.round((Date.now() - d) / 60000);
     const agoStr = ago < 60 ? ago + ' min ago' : Math.round(ago/60) + 'h ago';
-    el.innerHTML = '&#127760; Agora Catalogue: <strong>' + s.count + ' events</strong> &mdash; last sync ' + agoStr;
+    el.innerHTML = 'Synchronised from Agora Catalogue: <strong>' + s.count + ' events</strong> &mdash; last sync ' + agoStr;
   }
 }
 
@@ -692,14 +709,14 @@ async function syncCatalogue() {
   btn.textContent = 'Syncing...';
   try {
     const result = await api('POST', '/api/catalogue/sync');
-    statusEl.innerHTML = '&#127760; Agora Catalogue: <strong style="color:#34a853;">Synced ' + result.synced + ' events</strong> (' + result.total_in_api + ' total in API)';
+    statusEl.innerHTML = 'Synchronised from Agora Catalogue: <strong style="color:#34a853;">Synced ' + result.synced + ' events</strong> (' + result.total_in_api + ' total in API)';
     await loadData();
     render();
   } catch (e) {
     statusEl.innerHTML = '<span style="color:#ea4335;">Sync failed: ' + e.message + '</span>';
   }
   btn.disabled = false;
-  btn.textContent = '&#127760; Sync from Agora';
+  btn.textContent = 'Synchronised from Agora';
 }
 
 // -- Filters -----------------------------------------------------------------
@@ -771,7 +788,7 @@ function updateStats() {
   const catCount = f.filter(e => e.source === 'catalogue').length;
   const tbcCount = f.filter(e => e.date_tbc).length;
   let html = `Showing <span>${f.length}</span> of <span>${events.length}</span> events`;
-  if (catCount) html += ` &middot; <span style="color:#1565c0;">&#127760; ${catCount} from Agora</span>`;
+  if (catCount) html += ` &middot; <span style="color:#1565c0;"> Synchronised ${catCount} from Agora</span>`;
   if (tbcCount) html += ` &middot; <span style="color:#ff9800;">${tbcCount} TBC</span>`;
   document.getElementById('statsBar').innerHTML = html;
 }
@@ -913,17 +930,23 @@ function timedEventsForDay(day) {
   return items;
 }
 
+function catalogueLabel(ev) {
+  const cat = ev.category || (ev.categories && ev.categories[0]) || '';
+  return cat ? cat + ': ' + ev.name : ev.name;
+}
+
 function timedBlockHTML(item) {
   const { ev, seg, top, height, lane, totalLanes } = item;
   const cls = CAT_CSS_CLASS(ev.category);
   const isCat = ev.source === 'catalogue';
+  const displayName = isCat ? catalogueLabel(ev) : ev.name;
   const uniList = ev.universities || (ev.university ? [ev.university] : []);
   const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
   const widthPct = 100 / totalLanes;
   const leftPct = widthPct * lane;
   const style = `top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);`;
   const timePrefix = ev.all_day ? '' : fmtTime(seg.start) + ' ';
-  return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail('${ev.id}')" title="${esc(ev.name)}${uni}">${isCat ? '&#127760; ' : ''}${timePrefix}${esc(ev.name)}${uni}</div>`;
+  return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail('${ev.id}')" title="${esc(displayName)}${uni}">${timePrefix}${esc(displayName)}${uni}</div>`;
 }
 
 function evTZ(ev) { return ev.timezone || 'CEST'; }
@@ -936,15 +959,16 @@ function chipHTML(ev, date) {
   const seg = date ? segmentCoveringDate(ev, date) : null;
   const segStart = seg ? seg.start : ev.start_date;
   const t = segStart ? fmtTime(segStart) : '';
-  const icon = ev.visibility === 'personal' ? '&#128274; ' : isCat ? '&#127760; ' : '';
+  const icon = ev.visibility === 'personal' ? '&#128274; ' : '';
   const timeLabel = (ev.date_tbc || ev.all_day) ? '' : (t ? t + ' ' : '');
   const uniList = ev.universities || (ev.university ? [ev.university] : []);
   const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
-  const shortName = ev.name.length > 22 ? ev.name.slice(0, 20) + '...' : ev.name;
+  const displayName = isCat ? catalogueLabel(ev) : ev.name;
+  const shortName = displayName.length > 22 ? displayName.slice(0, 20) + '...' : displayName;
   const tbcCls = ev.date_tbc ? ' tbc' : '';
   const tbcPrefix = ev.date_tbc ? '<span style="font-size:0.6rem;opacity:0.85;">TBC</span> ' : '';
   const segLabel = seg && seg.label ? ' — ' + seg.label : '';
-  return `<div class="event-chip ${cls}${catCls}${personal}${tbcCls}" onclick="showDetail('${ev.id}')" title="${ev.name}${uni}${segLabel}${isCat ? ' [Agora Catalogue]' : ''}">${icon}${tbcPrefix}${timeLabel}${shortName}</div>`;
+  return `<div class="event-chip ${cls}${catCls}${personal}${tbcCls}" onclick="showDetail('${ev.id}')" title="${displayName}${uni}${segLabel}${isCat ? ' [Agora Catalogue]' : ''}">${icon}${tbcPrefix}${timeLabel}${shortName}</div>`;
 }
 
 // -- Month view --------------------------------------------------------------
@@ -1124,7 +1148,7 @@ function renderList() {
     const tz = evTZ(ev);
     html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.start_date ? '<span class="tbc-badge">' + esc(ev.date_tbc_label || 'TBC') + '</span>' : fmtShort(ev.start_date, ev.all_day) + (ev.all_day ? '' : ' <small style="color:var(--text-light);">' + tz + '</small>')}</td>`;
     html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.end_date ? '&mdash;' : fmtShort(ev.end_date, ev.all_day)}</td>`;
-    html += `<td>${ev.date_tbc ? '<span class="tbc-badge">TBC</span> ' : ''}${isCat ? '&#127760; ' : ''}<strong>${esc(ev.name)}</strong></td>`;
+    html += `<td>${ev.date_tbc ? '<span class="tbc-badge">TBC</span> ' : ''}${isCat ? 'Synchronised ' : ''}<strong>${esc(ev.name)}</strong></td>`;
     html += `<td>${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="cat-badge ${CAT_CSS_CLASS(c)}">${c}</span>`).join(' ')}</td>`;
     html += `<td>${(ev.universities || (ev.university ? [ev.university] : [])).join(', ')}</td>`;
     html += `<td><span class="type-badge${eType==='Virtual'?' virtual':''}">${eType}</span></td>`;
@@ -1192,12 +1216,13 @@ function groupLabel(gid) {
 function showDetail(id) {
   const ev = events.find(e => e.id === id);
   if (!ev) return;
-  document.getElementById('detailTitle').textContent = (ev.source === 'catalogue' ? '&#127760; ' : '') + ev.name;
+  const isCatDetail = ev.source === 'catalogue';
+  document.getElementById('detailTitle').textContent = isCatDetail ? catalogueLabel(ev) : ev.name;
   const eType = ev.event_type || 'Physical';
   const typeIcon = eType === 'Virtual' ? '&#128187; Virtual' : '&#127970; Physical';
   let html = `
     <div class="detail-field"><div class="dl">Category/ies</div><div class="dv">${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="event-chip ${CAT_CSS_CLASS(c)}" style="display:inline-block;cursor:default;margin:0 4px 4px 0;">${c}</span>`).join('')}</div></div>
-    ${ev.source === 'catalogue' ? '<div class="detail-field"><div class="dl">Source</div><div class="dv"><span class="catalogue-badge">&#127760; Agora Event Catalogue</span></div></div>' : ''}
+    ${ev.source === 'catalogue' ? '<div class="detail-field"><div class="dl">Source</div><div class="dv"><span class="catalogue-badge">Synchronised from Agora Event Catalogue</span></div></div>' : ''}
     ${ev.uninovis_group ? '<div class="detail-field"><div class="dl">UNINOVIS Group</div><div class="dv">' + ev.uninovis_group + '</div></div>' : ''}
     <div class="detail-field"><div class="dl">Organizing University/ies</div><div class="dv">${(ev.universities || (ev.university ? [ev.university] : [])).join(', ') || '<em>Not specified</em>'}</div></div>
     <div class="detail-field"><div class="dl">Type</div><div class="dv">${typeIcon}</div></div>
@@ -1250,8 +1275,8 @@ function showDetail(id) {
     html += `<div class="detail-field"><div class="dl">Recurring</div><div class="dv">Part of a series (${cnt} events)</div></div>`;
   }
 
-  const isOwner = ev.visibility === 'personal' && ev.created_by === authUsername;
-  const canModify = (canEdit || isOwner) && ev.source !== 'catalogue';
+  const isOwner = ev.created_by === authUsername;
+  const canModify = (isOwner || isSuperuser) && ev.source !== 'catalogue';
   if (canModify) {
     html += '<div class="detail-actions">';
     html += `<button class="btn btn-primary" onclick="closeDetail();openEdit('${ev.id}')">Edit this event</button>`;
@@ -1390,7 +1415,7 @@ function filterPersonList() { renderPartPersonList(); }
 function openEdit(id, defaultVisibility) {
   const modal = document.getElementById('editModal');
   const catContainer = document.getElementById('editCategories');
-  catContainer.innerHTML = categories.map(c =>
+  catContainer.innerHTML = INTERNAL_CATS.map(c =>
     `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" class="cat-cb" value="${c}" onchange="showParticipantsSection(shouldShowParticipants())"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
   ).join('');
   const grpSel = document.getElementById('editUninovisGroup');
@@ -1564,7 +1589,7 @@ function editSeries(seriesId, evId) {
   closeDetail();
   const ev = events.find(e => e.id === evId); if (!ev) return;
   const catContainer = document.getElementById('editCategories');
-  catContainer.innerHTML = categories.map(c =>
+  catContainer.innerHTML = INTERNAL_CATS.map(c =>
     `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" class="cat-cb" value="${c}" onchange="showParticipantsSection(shouldShowParticipants())"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
   ).join('');
   populateGroupSelect();
