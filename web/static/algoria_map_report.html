@@ -131,11 +131,25 @@ function renderReport(data) {
     html += '<div style="font-size:13px;color:#64748b;margin-bottom:12px;">Datos recogidos desde <strong>' + firstDate + '</strong> hasta <strong>' + lastDate + '</strong></div>';
 
     // Summary cards
+    var nNL = data.action_types.NL || 0;
+    var nFilters = data.action_types.filters || 0;
+    var nClics = data.action_types.interaction || 0;
+    var totalActions = nNL + nFilters + nClics;
+    var pctNL = totalActions > 0 ? Math.round(100 * nNL / totalActions) : 0;
+    var pctFilters = totalActions > 0 ? Math.round(100 * nFilters / totalActions) : 0;
+    var pctClics = totalActions > 0 ? Math.round(100 * nClics / totalActions) : 0;
+
     html += '<div class="stats-row">';
     html += '<div class="stat-card"><div class="stat-num">' + data.total_sessions + '</div><div class="stat-label">Sesiones</div></div>';
-    var searchActions = (data.action_types.filters || 0) + (data.action_types.NL || 0);
-    html += '<div class="stat-card"><div class="stat-num">' + searchActions + '</div><div class="stat-label">Búsquedas</div></div>';
-    html += '<div class="stat-card"><div class="stat-num">' + (data.action_types.interaction || 0) + '</div><div class="stat-label">Clics en el mapa</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">' + totalActions + '</div><div class="stat-label">Acciones</div></div>';
+    html += '</div>';
+
+    // Action type breakdown
+    html += '<div style="font-size:13px;font-weight:700;color:#475569;margin-bottom:4px;">Tipos de acciones:</div>';
+    html += '<div class="stats-row">';
+    html += '<div class="stat-card" style="border-left:4px solid #2563eb;"><div class="stat-num" style="font-size:24px;">' + nNL + '</div><div class="stat-label">Lenguaje natural <strong>(' + pctNL + '%)</strong></div></div>';
+    html += '<div class="stat-card" style="border-left:4px solid #f59e0b;"><div class="stat-num" style="font-size:24px;">' + nFilters + '</div><div class="stat-label">Filtros <strong>(' + pctFilters + '%)</strong></div></div>';
+    html += '<div class="stat-card" style="border-left:4px solid #16a34a;"><div class="stat-num" style="font-size:24px;">' + nClics + '</div><div class="stat-label">Clics en mapa <strong>(' + pctClics + '%)</strong></div></div>';
     html += '</div>';
 
     // 1. Sessions by action count
@@ -157,28 +171,9 @@ function renderReport(data) {
     });
     html += '</div>';
 
-    // 2. Action type ratios
+    // 2. Country ranking (sortable)
     html += '<div class="section">';
-    html += '<h2>2. Ratio de acciones por tipo</h2>';
-    var typeLabels = { init: 'Init (carga)', filters: 'Filtros', NL: 'Lenguaje natural', interaction: 'Interacción (clics)' };
-    var typeColors = { init: '#94a3b8', filters: '#2563eb', NL: '#7c3aed', interaction: '#0d9488' };
-    var totalActions = Object.values(data.action_types).reduce(function(s, v) { return s + v; }, 0) || 1;
-    var maxType = Math.max.apply(null, Object.values(data.action_types)) || 1;
-    ['init', 'filters', 'NL', 'interaction'].forEach(function(t) {
-        var val = data.action_types[t] || 0;
-        var pctBar = Math.round(val / maxType * 100);
-        var pctTotal = Math.round(val / totalActions * 100);
-        html += '<div class="bar-row">';
-        html += '<div class="bar-label">' + typeLabels[t] + '</div>';
-        html += '<div class="bar-track"><div class="bar-fill" style="width:' + pctBar + '%;background:' + typeColors[t] + ';">' + (pctBar > 15 ? pctTotal + '%' : '') + '</div></div>';
-        html += '<div class="bar-count">' + pctTotal + '% (' + val + ')</div>';
-        html += '</div>';
-    });
-    html += '</div>';
-
-    // 3. Country ranking (sortable)
-    html += '<div class="section">';
-    html += '<h2>3. Ranking de países más buscados</h2>';
+    html += '<h2>2. Ranking de países más buscados</h2>';
     html += '<div id="country-table-container"></div>';
     html += '</div>';
     // Store data for sorting
@@ -186,7 +181,7 @@ function renderReport(data) {
 
     // 4. University ranking (sortable)
     html += '<div class="section">';
-    html += '<h2>4. Ranking de universidades más consultadas</h2>';
+    html += '<h2>3. Ranking de universidades más consultadas</h2>';
     html += '<div id="uni-table-container"></div>';
     html += '</div>';
     window._uniData = data.university_ranking;
@@ -196,8 +191,7 @@ function renderReport(data) {
     html += '<h2 style="border-bottom:none;margin-top:0;">Leyenda</h2>';
     html += '<table style="width:100%;font-size:13px;border-collapse:collapse;">';
     html += '<tr><td style="padding:6px 8px;font-weight:700;width:140px;vertical-align:top;">Sesión</td><td style="padding:6px 8px;">Cada vez que un usuario abre el mapa se genera un identificador único de sesión. Una sesión equivale aproximadamente a una visita. Nota: si el usuario recarga la página se genera una nueva sesión.</td></tr>';
-    html += '<tr><td style="padding:6px 8px;font-weight:700;vertical-align:top;">Búsqueda</td><td style="padding:6px 8px;">El usuario aplica filtros (país, facultad, idioma, etc.) o escribe una consulta en lenguaje natural.</td></tr>';
-    html += '<tr><td style="padding:6px 8px;font-weight:700;vertical-align:top;">Clic en el mapa</td><td style="padding:6px 8px;">El usuario hace clic en un marcador, un cluster o abre el detalle de una universidad.</td></tr>';
+    html += '<tr><td style="padding:6px 8px;font-weight:700;vertical-align:top;">Acción</td><td style="padding:6px 8px;">Cada interacción del usuario con el mapa. Se divide en tres tipos: <strong>Lenguaje natural</strong> (consulta escrita en texto libre), <strong>Filtros</strong> (uso de los desplegables de país, facultad, idioma, etc.) y <strong>Clics en mapa</strong> (clic en un marcador, cluster o detalle de universidad).</td></tr>';
     html += '<tr><td style="padding:6px 8px;font-weight:700;vertical-align:top;">Sesiones <small>(en rankings)</small></td><td style="padding:6px 8px;">Número de sesiones diferentes en las que ese país o universidad apareció, ya sea por búsqueda con filtros o por clic en el mapa.</td></tr>';
     html += '</table></div>';
 
