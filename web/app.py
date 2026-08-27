@@ -3080,11 +3080,45 @@ INSTRUCCIONES:
             if match:
                 llm_text = match.group(1)
         result = json.loads(llm_text)
+
+        # Log the interaction (anonymous)
+        try:
+            log_path = _LALI_DIR / "data" / "redaccion_log.json"
+            log_entry = {
+                "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "concepto": concepto,
+                "definicion": definicion_alumno,
+                "criterios": result.get("criterios", []),
+                "comentario_general": result.get("comentario_general", ""),
+                "aprobados": sum(1 for c in result.get("criterios", []) if c.get("cumplido")),
+                "total_criterios": len(result.get("criterios", [])),
+            }
+            logs = []
+            if log_path.exists():
+                logs = json.loads(log_path.read_text(encoding="utf-8"))
+            logs.append(log_entry)
+            log_path.write_text(json.dumps(logs, indent=2, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass  # Don't fail the response if logging fails
+
         return result
     except json.JSONDecodeError:
         return JSONResponse({"error": "La LLM no devolvió JSON válido", "raw": llm_text}, status_code=502)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/api/public-agent/eulalia/redaccion-log")
+async def lali_redaccion_log(request: Request):
+    """Get the anonymous redaction exercise log (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo docentes")
+    log_path = _LALI_DIR / "data" / "redaccion_log.json"
+    if not log_path.exists():
+        return {"entries": []}
+    logs = json.loads(log_path.read_text(encoding="utf-8"))
+    return {"entries": logs}
 
 
 # ── LALI tutor: syllable frequency data ──────────────────────────────

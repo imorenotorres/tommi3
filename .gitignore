@@ -33,6 +33,7 @@ agents/*/consultas_profesor.json
 agents/*/data/detector_bulos.json
 agents/*/data/progreso_practica.json
 agents/*/data/valoracion_visible.json
+agents/*/data/redaccion_log.json
 agents/*/data/chunk_db.json
 web/data/users.json
 web/data/invites.json
