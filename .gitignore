@@ -40,8 +40,11 @@ web/data/access_requests.json
 web/data/agent_visibility.json
 agents/responsible_ai3/Benchmark/get_token.sh
 web/apps/directory/data.json
+
 # Web logs
 web/logs/
+web/apps/event_tracker/data.json
+
 
 # macOS hidden files
 .DS_Store
