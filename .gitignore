@@ -45,7 +45,6 @@ web/apps/directory/data.json
 web/logs/
 web/apps/event_tracker/data.json
 
-
 # macOS hidden files
 .DS_Store
 .AppleDouble
