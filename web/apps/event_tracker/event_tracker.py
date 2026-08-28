@@ -426,8 +426,14 @@ def auth_check(session: dict = Depends(_require_auth)):
 def get_events(session: dict = Depends(_require_auth)):
     """Return shared events + user's personal events + cached catalogue events."""
     data = load_data()
-    shared = [ev for ev in data["events"] if ev.get("visibility", "shared") == "shared"]
     catalogue = data.get("catalogue_events", [])
+    catalogue_ids = {ev["id"] for ev in catalogue}
+    # Guard against any stray internal event that duplicates a catalogue id
+    # (e.g. from data created before the import/export hardening below).
+    shared = [
+        ev for ev in data["events"]
+        if ev.get("visibility", "shared") == "shared" and ev["id"] not in catalogue_ids
+    ]
     personal = load_personal(session["username"])
     return shared + catalogue + personal
 
@@ -932,8 +938,12 @@ def ical_feed(token: str = Query("")):
     if not session:
         raise HTTPException(401, "Invalid or expired token")
     data = load_data()
-    shared = [ev for ev in data["events"] if ev.get("visibility", "shared") == "shared"]
     catalogue = data.get("catalogue_events", [])
+    catalogue_ids = {ev["id"] for ev in catalogue}
+    shared = [
+        ev for ev in data["events"]
+        if ev.get("visibility", "shared") == "shared" and ev["id"] not in catalogue_ids
+    ]
     personal = load_personal(session["username"])
     ics = _generate_ics(shared + catalogue + personal)
     return Response(
@@ -949,8 +959,12 @@ def ical_feed(token: str = Query("")):
 @router.get("/api/export/ical")
 def export_ical(session: dict = Depends(_require_auth)):
     data = load_data()
-    shared = [ev for ev in data["events"] if ev.get("visibility", "shared") == "shared"]
     catalogue = data.get("catalogue_events", [])
+    catalogue_ids = {ev["id"] for ev in catalogue}
+    shared = [
+        ev for ev in data["events"]
+        if ev.get("visibility", "shared") == "shared" and ev["id"] not in catalogue_ids
+    ]
     personal = load_personal(session["username"])
     ics = _generate_ics(shared + catalogue + personal)
     return Response(
@@ -988,10 +1002,10 @@ def export_json(
     category: str = Query(""),
 ):
     data = load_data()
-    all_events = (
-        [ev for ev in data["events"] if ev.get("visibility", "shared") == "shared"]
-        + data.get("catalogue_events", [])
-    )
+    # Catalogue-synced events are excluded: they are re-derived from Agora on
+    # every sync and must never be round-tripped through export/import, which
+    # would re-create them as separate, editable internal events.
+    all_events = [ev for ev in data["events"] if ev.get("visibility", "shared") == "shared"]
     filtered = _filter_events(all_events, date_from, date_to, university, category)
     content = json.dumps(filtered, indent=2, ensure_ascii=False)
     return Response(
@@ -1010,10 +1024,10 @@ def export_tsv(
     category: str = Query(""),
 ):
     data = load_data()
-    all_events = (
-        [ev for ev in data["events"] if ev.get("visibility", "shared") == "shared"]
-        + data.get("catalogue_events", [])
-    )
+    # Catalogue-synced events are excluded: they are re-derived from Agora on
+    # every sync and must never be round-tripped through export/import, which
+    # would re-create them as separate, editable internal events.
+    all_events = [ev for ev in data["events"] if ev.get("visibility", "shared") == "shared"]
     filtered = _filter_events(all_events, date_from, date_to, university, category)
     buf = io.StringIO()
     writer = csv.DictWriter(buf, fieldnames=TSV_FIELDS, extrasaction="ignore", delimiter="\t")
@@ -1046,6 +1060,7 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
 
     data = load_data()
     existing_ids = {ev["id"] for ev in data["events"]}
+    catalogue_ids = {ev["id"] for ev in data.get("catalogue_events", [])}
     result = ImportResult()
 
     for i, item in enumerate(imported):
@@ -1060,7 +1075,13 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
         if cat and cat not in data["categories"]:
             result.errors.append(f"Row {i}: unknown category '{cat}'")
             continue
+        if cat in EXTERNAL_CATEGORIES:
+            result.errors.append(f"Row {i}: '{cat}' is reserved for catalogue-synced events and cannot be imported")
+            continue
         eid = item.get("id", "")
+        if eid and eid in catalogue_ids:
+            result.errors.append(f"Row {i}: id '{eid}' belongs to a catalogue-synced event and cannot be imported")
+            continue
         if eid and eid in existing_ids:
             for ev in data["events"]:
                 if ev["id"] == eid:
@@ -1109,6 +1130,7 @@ async def import_tsv(file: UploadFile = File(...), session: dict = Depends(_requ
 
     data = load_data()
     existing_ids = {ev["id"] for ev in data["events"]}
+    catalogue_ids = {ev["id"] for ev in data.get("catalogue_events", [])}
     result = ImportResult()
 
     for i, row in enumerate(reader):
@@ -1120,7 +1142,13 @@ async def import_tsv(file: UploadFile = File(...), session: dict = Depends(_requ
         if cat and cat not in data["categories"]:
             result.errors.append(f"Row {i + 2}: unknown category '{cat}'")
             continue
+        if cat in EXTERNAL_CATEGORIES:
+            result.errors.append(f"Row {i + 2}: '{cat}' is reserved for catalogue-synced events and cannot be imported")
+            continue
         eid = row.get("id", "").strip()
+        if eid and eid in catalogue_ids:
+            result.errors.append(f"Row {i + 2}: id '{eid}' belongs to a catalogue-synced event and cannot be imported")
+            continue
         if eid and eid in existing_ids:
             for ev in data["events"]:
                 if ev["id"] == eid:
