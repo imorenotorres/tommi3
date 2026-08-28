@@ -165,8 +165,11 @@ textarea:focus { outline: none; border-color: #4250b3; }
 
 <script>
 
-// ── Concept bank ──
-var CONCEPTOS = [
+// ── Concept bank (loaded from server) ──
+var CONCEPTOS = []; // Will be populated from /api/public-agent/eulalia/conceptos-redaccion
+
+// Fallback hardcoded concepts (used if server unavailable)
+var CONCEPTOS_FALLBACK = [
     // Tema 1
     {
         id: 'fonema', tema: 1, nombre: 'Fonema',
@@ -238,12 +241,12 @@ var CONCEPTOS = [
     {
         id: 'asimilacion', tema: 2, nombre: 'Asimilación (error fonológico)',
         pista: 'Piensa en la diferencia entre asimilación regresiva y progresiva.',
-        referencia: 'La asimilación es un error de estructura de palabra que consiste en producir un sonido como otro próximo. Puede ser regresiva (un sonido cambia por efecto de otro que viene después: /ˈka.na/ → /ˈna.na/) o progresiva (por efecto de otro anterior: /ˈke.so/ → /ˈke.ko/).',
+        referencia: 'La asimilación es un error de estructura de palabra en el que un fonema adopta uno o más rasgos articulatorios (lugar, modo, sonoridad o nasalidad) de otro fonema de la misma palabra. En el caso más extremo, los dos fonemas se igualan completamente, pero basta con que se copie un solo rasgo para que sea asimilación. Progresiva: un fonema cambia por influencia de otro que viene ANTES. Ejemplos: /ˈpa.la/ → /ˈpa.pa/ (la /l/ adopta rasgos de la /p/ anterior); /ˈke.so/ → /ˈke.ko/ (la /s/ adopta rasgos de la /k/ anterior). Regresiva: un fonema cambia por influencia de otro que viene DESPUÉS. Ejemplos: /ˈpa.la/ → /ˈla.la/ (la /p/ adopta rasgos de la /l/ posterior); /ˈka.na/ → /ˈna.na/ (la /k/ adopta rasgos de la /n/ posterior).',
         rubrica: [
-            {descripcion: 'Define como un sonido que se hace similar a otro cercano.'},
-            {descripcion: 'Distingue entre regresiva (influencia del siguiente) y progresiva (del anterior).'},
+            {descripcion: 'Define como un sonido que se hace igual o similar a otro que ya está en la palabra.'},
+            {descripcion: 'Distingue entre regresiva (influencia del sonido siguiente) y progresiva (influencia del anterior).'},
             {descripcion: 'Lo clasifica como error de estructura de palabra.'},
-            {descripcion: 'Da al menos un ejemplo correcto.'}
+            {descripcion: 'Da al menos un ejemplo. Un ejemplo correcto de asimilación es cualquier palabra en la que un fonema cambia y se convierte en otro fonema que aparece en otra posición de esa misma palabra. Ejemplos correctos: /pa.la/→/pa.pa/ (la /l/ se convierte en /p/, que ya está en la 1ª sílaba), /ka.na/→/na.na/ (la /k/ se convierte en /n/, que ya está en la 2ª sílaba), /pa.la/→/la.la/ (la /p/ se convierte en /l/, que ya está en la 2ª sílaba). Si el ejemplo del estudiante sigue este patrón, es correcto.'}
         ]
     },
     {
@@ -507,6 +510,30 @@ var CONCEPTOS = [
 
 var currentConcept = null;
 
+var REDACCION_CONFIG = {peso_contenido: 80, peso_ortografia: 10, peso_estilo: 10};
+
+// Load concepts from server, fallback to hardcoded
+async function loadConceptos() {
+    try {
+        var res = await fetch('/api/public-agent/eulalia/conceptos-redaccion');
+        if (res.ok) {
+            var data = await res.json();
+            if (data.conceptos && data.conceptos.length > 0) {
+                CONCEPTOS = data.conceptos;
+            } else {
+                CONCEPTOS = CONCEPTOS_FALLBACK;
+            }
+            if (data.config) {
+                if (data.config.peso_contenido !== undefined) REDACCION_CONFIG.peso_contenido = data.config.peso_contenido;
+                if (data.config.peso_ortografia !== undefined) REDACCION_CONFIG.peso_ortografia = data.config.peso_ortografia;
+                if (data.config.peso_estilo !== undefined) REDACCION_CONFIG.peso_estilo = data.config.peso_estilo;
+            }
+            return;
+        }
+    } catch(e) {}
+    CONCEPTOS = CONCEPTOS_FALLBACK;
+}
+
 function saveProgress(widgetId, score, maxScore) {
     try {
         var progress = JSON.parse(localStorage.getItem('lali_progress') || '{}');
@@ -632,35 +659,77 @@ async function submitDefinition() {
 function renderResults(data) {
     var criterios = data.criterios || [];
     var total = criterios.length;
-    var passed = criterios.filter(function(c) { return c.cumplido; }).length;
-    var pct = Math.round((passed / total) * 100);
 
-    var scoreClass = pct >= 75 ? 'pass' : pct >= 50 ? 'partial' : 'fail';
-    var scoreMsg = pct >= 75 ? '¡Muy bien! Tu definición cubre los aspectos esenciales.' :
-                   pct >= 50 ? 'Tu definición es parcialmente correcta. Revisa los criterios que faltan.' :
+    // Last 2 criteria are always ortografía and estilo (added by server)
+    var nContenido = total - 2;
+    var criteriosContenido = criterios.slice(0, nContenido);
+    var criterioOrtografia = criterios[nContenido] || {cumplido: true};
+    var criterioEstilo = criterios[nContenido + 1] || {cumplido: true};
+
+    var passedContenido = criteriosContenido.filter(function(c) { return c.cumplido; }).length;
+    var wCont = REDACCION_CONFIG.peso_contenido;
+    var wOrto = REDACCION_CONFIG.peso_ortografia;
+    var wEst = REDACCION_CONFIG.peso_estilo;
+    var pctContenido = nContenido > 0 ? Math.round(passedContenido / nContenido * wCont) : 0;
+    var pctOrtografia = criterioOrtografia.cumplido ? wOrto : 0;
+    var pctEstilo = criterioEstilo.cumplido ? wEst : 0;
+    var pctTotal = pctContenido + pctOrtografia + pctEstilo;
+
+    var scoreClass = pctTotal >= 60 ? 'pass' : pctTotal >= 40 ? 'partial' : 'fail';
+    var scoreMsg = pctTotal >= 60 ? '¡Muy bien! Tu definición cubre los aspectos esenciales.' :
+                   pctTotal >= 40 ? 'Tu definición es parcialmente correcta. Revisa los criterios que faltan.' :
                    'Tu definición necesita mejorar. Repasa el concepto en el temario.';
 
     document.getElementById('score-bar').innerHTML =
-        '<div class="score-circle ' + scoreClass + '">' + passed + '/' + total +
-        '<div class="score-label">criterios</div></div>' +
-        '<div class="score-text"><strong>' + scoreMsg + '</strong></div>';
+        '<div class="score-circle ' + scoreClass + '">' + pctTotal + '%' +
+        '<div class="score-label">puntuación</div></div>' +
+        '<div class="score-text"><strong>' + scoreMsg + '</strong>' +
+        '<div style="font-size:12px;color:#64748b;margin-top:6px;">' +
+        'Contenido: ' + pctContenido + '/' + wCont + ' · Ortografía: ' + pctOrtografia + '/' + wOrto + ' · Estilo: ' + pctEstilo + '/' + wEst +
+        '</div></div>';
 
     var listEl = document.getElementById('criteria-list');
     listEl.innerHTML = '';
-    criterios.forEach(function(c, i) {
+
+    // Content criteria
+    var rubricaActual = currentConcept.rubrica || [];
+    criteriosContenido.forEach(function(c, i) {
+        var desc = (i < rubricaActual.length) ? rubricaActual[i].descripcion : 'Criterio ' + (i + 1);
         var div = document.createElement('div');
         div.className = 'criterion ' + (c.cumplido ? 'pass' : 'fail');
         div.innerHTML =
             '<span class="criterion-icon">' + (c.cumplido ? '✓' : '✗') + '</span>' +
             '<div class="criterion-text">' +
-            '<div class="criterion-desc">' + currentConcept.rubrica[i].descripcion + '</div>' +
+            '<div class="criterion-desc">' + desc + '</div>' +
             '<div class="criterion-comment">' + (c.comentario || '') + '</div></div>';
         listEl.appendChild(div);
     });
 
+    // Ortografía
+    var divOrto = document.createElement('div');
+    divOrto.className = 'criterion ' + (criterioOrtografia.cumplido ? 'pass' : 'fail');
+    divOrto.innerHTML =
+        '<span class="criterion-icon">' + (criterioOrtografia.cumplido ? '✓' : '✗') + '</span>' +
+        '<div class="criterion-text">' +
+        '<div class="criterion-desc">📝 Ortografía (' + wOrto + '%)</div>' +
+        '<div class="criterion-comment">' + (criterioOrtografia.comentario || '') + '</div></div>';
+    listEl.appendChild(divOrto);
+
+    // Estilo
+    var divEstilo = document.createElement('div');
+    divEstilo.className = 'criterion ' + (criterioEstilo.cumplido ? 'pass' : 'fail');
+    divEstilo.innerHTML =
+        '<span class="criterion-icon">' + (criterioEstilo.cumplido ? '✓' : '✗') + '</span>' +
+        '<div class="criterion-text">' +
+        '<div class="criterion-desc">✍️ Estilo (' + wEst + '%)</div>' +
+        '<div class="criterion-comment">' + (criterioEstilo.comentario || '') + '</div></div>';
+    listEl.appendChild(divEstilo);
+
     document.getElementById('general-feedback').textContent = data.comentario_general || '';
     document.getElementById('results').classList.add('show');
-    guardarProgreso('concepto_' + currentConcept.id, passed, total, {concepto: currentConcept.nombre});
+
+    var passed = criterios.filter(function(c) { return c.cumplido; }).length;
+    guardarProgreso('concepto_' + currentConcept.id, passed, total, {concepto: currentConcept.nombre, pctTotal: pctTotal});
 
     // Update chip to show done
     buildGrid();
@@ -691,7 +760,7 @@ function nextConcept() {
 }
 
 // Init
-buildGrid();
+loadConceptos().then(function() { buildGrid(); });
 </script>
 <script src="/static/eulalia/progreso.js"></script>
 <script src="/static/eulalia/informar_profesor.js"></script>

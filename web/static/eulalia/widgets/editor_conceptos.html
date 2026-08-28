@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor de conceptos — Eulalia</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; flex: 1; }
+.header button { padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; border: none; }
+.btn-save { background: #16a34a; color: #fff; }
+.btn-save:hover { background: #15803d; }
+.btn-add { background: #fff; color: #4250b3; }
+.btn-add:hover { background: #e0e7ff; }
+.container { max-width: 950px; margin: 0 auto; padding: 20px; }
+.status { font-size: 12px; color: rgba(255,255,255,0.7); margin-left: 8px; }
+.status.saved { color: #bbf7d0; }
+
+.concept-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: 16px; margin-bottom: 12px; position: relative;
+}
+.concept-card.collapsed .card-body { display: none; }
+.card-header {
+    display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
+}
+.card-header:hover { color: #4250b3; }
+.card-toggle { font-size: 10px; color: #94a3b8; width: 16px; }
+.card-tema { font-size: 11px; font-weight: 700; color: #fff; background: #4250b3; padding: 1px 6px; border-radius: 3px; }
+.card-nombre { font-weight: 700; font-size: 14px; flex: 1; }
+.card-id { font-size: 11px; color: #94a3b8; font-family: monospace; }
+.card-delete { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #dc2626; cursor: pointer; font-size: 16px; opacity: 0.4; }
+.card-delete:hover { opacity: 1; }
+
+.card-body { margin-top: 12px; }
+.field { margin-bottom: 10px; }
+.field label { font-size: 11px; font-weight: 700; color: #64748b; display: block; margin-bottom: 3px; }
+.field input, .field textarea {
+    width: 100%; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px;
+    font-family: inherit; font-size: 13px;
+}
+.field textarea { min-height: 60px; resize: vertical; line-height: 1.5; }
+.field-row { display: flex; gap: 10px; }
+.field-row .field { flex: 1; }
+
+.rubrica-list { margin-top: 4px; }
+.rubrica-item { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 4px; }
+.rubrica-item input { flex: 1; }
+.rubrica-item button { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 14px; padding: 4px; }
+.rubrica-add { font-size: 12px; color: #4250b3; cursor: pointer; font-weight: 600; border: none; background: none; margin-top: 4px; }
+
+.loading { text-align: center; padding: 40px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <span class="title">Editor de conceptos — Práctica de redacción</span>
+    <span class="status" id="status"></span>
+    <button class="btn-add" onclick="addConcept()">+ Añadir concepto</button>
+    <button class="btn-save" onclick="saveAll()">💾 Guardar</button>
+</div>
+
+<div class="container" id="container">
+    <div class="loading">Cargando conceptos...</div>
+</div>
+
+<script>
+
+var conceptos = [];
+var config = {
+    ortografia_tolerancia: 'Errores menores aislados (1-2) se toleran. Marca false solo si hay errores frecuentes o graves.',
+    estilo_criterio: 'Frases claras y bien construidas, sin ambigüedades, con un registro apropiado para un contexto académico. No se exige perfección literaria, solo claridad y corrección básica.',
+    peso_contenido: 80,
+    peso_ortografia: 10,
+    peso_estilo: 10
+};
+
+function getToken() {
+    return localStorage.getItem('tutores_token') || '';
+}
+
+async function loadConceptos() {
+    try {
+        var res = await fetch('/api/public-agent/eulalia/conceptos-redaccion');
+        if (!res.ok) throw new Error('Error ' + res.status);
+        var data = await res.json();
+        conceptos = data.conceptos || [];
+        if (data.config) {
+            Object.keys(data.config).forEach(function(k) { config[k] = data.config[k]; });
+        }
+        renderAll();
+    } catch(e) {
+        document.getElementById('container').innerHTML = '<div class="loading" style="color:#dc2626;">Error: ' + e.message + '</div>';
+    }
+}
+
+function renderAll() {
+    var html = '';
+
+    // Config section
+    html += '<div class="concept-card" style="border-left:4px solid #f59e0b;margin-bottom:20px;">';
+    html += '<div style="font-weight:700;font-size:14px;color:#92400e;margin-bottom:10px;">⚙️ Configuración de evaluación</div>';
+    html += '<div class="field"><label>Tolerancia ortográfica <span style="font-weight:400;color:#94a3b8;">(instrucción para la IA sobre cuándo marcar como incorrecto)</span></label>';
+    html += '<textarea onchange="config.ortografia_tolerancia=this.value;setDirty()">' + esc(config.ortografia_tolerancia) + '</textarea></div>';
+    html += '<div class="field"><label>Criterio de estilo <span style="font-weight:400;color:#94a3b8;">(instrucción para la IA sobre qué evaluar en estilo)</span></label>';
+    html += '<textarea onchange="config.estilo_criterio=this.value;setDirty()">' + esc(config.estilo_criterio) + '</textarea></div>';
+    html += '<div class="field-row">';
+    html += '<div class="field"><label>Peso contenido (%)</label><input type="number" value="' + config.peso_contenido + '" onchange="config.peso_contenido=parseInt(this.value);setDirty()"></div>';
+    html += '<div class="field"><label>Peso ortografía (%)</label><input type="number" value="' + config.peso_ortografia + '" onchange="config.peso_ortografia=parseInt(this.value);setDirty()"></div>';
+    html += '<div class="field"><label>Peso estilo (%)</label><input type="number" value="' + config.peso_estilo + '" onchange="config.peso_estilo=parseInt(this.value);setDirty()"></div>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">' + conceptos.length + ' conceptos</div>';
+
+    conceptos.forEach(function(c, idx) {
+        html += '<div class="concept-card collapsed" id="card-' + idx + '">';
+        html += '<button class="card-delete" onclick="deleteConcept(' + idx + ')" title="Eliminar">×</button>';
+        html += '<div class="card-header" onclick="toggleCard(' + idx + ')">';
+        html += '<span class="card-toggle" id="toggle-' + idx + '">▶</span>';
+        html += '<span class="card-tema">T' + c.tema + '</span>';
+        html += '<span class="card-nombre">' + esc(c.nombre) + '</span>';
+        html += '<span class="card-id">' + c.id + '</span>';
+        html += '</div>';
+        html += '<div class="card-body">';
+
+        // Fields
+        html += '<div class="field-row">';
+        html += '<div class="field"><label>ID</label><input value="' + escAttr(c.id) + '" onchange="updateField(' + idx + ',\'id\',this.value)"></div>';
+        html += '<div class="field"><label>Tema</label><input type="number" value="' + c.tema + '" onchange="updateField(' + idx + ',\'tema\',parseInt(this.value))"></div>';
+        html += '<div class="field"><label>Nombre</label><input value="' + escAttr(c.nombre) + '" onchange="updateField(' + idx + ',\'nombre\',this.value)"></div>';
+        html += '</div>';
+
+        html += '<div class="field"><label>Pista</label><textarea onchange="updateField(' + idx + ',\'pista\',this.value)">' + esc(c.pista || '') + '</textarea></div>';
+        html += '<div class="field"><label>Referencia</label><textarea style="min-height:80px;" onchange="updateField(' + idx + ',\'referencia\',this.value)">' + esc(c.referencia || '') + '</textarea></div>';
+
+        // Rubrica
+        html += '<div class="field"><label>Rúbrica (criterios de evaluación)</label>';
+        html += '<div class="rubrica-list">';
+        (c.rubrica || []).forEach(function(r, ri) {
+            html += '<div class="rubrica-item">';
+            html += '<span style="color:#94a3b8;font-size:12px;min-width:16px;">' + (ri + 1) + '.</span>';
+            html += '<input value="' + escAttr(r.descripcion) + '" onchange="updateRubrica(' + idx + ',' + ri + ',this.value)">';
+            html += '<button onclick="deleteRubrica(' + idx + ',' + ri + ')">×</button>';
+            html += '</div>';
+        });
+        html += '</div>';
+        html += '<button class="rubrica-add" onclick="addRubrica(' + idx + ')">+ Añadir criterio</button>';
+        html += '</div>';
+
+        html += '</div></div>';
+    });
+
+    document.getElementById('container').innerHTML = html;
+}
+
+function toggleCard(idx) {
+    var card = document.getElementById('card-' + idx);
+    var toggle = document.getElementById('toggle-' + idx);
+    card.classList.toggle('collapsed');
+    toggle.textContent = card.classList.contains('collapsed') ? '▶' : '▼';
+}
+
+function updateField(idx, field, value) {
+    conceptos[idx][field] = value;
+    setDirty();
+}
+
+function updateRubrica(idx, ri, value) {
+    conceptos[idx].rubrica[ri].descripcion = value;
+    setDirty();
+}
+
+function addRubrica(idx) {
+    if (!conceptos[idx].rubrica) conceptos[idx].rubrica = [];
+    conceptos[idx].rubrica.push({descripcion: ''});
+    renderAll();
+    // Open the card
+    var card = document.getElementById('card-' + idx);
+    if (card) { card.classList.remove('collapsed'); document.getElementById('toggle-' + idx).textContent = '▼'; }
+    setDirty();
+}
+
+function deleteRubrica(idx, ri) {
+    conceptos[idx].rubrica.splice(ri, 1);
+    renderAll();
+    var card = document.getElementById('card-' + idx);
+    if (card) { card.classList.remove('collapsed'); document.getElementById('toggle-' + idx).textContent = '▼'; }
+    setDirty();
+}
+
+function addConcept() {
+    var tema = conceptos.length > 0 ? conceptos[conceptos.length - 1].tema : 1;
+    conceptos.push({
+        id: 'nuevo_' + Date.now(),
+        tema: tema,
+        nombre: 'Nuevo concepto',
+        pista: '',
+        referencia: '',
+        rubrica: [{descripcion: ''}]
+    });
+    renderAll();
+    // Open and scroll to new card
+    var idx = conceptos.length - 1;
+    var card = document.getElementById('card-' + idx);
+    if (card) { card.classList.remove('collapsed'); document.getElementById('toggle-' + idx).textContent = '▼'; card.scrollIntoView({behavior: 'smooth'}); }
+    setDirty();
+}
+
+function deleteConcept(idx) {
+    if (!confirm('¿Eliminar "' + conceptos[idx].nombre + '"?')) return;
+    conceptos.splice(idx, 1);
+    renderAll();
+    setDirty();
+}
+
+function setDirty() {
+    document.getElementById('status').textContent = '(cambios sin guardar)';
+    document.getElementById('status').className = 'status';
+}
+
+async function saveAll() {
+    var status = document.getElementById('status');
+    status.textContent = 'Guardando...';
+    status.className = 'status';
+    try {
+        var res = await fetch('/api/public-agent/eulalia/conceptos-redaccion?token=' + encodeURIComponent(getToken()), {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({config: config, conceptos: conceptos})
+        });
+        if (!res.ok) throw new Error('Error ' + res.status);
+        var data = await res.json();
+        status.textContent = '✓ Guardado (' + data.count + ' conceptos)';
+        status.className = 'status saved';
+    } catch(e) {
+        status.textContent = '✗ Error: ' + e.message;
+        status.className = 'status';
+    }
+}
+
+function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function escAttr(s) { return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+loadConceptos();
+
+</script>
+</body>
+</html>

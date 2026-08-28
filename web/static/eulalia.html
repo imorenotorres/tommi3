@@ -397,25 +397,17 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                             📝 Revisión de redacciones
                         </a>
 
+                        <!-- Editor de conceptos -->
+                        <a href="/tutores-virtuales/eulalia/widgets/editor_conceptos" target="_blank"
+                           style="display:block;padding:8px 12px;margin-bottom:8px;background:#0d9488;color:#fff;border-radius:6px;text-align:center;text-decoration:none;font-size:12px;font-weight:600;">
+                            ✏️ Editor de conceptos
+                        </a>
+
                         <!-- Valoración -->
                         <div style="display:flex;gap:4px;margin-bottom:8px;">
                             <button onclick="toggleValoracion()" id="btn-toggle-valoracion" style="flex:1;padding:6px 10px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">📋 Mostrar valoración</button>
                             <button onclick="exportValoracionDocente()" style="padding:6px 10px;background:#fff;color:#7c3aed;border:1px solid #7c3aed;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">📥 Exportar</button>
                         </div>
-
-                        <!-- Generador de transcripciones -->
-                        <details style="margin-bottom:8px;">
-                            <summary style="font-size:12px;font-weight:600;color:#92400e;cursor:pointer;padding:6px 0;">📝 Generar transcripciones</summary>
-                            <div style="padding:6px 0;">
-                                <input type="text" id="trans-gen-input" placeholder="Escribe una oración..." style="width:100%;padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;margin-bottom:6px;">
-                                <button onclick="generateTranscription()" style="padding:5px 12px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">Transcribir</button>
-                                <div id="trans-gen-result" style="margin-top:8px;font-size:12px;line-height:1.8;display:none;">
-                                    <div style="color:#1e293b;"><strong>Fonológica:</strong> <span id="trans-gen-fono" style="font-family:monospace;color:#4250b3;user-select:all;"></span></div>
-                                    <div style="color:#1e293b;"><strong>Fonética:</strong> <span id="trans-gen-fone" style="font-family:monospace;color:#7c3aed;user-select:all;"></span></div>
-                                    <button id="btn-copy-trans" onclick="copyBothTranscriptions()" style="margin-top:4px;padding:5px 12px;background:#4250b3;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">📋 Copiar</button>
-                                </div>
-                            </div>
-                        </details>
 
                         <!-- Generador de informes de errores -->
                         <details style="margin-bottom:8px;">
@@ -1938,8 +1930,8 @@ async function generateTranscription() {
         var res = await fetch('/api/public-agent/eulalia/transcribir?texto=' + encodeURIComponent(texto));
         if (!res.ok) { alert('Error al transcribir'); return; }
         var data = await res.json();
-        document.getElementById('trans-gen-fono').textContent = data.fonologica;
-        document.getElementById('trans-gen-fone').textContent = data.fonetica;
+        document.getElementById('trans-gen-fono').textContent = data.transcripcion || data.fonologica || '';
+        document.getElementById('trans-gen-fone').textContent = data.fonetica || '';
         document.getElementById('trans-gen-result').style.display = '';
     } catch(e) { alert('Error: ' + e.message); }
 }

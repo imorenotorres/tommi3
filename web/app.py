@@ -3037,8 +3037,26 @@ async def lali_evaluar_definicion(request: Request):
     if not concepto or not definicion_alumno or not rubrica:
         return JSONResponse({"error": "Faltan campos obligatorios"}, status_code=400)
 
+    # Load docente config for spelling/style criteria
+    _config_path = _LALI_DIR / "data" / "conceptos_redaccion.json"
+    _redaccion_config = {}
+    if _config_path.exists():
+        _rd = json.loads(_config_path.read_text(encoding="utf-8"))
+        if isinstance(_rd, dict):
+            _redaccion_config = _rd.get("config", {})
+
+    _orto_tol = _redaccion_config.get("ortografia_tolerancia",
+        "Errores menores aislados (1-2) se toleran. Marca false solo si hay errores frecuentes o graves.")
+    _estilo_crit = _redaccion_config.get("estilo_criterio",
+        "Frases claras y bien construidas, sin ambigüedades, con un registro apropiado para un contexto académico. No se exige perfección literaria, solo claridad y corrección básica.")
+
+    # Add fixed criteria for spelling and style
+    rubrica_con_extras = list(rubrica) + [
+        {"descripcion": f"ORTOGRAFÍA: El texto no contiene faltas de ortografía significativas (tildes, b/v, h, etc.). {_orto_tol}"},
+        {"descripcion": f"ESTILO: El texto está bien redactado: {_estilo_crit}"},
+    ]
     criterios_text = "\n".join(
-        f"- Criterio {i+1}: {c['descripcion']}" for i, c in enumerate(rubrica)
+        f"- Criterio {i+1}: {c['descripcion']}" for i, c in enumerate(rubrica_con_extras)
     )
 
     prompt = f"""Eres un tutor de fonología que evalúa definiciones. Dirígete al estudiante de tú, con un tono cercano y constructivo (por ejemplo: "Tu definición...", "Debes repasar...", "Has captado bien...").
@@ -3057,6 +3075,7 @@ INSTRUCCIONES:
 - Sé justo y generoso: si el concepto está expresado con otras palabras, con sinónimos o de forma implícita pero clara, marca true. Por ejemplo, si el criterio pide que asocie una subdisciplina a la "fase de producción" y el estudiante dice "cómo se producen los sonidos", eso CUMPLE el criterio aunque no use la palabra "fase".
 - Solo marca false si el concepto realmente falta o es incorrecto.
 - IMPORTANTE: Asegúrate de que el valor "cumplido" (true/false) es coherente con tu comentario. Si tu comentario dice que la respuesta es correcta, el valor debe ser true.
+- IMPORTANTE para evaluar EJEMPLOS: cuando el estudiante da un ejemplo, analízalo con cuidado antes de juzgarlo. Examina TODA la palabra original, no solo una parte. Por ejemplo, en /la.pa/ → /pa.pa/, la /l/ se convierte en /p/ — y la /p/ SÍ existe en la palabra original (en la segunda sílaba), por lo que ES un ejemplo válido de asimilación progresiva. No rechaces un ejemplo sin verificar que el fonema resultante no aparece en NINGUNA posición de la palabra original.
 - Responde ÚNICAMENTE con un JSON válido, sin texto adicional, con esta estructura:
 {{
   "criterios": [
@@ -3119,6 +3138,35 @@ async def lali_redaccion_log(request: Request):
         return {"entries": []}
     logs = json.loads(log_path.read_text(encoding="utf-8"))
     return {"entries": logs}
+
+
+@app.get("/api/public-agent/eulalia/conceptos-redaccion")
+async def lali_get_conceptos():
+    """Get the concept bank for redaction exercises."""
+    path = _LALI_DIR / "data" / "conceptos_redaccion.json"
+    if not path.exists():
+        return {"config": {}, "conceptos": []}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    # Support both old (list) and new (dict with config) formats
+    if isinstance(data, list):
+        return {"config": {}, "conceptos": data}
+    return {"config": data.get("config", {}), "conceptos": data.get("conceptos", [])}
+
+
+@app.put("/api/public-agent/eulalia/conceptos-redaccion")
+async def lali_put_conceptos(request: Request):
+    """Update the concept bank and config (docente only)."""
+    session = tutores_get_session(_get_tutores_token(request))
+    if not tutores_is_docente(session):
+        raise HTTPException(status_code=403, detail="Solo docentes")
+    body = await request.json()
+    path = _LALI_DIR / "data" / "conceptos_redaccion.json"
+    save_data = {
+        "config": body.get("config", {}),
+        "conceptos": body.get("conceptos", [])
+    }
+    path.write_text(json.dumps(save_data, indent=2, ensure_ascii=False), encoding="utf-8")
+    return {"ok": True, "count": len(save_data["conceptos"])}
 
 
 # ── LALI tutor: syllable frequency data ──────────────────────────────
