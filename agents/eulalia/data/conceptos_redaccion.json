@@ -1,7 +1,7 @@
 {
   "config": {
-    "ortografia_tolerancia": "Errores menores aislados (1-2) se toleran. Marca false solo si hay errores frecuentes o graves.",
-    "estilo_criterio": "Frases claras y bien construidas, sin ambigüedades, con un registro apropiado para un contexto académico. No se exige perfección literaria, solo claridad y corrección básica.",
+    "ortografia_tolerancia": "Errores menores aislados (1-2) se toleran. Marca false solo si hay errores frecuentes o graves. Si hay muchos errores se advierte que \"en el examen una pregunta con muchos errores ortográficos podría queda sin valorar aunque el contenido sea correcto\". ",
+    "estilo_criterio": "Frases claras y bien construidas, sin ambigüedades, con un registro apropiado para un contexto académico. No se exige perfección literaria, solo claridad y corrección básica. Si la redacción es muy confusa advierte que \"En el examen una respuesta muy confusa podría quedar sin valorar aunque el contenido sea aparentemente correcto\". ",
     "peso_contenido": 80,
     "peso_ortografia": 10,
     "peso_estilo": 10
@@ -12,7 +12,7 @@
       "tema": 1,
       "nombre": "Fonema",
       "pista": "Piensa en qué distingue a un fonema de un sonido concreto y de una letra.",
-      "referencia": "Un fonema se puede definir de dos formas: (1) Es una clase de sonidos, tales que todos los sonidos de la clase permiten transmitir el mismo contenido semántico. (2) Es una representación mental que nos permite producir sonidos concretos e interpretar los sonidos que oímos. Los fonemas no son sonidos concretos ni letras. Se representan entre barras: /p/.",
+      "referencia": "Un fonema se puede definir de dos formas: (1) Es una clase de sonidos, tales que la sustitución de uno por otro no tiene consecuencias a la hora de diferencian una palabra de otra. (2) Es una representación mental que nos permite producir sonidos concretos e interpretar los sonidos que oímos. Los fonemas no son sonidos concretos ni letras. Se representan entre barras: /p/.",
       "rubrica": [
         {
           "descripcion": "Menciona que un fonema es una clase o categoría de sonidos (no un sonido concreto individual)."
@@ -33,13 +33,13 @@
       "tema": 1,
       "nombre": "Alófono",
       "pista": "Piensa en la relación entre alófono y fonema. ¿Qué diferencia hay entre [b] y [β̞]?",
-      "referencia": "Un alófono es cada una de las variantes concretas en que se realiza un fonema, condicionadas por el contexto fonológico. Por ejemplo, el fonema /b/ tiene dos alófonos: [b] (oclusivo, tras pausa o nasal) y [β̞] (aproximante, entre vocales). Los alófonos se representan entre corchetes. Cambiar un alófono por otro del mismo fonema no cambia el significado.",
+      "referencia": "Un alófono es una variante sonora concreta con la que se realiza un fonema. Cada fonema puede tener uno o más alófonos. En caso de tener dos o más, cada fonema aparece en un contexto fonológico diferente. Por ejemplo, el fonema /b/ tiene dos alófonos: [b] (oclusivo, tras pausa o nasal) y [β̞] (aproximante, entre vocales). Los alófonos se representan entre corchetes en la transcripción fonética. Cambiar un alófono por otro del mismo fonema no tiene consecuencias semánticas. ",
       "rubrica": [
         {
           "descripcion": "Define alófono como una variante o realización concreta de un fonema."
         },
         {
-          "descripcion": "Indica que los alófonos dependen del contexto fonológico."
+          "descripcion": "Indica que los alófonos están ligados a un contexto fonológico"
         },
         {
           "descripcion": "Indica que cambiar un alófono por otro del mismo fonema no cambia el significado."
@@ -54,7 +54,7 @@
       "tema": 1,
       "nombre": "Pseudopalabra",
       "pista": "Piensa en para qué se usan en logopedia y qué las diferencia de una palabra real.",
-      "referencia": "Una pseudopalabra es una expresión que se parece fonológicamente a una palabra real, pero que no tiene un significado asociado. Ejemplos: apregue, droti. Se usan en logopedia para evaluar el procesamiento fonológico por vía indirecta, ya que al no poder usar la ruta directa (memorización), el hablante debe procesar fonema a fonema.",
+      "referencia": "Una pseudopalabra es una expresión que se parece fonológicamente a una palabra real, pero que no tiene un significado asociado. Ejemplos: apregue, droti. Desde un punto de vista cognitivo las pseudopalabras se caracterizan porque, debido a que son expresiones no conocidas para el hablante, deben ser procesadas forzosamente por la ruta indirecta (esto es, fonema a fonema). Recuerda que las palabras, especialmente sin son frecuentes, pueden ser memorizadas y producirse por la ruta directa. En logopedia las pseudopalabras se emplean para evaluar si el paciente es capaz de hacer uso de la ruta indirecta. ",
       "rubrica": [
         {
           "descripcion": "Define como una expresión sin significado que suena a palabra posible."
@@ -75,16 +75,16 @@
       "tema": 2,
       "nombre": "Sílaba",
       "pista": "Piensa en los componentes de una sílaba y cuál es obligatorio.",
-      "referencia": "La sílaba es una unidad fonológica formada por un núcleo (siempre una vocal) y opcionalmente un ataque (consonantes antes del núcleo) y una coda (consonantes después del núcleo). El núcleo es el único componente obligatorio.",
+      "referencia": "La sílaba es una unidad fonológica formada por un núcleo (siempre una vocal) y opcionalmente un ataque (consonantes antes del núcleo) y una coda (consonantes después del núcleo). El núcleo es el único componente obligatorio. En español el tipo de sílaba más común es la formada por Consonante + Vocal. En logopedia, debemos prestar especial atención a las sílabas más complejas, en particular aquellas con dos consonantes en posición de ataque (Plan, Tren...) o dos o tres vocales en el núcleo (cien, seis...), y a las que tienen consonante en posición de coda (pan, tus).",
       "rubrica": [
         {
-          "descripcion": "Menciona que la sílaba tiene un núcleo que es una vocal."
+          "descripcion": "Menciona que la sílaba tiene tres partes: ataque, núcleo y coda"
         },
         {
-          "descripcion": "Menciona el ataque y/o la coda como componentes opcionales."
+          "descripcion": "Menciona el l núcleo es el único componente obligatorio"
         },
         {
-          "descripcion": "Indica que el núcleo es obligatorio."
+          "descripcion": "Menciona qué es más importante en logopedia "
         },
         {
           "descripcion": "Da un ejemplo correcto de sílaba analizada."
@@ -96,19 +96,19 @@
       "tema": 2,
       "nombre": "Transcripción fonológica",
       "pista": "Piensa en qué la diferencia de la ortografía y de la transcripción fonética.",
-      "referencia": "La transcripción fonológica es un sistema de representación que asocia un símbolo gráfico a cada fonema de forma sistemática (cada fonema = un símbolo, cada símbolo = un fonema). Se representa entre barras /.../ con separación silábica (puntos) y marca de acento (ˈ). A diferencia de la ortografía, es completamente sistemática.",
+      "referencia": "La transcripción fonológica es un sistema de representación que asocia un símbolo gráfico a cada fonema de forma sistemática (cada fonema = un símbolo, cada símbolo = un fonema). Se representa entre barras /.../ con separación silábica (puntos) y marca de acento (ˈ). A diferencia de la ortografía, es completamente sistemática. En logopedia la transcripción fonológica permite describir de forma no subjetiva las producciones de los pacientes. ",
       "rubrica": [
         {
           "descripcion": "Indica que representa fonemas (no sonidos concretos ni letras)."
-        },
-        {
-          "descripcion": "Menciona que se usan barras / / y la separación silábica con puntos."
         },
         {
           "descripcion": "Indica que la relación fonema-símbolo es sistemática (biunívoca)."
         },
         {
           "descripcion": "La diferencia de la ortografía o de la transcripción fonética."
+        },
+        {
+          "descripcion": "Indica la utilidad en logopedia"
         }
       ]
     },
@@ -264,7 +264,7 @@
       "tema": 1,
       "nombre": "Fonética articulatoria vs acústica",
       "pista": "Piensa en qué estudia cada una y en qué fase de la comunicación se sitúa.",
-      "referencia": "La fonética articulatoria estudia el proceso de fonación y articulación de los sonidos del habla, es decir, cómo se producen. Se sitúa en la fase de producción de la comunicación. La fonética acústica estudia las propiedades físicas (acústicas) de los sonidos durante su transmisión. Se sitúa en la fase de transmisión. La diferencia principal es que la articulatoria se centra en el emisor (cómo mueve los articuladores) mientras que la acústica se centra en la señal sonora resultante (frecuencias, formantes, espectrogramas).",
+      "referencia": "La fonética articulatoria estudia el proceso de fonación y articulación de los sonidos del habla, es decir, cómo se producen. Se sitúa en la fase de producción de la comunicación. Por ejemplo, dado un sonido como [p], en fonética articulatoria se describe indicando que articuladores (glotis, labios...) intervienen. La fonética acústica estudia las propiedades físicas (acústicas) de los sonidos durante su transmisión. Se sitúa en la fase de transmisión. Por ejemplo, dado dado un sonido como [p] la acústica describe las propiedades de la señal sonora resultante (VOT, sonoridad...)",
       "rubrica": [
         {
           "descripcion": "Identifica correctamente que la fonética articulatoria estudia la producción de los sonidos del habla."
@@ -276,7 +276,7 @@
           "descripcion": "Asocia cada subdisciplina a su fase de la comunicación: articulatoria → producción, acústica → transmisión."
         },
         {
-          "descripcion": "La respuesta es clara, coherente y muestra comprensión propia."
+          "descripcion": "Da un ejemplo práctico de descripción de un sonido en cada subdisciplina"
         }
       ]
     },
@@ -306,7 +306,7 @@
       "tema": 1,
       "nombre": "Norma",
       "pista": "Piensa en qué consideramos \"correcto\" al hablar y quién lo decide.",
-      "referencia": "La norma lingüística es el conjunto de usos considerados correctos o prestigiosos dentro de una comunidad. Es un filtro entre el sistema (lo que la lengua permite) y el habla (lo que los hablantes realmente dicen). No todo lo que el sistema permite está aceptado por la norma. La norma varía geográfica y socialmente (lo normativo en España puede no serlo en América), y evoluciona con el tiempo. En fonología, la norma determina, por ejemplo, si la distinción /s/-/θ/ es esperable o no según el dialecto.",
+      "referencia": "La norma fue definida por Coseriu como aquello que es repetición en el habla. Se diferencia de la lengua en que esta es abstracta y la norma es concreta. Se diferencia del habla en que identifica tipos de sonidos que tienen prestigio. La norma varía geográfica y socialmente (lo normativo en España puede no serlo en América), y evoluciona con el tiempo. En fonología, la norma determina, por ejemplo, si la distinción /s/-/θ/ es esperable o no según el dialecto.",
       "rubrica": [
         {
           "descripcion": "Define la norma como el conjunto de usos considerados correctos o prestigiosos."
@@ -318,7 +318,7 @@
           "descripcion": "Indica que varía geográfica o socialmente."
         },
         {
-          "descripcion": "Da un ejemplo o conecta con la fonología."
+          "descripcion": "Da un ejemplo concreto de uso normativo"
         }
       ]
     },
@@ -390,19 +390,19 @@
       "tema": 3,
       "nombre": "Lugar de articulación",
       "pista": "Piensa en dónde se produce la constricción o el contacto en el tracto vocal.",
-      "referencia": "El lugar de articulación indica dónde se produce la constricción o el cierre en el tracto vocal al producir un sonido. Se define por los articuladores que intervienen (labios, dientes, alvéolos, paladar, velo, etc.). En español los principales lugares son: bilabial (/p,b,m/), labiodental (/f/), interdental (/θ/), dental (/t,d/), alveolar (/s,n,l,ɾ,r/), palatal (/ʝ,ʧ,ɲ/), velar (/k,g,x/) y faríngeo/glotal (no fonológicos en español).",
+      "referencia": "El lugar de articulación es uno de los rasgos fonológicos que podemos emplear para clasificar los fonemas. Indica dónde se produce la constricción o el cierre en el tracto vocal al producir un sonido: labios, dientes, alvéolos, paladar, velo, etc. En español los lugares de articulación de para las consonantes son: bilabial (/p,b,m/), labiodental (/f/), interdental (/θ/), dental (/t,d/), alveolar (/s,n,l,ɾ,r/), palatal (/ʝ,ʧ,ɲ/) y velar (/k,g,x/. Para las vocales, los lugares de articulación distinguimos: Vocales anteriores: /i/, /e/; vocales centrales: /a/; vocales posteriores: /o/, /u/ ",
       "rubrica": [
         {
-          "descripcion": "Define el lugar de articulación como el punto donde se produce la constricción o contacto."
+          "descripcion": "Define el lugar de articulación como rasgo fonológico. "
         },
         {
-          "descripcion": "Menciona al menos 3 lugares de articulación con ejemplos de fonemas."
+          "descripcion": "Define el lugar de articulación como punto donde se produce la constricción o contacto."
         },
         {
-          "descripcion": "Distingue articulador activo de pasivo, o menciona los órganos implicados."
+          "descripcion": "Menciona al menos 4 lugares de articulación de las consonantes con ejemplos de fonemas."
         },
         {
-          "descripcion": "La explicación es clara y no confunde lugar con modo."
+          "descripcion": "Menciona al menos 1 lugar de articulación de las vocales con ejemplos de fonemas."
         }
       ]
     },
@@ -411,19 +411,19 @@
       "tema": 3,
       "nombre": "Modo de articulación",
       "pista": "Piensa en cómo pasa el aire: ¿se bloquea del todo, se escapa por un lado, vibra?",
-      "referencia": "El modo de articulación describe cómo se modifica el flujo de aire al producir un sonido. Los principales modos en español son: oclusivo (cierre total seguido de apertura brusca: /p,t,k,b,d,g/), fricativo (estrechamiento que produce turbulencia: /f,θ,s,ʝ,x/), africado (oclusión seguida de fricación: /ʧ/), nasal (el aire sale por la nariz: /m,n,ɲ/), lateral (el aire escapa por los lados de la lengua: /l/), vibrante (la lengua vibra: simple /ɾ/ o múltiple /r/) y aproximante (estrechamiento sin turbulencia: [β̞,ð̞,ɣ̞]).",
+      "referencia": "El modo de articulación es uno de los rasgos fonológicos que podemos emplear para clasificar los fonemas. Describe cómo se modifica el flujo de aire al producir un sonido. Los principales modos en español son: oclusivo (cierre total seguido de apertura brusca: /p,t,k,b,d,g/), fricativo (estrechamiento que produce turbulencia: /f,θ,s,ʝ,x/), africado (oclusión seguida de fricación: /ʧ/), lateral (el aire escapa por los lados de la lengua: /l/) y vibrante (la lengua vibra: simple /ɾ/ o múltiple /r/). En las vocales, los modos de articulación son: abierta (/a/), media (/e, o/) o cerrada (/i, u/)\n\n\n",
       "rubrica": [
         {
-          "descripcion": "Define el modo de articulación como la forma en que se modifica el flujo de aire."
+          "descripcion": "Define el modo de articulación como rasgo fonológico"
         },
         {
-          "descripcion": "Menciona al menos 3 modos con ejemplos de fonemas."
+          "descripcion": "Define el modo de articulación como forma en la que se modifica el flujo de aire al producir un sonido"
         },
         {
-          "descripcion": "Distingue claramente al menos dos modos (ej: oclusivo vs fricativo)."
+          "descripcion": "Menciona al menos 3 modos de articulación de las consonantes con ejemplos. "
         },
         {
-          "descripcion": "La explicación es clara y no confunde modo con lugar."
+          "descripcion": "Menciona al menos 1 modos de articulación de las vocales con ejemplos. "
         }
       ]
     },
@@ -432,19 +432,19 @@
       "tema": 3,
       "nombre": "Sonoridad",
       "pista": "Piensa en qué hacen las cuerdas vocales y cómo distinguimos /p/ de /b/.",
-      "referencia": "La sonoridad es el rasgo fonético que depende de si las cuerdas vocales vibran o no durante la producción de un sonido. Un sonido sonoro se produce con vibración de las cuerdas vocales (/b,d,g,m,n,l,ɾ,r/ y todas las vocales); un sonido sordo se produce sin vibración (/p,t,k,f,θ,s,x,ʧ/). La sonoridad permite distinguir pares mínimos como /p/-/b/, /t/-/d/, /k/-/g/.",
+      "referencia": "La sonoridad es uno de los rasgos fonológicos que podemos emplear para clasificar los fonemas. La sonoridad depende de si las cuerdas vocales vibran o no durante la producción de un sonido. Un sonido sonoro se produce con vibración de las cuerdas vocales (/b,d,g,m,n,l,ɾ,r/ y todas las vocales); un sonido sordo se produce sin vibración (/p,t,k,f,θ,s,x,ʧ/). La sonoridad permite distinguir pares mínimos como /p/-/b/, /t/-/d/, /k/-/g/.",
       "rubrica": [
+        {
+          "descripcion": "Define la sonoridad como rasgo fonológico "
+        },
         {
           "descripcion": "Define la sonoridad en relación con la vibración de las cuerdas vocales."
         },
         {
-          "descripcion": "Distingue sonidos sordos de sonoros."
+          "descripcion": "Da ejemplos de consonantes sonoras y sordas"
         },
         {
-          "descripcion": "Da ejemplos correctos de pares sordo/sonoro."
-        },
-        {
-          "descripcion": "Indica que las vocales son siempre sonoras o menciona su relevancia fonológica."
+          "descripcion": "Indica que las vocales son siempre sonoras"
         }
       ]
     },
@@ -453,19 +453,19 @@
       "tema": 3,
       "nombre": "Nasalidad",
       "pista": "Piensa en qué pasa con el velo del paladar y por dónde sale el aire.",
-      "referencia": "La nasalidad es el rasgo fonético que depende de la posición del velo del paladar. Cuando el velo desciende, el aire pasa por la cavidad nasal y el sonido es nasal (/m,n,ɲ/). Cuando el velo está elevado, cierra el paso nasal y el sonido es oral (la mayoría de los fonemas). En español hay tres fonemas nasales que se distinguen por su lugar de articulación: bilabial /m/, alveolar /n/ y palatal /ɲ/. En posición de coda, las nasales se asimilan al lugar de articulación de la consonante siguiente.",
+      "referencia": "La nasalidad es uno de los rasgos fonológicos que podemos emplear para clasificar los fonemas.  La nasalidad depende de la posición del velo del paladar. Cuando el velo desciende, el aire pasa por la cavidad nasal y el sonido es nasal (/m,n,ɲ/). Cuando el velo está elevado, cierra el paso nasal y el sonido es oral (la mayoría de los fonemas). En español hay tres fonemas nasales que se distinguen por su lugar de articulación: bilabial /m/, alveolar /n/ y palatal /ɲ/. En español todas las vocales son fonológicamente orales, aunque en la práctica a menudo son nasalizadas (fonéticamente)",
       "rubrica": [
         {
-          "descripcion": "Define la nasalidad en relación con el velo del paladar y el paso del aire por la nariz."
+          "descripcion": "Define la nasalidad como rasgo fonológico"
         },
         {
-          "descripcion": "Enumera los fonemas nasales del español (/m,n,ɲ/)."
+          "descripcion": "Define la nasalidad en relación con el velo del paladar y el paso del aire por la nariz"
         },
         {
-          "descripcion": "Menciona la asimilación nasal en coda o da un ejemplo."
+          "descripcion": "Enumera los fonemas nasales del español (/m,n,ɲ/)"
         },
         {
-          "descripcion": "Distingue sonidos nasales de orales."
+          "descripcion": "Indica que las vocales son fonológicamente orales"
         }
       ]
     },
@@ -483,7 +483,7 @@
           "descripcion": "Da un ejemplo correcto."
         },
         {
-          "descripcion": "La clasifica como error de estructura de palabra o proceso fonológico."
+          "descripcion": "La clasifica como error de estructura de palabra"
         },
         {
           "descripcion": "Menciona su presencia en habla infantil o en patología."
@@ -495,7 +495,7 @@
       "tema": 4,
       "nombre": "Formante",
       "pista": "Piensa en qué son las bandas oscuras horizontales que se ven en un espectrograma de una vocal.",
-      "referencia": "Un formante es una concentración de energía acústica en una banda de frecuencias que resulta de las resonancias del tracto vocal. Los formantes se numeran de abajo a arriba: F1, F2, F3... Los dos primeros formantes (F1 y F2) son los más importantes para la identificación de las vocales: F1 se relaciona con la apertura (vocales abiertas tienen F1 alto), y F2 se relaciona con la posición anteroposterior de la lengua (vocales anteriores tienen F2 alto). Los formantes se miden en hercios (Hz).",
+      "referencia": "Un formante es una concentración de energía acústica en una banda de frecuencias que resulta de las resonancias del tracto vocal. Los formantes se numeran de abajo a arriba: F1, F2, F3... Los dos primeros formantes (F1 y F2) son los más importantes para la identificación de las vocales: F1 se relaciona con el modo de articulación o apertura (vocales abiertas tienen F1 alto), y F2 se relaciona con el lugar de articulación (vocales anteriores tienen F2 alto). Los formantes se miden en hercios (Hz).",
       "rubrica": [
         {
           "descripcion": "Define los formantes como concentraciones de energía debidas a las resonancias del tracto vocal."
@@ -504,7 +504,7 @@
           "descripcion": "Menciona que se numeran F1, F2, F3..."
         },
         {
-          "descripcion": "Relaciona F1 con apertura y/o F2 con posición anteroposterior."
+          "descripcion": "Relaciona F1 con apertura y F2 con posición anteroposterior."
         },
         {
           "descripcion": "Menciona su importancia para identificar vocales."
@@ -621,19 +621,19 @@
       "tema": 3,
       "nombre": "Hipernasalidad",
       "pista": "Piensa en la diferencia entre nasalidad normal y nasalidad excesiva.",
-      "referencia": "La hipernasalidad es una alteración de la resonancia del habla en la que un exceso de energía acústica pasa por la cavidad nasal durante la producción de sonidos que deberían ser orales. Se produce cuando el velo del paladar no cierra adecuadamente el paso nasofaríngeo. Afecta principalmente a las vocales y a las consonantes sonoras, que adquieren una cualidad nasal no deseada. Se distingue de la nasalidad normal (fonemas /m,n,ɲ/ son nasales por definición) y de la hiponasalidad (insuficiente resonancia nasal, como al estar congestionado). La hipernasalidad es un síntoma frecuente de la disfunción velofaríngea y la fisura palatina.",
+      "referencia": "La hipernasalidad es una alteración de la resonancia del habla. La hipernasalidad se observa cuando durante la producción de sonidos orales una parte de la corriente de aire que proviene de los pulmones se dirige indebidamente a la cavidad nasal. La causa de la hiper-nasalidad puede ser anatómica (malformaciones en el velo o el paladar) o funcional (por una dificultad para abrir y cerrar el velo del paladar). Afecta principalmente a las vocales y a las consonantes sonoras, que adquieren una cualidad nasal no deseada. Se distingue de la nasalidad normal (fonemas /m,n,ɲ/ son nasales por definición) y de la hiponasalidad (insuficiente resonancia nasal, como al estar congestionado). La hipernasalidad es un síntoma frecuente de la disfunción velofaríngea y la fisura palatina.",
       "rubrica": [
         {
-          "descripcion": "Define la hipernasalidad como resonancia nasal excesiva en sonidos que deberían ser orales."
+          "descripcion": "Define la hipernasalidad como alteración de la resonancia."
         },
         {
-          "descripcion": "Relaciona con el funcionamiento del velo del paladar."
+          "descripcion": "Indica las causas anatómicas y funcionales"
         },
         {
-          "descripcion": "Distingue de la nasalidad normal (/m,n,ɲ/) o de la hiponasalidad."
+          "descripcion": "Indica a qué fonemas afecta principalmente"
         },
         {
-          "descripcion": "Menciona alguna causa (DVF, fisura palatina) o sus consecuencias en el habla."
+          "descripcion": "Indica la diferencia con la hiponasalidad"
         }
       ]
     }

@@ -102,7 +102,7 @@ Este tipo de observaciones llevaron a estructuralistas como Saussure y luego a C
 
 - El **habla** es una colección de todas las emisiones producidas por todos los hablantes de una comunidad.
 
-- La **norma** contiene sólo lo que en el habla es repetición de modelos anteriores no individuales. En LGAII veremos que la norma se asocia a la idea de prestigio, que será fundamental para definir el concepto de "hablar bien".
+- La **norma** fue definida por Coseriu como aquello que es repetición en el habla. Se diferencia de la lengua en que esta es abstracta y la norma es concreta. Se diferencia del habla en que identifica tipos de sonidos que tienen prestigio. En LGAII veremos que la norma se asocia a la idea de prestigio, que será fundamental para definir el concepto de "hablar bien".
 
 - La **lengua** ignora las variaciones que no afectan al significado y se centra en las distinciones funcionalmente necesarias. Esto es, se refiere a los límites de la variabilidad.
 
