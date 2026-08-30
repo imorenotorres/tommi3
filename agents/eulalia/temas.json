@@ -112,52 +112,42 @@
         {
           "bloque": "1.2. Diferentes formas de concebir la fonología",
           "seccion_doc": "1.2. Diferentes formas de concebir la fonología",
-          "subbloques": [
+          "conceptos": [
             {
-              "nombre": "1.2.1. ¿Qué nos enseña el estructuralismo?",
-              "conceptos": [
-                {
-                  "nombre": "Habla, norma y lengua",
-                  "consulta": "¿Qué son el habla, la norma y la lengua según los estructuralistas?"
-                },
-                {
-                  "nombre": "Principio estructural",
-                  "consulta": "¿Cuál es el principio estructural para clasificar sonidos y fonemas?"
-                },
-                {
-                  "nombre": "Par mínimo",
-                  "consulta": "¿Qué es un par mínimo?"
-                },
-                {
-                  "nombre": "Fonema (definición estructural)",
-                  "consulta": "¿Qué es un fonema desde la perspectiva estructural?"
-                }
-              ]
+              "nombre": "Habla, norma y lengua",
+              "consulta": "¿Qué son el habla, la norma y la lengua según los estructuralistas?"
             },
             {
-              "nombre": "1.2.2. ¿Qué nos enseña el generativismo?",
-              "conceptos": [
-                {
-                  "nombre": "Modelo generativo lingüístico",
-                  "consulta": "¿Cuáles son los pasos del proceso de generación lingüística, desde la idea pre-lingüística hasta los sonidos?"
-                },
-                {
-                  "nombre": "Fonología multimodal",
-                  "consulta": "¿Qué quiere decir que la fonología es multimodal?"
-                },
-                {
-                  "nombre": "Doble ruta (directa e indirecta)",
-                  "consulta": "¿Qué es el principio de la doble ruta en fonología?"
-                },
-                {
-                  "nombre": "Pseudopalabras",
-                  "consulta": "¿Qué es una pseudopalabra y para qué se usa en logopedia?"
-                },
-                {
-                  "nombre": "La Palabra Complementada",
-                  "consulta": "¿Qué es la Palabra Complementada y qué relación tiene con la fonología multimodal?"
-                }
-              ]
+              "nombre": "Principio estructural",
+              "consulta": "¿Cuál es el principio estructural para clasificar sonidos y fonemas?"
+            },
+            {
+              "nombre": "Par mínimo",
+              "consulta": "¿Qué es un par mínimo?"
+            },
+            {
+              "nombre": "Fonema (definición estructural)",
+              "consulta": "¿Qué es un fonema desde la perspectiva estructural?"
+            },
+            {
+              "nombre": "Modelo generativo lingüístico",
+              "consulta": "¿Cuáles son los pasos del proceso de generación lingüística, desde la idea pre-lingüística hasta los sonidos?"
+            },
+            {
+              "nombre": "Fonología multimodal",
+              "consulta": "¿Qué quiere decir que la fonología es multimodal?"
+            },
+            {
+              "nombre": "Doble ruta (directa e indirecta)",
+              "consulta": "¿Qué es el principio de la doble ruta en fonología?"
+            },
+            {
+              "nombre": "Pseudopalabras",
+              "consulta": "¿Qué es una pseudopalabra y para qué se usa en logopedia?"
+            },
+            {
+              "nombre": "La Palabra Complementada",
+              "consulta": "¿Qué es la Palabra Complementada y qué relación tiene con la fonología multimodal?"
             }
           ]
         },

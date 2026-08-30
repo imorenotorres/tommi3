@@ -1480,11 +1480,12 @@ function laEscape(str) {
 }
 
 async function laDeleteFile(filename) {
-    if (!confirm('Delete log file "' + filename + '"? This cannot be undone.')) return;
+    if (!confirm('Archive log file "' + filename + '"? The file will be renamed with its date range and a new empty log will start.')) return;
     try {
         var res = await umFetch('/api/logs/' + encodeURIComponent(filename), { method: 'DELETE' });
         if (!res.ok) { var err = await res.json(); laMsg(err.detail || 'Error', false); return; }
-        laMsg('Deleted ' + filename, true);
+        var data = await res.json();
+        laMsg(data.message || 'Archived', true);
         laLoadFiles();
     } catch (e) { laMsg('Request failed', false); }
 }

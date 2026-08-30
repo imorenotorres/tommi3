@@ -5721,8 +5721,40 @@ async def delete_log_file(filename: str, session: dict = Depends(require_role("s
                 logger.removeHandler(h)
             break
 
-    target.unlink()
-    return {"ok": True, "message": f"Deleted {filename}"}
+    # Rename with date range instead of deleting
+    first_date = None
+    last_date = None
+    if filename.endswith(".jsonl"):
+        try:
+            with open(target, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                        ts = entry.get("timestamp", "")[:10]
+                        if ts:
+                            if not first_date or ts < first_date:
+                                first_date = ts
+                            if not last_date or ts > last_date:
+                                last_date = ts
+                    except (json.JSONDecodeError, KeyError):
+                        continue
+        except Exception:
+            pass
+
+    if first_date and last_date:
+        base = filename.rsplit(".", 1)[0]
+        ext = filename.rsplit(".", 1)[1] if "." in filename else ""
+        archive_name = f"{base}_{first_date}_{last_date}.{ext}"
+    else:
+        from datetime import datetime as _dt
+        archive_name = f"{filename.rsplit('.', 1)[0]}_{_dt.now().strftime('%Y%m%d')}.{filename.rsplit('.', 1)[1] if '.' in filename else 'bak'}"
+
+    archive_path = LOGS_DIR / archive_name
+    target.rename(archive_path)
+    return {"ok": True, "message": f"Archived as {archive_name}"}
 
 
 @app.post("/api/agents/{agent_id}/init")
