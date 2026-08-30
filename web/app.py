@@ -3071,11 +3071,13 @@ RÚBRICA — Evalúa cada criterio como true (cumplido) o false (no cumplido):
 {criterios_text}
 
 INSTRUCCIONES:
-- Evalúa si la definición del estudiante cubre cada criterio, no si usa las mismas palabras exactas.
+- Tu ÚNICA fuente de conocimiento es la DEFINICIÓN DE REFERENCIA proporcionada arriba. NO uses tu conocimiento general sobre el tema. Si algo no está en la referencia, NO lo evalúes ni lo comentes.
+- Evalúa si la definición del estudiante cubre cada criterio según lo que dice la REFERENCIA, no según lo que tú sepas del tema.
 - Sé justo y generoso: si el concepto está expresado con otras palabras, con sinónimos o de forma implícita pero clara, marca true. Por ejemplo, si el criterio pide que asocie una subdisciplina a la "fase de producción" y el estudiante dice "cómo se producen los sonidos", eso CUMPLE el criterio aunque no use la palabra "fase".
-- Solo marca false si el concepto realmente falta o es incorrecto.
+- Solo marca false si el concepto realmente falta o es incorrecto SEGÚN LA REFERENCIA.
 - IMPORTANTE: Asegúrate de que el valor "cumplido" (true/false) es coherente con tu comentario. Si tu comentario dice que la respuesta es correcta, el valor debe ser true.
-- IMPORTANTE para evaluar EJEMPLOS: cuando el estudiante da un ejemplo, analízalo con cuidado antes de juzgarlo. Examina TODA la palabra original, no solo una parte. Por ejemplo, en /la.pa/ → /pa.pa/, la /l/ se convierte en /p/ — y la /p/ SÍ existe en la palabra original (en la segunda sílaba), por lo que ES un ejemplo válido de asimilación progresiva. No rechaces un ejemplo sin verificar que el fonema resultante no aparece en NINGUNA posición de la palabra original.
+- IMPORTANTE para evaluar EJEMPLOS: un ejemplo es correcto si es coherente con la definición de referencia. Examina TODA la palabra, no solo una parte. Por ejemplo, en /la.pa/ → /pa.pa/, la /l/ se convierte en /p/ — y la /p/ SÍ existe en la palabra original (en la segunda sílaba). Evalúa ejemplos SOLO según lo que dice la referencia.
+- En el comentario_general, NO añadas información que no esté en la referencia. Limítate a indicar qué ha hecho bien y qué le falta según los criterios.
 - Responde ÚNICAMENTE con un JSON válido, sin texto adicional, con esta estructura:
 {{
   "criterios": [
