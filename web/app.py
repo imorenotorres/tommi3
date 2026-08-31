@@ -382,9 +382,9 @@ app.include_router(new_directory_router)
 app.mount("/new-directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "new_directory" / "static"), name="new_directory_static")
 
 # Mount Holiday Tracker app
-from apps.holiday_tracker.holiday_tracker import router as holiday_tracker_router
+from apps.uma_holiday_tracker.uma_holiday_tracker import router as holiday_tracker_router
 app.include_router(holiday_tracker_router)
-app.mount("/holiday-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "holiday_tracker" / "static"), name="holiday_tracker_static")
+app.mount("/holiday-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uma_holiday_tracker" / "static"), name="holiday_tracker_static")
 
 # Mount LTI Redacción app
 from apps.redaccion_lti.lti_provider import router as lti_redaccion_router

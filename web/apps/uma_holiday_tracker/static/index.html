@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UNINOVIS Holiday Tracker</title>
+<title>UMA Holiday Tracker</title>
 <link rel="stylesheet" href="/static/nav.css">
 <style>
 :root {
@@ -52,6 +52,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .month-grid .day-header { background: var(--primary); color: #fff; text-align: center; padding: 8px; font-size: 0.8rem; font-weight: 600; }
 .month-grid .day-cell { background: var(--card); min-height: 110px; max-height: 150px; padding: 6px; position: relative; vertical-align: top; overflow-y: auto; }
 .month-grid .day-cell.other-month { background: #f9f9fb; }
+.month-grid .day-cell.non-working { background: #f1f5f9; }
+.month-grid .day-cell.non-working .day-num { color: #94a3b8; }
+.month-grid .day-cell.non-working.festivity { background: #fee2e2; }
+.month-grid .day-cell.non-working.festivity .day-num { color: #dc2626; font-weight: 700; }
+.festivity-label { font-size: 0.65rem; color: #991b1b; line-height: 1.2; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.week-grid .day-cell.non-working { background: #f1f5f9; }
+.week-grid .day-cell.non-working.festivity { background: #fee2e2; }
+.week-grid .day-header.non-working { background: #e2e8f0; color: #94a3b8; }
+.week-grid .day-header.non-working.festivity { background: #fecaca; color: #991b1b; }
 .month-grid .day-cell.today { background: #dbeafe; border: 2px solid var(--primary); }
 .day-num { font-size: 0.8rem; font-weight: 600; color: var(--text-light); margin-bottom: 4px; }
 .day-cell.today .day-num { background: var(--primary); color: #fff; display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; }
@@ -91,7 +100,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <body>
 
 <script src="/static/nav.js"></script>
-<script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/static/intranet.html'}], current: 'Holiday Tracker' });</script>
+<script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/static/intranet.html'}], current: 'UMA Holiday Tracker' });</script>
 
 <div id="deniedView" class="denied" style="display:none;">
   <h2>uninovis_staff (UMA) access only</h2>
@@ -164,8 +173,29 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 let TOKEN = '';
 let ME = '';
 let events = [];
+let festivities = {}; // "YYYY-MM-DD" → name
 let currentDate = new Date();
 let currentView = 'month';
+
+function isNonWorking(d) {
+  const day = d.getDay();
+  if (day === 0 || day === 6) return {type: 'weekend'};
+  const dStr = fmt(d);
+  if (festivities[dStr]) return {type: 'festivity', name: festivities[dStr].name, icon: festivities[dStr].icon};
+  return false;
+}
+
+async function loadFestivities(year) {
+  try {
+    const res = await fetch('/holiday-tracker/api/festivities?year=' + year, {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      data.forEach(f => { festivities[f.date] = {name: f.name, icon: f.icon || '🔴'}; });
+    }
+  } catch(e) {}
+}
 let editingId = null;
 let pendingType = 'holiday';
 
@@ -245,8 +275,13 @@ function renderMonth() {
     const otherMonth = d.getMonth() !== month;
     const isToday = dStr === todayStr;
     const dayEvents = eventsOnDate(dStr).sort((a,b) => (a.display_name||a.username).localeCompare(b.display_name||b.username));
-    html += `<div class="day-cell${otherMonth?' other-month':''}${isToday?' today':''}">`
+    const nw = isNonWorking(d);
+    const nwClass = nw ? (nw.type === 'weekend' ? ' non-working' : ' non-working festivity') : '';
+    const nwTitle = nw && nw.type === 'festivity' ? ` title="${nw.name}"` : '';
+    const nwLabel = nw && nw.type === 'festivity' ? `<div class="festivity-label">${nw.icon} ${nw.name}</div>` : '';
+    html += `<div class="day-cell${otherMonth?' other-month':''}${isToday?' today':''}${nwClass}"${nwTitle}>`
           + `<div class="day-num">${d.getDate()}</div>`
+          + nwLabel
           + dayEvents.map(chipHTML).join('')
           + `</div>`;
   }
@@ -277,14 +312,21 @@ function renderWeek() {
   let html = '<div class="week-grid">';
   days.forEach((d, i) => {
     const isToday = fmt(d) === todayStr;
-    html += `<div class="day-header${isToday ? ' today' : ''}">${dayNames[i]}<span class="wg-date">${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })}</span></div>`;
+    const nw = isNonWorking(d);
+    const nwHdrClass = nw ? (nw.type === 'weekend' ? ' non-working' : ' non-working festivity') : '';
+    html += `<div class="day-header${isToday ? ' today' : ''}${nwHdrClass}">${dayNames[i]}<span class="wg-date">${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })}</span></div>`;
   });
   days.forEach(d => {
     const dStr = fmt(d);
     const isToday = dStr === todayStr;
+    const nw = isNonWorking(d);
+    const nwClass = nw ? (nw.type === 'weekend' ? ' non-working' : ' non-working festivity') : '';
+    const nwTitle = nw && nw.type === 'festivity' ? ` title="${nw.name}"` : '';
+    const nwLabel = nw && nw.type === 'festivity' ? `<div class="festivity-label">${nw.icon} ${nw.name}</div>` : '';
     const dayEvents = eventsOnDate(dStr).sort((a,b) => (a.display_name||a.username).localeCompare(b.display_name||b.username));
-    html += `<div class="day-cell${isToday ? ' today' : ''}">`
-          + (dayEvents.length ? dayEvents.map(chipHTML).join('') : '<span class="day-empty">—</span>')
+    html += `<div class="day-cell${isToday ? ' today' : ''}${nwClass}"${nwTitle}>`
+          + nwLabel
+          + (dayEvents.length ? dayEvents.map(chipHTML).join('') : (nwLabel ? '' : '<span class="day-empty">—</span>'))
           + `</div>`;
   });
   html += '</div>';
@@ -400,6 +442,9 @@ function onChipClick(id) {
     }
     ME = auth.username;
     events = await api('GET', '/api/events');
+    // Load festivities for current year and adjacent years
+    const yr = new Date().getFullYear();
+    await Promise.all([loadFestivities(yr - 1), loadFestivities(yr), loadFestivities(yr + 1)]);
     document.getElementById('app').style.display = 'block';
     render();
   } catch (e) {

@@ -1,10 +1,8 @@
 """
-UNINOVIS Holiday Tracker — shared calendar for UMA-based uninovis_staff (and
+UMA Holiday Tracker — shared calendar for UMA-based uninovis_staff (and
 superusers) to log their own holidays and personal days. Access requires both
-the uninovis_staff role AND a @uma.es login — the uninovis_staff role itself
-is not UMA-specific (it's usable alliance-wide), this app just additionally
-scopes it to UMA. Purely self-reported; no external sync (Agora or otherwise)
-and no data beyond who logged which day(s) as what.
+the uninovis_staff role AND a @uma.es login. Saturdays, Sundays and UMA
+local festivities are automatically greyed in the calendar.
 """
 
 import json
@@ -204,3 +202,73 @@ def delete_event(event_id: str, session: dict = Depends(_require_uma_staff)):
     data["events"] = [e for e in data["events"] if e["id"] != event_id]
     save_data(data)
     return {"ok": True}
+
+
+# ── UMA festivities ─────────────────────────────────────────────────
+# National + regional + local holidays for the University of Málaga.
+# Updated yearly. Format: "MM-DD" for recurring, "YYYY-MM-DD" for specific year.
+
+UMA_FESTIVITIES = {
+    # Recurring holidays (same date every year): (name, icon)
+    "01-06": ("Epifanía del Señor", "👑"),
+    "05-01": ("Día del Trabajador", "✊"),
+    "09-08": ("Virgen de la Victoria", "⛪"),
+    "10-12": ("Día del Pilar", "🇪🇸"),
+    "12-08": ("Inmaculada Concepción", "⛪"),
+    "12-25": ("Navidad", "🎄"),
+}
+
+# Year-specific non-teaching days (UMA calendar): (date, name, icon)
+UMA_FESTIVITIES_BY_YEAR = {
+    2026: [
+        # Vacaciones de Navidad (enero)
+        ("2026-01-01", "Año Nuevo", "🎆"),
+        ("2026-01-02", "Vacaciones de Navidad", "🎄"),
+        ("2026-01-05", "Vacaciones de Navidad", "🎄"),
+        ("2026-01-06", "Epifanía del Señor", "👑"),
+        ("2026-01-07", "Vacaciones de Navidad", "🎄"),
+        # Santo Tomás de Aquino
+        ("2026-01-28", "Santo Tomás de Aquino", "📚"),
+        # Semana Santa
+        ("2026-03-30", "Semana Santa", "⛪"),
+        ("2026-03-31", "Semana Santa", "⛪"),
+        ("2026-04-01", "Semana Santa", "⛪"),
+        ("2026-04-02", "Jueves Santo", "⛪"),
+        ("2026-04-03", "Viernes Santo", "⛪"),
+        # Feria de Málaga
+        ("2026-08-17", "Feria de Málaga", "🎪"),
+        ("2026-08-18", "Feria de Málaga", "🎪"),
+        ("2026-08-19", "Feria de Málaga", "🎪"),
+        ("2026-08-20", "Feria de Málaga", "🎪"),
+        ("2026-08-21", "Feria de Málaga", "🎪"),
+        # Día de Todos los Santos (movido al 2)
+        ("2026-11-02", "Día de Todos los Santos", "🕯️"),
+        # Constitución (movido al 7)
+        ("2026-12-07", "Día de la Constitución", "📜"),
+        # Vacaciones de Navidad (diciembre)
+        ("2026-12-22", "Vacaciones de Navidad", "🎄"),
+        ("2026-12-23", "Vacaciones de Navidad", "🎄"),
+        ("2026-12-24", "Nochebuena", "🎄"),
+        ("2026-12-25", "Navidad", "🎄"),
+        ("2026-12-26", "Vacaciones de Navidad", "🎄"),
+        ("2026-12-29", "Vacaciones de Navidad", "🎄"),
+        ("2026-12-30", "Vacaciones de Navidad", "🎄"),
+        ("2026-12-31", "Nochevieja", "🎆"),
+    ],
+}
+
+
+@router.get("/api/festivities")
+def get_festivities(year: int = None):
+    """Return UMA festivities for a given year (or current year)."""
+    if year is None:
+        year = date.today().year
+    result = []
+    # Recurring holidays
+    for mmdd, (name, icon) in UMA_FESTIVITIES.items():
+        result.append({"date": f"{year}-{mmdd}", "name": name, "icon": icon})
+    # Year-specific
+    for entry in UMA_FESTIVITIES_BY_YEAR.get(year, []):
+        d, name, icon = entry[0], entry[1], entry[2] if len(entry) > 2 else "🔴"
+        result.append({"date": d, "name": name, "icon": icon})
+    return result
