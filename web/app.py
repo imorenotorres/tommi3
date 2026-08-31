@@ -376,6 +376,16 @@ from apps.event_tracker.event_tracker import router as event_tracker_router
 app.include_router(event_tracker_router)
 app.mount("/event-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "event_tracker" / "static"), name="event_tracker_static")
 
+# Mount New Directory app
+from apps.new_directory.new_directory import router as new_directory_router
+app.include_router(new_directory_router)
+app.mount("/new-directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "new_directory" / "static"), name="new_directory_static")
+
+# Mount Holiday Tracker app
+from apps.holiday_tracker.holiday_tracker import router as holiday_tracker_router
+app.include_router(holiday_tracker_router)
+app.mount("/holiday-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "holiday_tracker" / "static"), name="holiday_tracker_static")
+
 # Mount LTI Redacción app
 from apps.redaccion_lti.lti_provider import router as lti_redaccion_router
 app.include_router(lti_redaccion_router)

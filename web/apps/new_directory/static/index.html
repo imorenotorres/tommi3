@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS New Directory</title>
+    <link rel="stylesheet" href="/static/nav.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
+        h1 { text-align: center; color: #1a3a5c; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 0.95em; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 24px; }
+        .card h2 { color: #1a3a5c; margin-bottom: 16px; font-size: 1.15em; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; margin-bottom: 24px; }
+        .tab { padding: 10px 20px; border: 1px solid #ccc; border-radius: 6px 6px 0 0; background: #e9ecef; cursor: pointer; font-weight: 600; color: #555; }
+        .tab.active { background: #fff; border-bottom: 1px solid #fff; color: #1a3a5c; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th { padding: 8px 10px; border-bottom: 2px solid #ddd; text-align: left; color: #1a3a5c; font-size: 0.85em; }
+        td { padding: 6px 10px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f8f9fa; }
+
+        .table-scroll { overflow-x: auto; }
+        .table-scroll table { min-width: 760px; }
+
+        /* Buttons */
+        .btn { display: inline-block; background: #1a3a5c; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-size: 0.9em; cursor: pointer; }
+        .btn:hover { background: #24527a; }
+        .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn-small { background: #e9ecef; border: 1px solid #ccc; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.82em; }
+        .btn-small:hover { background: #d0d4d9; }
+
+        /* Search */
+        .search-bar { margin-bottom: 16px; }
+        .search-bar input { max-width: 350px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; width: 100%; }
+
+        .filter-bar { margin-bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .filter-bar select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; background: #fff; width: auto; min-width: 160px; }
+
+        .badge { font-size: 0.72em; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+        .badge-uni { background: #e9ecef; color: #495057; margin-right: 3px; margin-bottom: 2px; display: inline-block; }
+        .badge-unit { background: #d1ecf1; color: #0c5460; margin-right: 3px; margin-bottom: 2px; display: inline-block; }
+
+        .sync-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+        .sync-info { font-size: 0.82em; color: #666; }
+
+        /* Org tree (shared by Units and Org Chart tabs) */
+        .org-tree { padding: 0; }
+        .org-tree ul { list-style: none; padding-left: 24px; position: relative; }
+        .org-tree > ul { padding-left: 0; }
+        .org-tree li { position: relative; padding: 4px 0 4px 20px; }
+        .org-tree li::before {
+            content: ''; position: absolute; left: 0; top: 0;
+            border-left: 2px solid #b0bec5; height: 100%;
+        }
+        .org-tree li::after {
+            content: ''; position: absolute; left: 0; top: 16px;
+            border-top: 2px solid #b0bec5; width: 16px;
+        }
+        .org-tree li:last-child::before { height: 16px; }
+        .org-tree > ul > li::before, .org-tree > ul > li::after { display: none; }
+        .org-tree > ul > li { padding-left: 0; }
+
+        .org-node { display: inline-block; padding: 8px 16px; border-radius: 8px; font-size: 0.9em; font-weight: 600; margin: 2px 0; }
+        .org-node-root { background: #1a3a5c; color: #fff; font-size: 1.05em; padding: 12px 24px; }
+        .org-node-unit { background: #d1ecf1; color: #0c5460; border: 1px solid #b8daff; }
+        .org-node-member { background: #fff; color: #333; border: 1px solid #ddd; font-weight: 400; font-size: 0.85em; }
+        .org-role-tag { font-size: 0.75em; color: #888; font-weight: 400; margin-left: 6px; }
+
+        .empty-note { color: #888; text-align: center; padding: 20px; }
+    </style>
+    <!-- Matomo -->
+    <script>
+      var _paq = window._paq = window._paq || [];
+      _paq.push(['disableCookies']);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="https://uninovis.matomo.cloud/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '3']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+</head>
+<body>
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ crumbs: [{label:'Administration', href:'/#admin'}], current: 'New Directory' });</script>
+    <div class="container">
+        <h1>UNINOVIS New Directory</h1>
+        <p class="subtitle">UNINOVIS staff directory</p>
+
+        <div class="sync-bar">
+            <span class="sync-info" id="syncInfo">Loading...</span>
+            <button class="btn-small" id="syncBtn" style="display:none" onclick="doSync()">Sync now</button>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="people" onclick="switchTab('people')">People</div>
+            <div class="tab" data-tab="units" onclick="switchTab('units')">Units</div>
+            <div class="tab" data-tab="universities" onclick="switchTab('universities')">Universities</div>
+            <div class="tab" data-tab="orgchart" onclick="switchTab('orgchart')">Org Chart</div>
+        </div>
+
+        <!-- ══ PEOPLE TAB ══ -->
+        <div id="tab-people">
+            <div class="card">
+                <h2>Directory People</h2>
+                <div class="filter-bar">
+                    <input type="text" id="peopleSearch" placeholder="Search by name, email, or position..." style="max-width:280px;flex:1;padding:8px 10px;border:1px solid #ccc;border-radius:6px;" oninput="renderPeople()">
+                    <select id="peopleUniFilter" onchange="renderPeople()"><option value="">All universities</option></select>
+                </div>
+                <div id="peopleTable" class="table-scroll"></div>
+            </div>
+        </div>
+
+        <!-- ══ UNITS TAB ══ -->
+        <div id="tab-units" style="display:none">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+                    <h2 style="margin:0">Units &amp; Subunits</h2>
+                    <select id="unitsUniFilter" onchange="renderUnits()"><option value="">All universities</option></select>
+                </div>
+                <div id="unitsArea"></div>
+            </div>
+        </div>
+
+        <!-- ══ UNIVERSITIES TAB ══ -->
+        <div id="tab-universities" style="display:none">
+            <div class="card">
+                <h2>Partner Universities</h2>
+                <div id="uniTable"></div>
+            </div>
+        </div>
+
+        <!-- ══ ORG CHART TAB ══ -->
+        <div id="tab-orgchart" style="display:none">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h2 style="margin:0">Org Chart</h2>
+                    <select id="orgChartUni" onchange="renderOrgChart()" style="min-width:220px;"></select>
+                </div>
+                <div id="orgChartArea"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    var BASE = '/new-directory';
+    var authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('tommi_token');
+    var authUser = null;
+    var canEdit = false;
+    var people = [];
+    var units = [];
+    var universities = [];
+    var status = {};
+
+    function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+
+    function authFetch(url, opts) {
+        opts = opts || {};
+        opts.headers = opts.headers || {};
+        if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+        return fetch(url, opts);
+    }
+
+    // ── Tabs ──────────────────────────────────────────────────────
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
+        ['people', 'units', 'universities', 'orgchart'].forEach(function(t) {
+            document.getElementById('tab-' + t).style.display = (t === tab) ? '' : 'none';
+        });
+        if (tab === 'units') renderUnits();
+        if (tab === 'orgchart') renderOrgChart();
+    }
+
+    // ── Copy-to-clipboard helpers ─────────────────────────────────
+
+    function copyEmail(email, btn) {
+        if (!email) return;
+        navigator.clipboard.writeText(email).then(function() {
+            var orig = btn.innerHTML;
+            btn.innerHTML = '&#10003;';
+            setTimeout(function() { btn.innerHTML = orig; }, 1200);
+        });
+    }
+
+    function emailBtn(email) {
+        if (!email) return '';
+        return ' <button class="btn-small" onclick="event.stopPropagation();copyEmail(\'' + esc(email) + '\', this)" style="font-size:0.7em;padding:1px 5px;margin-left:4px;" title="' + esc(email) + '">&#9993;</button>';
+    }
+
+    function collectMemberEmails(node, out) {
+        (node.members || []).forEach(function(m) { if (m.email) out.push(m.email); });
+        (node.subunits || []).forEach(function(sub) { collectMemberEmails(sub, out); });
+    }
+
+    function copyAllEmailsBtn(node, label) {
+        var id = 'copyall-' + node.id;
+        return ' <button class="btn-small" id="' + id + '" onclick="event.stopPropagation();copyAllEmails(' + node.id + ', this)" style="font-size:0.75em;padding:2px 6px;margin-left:6px;">Copy ' + esc(label) + ' emails</button>';
+    }
+
+    window._unitNodesById = {};
+
+    function indexUnitNodes(node) {
+        window._unitNodesById[node.id] = node;
+        (node.subunits || []).forEach(indexUnitNodes);
+    }
+
+    function copyAllEmails(unitId, btn) {
+        var node = window._unitNodesById[unitId];
+        if (!node) return;
+        var emails = [];
+        collectMemberEmails(node, emails);
+        emails = emails.filter(function(e, i) { return e && emails.indexOf(e) === i; });
+        if (emails.length === 0) return;
+        navigator.clipboard.writeText(emails.join('; ')).then(function() {
+            var orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = orig; }, 1500);
+        });
+    }
+
+    // ── People ────────────────────────────────────────────────────
+
+    function populateUniFilters() {
+        ['peopleUniFilter', 'unitsUniFilter'].forEach(function(id) {
+            var sel = document.getElementById(id);
+            var current = sel.value;
+            sel.innerHTML = '<option value="">All universities</option>';
+            universities.forEach(function(u) {
+                sel.innerHTML += '<option value="' + esc(u.code) + '">' + esc(u.code) + ' — ' + esc(u.name) + '</option>';
+            });
+            sel.value = current;
+        });
+        var orgSel = document.getElementById('orgChartUni');
+        var currentOrg = orgSel.value;
+        orgSel.innerHTML = '';
+        universities.forEach(function(u) {
+            orgSel.innerHTML += '<option value="' + esc(u.code) + '">' + esc(u.code) + ' — ' + esc(u.name) + '</option>';
+        });
+        if (currentOrg) orgSel.value = currentOrg;
+    }
+
+    function renderPeople() {
+        var search = document.getElementById('peopleSearch').value.trim().toLowerCase();
+        var uniFilter = document.getElementById('peopleUniFilter').value;
+        var rows = people.filter(function(p) {
+            if (uniFilter && p.university !== uniFilter) return false;
+            if (!search) return true;
+            var hay = (p.first_name + ' ' + p.family_name + ' ' + p.email + ' ' + p.position).toLowerCase();
+            return hay.indexOf(search) !== -1;
+        });
+        rows.sort(function(a, b) { return (a.family_name || '').localeCompare(b.family_name || '') || (a.first_name || '').localeCompare(b.first_name || ''); });
+
+        var html = '<table><tr><th>Name</th><th>University</th><th>Position</th><th>Email</th><th>Phone</th><th>Units</th></tr>';
+        rows.forEach(function(p) {
+            html += '<tr>'
+                + '<td>' + esc(p.first_name + ' ' + p.family_name) + '</td>'
+                + '<td><span class="badge badge-uni">' + esc(p.university || '—') + '</span></td>'
+                + '<td>' + esc(p.position) + '</td>'
+                + '<td>' + esc(p.email) + emailBtn(p.email) + '</td>'
+                + '<td>' + esc(p.phone) + '</td>'
+                + '<td>' + (p.units || []).map(function(n) { return '<span class="badge badge-unit">' + esc(n) + '</span>'; }).join('') + '</td>'
+                + '</tr>';
+        });
+        html += '</table>';
+        if (rows.length === 0) html = '<p class="empty-note">No people found.' + (people.length === 0 ? ' Run a sync to load directory data.' : '') + '</p>';
+        document.getElementById('peopleTable').innerHTML = html;
+    }
+
+    // ── Units ─────────────────────────────────────────────────────
+
+    function renderUnitNode(node, isRoot) {
+        indexUnitNodes(node);
+        var html = '<li><span class="org-node ' + (isRoot ? 'org-node-root' : 'org-node-unit') + '">' + esc(node.name) + '</span>';
+        html += copyAllEmailsBtn(node, node.name);
+        html += '<ul>';
+        node.members.forEach(function(m) {
+            html += '<li><span class="org-node org-node-member">' + esc(m.first_name + ' ' + m.family_name)
+                + (m.position ? '<span class="org-role-tag">' + esc(m.position) + '</span>' : '')
+                + emailBtn(m.email) + '</span></li>';
+        });
+        node.subunits.forEach(function(sub) {
+            html += renderUnitNode(sub, false);
+        });
+        html += '</ul></li>';
+        return html;
+    }
+
+    function renderUnits() {
+        var uniFilter = document.getElementById('unitsUniFilter').value;
+        window._unitNodesById = {};
+        var byUni = {};
+        units.forEach(function(root) {
+            var uni = root.university || 'Other';
+            if (uniFilter && uni !== uniFilter) return;
+            byUni[uni] = byUni[uni] || [];
+            byUni[uni].push(root);
+        });
+
+        var html = '';
+        Object.keys(byUni).sort().forEach(function(uni) {
+            var uniInfo = universities.find(function(u) { return u.code === uni; });
+            var uniLabel = uniInfo ? (uni + ' — ' + uniInfo.name) : uni;
+            html += '<h3 style="color:#1a3a5c;font-size:1em;margin:16px 0 8px;">' + esc(uniLabel) + '</h3>';
+            html += '<div class="org-tree"><ul>';
+            byUni[uni].forEach(function(root) { html += renderUnitNode(root, false); });
+            html += '</ul></div>';
+        });
+
+        if (!html) html = '<p class="empty-note">No units found.' + (units.length === 0 ? ' Run a sync to load directory data.' : '') + '</p>';
+        document.getElementById('unitsArea').innerHTML = html;
+    }
+
+    // ── Universities ──────────────────────────────────────────────
+
+    function renderUniversities() {
+        var html = '<table><tr><th>Code</th><th>Name</th><th>Country</th><th>Website</th><th>Staff</th></tr>';
+        universities.forEach(function(u) {
+            html += '<tr>'
+                + '<td><strong>' + esc(u.code) + '</strong></td>'
+                + '<td>' + esc(u.name) + '</td>'
+                + '<td>' + esc(u.country) + '</td>'
+                + '<td>' + (u.website ? '<a href="' + esc(u.website) + '" target="_blank" rel="noopener">' + esc(u.website) + '</a>' : '—') + '</td>'
+                + '<td>' + u.staff_count + '</td>'
+                + '</tr>';
+        });
+        html += '</table>';
+        document.getElementById('uniTable').innerHTML = html;
+    }
+
+    // ── Org Chart ─────────────────────────────────────────────────
+
+    async function renderOrgChart() {
+        var uni = document.getElementById('orgChartUni').value;
+        if (!uni) { document.getElementById('orgChartArea').innerHTML = ''; return; }
+        var resp = await authFetch(BASE + '/api/units?university=' + encodeURIComponent(uni));
+        var tree = await resp.json();
+        window._unitNodesById = {};
+
+        var uniInfo = universities.find(function(u) { return u.code === uni; });
+        var html = '<div class="org-tree"><ul><li><span class="org-node org-node-root">' + esc(uni) + ' — ' + esc(uniInfo ? uniInfo.name : uni) + '</span><ul>';
+        tree.forEach(function(root) { html += renderUnitNode(root, false); });
+        html += '</ul></li></ul></div>';
+
+        if (tree.length === 0) html = '<p class="empty-note">No units found for ' + esc(uni) + '.</p>';
+        document.getElementById('orgChartArea').innerHTML = html;
+    }
+
+    // ── Sync ──────────────────────────────────────────────────────
+
+    function formatSyncInfo() {
+        var el = document.getElementById('syncInfo');
+        if (!status.last_sync) {
+            el.textContent = 'Remember to sync this page so it is always up to date';
+            return;
+        }
+        var d = new Date(status.last_sync);
+        el.textContent = 'Last synced ' + d.toLocaleString() + ' — ' + status.people + ' people, ' + status.units + ' units';
+    }
+
+    async function loadStatus() {
+        var resp = await authFetch(BASE + '/api/status');
+        status = await resp.json();
+        formatSyncInfo();
+    }
+
+    async function doSync() {
+        var btn = document.getElementById('syncBtn');
+        btn.disabled = true; btn.textContent = 'Syncing...';
+        try {
+            var resp = await authFetch(BASE + '/api/sync', { method: 'POST' });
+            var data = await resp.json();
+            if (!resp.ok) { alert('Sync failed: ' + (data.detail || 'Unknown error')); }
+            await loadAll();
+        } catch (e) {
+            alert('Sync failed: ' + e.message);
+        }
+        btn.disabled = false; btn.textContent = 'Sync now';
+    }
+
+    // ── Auth & init ───────────────────────────────────────────────
+
+    async function checkAuth() {
+        if (!authToken) return;
+        try {
+            var resp = await authFetch(BASE + '/api/auth-check');
+            if (resp.ok) {
+                authUser = await resp.json();
+                canEdit = authUser.can_edit;
+            }
+        } catch (e) { /* stay in read-only mode */ }
+        document.getElementById('syncBtn').style.display = canEdit ? '' : 'none';
+    }
+
+    async function loadAll() {
+        var [peopleResp, unitsResp, uniResp] = await Promise.all([
+            authFetch(BASE + '/api/people'),
+            authFetch(BASE + '/api/units'),
+            authFetch(BASE + '/api/universities'),
+        ]);
+        people = await peopleResp.json();
+        units = await unitsResp.json();
+        universities = await uniResp.json();
+        populateUniFilters();
+        renderPeople();
+        renderUniversities();
+        var activeTab = document.querySelector('.tab.active').dataset.tab;
+        if (activeTab === 'units') renderUnits();
+        if (activeTab === 'orgchart') renderOrgChart();
+        await loadStatus();
+    }
+
+    async function init() {
+        await checkAuth();
+        await loadAll();
+    }
+
+    init();
+    </script>
+</body>
+</html>

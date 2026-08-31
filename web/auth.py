@@ -52,11 +52,13 @@ _DEFAULT_TOOL_ACCESS = {
     "event_catalogue":    ["admin_staff", "teaching_staff", "tester", "superuser"],
     # Administration
     "directory":          ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "new_directory":      ["admin_staff", "teaching_staff", "tester", "superuser"],
     "event_tracker":      ["admin_staff", "teaching_staff", "tester", "superuser"],
     "dp_status":          ["admin_staff", "teaching_staff", "tester", "superuser"],
     # Analytics
     "log_analytics":      ["superuser"],
     "matomo_analytics":   ["superuser"],
+    "holiday_tracker":    ["superuser"],
 }
 
 TOOL_ACCESS_FILE = DATA_DIR / "tool_access.json"

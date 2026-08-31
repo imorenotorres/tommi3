@@ -1,0 +1,3714 @@
+{
+  "people": [
+    {
+      "id": 4407,
+      "first_name": "Achim",
+      "family_name": "Förster",
+      "email": "achim.foerster@thws.de",
+      "phone": "+49 (931) 3511-8026",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4408,
+      "first_name": "Achraf",
+      "family_name": "JDIDI",
+      "email": "achraf.jdidi@sorbonne-paris-nord.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4409,
+      "first_name": "Alessandro",
+      "family_name": "Mauro",
+      "email": "alessandro.mauro@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4410,
+      "first_name": "Alexandra",
+      "family_name": "OLIVEIRA SALGADO",
+      "email": "alexandra.oliveirasalgado@univ-paris13.fr",
+      "phone": "",
+      "position": "Interim content manager",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4411,
+      "first_name": "Almos",
+      "family_name": "Rakovits",
+      "email": "A.G.Rakovits@student.hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4412,
+      "first_name": "Amparo",
+      "family_name": "Zamora Mogollo",
+      "email": "amparo.zamora@uma.es",
+      "phone": "+34952136387",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4413,
+      "first_name": "Amriet",
+      "family_name": "Soekhlal",
+      "email": "I.vanderSter@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4414,
+      "first_name": "Andrius",
+      "family_name": "Brusokas",
+      "email": "andrius.brusokas@kaunokolegija.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4415,
+      "first_name": "Anna",
+      "family_name": "Moritz",
+      "email": "anna.moritz@thws.de",
+      "phone": "+49 (931) 3511-8126",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4416,
+      "first_name": "Annarita",
+      "family_name": "Palladini",
+      "email": "annarita.palladini@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4417,
+      "first_name": "Antonello",
+      "family_name": "Vermiglio",
+      "email": "antonello.vermiglio@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4418,
+      "first_name": "Antonia",
+      "family_name": "Pennino",
+      "email": "antonia.pennino@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4419,
+      "first_name": "Antonio",
+      "family_name": "Balzanella",
+      "email": "antonio.balzanella@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4420,
+      "first_name": "Arthur",
+      "family_name": "LIÈVRE",
+      "email": "arthur.lievre@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4421,
+      "first_name": "Asta",
+      "family_name": "Cerniauskien",
+      "email": "asta.cerniauskiene@go.kauko.lt",
+      "phone": "",
+      "position": "Content manager for Hub related issues",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4422,
+      "first_name": "Asta",
+      "family_name": "Tamosiuniene",
+      "email": "asta.tamosiuniene@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4423,
+      "first_name": "Asta",
+      "family_name": "Valaityte- Brish",
+      "email": "asta.brish@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4424,
+      "first_name": "Aurimas",
+      "family_name": "Galkontas",
+      "email": "aurimas.galkontas@kaunokolegija.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4425,
+      "first_name": "Aurélien",
+      "family_name": "BISCAHIE",
+      "email": "aurelien.biscahie@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4426,
+      "first_name": "Aylin",
+      "family_name": "Chaban",
+      "email": "aylin.chaban@thws.de",
+      "phone": "+49 (931) 3511-8569",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4427,
+      "first_name": "Basudeb",
+      "family_name": "CHAUDHURI",
+      "email": "basudeb.chaudhuri@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4428,
+      "first_name": "Beatriz",
+      "family_name": "Blázquez",
+      "email": "vra.movilidad@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4429,
+      "first_name": "Belén",
+      "family_name": "Padrón Salinas",
+      "email": "bpadronsalinas@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4430,
+      "first_name": "Benoit",
+      "family_name": "BERTHOU",
+      "email": "benoit.berthou@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4431,
+      "first_name": "Bianca",
+      "family_name": "Maria Cafaro",
+      "email": "biancamaria.cafaro@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4432,
+      "first_name": "Bivon",
+      "family_name": "Chaya Leitan",
+      "email": "bivonchaya.leitan@studenti.unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4433,
+      "first_name": "Carolin",
+      "family_name": "Gläser",
+      "email": "carolin.glaeser@thws.de",
+      "phone": "+49 (931) 3511-8615",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4434,
+      "first_name": "Ciro",
+      "family_name": "Marturiello",
+      "email": "ciro.marturiello@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4435,
+      "first_name": "Clelia",
+      "family_name": "Fiondella",
+      "email": "clelia.fiondella@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4436,
+      "first_name": "Cristian",
+      "family_name": "Scarano",
+      "email": "cristian.scarano@studenti.unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4437,
+      "first_name": "Daniel",
+      "family_name": "Guerrero",
+      "email": "dguerrero@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4438,
+      "first_name": "Daniel",
+      "family_name": "Navas Carrillo",
+      "email": "vra.posgrado@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4439,
+      "first_name": "Daniel",
+      "family_name": "Wimmer",
+      "email": "daniel.wimmer@thws.de",
+      "phone": "+49 (931) 3511-8173",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4440,
+      "first_name": "Daria",
+      "family_name": "Konyakova",
+      "email": "D.Konyakova@student.hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4441,
+      "first_name": "Diego",
+      "family_name": "Levrero",
+      "email": "diego.levrero@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4442,
+      "first_name": "Elisabeth",
+      "family_name": "Minnemann",
+      "email": "E.Minnemann@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4443,
+      "first_name": "Enrique",
+      "family_name": "Nava",
+      "email": "en@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4444,
+      "first_name": "Eva",
+      "family_name": "Lekaki",
+      "email": "e.lekaki@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4445,
+      "first_name": "Fabio",
+      "family_name": "VILLALBA",
+      "email": "fabio.villalba@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4446,
+      "first_name": "Fabrizia",
+      "family_name": "Ruggiero",
+      "email": "fabrizia.ruggiero@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4558,
+      "first_name": "Fee",
+      "family_name": "Romein",
+      "email": "H.A.Z.F.Romein@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4447,
+      "first_name": "Ferdinando",
+      "family_name": "MONTECUOLLO",
+      "email": "ferdinando.montecuollo@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4448,
+      "first_name": "Francesco",
+      "family_name": "Morelli",
+      "email": "francesco.morelli@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4449,
+      "first_name": "Francisca",
+      "family_name": "Martín Vergara",
+      "email": "fmarver@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4450,
+      "first_name": "Francisco",
+      "family_name": "Javier Trujillo",
+      "email": "subpi.eii@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4451,
+      "first_name": "Furio",
+      "family_name": "Cascetta",
+      "email": "furio.cascetta@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4452,
+      "first_name": "Gema",
+      "family_name": "Lobillo",
+      "email": "gmlobillo@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4453,
+      "first_name": "Gema",
+      "family_name": "Reca",
+      "email": "gemareca@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4565,
+      "first_name": "Gerard",
+      "family_name": "Kranenburg",
+      "email": "G.T.Kranenburg@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4454,
+      "first_name": "Gianmarco",
+      "family_name": "Borrata",
+      "email": "gianmarco.borrata@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4455,
+      "first_name": "Gianni",
+      "family_name": "Di Bernardo",
+      "email": "gianni.dibernardo@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4456,
+      "first_name": "Giovanni",
+      "family_name": "Francesco NICOLETTI",
+      "email": "rettore@unicampania.it",
+      "phone": "",
+      "position": "Rector",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4457,
+      "first_name": "Giovanni",
+      "family_name": "Russo",
+      "email": "giovanni.russo@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4458,
+      "first_name": "Guy",
+      "family_name": "DIRRAS",
+      "email": "dirras@sorbonne-paris-nord.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4459,
+      "first_name": "Hannah",
+      "family_name": "Gütling",
+      "email": "hannah.guetling@thws.de",
+      "phone": "49 (9721) 940-8510",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4460,
+      "first_name": "Heleen",
+      "family_name": "Geerts",
+      "email": "h.geerts@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4461,
+      "first_name": "Henk",
+      "family_name": "Schouten",
+      "email": "h.f.schouten@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4462,
+      "first_name": "Ida",
+      "family_name": "Caracciolo",
+      "email": "ida.caracciolo@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4463,
+      "first_name": "Ieva",
+      "family_name": "Brazauskaite-Zubaviciene",
+      "email": "ieva.brazauskaite@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4464,
+      "first_name": "Ignacio",
+      "family_name": "Moreno-Torres",
+      "email": "imoreno@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4465,
+      "first_name": "Inga",
+      "family_name": "Neciunskaite",
+      "email": "inga.neciunskaite@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4466,
+      "first_name": "Inga",
+      "family_name": "Stravinskiene",
+      "email": "inga.stravinskiene@kaunokolegija.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4467,
+      "first_name": "Inma",
+      "family_name": "Fortes",
+      "email": "international-mobility.informatica@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4468,
+      "first_name": "Inés",
+      "family_name": "Moreno",
+      "email": "vra.investigacion@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4469,
+      "first_name": "Irene",
+      "family_name": "van de Ster",
+      "email": "A.S.Soekhlal@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4470,
+      "first_name": "Italo",
+      "family_name": "Francesco Angelillo",
+      "email": "italofrancesco.angelillo@unicampania.it",
+      "phone": "",
+      "position": "Pro Rector",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4562,
+      "first_name": "Jackie",
+      "family_name": "Van Marla",
+      "email": "J.M.vanMarle@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4471,
+      "first_name": "Jackie",
+      "family_name": "Van Marle",
+      "email": "j.m.vanmarle@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4472,
+      "first_name": "Javier",
+      "family_name": "López",
+      "email": "javierlopez@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4473,
+      "first_name": "Jean",
+      "family_name": "Meyer",
+      "email": "jean.meyer@thws.de",
+      "phone": "+49 (9721) 940-8778",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4474,
+      "first_name": "Jeffrey",
+      "family_name": "Michael Taylor",
+      "email": "jeffrey.taylor@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4475,
+      "first_name": "Jerke",
+      "family_name": "Verschoor",
+      "email": "J.C.Verschoor@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4476,
+      "first_name": "Jeroen",
+      "family_name": "Kuiper",
+      "email": "j.kuiper@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4477,
+      "first_name": "Joaquín",
+      "family_name": "Canca Cuenca",
+      "email": "joaquin@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4478,
+      "first_name": "Jolanta",
+      "family_name": "Bareikiene",
+      "email": "jolanta.bareikiene@kaunokolegija.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4479,
+      "first_name": "Jolanta",
+      "family_name": "Valiaugiene",
+      "email": "jolanta.valiaugiene@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4480,
+      "first_name": "Jose",
+      "family_name": "RODRIGUEZ MORALES",
+      "email": "jose.rodriguezmorales@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4481,
+      "first_name": "Justina",
+      "family_name": "Rekute",
+      "email": "justina.rekute@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4482,
+      "first_name": "Khaled",
+      "family_name": "BOUSSETTA",
+      "email": "khaled.boussetta@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4483,
+      "first_name": "Kristina",
+      "family_name": "Adomaitiene",
+      "email": "kristina.adomaitiene@kaunokolegija.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4484,
+      "first_name": "Kristina",
+      "family_name": "Grumadaite",
+      "email": "kristina.grumadaite@kaunokolegija.lt",
+      "phone": "",
+      "position": "Content manager for research related issues",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4485,
+      "first_name": "Kristina",
+      "family_name": "Kavaliauskaite",
+      "email": "kristina.kavaliauskaite@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4486,
+      "first_name": "Lara",
+      "family_name": "Franziska Comes",
+      "email": "franziska.comes@study.thws.de",
+      "phone": "",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4487,
+      "first_name": "Lelio",
+      "family_name": "Campanile",
+      "email": "lelio.campanile@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4488,
+      "first_name": "Leopoldo",
+      "family_name": "Petrucci",
+      "email": "leopoldo.petrucci@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4489,
+      "first_name": "Liana",
+      "family_name": "BERKOWITZ",
+      "email": "liana.berkowitz@sorbonne-paris-nord.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4490,
+      "first_name": "Liliya",
+      "family_name": " Terzieva",
+      "email": "l.v.terzieva@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4491,
+      "first_name": "Lina",
+      "family_name": "Kuraitiene",
+      "email": "lina.kuraitiene@kaunokolegija.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4492,
+      "first_name": "Luca",
+      "family_name": "Tasquier",
+      "email": "luca.tasquier@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4493,
+      "first_name": "Lucia",
+      "family_name": "Legrottaglie",
+      "email": "lucia.legrottaglie@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4494,
+      "first_name": "Lucie",
+      "family_name": "MAERE",
+      "email": "lucie.maere@sorbonne-paris-nord.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4495,
+      "first_name": "Maike",
+      "family_name": "Antlitz",
+      "email": "maike.antlitz@thws.de",
+      "phone": "+49 (931) 3511-8148",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4496,
+      "first_name": "Mantas",
+      "family_name": "Gudaitis",
+      "email": "mantas.gudaitis@kaunokolegija.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4497,
+      "first_name": "Mantas",
+      "family_name": "Gutauskas",
+      "email": "mantas.gutauskas@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4498,
+      "first_name": "Manuel",
+      "family_name": "Enciso",
+      "email": "director.informatica@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4499,
+      "first_name": "Manuel",
+      "family_name": "Moreno Linde",
+      "email": "dpo@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4500,
+      "first_name": "Margarita",
+      "family_name": "Delgado",
+      "email": "uninovis@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4501,
+      "first_name": "Mariana",
+      "family_name": "Prodanovic",
+      "email": "marijana.prodanovic@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4502,
+      "first_name": "Marianna",
+      "family_name": "Pignata",
+      "email": "marianna.pignata@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4503,
+      "first_name": "Marta",
+      "family_name": "Cariello",
+      "email": "marta.cariello@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4504,
+      "first_name": "María",
+      "family_name": "José Márquez Ballesteros",
+      "email": "mjmarquez@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4505,
+      "first_name": "María",
+      "family_name": "Martos",
+      "email": "mariamartos@uma.es",
+      "phone": "",
+      "position": "Student assistant",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4506,
+      "first_name": "Matteo",
+      "family_name": "Iermano",
+      "email": "matteo.iermano@studenti.unicampania",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4507,
+      "first_name": "Mauro",
+      "family_name": "Iacono",
+      "email": "mauro.iacono@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4508,
+      "first_name": "Menno",
+      "family_name": "De Vos",
+      "email": "m.devos@hhs.nl",
+      "phone": "",
+      "position": "WP2 (Microcredentials)",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4564,
+      "first_name": "Menno",
+      "family_name": "De Vos",
+      "email": "M.deVos@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4561,
+      "first_name": "Michel",
+      "family_name": "Hogenes",
+      "email": "M.Hogenes@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4509,
+      "first_name": "Miriam",
+      "family_name": "Seghiri",
+      "email": "seghiri@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4510,
+      "first_name": "Monika",
+      "family_name": "Heitz",
+      "email": "monika.heitz@thws.de",
+      "phone": "+49 (931) 3511-8297",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4511,
+      "first_name": "Nathalie",
+      "family_name": "CHARNAUX",
+      "email": "presidente@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4512,
+      "first_name": "Nathalie",
+      "family_name": "PERNELLE",
+      "email": "nathalie.pernelle@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4513,
+      "first_name": "Neringa",
+      "family_name": "Lisina",
+      "email": "neringa.lisina@kaunokolegija.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4514,
+      "first_name": "Olivier",
+      "family_name": "Butzbach",
+      "email": "olivierkarl.butzbach@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4515,
+      "first_name": "Oreoluwa",
+      "family_name": "Oyinlola",
+      "email": "oreoluwa.oyinlola@study.thws.de",
+      "phone": "",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4516,
+      "first_name": "Orsola",
+      "family_name": "Mastantuoni",
+      "email": "orsola.mastantuoni@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4517,
+      "first_name": "Ovidija",
+      "family_name": "Navikaite",
+      "email": "ovidija.navikaite@go.kauko.lt",
+      "phone": "",
+      "position": "Content manager for communication/dissemination",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4518,
+      "first_name": "Patricia",
+      "family_name": "FERNANDEZ",
+      "email": "patricia.fernandez@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4519,
+      "first_name": "Paulius",
+      "family_name": "Baltrusaitis",
+      "email": "paulius.baltrusaitis@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4560,
+      "first_name": "Petra",
+      "family_name": "Visser",
+      "email": "P.R.Visser@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4520,
+      "first_name": "Pia",
+      "family_name": "Weber",
+      "email": "pia.weber.1@study.thws.de",
+      "phone": "",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4521,
+      "first_name": "Povilas",
+      "family_name": "Beseckas",
+      "email": "povilas.beseckas@kaunokolegija.lt",
+      "phone": "",
+      "position": "Content manager for mobility issues",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4522,
+      "first_name": "R.W.A.",
+      "family_name": "Ba",
+      "email": "R.W.A.Ba@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4523,
+      "first_name": "Raffaele",
+      "family_name": "Ambrosio",
+      "email": "raffaele.ambrosio@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4524,
+      "first_name": "Raffaele",
+      "family_name": "Esposito",
+      "email": "raffaele.esposito@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4525,
+      "first_name": "Raffaele",
+      "family_name": "Mattera",
+      "email": "raffaele.mattera@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4526,
+      "first_name": "Raminta",
+      "family_name": "Kudrickaite",
+      "email": "raminta.kudrickaite@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4527,
+      "first_name": "Raminta",
+      "family_name": "Ligeikiene",
+      "email": "raminta.ligeikiene@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4528,
+      "first_name": "Rasa",
+      "family_name": "Gaiziunaite",
+      "email": "rasa.gaiziunaite@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4529,
+      "first_name": "Rasa",
+      "family_name": "Greenspoon",
+      "email": "rasa.greenspoon@kaunokolegija.lt",
+      "phone": "",
+      "position": "Content manager for studies related issues",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4530,
+      "first_name": "Reinout",
+      "family_name": "Klamer",
+      "email": "h.r.klamer@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4531,
+      "first_name": "Rita",
+      "family_name": "Kmite",
+      "email": "rita.kmite@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4532,
+      "first_name": "Rob",
+      "family_name": "Van Netburg",
+      "email": "G.J.vanNetburg@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4533,
+      "first_name": "Roberta",
+      "family_name": "Albano",
+      "email": "roberta.albano@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4534,
+      "first_name": "Rosanna",
+      "family_name": "Verde",
+      "email": "rosanna.verde@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4535,
+      "first_name": "Rudward",
+      "family_name": "AKUESON",
+      "email": "rudward.akueson@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4563,
+      "first_name": "Sabine",
+      "family_name": "Amft",
+      "email": "S.Amft@hhs.nl",
+      "phone": "",
+      "position": "Task Leader",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4537,
+      "first_name": "Sandra",
+      "family_name": "CARLIER",
+      "email": "projects-ri@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4538,
+      "first_name": "Sergio",
+      "family_name": "Nardini",
+      "email": "sergio.nardini@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4539,
+      "first_name": "Sergio",
+      "family_name": "Sabella",
+      "email": "sergio.sabella@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4540,
+      "first_name": "Simona",
+      "family_name": "Jankauskaite",
+      "email": "simona.jankauskaite@go.kauko.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4541,
+      "first_name": "Sjors",
+      "family_name": "van Waart",
+      "email": "G.W.vanWaart@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4542,
+      "first_name": "Smita",
+      "family_name": "Iyer",
+      "email": "smita.iyer@study.thws.de",
+      "phone": "",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4543,
+      "first_name": "Sonia",
+      "family_name": "Osorio Algar",
+      "email": "sosorio@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4544,
+      "first_name": "Susan",
+      "family_name": "Höfner",
+      "email": "susan.hoefner@thws.de",
+      "phone": "+49 (9721) 940-7053",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4545,
+      "first_name": "Sylvie",
+      "family_name": "BARRIER",
+      "email": "vpri@univ-paris13.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4559,
+      "first_name": "Tamara",
+      "family_name": "Lewis",
+      "email": "T.N.Lewis@hhs.nl",
+      "phone": "",
+      "position": "",
+      "university": "THUAS",
+      "university_name": "THE HAGUE UNIVERSITY OF APPLIED SCIENCES"
+    },
+    {
+      "id": 4546,
+      "first_name": "Teodomiro",
+      "family_name": "López Navarrete",
+      "email": "rector@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4547,
+      "first_name": "Tom",
+      "family_name": "Rohe",
+      "email": "tom.rohe@study.thws.de",
+      "phone": "",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4548,
+      "first_name": "Veronika",
+      "family_name": "Dondl",
+      "email": "veronika.dondl@study.thws.de",
+      "phone": "",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4549,
+      "first_name": "Victoriano",
+      "family_name": "Giralt",
+      "email": "v@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4550,
+      "first_name": "Vincenzo",
+      "family_name": "De Mare",
+      "email": "vincenzo.demare@unicampania.it",
+      "phone": "",
+      "position": "",
+      "university": "UDCLV",
+      "university_name": "UNIVERSITA DEGLI STUDI DELLA CAMPANIA LUIGI VANVITELLI"
+    },
+    {
+      "id": 4551,
+      "first_name": "Vytaute",
+      "family_name": "Giedraitiene",
+      "email": "vytaute.giedraitiene@kaunokolegija.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    },
+    {
+      "id": 4552,
+      "first_name": "Wouter",
+      "family_name": "de Regt",
+      "email": "wouter.deregt@thws.de",
+      "phone": "+49 (9721) 940-8945",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4553,
+      "first_name": "Yamina",
+      "family_name": "Seamari",
+      "email": "yamina@uma.es",
+      "phone": "",
+      "position": "",
+      "university": "UMA",
+      "university_name": "UNIVERSIDAD DE MÁLAGA"
+    },
+    {
+      "id": 4554,
+      "first_name": "Yannik",
+      "family_name": "Herterich",
+      "email": "yannik.herterich@thws.de",
+      "phone": "+49 (9721) 940-7033",
+      "position": "",
+      "university": "THWS",
+      "university_name": "TECHNISCHE HOCHSCHULE WUERZBURG-SCHWEINFURT"
+    },
+    {
+      "id": 4555,
+      "first_name": "Yoann",
+      "family_name": "LALATONNE",
+      "email": "yoann.lalatonne@aphp.fr",
+      "phone": "",
+      "position": "",
+      "university": "USPN",
+      "university_name": "UNIVERSITE PARIS 13"
+    },
+    {
+      "id": 4556,
+      "first_name": "Zivile",
+      "family_name": "Jukneviciene",
+      "email": "zivile.jukneviciene@kaunokolegija.lt",
+      "phone": "",
+      "position": "",
+      "university": "KK",
+      "university_name": "KAUNO KOLEGIJA"
+    }
+  ],
+  "units": [
+    {
+      "id": 613,
+      "name": "Academic Programmes Quality Board",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 643,
+      "name": "Academic Programmes Quality Board (APQB)",
+      "parent_id": 613,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 614,
+      "name": "Academic Quality Assurance Board",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 615,
+      "name": "Accreditation Board",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 617,
+      "name": "BoR",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 618,
+      "name": "COIL",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 619,
+      "name": "Common Sustainability development  group",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 620,
+      "name": "Content Managers",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 621,
+      "name": "DPOs",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 644,
+      "name": "EH-WG",
+      "parent_id": 623,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 622,
+      "name": "European Project Unit",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 623,
+      "name": "Excellence Hubs",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 624,
+      "name": "Executive Council",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 626,
+      "name": "FOREU4ALL Topical Impact Group",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 627,
+      "name": "FOREU4ALL Topical Multilingualism Group",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 628,
+      "name": "FOREU4ALL Topical STEAM Group",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 625,
+      "name": "Financial Reporting WG",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 629,
+      "name": "Joint Programmes",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 630,
+      "name": "MngBrd",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 631,
+      "name": "QA",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 632,
+      "name": "Quality Assurance Board",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 633,
+      "name": "Quality Board",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 665,
+      "name": "ResSupUn",
+      "parent_id": 640,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 634,
+      "name": "Student Council",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 645,
+      "name": "Student Council Member",
+      "parent_id": 634,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 635,
+      "name": "Sustainability Working Group",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 660,
+      "name": "T1.2",
+      "parent_id": 637,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 646,
+      "name": "T2.1",
+      "parent_id": 638,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 648,
+      "name": "T2.2",
+      "parent_id": 638,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 650,
+      "name": "T2.3",
+      "parent_id": 638,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 652,
+      "name": "T2.4",
+      "parent_id": 638,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 654,
+      "name": "T3.1",
+      "parent_id": 640,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 656,
+      "name": "T3.2",
+      "parent_id": 640,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 658,
+      "name": "T3.3",
+      "parent_id": 640,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 667,
+      "name": "T4.1",
+      "parent_id": 641,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 668,
+      "name": "T4.2",
+      "parent_id": 641,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 669,
+      "name": "T4.3",
+      "parent_id": 641,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 670,
+      "name": "T4.4",
+      "parent_id": 641,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 681,
+      "name": "T4.5.1",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 674,
+      "name": "T5.1",
+      "parent_id": 642,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 675,
+      "name": "T5.2",
+      "parent_id": 642,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 676,
+      "name": "T5.3",
+      "parent_id": 642,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 677,
+      "name": "T5.4",
+      "parent_id": 642,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 636,
+      "name": "TB",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 661,
+      "name": "WP Assist",
+      "parent_id": 637,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 637,
+      "name": "WP1",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 638,
+      "name": "WP2",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 664,
+      "name": "WP2Assist",
+      "parent_id": 638,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 640,
+      "name": "WP3",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 641,
+      "name": "WP4",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 671,
+      "name": "WP4 Digitalization",
+      "parent_id": 641,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 672,
+      "name": "WP4 Sustainability",
+      "parent_id": 641,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 673,
+      "name": "WP4Assist",
+      "parent_id": 641,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 642,
+      "name": "WP5",
+      "parent_id": null,
+      "university": "",
+      "university_name": ""
+    },
+    {
+      "id": 678,
+      "name": "WP5Assist",
+      "parent_id": 642,
+      "university": "",
+      "university_name": ""
+    }
+  ],
+  "memberships": [
+    {
+      "person_id": 4407,
+      "unit_id": 614,
+      "role": ""
+    },
+    {
+      "person_id": 4407,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4408,
+      "unit_id": 620,
+      "role": ""
+    },
+    {
+      "person_id": 4408,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4409,
+      "unit_id": 672,
+      "role": ""
+    },
+    {
+      "person_id": 4410,
+      "unit_id": 620,
+      "role": "Interim content manager"
+    },
+    {
+      "person_id": 4410,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4410,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4410,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4410,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4410,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4411,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4412,
+      "unit_id": 620,
+      "role": ""
+    },
+    {
+      "person_id": 4412,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4412,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4412,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4412,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4412,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4413,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4414,
+      "unit_id": 617,
+      "role": ""
+    },
+    {
+      "person_id": 4415,
+      "unit_id": 620,
+      "role": ""
+    },
+    {
+      "person_id": 4415,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4415,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4416,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4416,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4416,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4416,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4416,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4417,
+      "unit_id": 674,
+      "role": ""
+    },
+    {
+      "person_id": 4417,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4418,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4418,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4418,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4419,
+      "unit_id": 644,
+      "role": ""
+    },
+    {
+      "person_id": 4419,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4419,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4419,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4420,
+      "unit_id": 644,
+      "role": ""
+    },
+    {
+      "person_id": 4420,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4420,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4420,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4420,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4420,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4421,
+      "unit_id": 620,
+      "role": "Content manager for Hub related issues"
+    },
+    {
+      "person_id": 4421,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4422,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4423,
+      "unit_id": 633,
+      "role": ""
+    },
+    {
+      "person_id": 4424,
+      "unit_id": 644,
+      "role": ""
+    },
+    {
+      "person_id": 4424,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4424,
+      "unit_id": 669,
+      "role": ""
+    },
+    {
+      "person_id": 4424,
+      "unit_id": 676,
+      "role": ""
+    },
+    {
+      "person_id": 4424,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4425,
+      "unit_id": 644,
+      "role": ""
+    },
+    {
+      "person_id": 4425,
+      "unit_id": 665,
+      "role": ""
+    },
+    {
+      "person_id": 4425,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4425,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4425,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4426,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4427,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4427,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4428,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4428,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4429,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4430,
+      "unit_id": 631,
+      "role": ""
+    },
+    {
+      "person_id": 4430,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4430,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4431,
+      "unit_id": 629,
+      "role": ""
+    },
+    {
+      "person_id": 4432,
+      "unit_id": 678,
+      "role": ""
+    },
+    {
+      "person_id": 4433,
+      "unit_id": 613,
+      "role": ""
+    },
+    {
+      "person_id": 4433,
+      "unit_id": 620,
+      "role": ""
+    },
+    {
+      "person_id": 4433,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4433,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4433,
+      "unit_id": 648,
+      "role": ""
+    },
+    {
+      "person_id": 4433,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4433,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4434,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4435,
+      "unit_id": 672,
+      "role": ""
+    },
+    {
+      "person_id": 4436,
+      "unit_id": 678,
+      "role": ""
+    },
+    {
+      "person_id": 4437,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4438,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4438,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4439,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4439,
+      "unit_id": 635,
+      "role": ""
+    },
+    {
+      "person_id": 4440,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4440,
+      "unit_id": 678,
+      "role": ""
+    },
+    {
+      "person_id": 4441,
+      "unit_id": 671,
+      "role": ""
+    },
+    {
+      "person_id": 4442,
+      "unit_id": 617,
+      "role": ""
+    },
+    {
+      "person_id": 4443,
+      "unit_id": 617,
+      "role": ""
+    },
+    {
+      "person_id": 4444,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4444,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4445,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4445,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4446,
+      "unit_id": 674,
+      "role": ""
+    },
+    {
+      "person_id": 4446,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4446,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4558,
+      "unit_id": 668,
+      "role": ""
+    },
+    {
+      "person_id": 4558,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4447,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4447,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4448,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4448,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4449,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4449,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4451,
+      "unit_id": 672,
+      "role": ""
+    },
+    {
+      "person_id": 4452,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4453,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4453,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4565,
+      "unit_id": 650,
+      "role": ""
+    },
+    {
+      "person_id": 4565,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4454,
+      "unit_id": 620,
+      "role": ""
+    },
+    {
+      "person_id": 4454,
+      "unit_id": 661,
+      "role": ""
+    },
+    {
+      "person_id": 4455,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4457,
+      "unit_id": 625,
+      "role": ""
+    },
+    {
+      "person_id": 4458,
+      "unit_id": 623,
+      "role": ""
+    },
+    {
+      "person_id": 4459,
+      "unit_id": 632,
+      "role": ""
+    },
+    {
+      "person_id": 4460,
+      "unit_id": 644,
+      "role": ""
+    },
+    {
+      "person_id": 4460,
+      "unit_id": 665,
+      "role": ""
+    },
+    {
+      "person_id": 4460,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4460,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4461,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4462,
+      "unit_id": 671,
+      "role": ""
+    },
+    {
+      "person_id": 4463,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4463,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4464,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4464,
+      "unit_id": 631,
+      "role": ""
+    },
+    {
+      "person_id": 4464,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4464,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4464,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4465,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4465,
+      "unit_id": 648,
+      "role": ""
+    },
+    {
+      "person_id": 4465,
+      "unit_id": 650,
+      "role": ""
+    },
+    {
+      "person_id": 4465,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4465,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4465,
+      "unit_id": 669,
+      "role": ""
+    },
+    {
+      "person_id": 4465,
+      "unit_id": 675,
+      "role": ""
+    },
+    {
+      "person_id": 4466,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4468,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4468,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4469,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4562,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4471,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4472,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4473,
+      "unit_id": 617,
+      "role": ""
+    },
+    {
+      "person_id": 4474,
+      "unit_id": 628,
+      "role": ""
+    },
+    {
+      "person_id": 4475,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4475,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4475,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4476,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4477,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4478,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4479,
+      "unit_id": 619,
+      "role": ""
+    },
+    {
+      "person_id": 4479,
+      "unit_id": 626,
+      "role": ""
+    },
+    {
+      "person_id": 4479,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4479,
+      "unit_id": 650,
+      "role": ""
+    },
+    {
+      "person_id": 4479,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4479,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4479,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4479,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4480,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4481,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4481,
+      "unit_id": 648,
+      "role": ""
+    },
+    {
+      "person_id": 4481,
+      "unit_id": 650,
+      "role": ""
+    },
+    {
+      "person_id": 4481,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4481,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4481,
+      "unit_id": 669,
+      "role": ""
+    },
+    {
+      "person_id": 4481,
+      "unit_id": 675,
+      "role": ""
+    },
+    {
+      "person_id": 4482,
+      "unit_id": 644,
+      "role": ""
+    },
+    {
+      "person_id": 4482,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4482,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4483,
+      "unit_id": 633,
+      "role": ""
+    },
+    {
+      "person_id": 4484,
+      "unit_id": 619,
+      "role": ""
+    },
+    {
+      "person_id": 4484,
+      "unit_id": 620,
+      "role": "Content manager for research related issues"
+    },
+    {
+      "person_id": 4484,
+      "unit_id": 665,
+      "role": ""
+    },
+    {
+      "person_id": 4484,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4484,
+      "unit_id": 667,
+      "role": ""
+    },
+    {
+      "person_id": 4484,
+      "unit_id": 668,
+      "role": ""
+    },
+    {
+      "person_id": 4484,
+      "unit_id": 677,
+      "role": ""
+    },
+    {
+      "person_id": 4484,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4485,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4485,
+      "unit_id": 648,
+      "role": ""
+    },
+    {
+      "person_id": 4485,
+      "unit_id": 650,
+      "role": ""
+    },
+    {
+      "person_id": 4485,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4485,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4485,
+      "unit_id": 669,
+      "role": ""
+    },
+    {
+      "person_id": 4485,
+      "unit_id": 675,
+      "role": ""
+    },
+    {
+      "person_id": 4486,
+      "unit_id": 645,
+      "role": ""
+    },
+    {
+      "person_id": 4487,
+      "unit_id": 643,
+      "role": ""
+    },
+    {
+      "person_id": 4487,
+      "unit_id": 618,
+      "role": ""
+    },
+    {
+      "person_id": 4487,
+      "unit_id": 631,
+      "role": ""
+    },
+    {
+      "person_id": 4487,
+      "unit_id": 665,
+      "role": ""
+    },
+    {
+      "person_id": 4487,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4487,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4487,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4487,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4487,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4488,
+      "unit_id": 671,
+      "role": ""
+    },
+    {
+      "person_id": 4489,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4489,
+      "unit_id": 631,
+      "role": ""
+    },
+    {
+      "person_id": 4489,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4490,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4491,
+      "unit_id": 619,
+      "role": ""
+    },
+    {
+      "person_id": 4492,
+      "unit_id": 671,
+      "role": ""
+    },
+    {
+      "person_id": 4493,
+      "unit_id": 643,
+      "role": ""
+    },
+    {
+      "person_id": 4493,
+      "unit_id": 629,
+      "role": ""
+    },
+    {
+      "person_id": 4494,
+      "unit_id": 620,
+      "role": ""
+    },
+    {
+      "person_id": 4494,
+      "unit_id": 634,
+      "role": ""
+    },
+    {
+      "person_id": 4494,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4495,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4495,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4496,
+      "unit_id": 670,
+      "role": ""
+    },
+    {
+      "person_id": 4496,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4497,
+      "unit_id": 624,
+      "role": ""
+    },
+    {
+      "person_id": 4497,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4497,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4497,
+      "unit_id": 669,
+      "role": ""
+    },
+    {
+      "person_id": 4499,
+      "unit_id": 621,
+      "role": ""
+    },
+    {
+      "person_id": 4500,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4501,
+      "unit_id": 627,
+      "role": ""
+    },
+    {
+      "person_id": 4501,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4501,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4501,
+      "unit_id": 669,
+      "role": ""
+    },
+    {
+      "person_id": 4501,
+      "unit_id": 676,
+      "role": ""
+    },
+    {
+      "person_id": 4502,
+      "unit_id": 672,
+      "role": ""
+    },
+    {
+      "person_id": 4503,
+      "unit_id": 622,
+      "role": ""
+    },
+    {
+      "person_id": 4503,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4504,
+      "unit_id": 648,
+      "role": ""
+    },
+    {
+      "person_id": 4504,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4506,
+      "unit_id": 678,
+      "role": ""
+    },
+    {
+      "person_id": 4507,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4564,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4564,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4561,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4509,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4510,
+      "unit_id": 635,
+      "role": ""
+    },
+    {
+      "person_id": 4511,
+      "unit_id": 617,
+      "role": ""
+    },
+    {
+      "person_id": 4512,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4513,
+      "unit_id": 660,
+      "role": ""
+    },
+    {
+      "person_id": 4513,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4514,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4515,
+      "unit_id": 645,
+      "role": ""
+    },
+    {
+      "person_id": 4516,
+      "unit_id": 674,
+      "role": ""
+    },
+    {
+      "person_id": 4516,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4517,
+      "unit_id": 620,
+      "role": "Content manager for communication/dissemination"
+    },
+    {
+      "person_id": 4517,
+      "unit_id": 674,
+      "role": ""
+    },
+    {
+      "person_id": 4517,
+      "unit_id": 675,
+      "role": ""
+    },
+    {
+      "person_id": 4517,
+      "unit_id": 676,
+      "role": ""
+    },
+    {
+      "person_id": 4518,
+      "unit_id": 634,
+      "role": ""
+    },
+    {
+      "person_id": 4518,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4518,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4518,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4519,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4519,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4519,
+      "unit_id": 669,
+      "role": ""
+    },
+    {
+      "person_id": 4560,
+      "unit_id": 681,
+      "role": ""
+    },
+    {
+      "person_id": 4560,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4520,
+      "unit_id": 673,
+      "role": ""
+    },
+    {
+      "person_id": 4521,
+      "unit_id": 620,
+      "role": "Content manager for mobility issues"
+    },
+    {
+      "person_id": 4521,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4521,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4522,
+      "unit_id": 631,
+      "role": ""
+    },
+    {
+      "person_id": 4522,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4523,
+      "unit_id": 643,
+      "role": ""
+    },
+    {
+      "person_id": 4523,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4524,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4525,
+      "unit_id": 618,
+      "role": ""
+    },
+    {
+      "person_id": 4526,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4526,
+      "unit_id": 648,
+      "role": ""
+    },
+    {
+      "person_id": 4526,
+      "unit_id": 650,
+      "role": ""
+    },
+    {
+      "person_id": 4526,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4526,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4526,
+      "unit_id": 669,
+      "role": ""
+    },
+    {
+      "person_id": 4526,
+      "unit_id": 675,
+      "role": ""
+    },
+    {
+      "person_id": 4527,
+      "unit_id": 650,
+      "role": ""
+    },
+    {
+      "person_id": 4527,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4528,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4529,
+      "unit_id": 615,
+      "role": ""
+    },
+    {
+      "person_id": 4529,
+      "unit_id": 620,
+      "role": "Content manager for studies related issues"
+    },
+    {
+      "person_id": 4529,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4529,
+      "unit_id": 648,
+      "role": ""
+    },
+    {
+      "person_id": 4529,
+      "unit_id": 650,
+      "role": ""
+    },
+    {
+      "person_id": 4529,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4530,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4530,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4531,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4531,
+      "unit_id": 648,
+      "role": ""
+    },
+    {
+      "person_id": 4531,
+      "unit_id": 650,
+      "role": ""
+    },
+    {
+      "person_id": 4531,
+      "unit_id": 652,
+      "role": ""
+    },
+    {
+      "person_id": 4531,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4531,
+      "unit_id": 669,
+      "role": ""
+    },
+    {
+      "person_id": 4531,
+      "unit_id": 675,
+      "role": ""
+    },
+    {
+      "person_id": 4532,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4533,
+      "unit_id": 674,
+      "role": ""
+    },
+    {
+      "person_id": 4533,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4534,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4534,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4534,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4534,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4535,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4535,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4535,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4535,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4535,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4563,
+      "unit_id": 652,
+      "role": "Task Leader"
+    },
+    {
+      "person_id": 4563,
+      "unit_id": 638,
+      "role": ""
+    },
+    {
+      "person_id": 4537,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4537,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4537,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4538,
+      "unit_id": 646,
+      "role": ""
+    },
+    {
+      "person_id": 4538,
+      "unit_id": 672,
+      "role": ""
+    },
+    {
+      "person_id": 4539,
+      "unit_id": 671,
+      "role": ""
+    },
+    {
+      "person_id": 4540,
+      "unit_id": 656,
+      "role": ""
+    },
+    {
+      "person_id": 4541,
+      "unit_id": 620,
+      "role": ""
+    },
+    {
+      "person_id": 4541,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4542,
+      "unit_id": 645,
+      "role": ""
+    },
+    {
+      "person_id": 4544,
+      "unit_id": 665,
+      "role": ""
+    },
+    {
+      "person_id": 4544,
+      "unit_id": 658,
+      "role": ""
+    },
+    {
+      "person_id": 4544,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4545,
+      "unit_id": 617,
+      "role": ""
+    },
+    {
+      "person_id": 4559,
+      "unit_id": 681,
+      "role": ""
+    },
+    {
+      "person_id": 4559,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4546,
+      "unit_id": 617,
+      "role": ""
+    },
+    {
+      "person_id": 4547,
+      "unit_id": 664,
+      "role": ""
+    },
+    {
+      "person_id": 4548,
+      "unit_id": 678,
+      "role": ""
+    },
+    {
+      "person_id": 4550,
+      "unit_id": 636,
+      "role": ""
+    },
+    {
+      "person_id": 4550,
+      "unit_id": 671,
+      "role": ""
+    },
+    {
+      "person_id": 4551,
+      "unit_id": 619,
+      "role": ""
+    },
+    {
+      "person_id": 4551,
+      "unit_id": 620,
+      "role": ""
+    },
+    {
+      "person_id": 4551,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4551,
+      "unit_id": 668,
+      "role": ""
+    },
+    {
+      "person_id": 4551,
+      "unit_id": 669,
+      "role": ""
+    },
+    {
+      "person_id": 4551,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4551,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4552,
+      "unit_id": 620,
+      "role": ""
+    },
+    {
+      "person_id": 4552,
+      "unit_id": 644,
+      "role": ""
+    },
+    {
+      "person_id": 4552,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4552,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4552,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4552,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4552,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4553,
+      "unit_id": 630,
+      "role": ""
+    },
+    {
+      "person_id": 4553,
+      "unit_id": 637,
+      "role": ""
+    },
+    {
+      "person_id": 4553,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4553,
+      "unit_id": 641,
+      "role": ""
+    },
+    {
+      "person_id": 4554,
+      "unit_id": 620,
+      "role": ""
+    },
+    {
+      "person_id": 4554,
+      "unit_id": 642,
+      "role": ""
+    },
+    {
+      "person_id": 4555,
+      "unit_id": 644,
+      "role": ""
+    },
+    {
+      "person_id": 4555,
+      "unit_id": 654,
+      "role": ""
+    },
+    {
+      "person_id": 4555,
+      "unit_id": 640,
+      "role": ""
+    },
+    {
+      "person_id": 4556,
+      "unit_id": 667,
+      "role": ""
+    },
+    {
+      "person_id": 4556,
+      "unit_id": 668,
+      "role": ""
+    }
+  ],
+  "last_sync": "2026-08-31T11:20:15.564844Z"
+}

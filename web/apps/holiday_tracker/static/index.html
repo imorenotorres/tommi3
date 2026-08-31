@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNINOVIS Holiday Tracker</title>
+<link rel="stylesheet" href="/static/nav.css">
+<style>
+:root {
+  --primary: #2D3876;
+  --primary-light: #4a5299;
+  --bg: #f5f6fa;
+  --card: #fff;
+  --text: #333;
+  --text-light: #666;
+  --border: #e0e0e0;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+.denied { margin: 60px auto; max-width: 480px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; text-align: center; }
+.denied h2 { color: var(--primary); margin-bottom: 8px; }
+.denied p { color: var(--text-light); font-size: 0.9rem; }
+
+.controls { padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.nav-group { display: flex; align-items: center; gap: 8px; }
+.nav-btn { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 14px; cursor: pointer; font-size: 0.9rem; }
+.nav-btn:hover { background: #eee; }
+.current-label { font-size: 1.1rem; font-weight: 600; min-width: 180px; text-align: center; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-log { border: none; border-radius: var(--radius); padding: 9px 16px; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: #fff; }
+.btn-log.holiday { background: #2e7d32; }
+.btn-log.holiday:hover { background: #388e3c; }
+.btn-log.personal { background: #ef6c00; }
+.btn-log.personal:hover { background: #f57c00; }
+
+.legend { padding: 0 24px 12px; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 0.8rem; color: var(--text-light); }
+.legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+.legend .legend-item { display: inline-flex; align-items: center; }
+.legend-empty { font-style: italic; }
+
+.month-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; background: var(--border); margin: 0 24px 24px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.month-grid .day-header { background: var(--primary); color: #fff; text-align: center; padding: 8px; font-size: 0.8rem; font-weight: 600; }
+.month-grid .day-cell { background: var(--card); min-height: 110px; max-height: 150px; padding: 6px; position: relative; vertical-align: top; overflow-y: auto; }
+.month-grid .day-cell.other-month { background: #f9f9fb; }
+.month-grid .day-cell.today { background: #dbeafe; border: 2px solid var(--primary); }
+.day-num { font-size: 0.8rem; font-weight: 600; color: var(--text-light); margin-bottom: 4px; }
+.day-cell.today .day-num { background: var(--primary); color: #fff; display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; }
+.event-chip { display: block; font-size: 0.72rem; padding: 2px 6px; margin-bottom: 2px; border-radius: 4px; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.event-chip.personal_day { border: 2px dashed rgba(255,255,255,0.7); }
+.event-chip:hover { opacity: 0.85; }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; justify-content: center; align-items: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--card); border-radius: var(--radius); width: 90%; max-width: 420px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h2 { font-size: 1.05rem; }
+.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
+.modal-body { padding: 20px; }
+.modal-body label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 4px; margin-top: 12px; }
+.modal-body label:first-child { margin-top: 0; }
+.modal-body input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; font-family: inherit; }
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.modal-footer .btn { padding: 8px 16px; border-radius: var(--radius); border: 1px solid var(--border); cursor: pointer; font-size: 0.88rem; background: #fff; }
+.modal-footer .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.modal-footer .btn-danger { background: #fff; color: #c62828; border-color: #c62828; }
+.modal-body .hint { font-size: 0.78rem; color: var(--text-light); margin-top: 12px; }
+.modal-body .detail-row { font-size: 0.9rem; margin-bottom: 8px; }
+.modal-body .detail-row b { color: var(--text-light); font-weight: 600; margin-right: 4px; }
+</style>
+</head>
+<body>
+
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ crumbs: [{label:'System Administration', href:'/static/intranet.html'}], current: 'Holiday Tracker' });</script>
+
+<div id="deniedView" class="denied" style="display:none;">
+  <h2>Superuser access only</h2>
+  <p>The Holiday Tracker is only visible to superusers. Sign in with a superuser account to view or log holidays.</p>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="controls">
+    <div class="nav-group">
+      <button class="nav-btn" id="btnPrev">&#8249;</button>
+      <button class="nav-btn" id="btnToday">Today</button>
+      <button class="nav-btn" id="btnNext">&#8250;</button>
+      <span class="current-label" id="currentLabel"></span>
+    </div>
+    <div class="actions">
+      <button class="btn-log holiday" onclick="openLogModal('holiday')">🌴 Log holiday</button>
+      <button class="btn-log personal" onclick="openLogModal('personal_day')">🙂 Log personal day</button>
+    </div>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <div id="calendarContainer"></div>
+</div>
+
+<!-- Log / edit modal -->
+<div class="modal-overlay" id="logModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="logModalTitle">Log holiday</h2>
+      <button class="modal-close" onclick="closeLogModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label>Start date</label>
+      <input type="date" id="fStartDate">
+      <label>End date</label>
+      <input type="date" id="fEndDate">
+      <p class="hint">This will be logged under your own name (<span id="fUsername"></span>). Only you can edit or remove it later.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="btnDeleteEntry" style="display:none;" onclick="deleteCurrentEvent()">Delete</button>
+      <span style="flex:1;"></span>
+      <button class="btn" onclick="closeLogModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCurrentEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Read-only detail modal (someone else's entry) -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Logged day</h2>
+      <button class="modal-close" onclick="document.getElementById('detailModal').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-row"><b>Person:</b> <span id="dName"></span></div>
+      <div class="detail-row"><b>Type:</b> <span id="dType"></span></div>
+      <div class="detail-row"><b>Dates:</b> <span id="dDates"></span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let TOKEN = '';
+let ME = '';
+let events = [];
+let currentDate = new Date();
+let editingId = null;
+let pendingType = 'holiday';
+
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch('/holiday-tracker' + path, opts);
+  if (!res.ok) {
+    let msg = res.statusText;
+    try { const j = await res.json(); msg = j.detail || msg; } catch (e) {}
+    throw new Error(msg);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+function fmt(d) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function hashHue(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    hash |= 0;
+  }
+  return Math.abs(hash) % 360;
+}
+function personColor(key) {
+  return `hsl(${hashHue(key)}, 62%, 42%)`;
+}
+
+const TYPE_LABEL = { holiday: '🌴 Holiday', personal_day: '🙂 Personal day' };
+
+function eventsOnDate(dateStr) {
+  return events.filter(e => e.start_date <= dateStr && dateStr <= e.end_date);
+}
+
+function chipHTML(ev) {
+  const color = personColor(ev.display_name || ev.username);
+  const icon = ev.type === 'holiday' ? '🌴' : '🙂';
+  return `<span class="event-chip ${ev.type}" style="background:${color};" onclick="onChipClick('${ev.id}')">${icon} ${ev.display_name || ev.username}</span>`;
+}
+
+function renderLegend() {
+  const el = document.getElementById('legend');
+  const seen = new Map();
+  events.forEach(e => { const key = e.display_name || e.username; if (!seen.has(key)) seen.set(key, personColor(key)); });
+  if (seen.size === 0) { el.innerHTML = '<span class="legend-empty">No holidays or personal days logged yet.</span>'; return; }
+  el.innerHTML = [...seen.entries()].map(([name, color]) =>
+    `<span class="legend-item"><span class="swatch" style="background:${color};"></span>${name}</span>`
+  ).join('');
+}
+
+function renderMonth() {
+  const year = currentDate.getFullYear(), month = currentDate.getMonth();
+  document.getElementById('currentLabel').textContent = currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+  const firstOfMonth = new Date(year, month, 1);
+  const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday-first
+  const gridStart = new Date(year, month, 1 - startOffset);
+
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let html = '<div class="month-grid">';
+  dayNames.forEach(d => html += `<div class="day-header">${d}</div>`);
+
+  const todayStr = fmt(new Date());
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    const dStr = fmt(d);
+    const otherMonth = d.getMonth() !== month;
+    const isToday = dStr === todayStr;
+    const dayEvents = eventsOnDate(dStr).sort((a,b) => (a.display_name||a.username).localeCompare(b.display_name||b.username));
+    html += `<div class="day-cell${otherMonth?' other-month':''}${isToday?' today':''}">`
+          + `<div class="day-num">${d.getDate()}</div>`
+          + dayEvents.map(chipHTML).join('')
+          + `</div>`;
+  }
+  html += '</div>';
+  document.getElementById('calendarContainer').innerHTML = html;
+  renderLegend();
+}
+
+function navigate(dir) {
+  currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + dir, 1);
+  renderMonth();
+}
+
+document.getElementById('btnPrev').onclick = () => navigate(-1);
+document.getElementById('btnNext').onclick = () => navigate(1);
+document.getElementById('btnToday').onclick = () => { currentDate = new Date(); renderMonth(); };
+
+function openLogModal(type) {
+  editingId = null;
+  pendingType = type;
+  document.getElementById('logModalTitle').textContent = type === 'holiday' ? 'Log holiday' : 'Log personal day';
+  document.getElementById('fUsername').textContent = ME;
+  const today = fmt(new Date());
+  document.getElementById('fStartDate').value = today;
+  document.getElementById('fEndDate').value = today;
+  document.getElementById('btnDeleteEntry').style.display = 'none';
+  document.getElementById('logModal').classList.add('open');
+}
+
+function closeLogModal() {
+  document.getElementById('logModal').classList.remove('open');
+}
+
+async function saveCurrentEvent() {
+  const start_date = document.getElementById('fStartDate').value;
+  const end_date = document.getElementById('fEndDate').value;
+  if (!start_date || !end_date) { alert('Please choose both a start and end date.'); return; }
+  if (end_date < start_date) { alert('End date cannot be before start date.'); return; }
+  try {
+    if (editingId) {
+      const updated = await api('PUT', `/api/events/${editingId}`, { type: pendingType, start_date, end_date });
+      events = events.map(e => e.id === updated.id ? updated : e);
+    } else {
+      const created = await api('POST', '/api/events', { type: pendingType, start_date, end_date });
+      events.push(created);
+    }
+    closeLogModal();
+    renderMonth();
+  } catch (e) {
+    alert('Could not save: ' + e.message);
+  }
+}
+
+async function deleteCurrentEvent() {
+  if (!editingId) return;
+  if (!confirm('Delete this entry?')) return;
+  try {
+    await api('DELETE', `/api/events/${editingId}`);
+    events = events.filter(e => e.id !== editingId);
+    closeLogModal();
+    renderMonth();
+  } catch (e) {
+    alert('Could not delete: ' + e.message);
+  }
+}
+
+function onChipClick(id) {
+  const ev = events.find(e => e.id === id);
+  if (!ev) return;
+  if (ev.username === ME) {
+    editingId = id;
+    pendingType = ev.type;
+    document.getElementById('logModalTitle').textContent = ev.type === 'holiday' ? 'Edit holiday' : 'Edit personal day';
+    document.getElementById('fUsername').textContent = ME;
+    document.getElementById('fStartDate').value = ev.start_date;
+    document.getElementById('fEndDate').value = ev.end_date;
+    document.getElementById('btnDeleteEntry').style.display = '';
+    document.getElementById('logModal').classList.add('open');
+  } else {
+    document.getElementById('dName').textContent = ev.display_name || ev.username;
+    document.getElementById('dType').textContent = TYPE_LABEL[ev.type] || ev.type;
+    document.getElementById('dDates').textContent = ev.start_date === ev.end_date ? ev.start_date : `${ev.start_date} → ${ev.end_date}`;
+    document.getElementById('detailModal').classList.add('open');
+  }
+}
+
+(async function init() {
+  TOKEN = localStorage.getItem('tommi_token') || new URLSearchParams(location.search).get('token') || '';
+  try {
+    const auth = await api('GET', '/api/auth-check');
+    if (!auth.is_superuser) {
+      document.getElementById('deniedView').style.display = 'block';
+      return;
+    }
+    ME = auth.username;
+    events = await api('GET', '/api/events');
+    document.getElementById('app').style.display = 'block';
+    renderMonth();
+  } catch (e) {
+    document.getElementById('deniedView').style.display = 'block';
+  }
+})();
+</script>
+
+</body>
+</html>
