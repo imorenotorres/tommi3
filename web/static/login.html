@@ -27,6 +27,15 @@
         @media (max-width: 600px) {
             .login-box { padding: 24px 20px; }
         }
+
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: #fff; border-radius: 10px; padding: 32px 28px; max-width: 360px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.12); text-align: center; }
+        .modal-box h2 { color: #2D3876; margin-bottom: 12px; font-size: 1.2em; }
+        .modal-box p { color: #333; font-size: 0.9em; line-height: 1.5; margin-bottom: 20px; }
+        .modal-box p a { color: #2D3876; font-weight: 600; text-decoration: none; }
+        .modal-box .btn-login { width: 100%; background: #2D3876; color: #fff; border: none; padding: 11px; border-radius: 6px; font-size: 1em; cursor: pointer; }
+        .modal-box .btn-login:hover { background: #4250b3; }
     </style>
 <!-- Matomo -->
 <script>
@@ -62,21 +71,6 @@
     <div style="margin-top:16px;font-size:0.82em;color:#666;display:flex;justify-content:space-between;">
         <a href="#" onclick="showForgotPassword();return false;" style="color:#2D3876;text-decoration:none;">Forgot password?</a>
         <a href="#" onclick="showSignUp();return false;" style="color:#2D3876;text-decoration:none;">Request access</a>
-    </div>
-</div>
-
-<!-- Forgot password form -->
-<div class="login-box" id="forgotBox" style="display:none;">
-    <h2>Reset password</h2>
-    <p class="login-subtitle">Enter your email or username. If you are in the directory, we will send a password reset link.</p>
-    <div id="forgotMsg" style="font-size:0.85em;margin-bottom:10px;min-height:1.2em;"></div>
-    <div class="form-group">
-        <label>Email or username</label>
-        <input type="text" id="forgotEmail" autocomplete="email" placeholder="name@university.edu">
-    </div>
-    <button class="btn-login" onclick="submitForgotPassword()">Send reset link</button>
-    <div style="margin-top:14px;font-size:0.82em;text-align:center;">
-        <a href="#" onclick="showLoginForm();return false;" style="color:#2D3876;text-decoration:none;">Back to sign in</a>
     </div>
 </div>
 
@@ -134,6 +128,15 @@
     <button class="btn-login" onclick="doChangePassword()">Change password</button>
 </div>
 
+<!-- Forgot password popup -->
+<div class="modal-overlay" id="forgotModal" onclick="if(event.target===this) closeForgotPassword();">
+    <div class="modal-box">
+        <h2>Reset password</h2>
+        <p>To reset your password, please write to:<br><a href="mailto:amparo.zamora@uma.es">amparo.zamora@uma.es</a></p>
+        <button class="btn-login" onclick="closeForgotPassword()">Close</button>
+    </div>
+</div>
+
 <script>
 // Check if already logged in
 var token = localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
@@ -157,14 +160,14 @@ function doRedirect() {
 // ── Form switching ──
 function showLoginForm() {
     document.getElementById('loginBox').style.display = '';
-    document.getElementById('forgotBox').style.display = 'none';
     document.getElementById('signupBox').style.display = 'none';
     document.getElementById('changeBox').style.display = 'none';
 }
 function showForgotPassword() {
-    document.getElementById('loginBox').style.display = 'none';
-    document.getElementById('forgotBox').style.display = '';
-    document.getElementById('forgotMsg').textContent = '';
+    document.getElementById('forgotModal').classList.add('open');
+}
+function closeForgotPassword() {
+    document.getElementById('forgotModal').classList.remove('open');
 }
 function showSignUp() {
     document.getElementById('loginBox').style.display = 'none';
@@ -228,23 +231,6 @@ async function doChangePassword() {
     } catch (e) { msg.style.color = '#dc3545'; msg.textContent = 'Connection error'; }
 }
 
-// ── Forgot password ──
-async function submitForgotPassword() {
-    var email = document.getElementById('forgotEmail').value.trim();
-    var msg = document.getElementById('forgotMsg');
-    if (!email) { msg.style.color = '#dc3545'; msg.textContent = 'Please enter your email or username.'; return; }
-    try {
-        var resp = await fetch('/api/auth/forgot-password', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email })
-        });
-        var data = await resp.json();
-        msg.style.color = resp.ok ? '#16a34a' : '#dc3545';
-        msg.textContent = data.message || data.detail || 'An error occurred.';
-    } catch (e) { msg.style.color = '#dc3545'; msg.textContent = 'Connection error.'; }
-}
-
 // ── Request access ──
 async function submitSignUp() {
     var email = document.getElementById('signupEmail').value.trim();
@@ -268,7 +254,6 @@ async function submitSignUp() {
 // ── Key listeners ──
 document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
 document.getElementById('loginUser').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
-document.getElementById('forgotEmail').addEventListener('keydown', function(e) { if (e.key === 'Enter') submitForgotPassword(); });
 document.getElementById('signupEmail').addEventListener('keydown', function(e) { if (e.key === 'Enter') submitSignUp(); });
 </script>
 </body>
