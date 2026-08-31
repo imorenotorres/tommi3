@@ -115,27 +115,27 @@
 // ── Tool definitions ─────────────────────────────────────────────
 var TOOL_ACCESS = {
     // Learning & Mobility
-    'course_catalogue':   ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'module_overview':    ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'module_recognition': ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'micro_credentials':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'learning_support':   ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'unigracon':          ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'mobility_planner':   ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'internships':        ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'course_catalogue':   ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'module_overview':    ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'module_recognition': ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'micro_credentials':  ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'learning_support':   ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'unigracon':          ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'mobility_planner':   ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'internships':        ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
     // Research & Innovation
     'researcher_connect': ['teaching_staff', 'tester', 'superuser'],
     'research_proposals': ['teaching_staff', 'tester', 'superuser'],
     'research_portfolio': ['teaching_staff', 'tester', 'superuser'],
     'research_explorers': ['student', 'teaching_staff', 'tester', 'superuser'],
-    'european_projects':  ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'european_projects':  ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
     // Events & Communication
-    'event_catalogue':    ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'event_catalogue':    ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
     // Administration
-    'directory':          ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'new_directory':      ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'event_tracker':      ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
-    'intranet_services':  ['admin_staff', 'teaching_staff', 'tester', 'superuser'],
+    'directory':          ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'new_directory':      ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'event_tracker':      ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'intranet_services':  ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
     // AI Agents
     'tommi_agents':       ['teaching_staff', 'tester', 'superuser'],
     'tommi_testing':      ['tester', 'superuser'],
@@ -145,7 +145,7 @@ var TOOL_ACCESS = {
     'tool_visibility':    ['superuser'],
     'log_analytics':      ['superuser'],
     'matomo_analytics':   ['superuser'],
-    'holiday_tracker':    ['admin_staff', 'superuser'],
+    'holiday_tracker':    ['uninovis_staff', 'superuser'],
 };
 
 // Tools grouped by functionality
@@ -153,7 +153,7 @@ var SECTIONS = [
     {
         id: 'learning',
         title: 'WP2: Learning & Mobility',
-        roles: ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'],
+        roles: ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
         tools: [
             { id: 'course_catalogue', name: 'Course Catalogue', icon: '\uD83D\uDCDA', desc: 'Courses offered across UNINOVIS partner universities.', url: 'https://uninovis.widening.eu/student-courses', status: 'construction', external: true },
             { id: 'module_overview', name: 'Module Overview', icon: '\uD83D\uDCD6', desc: 'Educational modules available for mobility and recognition.', url: 'https://uninovis.widening.eu', status: 'soon', external: true },
@@ -180,7 +180,7 @@ var SECTIONS = [
     {
         id: 'events',
         title: 'WP5: Events & Communication',
-        roles: ['admin_staff', 'teaching_staff'],
+        roles: ['admin_staff', 'uninovis_staff', 'teaching_staff'],
         tools: [
             { id: 'event_catalogue', name: 'Event Catalogue', icon: '\uD83D\uDCC5', desc: 'Public catalogue of events, workshops, and activities.', url: 'https://uninovis.widening.eu/event-catalogue', status: 'active', external: true },
         ]
@@ -188,7 +188,7 @@ var SECTIONS = [
     {
         id: 'admin',
         title: 'WP1: Administration',
-        roles: ['admin_staff', 'teaching_staff'],
+        roles: ['admin_staff', 'uninovis_staff', 'teaching_staff'],
         tools: [
             { id: 'directory', name: 'Directory', icon: '\uD83D\uDCCB', desc: 'Internal staff directory. Contacts, groups, work packages, and org charts.', url: 'https://uninovis.widening.eu/directory', status: 'data-update', external: true },
             { id: 'new_directory', name: 'New Directory', icon: '\uD83D\uDCD2', desc: 'People, units, universities, and org charts synced from the Agora Directory API.', url: '/new-directory/', status: 'data-update' },
@@ -200,7 +200,7 @@ var SECTIONS = [
     {
         id: 'platform',
         title: 'WP4: Digital Platform & Sustainability',
-        roles: ['admin_staff', 'teaching_staff'],
+        roles: ['admin_staff', 'uninovis_staff', 'teaching_staff'],
         tools: [
             { id: 'dp_status', name: 'Status of DP Services', icon: '\uD83D\uDCCA', desc: 'Summary of all digital platform services across work packages.', url: 'https://uninovis.widening.eu/tb', status: 'active', external: true },
         ]
@@ -217,7 +217,7 @@ var SECTIONS = [
     },
     {
         id: 'uma_holidays',
-        title: 'Holiday Tracker',
+        title: 'UMA internal tools',
         emailDomain: 'uma.es',
         roles: [],
         tools: [
@@ -302,7 +302,7 @@ async function showMain() {
 
     // Hide "Edit my profile" if user doesn't have directory access
     // Show "Edit my profile" for staff roles that have directory access
-    var canEditProfile = roles.indexOf('admin_staff') !== -1 || roles.indexOf('teaching_staff') !== -1 || roles.indexOf('tester') !== -1 || roles.indexOf('superuser') !== -1;
+    var canEditProfile = roles.indexOf('admin_staff') !== -1 || roles.indexOf('uninovis_staff') !== -1 || roles.indexOf('teaching_staff') !== -1 || roles.indexOf('tester') !== -1 || roles.indexOf('superuser') !== -1;
     if (!canEditProfile) {
         document.getElementById('editProfileLink').style.display = 'none';
     }
@@ -437,7 +437,7 @@ function renderTabbedView(roles) {
 
 // ── Main render function ─────────────────────────────────────────
 function renderSections(roles) {
-    var isAdmin = roles.indexOf('admin_staff') !== -1 || roles.indexOf('tester') !== -1 || roles.indexOf('superuser') !== -1;
+    var isAdmin = roles.indexOf('admin_staff') !== -1 || roles.indexOf('uninovis_staff') !== -1 || roles.indexOf('tester') !== -1 || roles.indexOf('superuser') !== -1;
     if (isAdmin) {
         renderTabbedView(roles);
     } else {
@@ -582,6 +582,7 @@ function openUserManagement() {
         + '<select id="um-new-roles" multiple style="width:160px;padding:4px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.8rem;height:60px;">'
         + '<option value="student">student</option>'
         + '<option value="admin_staff">admin_staff</option>'
+        + '<option value="uninovis_staff">uninovis_staff</option>'
         + '<option value="teaching_staff">teaching_staff</option>'
         + '<option value="tester">tester</option>'
         + '<option value="superuser">superuser</option>'
@@ -597,6 +598,7 @@ function openUserManagement() {
         + '<select id="um-invite-role" style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
         + '<option value="teaching_staff">teaching_staff</option>'
         + '<option value="admin_staff">admin_staff</option>'
+        + '<option value="uninovis_staff">uninovis_staff</option>'
         + '<option value="student">student</option>'
         + '<option value="tester">tester</option>'
         + '<option value="superuser">superuser</option>'
@@ -620,6 +622,7 @@ function openUserManagement() {
         + '<option value="">All roles</option>'
         + '<option value="student">student</option>'
         + '<option value="admin_staff">admin_staff</option>'
+        + '<option value="uninovis_staff">uninovis_staff</option>'
         + '<option value="teaching_staff">teaching_staff</option>'
         + '<option value="tester">tester</option>'
         + '<option value="superuser">superuser</option>'
@@ -913,7 +916,7 @@ async function umEditRoles(username) {
     var user = _umUsers.find(function(u) { return u.username === username; });
     if (!user) return;
     var currentRoles = user.roles || [user.role];
-    var allRoles = ['student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'];
+    var allRoles = ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'];
     var checkboxes = allRoles.map(function(r) {
         var checked = currentRoles.indexOf(r) !== -1 ? ' checked' : '';
         return '<label style="display:block;font-size:0.85rem;margin:2px 0;"><input type="checkbox" value="' + r + '"' + checked + '> ' + r + '</label>';
@@ -1150,7 +1153,7 @@ async function amResetLogs(agentId) {
 
 // ── Tool Visibility Panel ───────────────────────────────────────
 var _tvData = {};
-var ALL_ROLES = ['public', 'student', 'admin_staff', 'teaching_staff', 'tester', 'superuser'];
+var ALL_ROLES = ['public', 'student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'];
 
 // Readable labels for tool IDs
 var TOOL_LABELS = {
@@ -1242,7 +1245,7 @@ function tvRender() {
     if (!container) return;
 
     var roleLabels = {
-        public: 'Public', student: 'Student', admin_staff: 'Admin staff',
+        public: 'Public', student: 'Student', admin_staff: 'Admin staff', uninovis_staff: 'UNINOVIS staff',
         teaching_staff: 'Teaching staff', tester: 'Tester', superuser: 'Superuser'
     };
 

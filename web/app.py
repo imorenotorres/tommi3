@@ -4731,7 +4731,7 @@ async def set_tool_access(request: Request, session: dict = Depends(require_role
     if not isinstance(new_access, dict):
         raise HTTPException(status_code=400, detail="tool_access must be a dict")
     # Validate: values must be lists of known role strings
-    valid_roles = {"public", "student", "admin_staff", "teaching_staff", "tester", "superuser"}
+    valid_roles = {"public", "student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"}
     for tool_id, roles in new_access.items():
         if not isinstance(roles, list):
             raise HTTPException(status_code=400, detail=f"Roles for {tool_id} must be a list")

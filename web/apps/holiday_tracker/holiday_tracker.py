@@ -1,7 +1,10 @@
 """
-UNINOVIS Holiday Tracker — shared calendar for UMA admin staff (and superusers)
-to log their own holidays and personal days. Purely self-reported; no external
-sync (Agora or otherwise) and no data beyond who logged which day(s) as what.
+UNINOVIS Holiday Tracker — shared calendar for UMA-based uninovis_staff (and
+superusers) to log their own holidays and personal days. Access requires both
+the uninovis_staff role AND a @uma.es login — the uninovis_staff role itself
+is not UMA-specific (it's usable alliance-wide), this app just additionally
+scopes it to UMA. Purely self-reported; no external sync (Agora or otherwise)
+and no data beyond who logged which day(s) as what.
 """
 
 import json
@@ -66,12 +69,15 @@ def _is_uma_email(username: str) -> bool:
     return username.strip().lower().rsplit("@", 1)[-1] == "uma.es"
 
 
-_ALLOWED_ROLES = {"admin_staff", "superuser"}
+_ALLOWED_ROLES = {"uninovis_staff", "superuser"}
 
 
 def _require_uma_staff(session: dict = Depends(_require_auth)) -> dict:
+    """Requires BOTH the uninovis_staff (or superuser) role AND a @uma.es
+    login — the role alone isn't enough, since uninovis_staff is usable
+    alliance-wide and this app is UMA-only."""
     if not (_ALLOWED_ROLES & set(_user_roles(session))) or not _is_uma_email(session["username"]):
-        raise HTTPException(status_code=403, detail="UMA admin staff access only")
+        raise HTTPException(status_code=403, detail="uninovis_staff (UMA) access only")
     return session
 
 
@@ -118,7 +124,7 @@ def auth_check(session: dict = Depends(_require_auth)):
 
 @router.get("/api/events")
 def list_events(session: dict = Depends(_require_uma_staff)):
-    """All UMA admin staff/superusers see everyone's logged holidays/personal days."""
+    """All UMA-based uninovis_staff/superusers see everyone's logged holidays/personal days."""
     return [
         {**e, "display_name": _display_name(e["username"]), "is_editable": _is_editable(e)}
         for e in load_data()["events"]
@@ -149,7 +155,7 @@ class EventBody(BaseModel):
 
 @router.post("/api/events")
 def create_event(body: EventBody, session: dict = Depends(_require_uma_staff)):
-    """A UMA admin staff member/superuser logs a holiday/personal day for themselves only."""
+    """A UMA-based uninovis_staff member/superuser logs a holiday/personal day for themselves only."""
     if body.end_date < body.start_date:
         raise HTTPException(400, "end_date cannot be before start_date")
     data = load_data()

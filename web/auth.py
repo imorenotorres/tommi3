@@ -26,6 +26,7 @@ USERS_FILE = DATA_DIR / "users.json"
 ROLES = {
     "superuser": 4,
     "tester": 3,
+    "uninovis_staff": 2.5,  # admin_staff/teaching_staff who are also on the UNINOVIS project
     "admin_staff": 2,
     "teaching_staff": 2,
     "student": 1,
@@ -35,30 +36,30 @@ ROLES = {
 # Tool access — which roles can access each tool (defaults)
 _DEFAULT_TOOL_ACCESS = {
     # Learning & Mobility
-    "course_catalogue":   ["student", "admin_staff", "teaching_staff", "tester", "superuser"],
-    "module_overview":    ["student", "admin_staff", "teaching_staff", "tester", "superuser"],
-    "module_recognition": ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "micro_credentials":  ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "learning_support":   ["student", "admin_staff", "teaching_staff", "tester", "superuser"],
-    "unigracon":          ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "mobility_planner":   ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "course_catalogue":   ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "module_overview":    ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "module_recognition": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "micro_credentials":  ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "learning_support":   ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "unigracon":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "mobility_planner":   ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
     # Research & Innovation
-    "internships":        ["student", "admin_staff", "teaching_staff", "tester", "superuser"],
+    "internships":        ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
     "researcher_connect": ["teaching_staff", "tester", "superuser"],
     "research_proposals": ["teaching_staff", "tester", "superuser"],
     "research_portfolio": ["teaching_staff", "tester", "superuser"],
     "research_explorers": ["student", "teaching_staff", "tester", "superuser"],
     # Events & Communication
-    "event_catalogue":    ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "event_catalogue":    ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
     # Administration
-    "directory":          ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "new_directory":      ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "event_tracker":      ["admin_staff", "teaching_staff", "tester", "superuser"],
-    "dp_status":          ["admin_staff", "teaching_staff", "tester", "superuser"],
+    "directory":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "new_directory":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "event_tracker":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "dp_status":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
     # Analytics
     "log_analytics":      ["superuser"],
     "matomo_analytics":   ["superuser"],
-    "holiday_tracker":    ["admin_staff", "superuser"],
+    "holiday_tracker":    ["uninovis_staff", "superuser"],
 }
 
 TOOL_ACCESS_FILE = DATA_DIR / "tool_access.json"
@@ -85,7 +86,7 @@ def save_tool_access(access: dict):
 TOOL_ACCESS = _load_tool_access()
 
 # Roles that grant editing rights in apps (equivalent to old "tester" check)
-EDITOR_ROLES = {"admin_staff", "teaching_staff", "tester", "superuser"}
+EDITOR_ROLES = {"admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"}
 
 
 def user_roles(user_or_session: dict) -> list:
