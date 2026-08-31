@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de redacción — Panel docente</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+.header { background: #4250b3; padding: 14px 24px; color: #fff; }
+.header h1 { font-size: 18px; font-weight: 700; }
+.header .sub { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+.container { max-width: 600px; margin: 0 auto; padding: 32px 20px; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; transition: border-color 0.15s; }
+.card:hover { border-color: #4250b3; }
+.card-icon { font-size: 28px; flex-shrink: 0; }
+.card h2 { font-size: 15px; margin-bottom: 2px; }
+.card p { font-size: 13px; color: #64748b; }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>Práctica de redacción</h1>
+    <div class="sub" id="course-info"></div>
+</div>
+<div class="container">
+    <a class="card" id="link-practicar">
+        <span class="card-icon">📝</span>
+        <div><h2>Practicar (vista estudiante)</h2><p>Prueba la herramienta como la verán los estudiantes.</p></div>
+    </a>
+    <a class="card" id="link-editor">
+        <span class="card-icon">✏️</span>
+        <div><h2>Editor de conceptos</h2><p>Añade, edita o elimina conceptos y sus rúbricas de evaluación.</p></div>
+    </a>
+    <a class="card" id="link-revisiones">
+        <span class="card-icon">📊</span>
+        <div><h2>Revisión de respuestas</h2><p>Revisa las respuestas anónimas de los estudiantes y la calidad del feedback de la IA.</p></div>
+    </a>
+    <a class="card" href="/lti/redaccion/info" target="_blank" style="border-left:4px solid #94a3b8;">
+        <span class="card-icon">ℹ️</span>
+        <div><h2>Guía de uso</h2><p>Información sobre la herramienta, cómo configurarla y datos técnicos para el administrador.</p></div>
+    </a>
+</div>
+<script>
+var token = new URLSearchParams(window.location.search).get('token') || '';
+document.getElementById('link-practicar').href = '/lti/redaccion/practicar?token=' + token;
+document.getElementById('link-editor').href = '/lti/redaccion/editor?token=' + token;
+document.getElementById('link-revisiones').href = '/lti/redaccion/revisiones?token=' + token;
+
+fetch('/lti/redaccion/api/session?token=' + token)
+    .then(r => r.json())
+    .then(d => { document.getElementById('course-info').textContent = d.course_name + ' — ' + d.name; })
+    .catch(() => {});
+</script>
+</body>
+</html>

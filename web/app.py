@@ -168,7 +168,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         is_public_search = any(path.endswith(s) for s in ("/publications-search", "/topic-search", "/collaboration-search", "/collaboration-map", "/projects-search", "/project-topic-search", "/publications-map", "/pdf-list", "/filters", "/search")) and any(f"/{aid}/" in path for aid in ("responsible_ai3", "health_wellbeing_sistems"))
         is_tutores = path.startswith("/api/tutores/")
         is_lali_public = path in ("/api/eulalia/auth-level", "/api/agent/eulalia/transcripcion-config")
-        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/interaction-log" not in path and "/public-tools" not in path and "/public-agent/" not in path and "/api/feedback" != path and not is_study and not is_public_search and not is_rag_study2 and not is_tutores and not is_lali_public:
+        is_lti = path.startswith("/lti/")
+        if path.startswith("/api/") and path not in self.PUBLIC_PATHS and "/pdf/" not in path and "/quickguide" not in path and "/agreements-search" not in path and "/agreements-config" not in path and "/interaction-log" not in path and "/public-tools" not in path and "/public-agent/" not in path and "/api/feedback" != path and not is_study and not is_public_search and not is_rag_study2 and not is_tutores and not is_lali_public and not is_lti:
             token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
             if not token:
                 token = request.query_params.get("token", "")
@@ -374,6 +375,10 @@ app.mount("/researcher_connect/static", StaticFiles(directory=SCRIPT_DIR / "apps
 from apps.event_tracker.event_tracker import router as event_tracker_router
 app.include_router(event_tracker_router)
 app.mount("/event-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "event_tracker" / "static"), name="event_tracker_static")
+
+# Mount LTI Redacción app
+from apps.redaccion_lti.lti_provider import router as lti_redaccion_router
+app.include_router(lti_redaccion_router)
 
 # Mount Matomo Analytics app
 from apps.matomo_analytics.matomo_analytics import router as matomo_analytics_router

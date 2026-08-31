@@ -12,7 +12,7 @@
       "tema": 1,
       "nombre": "Fonema",
       "pista": "Piensa en qué distingue a un fonema de un sonido concreto y de una letra.",
-      "referencia": "Un fonema se puede definir de dos formas: (1) Es una clase de sonidos, tales que la sustitución de uno por otro no tiene consecuencias a la hora de diferencian una palabra de otra. (2) Es una representación mental que nos permite producir sonidos concretos e interpretar los sonidos que oímos. Los fonemas no son sonidos concretos ni letras. Se representan entre barras: /p/.",
+      "referencia": "Un fonema se puede definir de dos formas: (1) Es una clase de sonidos, tales que la sustitución de uno por otro no tiene consecuencias a la hora de diferencian una palabra de otra. Por ejemplo, en español los sonidos que asociamos a la [e] y a la [a] corresponden a fonemas diferentes, puesto que si sustituimos uno por otro en una palabra como \"mesa\" tendríamos una palabra diferente (\"masa\") (2) Es una representación mental que nos permite producir sonidos concretos e interpretar los sonidos que oímos. Los fonemas no son sonidos concretos ni letras. Se representan entre barras: /p/.",
       "rubrica": [
         {
           "descripcion": "Menciona que un fonema es una clase o categoría de sonidos (no un sonido concreto individual)."

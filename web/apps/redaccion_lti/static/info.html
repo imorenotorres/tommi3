@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica de redacción — Información</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.7; }
+.header { background: #4250b3; padding: 14px 24px; color: #fff; display: flex; align-items: center; gap: 12px; }
+.header h1 { font-size: 18px; font-weight: 700; }
+.container { max-width: 780px; margin: 0 auto; padding: 32px 20px 60px; }
+h2 { font-size: 20px; color: #4250b3; margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }
+h3 { font-size: 16px; color: #1e293b; margin: 18px 0 8px; }
+p { margin-bottom: 12px; font-size: 14px; }
+ul, ol { margin: 8px 0 14px 20px; font-size: 14px; }
+li { margin-bottom: 6px; }
+.highlight { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: 13px; }
+.highlight strong { color: #1e40af; }
+.warning { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: 13px; }
+.step { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; margin: 12px 0; }
+.step-num { display: inline-block; width: 28px; height: 28px; background: #4250b3; color: #fff; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 700; font-size: 14px; margin-right: 8px; flex-shrink: 0; }
+.step-title { font-weight: 700; font-size: 15px; color: #1e293b; }
+.screenshot { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin: 12px 0; font-size: 13px; color: #475569; }
+.screenshot .label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; }
+code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+th { background: #f8fafc; padding: 8px 12px; text-align: left; border-bottom: 2px solid #e2e8f0; color: #64748b; font-size: 12px; }
+td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
+.btn-test { display: inline-block; padding: 10px 24px; background: #4250b3; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; margin: 8px 4px 8px 0; }
+.btn-test:hover { background: #3740a0; }
+.btn-test.secondary { background: #fff; color: #4250b3; border: 2px solid #4250b3; }
+.btn-test.secondary:hover { background: #eff6ff; }
+.footer { text-align: center; padding: 20px; font-size: 12px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Práctica de redacción</h1>
+</div>
+
+<div class="container">
+
+<h2>¿Qué es?</h2>
+<p><strong>Práctica de redacción</strong> es una herramienta que permite a los estudiantes practicar la definición de conceptos clave de una asignatura, recibiendo feedback inmediato de una IA.</p>
+
+<p>El docente define los conceptos, las definiciones de referencia y los criterios de evaluación. La IA evalúa las respuestas de los estudiantes <strong>exclusivamente</strong> según lo que el docente ha indicado, sin añadir conocimiento propio.</p>
+
+<div class="highlight">
+<strong>Características principales:</strong>
+<ul style="margin-top:6px;">
+<li>Los estudiantes practican redactando definiciones con sus propias palabras</li>
+<li>La IA evalúa cada criterio de la rúbrica como cumplido o no cumplido</li>
+<li>Se evalúan también la ortografía y el estilo (con tolerancia configurable)</li>
+<li>Las respuestas se registran de forma <strong>anónima</strong> para que el docente pueda revisarlas</li>
+<li>Se integra en Moodle como herramienta LTI (sin instalar nada en Moodle)</li>
+</ul>
+</div>
+
+<h2>Funcionamiento paso a paso: papel de la IA</h2>
+
+<p>La herramienta parte de un <strong>banco de conceptos</strong> definido por el docente. Cada concepto incluye un nombre, una definición de referencia y una rúbrica con criterios de evaluación. El siguiente diagrama muestra las tres fases del proceso:</p>
+
+<!-- Visual diagram -->
+<div style="display:flex;gap:0;align-items:stretch;margin:20px 0 28px;font-size:13px;">
+    <!-- Phase 1: Student -->
+    <div style="flex:1;background:#eff6ff;border:2px solid #bfdbfe;border-radius:12px 0 0 12px;padding:16px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">👤</div>
+        <div style="font-weight:800;color:#1e40af;font-size:14px;margin-bottom:8px;">Paso 1</div>
+        <div style="font-weight:700;color:#1e293b;margin-bottom:6px;">El estudiante redacta</div>
+        <div style="color:#475569;font-size:12px;line-height:1.5;">Elige un concepto, lee la pista y escribe su definición con sus propias palabras.</div>
+    </div>
+    <!-- Arrow -->
+    <div style="display:flex;align-items:center;background:linear-gradient(to right,#bfdbfe,#fde68a);padding:0 4px;">
+        <span style="font-size:20px;color:#64748b;">▶</span>
+    </div>
+    <!-- Phase 2: AI -->
+    <div style="flex:1.2;background:#fef3c7;border:2px solid #fde68a;padding:16px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">🤖</div>
+        <div style="font-weight:800;color:#92400e;font-size:14px;margin-bottom:8px;">Paso 2 — LA IA</div>
+        <div style="font-weight:700;color:#1e293b;margin-bottom:6px;">La IA evalúa</div>
+        <div style="color:#475569;font-size:12px;line-height:1.5;">Compara la respuesta <strong>solo</strong> con la referencia del docente. Evalúa cada criterio de la rúbrica + ortografía + estilo.</div>
+        <div style="margin-top:8px;background:#fff;border:1px solid #fde68a;border-radius:6px;padding:6px 8px;font-size:11px;color:#92400e;font-weight:600;">⚠️ No usa conocimiento propio — solo la referencia del docente</div>
+    </div>
+    <!-- Arrow -->
+    <div style="display:flex;align-items:center;background:linear-gradient(to right,#fde68a,#bbf7d0);padding:0 4px;">
+        <span style="font-size:20px;color:#64748b;">▶</span>
+    </div>
+    <!-- Phase 3: Feedback -->
+    <div style="flex:1;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:0 12px 12px 0;padding:16px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">✅</div>
+        <div style="font-weight:800;color:#166534;font-size:14px;margin-bottom:8px;">Paso 3</div>
+        <div style="font-weight:700;color:#1e293b;margin-bottom:6px;">Feedback al estudiante</div>
+        <div style="color:#475569;font-size:12px;line-height:1.5;">Puntuación desglosada (contenido + ortografía + estilo) con comentario por cada criterio. Puede reintentar.</div>
+    </div>
+</div>
+
+<!-- Actors row -->
+<div style="display:flex;gap:12px;margin-bottom:28px;font-size:12px;">
+    <div style="flex:1;text-align:center;padding:8px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;">
+        <strong style="color:#4250b3;">👨‍🏫 El docente define</strong> (una vez): conceptos, referencias, rúbricas, tolerancia ortográfica y criterio de estilo
+    </div>
+    <div style="flex:1;text-align:center;padding:8px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;">
+        <strong style="color:#4250b3;">👁 El docente revisa</strong> (cuando quiera): respuestas anónimas, calidad del feedback de la IA, conceptos difíciles
+    </div>
+</div>
+
+<h3>Ejemplo concreto: «Lugar de articulación»</h3>
+
+<p>Supongamos que el docente ha definido este concepto:</p>
+
+<div class="screenshot">
+<div class="label">Definido por el docente</div>
+<strong>Nombre:</strong> Lugar de articulación<br>
+<strong>Pista para el estudiante:</strong> Piensa en dónde se produce la constricción o el contacto en el tracto vocal.<br>
+<strong>Referencia:</strong> El lugar de articulación es uno de los rasgos fonológicos que podemos emplear para clasificar los fonemas. Indica dónde se produce la constricción o el cierre en el tracto vocal al producir un sonido: labios, dientes, alvéolos, paladar, velo, etc. En español los lugares de articulación para las consonantes son: bilabial (/p,b,m/), labiodental (/f/), interdental (/θ/), dental (/t,d/), alveolar (/s,n,l,ɾ,r/), palatal (/ʝ,ʧ,ɲ/) y velar (/k,g,x/). Para las vocales distinguimos: anteriores (/i/, /e/), centrales (/a/) y posteriores (/o/, /u/).<br>
+<strong>Rúbrica:</strong>
+<ol>
+<li>Define el lugar de articulación como rasgo fonológico</li>
+<li>Define el lugar de articulación como punto donde se produce la constricción o contacto</li>
+<li>Menciona al menos 4 lugares de articulación de las consonantes con ejemplos de fonemas</li>
+<li>Menciona al menos 1 lugar de articulación de las vocales con ejemplos de fonemas</li>
+</ol>
+<strong>Tolerancia ortográfica:</strong> Errores menores aislados (1-2) se toleran. Marca false solo si hay errores frecuentes o graves. Si hay muchos errores se advierte que en el examen una pregunta con muchos errores ortográficos podría quedar sin valorar aunque el contenido sea correcto.<br>
+<strong>Criterio de estilo:</strong> Frases claras y bien construidas, sin ambigüedades, con un registro apropiado para un contexto académico. No se exige perfección literaria, solo claridad y corrección básica. Si la redacción es muy confusa advierte que en el examen una respuesta muy confusa podría quedar sin valorar aunque el contenido sea aparentemente correcto.
+</div>
+
+<h3>Paso 1: El estudiante redacta su definición</h3>
+<p>El estudiante ve el nombre del concepto y la pista, y escribe con sus propias palabras:</p>
+<div class="screenshot">
+<div class="label">Lo que escribe el estudiante</div>
+<em>«El lugar de articulación es un rasgo fonológico que indica en qué parte de la boca se produce el sonido. Por ejemplo, los sonidos bilabiales como /p/ y /b/ se producen con los labios, los dentales como /t/ y /d/ con los dientes, los alveolares como /s/ y /n/ en los alvéolos, y los velares como /k/ y /g/ en el velo del paladar.»</em>
+</div>
+
+<h3>Paso 2: Se construye el prompt para la IA</h3>
+<p>El servidor genera automáticamente un prompt que incluye:</p>
+<div class="screenshot">
+<div class="label">Lo que recibe la IA (simplificado)</div>
+<strong>Rol:</strong> «Eres un tutor que evalúa definiciones.»<br><br>
+<strong>Referencia (del docente):</strong> El lugar de articulación es uno de los rasgos fonológicos que podemos emplear para clasificar los fonemas. Indica dónde se produce la constricción o el cierre en el tracto vocal...<br><br>
+<strong>Definición del estudiante:</strong> El lugar de articulación es un rasgo fonológico que indica en qué parte de la boca...<br><br>
+<strong>Rúbrica — evalúa cada criterio:</strong><br>
+- Criterio 1: Define el lugar de articulación como rasgo fonológico<br>
+- Criterio 2: Define el lugar de articulación como punto donde se produce la constricción o contacto<br>
+- Criterio 3: Menciona al menos 4 lugares de articulación de las consonantes con ejemplos<br>
+- Criterio 4: Menciona al menos 1 lugar de articulación de las vocales con ejemplos<br>
+- Criterio 5: ORTOGRAFÍA (añadido automáticamente, con la tolerancia definida por el docente)<br>
+- Criterio 6: ESTILO (añadido automáticamente, con el criterio definido por el docente)<br><br>
+<strong>Instrucción clave:</strong> «Tu ÚNICA fuente de conocimiento es la referencia. NO uses tu conocimiento general.»
+</div>
+
+<div class="warning">
+<strong>⚠️ La IA no aporta conocimiento propio.</strong> Solo compara la respuesta del estudiante con la referencia escrita por el docente. Si la referencia no menciona algo, la IA no lo evaluará. Esto garantiza que el docente tiene control total sobre qué se considera correcto.
+</div>
+
+<h3>Paso 3: La IA devuelve la evaluación</h3>
+<p>La IA responde con un JSON que el sistema muestra al estudiante de forma visual:</p>
+<div class="screenshot">
+<div class="label">Lo que ve el estudiante</div>
+<strong>Puntuación: 70%</strong> (Contenido: 60/80 · Ortografía: 10/10 · Estilo: 10/10)<br><br>
+✅ <strong>Define el lugar de articulación como rasgo fonológico</strong> — Correcto, lo identifica como «rasgo fonológico».<br>
+✅ <strong>Define como punto donde se produce la constricción o contacto</strong> — Dice «en qué parte de la boca se produce el sonido», que es equivalente.<br>
+✅ <strong>Menciona al menos 4 lugares de articulación de las consonantes</strong> — Menciona bilabial, dental, alveolar y velar con ejemplos correctos.<br>
+❌ <strong>Menciona al menos 1 lugar de articulación de las vocales</strong> — No menciona las vocales (anteriores, centrales, posteriores).<br>
+✅ <strong>Ortografía</strong> — Sin errores.<br>
+✅ <strong>Estilo</strong> — Redacción clara y bien estructurada.<br><br>
+<em>«Tu definición es buena y cubre los aspectos principales de las consonantes. Te falta mencionar que las vocales también se clasifican por su lugar de articulación: anteriores (/i/, /e/), centrales (/a/) y posteriores (/o/, /u/). ¡Inténtalo de nuevo!»</em>
+</div>
+
+<p>El estudiante puede <strong>intentarlo de nuevo</strong> o pasar a otro concepto. Cada intento se registra de forma anónima para que el docente pueda revisarlo.</p>
+
+<h2>Instrucciones para docentes</h2>
+
+<h3>1. Configuración inicial en Moodle</h3>
+<p>El administrador de Moodle registra la herramienta una sola vez. Después, cualquier docente puede añadirla a su asignatura como actividad.</p>
+
+<div class="step">
+<span class="step-num">1</span>
+<span class="step-title">Añadir la actividad en tu curso Moodle</span>
+<p style="margin-top:8px;">Ve a tu asignatura → Activar edición → Añadir actividad → <strong>Herramienta externa</strong> → selecciona «Práctica de redacción».</p>
+</div>
+
+<div class="step">
+<span class="step-num">2</span>
+<span class="step-title">Acceder como docente</span>
+<p style="margin-top:8px;">Al hacer clic en la actividad, Moodle te redirige automáticamente al <strong>panel docente</strong>, donde tienes tres opciones:</p>
+<ul>
+<li><strong>Editor de conceptos</strong> — para crear y editar los conceptos de tu asignatura</li>
+<li><strong>Revisión de respuestas</strong> — para ver las respuestas anónimas de los estudiantes</li>
+<li><strong>Practicar</strong> — para probar la herramienta como la verán los estudiantes</li>
+</ul>
+</div>
+
+<h3>2. Crear un listado de conceptos</h3>
+<p>En el <strong>Editor de conceptos</strong>, cada concepto tiene:</p>
+
+<table>
+<tr><th>Campo</th><th>Descripción</th><th>Ejemplo</th></tr>
+<tr><td><strong>Nombre</strong></td><td>El nombre del concepto</td><td>Fonema</td></tr>
+<tr><td><strong>Tema</strong></td><td>Número de tema (para agrupar)</td><td>1</td></tr>
+<tr><td><strong>Pista</strong></td><td>Una orientación para el estudiante</td><td>Piensa en qué distingue a un fonema de un sonido concreto</td></tr>
+<tr><td><strong>Referencia</strong></td><td>La definición correcta (la IA solo usa esta información)</td><td>Un fonema es una clase de sonidos que permiten transmitir el mismo contenido semántico...</td></tr>
+<tr><td><strong>Rúbrica</strong></td><td>Criterios de evaluación (true/false cada uno)</td><td>1. Menciona que es una clase de sonidos<br>2. No lo confunde con letra o alófono</td></tr>
+</table>
+
+<div class="warning">
+<strong>⚠️ Importante:</strong> La IA evalúa <strong>exclusivamente</strong> según la referencia y la rúbrica que tú escribas. Si la referencia no menciona algo, la IA no lo evaluará. Esto te da control total sobre qué se considera correcto.
+</div>
+
+<h3>3. Configuración de evaluación</h3>
+<p>Al principio del editor puedes configurar:</p>
+<ul>
+<li><strong>Tolerancia ortográfica</strong> — instrucción para la IA sobre cuántos errores tolerar (por defecto: 1-2 errores menores se toleran)</li>
+<li><strong>Criterio de estilo</strong> — qué se evalúa en estilo (por defecto: claridad y registro académico)</li>
+<li><strong>Pesos</strong> — porcentaje de la nota para contenido (80%), ortografía (10%) y estilo (10%)</li>
+</ul>
+
+<h2>Instrucciones para estudiantes</h2>
+
+<div class="step">
+<span class="step-num">1</span>
+<span class="step-title">Elegir un concepto</span>
+<p style="margin-top:8px;">Los conceptos se muestran agrupados por temas. El estudiante hace clic en el que quiera practicar.</p>
+</div>
+
+<div class="step">
+<span class="step-num">2</span>
+<span class="step-title">Escribir la definición</span>
+<p style="margin-top:8px;">El estudiante ve una pista orientativa y un campo de texto donde redactar su definición con sus propias palabras. Mínimo 30 caracteres.</p>
+</div>
+
+<div class="step">
+<span class="step-num">3</span>
+<span class="step-title">Recibir feedback</span>
+<p style="margin-top:8px;">La IA evalúa cada criterio de la rúbrica (✓ cumplido / ✗ no cumplido) con un comentario breve. También evalúa ortografía y estilo. El estudiante ve su puntuación desglosada y puede intentarlo de nuevo.</p>
+</div>
+
+<div class="highlight">
+<strong>ℹ️ Anonimato:</strong> Las respuestas se guardan de forma anónima. El docente puede ver las respuestas pero <strong>no quién las escribió</strong>. No se usan para calificar.
+</div>
+
+<h2>Revisión de respuestas</h2>
+<p>En el panel de <strong>Revisión de respuestas</strong>, el docente puede:</p>
+<ul>
+<li>Ver estadísticas generales: número de redacciones, media de acierto, tasa de aprobados</li>
+<li>Filtrar por concepto o por resultado (aprobados, parciales, suspensos)</li>
+<li>Revisar cada respuesta individual con el feedback de la IA</li>
+<li>Detectar conceptos que los estudiantes encuentran difíciles</li>
+<li>Verificar que la IA está evaluando correctamente</li>
+</ul>
+
+<h2>Datos técnicos para el administrador de Moodle</h2>
+
+<table>
+<tr><th>Campo</th><th>Valor</th></tr>
+<tr><td>Tipo de herramienta</td><td>LTI 1.1</td></tr>
+<tr><td>URL de la herramienta</td><td><code>https://gloria.uma.es/lti/redaccion</code></td></tr>
+<tr><td>Consumer key</td><td><code>redaccion_uma</code></td></tr>
+<tr><td>Shared secret</td><td>(solicitar al responsable del servidor)</td></tr>
+<tr><td>Privacidad</td><td>Enviar nombre y email del usuario</td></tr>
+</table>
+
+<p>Cada asignatura que utilice la herramienta tendrá su propio banco de conceptos y su propio registro de respuestas, separados automáticamente por el identificador de curso de Moodle.</p>
+
+<h2>Probar la herramienta</h2>
+<p>Puedes probar la herramienta sin Moodle usando estos enlaces de demostración:</p>
+
+<a class="btn-test" href="/lti/redaccion/test?role=instructor">Probar como docente</a>
+<a class="btn-test secondary" href="/lti/redaccion/test?role=learner">Probar como estudiante</a>
+
+<p style="margin-top:8px;font-size:12px;color:#94a3b8;">Los enlaces de prueba usan un curso de demostración con conceptos de ejemplo. Los cambios se guardan pero no afectan a ninguna asignatura real.</p>
+
+</div>
+
+<div class="footer">
+    Práctica de redacción — Herramienta LTI desarrollada con TOMMI · Universidad de Málaga
+</div>
+
+</body>
+</html>
