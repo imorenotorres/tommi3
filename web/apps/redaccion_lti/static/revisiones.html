@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revisión de respuestas</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+.header { background: #4250b3; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+.header .title { color: #fff; font-size: 16px; font-weight: 600; }
+.container { max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+h2 { font-size: 20px; margin-bottom: 8px; color: #4250b3; }
+.subtitle { font-size: 14px; color: #64748b; margin-bottom: 20px; line-height: 1.5; }
+
+.stats-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; flex: 1; min-width: 120px; text-align: center; }
+.stat-num { font-size: 28px; font-weight: 800; color: #4250b3; }
+.stat-label { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+.filter-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+.filter-row select { padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; font-family: inherit; }
+
+.entry { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+.entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.entry-concept { font-weight: 700; color: #4250b3; font-size: 14px; }
+.entry-date { font-size: 11px; color: #94a3b8; }
+.entry-score { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+.score-good { background: #f0fdf4; color: #16a34a; }
+.score-mid { background: #fffbeb; color: #d97706; }
+.score-bad { background: #fef2f2; color: #dc2626; }
+
+.entry-def { font-size: 13px; color: #475569; line-height: 1.6; margin-bottom: 10px; padding: 10px; background: #f8fafc; border-radius: 6px; border-left: 3px solid #e2e8f0; }
+.criterion { display: flex; gap: 6px; margin-bottom: 3px; font-size: 12px; }
+.criterion-icon { flex-shrink: 0; }
+.entry-comment { font-size: 12px; color: #64748b; font-style: italic; margin-top: 6px; padding: 6px 10px; background: #eff6ff; border-radius: 4px; }
+
+.loading { text-align: center; padding: 40px; color: #94a3b8; }
+.empty { text-align: center; padding: 40px; color: #94a3b8; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <a href="#" onclick="window.location='/lti/redaccion/docente?token='+_ltiToken;return false;" style="color:#fff;text-decoration:none;font-weight:700;font-size:15px;">← Volver</a>
+    <span class="title" style="flex:1;">Revisión de respuestas</span>
+</div>
+
+<div class="container">
+    <h2>Práctica de redacción — Registro de interacciones</h2>
+    <p class="subtitle">Este registro es anónimo: no se almacena la identidad del estudiante. Permite al docente revisar la calidad de las respuestas de la IA y detectar conceptos que los estudiantes encuentran difíciles.</p>
+
+    <div id="stats-area"></div>
+
+    <div class="filter-row">
+        <label style="font-size:12px;font-weight:600;color:#475569;">Filtrar:</label>
+        <select id="filter-concepto" onchange="applyFilters()">
+            <option value="">Todos los conceptos</option>
+        </select>
+        <select id="filter-resultado" onchange="applyFilters()">
+            <option value="">Todos los resultados</option>
+            <option value="good">Aprobados (≥75%)</option>
+            <option value="mid">Parciales (50-74%)</option>
+            <option value="bad">Suspensos (&lt;50%)</option>
+        </select>
+    </div>
+
+    <div id="entries-area"><div class="loading">Cargando...</div></div>
+</div>
+
+<script>
+var _ltiToken = new URLSearchParams(window.location.search).get('token') || '';
+var _origFetch = window.fetch;
+window.fetch = function(url, opts) {
+    if (typeof url === 'string' && url.startsWith('/lti/')) {
+        var sep = url.includes('?') ? '&' : '?';
+        url = url + sep + 'token=' + encodeURIComponent(_ltiToken);
+    }
+    return _origFetch(url, opts);
+};
+</script>
+<script>
+
+var allEntries = [];
+
+function getToken() {
+    return _ltiToken;
+}
+
+async function loadData() {
+    try {
+        var res = await fetch('/lti/redaccion/api/log?token=' + encodeURIComponent(getToken()));
+        if (!res.ok) throw new Error('Error ' + res.status);
+        var data = await res.json();
+        allEntries = data.entries || [];
+        allEntries.reverse();
+
+        var concepts = {};
+        allEntries.forEach(function(e) { concepts[e.concepto] = (concepts[e.concepto] || 0) + 1; });
+        var sel = document.getElementById('filter-concepto');
+        Object.keys(concepts).sort().forEach(function(c) {
+            var opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c + ' (' + concepts[c] + ')';
+            sel.appendChild(opt);
+        });
+
+        renderStats();
+        applyFilters();
+    } catch(e) {
+        document.getElementById('entries-area').innerHTML = '<div class="loading" style="color:#dc2626;">Error: ' + e.message + '</div>';
+    }
+}
+
+function renderStats() {
+    var total = allEntries.length;
+    var approved = allEntries.filter(function(e) { return e.total_criterios > 0 && e.aprobados / e.total_criterios >= 0.75; }).length;
+    var concepts = {};
+    allEntries.forEach(function(e) { concepts[e.concepto] = true; });
+    var avgScore = total > 0 ? Math.round(allEntries.reduce(function(s, e) {
+        return s + (e.total_criterios > 0 ? e.aprobados / e.total_criterios * 100 : 0);
+    }, 0) / total) : 0;
+
+    var html = '<div class="stats-row">';
+    html += '<div class="stat-card"><div class="stat-num">' + total + '</div><div class="stat-label">Redacciones</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">' + Object.keys(concepts).length + '</div><div class="stat-label">Conceptos</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">' + avgScore + '%</div><div class="stat-label">Media de acierto</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">' + Math.round(100 * approved / (total || 1)) + '%</div><div class="stat-label">Tasa de aprobados</div></div>';
+    html += '</div>';
+    document.getElementById('stats-area').innerHTML = html;
+}
+
+function applyFilters() {
+    var concepto = document.getElementById('filter-concepto').value;
+    var resultado = document.getElementById('filter-resultado').value;
+
+    var filtered = allEntries.filter(function(e) {
+        if (concepto && e.concepto !== concepto) return false;
+        var pct = e.total_criterios > 0 ? e.aprobados / e.total_criterios * 100 : 0;
+        if (resultado === 'good' && pct < 75) return false;
+        if (resultado === 'mid' && (pct < 50 || pct >= 75)) return false;
+        if (resultado === 'bad' && pct >= 50) return false;
+        return true;
+    });
+
+    renderEntries(filtered);
+}
+
+function renderEntries(entries) {
+    var area = document.getElementById('entries-area');
+    if (entries.length === 0) {
+        area.innerHTML = '<div class="empty">No hay redacciones que coincidan con los filtros.</div>';
+        return;
+    }
+
+    var html = '<div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">' + entries.length + ' redacciones</div>';
+    entries.forEach(function(e) {
+        var pct = e.total_criterios > 0 ? Math.round(e.aprobados / e.total_criterios * 100) : 0;
+        var scoreClass = pct >= 75 ? 'score-good' : (pct >= 50 ? 'score-mid' : 'score-bad');
+
+        html += '<div class="entry">';
+        html += '<div class="entry-header">';
+        html += '<span class="entry-concept">' + esc(e.concepto) + '</span>';
+        html += '<span>';
+        html += '<span class="entry-score ' + scoreClass + '">' + e.aprobados + '/' + e.total_criterios + ' (' + pct + '%)</span>';
+        html += ' <span class="entry-date">' + (e.fecha || '') + '</span>';
+        html += '</span></div>';
+
+        html += '<div class="entry-def">' + esc(e.definicion) + '</div>';
+
+        if (e.criterios && e.criterios.length) {
+            e.criterios.forEach(function(c) {
+                html += '<div class="criterion"><span class="criterion-icon">' + (c.cumplido ? '✅' : '❌') + '</span><span>' + esc(c.comentario || '') + '</span></div>';
+            });
+        }
+
+        if (e.comentario_general) {
+            html += '<div class="entry-comment">' + esc(e.comentario_general) + '</div>';
+        }
+
+        html += '</div>';
+    });
+
+    area.innerHTML = html;
+}
+
+function esc(s) {
+    return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+loadData();
+
+</script>
+</body>
+</html>
