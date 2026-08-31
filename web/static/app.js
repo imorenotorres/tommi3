@@ -2203,6 +2203,19 @@ function openAdminPanel() {
             <div id="bulk-result" style="display:none; margin-top:0.75rem; font-size:0.85rem;"></div>
         </div>
 
+        <div style="margin-bottom:1.5rem; padding:1rem; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+            <h3 style="margin:0 0 0.5rem 0; font-size:0.95rem;">Bulk invite from Excel</h3>
+            <p style="font-size:0.8rem; color:#64748b; margin-bottom:0.75rem;">
+                Upload a <b>.xlsx</b> (or <b>.csv</b>/<b>.tsv</b>) file with columns: <code>name</code>, <code>email</code>, <code>role</code>.
+                Each new email is created as a pending user and sent an invitation to set their own password.
+            </p>
+            <div id="bulk-invite-drop-zone" style="border:2px dashed #cbd5e1; border-radius:8px; padding:1.25rem; text-align:center; cursor:pointer; transition:border-color 0.15s, background 0.15s;">
+                <input type="file" id="bulk-invite-file-input" accept=".tsv,.csv,.txt,.xlsx,.xls" style="display:none;">
+                <span id="bulk-invite-drop-label" style="font-size:0.9rem; color:#64748b;">Drop file here or click to select</span>
+            </div>
+            <div id="bulk-invite-result" style="display:none; margin-top:0.75rem; font-size:0.85rem;"></div>
+        </div>
+
         <div id="pending-requests-section" style="margin-bottom:1.5rem; display:none;">
             <h3 style="margin:0 0 0.75rem 0; font-size:0.95rem;">Pending access requests</h3>
             <div id="requests-list" style="font-size:0.9rem;">Loading...</div>
@@ -2261,6 +2274,35 @@ function openAdminPanel() {
     fileInput.addEventListener('change', () => {
         if (fileInput.files.length > 0) {
             adminBulkUpload(fileInput.files[0]);
+        }
+    });
+
+    // Bulk invite: drop zone & file input
+    const inviteDropZone = document.getElementById('bulk-invite-drop-zone');
+    const inviteFileInput = document.getElementById('bulk-invite-file-input');
+
+    inviteDropZone.addEventListener('click', () => inviteFileInput.click());
+
+    inviteDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        inviteDropZone.style.borderColor = '#2563eb';
+        inviteDropZone.style.background = '#eff6ff';
+    });
+    inviteDropZone.addEventListener('dragleave', () => {
+        inviteDropZone.style.borderColor = '#cbd5e1';
+        inviteDropZone.style.background = '';
+    });
+    inviteDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        inviteDropZone.style.borderColor = '#cbd5e1';
+        inviteDropZone.style.background = '';
+        if (e.dataTransfer.files.length > 0) {
+            adminBulkInvite(e.dataTransfer.files[0]);
+        }
+    });
+    inviteFileInput.addEventListener('change', () => {
+        if (inviteFileInput.files.length > 0) {
+            adminBulkInvite(inviteFileInput.files[0]);
         }
     });
 
@@ -2612,6 +2654,76 @@ async function adminBulkUpload(file) {
         fileInput.value = '';
 
         // Refresh user list
+        loadUsersList();
+    } catch (err) {
+        resultDiv.style.display = 'block';
+        resultDiv.style.color = '#dc2626';
+        resultDiv.innerHTML = '<b>Connection error</b>';
+        label.textContent = 'Drop file here or click to select';
+    }
+}
+
+
+async function adminBulkInvite(file) {
+    const label = document.getElementById('bulk-invite-drop-label');
+    const resultDiv = document.getElementById('bulk-invite-result');
+    const fileInput = document.getElementById('bulk-invite-file-input');
+
+    label.textContent = `Uploading ${file.name}...`;
+    resultDiv.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const res = await authFetch('/api/auth/invite/bulk', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            resultDiv.style.display = 'block';
+            resultDiv.style.color = '#dc2626';
+            resultDiv.innerHTML = `<b>Error:</b> ${data.detail || 'Upload failed'}`;
+            label.textContent = 'Drop file here or click to select';
+            return;
+        }
+
+        let html = '';
+        if (data.total_invited > 0) {
+            html += `<span style="color:#16a34a;"><b>${data.total_invited}</b> invited</span>`;
+        }
+        if (data.total_no_email > 0) {
+            html += `${html ? ' &middot; ' : ''}<span style="color:#d97706;"><b>${data.total_no_email}</b> created but email not sent</span>`;
+        }
+        if (data.total_skipped > 0) {
+            html += `${html ? ' &middot; ' : ''}<span style="color:#d97706;"><b>${data.total_skipped}</b> skipped</span>`;
+        }
+        if (data.total_errors > 0) {
+            html += `${html ? ' &middot; ' : ''}<span style="color:#dc2626;"><b>${data.total_errors}</b> errors</span>`;
+        }
+
+        if (!data.smtp_configured) {
+            html += '<div style="margin-top:0.5rem; color:#d97706; font-size:0.8rem;">SMTP is not configured — users were created but no emails were sent.</div>';
+        }
+        if (data.skipped.length > 0) {
+            html += '<div style="margin-top:0.5rem; color:#d97706; font-size:0.8rem;"><b>Skipped:</b> ' + data.skipped.join(', ') + '</div>';
+        }
+        if (data.errors.length > 0) {
+            html += '<div style="margin-top:0.5rem; color:#dc2626; font-size:0.8rem;"><b>Errors:</b><ul style="margin:0.25rem 0 0 1rem; padding:0;">';
+            data.errors.forEach(e => { html += `<li>${e}</li>`; });
+            html += '</ul></div>';
+        }
+
+        resultDiv.style.display = 'block';
+        resultDiv.style.color = '';
+        resultDiv.innerHTML = html;
+        label.textContent = 'Drop file here or click to select';
+
+        fileInput.value = '';
+
         loadUsersList();
     } catch (err) {
         resultDiv.style.display = 'block';

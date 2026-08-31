@@ -29,12 +29,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .nav-btn { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 14px; cursor: pointer; font-size: 0.9rem; }
 .nav-btn:hover { background: #eee; }
 .current-label { font-size: 1.1rem; font-weight: 600; min-width: 180px; text-align: center; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.view-group { display: flex; }
+.view-btn { padding: 6px 16px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 0.85rem; margin-left: -1px; }
+.view-btn:first-child { border-radius: var(--radius) 0 0 var(--radius); margin-left: 0; }
+.view-btn:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.view-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .btn-log { border: none; border-radius: var(--radius); padding: 9px 16px; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: #fff; }
 .btn-log.holiday { background: #2e7d32; }
 .btn-log.holiday:hover { background: #388e3c; }
 .btn-log.personal { background: #ef6c00; }
 .btn-log.personal:hover { background: #f57c00; }
+.btn-log.commission { background: #1565c0; }
+.btn-log.commission:hover { background: #1976d2; }
 
 .legend { padding: 0 24px 12px; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 0.8rem; color: var(--text-light); }
 .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
@@ -50,7 +57,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .day-cell.today .day-num { background: var(--primary); color: #fff; display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; }
 .event-chip { display: block; font-size: 0.72rem; padding: 2px 6px; margin-bottom: 2px; border-radius: 4px; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .event-chip.personal_day { border: 2px dashed rgba(255,255,255,0.7); }
+.event-chip.comision_servicio { border: 2px dotted rgba(255,255,255,0.7); }
 .event-chip:hover { opacity: 0.85; }
+.event-chip.locked { opacity: 0.6; }
+
+.week-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; background: var(--border); margin: 0 24px 24px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.week-grid .day-header { background: var(--primary); color: #fff; text-align: center; padding: 8px; font-size: 0.8rem; font-weight: 600; }
+.week-grid .day-header .wg-date { display: block; font-size: 0.7rem; opacity: 0.85; font-weight: 400; margin-top: 2px; }
+.week-grid .day-header.today { background: var(--primary-light); }
+.week-grid .day-cell { background: var(--card); min-height: 360px; padding: 8px; }
+.week-grid .day-cell.today { background: #dbeafe; }
+.week-grid .day-cell .day-empty { color: var(--text-light); font-size: 0.75rem; }
 
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; justify-content: center; align-items: center; }
 .modal-overlay.open { display: flex; }
@@ -77,8 +94,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <script>uninovisNav({ crumbs: [{label:'System Administration', href:'/static/intranet.html'}], current: 'Holiday Tracker' });</script>
 
 <div id="deniedView" class="denied" style="display:none;">
-  <h2>Superuser access only</h2>
-  <p>The Holiday Tracker is only visible to superusers. Sign in with a superuser account to view or log holidays.</p>
+  <h2>UMA admin staff access only</h2>
+  <p>The Holiday Tracker is only visible to UMA admin staff. Sign in with a UMA admin staff (or superuser) account to view or log holidays.</p>
 </div>
 
 <div id="app" style="display:none;">
@@ -90,8 +107,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <span class="current-label" id="currentLabel"></span>
     </div>
     <div class="actions">
-      <button class="btn-log holiday" onclick="openLogModal('holiday')">🌴 Log holiday</button>
-      <button class="btn-log personal" onclick="openLogModal('personal_day')">🙂 Log personal day</button>
+      <div class="view-group">
+        <button class="view-btn active" data-view="month">Month</button>
+        <button class="view-btn" data-view="week">Week</button>
+      </div>
+      <button class="btn-log holiday" onclick="openLogModal('holiday')">🌴 Vacaciones</button>
+      <button class="btn-log personal" onclick="openLogModal('personal_day')">🙂 Asuntos propios</button>
+      <button class="btn-log commission" onclick="openLogModal('comision_servicio')">💼 Comisión de servicio</button>
     </div>
   </div>
 
@@ -143,6 +165,7 @@ let TOKEN = '';
 let ME = '';
 let events = [];
 let currentDate = new Date();
+let currentView = 'month';
 let editingId = null;
 let pendingType = 'holiday';
 
@@ -176,7 +199,9 @@ function personColor(key) {
   return `hsl(${hashHue(key)}, 62%, 42%)`;
 }
 
-const TYPE_LABEL = { holiday: '🌴 Holiday', personal_day: '🙂 Personal day' };
+const TYPE_ICON = { holiday: '🌴', personal_day: '🙂', comision_servicio: '💼' };
+const TYPE_LABEL = { holiday: '🌴 Holiday', personal_day: '🙂 Personal day', comision_servicio: '💼 Comisión de servicio' };
+const TYPE_LOG_NAME = { holiday: 'holiday', personal_day: 'personal day', comision_servicio: 'comisión de servicio' };
 
 function eventsOnDate(dateStr) {
   return events.filter(e => e.start_date <= dateStr && dateStr <= e.end_date);
@@ -184,8 +209,10 @@ function eventsOnDate(dateStr) {
 
 function chipHTML(ev) {
   const color = personColor(ev.display_name || ev.username);
-  const icon = ev.type === 'holiday' ? '🌴' : '🙂';
-  return `<span class="event-chip ${ev.type}" style="background:${color};" onclick="onChipClick('${ev.id}')">${icon} ${ev.display_name || ev.username}</span>`;
+  const icon = TYPE_ICON[ev.type] || '📌';
+  const locked = ev.username === ME && ev.is_editable === false;
+  const cls = 'event-chip ' + ev.type + (locked ? ' locked' : '');
+  return `<span class="${cls}" style="background:${color};" onclick="onChipClick('${ev.id}')">${icon} ${ev.display_name || ev.username}${locked ? ' 🔒' : ''}</span>`;
 }
 
 function renderLegend() {
@@ -228,19 +255,72 @@ function renderMonth() {
   renderLegend();
 }
 
+function renderWeek() {
+  const startOffset = (currentDate.getDay() + 6) % 7; // Monday-first
+  const weekStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - startOffset);
+  const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
+
+  const sameMonth = weekStart.getMonth() === weekEnd.getMonth() && weekStart.getFullYear() === weekEnd.getFullYear();
+  const label = sameMonth
+    ? `${weekStart.toLocaleString('en-US', { month: 'long' })} ${weekStart.getDate()}–${weekEnd.getDate()}, ${weekEnd.getFullYear()}`
+    : `${weekStart.toLocaleString('en-US', { month: 'short', day: 'numeric' })} – ${weekEnd.toLocaleString('en-US', { month: 'short', day: 'numeric' })}, ${weekEnd.getFullYear()}`;
+  document.getElementById('currentLabel').textContent = label;
+
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const todayStr = fmt(new Date());
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i);
+    days.push(d);
+  }
+
+  let html = '<div class="week-grid">';
+  days.forEach((d, i) => {
+    const isToday = fmt(d) === todayStr;
+    html += `<div class="day-header${isToday ? ' today' : ''}">${dayNames[i]}<span class="wg-date">${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })}</span></div>`;
+  });
+  days.forEach(d => {
+    const dStr = fmt(d);
+    const isToday = dStr === todayStr;
+    const dayEvents = eventsOnDate(dStr).sort((a,b) => (a.display_name||a.username).localeCompare(b.display_name||b.username));
+    html += `<div class="day-cell${isToday ? ' today' : ''}">`
+          + (dayEvents.length ? dayEvents.map(chipHTML).join('') : '<span class="day-empty">—</span>')
+          + `</div>`;
+  });
+  html += '</div>';
+  document.getElementById('calendarContainer').innerHTML = html;
+  renderLegend();
+}
+
+function render() {
+  if (currentView === 'week') renderWeek(); else renderMonth();
+}
+
 function navigate(dir) {
-  currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + dir, 1);
-  renderMonth();
+  if (currentView === 'week') {
+    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + dir * 7);
+  } else {
+    currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + dir, 1);
+  }
+  render();
 }
 
 document.getElementById('btnPrev').onclick = () => navigate(-1);
 document.getElementById('btnNext').onclick = () => navigate(1);
-document.getElementById('btnToday').onclick = () => { currentDate = new Date(); renderMonth(); };
+document.getElementById('btnToday').onclick = () => { currentDate = new Date(); render(); };
+document.querySelectorAll('.view-btn').forEach(btn => {
+  btn.onclick = () => {
+    currentView = btn.dataset.view;
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  };
+});
 
 function openLogModal(type) {
   editingId = null;
   pendingType = type;
-  document.getElementById('logModalTitle').textContent = type === 'holiday' ? 'Log holiday' : 'Log personal day';
+  document.getElementById('logModalTitle').textContent = 'Log ' + (TYPE_LOG_NAME[type] || type);
   document.getElementById('fUsername').textContent = ME;
   const today = fmt(new Date());
   document.getElementById('fStartDate').value = today;
@@ -267,7 +347,7 @@ async function saveCurrentEvent() {
       events.push(created);
     }
     closeLogModal();
-    renderMonth();
+    render();
   } catch (e) {
     alert('Could not save: ' + e.message);
   }
@@ -280,7 +360,7 @@ async function deleteCurrentEvent() {
     await api('DELETE', `/api/events/${editingId}`);
     events = events.filter(e => e.id !== editingId);
     closeLogModal();
-    renderMonth();
+    render();
   } catch (e) {
     alert('Could not delete: ' + e.message);
   }
@@ -290,9 +370,13 @@ function onChipClick(id) {
   const ev = events.find(e => e.id === id);
   if (!ev) return;
   if (ev.username === ME) {
+    if (ev.is_editable === false) {
+      alert('It is not possible to change a past holiday.');
+      return;
+    }
     editingId = id;
     pendingType = ev.type;
-    document.getElementById('logModalTitle').textContent = ev.type === 'holiday' ? 'Edit holiday' : 'Edit personal day';
+    document.getElementById('logModalTitle').textContent = 'Edit ' + (TYPE_LOG_NAME[ev.type] || ev.type);
     document.getElementById('fUsername').textContent = ME;
     document.getElementById('fStartDate').value = ev.start_date;
     document.getElementById('fEndDate').value = ev.end_date;
@@ -310,14 +394,14 @@ function onChipClick(id) {
   TOKEN = localStorage.getItem('tommi_token') || new URLSearchParams(location.search).get('token') || '';
   try {
     const auth = await api('GET', '/api/auth-check');
-    if (!auth.is_superuser) {
+    if (!auth.has_access) {
       document.getElementById('deniedView').style.display = 'block';
       return;
     }
     ME = auth.username;
     events = await api('GET', '/api/events');
     document.getElementById('app').style.display = 'block';
-    renderMonth();
+    render();
   } catch (e) {
     document.getElementById('deniedView').style.display = 'block';
   }

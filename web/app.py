@@ -750,6 +750,140 @@ async def api_invite_user(req: InviteUserRequest, request: Request, session: dic
     return {"ok": True, "email_sent": True, "username": req.username}
 
 
+@app.post("/api/auth/invite/bulk")
+async def api_bulk_invite_users(
+    file: UploadFile,
+    request: Request,
+    session: dict = Depends(require_role("superuser")),
+):
+    """
+    Bulk-invite users from an Excel (.xlsx) or CSV/TSV file.
+    Expected columns: name, email, role. Header row is optional (auto-detected).
+    Each new row creates a pending user and — if SMTP is configured — sends
+    an invitation email so the user can set their own password.
+    """
+    filename = (file.filename or "").lower()
+    content = await file.read()
+
+    rows: list[list[str]] = []
+
+    if filename.endswith((".xlsx", ".xls")):
+        import io
+        try:
+            from openpyxl import load_workbook
+            wb = load_workbook(io.BytesIO(content), read_only=True, data_only=True)
+            ws = wb.active
+            for row in ws.iter_rows(values_only=True):
+                cells = [str(c).strip() if c is not None else "" for c in row]
+                if any(cells):
+                    rows.append(cells)
+            wb.close()
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error reading Excel file: {e}")
+    elif filename.endswith((".tsv", ".txt", ".csv")):
+        import csv, io
+        text = content.decode("utf-8-sig")
+        dialect = csv.Sniffer().sniff(text[:2048], delimiters="\t,;")
+        reader = csv.reader(io.StringIO(text), dialect)
+        for row in reader:
+            cells = [c.strip() for c in row]
+            if any(cells):
+                rows.append(cells)
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported file format. Use .xlsx, .csv, .tsv, or .txt",
+        )
+
+    if not rows:
+        raise HTTPException(status_code=400, detail="File is empty")
+
+    # Column order defaults to name, email, role; a header row can reorder them.
+    col_idx = {"name": 0, "email": 1, "role": 2}
+    header = [c.lower() for c in rows[0]]
+    if any(h in ("name", "email", "role", "e-mail", "correo", "nombre", "rol") for h in header):
+        for i, h in enumerate(header):
+            if h in ("email", "e-mail", "correo"):
+                col_idx["email"] = i
+            elif h in ("name", "full_name", "nombre"):
+                col_idx["name"] = i
+            elif h in ("role", "rol"):
+                col_idx["role"] = i
+        rows = rows[1:]
+
+    if not rows:
+        raise HTTPException(status_code=400, detail="No data rows found after header")
+
+    smtp = _get_smtp_config()
+    base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+    valid_roles = set(ROLES.keys())
+
+    invited = []
+    no_email = []
+    skipped = []
+    errors = []
+
+    def cell(row, key):
+        idx = col_idx[key]
+        return row[idx].strip() if idx < len(row) else ""
+
+    for i, row in enumerate(rows, start=2):
+        name = cell(row, "name")
+        email = cell(row, "email").lower()
+        role = cell(row, "role").lower()
+
+        if not email or "@" not in email:
+            errors.append(f"Row {i}: missing or invalid email")
+            continue
+        if not role:
+            errors.append(f"Row {i} ({email}): missing role")
+            continue
+        if role not in valid_roles:
+            errors.append(f"Row {i} ({email}): invalid role '{role}' (must be {', '.join(sorted(valid_roles))})")
+            continue
+        if user_exists(email):
+            skipped.append(f"{email} (already exists)")
+            continue
+
+        create_user_pending(email, role)
+        invite_token = create_invite_token(email)
+        if not invite_token:
+            errors.append(f"Row {i} ({email}): failed to create invitation token")
+            continue
+
+        if smtp["configured"]:
+            invite_url = f"{base_url}/set-password?token={invite_token}"
+            ok = send_invite_email(
+                username=email,
+                invite_url=invite_url,
+                smtp_host=smtp["host"],
+                smtp_port=smtp["port"],
+                smtp_user=smtp["user"],
+                smtp_password=smtp["password"],
+                smtp_from=smtp["from_addr"],
+                smtp_use_tls=smtp["use_tls"],
+                recipient_name=name or None,
+            )
+            if ok:
+                invited.append({"name": name, "email": email, "role": role})
+            else:
+                no_email.append(email)
+        else:
+            no_email.append(email)
+
+    return {
+        "invited": invited,
+        "no_email": no_email,
+        "skipped": skipped,
+        "errors": errors,
+        "total_invited": len(invited),
+        "total_no_email": len(no_email),
+        "total_skipped": len(skipped),
+        "total_errors": len(errors),
+        "smtp_configured": smtp["configured"],
+    }
+
+
 @app.post("/api/auth/invite/resend/{username}")
 async def api_resend_invite(username: str, request: Request, session: dict = Depends(require_role("superuser"))):
     """Resend invitation email to an existing user."""

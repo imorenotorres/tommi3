@@ -58,7 +58,7 @@ _DEFAULT_TOOL_ACCESS = {
     # Analytics
     "log_analytics":      ["superuser"],
     "matomo_analytics":   ["superuser"],
-    "holiday_tracker":    ["superuser"],
+    "holiday_tracker":    ["admin_staff", "superuser"],
 }
 
 TOOL_ACCESS_FILE = DATA_DIR / "tool_access.json"
@@ -668,6 +668,7 @@ def send_invite_email(
     smtp_password: str,
     smtp_from: str,
     smtp_use_tls: bool = True,
+    recipient_name: str | None = None,
 ) -> bool:
     """
     Send an invitation email to the user (username is their email).
@@ -677,12 +678,14 @@ def send_invite_email(
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
 
+    greeting = f"Hello {recipient_name}," if recipient_name else "Hello,"
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = "Tommi Agents - Set up your account"
     msg["From"] = smtp_from
     msg["To"] = username
 
-    text_body = f"""Hello,
+    text_body = f"""{greeting}
 
 You have been invited to use Tommi Agents.
 
@@ -701,7 +704,7 @@ If you did not expect this email, you can safely ignore it.
 <html>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; max-width: 500px; margin: 0 auto; padding: 2rem;">
   <h2 style="color: #2563eb;">Tommi Agents</h2>
-  <p>Hello,</p>
+  <p>{greeting}</p>
   <p>You have been invited to use <b>Tommi Agents</b>.</p>
   <p>Please set your password by clicking the button below:</p>
   <p style="text-align: center; margin: 2rem 0;">

@@ -1,13 +1,13 @@
 """
-UNINOVIS Holiday Tracker — shared calendar for superusers to log their own
-holidays and personal days. Purely self-reported; no external sync (Agora
-or otherwise) and no data beyond who logged which day(s) as what.
+UNINOVIS Holiday Tracker — shared calendar for UMA admin staff (and superusers)
+to log their own holidays and personal days. Purely self-reported; no external
+sync (Agora or otherwise) and no data beyond who logged which day(s) as what.
 """
 
 import json
 import os
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
@@ -19,7 +19,7 @@ DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "directory",
 
 router = APIRouter(prefix="/holiday-tracker", tags=["holiday_tracker"])
 
-EVENT_TYPES = {"holiday", "personal_day"}
+EVENT_TYPES = {"holiday", "personal_day", "comision_servicio"}
 
 
 def _display_name(username: str) -> str:
@@ -61,10 +61,24 @@ def _require_auth(request: Request) -> dict:
     return session
 
 
-def _require_superuser(session: dict = Depends(_require_auth)) -> dict:
-    if "superuser" not in _user_roles(session):
-        raise HTTPException(status_code=403, detail="Superuser access only")
+def _is_uma_email(username: str) -> bool:
+    """Usernames are the login email; UMA accounts use the @uma.es domain."""
+    return username.strip().lower().rsplit("@", 1)[-1] == "uma.es"
+
+
+_ALLOWED_ROLES = {"admin_staff", "superuser"}
+
+
+def _require_uma_staff(session: dict = Depends(_require_auth)) -> dict:
+    if not (_ALLOWED_ROLES & set(_user_roles(session))) or not _is_uma_email(session["username"]):
+        raise HTTPException(status_code=403, detail="UMA admin staff access only")
     return session
+
+
+def _is_editable(ev: dict) -> bool:
+    """An entry can only be changed before it happens — once its start date
+    has arrived (today) or passed, it's locked."""
+    return ev["start_date"] > date.today().isoformat()
 
 
 # ── Data I/O ─────────────────────────────────────────────────────────
@@ -98,14 +112,17 @@ def auth_check(session: dict = Depends(_require_auth)):
         "username": session["username"],
         "role": session["role"],
         "roles": session.get("roles", [session["role"]]),
-        "is_superuser": "superuser" in _user_roles(session),
+        "has_access": bool(_ALLOWED_ROLES & set(_user_roles(session))) and _is_uma_email(session["username"]),
     }
 
 
 @router.get("/api/events")
-def list_events(session: dict = Depends(_require_superuser)):
-    """All superusers see everyone's logged holidays/personal days."""
-    return [{**e, "display_name": _display_name(e["username"])} for e in load_data()["events"]]
+def list_events(session: dict = Depends(_require_uma_staff)):
+    """All UMA admin staff/superusers see everyone's logged holidays/personal days."""
+    return [
+        {**e, "display_name": _display_name(e["username"]), "is_editable": _is_editable(e)}
+        for e in load_data()["events"]
+    ]
 
 
 class EventBody(BaseModel):
@@ -131,8 +148,8 @@ class EventBody(BaseModel):
 
 
 @router.post("/api/events")
-def create_event(body: EventBody, session: dict = Depends(_require_superuser)):
-    """A superuser logs a holiday/personal day for themselves only."""
+def create_event(body: EventBody, session: dict = Depends(_require_uma_staff)):
+    """A UMA admin staff member/superuser logs a holiday/personal day for themselves only."""
     if body.end_date < body.start_date:
         raise HTTPException(400, "end_date cannot be before start_date")
     data = load_data()
@@ -146,11 +163,11 @@ def create_event(body: EventBody, session: dict = Depends(_require_superuser)):
     }
     data["events"].append(event)
     save_data(data)
-    return {**event, "display_name": _display_name(event["username"])}
+    return {**event, "display_name": _display_name(event["username"]), "is_editable": _is_editable(event)}
 
 
 @router.put("/api/events/{event_id}")
-def update_event(event_id: str, body: EventBody, session: dict = Depends(_require_superuser)):
+def update_event(event_id: str, body: EventBody, session: dict = Depends(_require_uma_staff)):
     if body.end_date < body.start_date:
         raise HTTPException(400, "end_date cannot be before start_date")
     data = load_data()
@@ -158,22 +175,26 @@ def update_event(event_id: str, body: EventBody, session: dict = Depends(_requir
         if ev["id"] == event_id:
             if ev["username"] != session["username"]:
                 raise HTTPException(403, "You can only edit your own entries")
+            if not _is_editable(ev):
+                raise HTTPException(400, "It is not possible to change a past holiday.")
             ev["type"] = body.type
             ev["start_date"] = body.start_date
             ev["end_date"] = body.end_date
             save_data(data)
-            return {**ev, "display_name": _display_name(ev["username"])}
+            return {**ev, "display_name": _display_name(ev["username"]), "is_editable": _is_editable(ev)}
     raise HTTPException(404, "Event not found")
 
 
 @router.delete("/api/events/{event_id}")
-def delete_event(event_id: str, session: dict = Depends(_require_superuser)):
+def delete_event(event_id: str, session: dict = Depends(_require_uma_staff)):
     data = load_data()
     ev = next((e for e in data["events"] if e["id"] == event_id), None)
     if not ev:
         raise HTTPException(404, "Event not found")
     if ev["username"] != session["username"]:
         raise HTTPException(403, "You can only delete your own entries")
+    if not _is_editable(ev):
+        raise HTTPException(400, "It is not possible to change a past holiday.")
     data["events"] = [e for e in data["events"] if e["id"] != event_id]
     save_data(data)
     return {"ok": True}

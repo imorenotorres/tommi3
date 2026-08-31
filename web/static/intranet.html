@@ -145,7 +145,7 @@ var TOOL_ACCESS = {
     'tool_visibility':    ['superuser'],
     'log_analytics':      ['superuser'],
     'matomo_analytics':   ['superuser'],
-    'holiday_tracker':    ['superuser'],
+    'holiday_tracker':    ['admin_staff', 'superuser'],
 };
 
 // Tools grouped by functionality
@@ -213,7 +213,15 @@ var SECTIONS = [
             { id: 'user_management', name: 'User Management', icon: '\uD83D\uDD10', desc: 'Create, edit, and delete users. Manage roles and invitations.', url: '#', status: 'active', action: 'openUserManagement' },
             { id: 'agent_management', name: 'Agent Management', icon: '\u2699\uFE0F', desc: 'Agent visibility, access control, data export, and log management.', url: '#', status: 'active', action: 'openAgentManagement' },
             { id: 'tool_visibility', name: 'Tool Visibility', icon: '\uD83D\uDC41', desc: 'Configure which intranet tools are visible to each role.', url: '#', status: 'active', action: 'openToolVisibility' },
-            { id: 'holiday_tracker', name: 'Holiday Tracker', icon: '\uD83C\uDFD6\uFE0F', desc: 'Shared calendar of superusers\u2019 holidays and personal days.', url: '/holiday-tracker/', status: 'active' },
+        ]
+    },
+    {
+        id: 'uma_holidays',
+        title: 'Holiday Tracker',
+        emailDomain: 'uma.es',
+        roles: [],
+        tools: [
+            { id: 'holiday_tracker', name: 'Holiday Tracker', icon: '\uD83C\uDFD6\uFE0F', desc: 'Shared calendar of UMA holidays, personal days, and comisiones de servicio.', url: '/holiday-tracker/', status: 'active' },
         ]
     },
 ];
@@ -228,6 +236,13 @@ function canAccess(toolId, roles) {
 }
 
 function sectionVisible(section, roles) {
+    // Sections gated by email domain (e.g. UMA-only tools) ignore role-based
+    // visibility entirely — only an exact domain match on the user's login
+    // email shows them, regardless of role or superuser/tester status.
+    if (section.emailDomain) {
+        var email = (authUser && authUser.username || '').toLowerCase();
+        return email.endsWith('@' + section.emailDomain);
+    }
     // Show section if user has any of the section's target roles, or is superuser/tester
     for (var i = 0; i < roles.length; i++) {
         if (section.roles.indexOf(roles[i]) !== -1) return true;
@@ -590,6 +605,15 @@ function openUserManagement() {
         + '</div>'
         + '<p id="um-smtp-status" style="font-size:0.72rem;color:#888;margin-top:4px;">Checking email configuration...</p>'
         + '</div>'
+        + '<div style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">'
+        + '<h3 style="margin:0 0 8px 0;font-size:0.9rem;">Bulk invite from Excel</h3>'
+        + '<p style="font-size:0.72rem;color:#888;margin-bottom:8px;">Upload a .xlsx (or .csv/.tsv) file with columns: name, email, role. Each new email is created as a pending user and sent an invitation.</p>'
+        + '<div id="um-invite-drop-zone" style="border:2px dashed #cbd5e1;border-radius:8px;padding:14px;text-align:center;cursor:pointer;">'
+        + '<input type="file" id="um-invite-file-input" accept=".tsv,.csv,.txt,.xlsx,.xls" style="display:none;">'
+        + '<span id="um-invite-drop-label" style="font-size:0.85rem;color:#64748b;">Drop file here or click to select</span>'
+        + '</div>'
+        + '<div id="um-invite-result" style="display:none;margin-top:8px;font-size:0.8rem;"></div>'
+        + '</div>'
         + '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">'
         + '<input id="um-search" type="text" placeholder="Search..." oninput="umRender()" style="flex:1;min-width:120px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
         + '<select id="um-role-filter" onchange="umRender()" style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
@@ -619,6 +643,86 @@ function openUserManagement() {
     document.body.appendChild(overlay);
     umLoadUsers();
     umCheckSmtp();
+    umSetupBulkInvite();
+}
+
+function umSetupBulkInvite() {
+    var dropZone = document.getElementById('um-invite-drop-zone');
+    var fileInput = document.getElementById('um-invite-file-input');
+    if (!dropZone || !fileInput) return;
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.style.borderColor = '#2D3876';
+        dropZone.style.background = '#eef1fb';
+    });
+    dropZone.addEventListener('dragleave', function() {
+        dropZone.style.borderColor = '#cbd5e1';
+        dropZone.style.background = '';
+    });
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.style.borderColor = '#cbd5e1';
+        dropZone.style.background = '';
+        if (e.dataTransfer.files.length > 0) umBulkInvite(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length > 0) umBulkInvite(fileInput.files[0]);
+    });
+}
+
+async function umBulkInvite(file) {
+    var label = document.getElementById('um-invite-drop-label');
+    var resultDiv = document.getElementById('um-invite-result');
+    var fileInput = document.getElementById('um-invite-file-input');
+
+    label.textContent = 'Uploading ' + file.name + '...';
+    resultDiv.style.display = 'none';
+
+    var formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        var res = await fetch('/api/auth/invite/bulk', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + authToken },
+            body: formData
+        });
+        var data = await res.json();
+
+        if (!res.ok) {
+            resultDiv.style.display = '';
+            resultDiv.style.color = '#dc2626';
+            resultDiv.innerHTML = '<b>Error:</b> ' + (data.detail || 'Upload failed');
+            label.textContent = 'Drop file here or click to select';
+            return;
+        }
+
+        var html = '';
+        if (data.total_invited > 0) html += '<span style="color:#16a34a;"><b>' + data.total_invited + '</b> invited</span>';
+        if (data.total_no_email > 0) html += (html ? ' &middot; ' : '') + '<span style="color:#d97706;"><b>' + data.total_no_email + '</b> created, email not sent</span>';
+        if (data.total_skipped > 0) html += (html ? ' &middot; ' : '') + '<span style="color:#d97706;"><b>' + data.total_skipped + '</b> skipped</span>';
+        if (data.total_errors > 0) html += (html ? ' &middot; ' : '') + '<span style="color:#dc2626;"><b>' + data.total_errors + '</b> errors</span>';
+        if (!data.smtp_configured) html += '<div style="margin-top:6px;color:#d97706;">SMTP is not configured — users were created but no emails were sent.</div>';
+        if (data.skipped && data.skipped.length > 0) html += '<div style="margin-top:6px;color:#d97706;"><b>Skipped:</b> ' + data.skipped.join(', ') + '</div>';
+        if (data.errors && data.errors.length > 0) {
+            html += '<div style="margin-top:6px;color:#dc2626;"><b>Errors:</b><ul style="margin:4px 0 0 16px;padding:0;">';
+            data.errors.forEach(function(e) { html += '<li>' + e + '</li>'; });
+            html += '</ul></div>';
+        }
+
+        resultDiv.style.display = '';
+        resultDiv.style.color = '';
+        resultDiv.innerHTML = html;
+        label.textContent = 'Drop file here or click to select';
+        fileInput.value = '';
+        umLoadUsers();
+    } catch (e) {
+        resultDiv.style.display = '';
+        resultDiv.style.color = '#dc2626';
+        resultDiv.innerHTML = '<b>Connection error</b>';
+        label.textContent = 'Drop file here or click to select';
+    }
 }
 
 function closeUserManagement() {
