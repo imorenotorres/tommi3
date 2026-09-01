@@ -1,19 +1,153 @@
 {
-  "course_catalogue": ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "module_overview": ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "module_recognition": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "micro_credentials": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "learning_support": ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "unigracon": ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "mobility_planner": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "internships": ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "researcher_connect": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "research_proposals": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "research_portfolio": ["teaching_staff", "tester", "superuser"],
-  "research_explorers": ["public", "student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "event_catalogue": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "directory": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "dp_status": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-  "log_analytics": ["superuser"],
-  "matomo_analytics": ["superuser"]
+  "agent_management": [
+    "superuser"
+  ],
+  "log_analytics": [
+    "superuser"
+  ],
+  "collaboration_dashboard": [
+    "uninovis_staff",
+    "superuser"
+  ],
+  "course_catalogue": [
+    "student",
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "directory": [
+    "superuser"
+  ],
+  "dp_status": [
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "european_projects": [
+    "student",
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "event_catalogue": [
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "event_tracker": [
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "internships": [
+    "student",
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "learning_support": [
+    "student",
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "micro_credentials": [
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "mobility_planner": [
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "module_overview": [
+    "student",
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "module_recognition": [
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "new_directory": [
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "research_explorers": [
+    "public",
+    "student",
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "research_portfolio": [
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "research_proposals": [
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "researcher_connect": [
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "matomo_analytics": [
+    "superuser"
+  ],
+  "tool_visibility": [
+    "superuser"
+  ],
+  "holiday_tracker": [
+    "uninovis_staff",
+    "superuser"
+  ],
+  "unigracon": [
+    "student",
+    "admin_staff",
+    "uninovis_staff",
+    "teaching_staff",
+    "tester",
+    "superuser"
+  ],
+  "user_management": [
+    "superuser"
+  ]
 }

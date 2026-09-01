@@ -26,7 +26,7 @@ STATUSES = {"preparing", "confirmed", "happened"}
 
 # -- Auth helpers ---------------------------------------------------------------
 
-from auth import get_session, can_edit as _can_edit_check, user_roles
+from auth import get_session, user_roles
 
 
 def _get_token(request: Request) -> str | None:
@@ -46,11 +46,19 @@ def _require_auth(request: Request) -> dict:
     return session
 
 
+def _is_uma_email(username: str) -> bool:
+    """Usernames are the login email; UMA accounts use the @uma.es domain."""
+    return username.strip().lower().rsplit("@", 1)[-1] == "uma.es"
+
+
+_ALLOWED_ROLES = {"uninovis_staff", "superuser"}
+
+
 def _require_staff(session: dict = Depends(_require_auth)) -> dict:
-    """The dashboard logs collaborations across UNINOVIS staff — restricted to
-    staff roles (not students/public)."""
-    if not _can_edit_check(session):
-        raise HTTPException(status_code=403, detail="Staff access only")
+    """UMA internal tool — requires BOTH the uninovis_staff (or superuser)
+    role AND a @uma.es login."""
+    if not (_ALLOWED_ROLES & set(user_roles(session))) or not _is_uma_email(session["username"]):
+        raise HTTPException(status_code=403, detail="uninovis_staff (UMA) access only")
     return session
 
 
@@ -123,7 +131,7 @@ def index():
 
 @router.get("/api/auth-check")
 def auth_check(session: dict = Depends(_require_auth)):
-    has_access = _can_edit_check(session)
+    has_access = bool(_ALLOWED_ROLES & set(user_roles(session))) and _is_uma_email(session["username"])
     return {
         "username": session["username"],
         "role": session["role"],

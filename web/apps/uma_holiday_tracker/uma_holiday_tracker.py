@@ -17,6 +17,7 @@ from pydantic import BaseModel, field_validator
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "directory", "data.json")
+FESTIVITIES_PATH = os.path.join(os.path.dirname(__file__), "festivities.json")
 
 router = APIRouter(prefix="/holiday-tracker", tags=["holiday_tracker"])
 
@@ -206,56 +207,16 @@ def delete_event(event_id: str, session: dict = Depends(_require_uma_staff)):
 
 # ── UMA festivities ─────────────────────────────────────────────────
 # National + regional + local holidays for the University of Málaga.
-# Updated yearly. Format: "MM-DD" for recurring, "YYYY-MM-DD" for specific year.
+# Loaded from festivities.json (recurring "MM-DD" entries + per-year
+# "YYYY-MM-DD" entries); update that file yearly, no code changes needed.
 
-UMA_FESTIVITIES = {
-    # Recurring holidays (same date every year): (name, icon)
-    "01-06": ("Epifanía del Señor", "👑"),
-    "05-01": ("Día del Trabajador", "✊"),
-    "09-08": ("Virgen de la Victoria", "⛪"),
-    "10-12": ("Día del Pilar", "🇪🇸"),
-    "12-08": ("Inmaculada Concepción", "⛪"),
-    "12-25": ("Navidad", "🎄"),
-}
 
-# Year-specific non-teaching days (UMA calendar): (date, name, icon)
-UMA_FESTIVITIES_BY_YEAR = {
-    2026: [
-        # Vacaciones de Navidad (enero)
-        ("2026-01-01", "Año Nuevo", "🎆"),
-        ("2026-01-02", "Vacaciones de Navidad", "🎄"),
-        ("2026-01-05", "Vacaciones de Navidad", "🎄"),
-        ("2026-01-06", "Epifanía del Señor", "👑"),
-        ("2026-01-07", "Vacaciones de Navidad", "🎄"),
-        # Santo Tomás de Aquino
-        ("2026-01-28", "Santo Tomás de Aquino", "📚"),
-        # Semana Santa
-        ("2026-03-30", "Semana Santa", "⛪"),
-        ("2026-03-31", "Semana Santa", "⛪"),
-        ("2026-04-01", "Semana Santa", "⛪"),
-        ("2026-04-02", "Jueves Santo", "⛪"),
-        ("2026-04-03", "Viernes Santo", "⛪"),
-        # Feria de Málaga
-        ("2026-08-17", "Feria de Málaga", "🎪"),
-        ("2026-08-18", "Feria de Málaga", "🎪"),
-        ("2026-08-19", "Feria de Málaga", "🎪"),
-        ("2026-08-20", "Feria de Málaga", "🎪"),
-        ("2026-08-21", "Feria de Málaga", "🎪"),
-        # Día de Todos los Santos (movido al 2)
-        ("2026-11-02", "Día de Todos los Santos", "🕯️"),
-        # Constitución (movido al 7)
-        ("2026-12-07", "Día de la Constitución", "📜"),
-        # Vacaciones de Navidad (diciembre)
-        ("2026-12-22", "Vacaciones de Navidad", "🎄"),
-        ("2026-12-23", "Vacaciones de Navidad", "🎄"),
-        ("2026-12-24", "Nochebuena", "🎄"),
-        ("2026-12-25", "Navidad", "🎄"),
-        ("2026-12-26", "Vacaciones de Navidad", "🎄"),
-        ("2026-12-29", "Vacaciones de Navidad", "🎄"),
-        ("2026-12-30", "Vacaciones de Navidad", "🎄"),
-        ("2026-12-31", "Nochevieja", "🎆"),
-    ],
-}
+def _load_festivities():
+    try:
+        with open(FESTIVITIES_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {"recurring": [], "by_year": {}}
 
 
 @router.get("/api/festivities")
@@ -263,12 +224,12 @@ def get_festivities(year: int = None):
     """Return UMA festivities for a given year (or current year)."""
     if year is None:
         year = date.today().year
+    festivities = _load_festivities()
     result = []
     # Recurring holidays
-    for mmdd, (name, icon) in UMA_FESTIVITIES.items():
-        result.append({"date": f"{year}-{mmdd}", "name": name, "icon": icon})
+    for entry in festivities.get("recurring", []):
+        result.append({"date": f"{year}-{entry['date']}", "name": entry["name"], "icon": entry.get("icon", "🔴")})
     # Year-specific
-    for entry in UMA_FESTIVITIES_BY_YEAR.get(year, []):
-        d, name, icon = entry[0], entry[1], entry[2] if len(entry) > 2 else "🔴"
-        result.append({"date": d, "name": name, "icon": icon})
+    for entry in festivities.get("by_year", {}).get(str(year), []):
+        result.append({"date": entry["date"], "name": entry["name"], "icon": entry.get("icon", "🔴")})
     return result

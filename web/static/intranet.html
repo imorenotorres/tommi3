@@ -126,7 +126,7 @@ var TOOL_ACCESS = {
     // Research & Innovation
     'researcher_connect': ['teaching_staff', 'tester', 'superuser'],
     'research_proposals': ['teaching_staff', 'tester', 'superuser'],
-    'collaboration_dashboard': ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
+    'collaboration_dashboard': ['uninovis_staff', 'superuser'],
     'research_portfolio': ['teaching_staff', 'tester', 'superuser'],
     'research_explorers': ['student', 'teaching_staff', 'tester', 'superuser'],
     'european_projects':  ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
@@ -173,7 +173,6 @@ var SECTIONS = [
             { id: 'internships', name: 'Internships', icon: '\uD83D\uDCBC', desc: 'Internship opportunities and placements across partner institutions.', url: 'https://uninovis.widening.eu/internships', status: 'active', external: true },
             { id: 'researcher_connect', name: 'Researcher Connect', icon: '\uD83D\uDD2C', desc: 'Find and connect with researchers. Search by interests and expertise.', url: 'https://uninovis.widening.eu/researcher-connect', status: 'prototype', external: true },
             { id: 'research_proposals', name: 'Research Proposals', icon: '\uD83D\uDCDD', desc: 'Post and discover research collaboration opportunities and funding calls.', url: 'https://uninovis.widening.eu/research-proposals', status: 'prototype', external: true },
-            { id: 'collaboration_dashboard', name: 'Collaboration Dashboard', icon: '\uD83E\uDD1D', desc: 'Log of all UNINOVIS collaborations: collaborators, mobility, meetings, goal, and status.', url: '/collaboration-dashboard/', status: 'active' },
             { id: 'research_portfolio', name: 'Research Portfolio', icon: '\uD83D\uDCCA', desc: 'Portfolio of research activities and outputs across UNINOVIS.', url: 'https://uninovis.widening.eu/research-portfolio', status: 'active', external: true },
             { id: 'research_explorers', name: 'Research Explorers', icon: '\uD83C\uDF10', desc: 'AI-powered research assistants for each Excellence Hub.', url: '/research-explorers', status: 'pilot' },
             { id: 'european_projects', name: 'European Projects', icon: '\uD83C\uDDEA\uD83C\uDDFA', desc: 'Search European research funding calls and projects.', url: '/european-projects', status: 'pilot' },
@@ -224,6 +223,7 @@ var SECTIONS = [
         roles: [],
         tools: [
             { id: 'holiday_tracker', name: 'UMA Holiday Tracker', icon: '\uD83C\uDFD6\uFE0F', desc: 'Shared calendar of UMA holidays, personal days, and comisiones de servicio. Weekends and UMA festivities greyed.', url: '/holiday-tracker/', status: 'active' },
+            { id: 'collaboration_dashboard', name: 'Collaboration Dashboard', icon: '\uD83E\uDD1D', desc: 'Log of all UNINOVIS collaborations: collaborators, mobility, meetings, goal, and status.', url: '/collaboration-dashboard/', status: 'active' },
         ]
     },
 ];
@@ -392,11 +392,12 @@ function renderTabbedView(roles) {
         return a.title.localeCompare(b.title);
     });
 
-    var tabsHtml = '<div class="wp-tabs">';
-    var panelsHtml = '';
-    var hasContent = false;
-
     var statusOrder = ['active', 'pilot', 'data-update', 'construction', 'prototype', 'soon'];
+
+    // A deep link (e.g. from another app's breadcrumb) can request a specific
+    // tab via the URL hash, e.g. "#uma_holidays".
+    var wantedTab = (window.location.hash || '').replace('#', '');
+    var rendered = [];
 
     visibleSections.forEach(function(section) {
         // Group accessible tools by status
@@ -419,15 +420,26 @@ function renderTabbedView(roles) {
         });
 
         if (!panelContent) return;
-        hasContent = true;
-        var isFirst = (panelsHtml === '');
         var tabLabel = section.title.match(/^(WP\d)/) ? section.title.match(/^(WP\d)/)[1] : (section.id === 'superuser' ? 'Sys Admin' : section.title);
-        tabsHtml += '<div class="wp-tab' + (isFirst ? ' active' : '') + '" data-tab="' + section.id + '" onclick="switchTab(\'' + section.id + '\')" title="' + section.title + '">' + tabLabel + '</div>';
-        panelsHtml += '<div class="wp-panel' + (isFirst ? ' active' : '') + '" id="panel-' + section.id + '">'
-            + panelContent
-            + '</div>';
+        rendered.push({ id: section.id, title: section.title, tabLabel: tabLabel, panelContent: panelContent });
     });
 
+    var hasContent = rendered.length > 0;
+    var activeIdx = 0;
+    if (wantedTab) {
+        var foundIdx = rendered.map(function(r) { return r.id; }).indexOf(wantedTab);
+        if (foundIdx !== -1) activeIdx = foundIdx;
+    }
+
+    var tabsHtml = '<div class="wp-tabs">';
+    var panelsHtml = '';
+    rendered.forEach(function(r, idx) {
+        var isActive = idx === activeIdx;
+        tabsHtml += '<div class="wp-tab' + (isActive ? ' active' : '') + '" data-tab="' + r.id + '" onclick="switchTab(\'' + r.id + '\')" title="' + r.title + '">' + r.tabLabel + '</div>';
+        panelsHtml += '<div class="wp-panel' + (isActive ? ' active' : '') + '" id="panel-' + r.id + '">'
+            + r.panelContent
+            + '</div>';
+    });
     tabsHtml += '</div>';
 
     if (!hasContent) {
@@ -1173,6 +1185,8 @@ var TOOL_LABELS = {
     research_proposals: 'Research Proposals',
     research_portfolio: 'Research Portfolio',
     research_explorers: 'Research Explorers',
+    european_projects: 'European Projects',
+    collaboration_dashboard: 'Collaboration Dashboard',
     // Events & Communication
     event_catalogue: 'Event Catalogue',
     // Administration
@@ -1183,6 +1197,9 @@ var TOOL_LABELS = {
     // System Administration
     log_analytics: 'Agents Analytics',
     matomo_analytics: 'Site Analytics',
+    user_management: 'User Management',
+    agent_management: 'Agent Management',
+    tool_visibility: 'Tool Visibility',
     holiday_tracker: 'UMA Holiday Tracker',
 };
 

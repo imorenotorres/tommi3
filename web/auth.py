@@ -49,6 +49,8 @@ _DEFAULT_TOOL_ACCESS = {
     "research_proposals": ["teaching_staff", "tester", "superuser"],
     "research_portfolio": ["teaching_staff", "tester", "superuser"],
     "research_explorers": ["student", "teaching_staff", "tester", "superuser"],
+    "european_projects":  ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "collaboration_dashboard": ["uninovis_staff", "superuser"],
     # Events & Communication
     "event_catalogue":    ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
     # Administration
@@ -60,6 +62,10 @@ _DEFAULT_TOOL_ACCESS = {
     "log_analytics":      ["superuser"],
     "matomo_analytics":   ["superuser"],
     "holiday_tracker":    ["uninovis_staff", "superuser"],
+    # System Administration
+    "user_management":    ["superuser"],
+    "agent_management":   ["superuser"],
+    "tool_visibility":    ["superuser"],
 }
 
 TOOL_ACCESS_FILE = DATA_DIR / "tool_access.json"

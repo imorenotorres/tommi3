@@ -115,7 +115,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <body>
 
 <script src="/static/nav.js"></script>
-<script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/static/intranet.html'}], current: 'UMA Holiday Tracker' });</script>
+<script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/static/intranet.html#uma_holidays'}], current: 'UMA Holiday Tracker' });</script>
 
 <div id="deniedView" class="denied" style="display:none;">
   <h2>uninovis_staff (UMA) access only</h2>
@@ -364,7 +364,9 @@ function computeMyStats() {
     const d = new Date(e.start_date + 'T00:00:00');
     const end = new Date(e.end_date + 'T00:00:00');
     while (d <= end) {
-      if (!isWeekend(d)) {
+      // Vacaciones/asuntos propios landing on a festivity aren't charged against the count.
+      const skipsFestivity = (e.type === 'holiday' || e.type === 'personal_day') && !!festivities[fmt(d)];
+      if (!isWeekend(d) && !skipsFestivity) {
         const y = d.getFullYear();
         if (!stats[y]) stats[y] = { holiday: 0, personal_day: 0, comision_servicio: 0 };
         stats[y][e.type] = (stats[y][e.type] || 0) + 1;
