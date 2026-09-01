@@ -194,7 +194,7 @@
         <span class="auth-info" id="authInfo"></span>
         <button class="btn-small" id="loginBtn" onclick="showLogin()">Login</button>
         <button class="btn-small" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
-        <button class="btn" id="btn-new-collab" style="display:none" onclick="openNewCollabModal()">+ Log Collaboration</button>
+        <button class="btn" id="btn-new-collab" style="display:none" onclick="openNewCollabModal()">+ Registrar contacto exploratorio</button>
     </div>
 
     <!-- Login prompt for unauthenticated users -->
@@ -223,14 +223,10 @@
             <select id="filter-goal" onchange="renderCollaborations()">
                 <option value="">All goals</option>
                 <option value="Colaboración docente">Colaboración docente</option>
+                <option value="Colaboración científica">Colaboración científica</option>
                 <option value="Proyecto de investigación">Proyecto de investigación</option>
                 <option value="Contacto institucional">Contacto institucional</option>
                 <option value="Otras">Otras</option>
-            </select>
-            <select id="filter-mobility" onchange="renderCollaborations()">
-                <option value="">Mobility: any</option>
-                <option value="yes">Includes physical mobility</option>
-                <option value="no">No physical mobility</option>
             </select>
         </div>
 
@@ -272,7 +268,7 @@
 <div class="modal" id="form-modal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3 id="form-modal-title">Log New Collaboration</h3>
+            <h3 id="form-modal-title">Registrar nuevo contacto</h3>
             <button class="modal-close" onclick="closeFormModal()">&#10005;</button>
         </div>
         <div class="form-error" id="form-error"></div>
@@ -289,13 +285,18 @@
 
                 <div class="form-field full">
                     <label>Goal of the Collaboration</label>
-                    <select name="goal">
+                    <select name="goal" onchange="document.getElementById('goal-other-field').style.display=this.value==='Otras'?'':'none'">
                         <option value="">— Select —</option>
                         <option value="Colaboración docente">Colaboración docente</option>
                         <option value="Proyecto de investigación">Proyecto de investigación</option>
                         <option value="Contacto institucional">Contacto institucional</option>
                         <option value="Otras">Otras</option>
                     </select>
+                </div>
+
+                <div class="form-field full" id="goal-other-field" style="display:none;">
+                    <label>Describir</label>
+                    <input type="text" name="goal_other" placeholder="Describe el tipo de colaboración...">
                 </div>
 
                 <div class="form-field">
@@ -475,13 +476,10 @@
         var query = document.getElementById('search-input').value.toLowerCase();
         var filterStatus = document.getElementById('filter-status').value;
         var filterGoal = document.getElementById('filter-goal').value;
-        var filterMobility = document.getElementById('filter-mobility').value;
 
         var filtered = state.collaborations.filter(function(c) {
             if (filterStatus && c.status !== filterStatus) return false;
             if (filterGoal && c.goal !== filterGoal) return false;
-            if (filterMobility === 'yes' && !c.physical_mobility) return false;
-            if (filterMobility === 'no' && c.physical_mobility) return false;
             if (query) {
                 var collabNames = (c.collaborators || []).map(function(p) { return p.name + ' ' + p.institution + ' ' + p.area_of_interest; }).join(' ');
                 var haystack = [c.title, c.goal, collabNames].join(' ').toLowerCase();
@@ -776,7 +774,7 @@
     function openNewCollabModal() {
         state.editingId = null;
         resetFormState();
-        document.getElementById('form-modal-title').textContent = 'Log New Collaboration';
+        document.getElementById('form-modal-title').textContent = 'Registrar nuevo contacto';
         document.getElementById('form-submit-btn').textContent = 'Save Collaboration';
         document.getElementById('collab-form').reset();
         document.getElementById('form-error').classList.remove('visible');
@@ -803,7 +801,15 @@
 
         var form = document.getElementById('collab-form');
         form.elements['title'].value = c.title || '';
-        form.elements['goal'].value = c.goal || '';
+        if (c.goal && c.goal.startsWith('Otras:')) {
+            form.elements['goal'].value = 'Otras';
+            form.elements['goal_other'].value = c.goal.replace('Otras: ', '').replace('Otras:', '');
+            document.getElementById('goal-other-field').style.display = '';
+        } else {
+            form.elements['goal'].value = c.goal || '';
+            form.elements['goal_other'].value = '';
+            document.getElementById('goal-other-field').style.display = 'none';
+        }
         form.elements['status'].value = c.status || 'action_needed';
         form.elements['notes'].value = c.notes || '';
 
@@ -848,7 +854,7 @@
 
         var body = {
             title: form.elements['title'].value.trim(),
-            goal: form.elements['goal'].value.trim(),
+            goal: form.elements['goal'].value === 'Otras' ? 'Otras: ' + (form.elements['goal_other'].value.trim() || 'sin especificar') : form.elements['goal'].value.trim(),
             status: form.elements['status'].value,
             collaborators: collaborators,
             physical_mobility: physicalMobility,
