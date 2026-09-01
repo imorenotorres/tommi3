@@ -48,6 +48,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .legend .legend-item { display: inline-flex; align-items: center; }
 .legend-empty { font-style: italic; }
 
+#app { display: flex; align-items: flex-start; gap: 0; }
+#app .main-content { flex: 1; min-width: 0; }
+.sidebar { width: 230px; flex-shrink: 0; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin: 16px 24px 24px 0; }
+.sidebar h3 { font-size: 0.95rem; margin-bottom: 12px; color: var(--primary); }
+.stats-year { margin-bottom: 14px; }
+.stats-year:last-child { margin-bottom: 0; }
+.stats-year-label { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.stats-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.82rem; padding: 3px 0; color: var(--text-light); }
+.stats-row b { color: var(--text); }
+.stats-empty { font-size: 0.82rem; color: var(--text-light); font-style: italic; }
+@media (max-width: 860px) {
+  #app { flex-direction: column; }
+  .sidebar { width: auto; margin: 0 24px 24px; }
+}
+
 .month-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; background: var(--border); margin: 0 24px 24px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
 .month-grid .day-header { background: var(--primary); color: #fff; text-align: center; padding: 8px; font-size: 0.8rem; font-weight: 600; }
 .month-grid .day-cell { background: var(--card); min-height: 110px; max-height: 150px; padding: 6px; position: relative; vertical-align: top; overflow-y: auto; }
@@ -108,27 +123,31 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 </div>
 
 <div id="app" style="display:none;">
-  <div class="controls">
-    <div class="nav-group">
-      <button class="nav-btn" id="btnPrev">&#8249;</button>
-      <button class="nav-btn" id="btnToday">Today</button>
-      <button class="nav-btn" id="btnNext">&#8250;</button>
-      <span class="current-label" id="currentLabel"></span>
-    </div>
-    <div class="actions">
-      <div class="view-group">
-        <button class="view-btn active" data-view="month">Month</button>
-        <button class="view-btn" data-view="week">Week</button>
+  <div class="main-content">
+    <div class="controls">
+      <div class="nav-group">
+        <button class="nav-btn" id="btnPrev">&#8249;</button>
+        <button class="nav-btn" id="btnToday">Today</button>
+        <button class="nav-btn" id="btnNext">&#8250;</button>
+        <span class="current-label" id="currentLabel"></span>
       </div>
-      <button class="btn-log holiday" onclick="openLogModal('holiday')">🌴 Vacaciones</button>
-      <button class="btn-log personal" onclick="openLogModal('personal_day')">🙂 Asuntos propios</button>
-      <button class="btn-log commission" onclick="openLogModal('comision_servicio')">💼 Comisión de servicio</button>
+      <div class="actions">
+        <div class="view-group">
+          <button class="view-btn active" data-view="month">Month</button>
+          <button class="view-btn" data-view="week">Week</button>
+        </div>
+        <button class="btn-log holiday" onclick="openLogModal('holiday')">🌴 Vacaciones</button>
+        <button class="btn-log personal" onclick="openLogModal('personal_day')">🙂 Asuntos propios</button>
+        <button class="btn-log commission" onclick="openLogModal('comision_servicio')">💼 Comisión de servicio</button>
+      </div>
     </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div id="calendarContainer"></div>
   </div>
 
-  <div class="legend" id="legend"></div>
-
-  <div id="calendarContainer"></div>
+  <aside class="sidebar" id="statsPanel"></aside>
 </div>
 
 <!-- Log / edit modal -->
@@ -334,8 +353,49 @@ function renderWeek() {
   renderLegend();
 }
 
+function isWeekend(d) {
+  const day = d.getDay();
+  return day === 0 || day === 6;
+}
+
+function computeMyStats() {
+  const stats = {}; // year -> { holiday, personal_day, comision_servicio }
+  events.filter(e => e.username === ME).forEach(e => {
+    const d = new Date(e.start_date + 'T00:00:00');
+    const end = new Date(e.end_date + 'T00:00:00');
+    while (d <= end) {
+      if (!isWeekend(d)) {
+        const y = d.getFullYear();
+        if (!stats[y]) stats[y] = { holiday: 0, personal_day: 0, comision_servicio: 0 };
+        stats[y][e.type] = (stats[y][e.type] || 0) + 1;
+      }
+      d.setDate(d.getDate() + 1);
+    }
+  });
+  return stats;
+}
+
+function renderStats() {
+  const el = document.getElementById('statsPanel');
+  const stats = computeMyStats();
+  const years = Object.keys(stats).map(Number).sort((a, b) => b - a);
+  if (years.length === 0) {
+    el.innerHTML = '<h3>My logged days</h3><p class="stats-empty">Nothing logged yet.</p>';
+    return;
+  }
+  el.innerHTML = '<h3>My logged days</h3>' + years.map(y => `
+    <div class="stats-year">
+      <div class="stats-year-label">${y}</div>
+      <div class="stats-row"><span>🌴 Vacaciones</span><b>${stats[y].holiday || 0}</b></div>
+      <div class="stats-row"><span>🙂 Asuntos propios</span><b>${stats[y].personal_day || 0}</b></div>
+      <div class="stats-row"><span>💼 Comisión de servicio</span><b>${stats[y].comision_servicio || 0}</b></div>
+    </div>
+  `).join('');
+}
+
 function render() {
   if (currentView === 'week') renderWeek(); else renderMonth();
+  renderStats();
 }
 
 function navigate(dir) {
@@ -445,7 +505,7 @@ function onChipClick(id) {
     // Load festivities for current year and adjacent years
     const yr = new Date().getFullYear();
     await Promise.all([loadFestivities(yr - 1), loadFestivities(yr), loadFestivities(yr + 1)]);
-    document.getElementById('app').style.display = 'block';
+    document.getElementById('app').style.display = 'flex';
     render();
   } catch (e) {
     document.getElementById('deniedView').style.display = 'block';
