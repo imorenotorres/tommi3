@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNINOVIS Collaboration Dashboard</title>
+    <title>Contactos exploratorios</title>
     <link rel="stylesheet" href="/static/nav.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,7 +42,14 @@
         .btn-remove-row:hover { color: #a71d2a; }
 
         /* Collaborations grid */
-        .collab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+        .collab-grid { }
+        .collab-table { width: 100%; border-collapse: collapse; font-size: 0.88em; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .collab-table th { background: #f8f9fc; padding: 10px 12px; text-align: left; font-size: 0.82em; color: #666; border-bottom: 2px solid #e0e0e0; cursor: pointer; user-select: none; white-space: nowrap; }
+        .collab-table th:hover { color: #4250b3; }
+        .collab-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+        .collab-table tr:hover td { background: #f8f9fc; }
+        .collab-table tr { cursor: pointer; }
+        .collab-table .sort-arrow { font-size: 0.7em; margin-left: 3px; color: #aaa; }
         .collab-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 20px; border-left: 4px solid #4250b3; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
         .collab-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
         .collab-card .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
@@ -60,9 +67,9 @@
 
         /* Status badges */
         .status-badge { font-size: 0.72em; font-weight: 700; padding: 3px 10px; border-radius: 10px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
-        .status-preparing { background: #fff3e0; color: #f57c00; }
-        .status-confirmed { background: #e1f5fe; color: #0277bd; }
-        .status-happened { background: #e8f5e9; color: #2e7d32; }
+        .status-action_needed { background: #fff3e0; color: #f57c00; }
+        .status-in_progress { background: #e1f5fe; color: #0277bd; }
+        .status-done { background: #e8f5e9; color: #2e7d32; }
 
         .timing-pill { font-size: 0.72em; padding: 2px 8px; border-radius: 12px; border: 1px solid; }
         .timing-past { border-color: #757575; color: #757575; background: #f5f5f5; }
@@ -155,7 +162,7 @@
             .form-grid { grid-template-columns: 1fr; }
             .detail-grid { grid-template-columns: 1fr; }
             .detail-item { border-right: none; }
-            .collab-grid { grid-template-columns: 1fr; }
+            .collab-table { font-size: 0.82em; }
             .repeater-row { grid-template-columns: 1fr; }
         }
     </style>
@@ -177,10 +184,10 @@
 </head>
 <body>
 <script src="/static/nav.js"></script>
-<script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/static/intranet.html#uma_holidays'}], current: 'Collaboration Dashboard' });</script>
+<script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/static/intranet.html#uma_holidays'}], current: 'Contactos exploratorios' });</script>
 <div class="container">
-    <h1>UNINOVIS Collaboration Dashboard</h1>
-    <p class="subtitle">Registro de colaboraciones y visitas entre UMA y otros socios de UNINOVIS</p>
+    <h1>Contactos exploratorios</h1>
+    <p class="subtitle">Registro de contactos y visitas en UNINOVIS con vistas a acuerdos docentes, de investigación...</p>
 
     <!-- Auth bar -->
     <div class="auth-bar">
@@ -209,9 +216,16 @@
             <input type="text" id="search-input" placeholder="Search by title, goal, collaborator, institution..." oninput="renderCollaborations()" />
             <select id="filter-status" onchange="renderCollaborations()">
                 <option value="">All statuses</option>
-                <option value="preparing">Preparing</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="happened">Happened</option>
+                <option value="action_needed">Action needed</option>
+                <option value="in_progress">In progress</option>
+                <option value="done">Done</option>
+            </select>
+            <select id="filter-goal" onchange="renderCollaborations()">
+                <option value="">All goals</option>
+                <option value="Colaboración docente">Colaboración docente</option>
+                <option value="Proyecto de investigación">Proyecto de investigación</option>
+                <option value="Contacto institucional">Contacto institucional</option>
+                <option value="Otras">Otras</option>
             </select>
             <select id="filter-mobility" onchange="renderCollaborations()">
                 <option value="">Mobility: any</option>
@@ -221,7 +235,7 @@
         </div>
 
         <!-- Collaborations grid -->
-        <div class="collab-grid" id="collab-grid"></div>
+        <div class="collab-grid" id="collab-grid" style="overflow-x:auto;"></div>
     </div>
 </div>
 
@@ -275,15 +289,21 @@
 
                 <div class="form-field full">
                     <label>Goal of the Collaboration</label>
-                    <textarea name="goal" rows="2" placeholder="What is this collaboration trying to achieve?"></textarea>
+                    <select name="goal">
+                        <option value="">— Select —</option>
+                        <option value="Colaboración docente">Colaboración docente</option>
+                        <option value="Proyecto de investigación">Proyecto de investigación</option>
+                        <option value="Contacto institucional">Contacto institucional</option>
+                        <option value="Otras">Otras</option>
+                    </select>
                 </div>
 
                 <div class="form-field">
                     <label>Status</label>
                     <select name="status">
-                        <option value="preparing">Preparing</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="happened">Happened</option>
+                        <option value="action_needed">Action needed</option>
+                        <option value="in_progress">In progress</option>
+                        <option value="done">Done</option>
                     </select>
                 </div>
 
@@ -454,10 +474,12 @@
     function renderCollaborations() {
         var query = document.getElementById('search-input').value.toLowerCase();
         var filterStatus = document.getElementById('filter-status').value;
+        var filterGoal = document.getElementById('filter-goal').value;
         var filterMobility = document.getElementById('filter-mobility').value;
 
         var filtered = state.collaborations.filter(function(c) {
             if (filterStatus && c.status !== filterStatus) return false;
+            if (filterGoal && c.goal !== filterGoal) return false;
             if (filterMobility === 'yes' && !c.physical_mobility) return false;
             if (filterMobility === 'no' && c.physical_mobility) return false;
             if (query) {
@@ -469,50 +491,101 @@
         });
 
         filtered.sort(function(a, b) {
-            var order = { preparing: 0, confirmed: 1, happened: 2 };
+            var order = { action_needed: 0, in_progress: 1, done: 2 };
             var od = (order[a.status] != null ? order[a.status] : 99) - (order[b.status] != null ? order[b.status] : 99);
             if (od !== 0) return od;
             return (b.created_at || '').localeCompare(a.created_at || '');
         });
 
         var strip = document.getElementById('stats-bar');
-        var preparing = state.collaborations.filter(function(c) { return c.status === 'preparing'; }).length;
-        var confirmed = state.collaborations.filter(function(c) { return c.status === 'confirmed'; }).length;
-        var happened = state.collaborations.filter(function(c) { return c.status === 'happened'; }).length;
+        var preparing = state.collaborations.filter(function(c) { return c.status === 'action_needed'; }).length;
+        var confirmed = state.collaborations.filter(function(c) { return c.status === 'in_progress'; }).length;
+        var happened = state.collaborations.filter(function(c) { return c.status === 'done'; }).length;
         var mobilityCount = state.collaborations.filter(function(c) { return c.physical_mobility; }).length;
         strip.innerHTML =
             '<div class="stat"><div class="number">' + state.collaborations.length + '</div><div class="label">Total</div></div>' +
-            '<div class="stat"><div class="number">' + preparing + '</div><div class="label">Preparing</div></div>' +
-            '<div class="stat"><div class="number">' + confirmed + '</div><div class="label">Confirmed</div></div>' +
-            '<div class="stat"><div class="number">' + happened + '</div><div class="label">Happened</div></div>' +
+            '<div class="stat"><div class="number">' + preparing + '</div><div class="label">Action needed</div></div>' +
+            '<div class="stat"><div class="number">' + confirmed + '</div><div class="label">In progress</div></div>' +
+            '<div class="stat"><div class="number">' + happened + '</div><div class="label">Done</div></div>' +
             '<div class="stat"><div class="number">' + mobilityCount + '</div><div class="label">With physical mobility</div></div>' +
             (filtered.length !== state.collaborations.length ? '<div class="stat"><div class="number">' + filtered.length + '</div><div class="label">Shown</div></div>' : '');
 
         var grid = document.getElementById('collab-grid');
         if (!filtered.length) {
-            grid.innerHTML = '<div class="no-results" style="grid-column:1/-1">No collaborations found. Try adjusting your filters or search terms.</div>';
+            grid.innerHTML = '<div class="no-results">No collaborations found. Try adjusting your filters or search terms.</div>';
             return;
         }
-        grid.innerHTML = filtered.map(function(c) { return collabCard(c); }).join('');
+
+        _currentFiltered = filtered;
+        var arrow = function(col) {
+            if (_tableSortCol !== col) return '';
+            return '<span class="sort-arrow">' + (_tableSortAsc ? '▲' : '▼') + '</span>';
+        };
+
+        var html = '<table class="collab-table">';
+        html += '<thead><tr>';
+        html += '<th onclick="sortTable(\'collab1\')">Collaborator 1' + arrow('collab1') + '</th>';
+        html += '<th onclick="sortTable(\'uni1\')">University' + arrow('uni1') + '</th>';
+        html += '<th onclick="sortTable(\'collab2\')">Collaborator 2' + arrow('collab2') + '</th>';
+        html += '<th onclick="sortTable(\'uni2\')">University' + arrow('uni2') + '</th>';
+        html += '<th onclick="sortTable(\'goal\')">Goal' + arrow('goal') + '</th>';
+        html += '<th onclick="sortTable(\'status\')">Status' + arrow('status') + '</th>';
+        html += '</tr></thead><tbody>';
+
+        filtered.forEach(function(c) {
+            var collabs = c.collaborators || [];
+            var c1 = collabs[0] || {};
+            var c2 = collabs[1] || {};
+            html += '<tr onclick="openViewModal(\'' + c.id + '\')">';
+            html += '<td>' + esc(c1.name || '—') + '</td>';
+            html += '<td>' + esc(c1.institution || '—') + '</td>';
+            html += '<td>' + esc(c2.name || '—') + '</td>';
+            html += '<td>' + esc(c2.institution || '—') + '</td>';
+            html += '<td>' + esc(c.goal || '—') + '</td>';
+            html += '<td><span class="status-badge status-' + c.status + '">' + statusLabel(c.status) + '</span></td>';
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        grid.innerHTML = html;
     }
 
-    function collabCard(c) {
-        var collaborators = c.collaborators || [];
-        var institutions = collaborators.map(function(p) { return p.institution; }).filter(Boolean);
-        var uniqueInstitutions = institutions.filter(function(v, i) { return institutions.indexOf(v) === i; }).slice(0, 3);
-        var institutionBadges = uniqueInstitutions.map(function(i) { return '<span class="badge badge-institution">' + esc(i) + '</span>'; }).join('');
+    var _tableSortCol = 'status';
+    var _tableSortAsc = true;
+    var _currentFiltered = [];
 
-        var icons = [];
-        if (c.physical_mobility) icons.push('&#9992;&#65039; Mobility');
-        if (c.virtual_meetings_held) icons.push('&#128421;&#65039; Virtual meetings');
+    function sortTable(col) {
+        if (_tableSortCol === col) {
+            _tableSortAsc = !_tableSortAsc;
+        } else {
+            _tableSortCol = col;
+            _tableSortAsc = true;
+        }
 
-        return '<div class="collab-card" onclick="openViewModal(\'' + c.id + '\')">' +
-            '<div class="card-header"><div class="card-title">' + esc(c.title) + '</div><span class="status-badge status-' + c.status + '">' + statusLabel(c.status) + '</span></div>' +
-            (c.goal ? '<div class="card-goal">' + esc(c.goal) + '</div>' : '') +
-            '<div class="card-meta">' + institutionBadges + '</div>' +
-            '<div class="card-icons">' + icons.join(' &nbsp; ') + '</div>' +
-            '<div class="card-footer"><div style="font-size:0.8em;color:#888">' + collaborators.length + ' collaborator' + (collaborators.length === 1 ? '' : 's') + '</div><span class="card-date">' + formatDate(c.created_at) + '</span></div>' +
-            '</div>';
+        var getValue = function(c) {
+            var collabs = c.collaborators || [];
+            var c1 = collabs[0] || {};
+            var c2 = collabs[1] || {};
+            switch(col) {
+                case 'collab1': return (c1.name || '').toLowerCase();
+                case 'uni1': return (c1.institution || '').toLowerCase();
+                case 'collab2': return (c2.name || '').toLowerCase();
+                case 'uni2': return (c2.institution || '').toLowerCase();
+                case 'goal': return (c.goal || '').toLowerCase();
+                case 'status':
+                    var order = {action_needed: 0, in_progress: 1, done: 2};
+                    return order[c.status] != null ? order[c.status] : 99;
+                default: return '';
+            }
+        };
+
+        state.collaborations.sort(function(a, b) {
+            var va = getValue(a), vb = getValue(b);
+            var cmp = typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb));
+            return _tableSortAsc ? cmp : -cmp;
+        });
+
+        renderCollaborations();
     }
 
     // ---- View Modal ----
@@ -731,7 +804,7 @@
         var form = document.getElementById('collab-form');
         form.elements['title'].value = c.title || '';
         form.elements['goal'].value = c.goal || '';
-        form.elements['status'].value = c.status || 'preparing';
+        form.elements['status'].value = c.status || 'action_needed';
         form.elements['notes'].value = c.notes || '';
 
         state.form.collaborators = (c.collaborators || []).map(function(p) { return Object.assign({}, p); });
@@ -827,7 +900,7 @@
     // ---- Helpers ----
 
     function statusLabel(s) {
-        return { preparing: 'Preparing', confirmed: 'Confirmed', happened: 'Happened' }[s] || s;
+        return { action_needed: 'Action needed', in_progress: 'In progress', done: 'Done' }[s] || s;
     }
 
     function todayIso() {
