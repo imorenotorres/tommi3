@@ -162,6 +162,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <input type="date" id="fStartDate">
       <label>End date</label>
       <input type="date" id="fEndDate">
+      <div id="comision-fields" style="display:none;">
+        <label>Destino</label>
+        <input type="text" id="fDestination" placeholder="Ej: Universidad de Tirana, Albania">
+        <label>Descripción</label>
+        <input type="text" id="fDescription" placeholder="Ej: Reunión WP3 UNINOVIS">
+      </div>
       <p class="hint">This will be logged under your own name (<span id="fUsername"></span>). Only you can edit or remove it later.</p>
     </div>
     <div class="modal-footer">
@@ -184,6 +190,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <div class="detail-row"><b>Person:</b> <span id="dName"></span></div>
       <div class="detail-row"><b>Type:</b> <span id="dType"></span></div>
       <div class="detail-row"><b>Dates:</b> <span id="dDates"></span></div>
+      <div id="dExtra" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #e0e0e0;"></div>
     </div>
   </div>
 </div>
@@ -261,7 +268,9 @@ function chipHTML(ev) {
   const icon = TYPE_ICON[ev.type] || '📌';
   const locked = ev.username === ME && ev.is_editable === false;
   const cls = 'event-chip ' + ev.type + (locked ? ' locked' : '');
-  return `<span class="${cls}" style="background:${color};" onclick="onChipClick('${ev.id}')">${icon} ${ev.display_name || ev.username}${locked ? ' 🔒' : ''}</span>`;
+  const dest = ev.type === 'comision_servicio' && ev.destination ? ' → ' + ev.destination : '';
+  const title = ev.type === 'comision_servicio' && ev.description ? ev.description : '';
+  return `<span class="${cls}" style="background:${color};" onclick="onChipClick('${ev.id}')" title="${title}">${icon} ${ev.display_name || ev.username}${dest}${locked ? ' 🔒' : ''}</span>`;
 }
 
 function renderLegend() {
@@ -429,6 +438,9 @@ function openLogModal(type) {
   const today = fmt(new Date());
   document.getElementById('fStartDate').value = today;
   document.getElementById('fEndDate').value = today;
+  document.getElementById('fDestination').value = '';
+  document.getElementById('fDescription').value = '';
+  document.getElementById('comision-fields').style.display = type === 'comision_servicio' ? '' : 'none';
   document.getElementById('btnDeleteEntry').style.display = 'none';
   document.getElementById('logModal').classList.add('open');
 }
@@ -442,12 +454,14 @@ async function saveCurrentEvent() {
   const end_date = document.getElementById('fEndDate').value;
   if (!start_date || !end_date) { alert('Please choose both a start and end date.'); return; }
   if (end_date < start_date) { alert('End date cannot be before start date.'); return; }
+  const destination = document.getElementById('fDestination').value.trim();
+  const description = document.getElementById('fDescription').value.trim();
   try {
     if (editingId) {
-      const updated = await api('PUT', `/api/events/${editingId}`, { type: pendingType, start_date, end_date });
+      const updated = await api('PUT', `/api/events/${editingId}`, { type: pendingType, start_date, end_date, destination, description });
       events = events.map(e => e.id === updated.id ? updated : e);
     } else {
-      const created = await api('POST', '/api/events', { type: pendingType, start_date, end_date });
+      const created = await api('POST', '/api/events', { type: pendingType, start_date, end_date, destination, description });
       events.push(created);
     }
     closeLogModal();
@@ -484,12 +498,25 @@ function onChipClick(id) {
     document.getElementById('fUsername').textContent = ME;
     document.getElementById('fStartDate').value = ev.start_date;
     document.getElementById('fEndDate').value = ev.end_date;
+    document.getElementById('fDestination').value = ev.destination || '';
+    document.getElementById('fDescription').value = ev.description || '';
+    document.getElementById('comision-fields').style.display = ev.type === 'comision_servicio' ? '' : 'none';
     document.getElementById('btnDeleteEntry').style.display = '';
     document.getElementById('logModal').classList.add('open');
   } else {
     document.getElementById('dName').textContent = ev.display_name || ev.username;
     document.getElementById('dType').textContent = TYPE_LABEL[ev.type] || ev.type;
     document.getElementById('dDates').textContent = ev.start_date === ev.end_date ? ev.start_date : `${ev.start_date} → ${ev.end_date}`;
+    var detailExtra = document.getElementById('dExtra');
+    if (detailExtra) {
+      if (ev.type === 'comision_servicio' && (ev.destination || ev.description)) {
+        detailExtra.innerHTML = (ev.destination ? '<div class="detail-row"><b>Destino:</b> ' + ev.destination + '</div>' : '')
+          + (ev.description ? '<div class="detail-row"><b>Descripción:</b> ' + ev.description + '</div>' : '');
+        detailExtra.style.display = '';
+      } else {
+        detailExtra.style.display = 'none';
+      }
+    }
     document.getElementById('detailModal').classList.add('open');
   }
 }
