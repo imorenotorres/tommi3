@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS Collaboration Dashboard</title>
+    <link rel="stylesheet" href="/static/nav.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
+        h1 { text-align: center; color: #4250b3; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 0.95em; }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* Auth bar */
+        .auth-bar { text-align: right; margin-bottom: 16px; }
+        .auth-bar button { margin-left: 6px; }
+        .auth-info { font-size: 0.85em; color: #666; margin-right: 8px; }
+
+        /* Cards */
+        .card h2 { color: #4250b3; margin-bottom: 16px; font-size: 1.15em; }
+
+        /* Toolbar */
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+        .toolbar input[type="text"] { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
+        .toolbar select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; min-width: 160px; }
+
+        /* Buttons */
+        .btn { display: inline-block; background: #4250b3; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-size: 0.9em; cursor: pointer; }
+        .btn:hover { background: #374399; }
+        .btn-small { background: #e9ecef; border: 1px solid #ccc; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.82em; }
+        .btn-small:hover { background: #d0d4d9; }
+        .btn-danger { background: #dc3545; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.82em; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-secondary { background: #e8e0f0; color: #4250b3; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.82em; }
+        .btn-secondary:hover { background: #d0c4e0; }
+        .btn-ghost { background: transparent; color: #4250b3; border: none; padding: 8px 16px; cursor: pointer; font-size: 0.85em; }
+        .btn-ghost:hover { background: #e8e0f0; border-radius: 6px; }
+        .btn-add-row { background: #e8e0f0; color: #4250b3; border: 1px dashed #4250b3; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; width: 100%; margin-top: 6px; }
+        .btn-add-row:hover { background: #d0c4e0; }
+        .btn-remove-row { background: transparent; color: #dc3545; border: none; cursor: pointer; font-size: 1.1em; padding: 4px 8px; line-height: 1; }
+        .btn-remove-row:hover { color: #a71d2a; }
+
+        /* Collaborations grid */
+        .collab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+        .collab-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 20px; border-left: 4px solid #4250b3; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
+        .collab-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+        .collab-card .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+        .collab-card .card-title { font-size: 1em; font-weight: 700; color: #4250b3; line-height: 1.35; }
+        .collab-card .card-goal { font-size: 0.85em; color: #666; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .collab-card .card-meta { display: flex; flex-wrap: wrap; gap: 4px; }
+        .collab-card .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid #eee; }
+        .collab-card .card-date { font-size: 0.75em; color: #888; }
+        .card-icons { font-size: 0.85em; color: #666; display: flex; gap: 10px; }
+
+        /* Badges */
+        .badge { font-size: 0.72em; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: normal; overflow-wrap: anywhere; display: inline-block; margin: 1px 2px; max-width: 100%; }
+        .badge-institution { background: #e8e0f0; color: #4250b3; }
+        .badge-area { background: #d1ecf1; color: #0c5460; }
+
+        /* Status badges */
+        .status-badge { font-size: 0.72em; font-weight: 700; padding: 3px 10px; border-radius: 10px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
+        .status-preparing { background: #fff3e0; color: #f57c00; }
+        .status-confirmed { background: #e1f5fe; color: #0277bd; }
+        .status-happened { background: #e8f5e9; color: #2e7d32; }
+
+        .timing-pill { font-size: 0.72em; padding: 2px 8px; border-radius: 12px; border: 1px solid; }
+        .timing-past { border-color: #757575; color: #757575; background: #f5f5f5; }
+        .timing-projected { border-color: #1565c0; color: #1565c0; background: #e3f2fd; }
+
+        /* Stats bar */
+        .stats-bar { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+        .stat { background: #fff; border-radius: 8px; padding: 14px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); text-align: center; min-width: 120px; }
+        .stat .number { font-size: 1.6em; font-weight: 700; color: #4250b3; }
+        .stat .label { font-size: 0.78em; color: #888; }
+
+        /* Login prompt */
+        .login-prompt { background: #e8e0f0; border: 1px solid #4250b3; border-radius: 8px; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+        .login-prompt p { font-size: 0.9em; color: #4250b3; }
+        .no-access { text-align: center; padding: 60px 20px; color: #666; }
+
+        /* No results */
+        .no-results { text-align: center; padding: 40px; color: #999; font-size: 1.1em; }
+
+        /* Forms */
+        select, input[type="text"], input[type="email"], input[type="date"], textarea {
+            padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; background: #fff; width: 100%;
+        }
+        textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 4px; color: #4250b3; font-size: 0.85em; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 2rem 1rem; }
+        .modal.active { display: flex; }
+        .modal-box { background: #fff; border-radius: 10px; padding: 28px; max-width: 780px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); margin: auto; }
+        .modal-box h3 { color: #4250b3; margin-bottom: 16px; }
+        .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+        .modal-header h3 { margin-bottom: 0; }
+        .modal-close { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: #666; padding: 2px; border-radius: 4px; line-height: 1; }
+        .modal-close:hover { background: #e8e0f0; color: #4250b3; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid #eee; }
+
+        /* Detail view */
+        .detail-section { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+        .detail-section-title { background: #e8e0f0; color: #4250b3; font-weight: 700; font-size: 0.82em; padding: 8px 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .detail-item { padding: 10px 12px; border-bottom: 1px solid #eee; border-right: 1px solid #eee; }
+        .detail-item:nth-child(2n) { border-right: none; }
+        .detail-item-full { padding: 10px 12px; border-bottom: 1px solid #eee; grid-column: 1 / -1; }
+        .detail-item-full:last-child { border-bottom: none; }
+        .detail-label { font-size: 0.75em; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+        .detail-value { font-size: 0.9em; color: #333; line-height: 1.5; }
+        .detail-value a { color: #4250b3; }
+        .detail-value .muted { color: #999; font-style: italic; }
+        .entry-list { list-style: none; }
+        .entry-list li { padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88em; }
+        .entry-list li:last-child { border-bottom: none; }
+        .entry-list .entry-main { font-weight: 600; color: #333; }
+        .entry-list .entry-sub { color: #777; font-size: 0.92em; }
+
+        /* Form grid */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-field { display: flex; flex-direction: column; gap: 4px; }
+        .form-field.full { grid-column: 1 / -1; }
+        .form-field label { font-size: 0.85em; font-weight: 600; color: #4250b3; }
+        .form-field label .required { color: #dc3545; }
+        .form-section-title { font-size: 0.8em; font-weight: 700; color: #4250b3; text-transform: uppercase; letter-spacing: 0.06em; padding-bottom: 4px; border-bottom: 2px solid #e8e0f0; grid-column: 1 / -1; margin-top: 4px; }
+
+        .checkbox-row { display: flex; align-items: center; gap: 8px; }
+        .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #4250b3; }
+
+        /* Repeaters */
+        .repeater { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 10px; }
+        .repeater-row { border: 1px solid #ddd; border-radius: 8px; padding: 12px; position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #fafafa; }
+        .repeater-row .row-field { display: flex; flex-direction: column; gap: 3px; }
+        .repeater-row .row-field.full { grid-column: 1 / -1; }
+        .repeater-row .row-field label { font-size: 0.75em; font-weight: 600; color: #666; }
+        .repeater-row-header { display: flex; justify-content: space-between; align-items: center; grid-column: 1 / -1; margin-bottom: -4px; }
+        .repeater-row-header span { font-size: 0.78em; font-weight: 700; color: #4250b3; }
+
+        /* Form error */
+        .form-error { background: #ffebee; color: #c62828; border-radius: 6px; padding: 8px 12px; font-size: 0.85em; display: none; }
+        .form-error.visible { display: block; margin-bottom: 12px; }
+
+        /* Toast */
+        #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1e2640; color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 0.88em; box-shadow: 0 4px 16px rgba(0,0,0,0.25); z-index: 500; opacity: 0; transform: translateY(10px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+        #toast.success { background: #1b5e20; }
+        #toast.error { background: #b71c1c; }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .detail-item { border-right: none; }
+            .collab-grid { grid-template-columns: 1fr; }
+            .repeater-row { grid-template-columns: 1fr; }
+        }
+    </style>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Code -->
+</head>
+<body>
+<script src="/static/nav.js"></script>
+<script>uninovisNav({ crumbs: [{label:'Research & Innovation', href:'#'}], current: 'Collaboration Dashboard' });</script>
+<div class="container">
+    <h1>UNINOVIS Collaboration Dashboard</h1>
+    <p class="subtitle">Log of all collaborations across UNINOVIS: collaborators, mobility, meetings, and status</p>
+
+    <!-- Auth bar -->
+    <div class="auth-bar">
+        <span class="auth-info" id="authInfo"></span>
+        <button class="btn-small" id="loginBtn" onclick="showLogin()">Login</button>
+        <button class="btn-small" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
+        <button class="btn" id="btn-new-collab" style="display:none" onclick="openNewCollabModal()">+ Log Collaboration</button>
+    </div>
+
+    <!-- Login prompt for unauthenticated users -->
+    <div class="login-prompt" id="login-prompt" style="display:none">
+        <p>Log in with a UNINOVIS staff account to view and log collaborations.</p>
+        <button class="btn" onclick="showLogin()">Log in</button>
+    </div>
+
+    <div id="no-access" class="no-access hidden">
+        <p>This dashboard is available to UNINOVIS staff accounts only.</p>
+    </div>
+
+    <div id="dashboard-body" class="hidden">
+        <!-- Stats bar -->
+        <div class="stats-bar" id="stats-bar"></div>
+
+        <!-- Controls / Filters -->
+        <div class="toolbar">
+            <input type="text" id="search-input" placeholder="Search by title, goal, collaborator, institution..." oninput="renderCollaborations()" />
+            <select id="filter-status" onchange="renderCollaborations()">
+                <option value="">All statuses</option>
+                <option value="preparing">Preparing</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="happened">Happened</option>
+            </select>
+            <select id="filter-mobility" onchange="renderCollaborations()">
+                <option value="">Mobility: any</option>
+                <option value="yes">Includes physical mobility</option>
+                <option value="no">No physical mobility</option>
+            </select>
+        </div>
+
+        <!-- Collaborations grid -->
+        <div class="collab-grid" id="collab-grid"></div>
+    </div>
+</div>
+
+<!-- Login modal -->
+<div class="modal" id="loginModal">
+    <div class="modal-box" style="max-width:360px;">
+        <h3>Login</h3>
+        <div class="form-group"><label>Username</label><input type="text" id="loginUser"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="loginPass"></div>
+        <p id="loginError" style="color:#dc3545;font-size:0.85em;"></p>
+        <div class="modal-footer">
+            <button class="btn-small" type="button" onclick="closeLogin()">Cancel</button>
+            <button class="btn" type="button" onclick="doLogin()">Login</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Collaboration Modal -->
+<div class="modal" id="view-modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div>
+                <h3 id="vm-title"></h3>
+                <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;" id="vm-badges"></div>
+            </div>
+            <button class="modal-close" onclick="closeViewModal()">&#10005;</button>
+        </div>
+        <div id="vm-body"></div>
+        <div class="modal-footer" id="vm-footer"></div>
+    </div>
+</div>
+
+<!-- Create/Edit Collaboration Modal -->
+<div class="modal" id="form-modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="form-modal-title">Log New Collaboration</h3>
+            <button class="modal-close" onclick="closeFormModal()">&#10005;</button>
+        </div>
+        <div class="form-error" id="form-error"></div>
+        <form id="collab-form" onsubmit="submitCollaboration(event)">
+            <div class="form-grid">
+
+                <!-- Basic info -->
+                <div class="form-section-title">Basic Information</div>
+
+                <div class="form-field full">
+                    <label>Title <span class="required">*</span></label>
+                    <input type="text" name="title" required placeholder="e.g. Joint AI research with University of Tirana" />
+                </div>
+
+                <div class="form-field full">
+                    <label>Goal of the Collaboration</label>
+                    <textarea name="goal" rows="2" placeholder="What is this collaboration trying to achieve?"></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="preparing">Preparing</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="happened">Happened</option>
+                    </select>
+                </div>
+
+                <!-- Collaborators -->
+                <div class="form-section-title">Collaborators</div>
+                <div class="repeater full" id="collaborators-repeater"></div>
+                <button type="button" class="btn-add-row full" style="grid-column:1/-1" onclick="addCollaboratorRow()">+ Add collaborator</button>
+
+                <!-- Physical mobility -->
+                <div class="form-section-title">Physical Mobility</div>
+                <div class="form-field full">
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="physical_mobility_check" onchange="toggleSection('mobility')" />
+                        <label for="physical_mobility_check" style="color:#333">One or more collaborators have taken part or are planning a physical mobility</label>
+                    </div>
+                </div>
+                <div class="repeater full hidden" id="mobility-repeater"></div>
+                <button type="button" class="btn-add-row full hidden" id="mobility-add-btn" style="grid-column:1/-1" onclick="addMobilityRow()">+ Add mobility visit</button>
+
+                <!-- Virtual meetings -->
+                <div class="form-section-title">Virtual Meetings</div>
+                <div class="form-field full">
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="virtual_meetings_check" onchange="toggleSection('meetings')" />
+                        <label for="virtual_meetings_check" style="color:#333">Virtual meetings have taken place or are planned</label>
+                    </div>
+                </div>
+                <div class="repeater full hidden" id="meetings-repeater"></div>
+                <button type="button" class="btn-add-row full hidden" id="meetings-add-btn" style="grid-column:1/-1" onclick="addMeetingRow()">+ Add virtual meeting</button>
+
+                <!-- Notes -->
+                <div class="form-section-title">Notes</div>
+                <div class="form-field full">
+                    <textarea name="notes" rows="2" placeholder="Any additional context..."></textarea>
+                </div>
+
+            </div>
+        </form>
+        <div class="modal-footer">
+            <button class="btn-ghost" type="button" onclick="closeFormModal()">Cancel</button>
+            <button class="btn" type="button" onclick="document.getElementById('collab-form').requestSubmit()" id="form-submit-btn">Save Collaboration</button>
+        </div>
+    </div>
+</div>
+
+<datalist id="institutions-list"></datalist>
+<datalist id="areas-list"></datalist>
+
+<div id="toast"></div>
+
+<script>
+    var BASE = '/collaboration-dashboard';
+    // UNINOVIS alliance partner institutions (see apps/new_directory's UNIVERSITIES map).
+    var UNINOVIS_INSTITUTIONS = [
+        'Universidad de Málaga',
+        'Université Sorbonne Paris Nord',
+        'University of Campania "Luigi Vanvitelli"',
+        'Kauno kolegija Higher Education Institution',
+        'University of Tirana',
+        'Technical University of Applied Sciences Würzburg-Schweinfurt',
+        'Tampere University of Applied Sciences',
+        'The Hague University of Applied Sciences'
+    ];
+    var state = {
+        collaborations: [],
+        institutions: [],
+        areasOfInterest: [],
+        session: null,
+        editingId: null,
+        form: {
+            collaborators: [],
+            mobility_visits: [],
+            virtual_meetings: []
+        }
+    };
+
+    // ---- Auth ----
+
+    function getToken() {
+        return localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
+    }
+
+    function authHeaders() {
+        var t = getToken();
+        return t ? { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+    }
+
+    function showLogin() {
+        document.getElementById('loginUser').value = '';
+        document.getElementById('loginPass').value = '';
+        document.getElementById('loginError').textContent = '';
+        document.getElementById('loginModal').classList.add('active');
+        document.getElementById('loginUser').focus();
+    }
+
+    function closeLogin() { document.getElementById('loginModal').classList.remove('active'); }
+
+    async function doLogin() {
+        var username = document.getElementById('loginUser').value.trim();
+        var password = document.getElementById('loginPass').value;
+        if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
+        try {
+            var resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
+            if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
+            var data = await resp.json();
+            localStorage.setItem('uninovis_token', data.token);
+            closeLogin();
+            location.reload();
+        } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
+    }
+
+    function doLogout() {
+        localStorage.removeItem('uninovis_token');
+        localStorage.removeItem('tommi_token');
+        location.reload();
+    }
+
+    document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target.id === 'loginModal') closeLogin(); });
+
+    // ---- Init ----
+
+    async function init() {
+        var t = getToken();
+        if (t) {
+            try {
+                var res = await fetch(BASE + '/api/auth-check', { headers: { 'Authorization': 'Bearer ' + t } });
+                if (res.ok) {
+                    state.session = await res.json();
+                    document.getElementById('authInfo').textContent = 'Logged in as ' + state.session.username;
+                    document.getElementById('loginBtn').style.display = 'none';
+                    document.getElementById('logoutBtn').style.display = '';
+                    document.getElementById('login-prompt').style.display = 'none';
+                }
+            } catch(e) {}
+        }
+
+        if (!state.session) {
+            document.getElementById('login-prompt').style.display = 'flex';
+            return;
+        }
+
+        if (!state.session.has_access) {
+            document.getElementById('no-access').classList.remove('hidden');
+            return;
+        }
+
+        document.getElementById('btn-new-collab').style.display = '';
+        document.getElementById('dashboard-body').classList.remove('hidden');
+
+        var resp = await fetch(BASE + '/api/data', { headers: authHeaders() });
+        if (!resp.ok) { showToast('Could not load data.', 'error'); return; }
+        var data = await resp.json();
+        state.collaborations = data.collaborations || [];
+        state.institutions = data.institutions || [];
+        state.areasOfInterest = data.areas_of_interest || [];
+
+        var instList = document.getElementById('institutions-list');
+        instList.innerHTML = state.institutions.map(function(i) { return '<option value="' + esc(i) + '">'; }).join('');
+        var areaList = document.getElementById('areas-list');
+        areaList.innerHTML = state.areasOfInterest.map(function(a) { return '<option value="' + esc(a) + '">'; }).join('');
+
+        renderCollaborations();
+    }
+
+    // ---- Rendering ----
+
+    function renderCollaborations() {
+        var query = document.getElementById('search-input').value.toLowerCase();
+        var filterStatus = document.getElementById('filter-status').value;
+        var filterMobility = document.getElementById('filter-mobility').value;
+
+        var filtered = state.collaborations.filter(function(c) {
+            if (filterStatus && c.status !== filterStatus) return false;
+            if (filterMobility === 'yes' && !c.physical_mobility) return false;
+            if (filterMobility === 'no' && c.physical_mobility) return false;
+            if (query) {
+                var collabNames = (c.collaborators || []).map(function(p) { return p.name + ' ' + p.institution + ' ' + p.area_of_interest; }).join(' ');
+                var haystack = [c.title, c.goal, collabNames].join(' ').toLowerCase();
+                if (haystack.indexOf(query) === -1) return false;
+            }
+            return true;
+        });
+
+        filtered.sort(function(a, b) {
+            var order = { preparing: 0, confirmed: 1, happened: 2 };
+            var od = (order[a.status] != null ? order[a.status] : 99) - (order[b.status] != null ? order[b.status] : 99);
+            if (od !== 0) return od;
+            return (b.created_at || '').localeCompare(a.created_at || '');
+        });
+
+        var strip = document.getElementById('stats-bar');
+        var preparing = state.collaborations.filter(function(c) { return c.status === 'preparing'; }).length;
+        var confirmed = state.collaborations.filter(function(c) { return c.status === 'confirmed'; }).length;
+        var happened = state.collaborations.filter(function(c) { return c.status === 'happened'; }).length;
+        var mobilityCount = state.collaborations.filter(function(c) { return c.physical_mobility; }).length;
+        strip.innerHTML =
+            '<div class="stat"><div class="number">' + state.collaborations.length + '</div><div class="label">Total</div></div>' +
+            '<div class="stat"><div class="number">' + preparing + '</div><div class="label">Preparing</div></div>' +
+            '<div class="stat"><div class="number">' + confirmed + '</div><div class="label">Confirmed</div></div>' +
+            '<div class="stat"><div class="number">' + happened + '</div><div class="label">Happened</div></div>' +
+            '<div class="stat"><div class="number">' + mobilityCount + '</div><div class="label">With physical mobility</div></div>' +
+            (filtered.length !== state.collaborations.length ? '<div class="stat"><div class="number">' + filtered.length + '</div><div class="label">Shown</div></div>' : '');
+
+        var grid = document.getElementById('collab-grid');
+        if (!filtered.length) {
+            grid.innerHTML = '<div class="no-results" style="grid-column:1/-1">No collaborations found. Try adjusting your filters or search terms.</div>';
+            return;
+        }
+        grid.innerHTML = filtered.map(function(c) { return collabCard(c); }).join('');
+    }
+
+    function collabCard(c) {
+        var collaborators = c.collaborators || [];
+        var institutions = collaborators.map(function(p) { return p.institution; }).filter(Boolean);
+        var uniqueInstitutions = institutions.filter(function(v, i) { return institutions.indexOf(v) === i; }).slice(0, 3);
+        var institutionBadges = uniqueInstitutions.map(function(i) { return '<span class="badge badge-institution">' + esc(i) + '</span>'; }).join('');
+
+        var icons = [];
+        if (c.physical_mobility) icons.push('&#9992;&#65039; Mobility');
+        if (c.virtual_meetings_held) icons.push('&#128421;&#65039; Virtual meetings');
+
+        return '<div class="collab-card" onclick="openViewModal(\'' + c.id + '\')">' +
+            '<div class="card-header"><div class="card-title">' + esc(c.title) + '</div><span class="status-badge status-' + c.status + '">' + statusLabel(c.status) + '</span></div>' +
+            (c.goal ? '<div class="card-goal">' + esc(c.goal) + '</div>' : '') +
+            '<div class="card-meta">' + institutionBadges + '</div>' +
+            '<div class="card-icons">' + icons.join(' &nbsp; ') + '</div>' +
+            '<div class="card-footer"><div style="font-size:0.8em;color:#888">' + collaborators.length + ' collaborator' + (collaborators.length === 1 ? '' : 's') + '</div><span class="card-date">' + formatDate(c.created_at) + '</span></div>' +
+            '</div>';
+    }
+
+    // ---- View Modal ----
+
+    function openViewModal(id) {
+        var c = state.collaborations.find(function(x) { return x.id === id; });
+        if (!c) return;
+
+        var isOwner = state.session && c.linked_username === state.session.username.toLowerCase();
+        var canEdit = state.session && (isOwner || state.session.can_edit);
+
+        document.getElementById('vm-title').textContent = c.title;
+        document.getElementById('vm-badges').innerHTML = '<span class="status-badge status-' + c.status + '">' + statusLabel(c.status) + '</span>';
+
+        document.getElementById('vm-body').innerHTML = buildDetailView(c);
+        document.getElementById('vm-footer').innerHTML =
+            (canEdit ? '<button class="btn-secondary" onclick="openEditModal(\'' + c.id + '\')">Edit</button>' : '') +
+            (canEdit ? '<button class="btn-danger" onclick="confirmDelete(\'' + c.id + '\')">Delete</button>' : '') +
+            '<button class="btn" onclick="closeViewModal()">Close</button>';
+
+        document.getElementById('view-modal').classList.add('active');
+    }
+
+    function buildDetailView(c) {
+        var sections = [];
+
+        var collaboratorsHtml = (c.collaborators || []).map(function(p) {
+            return '<li><div class="entry-main">' + esc(p.name) + (p.institution ? ' &middot; ' + esc(p.institution) : '') + '</div>' +
+                '<div class="entry-sub">' + [
+                    p.email ? '<a href="mailto:' + esc(p.email) + '">' + esc(p.email) + '</a>' : '',
+                    p.area_of_interest ? esc(p.area_of_interest) : ''
+                ].filter(Boolean).join(' &middot; ') + '</div></li>';
+        }).join('');
+        sections.push(
+            '<div class="detail-section"><div class="detail-section-title">Collaborators</div><ul class="entry-list" style="padding:8px 12px;">' +
+            (collaboratorsHtml || '<li class="muted">No collaborators listed</li>') + '</ul></div>');
+
+        sections.push(
+            '<div class="detail-section"><div class="detail-section-title">Goal</div><div style="padding:10px 12px;">' +
+            '<div class="detail-value">' + (c.goal ? esc(c.goal) : '<span class="muted">&mdash;</span>') + '</div></div></div>');
+
+        if (c.physical_mobility) {
+            var mobilityHtml = (c.mobility_visits || []).map(function(m) {
+                var timing = mobilityTiming(m);
+                return '<li><div class="entry-main">' + esc(m.collaborator_name || 'Unspecified') + ' <span class="timing-pill timing-' + timing.cls + '">' + timing.label + '</span></div>' +
+                    '<div class="entry-sub">' + formatDate(m.start_date) + (m.end_date && m.end_date !== m.start_date ? ' &ndash; ' + formatDate(m.end_date) : '') + (m.notes ? ' &middot; ' + esc(m.notes) : '') + '</div></li>';
+            }).join('');
+            sections.push(
+                '<div class="detail-section"><div class="detail-section-title">Physical Mobility</div><ul class="entry-list" style="padding:8px 12px;">' +
+                (mobilityHtml || '<li class="muted">No mobility visits logged</li>') + '</ul></div>');
+        }
+
+        if (c.virtual_meetings_held) {
+            var meetingsHtml = (c.virtual_meetings || []).map(function(m) {
+                var timing = meetingTiming(m);
+                return '<li><div class="entry-main">' + formatDate(m.date) + ' <span class="timing-pill timing-' + timing.cls + '">' + timing.label + '</span></div>' +
+                    (m.notes ? '<div class="entry-sub">' + esc(m.notes) + '</div>' : '') + '</li>';
+            }).join('');
+            sections.push(
+                '<div class="detail-section"><div class="detail-section-title">Virtual Meetings</div><ul class="entry-list" style="padding:8px 12px;">' +
+                (meetingsHtml || '<li class="muted">No virtual meetings logged</li>') + '</ul></div>');
+        }
+
+        if (c.notes) {
+            sections.push(
+                '<div class="detail-section"><div class="detail-section-title">Notes</div><div style="padding:10px 12px;">' +
+                '<div class="detail-value">' + esc(c.notes) + '</div></div></div>');
+        }
+
+        return sections.join('');
+    }
+
+    function closeViewModal() { document.getElementById('view-modal').classList.remove('active'); }
+
+    // ---- Repeaters: Collaborators ----
+
+    function addCollaboratorRow(data) {
+        state.form.collaborators.push(data || { name: '', email: '', institution: '', area_of_interest: '' });
+        renderCollaboratorRows();
+    }
+
+    function removeCollaboratorRow(idx) {
+        state.form.collaborators.splice(idx, 1);
+        renderCollaboratorRows();
+    }
+
+    function renderCollaboratorRows() {
+        var container = document.getElementById('collaborators-repeater');
+        container.innerHTML = state.form.collaborators.map(function(row, idx) {
+            var isOther = !!row.institution && UNINOVIS_INSTITUTIONS.indexOf(row.institution) === -1;
+            var institutionOptions = '<option value="">Select institution...</option>' +
+                UNINOVIS_INSTITUTIONS.map(function(u) {
+                    return '<option value="' + escAttr(u) + '"' + (u === row.institution ? ' selected' : '') + '>' + esc(u) + '</option>';
+                }).join('') +
+                '<option value="__other__"' + (isOther ? ' selected' : '') + '>Other</option>';
+            return '<div class="repeater-row">' +
+                '<div class="repeater-row-header"><span>Collaborator ' + (idx + 1) + '</span>' +
+                (state.form.collaborators.length > 1 ? '<button type="button" class="btn-remove-row" onclick="removeCollaboratorRow(' + idx + ')">&#10005;</button>' : '') + '</div>' +
+                '<div class="row-field"><label>Name <span style="color:#dc3545">*</span></label><input type="text" value="' + escAttr(row.name) + '" oninput="updateCollaboratorField(' + idx + ',\'name\',this.value)" placeholder="Full name" /></div>' +
+                '<div class="row-field"><label>Email</label><input type="email" value="' + escAttr(row.email) + '" oninput="updateCollaboratorField(' + idx + ',\'email\',this.value)" placeholder="name@institution.edu" /></div>' +
+                '<div class="row-field"><label>Institution</label><select onchange="updateCollaboratorInstitution(' + idx + ', this.value)">' + institutionOptions + '</select>' +
+                (isOther ? '<input type="text" list="institutions-list" style="margin-top:6px" value="' + escAttr(row.institution) + '" oninput="updateCollaboratorField(' + idx + ',\'institution\',this.value)" placeholder="Enter institution name" />' : '') +
+                '</div>' +
+                '<div class="row-field"><label>Area of interest</label><input type="text" list="areas-list" value="' + escAttr(row.area_of_interest) + '" oninput="updateCollaboratorField(' + idx + ',\'area_of_interest\',this.value)" placeholder="e.g. Machine Learning" /></div>' +
+                '</div>';
+        }).join('');
+    }
+
+    function updateCollaboratorField(idx, field, value) { state.form.collaborators[idx][field] = value; }
+
+    function updateCollaboratorInstitution(idx, value) {
+        state.form.collaborators[idx].institution = (value === '__other__') ? '' : value;
+        renderCollaboratorRows();
+    }
+
+    // ---- Repeaters: Mobility visits ----
+
+    function addMobilityRow(data) {
+        state.form.mobility_visits.push(data || { collaborator_name: '', start_date: '', end_date: '', notes: '' });
+        renderMobilityRows();
+    }
+
+    function removeMobilityRow(idx) {
+        state.form.mobility_visits.splice(idx, 1);
+        renderMobilityRows();
+    }
+
+    function renderMobilityRows() {
+        var container = document.getElementById('mobility-repeater');
+        container.innerHTML = state.form.mobility_visits.map(function(row, idx) {
+            return '<div class="repeater-row">' +
+                '<div class="repeater-row-header"><span>Visit ' + (idx + 1) + '</span><button type="button" class="btn-remove-row" onclick="removeMobilityRow(' + idx + ')">&#10005;</button></div>' +
+                '<div class="row-field full"><label>Collaborator</label><input type="text" value="' + escAttr(row.collaborator_name) + '" oninput="updateMobilityField(' + idx + ',\'collaborator_name\',this.value)" placeholder="Which collaborator travelled?" /></div>' +
+                '<div class="row-field"><label>Start date</label><input type="date" value="' + escAttr(row.start_date) + '" oninput="updateMobilityField(' + idx + ',\'start_date\',this.value)" /></div>' +
+                '<div class="row-field"><label>End date</label><input type="date" value="' + escAttr(row.end_date) + '" oninput="updateMobilityField(' + idx + ',\'end_date\',this.value)" /></div>' +
+                '<div class="row-field full"><label>Notes</label><input type="text" value="' + escAttr(row.notes) + '" oninput="updateMobilityField(' + idx + ',\'notes\',this.value)" placeholder="Purpose, host, etc. (optional)" /></div>' +
+                '</div>';
+        }).join('');
+    }
+
+    function updateMobilityField(idx, field, value) { state.form.mobility_visits[idx][field] = value; }
+
+    // ---- Repeaters: Virtual meetings ----
+
+    function addMeetingRow(data) {
+        state.form.virtual_meetings.push(data || { date: '', notes: '' });
+        renderMeetingRows();
+    }
+
+    function removeMeetingRow(idx) {
+        state.form.virtual_meetings.splice(idx, 1);
+        renderMeetingRows();
+    }
+
+    function renderMeetingRows() {
+        var container = document.getElementById('meetings-repeater');
+        container.innerHTML = state.form.virtual_meetings.map(function(row, idx) {
+            return '<div class="repeater-row">' +
+                '<div class="repeater-row-header"><span>Meeting ' + (idx + 1) + '</span><button type="button" class="btn-remove-row" onclick="removeMeetingRow(' + idx + ')">&#10005;</button></div>' +
+                '<div class="row-field"><label>Date</label><input type="date" value="' + escAttr(row.date) + '" oninput="updateMeetingField(' + idx + ',\'date\',this.value)" /></div>' +
+                '<div class="row-field full"><label>Notes</label><input type="text" value="' + escAttr(row.notes) + '" oninput="updateMeetingField(' + idx + ',\'notes\',this.value)" placeholder="Topic, attendees, etc. (optional)" /></div>' +
+                '</div>';
+        }).join('');
+    }
+
+    function updateMeetingField(idx, field, value) { state.form.virtual_meetings[idx][field] = value; }
+
+    function toggleSection(section) {
+        if (section === 'mobility') {
+            var checked = document.getElementById('physical_mobility_check').checked;
+            document.getElementById('mobility-repeater').classList.toggle('hidden', !checked);
+            document.getElementById('mobility-add-btn').classList.toggle('hidden', !checked);
+            if (checked && !state.form.mobility_visits.length) addMobilityRow();
+        } else {
+            var checked2 = document.getElementById('virtual_meetings_check').checked;
+            document.getElementById('meetings-repeater').classList.toggle('hidden', !checked2);
+            document.getElementById('meetings-add-btn').classList.toggle('hidden', !checked2);
+            if (checked2 && !state.form.virtual_meetings.length) addMeetingRow();
+        }
+    }
+
+    // ---- Form Modal ----
+
+    function resetFormState() {
+        state.form = { collaborators: [], mobility_visits: [], virtual_meetings: [] };
+    }
+
+    function openNewCollabModal() {
+        state.editingId = null;
+        resetFormState();
+        document.getElementById('form-modal-title').textContent = 'Log New Collaboration';
+        document.getElementById('form-submit-btn').textContent = 'Save Collaboration';
+        document.getElementById('collab-form').reset();
+        document.getElementById('form-error').classList.remove('visible');
+        document.getElementById('physical_mobility_check').checked = false;
+        document.getElementById('virtual_meetings_check').checked = false;
+        document.getElementById('mobility-repeater').classList.add('hidden');
+        document.getElementById('mobility-add-btn').classList.add('hidden');
+        document.getElementById('meetings-repeater').classList.add('hidden');
+        document.getElementById('meetings-add-btn').classList.add('hidden');
+        addCollaboratorRow();
+        document.getElementById('form-modal').classList.add('active');
+    }
+
+    function openEditModal(id) {
+        closeViewModal();
+        var c = state.collaborations.find(function(x) { return x.id === id; });
+        if (!c) return;
+
+        state.editingId = id;
+        resetFormState();
+        document.getElementById('form-modal-title').textContent = 'Edit Collaboration';
+        document.getElementById('form-submit-btn').textContent = 'Save Changes';
+        document.getElementById('form-error').classList.remove('visible');
+
+        var form = document.getElementById('collab-form');
+        form.elements['title'].value = c.title || '';
+        form.elements['goal'].value = c.goal || '';
+        form.elements['status'].value = c.status || 'preparing';
+        form.elements['notes'].value = c.notes || '';
+
+        state.form.collaborators = (c.collaborators || []).map(function(p) { return Object.assign({}, p); });
+        if (!state.form.collaborators.length) state.form.collaborators.push({ name: '', email: '', institution: '', area_of_interest: '' });
+        renderCollaboratorRows();
+
+        document.getElementById('physical_mobility_check').checked = !!c.physical_mobility;
+        state.form.mobility_visits = (c.mobility_visits || []).map(function(m) { return Object.assign({}, m); });
+        renderMobilityRows();
+        document.getElementById('mobility-repeater').classList.toggle('hidden', !c.physical_mobility);
+        document.getElementById('mobility-add-btn').classList.toggle('hidden', !c.physical_mobility);
+
+        document.getElementById('virtual_meetings_check').checked = !!c.virtual_meetings_held;
+        state.form.virtual_meetings = (c.virtual_meetings || []).map(function(m) { return Object.assign({}, m); });
+        renderMeetingRows();
+        document.getElementById('meetings-repeater').classList.toggle('hidden', !c.virtual_meetings_held);
+        document.getElementById('meetings-add-btn').classList.toggle('hidden', !c.virtual_meetings_held);
+
+        document.getElementById('form-modal').classList.add('active');
+    }
+
+    function closeFormModal() {
+        document.getElementById('form-modal').classList.remove('active');
+        state.editingId = null;
+    }
+
+    async function submitCollaboration(e) {
+        e.preventDefault();
+        var form = e.target;
+        var errEl = document.getElementById('form-error');
+
+        var collaborators = state.form.collaborators.filter(function(p) { return p.name && p.name.trim(); });
+        if (!collaborators.length) {
+            errEl.textContent = 'Add at least one collaborator with a name.';
+            errEl.classList.add('visible');
+            return;
+        }
+
+        var physicalMobility = document.getElementById('physical_mobility_check').checked;
+        var virtualMeetingsHeld = document.getElementById('virtual_meetings_check').checked;
+
+        var body = {
+            title: form.elements['title'].value.trim(),
+            goal: form.elements['goal'].value.trim(),
+            status: form.elements['status'].value,
+            collaborators: collaborators,
+            physical_mobility: physicalMobility,
+            mobility_visits: physicalMobility ? state.form.mobility_visits.filter(function(m) { return m.start_date; }) : [],
+            virtual_meetings_held: virtualMeetingsHeld,
+            virtual_meetings: virtualMeetingsHeld ? state.form.virtual_meetings.filter(function(m) { return m.date; }) : [],
+            notes: form.elements['notes'].value.trim()
+        };
+
+        var url = state.editingId ? BASE + '/api/collaborations/' + state.editingId : BASE + '/api/collaborations';
+        var method = state.editingId ? 'PUT' : 'POST';
+
+        try {
+            var res = await fetch(url, { method: method, headers: authHeaders(), body: JSON.stringify(body) });
+            if (!res.ok) {
+                var err = await res.json();
+                errEl.textContent = err.detail || 'Something went wrong.';
+                errEl.classList.add('visible');
+                return;
+            }
+            var saved = await res.json();
+            if (state.editingId) {
+                state.collaborations = state.collaborations.map(function(c) { return c.id === saved.id ? saved : c; });
+                showToast('Collaboration updated.', 'success');
+            } else {
+                state.collaborations.push(saved);
+                showToast('Collaboration logged.', 'success');
+            }
+            closeFormModal();
+            renderCollaborations();
+        } catch(ex) {
+            errEl.textContent = 'Network error. Please try again.';
+            errEl.classList.add('visible');
+        }
+    }
+
+    async function confirmDelete(id) {
+        if (!confirm('Delete this collaboration? This cannot be undone.')) return;
+        try {
+            var res = await fetch(BASE + '/api/collaborations/' + id, { method: 'DELETE', headers: authHeaders() });
+            if (!res.ok) { showToast('Could not delete.', 'error'); return; }
+            state.collaborations = state.collaborations.filter(function(c) { return c.id !== id; });
+            closeViewModal();
+            renderCollaborations();
+            showToast('Collaboration deleted.', 'success');
+        } catch(ex) { showToast('Network error.', 'error'); }
+    }
+
+    // ---- Helpers ----
+
+    function statusLabel(s) {
+        return { preparing: 'Preparing', confirmed: 'Confirmed', happened: 'Happened' }[s] || s;
+    }
+
+    function todayIso() {
+        var d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function mobilityTiming(m) {
+        var ref = m.end_date || m.start_date;
+        if (ref && ref < todayIso()) return { cls: 'past', label: 'Past' };
+        return { cls: 'projected', label: 'Projected' };
+    }
+
+    function meetingTiming(m) {
+        if (m.date && m.date < todayIso()) return { cls: 'past', label: 'Past' };
+        return { cls: 'projected', label: 'Upcoming' };
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '';
+        var d = new Date(iso);
+        if (isNaN(d)) return iso;
+        return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    function esc(str) {
+        if (!str && str !== 0) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function escAttr(str) { return esc(str); }
+
+    var _toastTimer;
+    function showToast(msg, type) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'show' + (type ? ' ' + type : '');
+        clearTimeout(_toastTimer);
+        _toastTimer = setTimeout(function() { t.className = ''; }, 3000);
+    }
+
+    // Close modals on overlay click
+    document.getElementById('view-modal').addEventListener('click', function(e) { if (e.target === this) closeViewModal(); });
+    document.getElementById('form-modal').addEventListener('click', function(e) { if (e.target === this) closeFormModal(); });
+
+    init();
+</script>
+<script>
+    function sendHeight() {
+        var height = document.documentElement.scrollHeight;
+        window.parent.postMessage({ type: 'iframeHeight', height: height }, 'https://uninovis.widening.eu');
+    }
+    window.addEventListener('load', sendHeight);
+    window.addEventListener('resize', sendHeight);
+    var observer = new MutationObserver(sendHeight);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+</script>
+</body>
+</html>

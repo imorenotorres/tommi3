@@ -46,6 +46,7 @@ web/apps/directory/data.json
 web/logs/
 web/apps/event_tracker/data.json
 web/apps/holiday_tracker/data.json
+web/apps/collaboration_dashboard/data.json
 
 # macOS hidden files
 .DS_Store

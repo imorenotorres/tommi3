@@ -405,6 +405,11 @@ from apps.research_proposals.research_proposals import router as research_propos
 app.include_router(research_proposals_router)
 app.mount("/research_proposals/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "research_proposals" / "static"), name="research_proposals_static")
 
+# Mount Collaboration Dashboard app
+from apps.collaboration_dashboard.collaboration_dashboard import router as collaboration_dashboard_router
+app.include_router(collaboration_dashboard_router)
+app.mount("/collaboration-dashboard/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "collaboration_dashboard" / "static"), name="collaboration_dashboard_static")
+
 
 # ---------------------------------------------------------------------------
 # Auth helpers
