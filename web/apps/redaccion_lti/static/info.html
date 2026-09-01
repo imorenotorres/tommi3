@@ -43,7 +43,7 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 <div class="container">
 
 <h2>¿Qué es?</h2>
-<p><strong>Práctica de redacción</strong> es una herramienta que permite a los estudiantes practicar la definición de conceptos clave de una asignatura, recibiendo feedback inmediato de una IA.</p>
+<p><strong>Práctica de redacción</strong> es una herramienta que permite a los estudiantes practicar la definición de conceptos clave de una asignatura, recibiendo una valoración inmediata de una IA.</p>
 
 <p>El docente define los conceptos, las definiciones de referencia y los criterios de evaluación. La IA evalúa las respuestas de los estudiantes <strong>exclusivamente</strong> según lo que el docente ha indicado, sin añadir conocimiento propio.</p>
 
@@ -68,8 +68,8 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
     <div style="flex:1;background:#eff6ff;border:2px solid #bfdbfe;border-radius:12px 0 0 12px;padding:16px;text-align:center;">
         <div style="font-size:28px;margin-bottom:6px;">👤</div>
         <div style="font-weight:800;color:#1e40af;font-size:14px;margin-bottom:8px;">Paso 1</div>
-        <div style="font-weight:700;color:#1e293b;margin-bottom:6px;">El estudiante redacta</div>
-        <div style="color:#475569;font-size:12px;line-height:1.5;">Elige un concepto, lee la pista y escribe su definición con sus propias palabras.</div>
+        <div style="font-weight:700;color:#1e293b;margin-bottom:6px;">Redactar</div>
+        <div style="color:#475569;font-size:12px;line-height:1.5;">El o la estudiante elige un concepto, lee la pista y escribe su definición con sus propias palabras.</div>
     </div>
     <!-- Arrow -->
     <div style="display:flex;align-items:center;background:linear-gradient(to right,#bfdbfe,#fde68a);padding:0 4px;">
@@ -79,7 +79,7 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
     <div style="flex:1.2;background:#fef3c7;border:2px solid #fde68a;padding:16px;text-align:center;">
         <div style="font-size:28px;margin-bottom:6px;">🤖</div>
         <div style="font-weight:800;color:#92400e;font-size:14px;margin-bottom:8px;">Paso 2 — LA IA</div>
-        <div style="font-weight:700;color:#1e293b;margin-bottom:6px;">La IA evalúa</div>
+        <div style="font-weight:700;color:#1e293b;margin-bottom:6px;">Análisis de la IA</div>
         <div style="color:#475569;font-size:12px;line-height:1.5;">Compara la respuesta <strong>solo</strong> con la referencia del docente. Evalúa cada criterio de la rúbrica + ortografía + estilo.</div>
         <div style="margin-top:8px;background:#fff;border:1px solid #fde68a;border-radius:6px;padding:6px 8px;font-size:11px;color:#92400e;font-weight:600;">⚠️ No usa conocimiento propio — solo la referencia del docente</div>
     </div>
@@ -91,8 +91,8 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
     <div style="flex:1;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:0 12px 12px 0;padding:16px;text-align:center;">
         <div style="font-size:28px;margin-bottom:6px;">✅</div>
         <div style="font-weight:800;color:#166534;font-size:14px;margin-bottom:8px;">Paso 3</div>
-        <div style="font-weight:700;color:#1e293b;margin-bottom:6px;">Feedback al estudiante</div>
-        <div style="color:#475569;font-size:12px;line-height:1.5;">Puntuación desglosada (contenido + ortografía + estilo) con comentario por cada criterio. Puede reintentar.</div>
+        <div style="font-weight:700;color:#1e293b;margin-bottom:6px;">Resultados del análisis de la IA</div>
+        <div style="color:#475569;font-size:12px;line-height:1.5;">Puntuación desglosada (contenido + ortografía + estilo) con comentario por cada criterio. Se puede reintentar.</div>
     </div>
 </div>
 
@@ -102,7 +102,7 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
         <strong style="color:#4250b3;">👨‍🏫 El docente define</strong> (una vez): conceptos, referencias, rúbricas, tolerancia ortográfica y criterio de estilo
     </div>
     <div style="flex:1;text-align:center;padding:8px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;">
-        <strong style="color:#4250b3;">👁 El docente revisa</strong> (cuando quiera): respuestas anónimas, calidad del feedback de la IA, conceptos difíciles
+        <strong style="color:#4250b3;">👁 El o la docente revisa</strong> (cuando quiera): respuestas anónimas, calidad de la valoración de la IA, conceptos difíciles
     </div>
 </div>
 
@@ -122,25 +122,25 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 <li>Menciona al menos 4 lugares de articulación de las consonantes con ejemplos de fonemas</li>
 <li>Menciona al menos 1 lugar de articulación de las vocales con ejemplos de fonemas</li>
 </ol>
-<strong>Tolerancia ortográfica:</strong> Errores menores aislados (1-2) se toleran. Marca false solo si hay errores frecuentes o graves. Si hay muchos errores se advierte que en el examen una pregunta con muchos errores ortográficos podría quedar sin valorar aunque el contenido sea correcto.<br>
-<strong>Criterio de estilo:</strong> Frases claras y bien construidas, sin ambigüedades, con un registro apropiado para un contexto académico. No se exige perfección literaria, solo claridad y corrección básica. Si la redacción es muy confusa advierte que en el examen una respuesta muy confusa podría quedar sin valorar aunque el contenido sea aparentemente correcto.
+<strong>Tolerancia ortográfica:</strong> Errores menores aislados (1-2) se toleran. Solo se marca como no superado si hay errores frecuentes o graves. Si hay muchos errores se advierte que en el examen una pregunta con muchos errores ortográficos podría quedar sin valorar aunque el contenido sea correcto.<br>
+<strong>Criterio de estilo:</strong> Frases claras y bien construidas, sin ambigüedades, con un registro apropiado para un contexto académico. No se exige perfección literaria, solo claridad y corrección básica. Si la redacción es muy confusa se advierte que en el examen una respuesta muy confusa podría quedar sin valorar aunque el contenido sea aparentemente correcto.
 </div>
 
-<h3>Paso 1: El estudiante redacta su definición</h3>
-<p>El estudiante ve el nombre del concepto y la pista, y escribe con sus propias palabras:</p>
+<h3>Paso 1: Redactar</h3>
+<p>El o la estudiante ve el nombre del concepto y la pista, y escribe con sus propias palabras:</p>
 <div class="screenshot">
-<div class="label">Lo que escribe el estudiante</div>
+<div class="label">Lo que escribe el o la estudiante</div>
 <em>«El lugar de articulación es un rasgo fonológico que indica en qué parte de la boca se produce el sonido. Por ejemplo, los sonidos bilabiales como /p/ y /b/ se producen con los labios, los dentales como /t/ y /d/ con los dientes, los alveolares como /s/ y /n/ en los alvéolos, y los velares como /k/ y /g/ en el velo del paladar.»</em>
 </div>
 
-<h3>Paso 2: Se construye el prompt para la IA</h3>
-<p>El servidor genera automáticamente un prompt que incluye:</p>
+<h3>Paso 2: Análisis de la IA</h3>
+<p>El servidor genera automáticamente una instrucción para la IA que incluye:</p>
 <div class="screenshot">
 <div class="label">Lo que recibe la IA (simplificado)</div>
 <strong>Rol:</strong> «Eres un tutor que evalúa definiciones.»<br><br>
 <strong>Referencia (del docente):</strong> El lugar de articulación es uno de los rasgos fonológicos que podemos emplear para clasificar los fonemas. Indica dónde se produce la constricción o el cierre en el tracto vocal...<br><br>
-<strong>Definición del estudiante:</strong> El lugar de articulación es un rasgo fonológico que indica en qué parte de la boca...<br><br>
-<strong>Rúbrica — evalúa cada criterio:</strong><br>
+<strong>Definición del/de la estudiante:</strong> El lugar de articulación es un rasgo fonológico que indica en qué parte de la boca...<br><br>
+<strong>Rúbrica — evalúa cada criterio (superado / no superado):</strong><br>
 - Criterio 1: Define el lugar de articulación como rasgo fonológico<br>
 - Criterio 2: Define el lugar de articulación como punto donde se produce la constricción o contacto<br>
 - Criterio 3: Menciona al menos 4 lugares de articulación de las consonantes con ejemplos<br>
@@ -151,13 +151,13 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 </div>
 
 <div class="warning">
-<strong>⚠️ La IA no aporta conocimiento propio.</strong> Solo compara la respuesta del estudiante con la referencia escrita por el docente. Si la referencia no menciona algo, la IA no lo evaluará. Esto garantiza que el docente tiene control total sobre qué se considera correcto.
+<strong>⚠️ La IA no aporta conocimiento propio.</strong> Solo compara la respuesta del o de la estudiante con la referencia escrita por el o la docente. Si la referencia no menciona algo, la IA no lo evaluará. Esto garantiza que el o la docente tiene control total sobre qué se considera correcto.
 </div>
 
-<h3>Paso 3: La IA devuelve la evaluación</h3>
-<p>La IA responde con un JSON que el sistema muestra al estudiante de forma visual:</p>
+<h3>Paso 3: Resultados del análisis de la IA</h3>
+<p>La IA devuelve una valoración estructurada que el sistema muestra de forma visual:</p>
 <div class="screenshot">
-<div class="label">Lo que ve el estudiante</div>
+<div class="label">Lo que ve el o la estudiante</div>
 <strong>Puntuación: 70%</strong> (Contenido: 60/80 · Ortografía: 10/10 · Estilo: 10/10)<br><br>
 ✅ <strong>Define el lugar de articulación como rasgo fonológico</strong> — Correcto, lo identifica como «rasgo fonológico».<br>
 ✅ <strong>Define como punto donde se produce la constricción o contacto</strong> — Dice «en qué parte de la boca se produce el sonido», que es equivalente.<br>
@@ -168,7 +168,7 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 <em>«Tu definición es buena y cubre los aspectos principales de las consonantes. Te falta mencionar que las vocales también se clasifican por su lugar de articulación: anteriores (/i/, /e/), centrales (/a/) y posteriores (/o/, /u/). ¡Inténtalo de nuevo!»</em>
 </div>
 
-<p>El estudiante puede <strong>intentarlo de nuevo</strong> o pasar a otro concepto. Cada intento se registra de forma anónima para que el docente pueda revisarlo.</p>
+<p>El o la estudiante puede <strong>intentarlo de nuevo</strong> o pasar a otro concepto. Cada intento se registra de forma anónima para que el o la docente pueda revisarlo.</p>
 
 <h2>Instrucciones para docentes</h2>
 
@@ -201,7 +201,7 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 <tr><td><strong>Tema</strong></td><td>Número de tema (para agrupar)</td><td>1</td></tr>
 <tr><td><strong>Pista</strong></td><td>Una orientación para el estudiante</td><td>Piensa en qué distingue a un fonema de un sonido concreto</td></tr>
 <tr><td><strong>Referencia</strong></td><td>La definición correcta (la IA solo usa esta información)</td><td>Un fonema es una clase de sonidos que permiten transmitir el mismo contenido semántico...</td></tr>
-<tr><td><strong>Rúbrica</strong></td><td>Criterios de evaluación (true/false cada uno)</td><td>1. Menciona que es una clase de sonidos<br>2. No lo confunde con letra o alófono</td></tr>
+<tr><td><strong>Rúbrica</strong></td><td>Criterios de evaluación (superado / no superado)</td><td>1. Menciona que es una clase de sonidos<br>2. No lo confunde con letra o alófono</td></tr>
 </table>
 
 <div class="warning">
@@ -221,19 +221,19 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 <div class="step">
 <span class="step-num">1</span>
 <span class="step-title">Elegir un concepto</span>
-<p style="margin-top:8px;">Los conceptos se muestran agrupados por temas. El estudiante hace clic en el que quiera practicar.</p>
+<p style="margin-top:8px;">Los conceptos se muestran agrupados por temas. El o la estudiante hace clic en el que quiera practicar.</p>
 </div>
 
 <div class="step">
 <span class="step-num">2</span>
 <span class="step-title">Escribir la definición</span>
-<p style="margin-top:8px;">El estudiante ve una pista orientativa y un campo de texto donde redactar su definición con sus propias palabras. Mínimo 30 caracteres.</p>
+<p style="margin-top:8px;">El o la estudiante ve una pista orientativa y un campo de texto donde redactar su definición con sus propias palabras. Mínimo 30 caracteres.</p>
 </div>
 
 <div class="step">
 <span class="step-num">3</span>
-<span class="step-title">Recibir feedback</span>
-<p style="margin-top:8px;">La IA evalúa cada criterio de la rúbrica (✓ cumplido / ✗ no cumplido) con un comentario breve. También evalúa ortografía y estilo. El estudiante ve su puntuación desglosada y puede intentarlo de nuevo.</p>
+<span class="step-title">Recibir la valoración</span>
+<p style="margin-top:8px;">La IA evalúa cada criterio de la rúbrica (✓ superado / ✗ no superado) con un comentario breve. También evalúa ortografía y estilo. El o la estudiante ve su puntuación desglosada y puede intentarlo de nuevo.</p>
 </div>
 
 <div class="highlight">
@@ -245,7 +245,7 @@ td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
 <ul>
 <li>Ver estadísticas generales: número de redacciones, media de acierto, tasa de aprobados</li>
 <li>Filtrar por concepto o por resultado (aprobados, parciales, suspensos)</li>
-<li>Revisar cada respuesta individual con el feedback de la IA</li>
+<li>Revisar cada respuesta individual con la valoración de la IA</li>
 <li>Detectar conceptos que los estudiantes encuentran difíciles</li>
 <li>Verificar que la IA está evaluando correctamente</li>
 </ul>
