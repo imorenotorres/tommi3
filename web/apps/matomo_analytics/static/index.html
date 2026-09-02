@@ -253,6 +253,12 @@ function viewMode() { return $$('selView').value; }
 function isAll() { return site() === 'all'; } // true for both 'all' and 'persite'
 function fmt(n) { return n == null ? '-' : Number(n).toLocaleString(); }
 function fmtT(s) { s = Math.round(s||0); return s < 60 ? s+'s' : Math.floor(s/60)+'m '+(s%60)+'s'; }
+function periodLabel() {
+    var p = per(), r = rng();
+    var n = r.replace('last', '');
+    var unit = {day: 'days', week: 'weeks', month: 'months'}[p] || p;
+    return 'Last ' + n + ' ' + unit;
+}
 
 // Page filter: returns the URL pattern from the dropdown (or '' for all)
 function selectedPageUrl() {
@@ -1008,7 +1014,7 @@ async function loadCountryChart() {
             });
             el.innerHTML = html;
         }
-        $$('countryChartTitle').textContent = (useVisits ? 'Visits' : 'Unique Visitors') + ' by Country' + titleSuffix;
+        $$('countryChartTitle').textContent = (useVisits ? 'Visits' : 'Unique Visitors') + ' by Country' + titleSuffix + ' (' + periodLabel() + ')';
 
     } catch(e) {
         el.innerHTML = '<span class="error">Error: '+e.message+'</span>';
@@ -1481,6 +1487,7 @@ async function loadChart() {
         else if (cc !== 'all') parts.push(cc.toUpperCase());
         var pgLabel = selectedPageLabel();
         if (pgLabel) parts.push(pgLabel);
+        parts.push('(' + periodLabel() + ')');
         $$('chartTitle').textContent = parts.join(' — ');
 
     } catch(e) {
@@ -1684,6 +1691,7 @@ async function loadAll() {
     tabCache = {};
     liveCache = { key: '', visits: [], unavailable: false };
     closeDrill();
+    populatePageDropdown(); // Refresh page counts for current period
     await populateCountryDropdown();
     await loadCountryChart();
     await loadChart();
