@@ -95,3 +95,4 @@ build/
 
 # Database files (anywhere)
 *.db
+*.json
