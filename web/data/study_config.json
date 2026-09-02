@@ -1,6 +1,0 @@
-{
-  "enabled": false,
-  "study_id": "UMA-IA-TOMMI-STUDY-001",
-  "conditions": ["black_box", "grey_box", "crystal_box"],
-  "description": "Effect of AI Transparency Levels on User Trust — between-subjects experiment"
-}
