@@ -290,7 +290,7 @@ function populatePageDropdown() {
     sel.value = cur || '';
     sel.onchange = function() { loadAll(); };
     // Fetch page data from ALL sites to get accurate visit counts
-    q('Actions.getPageUrls', { flat: '1', filter_limit: '-1', idSite: 'all' }).then(function(raw) {
+    return q('Actions.getPageUrls', { flat: '1', filter_limit: '-1', idSite: 'all' }).then(function(raw) {
         // Collect visit counts for all pages
         var allPages = {};
         function collect(items) {
@@ -1691,7 +1691,7 @@ async function loadAll(refreshDropdowns) {
     tabCache = {};
     liveCache = { key: '', visits: [], unavailable: false };
     closeDrill();
-    if (refreshDropdowns) populatePageDropdown();
+    if (refreshDropdowns) await populatePageDropdown();
     await populateCountryDropdown();
     await loadCountryChart();
     await loadChart();
