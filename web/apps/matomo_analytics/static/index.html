@@ -140,8 +140,8 @@
         <label>Range:</label>
         <select id="selRange">
             <option value="last4">Last 4</option>
-            <option value="last8" selected>Last 8</option>
-            <option value="last12">Last 12</option>
+            <option value="last8">Last 8</option>
+            <option value="last12" selected>Last 12</option>
             <option value="last26">Last 26</option>
             <option value="last52">Last 52</option>
         </select>
@@ -153,7 +153,7 @@
             <option value="unique">Unique Visitors</option>
         </select>
         <div style="flex:1;"></div>
-        <button onclick="loadAll(true)">Apply</button>
+        <button onclick="loadAll()">Apply</button>
         <a href="/matomo-analytics/setup" style="font-size:0.72rem;color:#2D3876;text-decoration:none;margin-left:4px;" title="Configure tracked URLs">&#9881; Setup</a>
     </div>
 
@@ -350,10 +350,11 @@ function populatePageDropdown() {
         sorted.forEach(function(path) {
             var o = document.createElement('option');
             o.value = path;
-            o.textContent = path + ' (' + pages[path] + ')';
+            o.textContent = path + ' (' + fmt(otherPages[path]) + ')';
             sel.appendChild(o);
         });
         sel.value = cur || '';
+        sel.onchange = function() { loadAll(); };
     }).catch(function() {});
 }
 
@@ -1014,7 +1015,12 @@ async function loadCountryChart() {
             });
             el.innerHTML = html;
         }
-        $$('countryChartTitle').textContent = (useVisits ? 'Visits' : 'Unique Visitors') + ' by Country' + titleSuffix + ' (' + periodLabel() + ')';
+        var cParts = [(useVisits ? 'Visits' : 'Unique Visitors') + ' by Country'];
+        if (titleSuffix) cParts.push(titleSuffix.trim());
+        var cpgLabel = selectedPageLabel();
+        if (cpgLabel) cParts.push(cpgLabel);
+        cParts.push('(' + periodLabel() + ')');
+        $$('countryChartTitle').textContent = cParts.join(' — ');
 
     } catch(e) {
         el.innerHTML = '<span class="error">Error: '+e.message+'</span>';
@@ -1687,11 +1693,11 @@ function showTab(tab, btn) {
 }
 
 
-async function loadAll(refreshDropdowns) {
+async function loadAll() {
     tabCache = {};
     liveCache = { key: '', visits: [], unavailable: false };
     closeDrill();
-    if (refreshDropdowns) await populatePageDropdown();
+    await populatePageDropdown();
     await populateCountryDropdown();
     await loadCountryChart();
     await loadChart();
@@ -1740,7 +1746,7 @@ async function loadDrillChart() {
     }
 }
 
-Promise.all([loadSites(), loadUrlConfig()]).then(function(){ loadAll(true); });
+Promise.all([loadSites(), loadUrlConfig()]).then(function(){ loadAll(); });
 </script>
 </body>
 </html>
