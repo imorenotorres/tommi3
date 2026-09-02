@@ -98,7 +98,6 @@
 
         <div class="sync-bar">
             <span class="sync-info" id="syncInfo">Loading...</span>
-            <button class="btn-small" id="syncBtn" style="display:none" onclick="doSync()">Sync now</button>
         </div>
 
         <div class="tabs">
@@ -154,8 +153,6 @@
     <script>
     var BASE = '/new-directory';
     var authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('tommi_token');
-    var authUser = null;
-    var canEdit = false;
     var people = [];
     var units = [];
     var universities = [];
@@ -360,11 +357,11 @@
     function formatSyncInfo() {
         var el = document.getElementById('syncInfo');
         if (!status.last_sync) {
-            el.textContent = 'Remember to sync this page so it is always up to date';
+            el.textContent = status.people + ' people, ' + status.units + ' units';
             return;
         }
         var d = new Date(status.last_sync);
-        el.textContent = 'Last synced ' + d.toLocaleString() + ' — ' + status.people + ' people, ' + status.units + ' units';
+        el.textContent = 'Data as of ' + d.toLocaleString() + ' — ' + status.people + ' people, ' + status.units + ' units';
     }
 
     async function loadStatus() {
@@ -373,32 +370,13 @@
         formatSyncInfo();
     }
 
-    async function doSync() {
-        var btn = document.getElementById('syncBtn');
-        btn.disabled = true; btn.textContent = 'Syncing...';
-        try {
-            var resp = await authFetch(BASE + '/api/sync', { method: 'POST' });
-            var data = await resp.json();
-            if (!resp.ok) { alert('Sync failed: ' + (data.detail || 'Unknown error')); }
-            await loadAll();
-        } catch (e) {
-            alert('Sync failed: ' + e.message);
-        }
-        btn.disabled = false; btn.textContent = 'Sync now';
-    }
-
     // ── Auth & init ───────────────────────────────────────────────
 
     async function checkAuth() {
         if (!authToken) return;
         try {
-            var resp = await authFetch(BASE + '/api/auth-check');
-            if (resp.ok) {
-                authUser = await resp.json();
-                canEdit = authUser.can_edit;
-            }
+            await authFetch(BASE + '/api/auth-check');
         } catch (e) { /* stay in read-only mode */ }
-        document.getElementById('syncBtn').style.display = canEdit ? '' : 'none';
     }
 
     async function loadAll() {
