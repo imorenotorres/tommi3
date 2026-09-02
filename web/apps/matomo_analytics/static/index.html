@@ -153,7 +153,7 @@
             <option value="unique">Unique Visitors</option>
         </select>
         <div style="flex:1;"></div>
-        <button onclick="loadAll()">Apply</button>
+        <button onclick="loadAll(true)">Apply</button>
         <a href="/matomo-analytics/setup" style="font-size:0.72rem;color:#2D3876;text-decoration:none;margin-left:4px;" title="Configure tracked URLs">&#9881; Setup</a>
     </div>
 
@@ -1687,11 +1687,11 @@ function showTab(tab, btn) {
 }
 
 
-async function loadAll() {
+async function loadAll(refreshDropdowns) {
     tabCache = {};
     liveCache = { key: '', visits: [], unavailable: false };
     closeDrill();
-    populatePageDropdown(); // Refresh page counts for current period
+    if (refreshDropdowns) populatePageDropdown();
     await populateCountryDropdown();
     await loadCountryChart();
     await loadChart();
@@ -1740,7 +1740,7 @@ async function loadDrillChart() {
     }
 }
 
-Promise.all([loadSites(), loadUrlConfig()]).then(function(){ loadAll(); });
+Promise.all([loadSites(), loadUrlConfig()]).then(function(){ loadAll(true); });
 </script>
 </body>
 </html>
