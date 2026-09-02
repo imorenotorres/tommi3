@@ -9,8 +9,9 @@ live API call at request time.
 import os
 
 import json
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
@@ -21,7 +22,7 @@ router = APIRouter(prefix="/new-directory", tags=["new_directory"])
 # Auth helpers (same pattern as apps/directory and apps/event_tracker)
 # ---------------------------------------------------------------------------
 
-from auth import get_session, can_edit as _can_edit_check
+from auth import get_session, can_edit as _can_edit_check, user_roles as _user_roles
 
 
 def _get_token(request: Request) -> str | None:
@@ -38,6 +39,17 @@ def _require_auth(request: Request) -> dict:
     session = get_session(token)
     if not session:
         return {"username": "guest", "role": "public", "roles": ["public"]}
+    return session
+
+
+# Creating people/units is restricted to content_manager and superuser —
+# a narrower set than the general EDITOR_ROLES used for read/write elsewhere.
+_CONTENT_MANAGER_ROLES = {"content_manager", "superuser"}
+
+
+def _require_content_manager(session: dict = Depends(_require_auth)) -> dict:
+    if not (_CONTENT_MANAGER_ROLES & set(_user_roles(session))):
+        raise HTTPException(status_code=403, detail="content_manager or superuser role required")
     return session
 
 
@@ -198,3 +210,180 @@ def get_universities(session: dict = Depends(_require_auth)):
         }
         for code, info in sorted(UNIVERSITIES.items())
     ]
+
+
+# ---------------------------------------------------------------------------
+# Create person / unit — content_manager and superuser only
+# ---------------------------------------------------------------------------
+
+class PersonUnitAssignment(BaseModel):
+    unit_id: int
+    role: str = ""
+
+
+class PersonCreate(BaseModel):
+    first_name: str
+    family_name: str
+    email: str = ""
+    phone: str = ""
+    position: str = ""
+    university: str = ""
+    units: list[PersonUnitAssignment] = []
+
+
+class UnitCreate(BaseModel):
+    name: str
+    parent_id: int | None = None
+    university: str = ""
+
+
+@router.post("/api/people")
+def create_person(body: PersonCreate, session: dict = Depends(_require_content_manager)):
+    first_name = body.first_name.strip()
+    family_name = body.family_name.strip()
+    if not first_name or not family_name:
+        raise HTTPException(status_code=400, detail="First name and family name are required")
+    if body.university and body.university not in UNIVERSITIES:
+        raise HTTPException(status_code=400, detail=f"Unknown university: {body.university}")
+
+    data = load_data()
+    unit_ids = {u["id"] for u in data.get("units", [])}
+    for assignment in body.units:
+        if assignment.unit_id not in unit_ids:
+            raise HTTPException(status_code=400, detail=f"Unknown unit: {assignment.unit_id}")
+
+    new_id = max([p["id"] for p in data.get("people", [])], default=0) + 1
+    person = {
+        "id": new_id,
+        "first_name": first_name,
+        "family_name": family_name,
+        "email": body.email.strip(),
+        "phone": body.phone.strip(),
+        "position": body.position.strip(),
+        "university": body.university,
+        "university_name": UNIVERSITIES.get(body.university, {}).get("name", ""),
+    }
+    data.setdefault("people", []).append(person)
+    seen_units = set()
+    for assignment in body.units:
+        if assignment.unit_id in seen_units:
+            continue
+        seen_units.add(assignment.unit_id)
+        data.setdefault("memberships", []).append({
+            "person_id": new_id,
+            "unit_id": assignment.unit_id,
+            "role": assignment.role.strip(),
+        })
+    save_data(data)
+    return {"ok": True, "id": new_id}
+
+
+@router.post("/api/units")
+def create_unit(body: UnitCreate, session: dict = Depends(_require_content_manager)):
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Unit name is required")
+    if body.university and body.university not in UNIVERSITIES:
+        raise HTTPException(status_code=400, detail=f"Unknown university: {body.university}")
+
+    data = load_data()
+    if body.parent_id is not None and not any(u["id"] == body.parent_id for u in data.get("units", [])):
+        raise HTTPException(status_code=400, detail="Unknown parent unit")
+
+    new_id = max([u["id"] for u in data.get("units", [])], default=0) + 1
+    unit = {
+        "id": new_id,
+        "name": name,
+        "parent_id": body.parent_id,
+        "university": body.university,
+        "university_name": UNIVERSITIES.get(body.university, {}).get("name", ""),
+    }
+    data.setdefault("units", []).append(unit)
+    save_data(data)
+    return {"ok": True, "id": new_id}
+
+
+# ---------------------------------------------------------------------------
+# Self-service profile — any authenticated user can view/edit their OWN
+# directory entry, matched by email == login username. No role restriction:
+# this is not the content_manager/superuser create-anyone flow above.
+# ---------------------------------------------------------------------------
+
+class MyProfileUpdate(BaseModel):
+    first_name: str
+    family_name: str
+    phone: str = ""
+    position: str = ""
+    university: str = ""
+    units: list[PersonUnitAssignment] = []
+
+
+def _find_person_by_email(data: dict, email: str) -> dict | None:
+    email_lower = email.lower()
+    return next((p for p in data.get("people", []) if p.get("email", "").lower() == email_lower), None)
+
+
+@router.get("/api/my-profile")
+def get_my_profile(session: dict = Depends(_require_auth)):
+    username = session.get("username", "")
+    if not username or username == "guest":
+        raise HTTPException(status_code=404, detail="No directory profile found")
+
+    data = load_data()
+    person = _find_person_by_email(data, username)
+    if not person:
+        raise HTTPException(status_code=404, detail="No directory profile found")
+
+    memberships = [
+        {"unit_id": m["unit_id"], "role": m.get("role", "")}
+        for m in data.get("memberships", [])
+        if m["person_id"] == person["id"]
+    ]
+    return {**person, "memberships": memberships}
+
+
+@router.put("/api/my-profile")
+def update_my_profile(body: MyProfileUpdate, session: dict = Depends(_require_auth)):
+    username = session.get("username", "")
+    if not username or username == "guest":
+        raise HTTPException(status_code=403, detail="Authentication required")
+
+    first_name = body.first_name.strip()
+    family_name = body.family_name.strip()
+    if not first_name or not family_name:
+        raise HTTPException(status_code=400, detail="First name and family name are required")
+    if body.university and body.university not in UNIVERSITIES:
+        raise HTTPException(status_code=400, detail=f"Unknown university: {body.university}")
+
+    data = load_data()
+    person = _find_person_by_email(data, username)
+    if not person:
+        raise HTTPException(status_code=404, detail="No directory profile found for your account")
+
+    unit_ids = {u["id"] for u in data.get("units", [])}
+    for assignment in body.units:
+        if assignment.unit_id not in unit_ids:
+            raise HTTPException(status_code=400, detail=f"Unknown unit: {assignment.unit_id}")
+
+    person["first_name"] = first_name
+    person["family_name"] = family_name
+    person["phone"] = body.phone.strip()
+    person["position"] = body.position.strip()
+    person["university"] = body.university
+    person["university_name"] = UNIVERSITIES.get(body.university, {}).get("name", "")
+
+    # Replace this person's memberships wholesale with the submitted set
+    data["memberships"] = [m for m in data.get("memberships", []) if m["person_id"] != person["id"]]
+    seen_units = set()
+    for assignment in body.units:
+        if assignment.unit_id in seen_units:
+            continue
+        seen_units.add(assignment.unit_id)
+        data["memberships"].append({
+            "person_id": person["id"],
+            "unit_id": assignment.unit_id,
+            "role": assignment.role.strip(),
+        })
+
+    save_data(data)
+    return {"ok": True, "id": person["id"]}

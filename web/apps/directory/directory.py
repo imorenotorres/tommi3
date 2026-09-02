@@ -8,6 +8,7 @@ Designed to be mounted on the TOMMI FastAPI server.
 import base64
 import json
 import os
+import re
 import uuid
 from typing import Optional
 
@@ -23,7 +24,28 @@ router = APIRouter(prefix="/directory", tags=["directory"])
 
 # ── Auth helpers ─────────────────────────────────────────────────────
 
-from auth import get_session, ROLES, can_edit as _can_edit_check
+from auth import get_session, ROLES, can_edit as _can_edit_check, _load_users
+
+
+def _display_name(username: str) -> str:
+    """Resolve a friendly display name for a username/email.
+
+    Prefers the directory entry (first + family name); falls back to a
+    title-cased version of the email's local part.
+    """
+    try:
+        data = load_data()
+        email_lower = username.lower()
+        for user in data.get("users", []):
+            if user.get("email", "").lower() == email_lower:
+                full = f"{user.get('first_name', '')} {user.get('family_name', '')}".strip()
+                if full:
+                    return full
+    except Exception:
+        pass
+    local = username.split("@", 1)[0]
+    words = [w for w in re.split(r"[._-]+", local) if w]
+    return " ".join(w.capitalize() for w in words) or username
 
 
 def _get_token(request: Request) -> str | None:
@@ -77,7 +99,16 @@ def get_all_data():
 @router.get("/api/auth-check")
 def auth_check(session: dict = Depends(_require_auth)):
     can_edit = _can_edit_check(session)
-    return {"username": session["username"], "role": session["role"], "roles": session.get("roles", [session["role"]]), "can_edit": can_edit}
+    users = _load_users()
+    user = users.get(session["username"], {})
+    return {
+        "username": session["username"],
+        "name": _display_name(session["username"]),
+        "role": session["role"],
+        "roles": session.get("roles", [session["role"]]),
+        "can_edit": can_edit,
+        "provisional_password": user.get("provisional_password", False),
+    }
 
 
 # ── User CRUD ────────────────────────────────────────────────────────

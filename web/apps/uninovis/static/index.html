@@ -120,7 +120,7 @@
     <!-- End Matomo Code -->
 </head>
 <body>
-<script src="/static/nav.js"></script>
+<script src="/static/nav.js?v=4"></script>
 <script>uninovisNav({ current: 'Admin Tools (UAT)' });</script>
     <div class="header">
         <h1>UNINOVIS Admin Tools (UAT)</h1>
@@ -155,15 +155,15 @@
     // ── Tool registry — add new tools here ────────────────────────
     // Tool access rules (mirrors TOOL_ACCESS in auth.py)
     var TOOL_ACCESS = {
-        'directory':          ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
-        'mobility_planner':   ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
-        'intranet_services':  ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'superuser'],
-        'unigracon':          ['teaching_staff', 'tester', 'superuser'],
-        'researcher_connect': ['teaching_staff', 'tester', 'superuser'],
-        'research_proposals': ['teaching_staff', 'tester', 'superuser'],
-        'tommi_agents':       ['teaching_staff', 'tester', 'superuser'],
-        'virtual_campus':     ['student', 'tester', 'superuser'],
-        'student_admin':      ['student', 'tester', 'superuser'],
+        'directory':          ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
+        'mobility_planner':   ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
+        'intranet_services':  ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
+        'unigracon':          ['teaching_staff', 'tester', 'content_manager', 'superuser'],
+        'researcher_connect': ['teaching_staff', 'tester', 'content_manager', 'superuser'],
+        'research_proposals': ['teaching_staff', 'tester', 'content_manager', 'superuser'],
+        'tommi_agents':       ['teaching_staff', 'tester', 'content_manager', 'superuser'],
+        'virtual_campus':     ['student', 'tester', 'content_manager', 'superuser'],
+        'student_admin':      ['student', 'tester', 'content_manager', 'superuser'],
     };
 
     function canAccessTool(toolId, roles) {

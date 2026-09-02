@@ -107,25 +107,27 @@
     </div>
 </div>
 
-<!-- Change password form (provisional passwords) -->
-<div class="login-box" id="changeBox" style="display:none;">
-    <h2>Change your password</h2>
-    <p class="login-subtitle">You must change your provisional password before continuing</p>
-    <div id="changeMsg" style="font-size:0.85em;margin-bottom:10px;min-height:1.2em;"></div>
-    <div class="form-group">
-        <label>Current password</label>
-        <input type="password" id="changeCurrent" required>
+<!-- Change password popup (provisional passwords) -->
+<div class="modal-overlay" id="changeModal">
+    <div class="modal-box" style="text-align:left;">
+        <h2 style="text-align:center;">Change your password</h2>
+        <p style="text-align:center;">You must change your provisional password before continuing</p>
+        <div id="changeMsg" style="font-size:0.85em;margin-bottom:10px;min-height:1.2em;text-align:center;"></div>
+        <div class="form-group">
+            <label>Current password</label>
+            <input type="password" id="changeCurrent" required>
+        </div>
+        <div class="form-group">
+            <label>New password</label>
+            <input type="password" id="changeNew" required minlength="8">
+            <p class="password-req">Min. 8 chars, uppercase, lowercase, digit, and special character</p>
+        </div>
+        <div class="form-group">
+            <label>Confirm new password</label>
+            <input type="password" id="changeConfirm" required>
+        </div>
+        <button class="btn-login" onclick="doChangePassword()">Change password</button>
     </div>
-    <div class="form-group">
-        <label>New password</label>
-        <input type="password" id="changeNew" required minlength="8">
-        <p class="password-req">Min. 8 chars, uppercase, lowercase, digit, and special character</p>
-    </div>
-    <div class="form-group">
-        <label>Confirm new password</label>
-        <input type="password" id="changeConfirm" required>
-    </div>
-    <button class="btn-login" onclick="doChangePassword()">Change password</button>
 </div>
 
 <!-- Forgot password popup -->
@@ -145,7 +147,12 @@ if (token) {
         .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function(data) {
             if (data && data.role !== 'public' && data.username !== 'guest') {
-                doRedirect();
+                if (data.provisional_password) {
+                    document.getElementById('loginBox').style.display = 'none';
+                    document.getElementById('changeModal').classList.add('open');
+                } else {
+                    doRedirect();
+                }
             }
         })
         .catch(function() { localStorage.removeItem('tommi_token'); localStorage.removeItem('uninovis_token'); });
@@ -161,7 +168,7 @@ function doRedirect() {
 function showLoginForm() {
     document.getElementById('loginBox').style.display = '';
     document.getElementById('signupBox').style.display = 'none';
-    document.getElementById('changeBox').style.display = 'none';
+    document.getElementById('changeModal').classList.remove('open');
 }
 function showForgotPassword() {
     document.getElementById('forgotModal').classList.add('open');
@@ -199,7 +206,7 @@ async function doLogin() {
         localStorage.setItem('uninovis_token', data.token);
         if (data.provisional_password) {
             document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('changeBox').style.display = '';
+            document.getElementById('changeModal').classList.add('open');
         } else {
             doRedirect();
         }

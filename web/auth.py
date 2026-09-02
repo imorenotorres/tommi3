@@ -25,6 +25,7 @@ USERS_FILE = DATA_DIR / "users.json"
 # Role hierarchy — numeric level for privilege checks
 ROLES = {
     "superuser": 4,
+    "content_manager": 3.5,  # below superuser, above every other role
     "tester": 3,
     "uninovis_staff": 2.5,  # admin_staff/teaching_staff who are also on the UNINOVIS project
     "admin_staff": 2,
@@ -34,35 +35,36 @@ ROLES = {
 }
 
 # Tool access — which roles can access each tool (defaults)
+# content_manager sits just below superuser, so it is included on every tool
+# except the reserved System Administration / analytics tools below.
 _DEFAULT_TOOL_ACCESS = {
     # Learning & Mobility
-    "course_catalogue":   ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "module_overview":    ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "module_recognition": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "micro_credentials":  ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "learning_support":   ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "unigracon":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "mobility_planner":   ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "course_catalogue":   ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "module_overview":    ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "module_recognition": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "micro_credentials":  ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "learning_support":   ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "unigracon":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "mobility_planner":   ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     # Research & Innovation
-    "internships":        ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "researcher_connect": ["teaching_staff", "tester", "superuser"],
-    "research_proposals": ["teaching_staff", "tester", "superuser"],
-    "research_portfolio": ["teaching_staff", "tester", "superuser"],
-    "research_explorers": ["student", "teaching_staff", "tester", "superuser"],
-    "european_projects":  ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "collaboration_dashboard": ["uninovis_staff", "superuser"],
+    "internships":        ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "researcher_connect": ["teaching_staff", "tester", "content_manager", "superuser"],
+    "research_proposals": ["teaching_staff", "tester", "content_manager", "superuser"],
+    "research_portfolio": ["teaching_staff", "tester", "content_manager", "superuser"],
+    "research_explorers": ["student", "teaching_staff", "tester", "content_manager", "superuser"],
+    "european_projects":  ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "collaboration_dashboard": ["uninovis_staff", "content_manager", "superuser"],
     # Events & Communication
-    "event_catalogue":    ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
+    "event_catalogue":    ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     # Administration
-    "directory":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "new_directory":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "event_tracker":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    "dp_status":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"],
-    # Analytics
+    "directory":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "new_directory":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "event_tracker":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "dp_status":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "holiday_tracker":    ["uninovis_staff", "content_manager", "superuser"],
+    # Analytics & System Administration — reserved for superuser
     "log_analytics":      ["superuser"],
     "matomo_analytics":   ["superuser"],
-    "holiday_tracker":    ["uninovis_staff", "superuser"],
-    # System Administration
     "user_management":    ["superuser"],
     "agent_management":   ["superuser"],
     "tool_visibility":    ["superuser"],
@@ -92,7 +94,7 @@ def save_tool_access(access: dict):
 TOOL_ACCESS = _load_tool_access()
 
 # Roles that grant editing rights in apps (equivalent to old "tester" check)
-EDITOR_ROLES = {"admin_staff", "uninovis_staff", "teaching_staff", "tester", "superuser"}
+EDITOR_ROLES = {"admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"}
 
 
 def user_roles(user_or_session: dict) -> list:

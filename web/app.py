@@ -493,6 +493,7 @@ async def api_me(session: dict = Depends(require_auth)):
     user = users.get(session["username"], {})
     result = {
         "username": session["username"],
+        "name": resolve_display_name(session["username"]),
         "role": session["role"],
         "roles": session.get("roles", [session["role"]]),
         "provisional_password": user.get("provisional_password", False),
@@ -676,6 +677,21 @@ def _check_directory_email(email: str) -> str:
     except Exception:
         pass
     return ""
+
+
+def resolve_display_name(username: str) -> str:
+    """Resolve a friendly display name for a username/email.
+
+    Prefers the directory entry (first + family name); falls back to a
+    title-cased version of the email's local part.
+    """
+    name = _check_directory_email(username)
+    if name:
+        return name
+    import re
+    local = username.split("@", 1)[0]
+    words = [w for w in re.split(r"[._-]+", local) if w]
+    return " ".join(w.capitalize() for w in words) or username
 
 
 def _get_smtp_config() -> dict:

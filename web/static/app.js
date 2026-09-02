@@ -45,7 +45,8 @@ async function checkAuth() {
         localStorage.setItem('tommi_username', data.username);
         // Update nav bar username
         const navUser = document.getElementById('uninovis-nav-user');
-        if (navUser) navUser.textContent = data.username;
+        if (navUser && typeof tommiAttachUserMenu === 'function') tommiAttachUserMenu(navUser, data.name || data.username);
+        else if (navUser) navUser.textContent = data.username;
         return true;
     } catch {
         localStorage.removeItem('tommi_token');
@@ -91,6 +92,10 @@ function doLogout() {
     localStorage.removeItem('tommi_study_mode');
     window.location.href = '/intranet';
 }
+
+// Account menu / change password (tommiAttachUserMenu, tommiOpenChangePasswordModal,
+// tommiSubmitPasswordChange) now live only in nav.js, loaded by this page as a shared script
+// so the behavior is identical everywhere instead of duplicated per page.
 
 // Estado de la aplicación
 const state = {
@@ -176,8 +181,8 @@ async function init() {
 
     // Detect tester mode from <body data-mode="tester">
     if (document.body && document.body.dataset.mode === 'tester') {
-        // Only tester and superuser can access tester mode
-        if (role !== 'tester' && role !== 'superuser') {
+        // Only tester, content_manager and superuser can access tester mode
+        if (role !== 'tester' && role !== 'content_manager' && role !== 'superuser') {
             window.location.href = '/';
             return;
         }
@@ -213,8 +218,8 @@ async function init() {
     // Store role for config editor field visibility
     state._userRole = role;
 
-    // Show gear row for testers and superusers (visibility toggled when agent loads)
-    if (role === 'tester' || role === 'superuser') {
+    // Show gear row for testers, content managers, and superusers (visibility toggled when agent loads)
+    if (role === 'tester' || role === 'content_manager' || role === 'superuser') {
         state._showGear = true;
         const gearBtn = document.getElementById('btn-agent-config');
         if (gearBtn) {
@@ -1681,8 +1686,8 @@ async function sendMessage(message) {
             const traceConfig = state.currentAgent && state.currentAgent.decision_trace;
             const role = state._userRole || 'user';
             console.log('[TRACE] Received trace event. traceConfig:', traceConfig, 'role:', role, 'data length:', event.data.length);
-            // Show if: crystal_box (everyone), or crystal_box_testers and user is tester/superuser
-            if (traceConfig === 'crystal_box' || (traceConfig === 'crystal_box_testers' && (role === 'tester' || role === 'superuser'))) {
+            // Show if: crystal_box (everyone), or crystal_box_testers and user is tester/content_manager/superuser
+            if (traceConfig === 'crystal_box' || (traceConfig === 'crystal_box_testers' && (role === 'tester' || role === 'content_manager' || role === 'superuser'))) {
                 traceHtml = event.data.replace(/\\n/g, '\n');
                 responseDiv.innerHTML = bannerHtml + badgeHtml + marked.parse(cleanPdfLinks(responseText)) + editorHtml + traceHtml;
                 console.log('[TRACE] Trace rendered');
@@ -2176,6 +2181,7 @@ function openAdminPanel() {
                 <select id="new-user-role" style="padding:0.4rem 0.6rem; border:1px solid #e2e8f0; border-radius:4px; font-size:0.9rem;">
                     <option value="user">User</option>
                     <option value="tester">Tester</option>
+                    <option value="content_manager">Content manager</option>
                     <option value="superuser">Superuser</option>
                 </select>
                 <button id="btn-create-user" style="background:#2563eb; color:#fff; border:none; padding:0.4rem 0.8rem; border-radius:4px; cursor:pointer; font-size:0.9rem;">Create</button>
@@ -2231,6 +2237,7 @@ function openAdminPanel() {
                 <option value="">All roles</option>
                 <option value="user">user</option>
                 <option value="tester">tester</option>
+                <option value="content_manager">content_manager</option>
                 <option value="superuser">superuser</option>
             </select>
         </div>
@@ -2460,7 +2467,7 @@ function _renderAdminUsers() {
         return;
     }
 
-    const roleColors = { superuser: '#dc2626', tester: '#d97706', user: '#2563eb' };
+    const roleColors = { superuser: '#dc2626', content_manager: '#9333ea', tester: '#d97706', user: '#2563eb' };
     const currentUser = getAuthUsername();
 
     function sortTh(col, label) {
@@ -2495,7 +2502,7 @@ function _renderAdminUsers() {
             roleHtml = `<span style="color:${roleColor}; font-weight:500;">${u.role}</span>`;
         } else {
             roleHtml = `<select onchange="adminChangeRole('${u.username}', this.value)" style="padding:2px 4px; border:1px solid #e2e8f0; border-radius:4px; font-size:0.85rem; color:${roleColor}; font-weight:500; cursor:pointer;">`;
-            ['user', 'tester', 'superuser'].forEach(r => {
+            ['user', 'tester', 'content_manager', 'superuser'].forEach(r => {
                 roleHtml += `<option value="${r}"${u.role === r ? ' selected' : ''} style="color:${roleColors[r] || '#64748b'};">${r}</option>`;
             });
             roleHtml += '</select>';

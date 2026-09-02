@@ -51,7 +51,7 @@ def _is_uma_email(username: str) -> bool:
     return username.strip().lower().rsplit("@", 1)[-1] == "uma.es"
 
 
-_ALLOWED_ROLES = {"uninovis_staff", "superuser"}
+_ALLOWED_ROLES = {"uninovis_staff", "content_manager", "superuser"}
 
 
 def _require_staff(session: dict = Depends(_require_auth)) -> dict:
@@ -63,7 +63,7 @@ def _require_staff(session: dict = Depends(_require_auth)) -> dict:
 
 
 def _is_senior_editor(session: dict) -> bool:
-    return bool({"tester", "superuser"} & set(user_roles(session)))
+    return bool({"tester", "content_manager", "superuser"} & set(user_roles(session)))
 
 
 # -- Data I/O ---------------------------------------------------------------

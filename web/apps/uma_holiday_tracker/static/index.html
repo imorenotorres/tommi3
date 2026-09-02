@@ -42,6 +42,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .btn-log.personal:hover { background: #f57c00; }
 .btn-log.commission { background: #1565c0; }
 .btn-log.commission:hover { background: #1976d2; }
+.btn-log.telework { background: #00838f; }
+.btn-log.telework:hover { background: #00acc1; }
 
 .legend { padding: 0 24px 12px; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 0.8rem; color: var(--text-light); }
 .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
@@ -82,6 +84,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .event-chip { display: block; font-size: 0.72rem; padding: 2px 6px; margin-bottom: 2px; border-radius: 4px; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .event-chip.personal_day { border: 2px dashed rgba(255,255,255,0.7); }
 .event-chip.comision_servicio { border: 2px dotted rgba(255,255,255,0.7); }
+.event-chip.teletrabajo { border: 2px double rgba(255,255,255,0.7); }
 .event-chip:hover { opacity: 0.85; }
 .event-chip.locked { opacity: 0.6; }
 
@@ -108,14 +111,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .modal-footer .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
 .modal-footer .btn-danger { background: #fff; color: #c62828; border-color: #c62828; }
 .modal-body .hint { font-size: 0.78rem; color: var(--text-light); margin-top: 12px; }
+
+.type-selector { display: flex; }
+.type-btn { flex: 1; padding: 8px 4px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 0.78rem; margin-left: -1px; }
+.type-btn:first-child { border-radius: var(--radius) 0 0 var(--radius); margin-left: 0; }
+.type-btn:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.type-btn.active[data-type="holiday"] { background: #2e7d32; color: #fff; border-color: #2e7d32; }
+.type-btn.active[data-type="personal_day"] { background: #ef6c00; color: #fff; border-color: #ef6c00; }
+.type-btn.active[data-type="comision_servicio"] { background: #1565c0; color: #fff; border-color: #1565c0; }
+.type-btn.active[data-type="teletrabajo"] { background: #00838f; color: #fff; border-color: #00838f; }
 .modal-body .detail-row { font-size: 0.9rem; margin-bottom: 8px; }
 .modal-body .detail-row b { color: var(--text-light); font-weight: 600; margin-right: 4px; }
 </style>
 </head>
 <body>
 
-<script src="/static/nav.js"></script>
-<script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/static/intranet.html#uma_holidays'}], current: 'UMA Holiday Tracker' });</script>
+<script src="/static/nav.js?v=4"></script>
+<script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/#uma_holidays'}], current: 'UMA Holiday Tracker' });</script>
 
 <div id="deniedView" class="denied" style="display:none;">
   <h2>uninovis_staff (UMA) access only</h2>
@@ -139,6 +151,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <button class="btn-log holiday" onclick="openLogModal('holiday')">🌴 Vacaciones</button>
         <button class="btn-log personal" onclick="openLogModal('personal_day')">🙂 Asuntos propios</button>
         <button class="btn-log commission" onclick="openLogModal('comision_servicio')">💼 Comisión de servicio</button>
+        <button class="btn-log telework" onclick="openLogModal('teletrabajo')">💻 Teletrabajo</button>
+        <button class="nav-btn" id="btnManageFestivities" style="display:none;" onclick="openFestivitiesModal()">🎉 Manage festivities</button>
       </div>
     </div>
 
@@ -158,10 +172,34 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <button class="modal-close" onclick="closeLogModal()">&times;</button>
     </div>
     <div class="modal-body">
+      <label>Type</label>
+      <div class="type-selector" id="typeSelector">
+        <button type="button" class="type-btn" data-type="holiday" onclick="selectPendingType('holiday')">🌴 Vacaciones</button>
+        <button type="button" class="type-btn" data-type="personal_day" onclick="selectPendingType('personal_day')">🙂 Asuntos propios</button>
+        <button type="button" class="type-btn" data-type="comision_servicio" onclick="selectPendingType('comision_servicio')">💼 Comisión</button>
+        <button type="button" class="type-btn" data-type="teletrabajo" onclick="selectPendingType('teletrabajo')">💻 Teletrabajo</button>
+      </div>
       <label>Start date</label>
       <input type="date" id="fStartDate">
-      <label>End date</label>
-      <input type="date" id="fEndDate">
+      <div id="endDateRow">
+        <label>End date</label>
+        <input type="date" id="fEndDate">
+      </div>
+      <div id="personal-day-fields" style="display:none;">
+        <label>How much time?</label>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;">
+            <input type="radio" name="pdMode" id="pdModeFull" value="full" style="width:auto;" checked onchange="onPersonalDayModeChange()"> Full day (8h)
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;">
+            <input type="radio" name="pdMode" id="pdModeHours" value="hours" style="width:auto;" onchange="onPersonalDayModeChange()"> By hours
+          </label>
+        </div>
+        <div id="pdHoursRow" style="display:none;">
+          <label>Hours</label>
+          <input type="number" id="fHours" min="0.5" max="8" step="0.5" placeholder="e.g. 4">
+        </div>
+      </div>
       <div id="comision-fields" style="display:none;">
         <label>Destino</label>
         <input type="text" id="fDestination" placeholder="Ej: Universidad de Tirana, Albania">
@@ -195,13 +233,92 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   </div>
 </div>
 
+<!-- Manage festivities modal (content_manager / superuser only) -->
+<div class="modal-overlay" id="festModal">
+  <div class="modal" style="max-width:440px;max-height:78vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <h2>Manage UMA festivities</h2>
+      <button class="modal-close" onclick="closeFestivitiesModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1;">
+      <div id="festFormMsg" style="display:none;padding:8px 12px;border-radius:8px;font-size:0.85rem;margin-bottom:12px;"></div>
+      <div style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;">
+        <div style="font-weight:600;font-size:0.9rem;margin-bottom:8px;">Add a festivity</div>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:500;">
+          <input type="checkbox" id="festRecurring" style="width:auto;" onchange="onFestRecurringToggle()"> Repeats every year (same MM-DD)
+        </label>
+        <label>Start date</label>
+        <input type="date" id="festDateFull">
+        <input type="text" id="festDateRecurring" placeholder="MM-DD, e.g. 12-25" style="display:none;">
+        <label>End date <span style="font-weight:400;color:var(--text-light);">(optional, for a range of days)</span></label>
+        <input type="date" id="festDateFullEnd">
+        <input type="text" id="festDateRecurringEnd" placeholder="MM-DD, e.g. 12-26" style="display:none;">
+        <label>Name</label>
+        <input type="text" id="festName" placeholder="e.g. Navidad">
+        <label>Icon (emoji)</label>
+        <input type="text" id="festIcon" placeholder="🔴" maxlength="4">
+        <div style="margin-top:12px;">
+          <button class="btn btn-primary" onclick="submitFestivity()">Add</button>
+        </div>
+      </div>
+      <div id="festListArea"></div>
+    </div>
+    <div class="modal-footer">
+      <span style="flex:1;"></span>
+      <button class="btn btn-primary" onclick="closeFestivitiesModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit festivity modal (opens on top of the manage-festivities list) -->
+<div class="modal-overlay" id="festEditModal" style="z-index:1100;">
+  <div class="modal" style="max-width:340px;">
+    <div class="modal-header">
+      <h2>Edit festivity</h2>
+      <button class="modal-close" onclick="closeFestEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="hint" id="feTypeLabel" style="margin:0 0 12px;"></p>
+      <label>Start date</label>
+      <input type="date" id="feDateFullStart">
+      <input type="text" id="feDateRecurringStart" placeholder="MM-DD, e.g. 12-25" style="display:none;">
+      <label>End date <span style="font-weight:400;color:var(--text-light);">(optional, for a range of days)</span></label>
+      <input type="date" id="feDateFullEnd">
+      <input type="text" id="feDateRecurringEnd" placeholder="MM-DD, e.g. 12-26" style="display:none;">
+      <label>Name</label>
+      <input type="text" id="feName">
+      <label>Icon (emoji)</label>
+      <input type="text" id="feIcon" maxlength="4">
+      <div id="festEditMsg" style="display:none;padding:8px 12px;border-radius:8px;font-size:0.85rem;margin-top:12px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteFestivityFromEdit()">Delete</button>
+      <span style="flex:1;"></span>
+      <button class="btn" onclick="closeFestEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveFestEditModal()">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let TOKEN = '';
 let ME = '';
+let MY_ROLES = [];
 let events = [];
 let festivities = {}; // "YYYY-MM-DD" → name
 let currentDate = new Date();
 let currentView = 'month';
+
+function canManageFestivities() {
+  return MY_ROLES.indexOf('content_manager') !== -1 || MY_ROLES.indexOf('superuser') !== -1;
+}
+
+async function refreshFestivitiesCache() {
+  festivities = {};
+  const yr = new Date().getFullYear();
+  await Promise.all([loadFestivities(yr - 1), loadFestivities(yr), loadFestivities(yr + 1)]);
+  render();
+}
 
 function isNonWorking(d) {
   const day = d.getDay();
@@ -243,6 +360,8 @@ function fmt(d) {
   return `${y}-${m}-${day}`;
 }
 
+const FULL_DAY_HOURS = 8;
+
 function hashHue(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -255,9 +374,9 @@ function personColor(key) {
   return `hsl(${hashHue(key)}, 62%, 42%)`;
 }
 
-const TYPE_ICON = { holiday: '🌴', personal_day: '🙂', comision_servicio: '💼' };
-const TYPE_LABEL = { holiday: '🌴 Holiday', personal_day: '🙂 Personal day', comision_servicio: '💼 Comisión de servicio' };
-const TYPE_LOG_NAME = { holiday: 'holiday', personal_day: 'personal day', comision_servicio: 'comisión de servicio' };
+const TYPE_ICON = { holiday: '🌴', personal_day: '🙂', comision_servicio: '💼', teletrabajo: '💻' };
+const TYPE_LABEL = { holiday: '🌴 Holiday', personal_day: '🙂 Personal day', comision_servicio: '💼 Comisión de servicio', teletrabajo: '💻 Teletrabajo' };
+const TYPE_LOG_NAME = { holiday: 'holiday', personal_day: 'personal day', comision_servicio: 'comisión de servicio', teletrabajo: 'teletrabajo' };
 
 function eventsOnDate(dateStr) {
   return events.filter(e => e.start_date <= dateStr && dateStr <= e.end_date);
@@ -269,8 +388,9 @@ function chipHTML(ev) {
   const locked = ev.username === ME && ev.is_editable === false;
   const cls = 'event-chip ' + ev.type + (locked ? ' locked' : '');
   const dest = ev.type === 'comision_servicio' && ev.destination ? ' → ' + ev.destination : '';
+  const hoursLabel = ev.type === 'personal_day' ? ' (' + (ev.hours != null ? ev.hours : 8) + 'h)' : '';
   const title = ev.type === 'comision_servicio' && ev.description ? ev.description : '';
-  return `<span class="${cls}" style="background:${color};" onclick="onChipClick('${ev.id}')" title="${title}">${icon} ${ev.display_name || ev.username}${dest}${locked ? ' 🔒' : ''}</span>`;
+  return `<span class="${cls}" style="background:${color};" onclick="event.stopPropagation(); onChipClick('${ev.id}')" title="${title}">${icon} ${ev.display_name || ev.username}${dest}${hoursLabel}${locked ? ' 🔒' : ''}</span>`;
 }
 
 function renderLegend() {
@@ -307,7 +427,7 @@ function renderMonth() {
     const nwClass = nw ? (nw.type === 'weekend' ? ' non-working' : ' non-working festivity') : '';
     const nwTitle = nw && nw.type === 'festivity' ? ` title="${nw.name}"` : '';
     const nwLabel = nw && nw.type === 'festivity' ? `<div class="festivity-label">${nw.icon} ${nw.name}</div>` : '';
-    html += `<div class="day-cell${otherMonth?' other-month':''}${isToday?' today':''}${nwClass}"${nwTitle}>`
+    html += `<div class="day-cell${otherMonth?' other-month':''}${isToday?' today':''}${nwClass}" style="cursor:pointer;"${nwTitle} onclick="openLogModal('holiday','${dStr}')">`
           + `<div class="day-num">${d.getDate()}</div>`
           + nwLabel
           + dayEvents.map(chipHTML).join('')
@@ -352,7 +472,7 @@ function renderWeek() {
     const nwTitle = nw && nw.type === 'festivity' ? ` title="${nw.name}"` : '';
     const nwLabel = nw && nw.type === 'festivity' ? `<div class="festivity-label">${nw.icon} ${nw.name}</div>` : '';
     const dayEvents = eventsOnDate(dStr).sort((a,b) => (a.display_name||a.username).localeCompare(b.display_name||b.username));
-    html += `<div class="day-cell${isToday ? ' today' : ''}${nwClass}"${nwTitle}>`
+    html += `<div class="day-cell${isToday ? ' today' : ''}${nwClass}" style="cursor:pointer;"${nwTitle} onclick="openLogModal('holiday','${dStr}')">`
           + nwLabel
           + (dayEvents.length ? dayEvents.map(chipHTML).join('') : (nwLabel ? '' : '<span class="day-empty">—</span>'))
           + `</div>`;
@@ -377,8 +497,12 @@ function computeMyStats() {
       const skipsFestivity = (e.type === 'holiday' || e.type === 'personal_day') && !!festivities[fmt(d)];
       if (!isWeekend(d) && !skipsFestivity) {
         const y = d.getFullYear();
-        if (!stats[y]) stats[y] = { holiday: 0, personal_day: 0, comision_servicio: 0 };
-        stats[y][e.type] = (stats[y][e.type] || 0) + 1;
+        if (!stats[y]) stats[y] = { holiday: 0, personal_day: 0, comision_servicio: 0, teletrabajo: 0, personal_day_hours: 0 };
+        if (e.type === 'personal_day') {
+          stats[y].personal_day_hours += (e.hours != null ? e.hours : FULL_DAY_HOURS);
+        } else {
+          stats[y][e.type] = (stats[y][e.type] || 0) + 1;
+        }
       }
       d.setDate(d.getDate() + 1);
     }
@@ -394,14 +518,19 @@ function renderStats() {
     el.innerHTML = '<h3>My logged days</h3><p class="stats-empty">Nothing logged yet.</p>';
     return;
   }
-  el.innerHTML = '<h3>My logged days</h3>' + years.map(y => `
+  el.innerHTML = '<h3>My logged days</h3>' + years.map(y => {
+    const pdHours = stats[y].personal_day_hours || 0;
+    const pdDays = (pdHours / FULL_DAY_HOURS).toFixed(pdHours % FULL_DAY_HOURS === 0 ? 0 : 1);
+    return `
     <div class="stats-year">
       <div class="stats-year-label">${y}</div>
       <div class="stats-row"><span>🌴 Vacaciones</span><b>${stats[y].holiday || 0}</b></div>
-      <div class="stats-row"><span>🙂 Asuntos propios</span><b>${stats[y].personal_day || 0}</b></div>
+      <div class="stats-row"><span>🙂 Asuntos propios</span><b>${pdHours}h${pdHours ? ' (' + pdDays + ' d)' : ''}</b></div>
       <div class="stats-row"><span>💼 Comisión de servicio</span><b>${stats[y].comision_servicio || 0}</b></div>
+      <div class="stats-row"><span>💻 Teletrabajo</span><b>${stats[y].teletrabajo || 0}</b></div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function render() {
@@ -430,18 +559,39 @@ document.querySelectorAll('.view-btn').forEach(btn => {
   };
 });
 
-function openLogModal(type) {
-  editingId = null;
+function onPersonalDayModeChange() {
+  const byHours = document.getElementById('pdModeHours').checked;
+  document.getElementById('pdHoursRow').style.display = byHours ? '' : 'none';
+}
+
+function setPersonalDayFieldsVisible(show) {
+  document.getElementById('personal-day-fields').style.display = show ? '' : 'none';
+  document.getElementById('endDateRow').style.display = show ? 'none' : '';
+}
+
+function selectPendingType(type) {
   pendingType = type;
-  document.getElementById('logModalTitle').textContent = 'Log ' + (TYPE_LOG_NAME[type] || type);
+  document.getElementById('logModalTitle').textContent = (editingId ? 'Edit ' : 'Log ') + (TYPE_LOG_NAME[type] || type);
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+  document.getElementById('comision-fields').style.display = type === 'comision_servicio' ? '' : 'none';
+  setPersonalDayFieldsVisible(type === 'personal_day');
+  if (type === 'personal_day') {
+    document.getElementById('pdModeFull').checked = true;
+    document.getElementById('fHours').value = '';
+    onPersonalDayModeChange();
+  }
+}
+
+function openLogModal(type, dateStr) {
+  editingId = null;
   document.getElementById('fUsername').textContent = ME;
-  const today = fmt(new Date());
-  document.getElementById('fStartDate').value = today;
-  document.getElementById('fEndDate').value = today;
+  const d = dateStr || fmt(new Date());
+  document.getElementById('fStartDate').value = d;
+  document.getElementById('fEndDate').value = d;
   document.getElementById('fDestination').value = '';
   document.getElementById('fDescription').value = '';
-  document.getElementById('comision-fields').style.display = type === 'comision_servicio' ? '' : 'none';
   document.getElementById('btnDeleteEntry').style.display = 'none';
+  selectPendingType(type || 'holiday');
   document.getElementById('logModal').classList.add('open');
 }
 
@@ -451,17 +601,35 @@ function closeLogModal() {
 
 async function saveCurrentEvent() {
   const start_date = document.getElementById('fStartDate').value;
-  const end_date = document.getElementById('fEndDate').value;
-  if (!start_date || !end_date) { alert('Please choose both a start and end date.'); return; }
-  if (end_date < start_date) { alert('End date cannot be before start date.'); return; }
+  let end_date = document.getElementById('fEndDate').value;
+  if (!start_date) { alert('Please choose a start date.'); return; }
   const destination = document.getElementById('fDestination').value.trim();
   const description = document.getElementById('fDescription').value.trim();
+
+  let hours = null;
+  if (pendingType === 'personal_day') {
+    end_date = start_date; // personal days are always logged one day at a time
+    const byHours = document.getElementById('pdModeHours').checked;
+    if (byHours) {
+      hours = parseFloat(document.getElementById('fHours').value);
+      if (!hours || hours <= 0 || hours > FULL_DAY_HOURS) {
+        alert(`Hours must be greater than 0 and at most ${FULL_DAY_HOURS}.`);
+        return;
+      }
+    } else {
+      hours = FULL_DAY_HOURS;
+    }
+  } else {
+    if (!end_date) { alert('Please choose an end date.'); return; }
+    if (end_date < start_date) { alert('End date cannot be before start date.'); return; }
+  }
+
   try {
     if (editingId) {
-      const updated = await api('PUT', `/api/events/${editingId}`, { type: pendingType, start_date, end_date, destination, description });
+      const updated = await api('PUT', `/api/events/${editingId}`, { type: pendingType, start_date, end_date, destination, description, hours });
       events = events.map(e => e.id === updated.id ? updated : e);
     } else {
-      const created = await api('POST', '/api/events', { type: pendingType, start_date, end_date, destination, description });
+      const created = await api('POST', '/api/events', { type: pendingType, start_date, end_date, destination, description, hours });
       events.push(created);
     }
     closeLogModal();
@@ -493,14 +661,19 @@ function onChipClick(id) {
       return;
     }
     editingId = id;
-    pendingType = ev.type;
-    document.getElementById('logModalTitle').textContent = 'Edit ' + (TYPE_LOG_NAME[ev.type] || ev.type);
     document.getElementById('fUsername').textContent = ME;
     document.getElementById('fStartDate').value = ev.start_date;
     document.getElementById('fEndDate').value = ev.end_date;
     document.getElementById('fDestination').value = ev.destination || '';
     document.getElementById('fDescription').value = ev.description || '';
-    document.getElementById('comision-fields').style.display = ev.type === 'comision_servicio' ? '' : 'none';
+    selectPendingType(ev.type);
+    if (ev.type === 'personal_day') {
+      const isFull = (ev.hours != null ? ev.hours : FULL_DAY_HOURS) >= FULL_DAY_HOURS;
+      document.getElementById('pdModeFull').checked = isFull;
+      document.getElementById('pdModeHours').checked = !isFull;
+      document.getElementById('fHours').value = isFull ? '' : ev.hours;
+      onPersonalDayModeChange();
+    }
     document.getElementById('btnDeleteEntry').style.display = '';
     document.getElementById('logModal').classList.add('open');
   } else {
@@ -513,11 +686,238 @@ function onChipClick(id) {
         detailExtra.innerHTML = (ev.destination ? '<div class="detail-row"><b>Destino:</b> ' + ev.destination + '</div>' : '')
           + (ev.description ? '<div class="detail-row"><b>Descripción:</b> ' + ev.description + '</div>' : '');
         detailExtra.style.display = '';
+      } else if (ev.type === 'personal_day') {
+        detailExtra.innerHTML = '<div class="detail-row"><b>Hours:</b> ' + (ev.hours != null ? ev.hours : FULL_DAY_HOURS) + 'h</div>';
+        detailExtra.style.display = '';
       } else {
         detailExtra.style.display = 'none';
       }
     }
     document.getElementById('detailModal').classList.add('open');
+  }
+}
+
+// ── Manage festivities (content_manager / superuser only) ─────────
+
+let festManageData = { recurring: [], by_year: {} };
+let editingFestivityId = null;
+
+function esc(s) {
+  return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+}
+
+async function openFestivitiesModal() {
+  resetFestivityForm();
+  try {
+    festManageData = await api('GET', '/api/festivities/manage');
+  } catch (e) {
+    festManageData = { recurring: [], by_year: {} };
+  }
+  renderFestivitiesList();
+  document.getElementById('festModal').classList.add('open');
+}
+
+function closeFestivitiesModal() {
+  document.getElementById('festModal').classList.remove('open');
+}
+
+function festMsg(text, ok) {
+  const el = document.getElementById('festFormMsg');
+  el.style.display = '';
+  el.style.background = ok ? '#dcfce7' : '#fee2e2';
+  el.style.color = ok ? '#166534' : '#991b1b';
+  el.textContent = text;
+}
+
+function onFestRecurringToggle() {
+  const recurring = document.getElementById('festRecurring').checked;
+  document.getElementById('festDateFull').style.display = recurring ? 'none' : '';
+  document.getElementById('festDateRecurring').style.display = recurring ? '' : 'none';
+  document.getElementById('festDateFullEnd').style.display = recurring ? 'none' : '';
+  document.getElementById('festDateRecurringEnd').style.display = recurring ? '' : 'none';
+}
+
+function resetFestivityForm() {
+  document.getElementById('festRecurring').checked = false;
+  document.getElementById('festDateFull').value = '';
+  document.getElementById('festDateRecurring').value = '';
+  document.getElementById('festDateFullEnd').value = '';
+  document.getElementById('festDateRecurringEnd').value = '';
+  document.getElementById('festName').value = '';
+  document.getElementById('festIcon').value = '';
+  document.getElementById('festFormMsg').style.display = 'none';
+  onFestRecurringToggle();
+}
+
+function renderFestivitiesList() {
+  const el = document.getElementById('festListArea');
+  let html = '';
+
+  const recurring = (festManageData.recurring || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  html += '<div style="font-weight:600;font-size:0.85rem;margin:8px 0 4px;">Repeats every year</div>';
+  html += recurring.length ? recurring.map(festRowHTML).join('') : '<p class="stats-empty" style="margin-bottom:8px;">None.</p>';
+
+  const years = Object.keys(festManageData.by_year || {}).sort((a, b) => b.localeCompare(a));
+  years.forEach(year => {
+    const entries = (festManageData.by_year[year] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+    html += `<div style="font-weight:600;font-size:0.85rem;margin:14px 0 4px;">${year}</div>`;
+    html += entries.length ? entries.map(festRowHTML).join('') : '<p class="stats-empty" style="margin-bottom:8px;">None.</p>';
+  });
+
+  el.innerHTML = html;
+}
+
+function festRowHTML(entry) {
+  const endDate = entry.end_date || entry.date;
+  const dateLabel = endDate !== entry.date ? `${entry.date} → ${endDate}` : entry.date;
+  return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.88rem;">`
+    + `<span style="width:130px;color:var(--text-light);">${esc(dateLabel)}</span>`
+    + `<span style="flex:1;">${esc(entry.icon || '🔴')} ${esc(entry.name)}</span>`
+    + `<button class="btn" style="padding:3px 10px;font-size:0.8rem;" onclick="openFestEditModal('${entry.id}')">Edit</button>`
+    + `<button class="btn btn-danger" style="padding:3px 10px;font-size:0.8rem;" onclick="deleteFestivityRow('${entry.id}')">Delete</button>`
+    + `</div>`;
+}
+
+function findFestivityById(id) {
+  const inRecurring = (festManageData.recurring || []).find(e => e.id === id);
+  if (inRecurring) return { entry: inRecurring, recurring: true };
+  for (const year in (festManageData.by_year || {})) {
+    const found = (festManageData.by_year[year] || []).find(e => e.id === id);
+    if (found) return { entry: found, recurring: false };
+  }
+  return null;
+}
+
+// ── Edit festivity (separate, smaller modal) ───────────────────────
+
+let editingFestivityRecurring = false;
+
+function openFestEditModal(id) {
+  const found = findFestivityById(id);
+  if (!found) return;
+  editingFestivityId = id;
+  editingFestivityRecurring = found.recurring;
+
+  document.getElementById('feTypeLabel').textContent = found.recurring
+    ? 'Repeats every year (same MM-DD)'
+    : 'Specific date';
+  document.getElementById('feDateFullStart').style.display = found.recurring ? 'none' : '';
+  document.getElementById('feDateRecurringStart').style.display = found.recurring ? '' : 'none';
+  document.getElementById('feDateFullEnd').style.display = found.recurring ? 'none' : '';
+  document.getElementById('feDateRecurringEnd').style.display = found.recurring ? '' : 'none';
+
+  const endVal = found.entry.end_date || found.entry.date;
+  if (found.recurring) {
+    document.getElementById('feDateRecurringStart').value = found.entry.date;
+    document.getElementById('feDateRecurringEnd').value = endVal;
+  } else {
+    document.getElementById('feDateFullStart').value = found.entry.date;
+    document.getElementById('feDateFullEnd').value = endVal;
+  }
+  document.getElementById('feName').value = found.entry.name;
+  document.getElementById('feIcon').value = found.entry.icon || '';
+  document.getElementById('festEditMsg').style.display = 'none';
+  document.getElementById('festEditModal').classList.add('open');
+}
+
+function closeFestEditModal() {
+  document.getElementById('festEditModal').classList.remove('open');
+  editingFestivityId = null;
+}
+
+function feMsg(text, ok) {
+  const el = document.getElementById('festEditMsg');
+  el.style.display = '';
+  el.style.background = ok ? '#dcfce7' : '#fee2e2';
+  el.style.color = ok ? '#166534' : '#991b1b';
+  el.textContent = text;
+}
+
+async function saveFestEditModal() {
+  const recurring = editingFestivityRecurring;
+  const dateVal = recurring
+    ? document.getElementById('feDateRecurringStart').value.trim()
+    : document.getElementById('feDateFullStart').value;
+  const endValRaw = recurring
+    ? document.getElementById('feDateRecurringEnd').value.trim()
+    : document.getElementById('feDateFullEnd').value;
+  const name = document.getElementById('feName').value.trim();
+  const icon = document.getElementById('feIcon').value.trim() || '🔴';
+
+  if (!name) { feMsg('Name is required', false); return; }
+  if (recurring) {
+    if (!/^\d{2}-\d{2}$/.test(dateVal)) { feMsg('Start date must be in MM-DD format', false); return; }
+    if (endValRaw && !/^\d{2}-\d{2}$/.test(endValRaw)) { feMsg('End date must be in MM-DD format', false); return; }
+  } else if (!dateVal) {
+    feMsg('Please choose a start date', false); return;
+  }
+
+  const body = { date: dateVal, end_date: endValRaw || null, name, icon, recurring };
+  try {
+    await api('PUT', `/api/festivities/${editingFestivityId}`, body);
+    closeFestEditModal();
+    festManageData = await api('GET', '/api/festivities/manage');
+    renderFestivitiesList();
+    await refreshFestivitiesCache();
+  } catch (e) {
+    feMsg('Could not save: ' + e.message, false);
+  }
+}
+
+async function deleteFestivityFromEdit() {
+  if (!editingFestivityId) return;
+  if (!confirm('Delete this festivity?')) return;
+  try {
+    await api('DELETE', `/api/festivities/${editingFestivityId}`);
+    closeFestEditModal();
+    festManageData = await api('GET', '/api/festivities/manage');
+    renderFestivitiesList();
+    await refreshFestivitiesCache();
+  } catch (e) {
+    alert('Could not delete: ' + e.message);
+  }
+}
+
+async function submitFestivity() {
+  const recurring = document.getElementById('festRecurring').checked;
+  const dateVal = recurring
+    ? document.getElementById('festDateRecurring').value.trim()
+    : document.getElementById('festDateFull').value;
+  const endValRaw = recurring
+    ? document.getElementById('festDateRecurringEnd').value.trim()
+    : document.getElementById('festDateFullEnd').value;
+  const name = document.getElementById('festName').value.trim();
+  const icon = document.getElementById('festIcon').value.trim() || '🔴';
+
+  if (!name) { festMsg('Name is required', false); return; }
+  if (recurring) {
+    if (!/^\d{2}-\d{2}$/.test(dateVal)) { festMsg('Start date must be in MM-DD format', false); return; }
+    if (endValRaw && !/^\d{2}-\d{2}$/.test(endValRaw)) { festMsg('End date must be in MM-DD format', false); return; }
+  } else if (!dateVal) {
+    festMsg('Please choose a start date', false); return;
+  }
+
+  const body = { date: dateVal, end_date: endValRaw || null, name, icon, recurring };
+  try {
+    await api('POST', '/api/festivities', body);
+    resetFestivityForm();
+    festManageData = await api('GET', '/api/festivities/manage');
+    renderFestivitiesList();
+    await refreshFestivitiesCache();
+  } catch (e) {
+    festMsg('Could not save: ' + e.message, false);
+  }
+}
+
+async function deleteFestivityRow(id) {
+  if (!confirm('Delete this festivity?')) return;
+  try {
+    await api('DELETE', `/api/festivities/${id}`);
+    festManageData = await api('GET', '/api/festivities/manage');
+    renderFestivitiesList();
+    await refreshFestivitiesCache();
+  } catch (e) {
+    alert('Could not delete: ' + e.message);
   }
 }
 
@@ -530,6 +930,8 @@ function onChipClick(id) {
       return;
     }
     ME = auth.username;
+    MY_ROLES = auth.roles || [auth.role];
+    if (canManageFestivities()) document.getElementById('btnManageFestivities').style.display = '';
     events = await api('GET', '/api/events');
     // Load festivities for current year and adjacent years
     const yr = new Date().getFullYear();

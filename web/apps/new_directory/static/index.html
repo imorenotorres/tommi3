@@ -90,14 +90,15 @@
     </script>
 </head>
 <body>
-<script src="/static/nav.js"></script>
+<script src="/static/nav.js?v=4"></script>
 <script>uninovisNav({ crumbs: [{label:'Administration', href:'/#admin'}], current: 'New Directory' });</script>
     <div class="container">
         <h1>UNINOVIS New Directory</h1>
         <p class="subtitle">UNINOVIS staff directory</p>
 
         <div class="sync-bar">
-            <span class="sync-info" id="syncInfo">Loading...</span>
+            <span class="sync-info" id="syncInfo"></span>
+            <button class="btn" id="btnAddEntry" style="display:none;" onclick="openAddModal()">+ Add Person / Unit</button>
         </div>
 
         <div class="tabs">
@@ -157,6 +158,7 @@
     var units = [];
     var universities = [];
     var status = {};
+    var currentUser = null;
 
     function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
 
@@ -352,10 +354,269 @@
         document.getElementById('orgChartArea').innerHTML = html;
     }
 
+    // ── Add Person / Unit (content_manager / superuser only) ───────
+
+    var addMode = 'person';
+
+    function flattenUnits(nodes, depth, out) {
+        var sorted = (nodes || []).slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
+        sorted.forEach(function(n) {
+            out.push({ id: n.id, name: n.name, depth: depth });
+            flattenUnits(n.subunits, depth + 1, out);
+        });
+        return out;
+    }
+
+    function fieldRow(label, inputHtml) {
+        return '<div style="margin-bottom:12px;"><label style="display:block;font-weight:600;font-size:0.85em;color:#1a3a5c;margin-bottom:4px;">'
+            + esc(label) + '</label>' + inputHtml + '</div>';
+    }
+
+    function universityOptions(noneLabel, selected) {
+        var html = '<option value="">' + esc(noneLabel) + '</option>';
+        universities.forEach(function(u) {
+            var sel = (selected && u.code === selected) ? ' selected' : '';
+            html += '<option value="' + esc(u.code) + '"' + sel + '>' + esc(u.code) + ' — ' + esc(u.name) + '</option>';
+        });
+        return html;
+    }
+
+    function unitSelectOptions(noneLabel, selectedId) {
+        var flat = flattenUnits(units, 0, []);
+        var html = '<option value="">' + esc(noneLabel) + '</option>';
+        flat.forEach(function(u) {
+            var indent = new Array(u.depth + 1).join(' ');
+            var sel = (selectedId != null && u.id === selectedId) ? ' selected' : '';
+            html += '<option value="' + u.id + '"' + sel + '>' + indent + esc(u.name) + '</option>';
+        });
+        return html;
+    }
+
+    var npUnitRowCounter = 0;
+
+    function npUnitRowHtml(assignment) {
+        npUnitRowCounter++;
+        var rowId = 'np-unit-row-' + npUnitRowCounter;
+        var unitId = assignment ? assignment.unit_id : null;
+        var role = assignment ? (assignment.role || '') : '';
+        return '<div class="np-unit-row" id="' + rowId + '" style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">'
+            + '<select class="np-unit-select" style="flex:2;padding:6px 8px;border:1px solid #ccc;border-radius:6px;">' + unitSelectOptions('— select unit —', unitId) + '</select>'
+            + '<input type="text" class="np-unit-role-input" placeholder="Role (optional)" value="' + esc(role) + '" style="flex:1;padding:6px 8px;border:1px solid #ccc;border-radius:6px;">'
+            + '<button type="button" onclick="document.getElementById(\'' + rowId + '\').remove()" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1.1em;padding:0 4px;" title="Remove">&times;</button>'
+            + '</div>';
+    }
+
+    function addUnitRow(listId) {
+        document.getElementById(listId || 'np-units-list').insertAdjacentHTML('beforeend', npUnitRowHtml());
+    }
+
+    function collectUnitRows(listId) {
+        var payload = [];
+        document.querySelectorAll('#' + listId + ' .np-unit-row').forEach(function(row) {
+            var sel = row.querySelector('.np-unit-select');
+            var roleInput = row.querySelector('.np-unit-role-input');
+            if (sel && sel.value) {
+                payload.push({ unit_id: parseInt(sel.value, 10), role: roleInput.value.trim() });
+            }
+        });
+        return payload;
+    }
+
+    function personFormHtml() {
+        npUnitRowCounter = 0;
+        return fieldRow('First name *', '<input type="text" id="np-first" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Family name *', '<input type="text" id="np-family" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Email', '<input type="email" id="np-email" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Phone', '<input type="text" id="np-phone" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Position', '<input type="text" id="np-position" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('University', '<select id="np-university" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + universityOptions('— none —') + '</select>')
+            + fieldRow('Units / Subunits', '<div id="np-units-list">' + npUnitRowHtml() + '</div><button type="button" class="btn-small" onclick="addUnitRow(\'np-units-list\')">+ Add another unit</button>');
+    }
+
+    function myProfileFormHtml(profile) {
+        npUnitRowCounter = 0;
+        var memberships = profile.memberships || [];
+        var rowsHtml = memberships.length
+            ? memberships.map(function(m) { return npUnitRowHtml(m); }).join('')
+            : npUnitRowHtml();
+        return fieldRow('First name *', '<input type="text" id="mp-first" value="' + esc(profile.first_name) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Family name *', '<input type="text" id="mp-family" value="' + esc(profile.family_name) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Email', '<input type="email" value="' + esc(profile.email) + '" disabled style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;background:#f0f2f5;color:#888;">')
+            + fieldRow('Phone', '<input type="text" id="mp-phone" value="' + esc(profile.phone) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Position', '<input type="text" id="mp-position" value="' + esc(profile.position) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('University', '<select id="mp-university" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + universityOptions('— none —', profile.university) + '</select>')
+            + fieldRow('Units / Subunits', '<div id="mp-units-list">' + rowsHtml + '</div><button type="button" class="btn-small" onclick="addUnitRow(\'mp-units-list\')">+ Add another unit</button>');
+    }
+
+    function unitFormHtml() {
+        return fieldRow('Unit name *', '<input type="text" id="nu-name" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Parent unit', '<select id="nu-parent" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + unitSelectOptions('— none (top-level unit) —') + '</select>')
+            + fieldRow('University', '<select id="nu-university" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + universityOptions('— none (cross-institutional) —') + '</select>');
+    }
+
+    function openAddModal() {
+        closeAddModal();
+        addMode = 'person';
+        var overlay = document.createElement('div');
+        overlay.id = 'add-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
+        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:480px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+            + '<h2 style="margin:0;color:#1a3a5c;font-size:1.15em;">Add to Directory</h2>'
+            + '<button onclick="closeAddModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+            + '</div>'
+            + '<div style="display:flex;border:1px solid #ccc;border-radius:6px;overflow:hidden;margin-bottom:16px;">'
+            + '<button id="add-toggle-person" onclick="setAddMode(\'person\')" style="flex:1;padding:8px;border:none;background:#1a3a5c;color:#fff;cursor:pointer;font-weight:600;">Person</button>'
+            + '<button id="add-toggle-unit" onclick="setAddMode(\'unit\')" style="flex:1;padding:8px;border:none;background:#e9ecef;color:#555;cursor:pointer;font-weight:600;">Unit / Subunit</button>'
+            + '</div>'
+            + '<div id="add-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+            + '<div id="add-person-form">' + personFormHtml() + '</div>'
+            + '<div id="add-unit-form" style="display:none;">' + unitFormHtml() + '</div>'
+            + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
+            + '<button class="btn" onclick="submitAdd()">Create</button>'
+            + '<button class="btn-small" onclick="closeAddModal()" style="padding:8px 20px;">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeAddModal(); });
+        document.body.appendChild(overlay);
+    }
+
+    function closeAddModal() {
+        var el = document.getElementById('add-modal-overlay');
+        if (el) el.remove();
+    }
+
+    async function openMyProfileModal() {
+        var resp = await authFetch(BASE + '/api/my-profile');
+        if (!resp.ok) return; // no directory entry for this account — nothing to edit
+        var profile = await resp.json();
+
+        closeAddModal();
+        var overlay = document.createElement('div');
+        overlay.id = 'add-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
+        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:480px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+            + '<h2 style="margin:0;color:#1a3a5c;font-size:1.15em;">Edit My Profile</h2>'
+            + '<button onclick="closeMyProfileModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+            + '</div>'
+            + '<div id="add-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+            + '<div>' + myProfileFormHtml(profile) + '</div>'
+            + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
+            + '<button class="btn" onclick="submitMyProfile()">Save</button>'
+            + '<button class="btn-small" onclick="closeMyProfileModal()" style="padding:8px 20px;">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeMyProfileModal(); });
+        document.body.appendChild(overlay);
+    }
+
+    function closeMyProfileModal() {
+        closeAddModal();
+        if (window.location.hash === '#my-profile') {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+    }
+
+    async function submitMyProfile() {
+        var firstName = document.getElementById('mp-first').value.trim();
+        var familyName = document.getElementById('mp-family').value.trim();
+        if (!firstName || !familyName) { addMsg('First name and family name are required', false); return; }
+        var body = {
+            first_name: firstName,
+            family_name: familyName,
+            phone: document.getElementById('mp-phone').value.trim(),
+            position: document.getElementById('mp-position').value.trim(),
+            university: document.getElementById('mp-university').value,
+            units: collectUnitRows('mp-units-list'),
+        };
+        try {
+            var resp = await authFetch(BASE + '/api/my-profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!resp.ok) { var err = await resp.json(); addMsg(err.detail || 'Error saving profile', false); return; }
+            closeMyProfileModal();
+            await loadAll();
+        } catch (e) { addMsg('Connection error', false); }
+    }
+
+    function setAddMode(mode) {
+        addMode = mode;
+        document.getElementById('add-person-form').style.display = mode === 'person' ? '' : 'none';
+        document.getElementById('add-unit-form').style.display = mode === 'unit' ? '' : 'none';
+        var pBtn = document.getElementById('add-toggle-person');
+        var uBtn = document.getElementById('add-toggle-unit');
+        pBtn.style.background = mode === 'person' ? '#1a3a5c' : '#e9ecef';
+        pBtn.style.color = mode === 'person' ? '#fff' : '#555';
+        uBtn.style.background = mode === 'unit' ? '#1a3a5c' : '#e9ecef';
+        uBtn.style.color = mode === 'unit' ? '#fff' : '#555';
+        document.getElementById('add-msg').style.display = 'none';
+    }
+
+    function addMsg(text, ok) {
+        var el = document.getElementById('add-msg');
+        el.style.display = '';
+        el.style.background = ok ? '#dcfce7' : '#fee2e2';
+        el.style.color = ok ? '#166534' : '#991b1b';
+        el.textContent = text;
+    }
+
+    async function submitAdd() {
+        if (addMode === 'person') {
+            var firstName = document.getElementById('np-first').value.trim();
+            var familyName = document.getElementById('np-family').value.trim();
+            if (!firstName || !familyName) { addMsg('First name and family name are required', false); return; }
+            var unitsPayload = collectUnitRows('np-units-list');
+            var body = {
+                first_name: firstName,
+                family_name: familyName,
+                email: document.getElementById('np-email').value.trim(),
+                phone: document.getElementById('np-phone').value.trim(),
+                position: document.getElementById('np-position').value.trim(),
+                university: document.getElementById('np-university').value,
+                units: unitsPayload,
+            };
+            try {
+                var resp = await authFetch(BASE + '/api/people', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (!resp.ok) { var err = await resp.json(); addMsg(err.detail || 'Error creating person', false); return; }
+                closeAddModal();
+                await loadAll();
+            } catch (e) { addMsg('Connection error', false); }
+        } else {
+            var name = document.getElementById('nu-name').value.trim();
+            if (!name) { addMsg('Unit name is required', false); return; }
+            var parentVal = document.getElementById('nu-parent').value;
+            var body2 = {
+                name: name,
+                parent_id: parentVal ? parseInt(parentVal, 10) : null,
+                university: document.getElementById('nu-university').value,
+            };
+            try {
+                var resp2 = await authFetch(BASE + '/api/units', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body2)
+                });
+                if (!resp2.ok) { var err2 = await resp2.json(); addMsg(err2.detail || 'Error creating unit', false); return; }
+                closeAddModal();
+                await loadAll();
+            } catch (e) { addMsg('Connection error', false); }
+        }
+    }
+
     // ── Sync ──────────────────────────────────────────────────────
 
     function formatSyncInfo() {
         var el = document.getElementById('syncInfo');
+        if (typeof status.people !== 'number' || typeof status.units !== 'number') {
+            return; // leave existing text (e.g. "Loading...") rather than show "undefined"
+        }
         if (!status.last_sync) {
             el.textContent = status.people + ' people, ' + status.units + ' units';
             return;
@@ -365,9 +626,12 @@
     }
 
     async function loadStatus() {
-        var resp = await authFetch(BASE + '/api/status');
-        status = await resp.json();
-        formatSyncInfo();
+        try {
+            var resp = await authFetch(BASE + '/api/status');
+            if (!resp.ok) return;
+            status = await resp.json();
+            formatSyncInfo();
+        } catch (e) { /* leave existing text */ }
     }
 
     // ── Auth & init ───────────────────────────────────────────────
@@ -375,8 +639,15 @@
     async function checkAuth() {
         if (!authToken) return;
         try {
-            await authFetch(BASE + '/api/auth-check');
+            var resp = await authFetch(BASE + '/api/auth-check');
+            if (resp.ok) currentUser = await resp.json();
         } catch (e) { /* stay in read-only mode */ }
+    }
+
+    function canManageDirectory() {
+        if (!currentUser) return false;
+        var roles = currentUser.roles || [currentUser.role];
+        return roles.indexOf('content_manager') !== -1 || roles.indexOf('superuser') !== -1;
     }
 
     async function loadAll() {
@@ -395,12 +666,20 @@
         if (activeTab === 'units') renderUnits();
         if (activeTab === 'orgchart') renderOrgChart();
         await loadStatus();
+
+        var addBtn = document.getElementById('btnAddEntry');
+        if (addBtn) addBtn.style.display = canManageDirectory() ? '' : 'none';
     }
 
     async function init() {
         await checkAuth();
         await loadAll();
+        if (window.location.hash === '#my-profile') openMyProfileModal();
     }
+
+    window.addEventListener('hashchange', function() {
+        if (window.location.hash === '#my-profile') openMyProfileModal();
+    });
 
     init();
     </script>
