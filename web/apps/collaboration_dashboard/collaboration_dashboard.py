@@ -21,7 +21,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 
 router = APIRouter(prefix="/collaboration-dashboard", tags=["collaboration_dashboard"])
 
-STATUSES = {"preparing", "confirmed", "happened"}
+STATUSES = {"action_needed", "in_progress", "done"}
 
 
 # -- Auth helpers ---------------------------------------------------------------
@@ -108,7 +108,7 @@ class VirtualMeeting(BaseModel):
 class CollaborationBody(BaseModel):
     title: str
     goal: str = ""
-    status: str = "preparing"  # preparing | confirmed | happened
+    status: str = "action_needed"  # action_needed | in_progress | done
     collaborators: list[Collaborator] = []
     physical_mobility: bool = False
     mobility_visits: list[MobilityVisit] = []

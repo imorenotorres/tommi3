@@ -100,5 +100,39 @@
     "comentario_general": "Tu definición menciona que un fonema es una clase de sonidos, pero falta precisión en los aspectos clave: no es un sonido concreto ni una letra, y es una representación mental. Además, la redacción es muy informal y confusa. Revisa la definición de referencia y practica con ejemplos para entender mejor el concepto.",
     "aprobados": 2,
     "total_criterios": 6
+  },
+  {
+    "fecha": "2026-09-01 11:14",
+    "concepto": "Fonema",
+    "definicion": "Un fonema es una clase de conceptos o una categoría mental",
+    "criterios": [
+      {
+        "cumplido": false,
+        "comentario": "No menciona que un fonema sea una clase o categoría de sonidos, sino que lo define como una clase de conceptos o categoría mental, lo que no coincide con la definición de referencia."
+      },
+      {
+        "cumplido": false,
+        "comentario": "No se menciona que un fonema sea una representación mental o abstracción cognitiva."
+      },
+      {
+        "cumplido": false,
+        "comentario": "No se indica ni implica que los sonidos dentro de una misma clase permitan transmitir el mismo significado."
+      },
+      {
+        "cumplido": true,
+        "comentario": "No confunde fonema con letra, sílaba o sonido concreto."
+      },
+      {
+        "cumplido": true,
+        "comentario": "No hay faltas de ortografía."
+      },
+      {
+        "cumplido": true,
+        "comentario": "La redacción es clara y adecuada, aunque el contenido no se ajusta a la definición de referencia."
+      }
+    ],
+    "comentario_general": "Tu definición no coincide con la de referencia, ya que un fonema es una clase de sonidos (no de conceptos) y una representación mental. Revisa los puntos clave: sonido vs. significado y abstracción cognitiva.",
+    "aprobados": 3,
+    "total_criterios": 6
   }
 ]

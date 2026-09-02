@@ -134,6 +134,8 @@ class EventBody(BaseModel):
     type: str
     start_date: str  # "YYYY-MM-DD"
     end_date: str    # "YYYY-MM-DD"
+    destination: str = ""  # For comision_servicio
+    description: str = ""  # For comision_servicio
 
     @field_validator("type")
     @classmethod
@@ -164,6 +166,8 @@ def create_event(body: EventBody, session: dict = Depends(_require_uma_staff)):
         "type": body.type,
         "start_date": body.start_date,
         "end_date": body.end_date,
+        "destination": body.destination,
+        "description": body.description,
         "created_at": datetime.utcnow().isoformat() + "Z",
     }
     data["events"].append(event)
@@ -185,6 +189,8 @@ def update_event(event_id: str, body: EventBody, session: dict = Depends(_requir
             ev["type"] = body.type
             ev["start_date"] = body.start_date
             ev["end_date"] = body.end_date
+            ev["destination"] = body.destination
+            ev["description"] = body.description
             save_data(data)
             return {**ev, "display_name": _display_name(ev["username"]), "is_editable": _is_editable(ev)}
     raise HTTPException(404, "Event not found")
