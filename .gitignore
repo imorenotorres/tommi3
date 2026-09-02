@@ -6,39 +6,40 @@ venv/
 .env
 .env.*
 
-# Agent data files (large, generated, or sensitive)
-agents/*/data/*.pdf
-agents/*/data/*.db
-agents/*/data/*.sql
-agents/*/data/chroma_db/
-agents/*/data/audit_log*.jsonl
-agents/*/data/authorships_cache.json
-agents/*/data/docs/*.pdf
-
-# Agent data JSON (large data files, NOT config)
-#agents/*/data/papers.json
-#agents/*/data/researchers.json
-#agents/*/data/metadata.json
-#agents/*/data/institution_ids.json
-
 # Agent logs
 agents/*/logs/
 
 # User and student data (personal, generated at runtime)
-agents/*/users.tsv
-agents/*/users.json
+agents/*/consultas_profesor.json
+agents/*/data/*.db
+agents/*/data/*.pdf
+agents/*/data/*.sql
+agents/*/data/audit_log*.jsonl
+agents/*/data/authorships_cache.json
+agents/*/data/chroma_db/
+agents/*/data/chunk_db.json
+agents/*/data/detector_bulos.json
+agents/*/data/docs/*.pdf
+agents/*/data/progreso_practica.json
+agents/*/data/redaccion_log.json
+agents/*/data/valoracion_visible.json
+agents/*/logs/
 agents/*/proyectos/
 agents/*/proyectos_eliminados/
-agents/*/consultas_profesor.json
-agents/*/data/detector_bulos.json
-agents/*/data/progreso_practica.json
-agents/*/data/valoracion_visible.json
-agents/*/data/redaccion_log.json
-agents/*/data/chunk_db.json
+agents/*/users.json
+agents/*/users.tsv
+
+
+agents/*/proyectos/
+agents/*/proyectos_eliminados/
+
 web/data/users.json
 web/data/invites.json
 web/data/access_requests.json
 web/data/agent_visibility.json
+
+
+
 agents/responsible_ai3/Benchmark/get_token.sh
 web/apps/directory/data.json
 web/apps/new_directory/data.json
@@ -67,9 +68,9 @@ __pycache__/
 *$py.class
 *.pyo
 
+
 # Scripts data (large compiled datasets)
-scripts/EH_Data_Compiled_wAI/
-scripts/data/
+scripts/
 
 # Old agents
 OldAgents/
@@ -89,9 +90,6 @@ build/
 
 # Claude Code
 .claude/
-
-# Log files
-*.log
 
 # Database files (anywhere)
 *.db
