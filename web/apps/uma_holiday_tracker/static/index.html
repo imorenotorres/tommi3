@@ -44,6 +44,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .btn-log.commission:hover { background: #1976d2; }
 .btn-log.telework { background: #00838f; }
 .btn-log.telework:hover { background: #00acc1; }
+.btn-log.formacion { background: #6a1b9a; }
+.btn-log.formacion:hover { background: #7b1fa2; }
 
 .legend { padding: 0 24px 12px; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font-size: 0.8rem; color: var(--text-light); }
 .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
@@ -85,6 +87,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .event-chip.personal_day { border: 2px dashed rgba(255,255,255,0.7); }
 .event-chip.comision_servicio { border: 2px dotted rgba(255,255,255,0.7); }
 .event-chip.teletrabajo { border: 2px double rgba(255,255,255,0.7); }
+.event-chip.formacion { border: 2px groove rgba(255,255,255,0.7); }
 .event-chip:hover { opacity: 0.85; }
 .event-chip.locked { opacity: 0.6; }
 
@@ -120,8 +123,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .type-btn.active[data-type="personal_day"] { background: #ef6c00; color: #fff; border-color: #ef6c00; }
 .type-btn.active[data-type="comision_servicio"] { background: #1565c0; color: #fff; border-color: #1565c0; }
 .type-btn.active[data-type="teletrabajo"] { background: #00838f; color: #fff; border-color: #00838f; }
+.type-btn.active[data-type="formacion"] { background: #6a1b9a; color: #fff; border-color: #6a1b9a; }
 .modal-body .detail-row { font-size: 0.9rem; margin-bottom: 8px; }
 .modal-body .detail-row b { color: var(--text-light); font-weight: 600; margin-right: 4px; }
+
+.stats-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.stats-header h3 { margin-bottom: 0; }
+.my-color-btn { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer; padding: 0; flex-shrink: 0; }
+.my-color-btn:hover { border-color: var(--text-light); }
+.color-swatch-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; justify-items: center; }
+.color-swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+.color-swatch:hover { border-color: var(--text-light); }
+.color-swatch.selected { border-color: var(--primary); box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--primary); }
 </style>
 </head>
 <body>
@@ -152,6 +165,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <button class="btn-log personal" onclick="openLogModal('personal_day')">🙂 Asuntos propios</button>
         <button class="btn-log commission" onclick="openLogModal('comision_servicio')">💼 Comisión de servicio</button>
         <button class="btn-log telework" onclick="openLogModal('teletrabajo')">💻 Teletrabajo</button>
+        <button class="btn-log formacion" onclick="openLogModal('formacion')">🎓 Formación</button>
+        <button class="nav-btn" id="btnMyAllowance" onclick="openAllowanceModal()">🗓️ My days</button>
         <button class="nav-btn" id="btnManageFestivities" style="display:none;" onclick="openFestivitiesModal()">🎉 Manage festivities</button>
       </div>
     </div>
@@ -178,6 +193,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <button type="button" class="type-btn" data-type="personal_day" onclick="selectPendingType('personal_day')">🙂 Asuntos propios</button>
         <button type="button" class="type-btn" data-type="comision_servicio" onclick="selectPendingType('comision_servicio')">💼 Comisión</button>
         <button type="button" class="type-btn" data-type="teletrabajo" onclick="selectPendingType('teletrabajo')">💻 Teletrabajo</button>
+        <button type="button" class="type-btn" data-type="formacion" onclick="selectPendingType('formacion')">🎓 Formación</button>
       </div>
       <label>Start date</label>
       <input type="date" id="fStartDate">
@@ -185,17 +201,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <label>End date</label>
         <input type="date" id="fEndDate">
       </div>
-      <div id="personal-day-fields" style="display:none;">
+      <div id="formacion-fields" style="display:none;">
         <label>How much time?</label>
         <div style="display:flex;gap:16px;align-items:center;">
           <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;">
-            <input type="radio" name="pdMode" id="pdModeFull" value="full" style="width:auto;" checked onchange="onPersonalDayModeChange()"> Full day (8h)
+            <input type="radio" name="fdMode" id="fdModeFull" value="full" style="width:auto;" checked onchange="onHoursModeChange()"> Full day (8h)
           </label>
           <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;">
-            <input type="radio" name="pdMode" id="pdModeHours" value="hours" style="width:auto;" onchange="onPersonalDayModeChange()"> By hours
+            <input type="radio" name="fdMode" id="fdModeHours" value="hours" style="width:auto;" onchange="onHoursModeChange()"> By hours
           </label>
         </div>
-        <div id="pdHoursRow" style="display:none;">
+        <div id="fdHoursRow" style="display:none;">
           <label>Hours</label>
           <input type="number" id="fHours" min="0.5" max="8" step="0.5" placeholder="e.g. 4">
         </div>
@@ -300,11 +316,64 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   </div>
 </div>
 
+<!-- My allowance modal (self-service, any uninovis_staff) -->
+<div class="modal-overlay" id="allowanceModal">
+  <div class="modal" style="max-width:440px;max-height:78vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <h2>My days allowance</h2>
+      <button class="modal-close" onclick="closeAllowanceModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1;">
+      <div id="allowFormMsg" style="display:none;padding:8px 12px;border-radius:8px;font-size:0.85rem;margin-bottom:12px;"></div>
+      <div style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;">
+        <div style="font-weight:600;font-size:0.9rem;margin-bottom:8px;">Set my allowance for a year</div>
+        <label>Year</label>
+        <input type="number" id="allowYear" step="1">
+        <label>🌴 Vacaciones (days)</label>
+        <input type="number" id="allowVacationDays" min="0" step="0.5">
+        <label>🙂 Asuntos propios (days)</label>
+        <input type="number" id="allowPersonalDays" min="0" step="0.5">
+        <label>🎓 Formación (days)</label>
+        <input type="number" id="allowFormacionDays" min="0" step="0.5">
+        <p class="hint" style="margin-top:8px;">Vacaciones and formación must be used within the same calendar year (Jan–Dec) — they don't carry over. Up to 3 unused asuntos propios can still be logged in January/February of the following year; any beyond that are lost.</p>
+        <div style="margin-top:12px;">
+          <button class="btn btn-primary" onclick="submitAllowance()">Save</button>
+        </div>
+      </div>
+      <div id="allowListArea"></div>
+    </div>
+    <div class="modal-footer">
+      <span style="flex:1;"></span>
+      <button class="btn btn-primary" onclick="closeAllowanceModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- My color picker (self-service, small window of swatches) -->
+<div class="modal-overlay" id="colorModal">
+  <div class="modal" style="max-width:240px;">
+    <div class="modal-header">
+      <h2 style="font-size:0.95rem;">Choose my color</h2>
+      <button class="modal-close" onclick="closeColorPicker()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="color-swatch-grid" id="colorSwatchGrid"></div>
+      <p class="hint" id="colorPickerMsg" style="margin-top:10px;"></p>
+      <div style="margin-top:10px;text-align:center;">
+        <button class="btn" onclick="resetMyColor()">🎲 Use random color</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 let TOKEN = '';
 let ME = '';
 let MY_ROLES = [];
 let events = [];
+let allowances = []; // [{id, year, vacation_days, personal_days, formacion_days}]
+let manualColors = {}; // username -> hue (0-359), for anyone who picked their own color
+let COLOR_ASSIGNMENTS = {}; // username -> hue, recomputed each render (manual + deterministic auto)
 let festivities = {}; // "YYYY-MM-DD" → name
 let currentDate = new Date();
 let currentView = 'month';
@@ -370,25 +439,66 @@ function hashHue(str) {
   }
   return Math.abs(hash) % 360;
 }
-function personColor(key) {
-  return `hsl(${hashHue(key)}, 62%, 42%)`;
+
+const PALETTE_SIZE = 30;
+const PALETTE_HUES = Array.from({ length: PALETTE_SIZE }, (_, i) => Math.round(i * 360 / PALETTE_SIZE));
+
+function hueToColor(hue) {
+  return `hsl(${hue}, 62%, 42%)`;
 }
 
-const TYPE_ICON = { holiday: '🌴', personal_day: '🙂', comision_servicio: '💼', teletrabajo: '💻' };
-const TYPE_LABEL = { holiday: '🌴 Holiday', personal_day: '🙂 Personal day', comision_servicio: '💼 Comisión de servicio', teletrabajo: '💻 Teletrabajo' };
-const TYPE_LOG_NAME = { holiday: 'holiday', personal_day: 'personal day', comision_servicio: 'comisión de servicio', teletrabajo: 'teletrabajo' };
+// Every viewer computes the same color per person from the same shared
+// inputs: manual choices (fetched from the server) win outright and claim
+// their hue; everyone else gets their hashed hue, nudged along until it's
+// free of anything already claimed. Usernames are walked in a fixed
+// (alphabetical) order so every client converges on identical results.
+function computeColorAssignments(usernames) {
+  const assigned = {};
+  const usedHues = new Set();
+
+  usernames.forEach(u => {
+    if (u in manualColors) {
+      assigned[u] = manualColors[u];
+      usedHues.add(manualColors[u]);
+    }
+  });
+
+  usernames.filter(u => !(u in assigned)).sort().forEach(u => {
+    let hue = hashHue(u);
+    while (usedHues.has(hue)) hue = (hue + 37) % 360;
+    assigned[u] = hue;
+    usedHues.add(hue);
+  });
+
+  return assigned;
+}
+
+function rebuildColorAssignments() {
+  const usernames = [...new Set(events.map(e => e.username))];
+  if (ME && !usernames.includes(ME)) usernames.push(ME);
+  COLOR_ASSIGNMENTS = computeColorAssignments(usernames);
+}
+
+function colorForUsername(username) {
+  const hue = COLOR_ASSIGNMENTS[username];
+  return hueToColor(hue != null ? hue : hashHue(username));
+}
+
+const TYPE_ICON = { holiday: '🌴', personal_day: '🙂', comision_servicio: '💼', teletrabajo: '💻', formacion: '🎓' };
+const TYPE_LABEL = { holiday: '🌴 Holiday', personal_day: '🙂 Personal day', comision_servicio: '💼 Comisión de servicio', teletrabajo: '💻 Teletrabajo', formacion: '🎓 Formación' };
+const TYPE_LOG_NAME = { holiday: 'holiday', personal_day: 'personal day', comision_servicio: 'comisión de servicio', teletrabajo: 'teletrabajo', formacion: 'formación' };
 
 function eventsOnDate(dateStr) {
   return events.filter(e => e.start_date <= dateStr && dateStr <= e.end_date);
 }
 
 function chipHTML(ev) {
-  const color = personColor(ev.display_name || ev.username);
+  const color = colorForUsername(ev.username);
   const icon = TYPE_ICON[ev.type] || '📌';
   const locked = ev.username === ME && ev.is_editable === false;
   const cls = 'event-chip ' + ev.type + (locked ? ' locked' : '');
   const dest = ev.type === 'comision_servicio' && ev.destination ? ' → ' + ev.destination : '';
-  const hoursLabel = ev.type === 'personal_day' ? ' (' + (ev.hours != null ? ev.hours : 8) + 'h)' : '';
+  const hoursLabel = ev.type === 'formacion' ? ' (' + (ev.hours != null ? ev.hours : 8) + 'h)' : '';
   const title = ev.type === 'comision_servicio' && ev.description ? ev.description : '';
   return `<span class="${cls}" style="background:${color};" onclick="event.stopPropagation(); onChipClick('${ev.id}')" title="${title}">${icon} ${ev.display_name || ev.username}${dest}${hoursLabel}${locked ? ' 🔒' : ''}</span>`;
 }
@@ -396,7 +506,7 @@ function chipHTML(ev) {
 function renderLegend() {
   const el = document.getElementById('legend');
   const seen = new Map();
-  events.forEach(e => { const key = e.display_name || e.username; if (!seen.has(key)) seen.set(key, personColor(key)); });
+  events.forEach(e => { const key = e.display_name || e.username; if (!seen.has(key)) seen.set(key, colorForUsername(e.username)); });
   if (seen.size === 0) { el.innerHTML = '<span class="legend-empty">No holidays or personal days logged yet.</span>'; return; }
   el.innerHTML = [...seen.entries()].map(([name, color]) =>
     `<span class="legend-item"><span class="swatch" style="background:${color};"></span>${name}</span>`
@@ -487,53 +597,205 @@ function isWeekend(d) {
   return day === 0 || day === 6;
 }
 
+function allowanceFor(year) {
+  return allowances.find(a => a.year === year) || null;
+}
+
+// Vacaciones must be used within the same calendar year (Jan–Dec) — no
+// carryover, so each day just counts against the calendar year it falls on.
+function groupByCalendarYear(units) {
+  const used = {};
+  units.forEach(u => {
+    const y = Number(u.date.slice(0, 4));
+    used[y] = (used[y] || 0) + u.amount;
+  });
+  return used;
+}
+
+const PERSONAL_CARRYOVER_CAP = 3;
+
+// Asuntos propios earned in year Y are normally used within Y (Jan–Dec).
+// Up to PERSONAL_CARRYOVER_CAP days left unused at year end can still be
+// logged in January/February of Y+1 — anything beyond that cap (or beyond
+// what's actually left over) is forfeited. Units are walked in
+// chronological order so a Jan/Feb day is charged against the prior year's
+// expiring carryover first, and only falls through to the new year's own
+// allowance once that carryover room runs out.
+function allocatePersonalDays(units, allottedFn) {
+  const used = {};
+  const carryoverCapMemo = {};
+  const carryoverConsumed = {};
+
+  function carryoverCap(y) {
+    if (!(y in carryoverCapMemo)) {
+      carryoverCapMemo[y] = Math.min(PERSONAL_CARRYOVER_CAP, Math.max(0, allottedFn(y) - (used[y] || 0)));
+    }
+    return carryoverCapMemo[y];
+  }
+
+  units.slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(u => {
+    const [y, m] = u.date.split('-').map(Number);
+    let chosen = y;
+    if (m <= 2) {
+      const priorYear = y - 1;
+      const room = carryoverCap(priorYear) - (carryoverConsumed[priorYear] || 0);
+      if (room > 0) {
+        chosen = priorYear;
+        carryoverConsumed[priorYear] = (carryoverConsumed[priorYear] || 0) + u.amount;
+      }
+    }
+    used[chosen] = (used[chosen] || 0) + u.amount;
+  });
+  return used;
+}
+
 function computeMyStats() {
-  const stats = {}; // year -> { holiday, personal_day, comision_servicio }
+  const other = {}; // year -> { comision_servicio, teletrabajo }
+  function ensureOther(y) {
+    if (!other[y]) other[y] = { comision_servicio: 0, teletrabajo: 0 };
+    return other[y];
+  }
+
+  const holidayUnits = [];   // {date, amount: 1 per working day}
+  const personalUnits = [];  // {date, amount: 1 per day (always a full day)}
+  const formacionUnits = []; // {date, amount: hours/8}
+
   events.filter(e => e.username === ME).forEach(e => {
     const d = new Date(e.start_date + 'T00:00:00');
     const end = new Date(e.end_date + 'T00:00:00');
     while (d <= end) {
-      // Vacaciones/asuntos propios landing on a festivity aren't charged against the count.
-      const skipsFestivity = (e.type === 'holiday' || e.type === 'personal_day') && !!festivities[fmt(d)];
+      const dStr = fmt(d);
+      // Vacaciones/asuntos propios/formación landing on a festivity aren't charged against the count.
+      const skipsFestivity = (e.type === 'holiday' || e.type === 'personal_day' || e.type === 'formacion') && !!festivities[dStr];
       if (!isWeekend(d) && !skipsFestivity) {
-        const y = d.getFullYear();
-        if (!stats[y]) stats[y] = { holiday: 0, personal_day: 0, comision_servicio: 0, teletrabajo: 0, personal_day_hours: 0 };
-        if (e.type === 'personal_day') {
-          stats[y].personal_day_hours += (e.hours != null ? e.hours : FULL_DAY_HOURS);
+        if (e.type === 'holiday') {
+          holidayUnits.push({ date: dStr, amount: 1 });
+        } else if (e.type === 'personal_day') {
+          personalUnits.push({ date: dStr, amount: (e.hours != null ? e.hours : FULL_DAY_HOURS) / FULL_DAY_HOURS });
+        } else if (e.type === 'formacion') {
+          formacionUnits.push({ date: dStr, amount: (e.hours != null ? e.hours : FULL_DAY_HOURS) / FULL_DAY_HOURS });
         } else {
-          stats[y][e.type] = (stats[y][e.type] || 0) + 1;
+          ensureOther(d.getFullYear())[e.type] = (ensureOther(d.getFullYear())[e.type] || 0) + 1;
         }
       }
       d.setDate(d.getDate() + 1);
     }
   });
+
+  const holidayUsed = groupByCalendarYear(holidayUnits);
+  const personalUsed = allocatePersonalDays(personalUnits, y => (allowanceFor(y) || {}).personal_days || 0);
+  // Formación is a plain per-year allowance, same as vacaciones — no carryover.
+  const formacionUsed = groupByCalendarYear(formacionUnits);
+
+  const years = new Set([
+    ...Object.keys(other).map(Number),
+    ...Object.keys(holidayUsed).map(Number),
+    ...Object.keys(personalUsed).map(Number),
+    ...Object.keys(formacionUsed).map(Number),
+    ...allowances.map(a => a.year),
+  ]);
+
+  const stats = {};
+  years.forEach(y => {
+    const allow = allowanceFor(y);
+    stats[y] = {
+      comision_servicio: (other[y] || {}).comision_servicio || 0,
+      teletrabajo: (other[y] || {}).teletrabajo || 0,
+      holiday_used: holidayUsed[y] || 0,
+      holiday_allotted: allow ? allow.vacation_days : null,
+      personal_used_days: personalUsed[y] || 0,
+      personal_allotted_days: allow ? allow.personal_days : null,
+      formacion_used_days: formacionUsed[y] || 0,
+      formacion_allotted_days: allow ? allow.formacion_days : null,
+    };
+  });
   return stats;
+}
+
+function fmtDays(n) {
+  return (Math.round(n * 10) / 10).toFixed(n % 1 === 0 ? 0 : 1);
+}
+
+// Only show years whose days can still actually be used: the current year
+// always qualifies; the previous year only tags along during its
+// January/February carryover tail, and only if it still has unused
+// asuntos propios left to claim (vacaciones/formación never carry over).
+function usableStatYears(stats) {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const inCarryoverWindow = (today.getMonth() + 1) <= 2; // Jan or Feb
+
+  return Object.keys(stats).map(Number).filter(y => {
+    if (y === currentYear) return true;
+    if (inCarryoverWindow && y === currentYear - 1) {
+      const s = stats[y];
+      if (s.personal_allotted_days == null) return false;
+      return (s.personal_allotted_days - s.personal_used_days) > 0;
+    }
+    return false;
+  });
+}
+
+function statsHeaderHTML() {
+  return `<div class="stats-header">
+    <h3>My logged days</h3>
+    <button class="my-color-btn" style="background:${colorForUsername(ME)};" onclick="openColorPicker()" title="Change my color"></button>
+  </div>`;
 }
 
 function renderStats() {
   const el = document.getElementById('statsPanel');
   const stats = computeMyStats();
-  const years = Object.keys(stats).map(Number).sort((a, b) => b - a);
-  if (years.length === 0) {
-    el.innerHTML = '<h3>My logged days</h3><p class="stats-empty">Nothing logged yet.</p>';
+  const allYears = Object.keys(stats).map(Number);
+  const years = usableStatYears(stats).sort((a, b) => b - a);
+  const header = statsHeaderHTML();
+  if (allYears.length === 0) {
+    el.innerHTML = header + '<p class="stats-empty">Nothing logged yet.</p>';
     return;
   }
-  el.innerHTML = '<h3>My logged days</h3>' + years.map(y => {
-    const pdHours = stats[y].personal_day_hours || 0;
-    const pdDays = (pdHours / FULL_DAY_HOURS).toFixed(pdHours % FULL_DAY_HOURS === 0 ? 0 : 1);
+  if (years.length === 0) {
+    el.innerHTML = header + '<p class="stats-empty">No days available for the current period.</p>';
+    return;
+  }
+  el.innerHTML = header + years.map(y => {
+    const s = stats[y];
+
+    let holidayLabel = `${fmtDays(s.holiday_used)} d`;
+    if (s.holiday_allotted != null) {
+      const left = s.holiday_allotted - s.holiday_used;
+      holidayLabel = `${fmtDays(s.holiday_used)} / ${fmtDays(s.holiday_allotted)} d `
+        + `<span style="font-weight:400;color:${left < 0 ? '#c62828' : 'var(--text-light)'};">(${fmtDays(left)} left)</span>`;
+    }
+
+    let personalLabel = `${fmtDays(s.personal_used_days)} d`;
+    if (s.personal_allotted_days != null) {
+      const left = s.personal_allotted_days - s.personal_used_days;
+      personalLabel = `${fmtDays(s.personal_used_days)} / ${fmtDays(s.personal_allotted_days)} d `
+        + `<span style="font-weight:400;color:${left < 0 ? '#c62828' : 'var(--text-light)'};">(${fmtDays(left)} left)</span>`;
+    }
+
+    let formacionLabel = `${fmtDays(s.formacion_used_days)} d`;
+    if (s.formacion_allotted_days != null) {
+      const left = s.formacion_allotted_days - s.formacion_used_days;
+      formacionLabel = `${fmtDays(s.formacion_used_days)} / ${fmtDays(s.formacion_allotted_days)} d `
+        + `<span style="font-weight:400;color:${left < 0 ? '#c62828' : 'var(--text-light)'};">(${fmtDays(left)} left)</span>`;
+    }
+
     return `
     <div class="stats-year">
       <div class="stats-year-label">${y}</div>
-      <div class="stats-row"><span>🌴 Vacaciones</span><b>${stats[y].holiday || 0}</b></div>
-      <div class="stats-row"><span>🙂 Asuntos propios</span><b>${pdHours}h${pdHours ? ' (' + pdDays + ' d)' : ''}</b></div>
-      <div class="stats-row"><span>💼 Comisión de servicio</span><b>${stats[y].comision_servicio || 0}</b></div>
-      <div class="stats-row"><span>💻 Teletrabajo</span><b>${stats[y].teletrabajo || 0}</b></div>
+      <div class="stats-row"><span>🌴 Vacaciones</span><b>${holidayLabel}</b></div>
+      <div class="stats-row"><span>🙂 Asuntos propios</span><b>${personalLabel}</b></div>
+      <div class="stats-row"><span>🎓 Formación</span><b>${formacionLabel}</b></div>
+      <div class="stats-row"><span>💼 Comisión de servicio</span><b>${s.comision_servicio || 0}</b></div>
+      <div class="stats-row"><span>💻 Teletrabajo</span><b>${s.teletrabajo || 0}</b></div>
     </div>
   `;
   }).join('');
 }
 
 function render() {
+  rebuildColorAssignments();
   if (currentView === 'week') renderWeek(); else renderMonth();
   renderStats();
 }
@@ -547,6 +809,12 @@ function navigate(dir) {
   render();
 }
 
+// Picking a start date auto-fills the end date to match it, so a single-day
+// entry needs no extra click; the user can still widen the end date afterward.
+document.getElementById('fStartDate').addEventListener('change', () => {
+  document.getElementById('fEndDate').value = document.getElementById('fStartDate').value;
+});
+
 document.getElementById('btnPrev').onclick = () => navigate(-1);
 document.getElementById('btnNext').onclick = () => navigate(1);
 document.getElementById('btnToday').onclick = () => { currentDate = new Date(); render(); };
@@ -559,14 +827,9 @@ document.querySelectorAll('.view-btn').forEach(btn => {
   };
 });
 
-function onPersonalDayModeChange() {
-  const byHours = document.getElementById('pdModeHours').checked;
-  document.getElementById('pdHoursRow').style.display = byHours ? '' : 'none';
-}
-
-function setPersonalDayFieldsVisible(show) {
-  document.getElementById('personal-day-fields').style.display = show ? '' : 'none';
-  document.getElementById('endDateRow').style.display = show ? 'none' : '';
+function onHoursModeChange() {
+  const byHours = document.getElementById('fdModeHours').checked;
+  document.getElementById('fdHoursRow').style.display = byHours ? '' : 'none';
 }
 
 function selectPendingType(type) {
@@ -574,11 +837,14 @@ function selectPendingType(type) {
   document.getElementById('logModalTitle').textContent = (editingId ? 'Edit ' : 'Log ') + (TYPE_LOG_NAME[type] || type);
   document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
   document.getElementById('comision-fields').style.display = type === 'comision_servicio' ? '' : 'none';
-  setPersonalDayFieldsVisible(type === 'personal_day');
-  if (type === 'personal_day') {
-    document.getElementById('pdModeFull').checked = true;
+  // Asuntos propios and formación are always logged one day at a time.
+  const singleDay = type === 'personal_day' || type === 'formacion';
+  document.getElementById('endDateRow').style.display = singleDay ? 'none' : '';
+  document.getElementById('formacion-fields').style.display = type === 'formacion' ? '' : 'none';
+  if (type === 'formacion') {
+    document.getElementById('fdModeFull').checked = true;
     document.getElementById('fHours').value = '';
-    onPersonalDayModeChange();
+    onHoursModeChange();
   }
 }
 
@@ -608,8 +874,11 @@ async function saveCurrentEvent() {
 
   let hours = null;
   if (pendingType === 'personal_day') {
-    end_date = start_date; // personal days are always logged one day at a time
-    const byHours = document.getElementById('pdModeHours').checked;
+    end_date = start_date; // asuntos propios are always a full day, logged one day at a time
+    hours = FULL_DAY_HOURS;
+  } else if (pendingType === 'formacion') {
+    end_date = start_date; // formación is always logged one day at a time
+    const byHours = document.getElementById('fdModeHours').checked;
     if (byHours) {
       hours = parseFloat(document.getElementById('fHours').value);
       if (!hours || hours <= 0 || hours > FULL_DAY_HOURS) {
@@ -667,12 +936,12 @@ function onChipClick(id) {
     document.getElementById('fDestination').value = ev.destination || '';
     document.getElementById('fDescription').value = ev.description || '';
     selectPendingType(ev.type);
-    if (ev.type === 'personal_day') {
+    if (ev.type === 'formacion') {
       const isFull = (ev.hours != null ? ev.hours : FULL_DAY_HOURS) >= FULL_DAY_HOURS;
-      document.getElementById('pdModeFull').checked = isFull;
-      document.getElementById('pdModeHours').checked = !isFull;
+      document.getElementById('fdModeFull').checked = isFull;
+      document.getElementById('fdModeHours').checked = !isFull;
       document.getElementById('fHours').value = isFull ? '' : ev.hours;
-      onPersonalDayModeChange();
+      onHoursModeChange();
     }
     document.getElementById('btnDeleteEntry').style.display = '';
     document.getElementById('logModal').classList.add('open');
@@ -686,7 +955,7 @@ function onChipClick(id) {
         detailExtra.innerHTML = (ev.destination ? '<div class="detail-row"><b>Destino:</b> ' + ev.destination + '</div>' : '')
           + (ev.description ? '<div class="detail-row"><b>Descripción:</b> ' + ev.description + '</div>' : '');
         detailExtra.style.display = '';
-      } else if (ev.type === 'personal_day') {
+      } else if (ev.type === 'formacion') {
         detailExtra.innerHTML = '<div class="detail-row"><b>Hours:</b> ' + (ev.hours != null ? ev.hours : FULL_DAY_HOURS) + 'h</div>';
         detailExtra.style.display = '';
       } else {
@@ -921,6 +1190,142 @@ async function deleteFestivityRow(id) {
   }
 }
 
+// ── My allowance (self-service) ─────────────────────────────────────
+
+async function openAllowanceModal() {
+  document.getElementById('allowYear').value = new Date().getFullYear();
+  document.getElementById('allowVacationDays').value = '';
+  document.getElementById('allowPersonalDays').value = '';
+  document.getElementById('allowFormacionDays').value = '';
+  document.getElementById('allowFormMsg').style.display = 'none';
+  try {
+    allowances = await api('GET', '/api/allowances');
+  } catch (e) {
+    allowances = [];
+  }
+  renderAllowanceList();
+  document.getElementById('allowanceModal').classList.add('open');
+}
+
+function closeAllowanceModal() {
+  document.getElementById('allowanceModal').classList.remove('open');
+}
+
+function allowMsg(text, ok) {
+  const el = document.getElementById('allowFormMsg');
+  el.style.display = '';
+  el.style.background = ok ? '#dcfce7' : '#fee2e2';
+  el.style.color = ok ? '#166534' : '#991b1b';
+  el.textContent = text;
+}
+
+function renderAllowanceList() {
+  const el = document.getElementById('allowListArea');
+  const rows = allowances.slice().sort((a, b) => b.year - a.year);
+  if (!rows.length) { el.innerHTML = '<p class="stats-empty">No allowance set yet.</p>'; return; }
+  el.innerHTML = '<div style="font-weight:600;font-size:0.85rem;margin:8px 0 4px;">Saved years</div>' + rows.map(a => `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.88rem;">
+      <span style="width:50px;color:var(--text-light);">${a.year}</span>
+      <span style="flex:1;">🌴 ${fmtDays(a.vacation_days)} d &nbsp; 🙂 ${fmtDays(a.personal_days)} d &nbsp; 🎓 ${fmtDays(a.formacion_days || 0)} d</span>
+      <button class="btn" style="padding:3px 10px;font-size:0.8rem;" onclick="editAllowanceRow('${a.id}')">Edit</button>
+      <button class="btn btn-danger" style="padding:3px 10px;font-size:0.8rem;" onclick="deleteAllowanceRow('${a.id}')">Delete</button>
+    </div>
+  `).join('');
+}
+
+function editAllowanceRow(id) {
+  const a = allowances.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById('allowYear').value = a.year;
+  document.getElementById('allowVacationDays').value = a.vacation_days;
+  document.getElementById('allowPersonalDays').value = a.personal_days;
+  document.getElementById('allowFormacionDays').value = a.formacion_days || 0;
+  document.getElementById('allowFormMsg').style.display = 'none';
+}
+
+async function submitAllowance() {
+  const year = parseInt(document.getElementById('allowYear').value, 10);
+  const vacation_days = parseFloat(document.getElementById('allowVacationDays').value);
+  const personal_days = parseFloat(document.getElementById('allowPersonalDays').value);
+  const formacion_days = parseFloat(document.getElementById('allowFormacionDays').value);
+  if (!year) { allowMsg('Please enter a year.', false); return; }
+  if (isNaN(vacation_days) || vacation_days < 0 || isNaN(personal_days) || personal_days < 0 || isNaN(formacion_days) || formacion_days < 0) {
+    allowMsg('Please enter valid, non-negative amounts.', false);
+    return;
+  }
+  try {
+    await api('POST', '/api/allowances', { year, vacation_days, personal_days, formacion_days });
+    allowances = await api('GET', '/api/allowances');
+    renderAllowanceList();
+    render();
+    allowMsg(`Saved allowance for ${year}.`, true);
+  } catch (e) {
+    allowMsg('Could not save: ' + e.message, false);
+  }
+}
+
+async function deleteAllowanceRow(id) {
+  if (!confirm('Delete this allowance?')) return;
+  try {
+    await api('DELETE', `/api/allowances/${id}`);
+    allowances = allowances.filter(a => a.id !== id);
+    renderAllowanceList();
+    render();
+  } catch (e) {
+    alert('Could not delete: ' + e.message);
+  }
+}
+
+// ── My color (self-service) ─────────────────────────────────────────
+
+function openColorPicker() {
+  rebuildColorAssignments();
+  const myHue = COLOR_ASSIGNMENTS[ME];
+  const usedByOthers = new Set(
+    Object.entries(COLOR_ASSIGNMENTS).filter(([u]) => u !== ME).map(([, h]) => h)
+  );
+  const available = PALETTE_HUES.filter(h => h === myHue || !usedByOthers.has(h));
+
+  const grid = document.getElementById('colorSwatchGrid');
+  const msg = document.getElementById('colorPickerMsg');
+  if (!available.length) {
+    grid.innerHTML = '';
+    msg.textContent = 'All colors are currently taken by other people.';
+  } else {
+    msg.textContent = '';
+    grid.innerHTML = available.map(h =>
+      `<button class="color-swatch${h === myHue ? ' selected' : ''}" style="background:${hueToColor(h)};" title="Hue ${h}" onclick="chooseMyColor(${h})"></button>`
+    ).join('');
+  }
+  document.getElementById('colorModal').classList.add('open');
+}
+
+function closeColorPicker() {
+  document.getElementById('colorModal').classList.remove('open');
+}
+
+async function chooseMyColor(hue) {
+  try {
+    await api('POST', '/api/color', { hue });
+    manualColors[ME] = hue;
+    closeColorPicker();
+    render();
+  } catch (e) {
+    alert('Could not save color: ' + e.message);
+  }
+}
+
+async function resetMyColor() {
+  try {
+    await api('DELETE', '/api/color');
+    delete manualColors[ME];
+    closeColorPicker();
+    render();
+  } catch (e) {
+    alert('Could not reset color: ' + e.message);
+  }
+}
+
 (async function init() {
   TOKEN = localStorage.getItem('tommi_token') || new URLSearchParams(location.search).get('token') || '';
   try {
@@ -933,6 +1338,8 @@ async function deleteFestivityRow(id) {
     MY_ROLES = auth.roles || [auth.role];
     if (canManageFestivities()) document.getElementById('btnManageFestivities').style.display = '';
     events = await api('GET', '/api/events');
+    try { allowances = await api('GET', '/api/allowances'); } catch (e) { allowances = []; }
+    try { manualColors = await api('GET', '/api/colors'); } catch (e) { manualColors = {}; }
     // Load festivities for current year and adjacent years
     const yr = new Date().getFullYear();
     await Promise.all([loadFestivities(yr - 1), loadFestivities(yr), loadFestivities(yr + 1)]);

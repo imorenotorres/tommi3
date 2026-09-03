@@ -21,7 +21,7 @@ FESTIVITIES_PATH = os.path.join(os.path.dirname(__file__), "festivities.json")
 
 router = APIRouter(prefix="/holiday-tracker", tags=["holiday_tracker"])
 
-EVENT_TYPES = {"holiday", "personal_day", "comision_servicio", "teletrabajo"}
+EVENT_TYPES = {"holiday", "personal_day", "comision_servicio", "teletrabajo", "formacion"}
 
 
 def _display_name(username: str) -> str:
@@ -100,7 +100,7 @@ def _is_editable(ev: dict) -> bool:
 
 # ── Data I/O ─────────────────────────────────────────────────────────
 
-DEFAULT_DATA = {"events": []}
+DEFAULT_DATA = {"events": [], "allowances": [], "colors": []}
 
 
 def load_data():
@@ -108,7 +108,11 @@ def load_data():
         save_data(DEFAULT_DATA.copy())
         return DEFAULT_DATA.copy()
     with open(DATA_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    data.setdefault("events", [])
+    data.setdefault("allowances", [])
+    data.setdefault("colors", [])
+    return data
 
 
 def save_data(data: dict):
@@ -151,7 +155,7 @@ class EventBody(BaseModel):
     end_date: str    # "YYYY-MM-DD"
     destination: str = ""  # For comision_servicio
     description: str = ""  # For comision_servicio
-    hours: float | None = None  # personal_day only: hours taken (0, 8]; omitted = full day
+    hours: float | None = None  # formacion only: hours taken (0, 8]; omitted = full day
 
     @field_validator("type")
     @classmethod
@@ -170,10 +174,15 @@ class EventBody(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def _validate_personal_day_hours(self):
+    def _validate_single_day_hours(self):
+        # Asuntos propios are always a full day; Formación can be logged by the hour.
         if self.type == "personal_day":
             if self.start_date != self.end_date:
                 raise ValueError("Personal days (asuntos propios) are logged one day at a time")
+            self.hours = FULL_DAY_HOURS
+        elif self.type == "formacion":
+            if self.start_date != self.end_date:
+                raise ValueError("Formación entries are logged one day at a time")
             hours = self.hours if self.hours is not None else FULL_DAY_HOURS
             if not (0 < hours <= FULL_DAY_HOURS):
                 raise ValueError(f"Hours must be greater than 0 and at most {FULL_DAY_HOURS:g}")
@@ -238,6 +247,135 @@ def delete_event(event_id: str, session: dict = Depends(_require_uma_staff)):
     if not _is_editable(ev):
         raise HTTPException(400, "It is not possible to change a past holiday.")
     data["events"] = [e for e in data["events"] if e["id"] != event_id]
+    save_data(data)
+    return {"ok": True}
+
+
+# ── Personal allowances ──────────────────────────────────────────────
+# How many vacation days / asuntos propios days each person has for a given
+# year. Self-reported by each user (roles alone don't tell us their amount).
+# Vacaciones must be used within that same calendar year; asuntos propios
+# allow a capped carryover into the following January/February. That
+# used-vs-left accounting happens client-side in the calendar, which
+# already has every event and festivity loaded.
+
+
+class AllowanceBody(BaseModel):
+    year: int
+    vacation_days: float = 0
+    personal_days: float = 0
+    formacion_days: float = 0
+
+    @field_validator("year")
+    @classmethod
+    def _validate_year(cls, v):
+        if not (2000 <= v <= 2100):
+            raise ValueError("year must be between 2000 and 2100")
+        return v
+
+    @field_validator("vacation_days", "personal_days", "formacion_days")
+    @classmethod
+    def _validate_nonnegative(cls, v):
+        if v < 0:
+            raise ValueError("days cannot be negative")
+        return v
+
+
+@router.get("/api/allowances")
+def list_allowances(session: dict = Depends(_require_uma_staff)):
+    """A user's own allowances only — everyone's numbers are personal."""
+    return [a for a in load_data()["allowances"] if a["username"] == session["username"]]
+
+
+@router.post("/api/allowances")
+def upsert_allowance(body: AllowanceBody, session: dict = Depends(_require_uma_staff)):
+    """Create or update the caller's allowance for the given year."""
+    data = load_data()
+    for a in data["allowances"]:
+        if a["username"] == session["username"] and a["year"] == body.year:
+            a["vacation_days"] = body.vacation_days
+            a["personal_days"] = body.personal_days
+            a["formacion_days"] = body.formacion_days
+            a["updated_at"] = datetime.utcnow().isoformat() + "Z"
+            save_data(data)
+            return a
+    entry = {
+        "id": "allw" + uuid.uuid4().hex[:8],
+        "username": session["username"],
+        "year": body.year,
+        "vacation_days": body.vacation_days,
+        "personal_days": body.personal_days,
+        "formacion_days": body.formacion_days,
+        "updated_at": datetime.utcnow().isoformat() + "Z",
+    }
+    data["allowances"].append(entry)
+    save_data(data)
+    return entry
+
+
+@router.delete("/api/allowances/{allowance_id}")
+def delete_allowance(allowance_id: str, session: dict = Depends(_require_uma_staff)):
+    data = load_data()
+    a = next((x for x in data["allowances"] if x["id"] == allowance_id), None)
+    if not a:
+        raise HTTPException(404, "Allowance not found")
+    if a["username"] != session["username"]:
+        raise HTTPException(403, "You can only delete your own allowance")
+    data["allowances"] = [x for x in data["allowances"] if x["id"] != allowance_id]
+    save_data(data)
+    return {"ok": True}
+
+
+# ── Personal calendar colors ─────────────────────────────────────────
+# Each person's chip/legend color is normally derived from their username by
+# a deterministic hash (kept in sync client-side so it needs no storage).
+# Choosing a color manually overrides that for everyone's view, so it has
+# to be shared, not just remembered locally — hence this tiny per-user
+# color registry, visible to every UMA staff member the same way events are.
+
+
+class ColorBody(BaseModel):
+    hue: int  # degrees, 0-359 — paired with a fixed saturation/lightness client-side
+
+    @field_validator("hue")
+    @classmethod
+    def _validate_hue(cls, v):
+        if not (0 <= v < 360):
+            raise ValueError("hue must be between 0 and 359")
+        return v
+
+
+@router.get("/api/colors")
+def list_colors(session: dict = Depends(_require_uma_staff)):
+    """Every manually-chosen color, keyed by username — needed by everyone's
+    calendar so a chosen color renders the same for every viewer."""
+    return {c["username"]: c["hue"] for c in load_data()["colors"]}
+
+
+@router.post("/api/color")
+def set_my_color(body: ColorBody, session: dict = Depends(_require_uma_staff)):
+    """Set (or replace) the caller's own manually-chosen color."""
+    data = load_data()
+    for c in data["colors"]:
+        if c["username"] == session["username"]:
+            c["hue"] = body.hue
+            c["updated_at"] = datetime.utcnow().isoformat() + "Z"
+            save_data(data)
+            return {"username": session["username"], "hue": c["hue"]}
+    data["colors"].append({
+        "username": session["username"],
+        "hue": body.hue,
+        "updated_at": datetime.utcnow().isoformat() + "Z",
+    })
+    save_data(data)
+    return {"username": session["username"], "hue": body.hue}
+
+
+@router.delete("/api/color")
+def reset_my_color(session: dict = Depends(_require_uma_staff)):
+    """Drop the caller's manual color choice, reverting to the automatic one."""
+    data = load_data()
+    data["colors"] = [c for c in data["colors"] if c["username"] != session["username"]]
     save_data(data)
     return {"ok": True}
 
