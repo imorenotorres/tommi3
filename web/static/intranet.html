@@ -135,7 +135,7 @@ var TOOL_ACCESS = {
     'event_catalogue':    ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
     // Administration
     'directory':          [], // hidden for everyone, including superuser (Agora Directory link retired)
-    'new_directory':      ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
+    'new_directory':      ['admin_staff', 'uninovis_staff', 'teaching_staff', 'wp_leader', 'tester', 'content_manager', 'superuser'],
     'event_tracker':      ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
     'dp_status':          ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
     'intranet_services':  ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
@@ -606,6 +606,7 @@ function openUserManagement() {
         + '<option value="admin_staff">admin_staff</option>'
         + '<option value="uninovis_staff">uninovis_staff</option>'
         + '<option value="teaching_staff">teaching_staff</option>'
+        + '<option value="wp_leader">wp_leader</option>'
         + '<option value="tester">tester</option>'
         + '<option value="content_manager">content_manager</option>'
         + '<option value="superuser">superuser</option>'
@@ -623,6 +624,7 @@ function openUserManagement() {
         + '<option value="admin_staff">admin_staff</option>'
         + '<option value="uninovis_staff">uninovis_staff</option>'
         + '<option value="student">student</option>'
+        + '<option value="wp_leader">wp_leader</option>'
         + '<option value="tester">tester</option>'
         + '<option value="content_manager">content_manager</option>'
         + '<option value="superuser">superuser</option>'
@@ -648,6 +650,7 @@ function openUserManagement() {
         + '<option value="admin_staff">admin_staff</option>'
         + '<option value="uninovis_staff">uninovis_staff</option>'
         + '<option value="teaching_staff">teaching_staff</option>'
+        + '<option value="wp_leader">wp_leader</option>'
         + '<option value="tester">tester</option>'
         + '<option value="content_manager">content_manager</option>'
         + '<option value="superuser">superuser</option>'
@@ -941,7 +944,7 @@ async function umEditRoles(username) {
     var user = _umUsers.find(function(u) { return u.username === username; });
     if (!user) return;
     var currentRoles = user.roles || [user.role];
-    var allRoles = ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'];
+    var allRoles = ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'wp_leader', 'tester', 'content_manager', 'superuser'];
     var checkboxes = allRoles.map(function(r) {
         var checked = currentRoles.indexOf(r) !== -1 ? ' checked' : '';
         return '<label style="display:block;font-size:0.85rem;margin:2px 0;"><input type="checkbox" value="' + r + '"' + checked + '> ' + r + '</label>';
@@ -1178,7 +1181,7 @@ async function amResetLogs(agentId) {
 
 // ── Tool Visibility Panel ───────────────────────────────────────
 var _tvData = {};
-var ALL_ROLES = ['public', 'student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'];
+var ALL_ROLES = ['public', 'student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'wp_leader', 'tester', 'content_manager', 'superuser'];
 
 // Readable labels for tool IDs
 var TOOL_LABELS = {
@@ -1277,7 +1280,7 @@ function tvRender() {
 
     var roleLabels = {
         public: 'Public', student: 'Student', admin_staff: 'Admin staff', uninovis_staff: 'UNINOVIS staff',
-        teaching_staff: 'Teaching staff', tester: 'Tester', content_manager: 'Content manager', superuser: 'Superuser'
+        teaching_staff: 'Teaching staff', wp_leader: 'WP leader', tester: 'Tester', content_manager: 'Content manager', superuser: 'Superuser'
     };
 
     var html = '<table style="width:100%;border-collapse:collapse;">'

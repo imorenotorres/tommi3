@@ -146,7 +146,7 @@ def list_events(session: dict = Depends(_require_uma_staff)):
     ]
 
 
-FULL_DAY_HOURS = 8.0
+FULL_DAY_HOURS = 7.0
 
 
 class EventBody(BaseModel):
@@ -155,7 +155,7 @@ class EventBody(BaseModel):
     end_date: str    # "YYYY-MM-DD"
     destination: str = ""  # For comision_servicio
     description: str = ""  # For comision_servicio
-    hours: float | None = None  # formacion only: hours taken (0, 8]; omitted = full day
+    hours: float | None = None  # formacion only: hours taken (0, 7]; omitted = full day
 
     @field_validator("type")
     @classmethod

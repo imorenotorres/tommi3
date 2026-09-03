@@ -62,6 +62,27 @@ def _require_superuser(session: dict = Depends(_require_auth)) -> dict:
     return session
 
 
+def _unit_ancestor_ids(unit_id: int, units_by_id: dict) -> list[int]:
+    """Return [unit_id, its parent, its grandparent, ...] up to the root."""
+    chain = []
+    seen = set()
+    current = unit_id
+    while current is not None and current in units_by_id and current not in seen:
+        chain.append(current)
+        seen.add(current)
+        current = units_by_id[current].get("parent_id")
+    return chain
+
+
+def _leads_unit_or_ancestor(username: str, unit_id: int, units_by_id: dict) -> bool:
+    """True if `username` is a listed leader of `unit_id` or any of its ancestors."""
+    username = username.strip().lower()
+    return any(
+        username in {e.strip().lower() for e in units_by_id[uid].get("leaders", [])}
+        for uid in _unit_ancestor_ids(unit_id, units_by_id)
+    )
+
+
 # Static university reference data (website links to be filled in once known)
 UNIVERSITIES = {
     "USPN": {"name": "Université Sorbonne Paris Nord", "country": "FR", "website": ""},
@@ -142,6 +163,7 @@ def _build_unit_tree(units: list, memberships: list, people_by_id: dict, univers
             "name": u["name"],
             "university": u["university"],
             "university_name": u["university_name"],
+            "leaders": u.get("leaders", []),
             "members": members,
             "subunits": subunits,
         }
@@ -160,11 +182,18 @@ def index():
 
 @router.get("/api/auth-check")
 def auth_check(session: dict = Depends(_require_auth)):
+    username = session.get("username", "").strip().lower()
+    data = load_data()
+    led_unit_ids = [
+        u["id"] for u in data.get("units", [])
+        if username in {e.strip().lower() for e in u.get("leaders", [])}
+    ]
     return {
         "username": session["username"],
         "role": session["role"],
         "roles": session.get("roles", [session["role"]]),
         "can_edit": _can_edit_check(session),
+        "led_unit_ids": led_unit_ids,
     }
 
 
@@ -244,6 +273,7 @@ class UnitCreate(BaseModel):
     name: str
     parent_id: int | None = None
     university: str = ""
+    leaders: list[str] = []
 
 
 @router.post("/api/people")
@@ -288,15 +318,29 @@ def create_person(body: PersonCreate, session: dict = Depends(_require_content_m
 
 
 @router.post("/api/units")
-def create_unit(body: UnitCreate, session: dict = Depends(_require_content_manager)):
+def create_unit(body: UnitCreate, session: dict = Depends(_require_auth)):
+    roles = set(_user_roles(session))
+    data = load_data()
+    units_by_id = {u["id"]: u for u in data.get("units", [])}
+
+    if _CONTENT_MANAGER_ROLES & roles:
+        pass  # content_manager/superuser may create anywhere, including top-level units
+    elif "wp_leader" in roles:
+        if body.parent_id is None:
+            raise HTTPException(status_code=403, detail="WP leaders can only add subunits under a unit they lead, not top-level units")
+        if body.parent_id not in units_by_id:
+            raise HTTPException(status_code=400, detail="Unknown parent unit")
+        if not _leads_unit_or_ancestor(session.get("username", ""), body.parent_id, units_by_id):
+            raise HTTPException(status_code=403, detail="You can only add subunits within a work package you lead")
+    else:
+        raise HTTPException(status_code=403, detail="content_manager, superuser, or wp_leader role required")
+
     name = body.name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="Unit name is required")
     if body.university and body.university not in UNIVERSITIES:
         raise HTTPException(status_code=400, detail=f"Unknown university: {body.university}")
-
-    data = load_data()
-    if body.parent_id is not None and not any(u["id"] == body.parent_id for u in data.get("units", [])):
+    if body.parent_id is not None and body.parent_id not in units_by_id:
         raise HTTPException(status_code=400, detail="Unknown parent unit")
 
     new_id = max([u["id"] for u in data.get("units", [])], default=0) + 1
@@ -306,10 +350,26 @@ def create_unit(body: UnitCreate, session: dict = Depends(_require_content_manag
         "parent_id": body.parent_id,
         "university": body.university,
         "university_name": UNIVERSITIES.get(body.university, {}).get("name", ""),
+        "leaders": sorted({e.strip().lower() for e in body.leaders if e.strip()}),
     }
     data.setdefault("units", []).append(unit)
     save_data(data)
     return {"ok": True, "id": new_id}
+
+
+class UnitLeadersUpdate(BaseModel):
+    leaders: list[str] = []
+
+
+@router.put("/api/units/{unit_id}/leaders")
+def set_unit_leaders(unit_id: int, body: UnitLeadersUpdate, session: dict = Depends(_require_content_manager)):
+    data = load_data()
+    unit = next((u for u in data.get("units", []) if u["id"] == unit_id), None)
+    if not unit:
+        raise HTTPException(status_code=404, detail="Unit not found")
+    unit["leaders"] = sorted({e.strip().lower() for e in body.leaders if e.strip()})
+    save_data(data)
+    return {"ok": True, "id": unit_id, "leaders": unit["leaders"]}
 
 
 # ---------------------------------------------------------------------------
@@ -495,6 +555,7 @@ def import_json(body: DataImport, session: dict = Depends(_require_superuser)):
                 "parent_id": None,  # resolved below, once every unit has a final id
                 "university": u.university,
                 "university_name": UNIVERSITIES.get(u.university, {}).get("name", u.university_name),
+                "leaders": [],  # not part of the external sync data; assigned locally via the UI
             }
             units.append(new_unit)
             units_by_id[new_unit["id"]] = new_unit

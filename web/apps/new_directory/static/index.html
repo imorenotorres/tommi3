@@ -100,6 +100,7 @@
             <span class="sync-info" id="syncInfo"></span>
             <div style="display:flex;gap:8px;">
                 <button class="btn-small" id="btnImportJson" style="display:none;" onclick="openImportJsonModal()">Import JSON</button>
+                <button class="btn" id="btnAddSubunit" style="display:none;" onclick="openAddSubunitModal()">+ Add Subunit</button>
                 <button class="btn" id="btnAddEntry" style="display:none;" onclick="openAddModal()">+ Add Person / Unit</button>
             </div>
         </div>
@@ -280,10 +281,38 @@
 
     // ── Units ─────────────────────────────────────────────────────
 
+    function leadersBtn(node) {
+        if (!canManageDirectory()) return '';
+        var leaders = node.leaders || [];
+        var label = leaders.length ? ('Leaders (' + leaders.length + ')') : 'Set leader';
+        return ' <button class="btn-small" onclick="event.stopPropagation();editUnitLeaders(' + node.id + ')" style="font-size:0.72em;padding:1px 6px;margin-left:4px;" title="'
+            + esc(leaders.join(', ') || 'No leaders set — WP leaders can add subunits under a unit they lead') + '">' + esc(label) + '</button>';
+    }
+
+    async function editUnitLeaders(unitId) {
+        var node = window._unitNodesById[unitId];
+        var current = ((node && node.leaders) || []).join(', ');
+        var input = prompt('Comma-separated emails of people who lead this unit (they can then add subunits under it):', current);
+        if (input === null) return;
+        var leaders = input.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+        try {
+            var resp = await authFetch(BASE + '/api/units/' + unitId + '/leaders', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ leaders: leaders })
+            });
+            if (!resp.ok) { var err = await resp.json(); alert(err.detail || 'Error updating leaders'); return; }
+            await loadAll();
+            var activeTab = document.querySelector('.tab.active').dataset.tab;
+            if (activeTab === 'orgchart') renderOrgChart();
+        } catch (e) { alert('Connection error'); }
+    }
+
     function renderUnitNode(node, isRoot) {
         indexUnitNodes(node);
         var html = '<li><span class="org-node ' + (isRoot ? 'org-node-root' : 'org-node-unit') + '">' + esc(node.name) + '</span>';
         html += copyAllEmailsBtn(node, node.name);
+        html += leadersBtn(node);
         html += '<ul>';
         node.members.forEach(function(m) {
             html += '<li><span class="org-node org-node-member">' + esc(m.first_name + ' ' + m.family_name)
@@ -357,9 +386,10 @@
         document.getElementById('orgChartArea').innerHTML = html;
     }
 
-    // ── Add Person / Unit (content_manager / superuser only) ───────
+    // ── Add Person / Unit (content_manager / superuser, or unit-only for wp_leader) ───────
 
     var addMode = 'person';
+    var addScopeIds = null; // null = unrestricted; array of unit ids = wp_leader scope
 
     function flattenUnits(nodes, depth, out) {
         var sorted = (nodes || []).slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
@@ -384,15 +414,39 @@
         return html;
     }
 
-    function unitSelectOptions(noneLabel, selectedId) {
+    function unitSelectOptions(noneLabel, selectedId, allowedIds) {
         var flat = flattenUnits(units, 0, []);
-        var html = '<option value="">' + esc(noneLabel) + '</option>';
+        if (allowedIds) flat = flat.filter(function(u) { return allowedIds.indexOf(u.id) !== -1; });
+        var html = noneLabel ? '<option value="">' + esc(noneLabel) + '</option>' : '';
         flat.forEach(function(u) {
             var indent = new Array(u.depth + 1).join(' ');
             var sel = (selectedId != null && u.id === selectedId) ? ' selected' : '';
             html += '<option value="' + u.id + '"' + sel + '>' + indent + esc(u.name) + '</option>';
         });
         return html;
+    }
+
+    // A WP leader may only create subunits within the work package(s) they
+    // lead (auth-check returns their directly-led unit ids); this expands
+    // that to include every descendant, since managing the whole subtree
+    // they're responsible for is the point, not just direct children.
+    function collectUnitIds(node, out) {
+        out.push(node.id);
+        (node.subunits || []).forEach(function(sub) { collectUnitIds(sub, out); });
+    }
+
+    function computeLedScopeIds(ledUnitIds) {
+        var ledSet = {};
+        (ledUnitIds || []).forEach(function(id) { ledSet[id] = true; });
+        var out = [];
+        function walk(nodes) {
+            (nodes || []).forEach(function(n) {
+                if (ledSet[n.id]) collectUnitIds(n, out);
+                walk(n.subunits);
+            });
+        }
+        walk(units);
+        return out.filter(function(id, i) { return out.indexOf(id) === i; });
     }
 
     var npUnitRowCounter = 0;
@@ -452,14 +506,22 @@
     }
 
     function unitFormHtml() {
+        // addScopeIds is non-null for a WP leader: they may only pick a parent
+        // from within the work package(s) they lead, and can't create a
+        // top-level unit, so there's no "none" option.
+        var scoped = !!addScopeIds;
+        var parentOptions = scoped
+            ? unitSelectOptions(null, null, addScopeIds)
+            : unitSelectOptions('— none (top-level unit) —');
         return fieldRow('Unit name *', '<input type="text" id="nu-name" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
-            + fieldRow('Parent unit', '<select id="nu-parent" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + unitSelectOptions('— none (top-level unit) —') + '</select>')
-            + fieldRow('University', '<select id="nu-university" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + universityOptions('— none (cross-institutional) —') + '</select>');
+            + fieldRow('Parent unit' + (scoped ? ' *' : ''), '<select id="nu-parent" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + parentOptions + '</select>')
+            + (scoped ? '' : fieldRow('University', '<select id="nu-university" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + universityOptions('— none (cross-institutional) —') + '</select>'));
     }
 
     function openAddModal() {
         closeAddModal();
         addMode = 'person';
+        addScopeIds = null;
         var overlay = document.createElement('div');
         overlay.id = 'add-modal-overlay';
         overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
@@ -484,9 +546,37 @@
         document.body.appendChild(overlay);
     }
 
+    // A WP leader gets a scoped, unit-only variant: no Person option, and the
+    // parent dropdown is restricted to the work package(s) they lead.
+    function openAddSubunitModal() {
+        closeAddModal();
+        addMode = 'unit';
+        addScopeIds = computeLedScopeIds(currentUser && currentUser.led_unit_ids);
+        var overlay = document.createElement('div');
+        overlay.id = 'add-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
+        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:480px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+            + '<h2 style="margin:0;color:#1a3a5c;font-size:1.15em;">Add Subunit</h2>'
+            + '<button onclick="closeAddModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+            + '</div>'
+            + '<p style="font-size:0.85em;color:#666;margin-bottom:12px;">Add a subunit within a work package you lead.</p>'
+            + '<div id="add-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+            + '<div id="add-person-form" style="display:none;"></div>'
+            + '<div id="add-unit-form">' + unitFormHtml() + '</div>'
+            + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
+            + '<button class="btn" onclick="submitAdd()">Create</button>'
+            + '<button class="btn-small" onclick="closeAddModal()" style="padding:8px 20px;">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeAddModal(); });
+        document.body.appendChild(overlay);
+    }
+
     function closeAddModal() {
         var el = document.getElementById('add-modal-overlay');
         if (el) el.remove();
+        addScopeIds = null;
     }
 
     async function openMyProfileModal() {
@@ -640,10 +730,12 @@
             var name = document.getElementById('nu-name').value.trim();
             if (!name) { addMsg('Unit name is required', false); return; }
             var parentVal = document.getElementById('nu-parent').value;
+            if (addScopeIds && !parentVal) { addMsg('Select a unit within a work package you lead', false); return; }
+            var uniEl = document.getElementById('nu-university');
             var body2 = {
                 name: name,
                 parent_id: parentVal ? parseInt(parentVal, 10) : null,
-                university: document.getElementById('nu-university').value,
+                university: uniEl ? uniEl.value : '',
             };
             try {
                 var resp2 = await authFetch(BASE + '/api/units', {
@@ -698,6 +790,15 @@
         return roles.indexOf('content_manager') !== -1 || roles.indexOf('superuser') !== -1;
     }
 
+    // WP leaders get the scoped "+ Add Subunit" button instead of full
+    // directory management; canManageDirectory() users already have that
+    // (and more) via "+ Add Person / Unit", so this only applies to leaders
+    // who aren't also content_manager/superuser.
+    function canLeadUnits() {
+        if (!currentUser || canManageDirectory()) return false;
+        return !!(currentUser.led_unit_ids && currentUser.led_unit_ids.length);
+    }
+
     function canImportJson() {
         if (!currentUser) return false;
         var roles = currentUser.roles || [currentUser.role];
@@ -723,6 +824,9 @@
 
         var addBtn = document.getElementById('btnAddEntry');
         if (addBtn) addBtn.style.display = canManageDirectory() ? '' : 'none';
+
+        var addSubunitBtn = document.getElementById('btnAddSubunit');
+        if (addSubunitBtn) addSubunitBtn.style.display = canLeadUnits() ? '' : 'none';
 
         var importBtn = document.getElementById('btnImportJson');
         if (importBtn) importBtn.style.display = canImportJson() ? '' : 'none';

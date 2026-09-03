@@ -28,6 +28,7 @@ ROLES = {
     "content_manager": 3.5,  # below superuser, above every other role
     "tester": 3,
     "uninovis_staff": 2.5,  # admin_staff/teaching_staff who are also on the UNINOVIS project
+    "wp_leader": 2.2,  # leads a UNINOVIS work package; scoped unit-management rights in new_directory
     "admin_staff": 2,
     "teaching_staff": 2,
     "student": 1,
@@ -58,7 +59,7 @@ _DEFAULT_TOOL_ACCESS = {
     "event_catalogue":    ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     # Administration
     "directory":          [],  # hidden for everyone, including superuser (Agora Directory link retired)
-    "new_directory":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "new_directory":      ["admin_staff", "uninovis_staff", "teaching_staff", "wp_leader", "tester", "content_manager", "superuser"],
     "event_tracker":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     "dp_status":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     "holiday_tracker":    ["uninovis_staff", "content_manager", "superuser"],
