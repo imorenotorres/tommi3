@@ -140,8 +140,8 @@
         <label>Range:</label>
         <select id="selRange">
             <option value="last4">Last 4</option>
-            <option value="last8" selected>Last 8</option>
-            <option value="last12">Last 12</option>
+            <option value="last8">Last 8</option>
+            <option value="last12" selected>Last 12</option>
             <option value="last26">Last 26</option>
             <option value="last52">Last 52</option>
         </select>
@@ -253,6 +253,12 @@ function viewMode() { return $$('selView').value; }
 function isAll() { return site() === 'all'; } // true for both 'all' and 'persite'
 function fmt(n) { return n == null ? '-' : Number(n).toLocaleString(); }
 function fmtT(s) { s = Math.round(s||0); return s < 60 ? s+'s' : Math.floor(s/60)+'m '+(s%60)+'s'; }
+function periodLabel() {
+    var p = per(), r = rng();
+    var n = r.replace('last', '');
+    var unit = {day: 'days', week: 'weeks', month: 'months'}[p] || p;
+    return 'Last ' + n + ' ' + unit;
+}
 
 // Page filter: returns the URL pattern from the dropdown (or '' for all)
 function selectedPageUrl() {
@@ -284,7 +290,7 @@ function populatePageDropdown() {
     sel.value = cur || '';
     sel.onchange = function() { loadAll(); };
     // Fetch page data from ALL sites to get accurate visit counts
-    q('Actions.getPageUrls', { flat: '1', filter_limit: '-1', idSite: 'all' }).then(function(raw) {
+    return q('Actions.getPageUrls', { flat: '1', filter_limit: '-1', idSite: 'all' }).then(function(raw) {
         // Collect visit counts for all pages
         var allPages = {};
         function collect(items) {
@@ -344,10 +350,11 @@ function populatePageDropdown() {
         sorted.forEach(function(path) {
             var o = document.createElement('option');
             o.value = path;
-            o.textContent = path + ' (' + pages[path] + ')';
+            o.textContent = path + ' (' + fmt(otherPages[path]) + ')';
             sel.appendChild(o);
         });
         sel.value = cur || '';
+        sel.onchange = function() { loadAll(); };
     }).catch(function() {});
 }
 
@@ -1008,7 +1015,12 @@ async function loadCountryChart() {
             });
             el.innerHTML = html;
         }
-        $$('countryChartTitle').textContent = (useVisits ? 'Visits' : 'Unique Visitors') + ' by Country' + titleSuffix;
+        var cParts = [(useVisits ? 'Visits' : 'Unique Visitors') + ' by Country'];
+        if (titleSuffix) cParts.push(titleSuffix.trim());
+        var cpgLabel = selectedPageLabel();
+        if (cpgLabel) cParts.push(cpgLabel);
+        cParts.push('(' + periodLabel() + ')');
+        $$('countryChartTitle').textContent = cParts.join(' — ');
 
     } catch(e) {
         el.innerHTML = '<span class="error">Error: '+e.message+'</span>';
@@ -1481,6 +1493,7 @@ async function loadChart() {
         else if (cc !== 'all') parts.push(cc.toUpperCase());
         var pgLabel = selectedPageLabel();
         if (pgLabel) parts.push(pgLabel);
+        parts.push('(' + periodLabel() + ')');
         $$('chartTitle').textContent = parts.join(' — ');
 
     } catch(e) {
@@ -1684,6 +1697,7 @@ async function loadAll() {
     tabCache = {};
     liveCache = { key: '', visits: [], unavailable: false };
     closeDrill();
+    await populatePageDropdown();
     await populateCountryDropdown();
     await loadCountryChart();
     await loadChart();
