@@ -57,7 +57,7 @@ _DEFAULT_TOOL_ACCESS = {
     # Events & Communication
     "event_catalogue":    ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     # Administration
-    "directory":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "directory":          [],  # hidden for everyone, including superuser (Agora Directory link retired)
     "new_directory":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     "event_tracker":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     "dp_status":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],

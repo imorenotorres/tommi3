@@ -53,6 +53,15 @@ def _require_content_manager(session: dict = Depends(_require_auth)) -> dict:
     return session
 
 
+# Bulk JSON import merges into the existing local snapshot, so it is
+# restricted to superuser only — narrower than the content_manager/superuser
+# create-one-at-a-time flow above.
+def _require_superuser(session: dict = Depends(_require_auth)) -> dict:
+    if "superuser" not in set(_user_roles(session)):
+        raise HTTPException(status_code=403, detail="superuser role required")
+    return session
+
+
 # Static university reference data (website links to be filled in once known)
 UNIVERSITIES = {
     "USPN": {"name": "Université Sorbonne Paris Nord", "country": "FR", "website": ""},
@@ -387,3 +396,165 @@ def update_my_profile(body: MyProfileUpdate, session: dict = Depends(_require_au
 
     save_data(data)
     return {"ok": True, "id": person["id"]}
+
+
+# ---------------------------------------------------------------------------
+# Bulk JSON import — superuser only. Merges an uploaded snapshot into the
+# existing data.json rather than replacing it. Per-university exports share
+# one global id space (a "WP3" unit or a person has the same id in every
+# university's file and in data.json itself), and an export only lists the
+# people/units relevant to that university — so a unit's parent, or a shared
+# cross-institutional unit, is often already in data.json without appearing
+# in the uploaded file at all. Ids are therefore matched first, falling back
+# to name/email only for entries that predate this id scheme:
+#   - a person/unit whose id already exists locally is updated in place
+#   - otherwise a person is matched by email (case-insensitive), and a unit
+#     by (name, university); a match updates that existing record in place
+#   - otherwise it is added as new, keeping the id from the uploaded file
+#     (not reassigned), so later imports referencing that id still resolve
+#   - memberships are remapped through the id matches above and appended,
+#     skipping any (person, unit, role) combination that already exists
+# ---------------------------------------------------------------------------
+
+class UnitImport(BaseModel):
+    id: int
+    name: str
+    parent_id: int | None = None
+    university: str = ""
+    university_name: str = ""
+
+
+class PersonImport(BaseModel):
+    id: int
+    first_name: str
+    family_name: str
+    email: str = ""
+    phone: str = ""
+    position: str = ""
+    university: str = ""
+    university_name: str = ""
+
+
+class MembershipImport(BaseModel):
+    person_id: int
+    unit_id: int | None = None
+    role: str = ""
+
+
+class DataImport(BaseModel):
+    people: list[PersonImport] = []
+    units: list[UnitImport] = []
+    memberships: list[MembershipImport] = []
+    last_sync: str | None = None
+
+
+@router.post("/api/import-json")
+def import_json(body: DataImport, session: dict = Depends(_require_superuser)):
+    person_ids = [p.id for p in body.people]
+    if len(person_ids) != len(set(person_ids)):
+        raise HTTPException(status_code=400, detail="Duplicate person id in people")
+    unit_ids = [u.id for u in body.units]
+    if len(unit_ids) != len(set(unit_ids)):
+        raise HTTPException(status_code=400, detail="Duplicate unit id in units")
+
+    data = load_data()
+    people = data.setdefault("people", [])
+    units = data.setdefault("units", [])
+    memberships = data.setdefault("memberships", [])
+
+    # A reference is valid if it resolves either within this upload or against
+    # what's already stored — a partial, per-university export commonly omits
+    # a shared parent/unit that a full export (or an earlier import) already
+    # established locally.
+    known_unit_ids = set(unit_ids) | {u["id"] for u in units}
+    known_person_ids = set(person_ids) | {p["id"] for p in people}
+    for u in body.units:
+        if u.parent_id is not None and u.parent_id not in known_unit_ids:
+            raise HTTPException(status_code=400, detail=f"Unit {u.id} references unknown parent_id {u.parent_id}")
+    for m in body.memberships:
+        if m.person_id not in known_person_ids:
+            raise HTTPException(status_code=400, detail=f"Membership references unknown person_id {m.person_id}")
+        if m.unit_id is not None and m.unit_id not in known_unit_ids:
+            raise HTTPException(status_code=400, detail=f"Membership references unknown unit_id {m.unit_id}")
+
+    # ---- merge units: matched by id first, then by (name, university) ----
+    units_by_id = {u["id"]: u for u in units}
+    units_by_key = {(u["name"].strip().lower(), u["university"]): u for u in units}
+    unit_id_map: dict[int, int] = {}
+    for u in body.units:
+        existing = units_by_id.get(u.id) or units_by_key.get((u.name.strip().lower(), u.university))
+        if existing:
+            existing["name"] = u.name.strip()
+            existing["university"] = u.university
+            existing["university_name"] = UNIVERSITIES.get(u.university, {}).get("name", u.university_name)
+            unit_id_map[u.id] = existing["id"]
+        else:
+            new_unit = {
+                "id": u.id,
+                "name": u.name.strip(),
+                "parent_id": None,  # resolved below, once every unit has a final id
+                "university": u.university,
+                "university_name": UNIVERSITIES.get(u.university, {}).get("name", u.university_name),
+            }
+            units.append(new_unit)
+            units_by_id[new_unit["id"]] = new_unit
+            units_by_key[(new_unit["name"].lower(), new_unit["university"])] = new_unit
+            unit_id_map[u.id] = new_unit["id"]
+
+    for u in body.units:
+        if u.parent_id is None:
+            continue
+        target = units_by_id[unit_id_map[u.id]]
+        resolved_parent = unit_id_map.get(u.parent_id, u.parent_id)
+        if target.get("parent_id") is None:
+            target["parent_id"] = resolved_parent
+
+    # ---- merge people: matched by id first, then by email ----
+    people_by_id = {p["id"]: p for p in people}
+    people_by_email = {p["email"].strip().lower(): p for p in people if p.get("email")}
+    person_id_map: dict[int, int] = {}
+    for p in body.people:
+        email_key = p.email.strip().lower()
+        existing = people_by_id.get(p.id) or (people_by_email.get(email_key) if email_key else None)
+        if existing:
+            existing["first_name"] = p.first_name.strip()
+            existing["family_name"] = p.family_name.strip()
+            existing["email"] = p.email.strip()
+            existing["phone"] = p.phone.strip()
+            existing["position"] = p.position.strip()
+            existing["university"] = p.university
+            existing["university_name"] = UNIVERSITIES.get(p.university, {}).get("name", p.university_name)
+            person_id_map[p.id] = existing["id"]
+        else:
+            new_person = {
+                "id": p.id,
+                "first_name": p.first_name.strip(),
+                "family_name": p.family_name.strip(),
+                "email": p.email.strip(),
+                "phone": p.phone.strip(),
+                "position": p.position.strip(),
+                "university": p.university,
+                "university_name": UNIVERSITIES.get(p.university, {}).get("name", p.university_name),
+            }
+            people.append(new_person)
+            people_by_id[new_person["id"]] = new_person
+            if email_key:
+                people_by_email[email_key] = new_person
+            person_id_map[p.id] = new_person["id"]
+
+    # ---- merge memberships, skipping ones that already exist ----
+    existing_membership_keys = {(m["person_id"], m["unit_id"], m.get("role", "")) for m in memberships}
+    for m in body.memberships:
+        resolved_person = person_id_map.get(m.person_id, m.person_id)
+        resolved_unit = unit_id_map.get(m.unit_id, m.unit_id) if m.unit_id is not None else None
+        key = (resolved_person, resolved_unit, m.role.strip())
+        if key in existing_membership_keys:
+            continue
+        memberships.append({"person_id": resolved_person, "unit_id": resolved_unit, "role": m.role.strip()})
+        existing_membership_keys.add(key)
+
+    if body.last_sync is not None:
+        data["last_sync"] = body.last_sync
+
+    save_data(data)
+    return {"ok": True, "people": len(people), "units": len(units), "memberships": len(memberships)}

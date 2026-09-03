@@ -134,9 +134,10 @@ var TOOL_ACCESS = {
     // Events & Communication
     'event_catalogue':    ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
     // Administration
-    'directory':          ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
+    'directory':          [], // hidden for everyone, including superuser (Agora Directory link retired)
     'new_directory':      ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
     'event_tracker':      ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
+    'dp_status':          ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
     'intranet_services':  ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
     // AI Agents
     'tommi_agents':       ['teaching_staff', 'tester', 'content_manager', 'superuser'],
@@ -185,6 +186,7 @@ var SECTIONS = [
         roles: ['admin_staff', 'uninovis_staff', 'teaching_staff'],
         tools: [
             { id: 'event_catalogue', name: 'Event Catalogue', icon: '\uD83D\uDCC5', desc: 'Public catalogue of events, workshops, and activities.', url: 'https://uninovis.widening.eu/event-catalogue', status: 'active', external: true },
+            { id: 'matomo_analytics', name: 'Site Analytics', icon: '\uD83D\uDCC8', desc: 'Website traffic, page views, visitors, and referrers from Matomo.', url: '/matomo-analytics/', status: 'prototype' },
         ]
     },
     {
@@ -192,11 +194,10 @@ var SECTIONS = [
         title: 'WP1: Administration',
         roles: ['admin_staff', 'uninovis_staff', 'teaching_staff'],
         tools: [
-            { id: 'directory', name: 'Directory', icon: '\uD83D\uDCCB', desc: 'Internal staff directory. Contacts, groups, work packages, and org charts.', url: 'https://uninovis.widening.eu/directory', status: 'data-update', external: true },
-            { id: 'new_directory', name: 'New Directory', icon: '\uD83D\uDCD2', desc: 'People, units, universities, and org charts from the UNINOVIS staff directory.', url: '/new-directory/', status: 'data-update' },
+            { id: 'directory', name: 'Agora Directory', icon: '\uD83D\uDCCB', desc: 'Internal staff directory. Contacts, groups, work packages, and org charts.', url: 'https://uninovis.widening.eu/directory', status: 'data-update', external: true },
+            { id: 'new_directory', name: 'Directory', icon: '\uD83D\uDCD2', desc: 'People, units, universities, and org charts from the UNINOVIS staff directory.', url: '/new-directory/', status: 'data-update' },
             { id: 'event_tracker', name: 'Event Tracker', icon: '\uD83D\uDCC5', desc: 'Unified calendar with UNINOVIS events and Agora catalogue integration.', url: '/event-tracker/', status: 'active' },
             { id: 'log_analytics', name: 'Agents Analytics', icon: '\uD83D\uDCCA', desc: 'View request summaries, visitor stats, and manage agent log files.', url: '#', status: 'prototype', action: 'openLogAnalytics' },
-            { id: 'matomo_analytics', name: 'Site Analytics', icon: '\uD83D\uDCC8', desc: 'Website traffic, page views, visitors, and referrers from Matomo.', url: '/matomo-analytics/', status: 'prototype' },
         ]
     },
     {
@@ -1200,9 +1201,10 @@ var TOOL_LABELS = {
     // Events & Communication
     event_catalogue: 'Event Catalogue',
     // Administration
-    directory: 'Directory',
-    new_directory: 'New Directory',
+    directory: 'Agora Directory',
+    new_directory: 'Directory',
     event_tracker: 'Event Tracker',
+    dp_status: 'Status of DP Services',
     intranet_services: 'Services Catalogue',
     // System Administration
     log_analytics: 'Agents Analytics',

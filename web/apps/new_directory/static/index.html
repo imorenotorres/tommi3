@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNINOVIS New Directory</title>
+    <title>UNINOVIS Directory</title>
     <link rel="stylesheet" href="/static/nav.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -91,14 +91,17 @@
 </head>
 <body>
 <script src="/static/nav.js?v=4"></script>
-<script>uninovisNav({ crumbs: [{label:'Administration', href:'/#admin'}], current: 'New Directory' });</script>
+<script>uninovisNav({ crumbs: [{label:'Administration', href:'/#admin'}], current: 'Directory' });</script>
     <div class="container">
-        <h1>UNINOVIS New Directory</h1>
+        <h1>UNINOVIS Directory</h1>
         <p class="subtitle">UNINOVIS staff directory</p>
 
         <div class="sync-bar">
             <span class="sync-info" id="syncInfo"></span>
-            <button class="btn" id="btnAddEntry" style="display:none;" onclick="openAddModal()">+ Add Person / Unit</button>
+            <div style="display:flex;gap:8px;">
+                <button class="btn-small" id="btnImportJson" style="display:none;" onclick="openImportJsonModal()">Import JSON</button>
+                <button class="btn" id="btnAddEntry" style="display:none;" onclick="openAddModal()">+ Add Person / Unit</button>
+            </div>
         </div>
 
         <div class="tabs">
@@ -542,6 +545,51 @@
         } catch (e) { addMsg('Connection error', false); }
     }
 
+    // ── Import JSON (superuser only) ────────────────────────────────
+
+    function openImportJsonModal() {
+        closeAddModal();
+        var overlay = document.createElement('div');
+        overlay.id = 'add-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
+        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:560px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+            + '<h2 style="margin:0;color:#1a3a5c;font-size:1.15em;">Import JSON</h2>'
+            + '<button onclick="closeAddModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+            + '</div>'
+            + '<p style="font-size:0.85em;color:#666;margin-bottom:12px;">Paste a JSON object with <code>people</code>, <code>units</code> and <code>memberships</code> arrays (same shape as the stored snapshot). This <strong>merges into the existing directory</strong>: people are matched by email and units by name + university, updating matches in place and adding anything new.</p>'
+            + '<div id="add-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+            + '<textarea id="import-json-text" spellcheck="false" placeholder=\'{"people": [], "units": [], "memberships": [], "last_sync": null}\' style="width:100%;height:320px;padding:10px;border:1px solid #ccc;border-radius:6px;font-family:Consolas,Monaco,monospace;font-size:0.85em;"></textarea>'
+            + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
+            + '<button class="btn" onclick="submitImportJson()">Import</button>'
+            + '<button class="btn-small" onclick="closeAddModal()" style="padding:8px 20px;">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeAddModal(); });
+        document.body.appendChild(overlay);
+    }
+
+    async function submitImportJson() {
+        var raw = document.getElementById('import-json-text').value;
+        var body;
+        try {
+            body = JSON.parse(raw);
+        } catch (e) {
+            addMsg('Invalid JSON: ' + e.message, false);
+            return;
+        }
+        try {
+            var resp = await authFetch(BASE + '/api/import-json', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!resp.ok) { var err = await resp.json(); addMsg(err.detail || 'Error importing JSON', false); return; }
+            closeAddModal();
+            await loadAll();
+        } catch (e) { addMsg('Connection error', false); }
+    }
+
     function setAddMode(mode) {
         addMode = mode;
         document.getElementById('add-person-form').style.display = mode === 'person' ? '' : 'none';
@@ -650,6 +698,12 @@
         return roles.indexOf('content_manager') !== -1 || roles.indexOf('superuser') !== -1;
     }
 
+    function canImportJson() {
+        if (!currentUser) return false;
+        var roles = currentUser.roles || [currentUser.role];
+        return roles.indexOf('superuser') !== -1;
+    }
+
     async function loadAll() {
         var [peopleResp, unitsResp, uniResp] = await Promise.all([
             authFetch(BASE + '/api/people'),
@@ -669,6 +723,9 @@
 
         var addBtn = document.getElementById('btnAddEntry');
         if (addBtn) addBtn.style.display = canManageDirectory() ? '' : 'none';
+
+        var importBtn = document.getElementById('btnImportJson');
+        if (importBtn) importBtn.style.display = canImportJson() ? '' : 'none';
     }
 
     async function init() {

@@ -1,0 +1,201 @@
+{
+  "recurring": [
+    {
+      "date": "05-01",
+      "name": "Día del Trabajador",
+      "icon": "✊",
+      "id": "festa2c8eeed"
+    },
+    {
+      "date": "09-08",
+      "name": "Virgen de la Victoria",
+      "icon": "⛪",
+      "id": "fest807b69fc"
+    },
+    {
+      "date": "10-12",
+      "name": "Día del Pilar",
+      "icon": "🇪🇸",
+      "id": "fest91a0fd54"
+    },
+    {
+      "date": "12-08",
+      "name": "Inmaculada Concepción",
+      "icon": "⛪",
+      "id": "fest61e6eab5"
+    },
+    {
+      "date": "12-25",
+      "name": "Navidad",
+      "icon": "🎄",
+      "id": "fest43064dea"
+    },
+    {
+      "id": "fest6ceb6c7a",
+      "date": "01-06",
+      "end_date": "01-06",
+      "name": "Epifanía del Señor",
+      "icon": "👑"
+    }
+  ],
+  "by_year": {
+    "2026": [
+      {
+        "date": "2026-01-01",
+        "name": "Año Nuevo",
+        "icon": "🎆",
+        "id": "feste0d90a30"
+      },
+      {
+        "date": "2026-01-02",
+        "name": "Vacaciones de Navidad",
+        "icon": "🎄",
+        "id": "fest701ac694"
+      },
+      {
+        "date": "2026-01-05",
+        "name": "Vacaciones de Navidad",
+        "icon": "🎄",
+        "id": "fest78237273"
+      },
+      {
+        "date": "2026-01-06",
+        "name": "Epifanía del Señor",
+        "icon": "👑",
+        "id": "fest31bed867"
+      },
+      {
+        "date": "2026-01-07",
+        "name": "Vacaciones de Navidad",
+        "icon": "🎄",
+        "id": "fest3acf77ed"
+      },
+      {
+        "date": "2026-01-28",
+        "name": "Santo Tomás de Aquino",
+        "icon": "📚",
+        "id": "fest1deeb25d"
+      },
+      {
+        "date": "2026-03-30",
+        "name": "Semana Santa",
+        "icon": "⛪",
+        "id": "fest6f0562a8"
+      },
+      {
+        "date": "2026-03-31",
+        "name": "Semana Santa",
+        "icon": "⛪",
+        "id": "fest68589e6c"
+      },
+      {
+        "date": "2026-04-01",
+        "name": "Semana Santa",
+        "icon": "⛪",
+        "id": "fest7c6591ac"
+      },
+      {
+        "date": "2026-04-02",
+        "name": "Jueves Santo",
+        "icon": "⛪",
+        "id": "festba9a8c57"
+      },
+      {
+        "date": "2026-04-03",
+        "name": "Viernes Santo",
+        "icon": "⛪",
+        "id": "festb90ba07c"
+      },
+      {
+        "date": "2026-08-17",
+        "name": "Feria de Málaga",
+        "icon": "🎪",
+        "id": "festa818ffe3"
+      },
+      {
+        "date": "2026-08-18",
+        "name": "Feria de Málaga",
+        "icon": "🎪",
+        "id": "fest4213ed82"
+      },
+      {
+        "date": "2026-08-19",
+        "name": "Feria de Málaga",
+        "icon": "🎪",
+        "id": "fest0b61d86c"
+      },
+      {
+        "date": "2026-08-20",
+        "name": "Feria de Málaga",
+        "icon": "🎪",
+        "id": "fest721fc83d"
+      },
+      {
+        "date": "2026-08-21",
+        "name": "Feria de Málaga",
+        "icon": "🎪",
+        "id": "fest663ac69b"
+      },
+      {
+        "date": "2026-11-02",
+        "name": "Día de Todos los Santos",
+        "icon": "🕯️",
+        "id": "fest309e6b3c"
+      },
+      {
+        "date": "2026-12-07",
+        "name": "Día de la Constitución",
+        "icon": "📜",
+        "id": "fest152987e9"
+      },
+      {
+        "date": "2026-12-22",
+        "name": "Vacaciones de Navidad",
+        "icon": "🎄",
+        "id": "festae64eb4b"
+      },
+      {
+        "date": "2026-12-23",
+        "name": "Vacaciones de Navidad",
+        "icon": "🎄",
+        "id": "fest51ddc6b6"
+      },
+      {
+        "date": "2026-12-24",
+        "name": "Nochebuena",
+        "icon": "🎄",
+        "id": "fest6359de7f"
+      },
+      {
+        "date": "2026-12-25",
+        "name": "Navidad",
+        "icon": "🎄",
+        "id": "fest9e04e836"
+      },
+      {
+        "date": "2026-12-26",
+        "name": "Vacaciones de Navidad",
+        "icon": "🎄",
+        "id": "festb37c9396"
+      },
+      {
+        "date": "2026-12-29",
+        "name": "Vacaciones de Navidad",
+        "icon": "🎄",
+        "id": "fest24d92334"
+      },
+      {
+        "date": "2026-12-30",
+        "name": "Vacaciones de Navidad",
+        "icon": "🎄",
+        "id": "fest0c040a3a"
+      },
+      {
+        "date": "2026-12-31",
+        "name": "Nochevieja",
+        "icon": "🎆",
+        "id": "fest5187ba8e"
+      }
+    ]
+  }
+}

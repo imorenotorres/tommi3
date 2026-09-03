@@ -94,3 +94,7 @@ build/
 # Database files (anywhere)
 *.db
 *.json
+
+# Festivities is static seed config (UMA holiday calendar), not
+# user-generated data -- keep it tracked despite the *.json rule above.
+!web/apps/uma_holiday_tracker/festivities.json

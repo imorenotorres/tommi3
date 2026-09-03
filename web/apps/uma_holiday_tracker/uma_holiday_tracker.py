@@ -500,10 +500,14 @@ def _remove_festivity_by_id(festivities: dict, festivity_id: str) -> dict | None
     for i, entry in enumerate(recurring):
         if entry.get("id") == festivity_id:
             return recurring.pop(i)
-    for entries in festivities.get("by_year", {}).values():
+    by_year = festivities.get("by_year", {})
+    for year, entries in list(by_year.items()):
         for i, entry in enumerate(entries):
             if entry.get("id") == festivity_id:
-                return entries.pop(i)
+                removed = entries.pop(i)
+                if not entries:
+                    del by_year[year]
+                return removed
     return None
 
 
