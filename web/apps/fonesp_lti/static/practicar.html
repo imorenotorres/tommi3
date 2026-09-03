@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FonESP — Transcripcion fonologica y fonetica</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header {
+    background: #2563eb; padding: 12px 24px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.header .logo { color: #fff; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+.header .logo span { font-weight: 400; opacity: 0.7; font-size: 14px; margin-left: 6px; }
+.header .user-info { margin-left: auto; color: rgba(255,255,255,0.8); font-size: 13px; }
+
+.container { max-width: 920px; margin: 0 auto; padding: 24px 20px; }
+
+h2 { font-size: 22px; margin-bottom: 6px; color: #2563eb; }
+.subtitle { font-size: 14px; color: #64748b; margin-bottom: 20px; line-height: 1.5; }
+
+.controls {
+    display: flex; gap: 12px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap;
+}
+.control-group { display: flex; flex-direction: column; gap: 4px; }
+.control-group label { font-size: 12px; font-weight: 600; color: #475569; }
+.control-group select {
+    padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px;
+    font-family: inherit; font-size: 14px;
+}
+.btn {
+    padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+
+/* Exercise table */
+.exercise-table {
+    width: 100%; border-collapse: collapse; background: #fff;
+    border: 2px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 12px;
+}
+.exercise-table th {
+    background: #f1f5f9; padding: 8px 12px; font-size: 12px; font-weight: 700;
+    color: #64748b; text-align: left; text-transform: uppercase;
+}
+.exercise-table td { padding: 6px 12px; border-top: 1px solid #f1f5f9; vertical-align: middle; }
+.exercise-table .word-cell { font-size: 16px; font-weight: 700; color: #1e293b; white-space: nowrap; }
+.exercise-table .input-cell { width: 60%; min-width: 250px; }
+.word-input {
+    width: 100%; padding: 6px 10px; border: 2px solid #e2e8f0; border-radius: 6px;
+    font-family: 'Doulos SIL', 'Charis SIL', 'Gentium Plus', serif;
+    font-size: 15px; transition: border-color 0.2s;
+}
+.word-input:focus { outline: none; border-color: #2563eb; }
+.word-input.correct { border-color: #16a34a; background: #f0fdf4; }
+.word-input.incorrect { border-color: #dc2626; background: #fef2f2; }
+.fb-cell { font-size: 12px; min-width: 20px; text-align: center; }
+
+.word-feedback {
+    font-size: 12px; line-height: 1.5; display: none; padding: 4px 12px;
+    background: #f8fafc; color: #475569;
+}
+.word-feedback.show { display: table-row; }
+.fb-correct { color: #16a34a; font-weight: 600; }
+
+/* Phoneme keyboard */
+.pk {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 8px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;
+    position: sticky; top: 0; z-index: 10;
+}
+.pk-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.pk-label { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-right: 4px; width: 75px; flex-shrink: 0; }
+.pk-btn {
+    padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px;
+    background: #fff; font-family: 'Doulos SIL', 'Charis SIL', serif;
+    font-size: 16px; cursor: pointer; min-width: 28px; text-align: center;
+}
+.pk-btn:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+.pk-sep { width: 8px; }
+
+/* Allophone help table */
+.alo-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+.alo-table th { padding: 6px 8px; text-align: left; border-bottom: 2px solid #e2e8f0; background: #f8fafc; }
+.alo-table td { padding: 4px 8px; border-bottom: 1px solid #f1f5f9; font-family: 'Doulos SIL', 'Noto Sans', serif; }
+.alo-section { padding: 4px 8px; background: #eff6ff; font-weight: 700; color: #1e40af; font-family: system-ui, sans-serif; }
+
+/* Results */
+.results-bar {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 16px 24px; margin-top: 20px; display: none;
+}
+.results-bar.show { display: block; }
+.results-bar h3 { font-size: 16px; color: #2563eb; margin-bottom: 8px; }
+.score { font-size: 36px; font-weight: 800; }
+.score.good { color: #16a34a; }
+.score.mid { color: #f59e0b; }
+.score.bad { color: #dc2626; }
+.results-detail { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+.action-bar { display: flex; gap: 8px; margin-top: 16px; }
+
+/* Free transcription */
+.free-section { margin-top: 32px; padding-top: 20px; border-top: 2px solid #e2e8f0; }
+.free-section h3 { font-size: 16px; color: #475569; margin-bottom: 8px; }
+.free-section p { font-size: 12px; color: #94a3b8; margin-bottom: 12px; }
+.free-row { display: flex; gap: 8px; align-items: center; }
+.free-input { flex: 1; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; }
+.free-input:focus { outline: none; border-color: #2563eb; }
+
+/* Toggle links */
+.toggle-link { color: #2563eb; text-decoration: none; font-weight: 600; font-size: 13px; cursor: pointer; }
+.toggle-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">FonESP<span>Transcripcion del espanol</span></div>
+    <div class="user-info" id="user-info"></div>
+</div>
+
+<div class="container">
+
+    <h2 id="widget-title">Transcripcion fonologica</h2>
+    <p class="subtitle" id="level-desc">Selecciona un tipo, un nivel y genera un ejercicio.</p>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Tipo</label>
+            <select id="sel-tipo" onchange="updateTipo()">
+                <option value="fonologica">Fonologica</option>
+                <option value="fonetica">Fonetica</option>
+                <option value="ambas">Fonologica y fonetica</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Nivel</label>
+            <select id="sel-nivel" onchange="updateDesc()"></select>
+        </div>
+        <div class="control-group" id="grp-dificultad" style="display:none;">
+            <label>Dificultad</label>
+            <select id="sel-dificultad">
+                <option value="con_pista">Con transcripcion fonologica</option>
+                <option value="sin_pista">Solo texto</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Items</label>
+            <select id="sel-items">
+                <option value="3">3</option>
+                <option value="5" selected>5</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" onclick="generateExercise()">Generar ejercicio</button>
+    </div>
+
+    <!-- Toggle helpers -->
+    <div style="margin-bottom:12px; display:flex; gap:16px;">
+        <a class="toggle-link" onclick="toggleEl('pk')">&#9654; Teclado de simbolos</a>
+        <a class="toggle-link" onclick="toggleEl('help-alofonos')">&#9654; Tabla de alofonos</a>
+    </div>
+
+    <!-- Phoneme keyboard -->
+    <div class="pk" id="pk" style="display:none;">
+        <div class="pk-row" id="pk-row-fono"></div>
+        <div class="pk-row" id="pk-row-fone"></div>
+        <div class="pk-row" id="pk-row-otros"></div>
+    </div>
+
+    <!-- Allophone reference table -->
+    <div id="help-alofonos" style="display:none; margin-bottom:16px;">
+        <table class="alo-table">
+        <thead><tr><th>Fonema</th><th>Alofono</th><th>Descripcion</th><th>Contexto</th></tr></thead>
+        <tbody>
+        <tr><td colspan="4" class="alo-section">Vocales</td></tr>
+        <tr><td>/a/</td><td>[a]</td><td>Vocal abierta central</td><td>Siempre</td></tr>
+        <tr><td>/e/</td><td>[e]</td><td>Vocal media anterior</td><td>Siempre</td></tr>
+        <tr><td>/o/</td><td>[o]</td><td>Vocal media posterior</td><td>Siempre</td></tr>
+        <tr><td rowspan="3">/i/</td><td>[i]</td><td>Vocal cerrada anterior</td><td>Nucleo silabico</td></tr>
+        <tr><td>[j]</td><td>Semiconsonante palatal</td><td>Prenuclear (dipt. creciente)</td></tr>
+        <tr><td>[i&#x032F;]</td><td>Semivocal palatal</td><td>Postnuclear (dipt. decreciente)</td></tr>
+        <tr><td rowspan="3">/u/</td><td>[u]</td><td>Vocal cerrada posterior</td><td>Nucleo silabico</td></tr>
+        <tr><td>[w]</td><td>Semiconsonante velar</td><td>Prenuclear (dipt. creciente)</td></tr>
+        <tr><td>[u&#x032F;]</td><td>Semivocal velar</td><td>Postnuclear (dipt. decreciente)</td></tr>
+
+        <tr><td colspan="4" class="alo-section">Oclusivas</td></tr>
+        <tr><td rowspan="2">/p/</td><td>[p]</td><td>Oclusiva bilabial sorda</td><td>Ataque</td></tr>
+        <tr><td>[&#x03B2;&#x031E;]</td><td>Aproximante bilabial sonora</td><td>Coda</td></tr>
+        <tr><td rowspan="2">/b/</td><td>[b]</td><td>Oclusiva bilabial sonora</td><td>Tras pausa o nasal</td></tr>
+        <tr><td>[&#x03B2;&#x031E;]</td><td>Aproximante bilabial sonora</td><td>Resto</td></tr>
+        <tr><td rowspan="2">/t/</td><td>[t]</td><td>Oclusiva dental sorda</td><td>Ataque</td></tr>
+        <tr><td>[&#x00F0;&#x031E;]</td><td>Aproximante interdental sonora</td><td>Coda</td></tr>
+        <tr><td rowspan="2">/d/</td><td>[d]</td><td>Oclusiva dental sonora</td><td>Tras pausa, nasal o lateral</td></tr>
+        <tr><td>[&#x00F0;&#x031E;]</td><td>Aproximante interdental sonora</td><td>Resto</td></tr>
+        <tr><td rowspan="2">/k/</td><td>[k]</td><td>Oclusiva velar sorda</td><td>Ataque</td></tr>
+        <tr><td>[&#x0263;&#x031E;]</td><td>Aproximante velar sonora</td><td>Coda</td></tr>
+        <tr><td rowspan="2">/g/</td><td>[g]</td><td>Oclusiva velar sonora</td><td>Tras pausa o nasal</td></tr>
+        <tr><td>[&#x0263;&#x031E;]</td><td>Aproximante velar sonora</td><td>Resto</td></tr>
+
+        <tr><td colspan="4" class="alo-section">Fricativas y africadas</td></tr>
+        <tr><td>/f/</td><td>[f]</td><td>Fricativa labiodental sorda</td><td>Siempre</td></tr>
+        <tr><td>/&#x03B8;/</td><td>[&#x03B8;]</td><td>Fricativa interdental sorda</td><td>Siempre</td></tr>
+        <tr><td>/s/</td><td>[s]</td><td>Fricativa alveolar sorda</td><td>Siempre</td></tr>
+        <tr><td rowspan="2">/&#x029D;/</td><td>[&#x029D;]</td><td>Fricativa palatal sonora</td><td>No tras nasal</td></tr>
+        <tr><td>[&#x02A4;]</td><td>Africada palatal sonora</td><td>Tras nasal</td></tr>
+        <tr><td>/x/</td><td>[x]</td><td>Fricativa velar sorda</td><td>Siempre</td></tr>
+        <tr><td>/&#x02A7;/</td><td>[&#x02A7;]</td><td>Africada palatal sorda</td><td>Siempre</td></tr>
+
+        <tr><td colspan="4" class="alo-section">Nasales</td></tr>
+        <tr><td>/m/</td><td>[m]</td><td>Nasal bilabial</td><td>Siempre</td></tr>
+        <tr><td>/&#x0272;/</td><td>[&#x0272;]</td><td>Nasal palatal</td><td>Siempre</td></tr>
+        <tr><td rowspan="7">/n/</td><td>[n]</td><td>Nasal alveolar</td><td>Ataque, coda ante alveolar/pausa</td></tr>
+        <tr><td>[m]</td><td>Nasal bilabial</td><td>Ante /p, b/</td></tr>
+        <tr><td>[&#x0271;]</td><td>Nasal labiodental</td><td>Ante /f/</td></tr>
+        <tr><td>[n&#x031F;]</td><td>Nasal interdental</td><td>Ante /&#x03B8;/</td></tr>
+        <tr><td>[n&#x032A;]</td><td>Nasal dental</td><td>Ante /t, d/</td></tr>
+        <tr><td>[n&#x02B2;]</td><td>Nasal palatalizada</td><td>Ante /&#x02A7;, &#x029D;, &#x0272;/</td></tr>
+        <tr><td>[&#x014B;]</td><td>Nasal velar</td><td>Ante /k, g, x/</td></tr>
+
+        <tr><td colspan="4" class="alo-section">Laterales y vibrantes</td></tr>
+        <tr><td rowspan="3">/l/</td><td>[l]</td><td>Lateral alveolar</td><td>Ataque, coda ante alveolar/pausa</td></tr>
+        <tr><td>[l&#x031F;]</td><td>Lateral interdental</td><td>Ante /&#x03B8;/</td></tr>
+        <tr><td>[l&#x032A;]</td><td>Lateral dental</td><td>Ante /t, d/</td></tr>
+        <tr><td rowspan="2">/&#x027E;/</td><td>[&#x027E;]</td><td>Vibrante simple</td><td>Ataque</td></tr>
+        <tr><td>[&#x0279;]</td><td>Aproximante alveolar</td><td>Coda</td></tr>
+        <tr><td>/r/</td><td>[r]</td><td>Vibrante multiple</td><td>Siempre</td></tr>
+        </tbody>
+        </table>
+    </div>
+
+    <div id="exercise-area"></div>
+
+    <div class="results-bar" id="results-bar">
+        <h3>Resultado</h3>
+        <div class="score" id="score-text"></div>
+        <div class="results-detail" id="results-detail"></div>
+    </div>
+
+    <div class="action-bar" id="action-bar" style="display:none;">
+        <button class="btn btn-primary" id="btn-check" onclick="checkAll()">Comprobar</button>
+        <button class="btn btn-secondary" onclick="showSolutions()">Ver soluciones</button>
+        <button class="btn btn-secondary" onclick="generateExercise()">Nuevo ejercicio</button>
+    </div>
+
+    <!-- Free transcription -->
+    <div class="free-section">
+        <h3>Consulta una transcripcion</h3>
+        <p>Escribe una palabra o frase corta para ver su transcripcion fonologica y fonetica (sin IA).</p>
+        <div class="free-row">
+            <input type="text" class="free-input" id="free-input" placeholder="Ej: mariposa, el gato come"
+                   onkeydown="if(event.key==='Enter')transcribirLibre()">
+            <button class="btn btn-primary" onclick="transcribirLibre()">Transcribir</button>
+        </div>
+        <div id="free-result" style="margin-top:12px;display:none;"></div>
+    </div>
+
+</div>
+
+<script>
+var TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+var BASE = '/lti/fonesp/api';
+
+function api(path) { return BASE + path + (path.indexOf('?') >= 0 ? '&' : '?') + 'token=' + TOKEN; }
+
+// Load session info
+fetch(api('/session')).then(function(r){ return r.json(); }).then(function(d){
+    var info = d.name || '';
+    if (d.course_name) info += ' — ' + d.course_name;
+    document.getElementById('user-info').textContent = info;
+}).catch(function(){});
+
+// -- Toggle helpers --
+function toggleEl(id) {
+    var el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+// -- Keyboard --
+var activeInput = null;
+var PK_ROWS = [
+    {id: 'pk-row-fono', label: 'Fonologicos', symbols: ['\u03B8','\u027E','r','\u029D','\u02A7','\u0272','x']},
+    {id: 'pk-row-fone', label: 'Foneticos', symbols: ['\u03B2\u031E','\u00F0\u031E','\u0263\u031E', null, '\u02A4','j','w','i\u032F','u\u032F', null, '\u0271','n\u031F','n\u032A','n\u02B2','\u014B', null, 'l\u031F','l\u032A','\u0279']},
+    {id: 'pk-row-otros', label: 'Otros', symbols: ['[', ']', null, '\u02C8', '.', '/', null, '\u02D0']}
+];
+(function() {
+    PK_ROWS.forEach(function(row) {
+        var container = document.getElementById(row.id);
+        var label = document.createElement('span');
+        label.className = 'pk-label';
+        label.textContent = row.label;
+        container.appendChild(label);
+        row.symbols.forEach(function(sym) {
+            if (sym === null) {
+                var sep = document.createElement('span');
+                sep.className = 'pk-sep';
+                container.appendChild(sep);
+            } else {
+                var btn = document.createElement('button');
+                btn.className = 'pk-btn';
+                btn.textContent = sym;
+                btn.onclick = function() { insertAtCursor(sym); };
+                container.appendChild(btn);
+            }
+        });
+    });
+})();
+
+function insertAtCursor(sym) {
+    if (!activeInput) return;
+    var inp = activeInput;
+    var start = inp.selectionStart, end = inp.selectionEnd;
+    inp.value = inp.value.substring(0, start) + sym + inp.value.substring(end);
+    inp.selectionStart = inp.selectionEnd = start + sym.length;
+    inp.focus();
+}
+
+// -- Level descriptions --
+var NIVELES_FONOLOGICA = {
+    '1': 'Nivel 1: Palabras con silabas CV donde cada grafia = un fonema.',
+    '2': 'Nivel 2: Palabras con diptongos e hiatos.',
+    '3': 'Nivel 3: Palabras donde la grafia no coincide con el fonema.',
+    '4': 'Nivel 4: Casos atipicos: h muda, x, r inicial vs. no inicial.',
+    '5': 'Nivel 5: Sintagmas y frases completas.'
+};
+var NIVELES_FONETICA = {
+    '1': 'Nivel 1: Diptongos e hiatos — semiconsonantes y semivocales.',
+    '2': 'Nivel 2: Oclusivas — alofonos oclusivos vs. aproximantes.',
+    '3': 'Nivel 3: Africada y fricativas.',
+    '4': 'Nivel 4: Nasales — asimilacion de punto de articulacion.',
+    '5': 'Nivel 5: Laterales y vibrantes.',
+    '6': 'Nivel 6: Oraciones completas con todos los procesos foneticos.',
+    '7': 'Nivel 7: Fonosintaxis.'
+};
+var OPTIONS_FONOLOGICA = [
+    {value:'1', text:'1 — Palabras CV, fonemas = grafias'},
+    {value:'2', text:'2 — Diptongos e hiatos'},
+    {value:'3', text:'3 — Fonemas \u2260 grafias'},
+    {value:'4', text:'4 — Casos atipicos (h, x, r...)'},
+    {value:'5', text:'5 — Sintagmas y frases'}
+];
+var OPTIONS_FONETICA = [
+    {value:'1', text:'1 — Diptongos e hiatos'},
+    {value:'2', text:'2 — Oclusivas / aproximantes'},
+    {value:'3', text:'3 — Africada y fricativas'},
+    {value:'4', text:'4 — Nasales'},
+    {value:'5', text:'5 — Laterales y vibrantes'},
+    {value:'6', text:'6 — Oraciones completas'},
+    {value:'7', text:'7 — Fonosintaxis'}
+];
+
+var currentTipo = 'fonologica';
+var currentExercises = [];
+
+function updateTipo() {
+    currentTipo = document.getElementById('sel-tipo').value;
+    var titles = {fonologica:'Transcripcion fonologica', fonetica:'Transcripcion fonetica', ambas:'Transcripcion fonologica y fonetica'};
+    document.getElementById('widget-title').textContent = titles[currentTipo] || 'Transcripcion';
+    document.getElementById('grp-dificultad').style.display = (currentTipo === 'fonetica' || currentTipo === 'ambas') ? '' : 'none';
+
+    var sel = document.getElementById('sel-nivel');
+    var options = currentTipo === 'fonetica' ? OPTIONS_FONETICA : OPTIONS_FONOLOGICA;
+    sel.innerHTML = '';
+    options.forEach(function(o) {
+        var opt = document.createElement('option');
+        opt.value = o.value; opt.textContent = o.text;
+        sel.appendChild(opt);
+    });
+    updateDesc();
+    document.getElementById('exercise-area').innerHTML = '';
+    document.getElementById('results-bar').classList.remove('show');
+    document.getElementById('action-bar').style.display = 'none';
+}
+
+function updateDesc() {
+    var descs = (currentTipo === 'fonetica') ? NIVELES_FONETICA : NIVELES_FONOLOGICA;
+    document.getElementById('level-desc').textContent = descs[document.getElementById('sel-nivel').value] || '';
+}
+
+// -- Generate exercise --
+async function generateExercise() {
+    var nivel = document.getElementById('sel-nivel').value;
+    var items = document.getElementById('sel-items').value;
+
+    document.getElementById('exercise-area').innerHTML = '<div style="color:#94a3b8;font-style:italic;">Cargando...</div>';
+    document.getElementById('results-bar').classList.remove('show');
+    document.getElementById('action-bar').style.display = 'none';
+
+    var endpoint = (currentTipo === 'fonetica' || currentTipo === 'ambas')
+        ? '/ejercicio-transcripcion-fonetica'
+        : '/ejercicio-transcripcion';
+
+    try {
+        var res = await fetch(api(endpoint + '?nivel=' + nivel + '&items=' + items));
+        if (!res.ok) throw new Error('Error del servidor');
+        var data = await res.json();
+        currentExercises = data.ejercicios;
+        renderExercises();
+    } catch(e) {
+        document.getElementById('exercise-area').innerHTML = '<div style="color:#dc2626;">Error: ' + e.message + '</div>';
+    }
+}
+
+function renderExercises() {
+    var area = document.getElementById('exercise-area');
+    var isAmbas = currentTipo === 'ambas';
+    var html = '<table class="exercise-table"><thead><tr>';
+    html += '<th style="width:30px;">#</th><th>Palabra</th>';
+    if (isAmbas) {
+        html += '<th class="input-cell">Fonologica</th><th class="input-cell">Fonetica</th>';
+    } else {
+        html += '<th class="input-cell">Tu transcripcion</th>';
+    }
+    html += '<th style="width:30px;"></th></tr></thead><tbody>';
+
+    var placeholder = currentTipo === 'fonetica' ? '[' : '/';
+    var dificultad = (currentTipo === 'fonetica') ? document.getElementById('sel-dificultad').value : 'sin_pista';
+
+    currentExercises.forEach(function(ej, i) {
+        html += '<tr id="row-' + i + '">';
+        html += '<td style="font-size:12px;color:#94a3b8;font-weight:700;">' + (i+1) + '</td>';
+        html += '<td class="word-cell">' + ej.palabra;
+        if (currentTipo === 'fonetica' && dificultad === 'con_pista' && ej.fonologica) {
+            html += '<div style="font-size:11px;color:#94a3b8;margin-top:2px;">Fonologica: ' + ej.fonologica + '</div>';
+        }
+        html += '</td>';
+        if (isAmbas) {
+            html += '<td class="input-cell"><input type="text" class="word-input" id="input-fono-' + i + '" placeholder="/" onfocus="activeInput=this"></td>';
+            html += '<td class="input-cell"><input type="text" class="word-input" id="input-fone-' + i + '" placeholder="[" onfocus="activeInput=this"></td>';
+        } else {
+            html += '<td class="input-cell"><input type="text" class="word-input" id="input-' + i + '" placeholder="' + placeholder + '" onfocus="activeInput=this"></td>';
+        }
+        html += '<td class="fb-cell" id="icon-' + i + '"></td>';
+        html += '</tr>';
+        html += '<tr class="word-feedback" id="fb-' + i + '"><td colspan="' + (isAmbas ? 5 : 4) + '" style="padding:4px 12px;"></td></tr>';
+    });
+
+    html += '</tbody></table>';
+    area.innerHTML = html;
+    document.getElementById('action-bar').style.display = 'flex';
+
+    if (currentExercises.length > 0) {
+        var firstId = isAmbas ? 'input-fono-0' : 'input-0';
+        var first = document.getElementById(firstId);
+        if (first) { first.focus(); activeInput = first; }
+    }
+}
+
+// -- Checking --
+function normalize(s) {
+    return s.replace(/^[\s\/\[\]]+|[\s\/\[\]]+$/g, '').replace(/'/g, '\u02C8').trim().toLowerCase();
+}
+
+function analyzeErrors(userStr, solutionStr) {
+    var errors = [];
+    var user = normalize(userStr);
+    var sol = normalize(solutionStr);
+    if (!user) return { errors: [{type:'sin_respuesta', msg:'Sin respuesta.'}], isCorrect: false };
+    if (user === sol) return { errors: [], isCorrect: true };
+
+    if (/['\u0027\u2019\u2018]/.test(userStr)) {
+        errors.push({type:'notacion', msg:'Has usado apostrofo en vez del simbolo de acento \u02C8.'});
+    }
+
+    var userSyls = user.replace(/\s+/g,' ').split('.');
+    var solSyls = sol.replace(/\s+/g,' ').split('.');
+    var userPhonemes = user.replace(/[\u02C8.\s]/g, '');
+    var solPhonemes = sol.replace(/[\u02C8.\s]/g, '');
+
+    // Stress
+    var userStresses = [], solStresses = [];
+    userSyls.forEach(function(s,i){ if(s.indexOf('\u02C8')>=0) userStresses.push(i); });
+    solSyls.forEach(function(s,i){ if(s.indexOf('\u02C8')>=0) solStresses.push(i); });
+    if (userStresses.length === 0 && solStresses.length > 0) {
+        errors.push({type:'acento', msg:'Falta la marca de acento \u02C8.'});
+    } else if (userStresses.length !== solStresses.length) {
+        errors.push({type:'acento', msg:'Numero de acentos incorrecto: ' + userStresses.length + ' vs ' + solStresses.length + '.'});
+    }
+
+    // Syllable count
+    if (userSyls.length !== solSyls.length) {
+        errors.push({type:'silabificacion', msg:'Silabas: ' + userSyls.length + ' (' + userSyls.join('.') + ') vs ' + solSyls.length + ' (' + solSyls.join('.') + ').'});
+    }
+
+    // Phonemes
+    if (userPhonemes !== solPhonemes) {
+        errors.push({type:'fonema', msg:'Fonemas incorrectos.'});
+    }
+
+    return { errors: errors, isCorrect: false };
+}
+
+function formatErrorFeedback(analysis, solucion, bracket) {
+    if (analysis.isCorrect) return '<span class="fb-correct">Correcto</span>';
+    var b = bracket || '/';
+    var html = '';
+    var typeLabels = { sin_respuesta:'', notacion:'Notacion', acento:'Acentuacion', silabificacion:'Silabificacion', fonema:'Fonemas' };
+    analysis.errors.forEach(function(err) {
+        var label = typeLabels[err.type] || '';
+        if (label) label = '<strong style="color:#2563eb;">' + label + ':</strong> ';
+        html += '<div style="margin:2px 0;">' + label + '<span style="color:#dc2626;">' + err.msg + '</span></div>';
+    });
+    var open = b === '[' ? '[' : '/';
+    var close = b === '[' ? ']' : '/';
+    html += '<div style="margin-top:4px;">Solucion: <span style="font-family:\'Doulos SIL\',serif;font-weight:700;color:#2563eb;">' + open + solucion + close + '</span></div>';
+    return html;
+}
+
+function checkAll() {
+    var correct = 0;
+    var total = currentExercises.length;
+    var allErrors = [];
+    var totalPhonemes = 0, correctPhonemes = 0;
+    var isAmbas = currentTipo === 'ambas';
+
+    currentExercises.forEach(function(ej, i) {
+        var input = isAmbas ? document.getElementById('input-fono-' + i) : document.getElementById('input-' + i);
+        var fb = document.getElementById('fb-' + i);
+        var icon = document.getElementById('icon-' + i);
+
+        var solKey = (currentTipo === 'fonetica') ? (ej.solucion) : ej.solucion;
+        var analysis = analyzeErrors(input.value, solKey);
+
+        var inputFone = isAmbas ? document.getElementById('input-fone-' + i) : null;
+        var analysisFone = null;
+        if (isAmbas && inputFone && ej.solucion) {
+            // In 'ambas': solucion = fonologica, solucion fonetica in ej.solucion (from fonetica endpoint)
+            // Actually: fonologica endpoint gives solucion = fonologica; fonetica gives solucion = fonetica + fonologica field
+            // We use fonetica endpoint for 'ambas', so: ej.fonologica = fonologica, ej.solucion = fonetica
+            analysisFone = analyzeErrors(inputFone.value, ej.solucion);
+            // Re-analyze fonologica against ej.fonologica
+            analysis = analyzeErrors(input.value, ej.fonologica || ej.solucion);
+        }
+
+        fb.classList.add('show');
+        var fbContent = fb.querySelector('td');
+
+        // Count phonemes for main answer
+        var mainSol = isAmbas ? (ej.fonologica || ej.solucion) : ej.solucion;
+        var solPhon = normalize(mainSol).replace(/[\u02C8.\s\/\[\]]/g, '');
+        var usrPhon = normalize(input.value).replace(/[\u02C8.\s\/\[\]]/g, '');
+        totalPhonemes += solPhon.length;
+        for (var pi = 0; pi < solPhon.length; pi++) {
+            if (pi < usrPhon.length && usrPhon[pi] === solPhon[pi]) correctPhonemes++;
+        }
+
+        var bothCorrect = analysis.isCorrect && (!isAmbas || !analysisFone || analysisFone.isCorrect);
+        if (bothCorrect) {
+            correct++;
+            input.className = 'word-input correct';
+            if (inputFone) inputFone.className = 'word-input correct';
+            icon.innerHTML = '<span style="color:#16a34a;">\u2713</span>';
+            fbContent.innerHTML = '<span class="fb-correct">Correcto</span>';
+        } else {
+            input.className = analysis.isCorrect ? 'word-input correct' : 'word-input incorrect';
+            if (inputFone) inputFone.className = (analysisFone && analysisFone.isCorrect) ? 'word-input correct' : 'word-input incorrect';
+            icon.innerHTML = '<span style="color:#dc2626;">\u2717</span>';
+            var fbHtml = '';
+            if (!analysis.isCorrect) {
+                fbHtml += (isAmbas ? '<strong>Fonologica:</strong> ' : '') + formatErrorFeedback(analysis, normalize(isAmbas ? (ej.fonologica||ej.solucion) : ej.solucion), currentTipo === 'fonetica' ? '[' : '/');
+                analysis.errors.forEach(function(e){ allErrors.push(e); });
+            }
+            if (isAmbas && analysisFone && !analysisFone.isCorrect) {
+                fbHtml += (fbHtml ? '<br>' : '') + '<strong>Fonetica:</strong> ' + formatErrorFeedback(analysisFone, normalize(ej.solucion), '[');
+            }
+            fbContent.innerHTML = fbHtml;
+        }
+    });
+
+    var pct = Math.round(correct / total * 100);
+    var pctPhon = totalPhonemes > 0 ? Math.round(correctPhonemes / totalPhonemes * 100) : 0;
+    var scoreEl = document.getElementById('score-text');
+    scoreEl.textContent = correct + '/' + total + ' palabras \u00B7 ' + correctPhonemes + '/' + totalPhonemes + ' fonemas';
+    scoreEl.className = 'score ' + (pctPhon >= 80 ? 'good' : (pctPhon >= 50 ? 'mid' : 'bad'));
+
+    var summary = 'Palabras: ' + correct + '/' + total + ' (' + pct + '%). Fonemas: ' + correctPhonemes + '/' + totalPhonemes + ' (' + pctPhon + '%)';
+    document.getElementById('results-detail').textContent = summary;
+    document.getElementById('results-bar').classList.add('show');
+}
+
+function showSolutions() {
+    var isAmbas = currentTipo === 'ambas';
+    currentExercises.forEach(function(ej, i) {
+        var input = isAmbas ? document.getElementById('input-fono-' + i) : document.getElementById('input-' + i);
+        var inputFone = isAmbas ? document.getElementById('input-fone-' + i) : null;
+        var fb = document.getElementById('fb-' + i);
+        var icon = document.getElementById('icon-' + i);
+        fb.classList.add('show');
+        var fbContent = fb.querySelector('td');
+
+        var mainSol = isAmbas ? (ej.fonologica || ej.solucion) : ej.solucion;
+        var solHtml = 'Solucion: <span style="font-family:\'Doulos SIL\',serif;font-weight:700;color:#2563eb;">' + mainSol + '</span>';
+        if (isAmbas) {
+            solHtml += '  <span style="font-family:\'Doulos SIL\',serif;font-weight:700;color:#7c3aed;margin-left:12px;">' + ej.solucion + '</span>';
+        }
+
+        var userOk = normalize(input.value) === normalize(mainSol);
+        var foneOk = true;
+        if (isAmbas && inputFone) foneOk = normalize(inputFone.value) === normalize(ej.solucion);
+
+        if (userOk && foneOk) {
+            input.className = 'word-input correct';
+            if (inputFone) inputFone.className = 'word-input correct';
+            icon.innerHTML = '<span style="color:#16a34a;">\u2713</span>';
+            fbContent.innerHTML = '<span class="fb-correct">Correcto</span>';
+        } else {
+            input.className = userOk ? 'word-input correct' : 'word-input incorrect';
+            if (inputFone) inputFone.className = foneOk ? 'word-input correct' : 'word-input incorrect';
+            icon.innerHTML = '<span style="color:#dc2626;">\u2717</span>';
+            fbContent.innerHTML = solHtml;
+        }
+    });
+}
+
+// -- Free transcription --
+function transcribirLibre() {
+    var input = document.getElementById('free-input');
+    var result = document.getElementById('free-result');
+    var texto = input.value.trim();
+    if (!texto) return;
+    result.style.display = 'block';
+    result.innerHTML = '<span style="color:#94a3b8;font-size:13px;">Transcribiendo...</span>';
+
+    fetch(api('/transcribir?texto=' + encodeURIComponent(texto)))
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+        if (!data.ok) {
+            result.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#991b1b;">' + (data.error || 'No se pudo transcribir') + '</div>';
+            return;
+        }
+        var html = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px;">';
+        html += '<div style="font-size:11px;color:#16a34a;font-weight:600;margin-bottom:6px;">Transcripcion verificada (sin IA)</div>';
+        html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;margin-bottom:4px;"><strong>Fonologica:</strong> ' + data.transcripcion + '</div>';
+        if (data.fonetica) html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;"><strong>Fonetica:</strong> ' + data.fonetica + '</div>';
+        html += '</div>';
+        result.innerHTML = html;
+    })
+    .catch(function(err) {
+        result.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#991b1b;">Error: ' + err.message + '</div>';
+    });
+}
+
+// -- Init --
+updateTipo();
+</script>
+</body>
+</html>

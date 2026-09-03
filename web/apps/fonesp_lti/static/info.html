@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FonESP — Informacion</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.header { background: #2563eb; padding: 16px 24px; }
+.header h1 { color: #fff; font-size: 22px; font-weight: 800; }
+.header p { color: rgba(255,255,255,0.8); font-size: 14px; margin-top: 4px; }
+.container { max-width: 720px; margin: 0 auto; padding: 32px 20px; }
+h2 { font-size: 18px; color: #2563eb; margin: 24px 0 8px; }
+p, li { font-size: 15px; line-height: 1.7; color: #334155; }
+ul { padding-left: 24px; margin-bottom: 16px; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.card h3 { color: #1e40af; font-size: 15px; margin-bottom: 8px; }
+.phases { display: flex; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+.phase { flex: 1; min-width: 180px; background: #eff6ff; border-radius: 10px; padding: 16px; text-align: center; }
+.phase .icon { font-size: 32px; margin-bottom: 8px; }
+.phase h4 { color: #1e40af; font-size: 14px; margin-bottom: 4px; }
+.phase p { font-size: 12px; color: #475569; }
+.arrow { display: flex; align-items: center; font-size: 24px; color: #93c5fd; }
+.note { background: #fefce8; border-left: 4px solid #eab308; padding: 12px 16px; border-radius: 6px; font-size: 13px; color: #854d0e; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>FonESP</h1>
+    <p>Herramienta de practica de transcripcion fonologica y fonetica del espanol</p>
+</div>
+
+<div class="container">
+
+    <p>FonESP es una herramienta LTI que permite practicar la transcripcion fonologica y fonetica del espanol peninsular. Se integra directamente en Moodle como actividad externa.</p>
+
+    <div class="phases">
+        <div class="phase">
+            <div class="icon">&#x1F4DD;</div>
+            <h4>Elige tipo y nivel</h4>
+            <p>Fonologica, fonetica o ambas. 5-7 niveles progresivos.</p>
+        </div>
+        <div class="arrow">&#x27A1;</div>
+        <div class="phase">
+            <div class="icon">&#x270D;&#xFE0F;</div>
+            <h4>Transcribe</h4>
+            <p>Teclado de simbolos IPA integrado. Tabla de alofonos de referencia.</p>
+        </div>
+        <div class="arrow">&#x27A1;</div>
+        <div class="phase">
+            <div class="icon">&#x2705;</div>
+            <h4>Correccion automatica</h4>
+            <p>Retroalimentacion inmediata: acento, silabas, fonemas.</p>
+        </div>
+    </div>
+
+    <h2>Funcionalidades</h2>
+    <div class="card">
+        <h3>Transcripcion fonologica (5 niveles)</h3>
+        <ul>
+            <li>Nivel 1: Silabas CV simples</li>
+            <li>Nivel 2: Diptongos e hiatos</li>
+            <li>Nivel 3: Grafias que no coinciden con fonemas</li>
+            <li>Nivel 4: Casos atipicos (h muda, x, r...)</li>
+            <li>Nivel 5: Sintagmas y frases completas</li>
+        </ul>
+    </div>
+    <div class="card">
+        <h3>Transcripcion fonetica (7 niveles)</h3>
+        <ul>
+            <li>Nivel 1: Diptongos — semiconsonantes y semivocales</li>
+            <li>Nivel 2: Oclusivas vs. aproximantes</li>
+            <li>Nivel 3: Africada y fricativas</li>
+            <li>Nivel 4: Nasales — asimilacion</li>
+            <li>Nivel 5: Laterales y vibrantes</li>
+            <li>Nivel 6: Oraciones completas</li>
+            <li>Nivel 7: Fonosintaxis</li>
+        </ul>
+    </div>
+    <div class="card">
+        <h3>Herramientas de apoyo</h3>
+        <ul>
+            <li>Teclado de simbolos IPA no convencionales</li>
+            <li>Tabla desplegable de alofonos del espanol</li>
+            <li>Transcripcion libre: consulta cualquier palabra o frase</li>
+        </ul>
+    </div>
+
+    <h2>Aspectos tecnicos</h2>
+    <p>Todas las transcripciones se generan programaticamente (sin IA). La correccion es determinista y exacta. La herramienta implementa el dialecto castellano peninsular con yeismo.</p>
+
+    <div class="note">
+        <strong>Integracion LTI:</strong> FonESP se configura en Moodle como herramienta externa (LTI 1.1). El profesorado y el alumnado acceden desde la misma actividad; la herramienta detecta automaticamente el rol.
+    </div>
+
+</div>
+</body>
+</html>

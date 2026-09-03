@@ -390,6 +390,10 @@ app.mount("/holiday-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" /
 from apps.redaccion_lti.lti_provider import router as lti_redaccion_router
 app.include_router(lti_redaccion_router)
 
+# Mount LTI FonESP app
+from apps.fonesp_lti.lti_provider import router as lti_fonesp_router
+app.include_router(lti_fonesp_router)
+
 # Mount Matomo Analytics app
 from apps.matomo_analytics.matomo_analytics import router as matomo_analytics_router
 app.include_router(matomo_analytics_router)
