@@ -642,6 +642,15 @@ function openUserManagement() {
         + '</div>'
         + '<div id="um-invite-result" style="display:none;margin-top:8px;font-size:0.8rem;"></div>'
         + '</div>'
+        + '<div style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">'
+        + '<h3 style="margin:0 0 8px 0;font-size:0.9rem;">Bulk create users from Excel</h3>'
+        + '<p style="font-size:0.72rem;color:#888;margin-bottom:8px;">Upload a .xlsx (or .csv/.tsv) file with columns: name, email, role, password. Each row creates an active account with that exact password. No email is sent.</p>'
+        + '<div id="um-create-drop-zone" style="border:2px dashed #cbd5e1;border-radius:8px;padding:14px;text-align:center;cursor:pointer;">'
+        + '<input type="file" id="um-create-file-input" accept=".tsv,.csv,.txt,.xlsx,.xls" style="display:none;">'
+        + '<span id="um-create-drop-label" style="font-size:0.85rem;color:#64748b;">Drop file here or click to select</span>'
+        + '</div>'
+        + '<div id="um-create-result" style="display:none;margin-top:8px;font-size:0.8rem;"></div>'
+        + '</div>'
         + '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">'
         + '<input id="um-search" type="text" placeholder="Search..." oninput="umRender()" style="flex:1;min-width:120px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
         + '<select id="um-role-filter" onchange="umRender()" style="padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
@@ -675,6 +684,7 @@ function openUserManagement() {
     umLoadUsers();
     umCheckSmtp();
     umSetupBulkInvite();
+    umSetupBulkCreate();
 }
 
 function umSetupBulkInvite() {
@@ -735,6 +745,83 @@ async function umBulkInvite(file) {
         if (data.total_skipped > 0) html += (html ? ' &middot; ' : '') + '<span style="color:#d97706;"><b>' + data.total_skipped + '</b> skipped</span>';
         if (data.total_errors > 0) html += (html ? ' &middot; ' : '') + '<span style="color:#dc2626;"><b>' + data.total_errors + '</b> errors</span>';
         if (!data.smtp_configured) html += '<div style="margin-top:6px;color:#d97706;">SMTP is not configured — users were created but no emails were sent.</div>';
+        if (data.skipped && data.skipped.length > 0) html += '<div style="margin-top:6px;color:#d97706;"><b>Skipped:</b> ' + data.skipped.join(', ') + '</div>';
+        if (data.errors && data.errors.length > 0) {
+            html += '<div style="margin-top:6px;color:#dc2626;"><b>Errors:</b><ul style="margin:4px 0 0 16px;padding:0;">';
+            data.errors.forEach(function(e) { html += '<li>' + e + '</li>'; });
+            html += '</ul></div>';
+        }
+
+        resultDiv.style.display = '';
+        resultDiv.style.color = '';
+        resultDiv.innerHTML = html;
+        label.textContent = 'Drop file here or click to select';
+        fileInput.value = '';
+        umLoadUsers();
+    } catch (e) {
+        resultDiv.style.display = '';
+        resultDiv.style.color = '#dc2626';
+        resultDiv.innerHTML = '<b>Connection error</b>';
+        label.textContent = 'Drop file here or click to select';
+    }
+}
+
+function umSetupBulkCreate() {
+    var dropZone = document.getElementById('um-create-drop-zone');
+    var fileInput = document.getElementById('um-create-file-input');
+    if (!dropZone || !fileInput) return;
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.style.borderColor = '#2D3876';
+        dropZone.style.background = '#eef1fb';
+    });
+    dropZone.addEventListener('dragleave', function() {
+        dropZone.style.borderColor = '#cbd5e1';
+        dropZone.style.background = '';
+    });
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.style.borderColor = '#cbd5e1';
+        dropZone.style.background = '';
+        if (e.dataTransfer.files.length > 0) umBulkCreateUsers(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length > 0) umBulkCreateUsers(fileInput.files[0]);
+    });
+}
+
+async function umBulkCreateUsers(file) {
+    var label = document.getElementById('um-create-drop-label');
+    var resultDiv = document.getElementById('um-create-result');
+    var fileInput = document.getElementById('um-create-file-input');
+
+    label.textContent = 'Uploading ' + file.name + '...';
+    resultDiv.style.display = 'none';
+
+    var formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        var res = await fetch('/api/auth/users/bulk', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + authToken },
+            body: formData
+        });
+        var data = await res.json();
+
+        if (!res.ok) {
+            resultDiv.style.display = '';
+            resultDiv.style.color = '#dc2626';
+            resultDiv.innerHTML = '<b>Error:</b> ' + (data.detail || 'Upload failed');
+            label.textContent = 'Drop file here or click to select';
+            return;
+        }
+
+        var html = '';
+        if (data.total_created > 0) html += '<span style="color:#16a34a;"><b>' + data.total_created + '</b> created</span>';
+        if (data.total_skipped > 0) html += (html ? ' &middot; ' : '') + '<span style="color:#d97706;"><b>' + data.total_skipped + '</b> skipped</span>';
+        if (data.total_errors > 0) html += (html ? ' &middot; ' : '') + '<span style="color:#dc2626;"><b>' + data.total_errors + '</b> errors</span>';
         if (data.skipped && data.skipped.length > 0) html += '<div style="margin-top:6px;color:#d97706;"><b>Skipped:</b> ' + data.skipped.join(', ') + '</div>';
         if (data.errors && data.errors.length > 0) {
             html += '<div style="margin-top:6px;color:#dc2626;"><b>Errors:</b><ul style="margin:4px 0 0 16px;padding:0;">';
@@ -836,7 +923,7 @@ function umRender() {
             roles: u.roles || [u.role],
             provisional_password: u.provisional_password,
             pending_invite: u.pending_invite,
-            name: dir ? (dir.first_name + ' ' + dir.family_name) : '',
+            name: u.name || (dir ? (dir.first_name + ' ' + dir.family_name) : ''),
             university: dir ? (dir.university || '') : '',
         };
     });

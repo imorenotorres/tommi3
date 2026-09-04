@@ -132,7 +132,10 @@
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
                     <h2 style="margin:0">Units &amp; Subunits</h2>
-                    <select id="unitsUniFilter" onchange="renderUnits()"><option value="">All universities</option></select>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <select id="unitsUniFilter" onchange="renderUnits()"><option value="">All universities</option></select>
+                        <select id="unitsUnitFilter" onchange="renderUnits()"><option value="">All units</option></select>
+                    </div>
                 </div>
                 <div id="unitsArea"></div>
             </div>
@@ -253,6 +256,22 @@
             orgSel.innerHTML += '<option value="' + esc(u.code) + '">' + esc(u.code) + ' — ' + esc(u.name) + '</option>';
         });
         if (currentOrg) orgSel.value = currentOrg;
+
+        var unitSel = document.getElementById('unitsUnitFilter');
+        var currentUnit = unitSel.value;
+        unitSel.innerHTML = unitSelectOptions('All units');
+        unitSel.value = currentUnit;
+    }
+
+    // Depth-first search for a unit node anywhere in the (unfiltered) tree —
+    // used by the Units tab's "filter by unit" dropdown to isolate one branch.
+    function findUnitNodeById(nodes, id) {
+        for (var i = 0; i < (nodes || []).length; i++) {
+            if (nodes[i].id === id) return nodes[i];
+            var found = findUnitNodeById(nodes[i].subunits, id);
+            if (found) return found;
+        }
+        return null;
     }
 
     function renderPeople() {
@@ -298,23 +317,126 @@
             + esc(leaders.join(', ') || 'No leaders set — WP leaders can add subunits under a unit they lead') + '">' + esc(label) + '</button>';
     }
 
-    async function editUnitLeaders(unitId) {
+    // Collects every member of `node` and all of its subunits, deduped by
+    // email — the pool a unit's leader is picked from ("people included in
+    // that unit or subunit").
+    function collectUnitMembers(node) {
+        var byEmail = {};
+        function walk(n) {
+            (n.members || []).forEach(function(m) { if (m.email) byEmail[m.email.toLowerCase()] = m; });
+            (n.subunits || []).forEach(walk);
+        }
+        walk(node);
+        return Object.keys(byEmail).map(function(e) { return byEmail[e]; })
+            .sort(function(a, b) { return (a.family_name || '').localeCompare(b.family_name || '') || (a.first_name || '').localeCompare(b.first_name || ''); });
+    }
+
+    var leaderModalUnitId = null;
+    var leaderModalSelected = []; // lowercased emails, in display order
+
+    function editUnitLeaders(unitId) {
         var node = window._unitNodesById[unitId];
-        var current = ((node && node.leaders) || []).join(', ');
-        var input = prompt('Comma-separated emails of people who lead this unit (they can then add subunits under it):', current);
-        if (input === null) return;
-        var leaders = input.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+        if (!node) return;
+        leaderModalUnitId = unitId;
+        leaderModalSelected = ((node.leaders || []).slice());
+        closeAddModal();
+        var overlay = document.createElement('div');
+        overlay.id = 'add-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
+        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:420px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+            + '<h2 style="margin:0;color:#1a3a5c;font-size:1.1em;">Set Leaders &mdash; ' + esc(node.name) + '</h2>'
+            + '<button onclick="closeLeaderModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+            + '</div>'
+            + '<div id="leader-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+            + '<div id="leader-modal-body"></div>'
+            + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
+            + '<button class="btn" onclick="submitUnitLeaders()">Save</button>'
+            + '<button class="btn-small" onclick="closeLeaderModal()" style="padding:8px 20px;">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeLeaderModal(); });
+        document.body.appendChild(overlay);
+        renderLeaderModalBody();
+    }
+
+    function closeLeaderModal() {
+        var el = document.getElementById('add-modal-overlay');
+        if (el) el.remove();
+        leaderModalUnitId = null;
+        leaderModalSelected = [];
+    }
+
+    function renderLeaderModalBody() {
+        var node = window._unitNodesById[leaderModalUnitId];
+        if (!node) return;
+        var members = collectUnitMembers(node);
+        var membersByEmail = {};
+        members.forEach(function(m) { membersByEmail[m.email.toLowerCase()] = m; });
+
+        var options = '<option value="">— Select a person to add as leader —</option>';
+        members.forEach(function(m) {
+            var email = m.email.toLowerCase();
+            if (leaderModalSelected.indexOf(email) !== -1) return; // already a leader
+            options += '<option value="' + esc(email) + '">' + esc(m.first_name + ' ' + m.family_name) + '</option>';
+        });
+
+        var selectHtml = members.length
+            ? '<select id="leader-add-select" onchange="addLeaderFromSelect()" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;margin-bottom:14px;">' + options + '</select>'
+            : '<p style="font-size:0.85em;color:#888;margin-bottom:14px;">No people found in this unit or its subunits yet.</p>';
+
+        var listHtml = leaderModalSelected.length
+            ? leaderModalSelected.map(function(email) {
+                var person = membersByEmail[email];
+                var label = person ? (person.first_name + ' ' + person.family_name) : email;
+                return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#f0f2f5;border-radius:6px;margin-bottom:6px;">'
+                    + '<span>' + esc(label) + (person ? ' <span style="color:#888;font-size:0.85em;">(' + esc(email) + ')</span>' : '') + '</span>'
+                    + '<button type="button" onclick="removeLeaderEmail(\'' + esc(email) + '\')" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1.1em;padding:0 4px;" title="Remove">&times;</button>'
+                    + '</div>';
+            }).join('')
+            : '<p style="font-size:0.85em;color:#888;">No leaders set.</p>';
+
+        document.getElementById('leader-modal-body').innerHTML = selectHtml
+            + '<label style="display:block;font-weight:600;font-size:0.85em;color:#1a3a5c;margin-bottom:6px;">Current leaders</label>'
+            + listHtml;
+    }
+
+    function addLeaderFromSelect() {
+        var sel = document.getElementById('leader-add-select');
+        var email = sel.value;
+        if (!email) return;
+        if (leaderModalSelected.indexOf(email) === -1) leaderModalSelected.push(email);
+        renderLeaderModalBody();
+    }
+
+    function removeLeaderEmail(email) {
+        leaderModalSelected = leaderModalSelected.filter(function(e) { return e !== email; });
+        renderLeaderModalBody();
+    }
+
+    async function submitUnitLeaders() {
         try {
-            var resp = await authFetch(BASE + '/api/units/' + unitId + '/leaders', {
+            var resp = await authFetch(BASE + '/api/units/' + leaderModalUnitId + '/leaders', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ leaders: leaders })
+                body: JSON.stringify({ leaders: leaderModalSelected })
             });
-            if (!resp.ok) { var err = await resp.json(); alert(err.detail || 'Error updating leaders'); return; }
+            if (!resp.ok) {
+                var err = await resp.json();
+                var msg = document.getElementById('leader-msg');
+                msg.style.display = ''; msg.style.background = '#fee2e2'; msg.style.color = '#991b1b';
+                msg.textContent = err.detail || 'Error updating leaders';
+                return;
+            }
+            closeLeaderModal();
             await loadAll();
             var activeTab = document.querySelector('.tab.active').dataset.tab;
             if (activeTab === 'orgchart') renderOrgChart();
-        } catch (e) { alert('Connection error'); }
+        } catch (e) {
+            var msg = document.getElementById('leader-msg');
+            msg.style.display = ''; msg.style.background = '#fee2e2'; msg.style.color = '#991b1b';
+            msg.textContent = 'Connection error';
+        }
     }
 
     function renderUnitNode(node, isRoot) {
@@ -337,7 +459,25 @@
 
     function renderUnits() {
         var uniFilter = document.getElementById('unitsUniFilter').value;
+        var unitFilter = document.getElementById('unitsUnitFilter').value;
         window._unitNodesById = {};
+
+        // A specific unit filter isolates that one branch (with its subunits and
+        // members), regardless of the university filter — it's more specific.
+        if (unitFilter) {
+            var node = findUnitNodeById(units, parseInt(unitFilter, 10));
+            var html = '';
+            if (node) {
+                var uniInfo = universities.find(function(u) { return u.code === node.university; });
+                var uniLabel = node.university ? (node.university + (uniInfo ? ' — ' + uniInfo.name : '')) : 'Cross-institutional';
+                html += '<h3 style="color:#1a3a5c;font-size:1em;margin:16px 0 8px;">' + esc(uniLabel) + '</h3>';
+                html += '<div class="org-tree"><ul>' + renderUnitNode(node, false) + '</ul></div>';
+            }
+            if (!html) html = '<p class="empty-note">Unit not found.</p>';
+            document.getElementById('unitsArea').innerHTML = html;
+            return;
+        }
+
         var byUni = {};
         units.forEach(function(root) {
             var uni = root.university || 'Other';

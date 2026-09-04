@@ -384,7 +384,7 @@ def user_exists(username: str) -> bool:
     return username in users
 
 
-def create_user(username: str, password: str, role: str, provisional: bool = True, roles: list = None) -> bool:
+def create_user(username: str, password: str, role: str, provisional: bool = True, roles: list = None, name: str = "") -> bool:
     """
     Create a new user. Supports dual roles via the `roles` parameter.
     Returns True if created, False if username already exists.
@@ -407,6 +407,7 @@ def create_user(username: str, password: str, role: str, provisional: bool = Tru
         "role": role,
         "roles": roles or [role],
         "provisional_password": provisional,
+        "name": name.strip(),
     }
     users[username] = user_data
     _save_users(users)
@@ -437,6 +438,7 @@ def list_users() -> list[dict]:
             "roles": data.get("roles", [data["role"]]),
             "provisional_password": data.get("provisional_password", False),
             "pending_invite": data.get("pending_invite", False),
+            "name": data.get("name", ""),
         }
         for uname, data in users.items()
     ]

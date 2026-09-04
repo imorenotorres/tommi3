@@ -545,10 +545,11 @@ async def api_bulk_create_users(
     session: dict = Depends(require_role("superuser")),
 ):
     """
-    Bulk-create users from a TSV or Excel (.xlsx) file.
-    Expected columns: username, password, role
-    Header row is optional (auto-detected).
-    All users are created with provisional_password=True.
+    Bulk-create fully active users from an Excel (.xlsx) or CSV/TSV file.
+    Expected columns: name, email, role, password. Header row is optional
+    (auto-detected); columns can be in any order when a header is present.
+    Each row creates an account with that exact password — no invitation
+    or email of any kind is sent (unlike /api/auth/invite/bulk).
     """
     filename = (file.filename or "").lower()
     content = await file.read()
@@ -587,9 +588,20 @@ async def api_bulk_create_users(
     if not rows:
         raise HTTPException(status_code=400, detail="File is empty")
 
-    # Auto-detect header: if first row looks like a header, skip it
-    first = [c.lower() for c in rows[0]]
-    if "username" in first or "user" in first or "nombre" in first:
+    # Column order defaults to name, email, role, password; a header row can reorder them.
+    col_idx = {"name": 0, "email": 1, "role": 2, "password": 3}
+    header = [c.lower() for c in rows[0]]
+    if any(h in ("name", "full_name", "nombre", "email", "e-mail", "correo", "username", "user",
+                 "role", "rol", "password", "contraseña", "contrasena") for h in header):
+        for i, h in enumerate(header):
+            if h in ("email", "e-mail", "correo", "username", "user"):
+                col_idx["email"] = i
+            elif h in ("name", "full_name", "nombre"):
+                col_idx["name"] = i
+            elif h in ("role", "rol"):
+                col_idx["role"] = i
+            elif h in ("password", "contraseña", "contrasena"):
+                col_idx["password"] = i
         rows = rows[1:]
 
     if not rows:
@@ -600,29 +612,30 @@ async def api_bulk_create_users(
     skipped = []
     errors = []
 
-    for i, row in enumerate(rows, start=1):
-        if len(row) < 2:
-            errors.append(f"Row {i}: not enough columns (need at least username and password)")
-            continue
+    def cell(row, key):
+        idx = col_idx[key]
+        return row[idx].strip() if idx < len(row) else ""
 
-        username = row[0].strip()
-        password = row[1].strip()
-        role = row[2].strip().lower() if len(row) > 2 and row[2].strip() else "user"
+    for i, row in enumerate(rows, start=2):
+        name = cell(row, "name")
+        username = cell(row, "email").lower()
+        password = cell(row, "password")
+        role = cell(row, "role").lower()
 
-        if not username:
-            errors.append(f"Row {i}: empty username")
+        if not username or "@" not in username:
+            errors.append(f"Row {i}: missing or invalid email")
             continue
         pwd_err = validate_password(password)
         if pwd_err:
             errors.append(f"Row {i} ({username}): {pwd_err}")
             continue
         if role not in valid_roles:
-            errors.append(f"Row {i} ({username}): invalid role '{role}' (must be {', '.join(valid_roles)})")
+            errors.append(f"Row {i} ({username}): invalid role '{role}' (must be {', '.join(sorted(valid_roles))})")
             continue
 
-        ok = create_user(username, password, role, provisional=True)
+        ok = create_user(username, password, role, provisional=True, name=name)
         if ok:
-            created.append({"username": username, "role": role})
+            created.append({"username": username, "name": name, "role": role})
         else:
             skipped.append(f"{username} (already exists)")
 
@@ -686,9 +699,14 @@ def _check_directory_email(email: str) -> str:
 def resolve_display_name(username: str) -> str:
     """Resolve a friendly display name for a username/email.
 
-    Prefers the directory entry (first + family name); falls back to a
-    title-cased version of the email's local part.
+    Prefers a name stored directly on the account (e.g. set at bulk-creation
+    time), then the directory entry (first + family name), then falls back
+    to a title-cased version of the email's local part.
     """
+    from auth import _load_users
+    account_name = _load_users().get(username, {}).get("name", "").strip()
+    if account_name:
+        return account_name
     name = _check_directory_email(username)
     if name:
         return name
