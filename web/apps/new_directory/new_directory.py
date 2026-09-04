@@ -83,6 +83,23 @@ def _leads_unit_or_ancestor(username: str, unit_id: int, units_by_id: dict) -> b
     )
 
 
+def _own_university(session: dict, data: dict) -> str | None:
+    """The university of the directory entry matching this user's login email, if any."""
+    own_person = _find_person_by_email(data, session.get("username", ""))
+    return own_person.get("university") or None if own_person else None
+
+
+def _require_person_edit_access(person: dict, session: dict, data: dict) -> None:
+    """A content_manager may only edit/delete people from their own university; superuser may edit anyone."""
+    roles = set(_user_roles(session))
+    if "superuser" in roles:
+        return
+    own_uni = _own_university(session, data)
+    if own_uni and person.get("university") == own_uni:
+        return
+    raise HTTPException(status_code=403, detail="You can only edit people from your own university")
+
+
 # Static university reference data (website links to be filled in once known)
 UNIVERSITIES = {
     "USPN": {"name": "Université Sorbonne Paris Nord", "country": "FR", "website": ""},
@@ -194,6 +211,7 @@ def auth_check(session: dict = Depends(_require_auth)):
         "roles": session.get("roles", [session["role"]]),
         "can_edit": _can_edit_check(session),
         "led_unit_ids": led_unit_ids,
+        "own_university": _own_university(session, data),
     }
 
 
@@ -315,6 +333,100 @@ def create_person(body: PersonCreate, session: dict = Depends(_require_content_m
         })
     save_data(data)
     return {"ok": True, "id": new_id}
+
+
+# ---------------------------------------------------------------------------
+# Edit / delete an existing person — content_manager (own university only)
+# and superuser (any university).
+# ---------------------------------------------------------------------------
+
+class PersonUpdate(BaseModel):
+    first_name: str
+    family_name: str
+    email: str = ""
+    phone: str = ""
+    position: str = ""
+    university: str = ""
+    units: list[PersonUnitAssignment] = []
+
+
+def _find_person_or_404(data: dict, person_id: int) -> dict:
+    person = next((p for p in data.get("people", []) if p["id"] == person_id), None)
+    if not person:
+        raise HTTPException(status_code=404, detail="Person not found")
+    return person
+
+
+@router.get("/api/people/{person_id}")
+def get_person(person_id: int, session: dict = Depends(_require_content_manager)):
+    data = load_data()
+    person = _find_person_or_404(data, person_id)
+    _require_person_edit_access(person, session, data)
+    memberships = [
+        {"unit_id": m["unit_id"], "role": m.get("role", "")}
+        for m in data.get("memberships", [])
+        if m["person_id"] == person_id
+    ]
+    return {**person, "memberships": memberships}
+
+
+@router.put("/api/people/{person_id}")
+def update_person(person_id: int, body: PersonUpdate, session: dict = Depends(_require_content_manager)):
+    data = load_data()
+    person = _find_person_or_404(data, person_id)
+    _require_person_edit_access(person, session, data)
+
+    first_name = body.first_name.strip()
+    family_name = body.family_name.strip()
+    if not first_name or not family_name:
+        raise HTTPException(status_code=400, detail="First name and family name are required")
+    if body.university and body.university not in UNIVERSITIES:
+        raise HTTPException(status_code=400, detail=f"Unknown university: {body.university}")
+
+    # A content_manager's edit scope is their own university, so they may not
+    # use an edit to move someone out of it; superuser is unrestricted.
+    if "superuser" not in set(_user_roles(session)) and body.university != _own_university(session, data):
+        raise HTTPException(status_code=403, detail="Content managers cannot move a person to a different university")
+
+    unit_ids = {u["id"] for u in data.get("units", [])}
+    for assignment in body.units:
+        if assignment.unit_id not in unit_ids:
+            raise HTTPException(status_code=400, detail=f"Unknown unit: {assignment.unit_id}")
+
+    person["first_name"] = first_name
+    person["family_name"] = family_name
+    person["email"] = body.email.strip()
+    person["phone"] = body.phone.strip()
+    person["position"] = body.position.strip()
+    person["university"] = body.university
+    person["university_name"] = UNIVERSITIES.get(body.university, {}).get("name", "")
+
+    data["memberships"] = [m for m in data.get("memberships", []) if m["person_id"] != person_id]
+    seen_units = set()
+    for assignment in body.units:
+        if assignment.unit_id in seen_units:
+            continue
+        seen_units.add(assignment.unit_id)
+        data["memberships"].append({
+            "person_id": person_id,
+            "unit_id": assignment.unit_id,
+            "role": assignment.role.strip(),
+        })
+
+    save_data(data)
+    return {"ok": True, "id": person_id}
+
+
+@router.delete("/api/people/{person_id}")
+def delete_person(person_id: int, session: dict = Depends(_require_content_manager)):
+    data = load_data()
+    person = _find_person_or_404(data, person_id)
+    _require_person_edit_access(person, session, data)
+
+    data["people"] = [p for p in data.get("people", []) if p["id"] != person_id]
+    data["memberships"] = [m for m in data.get("memberships", []) if m["person_id"] != person_id]
+    save_data(data)
+    return {"ok": True, "id": person_id}
 
 
 @router.post("/api/units")

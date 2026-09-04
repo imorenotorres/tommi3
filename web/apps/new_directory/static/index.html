@@ -115,7 +115,10 @@
         <!-- ══ PEOPLE TAB ══ -->
         <div id="tab-people">
             <div class="card">
-                <h2>Directory People</h2>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h2 style="margin:0">Directory People</h2>
+                    <button class="btn-small" id="btnEditPeople" style="display:none;" onclick="togglePeopleEditMode()">Edit</button>
+                </div>
                 <div class="filter-bar">
                     <input type="text" id="peopleSearch" placeholder="Search by name, email, or position..." style="max-width:280px;flex:1;padding:8px 10px;border:1px solid #ccc;border-radius:6px;" oninput="renderPeople()">
                     <select id="peopleUniFilter" onchange="renderPeople()"><option value="">All universities</option></select>
@@ -265,8 +268,14 @@
 
         var html = '<table><tr><th>Name</th><th>University</th><th>Position</th><th>Email</th><th>Phone</th><th>Units</th></tr>';
         rows.forEach(function(p) {
+            var nameCell = esc(p.first_name + ' ' + p.family_name);
+            if (peopleEditMode && canEditPerson(p)) {
+                nameCell = '<button class="btn-small" onclick="event.stopPropagation();confirmDeletePerson(' + p.id + ')" style="color:#dc3545;border-color:#dc3545;font-size:0.75em;padding:1px 6px;margin-right:4px;" title="Delete">&times;</button>'
+                    + '<button class="btn-small" onclick="event.stopPropagation();openEditPersonModal(' + p.id + ')" style="font-size:0.75em;padding:1px 6px;margin-right:6px;" title="Edit">Edit</button>'
+                    + nameCell;
+            }
             html += '<tr>'
-                + '<td>' + esc(p.first_name + ' ' + p.family_name) + '</td>'
+                + '<td>' + nameCell + '</td>'
                 + '<td><span class="badge badge-uni">' + esc(p.university || '—') + '</span></td>'
                 + '<td>' + esc(p.position) + '</td>'
                 + '<td>' + esc(p.email) + emailBtn(p.email) + '</td>'
@@ -635,6 +644,108 @@
         } catch (e) { addMsg('Connection error', false); }
     }
 
+    // ── Edit / delete person (content_manager: own university; superuser: any) ─
+
+    function editPersonFormHtml(p) {
+        npUnitRowCounter = 0;
+        var memberships = p.memberships || [];
+        var rowsHtml = memberships.length
+            ? memberships.map(function(m) { return npUnitRowHtml(m); }).join('')
+            : npUnitRowHtml();
+        // A content_manager's edit scope is their own university, so the
+        // university field is locked to it — only superuser may reassign it.
+        var universityField = isSuperuser()
+            ? '<select id="ep-university" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + universityOptions('— none —', p.university) + '</select>'
+            : '<input type="text" value="' + esc(p.university || '—') + '" disabled style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;background:#f0f2f5;color:#888;">'
+                + '<input type="hidden" id="ep-university" value="' + esc(p.university) + '">';
+        return fieldRow('First name *', '<input type="text" id="ep-first" value="' + esc(p.first_name) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Family name *', '<input type="text" id="ep-family" value="' + esc(p.family_name) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Email', '<input type="email" id="ep-email" value="' + esc(p.email) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Phone', '<input type="text" id="ep-phone" value="' + esc(p.phone) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('Position', '<input type="text" id="ep-position" value="' + esc(p.position) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + fieldRow('University', universityField)
+            + fieldRow('Units / Subunits', '<div id="ep-units-list">' + rowsHtml + '</div><button type="button" class="btn-small" onclick="addUnitRow(\'ep-units-list\')">+ Add another unit</button>');
+    }
+
+    async function openEditPersonModal(personId) {
+        var resp = await authFetch(BASE + '/api/people/' + personId);
+        if (!resp.ok) { var err = await resp.json().catch(function() { return {}; }); alert(err.detail || 'Error loading person'); return; }
+        var person = await resp.json();
+
+        closeAddModal();
+        var overlay = document.createElement('div');
+        overlay.id = 'add-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
+        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:480px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+            + '<h2 style="margin:0;color:#1a3a5c;font-size:1.15em;">Edit Person</h2>'
+            + '<button onclick="closeAddModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+            + '</div>'
+            + '<div id="add-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+            + '<div>' + editPersonFormHtml(person) + '</div>'
+            + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
+            + '<button class="btn" onclick="submitEditPerson(' + personId + ')">Save</button>'
+            + '<button class="btn-small" onclick="closeAddModal()" style="padding:8px 20px;">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeAddModal(); });
+        document.body.appendChild(overlay);
+    }
+
+    async function submitEditPerson(personId) {
+        var firstName = document.getElementById('ep-first').value.trim();
+        var familyName = document.getElementById('ep-family').value.trim();
+        if (!firstName || !familyName) { addMsg('First name and family name are required', false); return; }
+        var body = {
+            first_name: firstName,
+            family_name: familyName,
+            email: document.getElementById('ep-email').value.trim(),
+            phone: document.getElementById('ep-phone').value.trim(),
+            position: document.getElementById('ep-position').value.trim(),
+            university: document.getElementById('ep-university').value,
+            units: collectUnitRows('ep-units-list'),
+        };
+        try {
+            var resp = await authFetch(BASE + '/api/people/' + personId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!resp.ok) { var err = await resp.json(); addMsg(err.detail || 'Error saving person', false); return; }
+            closeAddModal();
+            await loadAll();
+        } catch (e) { addMsg('Connection error', false); }
+    }
+
+    function confirmDeletePerson(personId) {
+        var p = people.find(function(x) { return x.id === personId; });
+        if (!p) return;
+        closeAddModal();
+        var overlay = document.createElement('div');
+        overlay.id = 'add-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
+        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:380px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+            + '<h2 style="margin:0 0 12px;color:#1a3a5c;font-size:1.1em;">Delete ' + esc(p.first_name + ' ' + p.family_name) + '?</h2>'
+            + '<p style="font-size:0.88em;color:#666;margin-bottom:20px;">This will permanently remove this person from the directory. This action is final and cannot be undone.</p>'
+            + '<div id="add-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+            + '<div style="display:flex;justify-content:flex-end;gap:8px;">'
+            + '<button class="btn" style="background:#dc3545;" onclick="submitDeletePerson(' + personId + ')">Delete</button>'
+            + '<button class="btn-small" onclick="closeAddModal()" style="padding:8px 20px;">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeAddModal(); });
+        document.body.appendChild(overlay);
+    }
+
+    async function submitDeletePerson(personId) {
+        try {
+            var resp = await authFetch(BASE + '/api/people/' + personId, { method: 'DELETE' });
+            if (!resp.ok) { var err = await resp.json(); addMsg(err.detail || 'Error deleting person', false); return; }
+            closeAddModal();
+            await loadAll();
+        } catch (e) { addMsg('Connection error', false); }
+    }
+
     // ── Import JSON (superuser only) ────────────────────────────────
 
     function openImportJsonModal() {
@@ -790,6 +901,32 @@
         return roles.indexOf('content_manager') !== -1 || roles.indexOf('superuser') !== -1;
     }
 
+    function isSuperuser() {
+        if (!currentUser) return false;
+        var roles = currentUser.roles || [currentUser.role];
+        return roles.indexOf('superuser') !== -1;
+    }
+
+    // A content_manager may edit/delete people from their own university only
+    // (matched via their own directory entry); superuser may edit anyone.
+    // Mirrors the server-side check in _require_person_edit_access.
+    function canEditPerson(p) {
+        if (!currentUser) return false;
+        if (isSuperuser()) return true;
+        var roles = currentUser.roles || [currentUser.role];
+        if (roles.indexOf('content_manager') === -1) return false;
+        return !!currentUser.own_university && p.university === currentUser.own_university;
+    }
+
+    var peopleEditMode = false;
+
+    function togglePeopleEditMode() {
+        peopleEditMode = !peopleEditMode;
+        var btn = document.getElementById('btnEditPeople');
+        if (btn) btn.textContent = peopleEditMode ? 'Done' : 'Edit';
+        renderPeople();
+    }
+
     // WP leaders get the scoped "+ Add Subunit" button instead of full
     // directory management; canManageDirectory() users already have that
     // (and more) via "+ Add Person / Unit", so this only applies to leaders
@@ -824,6 +961,9 @@
 
         var addBtn = document.getElementById('btnAddEntry');
         if (addBtn) addBtn.style.display = canManageDirectory() ? '' : 'none';
+
+        var editPeopleBtn = document.getElementById('btnEditPeople');
+        if (editPeopleBtn) editPeopleBtn.style.display = canManageDirectory() ? '' : 'none';
 
         var addSubunitBtn = document.getElementById('btnAddSubunit');
         if (addSubunitBtn) addSubunitBtn.style.display = canLeadUnits() ? '' : 'none';
