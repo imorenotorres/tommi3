@@ -308,6 +308,21 @@
                     </select>
                 </div>
 
+                <div class="form-field">
+                    <label>Assigned to</label>
+                    <select name="assigned_to">
+                        <option value="">— Not assigned —</option>
+                        <option value="UMA">UMA</option>
+                        <option value="USPN">USPN</option>
+                        <option value="UDCLV">UDCLV</option>
+                        <option value="THWS">THWS</option>
+                        <option value="TAMK">TAMK</option>
+                        <option value="KK">KK</option>
+                        <option value="UT">UT</option>
+                        <option value="THUAS">THUAS</option>
+                    </select>
+                </div>
+
                 <!-- Collaborators -->
                 <div class="form-section-title">Collaborators</div>
                 <div class="repeater full" id="collaborators-repeater"></div>
@@ -357,7 +372,7 @@
 
 <script>
     var BASE = '/collaboration-dashboard';
-    // UNINOVIS alliance partner institutions (see apps/new_directory's UNIVERSITIES map).
+    // UNINOVIS alliance partner institutions and their abbreviations.
     var UNINOVIS_INSTITUTIONS = [
         'Universidad de Málaga',
         'Université Sorbonne Paris Nord',
@@ -368,6 +383,18 @@
         'Tampere University of Applied Sciences',
         'The Hague University of Applied Sciences'
     ];
+    var UNI_ABBR = {
+        'Universidad de Málaga': 'UMA',
+        'Université Sorbonne Paris Nord': 'USPN',
+        'University of Campania "Luigi Vanvitelli"': 'UDCLV',
+        'Kauno kolegija Higher Education Institution': 'KK',
+        'University of Tirana': 'UT',
+        'Technical University of Applied Sciences Würzburg-Schweinfurt': 'THWS',
+        'Tampere University of Applied Sciences': 'TAMK',
+        'The Hague University of Applied Sciences': 'THUAS'
+    };
+    var PARTNER_ABBRS = ['UMA','USPN','UDCLV','KK','UT','THWS','TAMK','THUAS'];
+    function uniAbbr(name) { return UNI_ABBR[name] || name || '—'; }
     var state = {
         collaborations: [],
         institutions: [],
@@ -523,10 +550,11 @@
         var html = '<table class="collab-table">';
         html += '<thead><tr>';
         html += '<th onclick="sortTable(\'collab1\')">Collaborator 1' + arrow('collab1') + '</th>';
-        html += '<th onclick="sortTable(\'uni1\')">University' + arrow('uni1') + '</th>';
+        html += '<th onclick="sortTable(\'uni1\')">Uni' + arrow('uni1') + '</th>';
         html += '<th onclick="sortTable(\'collab2\')">Collaborator 2' + arrow('collab2') + '</th>';
-        html += '<th onclick="sortTable(\'uni2\')">University' + arrow('uni2') + '</th>';
+        html += '<th onclick="sortTable(\'uni2\')">Uni' + arrow('uni2') + '</th>';
         html += '<th onclick="sortTable(\'goal\')">Goal' + arrow('goal') + '</th>';
+        html += '<th onclick="sortTable(\'assigned\')">Assigned' + arrow('assigned') + '</th>';
         html += '<th onclick="sortTable(\'status\')">Status' + arrow('status') + '</th>';
         html += '</tr></thead><tbody>';
 
@@ -536,10 +564,11 @@
             var c2 = collabs[1] || {};
             html += '<tr onclick="openViewModal(\'' + c.id + '\')">';
             html += '<td>' + esc(c1.name || '—') + '</td>';
-            html += '<td>' + esc(c1.institution || '—') + '</td>';
+            html += '<td>' + esc(uniAbbr(c1.institution)) + '</td>';
             html += '<td>' + esc(c2.name || '—') + '</td>';
-            html += '<td>' + esc(c2.institution || '—') + '</td>';
+            html += '<td>' + esc(uniAbbr(c2.institution)) + '</td>';
             html += '<td>' + esc(c.goal || '—') + '</td>';
+            html += '<td>' + esc(c.assigned_to || '—') + '</td>';
             html += '<td><span class="status-badge status-' + c.status + '">' + statusLabel(c.status) + '</span></td>';
             html += '</tr>';
         });
@@ -570,6 +599,7 @@
                 case 'collab2': return (c2.name || '').toLowerCase();
                 case 'uni2': return (c2.institution || '').toLowerCase();
                 case 'goal': return (c.goal || '').toLowerCase();
+                case 'assigned': return (c.assigned_to || '').toLowerCase();
                 case 'status':
                     var order = {action_needed: 0, in_progress: 1, done: 2};
                     return order[c.status] != null ? order[c.status] : 99;
@@ -611,7 +641,7 @@
         var sections = [];
 
         var collaboratorsHtml = (c.collaborators || []).map(function(p) {
-            return '<li><div class="entry-main">' + esc(p.name) + (p.institution ? ' &middot; ' + esc(p.institution) : '') + '</div>' +
+            return '<li><div class="entry-main">' + esc(p.name) + (p.institution ? ' &middot; ' + esc(uniAbbr(p.institution)) : '') + '</div>' +
                 '<div class="entry-sub">' + [
                     p.email ? '<a href="mailto:' + esc(p.email) + '">' + esc(p.email) + '</a>' : '',
                     p.area_of_interest ? esc(p.area_of_interest) : ''
@@ -624,6 +654,10 @@
         sections.push(
             '<div class="detail-section"><div class="detail-section-title">Goal</div><div style="padding:10px 12px;">' +
             '<div class="detail-value">' + (c.goal ? esc(c.goal) : '<span class="muted">&mdash;</span>') + '</div></div></div>');
+
+        sections.push(
+            '<div class="detail-section"><div class="detail-section-title">Assigned to</div><div style="padding:10px 12px;">' +
+            '<div class="detail-value">' + (c.assigned_to ? esc(c.assigned_to) : '<span class="muted">Not assigned</span>') + '</div></div></div>');
 
         if (c.physical_mobility) {
             var mobilityHtml = (c.mobility_visits || []).map(function(m) {
@@ -811,6 +845,7 @@
             document.getElementById('goal-other-field').style.display = 'none';
         }
         form.elements['status'].value = c.status || 'action_needed';
+        form.elements['assigned_to'].value = c.assigned_to || '';
         form.elements['notes'].value = c.notes || '';
 
         state.form.collaborators = (c.collaborators || []).map(function(p) { return Object.assign({}, p); });
@@ -856,6 +891,7 @@
             title: form.elements['title'].value.trim(),
             goal: form.elements['goal'].value === 'Otras' ? 'Otras: ' + (form.elements['goal_other'].value.trim() || 'sin especificar') : form.elements['goal'].value.trim(),
             status: form.elements['status'].value,
+            assigned_to: form.elements['assigned_to'].value,
             collaborators: collaborators,
             physical_mobility: physicalMobility,
             mobility_visits: physicalMobility ? state.form.mobility_visits.filter(function(m) { return m.start_date; }) : [],

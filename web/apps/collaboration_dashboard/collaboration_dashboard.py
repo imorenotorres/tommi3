@@ -109,6 +109,7 @@ class CollaborationBody(BaseModel):
     title: str
     goal: str = ""
     status: str = "action_needed"  # action_needed | in_progress | done
+    assigned_to: str = ""  # UNINOVIS partner abbreviation (e.g. "UMA", "THUAS")
     collaborators: list[Collaborator] = []
     physical_mobility: bool = False
     mobility_visits: list[MobilityVisit] = []
