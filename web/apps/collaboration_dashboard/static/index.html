@@ -25,6 +25,14 @@
         .toolbar input[type="text"] { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
         .toolbar select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; min-width: 160px; }
 
+        .assigned-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+        .assigned-filters .af-btn {
+            padding: 5px 14px; border: 1px solid #ccc; border-radius: 16px;
+            background: #fff; font-size: 0.82em; cursor: pointer; color: #555; transition: all 0.15s;
+        }
+        .assigned-filters .af-btn:hover { border-color: #4250b3; color: #4250b3; }
+        .assigned-filters .af-btn.active { background: #4250b3; color: #fff; border-color: #4250b3; }
+
         /* Buttons */
         .btn { display: inline-block; background: #4250b3; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-size: 0.9em; cursor: pointer; }
         .btn:hover { background: #374399; }
@@ -229,6 +237,7 @@
                 <option value="Otras">Otras</option>
             </select>
         </div>
+        <div class="assigned-filters" id="assigned-filters"></div>
 
         <!-- Collaborations grid -->
         <div class="collab-grid" id="collab-grid" style="overflow-x:auto;"></div>
@@ -310,16 +319,8 @@
 
                 <div class="form-field">
                     <label>Assigned to</label>
-                    <select name="assigned_to">
+                    <select name="assigned_to" id="sel-assigned-to">
                         <option value="">— Not assigned —</option>
-                        <option value="UMA">UMA</option>
-                        <option value="USPN">USPN</option>
-                        <option value="UDCLV">UDCLV</option>
-                        <option value="THWS">THWS</option>
-                        <option value="TAMK">TAMK</option>
-                        <option value="KK">KK</option>
-                        <option value="UT">UT</option>
-                        <option value="THUAS">THUAS</option>
                     </select>
                 </div>
 
@@ -395,6 +396,9 @@
     };
     var PARTNER_ABBRS = ['UMA','USPN','UDCLV','KK','UT','THWS','TAMK','THUAS'];
     function uniAbbr(name) { return UNI_ABBR[name] || name || '—'; }
+
+    // Configurable list of people for "Assigned to"
+    var ASSIGNEES = ['Yamina','Belén','Amparo','Paqui','Ignacio','Miriam','Gema','No en la lista'];
     var state = {
         collaborations: [],
         institutions: [],
@@ -494,6 +498,25 @@
         var areaList = document.getElementById('areas-list');
         areaList.innerHTML = state.areasOfInterest.map(function(a) { return '<option value="' + esc(a) + '">'; }).join('');
 
+        // Populate "Assigned to" form dropdown
+        var assigneeOpts = ASSIGNEES.map(function(n) { return '<option value="' + escAttr(n) + '">' + esc(n) + '</option>'; }).join('');
+        document.getElementById('sel-assigned-to').innerHTML = '<option value="">— Not assigned —</option>' + assigneeOpts;
+
+        // Build assigned-to filter buttons
+        var afHtml = '<button class="af-btn active" onclick="filterAssigned(this, \'\')">All</button>';
+        ASSIGNEES.forEach(function(n) {
+            afHtml += '<button class="af-btn" onclick="filterAssigned(this, \'' + escAttr(n) + '\')">' + esc(n) + '</button>';
+        });
+        document.getElementById('assigned-filters').innerHTML = afHtml;
+
+        renderCollaborations();
+    }
+
+    var _filterAssigned = '';
+    function filterAssigned(btn, value) {
+        _filterAssigned = value;
+        document.querySelectorAll('.assigned-filters .af-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
         renderCollaborations();
     }
 
@@ -503,10 +526,10 @@
         var query = document.getElementById('search-input').value.toLowerCase();
         var filterStatus = document.getElementById('filter-status').value;
         var filterGoal = document.getElementById('filter-goal').value;
-
         var filtered = state.collaborations.filter(function(c) {
             if (filterStatus && c.status !== filterStatus) return false;
             if (filterGoal && c.goal !== filterGoal) return false;
+            if (_filterAssigned && (c.assigned_to || '') !== _filterAssigned) return false;
             if (query) {
                 var collabNames = (c.collaborators || []).map(function(p) { return p.name + ' ' + p.institution + ' ' + p.area_of_interest; }).join(' ');
                 var haystack = [c.title, c.goal, collabNames].join(' ').toLowerCase();
