@@ -266,6 +266,7 @@ h2 { font-size: 22px; margin-bottom: 6px; color: #2563eb; }
 
 <script>
 var TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 var BASE = '/lti/fonesp/api';
 
 function api(path) { return BASE + path + (path.indexOf('?') >= 0 ? '&' : '?') + 'token=' + TOKEN; }
@@ -632,13 +633,13 @@ function transcribirLibre() {
     .then(function(r){ return r.json(); })
     .then(function(data) {
         if (!data.ok) {
-            result.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#991b1b;">' + (data.error || 'No se pudo transcribir') + '</div>';
+            result.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:13px;color:#991b1b;">' + esc(data.error || 'No se pudo transcribir') + '</div>';
             return;
         }
         var html = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px;">';
         html += '<div style="font-size:11px;color:#16a34a;font-weight:600;margin-bottom:6px;">Transcripcion verificada (sin IA)</div>';
-        html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;margin-bottom:4px;"><strong>Fonologica:</strong> ' + data.transcripcion + '</div>';
-        if (data.fonetica) html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;"><strong>Fonetica:</strong> ' + data.fonetica + '</div>';
+        html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;margin-bottom:4px;"><strong>Fonologica:</strong> ' + esc(data.transcripcion) + '</div>';
+        if (data.fonetica) html += '<div style="font-size:14px;font-family:\'Doulos SIL\',serif;"><strong>Fonetica:</strong> ' + esc(data.fonetica) + '</div>';
         html += '</div>';
         result.innerHTML = html;
     })

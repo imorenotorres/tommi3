@@ -48,6 +48,8 @@ LOGS_DIR = SCRIPT_DIR / "logs"
 # Cada entrada define cómo configurar el .env para esa LLM
 # Añade o modifica según tus necesidades
 
+_MISTRAL_KEY = os.environ.get("MISTRAL_API_KEY", "")
+
 LLM_CONFIGS = {
     # --- Mistral Cloud ---
     "mistral-large": {
@@ -55,7 +57,7 @@ LLM_CONFIGS = {
         "provider": "mistral",
         "env_vars": {
             "LLM_PROVIDER": "mistral",
-            "MISTRAL_API_KEY": "5csuTcL2eHvm98DvHzrjALMMgqJTiat3",
+            "MISTRAL_API_KEY": _MISTRAL_KEY,
             "MISTRAL_MODEL": "mistral-large-latest",
         }
     },
@@ -64,7 +66,7 @@ LLM_CONFIGS = {
         "provider": "mistral",
         "env_vars": {
             "LLM_PROVIDER": "mistral",
-            "MISTRAL_API_KEY": "5csuTcL2eHvm98DvHzrjALMMgqJTiat3",
+            "MISTRAL_API_KEY": _MISTRAL_KEY,
             "MISTRAL_MODEL": "mistral-small-latest",
         }
     },
@@ -73,7 +75,7 @@ LLM_CONFIGS = {
         "provider": "mistral",
         "env_vars": {
             "LLM_PROVIDER": "mistral",
-            "MISTRAL_API_KEY": "5csuTcL2eHvm98DvHzrjALMMgqJTiat3",
+            "MISTRAL_API_KEY": _MISTRAL_KEY,
             "MISTRAL_MODEL": "codestral-latest",
         }
     },

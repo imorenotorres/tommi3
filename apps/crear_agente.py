@@ -1843,16 +1843,28 @@ def obtener_hora_actual() -> str:
 
 
 def calcular(expresion: str) -> str:
-    """Calcula una expresión matemática simple."""
+    """Calcula una expresión matemática simple usando AST (sin eval)."""
+    import ast, operator
+    _ops = {
+        ast.Add: operator.add, ast.Sub: operator.sub,
+        ast.Mult: operator.mul, ast.Div: operator.truediv,
+        ast.Pow: operator.pow, ast.USub: operator.neg,
+        ast.UAdd: operator.pos, ast.Mod: operator.mod,
+    }
+    def _eval(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+            return node.value
+        elif isinstance(node, ast.BinOp) and type(node.op) in _ops:
+            return _ops[type(node.op)](_eval(node.left), _eval(node.right))
+        elif isinstance(node, ast.UnaryOp) and type(node.op) in _ops:
+            return _ops[type(node.op)](_eval(node.operand))
+        raise ValueError("Expresión no soportada")
     try:
-        # Solo permitir operaciones matemáticas básicas
-        allowed = set('0123456789+-*/.() ')
-        if not all(c in allowed for c in expresion):
-            return "Error: expresión no válida"
-        result = eval(expresion)
+        tree = ast.parse(expresion.strip(), mode='eval')
+        result = _eval(tree.body)
         return str(result)
     except Exception as e:
-        return f"Error: {{str(e)}}"
+        return f"Error: {str(e)}"
 
 
 def buscar_en_datos(query: str) -> str:

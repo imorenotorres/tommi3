@@ -346,18 +346,26 @@ def validate_password(password: str) -> str | None:
 # Password hashing
 # ---------------------------------------------------------------------------
 
+_PBKDF2_ITERATIONS = 310_000  # NIST SP 800-132 (2023) recommendation
+
+
 def _hash_password(password: str, salt: str | None = None) -> tuple[str, str]:
     """Hash a password with PBKDF2-HMAC-SHA256. Returns (hash_hex, salt_hex)."""
     if salt is None:
         salt = secrets.token_hex(16)
-    h = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000)
+    h = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), _PBKDF2_ITERATIONS)
     return h.hex(), salt
 
 
 def _verify_password(password: str, hash_hex: str, salt: str) -> bool:
-    """Verify a password against its stored hash."""
+    """Verify a password against its stored hash.
+    Supports both old (100k) and new (310k) iteration counts."""
     h, _ = _hash_password(password, salt)
-    return secrets.compare_digest(h, hash_hex)
+    if secrets.compare_digest(h, hash_hex):
+        return True
+    # Fallback: try old iteration count for hashes created before the upgrade
+    h_old = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000)
+    return secrets.compare_digest(h_old.hex(), hash_hex)
 
 
 # ---------------------------------------------------------------------------

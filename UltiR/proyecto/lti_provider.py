@@ -355,6 +355,15 @@ async def proyecto_put_config(request: Request):
 # Document upload (instructor only)
 # ═══════════════════════════════════════════════════════════════════════
 
+MAX_UPLOAD_SIZE = 20 * 1024 * 1024  # 20 MB
+
+# MIME signatures for allowed file types
+_MIME_SIGNATURES = {
+    b"%PDF": ".pdf",
+    b"# ": ".md",     # Markdown typically starts with heading
+}
+
+
 @router.post("/lti/proyecto/api/docs")
 async def proyecto_upload_doc(request: Request, file: UploadFile = File(...)):
     session = sessions.require(request)
@@ -363,11 +372,16 @@ async def proyecto_upload_doc(request: Request, file: UploadFile = File(...)):
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in (".pdf", ".md", ".txt"):
         raise HTTPException(400, "Solo PDF, Markdown o texto plano")
+    content = await file.read()
+    # Size limit
+    if len(content) > MAX_UPLOAD_SIZE:
+        raise HTTPException(400, f"File too large (max {MAX_UPLOAD_SIZE // (1024*1024)} MB)")
+    # MIME validation for PDFs
+    if ext == ".pdf" and not content[:5].startswith(b"%PDF"):
+        raise HTTPException(400, "File does not appear to be a valid PDF")
     safe_name = re.sub(r'[^\w\-. ]', '_', file.filename or "doc")
     dest = _docs_dir(session["course_id"]) / safe_name
-    content = await file.read()
     dest.write_bytes(content)
-    # Rebuild chunk DB
     _build_chunk_db(session["course_id"])
     return {"ok": True, "filename": safe_name}
 

@@ -8,14 +8,74 @@ Converts grades between UNINOVIS partner universities using either:
 Designed to be mounted on the TOMMI FastAPI server.
 """
 
+import ast
 import json
 import math
+import operator
 import os
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+
+
+# Safe math evaluator — replaces eval() for formula computation
+_SAFE_OPS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Pow: operator.pow,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+    ast.Mod: operator.mod,
+    ast.Eq: operator.eq,
+    ast.NotEq: operator.ne,
+    ast.Lt: operator.lt,
+    ast.LtE: operator.le,
+    ast.Gt: operator.gt,
+    ast.GtE: operator.ge,
+}
+
+
+def _safe_eval(expr: str):
+    """Evaluate a math expression safely using AST parsing (no exec/eval)."""
+    try:
+        tree = ast.parse(expr.strip(), mode='eval')
+    except SyntaxError as e:
+        raise ValueError(f"Invalid expression: {e}")
+    return _eval_node(tree.body)
+
+
+def _eval_node(node):
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, (int, float)):
+            return node.value
+        raise ValueError(f"Unsupported constant: {node.value}")
+    elif isinstance(node, ast.BinOp):
+        op = _SAFE_OPS.get(type(node.op))
+        if not op:
+            raise ValueError(f"Unsupported operator: {type(node.op).__name__}")
+        return op(_eval_node(node.left), _eval_node(node.right))
+    elif isinstance(node, ast.UnaryOp):
+        op = _SAFE_OPS.get(type(node.op))
+        if not op:
+            raise ValueError(f"Unsupported unary operator: {type(node.op).__name__}")
+        return op(_eval_node(node.operand))
+    elif isinstance(node, ast.Compare):
+        left = _eval_node(node.left)
+        for op_node, comparator in zip(node.ops, node.comparators):
+            op = _SAFE_OPS.get(type(op_node))
+            if not op:
+                raise ValueError(f"Unsupported comparison: {type(op_node).__name__}")
+            right = _eval_node(comparator)
+            if not op(left, right):
+                return False
+            left = right
+        return True
+    else:
+        raise ValueError(f"Unsupported expression node: {type(node).__name__}")
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
@@ -112,7 +172,7 @@ def _eval_formula(formula: str, x: float) -> float:
         raise ValueError(f"Unsafe formula expression: {expr}")
 
     try:
-        result = float(eval(expr))  # safe: input is validated above
+        result = float(_safe_eval(expr))
     except Exception as e:
         raise ValueError(f"Formula evaluation error: {e}")
 
@@ -133,7 +193,7 @@ def _eval_if_args(args_str: str, x: float) -> str:
     if not re.match(r'^[\d\s+\-*/().eE<>=!]+$', cond_expr):
         raise ValueError(f"Unsafe condition: {cond_expr}")
 
-    cond_result = eval(cond_expr)
+    cond_result = _safe_eval(cond_expr)
 
     return true_str if cond_result else false_str
 

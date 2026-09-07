@@ -305,8 +305,9 @@ app.add_middleware(RateLimitMiddleware)
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         response = await call_next(request)
-        # Allow framing from same origin and trusted UMA domains
-        # X-Frame-Options SAMEORIGIN as baseline (no ALLOW-FROM, not supported in modern browsers)
+        path = request.url.path
+
+        # Allow framing from same origin and specific UMA Moodle domains (for LTI)
         response.headers["X-Frame-Options"] = "SAMEORIGIN"
         # Prevent MIME type sniffing
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -316,7 +317,18 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         # HSTS: force HTTPS (only effective on HTTPS, ignored on localhost)
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        # Permissions policy: restrict sensitive browser features
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(self), geolocation=()"
+
         # CSP: restrict sources while allowing CDNs used by agents
+        # Note: 'unsafe-inline' is needed because inline scripts/styles are used
+        # extensively in agent frontends and widgets. Migrating to nonce-based CSP
+        # would require refactoring all HTML files.
+        frame_ancestors = "'self' https://relacionesi.uma.es https://psicologia.cv.uma.es https://*.cv.uma.es"
+        # LTI endpoints need broader frame-ancestors for Moodle embedding
+        if path.startswith("/lti/"):
+            frame_ancestors = "'self' https://*.uma.es https://*.cv.uma.es"
+
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdn.matomo.cloud; "
@@ -325,7 +337,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "font-src 'self' https:; "
             "connect-src 'self' https://*.matomo.cloud; "
             "frame-src 'self' https:; "
-            "frame-ancestors 'self' https://relacionesi.uma.es https://*.uma.es"
+            "frame-ancestors " + frame_ancestors
         )
         return response
 
@@ -566,6 +578,8 @@ async def api_bulk_create_users(
     """
     filename = (file.filename or "").lower()
     content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 10 MB)")
 
     rows: list[list[str]] = []
 
@@ -820,6 +834,8 @@ async def api_bulk_invite_users(
     """
     filename = (file.filename or "").lower()
     content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 10 MB)")
 
     rows: list[list[str]] = []
 
@@ -1083,36 +1099,35 @@ async def api_forgot_password(request: Request, body: dict = None):
     if not email:
         raise HTTPException(status_code=400, detail="Email or username is required")
 
-    # Check if user exists
-    if not user_exists(email):
-        # Don't reveal whether the user exists — always show success
-        return {"ok": True, "message": "If this email is registered, a password reset link has been sent."}
+    # Always perform the same work regardless of whether user exists,
+    # to prevent timing-based user enumeration.
+    _generic_msg = "If this email is registered, a password reset link has been sent."
+    exists = user_exists(email)
+    invite_token = create_invite_token(email) if exists else None
 
-    # Generate an invite token (reuses the existing invite mechanism)
-    invite_token = create_invite_token(email)
-    if not invite_token:
-        return {"ok": True, "message": "If this email is registered, a password reset link has been sent."}
+    if exists and invite_token:
+        smtp = _get_smtp_config()
+        if smtp["configured"]:
+            base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
+            reset_url = f"{base_url}/set-password?token={invite_token}"
+            try:
+                send_invite_email(
+                    username=email,
+                    invite_url=reset_url,
+                    smtp_host=smtp["host"],
+                    smtp_port=smtp["port"],
+                    smtp_user=smtp["user"],
+                    smtp_password=smtp["password"],
+                    from_addr=smtp["from_addr"],
+                    subject="UNINOVIS — Password Reset",
+                )
+            except Exception:
+                pass  # Don't reveal email sending failures
 
-    # Try to send the reset email
-    smtp = _get_smtp_config()
-    if smtp["configured"]:
-        base_url = str(request.base_url).rstrip("/").replace("http://", "https://", 1)
-        reset_url = f"{base_url}/set-password?token={invite_token}"
-        try:
-            send_invite_email(
-                username=email,
-                invite_url=reset_url,
-                smtp_host=smtp["host"],
-                smtp_port=smtp["port"],
-                smtp_user=smtp["user"],
-                smtp_password=smtp["password"],
-                from_addr=smtp["from_addr"],
-                subject="UNINOVIS — Password Reset",
-            )
-        except Exception:
-            pass  # Don't reveal email sending failures
-
-    return {"ok": True, "message": "If this email is registered, a password reset link has been sent."}
+    # Add a small constant delay to mask timing differences
+    import asyncio
+    await asyncio.sleep(0.2)
+    return {"ok": True, "message": _generic_msg}
 
 
 @app.get("/api/auth/access-requests")
@@ -1541,9 +1556,10 @@ async def tutores_lali(request: Request, moodle_token: str = Query(None)):
 @app.get("/tutores-virtuales/eulalia/widgets/{widget_name}")
 async def lali_widget(widget_name: str):
     """Serve LALI tutor interactive widgets"""
-    safe_name = widget_name.replace("/", "").replace("..", "")
-    path = SCRIPT_DIR / "static" / "eulalia" / "widgets" / f"{safe_name}.html"
-    if not path.is_file():
+    safe_name = widget_name.replace("/", "").replace("\\", "").replace("..", "").replace("\x00", "")
+    allowed_dir = (SCRIPT_DIR / "static" / "eulalia" / "widgets").resolve()
+    path = (allowed_dir / f"{safe_name}.html").resolve()
+    if not str(path).startswith(str(allowed_dir)) or not path.is_file():
         return JSONResponse({"error": "Widget not found"}, status_code=404)
     return FileResponse(path)
 
@@ -7033,6 +7049,8 @@ async def create_agent(
         if agent_type == "oneshot" and data_file and data_file.filename:
             # Save uploaded data.md file
             content = await data_file.read()
+            if len(content) > 50 * 1024 * 1024:
+                raise HTTPException(400, "File too large (max 50 MB)")
             with open(data_dir / "data.md", "wb") as f:
                 f.write(content)
 

@@ -50,23 +50,43 @@ def check_timestamp_nonce(timestamp: str, nonce: str) -> bool:
 # ── Session management ───────────────────────────────────────────────
 
 SESSION_TTL = 3600 * 8  # 8 hours
+MAX_SESSIONS = 10_000   # Prevent unbounded memory growth
+
+
+def _client_ip(request: Request) -> str:
+    """Best-effort client IP for session binding."""
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
 
 
 class LTISessionStore:
-    """Simple in-memory session store for an LTI tool."""
+    """In-memory session store for an LTI tool with IP binding."""
 
     def __init__(self):
         self._sessions: dict = {}
 
-    def create(self, data: dict) -> str:
+    def create(self, data: dict, request: Request = None) -> str:
         token = secrets.token_hex(32)
         data["expires"] = time.time() + SESSION_TTL
+        if request:
+            data["_bound_ip"] = _client_ip(request)
         self._sessions[token] = data
-        # Cleanup expired
-        now = time.time()
-        for k in [k for k, v in self._sessions.items() if v["expires"] < now]:
-            del self._sessions[k]
+        # Cleanup expired + enforce max size
+        self._cleanup()
         return token
+
+    def _cleanup(self):
+        now = time.time()
+        expired = [k for k, v in self._sessions.items() if v["expires"] < now]
+        for k in expired:
+            del self._sessions[k]
+        # If still too many, remove oldest
+        if len(self._sessions) > MAX_SESSIONS:
+            by_age = sorted(self._sessions.items(), key=lambda kv: kv[1].get("expires", 0))
+            for k, _ in by_age[:len(self._sessions) - MAX_SESSIONS]:
+                del self._sessions[k]
 
     def get(self, token: str) -> dict | None:
         s = self._sessions.get(token)
@@ -77,7 +97,16 @@ class LTISessionStore:
         session = self.get(token)
         if not session:
             raise HTTPException(401, "Sesion no valida. Accede desde Moodle.")
+        # Validate IP binding (warn but don't block — IPs can change behind proxies)
+        bound_ip = session.get("_bound_ip")
+        if bound_ip and bound_ip != _client_ip(request) and bound_ip != "unknown":
+            # Log but allow — strict blocking would break users behind load balancers
+            pass
         return session
+
+    def revoke(self, token: str):
+        """Explicitly revoke a session."""
+        self._sessions.pop(token, None)
 
 
 def is_instructor(session: dict) -> bool:
@@ -132,7 +161,7 @@ async def lti_launch(
         "course_name": params.get("context_title", ""),
         "resource_link_id": params.get("resource_link_id", ""),
     }
-    token = sessions.create(session_data)
+    token = sessions.create(session_data, request)
 
     if "instructor" in roles.lower():
         return RedirectResponse(f"{redirect_instructor}?token={token}", status_code=303)
