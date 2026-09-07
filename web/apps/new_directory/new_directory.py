@@ -194,7 +194,7 @@ def _build_unit_tree(units: list, memberships: list, people_by_id: dict, univers
 
 @router.get("/")
 def index():
-    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"), headers={"Cache-Control": "no-store"})
 
 
 @router.get("/api/auth-check")

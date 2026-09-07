@@ -228,7 +228,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 </head>
 <body>
 
-<script src="/static/nav.js?v=4"></script>
+<script src="/static/nav.js?v=11"></script>
 <script>uninovisNav({ crumbs: [{label:'WP1: Administration', href:'/#admin'}], current: 'Event Tracker' });</script>
 
 <!-- Agora sync bar (shown to editors only) -->
@@ -589,6 +589,7 @@ let dirGroups = [];
 let dirUsers = [];
 let canEdit = false;
 let isSuperuser = false;
+let authRoles = [];
 let authUsername = '';
 let currentView = 'month';
 let currentDate = new Date();
@@ -605,13 +606,29 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/[^A-Za-z0-9]+/g, '_');
 (async function init() {
   TOKEN = localStorage.getItem('tommi_token') || new URLSearchParams(location.search).get('token') || '';
 
+  // Guide registration must never depend on this app's own data loading
+  // successfully — it always runs first, so the "how to use it" guide is
+  // still available even if the event data is down (e.g. a missing data file).
+  try {
+    GUIDES.push({
+      id: 'event_tracker_overview',
+      title: 'About: Event Tracker',
+      group: 'WP1: Administration',
+      roles: null,
+      url: '/event-tracker/',
+      primary: true,
+      steps: GUIDE_CONTENT.event_tracker,
+    });
+  } catch (e) { console.error('Guide registration failed:', e); }
+
   try {
     const auth = await api('GET', '/api/auth-check');
     var userInfoEl = document.getElementById('userInfo');
     if (userInfoEl) userInfoEl.textContent = auth.username + ' (' + auth.role + ')';
     authUsername = auth.username;
     canEdit = auth.can_edit;
-    isSuperuser = (auth.roles || [auth.role]).includes('superuser');
+    authRoles = auth.roles || [auth.role];
+    isSuperuser = authRoles.includes('superuser');
     // btnPersonal and btnSubscribe stay hidden (display:none in markup) until re-enabled.
     if (canEdit) {
       document.getElementById('btnAdd').style.display = '';
@@ -625,7 +642,11 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/[^A-Za-z0-9]+/g, '_');
   }
 
   try { await loadData(); } catch (e) { console.error('loadData failed:', e); }
-  render();
+  try { render(); } catch (e) { console.error('render failed:', e); }
+
+  try {
+    maybeAutoPlayGuideFromUrl(authRoles, authUsername);
+  } catch (e) { console.error('Guide auto-play failed:', e); }
 
   document.getElementById('btnPrev').onclick = () => navigate(-1);
   document.getElementById('btnNext').onclick = () => navigate(1);

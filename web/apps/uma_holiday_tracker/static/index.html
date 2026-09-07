@@ -139,7 +139,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 </head>
 <body>
 
-<script src="/static/nav.js?v=4"></script>
+<script src="/static/nav.js?v=11"></script>
 <script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/#uma_holidays'}], current: 'UMA Holiday Tracker' });</script>
 
 <div id="deniedView" class="denied" style="display:none;">
@@ -166,8 +166,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <button class="btn-log commission" onclick="openLogModal('comision_servicio')">💼 Comisión de servicio</button>
         <button class="btn-log telework" onclick="openLogModal('teletrabajo')">💻 Teletrabajo</button>
         <button class="btn-log formacion" onclick="openLogModal('formacion')">🎓 Formación</button>
-        <button class="nav-btn" id="btnMyAllowance" onclick="openAllowanceModal()">🗓️ My days</button>
-        <button class="nav-btn" id="btnManageFestivities" style="display:none;" onclick="openFestivitiesModal()">🎉 Manage festivities</button>
+        <button class="nav-btn" id="btnMyAllowance" onclick="openAllowanceModal()">🗓️ Mis días</button>
+        <button class="nav-btn" id="btnManageFestivities" style="display:none;" onclick="openFestivitiesModal()">🎉 Configurar festivos</button>
       </div>
     </div>
 
@@ -253,7 +253,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <div class="modal-overlay" id="festModal">
   <div class="modal" style="max-width:440px;max-height:78vh;display:flex;flex-direction:column;">
     <div class="modal-header">
-      <h2>Manage UMA festivities</h2>
+      <h2>Configurar festivos</h2>
       <button class="modal-close" onclick="closeFestivitiesModal()">&times;</button>
     </div>
     <div class="modal-body" style="overflow-y:auto;flex:1;">
@@ -320,7 +320,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <div class="modal-overlay" id="allowanceModal">
   <div class="modal" style="max-width:440px;max-height:78vh;display:flex;flex-direction:column;">
     <div class="modal-header">
-      <h2>My days allowance</h2>
+      <h2>Mis días</h2>
       <button class="modal-close" onclick="closeAllowanceModal()">&times;</button>
     </div>
     <div class="modal-body" style="overflow-y:auto;flex:1;">
@@ -738,7 +738,7 @@ function usableStatYears(stats) {
 
 function statsHeaderHTML() {
   return `<div class="stats-header">
-    <h3>My logged days</h3>
+    <h3>Mis días registrados</h3>
     <button class="my-color-btn" style="background:${colorForUsername(ME)};" onclick="openColorPicker()" title="Change my color"></button>
   </div>`;
 }
@@ -1328,26 +1328,55 @@ async function resetMyColor() {
 
 (async function init() {
   TOKEN = localStorage.getItem('tommi_token') || new URLSearchParams(location.search).get('token') || '';
+
+  // "Denied" is reserved strictly for a genuine access-check failure/denial
+  // from here on — everything else (event/festivity data, rendering, guides)
+  // is handled independently below so none of it can be mistaken for "no access".
+  var auth;
   try {
-    const auth = await api('GET', '/api/auth-check');
-    if (!auth.has_access) {
-      document.getElementById('deniedView').style.display = 'block';
-      return;
-    }
-    ME = auth.username;
-    MY_ROLES = auth.roles || [auth.role];
-    if (canManageFestivities()) document.getElementById('btnManageFestivities').style.display = '';
-    events = await api('GET', '/api/events');
-    try { allowances = await api('GET', '/api/allowances'); } catch (e) { allowances = []; }
-    try { manualColors = await api('GET', '/api/colors'); } catch (e) { manualColors = {}; }
+    auth = await api('GET', '/api/auth-check');
+  } catch (e) {
+    document.getElementById('deniedView').style.display = 'block';
+    return;
+  }
+  if (!auth.has_access) {
+    document.getElementById('deniedView').style.display = 'block';
+    return;
+  }
+  ME = auth.username;
+  MY_ROLES = auth.roles || [auth.role];
+  if (canManageFestivities()) document.getElementById('btnManageFestivities').style.display = '';
+
+  // Guide registration must never depend on this app's own data loading
+  // successfully — it always runs first, so the "how to use it" guide is
+  // still available even if events/festivities are down (e.g. a missing data file).
+  try {
+    GUIDES.push({
+      id: 'holiday_tracker_overview',
+      title: 'About: UMA Holiday Tracker',
+      group: 'UMA internal tools',
+      roles: null,
+      url: '/holiday-tracker/',
+      primary: true,
+      steps: GUIDE_CONTENT.holiday_tracker,
+    });
+  } catch (e) { console.error('Guide registration failed:', e); }
+
+  try { events = await api('GET', '/api/events'); } catch (e) { console.error('Failed to load events:', e); events = []; }
+  try { allowances = await api('GET', '/api/allowances'); } catch (e) { allowances = []; }
+  try { manualColors = await api('GET', '/api/colors'); } catch (e) { manualColors = {}; }
+  try {
     // Load festivities for current year and adjacent years
     const yr = new Date().getFullYear();
     await Promise.all([loadFestivities(yr - 1), loadFestivities(yr), loadFestivities(yr + 1)]);
-    document.getElementById('app').style.display = 'flex';
-    render();
-  } catch (e) {
-    document.getElementById('deniedView').style.display = 'block';
-  }
+  } catch (e) { console.error('Failed to load festivities:', e); }
+
+  document.getElementById('app').style.display = 'flex';
+  try { render(); } catch (e) { console.error('render failed:', e); }
+
+  try {
+    maybeAutoPlayGuideFromUrl(MY_ROLES, ME);
+  } catch (e) { console.error('Guide auto-play failed:', e); }
 })();
 </script>
 

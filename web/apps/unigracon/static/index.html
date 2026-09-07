@@ -383,7 +383,7 @@
     <!-- End Matomo Code -->
 </head>
 <body>
-<script src="/static/nav.js?v=4"></script>
+<script src="/static/nav.js?v=11"></script>
 <script>uninovisNav({ crumbs: [{label:'Learning & Mobility', href:'/#learning'}], current: 'UNIGRACON' });</script>
     <div class="container">
         <h1>UNIGRACON</h1>
@@ -682,18 +682,41 @@
         }
 
         async function init() {
-            const [uniResp, convResp] = await Promise.all([
-                fetch(BASE + '/api/universities'),
-                fetch(BASE + '/api/conversions'),
-            ]);
-            universities = await uniResp.json();
-            const convData = await convResp.json();
-            conversionPairs = convData.conversions;
+            // Guide registration must never depend on this app's own data
+            // loading successfully — it always runs first, so the "how to
+            // use it" guide is still available even if /api/universities or
+            // /api/conversions is down (e.g. a missing data file).
+            try {
+                GUIDES.push({
+                    id: 'unigracon_overview',
+                    title: 'About: UNIGRACON',
+                    group: 'WP2: Learning & Mobility',
+                    roles: null,
+                    url: '/unigracon/',
+                    primary: true,
+                    steps: GUIDE_CONTENT.unigracon,
+                });
+            } catch (e) { console.error('Guide registration failed:', e); }
 
-            populateSelects();
-            convertBtn.disabled = false;
-            renderAvailable();
+            try {
+                const [uniResp, convResp] = await Promise.all([
+                    fetch(BASE + '/api/universities'),
+                    fetch(BASE + '/api/conversions'),
+                ]);
+                universities = await uniResp.json();
+                const convData = await convResp.json();
+                conversionPairs = convData.conversions;
+
+                populateSelects();
+                convertBtn.disabled = false;
+                renderAvailable();
+            } catch (e) { console.error('Failed to load universities/conversions:', e); }
+
             await checkAuth();
+
+            try {
+                maybeAutoPlayGuideFromUrl(authUser ? (authUser.roles || [authUser.role]) : [], authUser ? authUser.username : '');
+            } catch (e) { console.error('Guide auto-play failed:', e); }
         }
 
         async function reloadData() {

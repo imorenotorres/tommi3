@@ -32,7 +32,7 @@ from auth import (
     authenticate, approve_access_request, change_password, create_access_request,
     create_user, create_user_pending, create_invite_token, delete_user,
     ensure_superuser, get_session, has_role, list_access_requests, list_users,
-    logout, reject_access_request, send_invite_email, set_password_from_invite,
+    logout, mark_onboarding_seen, reject_access_request, send_invite_email, set_password_from_invite,
     update_user_role, user_exists, validate_invite_token, validate_password,
     validate_uninovis_email, ROLES, TOOL_ACCESS, UNINOVIS_DOMAINS,
     can_access_tool, can_edit, user_roles, max_role_level,
@@ -506,6 +506,12 @@ async def api_me(session: dict = Depends(require_auth)):
         result["study_mode"] = True
         result["study_condition"] = user.get("study_condition")
     return result
+
+
+@app.post("/api/auth/onboarding-seen")
+async def api_onboarding_seen(session: dict = Depends(require_auth)):
+    mark_onboarding_seen(session["username"])
+    return {"ok": True}
 
 
 @app.post("/api/auth/change-password")
@@ -1374,13 +1380,13 @@ class AgentResponse(BaseModel):
 @app.get("/")
 async def root():
     """Serve the UNINOVIS intranet as the landing page"""
-    return FileResponse(SCRIPT_DIR / "static" / "intranet.html")
+    return FileResponse(SCRIPT_DIR / "static" / "intranet.html", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/intranet")
 async def intranet_page():
     """Alias for the intranet landing page"""
-    return FileResponse(SCRIPT_DIR / "static" / "intranet.html")
+    return FileResponse(SCRIPT_DIR / "static" / "intranet.html", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/rag-study")

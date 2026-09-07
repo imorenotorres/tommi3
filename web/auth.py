@@ -444,6 +444,16 @@ def list_users() -> list[dict]:
     ]
 
 
+def mark_onboarding_seen(username: str) -> bool:
+    """Mark that a user has completed the intranet onboarding tour. Returns True if updated."""
+    users = _load_users()
+    if username not in users:
+        return False
+    users[username]["seen_onboarding_tour"] = True
+    _save_users(users)
+    return True
+
+
 def update_user_role(username: str, new_role: str, roles: list = None) -> bool:
     """Update a user's role(s). Returns True if updated."""
     all_roles = roles or [new_role]

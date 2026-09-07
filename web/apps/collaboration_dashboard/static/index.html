@@ -191,7 +191,7 @@
 <!-- End Matomo Code -->
 </head>
 <body>
-<script src="/static/nav.js?v=4"></script>
+<script src="/static/nav.js?v=11"></script>
 <script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/#uma_holidays'}], current: 'Contactos exploratorios' });</script>
 <div class="container">
     <h1>Contactos exploratorios</h1>
@@ -486,30 +486,51 @@
         document.getElementById('btn-new-collab').style.display = '';
         document.getElementById('dashboard-body').classList.remove('hidden');
 
-        var resp = await fetch(BASE + '/api/data', { headers: authHeaders() });
-        if (!resp.ok) { showToast('Could not load data.', 'error'); return; }
-        var data = await resp.json();
-        state.collaborations = data.collaborations || [];
-        state.institutions = data.institutions || [];
-        state.areasOfInterest = data.areas_of_interest || [];
+        // Guide registration must never depend on this app's own data loading
+        // successfully — it always runs first, so the "how to use it" guide
+        // is still available even if /api/data is down (e.g. a missing data file).
+        try {
+            GUIDES.push({
+                id: 'collaboration_dashboard_overview',
+                title: 'About: Contactos exploratorios',
+                group: 'UMA internal tools',
+                roles: null,
+                url: '/collaboration-dashboard/',
+                primary: true,
+                steps: GUIDE_CONTENT.collaboration_dashboard,
+            });
+        } catch (e) { console.error('Guide registration failed:', e); }
 
-        var instList = document.getElementById('institutions-list');
-        instList.innerHTML = state.institutions.map(function(i) { return '<option value="' + esc(i) + '">'; }).join('');
-        var areaList = document.getElementById('areas-list');
-        areaList.innerHTML = state.areasOfInterest.map(function(a) { return '<option value="' + esc(a) + '">'; }).join('');
+        try {
+            var resp = await fetch(BASE + '/api/data', { headers: authHeaders() });
+            if (!resp.ok) throw new Error('Could not load data');
+            var data = await resp.json();
+            state.collaborations = data.collaborations || [];
+            state.institutions = data.institutions || [];
+            state.areasOfInterest = data.areas_of_interest || [];
 
-        // Populate "Assigned to" form dropdown
-        var assigneeOpts = ASSIGNEES.map(function(n) { return '<option value="' + escAttr(n) + '">' + esc(n) + '</option>'; }).join('');
-        document.getElementById('sel-assigned-to').innerHTML = '<option value="">— Not assigned —</option>' + assigneeOpts;
+            var instList = document.getElementById('institutions-list');
+            instList.innerHTML = state.institutions.map(function(i) { return '<option value="' + esc(i) + '">'; }).join('');
+            var areaList = document.getElementById('areas-list');
+            areaList.innerHTML = state.areasOfInterest.map(function(a) { return '<option value="' + esc(a) + '">'; }).join('');
 
-        // Build assigned-to filter buttons
-        var afHtml = '<button class="af-btn active" onclick="filterAssigned(this, \'\')">All</button>';
-        ASSIGNEES.forEach(function(n) {
-            afHtml += '<button class="af-btn" onclick="filterAssigned(this, \'' + escAttr(n) + '\')">' + esc(n) + '</button>';
-        });
-        document.getElementById('assigned-filters').innerHTML = afHtml;
+            // Populate "Assigned to" form dropdown
+            var assigneeOpts = ASSIGNEES.map(function(n) { return '<option value="' + escAttr(n) + '">' + esc(n) + '</option>'; }).join('');
+            document.getElementById('sel-assigned-to').innerHTML = '<option value="">— Not assigned —</option>' + assigneeOpts;
 
-        renderCollaborations();
+            // Build assigned-to filter buttons
+            var afHtml = '<button class="af-btn active" onclick="filterAssigned(this, \'\')">All</button>';
+            ASSIGNEES.forEach(function(n) {
+                afHtml += '<button class="af-btn" onclick="filterAssigned(this, \'' + escAttr(n) + '\')">' + esc(n) + '</button>';
+            });
+            document.getElementById('assigned-filters').innerHTML = afHtml;
+
+            renderCollaborations();
+        } catch (e) { showToast('Could not load data.', 'error'); console.error('Failed to load dashboard data:', e); }
+
+        try {
+            maybeAutoPlayGuideFromUrl(state.session.roles || [state.session.role], state.session.username);
+        } catch (e) { console.error('Guide auto-play failed:', e); }
     }
 
     var _filterAssigned = '';

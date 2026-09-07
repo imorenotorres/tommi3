@@ -108,6 +108,7 @@ def auth_check(session: dict = Depends(_require_auth)):
         "roles": session.get("roles", [session["role"]]),
         "can_edit": can_edit,
         "provisional_password": user.get("provisional_password", False),
+        "seen_onboarding_tour": user.get("seen_onboarding_tour", False),
     }
 
 

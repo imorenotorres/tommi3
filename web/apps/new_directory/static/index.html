@@ -90,7 +90,7 @@
     </script>
 </head>
 <body>
-<script src="/static/nav.js?v=4"></script>
+<script src="/static/nav.js?v=11"></script>
 <script>uninovisNav({ crumbs: [{label:'Administration', href:'/#admin'}], current: 'Directory' });</script>
     <div class="container">
         <h1>UNINOVIS Directory</h1>
@@ -1112,10 +1112,49 @@
         if (importBtn) importBtn.style.display = canImportJson() ? '' : 'none';
     }
 
+    // ── Guides ───────────────────────────────────────────────────────
+    // Registered into the shared window.GUIDES (nav.js). Both add_unit steps
+    // are listed; the one for a role the viewer doesn't have is simply
+    // skipped (the button behind it stays hidden), so this single guide
+    // covers wp_leader, content_manager, and superuser without branching.
+    // Wrapped in try/catch so a guide-registration problem (e.g. a stale
+    // cached nav.js missing GUIDE_CONTENT) can never take down the rest of
+    // this script — in particular the init() call below, which must always run.
+    try {
+        GUIDES.push({
+            id: 'directory_overview',
+            title: 'About: Directory',
+            group: 'WP1: Administration',
+            roles: null,
+            url: '/new-directory/',
+            primary: true,
+            steps: GUIDE_CONTENT.directory_overview,
+        });
+        GUIDES.push({
+            id: 'directory_add_person',
+            title: 'Directory: How to add a person',
+            group: 'WP1: Administration',
+            roles: ['content_manager', 'superuser'],
+            url: '/new-directory/',
+            steps: GUIDE_CONTENT.directory_add_person,
+        });
+        GUIDES.push({
+            id: 'directory_add_unit',
+            title: 'Directory: How to create a unit or subunit',
+            group: 'WP1: Administration',
+            roles: ['content_manager', 'superuser', 'wp_leader'],
+            url: '/new-directory/',
+            steps: GUIDE_CONTENT.directory_add_unit,
+        });
+    } catch (e) { console.error('Guide registration failed:', e); }
+
     async function init() {
         await checkAuth();
-        await loadAll();
+        try { await loadAll(); } catch (e) { console.error('Failed to load directory data:', e); }
         if (window.location.hash === '#my-profile') openMyProfileModal();
+        try {
+            maybeAutoPlayGuideFromUrl(currentUser ? (currentUser.roles || [currentUser.role]) : [], currentUser ? currentUser.username : '');
+        } catch (e) { console.error('Guide auto-play failed:', e); }
     }
 
     window.addEventListener('hashchange', function() {

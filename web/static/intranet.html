@@ -95,6 +95,7 @@
     <h1>UNINOVIS Intranet</h1>
     <div class="user-info" id="topUserInfo" style="display:none;">
         <span id="topUsername"></span>
+        <span id="topGuidesSlot"></span>
         <button onclick="doLogout()">Logout</button>
     </div>
 </div>
@@ -111,7 +112,7 @@
 
 <div class="footer">UNINOVIS &mdash; European University Alliance</div>
 
-<script src="/static/nav.js?v=4"></script>
+<script src="/static/nav.js?v=11"></script>
 <script>
 // ── Roles ─────────────────────────────────────────────────────────
 // Single source of truth for every assignable user role and its display
@@ -332,6 +333,118 @@ async function showMain() {
     }
 
     renderSections(roles);
+
+    renderGuidesMenu(document.getElementById('topGuidesSlot'), roles, authUser.username);
+    var hasGuideLink = new URLSearchParams(window.location.search).has('guide');
+    maybeAutoPlayGuideFromUrl(roles, authUser.username);
+    if (!hasGuideLink && roles.indexOf('uninovis_staff') !== -1 && !authUser.seen_onboarding_tour) {
+        playTourSteps(GUIDES.filter(function(g) { return g.id === 'portal_welcome'; })[0].steps, onboardingTourFinished);
+    }
+}
+
+// ── Guides ───────────────────────────────────────────────────────────
+// Registers this page's guides into the shared registry (window.GUIDES,
+// defined in nav.js) — the portal's own welcome tour, plus one auto-generated
+// "About" guide per tool, sourced directly from SECTIONS/TOOL_ACCESS so their
+// visibility always matches who can actually access that tool.
+// Wrapped in try/catch throughout: a guide-registration problem (e.g. a
+// stale cached nav.js missing GUIDE_CONTENT) must never prevent checkAuth()
+// at the bottom of this script from running — that would blank the whole
+// portal for everyone, not just break guides.
+try {
+GUIDES.push({
+    id: 'portal_welcome',
+    title: 'Welcome to the UNINOVIS intranet',
+    group: 'Getting started',
+    roles: null,
+    url: '/',
+    primary: true,
+    steps: [
+        { text: 'Hello, welcome to the UNINOVIS intranet — here you can browse the different WP apps.' },
+        { selector: '.wp-tabs', text: 'Select a tab to browse.' },
+        { selector: '.wp-panel.active .server-badge', text: 'Check this label to know whether the app is part of the Gloria server or the Agora server.' },
+    ],
+});
+} catch (e) { console.error('Guide registration failed:', e); }
+
+// Gloria (internally-hosted) tools with a real "how to use it" guide already
+// authored on their own page (see GUIDE_CONTENT in nav.js). For these, the
+// portal offers a combined journey instead of a plain one-line "About":
+// highlight the card -> navigate into the app -> continue with its real
+// usage steps. Everything else (Agora-hosted external tools, and Gloria
+// tools without deep content yet) keeps the simple single-step "About".
+var LEARN_GUIDES = {
+    unigracon: [{ id: 'learn_unigracon', title: 'Learn: UNIGRACON', content: 'unigracon' }],
+    mobility_planner: [{ id: 'learn_mobility_planner', title: 'Learn: Mobility Planner', content: 'mobility_planner' }],
+    event_tracker: [{ id: 'learn_event_tracker', title: 'Learn: Event Tracker', content: 'event_tracker' }],
+    // UMA internal tools: restricted to uninovis_staff/superuser AND an
+    // @uma.es login, mirroring the "UMA internal tools" section's own gate.
+    holiday_tracker: [{ id: 'learn_holiday_tracker', title: 'Learn: UMA Holiday Tracker', roles: ['uninovis_staff', 'superuser'], emailDomain: 'uma.es', content: 'holiday_tracker' }],
+    collaboration_dashboard: [{ id: 'learn_collaboration_dashboard', title: 'Learn: Contactos exploratorios', roles: ['uninovis_staff', 'superuser'], emailDomain: 'uma.es', content: 'collaboration_dashboard' }],
+    new_directory: [
+        { id: 'learn_directory', title: 'Learn: Directory', content: 'directory_overview' },
+        { id: 'learn_directory_add_person', title: 'Directory: How to add a person', roles: ['content_manager', 'superuser'], content: 'directory_add_person' },
+        { id: 'learn_directory_add_unit', title: 'Directory: How to create a unit or subunit', roles: ['content_manager', 'superuser', 'wp_leader'], content: 'directory_add_unit' },
+    ],
+};
+
+SECTIONS.forEach(function(section) {
+    section.tools.forEach(function(tool) {
+        // Each tool's guide registration is isolated: a problem with one
+        // tool's entry (e.g. a bad GUIDE_CONTENT key) must not wipe out every
+        // other tool's guide, and above all must never reach outside this
+        // loop and block checkAuth() later in the script.
+        try {
+            var accessRoles = TOOL_ACCESS[tool.id];
+            if (accessRoles && !accessRoles.length) return; // hidden for everyone (e.g. retired Agora Directory)
+            var defaultRoles = (accessRoles && accessRoles.length) ? accessRoles : null;
+
+            if (LEARN_GUIDES[tool.id]) {
+                LEARN_GUIDES[tool.id].forEach(function(lg) {
+                    GUIDES.push({
+                        id: lg.id,
+                        title: lg.title,
+                        group: section.title,
+                        roles: lg.roles || defaultRoles,
+                        emailDomain: lg.emailDomain,
+                        url: '/',
+                        tab: section.id, // the tool card only exists in the DOM while this WP tab is active
+                        steps: [
+                            { selector: '#tool-card-' + tool.id, text: tool.desc },
+                            { navigate: tool.url },
+                        ].concat(GUIDE_CONTENT[lg.content]),
+                    });
+                });
+            } else {
+                GUIDES.push({
+                    id: 'about_' + tool.id,
+                    title: 'About: ' + tool.name,
+                    group: section.title,
+                    roles: defaultRoles,
+                    url: '/',
+                    tab: section.id,
+                    steps: [ { selector: '#tool-card-' + tool.id, text: tool.desc } ],
+                });
+            }
+        } catch (e) { console.error('Guide registration failed for ' + tool.id + ':', e); }
+    });
+});
+
+// First-login walkthrough (portal_welcome above). Shown once per user
+// (tracked server-side via seen_onboarding_tour so it doesn't reappear
+// across devices/browsers), then always replayable via the Guides menu.
+function onboardingTourFinished(skipped) {
+    if (authUser) authUser.seen_onboarding_tour = true;
+    fetch('/api/auth/onboarding-seen', { method: 'POST', headers: { 'Authorization': 'Bearer ' + authToken } }).catch(function() {});
+    if (!skipped) showGuideReplayNotice();
+}
+
+function showGuideReplayNotice() {
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#2D3876;color:#fff;padding:12px 16px;border-radius:8px;font-size:0.85rem;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,0.3);z-index:3000;max-width:280px;';
+    toast.textContent = "You can replay this guide anytime using the \"Guides\" button in the top right corner.";
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.remove(); }, 6000);
 }
 
 function doLogout() {
@@ -362,7 +475,7 @@ function renderToolCard(tool) {
     var targetAttr = tool.external ? ' target="_blank" rel="noopener"' : '';
     var isAgora = tool.url && tool.url.indexOf('uninovis.widening.eu') !== -1;
     var serverBadge = isAgora ? '<span class="server-badge server-agora">Agora</span>' : '<span class="server-badge server-gloria">Gloria</span>';
-    return '<a class="tool-card" href="' + href + '"' + clickAttr + targetAttr + '>'
+    return '<a class="tool-card" id="tool-card-' + tool.id + '" href="' + href + '"' + clickAttr + targetAttr + '>'
         + serverBadge
         + '<div class="tool-icon">' + tool.icon + '</div>'
         + '<h3>' + tool.name + '</h3>'
