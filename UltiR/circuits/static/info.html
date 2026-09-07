@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuit Analysis Trainer — Info</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.header { background: #2D3876; padding: 16px 24px; }
+.header .bc { font-size: 13px; margin-bottom: 6px; }
+.header .bc a { color: rgba(255,255,255,0.7); text-decoration: none; }
+.header .bc span { color: rgba(255,255,255,0.4); margin: 0 4px; }
+.header .bc .current { color: #fff; }
+.header h1 { color: #fff; font-size: 22px; font-weight: 800; }
+.header p { color: rgba(255,255,255,0.8); font-size: 14px; margin-top: 4px; }
+.container { max-width: 720px; margin: 0 auto; padding: 32px 20px; }
+h2 { font-size: 18px; color: #b45309; margin: 24px 0 8px; }
+p, li { font-size: 15px; line-height: 1.7; color: #334155; }
+ul { padding-left: 24px; margin-bottom: 16px; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.card h3 { color: #92400e; font-size: 15px; margin-bottom: 8px; }
+.phases { display: flex; gap: 8px; margin: 20px 0; flex-wrap: wrap; }
+.phase { flex: 1; min-width: 120px; background: #fff7ed; border-radius: 10px; padding: 14px; text-align: center; }
+.phase .num { font-size: 28px; font-weight: 800; color: #b45309; }
+.phase p { font-size: 12px; color: #92400e; margin-top: 4px; }
+.arrow { display: flex; align-items: center; font-size: 20px; color: #fed7aa; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div style="font-size:13px;margin-bottom:6px;"><a href="/ultir" style="color:rgba(255,255,255,0.7);text-decoration:none;">UltiR</a> <span style="color:rgba(255,255,255,0.4);margin:0 4px;">›</span> <span style="color:#fff;">Circuit Analysis Trainer</span></div>
+    <h1>Circuit Analysis Trainer</h1>
+    <p>Step-by-step DC circuit analysis with instant feedback</p>
+</div>
+
+<div class="container">
+
+    <p>A practice tool for learning DC circuit analysis. Each exercise presents a circuit with randomly generated component values. Students solve it step by step — total resistance, current, voltage drops, power — and get immediate feedback on each step.</p>
+
+    <div class="phases">
+        <div class="phase"><div class="num">1</div><p>See the circuit</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="phase"><div class="num">2</div><p>Solve each step</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="phase"><div class="num">3</div><p>Get feedback</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="phase"><div class="num">4</div><p>See the formula</p></div>
+    </div>
+
+    <h2>Circuit types</h2>
+    <div class="card">
+        <h3>Series circuits</h3>
+        <p>2-4 resistors in series. Calculate total resistance, current, voltage drops across each resistor, and total power.</p>
+    </div>
+    <div class="card">
+        <h3>Parallel circuits</h3>
+        <p>2-3 resistors in parallel. Calculate equivalent resistance, total current, branch currents, and total power.</p>
+    </div>
+    <div class="card">
+        <h3>Series-parallel combinations</h3>
+        <p>One resistor in series with a parallel pair. Requires breaking the circuit into sub-problems: first the parallel equivalent, then the series total.</p>
+    </div>
+
+    <h2>Features</h2>
+    <ul>
+        <li><strong>Step-by-step</strong> — each calculation is checked individually, not just the final answer</li>
+        <li><strong>SVG circuit diagrams</strong> — visual representation of the circuit with component values</li>
+        <li><strong>Hints</strong> — each step has a hint showing the relevant formula</li>
+        <li><strong>Tolerant grading</strong> — accepts rounding differences (2% tolerance)</li>
+        <li><strong>Random values</strong> — uses realistic E12-series resistor values and standard supply voltages</li>
+        <li><strong>No AI</strong> — all computations are deterministic</li>
+        <li><strong>Unlimited practice</strong> — generate as many exercises as you want</li>
+    </ul>
+
+</div>
+</body>
+</html>

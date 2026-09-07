@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writing: Project</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; height: 100vh; display: flex; flex-direction: column; }
+
+.header { background: #2D3876; padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.header .logo { color: #fff; font-weight: 800; font-size: 18px; }
+.header .info { color: rgba(255,255,255,0.7); font-size: 12px; margin-left: auto; }
+
+.setup { max-width: 500px; margin: 60px auto; padding: 24px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; }
+.setup h2 { font-size: 18px; color: #2D3876; margin-bottom: 12px; }
+.setup input { width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; margin-bottom: 12px; }
+.setup input:focus { outline: none; border-color: #2D3876; }
+
+.main { flex: 1; display: flex; overflow: hidden; }
+
+/* Phase tabs */
+.phases { width: 180px; background: #fff; border-right: 1px solid #e2e8f0; padding: 12px 0; flex-shrink: 0; overflow-y: auto; }
+.phase-btn { display: block; width: 100%; text-align: left; padding: 10px 16px; border: none; background: none; font-size: 13px; cursor: pointer; color: #475569; }
+.phase-btn:hover { background: #f1f5f9; }
+.phase-btn.active { background: #eff6ff; color: #2D3876; font-weight: 700; border-left: 3px solid #2D3876; }
+
+/* Chat area */
+.chat-area { flex: 1; display: flex; flex-direction: column; }
+.chat-header { padding: 12px 20px; border-bottom: 1px solid #e2e8f0; background: #fff; font-weight: 700; color: #2D3876; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+.msg { max-width: 85%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
+.msg-user { align-self: flex-end; background: #2D3876; color: #fff; border-bottom-right-radius: 4px; }
+.msg-ai { align-self: flex-start; background: #fff; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; }
+
+/* Decision buttons */
+.decision-bar { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.decision-bar button { padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; border: 1px solid #e2e8f0; cursor: pointer; background: #fff; }
+.decision-bar .d-accept { color: #16a34a; border-color: #16a34a; }
+.decision-bar .d-accept:hover { background: #f0fdf4; }
+.decision-bar .d-partial { color: #f59e0b; border-color: #f59e0b; }
+.decision-bar .d-partial:hover { background: #fffbeb; }
+.decision-bar .d-reject { color: #dc2626; border-color: #dc2626; }
+.decision-bar .d-reject:hover { background: #fef2f2; }
+.decision-done { font-size: 12px; color: #64748b; margin-top: 6px; font-style: italic; }
+
+/* Input */
+.chat-input { padding: 12px 20px; border-top: 1px solid #e2e8f0; background: #fff; display: flex; gap: 8px; flex-shrink: 0; }
+.chat-input textarea { flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; resize: none; min-height: 44px; max-height: 120px; }
+.chat-input textarea:focus { outline: none; border-color: #2D3876; }
+
+.btn { padding: 8px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn-primary { background: #2D3876; color: #fff; }
+.btn-primary:hover { background: #3d4a8a; }
+.btn-primary:disabled { opacity: 0.5; cursor: default; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+
+.hidden { display: none !important; }
+
+/* Justification modal */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal { background: #fff; border-radius: 12px; padding: 24px; max-width: 450px; width: 90%; }
+.modal h3 { font-size: 16px; color: #2D3876; margin-bottom: 12px; }
+.modal textarea { width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; min-height: 80px; margin-bottom: 12px; }
+.modal .btns { display: flex; gap: 8px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div style="font-size:13px;margin-bottom:4px;"><a href="/ultir" style="color:rgba(255,255,255,0.7);text-decoration:none;">UltiR</a> <span style="color:rgba(255,255,255,0.4);margin:0 4px;">›</span> <span style="color:#fff;">Writing: Project</span></div>
+    <div style="display:flex;align-items:center;gap:12px;"><span class="logo">Writing: Project</span><span class="info" id="user-info"></span></div>
+</div>
+
+<!-- Create project view -->
+<div id="setup-view" class="hidden">
+    <div class="setup">
+        <h2>Start your project</h2>
+        <p style="font-size:13px;color:#64748b;margin-bottom:16px;">Enter a title for your research project. You can invite group members later.</p>
+        <input type="text" id="project-title" placeholder="Project title..." onkeydown="if(event.key==='Enter')createProject()">
+        <button class="btn btn-primary" onclick="createProject()" style="width:100%;">Create project</button>
+    </div>
+</div>
+
+<!-- Main project view -->
+<div id="project-view" class="hidden">
+    <div class="main">
+        <div class="phases" id="phase-tabs"></div>
+        <div class="chat-area">
+            <div class="chat-header" id="chat-header">Introduction</div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input">
+                <textarea id="chat-input" placeholder="Ask a question or share your work..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+                <button class="btn btn-primary" id="btn-send" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Justification modal -->
+<div id="justif-modal" class="modal-bg hidden" onclick="if(event.target===this)closeJustifModal()">
+    <div class="modal">
+        <h3 id="justif-title">Why?</h3>
+        <textarea id="justif-text" placeholder="Explain briefly why you accept, adapt or reject this suggestion..."></textarea>
+        <div class="btns">
+            <button class="btn btn-secondary" onclick="closeJustifModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitDecision()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script>
+var TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+var BASE = '/lti/proyecto/api';
+function api(path, opts) {
+    var url = BASE + path + (path.indexOf('?')>=0?'&':'?') + 'token=' + TOKEN;
+    return fetch(url, opts || {});
+}
+function apiJson(path, body, method) {
+    return api(path, { method: method || 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+}
+
+var state = { session: null, project: null, currentPhase: '', phases: [] };
+var pendingDecision = { chatIndex: null, accion: '' };
+
+// -- Init --
+async function init() {
+    try {
+        var r = await api('/session');
+        state.session = await r.json();
+        document.getElementById('user-info').textContent = (state.session.name || state.session.email) + ' — ' + (state.session.course_name || '');
+    } catch(e) { return; }
+
+    // Load config (phases)
+    var cr = await api('/config');
+    var config = await cr.json();
+    state.phases = config.phases || [{id:'introduccion',name:'Introduction'},{id:'metodologia',name:'Methodology'},{id:'resultados',name:'Results'},{id:'discusion',name:'Discussion'}];
+
+    // Check for existing project
+    var pr = await api('/projects');
+    var data = await pr.json();
+    if (data.projects && data.projects.length > 0) {
+        loadProject(data.projects[0].id);
+    } else {
+        document.getElementById('setup-view').classList.remove('hidden');
+    }
+}
+
+async function createProject() {
+    var title = document.getElementById('project-title').value.trim();
+    if (!title) return;
+    var r = await apiJson('/projects', { titulo: title });
+    var d = await r.json();
+    if (d.ok) loadProject(d.id);
+    else alert(d.detail || 'Error');
+}
+
+async function loadProject(id) {
+    var r = await api('/projects/' + id);
+    if (!r.ok) { alert('Could not load project'); return; }
+    state.project = await r.json();
+    document.getElementById('setup-view').classList.add('hidden');
+    document.getElementById('project-view').classList.remove('hidden');
+    renderPhaseTabs();
+    selectPhase(state.phases[0].id);
+}
+
+function renderPhaseTabs() {
+    var html = '';
+    state.phases.forEach(function(ph) {
+        html += '<button class="phase-btn" data-phase="' + ph.id + '" onclick="selectPhase(\'' + ph.id + '\')">' + ph.name + '</button>';
+    });
+    // Export button
+    html += '<div style="border-top:1px solid #e2e8f0;margin-top:12px;padding-top:12px;">';
+    html += '<button class="phase-btn" onclick="exportProject()" style="color:#2D3876;font-weight:600;">Export TSV</button>';
+    html += '</div>';
+    document.getElementById('phase-tabs').innerHTML = html;
+}
+
+function selectPhase(phaseId) {
+    state.currentPhase = phaseId;
+    document.querySelectorAll('.phase-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.phase === phaseId);
+    });
+    var ph = state.phases.find(function(p) { return p.id === phaseId; });
+    document.getElementById('chat-header').textContent = ph ? ph.name : phaseId;
+    renderChat();
+}
+
+function renderChat() {
+    var msgs = (state.project.chat || []).filter(function(m) { return m.fase === state.currentPhase; });
+    var html = '';
+    if (!msgs.length) {
+        html = '<div style="color:#94a3b8;font-size:13px;text-align:center;margin-top:40px;">No messages yet in this phase. Start by describing what you need help with.</div>';
+    }
+    msgs.forEach(function(m, localIdx) {
+        // Find global index
+        var globalIdx = state.project.chat.indexOf(m);
+        html += '<div class="msg msg-user">' + esc(m.prompt) + '</div>';
+        html += '<div class="msg msg-ai">' + esc(m.respuesta);
+        // Decision
+        if (m.decision && m.decision.accion) {
+            var labels = {aplicado: 'Accepted', no_aplicado: 'Rejected', parcialmente: 'Partially accepted'};
+            var colors = {aplicado: '#16a34a', no_aplicado: '#dc2626', parcialmente: '#f59e0b'};
+            html += '<div class="decision-done" style="color:' + (colors[m.decision.accion]||'#64748b') + ';">';
+            html += (labels[m.decision.accion] || m.decision.accion);
+            if (m.decision.justificacion) html += ': ' + esc(m.decision.justificacion);
+            html += '</div>';
+        } else if (m.respuesta) {
+            html += '<div class="decision-bar">';
+            html += '<button class="d-accept" onclick="openDecision(' + globalIdx + ',\'aplicado\')">I\'ll use it</button>';
+            html += '<button class="d-partial" onclick="openDecision(' + globalIdx + ',\'parcialmente\')">Partially</button>';
+            html += '<button class="d-reject" onclick="openDecision(' + globalIdx + ',\'no_aplicado\')">I won\'t use it</button>';
+            html += '</div>';
+        }
+        html += '</div>';
+    });
+    var container = document.getElementById('chat-messages');
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
+}
+
+function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+async function sendMessage() {
+    var input = document.getElementById('chat-input');
+    var msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+    document.getElementById('btn-send').disabled = true;
+
+    try {
+        var r = await apiJson('/projects/' + state.project.id + '/chat', {
+            mensaje: msg,
+            fase: state.currentPhase,
+            contexto_fase: ''
+        });
+        var d = await r.json();
+        state.project.chat.push({
+            autor: state.session.email,
+            prompt: msg,
+            respuesta: d.respuesta,
+            fase: state.currentPhase,
+            fecha: new Date().toISOString().slice(0,16).replace('T',' '),
+            decision: null
+        });
+        renderChat();
+    } catch(e) {
+        alert('Error sending message');
+    }
+    document.getElementById('btn-send').disabled = false;
+}
+
+// -- Decisions --
+function openDecision(chatIndex, accion) {
+    pendingDecision = { chatIndex: chatIndex, accion: accion };
+    var titles = {aplicado: 'Why will you use this suggestion?', no_aplicado: 'Why won\'t you use it?', parcialmente: 'What will you use and what will you change?'};
+    document.getElementById('justif-title').textContent = titles[accion] || 'Justify your decision';
+    document.getElementById('justif-text').value = '';
+    document.getElementById('justif-modal').classList.remove('hidden');
+    document.getElementById('justif-text').focus();
+}
+
+function closeJustifModal() {
+    document.getElementById('justif-modal').classList.add('hidden');
+}
+
+async function submitDecision() {
+    var justif = document.getElementById('justif-text').value.trim();
+    if (!justif) { document.getElementById('justif-text').style.borderColor = '#dc2626'; return; }
+    document.getElementById('justif-text').style.borderColor = '#e2e8f0';
+
+    try {
+        await apiJson('/projects/' + state.project.id + '/decision', {
+            chat_index: pendingDecision.chatIndex,
+            accion: pendingDecision.accion,
+            justificacion: justif
+        });
+        state.project.chat[pendingDecision.chatIndex].decision = {
+            accion: pendingDecision.accion,
+            justificacion: justif,
+            autor: state.session.email
+        };
+        closeJustifModal();
+        renderChat();
+    } catch(e) {
+        alert('Error saving decision');
+    }
+}
+
+function exportProject() {
+    window.open(BASE + '/projects/' + state.project.id + '/export?token=' + TOKEN);
+}
+
+init();
+</script>
+</body>
+</html>

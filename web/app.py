@@ -386,13 +386,20 @@ from apps.uma_holiday_tracker.uma_holiday_tracker import router as holiday_track
 app.include_router(holiday_tracker_router)
 app.mount("/holiday-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uma_holiday_tracker" / "static"), name="holiday_tracker_static")
 
-# Mount LTI Redacción app
-from apps.redaccion_lti.lti_provider import router as lti_redaccion_router
+# Mount UltiR (UNINOVIS LTI Repository) tools
+from UltiR.redaccion.lti_provider import router as lti_redaccion_router
 app.include_router(lti_redaccion_router)
-
-# Mount LTI FonESP app
-from apps.fonesp_lti.lti_provider import router as lti_fonesp_router
+from UltiR.fonesp.lti_provider import router as lti_fonesp_router
 app.include_router(lti_fonesp_router)
+from UltiR.proyecto.lti_provider import router as lti_proyecto_router
+app.include_router(lti_proyecto_router)
+from UltiR.circuits.lti_provider import router as lti_circuits_router
+app.include_router(lti_circuits_router)
+
+@app.get("/ultir")
+async def ultir_catalog():
+    from fastapi.responses import FileResponse as _FR
+    return _FR(str(Path(__file__).parent.parent / "UltiR" / "static" / "index.html"))
 
 # Mount Matomo Analytics app
 from apps.matomo_analytics.matomo_analytics import router as matomo_analytics_router

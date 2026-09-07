@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writing: Project LTI — Info</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.header { background: #2D3876; padding: 16px 24px; }
+.header h1 { color: #fff; font-size: 22px; font-weight: 800; }
+.header p { color: rgba(255,255,255,0.8); font-size: 14px; margin-top: 4px; }
+.container { max-width: 720px; margin: 0 auto; padding: 32px 20px; }
+h2 { font-size: 18px; color: #2D3876; margin: 24px 0 8px; }
+p, li { font-size: 15px; line-height: 1.7; color: #334155; }
+ul { padding-left: 24px; margin-bottom: 16px; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.card h3 { color: #1e40af; font-size: 15px; margin-bottom: 8px; }
+.phases { display: flex; gap: 8px; margin: 20px 0; flex-wrap: wrap; }
+.phase { flex: 1; min-width: 140px; background: #eff6ff; border-radius: 10px; padding: 14px; text-align: center; }
+.phase .num { font-size: 28px; font-weight: 800; color: #2D3876; }
+.phase p { font-size: 12px; color: #475569; margin-top: 4px; }
+.arrow { display: flex; align-items: center; font-size: 20px; color: #93c5fd; }
+.note { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 6px; font-size: 13px; color: #92400e; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div style="font-size:13px;margin-bottom:4px;"><a href="/ultir" style="color:rgba(255,255,255,0.7);text-decoration:none;">UltiR</a> <span style="color:rgba(255,255,255,0.4);margin:0 4px;">›</span> <span style="color:#fff;">Writing: Project</span></div>
+    <h1>Writing: Project</h1>
+    <p>AI-assisted writing projects with documented decision-making</p>
+</div>
+
+<div class="container">
+
+    <p>An LTI tool that guides students through structured research or writing projects with AI assistance. Every interaction is recorded, and students must explicitly accept, adapt or reject each AI suggestion with a written justification.</p>
+
+    <div class="phases">
+        <div class="phase"><div class="num">1</div><p>Ask the AI</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="phase"><div class="num">2</div><p>Read the response</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="phase"><div class="num">3</div><p>Accept / Adapt / Reject</p></div>
+        <div class="arrow">&rarr;</div>
+        <div class="phase"><div class="num">4</div><p>Justify your decision</p></div>
+    </div>
+
+    <h2>For instructors</h2>
+    <div class="card">
+        <h3>Course setup</h3>
+        <ul>
+            <li><strong>Upload reference documents</strong> (PDF, Markdown, text) — the AI will ground its responses in these materials (RAG)</li>
+            <li><strong>Configure project phases</strong> — default is Introduction / Methodology / Results / Discussion, but you can define your own</li>
+            <li><strong>Customise the system prompt</strong> — adapt the AI's behaviour to your discipline and pedagogical approach</li>
+        </ul>
+    </div>
+    <div class="card">
+        <h3>Review and assessment</h3>
+        <ul>
+            <li>See all student projects and their full interaction history</li>
+            <li>Score each interaction (0-4) based on the quality of the student's decision and justification</li>
+            <li>Export all interactions as TSV (compatible with Excel)</li>
+        </ul>
+    </div>
+
+    <h2>For students</h2>
+    <div class="card">
+        <h3>How it works</h3>
+        <ul>
+            <li>Create a project and invite group members</li>
+            <li>Work through each phase — ask the AI for guidance, drafts or feedback</li>
+            <li>For every AI response, you must decide: <strong>use it</strong>, <strong>adapt it</strong>, or <strong>reject it</strong> — and explain why</li>
+            <li>Your decisions and justifications are visible to the instructor and form part of your assessment</li>
+        </ul>
+    </div>
+
+    <h2>Key features</h2>
+    <ul>
+        <li><strong>RAG-grounded responses</strong> — the AI answers based on course materials, not just general knowledge</li>
+        <li><strong>Decision tracking</strong> — every accept/reject/adapt is logged with a mandatory justification</li>
+        <li><strong>Per-course isolation</strong> — each Moodle course has its own documents, configuration and projects</li>
+        <li><strong>No extra login</strong> — students access directly from Moodle via LTI</li>
+    </ul>
+
+    <div class="note">
+        <strong>Pedagogical rationale:</strong> The value of this tool is not the AI's output — it is the student's documented reasoning about that output. By requiring explicit decisions with justifications, the tool develops critical thinking and makes the learning process visible and assessable.
+    </div>
+
+</div>
+</body>
+</html>

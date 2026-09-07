@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuit Analysis Trainer</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+.header { background: #2D3876; padding: 12px 20px; }
+.header .bc { font-size: 12px; margin-bottom: 4px; }
+.header .bc a { color: rgba(255,255,255,0.7); text-decoration: none; }
+.header .bc span { color: rgba(255,255,255,0.4); margin: 0 4px; }
+.header .bc .current { color: #fff; }
+.header .title-row { display: flex; align-items: center; gap: 12px; }
+.header .logo { color: #fff; font-weight: 800; font-size: 18px; }
+.header .info { color: rgba(255,255,255,0.7); font-size: 12px; margin-left: auto; }
+
+.container { max-width: 700px; margin: 0 auto; padding: 24px 20px; }
+
+.controls { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; }
+.control-group { display: flex; flex-direction: column; gap: 4px; }
+.control-group label { font-size: 12px; font-weight: 600; color: #475569; }
+.control-group select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+
+.btn { padding: 8px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn-primary { background: #b45309; color: #fff; }
+.btn-primary:hover { background: #92400e; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-secondary:hover { background: #cbd5e1; }
+
+/* Circuit diagram */
+.circuit-card {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 20px; margin-bottom: 20px;
+}
+.circuit-card h2 { font-size: 18px; color: #b45309; margin-bottom: 6px; }
+.circuit-card .desc { font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 16px; }
+.circuit-svg { width: 100%; max-width: 500px; margin: 0 auto 16px; display: block; }
+
+/* Steps */
+.step {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 10px;
+    padding: 16px 20px; margin-bottom: 12px; transition: border-color 0.2s;
+}
+.step.active { border-color: #b45309; }
+.step.correct { border-color: #16a34a; background: #f0fdf4; }
+.step.incorrect { border-color: #dc2626; }
+.step.locked { opacity: 0.4; }
+
+.step .prompt { font-size: 14px; color: #1e293b; font-weight: 600; margin-bottom: 8px; }
+.step .input-row { display: flex; gap: 8px; align-items: center; }
+.step input {
+    width: 140px; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px;
+    font-size: 15px; font-family: 'SF Mono', Consolas, monospace;
+}
+.step input:focus { outline: none; border-color: #b45309; }
+.step .unit { font-size: 14px; color: #64748b; font-weight: 600; }
+.step .feedback { font-size: 13px; margin-top: 6px; line-height: 1.5; }
+.step .feedback.ok { color: #16a34a; }
+.step .feedback.wrong { color: #dc2626; }
+.step .hint-btn { font-size: 12px; color: #b45309; cursor: pointer; border: none; background: none; text-decoration: underline; margin-left: 8px; }
+.step .hint { font-size: 12px; color: #92400e; background: #fffbeb; padding: 6px 10px; border-radius: 6px; margin-top: 6px; display: none; }
+
+/* Results */
+.results {
+    background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+    padding: 20px; text-align: center; display: none;
+}
+.results h3 { font-size: 18px; color: #b45309; margin-bottom: 8px; }
+.results .score { font-size: 36px; font-weight: 800; }
+.results .score.good { color: #16a34a; }
+.results .score.mid { color: #f59e0b; }
+.results .score.bad { color: #dc2626; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div style="font-size:13px;margin-bottom:4px;"><a href="/ultir" style="color:rgba(255,255,255,0.7);text-decoration:none;">UltiR</a> <span style="color:rgba(255,255,255,0.4);margin:0 4px;">›</span> <span style="color:#fff;">Circuit Analysis Trainer</span></div>
+    <div style="display:flex;align-items:center;gap:12px;"><span class="logo">Circuit Analysis Trainer</span><span class="info" id="user-info"></span></div>
+</div>
+
+<div class="container">
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Circuit type</label>
+            <select id="sel-type">
+                <option value="series">Series</option>
+                <option value="parallel">Parallel</option>
+                <option value="series_parallel">Series-Parallel</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" onclick="newExercise()">New exercise</button>
+    </div>
+
+    <div id="exercise-area"></div>
+
+    <div class="results" id="results">
+        <h3>Exercise complete</h3>
+        <div class="score" id="score-text"></div>
+        <div style="margin-top:12px;">
+            <button class="btn btn-primary" onclick="newExercise()">New exercise</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+var TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+var BASE = '/lti/circuits/api';
+function api(path, opts) {
+    var url = BASE + path + (path.indexOf('?')>=0?'&':'?') + 'token=' + TOKEN;
+    return fetch(url, opts || {});
+}
+
+var state = { problem: null, seed: 0, answered: {}, correct: 0, total: 0 };
+
+// Init
+fetch(BASE + '/session?token=' + TOKEN).then(function(r){ return r.json(); }).then(function(d){
+    document.getElementById('user-info').textContent = (d.name || '') + (d.course_name ? ' — ' + d.course_name : '');
+}).catch(function(){});
+
+function drawCircuit(container, problem) {
+    var comps = problem.components;
+    var type = problem.type;
+    var svg = '';
+    var w = 460, h = 180;
+
+    if (type === 'series') {
+        var resistors = comps.resistors || [];
+        var n = resistors.length;
+        var spacing = (w - 100) / (n + 1);
+        svg += '<svg viewBox="0 0 ' + w + ' ' + h + '" class="circuit-svg" xmlns="http://www.w3.org/2000/svg">';
+        svg += '<rect x="20" y="40" width="40" height="80" fill="none" stroke="#b45309" stroke-width="2" rx="4"/>';
+        svg += '<text x="40" y="85" text-anchor="middle" font-size="13" fill="#b45309" font-weight="700">+</text>';
+        svg += '<text x="40" y="75" text-anchor="middle" font-size="11" fill="#92400e">' + comps.V + 'V</text>';
+        // Top wire
+        svg += '<line x1="40" y1="40" x2="40" y2="20" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="40" y1="20" x2="' + (w-40) + '" y2="20" stroke="#334155" stroke-width="2"/>';
+        // Bottom wire
+        svg += '<line x1="40" y1="120" x2="40" y2="' + (h-20) + '" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="40" y1="' + (h-20) + '" x2="' + (w-40) + '" y2="' + (h-20) + '" stroke="#334155" stroke-width="2"/>';
+        // Resistors on top wire
+        for (var i = 0; i < n; i++) {
+            var x = 80 + spacing * (i + 0.5);
+            svg += '<rect x="' + (x-20) + '" y="10" width="40" height="20" fill="#fff7ed" stroke="#b45309" stroke-width="2" rx="3"/>';
+            svg += '<text x="' + x + '" y="24" text-anchor="middle" font-size="10" fill="#92400e">R' + (i+1) + '</text>';
+            svg += '<text x="' + x + '" y="46" text-anchor="middle" font-size="9" fill="#64748b">' + resistors[i] + 'Ω</text>';
+        }
+        // Right wire down
+        svg += '<line x1="' + (w-40) + '" y1="20" x2="' + (w-40) + '" y2="' + (h-20) + '" stroke="#334155" stroke-width="2"/>';
+        svg += '</svg>';
+    } else if (type === 'parallel') {
+        var resistors = comps.resistors || [];
+        var n = resistors.length;
+        var gap = 100 / (n + 1);
+        svg += '<svg viewBox="0 0 ' + w + ' ' + (40 + n * 50) + '" class="circuit-svg" xmlns="http://www.w3.org/2000/svg">';
+        var th = 40 + n * 50;
+        // Source
+        svg += '<rect x="20" y="' + (th/2-30) + '" width="30" height="60" fill="none" stroke="#b45309" stroke-width="2" rx="4"/>';
+        svg += '<text x="35" y="' + (th/2+4) + '" text-anchor="middle" font-size="11" fill="#92400e">' + comps.V + 'V</text>';
+        // Left bus
+        svg += '<line x1="35" y1="' + (th/2-30) + '" x2="35" y2="20" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="35" y1="20" x2="160" y2="20" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="35" y1="' + (th/2+30) + '" x2="35" y2="' + (th-20) + '" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="35" y1="' + (th-20) + '" x2="160" y2="' + (th-20) + '" stroke="#334155" stroke-width="2"/>';
+        // Right bus
+        svg += '<line x1="300" y1="20" x2="' + (w-30) + '" y2="20" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="' + (w-30) + '" y1="20" x2="' + (w-30) + '" y2="' + (th-20) + '" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="300" y1="' + (th-20) + '" x2="' + (w-30) + '" y2="' + (th-20) + '" stroke="#334155" stroke-width="2"/>';
+        // Branches
+        for (var i = 0; i < n; i++) {
+            var y = 20 + (i + 0.5) * ((th - 40) / n);
+            svg += '<line x1="160" y1="20" x2="160" y2="' + y + '" stroke="#334155" stroke-width="1.5"/>';
+            svg += '<line x1="160" y1="' + y + '" x2="200" y2="' + y + '" stroke="#334155" stroke-width="1.5"/>';
+            svg += '<rect x="200" y="' + (y-12) + '" width="60" height="24" fill="#fff7ed" stroke="#b45309" stroke-width="2" rx="3"/>';
+            svg += '<text x="230" y="' + (y+4) + '" text-anchor="middle" font-size="10" fill="#92400e">R' + (i+1) + ' ' + resistors[i] + 'Ω</text>';
+            svg += '<line x1="260" y1="' + y + '" x2="300" y2="' + y + '" stroke="#334155" stroke-width="1.5"/>';
+            svg += '<line x1="300" y1="' + y + '" x2="300" y2="20" stroke="#334155" stroke-width="1.5"/>';
+        }
+        // Bottom connections
+        svg += '<line x1="160" y1="' + (th-20) + '" x2="160" y2="20" stroke="#334155" stroke-width="1.5"/>';
+        svg += '</svg>';
+    } else {
+        // Series-parallel: R1 in series with (R2 || R3)
+        svg += '<svg viewBox="0 0 500 200" class="circuit-svg" xmlns="http://www.w3.org/2000/svg">';
+        svg += '<rect x="20" y="50" width="30" height="60" fill="none" stroke="#b45309" stroke-width="2" rx="4"/>';
+        svg += '<text x="35" y="83" text-anchor="middle" font-size="11" fill="#92400e">' + comps.V + 'V</text>';
+        // Top wire with R1
+        svg += '<line x1="35" y1="50" x2="35" y2="25" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="35" y1="25" x2="120" y2="25" stroke="#334155" stroke-width="2"/>';
+        svg += '<rect x="120" y="13" width="60" height="24" fill="#fff7ed" stroke="#b45309" stroke-width="2" rx="3"/>';
+        svg += '<text x="150" y="29" text-anchor="middle" font-size="10" fill="#92400e">R1 ' + comps.R1 + 'Ω</text>';
+        svg += '<line x1="180" y1="25" x2="240" y2="25" stroke="#334155" stroke-width="2"/>';
+        // Parallel branches
+        svg += '<line x1="240" y1="25" x2="240" y2="60" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="240" y1="25" x2="240" y2="140" stroke="#334155" stroke-width="1.5"/>';
+        svg += '<rect x="260" y="48" width="60" height="24" fill="#fff7ed" stroke="#b45309" stroke-width="2" rx="3"/>';
+        svg += '<text x="290" y="64" text-anchor="middle" font-size="10" fill="#92400e">R2 ' + comps.R2 + 'Ω</text>';
+        svg += '<line x1="240" y1="60" x2="260" y2="60" stroke="#334155" stroke-width="1.5"/>';
+        svg += '<line x1="320" y1="60" x2="380" y2="60" stroke="#334155" stroke-width="1.5"/>';
+        svg += '<rect x="260" y="116" width="60" height="24" fill="#fff7ed" stroke="#b45309" stroke-width="2" rx="3"/>';
+        svg += '<text x="290" y="132" text-anchor="middle" font-size="10" fill="#92400e">R3 ' + comps.R3 + 'Ω</text>';
+        svg += '<line x1="240" y1="128" x2="260" y2="128" stroke="#334155" stroke-width="1.5"/>';
+        svg += '<line x1="320" y1="128" x2="380" y2="128" stroke="#334155" stroke-width="1.5"/>';
+        // Right bus
+        svg += '<line x1="380" y1="60" x2="380" y2="128" stroke="#334155" stroke-width="1.5"/>';
+        svg += '<line x1="380" y1="90" x2="460" y2="90" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="460" y1="90" x2="460" y2="175" stroke="#334155" stroke-width="2"/>';
+        // Bottom wire
+        svg += '<line x1="35" y1="110" x2="35" y2="175" stroke="#334155" stroke-width="2"/>';
+        svg += '<line x1="35" y1="175" x2="460" y2="175" stroke="#334155" stroke-width="2"/>';
+        svg += '</svg>';
+    }
+    container.innerHTML = svg;
+}
+
+async function newExercise() {
+    var type = document.getElementById('sel-type').value;
+    state.seed = Math.floor(Math.random() * 1000000);
+    state.answered = {};
+    state.correct = 0;
+    state.total = 0;
+    document.getElementById('results').style.display = 'none';
+
+    var r = await api('/exercise?type=' + type + '&seed=' + state.seed);
+    var data = await r.json();
+    state.problem = data;
+    state.total = data.n_steps;
+    renderExercise();
+}
+
+function renderExercise() {
+    var p = state.problem;
+    var html = '<div class="circuit-card">';
+    html += '<h2>' + p.title + '</h2>';
+    html += '<p class="desc">' + p.description + '</p>';
+    html += '<div id="circuit-diagram"></div>';
+    html += '</div>';
+
+    p.steps.forEach(function(step, i) {
+        var done = state.answered[step.id];
+        var cls = 'step';
+        if (done) cls += done.correct ? ' correct' : ' incorrect';
+        else if (i === 0 || state.answered[p.steps[i-1].id]) cls += ' active';
+        else cls += ' locked';
+
+        html += '<div class="' + cls + '" id="step-' + step.id + '">';
+        html += '<div class="prompt">Step ' + (i+1) + ': ' + step.prompt + '</div>';
+        if (done) {
+            html += '<div class="feedback ' + (done.correct ? 'ok' : 'wrong') + '">';
+            if (done.correct) {
+                html += '&#10003; Correct: ' + done.expected + ' ' + step.unit;
+            } else {
+                html += '&#10007; Your answer: ' + done.student + ' ' + step.unit + '<br>';
+                html += 'Correct: ' + done.expected + ' ' + step.unit + '<br>';
+                html += '<span style="color:#475569;">' + done.formula + '</span>';
+            }
+            html += '</div>';
+        } else if (cls.indexOf('locked') === -1) {
+            html += '<div class="input-row">';
+            html += '<input type="number" step="any" id="input-' + step.id + '" placeholder="0.00" onkeydown="if(event.key===\'Enter\')checkStep(\'' + step.id + '\')">';
+            html += '<span class="unit">' + step.unit + '</span>';
+            html += '<button class="btn btn-primary" onclick="checkStep(\'' + step.id + '\')">Check</button>';
+            html += '<button class="hint-btn" onclick="toggleHint(\'' + step.id + '\')">Hint</button>';
+            html += '</div>';
+            html += '<div class="hint" id="hint-' + step.id + '">' + step.hint + '</div>';
+        }
+        html += '</div>';
+    });
+
+    document.getElementById('exercise-area').innerHTML = html;
+    drawCircuit(document.getElementById('circuit-diagram'), p);
+
+    // Focus first unlocked input
+    for (var i = 0; i < p.steps.length; i++) {
+        if (!state.answered[p.steps[i].id]) {
+            var inp = document.getElementById('input-' + p.steps[i].id);
+            if (inp) inp.focus();
+            break;
+        }
+    }
+}
+
+function toggleHint(stepId) {
+    var el = document.getElementById('hint-' + stepId);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function checkStep(stepId) {
+    var input = document.getElementById('input-' + stepId);
+    if (!input || !input.value) return;
+
+    var r = await fetch(BASE + '/check?token=' + TOKEN, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            type: state.problem.type,
+            seed: state.seed,
+            step_id: stepId,
+            answer: parseFloat(input.value)
+        })
+    });
+    var result = await r.json();
+
+    state.answered[stepId] = {
+        correct: result.correct,
+        expected: result.expected,
+        formula: result.formula,
+        student: input.value
+    };
+    if (result.correct) state.correct++;
+
+    renderExercise();
+
+    // Check if all done
+    if (Object.keys(state.answered).length === state.total) {
+        var pct = Math.round(state.correct / state.total * 100);
+        var scoreEl = document.getElementById('score-text');
+        scoreEl.textContent = state.correct + '/' + state.total + ' (' + pct + '%)';
+        scoreEl.className = 'score ' + (pct >= 80 ? 'good' : (pct >= 50 ? 'mid' : 'bad'));
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    }
+}
+</script>
+</body>
+</html>

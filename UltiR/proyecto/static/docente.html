@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writing: Project — Instructor</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.header { background: #2D3876; padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
+.header .logo { color: #fff; font-weight: 800; font-size: 18px; }
+.header .info { color: rgba(255,255,255,0.7); font-size: 12px; margin-left: auto; }
+.container { max-width: 960px; margin: 0 auto; padding: 24px 20px; }
+
+.tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; }
+.tab { padding: 10px 24px; font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; color: #64748b; }
+.tab:hover { color: #2D3876; }
+.tab.active { color: #2D3876; border-bottom-color: #2D3876; }
+
+.section { display: none; }
+.section.active { display: block; }
+
+h2 { font-size: 18px; color: #2D3876; margin-bottom: 16px; }
+h3 { font-size: 15px; color: #475569; margin: 16px 0 8px; }
+
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+
+/* Documents */
+.doc-list { list-style: none; }
+.doc-list li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+.doc-list .del { color: #dc2626; cursor: pointer; font-size: 12px; border: none; background: none; }
+.upload-area { margin-top: 12px; display: flex; gap: 8px; align-items: center; }
+.upload-area input[type=file] { font-size: 13px; }
+
+/* Config */
+.form-field { margin-bottom: 16px; }
+.form-field label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+.form-field textarea, .form-field input { width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-family: inherit; }
+.form-field textarea { min-height: 120px; }
+.form-field textarea:focus, .form-field input:focus { outline: none; border-color: #2D3876; }
+
+/* Projects list */
+.proj-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.proj-table th { text-align: left; padding: 8px; background: #f8fafc; color: #64748b; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+.proj-table td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
+.proj-table tr { cursor: pointer; }
+.proj-table tr:hover { background: #f1f5f9; }
+
+/* Interaction review */
+.interaction { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px; background: #fff; }
+.interaction .prompt { font-size: 13px; color: #2D3876; font-weight: 600; margin-bottom: 4px; }
+.interaction .response { font-size: 13px; color: #475569; margin-bottom: 6px; line-height: 1.5; }
+.interaction .meta { font-size: 11px; color: #94a3b8; display: flex; gap: 12px; flex-wrap: wrap; }
+.score-btns button { padding: 2px 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 12px; cursor: pointer; background: #fff; }
+.score-btns button.active { background: #2D3876; color: #fff; border-color: #2D3876; }
+
+.btn { padding: 8px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn-primary { background: #2D3876; color: #fff; }
+.btn-primary:hover { background: #3d4a8a; }
+.btn-secondary { background: #e2e8f0; color: #475569; }
+.btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+.hidden { display: none !important; }
+.toast { position: fixed; bottom: 20px; right: 20px; background: #2D3876; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; z-index: 200; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div style="font-size:13px;margin-bottom:4px;"><a href="/ultir" style="color:rgba(255,255,255,0.7);text-decoration:none;">UltiR</a> <span style="color:rgba(255,255,255,0.4);margin:0 4px;">›</span> <span style="color:#fff;">Writing: Project</span> <span style="color:rgba(255,255,255,0.4);margin:0 4px;">›</span> <span style="color:#fff;">Instructor</span></div>
+    <div style="display:flex;align-items:center;gap:12px;"><span class="logo">Writing: Project</span><span class="info" id="user-info"></span></div>
+</div>
+
+<div class="container">
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('projects')">Projects</div>
+        <div class="tab" onclick="showTab('documents')">Documents</div>
+        <div class="tab" onclick="showTab('config')">Configuration</div>
+    </div>
+
+    <!-- Projects -->
+    <div class="section active" id="sec-projects">
+        <h2>Student projects</h2>
+        <div id="projects-list"></div>
+        <div id="project-detail" class="hidden"></div>
+    </div>
+
+    <!-- Documents -->
+    <div class="section" id="sec-documents">
+        <h2>Reference documents</h2>
+        <p style="font-size:13px;color:#64748b;margin-bottom:12px;">Upload PDFs, Markdown or text files. These will be used as the knowledge base for student chats (RAG).</p>
+        <div class="card">
+            <ul class="doc-list" id="doc-list"></ul>
+            <div class="upload-area">
+                <input type="file" id="doc-file" accept=".pdf,.md,.txt">
+                <button class="btn btn-primary" onclick="uploadDoc()">Upload</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Config -->
+    <div class="section" id="sec-config">
+        <h2>Course configuration</h2>
+        <div class="card">
+            <div class="form-field">
+                <label>Project phases (one per line: id | Display Name)</label>
+                <textarea id="cfg-phases" placeholder="introduccion | Introduction&#10;metodologia | Methodology&#10;resultados | Results&#10;discusion | Discussion"></textarea>
+            </div>
+            <div class="form-field">
+                <label>System prompt (use {phase_name} as placeholder)</label>
+                <textarea id="cfg-prompt" style="min-height:200px;"></textarea>
+            </div>
+            <div class="form-field">
+                <label>Max group size</label>
+                <input type="number" id="cfg-maxgroup" min="1" max="10" value="3" style="width:80px;">
+            </div>
+            <button class="btn btn-primary" onclick="saveConfig()">Save configuration</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+var TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+var BASE = '/lti/proyecto/api';
+function api(path, opts) {
+    var url = BASE + path + (path.indexOf('?')>=0?'&':'?') + 'token=' + TOKEN;
+    return fetch(url, opts || {});
+}
+function apiJson(path, body, method) {
+    return api(path, { method: method || 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+}
+function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function toast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg; el.classList.remove('hidden');
+    setTimeout(function(){ el.classList.add('hidden'); }, 3000);
+}
+
+var state = { session: null, config: null, projects: [] };
+
+function showTab(name) {
+    document.querySelectorAll('.tab').forEach(function(t, i) {
+        var secs = ['projects','documents','config'];
+        t.classList.toggle('active', secs[i] === name);
+        document.getElementById('sec-' + secs[i]).classList.toggle('active', secs[i] === name);
+    });
+    if (name === 'projects') { document.getElementById('project-detail').classList.add('hidden'); loadProjects(); }
+}
+
+// -- Init --
+async function init() {
+    var r = await api('/session');
+    state.session = await r.json();
+    document.getElementById('user-info').textContent = (state.session.name || '') + ' — ' + (state.session.course_name || '');
+    await loadConfig();
+    await loadProjects();
+    await loadDocs();
+}
+
+// -- Config --
+async function loadConfig() {
+    var r = await api('/config');
+    state.config = await r.json();
+    var phasesText = (state.config.phases || []).map(function(p) { return p.id + ' | ' + p.name; }).join('\n');
+    document.getElementById('cfg-phases').value = phasesText;
+    document.getElementById('cfg-prompt').value = state.config.system_prompt || '';
+    document.getElementById('cfg-maxgroup').value = state.config.max_group_size || 3;
+    renderDocs();
+}
+
+async function saveConfig() {
+    var phasesRaw = document.getElementById('cfg-phases').value.trim().split('\n').filter(Boolean);
+    var phases = phasesRaw.map(function(line) {
+        var parts = line.split('|').map(function(s) { return s.trim(); });
+        return { id: parts[0] || '', name: parts[1] || parts[0] || '' };
+    });
+    var r = await apiJson('/config', {
+        phases: phases,
+        system_prompt: document.getElementById('cfg-prompt').value,
+        max_group_size: parseInt(document.getElementById('cfg-maxgroup').value) || 3
+    }, 'PUT');
+    if (r.ok) toast('Configuration saved');
+    else toast('Error saving');
+}
+
+// -- Documents --
+async function loadDocs() {
+    var r = await api('/config');
+    var d = await r.json();
+    state.config = d;
+    renderDocs();
+}
+
+function renderDocs() {
+    var docs = (state.config && state.config.documents) || [];
+    var html = docs.length ? docs.map(function(fn) {
+        return '<li><span style="flex:1;">' + esc(fn) + '</span><button class="del" onclick="deleteDoc(\'' + esc(fn) + '\')">&times; Remove</button></li>';
+    }).join('') : '<li style="color:#94a3b8;">No documents uploaded yet.</li>';
+    document.getElementById('doc-list').innerHTML = html;
+}
+
+async function uploadDoc() {
+    var input = document.getElementById('doc-file');
+    if (!input.files.length) return;
+    var fd = new FormData();
+    fd.append('file', input.files[0]);
+    var r = await fetch(BASE + '/docs?token=' + TOKEN, { method: 'POST', body: fd });
+    if (r.ok) { toast('Document uploaded — index rebuilt'); input.value = ''; await loadDocs(); }
+    else { var d = await r.json(); toast(d.detail || 'Upload failed'); }
+}
+
+async function deleteDoc(fn) {
+    if (!confirm('Remove ' + fn + '?')) return;
+    var r = await api('/docs/' + encodeURIComponent(fn), { method: 'DELETE' });
+    if (r.ok) { toast('Removed'); await loadDocs(); }
+}
+
+// -- Projects --
+async function loadProjects() {
+    var r = await api('/projects');
+    var d = await r.json();
+    state.projects = d.projects || [];
+    renderProjects();
+}
+
+function renderProjects() {
+    if (!state.projects.length) {
+        document.getElementById('projects-list').innerHTML = '<p style="color:#94a3b8;">No projects yet.</p>';
+        return;
+    }
+    var html = '<table class="proj-table"><thead><tr><th>Title</th><th>Group</th><th>Messages</th><th>Last updated</th></tr></thead><tbody>';
+    state.projects.forEach(function(p) {
+        html += '<tr onclick="openProject(\'' + p.id + '\')">';
+        html += '<td>' + esc(p.titulo) + '</td>';
+        html += '<td>' + (p.grupo || []).join(', ') + '</td>';
+        html += '<td>' + (p.n_chat || 0) + '</td>';
+        html += '<td>' + (p.updated || '') + '</td>';
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('projects-list').innerHTML = html;
+}
+
+async function openProject(id) {
+    var r = await api('/projects/' + id);
+    if (!r.ok) return;
+    var project = await r.json();
+
+    var detail = document.getElementById('project-detail');
+    detail.classList.remove('hidden');
+
+    var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">';
+    html += '<h2>' + esc(project.titulo) + '</h2>';
+    html += '<div style="display:flex;gap:8px;">';
+    html += '<button class="btn btn-secondary" onclick="window.open(BASE+\'/projects/' + id + '/export?token=\'+TOKEN)">Export TSV</button>';
+    html += '<button class="btn btn-danger" onclick="deleteProject(\'' + id + '\')">Delete</button>';
+    html += '<button class="btn btn-secondary" onclick="document.getElementById(\'project-detail\').classList.add(\'hidden\')">Close</button>';
+    html += '</div></div>';
+    html += '<p style="font-size:13px;color:#64748b;margin-bottom:16px;">Group: ' + (project.grupo || []).join(', ') + '</p>';
+
+    // Group by phase
+    var phases = (state.config && state.config.phases) || [{id:'introduccion',name:'Introduction'}];
+    phases.forEach(function(ph) {
+        var msgs = (project.chat || []).filter(function(m) { return m.fase === ph.id; });
+        if (!msgs.length) return;
+        html += '<h3>' + esc(ph.name) + ' (' + msgs.length + ' interactions)</h3>';
+        msgs.forEach(function(m, localIdx) {
+            var globalIdx = project.chat.indexOf(m);
+            html += '<div class="interaction">';
+            html += '<div class="prompt">' + esc(m.prompt) + '</div>';
+            html += '<div class="response">' + esc((m.respuesta || '').substring(0, 500)) + (m.respuesta && m.respuesta.length > 500 ? '...' : '') + '</div>';
+            html += '<div class="meta">';
+            html += '<span>' + (m.fecha || '') + '</span>';
+            html += '<span>' + (m.autor || '') + '</span>';
+            if (m.decision && m.decision.accion) {
+                var labels = {aplicado:'Accepted', no_aplicado:'Rejected', parcialmente:'Partial'};
+                html += '<span style="font-weight:600;">' + (labels[m.decision.accion] || '') + '</span>';
+                if (m.decision.justificacion) html += '<span>"' + esc(m.decision.justificacion.substring(0,100)) + '"</span>';
+            } else {
+                html += '<span style="color:#f59e0b;">No decision yet</span>';
+            }
+            // Score
+            html += '<span class="score-btns">';
+            for (var s = 0; s <= 4; s++) {
+                html += '<button class="' + (m.teacher_score === s ? 'active' : '') + '" onclick="scoreInteraction(\'' + id + '\',' + globalIdx + ',' + s + ')">' + s + '</button>';
+            }
+            html += '</span>';
+            html += '</div></div>';
+        });
+    });
+
+    detail.innerHTML = html;
+}
+
+async function scoreInteraction(projectId, chatIndex, score) {
+    var r = await apiJson('/projects/' + projectId + '/score', { chat_index: chatIndex, score: score });
+    if (r.ok) { toast('Score saved'); openProject(projectId); }
+}
+
+async function deleteProject(id) {
+    if (!confirm('Delete this project? It will be moved to a deleted folder.')) return;
+    var r = await api('/projects/' + id, { method: 'DELETE' });
+    if (r.ok) { toast('Project deleted'); document.getElementById('project-detail').classList.add('hidden'); loadProjects(); }
+}
+
+init();
+</script>
+</body>
+</html>
