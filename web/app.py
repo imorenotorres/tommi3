@@ -13,6 +13,7 @@ ensure_venv()
 import json
 import logging
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -21,7 +22,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, File as FastFile, HTTPException, Query, Request, Depends, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, RedirectResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 # Cargar .env de web/ con override para asegurar que se usa la configuración correcta
 _web_env = Path(__file__).parent / ".env"
@@ -30,7 +31,7 @@ load_dotenv(_web_env, override=True)
 from agent_runner import AgentRunner
 from auth import (
     authenticate, approve_access_request, change_password, create_access_request,
-    create_user, create_user_pending, create_invite_token, delete_user,
+    create_user, create_user_pending, create_invite_token, delete_access_request, delete_user,
     ensure_superuser, get_session, has_role, list_access_requests, list_users,
     logout, mark_onboarding_seen, reject_access_request, send_invite_email, set_password_from_invite,
     update_user_role, user_exists, validate_invite_token, validate_password,
@@ -52,6 +53,16 @@ ENABLE_LOGGING = os.getenv("ENABLE_LOGGING", "true").lower() in ("true", "1", "y
 # All logs (conversations + feedback) stored in /logs, one file per agent
 LOGS_DIR = Path(__file__).parent / "logs"
 LOGS_DIR.mkdir(exist_ok=True)
+
+
+def safe_filename_component(value: str, fallback: str = "unknown") -> str:
+    """Turn arbitrary user-supplied text into something safe to use as a
+    filename (or part of one). Collapses every run of characters that
+    aren't a normal letter, digit, or underscore into a single space, which
+    makes path traversal (e.g. "../../x" or "..\\..\\x") impossible while
+    leaving normal ids/names untouched. Use this anywhere request input
+    ends up in a path — never build a path from raw user text directly."""
+    return re.sub(r"[^A-Za-z0-9_]+", " ", value or "").strip() or fallback
 
 # Per-agent conversation loggers (one .log file per agent, created on demand)
 _agent_loggers: dict = {}
@@ -157,8 +168,31 @@ class AuthMiddleware(BaseHTTPMiddleware):
     # Routes that don't require authentication
     PUBLIC_PATHS = {"/api/auth/login", "/api/auth/invite/validate", "/api/auth/invite/set-password", "/api/auth/request-access", "/api/auth/forgot-password"}
 
+    # A "provisional" password (the auto-created default admin account, or
+    # anyone an admin creates directly rather than inviting) must be changed
+    # before it can be used for anything else — these three endpoints are
+    # the only exceptions, so the account can actually see its own state and
+    # change it. This is deliberately broader than PUBLIC_PATHS/the checks
+    # below: it applies to every */api/* path (not just the ones directly
+    # under /api/), since it's not about whether login is required, only
+    # about what an already-logged-in provisional account may do.
+    PROVISIONAL_ALLOWED_PATHS = {"/api/auth/change-password", "/api/auth/me", "/api/auth/logout"}
+
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
+
+        if "/api/" in path and path not in self.PROVISIONAL_ALLOWED_PATHS:
+            token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+            if not token:
+                token = request.query_params.get("token", "")
+            if token:
+                session = get_session(token)
+                if session and session.get("provisional_password"):
+                    return JSONResponse(status_code=403, content={
+                        "detail": "You must change your provisional password before continuing.",
+                        "provisional_password": True,
+                    })
+
         # Only protect /api/ routes (not static files, HTML pages, etc.)
         # PDF endpoints are public (academic documents, not personal data)
         # Study app routes are public (participants don't need TOMMI accounts)
@@ -408,15 +442,15 @@ from apps.matomo_analytics.matomo_analytics import router as matomo_analytics_ro
 app.include_router(matomo_analytics_router)
 app.mount("/site-analytics/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "matomo_analytics" / "static"), name="matomo_analytics_static")
 
-# Mount Survey DATA FOR L.I.F.E. app
-from apps.survey_datalife.survey_datalife import router as survey_datalife_router
-app.include_router(survey_datalife_router)
-app.mount("/survey-datalife/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "survey_datalife" / "static"), name="survey_datalife_static")
-
 # Mount Collaboration Dashboard app
 from apps.collaboration_dashboard.collaboration_dashboard import router as collaboration_dashboard_router
 app.include_router(collaboration_dashboard_router)
 app.mount("/contactos-exploratorios/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "collaboration_dashboard" / "static"), name="collaboration_dashboard_static")
+
+# Mount Personal Dashboard app
+from apps.personal_dashboard.personal_dashboard import router as personal_dashboard_router
+app.include_router(personal_dashboard_router)
+app.mount("/personal-dashboard/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "personal_dashboard" / "static"), name="personal_dashboard_static")
 
 
 # ---------------------------------------------------------------------------
@@ -695,15 +729,15 @@ def _check_directory_email(email: str) -> str:
     """Check if an email exists in the directory. Returns the person's name if found, empty string if not."""
     try:
         import json
-        directory_path = SCRIPT_DIR / "apps" / "directory" / "data.json"
+        directory_path = SCRIPT_DIR / "apps" / "new_directory" / "data.json"
         if not directory_path.exists():
             return ""
         with open(directory_path, encoding="utf-8") as f:
             data = json.load(f)
         email_lower = email.lower()
-        for user in data.get("users", []):
-            if user.get("email", "").lower() == email_lower:
-                return f"{user.get('first_name', '')} {user.get('family_name', '')}".strip()
+        for person in data.get("people", []):
+            if person.get("email", "").lower() == email_lower:
+                return f"{person.get('first_name', '')} {person.get('family_name', '')}".strip()
     except Exception:
         pass
     return ""
@@ -1015,6 +1049,16 @@ class AccessRequestBody(BaseModel):
     profile_url: str = ""
     reason: str = ""
 
+    @field_validator("profile_url")
+    @classmethod
+    def _validate_profile_url(cls, v):
+        # Rendered as a clickable link to whoever reviews the request, so
+        # (like every other user-supplied link field in this app) it must
+        # not be allowed to be a "javascript:" URI.
+        if v and not v.strip().lower().startswith(("http://", "https://")):
+            raise ValueError("Profile URL must start with http:// or https://")
+        return v
+
 
 @app.post("/api/auth/request-access")
 async def api_request_access(req: AccessRequestBody, request: Request):
@@ -1167,6 +1211,16 @@ async def api_reject_request(email: str, session: dict = Depends(require_role("s
     ok = reject_access_request(email)
     if not ok:
         raise HTTPException(status_code=404, detail="Pending request not found")
+    return {"ok": True}
+
+
+@app.delete("/api/auth/access-requests/{email}")
+async def api_delete_request(email: str, session: dict = Depends(require_role("superuser"))):
+    """Permanently remove an access request once a superuser has finished
+    handling it (the intranet's "Solved" button) — there is no undo."""
+    ok = delete_access_request(email)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Request not found")
     return {"ok": True}
 
 
@@ -2230,7 +2284,13 @@ _LALI_PROYECTOS_DIR.mkdir(exist_ok=True)
 
 
 def _load_proyecto(project_id: str) -> dict | None:
-    path = _LALI_PROYECTOS_DIR / f"{project_id}.json"
+    # project_id ends up in a filename below (it's taken straight from the
+    # URL on every read/write/delete endpoint), so it must never be treated
+    # as anything but inert text.
+    safe_id = safe_filename_component(project_id, "")
+    if not safe_id:
+        return None
+    path = _LALI_PROYECTOS_DIR / f"{safe_id}.json"
     if not path.exists():
         return None
     with open(path, "r", encoding="utf-8") as f:
@@ -2238,7 +2298,7 @@ def _load_proyecto(project_id: str) -> dict | None:
 
 
 def _save_proyecto(proyecto: dict):
-    path = _LALI_PROYECTOS_DIR / f"{proyecto['id']}.json"
+    path = _LALI_PROYECTOS_DIR / f"{safe_filename_component(proyecto['id'], 'unknown_project')}.json"
     proyecto["updated"] = datetime.now().strftime("%Y-%m-%d %H:%M")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(proyecto, f, ensure_ascii=False, indent=2)
@@ -2351,8 +2411,9 @@ async def lali_delete_proyecto(project_id: str, request: Request):
     if not proyecto:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
     # Move to deleted folder (not permanent deletion)
-    project_file = _LALI_PROYECTOS_DIR / f"{project_id}.json"
-    deleted_file = _LALI_PROYECTOS_DELETED_DIR / f"{project_id}.json"
+    safe_id = safe_filename_component(project_id, "unknown_project")
+    project_file = _LALI_PROYECTOS_DIR / f"{safe_id}.json"
+    deleted_file = _LALI_PROYECTOS_DELETED_DIR / f"{safe_id}.json"
     if project_file.exists():
         import shutil
         shutil.move(str(project_file), str(deleted_file))
@@ -2846,8 +2907,11 @@ async def lali_submit_bulos(request: Request):
     if not email1:
         raise HTTPException(status_code=400, detail="Email requerido")
 
+    # Like agent_id in /api/feedback above, this ends up in a filename and
+    # must never be treated as anything but inert text.
     pair_id = email1 + ("_" + email2 if email2 else "")
-    pair_file = _BULOS_RESPONSES_DIR / f"{pair_id.replace('@', '_at_')}.json"
+    safe_pair_id = safe_filename_component(pair_id, "unknown_pair")
+    pair_file = _BULOS_RESPONSES_DIR / f"{safe_pair_id}.json"
     data = {
         "email1": email1,
         "email2": email2,
@@ -7152,14 +7216,9 @@ class FeedbackRequest(BaseModel):
 async def submit_feedback(fb: FeedbackRequest):
     """Log user feedback on an agent response.
     User and tester feedback are stored in separate per-agent files."""
-    import re
-
     # agent_id ends up in a filename below, so it must never be treated as
-    # anything but inert text — collapse every run of non-alphanumeric
-    # characters (path separators, dots, etc.) into a single space, which
-    # makes path traversal (e.g. "../../x") impossible while leaving normal
-    # agent ids (letters/digits/underscores) untouched.
-    safe_agent_id = re.sub(r"[^A-Za-z0-9_]+", " ", fb.agent_id).strip() or "unknown_agent"
+    # anything but inert text.
+    safe_agent_id = safe_filename_component(fb.agent_id, "unknown_agent")
 
     is_positive = fb.rating == "up"
     entry = {

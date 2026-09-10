@@ -257,6 +257,12 @@ window.GUIDE_CONTENT = {
         { selector: '#btn-new-collab', text: 'Register a new exploratory contact here.' },
         { selector: '#search-input', text: 'Search and filter existing contacts here.' },
     ],
+    personal_dashboard: [
+        { text: 'A personal to-do manager: create tasks linked to a unit/subunit and directory colleagues, each tracking their own status.' },
+        { selector: '#btn-new-task', text: 'Create a new task here, optionally linking it to a unit and assigning it to one or more directory colleagues.' },
+        { selector: '#view-toggle', text: '"My tasks" shows only tasks assigned to you, with your own status. "All tasks" shows every public task, with an overall status and who still has work pending.' },
+        { selector: '#search-input', text: 'Search and filter tasks by status or unit here.' },
+    ],
     directory_overview: [
         { text: 'The Directory lists people, units, universities, and the org chart for UNINOVIS.' },
         { selector: '.tabs', text: 'Switch between People, Units, Universities, and Org Chart using these tabs.' },

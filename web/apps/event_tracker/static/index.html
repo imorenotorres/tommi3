@@ -963,7 +963,7 @@ function timedBlockHTML(item) {
   const leftPct = widthPct * lane;
   const style = `top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);`;
   const timePrefix = ev.all_day ? '' : fmtTime(seg.start) + ' ';
-  return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail('${ev.id}')" title="${esc(displayName)}${uni}">${timePrefix}${esc(displayName)}${uni}</div>`;
+  return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail('${ev.id}')" title="${esc(displayName)}${esc(uni)}">${timePrefix}${esc(displayName)}${esc(uni)}</div>`;
 }
 
 function evTZ(ev) { return ev.timezone || 'CEST'; }
@@ -982,8 +982,8 @@ function chipHTML(ev, date) {
   const shortName = displayName.length > 22 ? displayName.slice(0, 20) + '...' : displayName;
   const tbcCls = ev.date_tbc ? ' tbc' : '';
   const tbcPrefix = ev.date_tbc ? '<span style="font-size:0.6rem;opacity:0.85;">TBC</span> ' : '';
-  const segLabel = seg && seg.label ? ' — ' + seg.label : '';
-  return `<div class="event-chip ${cls}${catCls}${tbcCls}" onclick="showDetail('${ev.id}')" title="${displayName}${uni}${segLabel}${isCat ? ' [Agora Catalogue]' : ''}">${tbcPrefix}${timeLabel}${shortName}</div>`;
+  const segLabel = seg && seg.label ? ' — ' + esc(seg.label) : '';
+  return `<div class="event-chip ${cls}${catCls}${tbcCls}" onclick="showDetail('${ev.id}')" title="${esc(displayName)}${esc(uni)}${segLabel}${isCat ? ' [Agora Catalogue]' : ''}">${tbcPrefix}${timeLabel}${esc(shortName)}</div>`;
 }
 
 // -- Month view --------------------------------------------------------------
@@ -1164,8 +1164,8 @@ function renderList() {
     html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.start_date ? '<span class="tbc-badge">' + esc(ev.date_tbc_label || 'TBC') + '</span>' : fmtShort(ev.start_date, ev.all_day) + (ev.all_day ? '' : ' <small style="color:var(--text-light);">' + tz + '</small>')}</td>`;
     html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.end_date ? '&mdash;' : fmtShort(ev.end_date, ev.all_day)}</td>`;
     html += `<td>${ev.date_tbc ? '<span class="tbc-badge">TBC</span> ' : ''}${isCat ? 'Synchronised ' : ''}<strong>${esc(ev.name)}</strong></td>`;
-    html += `<td>${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="cat-badge ${CAT_CSS_CLASS(c)}">${c}</span>`).join(' ')}</td>`;
-    html += `<td>${(ev.universities || (ev.university ? [ev.university] : [])).join(', ')}</td>`;
+    html += `<td>${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="cat-badge ${CAT_CSS_CLASS(c)}">${esc(c)}</span>`).join(' ')}</td>`;
+    html += `<td>${esc((ev.universities || (ev.university ? [ev.university] : [])).join(', '))}</td>`;
     html += `<td><span class="type-badge${eType==='Virtual'?' virtual':''}">${eType}</span></td>`;
     html += `<td style="font-size:0.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${isCat ? '<span class="catalogue-badge">Agora</span>' : esc(locDisplay)}</td>`;
     html += '</tr>';
@@ -1236,21 +1236,21 @@ function showDetail(id) {
   const eType = ev.event_type || 'Physical';
   const typeIcon = eType === 'Virtual' ? '&#128187; Virtual' : '&#127970; Physical';
   let html = `
-    <div class="detail-field"><div class="dl">Category/ies</div><div class="dv">${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="event-chip ${CAT_CSS_CLASS(c)}" style="display:inline-block;cursor:default;margin:0 4px 4px 0;">${c}</span>`).join('')}</div></div>
+    <div class="detail-field"><div class="dl">Category/ies</div><div class="dv">${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="event-chip ${CAT_CSS_CLASS(c)}" style="display:inline-block;cursor:default;margin:0 4px 4px 0;">${esc(c)}</span>`).join('')}</div></div>
     ${ev.source === 'catalogue' ? '<div class="detail-field"><div class="dl">Source</div><div class="dv"><span class="catalogue-badge">Synchronised from Agora Event Catalogue</span></div></div>' : ''}
-    ${ev.uninovis_group ? '<div class="detail-field"><div class="dl">UNINOVIS Group</div><div class="dv">' + ev.uninovis_group + '</div></div>' : ''}
-    <div class="detail-field"><div class="dl">Organizing University/ies</div><div class="dv">${(ev.universities || (ev.university ? [ev.university] : [])).join(', ') || '<em>Not specified</em>'}</div></div>
+    ${ev.uninovis_group ? '<div class="detail-field"><div class="dl">UNINOVIS Group</div><div class="dv">' + esc(ev.uninovis_group) + '</div></div>' : ''}
+    <div class="detail-field"><div class="dl">Organizing University/ies</div><div class="dv">${(ev.universities || (ev.university ? [ev.university] : [])).join(', ') ? esc((ev.universities || (ev.university ? [ev.university] : [])).join(', ')) : '<em>Not specified</em>'}</div></div>
     <div class="detail-field"><div class="dl">Type</div><div class="dv">${typeIcon}</div></div>
   `;
   if (ev.component_type) {
     const compLabel = ev.component_type === 'pre' ? 'Pre-event virtual component' : 'Post-event virtual component';
     const parentEv = events.find(e => e.id === ev.linked_event);
-    html += `<div class="detail-field"><div class="dl">Component</div><div class="dv">${compLabel} of <strong>${parentEv ? parentEv.name : ev.linked_event}</strong></div></div>`;
+    html += `<div class="detail-field"><div class="dl">Component</div><div class="dv">${compLabel} of <strong>${esc(parentEv ? parentEv.name : ev.linked_event)}</strong></div></div>`;
   }
   if (eType === 'Physical' && ev.place) html += `<div class="detail-field"><div class="dl">Place</div><div class="dv">${esc(ev.place)}</div></div>`;
   if (eType === 'Virtual' && ev.meeting_url) html += `<div class="detail-field"><div class="dl">Meeting URL</div><div class="dv"><a href="${esc(ev.meeting_url)}" target="_blank" rel="noopener">${esc(ev.meeting_url)}</a></div></div>`;
 
-  const descHtml = ev.description || '<em>No description</em>';
+  const descHtml = ev.description ? esc(ev.description) : '<em>No description</em>';
   html += `
     <div class="detail-field"><div class="dl">Description</div><div class="dv">${descHtml}</div></div>
     <div class="detail-field"><div class="dl">Start</div><div class="dv">${ev.date_tbc ? tbcDateDisplay(ev) : fmtDateTZ(ev.start_date, evTZ(ev), ev.all_day)}${ev.all_day && !ev.date_tbc ? ' <span class="tbc-badge">All day</span>' : ''}</div></div>
@@ -1270,11 +1270,11 @@ function showDetail(id) {
     const parts = resolveParticipants(ev);
     const gids = ev.participant_groups || [];
     html += '<div class="detail-field"><div class="dl">Participants (' + parts.length + ')</div><div class="dv">';
-    if (gids.length) html += '<div style="margin-bottom:4px;font-size:0.8rem;color:var(--text-light);">Groups: ' + gids.map(g => '<strong>' + groupLabel(g) + '</strong>').join(', ') + '</div>';
+    if (gids.length) html += '<div style="margin-bottom:4px;font-size:0.8rem;color:var(--text-light);">Groups: ' + gids.map(g => '<strong>' + esc(groupLabel(g)) + '</strong>').join(', ') + '</div>';
     if (parts.length) {
       html += '<div class="detail-part-list">';
       parts.sort((a,b) => a.family_name.localeCompare(b.family_name)).forEach(u => {
-        html += `<div class="detail-part-item">${u.first_name} ${u.family_name} <span class="dpi-uni">(${u.university})</span> &mdash; <span style="font-size:0.8rem;">${u.email}</span></div>`;
+        html += `<div class="detail-part-item">${esc(u.first_name)} ${esc(u.family_name)} <span class="dpi-uni">(${esc(u.university)})</span> &mdash; <span style="font-size:0.8rem;">${esc(u.email)}</span></div>`;
       });
       html += '</div>';
       html += `<div style="margin-top:8px;"><button class="btn-copy-emails" onclick="copyEmails('${ev.id}')">Copy all emails</button><span class="copy-feedback" id="copyFeedback"></span></div>`;

@@ -50,6 +50,15 @@
         .server-badge { position: absolute; top: 6px; right: 8px; font-size: 0.58em; font-weight: 600; padding: 1px 6px; border-radius: 6px; }
         .server-agora { background: #d1ecf1; color: #0c5460; }
         .server-gloria { background: #e8e0f0; color: #4250b3; }
+
+        /* Pending access-request count bubble — on the Sys Admin tab and the
+           User Management tool card */
+        .notif-badge {
+            display: inline-block; background: #dc2626; color: #fff; font-weight: 700;
+            font-size: 0.68em; line-height: 1; min-width: 15px; text-align: center;
+            padding: 3px 5px; border-radius: 10px; margin-left: 5px; vertical-align: middle;
+        }
+        .tool-card .notif-badge { position: absolute; top: 6px; left: 8px; margin-left: 0; }
         .tool-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
         .tool-card .tool-icon { font-size: 1.3em; margin-bottom: 4px; }
         .tool-card h3 { color: #2D3876; font-size: 0.88em; margin-bottom: 2px; }
@@ -155,6 +164,7 @@ var TOOL_ACCESS = {
     'researcher_connect': ['teaching_staff', 'tester', 'content_manager', 'superuser'],
     'research_proposals': ['teaching_staff', 'tester', 'content_manager', 'superuser'],
     'collaboration_dashboard': ['uninovis_staff', 'content_manager', 'superuser'],
+    'personal_dashboard':      ['uninovis_staff', 'content_manager', 'superuser'],
     'research_portfolio': ['teaching_staff', 'tester', 'content_manager', 'superuser'],
     'research_explorers': ['student', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
     'european_projects':  ['student', 'admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
@@ -246,9 +256,14 @@ var SECTIONS = [
         tools: [
             { id: 'holiday_tracker', name: 'UMA Holiday Tracker', icon: '\uD83C\uDFD6\uFE0F', desc: 'Shared calendar of UMA holidays, personal days, and comisiones de servicio. Weekends and UMA festivities greyed.', url: '/uma-holiday-tracker/', status: 'active' },
             { id: 'collaboration_dashboard', name: 'Contactos exploratorios', icon: '\uD83E\uDD1D', desc: 'Registro de contactos y visitas en UNINOVIS con vistas a acuerdos docentes, de investigación...', url: '/contactos-exploratorios/', status: 'active' },
+            { id: 'personal_dashboard', name: 'Personal Dashboard', icon: '📋', desc: 'Personal to-do manager: create tasks linked to units and directory colleagues, track status per assignee.', url: '/personal-dashboard/', status: 'active' },
         ]
     },
 ];
+
+function esc(s) {
+    return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+}
 
 function canAccess(toolId, roles) {
     if (!TOOL_ACCESS[toolId]) return true;
@@ -308,6 +323,37 @@ async function checkAuth() {
     } catch (e) { showLogin(); }
 }
 
+// ── Pending access-request notification bubble (superuser only) ────
+// Shown on the "Sys Admin" tab and the "User Management" tool card.
+async function updatePendingRequestsBadge() {
+    var count = 0;
+    try {
+        var res = await fetch('/api/auth/access-requests?status=pending', {
+            headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        if (res.ok) {
+            var requests = await res.json();
+            count = requests.length;
+        }
+    } catch (e) { /* leave count at 0 */ }
+
+    var badgeHtml = count > 0 ? '<span class="notif-badge">' + count + '</span>' : '';
+
+    var tab = document.querySelector('.wp-tab[data-tab="superuser"]');
+    if (tab) {
+        var existing = tab.querySelector('.notif-badge');
+        if (existing) existing.remove();
+        if (count > 0) tab.insertAdjacentHTML('beforeend', badgeHtml);
+    }
+
+    var card = document.getElementById('tool-card-user_management');
+    if (card) {
+        var existingCard = card.querySelector('.notif-badge');
+        if (existingCard) existingCard.remove();
+        if (count > 0) card.insertAdjacentHTML('afterbegin', badgeHtml);
+    }
+}
+
 function showLogin() {
     window.location.href = '/login?redirect=/';
 }
@@ -333,6 +379,10 @@ async function showMain() {
     }
 
     renderSections(roles);
+
+    if (roles.indexOf('superuser') !== -1) {
+        updatePendingRequestsBadge();
+    }
 
     renderGuidesMenu(document.getElementById('topGuidesSlot'), roles, authUser.username);
     var hasGuideLink = new URLSearchParams(window.location.search).has('guide');
@@ -381,6 +431,7 @@ var LEARN_GUIDES = {
     // @uma.es login, mirroring the "UMA internal tools" section's own gate.
     holiday_tracker: [{ id: 'learn_holiday_tracker', title: 'Learn: UMA Holiday Tracker', roles: ['uninovis_staff', 'superuser'], emailDomain: 'uma.es', content: 'holiday_tracker' }],
     collaboration_dashboard: [{ id: 'learn_collaboration_dashboard', title: 'Learn: Contactos exploratorios', roles: ['uninovis_staff', 'superuser'], emailDomain: 'uma.es', content: 'collaboration_dashboard' }],
+    personal_dashboard: [{ id: 'learn_personal_dashboard', title: 'Learn: Personal Dashboard', roles: ['uninovis_staff', 'superuser'], emailDomain: 'uma.es', content: 'personal_dashboard' }],
     new_directory: [
         { id: 'learn_directory', title: 'Learn: Directory', content: 'directory_overview' },
         { id: 'learn_directory_add_person', title: 'Directory: How to add a person', roles: ['content_manager', 'superuser'], content: 'directory_add_person' },
@@ -727,6 +778,10 @@ function openUserManagement() {
         + '<button onclick="closeUserManagement()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
         + '</div>'
         + '<div id="um-message" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+        + '<div id="um-requests-section" style="display:none;margin-bottom:16px;padding:12px;background:#fff7ed;border-radius:8px;border:1px solid #fed7aa;">'
+        + '<h3 style="margin:0 0 8px 0;font-size:0.9rem;color:#9a3412;">New access requests</h3>'
+        + '<div id="um-requests-list"></div>'
+        + '</div>'
         + '<div style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">'
         + '<h3 style="margin:0 0 8px 0;font-size:0.9rem;">Create new user</h3>'
         + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">'
@@ -791,6 +846,7 @@ function openUserManagement() {
     overlay.appendChild(panel);
     overlay.addEventListener('click', function(e) { if (e.target === overlay) closeUserManagement(); });
     document.body.appendChild(overlay);
+    umLoadPendingRequests();
     umLoadUsers();
     umCheckSmtp();
     umSetupBulkInvite();
@@ -972,6 +1028,82 @@ async function umFetch(path, opts) {
     opts = opts || {};
     opts.headers = Object.assign({ 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' }, opts.headers || {});
     return fetch(path, opts);
+}
+
+// ── Pending access requests block (top of the User Management panel) ──
+async function umLoadPendingRequests() {
+    var section = document.getElementById('um-requests-section');
+    var container = document.getElementById('um-requests-list');
+    if (!section || !container) return;
+
+    try {
+        var res = await umFetch('/api/auth/access-requests?status=pending');
+        var requests = await res.json();
+
+        if (!res.ok || !requests.length) {
+            section.style.display = 'none';
+            updatePendingRequestsBadge();
+            return;
+        }
+
+        section.style.display = '';
+        var html = '';
+        requests.forEach(function(r) {
+            var date = new Date(r.created * 1000).toLocaleDateString();
+            var deptInfo = r.department ? ' &middot; ' + esc(r.department) : '';
+            var profileLink = r.profile_url ? ' &middot; <a href="' + esc(r.profile_url) + '" target="_blank" rel="noopener" style="color:#2563eb;">profile</a>' : '';
+            var reasonInfo = r.reason ? '<div style="font-size:0.75rem;color:#78716c;margin-top:2px;">' + esc(r.reason) + '</div>' : '';
+            html += '<div style="padding:8px 0;border-bottom:1px solid #fed7aa;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
+                + '<div>'
+                + '<div style="font-weight:600;font-size:0.85rem;">' + esc(r.full_name) + ' &lt;' + esc(r.email) + '&gt;</div>'
+                + '<div style="font-size:0.78rem;color:#78716c;">' + esc(r.institution) + deptInfo + profileLink + ' &middot; ' + date + '</div>'
+                + reasonInfo
+                + '</div>'
+                + '<button onclick="umSolveRequest(\'' + esc(r.email).replace(/'/g, '&#39;') + '\')" style="background:#16a34a;color:#fff;border:none;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:0.8rem;white-space:nowrap;">Solved</button>'
+                + '</div>';
+        });
+        container.innerHTML = html;
+    } catch (e) {
+        section.style.display = 'none';
+    }
+    updatePendingRequestsBadge();
+}
+
+function umSolveRequest(email) {
+    var existing = document.getElementById('um-solve-dialog');
+    if (existing) existing.remove();
+
+    var dialog = document.createElement('div');
+    dialog.id = 'um-solve-dialog';
+    dialog.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:1100;display:flex;justify-content:center;align-items:center;';
+    dialog.innerHTML = '<div style="background:#fff;border-radius:10px;padding:20px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);position:relative;">'
+        + '<button onclick="document.getElementById(\'um-solve-dialog\').remove()" style="position:absolute;top:8px;right:10px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">&times;</button>'
+        + '<h3 style="margin:0 0 10px 0;font-size:0.95rem;color:#9a3412;">Delete this request?</h3>'
+        + '<p style="font-size:0.85rem;margin:0 0 8px 0;">The request from <strong>' + esc(email) + '</strong> will be <strong>permanently deleted</strong> — this cannot be undone.</p>'
+        + '<p style="font-size:0.85rem;margin:0 0 14px 0;">Before continuing, make sure the account has already been created (via "Create new user" / "Invite user by email" below) if this person needs access.</p>'
+        + '<div style="display:flex;justify-content:flex-end;gap:8px;">'
+        + '<button onclick="document.getElementById(\'um-solve-dialog\').remove()" style="background:#e9ecef;border:1px solid #ccc;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Cancel</button>'
+        + '<button onclick="umConfirmSolveRequest(\'' + esc(email).replace(/'/g, '&#39;') + '\')" style="background:#dc2626;color:#fff;border:none;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Delete request</button>'
+        + '</div></div>';
+    dialog.addEventListener('click', function(e) { if (e.target === dialog) dialog.remove(); });
+    document.body.appendChild(dialog);
+}
+
+async function umConfirmSolveRequest(email) {
+    try {
+        var res = await umFetch('/api/auth/access-requests/' + encodeURIComponent(email), { method: 'DELETE' });
+        var dialog = document.getElementById('um-solve-dialog');
+        if (dialog) dialog.remove();
+        if (!res.ok) {
+            var data = await res.json();
+            umMsg(data.detail || 'Error clearing request', false);
+            return;
+        }
+        umMsg('Request from ' + email + ' cleared', true);
+        umLoadPendingRequests();
+    } catch (e) {
+        umMsg('Request failed', false);
+    }
 }
 
 async function umLoadUsers() {
@@ -1399,6 +1531,7 @@ var TOOL_LABELS = {
     research_explorers: 'Research Explorers',
     european_projects: 'European Projects',
     collaboration_dashboard: 'Contactos exploratorios',
+    personal_dashboard: 'Personal Dashboard',
     // Events & Communication
     event_catalogue: 'Event Catalogue',
     // Administration

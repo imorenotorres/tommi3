@@ -57,6 +57,7 @@ _DEFAULT_TOOL_ACCESS = {
     "research_explorers": ["student", "teaching_staff", "tester", "content_manager", "superuser"],
     "european_projects":  ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     "collaboration_dashboard": ["uninovis_staff", "content_manager", "superuser"],
+    "personal_dashboard":     ["uninovis_staff", "content_manager", "superuser"],
     # Events & Communication
     "event_catalogue":    ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     # Administration
@@ -560,6 +561,9 @@ def get_session(token: str) -> Optional[dict]:
         return None
     # Update role if changed
     session["role"] = user["role"]
+    # Kept fresh on every lookup (not just at login) so a password change
+    # mid-session takes effect immediately, without requiring a re-login.
+    session["provisional_password"] = user.get("provisional_password", False)
     return session
 
 
@@ -883,6 +887,19 @@ def list_access_requests(status: str | None = None) -> list[dict]:
     if status:
         requests = [r for r in requests if r["status"] == status]
     return requests
+
+
+def delete_access_request(email: str) -> bool:
+    """Permanently remove an access request, regardless of its status.
+    Used once a reviewer has finished handling it (the intranet's "Solved"
+    button) — there is no undo. Returns True if a matching request was
+    found and removed."""
+    requests = _load_requests()
+    remaining = [r for r in requests if r["email"] != email]
+    if len(remaining) == len(requests):
+        return False
+    _save_requests(remaining)
+    return True
 
 
 def approve_access_request(email: str, role: str = "user") -> bool:

@@ -20,12 +20,12 @@ import httpx
 from dotenv import dotenv_values
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import FileResponse, StreamingResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 
 STATIC_DIR  = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH   = os.path.join(os.path.dirname(__file__), "data.json")
-DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "directory", "data.json")
+DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "new_directory", "data.json")
 ENV_PATH    = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
 
 router = APIRouter(prefix="/event-tracker", tags=["event_tracker"])
@@ -118,12 +118,88 @@ def save_data(data: dict):
 
 
 def load_directory():
-    # The old Agora Directory app this used to read from has been retired;
-    # degrade gracefully instead of failing every page load.
+    """Groups/subgroups + users view for the event participant picker,
+    built from the Directory app's units, people, and memberships (choosing
+    a unit/subunit here brings in everyone who belongs to it). Degrades to
+    empty if that app's data file isn't there, rather than failing every
+    page load.
+
+    "Groups" are top-level units; "subgroups" are every unit nested under a
+    top-level one, at any depth, flattened into one list — the event picker's
+    own UI only shows one level of subgroups per group, so a deeper WP >
+    subunit > sub-subunit chain is presented flat rather than re-nested.
+    """
     if not os.path.exists(DIRECTORY_DATA_PATH):
         return {"groups": [], "users": []}
     with open(DIRECTORY_DATA_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+
+    units = data.get("units", [])
+    people = data.get("people", [])
+    memberships = data.get("memberships", [])
+    units_by_id = {u["id"]: u for u in units}
+
+    children: dict = {}
+    for u in units:
+        pid = u.get("parent_id")
+        if pid is not None and pid in units_by_id:
+            children.setdefault(pid, []).append(u["id"])
+
+    def descendants(uid):
+        """Every unit nested under uid, at any depth (not including uid)."""
+        out = []
+        for cid in children.get(uid, []):
+            out.append(cid)
+            out.extend(descendants(cid))
+        return out
+
+    def top_level_id(uid):
+        """Walk up parent_id links to the root of uid's unit tree."""
+        u = units_by_id.get(uid)
+        seen = set()
+        while u and u.get("parent_id") in units_by_id and u["id"] not in seen:
+            seen.add(u["id"])
+            u = units_by_id[u["parent_id"]]
+        return u["id"] if u else uid
+
+    roots = [u["id"] for u in units if u.get("parent_id") not in units_by_id]
+    groups = [
+        {
+            "id": str(rid),
+            "name": units_by_id[rid]["name"],
+            "subgroups": [
+                {"id": str(did), "name": units_by_id[did]["name"]}
+                for did in descendants(rid)
+            ],
+        }
+        for rid in roots
+    ]
+
+    # person_id -> set of unit ids they're a direct member of
+    memberships_by_person: dict = {}
+    for m in memberships:
+        if m.get("unit_id") is not None:
+            memberships_by_person.setdefault(m["person_id"], set()).add(m["unit_id"])
+
+    users = [
+        {
+            "id": str(p["id"]),
+            "first_name": p.get("first_name", ""),
+            "family_name": p.get("family_name", ""),
+            "email": p.get("email", ""),
+            "university": p.get("university", ""),
+            # Selecting a top-level group also picks up members of its
+            # subgroups, so "groups" carries the root of every unit this
+            # person belongs to (directly or via a subunit).
+            "groups": sorted({str(top_level_id(uid)) for uid in memberships_by_person.get(p["id"], set())}),
+            # Selecting a specific subgroup should only match people
+            # directly in that unit, so "subgroups" is their direct
+            # memberships as-is.
+            "subgroups": sorted(str(uid) for uid in memberships_by_person.get(p["id"], set())),
+        }
+        for p in people
+    ]
+    return {"groups": groups, "users": users}
 
 
 # ---------------------------------------------------------------------------
@@ -492,6 +568,13 @@ class EventBody(BaseModel):
     virtual_post_start: str = ""
     virtual_post_end: str = ""
     virtual_post_url: str = ""
+
+    @field_validator("meeting_url", "registration_link", "virtual_pre_url", "virtual_post_url")
+    @classmethod
+    def _validate_url(cls, v):
+        if v and not v.lower().startswith(("http://", "https://")):
+            raise ValueError("URL must start with http:// or https://")
+        return v
 
 
 def _build_event(body: EventBody, start_date: str, end_date: str, series_id: str, username: str) -> dict:
@@ -943,6 +1026,14 @@ def export_tsv(
     )
 
 
+def _valid_url_or_blank(v: str) -> str:
+    """Only allow real http(s) links through; anything else (e.g. a
+    javascript: URI) is dropped rather than stored, matching the EventBody
+    validator used by the regular create/update endpoints."""
+    v = (v or "").strip()
+    return v if v.lower().startswith(("http://", "https://")) else ""
+
+
 class ImportResult(BaseModel):
     added: int = 0
     updated: int = 0
@@ -991,7 +1082,10 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
                               "start_date", "end_date", "registration_link",
                               "date_tbc", "date_tbc_label", "series_id"]:
                         if k in item:
-                            ev[k] = item[k]
+                            v = item[k]
+                            if k in ("meeting_url", "registration_link"):
+                                v = _valid_url_or_blank(v)
+                            ev[k] = v
                     break
             result.updated += 1
         else:
@@ -1004,10 +1098,10 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
                 "event_type": item.get("event_type", "Physical"),
                 "timezone": item.get("timezone", "CEST"),
                 "place": item.get("place", ""),
-                "meeting_url": item.get("meeting_url", ""),
+                "meeting_url": _valid_url_or_blank(item.get("meeting_url", "")),
                 "start_date": item.get("start_date", ""),
                 "end_date": item.get("end_date", ""),
-                "registration_link": item.get("registration_link", ""),
+                "registration_link": _valid_url_or_blank(item.get("registration_link", "")),
                 "image": item.get("image", ""),
                 "date_tbc": item.get("date_tbc", False),
                 "date_tbc_label": item.get("date_tbc_label", ""),
@@ -1055,7 +1149,10 @@ async def import_tsv(file: UploadFile = File(...), session: dict = Depends(_requ
                 if ev["id"] == eid:
                     for k in TSV_FIELDS:
                         if k in row and k != "id" and row[k]:
-                            ev[k] = row[k]
+                            v = row[k]
+                            if k in ("meeting_url", "registration_link"):
+                                v = _valid_url_or_blank(v)
+                            ev[k] = v
                     break
             result.updated += 1
         else:
@@ -1068,10 +1165,10 @@ async def import_tsv(file: UploadFile = File(...), session: dict = Depends(_requ
                 "event_type": row.get("event_type", "Physical"),
                 "timezone": row.get("timezone", "CEST"),
                 "place": row.get("place", ""),
-                "meeting_url": row.get("meeting_url", ""),
+                "meeting_url": _valid_url_or_blank(row.get("meeting_url", "")),
                 "start_date": row.get("start_date", ""),
                 "end_date": row.get("end_date", ""),
-                "registration_link": row.get("registration_link", ""),
+                "registration_link": _valid_url_or_blank(row.get("registration_link", "")),
                 "image": "",
                 "date_tbc": row.get("date_tbc", "").lower() in ("true", "1", "yes"),
                 "date_tbc_label": row.get("date_tbc_label", ""),

@@ -13,7 +13,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from fastapi.responses import FileResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
@@ -53,6 +53,13 @@ class ResearcherBody(BaseModel):
     looking_for: str = ""  # what kind of collaboration they seek
     orcid: str = ""
     website: str = ""
+
+    @field_validator("website")
+    @classmethod
+    def _validate_website(cls, v):
+        if v and not v.lower().startswith(("http://", "https://")):
+            raise ValueError("website must start with http:// or https://")
+        return v
 
 
 # -- Routes --------------------------------------------------------------------
@@ -285,7 +292,7 @@ async def import_excel(file: UploadFile = File(...), session: dict = Depends(_re
             "bio": cell("bio"),
             "looking_for": cell("looking_for"),
             "orcid": cell("orcid"),
-            "website": cell("website"),
+            "website": cell("website") if cell("website").lower().startswith(("http://", "https://")) else "",
         }
         data["researchers"].append(researcher)
         existing_emails.add(email)

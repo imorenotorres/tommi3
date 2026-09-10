@@ -391,7 +391,10 @@ async def proyecto_delete_doc(filename: str, request: Request):
     session = sessions.require(request)
     if not is_instructor(session):
         raise HTTPException(403, "Solo docentes")
-    path = _docs_dir(session["course_id"]) / filename
+    # Same cleanup as the upload endpoint above — filename ends up in a
+    # path and must never be treated as anything but inert text.
+    safe_name = re.sub(r'[^\w\-. ]', '_', filename or "")
+    path = _docs_dir(session["course_id"]) / safe_name
     if not path.exists():
         raise HTTPException(404, "Documento no encontrado")
     path.unlink()

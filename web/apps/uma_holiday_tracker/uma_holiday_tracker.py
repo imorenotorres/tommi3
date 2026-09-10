@@ -16,7 +16,7 @@ from pydantic import BaseModel, field_validator, model_validator
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
-DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "directory", "data.json")
+DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "new_directory", "data.json")
 FESTIVITIES_PATH = os.path.join(os.path.dirname(__file__), "festivities.json")
 
 router = APIRouter(prefix="/uma-holiday-tracker", tags=["holiday_tracker"])
@@ -33,7 +33,7 @@ def _display_name(username: str) -> str:
     except Exception:
         return username
     uname = username.strip().lower()
-    for u in directory.get("users", []):
+    for u in directory.get("people", []):
         emails = [e.strip().lower() for e in (u.get("email") or "").split(";")]
         if uname in emails:
             full = f"{u.get('first_name', '')} {u.get('family_name', '')}".strip()

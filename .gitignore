@@ -94,3 +94,4 @@ build/
 # Database files (anywhere)
 *.db
 *.json
+docs/security_audit_2026-09-10.md
