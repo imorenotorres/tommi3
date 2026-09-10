@@ -151,9 +151,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .cat-Holidays { background: #757575; }
 .cat-Innovation_Camp { background: #f4511e; }
 .cat-International_Week { background: #00acc1; }
-.event-chip.personal { border: 2px dashed #fff; opacity: 0.9; }
-.personal-badge { display: inline-block; font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; background: #ffe0b2; color: #e65100; margin-left: 4px; }
-
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; justify-content: center; align-items: center; }
 .modal-overlay.open { display: flex; }
 .modal { background: var(--card); border-radius: var(--radius); width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
@@ -228,7 +225,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 </head>
 <body>
 
-<script src="/static/nav.js?v=11"></script>
+<script src="/static/nav.js?v=12"></script>
 <script>uninovisNav({ crumbs: [{label:'WP1: Administration', href:'/#admin'}], current: 'Event Tracker' });</script>
 
 <!-- Agora sync bar (shown to editors only) -->
@@ -272,7 +269,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <button class="view-btn" id="btnListToggle" style="border-radius:var(--radius);margin-left:0;">List view</button>
     <span style="width:1px;height:24px;background:var(--border);"></span>
     <button class="btn-add" id="btnAdd" style="display:none;">+ New Internal Event</button>
-    <button class="nav-btn" id="btnPersonal" onclick="openEdit(null, 'personal')" style="display:none;font-size:0.82rem;">+ Personal Event</button>
     <div class="io-group" id="ioGroup" style="display:none;">
       <button class="nav-btn" onclick="openExportModal()" title="Export events with filters">Export</button>
       <button class="nav-btn" onclick="document.getElementById('importModal').classList.add('open')" title="Import events">Import</button>
@@ -434,14 +430,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
     <div class="modal-body">
       <input type="hidden" id="editId">
-      <input type="hidden" id="editVisibility" value="shared">
-      <div id="visibilityRow" style="margin-bottom:8px;">
-        <label>Visibility</label>
-        <select id="editVisibilitySelect" onchange="document.getElementById('editVisibility').value=this.value">
-          <option value="shared">Shared (visible to all)</option>
-          <option value="personal">Personal (only you)</option>
-        </select>
-      </div>
       <label>Name *</label>
       <input type="text" id="editName" required>
       <label>Category/ies *</label>
@@ -606,6 +594,20 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/[^A-Za-z0-9]+/g, '_');
 (async function init() {
   TOKEN = localStorage.getItem('tommi_token') || new URLSearchParams(location.search).get('token') || '';
 
+  // This app is only for logged-in users — anyone without a real session is
+  // sent to the login page instead.
+  if (!TOKEN) {
+    window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+    return;
+  }
+  let auth;
+  try {
+    auth = await api('GET', '/api/auth-check');
+  } catch (e) {
+    window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+    return;
+  }
+
   // Guide registration must never depend on this app's own data loading
   // successfully — it always runs first, so the "how to use it" guide is
   // still available even if the event data is down (e.g. a missing data file).
@@ -621,24 +623,18 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/[^A-Za-z0-9]+/g, '_');
     });
   } catch (e) { console.error('Guide registration failed:', e); }
 
-  try {
-    const auth = await api('GET', '/api/auth-check');
-    var userInfoEl = document.getElementById('userInfo');
-    if (userInfoEl) userInfoEl.textContent = auth.username + ' (' + auth.role + ')';
-    authUsername = auth.username;
-    canEdit = auth.can_edit;
-    authRoles = auth.roles || [auth.role];
-    isSuperuser = authRoles.includes('superuser');
-    // btnPersonal and btnSubscribe stay hidden (display:none in markup) until re-enabled.
-    if (canEdit) {
-      document.getElementById('btnAdd').style.display = '';
-      document.getElementById('ioGroup').style.display = '';
-      document.getElementById('syncBar').style.display = '';
-      loadCatalogueStatus();
-    }
-  } catch {
-    authUsername = 'guest';
-    canEdit = false;
+  var userInfoEl = document.getElementById('userInfo');
+  if (userInfoEl) userInfoEl.textContent = auth.username + ' (' + auth.role + ')';
+  authUsername = auth.username;
+  canEdit = auth.can_edit;
+  authRoles = auth.roles || [auth.role];
+  isSuperuser = authRoles.includes('superuser');
+  // btnSubscribe stays hidden (display:none in markup) until re-enabled.
+  if (canEdit) {
+    document.getElementById('btnAdd').style.display = '';
+    document.getElementById('ioGroup').style.display = '';
+    document.getElementById('syncBar').style.display = '';
+    loadCatalogueStatus();
   }
 
   try { await loadData(); } catch (e) { console.error('loadData failed:', e); }
@@ -976,11 +972,9 @@ function chipHTML(ev, date) {
   const cls = CAT_CSS_CLASS(ev.category);
   const isCat = ev.source === 'catalogue';
   const catCls = isCat ? ' catalogue' : '';
-  const personal = ev.visibility === 'personal' ? ' personal' : '';
   const seg = date ? segmentCoveringDate(ev, date) : null;
   const segStart = seg ? seg.start : ev.start_date;
   const t = segStart ? fmtTime(segStart) : '';
-  const icon = ev.visibility === 'personal' ? '&#128274; ' : '';
   const timeLabel = (ev.date_tbc || ev.all_day) ? '' : (t ? t + ' ' : '');
   const uniList = ev.universities || (ev.university ? [ev.university] : []);
   const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
@@ -989,7 +983,7 @@ function chipHTML(ev, date) {
   const tbcCls = ev.date_tbc ? ' tbc' : '';
   const tbcPrefix = ev.date_tbc ? '<span style="font-size:0.6rem;opacity:0.85;">TBC</span> ' : '';
   const segLabel = seg && seg.label ? ' — ' + seg.label : '';
-  return `<div class="event-chip ${cls}${catCls}${personal}${tbcCls}" onclick="showDetail('${ev.id}')" title="${displayName}${uni}${segLabel}${isCat ? ' [Agora Catalogue]' : ''}">${icon}${tbcPrefix}${timeLabel}${shortName}</div>`;
+  return `<div class="event-chip ${cls}${catCls}${tbcCls}" onclick="showDetail('${ev.id}')" title="${displayName}${uni}${segLabel}${isCat ? ' [Agora Catalogue]' : ''}">${tbcPrefix}${timeLabel}${shortName}</div>`;
 }
 
 // -- Month view --------------------------------------------------------------
@@ -1290,7 +1284,6 @@ function showDetail(id) {
     html += '</div></div>';
   }
 
-  if (ev.visibility === 'personal') html += `<div class="detail-field"><div class="dl">Visibility</div><div class="dv"><span class="personal-badge">Personal</span> Only visible to you</div></div>`;
   if (ev.series_id) {
     const cnt = events.filter(e => e.series_id === ev.series_id).length;
     html += `<div class="detail-field"><div class="dl">Recurring</div><div class="dv">Part of a series (${cnt} events)</div></div>`;
@@ -1433,7 +1426,7 @@ function renderPartPersonList() {
 
 function filterPersonList() { renderPartPersonList(); }
 
-function openEdit(id, defaultVisibility) {
+function openEdit(id) {
   const modal = document.getElementById('editModal');
   const catContainer = document.getElementById('editCategories');
   catContainer.innerHTML = INTERNAL_CATS.map(c =>
@@ -1474,15 +1467,9 @@ function openEdit(id, defaultVisibility) {
     toggleAllDay();
     editParticipants = [...(ev.participants || [])];
     editPartGroups = [...(ev.participant_groups || [])];
-    const vis = ev.visibility || 'shared';
-    document.getElementById('editVisibility').value = vis;
-    document.getElementById('editVisibilitySelect').value = vis;
     document.getElementById('recurrenceSection').style.display = 'none';
   } else {
-    const vis = defaultVisibility || 'shared';
-    document.getElementById('editModalTitle').textContent = vis === 'personal' ? 'New Personal Event' : 'New Event';
-    document.getElementById('editVisibility').value = vis;
-    document.getElementById('editVisibilitySelect').value = vis;
+    document.getElementById('editModalTitle').textContent = 'New Event';
     document.getElementById('editId').value = '';
     document.getElementById('editName').value = '';
     document.getElementById('editDesc').value = '';
@@ -1513,12 +1500,6 @@ function openEdit(id, defaultVisibility) {
     document.getElementById('editRecUntil').value = '';
     toggleRecurrenceFields();
   }
-  if (!canEdit) {
-    document.getElementById('visibilityRow').style.display = 'none';
-    document.getElementById('editVisibility').value = 'personal';
-  } else {
-    document.getElementById('visibilityRow').style.display = '';
-  }
   toggleTypeFields();
   showParticipantsSection(shouldShowParticipants());
   renderPartGroupTags(); renderPartPersonList();
@@ -1542,7 +1523,6 @@ async function saveEvent() {
     universities: [...document.querySelectorAll('#editUniversities .uni-cb:checked')].map(cb => cb.value),
     university: '',
     event_type: document.getElementById('editType').value,
-    visibility: document.getElementById('editVisibility').value,
     timezone: document.getElementById('editTimezone').value,
     place: document.getElementById('editPlace').value.trim(),
     meeting_url: document.getElementById('editMeetingUrl').value.trim(),

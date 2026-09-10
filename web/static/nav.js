@@ -36,7 +36,7 @@ function uninovisNav(opts) {
 
     // Fetch username and show logout button
     if (token) {
-        fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + token } })
+        fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } })
             .then(function(r) { return r.ok ? r.json() : null; })
             .then(function(data) {
                 if (data) {
@@ -90,7 +90,7 @@ function tommiAttachUserMenu(el, displayName) {
         // "Edit my profile" only appears if this account's email is a person in the directory
         var token = localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
         if (token) {
-            fetch('/new-directory/api/my-profile', { headers: { 'Authorization': 'Bearer ' + token } })
+            fetch('/directory/api/my-profile', { headers: { 'Authorization': 'Bearer ' + token } })
                 .then(function(r) { return r.ok ? r.json() : null; })
                 .then(function(profile) {
                     if (profile && document.getElementById('tommi-user-menu') === menu) {
@@ -100,7 +100,7 @@ function tommiAttachUserMenu(el, displayName) {
                         item.textContent = 'Edit my profile';
                         item.addEventListener('click', function() {
                             menu.remove();
-                            window.location.href = '/new-directory/#my-profile';
+                            window.location.href = '/directory/#my-profile';
                         });
                         menu.insertBefore(item, menu.firstChild);
                     }

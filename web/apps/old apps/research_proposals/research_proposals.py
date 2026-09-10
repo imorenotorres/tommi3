@@ -23,26 +23,14 @@ router = APIRouter(prefix="/research_proposals", tags=["research_proposals"])
 
 # -- Auth helpers --------------------------------------------------------------
 
-from auth import get_session, ROLES
+from auth import require_session as _require_auth, ROLES
 
 
-def _get_token(request: Request) -> str | None:
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        return auth_header[7:]
-    return request.query_params.get("token")
-
-
-def _require_auth(request: Request) -> dict:
-    token = _get_token(request)
-    if not token:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    session = get_session(token)
-    if not session:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    return session
-
-
+# NOTE: unlike every other app (which gates editing on EDITOR_ROLES via
+# auth.require_editor), this app gates on the session's primary role level
+# vs. "tester" — kept as its own local variant since that's a real behavioral
+# difference (auth.can_edit checks membership across ALL of a user's roles,
+# not just the primary one), not just a stylistic copy.
 def _require_editor(request: Request) -> dict:
     session = _require_auth(request)
     if ROLES.get(session["role"], 0) < ROLES.get("tester", 99):

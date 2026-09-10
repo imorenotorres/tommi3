@@ -120,7 +120,7 @@
     <!-- End Matomo Code -->
 </head>
 <body>
-<script src="/static/nav.js?v=11"></script>
+<script src="/static/nav.js?v=12"></script>
 <script>uninovisNav({ current: 'Admin Tools (UAT)' });</script>
     <div class="header">
         <h1>UNINOVIS Admin Tools (UAT)</h1>
@@ -155,12 +155,10 @@
     // ── Tool registry — add new tools here ────────────────────────
     // Tool access rules (mirrors TOOL_ACCESS in auth.py)
     var TOOL_ACCESS = {
-        'directory':          ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
         'mobility_planner':   ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
         'intranet_services':  ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
         'unigracon':          ['teaching_staff', 'tester', 'content_manager', 'superuser'],
         'researcher_connect': ['teaching_staff', 'tester', 'content_manager', 'superuser'],
-        'research_proposals': ['teaching_staff', 'tester', 'content_manager', 'superuser'],
         'tommi_agents':       ['teaching_staff', 'tester', 'content_manager', 'superuser'],
         'virtual_campus':     ['student', 'tester', 'content_manager', 'superuser'],
         'student_admin':      ['student', 'tester', 'content_manager', 'superuser'],
@@ -176,14 +174,6 @@
 
     var TOOLS = [
         {
-            id: 'directory',
-            name: 'UNINOVIS Directory',
-            icon: '\uD83D\uDCCB',
-            description: 'Internal staff directory. Manage contacts, groups, and org charts for all UNINOVIS partners.',
-            url: '/directory/',
-            status: 'pilot',
-        },
-        {
             id: 'unigracon',
             name: 'UNIGRACON',
             icon: '\uD83C\uDF93',
@@ -196,15 +186,7 @@
             name: 'Researcher Connect',
             icon: '\uD83D\uDD2C',
             description: 'Find and connect with researchers across UNINOVIS partner universities. Search by interests, keywords, and expertise.',
-            url: '/researcher_connect/',
-            status: 'pilot',
-        },
-        {
-            id: 'research_proposals',
-            name: 'Research Proposals',
-            icon: '\uD83D\uDCDD',
-            description: 'Post and discover research collaboration opportunities. Share funding calls, collaboration needs, and partner profiles.',
-            url: '/research_proposals/',
+            url: '/researcher-connect/',
             status: 'pilot',
         },
         {
@@ -212,7 +194,7 @@
             name: 'Mobility Planner',
             icon: '\u2708\uFE0F',
             description: 'Compute call opening dates for mobility activities, accounting for administrative periods and holidays.',
-            url: '/mobility_planner/',
+            url: '/mobility-planner/',
             status: 'pilot',
         },
         {
@@ -257,7 +239,7 @@
         if (!authToken) { updateUI(); return; }
         try {
             // Use any app's auth-check (they all share the same auth)
-            var resp = await fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + authToken } });
+            var resp = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + authToken } });
             if (resp.ok) {
                 authUser = await resp.json();
             } else {

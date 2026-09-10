@@ -6,7 +6,7 @@
     <title>UNINOVIS — Analytics Setup</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/nav.css?v=2">
-    <script src="/static/nav.js?v=11"></script>
+    <script src="/static/nav.js?v=12"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
@@ -58,11 +58,16 @@
     </style>
 </head>
 <body>
-<script>uninovisNav({ crumbs: [{label:'Administration', href:'/#admin'}, {label:'Analytics', href:'/matomo-analytics/'}], current: 'Setup' });</script>
+<script>uninovisNav({ crumbs: [{label:'Administration', href:'/#admin'}, {label:'Analytics', href:'/site-analytics/'}], current: 'Setup' });</script>
 
-<div class="container">
+<div id="accessDenied" style="display:none;max-width:520px;margin:60px auto;text-align:center;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+    <h2 style="color:#2D3876;">Access denied</h2>
+    <p style="color:#666;">You must be logged in as a superuser to view this page.</p>
+</div>
+
+<div class="container" id="mainContainer">
     <div style="margin-bottom: 12px;">
-        <a href="/matomo-analytics/" class="back-link">&larr; Back to Analytics</a>
+        <a href="/site-analytics/" class="back-link">&larr; Back to Analytics</a>
     </div>
 
     <div class="panel">
@@ -163,12 +168,16 @@ function gatherConfig() {
     return { urls: urls, minVisits: minVisits };
 }
 
+function authToken() {
+    return localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token');
+}
+
 async function saveConfig() {
     var cfg = gatherConfig();
     try {
-        var resp = await fetch('/matomo-analytics/api/url-config', {
+        var resp = await fetch('/site-analytics/api/url-config', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken() },
             body: JSON.stringify(cfg)
         });
         if (resp.ok) {
@@ -190,7 +199,7 @@ function showToast(msg) {
 
 async function loadConfig() {
     try {
-        var resp = await fetch('/matomo-analytics/api/url-config');
+        var resp = await fetch('/site-analytics/api/url-config', { headers: { 'Authorization': 'Bearer ' + authToken() } });
         config = await resp.json();
         if (config.urls && config.urls.length) {
             config.urls.forEach(function(u) {
@@ -205,7 +214,26 @@ async function loadConfig() {
     }
 }
 
-loadConfig();
+async function checkAuthAndInit() {
+    var token = authToken();
+    if (!token) {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
+    }
+    try {
+        var resp = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!resp.ok) throw new Error('unauthenticated');
+        var user = await resp.json();
+        var roles = user.roles || [user.role];
+        if (roles.indexOf('superuser') === -1) throw new Error('forbidden');
+    } catch (e) {
+        document.getElementById('accessDenied').style.display = '';
+        document.getElementById('mainContainer').style.display = 'none';
+        return;
+    }
+    loadConfig();
+}
+checkAuthAndInit();
 </script>
 </body>
 </html>

@@ -108,7 +108,7 @@
 <!-- End Matomo Code -->
 </head>
 <body>
-<script src="/static/nav.js?v=11"></script>
+<script src="/static/nav.js?v=12"></script>
 <script>uninovisNav({ crumbs: [{label:'Teaching & Research', href:'/#research'}], current: 'Researcher Connect' });</script>
 <div class="container">
     <h1>UNINOVIS Researcher Connect</h1>
@@ -135,8 +135,8 @@
         <div class="toolbar hidden" id="editorToolbar">
             <button class="btn" onclick="openAddModal()">+ Add Researcher</button>
             <button class="btn-outline" onclick="openImportModal()">Import Excel</button>
-            <button class="btn-outline" onclick="location.href='/researcher_connect/api/export'">Export Excel</button>
-            <button class="btn-outline" onclick="location.href='/researcher_connect/api/template'">Download Template</button>
+            <button class="btn-outline" onclick="location.href='/researcher-connect/api/export?token=' + encodeURIComponent(authToken)">Export Excel</button>
+            <button class="btn-outline" onclick="location.href='/researcher-connect/api/template?token=' + encodeURIComponent(authToken)">Download Template</button>
         </div>
     </div>
 
@@ -237,24 +237,36 @@ var canEdit = false;
 
 // -- Init --
 async function init() {
-    await checkAuth();
+    var authed = await checkAuth();
+    if (!authed) return; // already redirecting to /login
     await loadData();
     render();
 }
 
 // -- Auth --
+// This app is only for logged-in users — anyone without a real session is
+// sent to the login page. Returns true if a real session was confirmed,
+// false otherwise.
 async function checkAuth() {
-    if (!authToken) { updateAuthUI(); return; }
+    if (!authToken) {
+        window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+        return false;
+    }
     try {
-        var resp = await fetch('/researcher_connect/api/auth-check', { headers: { 'Authorization': 'Bearer ' + authToken } });
+        var resp = await fetch('/researcher-connect/api/auth-check', { headers: { 'Authorization': 'Bearer ' + authToken } });
         if (resp.ok) {
             authUser = await resp.json();
             canEdit = authUser.can_edit;
         } else {
-            authToken = null; authUser = null; canEdit = false;
+            window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+            return false;
         }
-    } catch (e) { authUser = null; canEdit = false; }
+    } catch (e) {
+        window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+        return false;
+    }
     updateAuthUI();
+    return true;
 }
 
 function updateAuthUI() {
@@ -302,7 +314,7 @@ document.getElementById('loginPass').addEventListener('keydown', function(e) { i
 // -- Data --
 async function loadData() {
     try {
-        var resp = await fetch('/researcher_connect/api/data');
+        var resp = await fetch('/researcher-connect/api/data', { headers: { 'Authorization': 'Bearer ' + authToken } });
         DATA = await resp.json();
     } catch (e) { console.error('Failed to load data', e); }
 }
@@ -550,7 +562,7 @@ async function saveResearcher() {
         website: document.getElementById('rWebsite').value.trim(),
     };
 
-    var url = id ? '/researcher_connect/api/researchers/' + id : '/researcher_connect/api/researchers';
+    var url = id ? '/researcher-connect/api/researchers/' + id : '/researcher-connect/api/researchers';
     var method = id ? 'PUT' : 'POST';
 
     try {
@@ -576,7 +588,7 @@ async function deleteResearcher(id) {
     event.stopPropagation();
     if (!confirm('Delete this researcher?')) return;
     try {
-        await fetch('/researcher_connect/api/researchers/' + id, {
+        await fetch('/researcher-connect/api/researchers/' + id, {
             method: 'DELETE',
             headers: { 'Authorization': 'Bearer ' + authToken },
         });
@@ -599,7 +611,7 @@ async function doImport() {
     var formData = new FormData();
     formData.append('file', fileInput.files[0]);
     try {
-        var resp = await fetch('/researcher_connect/api/import', {
+        var resp = await fetch('/researcher-connect/api/import', {
             method: 'POST',
             headers: { 'Authorization': 'Bearer ' + authToken },
             body: formData,

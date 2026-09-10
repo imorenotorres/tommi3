@@ -17,6 +17,8 @@ import time
 from pathlib import Path
 from typing import Optional
 
+from fastapi import Depends, HTTPException, Request
+
 # User data file
 DATA_DIR = Path(__file__).parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
@@ -572,6 +574,55 @@ def has_role(token: str, minimum_role: str) -> bool:
     if not session:
         return False
     return max_role_level(session) >= ROLES.get(minimum_role, 99)
+
+
+# ---------------------------------------------------------------------------
+# Shared FastAPI dependencies — every app under web/apps/ was independently
+# redefining these same three functions; they now import them from here
+# instead so login/guest-fallback and editor-gating behavior can't drift
+# between apps.
+# ---------------------------------------------------------------------------
+
+def get_token(request: Request) -> Optional[str]:
+    """Extract the bearer token from the Authorization header, falling back
+    to a ?token= query param."""
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header[7:]
+    return request.query_params.get("token")
+
+
+def require_session(request: Request) -> dict:
+    """FastAPI dependency: resolve the caller's session, falling back to a
+    read-only 'guest' session when there's no valid token."""
+    token = get_token(request)
+    if not token:
+        return {"username": "guest", "role": "public", "roles": ["public"]}
+    session = get_session(token)
+    if not session:
+        return {"username": "guest", "role": "public", "roles": ["public"]}
+    return session
+
+
+def require_login(request: Request) -> dict:
+    """FastAPI dependency: require a REAL authenticated session — unlike
+    require_session, there is no guest fallback; a missing or invalid token
+    raises 401. For apps that must not be usable at all without logging in."""
+    token = get_token(request)
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    session = get_session(token)
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+    return session
+
+
+def require_editor(session: dict = Depends(require_session)) -> dict:
+    """FastAPI dependency: require EDITOR_ROLES membership on top of a
+    resolved session."""
+    if not can_edit(session):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    return session
 
 
 # ---------------------------------------------------------------------------

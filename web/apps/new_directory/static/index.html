@@ -90,7 +90,7 @@
     </script>
 </head>
 <body>
-<script src="/static/nav.js?v=11"></script>
+<script src="/static/nav.js?v=12"></script>
 <script>uninovisNav({ crumbs: [{label:'Administration', href:'/#admin'}], current: 'Directory' });</script>
     <div class="container">
         <h1>UNINOVIS Directory</h1>
@@ -131,9 +131,11 @@
         <div id="tab-units" style="display:none">
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-                    <h2 style="margin:0">Units &amp; Subunits</h2>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <h2 style="margin:0">Units &amp; Subunits</h2>
+                        <button class="btn-small" id="btnEditUnits" style="display:none;" onclick="toggleUnitsEditMode()">Edit</button>
+                    </div>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                        <select id="unitsUniFilter" onchange="renderUnits()"><option value="">All universities</option></select>
                         <select id="unitsUnitFilter" onchange="renderUnits()"><option value="">All units</option></select>
                     </div>
                 </div>
@@ -162,7 +164,7 @@
     </div>
 
     <script>
-    var BASE = '/new-directory';
+    var BASE = '/directory';
     var authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('tommi_token');
     var people = [];
     var units = [];
@@ -217,10 +219,23 @@
     }
 
     window._unitNodesById = {};
+    window._unitParentId = {};
 
     function indexUnitNodes(node) {
         window._unitNodesById[node.id] = node;
         (node.subunits || []).forEach(indexUnitNodes);
+    }
+
+    // Independent of whatever subset of the tree is currently rendered (a
+    // single-unit filter, or a per-university org chart) so parent lookups
+    // for the edit modal stay correct regardless of view.
+    function buildParentIndex() {
+        window._unitParentId = {};
+        function walk(node, parentId) {
+            window._unitParentId[node.id] = (parentId === undefined) ? null : parentId;
+            (node.subunits || []).forEach(function(sub) { walk(sub, node.id); });
+        }
+        (units || []).forEach(function(root) { walk(root, null); });
     }
 
     function copyAllEmails(unitId, btn) {
@@ -240,7 +255,7 @@
     // ── People ────────────────────────────────────────────────────
 
     function populateUniFilters() {
-        ['peopleUniFilter', 'unitsUniFilter'].forEach(function(id) {
+        ['peopleUniFilter'].forEach(function(id) {
             var sel = document.getElementById(id);
             var current = sel.value;
             sel.innerHTML = '<option value="">All universities</option>';
@@ -274,6 +289,13 @@
         return null;
     }
 
+    var peopleSortDir = 'asc';
+
+    function togglePeopleSort() {
+        peopleSortDir = peopleSortDir === 'asc' ? 'desc' : 'asc';
+        renderPeople();
+    }
+
     function renderPeople() {
         var search = document.getElementById('peopleSearch').value.trim().toLowerCase();
         var uniFilter = document.getElementById('peopleUniFilter').value;
@@ -284,8 +306,10 @@
             return hay.indexOf(search) !== -1;
         });
         rows.sort(function(a, b) { return (a.family_name || '').localeCompare(b.family_name || '') || (a.first_name || '').localeCompare(b.first_name || ''); });
+        if (peopleSortDir === 'desc') rows.reverse();
 
-        var html = '<table><tr><th>Name</th><th>University</th><th>Position</th><th>Email</th><th>Phone</th><th>Units</th></tr>';
+        var sortArrow = peopleSortDir === 'asc' ? ' ▲' : ' ▼';
+        var html = '<table><tr><th onclick="togglePeopleSort()" style="cursor:pointer;user-select:none;" title="Sort by name">Name' + sortArrow + '</th><th>University</th><th>Position</th><th>Email</th><th>Phone</th><th>Units</th></tr>';
         rows.forEach(function(p) {
             var nameCell = esc(p.first_name + ' ' + p.family_name);
             if (peopleEditMode && canEditPerson(p)) {
@@ -309,12 +333,81 @@
 
     // ── Units ─────────────────────────────────────────────────────
 
-    function leadersBtn(node) {
-        if (!canManageDirectory()) return '';
-        var leaders = node.leaders || [];
-        var label = leaders.length ? ('Leaders (' + leaders.length + ')') : 'Set leader';
-        return ' <button class="btn-small" onclick="event.stopPropagation();editUnitLeaders(' + node.id + ')" style="font-size:0.72em;padding:1px 6px;margin-left:4px;" title="'
-            + esc(leaders.join(', ') || 'No leaders set — WP leaders can add subunits under a unit they lead') + '">' + esc(label) + '</button>';
+    // Edit access mirrors create_unit's scope: content_manager/superuser may
+    // edit any unit; a wp_leader may edit a unit they lead, or one nested
+    // under a work package they lead.
+    function canEditUnit(node) {
+        if (canManageDirectory()) return true;
+        if (!currentUser) return false;
+        var roles = currentUser.roles || [currentUser.role];
+        if (roles.indexOf('wp_leader') === -1) return false;
+        var scopeIds = computeLedScopeIds(currentUser.led_unit_ids);
+        return scopeIds.indexOf(node.id) !== -1;
+    }
+
+    // Whether the current user can edit ANY unit at all — gates the top
+    // "Edit" toggle, mirroring canManageDirectory()'s role for the People tab.
+    function canEditAnyUnit() {
+        if (canManageDirectory()) return true;
+        return !!(currentUser && currentUser.led_unit_ids && currentUser.led_unit_ids.length);
+    }
+
+    var unitsEditMode = false;
+
+    function toggleUnitsEditMode() {
+        unitsEditMode = !unitsEditMode;
+        var btn = document.getElementById('btnEditUnits');
+        if (btn) btn.textContent = unitsEditMode ? 'Done' : 'Edit';
+        var activeTab = document.querySelector('.tab.active').dataset.tab;
+        if (activeTab === 'units') renderUnits();
+        if (activeTab === 'orgchart') renderOrgChart();
+    }
+
+    // Erase/Edit buttons, shown to the left of the unit name — only in edit
+    // mode, and only for units this user is allowed to edit (mirrors the
+    // People tab's edit-mode row buttons).
+    function unitRowButtons(node) {
+        if (!unitsEditMode || !canEditUnit(node)) return '';
+        return '<button class="btn-small" onclick="event.stopPropagation();confirmDeleteUnit(' + node.id + ')" style="color:#dc3545;border-color:#dc3545;font-size:0.75em;padding:1px 6px;margin-right:4px;" title="Delete">&times;</button>'
+            + '<button class="btn-small" onclick="event.stopPropagation();openEditUnitModal(' + node.id + ')" style="font-size:0.75em;padding:1px 6px;margin-right:6px;" title="Edit">Edit</button>';
+    }
+
+    function confirmDeleteUnit(unitId) {
+        var node = window._unitNodesById[unitId];
+        if (!node) return;
+        var subCount = (node.subunits || []).length;
+        var memberCount = (node.members || []).length;
+        var bits = [];
+        if (memberCount) bits.push(memberCount + ' member' + (memberCount === 1 ? '' : 's') + ' removed from it');
+        if (subCount) bits.push(subCount + ' subunit' + (subCount === 1 ? '' : 's') + ' promoted to top-level');
+        var detail = bits.length ? (bits.join(' and ') + '.') : '';
+        closeAddModal();
+        var overlay = document.createElement('div');
+        overlay.id = 'add-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
+        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:380px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+            + '<h2 style="margin:0 0 12px;color:#1a3a5c;font-size:1.1em;">Delete ' + esc(node.name) + '?</h2>'
+            + '<p style="font-size:0.88em;color:#666;margin-bottom:20px;">This will permanently remove this unit. ' + esc(detail) + ' This action is final and cannot be undone.</p>'
+            + '<div id="add-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+            + '<div style="display:flex;justify-content:flex-end;gap:8px;">'
+            + '<button class="btn" style="background:#dc3545;" onclick="submitDeleteUnit(' + unitId + ')">Delete</button>'
+            + '<button class="btn-small" onclick="closeAddModal()" style="padding:8px 20px;">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeAddModal(); });
+        document.body.appendChild(overlay);
+    }
+
+    async function submitDeleteUnit(unitId) {
+        try {
+            var resp = await authFetch(BASE + '/api/units/' + unitId, { method: 'DELETE' });
+            if (!resp.ok) { var err = await resp.json(); addMsg(err.detail || 'Error deleting unit', false); return; }
+            closeAddModal();
+            await loadAll();
+            var activeTab = document.querySelector('.tab.active').dataset.tab;
+            if (activeTab === 'orgchart') renderOrgChart();
+            if (activeTab === 'units') renderUnits();
+        } catch (e) { addMsg('Connection error', false); }
     }
 
     // Collects every member of `node` and all of its subunits, deduped by
@@ -331,44 +424,126 @@
             .sort(function(a, b) { return (a.family_name || '').localeCompare(b.family_name || '') || (a.first_name || '').localeCompare(b.first_name || ''); });
     }
 
-    var leaderModalUnitId = null;
-    var leaderModalSelected = []; // lowercased emails, in display order
+    var editUnitId = null;
+    var editUnitLeadersSelected = []; // lowercased emails, in display order
+    var euMemberRowCounter = 0;
 
-    function editUnitLeaders(unitId) {
+    function personSelectOptions(selectedId) {
+        var sorted = people.slice().sort(function(a, b) {
+            return (a.family_name || '').localeCompare(b.family_name || '') || (a.first_name || '').localeCompare(b.first_name || '');
+        });
+        var html = '<option value="">— select person —</option>';
+        sorted.forEach(function(p) {
+            var sel = (selectedId != null && p.id === selectedId) ? ' selected' : '';
+            html += '<option value="' + p.id + '"' + sel + '>' + esc(p.first_name + ' ' + p.family_name) + (p.university ? ' (' + esc(p.university) + ')' : '') + '</option>';
+        });
+        return html;
+    }
+
+    // A row for one direct member of the unit being edited: who, plus their
+    // role WITHIN this unit (distinct from their job position elsewhere).
+    function euMemberRowHtml(assignment) {
+        euMemberRowCounter++;
+        var rowId = 'eu-member-row-' + euMemberRowCounter;
+        var personId = assignment ? assignment.person_id : null;
+        var role = assignment ? (assignment.role || '') : '';
+        return '<div class="eu-member-row" id="' + rowId + '" style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">'
+            + '<select class="eu-member-select" style="flex:2;padding:6px 8px;border:1px solid #ccc;border-radius:6px;">' + personSelectOptions(personId) + '</select>'
+            + '<input type="text" class="eu-member-role-input" placeholder="Role (optional)" value="' + esc(role) + '" style="flex:1;padding:6px 8px;border:1px solid #ccc;border-radius:6px;">'
+            + '<button type="button" onclick="document.getElementById(\'' + rowId + '\').remove()" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1.1em;padding:0 4px;" title="Remove">&times;</button>'
+            + '</div>';
+    }
+
+    function addMemberRow(listId) {
+        document.getElementById(listId || 'eu-members-list').insertAdjacentHTML('beforeend', euMemberRowHtml());
+    }
+
+    function collectMemberRows(listId) {
+        var payload = [];
+        document.querySelectorAll('#' + listId + ' .eu-member-row').forEach(function(row) {
+            var sel = row.querySelector('.eu-member-select');
+            var roleInput = row.querySelector('.eu-member-role-input');
+            if (sel && sel.value) {
+                payload.push({ person_id: parseInt(sel.value, 10), role: roleInput.value.trim() });
+            }
+        });
+        return payload;
+    }
+
+    function openEditUnitModal(unitId) {
         var node = window._unitNodesById[unitId];
         if (!node) return;
-        leaderModalUnitId = unitId;
-        leaderModalSelected = ((node.leaders || []).slice());
+        var parentId = (window._unitParentId && window._unitParentId[unitId] !== undefined) ? window._unitParentId[unitId] : null;
+        var isTopLevel = parentId == null;
+
+        editUnitId = unitId;
+        editUnitLeadersSelected = (node.leaders || []).slice();
+        euMemberRowCounter = 0;
+        var memberRowsHtml = (node.members && node.members.length)
+            ? node.members.map(function(m) { return euMemberRowHtml({ person_id: m.id, role: m.unit_role || '' }); }).join('')
+            : euMemberRowHtml();
+
+        var excluded = [];
+        collectUnitIds(node, excluded); // a unit can't become its own (in)direct parent
+        var allowedIds = canManageDirectory() ? null : computeLedScopeIds(currentUser && currentUser.led_unit_ids);
+        // Always keep the unit's actual current parent selectable, even if it
+        // falls outside the wp_leader's scope — otherwise saving without
+        // touching this field would silently reparent the unit to whatever
+        // option happens to be first in the (scope-filtered) list.
+        if (allowedIds && parentId != null && allowedIds.indexOf(parentId) === -1) {
+            allowedIds = allowedIds.concat([parentId]);
+        }
+
+        var parentOrSubunitsField = isTopLevel
+            ? fieldRow('Subunits', (node.subunits && node.subunits.length)
+                ? '<div style="font-size:0.88em;color:#555;">' + node.subunits.map(function(s) { return esc(s.name); }).join(', ') + '</div>'
+                : '<div style="font-size:0.85em;color:#888;">None</div>')
+            : fieldRow('Parent unit *', '<select id="eu-parent" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">'
+                + unitSelectOptions(canManageDirectory() ? '— none (top-level unit) —' : null, parentId, allowedIds, excluded) + '</select>');
+
         closeAddModal();
         var overlay = document.createElement('div');
         overlay.id = 'add-modal-overlay';
         overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
-        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:420px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:460px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
             + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
-            + '<h2 style="margin:0;color:#1a3a5c;font-size:1.1em;">Set Leaders &mdash; ' + esc(node.name) + '</h2>'
-            + '<button onclick="closeLeaderModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+            + '<h2 style="margin:0;color:#1a3a5c;font-size:1.1em;">Edit Unit</h2>'
+            + '<button onclick="closeEditUnitModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
             + '</div>'
-            + '<div id="leader-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
-            + '<div id="leader-modal-body"></div>'
+            + '<div id="edit-unit-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+            + fieldRow('Unit name *', '<input type="text" id="eu-name" value="' + esc(node.name) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + parentOrSubunitsField
+            + '<label style="display:block;font-weight:600;font-size:0.85em;color:#1a3a5c;margin-bottom:6px;">Leader(s)</label>'
+            + '<div id="edit-unit-leader-body"></div>'
+            + '<label style="display:block;font-weight:600;font-size:0.85em;color:#1a3a5c;margin:14px 0 6px;">Members</label>'
+            + '<div id="eu-members-list">' + memberRowsHtml + '</div>'
+            + '<button type="button" class="btn-small" onclick="addMemberRow(\'eu-members-list\')">+ Add another person</button>'
             + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
-            + '<button class="btn" onclick="submitUnitLeaders()">Save</button>'
-            + '<button class="btn-small" onclick="closeLeaderModal()" style="padding:8px 20px;">Cancel</button>'
+            + '<button class="btn" onclick="submitEditUnit()">Save</button>'
+            + '<button class="btn-small" onclick="closeEditUnitModal()" style="padding:8px 20px;">Cancel</button>'
             + '</div>'
             + '</div>';
-        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeLeaderModal(); });
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeEditUnitModal(); });
         document.body.appendChild(overlay);
-        renderLeaderModalBody();
+        renderEditUnitLeaderBody();
     }
 
-    function closeLeaderModal() {
+    function closeEditUnitModal() {
         var el = document.getElementById('add-modal-overlay');
         if (el) el.remove();
-        leaderModalUnitId = null;
-        leaderModalSelected = [];
+        editUnitId = null;
+        editUnitLeadersSelected = [];
     }
 
-    function renderLeaderModalBody() {
-        var node = window._unitNodesById[leaderModalUnitId];
+    function editUnitMsg(text) {
+        var el = document.getElementById('edit-unit-msg');
+        if (!el) return;
+        el.style.display = ''; el.style.background = '#fee2e2'; el.style.color = '#991b1b';
+        el.textContent = text;
+    }
+
+    function renderEditUnitLeaderBody() {
+        var node = window._unitNodesById[editUnitId];
         if (!node) return;
         var members = collectUnitMembers(node);
         var membersByEmail = {};
@@ -377,77 +552,75 @@
         var options = '<option value="">— Select a person to add as leader —</option>';
         members.forEach(function(m) {
             var email = m.email.toLowerCase();
-            if (leaderModalSelected.indexOf(email) !== -1) return; // already a leader
+            if (editUnitLeadersSelected.indexOf(email) !== -1) return; // already a leader
             options += '<option value="' + esc(email) + '">' + esc(m.first_name + ' ' + m.family_name) + '</option>';
         });
 
         var selectHtml = members.length
-            ? '<select id="leader-add-select" onchange="addLeaderFromSelect()" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;margin-bottom:14px;">' + options + '</select>'
-            : '<p style="font-size:0.85em;color:#888;margin-bottom:14px;">No people found in this unit or its subunits yet.</p>';
+            ? '<select id="eu-leader-add-select" onchange="addEditUnitLeaderFromSelect()" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;margin-bottom:10px;">' + options + '</select>'
+            : '<p style="font-size:0.85em;color:#888;margin-bottom:10px;">No people found in this unit or its subunits yet.</p>';
 
-        var listHtml = leaderModalSelected.length
-            ? leaderModalSelected.map(function(email) {
+        var listHtml = editUnitLeadersSelected.length
+            ? editUnitLeadersSelected.map(function(email) {
                 var person = membersByEmail[email];
                 var label = person ? (person.first_name + ' ' + person.family_name) : email;
                 return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#f0f2f5;border-radius:6px;margin-bottom:6px;">'
                     + '<span>' + esc(label) + (person ? ' <span style="color:#888;font-size:0.85em;">(' + esc(email) + ')</span>' : '') + '</span>'
-                    + '<button type="button" onclick="removeLeaderEmail(\'' + esc(email) + '\')" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1.1em;padding:0 4px;" title="Remove">&times;</button>'
+                    + '<button type="button" onclick="removeEditUnitLeaderEmail(\'' + esc(email) + '\')" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1.1em;padding:0 4px;" title="Remove">&times;</button>'
                     + '</div>';
             }).join('')
             : '<p style="font-size:0.85em;color:#888;">No leaders set.</p>';
 
-        document.getElementById('leader-modal-body').innerHTML = selectHtml
-            + '<label style="display:block;font-weight:600;font-size:0.85em;color:#1a3a5c;margin-bottom:6px;">Current leaders</label>'
-            + listHtml;
+        document.getElementById('edit-unit-leader-body').innerHTML = selectHtml + listHtml;
     }
 
-    function addLeaderFromSelect() {
-        var sel = document.getElementById('leader-add-select');
+    function addEditUnitLeaderFromSelect() {
+        var sel = document.getElementById('eu-leader-add-select');
         var email = sel.value;
         if (!email) return;
-        if (leaderModalSelected.indexOf(email) === -1) leaderModalSelected.push(email);
-        renderLeaderModalBody();
+        if (editUnitLeadersSelected.indexOf(email) === -1) editUnitLeadersSelected.push(email);
+        renderEditUnitLeaderBody();
     }
 
-    function removeLeaderEmail(email) {
-        leaderModalSelected = leaderModalSelected.filter(function(e) { return e !== email; });
-        renderLeaderModalBody();
+    function removeEditUnitLeaderEmail(email) {
+        editUnitLeadersSelected = editUnitLeadersSelected.filter(function(e) { return e !== email; });
+        renderEditUnitLeaderBody();
     }
 
-    async function submitUnitLeaders() {
+    async function submitEditUnit() {
+        var name = document.getElementById('eu-name').value.trim();
+        if (!name) { editUnitMsg('Unit name is required'); return; }
+        var parentSel = document.getElementById('eu-parent');
+        // No #eu-parent field means this is a top-level unit being edited —
+        // this modal doesn't offer a way to change that, so it stays top-level.
+        var parentId = parentSel ? (parentSel.value ? parseInt(parentSel.value, 10) : null) : null;
+        var body = { name: name, parent_id: parentId, leaders: editUnitLeadersSelected, members: collectMemberRows('eu-members-list') };
         try {
-            var resp = await authFetch(BASE + '/api/units/' + leaderModalUnitId + '/leaders', {
+            var resp = await authFetch(BASE + '/api/units/' + editUnitId, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ leaders: leaderModalSelected })
+                body: JSON.stringify(body)
             });
-            if (!resp.ok) {
-                var err = await resp.json();
-                var msg = document.getElementById('leader-msg');
-                msg.style.display = ''; msg.style.background = '#fee2e2'; msg.style.color = '#991b1b';
-                msg.textContent = err.detail || 'Error updating leaders';
-                return;
-            }
-            closeLeaderModal();
+            if (!resp.ok) { var err = await resp.json(); editUnitMsg(err.detail || 'Error saving unit'); return; }
+            closeEditUnitModal();
             await loadAll();
             var activeTab = document.querySelector('.tab.active').dataset.tab;
             if (activeTab === 'orgchart') renderOrgChart();
-        } catch (e) {
-            var msg = document.getElementById('leader-msg');
-            msg.style.display = ''; msg.style.background = '#fee2e2'; msg.style.color = '#991b1b';
-            msg.textContent = 'Connection error';
-        }
+            if (activeTab === 'units') renderUnits();
+        } catch (e) { editUnitMsg('Connection error'); }
     }
 
     function renderUnitNode(node, isRoot) {
         indexUnitNodes(node);
-        var html = '<li><span class="org-node ' + (isRoot ? 'org-node-root' : 'org-node-unit') + '">' + esc(node.name) + '</span>';
+        var html = '<li>' + unitRowButtons(node) + '<span class="org-node ' + (isRoot ? 'org-node-root' : 'org-node-unit') + '">' + esc(node.name) + '</span>';
         html += copyAllEmailsBtn(node, node.name);
-        html += leadersBtn(node);
         html += '<ul>';
         node.members.forEach(function(m) {
+            // A role set for this specific unit takes precedence over the
+            // person's general job position when shown inside this unit.
+            var roleLabel = m.unit_role || m.position;
             html += '<li><span class="org-node org-node-member">' + esc(m.first_name + ' ' + m.family_name)
-                + (m.position ? '<span class="org-role-tag">' + esc(m.position) + '</span>' : '')
+                + (roleLabel ? '<span class="org-role-tag">' + esc(roleLabel) + '</span>' : '')
                 + emailBtn(m.email) + '</span></li>';
         });
         node.subunits.forEach(function(sub) {
@@ -458,12 +631,11 @@
     }
 
     function renderUnits() {
-        var uniFilter = document.getElementById('unitsUniFilter').value;
         var unitFilter = document.getElementById('unitsUnitFilter').value;
         window._unitNodesById = {};
 
-        // A specific unit filter isolates that one branch (with its subunits and
-        // members), regardless of the university filter — it's more specific.
+        // A specific unit filter isolates that one branch (with its subunits
+        // and members).
         if (unitFilter) {
             var node = findUnitNodeById(units, parseInt(unitFilter, 10));
             var html = '';
@@ -481,7 +653,6 @@
         var byUni = {};
         units.forEach(function(root) {
             var uni = root.university || 'Other';
-            if (uniFilter && uni !== uniFilter) return;
             byUni[uni] = byUni[uni] || [];
             byUni[uni].push(root);
         });
@@ -502,8 +673,19 @@
 
     // ── Universities ──────────────────────────────────────────────
 
+    // A content_manager may only edit their own university's website;
+    // superuser may edit any. Mirrors canEditPerson's own-university check.
+    function canEditUniversity(u) {
+        if (isSuperuser()) return true;
+        if (!currentUser) return false;
+        var roles = currentUser.roles || [currentUser.role];
+        if (roles.indexOf('content_manager') === -1) return false;
+        return !!currentUser.own_university && u.code === currentUser.own_university;
+    }
+
     function renderUniversities() {
-        var html = '<table><tr><th>Code</th><th>Name</th><th>Country</th><th>Website</th><th>Staff</th></tr>';
+        var canEditAny = canManageDirectory();
+        var html = '<table><tr><th>Code</th><th>Name</th><th>Country</th><th>Website</th><th>Staff</th>' + (canEditAny ? '<th></th>' : '') + '</tr>';
         universities.forEach(function(u) {
             html += '<tr>'
                 + '<td><strong>' + esc(u.code) + '</strong></td>'
@@ -511,10 +693,60 @@
                 + '<td>' + esc(u.country) + '</td>'
                 + '<td>' + (u.website ? '<a href="' + esc(u.website) + '" target="_blank" rel="noopener">' + esc(u.website) + '</a>' : '—') + '</td>'
                 + '<td>' + u.staff_count + '</td>'
+                + (canEditAny ? '<td>' + (canEditUniversity(u) ? '<button class="btn-small" onclick="openEditUniversityModal(\'' + esc(u.code) + '\')" style="font-size:0.75em;padding:2px 8px;" title="Edit website">Edit</button>' : '') + '</td>' : '')
                 + '</tr>';
         });
         html += '</table>';
         document.getElementById('uniTable').innerHTML = html;
+    }
+
+    // ── Edit university website (content_manager / superuser) ──────
+
+    function openEditUniversityModal(code) {
+        var u = universities.find(function(x) { return x.code === code; });
+        if (!u) return;
+        closeAddModal();
+        var overlay = document.createElement('div');
+        overlay.id = 'add-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2000;';
+        overlay.innerHTML = '<div style="background:#fff;border-radius:10px;padding:24px;width:420px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+            + '<h2 style="margin:0;color:#1a3a5c;font-size:1.1em;">Edit ' + esc(u.code) + ' &mdash; Website</h2>'
+            + '<button onclick="closeAddModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>'
+            + '</div>'
+            + '<div id="edit-uni-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
+            + fieldRow('Website', '<input type="url" id="euni-website" value="' + esc(u.website) + '" placeholder="https://…" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
+            + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
+            + '<button class="btn" onclick="submitEditUniversity(\'' + esc(u.code) + '\')">Save</button>'
+            + '<button class="btn-small" onclick="closeAddModal()" style="padding:8px 20px;">Cancel</button>'
+            + '</div>'
+            + '</div>';
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeAddModal(); });
+        document.body.appendChild(overlay);
+    }
+
+    async function submitEditUniversity(code) {
+        var website = document.getElementById('euni-website').value.trim();
+        try {
+            var resp = await authFetch(BASE + '/api/universities/' + encodeURIComponent(code), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ website: website })
+            });
+            if (!resp.ok) {
+                var err = await resp.json();
+                var msg = document.getElementById('edit-uni-msg');
+                msg.style.display = ''; msg.style.background = '#fee2e2'; msg.style.color = '#991b1b';
+                msg.textContent = err.detail || 'Error saving website';
+                return;
+            }
+            closeAddModal();
+            await loadAll();
+        } catch (e) {
+            var msg = document.getElementById('edit-uni-msg');
+            msg.style.display = ''; msg.style.background = '#fee2e2'; msg.style.color = '#991b1b';
+            msg.textContent = 'Connection error';
+        }
     }
 
     // ── Org Chart ─────────────────────────────────────────────────
@@ -563,9 +795,10 @@
         return html;
     }
 
-    function unitSelectOptions(noneLabel, selectedId, allowedIds) {
+    function unitSelectOptions(noneLabel, selectedId, allowedIds, excludeIds) {
         var flat = flattenUnits(units, 0, []);
         if (allowedIds) flat = flat.filter(function(u) { return allowedIds.indexOf(u.id) !== -1; });
+        if (excludeIds) flat = flat.filter(function(u) { return excludeIds.indexOf(u.id) === -1; });
         var html = noneLabel ? '<option value="">' + esc(noneLabel) + '</option>' : '';
         flat.forEach(function(u) {
             var indent = new Array(u.depth + 1).join(' ');
@@ -1027,12 +1260,27 @@
 
     // ── Auth & init ───────────────────────────────────────────────
 
+    // This app is only for logged-in users — anyone without a real session is
+    // sent to the login page. Returns true if a real session was confirmed,
+    // false otherwise.
     async function checkAuth() {
-        if (!authToken) return;
+        if (!authToken) {
+            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.hash);
+            return false;
+        }
         try {
             var resp = await authFetch(BASE + '/api/auth-check');
-            if (resp.ok) currentUser = await resp.json();
-        } catch (e) { /* stay in read-only mode */ }
+            if (resp.ok) {
+                currentUser = await resp.json();
+            } else {
+                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.hash);
+                return false;
+            }
+        } catch (e) {
+            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.hash);
+            return false;
+        }
+        return true;
     }
 
     function canManageDirectory() {
@@ -1091,6 +1339,7 @@
         people = await peopleResp.json();
         units = await unitsResp.json();
         universities = await uniResp.json();
+        buildParentIndex();
         populateUniFilters();
         renderPeople();
         renderUniversities();
@@ -1107,6 +1356,9 @@
 
         var addSubunitBtn = document.getElementById('btnAddSubunit');
         if (addSubunitBtn) addSubunitBtn.style.display = canLeadUnits() ? '' : 'none';
+
+        var editUnitsBtn = document.getElementById('btnEditUnits');
+        if (editUnitsBtn) editUnitsBtn.style.display = canEditAnyUnit() ? '' : 'none';
 
         var importBtn = document.getElementById('btnImportJson');
         if (importBtn) importBtn.style.display = canImportJson() ? '' : 'none';
@@ -1126,7 +1378,7 @@
             title: 'About: Directory',
             group: 'WP1: Administration',
             roles: null,
-            url: '/new-directory/',
+            url: '/directory/',
             primary: true,
             steps: GUIDE_CONTENT.directory_overview,
         });
@@ -1135,7 +1387,7 @@
             title: 'Directory: How to add a person',
             group: 'WP1: Administration',
             roles: ['content_manager', 'superuser'],
-            url: '/new-directory/',
+            url: '/directory/',
             steps: GUIDE_CONTENT.directory_add_person,
         });
         GUIDES.push({
@@ -1143,13 +1395,14 @@
             title: 'Directory: How to create a unit or subunit',
             group: 'WP1: Administration',
             roles: ['content_manager', 'superuser', 'wp_leader'],
-            url: '/new-directory/',
+            url: '/directory/',
             steps: GUIDE_CONTENT.directory_add_unit,
         });
     } catch (e) { console.error('Guide registration failed:', e); }
 
     async function init() {
-        await checkAuth();
+        var authed = await checkAuth();
+        if (!authed) return; // already redirecting to /login
         try { await loadAll(); } catch (e) { console.error('Failed to load directory data:', e); }
         if (window.location.hash === '#my-profile') openMyProfileModal();
         try {

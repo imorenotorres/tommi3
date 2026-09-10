@@ -173,7 +173,7 @@
     <!-- End Matomo Code -->
 </head>
 <body>
-<script src="/static/nav.js?v=11"></script>
+<script src="/static/nav.js?v=12"></script>
 <script>uninovisNav({ crumbs: [{label:'Teaching & Research', href:'/#research'}], current: 'Mobility Planner' });</script>
     <div class="container">
         <h1>UNINOVIS Mobility Planner</h1>
@@ -246,7 +246,7 @@
     </div>
 
     <script>
-        const BASE = '/mobility_planner';
+        const BASE = '/mobility-planner';
         const receivingSel = document.getElementById('receiving');
         const sendingSel   = document.getElementById('sending');
         const dateInput    = document.getElementById('activityDate');
@@ -274,8 +274,14 @@
             return fetch(url, options);
         }
 
+        // This app is only for logged-in users — anyone without a real
+        // session is sent to the login page. Returns true if a real session
+        // was confirmed, false otherwise.
         async function checkAuth() {
-            if (!authToken) { updateAuthUI(); return; }
+            if (!authToken) {
+                window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                return false;
+            }
             try {
                 var resp = await fetch(BASE + '/api/auth-check', {
                     headers: { 'Authorization': 'Bearer ' + authToken },
@@ -283,11 +289,15 @@
                 if (resp.ok) {
                     authUser = await resp.json();
                 } else {
-                    authToken = null; authUser = null;
-                    localStorage.removeItem('uninovis_token'); localStorage.removeItem('mobility_token');
+                    window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                    return false;
                 }
-            } catch (e) {}
+            } catch (e) {
+                window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                return false;
+            }
             updateAuthUI();
+            return true;
         }
 
         function updateAuthUI() {
@@ -401,6 +411,9 @@
         }
 
         async function init() {
+            var authed = await checkAuth();
+            if (!authed) return; // already redirecting to /login
+
             // Guide registration must never depend on this app's own data
             // loading successfully — it always runs first, so the "how to
             // use it" guide is still available even if /api/universities is
@@ -411,20 +424,18 @@
                     title: 'About: Mobility Planner',
                     group: 'WP3: Research & Innovation',
                     roles: null,
-                    url: '/mobility_planner/',
+                    url: '/mobility-planner/',
                     primary: true,
                     steps: GUIDE_CONTENT.mobility_planner,
                 });
             } catch (e) { console.error('Guide registration failed:', e); }
 
             try {
-                var resp = await fetch(BASE + '/api/universities');
+                var resp = await authFetch(BASE + '/api/universities');
                 universities = await resp.json();
                 populateSelects();
                 computeBtn.disabled = false;
             } catch (e) { console.error('Failed to load universities:', e); }
-
-            await checkAuth();
 
             try {
                 maybeAutoPlayGuideFromUrl(authUser ? (authUser.roles || [authUser.role]) : [], authUser ? authUser.username : '');
@@ -433,7 +444,7 @@
 
         async function reloadData() {
             var savedRecv = receivingSel.value;
-            var resp = await fetch(BASE + '/api/universities');
+            var resp = await authFetch(BASE + '/api/universities');
             universities = await resp.json();
             populateSelects();
             receivingSel.value = savedRecv;
@@ -454,7 +465,7 @@
             computeBtn.textContent = 'Computing...';
 
             try {
-                var resp = await fetch(BASE + '/api/compute', {
+                var resp = await authFetch(BASE + '/api/compute', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

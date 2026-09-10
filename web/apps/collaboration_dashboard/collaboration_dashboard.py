@@ -12,38 +12,21 @@ import os
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 
-router = APIRouter(prefix="/collaboration-dashboard", tags=["collaboration_dashboard"])
+router = APIRouter(prefix="/contactos-exploratorios", tags=["collaboration_dashboard"])
 
 STATUSES = {"action_needed", "in_progress", "done"}
 
 
 # -- Auth helpers ---------------------------------------------------------------
 
-from auth import get_session, user_roles
-
-
-def _get_token(request: Request) -> str | None:
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        return auth_header[7:]
-    return request.query_params.get("token")
-
-
-def _require_auth(request: Request) -> dict:
-    token = _get_token(request)
-    if not token:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    session = get_session(token)
-    if not session:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    return session
+from auth import require_login as _require_auth, user_roles
 
 
 def _is_uma_email(username: str) -> bool:

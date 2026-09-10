@@ -112,7 +112,7 @@
 
 <div class="footer">UNINOVIS &mdash; European University Alliance</div>
 
-<script src="/static/nav.js?v=11"></script>
+<script src="/static/nav.js?v=12"></script>
 <script>
 // ── Roles ─────────────────────────────────────────────────────────
 // Single source of truth for every assignable user role and its display
@@ -196,7 +196,7 @@ var SECTIONS = [
         id: 'research',
         title: 'WP3: Research & Innovation',
         tools: [
-            { id: 'mobility_planner', name: 'Mobility Planner', icon: '\u2708\uFE0F', desc: 'Call opening dates for mobility activities, accounting for holidays.', url: '/mobility_planner/', status: 'data-update' },
+            { id: 'mobility_planner', name: 'Mobility Planner', icon: '\u2708\uFE0F', desc: 'Call opening dates for mobility activities, accounting for holidays.', url: '/mobility-planner/', status: 'data-update' },
             { id: 'internships', name: 'Internships', icon: '\uD83D\uDCBC', desc: 'Internship opportunities and placements across partner institutions.', url: 'https://uninovis.widening.eu/internships', status: 'active', external: true },
             { id: 'researcher_connect', name: 'Researcher Connect', icon: '\uD83D\uDD2C', desc: 'Find and connect with researchers. Search by interests and expertise.', url: 'https://uninovis.widening.eu/researcher-connect', status: 'prototype', external: true },
             { id: 'research_proposals', name: 'Research Proposals', icon: '\uD83D\uDCDD', desc: 'Post and discover research collaboration opportunities and funding calls.', url: 'https://uninovis.widening.eu/research-proposals', status: 'prototype', external: true },
@@ -210,7 +210,7 @@ var SECTIONS = [
         title: 'WP5: Events & Communication',
         tools: [
             { id: 'event_catalogue', name: 'Event Catalogue', icon: '\uD83D\uDCC5', desc: 'Public catalogue of events, workshops, and activities.', url: 'https://uninovis.widening.eu/event-catalogue', status: 'active', external: true },
-            { id: 'matomo_analytics', name: 'Site Analytics', icon: '\uD83D\uDCC8', desc: 'Website traffic, page views, visitors, and referrers from Matomo.', url: '/matomo-analytics/', status: 'prototype' },
+            { id: 'matomo_analytics', name: 'Site Analytics', icon: '\uD83D\uDCC8', desc: 'Website traffic, page views, visitors, and referrers from Matomo.', url: '/site-analytics/', status: 'prototype' },
         ]
     },
     {
@@ -218,7 +218,7 @@ var SECTIONS = [
         title: 'WP1: Administration',
         tools: [
             { id: 'directory', name: 'Agora Directory', icon: '\uD83D\uDCCB', desc: 'Internal staff directory. Contacts, groups, work packages, and org charts.', url: 'https://uninovis.widening.eu/directory', status: 'data-update', external: true },
-            { id: 'new_directory', name: 'Directory', icon: '\uD83D\uDCD2', desc: 'People, units, universities, and org charts from the UNINOVIS staff directory.', url: '/new-directory/', status: 'data-update' },
+            { id: 'new_directory', name: 'Directory', icon: '\uD83D\uDCD2', desc: 'People, units, universities, and org charts from the UNINOVIS staff directory.', url: '/directory/', status: 'data-update' },
             { id: 'event_tracker', name: 'Event Tracker', icon: '\uD83D\uDCC5', desc: 'Unified calendar with UNINOVIS events and Agora catalogue integration.', url: '/event-tracker/', status: 'active' },
             { id: 'log_analytics', name: 'Agents Analytics', icon: '\uD83D\uDCCA', desc: 'View request summaries, visitor stats, and manage agent log files.', url: '#', status: 'prototype', action: 'openLogAnalytics' },
         ]
@@ -244,8 +244,8 @@ var SECTIONS = [
         title: 'UMA internal tools',
         emailDomain: 'uma.es',
         tools: [
-            { id: 'holiday_tracker', name: 'UMA Holiday Tracker', icon: '\uD83C\uDFD6\uFE0F', desc: 'Shared calendar of UMA holidays, personal days, and comisiones de servicio. Weekends and UMA festivities greyed.', url: '/holiday-tracker/', status: 'active' },
-            { id: 'collaboration_dashboard', name: 'Contactos exploratorios', icon: '\uD83E\uDD1D', desc: 'Registro de contactos y visitas en UNINOVIS con vistas a acuerdos docentes, de investigación...', url: '/collaboration-dashboard/', status: 'active' },
+            { id: 'holiday_tracker', name: 'UMA Holiday Tracker', icon: '\uD83C\uDFD6\uFE0F', desc: 'Shared calendar of UMA holidays, personal days, and comisiones de servicio. Weekends and UMA festivities greyed.', url: '/uma-holiday-tracker/', status: 'active' },
+            { id: 'collaboration_dashboard', name: 'Contactos exploratorios', icon: '\uD83E\uDD1D', desc: 'Registro de contactos y visitas en UNINOVIS con vistas a acuerdos docentes, de investigación...', url: '/contactos-exploratorios/', status: 'active' },
         ]
     },
 ];
@@ -281,7 +281,7 @@ var authUser = null;
 async function checkAuth() {
     if (!authToken) { showLogin(); return; }
     try {
-        var resp = await fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + authToken } });
+        var resp = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + authToken } });
         if (resp.ok) {
             authUser = await resp.json();
             // Guest/public sessions mean no real authentication — show login
@@ -981,10 +981,10 @@ async function umLoadUsers() {
 
         // Load directory data to get university and name info
         try {
-            var dirRes = await umFetch('/directory/api/data');
+            var dirRes = await umFetch('/directory/api/people');
             var dirData = await dirRes.json();
             _umDirUsers = {};
-            (dirData.users || []).forEach(function(du) {
+            (dirData || []).forEach(function(du) {
                 if (du.email) {
                     du.email.toLowerCase().split(';').forEach(function(e) {
                         _umDirUsers[e.trim()] = du;
@@ -993,7 +993,7 @@ async function umLoadUsers() {
             });
             // Populate university filter
             var unis = new Set();
-            (dirData.users || []).forEach(function(du) { if (du.university) unis.add(du.university); });
+            (dirData || []).forEach(function(du) { if (du.university) unis.add(du.university); });
             _umUniversities = Array.from(unis).sort();
             var uniSel = document.getElementById('um-uni-filter');
             if (uniSel) {

@@ -9,15 +9,26 @@ import json
 import os
 import urllib.parse
 import urllib.request
-from fastapi import APIRouter, Query, Body
+from fastapi import APIRouter, Query, Body, Depends, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 
+from auth import require_login, user_roles
+
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "url_config.json")
 
-router = APIRouter(prefix="/matomo-analytics", tags=["matomo_analytics"])
+router = APIRouter(prefix="/site-analytics", tags=["matomo_analytics"])
+
+
+# This tool is reserved for superuser (see TOOL_ACCESS["matomo_analytics"] in
+# auth.py) — every data endpoint requires it; none of this ever had any auth
+# check before.
+def _require_superuser(session: dict = Depends(require_login)) -> dict:
+    if "superuser" not in set(user_roles(session)):
+        raise HTTPException(status_code=403, detail="superuser role required")
+    return session
 
 MATOMO_URL = "https://uninovis.matomo.cloud"
 MATOMO_TOKEN = os.environ.get("MATOMO_TOKEN", "00695d820f1c1acf2a546d91ef60a825")
@@ -44,19 +55,19 @@ def save_url_config(config):
 
 
 @router.get("/api/sites")
-def get_sites():
+def get_sites(session: dict = Depends(_require_superuser)):
     """Return available Matomo sites."""
     return {"sites": [{"id": k, "name": v} for k, v in MATOMO_SITES.items()]}
 
 
 @router.get("/api/url-config")
-def get_url_config():
+def get_url_config(session: dict = Depends(_require_superuser)):
     """Return the URL configuration."""
     return load_url_config()
 
 
 @router.post("/api/url-config")
-def post_url_config(config: dict = Body(...)):
+def post_url_config(config: dict = Body(...), session: dict = Depends(_require_superuser)):
     """Save the URL configuration."""
     save_url_config(config)
     return {"status": "ok"}
@@ -81,6 +92,7 @@ def matomo_proxy(
     flat: str = Query(""),
     filter_limit: str = Query("100"),
     idSite: str = Query(MATOMO_SITE_ID),
+    session: dict = Depends(_require_superuser),
 ):
     """Proxy a Matomo Reporting API call. Token is injected server-side."""
     params = {

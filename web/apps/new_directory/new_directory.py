@@ -9,37 +9,20 @@ live API call at request time.
 import os
 
 import json
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 
-router = APIRouter(prefix="/new-directory", tags=["new_directory"])
+router = APIRouter(prefix="/directory", tags=["new_directory"])
 
 # ---------------------------------------------------------------------------
 # Auth helpers (same pattern as apps/directory and apps/event_tracker)
 # ---------------------------------------------------------------------------
 
-from auth import get_session, can_edit as _can_edit_check, user_roles as _user_roles
-
-
-def _get_token(request: Request) -> str | None:
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        return auth_header[7:]
-    return request.query_params.get("token")
-
-
-def _require_auth(request: Request) -> dict:
-    token = _get_token(request)
-    if not token:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    session = get_session(token)
-    if not session:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    return session
+from auth import require_login as _require_auth, can_edit as _can_edit_check, user_roles as _user_roles
 
 
 # Creating people/units is restricted to content_manager and superuser —
@@ -122,6 +105,7 @@ DEFAULT_DATA = {
     "units": [],
     "memberships": [],
     "last_sync": None,
+    "university_overrides": {},
 }
 
 
@@ -154,7 +138,7 @@ def _build_unit_tree(units: list, memberships: list, people_by_id: dict, univers
     people_by_unit: dict = {}
     for m in memberships:
         if m["unit_id"] is not None:
-            people_by_unit.setdefault(m["unit_id"], []).append(m["person_id"])
+            people_by_unit.setdefault(m["unit_id"], []).append((m["person_id"], m.get("role", "")))
 
     units_by_id = {u["id"]: u for u in units}
     children: dict = {}
@@ -168,7 +152,13 @@ def _build_unit_tree(units: list, memberships: list, people_by_id: dict, univers
 
     def node(uid):
         u = units_by_id[uid]
-        members = [people_by_id[pid] for pid in people_by_unit.get(uid, []) if pid in people_by_id]
+        # unit_role is this person's role in THIS unit specifically (distinct
+        # from their job position), surfaced so the unit-edit UI can prefill it.
+        members = [
+            {**people_by_id[pid], "unit_role": role}
+            for pid, role in people_by_unit.get(uid, [])
+            if pid in people_by_id
+        ]
         if university:
             members = [p for p in members if p.get("university") == university]
         members.sort(key=lambda p: (p.get("family_name", ""), p.get("first_name", "")))
@@ -256,16 +246,46 @@ def get_universities(session: dict = Depends(_require_auth)):
     for p in data.get("people", []):
         if p.get("university"):
             counts[p["university"]] = counts.get(p["university"], 0) + 1
+    overrides = data.get("university_overrides", {})
     return [
         {
             "code": code,
             "name": info["name"],
             "country": info["country"],
-            "website": info["website"],
+            "website": overrides.get(code, {}).get("website", info["website"]),
             "staff_count": counts.get(code, 0),
         }
         for code, info in sorted(UNIVERSITIES.items())
     ]
+
+
+# The static UNIVERSITIES table above has no website filled in yet; editing one
+# is restricted to content_manager/superuser, same as creating people/units.
+class UniversityUpdate(BaseModel):
+    website: str = ""
+
+
+@router.put("/api/universities/{code}")
+def update_university(code: str, body: UniversityUpdate, session: dict = Depends(_require_content_manager)):
+    if code not in UNIVERSITIES:
+        raise HTTPException(status_code=404, detail="Unknown university")
+    data = load_data()
+
+    # A content_manager may only edit their own university's website;
+    # superuser is unrestricted.
+    if "superuser" not in set(_user_roles(session)) and code != _own_university(session, data):
+        raise HTTPException(status_code=403, detail="Content managers can only edit their own university's website")
+
+    website = body.website.strip()
+    # Only http(s) links are allowed — anything else (e.g. a "javascript:"
+    # URI) would run as code when someone clicks the rendered link.
+    if website and not website.lower().startswith(("http://", "https://")):
+        raise HTTPException(status_code=400, detail="Website must start with http:// or https://")
+
+    overrides = data.setdefault("university_overrides", {})
+    overrides[code] = {"website": website}
+    save_data(data)
+    return {"ok": True, "code": code, "website": overrides[code]["website"]}
 
 
 # ---------------------------------------------------------------------------
@@ -304,6 +324,13 @@ def create_person(body: PersonCreate, session: dict = Depends(_require_content_m
         raise HTTPException(status_code=400, detail=f"Unknown university: {body.university}")
 
     data = load_data()
+
+    # A content_manager may only add people to their own university —
+    # otherwise they could plant a fabricated entry under a university they
+    # don't manage; superuser is unrestricted.
+    if "superuser" not in set(_user_roles(session)) and body.university != _own_university(session, data):
+        raise HTTPException(status_code=403, detail="Content managers can only add people to their own university")
+
     unit_ids = {u["id"] for u in data.get("units", [])}
     for assignment in body.units:
         if assignment.unit_id not in unit_ids:
@@ -469,19 +496,127 @@ def create_unit(body: UnitCreate, session: dict = Depends(_require_auth)):
     return {"ok": True, "id": new_id}
 
 
-class UnitLeadersUpdate(BaseModel):
+def _unit_descendant_ids(unit_id: int, units: list) -> set[int]:
+    """Every unit nested (at any depth) under `unit_id`, not including itself."""
+    children: dict = {}
+    for u in units:
+        pid = u.get("parent_id")
+        if pid is not None:
+            children.setdefault(pid, []).append(u["id"])
+    out: set[int] = set()
+    stack = [unit_id]
+    while stack:
+        current = stack.pop()
+        for child_id in children.get(current, []):
+            if child_id not in out:
+                out.add(child_id)
+                stack.append(child_id)
+    return out
+
+
+def _require_unit_edit_access(unit_id: int, session: dict, units_by_id: dict) -> None:
+    roles = set(_user_roles(session))
+    if _CONTENT_MANAGER_ROLES & roles:
+        return
+    if "wp_leader" in roles and _leads_unit_or_ancestor(session.get("username", ""), unit_id, units_by_id):
+        return
+    raise HTTPException(status_code=403, detail="content_manager, superuser, or a work package leader for this unit is required")
+
+
+class UnitMemberAssignment(BaseModel):
+    person_id: int
+    role: str = ""
+
+
+# Editing a unit (rename, reparent, set leaders, set direct members) is open
+# to content_manager and superuser for any unit, and to a wp_leader for a unit
+# they lead or that sits under one of their ancestors — mirroring the scope
+# create_unit already uses for adding subunits.
+class UnitEditUpdate(BaseModel):
+    name: str
+    parent_id: int | None = None
     leaders: list[str] = []
+    members: list[UnitMemberAssignment] = []
 
 
-@router.put("/api/units/{unit_id}/leaders")
-def set_unit_leaders(unit_id: int, body: UnitLeadersUpdate, session: dict = Depends(_require_content_manager)):
+@router.put("/api/units/{unit_id}")
+def update_unit(unit_id: int, body: UnitEditUpdate, session: dict = Depends(_require_auth)):
+    roles = set(_user_roles(session))
     data = load_data()
-    unit = next((u for u in data.get("units", []) if u["id"] == unit_id), None)
+    units = data.get("units", [])
+    units_by_id = {u["id"]: u for u in units}
+    unit = units_by_id.get(unit_id)
     if not unit:
         raise HTTPException(status_code=404, detail="Unit not found")
+
+    is_privileged = bool(_CONTENT_MANAGER_ROLES & roles)
+    _require_unit_edit_access(unit_id, session, units_by_id)
+
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Unit name is required")
+
+    current_parent = unit.get("parent_id")
+    new_parent = body.parent_id
+    if new_parent != current_parent:
+        if new_parent is not None and new_parent not in units_by_id:
+            raise HTTPException(status_code=400, detail="Unknown parent unit")
+        if new_parent is not None and (new_parent == unit_id or new_parent in _unit_descendant_ids(unit_id, units)):
+            raise HTTPException(status_code=400, detail="A unit cannot be moved under itself or one of its own subunits")
+        if not is_privileged:
+            if new_parent is None:
+                raise HTTPException(status_code=403, detail="WP leaders cannot make a unit top-level")
+            if not _leads_unit_or_ancestor(session.get("username", ""), new_parent, units_by_id):
+                raise HTTPException(status_code=403, detail="You can only move a unit under a work package you lead")
+
+    person_ids = {p["id"] for p in data.get("people", [])}
+    for assignment in body.members:
+        if assignment.person_id not in person_ids:
+            raise HTTPException(status_code=400, detail=f"Unknown person: {assignment.person_id}")
+
+    unit["name"] = name
+    unit["parent_id"] = new_parent
     unit["leaders"] = sorted({e.strip().lower() for e in body.leaders if e.strip()})
+
+    # Replace only THIS unit's direct memberships — memberships this person
+    # holds in other units are untouched.
+    data["memberships"] = [m for m in data.get("memberships", []) if m["unit_id"] != unit_id]
+    seen_people = set()
+    for assignment in body.members:
+        if assignment.person_id in seen_people:
+            continue
+        seen_people.add(assignment.person_id)
+        data["memberships"].append({
+            "person_id": assignment.person_id,
+            "unit_id": unit_id,
+            "role": assignment.role.strip(),
+        })
+
     save_data(data)
-    return {"ok": True, "id": unit_id, "leaders": unit["leaders"]}
+    return {"ok": True, "id": unit_id}
+
+
+@router.delete("/api/units/{unit_id}")
+def delete_unit(unit_id: int, session: dict = Depends(_require_auth)):
+    data = load_data()
+    units = data.get("units", [])
+    units_by_id = {u["id"]: u for u in units}
+    if unit_id not in units_by_id:
+        raise HTTPException(status_code=404, detail="Unit not found")
+
+    _require_unit_edit_access(unit_id, session, units_by_id)
+
+    # Direct subunits are promoted to top-level rather than cascade-deleted,
+    # so removing a unit never silently destroys its children's own subtrees
+    # or memberships — only this unit's own direct memberships are dropped.
+    for u in units:
+        if u.get("parent_id") == unit_id:
+            u["parent_id"] = None
+
+    data["units"] = [u for u in units if u["id"] != unit_id]
+    data["memberships"] = [m for m in data.get("memberships", []) if m["unit_id"] != unit_id]
+    save_data(data)
+    return {"ok": True, "id": unit_id}
 
 
 # ---------------------------------------------------------------------------

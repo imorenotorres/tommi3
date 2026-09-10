@@ -361,12 +361,7 @@ app.mount("/unigracon/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "unig
 # Mount Mobility Planner app
 from apps.mobility_planner.mobility_planner import router as mobility_router
 app.include_router(mobility_router)
-app.mount("/mobility_planner/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "mobility_planner" / "static"), name="mobility_static")
-
-# Mount Directory app
-from apps.directory.directory import router as directory_router
-app.include_router(directory_router)
-app.mount("/directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "directory" / "static"), name="directory_static")
+app.mount("/mobility-planner/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "mobility_planner" / "static"), name="mobility_static")
 
 # Mount UNINOVIS Admin hub
 from apps.uninovis.uninovis import router as uninovis_router
@@ -376,12 +371,7 @@ app.mount("/uninovis/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "unino
 # Mount Researcher Connect app
 from apps.researcher_connect.researcher_connect import router as researcher_connect_router
 app.include_router(researcher_connect_router)
-app.mount("/researcher_connect/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "researcher_connect" / "static"), name="researcher_connect_static")
-
-# Mount Transparency Study apps (TODO: create apps/rag_study/)
-# from apps.rag_study.study import router as rag_study_router
-# app.include_router(rag_study_router)
-# app.mount("/rag-study/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "rag_study" / "static"), name="rag_study_static")
+app.mount("/researcher-connect/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "researcher_connect" / "static"), name="researcher_connect_static")
 
 # Mount Event Tracker app
 from apps.event_tracker.event_tracker import router as event_tracker_router
@@ -391,12 +381,12 @@ app.mount("/event-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "
 # Mount New Directory app
 from apps.new_directory.new_directory import router as new_directory_router
 app.include_router(new_directory_router)
-app.mount("/new-directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "new_directory" / "static"), name="new_directory_static")
+app.mount("/directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "new_directory" / "static"), name="new_directory_static")
 
 # Mount Holiday Tracker app
 from apps.uma_holiday_tracker.uma_holiday_tracker import router as holiday_tracker_router
 app.include_router(holiday_tracker_router)
-app.mount("/holiday-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uma_holiday_tracker" / "static"), name="holiday_tracker_static")
+app.mount("/uma-holiday-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uma_holiday_tracker" / "static"), name="holiday_tracker_static")
 
 # Mount UltiR (UNINOVIS LTI Repository) tools
 from UltiR.redaccion.lti_provider import router as lti_redaccion_router
@@ -416,22 +406,17 @@ async def ultir_catalog():
 # Mount Matomo Analytics app
 from apps.matomo_analytics.matomo_analytics import router as matomo_analytics_router
 app.include_router(matomo_analytics_router)
-app.mount("/matomo-analytics/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "matomo_analytics" / "static"), name="matomo_analytics_static")
+app.mount("/site-analytics/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "matomo_analytics" / "static"), name="matomo_analytics_static")
 
 # Mount Survey DATA FOR L.I.F.E. app
 from apps.survey_datalife.survey_datalife import router as survey_datalife_router
 app.include_router(survey_datalife_router)
 app.mount("/survey-datalife/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "survey_datalife" / "static"), name="survey_datalife_static")
 
-# Mount Research Proposals app
-from apps.research_proposals.research_proposals import router as research_proposals_router
-app.include_router(research_proposals_router)
-app.mount("/research_proposals/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "research_proposals" / "static"), name="research_proposals_static")
-
 # Mount Collaboration Dashboard app
 from apps.collaboration_dashboard.collaboration_dashboard import router as collaboration_dashboard_router
 app.include_router(collaboration_dashboard_router)
-app.mount("/collaboration-dashboard/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "collaboration_dashboard" / "static"), name="collaboration_dashboard_static")
+app.mount("/contactos-exploratorios/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "collaboration_dashboard" / "static"), name="collaboration_dashboard_static")
 
 
 # ---------------------------------------------------------------------------
@@ -520,6 +505,7 @@ async def api_me(session: dict = Depends(require_auth)):
         "role": session["role"],
         "roles": session.get("roles", [session["role"]]),
         "provisional_password": user.get("provisional_password", False),
+        "seen_onboarding_tour": user.get("seen_onboarding_tour", False),
     }
     if is_study_mode():
         result["study_mode"] = True
@@ -7166,11 +7152,20 @@ class FeedbackRequest(BaseModel):
 async def submit_feedback(fb: FeedbackRequest):
     """Log user feedback on an agent response.
     User and tester feedback are stored in separate per-agent files."""
+    import re
+
+    # agent_id ends up in a filename below, so it must never be treated as
+    # anything but inert text — collapse every run of non-alphanumeric
+    # characters (path separators, dots, etc.) into a single space, which
+    # makes path traversal (e.g. "../../x") impossible while leaving normal
+    # agent ids (letters/digits/underscores) untouched.
+    safe_agent_id = re.sub(r"[^A-Za-z0-9_]+", " ", fb.agent_id).strip() or "unknown_agent"
+
     is_positive = fb.rating == "up"
     entry = {
         "timestamp": datetime.now().isoformat(),
         "feedback_type": "positive" if is_positive else "negative",
-        "agent_id": fb.agent_id,
+        "agent_id": safe_agent_id,
         "session_id": fb.session_id,
         "message_index": fb.message_index,
         "rating": fb.rating,
@@ -7185,9 +7180,9 @@ async def submit_feedback(fb: FeedbackRequest):
         entry["notes"] = (fb.notes or "")[:1000]
 
     if fb.mode == "tester":
-        log_file = LOGS_DIR / f"{fb.agent_id}_feedback_tester.jsonl"
+        log_file = LOGS_DIR / f"{safe_agent_id}_feedback_tester.jsonl"
     else:
-        log_file = LOGS_DIR / f"{fb.agent_id}_feedback_user.jsonl"
+        log_file = LOGS_DIR / f"{safe_agent_id}_feedback_user.jsonl"
 
     with open(log_file, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")

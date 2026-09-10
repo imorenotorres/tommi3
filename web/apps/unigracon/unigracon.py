@@ -15,7 +15,7 @@ import operator
 import os
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
@@ -85,30 +85,7 @@ router = APIRouter(prefix="/unigracon", tags=["unigracon"])
 
 # ── Auth helpers for edit protection ─────────────────────────────────
 
-from auth import get_session, ROLES, can_edit as _can_edit_check
-
-
-def _get_token(request: Request) -> str | None:
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        return auth_header[7:]
-    return request.query_params.get("token")
-
-
-def _require_auth(request: Request) -> dict:
-    token = _get_token(request)
-    if not token:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    session = get_session(token)
-    if not session:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    return session
-
-
-def _require_editor(session: dict = Depends(_require_auth)) -> dict:
-    if not _can_edit_check(session):
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
-    return session
+from auth import require_login as _require_auth, require_editor as _require_editor, can_edit as _can_edit_check
 
 
 # ── Data I/O ─────────────────────────────────────────────────────────
@@ -367,13 +344,13 @@ def index():
 
 
 @router.get("/api/universities")
-def universities():
+def universities(session: dict = Depends(_require_auth)):
     data = load_data()
     return data["universities"]
 
 
 @router.get("/api/conversions")
-def conversions_list():
+def conversions_list(session: dict = Depends(_require_auth)):
     """List all available conversion pairs."""
     data = load_data()
     pairs = []
@@ -399,7 +376,7 @@ def conversions_list():
 
 
 @router.post("/api/convert")
-def convert(body: ConvertRequest):
+def convert(body: ConvertRequest, session: dict = Depends(_require_auth)):
     data = load_data()
     try:
         result = convert_grade(body.source, body.target, body.grade, data,
@@ -447,7 +424,7 @@ def auth_check(session: dict = Depends(_require_auth)):
 # ── Batch conversion update (per target university) ─────────────────
 
 @router.get("/api/conversions-to/{target}")
-def get_conversions_to(target: str):
+def get_conversions_to(target: str, session: dict = Depends(_require_auth)):
     data = load_data()
     if target not in data["universities"]:
         raise HTTPException(404, f"University {target} not found")

@@ -12,7 +12,7 @@ import re
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/directory", tags=["directory"])
 
 # ── Auth helpers ─────────────────────────────────────────────────────
 
-from auth import get_session, ROLES, can_edit as _can_edit_check, _load_users
+from auth import require_session as _require_auth, require_editor as _require_editor, can_edit as _can_edit_check, _load_users
 
 
 def _display_name(username: str) -> str:
@@ -47,28 +47,6 @@ def _display_name(username: str) -> str:
     words = [w for w in re.split(r"[._-]+", local) if w]
     return " ".join(w.capitalize() for w in words) or username
 
-
-def _get_token(request: Request) -> str | None:
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        return auth_header[7:]
-    return request.query_params.get("token")
-
-
-def _require_auth(request: Request) -> dict:
-    token = _get_token(request)
-    if not token:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    session = get_session(token)
-    if not session:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    return session
-
-
-def _require_editor(session: dict = Depends(_require_auth)) -> dict:
-    if not _can_edit_check(session):
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
-    return session
 
 
 # ── Data I/O ─────────────────────────────────────────────────────────

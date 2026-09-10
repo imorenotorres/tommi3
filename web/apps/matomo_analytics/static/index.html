@@ -6,7 +6,7 @@
     <title>UNINOVIS — Site Analytics</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/nav.css?v=2">
-    <script src="/static/nav.js?v=11"></script>
+    <script src="/static/nav.js?v=12"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
@@ -115,7 +115,12 @@
 <body>
 <script>uninovisNav({ crumbs: [{label:'Administration', href:'/#admin'}], current: 'Site Analytics' });</script>
 
-<div class="container">
+<div id="accessDenied" style="display:none;max-width:520px;margin:60px auto;text-align:center;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+    <h2 style="color:#2D3876;">Access denied</h2>
+    <p style="color:#666;">You must be logged in as a superuser to view this page.</p>
+</div>
+
+<div class="container" id="mainContainer">
     <!-- 1. Filters -->
     <div class="controls">
         <label>Site:</label>
@@ -154,7 +159,7 @@
         </select>
         <div style="flex:1;"></div>
         <button onclick="loadAll()">Apply</button>
-        <a href="/matomo-analytics/setup" style="font-size:0.72rem;color:#2D3876;text-decoration:none;margin-left:4px;" title="Configure tracked URLs">&#9881; Setup</a>
+        <a href="/site-analytics/setup" style="font-size:0.72rem;color:#2D3876;text-decoration:none;margin-left:4px;" title="Configure tracked URLs">&#9881; Setup</a>
     </div>
 
     <!-- 2. Visits by Country -->
@@ -230,7 +235,13 @@
 </div>
 
 <script>
-var API = '/matomo-analytics/api/proxy';
+var API = '/site-analytics/api/proxy';
+function authToken() {
+    return localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token');
+}
+function authHeaders() {
+    return { 'Authorization': 'Bearer ' + authToken() };
+}
 var SITES = {};
 var COLORS = { visits: '#2D3876', uniq: '#60a5fa' };
 var PALETTE = ['#2D3876','#e74c3c','#27ae60','#f39c12','#8e44ad','#00bcd4','#e67e22','#e91e63'];
@@ -414,7 +425,7 @@ function groupByDescription(items) {
 
 async function loadUrlConfig() {
     try {
-        var resp = await fetch('/matomo-analytics/api/url-config');
+        var resp = await fetch('/site-analytics/api/url-config', { headers: authHeaders() });
         URL_CONFIG = await resp.json();
     } catch(e) { URL_CONFIG = { urls: [] }; }
     populatePageDropdown();
@@ -527,7 +538,7 @@ function makeStandardSeries(visits, uniques) {
 
 async function loadSites() {
     try {
-        var r = await (await fetch('/matomo-analytics/api/sites')).json();
+        var r = await (await fetch('/site-analytics/api/sites', { headers: authHeaders() })).json();
         var sel = $$('selSite');
         sel.innerHTML = '';
         // Individual sites first
@@ -555,7 +566,7 @@ async function loadSites() {
 async function q(method, extra) {
     var p = new URLSearchParams({ method:method, period:per(), date:rng(), idSite:site() });
     if (extra) for (var k in extra) p.set(k, extra[k]);
-    var r = await fetch(API+'?'+p.toString());
+    var r = await fetch(API+'?'+p.toString(), { headers: authHeaders() });
     if (!r.ok) throw new Error('API '+r.status);
     return r.json();
 }
@@ -1746,7 +1757,26 @@ async function loadDrillChart() {
     }
 }
 
-Promise.all([loadSites(), loadUrlConfig()]).then(function(){ loadAll(); });
+async function checkAuthAndInit() {
+    var token = localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token');
+    if (!token) {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
+    }
+    try {
+        var resp = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!resp.ok) throw new Error('unauthenticated');
+        var user = await resp.json();
+        var roles = user.roles || [user.role];
+        if (roles.indexOf('superuser') === -1) throw new Error('forbidden');
+    } catch (e) {
+        document.getElementById('accessDenied').style.display = '';
+        document.getElementById('mainContainer').style.display = 'none';
+        return;
+    }
+    Promise.all([loadSites(), loadUrlConfig()]).then(function(){ loadAll(); });
+}
+checkAuthAndInit();
 </script>
 </body>
 </html>

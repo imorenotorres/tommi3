@@ -11,43 +11,19 @@ import os
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 
-router = APIRouter(prefix="/researcher_connect", tags=["researcher_connect"])
+router = APIRouter(prefix="/researcher-connect", tags=["researcher_connect"])
 
 
 # -- Auth helpers (shared with tommi server) -----------------------------------
 
-from auth import get_session, ROLES, can_edit as _can_edit_check
-
-
-def _get_token(request: Request) -> str | None:
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        return auth_header[7:]
-    return request.query_params.get("token")
-
-
-def _require_auth(request: Request) -> dict:
-    token = _get_token(request)
-    if not token:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    session = get_session(token)
-    if not session:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    return session
-
-
-def _require_editor(request: Request) -> dict:
-    session = _require_auth(request)
-    if not _can_edit_check(session):
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
-    return session
+from auth import require_login as _require_auth, require_editor as _require_editor, can_edit as _can_edit_check
 
 
 # -- Data I/O ------------------------------------------------------------------
@@ -93,8 +69,8 @@ def auth_check(session: dict = Depends(_require_auth)):
 
 
 @router.get("/api/data")
-def get_all_data():
-    """Return all researcher data (public read)."""
+def get_all_data(session: dict = Depends(_require_auth)):
+    """Return all researcher data."""
     return load_data()
 
 
@@ -174,7 +150,7 @@ def update_research_areas(body: AreasBody, session: dict = Depends(_require_edit
 # -- Excel export --------------------------------------------------------------
 
 @router.get("/api/export")
-def export_excel():
+def export_excel(session: dict = Depends(_require_auth)):
     """Export all researchers to an Excel file."""
     import openpyxl
     from openpyxl.styles import Font, PatternFill
@@ -322,7 +298,7 @@ async def import_excel(file: UploadFile = File(...), session: dict = Depends(_re
 # -- Excel template ------------------------------------------------------------
 
 @router.get("/api/template")
-def download_template():
+def download_template(session: dict = Depends(_require_auth)):
     """Download an empty Excel template with the expected columns."""
     import openpyxl
     from openpyxl.styles import Font, PatternFill

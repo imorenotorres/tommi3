@@ -383,7 +383,7 @@
     <!-- End Matomo Code -->
 </head>
 <body>
-<script src="/static/nav.js?v=11"></script>
+<script src="/static/nav.js?v=12"></script>
 <script>uninovisNav({ crumbs: [{label:'Learning & Mobility', href:'/#learning'}], current: 'UNIGRACON' });</script>
     <div class="container">
         <h1>UNIGRACON</h1>
@@ -548,8 +548,14 @@
             return fetch(url, options);
         }
 
+        // This app is only for logged-in users — anyone without a real
+        // session is sent to the login page. Returns true if a real session
+        // was confirmed, false otherwise.
         async function checkAuth() {
-            if (!authToken) { updateAuthUI(); return; }
+            if (!authToken) {
+                window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                return false;
+            }
             try {
                 const resp = await fetch(BASE + '/api/auth-check', {
                     headers: { 'Authorization': 'Bearer ' + authToken },
@@ -557,12 +563,15 @@
                 if (resp.ok) {
                     authUser = await resp.json();
                 } else {
-                    authToken = null;
-                    authUser = null;
-                    localStorage.removeItem('uninovis_token'); localStorage.removeItem('unigracon_token');
+                    window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                    return false;
                 }
-            } catch (e) { /* server down — keep token */ }
+            } catch (e) {
+                window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                return false;
+            }
             updateAuthUI();
+            return true;
         }
 
         function updateAuthUI() {
@@ -682,6 +691,9 @@
         }
 
         async function init() {
+            const authed = await checkAuth();
+            if (!authed) return; // already redirecting to /login
+
             // Guide registration must never depend on this app's own data
             // loading successfully — it always runs first, so the "how to
             // use it" guide is still available even if /api/universities or
@@ -700,8 +712,8 @@
 
             try {
                 const [uniResp, convResp] = await Promise.all([
-                    fetch(BASE + '/api/universities'),
-                    fetch(BASE + '/api/conversions'),
+                    authFetch(BASE + '/api/universities'),
+                    authFetch(BASE + '/api/conversions'),
                 ]);
                 universities = await uniResp.json();
                 const convData = await convResp.json();
@@ -712,8 +724,6 @@
                 renderAvailable();
             } catch (e) { console.error('Failed to load universities/conversions:', e); }
 
-            await checkAuth();
-
             try {
                 maybeAutoPlayGuideFromUrl(authUser ? (authUser.roles || [authUser.role]) : [], authUser ? authUser.username : '');
             } catch (e) { console.error('Guide auto-play failed:', e); }
@@ -723,8 +733,8 @@
             const savedSource = sourceEl.value;
             const savedTarget = targetEl.value;
             const [uniResp, convResp] = await Promise.all([
-                fetch(BASE + '/api/universities'),
-                fetch(BASE + '/api/conversions'),
+                authFetch(BASE + '/api/universities'),
+                authFetch(BASE + '/api/conversions'),
             ]);
             universities = await uniResp.json();
             const convData = await convResp.json();
@@ -905,7 +915,7 @@
 
             convertBtn.disabled = true;
             try {
-                const resp = await fetch(BASE + '/api/convert', {
+                const resp = await authFetch(BASE + '/api/convert', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ source, target, grade, source_system: srcSys, target_system: tgtSys }),

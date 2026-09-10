@@ -75,7 +75,7 @@ if (agentId && AGENTS[agentId]) {
         window.location.href = '/login?redirect=' + encodeURIComponent('/uninovis-uma/agent?agent=' + agentId);
     } else {
         // Verify token is valid
-        fetch('/directory/api/auth-check', { headers: { 'Authorization': 'Bearer ' + token } })
+        fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } })
             .then(function(r) {
                 if (r.ok) return r.json();
                 throw new Error('invalid');

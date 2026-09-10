@@ -8,9 +8,7 @@ via POST /api/catalogue/sync.
 """
 
 import ast
-import base64
 import csv
-import hashlib
 import io
 import json
 import os
@@ -19,20 +17,16 @@ import uuid
 from datetime import datetime, timedelta
 
 import httpx
-from cryptography.fernet import Fernet
 from dotenv import dotenv_values
-from fastapi import APIRouter, Depends, HTTPException, Request, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from fastapi.responses import FileResponse, StreamingResponse, Response
 from pydantic import BaseModel
 from typing import Optional
 
 STATIC_DIR  = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH   = os.path.join(os.path.dirname(__file__), "data.json")
-PERSONAL_DIR = os.path.join(os.path.dirname(__file__), "personal")
 DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "directory", "data.json")
 ENV_PATH    = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
-
-os.makedirs(PERSONAL_DIR, exist_ok=True)
 
 router = APIRouter(prefix="/event-tracker", tags=["event_tracker"])
 
@@ -77,30 +71,10 @@ _EVENT_TYPE_MAP = {
 # Auth helpers
 # ---------------------------------------------------------------------------
 
-from auth import get_session, ROLES, can_edit as _can_edit_check, user_roles as _user_roles
-
-
-def _get_token(request: Request) -> str | None:
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        return auth_header[7:]
-    return request.query_params.get("token")
-
-
-def _require_auth(request: Request) -> dict:
-    token = _get_token(request)
-    if not token:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    session = get_session(token)
-    if not session:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    return session
-
-
-def _require_editor(session: dict = Depends(_require_auth)) -> dict:
-    if not _can_edit_check(session):
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
-    return session
+from auth import (
+    get_session, require_login as _require_auth, require_editor as _require_editor,
+    can_edit as _can_edit_check, user_roles as _user_roles,
+)
 
 
 def _can_modify_event(session: dict, ev: dict) -> bool:
@@ -143,48 +117,11 @@ def save_data(data: dict):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
-_PERSONAL_KEY_SALT = "uninovis-calendar-personal-2026"
-
-
-def _personal_path(username: str) -> str:
-    safe = username.replace("@", "_at_").replace("/", "_").replace("\\", "_")
-    return os.path.join(PERSONAL_DIR, f"{safe}.enc")
-
-
-def _derive_key(username: str) -> bytes:
-    raw = hashlib.pbkdf2_hmac(
-        "sha256",
-        (username + _PERSONAL_KEY_SALT).encode(),
-        b"uninovis-calendar-fixed-salt",
-        100_000,
-    )
-    return base64.urlsafe_b64encode(raw[:32])
-
-
-def load_personal(username: str) -> list:
-    p = _personal_path(username)
-    if not os.path.exists(p):
-        return []
-    key = _derive_key(username)
-    f = Fernet(key)
-    with open(p, "rb") as fh:
-        encrypted = fh.read()
-    try:
-        return json.loads(f.decrypt(encrypted))
-    except Exception:
-        return []
-
-
-def save_personal(username: str, events: list):
-    key = _derive_key(username)
-    f = Fernet(key)
-    plaintext = json.dumps(events, ensure_ascii=False).encode("utf-8")
-    encrypted = f.encrypt(plaintext)
-    with open(_personal_path(username), "wb") as fh:
-        fh.write(encrypted)
-
-
 def load_directory():
+    # The old Agora Directory app this used to read from has been retired;
+    # degrade gracefully instead of failing every page load.
+    if not os.path.exists(DIRECTORY_DATA_PATH):
+        return {"groups": [], "users": []}
     with open(DIRECTORY_DATA_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -424,7 +361,7 @@ def auth_check(session: dict = Depends(_require_auth)):
 
 @router.get("/api/events")
 def get_events(session: dict = Depends(_require_auth)):
-    """Return shared events + user's personal events + cached catalogue events."""
+    """Return shared events + cached catalogue events."""
     data = load_data()
     catalogue = data.get("catalogue_events", [])
     catalogue_ids = {ev["id"] for ev in catalogue}
@@ -434,8 +371,7 @@ def get_events(session: dict = Depends(_require_auth)):
         ev for ev in data["events"]
         if ev.get("visibility", "shared") == "shared" and ev["id"] not in catalogue_ids
     ]
-    personal = load_personal(session["username"])
-    return shared + catalogue + personal
+    return shared + catalogue
 
 
 @router.get("/api/config")
@@ -543,7 +479,6 @@ class EventBody(BaseModel):
     image: str = ""
     participants: list[str] = []
     participant_groups: list[str] = []
-    visibility: str = "shared"
     date_tbc: bool = False
     date_tbc_label: str = ""
     all_day: bool = False
@@ -579,7 +514,7 @@ def _build_event(body: EventBody, start_date: str, end_date: str, series_id: str
         "end_date": end_date,
         "registration_link": body.registration_link,
         "image": body.image,
-        "visibility": body.visibility,
+        "visibility": "shared",
         "date_tbc": body.date_tbc,
         "date_tbc_label": body.date_tbc_label,
         "all_day": body.all_day,
@@ -611,7 +546,7 @@ def _build_virtual_components(body: EventBody, parent_id: str, username: str) ->
             "end_date": body.virtual_pre_end or body.virtual_pre_start,
             "registration_link": body.registration_link,
             "image": "",
-            "visibility": body.visibility,
+            "visibility": "shared",
             "date_tbc": False,
             "date_tbc_label": "",
             "participants": body.participants,
@@ -638,7 +573,7 @@ def _build_virtual_components(body: EventBody, parent_id: str, username: str) ->
             "end_date": body.virtual_post_end or body.virtual_post_start,
             "registration_link": body.registration_link,
             "image": "",
-            "visibility": body.visibility,
+            "visibility": "shared",
             "date_tbc": False,
             "date_tbc_label": "",
             "participants": body.participants,
@@ -672,27 +607,14 @@ def _validate_event(body: EventBody, data: dict):
         raise HTTPException(400, "Start and end dates are required unless date_tbc is true")
 
 
-def _require_auth_or_editor(visibility: str, session: dict):
-    if visibility == "personal":
-        return
-    if not _can_edit_check(session):
-        raise HTTPException(403, "Only editors can create shared events")
-
-
 def _store_event(ev: dict, username: str):
-    if ev.get("visibility") == "personal":
-        personal = load_personal(username)
-        personal.append(ev)
-        save_personal(username, personal)
-    else:
-        data = load_data()
-        data["events"].append(ev)
-        save_data(data)
+    data = load_data()
+    data["events"].append(ev)
+    save_data(data)
 
 
 @router.post("/api/events")
-def create_event(body: EventBody, session: dict = Depends(_require_auth)):
-    _require_auth_or_editor(body.visibility, session)
+def create_event(body: EventBody, session: dict = Depends(_require_editor)):
     data = load_data()
     _validate_event(body, data)
 
@@ -717,14 +639,9 @@ def create_event(body: EventBody, session: dict = Depends(_require_auth)):
             ev = _build_event(body, occ_start.isoformat(), occ_end.isoformat(), series_id, session["username"])
             created.append(ev)
 
-        if body.visibility == "personal":
-            personal = load_personal(session["username"])
-            personal.extend(created)
-            save_personal(session["username"], personal)
-        else:
-            for ev in created:
-                data["events"].append(ev)
-            save_data(data)
+        for ev in created:
+            data["events"].append(ev)
+        save_data(data)
         return {"series_id": series_id, "count": len(created), "events": created}
     else:
         ev = _build_event(body, body.start_date, body.end_date, "", session["username"])
@@ -755,7 +672,7 @@ def _update_ev_fields(ev: dict, body: EventBody):
     ev["image"] = body.image
     ev["participants"] = body.participants
     ev["participant_groups"] = body.participant_groups
-    ev["visibility"] = body.visibility
+    ev["visibility"] = "shared"
     ev["date_tbc"] = body.date_tbc
     ev["date_tbc_label"] = body.date_tbc_label
     ev["all_day"] = body.all_day
@@ -765,13 +682,6 @@ def _update_ev_fields(ev: dict, body: EventBody):
 def update_event(event_id: str, body: EventBody, session: dict = Depends(_require_auth)):
     data = load_data()
     _validate_event(body, data)
-
-    personal = load_personal(session["username"])
-    for ev in personal:
-        if ev["id"] == event_id:
-            _update_ev_fields(ev, body)
-            save_personal(session["username"], personal)
-            return ev
 
     for ev in data["events"]:
         if ev["id"] == event_id:
@@ -821,13 +731,6 @@ def update_series(series_id: str, body: EventBody, session: dict = Depends(_requ
 
 @router.delete("/api/events/{event_id}")
 def delete_event(event_id: str, session: dict = Depends(_require_auth)):
-    personal = load_personal(session["username"])
-    before_p = len(personal)
-    personal = [ev for ev in personal if ev["id"] != event_id]
-    if len(personal) < before_p:
-        save_personal(session["username"], personal)
-        return {"ok": True}
-
     data = load_data()
     target = next((ev for ev in data["events"] if ev["id"] == event_id), None)
     if not target:
@@ -944,8 +847,7 @@ def ical_feed(token: str = Query("")):
         ev for ev in data["events"]
         if ev.get("visibility", "shared") == "shared" and ev["id"] not in catalogue_ids
     ]
-    personal = load_personal(session["username"])
-    ics = _generate_ics(shared + catalogue + personal)
+    ics = _generate_ics(shared + catalogue)
     return Response(
         content=ics,
         media_type="text/calendar; charset=utf-8",
@@ -965,8 +867,7 @@ def export_ical(session: dict = Depends(_require_auth)):
         ev for ev in data["events"]
         if ev.get("visibility", "shared") == "shared" and ev["id"] not in catalogue_ids
     ]
-    personal = load_personal(session["username"])
-    ics = _generate_ics(shared + catalogue + personal)
+    ics = _generate_ics(shared + catalogue)
     return Response(
         content=ics,
         media_type="text/calendar; charset=utf-8",

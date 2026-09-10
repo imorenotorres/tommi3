@@ -10,7 +10,7 @@ import os
 import uuid
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -19,7 +19,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "directory", "data.json")
 FESTIVITIES_PATH = os.path.join(os.path.dirname(__file__), "festivities.json")
 
-router = APIRouter(prefix="/holiday-tracker", tags=["holiday_tracker"])
+router = APIRouter(prefix="/uma-holiday-tracker", tags=["holiday_tracker"])
 
 EVENT_TYPES = {"holiday", "personal_day", "comision_servicio", "teletrabajo", "formacion"}
 
@@ -43,24 +43,7 @@ def _display_name(username: str) -> str:
 
 # ── Auth helpers ─────────────────────────────────────────────────────
 
-from auth import get_session, user_roles as _user_roles
-
-
-def _get_token(request: Request) -> str | None:
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        return auth_header[7:]
-    return request.query_params.get("token")
-
-
-def _require_auth(request: Request) -> dict:
-    token = _get_token(request)
-    if not token:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    session = get_session(token)
-    if not session:
-        return {"username": "guest", "role": "public", "roles": ["public"]}
-    return session
+from auth import require_login as _require_auth, user_roles as _user_roles
 
 
 def _is_uma_email(username: str) -> bool:
@@ -409,7 +392,7 @@ def _iter_days(start_str: str, end_str: str):
 
 
 @router.get("/api/festivities")
-def get_festivities(year: int = None):
+def get_festivities(year: int = None, session: dict = Depends(_require_auth)):
     """Return UMA festivities for a given year (or current year), one row per day."""
     if year is None:
         year = date.today().year

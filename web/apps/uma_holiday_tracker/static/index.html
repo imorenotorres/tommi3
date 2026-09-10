@@ -139,7 +139,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 </head>
 <body>
 
-<script src="/static/nav.js?v=11"></script>
+<script src="/static/nav.js?v=12"></script>
 <script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/#uma_holidays'}], current: 'UMA Holiday Tracker' });</script>
 
 <div id="deniedView" class="denied" style="display:none;">
@@ -399,7 +399,7 @@ function isNonWorking(d) {
 
 async function loadFestivities(year) {
   try {
-    const res = await fetch('/holiday-tracker/api/festivities?year=' + year, {
+    const res = await fetch('/uma-holiday-tracker/api/festivities?year=' + year, {
       headers: { 'Authorization': 'Bearer ' + TOKEN }
     });
     if (res.ok) {
@@ -414,7 +414,7 @@ let pendingType = 'holiday';
 async function api(method, path, body) {
   const opts = { method, headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' } };
   if (body) opts.body = JSON.stringify(body);
-  const res = await fetch('/holiday-tracker' + path, opts);
+  const res = await fetch('/uma-holiday-tracker' + path, opts);
   if (!res.ok) {
     let msg = res.statusText;
     try { const j = await res.json(); msg = j.detail || msg; } catch (e) {}
@@ -952,8 +952,8 @@ function onChipClick(id) {
     var detailExtra = document.getElementById('dExtra');
     if (detailExtra) {
       if (ev.type === 'comision_servicio' && (ev.destination || ev.description)) {
-        detailExtra.innerHTML = (ev.destination ? '<div class="detail-row"><b>Destino:</b> ' + ev.destination + '</div>' : '')
-          + (ev.description ? '<div class="detail-row"><b>Descripción:</b> ' + ev.description + '</div>' : '');
+        detailExtra.innerHTML = (ev.destination ? '<div class="detail-row"><b>Destino:</b> ' + esc(ev.destination) + '</div>' : '')
+          + (ev.description ? '<div class="detail-row"><b>Descripción:</b> ' + esc(ev.description) + '</div>' : '');
         detailExtra.style.display = '';
       } else if (ev.type === 'formacion') {
         detailExtra.innerHTML = '<div class="detail-row"><b>Hours:</b> ' + (ev.hours != null ? ev.hours : FULL_DAY_HOURS) + 'h</div>';
@@ -1356,7 +1356,7 @@ async function resetMyColor() {
       title: 'About: UMA Holiday Tracker',
       group: 'UMA internal tools',
       roles: null,
-      url: '/holiday-tracker/',
+      url: '/uma-holiday-tracker/',
       primary: true,
       steps: GUIDE_CONTENT.holiday_tracker,
     });
