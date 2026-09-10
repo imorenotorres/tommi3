@@ -1,0 +1,13 @@
+Class	Description
+Figure	Any graphical representation (of number of papers, researcher… per year, university…)
+follow-up	Request based on a previous answer
+gaps	unexplored sections
+general	Questions related with responsible AI that cannot be responded based on the database
+Glossary	Queries about concepts
+Meta:	Info about the database info of the system, including UNINOVIS info
+Non research	Not research search query such as "write an essay on AI"
+Off-topic	Research q but not AI Responsible related
+papers	queries about papers of university or about groups of researchers or of a topic
+Project	queries related with research projects
+researcher	Queries about any specific researcher
+topic_search	Queries identifying specifi research topics, but not specifying paper or project (it can be both)
