@@ -257,7 +257,7 @@ window.GUIDE_CONTENT = {
         { selector: '#btn-new-collab', text: 'Register a new exploratory contact here.' },
         { selector: '#search-input', text: 'Search and filter existing contacts here.' },
     ],
-    personal_dashboard: [
+    uninovis_uma_dashboard: [
         { text: 'A personal to-do manager: create tasks linked to a unit and, optionally, one directory colleague, each tracking its own status.' },
         { selector: '#btn-new-task', text: 'Create a new task here, optionally linking it to a unit and assigning it to a single directory colleague, with an initial status.' },
         { selector: '#view-toggle', text: '"My tasks" shows only tasks assigned to you. "All tasks" shows every public task.' },

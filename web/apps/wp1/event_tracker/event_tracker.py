@@ -25,8 +25,8 @@ from typing import Optional
 
 STATIC_DIR  = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH   = os.path.join(os.path.dirname(__file__), "data.json")
-DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "new_directory", "data.json")
-ENV_PATH    = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
+DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "directory", "data.json")
+ENV_PATH    = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env")
 
 router = APIRouter(prefix="/event-tracker", tags=["event_tracker"])
 

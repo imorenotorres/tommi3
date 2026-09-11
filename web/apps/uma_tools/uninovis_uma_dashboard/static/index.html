@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Dashboard</title>
+    <title>UNINOVIS-UMA Dashboard</title>
     <link rel="stylesheet" href="/static/nav.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,6 +19,15 @@
         .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
         .toolbar input[type="text"] { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
         .toolbar select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; min-width: 150px; }
+
+        .ms-dropdown { position: relative; }
+        .ms-dropdown-btn { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; min-width: 150px; background: #fff; cursor: pointer; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .ms-dropdown-btn:hover { border-color: #999; }
+        .ms-dropdown-btn .ms-caret { color: #888; font-size: 0.8em; }
+        .ms-dropdown-panel { position: absolute; top: calc(100% + 4px); left: 0; z-index: 50; background: #fff; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); padding: 6px; min-width: 220px; max-height: 280px; overflow-y: auto; }
+        .ms-dropdown-panel label { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 0.9em; white-space: nowrap; }
+        .ms-dropdown-panel label:hover { background: #f0f0f8; }
+        .ms-dropdown-panel .ms-empty { color: #999; font-size: 0.85em; padding: 6px 8px; }
 
         .view-toggle { display: flex; gap: 0; margin-bottom: 16px; border: 1px solid #4250b3; border-radius: 8px; overflow: hidden; width: fit-content; }
         .view-toggle button { border: none; background: #fff; color: #4250b3; padding: 8px 20px; cursor: pointer; font-size: 0.9em; font-weight: 600; }
@@ -36,6 +45,11 @@
         .btn-ghost:hover { background: #e8e0f0; border-radius: 6px; }
         .btn-remove-row { background: transparent; color: #dc3545; border: none; cursor: pointer; font-size: 1.1em; padding: 4px 8px; line-height: 1; }
         .btn-remove-row:hover { color: #a71d2a; }
+        .reorder-buttons { display: flex; gap: 2px; }
+        .reorder-buttons button { color: #4250b3; }
+        .reorder-buttons button:hover { color: #2a3480; }
+        .reorder-buttons button:disabled { color: #ccc; cursor: default; }
+        .reorder-buttons button:disabled:hover { color: #ccc; }
 
         .task-table-wrap { overflow-x: auto; }
         .task-table { width: 100%; border-collapse: collapse; font-size: 0.88em; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
@@ -174,10 +188,10 @@
 </head>
 <body>
 <script src="/static/nav.js?v=12"></script>
-<script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/#uma_holidays'}], current: 'Personal Dashboard' });</script>
+<script>uninovisNav({ crumbs: [{label:'UMA internal tools', href:'/#uma_holidays'}], current: 'UNINOVIS-UMA Dashboard' });</script>
 <div class="container">
-    <h1>Personal Dashboard</h1>
-    <p class="subtitle">Track your to-dos, link them to units and directory colleagues, and follow shared tasks.</p>
+    <h1>UNINOVIS-UMA Dashboard</h1>
+    <p class="subtitle">Track your tasks and contact requests here</p>
 
     <div class="auth-bar">
         <span class="auth-info" id="authInfo"></span>
@@ -188,7 +202,7 @@
     </div>
 
     <div class="login-prompt" id="login-prompt" style="display:none">
-        <p>Log in with a UNINOVIS staff account to view your personal dashboard.</p>
+        <p>Log in with a UNINOVIS staff account to view your dashboard.</p>
         <button class="btn" onclick="goToLogin()">Log in</button>
     </div>
 
@@ -207,16 +221,28 @@
         <div class="toolbar">
             <input type="text" id="search-input" placeholder="Search by title or description..." oninput="renderTasks()" />
             <select id="filter-kind" onchange="renderTasks()">
-                <option value="">Tasks & contacts</option>
+                <option value="">Tasks and Contact requests</option>
                 <option value="task">Tasks only</option>
                 <option value="contact">Contacts only</option>
             </select>
-            <select id="filter-status" onchange="renderTasks()">
-                <option value="">All statuses</option>
-            </select>
-            <select id="filter-unit" onchange="renderTasks()">
-                <option value="">All units</option>
-            </select>
+            <div class="ms-dropdown" id="filter-status-dropdown">
+                <button type="button" class="ms-dropdown-btn" onclick="toggleMsDropdown('status')">
+                    <span id="filter-status-label">All statuses</span><span class="ms-caret">&#9662;</span>
+                </button>
+                <div class="ms-dropdown-panel hidden" id="filter-status-panel"></div>
+            </div>
+            <div class="ms-dropdown" id="filter-unit-dropdown">
+                <button type="button" class="ms-dropdown-btn" onclick="toggleMsDropdown('unit')">
+                    <span id="filter-unit-label">All units</span><span class="ms-caret">&#9662;</span>
+                </button>
+                <div class="ms-dropdown-panel hidden" id="filter-unit-panel"></div>
+            </div>
+            <div class="ms-dropdown" id="filter-assignee-dropdown">
+                <button type="button" class="ms-dropdown-btn" onclick="toggleMsDropdown('assignee')">
+                    <span id="filter-assignee-label">All assignees</span><span class="ms-caret">&#9662;</span>
+                </button>
+                <div class="ms-dropdown-panel hidden" id="filter-assignee-panel"></div>
+            </div>
         </div>
 
         <div id="task-list"></div>
@@ -251,7 +277,7 @@
 
                 <div class="kind-toggle" id="kind-toggle">
                     <button type="button" id="btn-kind-task" class="active" onclick="setFormKind('task')">Task</button>
-                    <button type="button" id="btn-kind-contact" onclick="setFormKind('contact')">Contact</button>
+                    <button type="button" id="btn-kind-contact" onclick="setFormKind('contact')">Contact request</button>
                 </div>
 
                 <div class="form-field full">
@@ -273,30 +299,21 @@
                     <select name="status_id" id="sel-status" disabled></select>
                 </div>
 
-                <!-- Task-only fields -->
-                <div id="task-only-fields-wrap" class="form-grid" style="grid-column:1/-1;">
-
-                    <div class="form-field">
-                        <label>Unit</label>
-                        <select name="unit_id" id="sel-unit">
-                            <option value="">— None —</option>
-                        </select>
-                    </div>
-
-                    <div class="form-field">
-                        <label>Deadline</label>
-                        <input type="date" name="deadline" />
-                    </div>
-
-                    <div class="form-field">
-                        <label>Visibility</label>
-                        <select name="visibility">
-                            <option value="public" selected>Public</option>
-                            <option value="private">Private</option>
-                        </select>
-                    </div>
-
+                <div class="form-field">
+                    <label>Unit</label>
+                    <select name="unit_id" id="sel-unit">
+                        <option value="">— None —</option>
+                    </select>
                 </div>
+
+                <div class="form-field">
+                    <label>Deadline</label>
+                    <input type="date" name="deadline" />
+                </div>
+
+                <!-- Visibility is a hidden feature: always "public" from this
+                     form, kept wired for a possible future re-enable. -->
+                <input type="hidden" name="visibility" value="public" />
 
                 <!-- Contact-only fields, mirroring the Collaboration Dashboard app -->
                 <div id="contact-fields-wrap" class="form-grid hidden" style="grid-column:1/-1;">
@@ -396,7 +413,7 @@
 <div id="toast"></div>
 
 <script>
-    var BASE = '/personal-dashboard';
+    var BASE = '/uninovis-uma-dashboard';
 
     // UNINOVIS alliance partner institutions (for the Contact collaborators form),
     // mirrored from the Collaboration Dashboard app.
@@ -433,6 +450,9 @@
         directoryPeople: [],
         dashboardUnits: [],
         statuses: [],
+        filterStatuses: [],
+        filterUnits: [],
+        filterAssignees: [],
         viewMode: 'mine',
         editingId: null,
         editingKind: null,
@@ -494,13 +514,13 @@
 
         try {
             GUIDES.push({
-                id: 'personal_dashboard_overview',
-                title: 'About: Personal Dashboard',
+                id: 'uninovis_uma_dashboard_overview',
+                title: 'About: UNINOVIS-UMA Dashboard',
                 group: 'UMA internal tools',
                 roles: null,
-                url: '/personal-dashboard/',
+                url: '/uninovis-uma-dashboard/',
                 primary: true,
-                steps: GUIDE_CONTENT.personal_dashboard,
+                steps: GUIDE_CONTENT.uninovis_uma_dashboard,
             });
         } catch (e) { console.error('Guide registration failed:', e); }
 
@@ -528,10 +548,12 @@
             populateUnitFilter();
             populateUnitSelect();
             populateAssigneeSelect();
+            populateAssigneeFilter();
             populateStatusSelects();
             populateContactPickers();
 
             renderTasks();
+            startLivePolling();
         } catch (e) { showToast('Could not load data.', 'error'); console.error('Failed to load dashboard data:', e); }
 
         try {
@@ -546,10 +568,41 @@
     }
 
     function populateUnitFilter() {
-        var sel = document.getElementById('filter-unit');
-        sel.innerHTML = '<option value="">All units</option>' + state.dashboardUnits.map(function(u) {
-            return '<option value="' + u.id + '">' + esc(u.name) + '</option>';
-        }).join('');
+        var validIds = state.dashboardUnits.map(function(u) { return String(u.id); });
+        state.filterUnits = state.filterUnits.filter(function(id) { return validIds.indexOf(id) !== -1; });
+        renderUnitFilterPanel();
+    }
+
+    function renderUnitFilterPanel() {
+        var panel = document.getElementById('filter-unit-panel');
+        var sorted = state.dashboardUnits.slice().sort(function(a, b) {
+            return (a.name || '').localeCompare(b.name || '');
+        });
+        panel.innerHTML = sorted.map(function(u) {
+            var checked = state.filterUnits.indexOf(String(u.id)) !== -1 ? ' checked' : '';
+            return '<label><input type="checkbox" value="' + u.id + '"' + checked + ' onchange="toggleUnitFilter(\'' + u.id + '\', this.checked)" />' + esc(u.name) + '</label>';
+        }).join('') || '<p class="ms-empty">No units yet.</p>';
+        updateFilterUnitLabel();
+    }
+
+    function toggleUnitFilter(id, checked) {
+        id = String(id);
+        var idx = state.filterUnits.indexOf(id);
+        if (checked && idx === -1) state.filterUnits.push(id);
+        if (!checked && idx !== -1) state.filterUnits.splice(idx, 1);
+        updateFilterUnitLabel();
+        renderTasks();
+    }
+
+    function updateFilterUnitLabel() {
+        var el = document.getElementById('filter-unit-label');
+        if (!state.filterUnits.length) {
+            el.textContent = 'All units';
+        } else if (state.filterUnits.length === 1) {
+            el.textContent = unitName(parseInt(state.filterUnits[0], 10)) || '1 unit';
+        } else {
+            el.textContent = state.filterUnits.length + ' units';
+        }
     }
 
     function populateUnitSelect() {
@@ -557,6 +610,45 @@
         sel.innerHTML = '<option value="">— None —</option>' + state.dashboardUnits.map(function(u) {
             return '<option value="' + u.id + '">' + esc(u.name) + '</option>';
         }).join('');
+    }
+
+    function populateAssigneeFilter() {
+        var validIds = state.directoryPeople.map(function(p) { return String(p.id); });
+        state.filterAssignees = state.filterAssignees.filter(function(id) { return validIds.indexOf(id) !== -1; });
+        renderAssigneeFilterPanel();
+    }
+
+    function renderAssigneeFilterPanel() {
+        var panel = document.getElementById('filter-assignee-panel');
+        var sorted = state.directoryPeople.slice().sort(function(a, b) {
+            return (a.name || '').localeCompare(b.name || '');
+        });
+        panel.innerHTML = sorted.map(function(p) {
+            var checked = state.filterAssignees.indexOf(String(p.id)) !== -1 ? ' checked' : '';
+            return '<label><input type="checkbox" value="' + p.id + '"' + checked + ' onchange="toggleAssigneeFilter(\'' + p.id + '\', this.checked)" />' + esc(p.name || p.email) + '</label>';
+        }).join('') || '<p class="ms-empty">No assignable people.</p>';
+        updateFilterAssigneeLabel();
+    }
+
+    function toggleAssigneeFilter(id, checked) {
+        id = String(id);
+        var idx = state.filterAssignees.indexOf(id);
+        if (checked && idx === -1) state.filterAssignees.push(id);
+        if (!checked && idx !== -1) state.filterAssignees.splice(idx, 1);
+        updateFilterAssigneeLabel();
+        renderTasks();
+    }
+
+    function updateFilterAssigneeLabel() {
+        var el = document.getElementById('filter-assignee-label');
+        if (!state.filterAssignees.length) {
+            el.textContent = 'All assignees';
+        } else if (state.filterAssignees.length === 1) {
+            var p = state.directoryPeople.find(function(x) { return String(x.id) === state.filterAssignees[0]; });
+            el.textContent = (p && (p.name || p.email)) || '1 assignee';
+        } else {
+            el.textContent = state.filterAssignees.length + ' assignees';
+        }
     }
 
     function populateAssigneeSelect() {
@@ -604,9 +696,53 @@
             return '<option value="' + s.id + '">' + esc(s.label) + '</option>';
         }).join('');
 
-        document.getElementById('filter-status').innerHTML = '<option value="">All statuses</option>' + options;
         document.getElementById('sel-status').innerHTML = options;
+
+        var validIds = state.statuses.map(function(s) { return s.id; });
+        state.filterStatuses = state.filterStatuses.filter(function(id) { return validIds.indexOf(id) !== -1; });
+        renderStatusFilterPanel();
     }
+
+    function renderStatusFilterPanel() {
+        var panel = document.getElementById('filter-status-panel');
+        panel.innerHTML = state.statuses.map(function(s) {
+            var checked = state.filterStatuses.indexOf(s.id) !== -1 ? ' checked' : '';
+            return '<label><input type="checkbox" value="' + s.id + '"' + checked + ' onchange="toggleStatusFilter(\'' + s.id + '\', this.checked)" />' + esc(s.label) + '</label>';
+        }).join('') || '<p class="ms-empty">No statuses yet.</p>';
+        updateFilterStatusLabel();
+    }
+
+    function toggleStatusFilter(id, checked) {
+        var idx = state.filterStatuses.indexOf(id);
+        if (checked && idx === -1) state.filterStatuses.push(id);
+        if (!checked && idx !== -1) state.filterStatuses.splice(idx, 1);
+        updateFilterStatusLabel();
+        renderTasks();
+    }
+
+    function updateFilterStatusLabel() {
+        var el = document.getElementById('filter-status-label');
+        if (!state.filterStatuses.length) {
+            el.textContent = 'All statuses';
+        } else if (state.filterStatuses.length === 1) {
+            el.textContent = statusLabel(state.filterStatuses[0]);
+        } else {
+            el.textContent = state.filterStatuses.length + ' statuses';
+        }
+    }
+
+    function toggleMsDropdown(which) {
+        ['status', 'unit', 'assignee'].forEach(function(w) {
+            var panel = document.getElementById('filter-' + w + '-panel');
+            if (w === which) panel.classList.toggle('hidden');
+            else panel.classList.add('hidden');
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.ms-dropdown')) return;
+        document.querySelectorAll('.ms-dropdown-panel').forEach(function(p) { p.classList.add('hidden'); });
+    });
 
     function onAssigneeChange() {
         var assigned = !!document.getElementById('sel-assignee').value;
@@ -665,20 +801,30 @@
         return tasks.concat(contacts);
     }
 
-    function kindLabel(kind) { return kind === 'contact' ? 'Contact' : 'Task'; }
+    function kindLabel(kind) { return kind === 'contact' ? 'Contact request' : 'Task'; }
+
+    function titleWithKind(t) { return kindLabel(t.kind) + ': ' + (t.title || ''); }
+
+    function completedStatusId() {
+        return state.statuses.length > 1 ? state.statuses[state.statuses.length - 1].id : null;
+    }
 
     function renderTasks() {
         var query = document.getElementById('search-input').value.toLowerCase();
         var filterKind = document.getElementById('filter-kind').value;
-        var filterStatus = document.getElementById('filter-status').value;
-        var filterUnit = document.getElementById('filter-unit').value;
         var source = combinedSource(state.viewMode);
+        var hiddenByDefault = completedStatusId();
 
         var filtered = source.filter(function(t) {
             if (filterKind && (t.kind || 'task') !== filterKind) return false;
             var effectiveStatus = taskStatus(t);
-            if (filterStatus && effectiveStatus !== filterStatus) return false;
-            if (filterUnit && String(t.unit_id || '') !== filterUnit) return false;
+            if (state.filterStatuses.length) {
+                if (state.filterStatuses.indexOf(effectiveStatus) === -1) return false;
+            } else if (hiddenByDefault && effectiveStatus === hiddenByDefault) {
+                return false;
+            }
+            if (state.filterUnits.length && state.filterUnits.indexOf(String(t.unit_id || '')) === -1) return false;
+            if (state.filterAssignees.length && state.filterAssignees.indexOf(String((t.assignee && t.assignee.person_id) || '')) === -1) return false;
             if (query) {
                 var haystack = [t.title, t.description, t.goal].join(' ').toLowerCase();
                 if (haystack.indexOf(query) === -1) return false;
@@ -734,12 +880,10 @@
         };
 
         var html = '<div class="task-table-wrap"><table class="task-table"><thead><tr>';
-        html += '<th onclick="sortTable(\'kind\')">Type' + arrow('kind') + '</th>';
         html += '<th onclick="sortTable(\'title\')">Title' + arrow('title') + '</th>';
         html += '<th onclick="sortTable(\'unit\')">Unit' + arrow('unit') + '</th>';
         html += '<th onclick="sortTable(\'assigned\')">Assigned to' + arrow('assigned') + '</th>';
         html += '<th onclick="sortTable(\'deadline\')">Deadline' + arrow('deadline') + '</th>';
-        html += '<th>Visibility</th>';
         html += '<th onclick="sortTable(\'status\')">Status' + arrow('status') + '</th>';
         html += '</tr></thead><tbody>';
 
@@ -752,12 +896,10 @@
                 : '<span class="muted" style="color:#999;">—</span>';
 
             html += '<tr class="task-row" onclick="openViewModal(\'' + t.id + '\')">';
-            html += '<td><span class="badge badge-kind-' + (t.kind || 'task') + '">' + kindLabel(t.kind) + '</span></td>';
-            html += '<td>' + esc(t.title) + '</td>';
+            html += '<td>' + esc(titleWithKind(t)) + '</td>';
             html += '<td>' + (t.unit_id ? esc(unitName(t.unit_id)) : '—') + '</td>';
             html += '<td>' + assignedCell + '</td>';
             html += '<td>' + (t.deadline ? '<span class="badge badge-deadline' + (overdue ? ' overdue' : '') + '">' + esc(formatDate(t.deadline)) + '</span>' : '—') + '</td>';
-            html += '<td><span class="badge badge-visibility-' + t.visibility + '">' + (t.visibility === 'public' ? 'Public' : 'Private') + '</span></td>';
             html += '<td>' + statusBadgeHtml(displayStatus) + '</td>';
             html += '</tr>';
         });
@@ -840,11 +982,8 @@
         var mine = myAssignee(t);
         var canChangeStatus = t.assignee && (!!mine || isAdmin());
 
-        document.getElementById('vm-title').textContent = t.title;
-        document.getElementById('vm-badges').innerHTML =
-            '<span class="badge badge-kind-' + kind + '">' + kindLabel(kind) + '</span>' +
-            statusBadgeHtml(status) +
-            '<span class="badge badge-visibility-' + t.visibility + '">' + (t.visibility === 'public' ? 'Public' : 'Private') + '</span>';
+        document.getElementById('vm-title').textContent = titleWithKind(t);
+        document.getElementById('vm-badges').innerHTML = statusBadgeHtml(status);
 
         var body = '';
         body += '<div class="detail-section"><div class="detail-section-title">Description</div>' +
@@ -898,11 +1037,16 @@
         } catch (e) { console.error('updateMyStatus failed:', e); showToast('Network error: ' + (e && e.message ? e.message : String(e)), 'error'); resyncTasks(); }
     }
 
+    // Also doubles as the live-polling tick (see startLivePolling below): a
+    // request can fail on the client (e.g. a dropped connection) after the
+    // server already persisted the change, leaving local state stale, so
+    // re-fetching the source of truth is useful both after an error and on
+    // a plain timer.
+    var _syncInFlight = false;
+
     async function resyncTasks() {
-        // Best-effort recovery: a request can fail on the client (e.g. a
-        // dropped connection) after the server already persisted the
-        // change, leaving local state stale. Re-fetch the source of truth
-        // instead of leaving the view out of date until the next reload.
+        if (_syncInFlight) return;
+        _syncInFlight = true;
         try {
             var res = await fetch(BASE + '/api/data', { headers: authHeaders() });
             if (!res.ok) return;
@@ -911,8 +1055,25 @@
             state.tasksAll = data.tasks_all || [];
             state.contactsMine = data.contacts_mine || [];
             state.contactsAll = data.contacts_all || [];
+            state.contactInstitutions = data.contact_institutions || [];
+            state.contactAreasOfInterest = data.contact_areas_of_interest || [];
+            populateContactPickers();
             renderTasks();
-        } catch (e) { console.error('resyncTasks failed:', e); }
+        } catch (e) { console.error('resyncTasks failed:', e); } finally { _syncInFlight = false; }
+    }
+
+    var LIVE_POLL_INTERVAL_MS = 10000;
+    var _pollTimer = null;
+
+    function startLivePolling() {
+        if (_pollTimer) return;
+        _pollTimer = setInterval(function() {
+            if (document.hidden) return;
+            resyncTasks();
+        }, LIVE_POLL_INTERVAL_MS);
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) resyncTasks();
+        });
     }
 
     function replaceTaskInState(saved) {
@@ -1037,19 +1198,10 @@
         state.formKind = kind;
         document.getElementById('btn-kind-task').classList.toggle('active', kind === 'task');
         document.getElementById('btn-kind-contact').classList.toggle('active', kind === 'contact');
-        document.getElementById('task-only-fields-wrap').classList.toggle('hidden', kind === 'contact');
         document.getElementById('contact-fields-wrap').classList.toggle('hidden', kind !== 'contact');
-        if (kind === 'contact') {
-            // Unit / deadline / visibility aren't collected for contacts — reset
-            // the (now hidden) shared inputs so a stale value can't be submitted.
-            var form = document.getElementById('task-form');
-            form.elements['unit_id'].value = '';
-            form.elements['deadline'].value = '';
-            form.elements['visibility'].value = 'public';
-        }
         var isEdit = !!state.editingId;
-        document.getElementById('form-modal-title').textContent = (isEdit ? 'Edit ' : 'New ') + (kind === 'contact' ? 'contact' : 'task');
-        document.getElementById('form-submit-btn').textContent = isEdit ? 'Save changes' : (kind === 'contact' ? 'Save contact' : 'Save task');
+        document.getElementById('form-modal-title').textContent = (isEdit ? 'Edit ' : 'New ') + kindLabel(kind).toLowerCase();
+        document.getElementById('form-submit-btn').textContent = isEdit ? 'Save changes' : ('Save ' + kindLabel(kind).toLowerCase());
     }
 
     function openNewTaskModal() {
@@ -1092,7 +1244,6 @@
         form.elements['description'].value = t.description || '';
         form.elements['unit_id'].value = t.unit_id || '';
         form.elements['deadline'].value = t.deadline || '';
-        form.elements['visibility'].value = t.visibility || 'private';
         form.elements['assignee_id'].value = t.assignee ? t.assignee.person_id : '';
 
         // Only the current assignee or an admin may change the status from
@@ -1219,7 +1370,7 @@
             }
             var saved = await res.json();
             replaceTaskInState(saved);
-            var kindLbl = kind === 'contact' ? 'Contact' : 'Task';
+            var kindLbl = kindLabel(kind);
             showToast(state.editingId ? (kindLbl + ' updated.') : (kindLbl + ' created.'), 'success');
             closeFormModal();
             renderTasks();
@@ -1235,7 +1386,7 @@
     }
 
     async function confirmDelete(id, kind) {
-        var kindLbl = kind === 'contact' ? 'contact' : 'task';
+        var kindLbl = kindLabel(kind).toLowerCase();
         if (!confirm('Delete this ' + kindLbl + '? This cannot be undone.')) return;
         try {
             var res = await fetch(BASE + entryEndpoint(kind) + id, { method: 'DELETE', headers: authHeaders() });
@@ -1246,7 +1397,7 @@
             state[allList] = state[allList].filter(function(t) { return t.id !== id; });
             closeViewModal();
             renderTasks();
-            showToast((kind === 'contact' ? 'Contact' : 'Task') + ' deleted.', 'success');
+            showToast(kindLabel(kind) + ' deleted.', 'success');
         } catch (ex) { console.error('confirmDelete failed:', ex); showToast('Network error: ' + (ex && ex.message ? ex.message : String(ex)), 'error'); resyncTasks(); }
     }
 
@@ -1264,14 +1415,34 @@
 
     function renderSettingsStatuses() {
         var container = document.getElementById('settings-statuses');
-        container.innerHTML = state.statuses.map(function(s) {
+        container.innerHTML = state.statuses.map(function(s, idx) {
             return '<div class="settings-row">' +
+                '<span class="reorder-buttons">' +
+                '<button type="button" class="btn-remove-row" title="Move up" ' + (idx === 0 ? 'disabled' : '') + ' onclick="moveStatus(\'' + s.id + '\', -1)">&#8593;</button>' +
+                '<button type="button" class="btn-remove-row" title="Move down" ' + (idx === state.statuses.length - 1 ? 'disabled' : '') + ' onclick="moveStatus(\'' + s.id + '\', 1)">&#8595;</button>' +
+                '</span>' +
                 '<span class="slug">' + esc(s.id) + '</span>' +
                 '<input type="text" value="' + esc(s.label) + '" onchange="saveStatus(\'' + s.id + '\', this.value, this.parentElement.querySelector(\'input[type=color]\').value)" />' +
                 '<input type="color" value="' + s.color + '" onchange="saveStatus(\'' + s.id + '\', this.parentElement.querySelector(\'input[type=text]\').value, this.value)" />' +
                 '<button type="button" class="btn-remove-row" onclick="deleteStatus(\'' + s.id + '\')">&#10005;</button>' +
                 '</div>';
         }).join('') || '<p style="color:#999;font-size:0.85em;">No statuses yet.</p>';
+    }
+
+    async function moveStatus(id, direction) {
+        var ids = state.statuses.map(function(s) { return s.id; });
+        var i = ids.indexOf(id);
+        var j = i + direction;
+        if (i === -1 || j < 0 || j >= ids.length) return;
+        var tmp = ids[i]; ids[i] = ids[j]; ids[j] = tmp;
+        try {
+            var res = await fetch(BASE + '/api/statuses/order', { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ order: ids }) });
+            if (!res.ok) { var err = await res.json(); showToast(err.detail || 'Could not reorder statuses.', 'error'); return; }
+            state.statuses = await res.json();
+            renderSettingsStatuses();
+            populateStatusSelects();
+            renderTasks();
+        } catch (e) { console.error('moveStatus failed:', e); showToast('Network error.', 'error'); }
     }
 
     async function addStatus() {

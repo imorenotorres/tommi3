@@ -388,14 +388,14 @@ _TEMP_DIR.mkdir(exist_ok=True)
 app.mount("/temp", StaticFiles(directory=_TEMP_DIR), name="temp")
 
 # Mount UNIGRACON app (grade converter)
-from apps.unigracon.unigracon import router as unigracon_router
+from apps.wp2.unigracon.unigracon import router as unigracon_router
 app.include_router(unigracon_router)
-app.mount("/unigracon/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "unigracon" / "static"), name="unigracon_static")
+app.mount("/unigracon/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp2" / "unigracon" / "static"), name="unigracon_static")
 
 # Mount Mobility Planner app
-from apps.mobility_planner.mobility_planner import router as mobility_router
+from apps.wp3.mobility_planner.mobility_planner import router as mobility_router
 app.include_router(mobility_router)
-app.mount("/mobility-planner/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "mobility_planner" / "static"), name="mobility_static")
+app.mount("/mobility-planner/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp3" / "mobility_planner" / "static"), name="mobility_static")
 
 # Mount UNINOVIS Admin hub
 from apps.uninovis.uninovis import router as uninovis_router
@@ -403,24 +403,24 @@ app.include_router(uninovis_router)
 app.mount("/uninovis/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uninovis" / "static"), name="uninovis_static")
 
 # Mount Researcher Connect app
-from apps.researcher_connect.researcher_connect import router as researcher_connect_router
+from apps.wp3.researcher_connect.researcher_connect import router as researcher_connect_router
 app.include_router(researcher_connect_router)
-app.mount("/researcher-connect/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "researcher_connect" / "static"), name="researcher_connect_static")
+app.mount("/researcher-connect/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp3" / "researcher_connect" / "static"), name="researcher_connect_static")
 
 # Mount Event Tracker app
-from apps.event_tracker.event_tracker import router as event_tracker_router
+from apps.wp1.event_tracker.event_tracker import router as event_tracker_router
 app.include_router(event_tracker_router)
-app.mount("/event-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "event_tracker" / "static"), name="event_tracker_static")
+app.mount("/event-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp1" / "event_tracker" / "static"), name="event_tracker_static")
 
-# Mount New Directory app
-from apps.new_directory.new_directory import router as new_directory_router
-app.include_router(new_directory_router)
-app.mount("/directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "new_directory" / "static"), name="new_directory_static")
+# Mount Directory app
+from apps.wp1.directory.directory import router as directory_router
+app.include_router(directory_router)
+app.mount("/directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp1" / "directory" / "static"), name="directory_static")
 
 # Mount Holiday Tracker app
-from apps.uma_holiday_tracker.uma_holiday_tracker import router as holiday_tracker_router
+from apps.uma_tools.uma_holiday_tracker.uma_holiday_tracker import router as holiday_tracker_router
 app.include_router(holiday_tracker_router)
-app.mount("/uma-holiday-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uma_holiday_tracker" / "static"), name="holiday_tracker_static")
+app.mount("/uma-holiday-tracker/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uma_tools" / "uma_holiday_tracker" / "static"), name="holiday_tracker_static")
 
 # Mount UltiR (UNINOVIS LTI Repository) tools
 from UltiR.redaccion.lti_provider import router as lti_redaccion_router
@@ -438,19 +438,19 @@ async def ultir_catalog():
     return _FR(str(Path(__file__).parent.parent / "UltiR" / "static" / "index.html"))
 
 # Mount Matomo Analytics app
-from apps.matomo_analytics.matomo_analytics import router as matomo_analytics_router
+from apps.wp5.matomo_analytics.matomo_analytics import router as matomo_analytics_router
 app.include_router(matomo_analytics_router)
-app.mount("/site-analytics/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "matomo_analytics" / "static"), name="matomo_analytics_static")
+app.mount("/site-analytics/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp5" / "matomo_analytics" / "static"), name="matomo_analytics_static")
 
 # Mount Collaboration Dashboard app
-from apps.collaboration_dashboard.collaboration_dashboard import router as collaboration_dashboard_router
+from apps.uma_tools.collaboration_dashboard.collaboration_dashboard import router as collaboration_dashboard_router
 app.include_router(collaboration_dashboard_router)
-app.mount("/contactos-exploratorios/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "collaboration_dashboard" / "static"), name="collaboration_dashboard_static")
+app.mount("/contactos-exploratorios/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uma_tools" / "collaboration_dashboard" / "static"), name="collaboration_dashboard_static")
 
-# Mount Personal Dashboard app
-from apps.personal_dashboard.personal_dashboard import router as personal_dashboard_router
-app.include_router(personal_dashboard_router)
-app.mount("/personal-dashboard/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "personal_dashboard" / "static"), name="personal_dashboard_static")
+# Mount UNINOVIS-UMA Dashboard app
+from apps.uma_tools.uninovis_uma_dashboard.uninovis_uma_dashboard import router as uninovis_uma_dashboard_router
+app.include_router(uninovis_uma_dashboard_router)
+app.mount("/uninovis-uma-dashboard/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uma_tools" / "uninovis_uma_dashboard" / "static"), name="uninovis_uma_dashboard_static")
 
 
 # ---------------------------------------------------------------------------
@@ -729,7 +729,7 @@ def _check_directory_email(email: str) -> str:
     """Check if an email exists in the directory. Returns the person's name if found, empty string if not."""
     try:
         import json
-        directory_path = SCRIPT_DIR / "apps" / "new_directory" / "data.json"
+        directory_path = SCRIPT_DIR / "apps" / "wp1" / "directory" / "data.json"
         if not directory_path.exists():
             return ""
         with open(directory_path, encoding="utf-8") as f:

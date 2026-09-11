@@ -41,14 +41,13 @@ web/data/agent_visibility.json
 
 
 agents/responsible_ai3/Benchmark/get_token.sh
-web/apps/directory/data.json
-web/apps/new_directory/data.json
-web/apps/uma_holiday_tracker/data.json
+web/apps/wp1/directory/data.json
+web/apps/uma_tools/uma_holiday_tracker/data.json
 
 # Web logs
 web/logs/
-web/apps/event_tracker/data.json
-web/apps/collaboration_dashboard/data.json
+web/apps/wp1/event_tracker/data.json
+web/apps/uma_tools/collaboration_dashboard/data.json
 
 # macOS hidden files
 .DS_Store

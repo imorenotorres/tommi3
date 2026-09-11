@@ -1,5 +1,5 @@
 """
-Personal Dashboard — a personal to-do manager for UMA/UNINOVIS staff.
+UNINOVIS-UMA Dashboard — a personal to-do manager for UMA/UNINOVIS staff.
 
 Each task can be linked to a unit (from dashboard_units.json) and assigned to
 at most one directory person. The assignee tracks their own status, chosen
@@ -24,9 +24,9 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "tasks.json")
 CONTACTS_PATH = os.path.join(os.path.dirname(__file__), "contacts.json")
 STATUS_PATH = os.path.join(os.path.dirname(__file__), "status.json")
 UNITS_PATH = os.path.join(os.path.dirname(__file__), "dashboard_units.json")
-DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "new_directory", "data.json")
+DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "wp1", "directory", "data.json")
 
-router = APIRouter(prefix="/personal-dashboard", tags=["personal_dashboard"])
+router = APIRouter(prefix="/uninovis-uma-dashboard", tags=["uninovis_uma_dashboard"])
 
 VISIBILITIES = {"private", "public"}
 _SLUG_RE = re.compile(r"^[a-z0-9_]{1,40}$")

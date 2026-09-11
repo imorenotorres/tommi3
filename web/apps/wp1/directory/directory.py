@@ -1,5 +1,5 @@
 """
-UNINOVIS New Directory — read-only staff directory for UNINOVIS partner
+UNINOVIS Directory — read-only staff directory for UNINOVIS partner
 universities, mirroring https://uninovis.widening.eu/directory.
 
 Data is served entirely from the local data.json snapshot; there is no
@@ -16,10 +16,10 @@ from pydantic import BaseModel
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 
-router = APIRouter(prefix="/directory", tags=["new_directory"])
+router = APIRouter(prefix="/directory", tags=["directory"])
 
 # ---------------------------------------------------------------------------
-# Auth helpers (same pattern as apps/directory and apps/event_tracker)
+# Auth helpers (same pattern as apps/old apps/directory and apps/event_tracker)
 # ---------------------------------------------------------------------------
 
 from auth import require_login as _require_auth, can_edit as _can_edit_check, user_roles as _user_roles
