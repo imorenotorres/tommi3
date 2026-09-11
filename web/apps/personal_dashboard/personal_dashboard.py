@@ -3,8 +3,9 @@ Personal Dashboard — a personal to-do manager for UMA/UNINOVIS staff.
 
 Each task can be linked to a unit (from dashboard_units.json) and assigned to
 at most one directory person. The assignee tracks their own status, chosen
-from the configurable list in status.json. Both status.json and
-dashboard_units.json are editable only by superusers with a @uma.es login.
+from the configurable list in status.json; superusers may also update the
+status of any task or contact. Both status.json and dashboard_units.json
+are editable only by superusers with a @uma.es login.
 """
 
 import json
@@ -440,7 +441,8 @@ def update_my_status(task_id: str, body: StatusBody, session: dict = Depends(_re
     entry = _find_task(data, task_id)
     username = session["username"].strip().lower()
     assignee = entry.get("assignee")
-    if not assignee or assignee.get("email", "").lower() != username:
+    is_admin = "superuser" in set(user_roles(session))
+    if not assignee or (assignee.get("email", "").lower() != username and not is_admin):
         raise HTTPException(403, "You are not assigned to this task")
     assignee["status"] = body.status
     assignee["updated_at"] = datetime.utcnow().isoformat() + "Z"
@@ -544,7 +546,8 @@ def update_my_contact_status(contact_id: str, body: StatusBody, session: dict = 
     entry = _find_contact(data, contact_id)
     username = session["username"].strip().lower()
     assignee = entry.get("assignee")
-    if not assignee or assignee.get("email", "").lower() != username:
+    is_admin = "superuser" in set(user_roles(session))
+    if not assignee or (assignee.get("email", "").lower() != username and not is_admin):
         raise HTTPException(403, "You are not assigned to this contact")
     assignee["status"] = body.status
     assignee["updated_at"] = datetime.utcnow().isoformat() + "Z"

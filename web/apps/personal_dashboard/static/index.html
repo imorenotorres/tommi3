@@ -678,6 +678,10 @@
         return roles.indexOf('tester') !== -1 || roles.indexOf('content_manager') !== -1 || roles.indexOf('superuser') !== -1;
     }
 
+    function isAdmin() {
+        return !!(state.session && state.session.is_admin);
+    }
+
     function isCreator(task) {
         return state.session && task.created_by === state.session.username.toLowerCase();
     }
@@ -871,6 +875,7 @@
 
         var status = taskStatus(t);
         var mine = myAssignee(t);
+        var canChangeStatus = t.assignee && (!!mine || isAdmin());
 
         document.getElementById('vm-title').textContent = t.title;
         document.getElementById('vm-badges').innerHTML =
@@ -894,10 +899,11 @@
             : '<div class="detail-value"><span class="muted">No one assigned</span></div>';
         body += '<div class="detail-section"><div class="detail-section-title">Assigned to</div>' +
             assigneeRow +
-            (mine ? '<div class="my-status-control"><label style="font-size:0.85em;font-weight:600;color:#4250b3;">Update my status:</label>' +
+            (canChangeStatus ? '<div class="my-status-control"><label style="font-size:0.85em;font-weight:600;color:#4250b3;">' +
+                (mine ? 'Update my status:' : 'Update status:') + '</label>' +
                 '<select id="my-status-select" onchange="updateMyStatus(\'' + t.id + '\', \'' + kind + '\', this.value)">' +
                 state.statuses.map(function(s) {
-                    return '<option value="' + s.id + '"' + (s.id === mine.status ? ' selected' : '') + '>' + esc(s.label) + '</option>';
+                    return '<option value="' + s.id + '"' + (s.id === t.assignee.status ? ' selected' : '') + '>' + esc(s.label) + '</option>';
                 }).join('') + '</select></div>' : '') +
             '</div>';
 
