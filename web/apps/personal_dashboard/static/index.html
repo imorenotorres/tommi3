@@ -45,8 +45,6 @@
         .task-table tr:hover td { background: #f8f9fc; }
         .task-table tr.task-row { cursor: pointer; }
         .task-table .sort-arrow { font-size: 0.7em; margin-left: 3px; color: #aaa; }
-        .task-table .assignees-cell { display: flex; flex-wrap: wrap; gap: 4px; }
-        .pending-note { display: block; font-size: 0.75em; color: #f57c00; margin-top: 2px; white-space: nowrap; }
 
         .badge { font-size: 0.72em; font-weight: 600; padding: 2px 8px; border-radius: 10px; display: inline-block; }
         .badge-unit { background: #e8e0f0; color: #4250b3; }
@@ -54,17 +52,15 @@
         .badge-deadline.overdue { background: #ffebee; color: #c62828; border-color: #f5c6cb; }
         .badge-visibility-private { background: #eee; color: #555; }
         .badge-visibility-public { background: #e3f2fd; color: #0277bd; }
+        .badge-kind-task { background: #eef; color: #333; }
+        .badge-kind-contact { background: #fff3e0; color: #e65100; }
+        .badge-institution { background: #e8e0f0; color: #4250b3; }
+        .badge-area { background: #d1ecf1; color: #0c5460; }
 
         .status-badge { font-size: 0.72em; font-weight: 700; padding: 3px 10px; border-radius: 10px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
-        .status-new { background: #eeeeee; color: #555; }
-        .status-in_progress { background: #e1f5fe; color: #0277bd; }
-        .status-completed { background: #e8f5e9; color: #2e7d32; }
 
         .assignee-chip { font-size: 0.78em; padding: 3px 9px; border-radius: 12px; background: #f5f5f5; border: 1px solid #ddd; display: inline-flex; align-items: center; gap: 5px; }
         .assignee-chip .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        .dot-new { background: #999; }
-        .dot-in_progress { background: #0277bd; }
-        .dot-completed { background: #2e7d32; }
 
         .stats-bar { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
         .stat { background: #fff; border-radius: 8px; padding: 14px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); text-align: center; min-width: 110px; }
@@ -76,9 +72,10 @@
         .no-access { text-align: center; padding: 60px 20px; color: #666; }
         .no-results { text-align: center; padding: 40px; color: #999; font-size: 1.1em; }
 
-        select, input[type="text"], input[type="date"], textarea {
+        select, input[type="text"], input[type="date"], input[type="color"], textarea {
             padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; background: #fff; width: 100%;
         }
+        input[type="color"] { padding: 2px 4px; height: 36px; width: 48px; flex: none; }
         textarea { resize: vertical; min-height: 60px; font-family: inherit; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-weight: 600; margin-bottom: 4px; color: #4250b3; font-size: 0.85em; }
@@ -109,13 +106,43 @@
         .form-field label .required { color: #dc3545; }
         .form-section-title { font-size: 0.8em; font-weight: 700; color: #4250b3; text-transform: uppercase; letter-spacing: 0.06em; padding-bottom: 4px; border-bottom: 2px solid #e8e0f0; grid-column: 1 / -1; margin-top: 4px; }
 
-        .assignee-picker { display: flex; gap: 8px; grid-column: 1 / -1; }
-        .assignee-picker select { flex: 1; }
-        .assignee-list { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; }
-        .assignee-list-row { display: flex; align-items: center; justify-content: space-between; border: 1px solid #ddd; border-radius: 6px; padding: 6px 10px; background: #fafafa; font-size: 0.88em; }
+        .kind-toggle { grid-column: 1 / -1; display: flex; gap: 0; border: 1px solid #4250b3; border-radius: 8px; overflow: hidden; width: fit-content; margin-bottom: 4px; }
+        .kind-toggle button { border: none; background: #fff; color: #4250b3; padding: 7px 18px; cursor: pointer; font-size: 0.88em; font-weight: 600; }
+        .kind-toggle button.active { background: #4250b3; color: #fff; }
+
+        .checkbox-row { display: flex; align-items: center; gap: 8px; }
+        .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #4250b3; }
+
+        .repeater { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 10px; }
+        .repeater-row { border: 1px solid #ddd; border-radius: 8px; padding: 12px; position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #fafafa; }
+        .repeater-row .row-field { display: flex; flex-direction: column; gap: 3px; }
+        .repeater-row .row-field.full { grid-column: 1 / -1; }
+        .repeater-row .row-field label { font-size: 0.75em; font-weight: 600; color: #666; }
+        .repeater-row-header { display: flex; justify-content: space-between; align-items: center; grid-column: 1 / -1; margin-bottom: -4px; }
+        .repeater-row-header span { font-size: 0.78em; font-weight: 700; color: #4250b3; }
+        .btn-add-row { background: #e8e0f0; color: #4250b3; border: 1px dashed #4250b3; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; width: 100%; margin-top: 6px; }
+        .btn-add-row:hover { background: #d0c4e0; }
+
+        .timing-pill { font-size: 0.72em; padding: 2px 8px; border-radius: 12px; border: 1px solid; }
+        .timing-past { border-color: #757575; color: #757575; background: #f5f5f5; }
+        .timing-projected { border-color: #1565c0; color: #1565c0; background: #e3f2fd; }
+        .entry-list { list-style: none; }
+        .entry-list li { padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88em; }
+        .entry-list li:last-child { border-bottom: none; }
+        .entry-list .entry-main { font-weight: 600; color: #333; }
+        .entry-list .entry-sub { color: #777; font-size: 0.92em; }
 
         .form-error { background: #ffebee; color: #c62828; border-radius: 6px; padding: 8px 12px; font-size: 0.85em; display: none; }
         .form-error.visible { display: block; margin-bottom: 12px; }
+
+        .settings-section { margin-bottom: 22px; }
+        .settings-section h4 { color: #4250b3; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+        .settings-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
+        .settings-row .slug { font-family: monospace; font-size: 0.8em; color: #999; min-width: 90px; }
+        .settings-row input[type="text"] { flex: 1; }
+        .settings-add-row { display: flex; align-items: center; gap: 8px; padding-top: 10px; }
+        .settings-add-row input[type="text"] { flex: 1; }
+        .settings-add-row input.slug-input { flex: none; width: 110px; }
 
         #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1e2640; color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 0.88em; box-shadow: 0 4px 16px rgba(0,0,0,0.25); z-index: 500; opacity: 0; transform: translateY(10px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
         #toast.show { opacity: 1; transform: translateY(0); }
@@ -126,6 +153,7 @@
 
         @media (max-width: 640px) {
             .form-grid { grid-template-columns: 1fr; }
+            .repeater-row { grid-template-columns: 1fr; }
         }
     </style>
 <!-- Matomo -->
@@ -155,7 +183,8 @@
         <span class="auth-info" id="authInfo"></span>
         <button class="btn-small" id="loginBtn" onclick="showLogin()">Login</button>
         <button class="btn-small" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
-        <button class="btn" id="btn-new-task" style="display:none" onclick="openNewTaskModal()">+ New task</button>
+        <button class="btn-small" id="btn-settings" style="display:none" onclick="openSettingsModal()">Settings</button>
+        <button class="btn" id="btn-new-task" style="display:none" onclick="openNewTaskModal()">+ New task/contact</button>
     </div>
 
     <div class="login-prompt" id="login-prompt" style="display:none">
@@ -177,11 +206,13 @@
 
         <div class="toolbar">
             <input type="text" id="search-input" placeholder="Search by title or description..." oninput="renderTasks()" />
+            <select id="filter-kind" onchange="renderTasks()">
+                <option value="">Tasks & contacts</option>
+                <option value="task">Tasks only</option>
+                <option value="contact">Contacts only</option>
+            </select>
             <select id="filter-status" onchange="renderTasks()">
                 <option value="">All statuses</option>
-                <option value="new">New</option>
-                <option value="in_progress">In progress</option>
-                <option value="completed">Completed</option>
             </select>
             <select id="filter-unit" onchange="renderTasks()">
                 <option value="">All units</option>
@@ -232,42 +263,103 @@
         <form id="task-form" onsubmit="submitTask(event)">
             <div class="form-grid">
 
+                <div class="kind-toggle" id="kind-toggle">
+                    <button type="button" id="btn-kind-task" class="active" onclick="setFormKind('task')">Task</button>
+                    <button type="button" id="btn-kind-contact" onclick="setFormKind('contact')">Contact</button>
+                </div>
+
                 <div class="form-field full">
                     <label>Title <span class="required">*</span></label>
                     <input type="text" name="title" required placeholder="e.g. Prepare mobility report" />
                 </div>
 
+                <div class="form-section-title">Assignment</div>
+
+                <div class="form-field">
+                    <label>Assigned to</label>
+                    <select name="assignee_id" id="sel-assignee" onchange="onAssigneeChange()">
+                        <option value="">— Unassigned —</option>
+                    </select>
+                </div>
+
+                <div class="form-field" id="status-field-wrap">
+                    <label>Status</label>
+                    <select name="status_id" id="sel-status" disabled></select>
+                </div>
+
+                <!-- Task-only fields -->
+                <div id="task-only-fields-wrap" class="form-grid" style="grid-column:1/-1;">
+
+                    <div class="form-field">
+                        <label>Unit</label>
+                        <select name="unit_id" id="sel-unit">
+                            <option value="">— None —</option>
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label>Deadline</label>
+                        <input type="date" name="deadline" />
+                    </div>
+
+                    <div class="form-field">
+                        <label>Visibility</label>
+                        <select name="visibility">
+                            <option value="public" selected>Public</option>
+                            <option value="private">Private</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- Contact-only fields, mirroring the Collaboration Dashboard app -->
+                <div id="contact-fields-wrap" class="form-grid hidden" style="grid-column:1/-1;">
+
+                    <div class="form-section-title">Goal of the Contact</div>
+                    <div class="form-field full">
+                        <select name="goal" onchange="document.getElementById('goal-other-field').style.display=this.value==='Otras'?'':'none'">
+                            <option value="">— Select —</option>
+                            <option value="Colaboración docente">Colaboración docente</option>
+                            <option value="Proyecto de investigación">Proyecto de investigación</option>
+                            <option value="Contacto institucional">Contacto institucional</option>
+                            <option value="Otras">Otras</option>
+                        </select>
+                    </div>
+                    <div class="form-field full" id="goal-other-field" style="display:none;">
+                        <label>Describir</label>
+                        <input type="text" name="goal_other" placeholder="Describe el tipo de colaboración..." />
+                    </div>
+
+                    <div class="form-section-title">Collaborators</div>
+                    <div class="repeater full" id="collaborators-repeater"></div>
+                    <button type="button" class="btn-add-row full" style="grid-column:1/-1" onclick="addCollaboratorRow()">+ Add collaborator</button>
+
+                    <div class="form-section-title">Physical Mobility</div>
+                    <div class="form-field full">
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="physical_mobility_check" onchange="toggleContactSection('mobility')" />
+                            <label for="physical_mobility_check" style="color:#333">One or more collaborators have taken part or are planning a physical mobility</label>
+                        </div>
+                    </div>
+                    <div class="repeater full hidden" id="mobility-repeater"></div>
+                    <button type="button" class="btn-add-row full hidden" id="mobility-add-btn" style="grid-column:1/-1" onclick="addMobilityRow()">+ Add mobility visit</button>
+
+                    <div class="form-section-title">Virtual Meetings</div>
+                    <div class="form-field full">
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="virtual_meetings_check" onchange="toggleContactSection('meetings')" />
+                            <label for="virtual_meetings_check" style="color:#333">Virtual meetings have taken place or are planned</label>
+                        </div>
+                    </div>
+                    <div class="repeater full hidden" id="meetings-repeater"></div>
+                    <button type="button" class="btn-add-row full hidden" id="meetings-add-btn" style="grid-column:1/-1" onclick="addMeetingRow()">+ Add virtual meeting</button>
+
+                </div>
+
                 <div class="form-field full">
                     <label>Description</label>
-                    <textarea name="description" rows="2" placeholder="Details about the task..."></textarea>
+                    <textarea name="description" rows="2" placeholder="Details..."></textarea>
                 </div>
-
-                <div class="form-field">
-                    <label>Unit / Subunit</label>
-                    <select name="unit_id" id="sel-unit">
-                        <option value="">— None —</option>
-                    </select>
-                </div>
-
-                <div class="form-field">
-                    <label>Deadline</label>
-                    <input type="date" name="deadline" />
-                </div>
-
-                <div class="form-field">
-                    <label>Visibility</label>
-                    <select name="visibility">
-                        <option value="public" selected>Public</option>
-                        <option value="private">Private</option>
-                    </select>
-                </div>
-
-                <div class="form-section-title">Assigned to</div>
-                <div class="assignee-picker">
-                    <select id="sel-person-picker"><option value="">— Select a person —</option></select>
-                    <button type="button" class="btn-secondary" onclick="addAssigneeFromPicker()">+ Add</button>
-                </div>
-                <div class="assignee-list" id="assignee-list"></div>
 
             </div>
         </form>
@@ -278,19 +370,88 @@
     </div>
 </div>
 
+<!-- Settings modal (superuser + @uma.es only) -->
+<div class="modal" id="settings-modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Settings</h3>
+            <button class="modal-close" onclick="closeSettingsModal()">&#10005;</button>
+        </div>
+
+        <div class="settings-section">
+            <h4>Statuses</h4>
+            <div id="settings-statuses"></div>
+            <div class="settings-add-row">
+                <input type="text" id="new-status-id" class="slug-input" placeholder="id (e.g. blocked)" />
+                <input type="text" id="new-status-label" placeholder="Label" />
+                <input type="color" id="new-status-color" value="#757575" />
+                <button class="btn-secondary" type="button" onclick="addStatus()">+ Add</button>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h4>Units</h4>
+            <div id="settings-units"></div>
+            <div class="settings-add-row">
+                <input type="text" id="new-unit-name" placeholder="Unit name" />
+                <button class="btn-secondary" type="button" onclick="addUnit()">+ Add</button>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn" type="button" onclick="closeSettingsModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<datalist id="institutions-list"></datalist>
+<datalist id="areas-list"></datalist>
+
 <div id="toast"></div>
 
 <script>
     var BASE = '/personal-dashboard';
+
+    // UNINOVIS alliance partner institutions (for the Contact collaborators form),
+    // mirrored from the Collaboration Dashboard app.
+    var UNINOVIS_INSTITUTIONS = [
+        'Universidad de Málaga',
+        'Université Sorbonne Paris Nord',
+        'University of Campania "Luigi Vanvitelli"',
+        'Kauno kolegija Higher Education Institution',
+        'University of Tirana',
+        'Technical University of Applied Sciences Würzburg-Schweinfurt',
+        'Tampere University of Applied Sciences',
+        'The Hague University of Applied Sciences'
+    ];
+    var UNI_ABBR = {
+        'Universidad de Málaga': 'UMA',
+        'Université Sorbonne Paris Nord': 'USPN',
+        'University of Campania "Luigi Vanvitelli"': 'UDCLV',
+        'Kauno kolegija Higher Education Institution': 'KK',
+        'University of Tirana': 'UT',
+        'Technical University of Applied Sciences Würzburg-Schweinfurt': 'THWS',
+        'Tampere University of Applied Sciences': 'TAMK',
+        'The Hague University of Applied Sciences': 'THUAS'
+    };
+    function uniAbbr(name) { return UNI_ABBR[name] || name || '—'; }
+
     var state = {
         session: null,
         tasksMine: [],
         tasksAll: [],
+        contactsMine: [],
+        contactsAll: [],
+        contactInstitutions: [],
+        contactAreasOfInterest: [],
         directoryPeople: [],
-        directoryUnitsFlat: [],
+        dashboardUnits: [],
+        statuses: [],
         viewMode: 'mine',
         editingId: null,
-        form: { assignees: [] }
+        editingKind: null,
+        formKind: 'task',
+        form: { collaborators: [], mobility_visits: [], virtual_meetings: [] }
     };
 
     // ---- Auth ----
@@ -365,6 +526,7 @@
         }
 
         document.getElementById('btn-new-task').style.display = '';
+        if (state.session.is_admin) document.getElementById('btn-settings').style.display = '';
         document.getElementById('dashboard-body').classList.remove('hidden');
 
         try {
@@ -380,23 +542,31 @@
         } catch (e) { console.error('Guide registration failed:', e); }
 
         try {
-            var [dataResp, peopleResp, unitsResp] = await Promise.all([
+            var [dataResp, peopleResp, unitsResp, statusesResp] = await Promise.all([
                 fetch(BASE + '/api/data', { headers: authHeaders() }),
                 fetch(BASE + '/api/assignable-people', { headers: authHeaders() }),
-                fetch('/directory/api/units', { headers: authHeaders() })
+                fetch(BASE + '/api/dashboard-units', { headers: authHeaders() }),
+                fetch(BASE + '/api/statuses', { headers: authHeaders() })
             ]);
             if (!dataResp.ok) throw new Error('Could not load data');
             var data = await dataResp.json();
             state.tasksMine = data.tasks_mine || [];
             state.tasksAll = data.tasks_all || [];
+            state.contactsMine = data.contacts_mine || [];
+            state.contactsAll = data.contacts_all || [];
+            state.contactInstitutions = data.contact_institutions || [];
+            state.contactAreasOfInterest = data.contact_areas_of_interest || [];
 
             // Only people who can themselves access this app may be assigned.
             if (peopleResp.ok) state.directoryPeople = await peopleResp.json();
-            if (unitsResp.ok) state.directoryUnitsFlat = flattenUnits(await unitsResp.json(), 0);
+            if (unitsResp.ok) state.dashboardUnits = await unitsResp.json();
+            if (statusesResp.ok) state.statuses = await statusesResp.json();
 
             populateUnitFilter();
             populateUnitSelect();
-            populatePersonPicker();
+            populateAssigneeSelect();
+            populateStatusSelects();
+            populateContactPickers();
 
             renderTasks();
         } catch (e) { showToast('Could not load data.', 'error'); console.error('Failed to load dashboard data:', e); }
@@ -406,50 +576,80 @@
         } catch (e) { console.error('Guide auto-play failed:', e); }
     }
 
-    function flattenUnits(nodes, depth) {
-        var out = [];
-        (nodes || []).forEach(function(n) {
-            out.push({ id: n.id, name: n.name, depth: depth });
-            if (n.subunits && n.subunits.length) out = out.concat(flattenUnits(n.subunits, depth + 1));
-        });
-        return out;
-    }
-
-    function unitLabel(u) {
-        var prefix = '';
-        for (var i = 0; i < u.depth; i++) prefix += ' ';
-        return prefix + u.name;
-    }
-
     function unitName(unitId) {
         if (!unitId) return '';
-        var u = state.directoryUnitsFlat.find(function(x) { return x.id === unitId; });
+        var u = state.dashboardUnits.find(function(x) { return x.id === unitId; });
         return u ? u.name : '';
     }
 
     function populateUnitFilter() {
         var sel = document.getElementById('filter-unit');
-        sel.innerHTML = '<option value="">All units</option>' + state.directoryUnitsFlat.map(function(u) {
-            return '<option value="' + u.id + '">' + esc(unitLabel(u)) + '</option>';
+        sel.innerHTML = '<option value="">All units</option>' + state.dashboardUnits.map(function(u) {
+            return '<option value="' + u.id + '">' + esc(u.name) + '</option>';
         }).join('');
     }
 
     function populateUnitSelect() {
         var sel = document.getElementById('sel-unit');
-        sel.innerHTML = '<option value="">— None —</option>' + state.directoryUnitsFlat.map(function(u) {
-            return '<option value="' + u.id + '">' + esc(unitLabel(u)) + '</option>';
+        sel.innerHTML = '<option value="">— None —</option>' + state.dashboardUnits.map(function(u) {
+            return '<option value="' + u.id + '">' + esc(u.name) + '</option>';
         }).join('');
     }
 
-    function populatePersonPicker() {
-        var sel = document.getElementById('sel-person-picker');
+    function populateAssigneeSelect() {
+        var sel = document.getElementById('sel-assignee');
         var sorted = state.directoryPeople.slice().sort(function(a, b) {
             return (a.name || '').localeCompare(b.name || '');
         });
-        sel.innerHTML = '<option value="">— Select a person —</option>' + sorted.map(function(p) {
+        sel.innerHTML = '<option value="">— Unassigned —</option>' + sorted.map(function(p) {
             var label = (p.name || '') + ' (' + p.email + ')';
             return '<option value="' + p.id + '">' + esc(label) + '</option>';
         }).join('');
+    }
+
+    function populateContactPickers() {
+        document.getElementById('institutions-list').innerHTML = state.contactInstitutions.map(function(i) {
+            return '<option value="' + esc(i) + '">';
+        }).join('');
+        document.getElementById('areas-list').innerHTML = state.contactAreasOfInterest.map(function(a) {
+            return '<option value="' + esc(a) + '">';
+        }).join('');
+    }
+
+    // ---- Status helpers ----
+
+    function statusMeta(id) {
+        var found = state.statuses.find(function(s) { return s.id === id; });
+        return found || { id: id, label: id || 'New', color: '#999999' };
+    }
+
+    function statusLabel(id) {
+        return statusMeta(id).label;
+    }
+
+    function statusBadgeHtml(id) {
+        var m = statusMeta(id);
+        return '<span class="status-badge" style="background:' + m.color + '22;color:' + m.color + ';border:1px solid ' + m.color + '55;">' + esc(m.label) + '</span>';
+    }
+
+    function defaultStatusId() {
+        return state.statuses.length ? state.statuses[0].id : 'new';
+    }
+
+    function populateStatusSelects() {
+        var options = state.statuses.map(function(s) {
+            return '<option value="' + s.id + '">' + esc(s.label) + '</option>';
+        }).join('');
+
+        document.getElementById('filter-status').innerHTML = '<option value="">All statuses</option>' + options;
+        document.getElementById('sel-status').innerHTML = options;
+    }
+
+    function onAssigneeChange() {
+        var assigned = !!document.getElementById('sel-assignee').value;
+        var statusSel = document.getElementById('sel-status');
+        statusSel.disabled = !assigned;
+        if (assigned && !statusSel.value) statusSel.value = defaultStatusId();
     }
 
     // ---- View mode ----
@@ -461,28 +661,16 @@
         renderTasks();
     }
 
-    // ---- Status helpers ----
+    // ---- Task helpers ----
 
-    function overallStatus(task) {
-        var statuses = (task.assignees || []).map(function(a) { return a.status; });
-        if (!statuses.length) return 'new';
-        if (statuses.every(function(s) { return s === 'completed'; })) return 'completed';
-        if (statuses.every(function(s) { return s === 'new'; })) return 'new';
-        return 'in_progress';
-    }
-
-    function pendingAssignees(task) {
-        return (task.assignees || []).filter(function(a) { return a.status !== 'completed'; });
+    function taskStatus(task) {
+        return task.assignee ? task.assignee.status : defaultStatusId();
     }
 
     function myAssignee(task) {
-        if (!state.session) return null;
+        if (!state.session || !task.assignee) return null;
         var username = state.session.username.toLowerCase();
-        return (task.assignees || []).find(function(a) { return (a.email || '').toLowerCase() === username; }) || null;
-    }
-
-    function statusLabel(s) {
-        return { new: 'New', in_progress: 'In progress', completed: 'Completed' }[s] || s;
+        return (task.assignee.email || '').toLowerCase() === username ? task.assignee : null;
     }
 
     function isSenior() {
@@ -504,47 +692,59 @@
 
     // ---- Rendering ----
 
+    function combinedSource(mode) {
+        var tasks = mode === 'mine' ? state.tasksMine : state.tasksAll;
+        var contacts = mode === 'mine' ? state.contactsMine : state.contactsAll;
+        return tasks.concat(contacts);
+    }
+
+    function kindLabel(kind) { return kind === 'contact' ? 'Contact' : 'Task'; }
+
     function renderTasks() {
         var query = document.getElementById('search-input').value.toLowerCase();
+        var filterKind = document.getElementById('filter-kind').value;
         var filterStatus = document.getElementById('filter-status').value;
         var filterUnit = document.getElementById('filter-unit').value;
-        var source = state.viewMode === 'mine' ? state.tasksMine : state.tasksAll;
+        var source = combinedSource(state.viewMode);
 
         var filtered = source.filter(function(t) {
-            var effectiveStatus = state.viewMode === 'mine' ? (myAssignee(t) ? myAssignee(t).status : 'new') : overallStatus(t);
+            if (filterKind && (t.kind || 'task') !== filterKind) return false;
+            var effectiveStatus = taskStatus(t);
             if (filterStatus && effectiveStatus !== filterStatus) return false;
             if (filterUnit && String(t.unit_id || '') !== filterUnit) return false;
             if (query) {
-                var haystack = [t.title, t.description].join(' ').toLowerCase();
+                var haystack = [t.title, t.description, t.goal].join(' ').toLowerCase();
                 if (haystack.indexOf(query) === -1) return false;
             }
             return true;
         });
 
         var statsSource = source;
-        var counts = { new: 0, in_progress: 0, completed: 0 };
+        var counts = {};
         statsSource.forEach(function(t) {
-            var s = state.viewMode === 'mine' ? (myAssignee(t) ? myAssignee(t).status : 'new') : overallStatus(t);
+            var s = taskStatus(t);
             counts[s] = (counts[s] || 0) + 1;
         });
-        document.getElementById('stats-bar').innerHTML =
-            '<div class="stat"><div class="number">' + statsSource.length + '</div><div class="label">Total</div></div>' +
-            '<div class="stat"><div class="number">' + counts.new + '</div><div class="label">New</div></div>' +
-            '<div class="stat"><div class="number">' + counts.in_progress + '</div><div class="label">In progress</div></div>' +
-            '<div class="stat"><div class="number">' + counts.completed + '</div><div class="label">Completed</div></div>';
+        var statsHtml = '<div class="stat"><div class="number">' + statsSource.length + '</div><div class="label">Total</div></div>';
+        state.statuses.forEach(function(s) {
+            statsHtml += '<div class="stat"><div class="number">' + (counts[s.id] || 0) + '</div><div class="label">' + esc(s.label) + '</div></div>';
+        });
+        document.getElementById('stats-bar').innerHTML = statsHtml;
+
+        var statusOrder = {};
+        state.statuses.forEach(function(s, idx) { statusOrder[s.id] = idx; });
 
         var getSortValue = function(t) {
             switch (_tableSortCol) {
+                case 'kind': return kindLabel(t.kind).toLowerCase();
                 case 'title': return (t.title || '').toLowerCase();
                 case 'unit': return (unitName(t.unit_id) || '').toLowerCase();
                 case 'assigned':
-                    var first = (t.assignees || [])[0];
-                    return first ? (first.name || first.email || '').toLowerCase() : '';
+                    return t.assignee ? (t.assignee.name || t.assignee.email || '').toLowerCase() : '';
                 case 'deadline': return t.deadline || '9999-99-99';
                 case 'status':
-                    var order = { new: 0, in_progress: 1, completed: 2 };
-                    var s = state.viewMode === 'mine' ? (myAssignee(t) ? myAssignee(t).status : 'new') : overallStatus(t);
-                    return order[s] != null ? order[s] : 99;
+                    var s = taskStatus(t);
+                    return statusOrder[s] != null ? statusOrder[s] : 99;
                 default: return '';
             }
         };
@@ -556,7 +756,7 @@
 
         var list = document.getElementById('task-list');
         if (!filtered.length) {
-            list.innerHTML = '<div class="no-results">No tasks found. Try adjusting your filters, or create a new task.</div>';
+            list.innerHTML = '<div class="no-results">No tasks or contacts found. Try adjusting your filters, or create a new one.</div>';
             return;
         }
 
@@ -567,6 +767,7 @@
         };
 
         var html = '<div class="task-table-wrap"><table class="task-table"><thead><tr>';
+        html += '<th onclick="sortTable(\'kind\')">Type' + arrow('kind') + '</th>';
         html += '<th onclick="sortTable(\'title\')">Title' + arrow('title') + '</th>';
         html += '<th onclick="sortTable(\'unit\')">Unit' + arrow('unit') + '</th>';
         html += '<th onclick="sortTable(\'assigned\')">Assigned to' + arrow('assigned') + '</th>';
@@ -576,29 +777,21 @@
         html += '</tr></thead><tbody>';
 
         filtered.forEach(function(t) {
-            var mine = myAssignee(t);
-            var displayStatus = state.viewMode === 'mine' ? (mine ? mine.status : 'new') : overallStatus(t);
-            var pending = pendingAssignees(t);
-            var overdue = t.deadline && t.deadline < todayIso && displayStatus !== 'completed';
+            var displayStatus = taskStatus(t);
+            var overdue = t.deadline && t.deadline < todayIso && (!t.assignee || displayStatus !== state.statuses[state.statuses.length - 1].id);
 
-            var chips = (t.assignees || []).map(function(a) {
-                return '<span class="assignee-chip"><span class="dot dot-' + a.status + '"></span>' + esc(a.name || a.email) + '</span>';
-            }).join('');
-
-            var statusCell = '<span class="status-badge status-' + displayStatus + '">' + statusLabel(displayStatus) + '</span>';
-            if (state.viewMode === 'all' && displayStatus !== 'completed' && pending.length) {
-                statusCell += '<span class="pending-note">Needs: ' + pending.map(function(a) { return esc(a.name || a.email); }).join(', ') + '</span>';
-            } else if (state.viewMode === 'mine' && mine && mine.status === 'completed' && displayStatus !== 'completed') {
-                statusCell += '<span class="pending-note">Waiting on someone else</span>';
-            }
+            var assignedCell = t.assignee
+                ? '<span class="assignee-chip"><span class="dot" style="background:' + statusMeta(t.assignee.status).color + ';"></span>' + esc(t.assignee.name || t.assignee.email) + '</span>'
+                : '<span class="muted" style="color:#999;">—</span>';
 
             html += '<tr class="task-row" onclick="openViewModal(\'' + t.id + '\')">';
+            html += '<td><span class="badge badge-kind-' + (t.kind || 'task') + '">' + kindLabel(t.kind) + '</span></td>';
             html += '<td>' + esc(t.title) + '</td>';
             html += '<td>' + (t.unit_id ? esc(unitName(t.unit_id)) : '—') + '</td>';
-            html += '<td><div class="assignees-cell">' + (chips || '<span class="muted" style="color:#999;">—</span>') + '</div></td>';
+            html += '<td>' + assignedCell + '</td>';
             html += '<td>' + (t.deadline ? '<span class="badge badge-deadline' + (overdue ? ' overdue' : '') + '">' + esc(formatDate(t.deadline)) + '</span>' : '—') + '</td>';
             html += '<td><span class="badge badge-visibility-' + t.visibility + '">' + (t.visibility === 'public' ? 'Public' : 'Private') + '</span></td>';
-            html += '<td>' + statusCell + '</td>';
+            html += '<td>' + statusBadgeHtml(displayStatus) + '</td>';
             html += '</tr>';
         });
 
@@ -622,20 +815,67 @@
     // ---- View modal ----
 
     function findTask(id) {
-        return state.tasksAll.find(function(t) { return t.id === id; }) ||
-               state.tasksMine.find(function(t) { return t.id === id; });
+        return combinedSource('all').find(function(t) { return t.id === id; }) ||
+               combinedSource('mine').find(function(t) { return t.id === id; });
+    }
+
+    function entryEndpoint(kind) { return kind === 'contact' ? '/api/contacts/' : '/api/tasks/'; }
+
+    function buildContactDetailSections(c) {
+        var sections = [];
+
+        var collaboratorsHtml = (c.collaborators || []).map(function(p) {
+            return '<li><div class="entry-main">' + esc(p.name) + (p.institution ? ' &middot; ' + esc(uniAbbr(p.institution)) : '') + '</div>' +
+                '<div class="entry-sub">' + [
+                    p.email ? '<a href="mailto:' + esc(p.email) + '">' + esc(p.email) + '</a>' : '',
+                    p.area_of_interest ? esc(p.area_of_interest) : ''
+                ].filter(Boolean).join(' &middot; ') + '</div></li>';
+        }).join('');
+        sections.push(
+            '<div class="detail-section"><div class="detail-section-title">Collaborators</div><ul class="entry-list" style="padding:8px 12px;">' +
+            (collaboratorsHtml || '<li class="muted">No collaborators listed</li>') + '</ul></div>');
+
+        sections.push(
+            '<div class="detail-section"><div class="detail-section-title">Goal</div><div style="padding:10px 12px;">' +
+            '<div class="detail-value">' + (c.goal ? esc(c.goal) : '<span class="muted">&mdash;</span>') + '</div></div></div>');
+
+        if (c.physical_mobility) {
+            var mobilityHtml = (c.mobility_visits || []).map(function(m) {
+                var timing = mobilityTiming(m);
+                return '<li><div class="entry-main">' + esc(m.collaborator_name || 'Unspecified') + ' <span class="timing-pill timing-' + timing.cls + '">' + timing.label + '</span></div>' +
+                    '<div class="entry-sub">' + formatDate(m.start_date) + (m.end_date && m.end_date !== m.start_date ? ' &ndash; ' + formatDate(m.end_date) : '') + (m.notes ? ' &middot; ' + esc(m.notes) : '') + '</div></li>';
+            }).join('');
+            sections.push(
+                '<div class="detail-section"><div class="detail-section-title">Physical Mobility</div><ul class="entry-list" style="padding:8px 12px;">' +
+                (mobilityHtml || '<li class="muted">No mobility visits logged</li>') + '</ul></div>');
+        }
+
+        if (c.virtual_meetings_held) {
+            var meetingsHtml = (c.virtual_meetings || []).map(function(m) {
+                var timing = meetingTiming(m);
+                return '<li><div class="entry-main">' + formatDate(m.date) + ' <span class="timing-pill timing-' + timing.cls + '">' + timing.label + '</span></div>' +
+                    (m.notes ? '<div class="entry-sub">' + esc(m.notes) + '</div>' : '') + '</li>';
+            }).join('');
+            sections.push(
+                '<div class="detail-section"><div class="detail-section-title">Virtual Meetings</div><ul class="entry-list" style="padding:8px 12px;">' +
+                (meetingsHtml || '<li class="muted">No virtual meetings logged</li>') + '</ul></div>');
+        }
+
+        return sections.join('');
     }
 
     function openViewModal(id) {
         var t = findTask(id);
         if (!t) return;
+        var kind = t.kind || 'task';
 
-        var overall = overallStatus(t);
+        var status = taskStatus(t);
         var mine = myAssignee(t);
 
         document.getElementById('vm-title').textContent = t.title;
         document.getElementById('vm-badges').innerHTML =
-            '<span class="status-badge status-' + overall + '">' + statusLabel(overall) + '</span>' +
+            '<span class="badge badge-kind-' + kind + '">' + kindLabel(kind) + '</span>' +
+            statusBadgeHtml(status) +
             '<span class="badge badge-visibility-' + t.visibility + '">' + (t.visibility === 'public' ? 'Public' : 'Private') + '</span>';
 
         var body = '';
@@ -649,18 +889,19 @@
             '<div><strong>Created by:</strong> ' + esc(t.created_by) + '</div>' +
             '</div></div>';
 
-        var assigneeRows = (t.assignees || []).map(function(a) {
-            return '<div class="assignee-row"><span>' + esc(a.name || a.email) + '</span>' +
-                '<span class="status-badge status-' + a.status + '">' + statusLabel(a.status) + '</span></div>';
-        }).join('');
+        var assigneeRow = t.assignee
+            ? '<div class="assignee-row"><span>' + esc(t.assignee.name || t.assignee.email) + '</span>' + statusBadgeHtml(t.assignee.status) + '</div>'
+            : '<div class="detail-value"><span class="muted">No one assigned</span></div>';
         body += '<div class="detail-section"><div class="detail-section-title">Assigned to</div>' +
-            (assigneeRows || '<div class="detail-value"><span class="muted">No one assigned</span></div>') +
+            assigneeRow +
             (mine ? '<div class="my-status-control"><label style="font-size:0.85em;font-weight:600;color:#4250b3;">Update my status:</label>' +
-                '<select id="my-status-select" onchange="updateMyStatus(\'' + t.id + '\', this.value)">' +
-                ['new', 'in_progress', 'completed'].map(function(s) {
-                    return '<option value="' + s + '"' + (s === mine.status ? ' selected' : '') + '>' + statusLabel(s) + '</option>';
+                '<select id="my-status-select" onchange="updateMyStatus(\'' + t.id + '\', \'' + kind + '\', this.value)">' +
+                state.statuses.map(function(s) {
+                    return '<option value="' + s.id + '"' + (s.id === mine.status ? ' selected' : '') + '>' + esc(s.label) + '</option>';
                 }).join('') + '</select></div>' : '') +
             '</div>';
+
+        if (kind === 'contact') body += buildContactDetailSections(t);
 
         document.getElementById('vm-body').innerHTML = body;
 
@@ -668,7 +909,7 @@
         var canDelete = canDeleteTask(t);
         document.getElementById('vm-footer').innerHTML =
             (canEdit ? '<button class="btn-secondary" onclick="openEditModal(\'' + t.id + '\')">Edit</button>' : '') +
-            (canDelete ? '<button class="btn-danger" onclick="confirmDelete(\'' + t.id + '\')">Delete</button>' : '') +
+            (canDelete ? '<button class="btn-danger" onclick="confirmDelete(\'' + t.id + '\', \'' + kind + '\')">Delete</button>' : '') +
             '<button class="btn" onclick="closeViewModal()">Close</button>';
 
         document.getElementById('view-modal').classList.add('active');
@@ -676,9 +917,9 @@
 
     function closeViewModal() { document.getElementById('view-modal').classList.remove('active'); }
 
-    async function updateMyStatus(id, status) {
+    async function updateMyStatus(id, kind, status) {
         try {
-            var res = await fetch(BASE + '/api/tasks/' + id + '/status', { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ status: status }) });
+            var res = await fetch(BASE + entryEndpoint(kind) + id + '/status', { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ status: status }) });
             if (!res.ok) { showToast('Could not update status.', 'error'); return; }
             var saved = await res.json();
             replaceTaskInState(saved);
@@ -699,58 +940,170 @@
             var data = await res.json();
             state.tasksMine = data.tasks_mine || [];
             state.tasksAll = data.tasks_all || [];
+            state.contactsMine = data.contacts_mine || [];
+            state.contactsAll = data.contacts_all || [];
             renderTasks();
         } catch (e) { console.error('resyncTasks failed:', e); }
     }
 
     function replaceTaskInState(saved) {
-        state.tasksMine = state.tasksMine.map(function(t) { return t.id === saved.id ? saved : t; });
-        state.tasksAll = state.tasksAll.map(function(t) { return t.id === saved.id ? saved : t; });
-        if (myAssignee(saved) && !state.tasksMine.find(function(t) { return t.id === saved.id; })) state.tasksMine.push(saved);
-        if (!state.tasksAll.find(function(t) { return t.id === saved.id; })) state.tasksAll.push(saved);
+        var mineList = saved.kind === 'contact' ? 'contactsMine' : 'tasksMine';
+        var allList = saved.kind === 'contact' ? 'contactsAll' : 'tasksAll';
+        state[mineList] = state[mineList].map(function(t) { return t.id === saved.id ? saved : t; });
+        state[allList] = state[allList].map(function(t) { return t.id === saved.id ? saved : t; });
+        if (myAssignee(saved) && !state[mineList].find(function(t) { return t.id === saved.id; })) state[mineList].push(saved);
+        if (!state[allList].find(function(t) { return t.id === saved.id; })) state[allList].push(saved);
     }
 
-    // ---- Assignee picker (form) ----
+    // ---- Repeaters: Collaborators (Contact only) ----
 
-    function addAssigneeFromPicker() {
-        var sel = document.getElementById('sel-person-picker');
-        var id = parseInt(sel.value, 10);
-        if (!id) return;
-        if (state.form.assignees.some(function(a) { return a.person_id === id; })) { sel.value = ''; return; }
-        var person = state.directoryPeople.find(function(p) { return p.id === id; });
-        if (!person) return;
-        state.form.assignees.push({ person_id: id, name: person.name || '', email: person.email || '' });
-        sel.value = '';
-        renderAssigneeList();
+    function addCollaboratorRow(data) {
+        state.form.collaborators.push(data || { name: '', email: '', institution: '', area_of_interest: '' });
+        renderCollaboratorRows();
     }
 
-    function removeAssignee(idx) {
-        state.form.assignees.splice(idx, 1);
-        renderAssigneeList();
+    function removeCollaboratorRow(idx) {
+        state.form.collaborators.splice(idx, 1);
+        renderCollaboratorRows();
     }
 
-    function renderAssigneeList() {
-        var container = document.getElementById('assignee-list');
-        container.innerHTML = state.form.assignees.map(function(a, idx) {
-            return '<div class="assignee-list-row"><span>' + esc(a.name) + ' (' + esc(a.email) + ')</span>' +
-                '<button type="button" class="btn-remove-row" onclick="removeAssignee(' + idx + ')">&#10005;</button></div>';
+    function renderCollaboratorRows() {
+        var container = document.getElementById('collaborators-repeater');
+        container.innerHTML = state.form.collaborators.map(function(row, idx) {
+            var isOther = !!row.institution && UNINOVIS_INSTITUTIONS.indexOf(row.institution) === -1;
+            var institutionOptions = '<option value="">Select institution...</option>' +
+                UNINOVIS_INSTITUTIONS.map(function(u) {
+                    return '<option value="' + esc(u) + '"' + (u === row.institution ? ' selected' : '') + '>' + esc(u) + '</option>';
+                }).join('') +
+                '<option value="__other__"' + (isOther ? ' selected' : '') + '>Other</option>';
+            return '<div class="repeater-row">' +
+                '<div class="repeater-row-header"><span>Collaborator ' + (idx + 1) + '</span>' +
+                (state.form.collaborators.length > 1 ? '<button type="button" class="btn-remove-row" onclick="removeCollaboratorRow(' + idx + ')">&#10005;</button>' : '') + '</div>' +
+                '<div class="row-field"><label>Name <span style="color:#dc3545">*</span></label><input type="text" value="' + esc(row.name) + '" oninput="updateCollaboratorField(' + idx + ',\'name\',this.value)" placeholder="Full name" /></div>' +
+                '<div class="row-field"><label>Email</label><input type="email" value="' + esc(row.email) + '" oninput="updateCollaboratorField(' + idx + ',\'email\',this.value)" placeholder="name@institution.edu" /></div>' +
+                '<div class="row-field"><label>Institution</label><select onchange="updateCollaboratorInstitution(' + idx + ', this.value)">' + institutionOptions + '</select>' +
+                (isOther ? '<input type="text" list="institutions-list" style="margin-top:6px" value="' + esc(row.institution) + '" oninput="updateCollaboratorField(' + idx + ',\'institution\',this.value)" placeholder="Enter institution name" />' : '') +
+                '</div>' +
+                '<div class="row-field"><label>Area of interest</label><input type="text" list="areas-list" value="' + esc(row.area_of_interest) + '" oninput="updateCollaboratorField(' + idx + ',\'area_of_interest\',this.value)" placeholder="e.g. Machine Learning" /></div>' +
+                '</div>';
         }).join('');
+    }
+
+    function updateCollaboratorField(idx, field, value) { state.form.collaborators[idx][field] = value; }
+
+    function updateCollaboratorInstitution(idx, value) {
+        state.form.collaborators[idx].institution = (value === '__other__') ? '' : value;
+        renderCollaboratorRows();
+    }
+
+    // ---- Repeaters: Mobility visits (Contact only) ----
+
+    function addMobilityRow(data) {
+        state.form.mobility_visits.push(data || { collaborator_name: '', start_date: '', end_date: '', notes: '' });
+        renderMobilityRows();
+    }
+
+    function removeMobilityRow(idx) {
+        state.form.mobility_visits.splice(idx, 1);
+        renderMobilityRows();
+    }
+
+    function renderMobilityRows() {
+        var container = document.getElementById('mobility-repeater');
+        container.innerHTML = state.form.mobility_visits.map(function(row, idx) {
+            return '<div class="repeater-row">' +
+                '<div class="repeater-row-header"><span>Visit ' + (idx + 1) + '</span><button type="button" class="btn-remove-row" onclick="removeMobilityRow(' + idx + ')">&#10005;</button></div>' +
+                '<div class="row-field full"><label>Collaborator</label><input type="text" value="' + esc(row.collaborator_name) + '" oninput="updateMobilityField(' + idx + ',\'collaborator_name\',this.value)" placeholder="Which collaborator travelled?" /></div>' +
+                '<div class="row-field"><label>Start date</label><input type="date" value="' + esc(row.start_date) + '" oninput="updateMobilityField(' + idx + ',\'start_date\',this.value)" /></div>' +
+                '<div class="row-field"><label>End date</label><input type="date" value="' + esc(row.end_date) + '" oninput="updateMobilityField(' + idx + ',\'end_date\',this.value)" /></div>' +
+                '<div class="row-field full"><label>Notes</label><input type="text" value="' + esc(row.notes) + '" oninput="updateMobilityField(' + idx + ',\'notes\',this.value)" placeholder="Purpose, host, etc. (optional)" /></div>' +
+                '</div>';
+        }).join('');
+    }
+
+    function updateMobilityField(idx, field, value) { state.form.mobility_visits[idx][field] = value; }
+
+    // ---- Repeaters: Virtual meetings (Contact only) ----
+
+    function addMeetingRow(data) {
+        state.form.virtual_meetings.push(data || { date: '', notes: '' });
+        renderMeetingRows();
+    }
+
+    function removeMeetingRow(idx) {
+        state.form.virtual_meetings.splice(idx, 1);
+        renderMeetingRows();
+    }
+
+    function renderMeetingRows() {
+        var container = document.getElementById('meetings-repeater');
+        container.innerHTML = state.form.virtual_meetings.map(function(row, idx) {
+            return '<div class="repeater-row">' +
+                '<div class="repeater-row-header"><span>Meeting ' + (idx + 1) + '</span><button type="button" class="btn-remove-row" onclick="removeMeetingRow(' + idx + ')">&#10005;</button></div>' +
+                '<div class="row-field"><label>Date</label><input type="date" value="' + esc(row.date) + '" oninput="updateMeetingField(' + idx + ',\'date\',this.value)" /></div>' +
+                '<div class="row-field full"><label>Notes</label><input type="text" value="' + esc(row.notes) + '" oninput="updateMeetingField(' + idx + ',\'notes\',this.value)" placeholder="Topic, attendees, etc. (optional)" /></div>' +
+                '</div>';
+        }).join('');
+    }
+
+    function updateMeetingField(idx, field, value) { state.form.virtual_meetings[idx][field] = value; }
+
+    function toggleContactSection(section) {
+        if (section === 'mobility') {
+            var checked = document.getElementById('physical_mobility_check').checked;
+            document.getElementById('mobility-repeater').classList.toggle('hidden', !checked);
+            document.getElementById('mobility-add-btn').classList.toggle('hidden', !checked);
+            if (checked && !state.form.mobility_visits.length) addMobilityRow();
+        } else {
+            var checked2 = document.getElementById('virtual_meetings_check').checked;
+            document.getElementById('meetings-repeater').classList.toggle('hidden', !checked2);
+            document.getElementById('meetings-add-btn').classList.toggle('hidden', !checked2);
+            if (checked2 && !state.form.virtual_meetings.length) addMeetingRow();
+        }
     }
 
     // ---- Form modal ----
 
-    function resetFormState() {
-        state.form = { assignees: [] };
+    function setFormKind(kind) {
+        state.formKind = kind;
+        document.getElementById('btn-kind-task').classList.toggle('active', kind === 'task');
+        document.getElementById('btn-kind-contact').classList.toggle('active', kind === 'contact');
+        document.getElementById('task-only-fields-wrap').classList.toggle('hidden', kind === 'contact');
+        document.getElementById('contact-fields-wrap').classList.toggle('hidden', kind !== 'contact');
+        if (kind === 'contact') {
+            // Unit / deadline / visibility aren't collected for contacts — reset
+            // the (now hidden) shared inputs so a stale value can't be submitted.
+            var form = document.getElementById('task-form');
+            form.elements['unit_id'].value = '';
+            form.elements['deadline'].value = '';
+            form.elements['visibility'].value = 'public';
+        }
+        var isEdit = !!state.editingId;
+        document.getElementById('form-modal-title').textContent = (isEdit ? 'Edit ' : 'New ') + (kind === 'contact' ? 'contact' : 'task');
+        document.getElementById('form-submit-btn').textContent = isEdit ? 'Save changes' : (kind === 'contact' ? 'Save contact' : 'Save task');
     }
 
     function openNewTaskModal() {
         state.editingId = null;
-        resetFormState();
-        document.getElementById('form-modal-title').textContent = 'New task';
-        document.getElementById('form-submit-btn').textContent = 'Save task';
+        state.editingKind = null;
+        state.form = { collaborators: [], mobility_visits: [], virtual_meetings: [] };
         document.getElementById('task-form').reset();
         document.getElementById('form-error').classList.remove('visible');
-        renderAssigneeList();
+        document.getElementById('status-field-wrap').classList.remove('hidden');
+        document.getElementById('sel-status').value = defaultStatusId();
+        onAssigneeChange();
+
+        document.getElementById('kind-toggle').classList.remove('hidden');
+        document.getElementById('goal-other-field').style.display = 'none';
+        document.getElementById('physical_mobility_check').checked = false;
+        document.getElementById('virtual_meetings_check').checked = false;
+        document.getElementById('mobility-repeater').classList.add('hidden');
+        document.getElementById('mobility-add-btn').classList.add('hidden');
+        document.getElementById('meetings-repeater').classList.add('hidden');
+        document.getElementById('meetings-add-btn').classList.add('hidden');
+        addCollaboratorRow();
+
+        setFormKind('task');
         document.getElementById('form-modal').classList.add('active');
     }
 
@@ -758,11 +1111,11 @@
         closeViewModal();
         var t = findTask(id);
         if (!t) return;
+        var kind = t.kind || 'task';
 
         state.editingId = id;
-        resetFormState();
-        document.getElementById('form-modal-title').textContent = 'Edit task';
-        document.getElementById('form-submit-btn').textContent = 'Save changes';
+        state.editingKind = kind;
+        state.form = { collaborators: [], mobility_visits: [], virtual_meetings: [] };
         document.getElementById('form-error').classList.remove('visible');
 
         var form = document.getElementById('task-form');
@@ -771,22 +1124,57 @@
         form.elements['unit_id'].value = t.unit_id || '';
         form.elements['deadline'].value = t.deadline || '';
         form.elements['visibility'].value = t.visibility || 'private';
+        form.elements['assignee_id'].value = t.assignee ? t.assignee.person_id : '';
 
-        state.form.assignees = (t.assignees || []).map(function(a) { return { person_id: a.person_id, name: a.name, email: a.email }; });
-        renderAssigneeList();
+        // The status field only applies when creating; progress on an
+        // existing assignment is changed via "Update my status" instead.
+        document.getElementById('status-field-wrap').classList.add('hidden');
 
+        // The type (task/contact) can't change once created.
+        document.getElementById('kind-toggle').classList.add('hidden');
+
+        if (kind === 'contact') {
+            if (t.goal && t.goal.indexOf('Otras:') === 0) {
+                form.elements['goal'].value = 'Otras';
+                form.elements['goal_other'].value = t.goal.replace('Otras: ', '').replace('Otras:', '');
+                document.getElementById('goal-other-field').style.display = '';
+            } else {
+                form.elements['goal'].value = t.goal || '';
+                form.elements['goal_other'].value = '';
+                document.getElementById('goal-other-field').style.display = 'none';
+            }
+            state.form.collaborators = (t.collaborators || []).map(function(p) { return Object.assign({}, p); });
+            if (!state.form.collaborators.length) state.form.collaborators.push({ name: '', email: '', institution: '', area_of_interest: '' });
+            renderCollaboratorRows();
+
+            document.getElementById('physical_mobility_check').checked = !!t.physical_mobility;
+            state.form.mobility_visits = (t.mobility_visits || []).map(function(m) { return Object.assign({}, m); });
+            renderMobilityRows();
+            document.getElementById('mobility-repeater').classList.toggle('hidden', !t.physical_mobility);
+            document.getElementById('mobility-add-btn').classList.toggle('hidden', !t.physical_mobility);
+
+            document.getElementById('virtual_meetings_check').checked = !!t.virtual_meetings_held;
+            state.form.virtual_meetings = (t.virtual_meetings || []).map(function(m) { return Object.assign({}, m); });
+            renderMeetingRows();
+            document.getElementById('meetings-repeater').classList.toggle('hidden', !t.virtual_meetings_held);
+            document.getElementById('meetings-add-btn').classList.toggle('hidden', !t.virtual_meetings_held);
+        }
+
+        setFormKind(kind);
         document.getElementById('form-modal').classList.add('active');
     }
 
     function closeFormModal() {
         document.getElementById('form-modal').classList.remove('active');
         state.editingId = null;
+        state.editingKind = null;
     }
 
     async function submitTask(e) {
         e.preventDefault();
         var form = e.target;
         var errEl = document.getElementById('form-error');
+        var kind = state.editingId ? state.editingKind : state.formKind;
 
         var title = form.elements['title'].value.trim();
         if (!title) {
@@ -795,16 +1183,44 @@
             return;
         }
 
+        var assigneeId = form.elements['assignee_id'].value ? parseInt(form.elements['assignee_id'].value, 10) : null;
+        var assignee = null;
+        if (assigneeId) {
+            var person = state.directoryPeople.find(function(p) { return p.id === assigneeId; });
+            if (person) {
+                assignee = { person_id: person.id, name: person.name || '', email: person.email || '' };
+                if (!state.editingId) assignee.status = form.elements['status_id'].value || defaultStatusId();
+            }
+        }
+
         var body = {
             title: title,
             description: form.elements['description'].value.trim(),
             unit_id: form.elements['unit_id'].value ? parseInt(form.elements['unit_id'].value, 10) : null,
             deadline: form.elements['deadline'].value || '',
             visibility: form.elements['visibility'].value,
-            assignees: state.form.assignees.map(function(a) { return { person_id: a.person_id, name: a.name, email: a.email }; })
+            assignee: assignee
         };
 
-        var url = state.editingId ? BASE + '/api/tasks/' + state.editingId : BASE + '/api/tasks';
+        if (kind === 'contact') {
+            var collaborators = state.form.collaborators.filter(function(p) { return p.name && p.name.trim(); });
+            if (!collaborators.length) {
+                errEl.textContent = 'Add at least one collaborator with a name.';
+                errEl.classList.add('visible');
+                return;
+            }
+            var physicalMobility = document.getElementById('physical_mobility_check').checked;
+            var virtualMeetingsHeld = document.getElementById('virtual_meetings_check').checked;
+            body.goal = form.elements['goal'].value === 'Otras' ? 'Otras: ' + (form.elements['goal_other'].value.trim() || 'sin especificar') : form.elements['goal'].value.trim();
+            body.collaborators = collaborators;
+            body.physical_mobility = physicalMobility;
+            body.mobility_visits = physicalMobility ? state.form.mobility_visits.filter(function(m) { return m.start_date; }) : [];
+            body.virtual_meetings_held = virtualMeetingsHeld;
+            body.virtual_meetings = virtualMeetingsHeld ? state.form.virtual_meetings.filter(function(m) { return m.date; }) : [];
+        }
+
+        var apiBase = kind === 'contact' ? '/api/contacts' : '/api/tasks';
+        var url = state.editingId ? BASE + apiBase + '/' + state.editingId : BASE + apiBase;
         var method = state.editingId ? 'PUT' : 'POST';
 
         errEl.classList.remove('visible');
@@ -823,7 +1239,8 @@
             }
             var saved = await res.json();
             replaceTaskInState(saved);
-            showToast(state.editingId ? 'Task updated.' : 'Task created.', 'success');
+            var kindLbl = kind === 'contact' ? 'Contact' : 'Task';
+            showToast(state.editingId ? (kindLbl + ' updated.') : (kindLbl + ' created.'), 'success');
             closeFormModal();
             renderTasks();
         } catch (ex) {
@@ -837,17 +1254,141 @@
         }
     }
 
-    async function confirmDelete(id) {
-        if (!confirm('Delete this task? This cannot be undone.')) return;
+    async function confirmDelete(id, kind) {
+        var kindLbl = kind === 'contact' ? 'contact' : 'task';
+        if (!confirm('Delete this ' + kindLbl + '? This cannot be undone.')) return;
         try {
-            var res = await fetch(BASE + '/api/tasks/' + id, { method: 'DELETE', headers: authHeaders() });
+            var res = await fetch(BASE + entryEndpoint(kind) + id, { method: 'DELETE', headers: authHeaders() });
             if (!res.ok) { showToast('Could not delete.', 'error'); return; }
-            state.tasksMine = state.tasksMine.filter(function(t) { return t.id !== id; });
-            state.tasksAll = state.tasksAll.filter(function(t) { return t.id !== id; });
+            var mineList = kind === 'contact' ? 'contactsMine' : 'tasksMine';
+            var allList = kind === 'contact' ? 'contactsAll' : 'tasksAll';
+            state[mineList] = state[mineList].filter(function(t) { return t.id !== id; });
+            state[allList] = state[allList].filter(function(t) { return t.id !== id; });
             closeViewModal();
             renderTasks();
-            showToast('Task deleted.', 'success');
+            showToast((kind === 'contact' ? 'Contact' : 'Task') + ' deleted.', 'success');
         } catch (ex) { console.error('confirmDelete failed:', ex); showToast('Network error: ' + (ex && ex.message ? ex.message : String(ex)), 'error'); resyncTasks(); }
+    }
+
+    // ---- Settings modal (superuser + @uma.es only) ----
+
+    function openSettingsModal() {
+        renderSettingsStatuses();
+        renderSettingsUnits();
+        document.getElementById('settings-modal').classList.add('active');
+    }
+
+    function closeSettingsModal() {
+        document.getElementById('settings-modal').classList.remove('active');
+    }
+
+    function renderSettingsStatuses() {
+        var container = document.getElementById('settings-statuses');
+        container.innerHTML = state.statuses.map(function(s) {
+            return '<div class="settings-row">' +
+                '<span class="slug">' + esc(s.id) + '</span>' +
+                '<input type="text" value="' + esc(s.label) + '" onchange="saveStatus(\'' + s.id + '\', this.value, this.parentElement.querySelector(\'input[type=color]\').value)" />' +
+                '<input type="color" value="' + s.color + '" onchange="saveStatus(\'' + s.id + '\', this.parentElement.querySelector(\'input[type=text]\').value, this.value)" />' +
+                '<button type="button" class="btn-remove-row" onclick="deleteStatus(\'' + s.id + '\')">&#10005;</button>' +
+                '</div>';
+        }).join('') || '<p style="color:#999;font-size:0.85em;">No statuses yet.</p>';
+    }
+
+    async function addStatus() {
+        var idEl = document.getElementById('new-status-id');
+        var labelEl = document.getElementById('new-status-label');
+        var colorEl = document.getElementById('new-status-color');
+        var id = idEl.value.trim().toLowerCase();
+        var label = labelEl.value.trim();
+        if (!id || !label) { showToast('Enter an id and a label.', 'error'); return; }
+        try {
+            var res = await fetch(BASE + '/api/statuses', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ id: id, label: label, color: colorEl.value }) });
+            if (!res.ok) { var err = await res.json(); showToast(err.detail || 'Could not add status.', 'error'); return; }
+            state.statuses = await res.json();
+            idEl.value = ''; labelEl.value = ''; colorEl.value = '#757575';
+            renderSettingsStatuses();
+            populateStatusSelects();
+            renderTasks();
+            showToast('Status added.', 'success');
+        } catch (e) { console.error('addStatus failed:', e); showToast('Network error.', 'error'); }
+    }
+
+    async function saveStatus(id, label, color) {
+        if (!label || !label.trim()) { showToast('Label cannot be empty.', 'error'); renderSettingsStatuses(); return; }
+        try {
+            var res = await fetch(BASE + '/api/statuses/' + encodeURIComponent(id), { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ label: label.trim(), color: color }) });
+            if (!res.ok) { var err = await res.json(); showToast(err.detail || 'Could not update status.', 'error'); return; }
+            state.statuses = await res.json();
+            populateStatusSelects();
+            renderTasks();
+            showToast('Status updated.', 'success');
+        } catch (e) { console.error('saveStatus failed:', e); showToast('Network error.', 'error'); }
+    }
+
+    async function deleteStatus(id) {
+        if (!confirm('Delete this status?')) return;
+        try {
+            var res = await fetch(BASE + '/api/statuses/' + encodeURIComponent(id), { method: 'DELETE', headers: authHeaders() });
+            if (!res.ok) { var err = await res.json(); showToast(err.detail || 'Could not delete status.', 'error'); return; }
+            state.statuses = await res.json();
+            renderSettingsStatuses();
+            populateStatusSelects();
+            renderTasks();
+            showToast('Status deleted.', 'success');
+        } catch (e) { console.error('deleteStatus failed:', e); showToast('Network error.', 'error'); }
+    }
+
+    function renderSettingsUnits() {
+        var container = document.getElementById('settings-units');
+        container.innerHTML = state.dashboardUnits.map(function(u) {
+            return '<div class="settings-row">' +
+                '<input type="text" value="' + esc(u.name) + '" onchange="saveUnit(' + u.id + ', this.value)" />' +
+                '<button type="button" class="btn-remove-row" onclick="deleteUnit(' + u.id + ')">&#10005;</button>' +
+                '</div>';
+        }).join('') || '<p style="color:#999;font-size:0.85em;">No units yet.</p>';
+    }
+
+    async function addUnit() {
+        var nameEl = document.getElementById('new-unit-name');
+        var name = nameEl.value.trim();
+        if (!name) { showToast('Enter a unit name.', 'error'); return; }
+        try {
+            var res = await fetch(BASE + '/api/dashboard-units', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name }) });
+            if (!res.ok) { var err = await res.json(); showToast(err.detail || 'Could not add unit.', 'error'); return; }
+            nameEl.value = '';
+            await reloadUnits();
+            showToast('Unit added.', 'success');
+        } catch (e) { console.error('addUnit failed:', e); showToast('Network error.', 'error'); }
+    }
+
+    async function saveUnit(id, name) {
+        if (!name || !name.trim()) { showToast('Name cannot be empty.', 'error'); renderSettingsUnits(); return; }
+        try {
+            var res = await fetch(BASE + '/api/dashboard-units/' + id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ name: name.trim() }) });
+            if (!res.ok) { var err = await res.json(); showToast(err.detail || 'Could not update unit.', 'error'); return; }
+            await reloadUnits();
+            showToast('Unit updated.', 'success');
+        } catch (e) { console.error('saveUnit failed:', e); showToast('Network error.', 'error'); }
+    }
+
+    async function deleteUnit(id) {
+        if (!confirm('Delete this unit? Tasks using it will show no unit.')) return;
+        try {
+            var res = await fetch(BASE + '/api/dashboard-units/' + id, { method: 'DELETE', headers: authHeaders() });
+            if (!res.ok) { var err = await res.json(); showToast(err.detail || 'Could not delete unit.', 'error'); return; }
+            await reloadUnits();
+            resyncTasks();
+            showToast('Unit deleted.', 'success');
+        } catch (e) { console.error('deleteUnit failed:', e); showToast('Network error.', 'error'); }
+    }
+
+    async function reloadUnits() {
+        var res = await fetch(BASE + '/api/dashboard-units', { headers: authHeaders() });
+        if (res.ok) state.dashboardUnits = await res.json();
+        renderSettingsUnits();
+        populateUnitFilter();
+        populateUnitSelect();
+        renderTasks();
     }
 
     // ---- Helpers ----
@@ -862,6 +1403,17 @@
         var d = new Date(iso);
         if (isNaN(d)) return iso;
         return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function mobilityTiming(m) {
+        var ref = m.end_date || m.start_date;
+        if (ref && ref < todayIsoStr()) return { cls: 'past', label: 'Past' };
+        return { cls: 'projected', label: 'Projected' };
+    }
+
+    function meetingTiming(m) {
+        if (m.date && m.date < todayIsoStr()) return { cls: 'past', label: 'Past' };
+        return { cls: 'projected', label: 'Upcoming' };
     }
 
     function esc(str) {
@@ -880,6 +1432,7 @@
 
     document.getElementById('view-modal').addEventListener('click', function(e) { if (e.target === this) closeViewModal(); });
     document.getElementById('form-modal').addEventListener('click', function(e) { if (e.target === this) closeFormModal(); });
+    document.getElementById('settings-modal').addEventListener('click', function(e) { if (e.target === this) closeSettingsModal(); });
 
     init();
 </script>
