@@ -392,7 +392,7 @@
         <!-- Auth bar -->
         <div class="auth-bar" id="authBar">
             <span class="auth-info" id="authInfo"></span>
-            <button class="auth-btn" id="loginBtn" onclick="showLoginModal()">Login to Edit</button>
+            <button class="auth-btn" id="loginBtn" onclick="goToLogin()">Login to Edit</button>
             <button class="auth-btn" id="userModeBtn" onclick="toggleEditorMode()" style="display:none">Switch to User Mode</button>
             <button class="auth-btn" id="logoutBtn" onclick="doLogout()" style="display:none">Logout</button>
         </div>
@@ -498,25 +498,6 @@
         </div>
     </div>
 
-    <!-- Login modal -->
-    <div id="loginModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3>Login</h3>
-            <div class="form-group">
-                <label for="loginUser">Username</label>
-                <input type="text" id="loginUser" autocomplete="username">
-            </div>
-            <div class="form-group">
-                <label for="loginPass">Password</label>
-                <input type="password" id="loginPass" autocomplete="current-password">
-            </div>
-            <p id="loginError" class="error"></p>
-            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-                <button class="auth-btn" onclick="closeLoginModal()">Cancel</button>
-                <button class="primary" style="padding:10px 28px;" onclick="doLogin()">Login</button>
-            </div>
-        </div>
-    </div>
 
     <script>
         const BASE = '/unigracon';
@@ -628,38 +609,8 @@
             updateAuthUI();
         }
 
-        function showLoginModal() {
-            document.getElementById('loginUser').value = '';
-            document.getElementById('loginPass').value = '';
-            document.getElementById('loginError').textContent = '';
-            document.getElementById('loginModal').classList.add('active');
-            document.getElementById('loginUser').focus();
-        }
-
-        function closeLoginModal() {
-            document.getElementById('loginModal').classList.remove('active');
-        }
-
-        async function doLogin() {
-            const username = document.getElementById('loginUser').value.trim();
-            const password = document.getElementById('loginPass').value;
-            const errorEl = document.getElementById('loginError');
-            if (!username || !password) { errorEl.textContent = 'Enter username and password'; return; }
-            try {
-                const resp = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password }),
-                });
-                if (!resp.ok) { errorEl.textContent = 'Invalid credentials'; return; }
-                const data = await resp.json();
-                authToken = data.token;
-                localStorage.setItem('uninovis_token', authToken); localStorage.setItem('unigracon_token', authToken);
-                closeLoginModal();
-                await checkAuth();
-            } catch (e) {
-                errorEl.textContent = 'Login failed: ' + e.message;
-            }
+        function goToLogin() {
+            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
         }
 
         function doLogout() {
@@ -668,14 +619,6 @@
             localStorage.removeItem('uninovis_token'); localStorage.removeItem('unigracon_token');
             updateAuthUI();
         }
-
-        // Enter key in login modal
-        document.getElementById('loginPass').addEventListener('keydown', e => {
-            if (e.key === 'Enter') doLogin();
-        });
-        document.getElementById('loginModal').addEventListener('click', e => {
-            if (e.target.id === 'loginModal') closeLoginModal();
-        });
 
         /* ── Data loading ────────────────────────────────────── */
 

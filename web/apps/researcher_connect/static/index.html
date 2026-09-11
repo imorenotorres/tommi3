@@ -117,7 +117,7 @@
     <!-- Auth bar -->
     <div class="auth-bar">
         <span class="auth-info" id="authInfo"></span>
-        <button class="btn-small" id="loginBtn" onclick="showLogin()">Login to Edit</button>
+        <button class="btn-small" id="loginBtn" onclick="goToLogin()">Login to Edit</button>
         <button class="btn-small hidden" id="logoutBtn" onclick="doLogout()">Logout</button>
     </div>
 
@@ -145,19 +145,6 @@
     <div class="no-results hidden" id="noResults">No researchers match your search.</div>
 </div>
 
-<!-- Login modal -->
-<div class="modal" id="loginModal">
-    <div class="modal-box">
-        <h3>Login</h3>
-        <div class="form-group"><label>Username</label><input type="text" id="loginUser"></div>
-        <div class="form-group"><label>Password</label><input type="text" id="loginPass" style="-webkit-text-security:disc;"></div>
-        <p id="loginError" style="color:#dc3545;font-size:0.85em;"></p>
-        <div class="modal-footer">
-            <button class="btn-small" onclick="closeModal('loginModal')">Cancel</button>
-            <button class="btn" onclick="doLogin()">Login</button>
-        </div>
-    </div>
-</div>
 
 <!-- Add/Edit researcher modal -->
 <div class="modal" id="researcherModal">
@@ -276,29 +263,8 @@ function updateAuthUI() {
     document.getElementById('editorToolbar').classList.toggle('hidden', !canEdit);
 }
 
-function showLogin() {
-    document.getElementById('loginUser').value = '';
-    document.getElementById('loginPass').value = '';
-    document.getElementById('loginError').textContent = '';
-    openModal('loginModal');
-    document.getElementById('loginUser').focus();
-}
-
-async function doLogin() {
-    var username = document.getElementById('loginUser').value.trim();
-    var password = document.getElementById('loginPass').value;
-    if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
-    try {
-        var resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
-        if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
-        var d = await resp.json();
-        authToken = d.token;
-        localStorage.setItem('uninovis_token', authToken);
-        localStorage.setItem('uninovis_admin_token', authToken);
-        closeModal('loginModal');
-        await checkAuth();
-        render();
-    } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
+function goToLogin() {
+    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
 }
 
 function doLogout() {
@@ -308,8 +274,6 @@ function doLogout() {
     updateAuthUI();
     render();
 }
-
-document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
 
 // -- Data --
 async function loadData() {

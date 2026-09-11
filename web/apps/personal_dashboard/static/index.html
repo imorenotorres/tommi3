@@ -181,7 +181,7 @@
 
     <div class="auth-bar">
         <span class="auth-info" id="authInfo"></span>
-        <button class="btn-small" id="loginBtn" onclick="showLogin()">Login</button>
+        <button class="btn-small" id="loginBtn" onclick="goToLogin()">Login</button>
         <button class="btn-small" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
         <button class="btn-small" id="btn-settings" style="display:none" onclick="openSettingsModal()">Settings</button>
         <button class="btn" id="btn-new-task" style="display:none" onclick="openNewTaskModal()">+ New task/contact</button>
@@ -189,7 +189,7 @@
 
     <div class="login-prompt" id="login-prompt" style="display:none">
         <p>Log in with a UNINOVIS staff account to view your personal dashboard.</p>
-        <button class="btn" onclick="showLogin()">Log in</button>
+        <button class="btn" onclick="goToLogin()">Log in</button>
     </div>
 
     <div id="no-access" class="no-access hidden">
@@ -220,20 +220,6 @@
         </div>
 
         <div id="task-list"></div>
-    </div>
-</div>
-
-<!-- Login modal -->
-<div class="modal" id="loginModal">
-    <div class="modal-box" style="max-width:360px;">
-        <h3>Login</h3>
-        <div class="form-group"><label>Username</label><input type="text" id="loginUser"></div>
-        <div class="form-group"><label>Password</label><input type="password" id="loginPass"></div>
-        <p id="loginError" style="color:#dc3545;font-size:0.85em;"></p>
-        <div class="modal-footer">
-            <button class="btn-small" type="button" onclick="closeLogin()">Cancel</button>
-            <button class="btn" type="button" onclick="doLogin()">Login</button>
-        </div>
     </div>
 </div>
 
@@ -465,28 +451,8 @@
         return t ? { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
     }
 
-    function showLogin() {
-        document.getElementById('loginUser').value = '';
-        document.getElementById('loginPass').value = '';
-        document.getElementById('loginError').textContent = '';
-        document.getElementById('loginModal').classList.add('active');
-        document.getElementById('loginUser').focus();
-    }
-
-    function closeLogin() { document.getElementById('loginModal').classList.remove('active'); }
-
-    async function doLogin() {
-        var username = document.getElementById('loginUser').value.trim();
-        var password = document.getElementById('loginPass').value;
-        if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
-        try {
-            var resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
-            if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
-            var data = await resp.json();
-            localStorage.setItem('uninovis_token', data.token);
-            closeLogin();
-            location.reload();
-        } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
+    function goToLogin() {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
     }
 
     function doLogout() {
@@ -494,9 +460,6 @@
         localStorage.removeItem('tommi_token');
         location.reload();
     }
-
-    document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
-    document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target.id === 'loginModal') closeLogin(); });
 
     // ---- Init ----
 
@@ -1132,9 +1095,18 @@
         form.elements['visibility'].value = t.visibility || 'private';
         form.elements['assignee_id'].value = t.assignee ? t.assignee.person_id : '';
 
-        // The status field only applies when creating; progress on an
-        // existing assignment is changed via "Update my status" instead.
-        document.getElementById('status-field-wrap').classList.add('hidden');
+        // Only the current assignee or an admin may change the status from
+        // here; everyone else edits the other fields with status untouched.
+        var statusWrap = document.getElementById('status-field-wrap');
+        var statusSel = document.getElementById('sel-status');
+        if (t.assignee && (!!myAssignee(t) || isAdmin())) {
+            statusWrap.classList.remove('hidden');
+            statusSel.disabled = false;
+            statusSel.value = t.assignee.status;
+        } else {
+            statusWrap.classList.add('hidden');
+            statusSel.disabled = true;
+        }
 
         // The type (task/contact) can't change once created.
         document.getElementById('kind-toggle').classList.add('hidden');
@@ -1195,7 +1167,9 @@
             var person = state.directoryPeople.find(function(p) { return p.id === assigneeId; });
             if (person) {
                 assignee = { person_id: person.id, name: person.name || '', email: person.email || '' };
-                if (!state.editingId) assignee.status = form.elements['status_id'].value || defaultStatusId();
+                if (!document.getElementById('sel-status').disabled) {
+                    assignee.status = form.elements['status_id'].value || defaultStatusId();
+                }
             }
         }
 

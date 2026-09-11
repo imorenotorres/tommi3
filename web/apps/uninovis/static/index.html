@@ -129,27 +129,13 @@
 
     <div class="auth-bar">
         <span id="authInfo"></span>
-        <button id="loginBtn" onclick="showLogin()">Login to Edit</button>
+        <button id="loginBtn" onclick="goToLogin()">Login to Edit</button>
         <button id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
     </div>
 
     <div class="tools-grid" id="toolsGrid"></div>
 
     <div class="footer">UNINOVIS Data for life</div>
-
-    <!-- Login modal -->
-    <div class="modal" id="loginModal">
-        <div class="modal-box">
-            <h3>Login</h3>
-            <div class="form-group"><label>Username</label><input type="text" id="loginUser"></div>
-            <div class="form-group"><label>Password</label><input type="password" id="loginPass"></div>
-            <p id="loginError" style="color:#dc3545;font-size:0.85em;"></p>
-            <div class="modal-footer">
-                <button class="btn-small" onclick="closeLogin()">Cancel</button>
-                <button class="btn" onclick="doLogin()">Login</button>
-            </div>
-        </div>
-    </div>
 
 <script>
     // ── Tool registry — add new tools here ────────────────────────
@@ -265,29 +251,8 @@
         renderTools();
     }
 
-    function showLogin() {
-        document.getElementById('loginUser').value = '';
-        document.getElementById('loginPass').value = '';
-        document.getElementById('loginError').textContent = '';
-        document.getElementById('loginModal').classList.add('active');
-        document.getElementById('loginUser').focus();
-    }
-
-    function closeLogin() { document.getElementById('loginModal').classList.remove('active'); }
-
-    async function doLogin() {
-        var username = document.getElementById('loginUser').value.trim();
-        var password = document.getElementById('loginPass').value;
-        if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
-        try {
-            var resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
-            if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
-            var data = await resp.json();
-            authToken = data.token;
-            localStorage.setItem('uninovis_token', authToken); localStorage.setItem('uninovis_admin_token', authToken);
-            closeLogin();
-            await checkAuth();
-        } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
+    function goToLogin() {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
     }
 
     function doLogout() {
@@ -295,9 +260,6 @@
         localStorage.removeItem('uninovis_token'); localStorage.removeItem('uninovis_admin_token');
         updateUI();
     }
-
-    document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
-    document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target.id === 'loginModal') closeLogin(); });
 
     // ── Render tools ──────────────────────────────────────────────
     function renderTools() {

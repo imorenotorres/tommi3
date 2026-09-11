@@ -145,7 +145,8 @@ class AssigneeInput(BaseModel):
     person_id: int
     name: str = ""
     email: str = ""
-    status: Optional[str] = None  # only honored when creating a task
+    status: Optional[str] = None  # honored on create, and on update only for
+    # the current assignee or a superuser — see _resolve_assignee_status
 
 
 class TaskBody(BaseModel):
@@ -260,6 +261,27 @@ def _validate_assignee(assignee: Optional[AssigneeInput]):
     assignable_ids = {p["id"] for p in _assignable_people()}
     if assignee.person_id not in assignable_ids:
         raise HTTPException(400, "Tasks can only be assigned to people who can access this app")
+
+
+def _resolve_assignee_status(old_assignee: Optional[dict], body_assignee: AssigneeInput, session: dict, now: str):
+    """Decide the status/updated_at for an assignee on a task/contact PUT.
+
+    A status included in the request body is only honored when the caller
+    is the person currently assigned (and stays assigned) or a superuser —
+    the same rule as the dedicated .../status endpoints. Anyone else's
+    submitted status is silently ignored so they can't bump someone else's
+    progress just by resubmitting the edit form.
+    """
+    username = session["username"].strip().lower()
+    is_admin = "superuser" in set(user_roles(session))
+    keep_progress = bool(old_assignee) and old_assignee["person_id"] == body_assignee.person_id
+    is_current_assignee = keep_progress and old_assignee.get("email", "").lower() == username
+    if body_assignee.status is not None and keep_progress and (is_admin or is_current_assignee):
+        _validate_status(body_assignee.status)
+        return body_assignee.status, now
+    if keep_progress:
+        return old_assignee["status"], old_assignee["updated_at"]
+    return _default_status_id(), now
 
 
 def _find_task(data: dict, task_id: str) -> dict:
@@ -412,13 +434,13 @@ def update_task(task_id: str, body: TaskBody, session: dict = Depends(_require_s
     old_assignee = entry.get("assignee")
     new_assignee = None
     if body.assignee:
-        keep_progress = old_assignee and old_assignee["person_id"] == body.assignee.person_id
+        status, status_updated_at = _resolve_assignee_status(old_assignee, body.assignee, session, now)
         new_assignee = {
             "person_id": body.assignee.person_id,
             "name": body.assignee.name,
             "email": body.assignee.email.strip().lower(),
-            "status": old_assignee["status"] if keep_progress else _default_status_id(),
-            "updated_at": old_assignee["updated_at"] if keep_progress else now,
+            "status": status,
+            "updated_at": status_updated_at,
         }
 
     entry.update({
@@ -524,13 +546,13 @@ def update_contact(contact_id: str, body: ContactBody, session: dict = Depends(_
     old_assignee = entry.get("assignee")
     new_assignee = None
     if body.assignee:
-        keep_progress = old_assignee and old_assignee["person_id"] == body.assignee.person_id
+        status, status_updated_at = _resolve_assignee_status(old_assignee, body.assignee, session, now)
         new_assignee = {
             "person_id": body.assignee.person_id,
             "name": body.assignee.name,
             "email": body.assignee.email.strip().lower(),
-            "status": old_assignee["status"] if keep_progress else _default_status_id(),
-            "updated_at": old_assignee["updated_at"] if keep_progress else now,
+            "status": status,
+            "updated_at": status_updated_at,
         }
 
     entry.update(_contact_dict(body, new_assignee))

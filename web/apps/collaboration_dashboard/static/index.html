@@ -200,7 +200,7 @@
     <!-- Auth bar -->
     <div class="auth-bar">
         <span class="auth-info" id="authInfo"></span>
-        <button class="btn-small" id="loginBtn" onclick="showLogin()">Login</button>
+        <button class="btn-small" id="loginBtn" onclick="goToLogin()">Login</button>
         <button class="btn-small" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
         <button class="btn" id="btn-new-collab" style="display:none" onclick="openNewCollabModal()">+ Registrar contacto exploratorio</button>
     </div>
@@ -208,7 +208,7 @@
     <!-- Login prompt for unauthenticated users -->
     <div class="login-prompt" id="login-prompt" style="display:none">
         <p>Log in with a UNINOVIS staff account to view and log collaborations.</p>
-        <button class="btn" onclick="showLogin()">Log in</button>
+        <button class="btn" onclick="goToLogin()">Log in</button>
     </div>
 
     <div id="no-access" class="no-access hidden">
@@ -244,19 +244,6 @@
     </div>
 </div>
 
-<!-- Login modal -->
-<div class="modal" id="loginModal">
-    <div class="modal-box" style="max-width:360px;">
-        <h3>Login</h3>
-        <div class="form-group"><label>Username</label><input type="text" id="loginUser"></div>
-        <div class="form-group"><label>Password</label><input type="password" id="loginPass"></div>
-        <p id="loginError" style="color:#dc3545;font-size:0.85em;"></p>
-        <div class="modal-footer">
-            <button class="btn-small" type="button" onclick="closeLogin()">Cancel</button>
-            <button class="btn" type="button" onclick="doLogin()">Login</button>
-        </div>
-    </div>
-</div>
 
 <!-- View Collaboration Modal -->
 <div class="modal" id="view-modal">
@@ -423,28 +410,8 @@
         return t ? { 'Authorization': 'Bearer ' + t, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
     }
 
-    function showLogin() {
-        document.getElementById('loginUser').value = '';
-        document.getElementById('loginPass').value = '';
-        document.getElementById('loginError').textContent = '';
-        document.getElementById('loginModal').classList.add('active');
-        document.getElementById('loginUser').focus();
-    }
-
-    function closeLogin() { document.getElementById('loginModal').classList.remove('active'); }
-
-    async function doLogin() {
-        var username = document.getElementById('loginUser').value.trim();
-        var password = document.getElementById('loginPass').value;
-        if (!username || !password) { document.getElementById('loginError').textContent = 'Enter username and password'; return; }
-        try {
-            var resp = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
-            if (!resp.ok) { document.getElementById('loginError').textContent = 'Invalid credentials'; return; }
-            var data = await resp.json();
-            localStorage.setItem('uninovis_token', data.token);
-            closeLogin();
-            location.reload();
-        } catch (e) { document.getElementById('loginError').textContent = 'Login failed'; }
+    function goToLogin() {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
     }
 
     function doLogout() {
@@ -452,9 +419,6 @@
         localStorage.removeItem('tommi_token');
         location.reload();
     }
-
-    document.getElementById('loginPass').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
-    document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target.id === 'loginModal') closeLogin(); });
 
     // ---- Init ----
 
