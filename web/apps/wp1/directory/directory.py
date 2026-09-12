@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
+DATA_PATH = os.path.join(os.path.dirname(__file__), "data_directory.json")
 
 router = APIRouter(prefix="/directory", tags=["directory"])
 

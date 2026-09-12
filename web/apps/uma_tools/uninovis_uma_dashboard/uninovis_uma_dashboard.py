@@ -24,7 +24,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "tasks.json")
 CONTACTS_PATH = os.path.join(os.path.dirname(__file__), "contacts.json")
 STATUS_PATH = os.path.join(os.path.dirname(__file__), "status.json")
 UNITS_PATH = os.path.join(os.path.dirname(__file__), "dashboard_units.json")
-DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "wp1", "directory", "data.json")
+DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "wp1", "directory", "data_directory.json")
 
 router = APIRouter(prefix="/uninovis-uma-dashboard", tags=["uninovis_uma_dashboard"])
 

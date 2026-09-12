@@ -16,7 +16,7 @@ from pydantic import BaseModel, field_validator, model_validator
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
-DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "wp1", "directory", "data.json")
+DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "wp1", "directory", "data_directory.json")
 FESTIVITIES_PATH = os.path.join(os.path.dirname(__file__), "festivities.json")
 
 router = APIRouter(prefix="/uma-holiday-tracker", tags=["holiday_tracker"])

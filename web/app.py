@@ -729,7 +729,7 @@ def _check_directory_email(email: str) -> str:
     """Check if an email exists in the directory. Returns the person's name if found, empty string if not."""
     try:
         import json
-        directory_path = SCRIPT_DIR / "apps" / "wp1" / "directory" / "data.json"
+        directory_path = SCRIPT_DIR / "apps" / "wp1" / "directory" / "data_directory.json"
         if not directory_path.exists():
             return ""
         with open(directory_path, encoding="utf-8") as f:
