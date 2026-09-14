@@ -1103,7 +1103,8 @@ async def api_request_access(req: AccessRequestBody, request: Request):
                             smtp_port=smtp["port"],
                             smtp_user=smtp["user"],
                             smtp_password=smtp["password"],
-                            from_addr=smtp["from_addr"],
+                            smtp_from=smtp["from_addr"],
+                            smtp_use_tls=smtp["use_tls"],
                         )
                     except Exception:
                         pass
@@ -1154,8 +1155,9 @@ async def api_forgot_password(request: Request, body: dict = None):
                     smtp_port=smtp["port"],
                     smtp_user=smtp["user"],
                     smtp_password=smtp["password"],
-                    from_addr=smtp["from_addr"],
-                    subject="UNINOVIS — Password Reset",
+                    smtp_from=smtp["from_addr"],
+                    smtp_use_tls=smtp["use_tls"],
+                    is_reset=True,
                 )
             except Exception:
                 pass  # Don't reveal email sending failures
@@ -4220,7 +4222,7 @@ async def agents_page_with_agent(agent_id: str):
 @app.get("/login")
 async def login_page():
     """Sirve la página de login"""
-    return FileResponse(SCRIPT_DIR / "static" / "login.html")
+    return FileResponse(SCRIPT_DIR / "static" / "login.html", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/testing")

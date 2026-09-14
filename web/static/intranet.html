@@ -1076,7 +1076,10 @@ async function umLoadPendingRequests() {
                 + '<div style="font-size:0.78rem;color:#78716c;">' + esc(r.institution) + deptInfo + profileLink + ' &middot; ' + date + '</div>'
                 + reasonInfo
                 + '</div>'
-                + '<button onclick="umSolveRequest(\'' + esc(r.email).replace(/'/g, '&#39;') + '\')" style="background:#16a34a;color:#fff;border:none;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:0.8rem;white-space:nowrap;">Solved</button>'
+                + '<div style="display:flex;flex-direction:column;gap:6px;">'
+                + '<button onclick="umAcceptRequest(\'' + esc(r.email).replace(/'/g, '&#39;') + '\')" style="background:#16a34a;color:#fff;border:none;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:0.8rem;white-space:nowrap;">Accept</button>'
+                + '<button onclick="umRejectRequest(\'' + esc(r.email).replace(/'/g, '&#39;') + '\')" style="background:#dc2626;color:#fff;border:none;padding:5px 12px;border-radius:5px;cursor:pointer;font-size:0.8rem;white-space:nowrap;">Reject</button>'
+                + '</div>'
                 + '</div>';
         });
         container.innerHTML = html;
@@ -1086,7 +1089,8 @@ async function umLoadPendingRequests() {
     updatePendingRequestsBadge();
 }
 
-function umSolveRequest(email) {
+// ── Reject: permanently deletes the request, no other side effects ──
+function umRejectRequest(email) {
     var existing = document.getElementById('um-solve-dialog');
     if (existing) existing.remove();
 
@@ -1095,29 +1099,73 @@ function umSolveRequest(email) {
     dialog.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:1100;display:flex;justify-content:center;align-items:center;';
     dialog.innerHTML = '<div style="background:#fff;border-radius:10px;padding:20px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);position:relative;">'
         + '<button onclick="document.getElementById(\'um-solve-dialog\').remove()" style="position:absolute;top:8px;right:10px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">&times;</button>'
-        + '<h3 style="margin:0 0 10px 0;font-size:0.95rem;color:#9a3412;">Delete this request?</h3>'
-        + '<p style="font-size:0.85rem;margin:0 0 8px 0;">The request from <strong>' + esc(email) + '</strong> will be <strong>permanently deleted</strong> — this cannot be undone.</p>'
-        + '<p style="font-size:0.85rem;margin:0 0 14px 0;">Before continuing, make sure the account has already been created (via "Create new user" / "Invite user by email" below) if this person needs access.</p>'
+        + '<h3 style="margin:0 0 10px 0;font-size:0.95rem;color:#9a3412;">Are you sure you want to delete?</h3>'
+        + '<p style="font-size:0.85rem;margin:0 0 14px 0;">The request from <strong>' + esc(email) + '</strong> will be permanently deleted. This action cannot be reversed.</p>'
         + '<div style="display:flex;justify-content:flex-end;gap:8px;">'
         + '<button onclick="document.getElementById(\'um-solve-dialog\').remove()" style="background:#e9ecef;border:1px solid #ccc;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Cancel</button>'
-        + '<button onclick="umConfirmSolveRequest(\'' + esc(email).replace(/'/g, '&#39;') + '\')" style="background:#dc2626;color:#fff;border:none;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Delete request</button>'
+        + '<button onclick="umConfirmRejectRequest(\'' + esc(email).replace(/'/g, '&#39;') + '\')" style="background:#dc2626;color:#fff;border:none;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Delete request</button>'
         + '</div></div>';
     dialog.addEventListener('click', function(e) { if (e.target === dialog) dialog.remove(); });
     document.body.appendChild(dialog);
 }
 
-async function umConfirmSolveRequest(email) {
+async function umConfirmRejectRequest(email) {
     try {
         var res = await umFetch('/api/auth/access-requests/' + encodeURIComponent(email), { method: 'DELETE' });
         var dialog = document.getElementById('um-solve-dialog');
         if (dialog) dialog.remove();
         if (!res.ok) {
             var data = await res.json();
-            umMsg(data.detail || 'Error clearing request', false);
+            umMsg(data.detail || 'Error deleting request', false);
             return;
         }
-        umMsg('Request from ' + email + ' cleared', true);
+        umMsg('Request from ' + email + ' deleted', true);
         umLoadPendingRequests();
+    } catch (e) {
+        umMsg('Request failed', false);
+    }
+}
+
+// ── Accept: grants access — creates the account and sends an invite email ──
+function umAcceptRequest(email) {
+    var existing = document.getElementById('um-accept-dialog');
+    if (existing) existing.remove();
+
+    var dialog = document.createElement('div');
+    dialog.id = 'um-accept-dialog';
+    dialog.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:1100;display:flex;justify-content:center;align-items:center;';
+    dialog.innerHTML = '<div style="background:#fff;border-radius:10px;padding:20px;width:360px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);position:relative;">'
+        + '<button onclick="document.getElementById(\'um-accept-dialog\').remove()" style="position:absolute;top:8px;right:10px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">&times;</button>'
+        + '<h3 style="margin:0 0 10px 0;font-size:0.95rem;color:#166534;">Grant access?</h3>'
+        + '<p style="font-size:0.85rem;margin:0 0 10px 0;">You are granting <strong>' + esc(email) + '</strong> access to the UNINOVIS intranet. Are you sure?</p>'
+        + '<div style="margin-bottom:14px;">'
+        + '<label style="display:block;font-size:0.78rem;font-weight:600;color:#4250b3;margin-bottom:4px;">Role to grant</label>'
+        + '<select id="um-accept-role" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85rem;">'
+        + roleOptionsHtml('teaching_staff')
+        + '</select>'
+        + '</div>'
+        + '<div style="display:flex;justify-content:flex-end;gap:8px;">'
+        + '<button onclick="document.getElementById(\'um-accept-dialog\').remove()" style="background:#e9ecef;border:1px solid #ccc;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">No</button>'
+        + '<button onclick="umConfirmAcceptRequest(\'' + esc(email).replace(/'/g, '&#39;') + '\')" style="background:#16a34a;color:#fff;border:none;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:0.85rem;">Yes, grant access</button>'
+        + '</div></div>';
+    dialog.addEventListener('click', function(e) { if (e.target === dialog) dialog.remove(); });
+    document.body.appendChild(dialog);
+}
+
+async function umConfirmAcceptRequest(email) {
+    var role = document.getElementById('um-accept-role').value;
+    try {
+        var res = await umFetch('/api/auth/access-requests/' + encodeURIComponent(email) + '/approve?role=' + encodeURIComponent(role), { method: 'POST' });
+        var dialog = document.getElementById('um-accept-dialog');
+        if (dialog) dialog.remove();
+        var data = await res.json().catch(function() { return {}; });
+        if (!res.ok) {
+            umMsg(data.detail || 'Error granting access', false);
+            return;
+        }
+        umMsg(data.email_sent ? ('Invitation sent to ' + email) : ('Access granted to ' + email + ', but the invitation email could not be sent — check SMTP configuration.'), !!data.email_sent);
+        umLoadPendingRequests();
+        umLoadUsers();
     } catch (e) {
         umMsg('Request failed', false);
     }

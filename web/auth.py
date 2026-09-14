@@ -756,51 +756,55 @@ def send_invite_email(
     smtp_from: str,
     smtp_use_tls: bool = True,
     recipient_name: str | None = None,
+    is_reset: bool = False,
 ) -> bool:
     """
-    Send an invitation email to the user (username is their email).
-    Returns True if sent successfully.
+    Send an invitation (or, with is_reset=True, a password-reset) email to
+    the user (username is their email). Returns True if sent successfully.
     """
     import smtplib
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
 
     greeting = f"Hello {recipient_name}," if recipient_name else "Hello,"
+    intro = "A password reset was requested for your UNINOVIS Intranet account." if is_reset else "You have been invited to use the UNINOVIS Intranet."
+    action_label = "Reset my password" if is_reset else "Set my password"
+    ignore_note = "If you did not request this, you can safely ignore this email — your password will not change." if is_reset else "If you did not expect this email, you can safely ignore it."
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Tommi Agents - Set up your account"
+    msg["Subject"] = "UNINOVIS Intranet - Reset your password" if is_reset else "UNINOVIS Intranet - Set up your account"
     msg["From"] = smtp_from
     msg["To"] = username
 
     text_body = f"""{greeting}
 
-You have been invited to use Tommi Agents.
+{intro}
 
-Please set your password by visiting the following link:
+Please {'reset' if is_reset else 'set'} your password by visiting the following link:
 
 {invite_url}
 
 This link will expire in 72 hours.
 
-If you did not expect this email, you can safely ignore it.
+{ignore_note}
 
-— Tommi Agents
+— UNINOVIS Intranet
 """
 
     html_body = f"""\
 <html>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; max-width: 500px; margin: 0 auto; padding: 2rem;">
-  <h2 style="color: #2563eb;">Tommi Agents</h2>
+  <h2 style="color: #2563eb;">UNINOVIS Intranet</h2>
   <p>{greeting}</p>
-  <p>You have been invited to use <b>Tommi Agents</b>.</p>
-  <p>Please set your password by clicking the button below:</p>
+  <p>{intro}</p>
+  <p>Please {'reset' if is_reset else 'set'} your password by clicking the button below:</p>
   <p style="text-align: center; margin: 2rem 0;">
-    <a href="{invite_url}" style="background-color: #2563eb; color: #ffffff; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">Set my password</a>
+    <a href="{invite_url}" style="background-color: #2563eb; color: #ffffff; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 500;">{action_label}</a>
   </p>
   <p style="font-size: 0.85rem; color: #64748b;">This link will expire in 72 hours.</p>
-  <p style="font-size: 0.85rem; color: #64748b;">If you did not expect this email, you can safely ignore it.</p>
+  <p style="font-size: 0.85rem; color: #64748b;">{ignore_note}</p>
   <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 2rem 0;">
-  <p style="font-size: 0.8rem; color: #94a3b8;">Tommi Agents — Universidad de Málaga</p>
+  <p style="font-size: 0.8rem; color: #94a3b8;">UNINOVIS Intranet — Universidad de Málaga</p>
 </body>
 </html>
 """

@@ -133,9 +133,22 @@
 <!-- Forgot password popup -->
 <div class="modal-overlay" id="forgotModal" onclick="if(event.target===this) closeForgotPassword();">
     <div class="modal-box">
-        <h2>Reset password</h2>
-        <p>To reset your password, please write to:<br><a href="mailto:amparo.zamora@uma.es">amparo.zamora@uma.es</a></p>
-        <button class="btn-login" onclick="closeForgotPassword()">Close</button>
+        <div id="forgotFormView" style="text-align:left;">
+            <h2 style="text-align:center;">Reset password</h2>
+            <p style="text-align:center;">Enter your account email and we'll send you a link to reset your password.</p>
+            <div class="form-group" style="margin-bottom:26px;">
+                <label>Email</label>
+                <input type="email" id="forgotEmail" placeholder="you@uma.es" autocomplete="username">
+            </div>
+            <div class="login-error" id="forgotError"></div>
+            <button class="btn-login" onclick="submitForgotPassword()">Send reset link</button>
+            <button class="btn-login" style="background:#e9ecef;color:#333;margin-top:8px;" onclick="closeForgotPassword()">Cancel</button>
+        </div>
+        <div id="forgotSuccessView" style="display:none;">
+            <h2>Check your email</h2>
+            <p>An email has been sent to your account to change your password.</p>
+            <button class="btn-login" onclick="closeForgotPassword()">Close</button>
+        </div>
     </div>
 </div>
 
@@ -171,10 +184,31 @@ function showLoginForm() {
     document.getElementById('changeModal').classList.remove('open');
 }
 function showForgotPassword() {
+    document.getElementById('forgotFormView').style.display = '';
+    document.getElementById('forgotSuccessView').style.display = 'none';
+    document.getElementById('forgotError').textContent = '';
+    document.getElementById('forgotEmail').value = document.getElementById('loginUser').value.trim();
     document.getElementById('forgotModal').classList.add('open');
 }
 function closeForgotPassword() {
     document.getElementById('forgotModal').classList.remove('open');
+}
+async function submitForgotPassword() {
+    var email = document.getElementById('forgotEmail').value.trim();
+    var errEl = document.getElementById('forgotError');
+    if (!email) { errEl.textContent = 'Please enter your email.'; return; }
+    errEl.textContent = '';
+    try {
+        await fetch('/api/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        });
+    } catch (e) { /* still show the confirmation below — the backend deliberately
+        gives the same response whether or not the account exists, so a
+        network hiccup here shouldn't reveal anything either */ }
+    document.getElementById('forgotFormView').style.display = 'none';
+    document.getElementById('forgotSuccessView').style.display = '';
 }
 function showSignUp() {
     document.getElementById('loginBox').style.display = 'none';
