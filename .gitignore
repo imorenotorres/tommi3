@@ -48,6 +48,7 @@ web/apps/uma_tools/uma_holiday_tracker/data.json
 web/logs/
 web/apps/wp1/event_tracker/data.json
 web/apps/uma_tools/collaboration_dashboard/data.json
+web/apps/sysadmin/apps_in_development/event_tracker_dev/data.json
 
 # macOS hidden files
 .DS_Store

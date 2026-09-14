@@ -72,6 +72,8 @@ _DEFAULT_TOOL_ACCESS = {
     "user_management":    ["superuser"],
     "agent_management":   ["superuser"],
     "tool_visibility":    ["superuser"],
+    # Apps in development — sandbox copies for trying things out, superuser-only
+    "event_tracker_dev":  ["superuser"],
 }
 
 TOOL_ACCESS_FILE = DATA_DIR / "tool_access.json"

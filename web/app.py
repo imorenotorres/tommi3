@@ -417,6 +417,12 @@ from apps.wp1.directory.directory import router as directory_router
 app.include_router(directory_router)
 app.mount("/directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp1" / "directory" / "static"), name="directory_static")
 
+# Mount Event Tracker (Dev) — sandbox copy under System Administration > Apps
+# in development, superuser-only (see TOOL_ACCESS["event_tracker_dev"])
+from apps.sysadmin.apps_in_development.event_tracker_dev.event_tracker_dev import router as event_tracker_dev_router
+app.include_router(event_tracker_dev_router)
+app.mount("/event-tracker-dev/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "sysadmin" / "apps_in_development" / "event_tracker_dev" / "static"), name="event_tracker_dev_static")
+
 # Mount Holiday Tracker app
 from apps.uma_tools.uma_holiday_tracker.uma_holiday_tracker import router as holiday_tracker_router
 app.include_router(holiday_tracker_router)

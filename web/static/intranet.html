@@ -186,6 +186,8 @@ var TOOL_ACCESS = {
     'tool_visibility':    ['superuser'],
     'log_analytics':      ['superuser'],
     'matomo_analytics':   ['superuser'],
+    // Apps in development — sandbox copies for trying things out, superuser-only
+    'event_tracker_dev':  ['superuser'],
 };
 
 // Tools grouped by functionality
@@ -247,6 +249,7 @@ var SECTIONS = [
             { id: 'user_management', name: 'User Management', icon: '\uD83D\uDD10', desc: 'Create, edit, and delete users. Manage roles and invitations.', url: '#', status: 'active', action: 'openUserManagement' },
             { id: 'agent_management', name: 'Agent Management', icon: '\u2699\uFE0F', desc: 'Agent visibility, access control, data export, and log management.', url: '#', status: 'active', action: 'openAgentManagement' },
             { id: 'tool_visibility', name: 'Tool Visibility', icon: '\uD83D\uDC41', desc: 'Configure which intranet tools are visible to each role.', url: '#', status: 'active', action: 'openToolVisibility' },
+            { id: 'event_tracker_dev', name: 'Event Tracker (Dev)', icon: '\uD83E\uDDEA', desc: 'Sandbox copy of Event Tracker for trying out new features, isolated from production data.', url: '/event-tracker-dev/', status: 'prototype', group: 'Apps in development' },
         ]
     },
     {
@@ -427,6 +430,7 @@ var LEARN_GUIDES = {
     unigracon: [{ id: 'learn_unigracon', title: 'Learn: UNIGRACON', content: 'unigracon' }],
     mobility_planner: [{ id: 'learn_mobility_planner', title: 'Learn: Mobility Planner', content: 'mobility_planner' }],
     event_tracker: [{ id: 'learn_event_tracker', title: 'Learn: Event Tracker', content: 'event_tracker' }],
+    event_tracker_dev: [{ id: 'learn_event_tracker_dev', title: 'Learn: Event Tracker (Dev)', roles: ['superuser'], content: 'event_tracker' }],
     // UMA internal tools: restricted to uninovis_staff/superuser AND an
     // @uma.es login, mirroring the "UMA internal tools" section's own gate.
     holiday_tracker: [{ id: 'learn_holiday_tracker', title: 'Learn: UMA Holiday Tracker', roles: ['uninovis_staff', 'superuser'], emailDomain: 'uma.es', content: 'holiday_tracker' }],
@@ -590,23 +594,36 @@ function renderTabbedView(roles) {
     var rendered = [];
 
     visibleSections.forEach(function(section) {
-        // Group accessible tools by status
-        var toolsByStatus = {};
+        // Tools may be organised into named sub-groups within a tab (e.g.
+        // "Apps in development" under System Administration) — ungrouped
+        // tools (no "group" field) render first with no heading, exactly as
+        // before; each named group gets its own subheading beneath them.
+        var groupOrder = [];
+        var toolsByGroup = {};
         section.tools.forEach(function(tool) {
             if (!canAccess(tool.id, roles)) return;
-            if (!toolsByStatus[tool.status]) toolsByStatus[tool.status] = [];
-            toolsByStatus[tool.status].push(tool);
+            var g = tool.group || '';
+            if (!toolsByGroup[g]) { toolsByGroup[g] = []; groupOrder.push(g); }
+            toolsByGroup[g].push(tool);
         });
 
-        // Build panel with rows sorted by status
+        // Build panel with rows sorted by status within each group
         var panelContent = '';
-        statusOrder.forEach(function(status) {
-            if (!toolsByStatus[status]) return;
-            panelContent += '<div class="tools-grid">';
-            toolsByStatus[status].forEach(function(tool) {
-                panelContent += renderToolCard(tool);
+        groupOrder.forEach(function(g) {
+            if (g) panelContent += '<div class="section-title">' + esc(g) + '</div>';
+            var toolsByStatus = {};
+            toolsByGroup[g].forEach(function(tool) {
+                if (!toolsByStatus[tool.status]) toolsByStatus[tool.status] = [];
+                toolsByStatus[tool.status].push(tool);
             });
-            panelContent += '</div>';
+            statusOrder.forEach(function(status) {
+                if (!toolsByStatus[status]) return;
+                panelContent += '<div class="tools-grid">';
+                toolsByStatus[status].forEach(function(tool) {
+                    panelContent += renderToolCard(tool);
+                });
+                panelContent += '</div>';
+            });
         });
 
         if (!panelContent) return;

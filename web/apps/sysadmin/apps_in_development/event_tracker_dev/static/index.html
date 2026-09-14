@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNINOVIS Event Tracker (Dev)</title>
+<link rel="stylesheet" href="/static/nav.css">
+<style>
+:root {
+  --primary: #2D3876;
+  --primary-light: #4a5299;
+  --bg: #f5f6fa;
+  --card: #fff;
+  --text: #333;
+  --text-light: #666;
+  --border: #e0e0e0;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+.header { background: var(--primary); color: #fff; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 1.3rem; font-weight: 600; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header .btn-back { color: #fff; text-decoration: none; opacity: 0.8; font-size: 0.9rem; }
+.header .btn-back:hover { opacity: 1; }
+
+.filters-bar { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 24px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+.filter-row:last-child { margin-bottom: 0; }
+.filter-btn { padding: 5px 12px; border: 1px solid var(--border); border-radius: 20px; background: #fff; cursor: pointer; font-size: 0.78rem; transition: all 0.15s; color: var(--text); }
+.filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+.filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.filter-btn.group-btn { font-weight: 600; }
+.filter-btn.group-btn.active { background: #1a2255; }
+.filters-label { font-size: 0.78rem; color: var(--text-light); font-weight: 600; margin-right: 4px; min-width: 72px; }
+.filter-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+
+.controls { padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.nav-group { display: flex; align-items: center; gap: 8px; }
+.nav-btn { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 14px; cursor: pointer; font-size: 0.9rem; }
+.nav-btn:hover { background: #eee; }
+.view-group, .seg-group { display: flex; }
+.view-btn { padding: 6px 16px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 0.85rem; margin-left: -1px; }
+.view-btn:first-child { border-radius: var(--radius) 0 0 var(--radius); margin-left: 0; }
+.view-btn:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.view-btn:not(:first-child):not(:last-child) { border-radius: 0; }
+.view-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.current-label { font-size: 1.1rem; font-weight: 600; min-width: 200px; text-align: center; }
+.btn-add { background: var(--primary); color: #fff; border: none; border-radius: var(--radius); padding: 8px 18px; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
+.btn-add:hover { background: var(--primary-light); }
+.io-group { display: flex; gap: 4px; align-items: center; margin-left: 4px; }
+.io-group .nav-btn { font-size: 0.78rem; padding: 5px 10px; }
+
+/* Sync bar */
+.sync-bar { background: #f0f4ff; border-bottom: 1px solid #c8d4f0; padding: 8px 24px; display: flex; align-items: center; gap: 12px; font-size: 0.82rem; color: var(--text-light); }
+.sync-bar .sync-status { flex: 1; }
+.sync-bar .btn-sync { background: var(--primary); color: #fff; border: none; border-radius: var(--radius); padding: 5px 14px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+.sync-bar .btn-sync:hover { background: var(--primary-light); }
+.sync-bar .btn-sync:disabled { opacity: 0.6; cursor: default; }
+
+.stats-bar { padding: 4px 24px 8px; font-size: 0.78rem; color: var(--text-light); display: flex; gap: 16px; }
+.stats-bar span { font-weight: 600; }
+
+.month-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; background: var(--border); margin: 0 24px 24px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.month-grid .day-header { background: var(--primary); color: #fff; text-align: center; padding: 8px; font-size: 0.8rem; font-weight: 600; }
+.month-grid .day-cell { background: var(--card); min-height: 100px; max-height: 130px; padding: 6px; position: relative; vertical-align: top; overflow: hidden; }
+.month-grid .day-cell.other-month { background: #f9f9fb; }
+.month-grid .day-cell.weekend { background: #f1f5f9; }
+.month-grid .day-cell.today { background: #dbeafe; border: 2px solid var(--primary); }
+.day-num { font-size: 0.8rem; font-weight: 600; color: var(--text-light); margin-bottom: 4px; }
+.day-cell.weekend .day-num { color: #94a3b8; }
+.day-cell.today .day-num { background: var(--primary); color: #fff; display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; }
+.event-chip { display: block; font-size: 0.72rem; padding: 2px 6px; margin-bottom: 2px; border-radius: 4px; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day-cell.today .event-chip { color: #1e293b; }
+.event-chip:hover { opacity: 0.85; }
+.event-chip.catalogue { border-left: 3px solid rgba(255,255,255,0.6); opacity: 0.88; }
+.day-more-btn { display: block; font-size: 0.72rem; font-weight: 600; padding: 2px 6px; color: var(--primary); cursor: pointer; }
+.day-more-btn:hover { text-decoration: underline; }
+
+.week-grid { display: grid; grid-template-columns: 60px repeat(7,1fr); margin: 0 24px; background: var(--border); gap: 1px; border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; box-shadow: var(--shadow); }
+.week-grid .wg-header { background: var(--primary); color: #fff; text-align: center; padding: 8px 4px; font-size: 0.78rem; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.week-grid .wg-time { background: #f9f9fb; padding: 4px; font-size: 0.7rem; color: var(--text-light); text-align: right; padding-right: 8px; min-height: 32px; display: flex; align-items: flex-start; justify-content: flex-end; min-width: 0; }
+.week-grid .wg-cell { background: var(--card); min-height: 32px; position: relative; padding: 2px; min-width: 0; overflow: hidden; }
+.week-grid .wg-cell.weekend-col { background: #f1f5f9; }
+.week-grid .wg-cell.today-col { background: #dbeafe; }
+.week-grid .wg-header.weekend-col { background: #e2e8f0; }
+.week-grid .wg-header.today-col { background: var(--primary-light); }
+.wg-allday-label { min-height: 32px !important; }
+.wg-allday-cell { min-height: 32px !important; }
+.wg-cell.today-col .event-chip { color: #1e293b; }
+
+.wg-body { display: flex; margin: 0 24px 24px; background: var(--card); border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); border-top: 1px solid var(--border); overflow: hidden; }
+.wg-timelabels { width: 60px; flex-shrink: 0; background: #f9f9fb; }
+.wg-timelabel { font-size: 0.7rem; color: var(--text-light); text-align: right; padding: 2px 8px 0 0; box-sizing: border-box; border-bottom: 1px solid var(--border); }
+.wg-daycol { position: relative; flex: 1; border-left: 1px solid var(--border); background-image: linear-gradient(var(--border) 1px, transparent 1px); }
+.wg-daycol.weekend-col { background-color: #f1f5f9; }
+.wg-daycol.today-col { background-color: #dbeafe; }
+
+.day-view { margin: 0 24px 24px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.day-view .dv-row { display: grid; grid-template-columns: 60px 1fr; border-bottom: 1px solid var(--border); }
+.day-view .dv-time { padding: 8px; font-size: 0.75rem; color: var(--text-light); text-align: right; padding-right: 12px; background: #f9f9fb; }
+.day-view .dv-cell { padding: 4px 8px; min-height: 48px; position: relative; min-width: 0; overflow: hidden; }
+.dv-body { display: flex; }
+.dv-timelabels { width: 60px; flex-shrink: 0; background: #f9f9fb; }
+.dv-timelabel { font-size: 0.75rem; color: var(--text-light); text-align: right; padding: 2px 12px 0 0; box-sizing: border-box; border-bottom: 1px solid var(--border); }
+.dv-daycol { position: relative; flex: 1; background-image: linear-gradient(var(--border) 1px, transparent 1px); }
+
+.tl-block { position: absolute; border-radius: 4px; padding: 2px 6px; color: #fff; font-size: 0.72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.tl-block.tbc { border: 2px dashed rgba(255,255,255,0.6); opacity: 0.8; }
+
+.kpi-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.kpi-table th { background: var(--primary); color: #fff; padding: 6px 10px; text-align: left; font-size: 0.75rem; white-space: nowrap; position: sticky; top: 0; }
+.kpi-table td { padding: 5px 10px; border-bottom: 1px solid var(--border); }
+.kpi-table tr:hover { background: #f5f7ff; }
+.kpi-table .kpi-total { font-weight: 700; background: #f0f1f5; }
+.kpi-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.tbc-badge { display: inline-block; background: #ff9800; color: #fff; font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; font-weight: 600; vertical-align: middle; margin-left: 4px; }
+.event-chip .tbc-badge { font-size: 0.6rem; padding: 0 4px; margin-left: 2px; }
+.event-chip.tbc { border: 2px dashed rgba(0,0,0,0.3); opacity: 0.75; }
+
+.catalogue-badge { display: inline-block; background: #1565c0; color: #fff; font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; font-weight: 500; vertical-align: middle; margin-left: 4px; }
+
+.list-view { margin: 0 24px 24px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.list-view table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.list-view th { padding: 10px 12px; text-align: left; background: var(--primary); color: #fff; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; user-select: none; }
+.list-view th:hover { background: var(--primary-light); }
+.list-view td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.list-view tr:hover { background: #f5f7ff; }
+.list-view tr { cursor: pointer; }
+.list-view tr.is-catalogue { background: #f8fbff; }
+.list-view tr.is-catalogue:hover { background: #eef4ff; }
+.list-view .cat-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; color: #fff; font-size: 0.75rem; white-space: nowrap; }
+.list-view .type-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; background: #e9ecef; color: var(--text); }
+.list-view .type-badge.virtual { background: #e3f2fd; color: #1565c0; }
+
+.cat-WP1 { background: #34a853; }
+.cat-WP2 { background: #fbbc04; color: #333; }
+.cat-WP3 { background: #ff6d01; }
+.cat-WP4 { background: #46bdc6; }
+.cat-WP5 { background: #9334e6; }
+.cat-BoP { background: #e91e63; }
+.cat-ExecCouncil { background: #795548; }
+.cat-BIP { background: #4285f4; }
+.cat-Hackathon { background: #ea4335; }
+.cat-Other_public_events { background: #00897b; }
+.cat-Conference { background: #1565c0; }
+.cat-Staff_Week { background: #2e7d32; }
+.cat-Summer_School { background: #e65100; }
+.cat-Workshop { background: #0277bd; }
+.cat-TB { background: #5c6bc0; }
+.cat-Management_Committee { background: #8d6e63; }
+.cat-Coordinators_Meeting { background: #c2185b; }
+.cat-Kick_off_meeting { background: #7cb342; }
+.cat-General_Assembly { background: #303f9f; }
+.cat-Holidays { background: #757575; }
+.cat-Innovation_Camp { background: #f4511e; }
+.cat-International_Week { background: #00acc1; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; justify-content: center; align-items: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--card); border-radius: var(--radius); width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h2 { font-size: 1.1rem; }
+.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
+.modal-body { padding: 20px; }
+.modal-body label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 4px; margin-top: 12px; }
+.modal-body label:first-child { margin-top: 0; }
+.modal-body input:not([type="checkbox"]), .modal-body select, .modal-body textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; font-family: inherit; }
+.modal-body textarea { resize: vertical; min-height: 60px; }
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+.modal-footer .btn { padding: 8px 20px; border-radius: var(--radius); border: 1px solid var(--border); cursor: pointer; font-size: 0.9rem; }
+.modal-footer .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.modal-footer .btn-danger { background: #ea4335; color: #fff; border-color: #ea4335; }
+
+.detail-field { margin-bottom: 10px; }
+.detail-field .dl { font-size: 0.78rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; }
+.detail-field .dv { font-size: 0.95rem; margin-top: 2px; }
+.detail-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+.participants-section { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.participants-section h4 { font-size: 0.85rem; margin-bottom: 8px; color: var(--primary); }
+.part-add-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.part-add-row select { flex: 1; min-width: 140px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.82rem; }
+.part-add-row .btn-sm { padding: 5px 12px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 0.78rem; background: var(--card); white-space: nowrap; }
+.part-add-row .btn-sm:hover { background: #eee; }
+.part-add-row .btn-sm.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.part-search { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.82rem; margin-bottom: 6px; }
+.part-list { max-height: 180px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+.part-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; border-bottom: 1px solid #f0f0f0; font-size: 0.8rem; }
+.part-item:last-child { border-bottom: none; }
+.part-item .part-info { display: flex; flex-direction: column; }
+.part-item .part-name { font-weight: 500; }
+.part-item .part-email { font-size: 0.72rem; color: var(--text-light); }
+.part-item .part-remove { background: none; border: none; color: #ea4335; cursor: pointer; font-size: 1rem; padding: 0 4px; }
+.part-group-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.part-group-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; background: #e8e0f0; color: var(--primary); font-size: 0.75rem; font-weight: 500; }
+.part-group-tag .tag-remove { background: none; border: none; cursor: pointer; color: var(--primary); font-size: 0.85rem; padding: 0; }
+.btn-copy-emails { padding: 5px 14px; border: 1px solid var(--primary); border-radius: var(--radius); background: #fff; color: var(--primary); cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+.btn-copy-emails:hover { background: var(--primary); color: #fff; }
+.copy-feedback { font-size: 0.75rem; color: #34a853; margin-left: 8px; }
+
+.detail-part-list { margin-top: 4px; }
+.detail-part-item { font-size: 0.85rem; padding: 2px 0; }
+.detail-part-item .dpi-uni { font-size: 0.72rem; color: var(--text-light); }
+
+@media (max-width: 768px) {
+  .month-grid .day-cell { min-height: 60px; }
+  .controls { padding: 8px 12px; }
+  .filters-bar { padding: 8px 12px; }
+  .month-grid, .week-grid, .day-view { margin: 0 8px 16px; }
+  .current-label { font-size: 0.95rem; min-width: auto; }
+  .filters-label { min-width: auto; }
+}
+</style>
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://uninovis.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Code -->
+</head>
+<body>
+
+<script src="/static/nav.js?v=12"></script>
+<script>uninovisNav({ crumbs: [{label:'System Administration', href:'/#superuser'}, {label:'Apps in development', href:'/#superuser'}], current: 'Event Tracker (Dev)' });</script>
+<div style="background:#fff3cd;color:#856404;padding:6px 16px;font-size:0.8em;text-align:center;">Sandbox copy for testing — separate from the production Event Tracker, isolated data.</div>
+
+<!-- Agora sync bar (shown to editors only) -->
+<div class="sync-bar" id="syncBar" style="display:none;">
+  <span class="sync-status" id="syncStatus">Agora Catalogue: not synchronised yet</span>
+  <button class="btn-sync" id="btnSync" onclick="syncCatalogue()">Synchronise from Agora</button>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+  <div class="filter-row" id="categoryFilters"></div>
+  <div class="filter-row" id="universityFilters"></div>
+  <div class="filter-row" style="margin-top:4px;gap:16px;">
+    <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--text-light);">
+      <input type="checkbox" id="showPastEvents" onchange="render()"> Show past events
+    </label>
+    <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:0.78rem;color:var(--text-light);">
+      <input type="checkbox" id="showCatalogueEvents" checked onchange="render()"> Show Agora catalogue events
+    </label>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar" id="statsBar"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <div class="nav-group">
+    <button class="nav-btn" id="btnPrev">&#8249;</button>
+    <button class="nav-btn" id="btnToday">Today</button>
+    <button class="nav-btn" id="btnNext">&#8250;</button>
+    <span class="current-label" id="currentLabel"></span>
+    <span id="viewerTzNote" style="font-size:0.75rem;color:var(--text-light);margin-left:8px;" title="All event times are converted from how they were entered to this timezone, based on your device's clock"></span>
+  </div>
+  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+    <div class="view-group">
+      <button class="view-btn" data-view="year">Year</button>
+      <button class="view-btn active" data-view="month">Month</button>
+      <button class="view-btn" data-view="week">Week</button>
+      <button class="view-btn" data-view="day">Day</button>
+    </div>
+    <div class="seg-group" id="weekStartGroup" title="First day of the week for Year/Month/Week views">
+      <button class="view-btn active" data-week-start="mon" onclick="setWeekStart('mon')">Mon&ndash;Sun</button>
+      <button class="view-btn" data-week-start="sun" onclick="setWeekStart('sun')">Sun&ndash;Sat</button>
+    </div>
+    <button class="view-btn" id="btnListToggle" style="border-radius:var(--radius);margin-left:0;">List view</button>
+    <span style="width:1px;height:24px;background:var(--border);"></span>
+    <button class="btn-add" id="btnAdd" style="display:none;">+ New Internal Event</button>
+    <div class="io-group" id="ioGroup" style="display:none;">
+      <button class="nav-btn" onclick="openExportModal()" title="Export events with filters">Export</button>
+      <button class="nav-btn" onclick="document.getElementById('importModal').classList.add('open')" title="Import events">Import</button>
+      <button class="nav-btn" onclick="openKpiModal()" title="Export KPI report" style="font-weight:600;">KPIs</button>
+    </div>
+    <span style="width:1px;height:24px;background:var(--border);"></span>
+    <button class="nav-btn" id="btnSubscribe" onclick="showSubscribe()" title="Subscribe from Apple Calendar, Google Calendar, Outlook..." style="display:none;">Subscribe / .ics</button>
+  </div>
+</div>
+
+<!-- Calendar container -->
+<div id="calendarContainer"></div>
+
+<!-- Import modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Import Events</h2>
+      <button class="modal-close" onclick="document.getElementById('importModal').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:12px;">
+        Upload a JSON or TSV file. Events with an existing <code>id</code> will be updated; new events will be added.
+      </p>
+      <label>Format</label>
+      <select id="importFormat">
+        <option value="json">JSON</option>
+        <option value="tsv">TSV (tab-separated)</option>
+      </select>
+      <label style="margin-top:12px;">File</label>
+      <input type="file" id="importFile" accept=".json,.tsv,.txt,.csv">
+      <div id="importResult" style="margin-top:12px;font-size:0.85rem;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('importModal').classList.remove('open')">Close</button>
+      <button class="btn btn-primary" onclick="doImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Export Events</h2>
+      <button class="modal-close" onclick="document.getElementById('exportModal').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <label>Date from</label>
+      <input type="date" id="exportFrom">
+      <label>Date to</label>
+      <input type="date" id="exportTo">
+      <label>University</label>
+      <div id="exportUniChecks" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;"></div>
+      <label>Category</label>
+      <div id="exportCatChecks" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));align-items:start;gap:6px 12px;margin-bottom:8px;"></div>
+      <div id="exportPreview" style="margin-top:8px;font-size:0.82rem;color:var(--text-light);"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('exportModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="doExport('json')">Export JSON</button>
+      <button class="btn btn-primary" onclick="doExport('tsv')">Export TSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- KPI Report modal -->
+<div class="modal-overlay" id="kpiModal">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-header">
+      <h2>Export KPIs</h2>
+      <button class="modal-close" onclick="document.getElementById('kpiModal').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><label>Period from</label><input type="date" id="kpiFrom"></div>
+        <div><label>Period to</label><input type="date" id="kpiTo"></div>
+      </div>
+      <label>Group by (rows)</label>
+      <select id="kpiRowDim" onchange="updateKpiPreview()">
+        <option value="category">Activity type</option>
+        <option value="university">Partner university</option>
+        <option value="event_type">Format (Physical / Virtual)</option>
+        <option value="status">Status (Past / Upcoming / TBC)</option>
+        <option value="month">Month</option>
+      </select>
+      <label>Split by (columns) <small style="color:var(--text-light);">(optional)</small></label>
+      <select id="kpiColDim" onchange="updateKpiPreview()">
+        <option value="">(none)</option>
+        <option value="university">Partner university</option>
+        <option value="category">Activity type</option>
+        <option value="event_type">Format</option>
+        <option value="status">Status</option>
+      </select>
+      <label>Metrics</label>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+        <label style="display:inline-flex;align-items:center;gap:4px;font-size:0.82rem;margin:0;"><input type="checkbox" id="kpiMetricCount" checked onchange="updateKpiPreview()"> Number of events</label>
+        <label style="display:inline-flex;align-items:center;gap:4px;font-size:0.82rem;margin:0;"><input type="checkbox" id="kpiMetricDays" onchange="updateKpiPreview()"> Total days</label>
+        <label style="display:inline-flex;align-items:center;gap:4px;font-size:0.82rem;margin:0;"><input type="checkbox" id="kpiMetricParticipants" onchange="updateKpiPreview()"> Total participants</label>
+      </div>
+      <div id="kpiPreview" style="margin-top:16px;max-height:340px;overflow:auto;border:1px solid var(--border);border-radius:var(--radius);"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('kpiModal').classList.remove('open')">Close</button>
+      <button class="btn btn-primary" onclick="exportKpi('csv')">Export CSV</button>
+      <button class="btn btn-primary" onclick="exportKpi('html')">Export HTML</button>
+    </div>
+  </div>
+</div>
+
+<!-- Subscribe modal -->
+<div class="modal-overlay" id="subscribeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Subscribe to Calendar</h2>
+      <button class="modal-close" onclick="document.getElementById('subscribeModal').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:16px;">Subscribe from Apple Calendar, Google Calendar, Outlook, or any iCalendar-compatible app.</p>
+      <label>Subscription URL</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <input type="text" id="icalUrl" readonly style="font-size:0.82rem;background:#f5f6fa;">
+        <button class="btn btn-primary" onclick="copyIcalUrl()" style="white-space:nowrap;padding:8px 14px;">Copy</button>
+      </div>
+      <span class="copy-feedback" id="icalCopyFeedback" style="font-size:0.8rem;"></span>
+      <div style="margin-top:16px;padding:12px;background:#f5f6fa;border-radius:var(--radius);font-size:0.82rem;">
+        <strong>Apple Calendar:</strong> File &rarr; New Calendar Subscription &rarr; paste URL<br>
+        <strong>Google Calendar:</strong> Settings &rarr; Add calendar &rarr; From URL<br>
+        <strong>Outlook:</strong> Calendar &rarr; Add calendar &rarr; Subscribe from web
+      </div>
+      <div style="margin-top:16px;">
+        <button class="nav-btn" onclick="downloadIcs()" style="font-size:0.85rem;">Download .ics file</button>
+        <span style="font-size:0.78rem;color:var(--text-light);margin-left:8px;">One-time download (not auto-updated)</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('subscribeModal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="detailTitle"></h2>
+      <button class="modal-close" onclick="closeDetail()">&times;</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="editModalTitle">New Event</h2>
+      <button class="modal-close" onclick="closeEdit()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <label>Name *</label>
+      <input type="text" id="editName" required>
+      <label>Category/ies *</label>
+      <div id="editCategories" style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));align-items:start;gap:6px 12px;margin-bottom:8px;"></div>
+      <label>UNINOVIS Group</label>
+      <select id="editUninovisGroup" onchange="toggleParticipantsByGroup()">
+        <option value="">— None —</option>
+      </select>
+      <label>Organizing University/ies *</label>
+      <div id="editUniversities" style="display:flex;flex-wrap:wrap;gap:6px 12px;margin-bottom:8px;"></div>
+      <input type="hidden" id="editUniversity">
+      <label>Type *</label>
+      <select id="editType" onchange="toggleTypeFields()">
+        <option value="Physical">Physical</option>
+        <option value="Virtual">Virtual</option>
+      </select>
+      <div id="placeGroup">
+        <label>Place</label>
+        <input type="text" id="editPlace" placeholder="Venue, City, Country">
+      </div>
+      <div id="meetingUrlGroup" style="display:none;">
+        <label>Meeting URL</label>
+        <input type="url" id="editMeetingUrl" placeholder="https://meet.uninovis.eu/...">
+      </div>
+      <label>Description</label>
+      <textarea id="editDesc"></textarea>
+      <label>Timezone</label>
+      <select id="editTimezone" onchange="updateTimezoneOffsetNote()">
+        <option value="Europe/Madrid" selected>Spain — Madrid (Europe/Madrid)</option>
+        <option value="Europe/Paris">France — Paris (Europe/Paris)</option>
+        <option value="Europe/Rome">Italy — Rome (Europe/Rome)</option>
+        <option value="Europe/Amsterdam">Netherlands — Amsterdam (Europe/Amsterdam)</option>
+        <option value="Europe/Helsinki">Finland — Helsinki (Europe/Helsinki)</option>
+        <option value="Europe/Tirane">Albania — Tirana (Europe/Tirane)</option>
+        <option value="Europe/Vilnius">Lithuania — Vilnius (Europe/Vilnius)</option>
+        <option value="Europe/Berlin">Germany — Berlin (Europe/Berlin)</option>
+      </select>
+      <div id="editTimezoneOffsetNote" style="font-size:0.78rem;color:var(--text-light);margin:6px 0 12px;"></div>
+      <div style="margin-bottom:8px;">
+        <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:500;">
+          <input type="checkbox" id="editAllDay" onchange="toggleAllDay()"> All day
+        </label>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:500;">
+          <input type="checkbox" id="editDateTbc" onchange="toggleDateTbc()"> Date to be confirmed (TBC)
+        </label>
+      </div>
+      <div id="dateTbcLabelRow" style="display:none;margin-bottom:8px;">
+        <label>Approximate date hint <small style="color:var(--text-light);">(e.g. "October 2026")</small></label>
+        <input type="text" id="editDateTbcLabel" placeholder="e.g. October 2026">
+      </div>
+      <label id="labelStart">Start Date *</label>
+      <input type="datetime-local" id="editStart" oninput="updateTimezoneOffsetNote()">
+      <label id="labelEnd">End Date *</label>
+      <input type="datetime-local" id="editEnd">
+      <div id="recurrenceSection">
+        <label>Recurrence</label>
+        <select id="editRecurrenceType" onchange="toggleRecurrenceFields()">
+          <option value="">Punctual (one-off)</option>
+          <option value="weekly">Weekly</option>
+          <option value="biweekly">Every 2 weeks</option>
+          <option value="monthly_nth">Monthly (nth weekday)</option>
+        </select>
+        <div id="recurrenceDetails" style="display:none;margin-top:8px;padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:#f9f9fb;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <div id="recMonthlyNthGroup" style="display:none;">
+              <label style="margin:0;font-size:0.82rem;">Occurrence</label>
+              <select id="editRecNth" style="width:auto;">
+                <option value="1">First</option><option value="2">Second</option>
+                <option value="3">Third</option><option value="4">Fourth</option>
+                <option value="-1">Last</option>
+              </select>
+            </div>
+            <div>
+              <label style="margin:0;font-size:0.82rem;">Day of week</label>
+              <select id="editRecWeekday" style="width:auto;">
+                <option value="0">Monday</option><option value="1">Tuesday</option>
+                <option value="2">Wednesday</option><option value="3">Thursday</option>
+                <option value="4">Friday</option><option value="5">Saturday</option>
+                <option value="6">Sunday</option>
+              </select>
+            </div>
+            <div>
+              <label style="margin:0;font-size:0.82rem;">Repeat until *</label>
+              <input type="date" id="editRecUntil" style="width:auto;">
+            </div>
+          </div>
+          <p style="font-size:0.75rem;color:var(--text-light);margin-top:6px;">Start/end times above apply to all occurrences.</p>
+        </div>
+      </div>
+      <label>Registration Link</label>
+      <input type="url" id="editLink" placeholder="https://...">
+
+      <details id="virtualComponentsSection" style="display:none;margin:12px 0;border:1px solid #e2e8f0;border-radius:6px;padding:8px 12px;">
+        <summary style="cursor:pointer;font-weight:600;font-size:0.85rem;color:#2D3876;">Virtual Components (pre/post event)</summary>
+        <div style="margin-top:8px;">
+          <label style="font-size:0.82rem;font-weight:600;">Pre-event virtual component</label>
+          <input type="text" id="editVirtualPreName" placeholder="Name, e.g. 'Online preparation session'">
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;"><label style="font-size:0.75rem;">Start</label><input type="datetime-local" id="editVirtualPreStart"></div>
+            <div style="flex:1;"><label style="font-size:0.75rem;">End</label><input type="datetime-local" id="editVirtualPreEnd"></div>
+          </div>
+          <input type="url" id="editVirtualPreUrl" placeholder="Meeting URL">
+          <hr style="margin:10px 0;border:none;border-top:1px solid #e2e8f0;">
+          <label style="font-size:0.82rem;font-weight:600;">Post-event virtual component</label>
+          <input type="text" id="editVirtualPostName" placeholder="Name, e.g. 'Follow-up discussion'">
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;"><label style="font-size:0.75rem;">Start</label><input type="datetime-local" id="editVirtualPostStart"></div>
+            <div style="flex:1;"><label style="font-size:0.75rem;">End</label><input type="datetime-local" id="editVirtualPostEnd"></div>
+          </div>
+          <input type="url" id="editVirtualPostUrl" placeholder="Meeting URL">
+        </div>
+      </details>
+
+      <div id="participantsSection" class="participants-section" style="display:none;">
+        <h4>Participants (from Directory)</h4>
+        <div class="part-add-row">
+          <select id="partGroupSelect"><option value="">-- Add group --</option></select>
+          <button class="btn-sm primary" onclick="addGroup()">Add Group</button>
+        </div>
+        <div class="part-group-tags" id="partGroupTags"></div>
+        <div class="part-add-row">
+          <input type="text" class="part-search" id="partSearch" placeholder="Search person by name..." oninput="filterPersonList()">
+        </div>
+        <div class="part-list" id="partPersonList"></div>
+        <div style="margin-top:8px;">
+          <span style="font-size:0.78rem;color:var(--text-light);" id="partCount">0 participants</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeEdit()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// -- State -------------------------------------------------------------------
+let TOKEN = '';
+let events = [];
+let categories = [];
+let universities = [];
+let dirGroups = [];
+let dirUsers = [];
+let canEdit = false;
+let isSuperuser = false;
+let authRoles = [];
+let authUsername = '';
+let currentView = 'month';
+let currentDate = new Date();
+let activeCatFilter = 'all';
+let activeUniFilter = 'all';
+let editParticipants = [];
+let editPartGroups = [];
+
+const INTERNAL_CATS = ['WP1','WP2','WP3','WP4','WP5','BoP','ExecCouncil','TB','Management Committee',"Coordinators' Meeting",'Kick off meeting','General Assembly','Holidays'];
+const EXTERNAL_CATS = ['BIP','Hackathon','Conference','Staff Week','Summer School','Workshop','Other public events','Innovation Camp','International Week'];
+const CAT_CSS_CLASS = c => 'cat-' + c.replace(/[^A-Za-z0-9]+/g, '_');
+
+// -- Init --------------------------------------------------------------------
+(async function init() {
+  var tzNoteEl = document.getElementById('viewerTzNote');
+  if (tzNoteEl) tzNoteEl.textContent = 'Times shown in ' + (viewerTimeZone() || 'your local timezone');
+
+  TOKEN = localStorage.getItem('tommi_token') || new URLSearchParams(location.search).get('token') || '';
+
+  // This app is only for logged-in users — anyone without a real session is
+  // sent to the login page instead.
+  if (!TOKEN) {
+    window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+    return;
+  }
+  let auth;
+  try {
+    auth = await api('GET', '/api/auth-check');
+  } catch (e) {
+    window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+    return;
+  }
+
+  // Guide registration must never depend on this app's own data loading
+  // successfully — it always runs first, so the "how to use it" guide is
+  // still available even if the event data is down (e.g. a missing data file).
+  try {
+    GUIDES.push({
+      id: 'event_tracker_dev_overview',
+      title: 'About: Event Tracker (Dev)',
+      group: 'System Administration',
+      roles: ['superuser'],
+      url: '/event-tracker-dev/',
+      primary: true,
+      steps: GUIDE_CONTENT.event_tracker,
+    });
+  } catch (e) { console.error('Guide registration failed:', e); }
+
+  var userInfoEl = document.getElementById('userInfo');
+  if (userInfoEl) userInfoEl.textContent = auth.username + ' (' + auth.role + ')';
+  authUsername = auth.username;
+  canEdit = auth.can_edit;
+  authRoles = auth.roles || [auth.role];
+  isSuperuser = authRoles.includes('superuser');
+  // btnSubscribe stays hidden (display:none in markup) until re-enabled.
+  if (canEdit) {
+    document.getElementById('btnAdd').style.display = '';
+    document.getElementById('ioGroup').style.display = '';
+    document.getElementById('syncBar').style.display = '';
+    loadCatalogueStatus();
+  }
+
+  try { await loadData(); } catch (e) { console.error('loadData failed:', e); }
+  try { render(); } catch (e) { console.error('render failed:', e); }
+
+  try {
+    maybeAutoPlayGuideFromUrl(authRoles, authUsername);
+  } catch (e) { console.error('Guide auto-play failed:', e); }
+
+  document.getElementById('btnPrev').onclick = () => navigate(-1);
+  document.getElementById('btnNext').onclick = () => navigate(1);
+  document.getElementById('btnToday').onclick = () => { currentDate = new Date(); render(); };
+  document.getElementById('btnAdd').onclick = () => openEdit(null);
+
+  let prevCalView = 'month';
+  const listBtn = document.getElementById('btnListToggle');
+  const calBtns = document.querySelectorAll('.view-group .view-btn');
+  calBtns.forEach(b => {
+    b.onclick = () => {
+      calBtns.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      listBtn.classList.remove('active');
+      listBtn.textContent = 'List view';
+      currentView = b.dataset.view;
+      prevCalView = currentView;
+      listPeriod = currentView;
+      render();
+    };
+  });
+  listBtn.onclick = () => {
+    if (currentView === 'list') {
+      currentView = prevCalView;
+      calBtns.forEach(x => x.classList.toggle('active', x.dataset.view === currentView));
+      listBtn.classList.remove('active');
+      listBtn.textContent = 'List view';
+    } else {
+      prevCalView = currentView;
+      listPeriod = currentView;
+      calBtns.forEach(x => x.classList.remove('active'));
+      listBtn.classList.add('active');
+      listBtn.textContent = 'Calendar view';
+      currentView = 'list';
+    }
+    render();
+  };
+})();
+
+async function loadData() {
+  const [evts, cfg, dir] = await Promise.all([
+    api('GET', '/api/events'),
+    api('GET', '/api/config'),
+    api('GET', '/api/directory'),
+  ]);
+  events = evts;
+  categories = cfg.categories;
+  universities = cfg.universities;
+  dirGroups = dir.groups;
+  dirUsers = dir.users;
+  buildFilters();
+}
+
+async function loadCatalogueStatus() {
+  try {
+    const s = await api('GET', '/api/catalogue/status');
+    updateSyncStatus(s);
+  } catch {}
+}
+
+function updateSyncStatus(s) {
+  const el = document.getElementById('syncStatus');
+  if (!s.token_configured) {
+    el.innerHTML = 'Synchronised from Agora Catalogue: <strong style="color:#ea4335;">token not configured</strong> — add CATALOGUE_API_TOKEN to web/.env';
+    return;
+  }
+  if (!s.last_sync) {
+    el.innerHTML = 'Synchronised from Agora Catalogue: <em>not synced yet</em>';
+  } else {
+    const d = new Date(s.last_sync);
+    const ago = Math.round((Date.now() - d) / 60000);
+    const agoStr = ago < 60 ? ago + ' min ago' : Math.round(ago/60) + 'h ago';
+    el.innerHTML = 'Synchronised from Agora Catalogue: <strong>' + s.count + ' events</strong> &mdash; last sync ' + agoStr;
+  }
+}
+
+async function syncCatalogue() {
+  const btn = document.getElementById('btnSync');
+  const statusEl = document.getElementById('syncStatus');
+  btn.disabled = true;
+  btn.textContent = 'Syncing...';
+  try {
+    const result = await api('POST', '/api/catalogue/sync');
+    statusEl.innerHTML = 'Synchronised from Agora Catalogue: <strong style="color:#34a853;">Synced ' + result.synced + ' events</strong> (' + result.total_in_api + ' total in API)';
+    await loadData();
+    render();
+  } catch (e) {
+    statusEl.innerHTML = '<span style="color:#ea4335;">Sync failed: ' + e.message + '</span>';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Synchronised from Agora';
+}
+
+// -- Filters -----------------------------------------------------------------
+function buildFilters() {
+  const catRow = document.getElementById('categoryFilters');
+  let html = '<span class="filters-label">Category:</span>';
+  html += btn('all', 'All', activeCatFilter, 'cat');
+  html += '<span class="filter-sep"></span>';
+  html += btn('all_internal', 'All Internal', activeCatFilter, 'cat', true);
+  INTERNAL_CATS.forEach(c => { html += btn(c, c, activeCatFilter, 'cat'); });
+  html += '<span class="filter-sep"></span>';
+  html += btn('all_external', 'All External', activeCatFilter, 'cat', true);
+  EXTERNAL_CATS.forEach(c => { html += btn(c, c, activeCatFilter, 'cat'); });
+  catRow.innerHTML = html;
+  catRow.querySelectorAll('.filter-btn').forEach(b => { b.onclick = () => setCatFilter(b.dataset.val); });
+
+  const uniRow = document.getElementById('universityFilters');
+  let uhtml = '<span class="filters-label">University:</span>';
+  uhtml += btn('all', 'All', activeUniFilter, 'uni');
+  universities.forEach(u => { uhtml += btn(u, u, activeUniFilter, 'uni'); });
+  uniRow.innerHTML = uhtml;
+  uniRow.querySelectorAll('.filter-btn').forEach(b => { b.onclick = () => setUniFilter(b.dataset.val); });
+}
+
+function btn(val, label, active, prefix, isGroup) {
+  const cls = (active === val ? ' active' : '') + (isGroup ? ' group-btn' : '');
+  return `<button class="filter-btn${cls}" data-val="${val}" data-prefix="${prefix}">${label}</button>`;
+}
+
+function setCatFilter(val) { activeCatFilter = val; refreshFilterUI(); render(); }
+function setUniFilter(val) { activeUniFilter = val; refreshFilterUI(); render(); }
+
+function refreshFilterUI() {
+  document.getElementById('categoryFilters').querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === activeCatFilter);
+  });
+  document.getElementById('universityFilters').querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === activeUniFilter);
+  });
+}
+
+function filteredEvents() {
+  const showPast = document.getElementById('showPastEvents') && document.getElementById('showPastEvents').checked;
+  const showCatalogue = document.getElementById('showCatalogueEvents') && document.getElementById('showCatalogueEvents').checked;
+  const now = new Date(); now.setHours(0,0,0,0);
+  return events.filter(e => {
+    if (!showCatalogue && e.source === 'catalogue') return false;
+
+    const evCats = e.categories && e.categories.length ? e.categories : (e.category ? [e.category] : []);
+    let catOk = false;
+    if (activeCatFilter === 'all') catOk = true;
+    else if (activeCatFilter === 'all_internal') catOk = evCats.some(c => INTERNAL_CATS.includes(c));
+    else if (activeCatFilter === 'all_external') catOk = evCats.some(c => EXTERNAL_CATS.includes(c));
+    else catOk = evCats.includes(activeCatFilter);
+
+    let evUnis = e.universities || (e.university ? [e.university] : []);
+    let uniOk = activeUniFilter === 'all' || evUnis.includes(activeUniFilter);
+
+    if (!showPast && e.end_date) {
+      const end = (e.all_day || e.date_tbc) ? new Date(e.end_date) : toInstant(e.end_date, evTZ(e));
+      end.setHours(23,59,59,999);
+      if (end < now) return false;
+    }
+    return catOk && uniOk;
+  });
+}
+
+function updateStats() {
+  const f = filteredEvents();
+  const catCount = f.filter(e => e.source === 'catalogue').length;
+  const tbcCount = f.filter(e => e.date_tbc).length;
+  let html = `Showing <span>${f.length}</span> of <span>${events.length}</span> events`;
+  if (catCount) html += ` &middot; <span style="color:#1565c0;"> Synchronised ${catCount} from Agora</span>`;
+  if (tbcCount) html += ` &middot; <span style="color:#ff9800;">${tbcCount} TBC</span>`;
+  document.getElementById('statsBar').innerHTML = html;
+}
+
+// -- API helper --------------------------------------------------------------
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch('/event-tracker-dev' + path, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || res.statusText);
+  }
+  return res.json();
+}
+
+// -- Navigation --------------------------------------------------------------
+let listPeriod = 'month';
+
+function navigate(dir) {
+  const period = currentView === 'list' ? listPeriod : currentView;
+  if (period === 'year') currentDate.setFullYear(currentDate.getFullYear() + dir);
+  else if (period === 'month') currentDate.setMonth(currentDate.getMonth() + dir);
+  else if (period === 'week') currentDate.setDate(currentDate.getDate() + dir * 7);
+  else currentDate.setDate(currentDate.getDate() + dir);
+  render();
+}
+
+// "View more" on an overfull month-view day cell: jump to the day view for
+// that day, where every event on it is listed in full.
+function goToDay(year, month, day) {
+  currentDate = new Date(year, month, day);
+  document.querySelectorAll('.view-group .view-btn').forEach(x => x.classList.toggle('active', x.dataset.view === 'day'));
+  document.getElementById('btnListToggle').classList.remove('active');
+  document.getElementById('btnListToggle').textContent = 'List view';
+  currentView = 'day';
+  prevCalView = 'day';
+  listPeriod = 'day';
+  render();
+}
+
+// -- Render ------------------------------------------------------------------
+function render() {
+  updateLabel();
+  updateStats();
+  if (currentView === 'year') renderYear();
+  else if (currentView === 'month') renderMonth();
+  else if (currentView === 'week') renderWeek();
+  else if (currentView === 'day') renderDay();
+  else if (currentView === 'list') renderList();
+}
+
+function updateLabel() {
+  const period = currentView === 'list' ? listPeriod : currentView;
+  let label = '';
+  if (period === 'year') label = String(currentDate.getFullYear());
+  else if (period === 'week') {
+    const start = weekStart(currentDate);
+    const end = new Date(start); end.setDate(end.getDate() + 6);
+    label = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' - ' +
+      end.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  } else if (period === 'day') {
+    label = currentDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  } else {
+    label = currentDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
+  }
+  if (currentView === 'list') label += ' (list)';
+  document.getElementById('currentLabel').textContent = label;
+}
+
+function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+function isWeekendDay(d) { const g = d.getDay(); return g === 0 || g === 6; }
+
+// -- Week-start preference (Mon-Sun vs Sun-Sat) -------------------------------
+// Purely a display/layout choice for Year/Month/Week views — which column a
+// day falls in, and where the week "wraps". It never changes which days
+// count as the weekend (still always Sat/Sun, see isWeekendDay above).
+let weekStartsMonday = true;
+
+function setWeekStart(mode) {
+  weekStartsMonday = mode === 'mon';
+  document.querySelectorAll('#weekStartGroup .view-btn').forEach(b => b.classList.toggle('active', b.dataset.weekStart === mode));
+  render();
+}
+
+// Days between `d` and the start of its week, under the current preference.
+function weekStartOffset(d) { return weekStartsMonday ? (d.getDay() + 6) % 7 : d.getDay(); }
+
+// Rotates a Monday-first array of 7 (labels, colors, whatever) to match the
+// current week-start preference.
+function rotateForWeekStart(monFirstArr) { return weekStartsMonday ? monFirstArr : [monFirstArr[6]].concat(monFirstArr.slice(0, 6)); }
+
+function weekStart(d) { const s = new Date(d); s.setDate(s.getDate() - weekStartOffset(s)); return s; }
+
+// -- Per-viewer timezone conversion -------------------------------------------
+// Event start/end are stored as naive "wall clock" strings with no UTC offset
+// (e.g. "2026-10-22T06:00:00"), plus ev.timezone recording where that wall
+// clock was authored — either an IANA zone (e.g. "Europe/Madrid", chosen from
+// the UNINOVIS country picker in the edit form) or, for older events, one of
+// the fixed-offset abbreviations below. Left as `new Date(isoStr)`, a naive
+// string is parsed as local time in whatever zone the *browser* happens to be
+// in, which is meaningless. toInstant() anchors it to the zone it was actually
+// authored in first, producing a true absolute instant — from there, every
+// native Date accessor (getHours, getDate, ...) already reflects the viewer's
+// own device timezone for free, with no further conversion code needed.
+const TZ_OFFSETS = { CET: '+01:00', CEST: '+02:00', EET: '+02:00', EEST: '+03:00', WET: '+00:00', WEST: '+01:00', GMT: '+00:00', UTC: '+00:00' };
+
+function isIanaZone(tz) { return typeof tz === 'string' && tz.indexOf('/') !== -1; }
+
+function fixedOffsetMinutes(tz) {
+  const raw = TZ_OFFSETS[tz] || '+00:00';
+  const sign = raw[0] === '-' ? -1 : 1;
+  const parts = raw.slice(1).split(':');
+  return sign * (Number(parts[0]) * 60 + Number(parts[1]));
+}
+
+// How far ahead of UTC an IANA zone is, in minutes, AT a given instant — the
+// IANA database (via Intl) already knows the correct DST rule for that exact
+// date, so unlike the fixed table above this is never wrong for CET vs CEST.
+function ianaOffsetMinutes(timeZone, refUtcInstant) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone, hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(refUtcInstant).reduce((acc, p) => { if (p.type !== 'literal') acc[p.type] = p.value; return acc; }, {});
+  const asUTC = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+  return Math.round((asUTC - refUtcInstant.getTime()) / 60000);
+}
+
+function offsetMinutesFor(tz, refUtcInstant) {
+  return isIanaZone(tz) ? ianaOffsetMinutes(tz, refUtcInstant) : fixedOffsetMinutes(tz);
+}
+
+function fmtUtcOffset(minutes) {
+  const sign = minutes >= 0 ? '+' : '-';
+  const abs = Math.abs(minutes);
+  const h = Math.floor(abs / 60), m = abs % 60;
+  return 'UTC' + sign + h + (m ? ':' + String(m).padStart(2, '0') : '');
+}
+
+function toInstant(isoStr, tz) {
+  if (!isoStr) return null;
+  if (/Z$|[+-]\d{2}:?\d{2}$/.test(isoStr)) return new Date(isoStr); // already carries an offset — trust it
+  const guessUTC = new Date(isoStr + 'Z'); // wall-clock numbers, provisionally read as UTC
+  const offsetMin = offsetMinutesFor(tz, guessUTC);
+  return new Date(guessUTC.getTime() - offsetMin * 60000);
+}
+
+function viewerTimeZone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return ''; }
+}
+
+function eventSegments(ev) {
+  // BIP-style catalogue events carry discrete component date ranges (virtual/
+  // physical/posterior) instead of one continuous span across the gaps.
+  if (Array.isArray(ev.date_segments) && ev.date_segments.length) return ev.date_segments;
+  if (ev.start_date && ev.end_date) return [{ start: ev.start_date, end: ev.end_date }];
+  return [];
+}
+
+function segmentCoveringDate(ev, date) {
+  const d = new Date(date); d.setHours(12,0,0,0);
+  // All-day/TBC events have no meaningful clock time — keep them pinned to
+  // the same calendar date for every viewer instead of letting a timezone
+  // conversion shift them onto an adjacent day.
+  const useInstant = !ev.all_day && !ev.date_tbc;
+  const tz = evTZ(ev);
+  for (const seg of eventSegments(ev)) {
+    if (!seg.start) continue;
+    const s = useInstant ? toInstant(seg.start, tz) : new Date(seg.start);
+    s.setHours(0,0,0,0);
+    const en = useInstant ? toInstant(seg.end || seg.start, tz) : new Date(seg.end || seg.start);
+    en.setHours(23,59,59,999);
+    if (d >= s && d <= en) return seg;
+  }
+  return null;
+}
+
+function eventsOnDate(date) {
+  return filteredEvents().filter(e => segmentCoveringDate(e, date) !== null);
+}
+
+// Chronological order for a day's chips: events without a displayed time
+// (all-day / date TBC) come first, then the rest ordered by the time of day
+// shown on their chip (segmentCoveringDate's start, same value chipHTML
+// reads to render "HH:MM").
+function eventTimeKey(ev, date) {
+  const seg = segmentCoveringDate(ev, date);
+  if (!seg || !seg.start || ev.date_tbc || ev.all_day) return -1;
+  const s = toInstant(seg.start, evTZ(ev));
+  return s.getHours() * 60 + s.getMinutes();
+}
+
+function sortEventsByTime(evs, date) {
+  return evs.slice().sort((a, b) => eventTimeKey(a, date) - eventTimeKey(b, date));
+}
+
+function isAllDaySegment(ev, seg) {
+  // Multi-day segments, or ones covering the whole visible hour window, get
+  // shown once as an all-day banner instead of repeating in every hour row.
+  // All-day/TBC events keep the same naive date treatment as
+  // segmentCoveringDate, for the same reason: no meaningful clock time to
+  // convert, and converting could shift them onto an adjacent calendar day.
+  if (!seg || !seg.start) return false;
+  const useInstant = !ev.all_day && !ev.date_tbc;
+  const s = useInstant ? toInstant(seg.start, evTZ(ev)) : new Date(seg.start);
+  const e = useInstant ? toInstant(seg.end || seg.start, evTZ(ev)) : new Date(seg.end || seg.start);
+  if (!sameDay(s, e)) return true;
+  return s.getHours() <= 7 && e.getHours() >= 21;
+}
+
+function fmtTime(isoStr, tz) {
+  if (!isoStr) return '';
+  const d = toInstant(isoStr, tz);
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+// -- Timed-block layout (week/day views) --------------------------------------
+// Timed events are drawn as one absolutely-positioned block spanning their
+// full duration, instead of being repeated in every hour row they overlap.
+const TIMELINE_ROW_HEIGHT = 48;
+const TIMELINE_FIRST_HOUR = 7;
+const TIMELINE_LAST_HOUR = 21;
+
+function timelineOffset(date) {
+  const hourFrac = Math.max(TIMELINE_FIRST_HOUR, Math.min(TIMELINE_LAST_HOUR + 1, date.getHours() + date.getMinutes() / 60));
+  return (hourFrac - TIMELINE_FIRST_HOUR) * TIMELINE_ROW_HEIGHT;
+}
+
+function timedEventsForDay(day) {
+  // Returns { ev, seg, top, height } for each non-all-day event occurring on
+  // `day`, clipped to the visible hour window, with overlapping events
+  // assigned side-by-side lanes so they don't visually cover one another.
+  const dayStart = new Date(day); dayStart.setHours(TIMELINE_FIRST_HOUR, 0, 0, 0);
+  const dayEnd = new Date(day); dayEnd.setHours(TIMELINE_LAST_HOUR + 1, 0, 0, 0);
+
+  const items = eventsOnDate(day).map(ev => {
+    const seg = segmentCoveringDate(ev, day);
+    if (!seg || isAllDaySegment(ev, seg)) return null;
+    const tz = evTZ(ev);
+    const segStart = toInstant(seg.start, tz);
+    const segEnd = seg.end ? toInstant(seg.end, tz) : segStart;
+    const s = sameDay(segStart, day) ? segStart : dayStart;
+    const e = sameDay(segEnd, day) ? segEnd : dayEnd;
+    const top = timelineOffset(s);
+    const height = Math.max(20, timelineOffset(e) - top);
+    return { ev, seg, top, height, bottom: top + height };
+  }).filter(Boolean);
+
+  items.sort((a, b) => a.top - b.top);
+  const laneEnds = [];
+  items.forEach(item => {
+    let lane = laneEnds.findIndex(end => end <= item.top);
+    if (lane === -1) { lane = laneEnds.length; laneEnds.push(item.bottom); }
+    else { laneEnds[lane] = item.bottom; }
+    item.lane = lane;
+  });
+  const totalLanes = laneEnds.length || 1;
+  items.forEach(item => { item.totalLanes = totalLanes; });
+  return items;
+}
+
+function catalogueLabel(ev) {
+  const cat = ev.category || (ev.categories && ev.categories[0]) || '';
+  return cat ? cat + ': ' + ev.name : ev.name;
+}
+
+function timedBlockHTML(item) {
+  const { ev, seg, top, height, lane, totalLanes } = item;
+  const cls = CAT_CSS_CLASS(ev.category);
+  const isCat = ev.source === 'catalogue';
+  const displayName = isCat ? catalogueLabel(ev) : ev.name;
+  const uniList = ev.universities || (ev.university ? [ev.university] : []);
+  const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
+  const widthPct = 100 / totalLanes;
+  const leftPct = widthPct * lane;
+  const style = `top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);`;
+  const timePrefix = ev.all_day ? '' : fmtTime(seg.start, evTZ(ev)) + ' ';
+  return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail('${ev.id}')" title="${esc(displayName)}${esc(uni)}">${timePrefix}${esc(displayName)}${esc(uni)}</div>`;
+}
+
+function evTZ(ev) { return ev.timezone || 'CEST'; }
+
+function chipHTML(ev, date) {
+  const cls = CAT_CSS_CLASS(ev.category);
+  const isCat = ev.source === 'catalogue';
+  const catCls = isCat ? ' catalogue' : '';
+  const seg = date ? segmentCoveringDate(ev, date) : null;
+  const segStart = seg ? seg.start : ev.start_date;
+  const t = segStart ? fmtTime(segStart, evTZ(ev)) : '';
+  const timeLabel = (ev.date_tbc || ev.all_day) ? '' : (t ? t + ' ' : '');
+  const uniList = ev.universities || (ev.university ? [ev.university] : []);
+  const uni = uniList.length ? ' (' + uniList.join(', ') + ')' : '';
+  const displayName = isCat ? catalogueLabel(ev) : ev.name;
+  const shortName = displayName.length > 22 ? displayName.slice(0, 20) + '...' : displayName;
+  const tbcCls = ev.date_tbc ? ' tbc' : '';
+  const tbcPrefix = ev.date_tbc ? '<span style="font-size:0.6rem;opacity:0.85;">TBC</span> ' : '';
+  const segLabel = seg && seg.label ? ' — ' + esc(seg.label) : '';
+  return `<div class="event-chip ${cls}${catCls}${tbcCls}" onclick="showDetail('${ev.id}')" title="${esc(displayName)}${esc(uni)}${segLabel}${isCat ? ' [Agora Catalogue]' : ''}">${tbcPrefix}${timeLabel}${esc(shortName)}</div>`;
+}
+
+// -- Month view --------------------------------------------------------------
+const MONTH_CELL_MAX_EVENTS = 4; // beyond this, show MAX-1 chips + a "view more" link
+
+function renderMonth() {
+  const year = currentDate.getFullYear(), month = currentDate.getMonth();
+  const first = new Date(year, month, 1);
+  const startOff = weekStartOffset(first);
+  const start = new Date(first); start.setDate(start.getDate() - startOff);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = rotateForWeekStart(['Mon','Tue','Wed','Thu','Fri','Sat','Sun']);
+  let html = '<div class="month-grid">';
+  days.forEach(d => { html += `<div class="day-header">${d}</div>`; });
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(d.getDate() + i);
+    const isOther = d.getMonth() !== month;
+    const isToday = sameDay(d, today);
+    html += `<div class="day-cell${isOther ? ' other-month' : ''}${isWeekendDay(d) ? ' weekend' : ''}${isToday ? ' today' : ''}">`;
+    html += `<div class="day-num">${d.getDate()}</div>`;
+    const dayEvents = sortEventsByTime(eventsOnDate(d), d);
+    // A day that's too full to list here in full gets a "view more" link into
+    // the week view instead, rather than silently clipping events off the
+    // bottom of the cell.
+    if (dayEvents.length > MONTH_CELL_MAX_EVENTS) {
+      dayEvents.slice(0, MONTH_CELL_MAX_EVENTS - 1).forEach(ev => { html += chipHTML(ev, d); });
+      const remaining = dayEvents.length - (MONTH_CELL_MAX_EVENTS - 1);
+      html += `<div class="day-more-btn" onclick="goToDay(${d.getFullYear()}, ${d.getMonth()}, ${d.getDate()})">+${remaining} more</div>`;
+    } else {
+      dayEvents.forEach(ev => { html += chipHTML(ev, d); });
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('calendarContainer').innerHTML = html;
+}
+
+// -- Week view ---------------------------------------------------------------
+function renderWeek() {
+  const ws = weekStart(currentDate);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const hours = [];
+  for (let h = TIMELINE_FIRST_HOUR; h <= TIMELINE_LAST_HOUR; h++) hours.push(h);
+  const totalHeight = hours.length * TIMELINE_ROW_HEIGHT;
+  const weekDays = [];
+  for (let i = 0; i < 7; i++) { const d = new Date(ws); d.setDate(d.getDate() + i); weekDays.push(d); }
+
+  let html = '<div class="week-grid">';
+  html += '<div class="wg-header"></div>';
+  weekDays.forEach(d => {
+    const isToday = sameDay(d, today);
+    html += `<div class="wg-header${isWeekendDay(d) ? ' weekend-col' : ''}${isToday ? ' today-col' : ''}">${d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}</div>`;
+  });
+
+  html += '<div class="wg-time wg-allday-label">All day</div>';
+  weekDays.forEach(d => {
+    const isToday = sameDay(d, today);
+    const allDayEvents = eventsOnDate(d).filter(ev => isAllDaySegment(ev, segmentCoveringDate(ev, d)));
+    html += `<div class="wg-cell wg-allday-cell${isWeekendDay(d) ? ' weekend-col' : ''}${isToday ? ' today-col' : ''}">`;
+    allDayEvents.forEach(ev => { html += chipHTML(ev, d); });
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<div class="wg-body">';
+  html += '<div class="wg-timelabels">';
+  hours.forEach(h => { html += `<div class="wg-timelabel" style="height:${TIMELINE_ROW_HEIGHT}px;">${String(h).padStart(2,'0')}:00</div>`; });
+  html += '</div>';
+  weekDays.forEach(d => {
+    const isToday = sameDay(d, today);
+    html += `<div class="wg-daycol${isWeekendDay(d) ? ' weekend-col' : ''}${isToday ? ' today-col' : ''}" style="height:${totalHeight}px;background-size:100% ${TIMELINE_ROW_HEIGHT}px;">`;
+    timedEventsForDay(d).forEach(item => { html += timedBlockHTML(item); });
+    html += '</div>';
+  });
+  html += '</div>';
+
+  document.getElementById('calendarContainer').innerHTML = html;
+}
+
+// -- Day view ----------------------------------------------------------------
+function renderDay() {
+  const hours = [];
+  for (let h = TIMELINE_FIRST_HOUR; h <= TIMELINE_LAST_HOUR; h++) hours.push(h);
+  const totalHeight = hours.length * TIMELINE_ROW_HEIGHT;
+  let html = '<div class="day-view">';
+
+  const allDayEvents = eventsOnDate(currentDate).filter(ev => isAllDaySegment(ev, segmentCoveringDate(ev, currentDate)));
+  if (allDayEvents.length) {
+    html += '<div class="dv-row">';
+    html += '<div class="dv-time">All day</div>';
+    html += '<div class="dv-cell">';
+    allDayEvents.forEach(ev => { html += chipHTML(ev, currentDate); });
+    html += '</div></div>';
+  }
+
+  html += '<div class="dv-body">';
+  html += '<div class="dv-timelabels">';
+  hours.forEach(h => { html += `<div class="dv-timelabel" style="height:${TIMELINE_ROW_HEIGHT}px;">${String(h).padStart(2,'0')}:00</div>`; });
+  html += '</div>';
+  html += `<div class="dv-daycol" style="height:${totalHeight}px;background-size:100% ${TIMELINE_ROW_HEIGHT}px;">`;
+  timedEventsForDay(currentDate).forEach(item => { html += timedBlockHTML(item); });
+  html += '</div></div>';
+
+  html += '</div>';
+  document.getElementById('calendarContainer').innerHTML = html;
+}
+
+// -- Year view ---------------------------------------------------------------
+function renderYear() {
+  const year = currentDate.getFullYear();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const days = rotateForWeekStart(['M','T','W','T','F','S','S']);
+  let html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 24px 24px;">';
+  for (let m = 0; m < 12; m++) {
+    html += '<div style="background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px;overflow:hidden;">';
+    html += `<div style="font-weight:600;font-size:0.85rem;color:var(--primary);margin-bottom:6px;cursor:pointer;" onclick="currentDate=new Date(${year},${m},1);document.querySelectorAll('.view-group .view-btn').forEach(x=>x.classList.toggle('active',x.dataset.view==='month'));document.getElementById('btnListToggle').classList.remove('active');document.getElementById('btnListToggle').textContent='List view';currentView='month';prevCalView='month';listPeriod='month';render();">${months[m]} ${year}</div>`;
+    html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;font-size:0.65rem;text-align:center;">';
+    days.forEach(d => { html += `<div style="font-weight:600;color:var(--text-light);">${d}</div>`; });
+    const first = new Date(year, m, 1);
+    const startOff = weekStartOffset(first);
+    for (let i = 0; i < startOff; i++) html += '<div></div>';
+    const daysInMonth = new Date(year, m + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dt = new Date(year, m, d);
+      const isToday = sameDay(dt, today);
+      const hasDot = eventsOnDate(dt).length > 0;
+      const bg = isToday ? 'background:var(--primary);color:#fff;border-radius:50%;' : '';
+      html += `<div style="position:relative;padding:2px 0;${bg}cursor:pointer;" onclick="currentDate=new Date(${year},${m},${d});document.querySelectorAll('.view-group .view-btn').forEach(x=>x.classList.toggle('active',x.dataset.view==='day'));document.getElementById('btnListToggle').classList.remove('active');document.getElementById('btnListToggle').textContent='List view';currentView='day';prevCalView='day';listPeriod='day';render();">${d}`;
+      if (hasDot) html += '<div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#ea4335;"></div>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+  }
+  html += '</div>';
+  document.getElementById('calendarContainer').innerHTML = html;
+}
+
+// -- List view ---------------------------------------------------------------
+let listSortCol = 'start_date';
+let listSortAsc = true;
+
+function eventsInPeriod(evtList) {
+  const period = currentView === 'list' ? listPeriod : currentView;
+  return evtList.filter(e => {
+    if (!e.start_date && !e.end_date) return currentView === 'list';
+    const useInstant = !e.all_day && !e.date_tbc;
+    const tz = evTZ(e);
+    const s = useInstant ? toInstant(e.start_date || e.end_date, tz) : new Date(e.start_date || e.end_date);
+    const en = useInstant ? toInstant(e.end_date || e.start_date, tz) : new Date(e.end_date || e.start_date);
+    if (period === 'year') return s.getFullYear() === currentDate.getFullYear() || en.getFullYear() === currentDate.getFullYear();
+    if (period === 'month') {
+      const my = currentDate.getFullYear() * 12 + currentDate.getMonth();
+      return s.getFullYear() * 12 + s.getMonth() <= my && en.getFullYear() * 12 + en.getMonth() >= my;
+    }
+    if (period === 'week') {
+      const ws = weekStart(currentDate);
+      const we = new Date(ws); we.setDate(we.getDate() + 6); we.setHours(23,59,59);
+      return s <= we && en >= ws;
+    }
+    return sameDay(s, currentDate) || sameDay(en, currentDate) || (s <= currentDate && en >= currentDate);
+  });
+}
+
+function renderList() {
+  const evts = eventsInPeriod(filteredEvents()).slice().sort((a, b) => {
+    const aNoDate = !a.start_date && !a.end_date;
+    const bNoDate = !b.start_date && !b.end_date;
+    if (aNoDate !== bNoDate) return aNoDate ? 1 : -1;
+    let va, vb;
+    if (listSortCol === 'start_date' || listSortCol === 'end_date') { va = a[listSortCol] || ''; vb = b[listSortCol] || ''; }
+    else { va = (a[listSortCol] || '').toLowerCase(); vb = (b[listSortCol] || '').toLowerCase(); }
+    let c = va < vb ? -1 : va > vb ? 1 : 0;
+    if (!listSortAsc) c = -c;
+    return c;
+  });
+
+  const arrow = col => listSortCol === col ? (listSortAsc ? ' &#9650;' : ' &#9660;') : '';
+  const th = (col, label) => `<th onclick="listSort('${col}')">${label}${arrow(col)}</th>`;
+
+  let html = '<div class="list-view"><table>';
+  html += '<tr>' + th('start_date','Start') + th('end_date','End') + th('name','Name') + th('category','Category') + th('university','University') + th('event_type','Type') + '<th>Source / Place</th></tr>';
+
+  evts.forEach(ev => {
+    const eType = ev.event_type || 'Physical';
+    const isCat = ev.source === 'catalogue';
+    const rowCls = isCat ? ' class="is-catalogue"' : '';
+    const loc = eType === 'Virtual' ? (ev.meeting_url || '') : (ev.place || '');
+    const locDisplay = loc.length > 40 ? loc.slice(0, 40) + '...' : loc;
+    html += `<tr${rowCls} onclick="showDetail('${ev.id}')">`;
+    const tz = evTZ(ev);
+    html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.start_date ? '<span class="tbc-badge">' + esc(ev.date_tbc_label || 'TBC') + '</span>' : fmtShort(ev.start_date, ev.all_day, tz)}</td>`;
+    html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.end_date ? '&mdash;' : fmtShort(ev.end_date, ev.all_day, tz)}</td>`;
+    html += `<td>${ev.date_tbc ? '<span class="tbc-badge">TBC</span> ' : ''}${isCat ? 'Synchronised ' : ''}<strong>${esc(ev.name)}</strong></td>`;
+    html += `<td>${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="cat-badge ${CAT_CSS_CLASS(c)}">${esc(c)}</span>`).join(' ')}</td>`;
+    html += `<td>${esc((ev.universities || (ev.university ? [ev.university] : [])).join(', '))}</td>`;
+    html += `<td><span class="type-badge${eType==='Virtual'?' virtual':''}">${eType}</span></td>`;
+    html += `<td style="font-size:0.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${isCat ? '<span class="catalogue-badge">Agora</span>' : esc(locDisplay)}</td>`;
+    html += '</tr>';
+  });
+
+  if (!evts.length) html += '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">No events match the current filters</td></tr>';
+  html += '</table></div>';
+  document.getElementById('calendarContainer').innerHTML = html;
+}
+
+function listSort(col) {
+  if (listSortCol === col) listSortAsc = !listSortAsc;
+  else { listSortCol = col; listSortAsc = true; }
+  renderList();
+}
+
+// allDay events show a date only, kept on the naive (unconverted) date so a
+// timezone difference can never shift them onto an adjacent calendar day.
+// Timed values are run through toInstant so the clock shown is the viewer's
+// own local time, not the organizer's — see the "Per-viewer timezone
+// conversion" note above eventSegments().
+function fmtShort(isoStr, allDay, tz) {
+  if (!isoStr) return '&mdash;';
+  const d = allDay ? new Date(isoStr) : toInstant(isoStr, tz);
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = d.toLocaleDateString(undefined, { month: 'short' });
+  const yy = d.getFullYear();
+  if (allDay) return dd + ' ' + mm + ' ' + yy;
+  return dd + ' ' + mm + ' ' + yy + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function fmtDateTZ(isoStr, tz, allDay) {
+  if (!isoStr) return '<em>Not set</em>';
+  const d = allDay ? new Date(isoStr) : toInstant(isoStr, tz);
+  const datePart = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+  if (allDay) return datePart;
+  return datePart + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+function tbcDateDisplay(ev) {
+  const label = ev.date_tbc_label || 'TBC';
+  if (ev.start_date) return fmtDateTZ(ev.start_date, evTZ(ev)) + ' <span class="tbc-badge">TBC &mdash; ' + esc(label) + '</span>';
+  return '<span class="tbc-badge">TBC &mdash; ' + esc(label) + '</span>';
+}
+
+// -- Participant helpers -----------------------------------------------------
+function isInternal(category) { return INTERNAL_CATS.includes(category); }
+
+function resolveParticipants(ev) {
+  const ids = new Set(ev.participants || []);
+  (ev.participant_groups || []).forEach(gid => {
+    dirUsers.forEach(u => { if (u.groups.includes(gid) || u.subgroups.includes(gid)) ids.add(u.id); });
+  });
+  return dirUsers.filter(u => ids.has(u.id));
+}
+
+function groupLabel(gid) {
+  for (const g of dirGroups) {
+    if (g.id === gid) return g.name;
+    for (const sg of g.subgroups || []) { if (sg.id === gid) return g.name + ' / ' + sg.name; }
+  }
+  return gid;
+}
+
+// -- Detail modal ------------------------------------------------------------
+function showDetail(id) {
+  const ev = events.find(e => e.id === id);
+  if (!ev) return;
+  const isCatDetail = ev.source === 'catalogue';
+  document.getElementById('detailTitle').textContent = isCatDetail ? catalogueLabel(ev) : ev.name;
+  const eType = ev.event_type || 'Physical';
+  const typeIcon = eType === 'Virtual' ? '&#128187; Virtual' : '&#127970; Physical';
+  let html = `
+    <div class="detail-field"><div class="dl">Category/ies</div><div class="dv">${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="event-chip ${CAT_CSS_CLASS(c)}" style="display:inline-block;cursor:default;margin:0 4px 4px 0;">${esc(c)}</span>`).join('')}</div></div>
+    ${ev.source === 'catalogue' ? '<div class="detail-field"><div class="dl">Source</div><div class="dv"><span class="catalogue-badge">Synchronised from Agora Event Catalogue</span></div></div>' : ''}
+    ${ev.uninovis_group ? '<div class="detail-field"><div class="dl">UNINOVIS Group</div><div class="dv">' + esc(ev.uninovis_group) + '</div></div>' : ''}
+    <div class="detail-field"><div class="dl">Organizing University/ies</div><div class="dv">${(ev.universities || (ev.university ? [ev.university] : [])).join(', ') ? esc((ev.universities || (ev.university ? [ev.university] : [])).join(', ')) : '<em>Not specified</em>'}</div></div>
+    <div class="detail-field"><div class="dl">Type</div><div class="dv">${typeIcon}</div></div>
+  `;
+  if (ev.component_type) {
+    const compLabel = ev.component_type === 'pre' ? 'Pre-event virtual component' : 'Post-event virtual component';
+    const parentEv = events.find(e => e.id === ev.linked_event);
+    html += `<div class="detail-field"><div class="dl">Component</div><div class="dv">${compLabel} of <strong>${esc(parentEv ? parentEv.name : ev.linked_event)}</strong></div></div>`;
+  }
+  if (eType === 'Physical' && ev.place) html += `<div class="detail-field"><div class="dl">Place</div><div class="dv">${esc(ev.place)}</div></div>`;
+  if (eType === 'Virtual' && ev.meeting_url) html += `<div class="detail-field"><div class="dl">Meeting URL</div><div class="dv"><a href="${esc(ev.meeting_url)}" target="_blank" rel="noopener">${esc(ev.meeting_url)}</a></div></div>`;
+
+  const descHtml = ev.description ? esc(ev.description) : '<em>No description</em>';
+  html += `
+    <div class="detail-field"><div class="dl">Description</div><div class="dv">${descHtml}</div></div>
+    <div class="detail-field"><div class="dl">Start</div><div class="dv">${ev.date_tbc ? tbcDateDisplay(ev) : fmtDateTZ(ev.start_date, evTZ(ev), ev.all_day)}${ev.all_day && !ev.date_tbc ? ' <span class="tbc-badge">All day</span>' : ''}</div></div>
+    <div class="detail-field"><div class="dl">End</div><div class="dv">${ev.date_tbc ? (ev.end_date ? fmtDateTZ(ev.end_date, evTZ(ev), ev.all_day) + ' <span class="tbc-badge">TBC</span>' : '<span class="tbc-badge">TBC</span>') : fmtDateTZ(ev.end_date, evTZ(ev), ev.all_day)}</div></div>
+  `;
+  if (ev.registration_link) html += `<div class="detail-field"><div class="dl">Registration</div><div class="dv"><a href="${esc(ev.registration_link)}" target="_blank" rel="noopener">${esc(ev.registration_link)}</a></div></div>`;
+
+  // Agora-specific extra dates
+  if (ev.source === 'catalogue') {
+    if (ev.x_virtual_start) html += `<div class="detail-field"><div class="dl">Virtual component</div><div class="dv">${fmtDateTZ(ev.x_virtual_start, evTZ(ev))} &rarr; ${ev.x_virtual_end ? fmtDateTZ(ev.x_virtual_end, evTZ(ev)) : '?'}</div></div>`;
+    if (ev.x_physical_start) html += `<div class="detail-field"><div class="dl">Physical component</div><div class="dv">${fmtDateTZ(ev.x_physical_start, evTZ(ev))} &rarr; ${ev.x_physical_end ? fmtDateTZ(ev.x_physical_end, evTZ(ev)) : '?'}</div></div>`;
+    if (ev.x_posterior_start) html += `<div class="detail-field"><div class="dl">Posterior component</div><div class="dv">${fmtDateTZ(ev.x_posterior_start, evTZ(ev))} &rarr; ${ev.x_posterior_end ? fmtDateTZ(ev.x_posterior_end, evTZ(ev)) : '?'}</div></div>`;
+  }
+
+  const evCatsDetail = ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : []);
+  if (evCatsDetail.some(isInternal) && ev.source !== 'catalogue') {
+    const parts = resolveParticipants(ev);
+    const gids = ev.participant_groups || [];
+    html += '<div class="detail-field"><div class="dl">Participants (' + parts.length + ')</div><div class="dv">';
+    if (gids.length) html += '<div style="margin-bottom:4px;font-size:0.8rem;color:var(--text-light);">Groups: ' + gids.map(g => '<strong>' + esc(groupLabel(g)) + '</strong>').join(', ') + '</div>';
+    if (parts.length) {
+      html += '<div class="detail-part-list">';
+      parts.sort((a,b) => a.family_name.localeCompare(b.family_name)).forEach(u => {
+        html += `<div class="detail-part-item">${esc(u.first_name)} ${esc(u.family_name)} <span class="dpi-uni">(${esc(u.university)})</span> &mdash; <span style="font-size:0.8rem;">${esc(u.email)}</span></div>`;
+      });
+      html += '</div>';
+      html += `<div style="margin-top:8px;"><button class="btn-copy-emails" onclick="copyEmails('${ev.id}')">Copy all emails</button><span class="copy-feedback" id="copyFeedback"></span></div>`;
+    } else {
+      html += '<em style="font-size:0.85rem;">No participants assigned</em>';
+    }
+    html += '</div></div>';
+  }
+
+  if (ev.series_id) {
+    const cnt = events.filter(e => e.series_id === ev.series_id).length;
+    html += `<div class="detail-field"><div class="dl">Recurring</div><div class="dv">Part of a series (${cnt} events)</div></div>`;
+  }
+
+  const isOwner = ev.created_by === authUsername;
+  const canModify = (isOwner || isSuperuser) && ev.source !== 'catalogue';
+  if (canModify) {
+    html += '<div class="detail-actions">';
+    html += `<button class="btn btn-primary" onclick="closeDetail();openEdit('${ev.id}')">Edit this event</button>`;
+    html += `<button class="btn btn-danger" onclick="deleteEvent('${ev.id}')">Delete this event</button>`;
+    if (ev.series_id) {
+      html += `<button class="btn btn-primary" onclick="editSeries('${ev.series_id}','${ev.id}')">Edit all in series</button>`;
+      html += `<button class="btn btn-danger" onclick="deleteSeries('${ev.series_id}')">Delete entire series</button>`;
+    }
+    html += '</div>';
+  }
+  document.getElementById('detailBody').innerHTML = html;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function copyEmails(evId) {
+  const ev = events.find(e => e.id === evId); if (!ev) return;
+  const emails = resolveParticipants(ev).map(u => u.email).filter(Boolean);
+  navigator.clipboard.writeText(emails.join('; ')).then(() => {
+    const fb = document.getElementById('copyFeedback');
+    if (fb) { fb.textContent = emails.length + ' emails copied!'; setTimeout(() => { fb.textContent = ''; }, 2500); }
+  });
+}
+
+function closeDetail() { document.getElementById('detailModal').classList.remove('open'); }
+
+// -- Edit modal --------------------------------------------------------------
+function toggleTypeFields() {
+  const t = document.getElementById('editType').value;
+  document.getElementById('placeGroup').style.display = t === 'Physical' ? '' : 'none';
+  document.getElementById('meetingUrlGroup').style.display = t === 'Virtual' ? '' : 'none';
+}
+
+function toggleRecurrenceFields() {
+  const rtype = document.getElementById('editRecurrenceType').value;
+  document.getElementById('recurrenceDetails').style.display = rtype ? '' : 'none';
+  document.getElementById('recMonthlyNthGroup').style.display = rtype === 'monthly_nth' ? '' : 'none';
+}
+
+// Only the 8 UNINOVIS country zones are offered in the picker; an older
+// event whose stored timezone is a legacy fixed-offset abbreviation (CEST,
+// GMT, ...) still displays/converts correctly (offsetMinutesFor handles both
+// forms), but the <select> itself has no matching <option> for it — fall
+// back to Spain/Madrid so the field always shows a real selection.
+const EDIT_TZ_OPTIONS = ['Europe/Madrid', 'Europe/Paris', 'Europe/Rome', 'Europe/Amsterdam', 'Europe/Helsinki', 'Europe/Tirane', 'Europe/Vilnius', 'Europe/Berlin'];
+function normalizeTimezoneForSelect(tz) { return EDIT_TZ_OPTIONS.includes(tz) ? tz : 'Europe/Madrid'; }
+
+// Countries share a UTC offset that shifts with DST (Spain is UTC+1 in
+// winter, UTC+2 in summer) — rather than bake a possibly-wrong offset into
+// the dropdown label, show it here instead, computed for whichever date is
+// currently in the Start field (or today, before one is chosen).
+function updateTimezoneOffsetNote() {
+  const noteEl = document.getElementById('editTimezoneOffsetNote');
+  if (!noteEl) return;
+  const tz = document.getElementById('editTimezone').value;
+  const startVal = document.getElementById('editStart').value; // "YYYY-MM-DD" (all-day) or "YYYY-MM-DDTHH:MM"
+  const norm = startVal ? (startVal.length === 10 ? startVal + 'T00:00:00' : startVal.slice(0, 16) + ':00') : '';
+  const refUtc = norm ? new Date(norm + 'Z') : new Date();
+  noteEl.textContent = 'Currently ' + fmtUtcOffset(offsetMinutesFor(tz, refUtc)) + ' for the selected date';
+}
+
+function toggleDateTbc() {
+  const tbc = document.getElementById('editDateTbc').checked;
+  document.getElementById('dateTbcLabelRow').style.display = tbc ? '' : 'none';
+  document.getElementById('labelStart').textContent = tbc ? 'Approximate Start (optional)' : 'Start Date *';
+  document.getElementById('labelEnd').textContent = tbc ? 'Approximate End (optional)' : 'End Date *';
+}
+
+function toggleAllDay() {
+  const allDay = document.getElementById('editAllDay').checked;
+  const startEl = document.getElementById('editStart');
+  const endEl = document.getElementById('editEnd');
+  if (allDay) {
+    if (startEl.value) startEl.value = startEl.value.slice(0, 10);
+    if (endEl.value) endEl.value = endEl.value.slice(0, 10);
+    startEl.type = 'date';
+    endEl.type = 'date';
+  } else {
+    startEl.type = 'datetime-local';
+    endEl.type = 'datetime-local';
+    if (startEl.value && startEl.value.length === 10) startEl.value += 'T00:00';
+    if (endEl.value && endEl.value.length === 10) endEl.value += 'T23:59';
+  }
+}
+
+function showParticipantsSection(show) { document.getElementById('participantsSection').style.display = show ? '' : 'none'; }
+function shouldShowParticipants() {
+  const selCats = [...document.querySelectorAll('#editCategories .cat-cb:checked')].map(cb => cb.value);
+  return selCats.some(isInternal) || !!document.getElementById('editUninovisGroup').value;
+}
+function toggleParticipantsByGroup() { showParticipantsSection(shouldShowParticipants()); }
+
+function populateGroupSelect() {
+  const sel = document.getElementById('partGroupSelect');
+  let opts = '<option value="">-- Add group / subgroup --</option>';
+  dirGroups.forEach(g => {
+    opts += `<option value="${g.id}">${g.name}</option>`;
+    (g.subgroups || []).forEach(sg => { opts += `<option value="${sg.id}">&nbsp;&nbsp;&darr; ${sg.name}</option>`; });
+  });
+  sel.innerHTML = opts;
+}
+
+function addGroup() {
+  const sel = document.getElementById('partGroupSelect');
+  const gid = sel.value;
+  if (!gid || editPartGroups.includes(gid)) return;
+  editPartGroups.push(gid); sel.value = '';
+  renderPartGroupTags(); renderPartPersonList();
+}
+
+function removeGroup(gid) {
+  editPartGroups = editPartGroups.filter(g => g !== gid);
+  renderPartGroupTags(); renderPartPersonList();
+}
+
+function renderPartGroupTags() {
+  document.getElementById('partGroupTags').innerHTML = editPartGroups.map(gid =>
+    `<span class="part-group-tag">${groupLabel(gid)}<button class="tag-remove" onclick="removeGroup('${gid}')">&times;</button></span>`
+  ).join('');
+}
+
+function addPerson(uid) {
+  if (!editParticipants.includes(uid)) { editParticipants.push(uid); renderPartPersonList(); }
+}
+
+function removePerson(uid) {
+  editParticipants = editParticipants.filter(id => id !== uid); renderPartPersonList();
+}
+
+function getAllSelectedIds() {
+  const ids = new Set(editParticipants);
+  editPartGroups.forEach(gid => { dirUsers.forEach(u => { if (u.groups.includes(gid) || u.subgroups.includes(gid)) ids.add(u.id); }); });
+  return ids;
+}
+
+function renderPartPersonList() {
+  const allIds = getAllSelectedIds();
+  const query = (document.getElementById('partSearch').value || '').toLowerCase();
+  const selected = dirUsers.filter(u => editParticipants.includes(u.id));
+  const searchResults = query.length >= 2
+    ? dirUsers.filter(u => !editParticipants.includes(u.id) &&
+        (u.first_name.toLowerCase().includes(query) || u.family_name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)))
+    : [];
+  let html = '';
+  selected.sort((a,b) => a.family_name.localeCompare(b.family_name)).forEach(u => {
+    html += `<div class="part-item"><div class="part-info"><span class="part-name">${u.first_name} ${u.family_name} (${u.university})</span><span class="part-email">${u.email}</span></div><button class="part-remove" onclick="removePerson('${u.id}')">&times;</button></div>`;
+  });
+  searchResults.slice(0, 15).forEach(u => {
+    const inGroup = allIds.has(u.id);
+    html += `<div class="part-item" style="${inGroup?'opacity:0.5;':''}"><div class="part-info"><span class="part-name">${u.first_name} ${u.family_name} (${u.university})</span><span class="part-email">${u.email}</span></div><button class="btn-sm" onclick="addPerson('${u.id}')" ${inGroup?'disabled title="Already via group"':''}>+ Add</button></div>`;
+  });
+  if (!html) html = '<div style="padding:8px;font-size:0.8rem;color:var(--text-light);">Type to search or add groups above</div>';
+  document.getElementById('partPersonList').innerHTML = html;
+  document.getElementById('partCount').textContent = allIds.size + ' participant' + (allIds.size !== 1 ? 's' : '');
+}
+
+function filterPersonList() { renderPartPersonList(); }
+
+function openEdit(id) {
+  const modal = document.getElementById('editModal');
+  const catContainer = document.getElementById('editCategories');
+  catContainer.innerHTML = INTERNAL_CATS.map(c =>
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" class="cat-cb" value="${c}" onchange="showParticipantsSection(shouldShowParticipants())"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
+  ).join('');
+  const grpSel = document.getElementById('editUninovisGroup');
+  grpSel.innerHTML = '<option value="">— None —</option>' + dirGroups.map(g => `<option value="${g.name}">${g.name}</option>`).join('');
+  const uniContainer = document.getElementById('editUniversities');
+  uniContainer.innerHTML = universities.map(u =>
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="uni-cb" value="${u}"> ${u}</label>`
+  ).join('');
+  populateGroupSelect();
+
+  if (id) {
+    const ev = events.find(e => e.id === id); if (!ev) return;
+    document.getElementById('editModalTitle').textContent = 'Edit Event';
+    document.getElementById('editId').value = ev.id;
+    document.getElementById('editName').value = ev.name;
+    document.getElementById('editDesc').value = ev.description || '';
+    const evCats = ev.categories || (ev.category ? [ev.category] : []);
+    catContainer.querySelectorAll('.cat-cb').forEach(cb => { cb.checked = evCats.includes(cb.value); });
+    grpSel.value = ev.uninovis_group || '';
+    const evUnis = ev.universities || (ev.university ? [ev.university] : []);
+    uniContainer.querySelectorAll('.uni-cb').forEach(cb => { cb.checked = evUnis.includes(cb.value); });
+    document.getElementById('editType').value = ev.event_type || 'Physical';
+    document.getElementById('editTimezone').value = normalizeTimezoneForSelect(ev.timezone);
+    document.getElementById('editPlace').value = ev.place || '';
+    document.getElementById('editMeetingUrl').value = ev.meeting_url || '';
+    document.getElementById('editStart').type = 'datetime-local';
+    document.getElementById('editEnd').type = 'datetime-local';
+    document.getElementById('editStart').value = ev.start_date ? ev.start_date.slice(0, 16) : '';
+    document.getElementById('editEnd').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
+    document.getElementById('editLink').value = ev.registration_link || '';
+    document.getElementById('editDateTbc').checked = !!ev.date_tbc;
+    document.getElementById('editDateTbcLabel').value = ev.date_tbc_label || '';
+    toggleDateTbc();
+    document.getElementById('editAllDay').checked = !!ev.all_day;
+    toggleAllDay();
+    editParticipants = [...(ev.participants || [])];
+    editPartGroups = [...(ev.participant_groups || [])];
+    document.getElementById('recurrenceSection').style.display = 'none';
+  } else {
+    document.getElementById('editModalTitle').textContent = 'New Event';
+    document.getElementById('editId').value = '';
+    document.getElementById('editName').value = '';
+    document.getElementById('editDesc').value = '';
+    grpSel.value = '';
+    document.getElementById('editType').value = 'Physical';
+    document.getElementById('editTimezone').value = 'Europe/Madrid';
+    document.getElementById('editPlace').value = '';
+    document.getElementById('editMeetingUrl').value = '';
+    document.getElementById('editStart').type = 'datetime-local';
+    document.getElementById('editEnd').type = 'datetime-local';
+    document.getElementById('editStart').value = '';
+    document.getElementById('editEnd').value = '';
+    document.getElementById('editLink').value = '';
+    document.getElementById('editDateTbc').checked = false;
+    document.getElementById('editDateTbcLabel').value = '';
+    toggleDateTbc();
+    document.getElementById('editAllDay').checked = false;
+    toggleAllDay();
+    uniContainer.querySelectorAll('.uni-cb').forEach(cb => { cb.checked = false; });
+    catContainer.querySelectorAll('.cat-cb').forEach(cb => { cb.checked = false; });
+    ['editVirtualPreName','editVirtualPreStart','editVirtualPreEnd','editVirtualPreUrl',
+     'editVirtualPostName','editVirtualPostStart','editVirtualPostEnd','editVirtualPostUrl'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    editParticipants = []; editPartGroups = [];
+    document.getElementById('recurrenceSection').style.display = '';
+    document.getElementById('editRecurrenceType').value = '';
+    document.getElementById('editRecUntil').value = '';
+    toggleRecurrenceFields();
+  }
+  toggleTypeFields();
+  showParticipantsSection(shouldShowParticipants());
+  renderPartGroupTags(); renderPartPersonList();
+  updateTimezoneOffsetNote();
+  modal.classList.add('open');
+}
+
+function closeEdit() { document.getElementById('editModal').classList.remove('open'); }
+
+async function saveEvent() {
+  const id = document.getElementById('editId').value;
+  const allDay = document.getElementById('editAllDay').checked;
+  const startVal = document.getElementById('editStart').value;
+  const endVal = document.getElementById('editEnd').value;
+  const startDate = startVal ? (allDay ? startVal + 'T00:00:00' : startVal + ':00') : '';
+  const endDate = endVal ? (allDay ? endVal + 'T23:59:00' : endVal + ':00') : '';
+  const body = {
+    name: document.getElementById('editName').value.trim(),
+    description: document.getElementById('editDesc').value.trim(),
+    category: '',
+    categories: [...document.querySelectorAll('#editCategories .cat-cb:checked')].map(cb => cb.value),
+    universities: [...document.querySelectorAll('#editUniversities .uni-cb:checked')].map(cb => cb.value),
+    university: '',
+    event_type: document.getElementById('editType').value,
+    timezone: document.getElementById('editTimezone').value,
+    place: document.getElementById('editPlace').value.trim(),
+    meeting_url: document.getElementById('editMeetingUrl').value.trim(),
+    start_date: startDate,
+    end_date: endDate,
+    registration_link: document.getElementById('editLink').value.trim(),
+    date_tbc: document.getElementById('editDateTbc').checked,
+    date_tbc_label: document.getElementById('editDateTbcLabel').value.trim(),
+    all_day: allDay,
+    uninovis_group: document.getElementById('editUninovisGroup').value,
+    participants: shouldShowParticipants() ? editParticipants : [],
+    participant_groups: shouldShowParticipants() ? editPartGroups : [],
+    virtual_pre_name: document.getElementById('editVirtualPreName').value.trim(),
+    virtual_pre_start: document.getElementById('editVirtualPreStart').value ? document.getElementById('editVirtualPreStart').value + ':00' : '',
+    virtual_pre_end: document.getElementById('editVirtualPreEnd').value ? document.getElementById('editVirtualPreEnd').value + ':00' : '',
+    virtual_pre_url: document.getElementById('editVirtualPreUrl').value.trim(),
+    virtual_post_name: document.getElementById('editVirtualPostName').value.trim(),
+    virtual_post_start: document.getElementById('editVirtualPostStart').value ? document.getElementById('editVirtualPostStart').value + ':00' : '',
+    virtual_post_end: document.getElementById('editVirtualPostEnd').value ? document.getElementById('editVirtualPostEnd').value + ':00' : '',
+    virtual_post_url: document.getElementById('editVirtualPostUrl').value.trim(),
+  };
+  if (!body.name) { alert('Name is required.'); return; }
+  try {
+    if (id && id.startsWith('series:')) {
+      const result = await api('PUT', '/api/events/series/' + id.slice(7), body);
+      alert(result.updated + ' events updated.');
+    } else if (id) {
+      if (!body.date_tbc && (!body.start_date || !body.end_date)) { alert('Start and end dates are required (or check "Date TBC").'); return; }
+      await api('PUT', '/api/events/' + id, body);
+    } else {
+      if (!body.date_tbc && (!body.start_date || !body.end_date)) { alert('Start and end dates are required (or check "Date TBC").'); return; }
+      const rtype = document.getElementById('editRecurrenceType').value;
+      if (rtype) {
+        const until = document.getElementById('editRecUntil').value;
+        if (!until) { alert('Please set a "Repeat until" date for recurring events.'); return; }
+        body.recurrence = {
+          type: rtype,
+          weekday: parseInt(document.getElementById('editRecWeekday').value),
+          nth: rtype === 'monthly_nth' ? parseInt(document.getElementById('editRecNth').value) : 1,
+          until: until + 'T23:59:00',
+        };
+      }
+      const result = await api('POST', '/api/events', body);
+      if (result.series_id) alert(result.count + ' recurring events created.');
+    }
+    closeEdit();
+    await loadData(); render();
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+async function deleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  try { await api('DELETE', '/api/events/' + id); closeDetail(); await loadData(); render(); }
+  catch (err) { alert('Error: ' + err.message); }
+}
+
+async function deleteSeries(seriesId) {
+  const count = events.filter(e => e.series_id === seriesId).length;
+  if (!confirm('Delete all ' + count + ' events in this series?')) return;
+  try { await api('DELETE', '/api/events/series/' + seriesId); closeDetail(); await loadData(); render(); }
+  catch (err) { alert('Error: ' + err.message); }
+}
+
+function editSeries(seriesId, evId) {
+  closeDetail();
+  const ev = events.find(e => e.id === evId); if (!ev) return;
+  const catContainer = document.getElementById('editCategories');
+  catContainer.innerHTML = INTERNAL_CATS.map(c =>
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" class="cat-cb" value="${c}" onchange="showParticipantsSection(shouldShowParticipants())"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
+  ).join('');
+  populateGroupSelect();
+  document.getElementById('editModalTitle').textContent = 'Edit Series (' + events.filter(e => e.series_id === seriesId).length + ' events)';
+  document.getElementById('editId').value = 'series:' + seriesId;
+  document.getElementById('editName').value = ev.name;
+  document.getElementById('editDesc').value = ev.description || '';
+  const evCats = ev.categories || (ev.category ? [ev.category] : []);
+  catContainer.querySelectorAll('.cat-cb').forEach(cb => { cb.checked = evCats.includes(cb.value); });
+  document.getElementById('editType').value = ev.event_type || 'Physical';
+  document.getElementById('editTimezone').value = normalizeTimezoneForSelect(ev.timezone);
+  document.getElementById('editPlace').value = ev.place || '';
+  document.getElementById('editMeetingUrl').value = ev.meeting_url || '';
+  document.getElementById('editStart').type = 'datetime-local';
+  document.getElementById('editEnd').type = 'datetime-local';
+  document.getElementById('editStart').value = ev.start_date ? ev.start_date.slice(0, 16) : '';
+  document.getElementById('editEnd').value = ev.end_date ? ev.end_date.slice(0, 16) : '';
+  document.getElementById('editLink').value = ev.registration_link || '';
+  document.getElementById('editDateTbc').checked = !!ev.date_tbc;
+  document.getElementById('editDateTbcLabel').value = ev.date_tbc_label || '';
+  toggleDateTbc();
+  document.getElementById('editAllDay').checked = !!ev.all_day;
+  toggleAllDay();
+  editParticipants = [...(ev.participants || [])]; editPartGroups = [...(ev.participant_groups || [])];
+  document.getElementById('recurrenceSection').style.display = 'none';
+  toggleTypeFields();
+  showParticipantsSection(shouldShowParticipants());
+  renderPartGroupTags(); renderPartPersonList();
+  updateTimezoneOffsetNote();
+  document.getElementById('editModal').classList.add('open');
+}
+
+// -- Export / Import ---------------------------------------------------------
+function openExportModal() {
+  document.getElementById('exportUniChecks').innerHTML = universities.map(u =>
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" value="${u}" checked onchange="updateExportPreview()"> ${u}</label>`
+  ).join('');
+  document.getElementById('exportCatChecks').innerHTML = INTERNAL_CATS.concat(EXTERNAL_CATS).map(c =>
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" value="${c}" checked onchange="updateExportPreview()"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
+  ).join('');
+  document.getElementById('exportFrom').value = '';
+  document.getElementById('exportTo').value = '';
+  document.getElementById('exportFrom').onchange = updateExportPreview;
+  document.getElementById('exportTo').onchange = updateExportPreview;
+  updateExportPreview();
+  document.getElementById('exportModal').classList.add('open');
+}
+
+function getExportParams() {
+  const params = new URLSearchParams();
+  params.set('token', TOKEN);
+  const from = document.getElementById('exportFrom').value;
+  const to = document.getElementById('exportTo').value;
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
+  const selUnis = [...document.querySelectorAll('#exportUniChecks input:checked')].map(cb => cb.value);
+  if (selUnis.length > 0 && selUnis.length < universities.length) params.set('university', selUnis.join(','));
+  const allCats = INTERNAL_CATS.concat(EXTERNAL_CATS);
+  const selCats = [...document.querySelectorAll('#exportCatChecks input:checked')].map(cb => cb.value);
+  if (selCats.length > 0 && selCats.length < allCats.length) params.set('category', selCats.join(','));
+  return params;
+}
+
+function updateExportPreview() {
+  const from = document.getElementById('exportFrom').value;
+  const to = document.getElementById('exportTo').value;
+  const selUnis = [...document.querySelectorAll('#exportUniChecks input:checked')].map(cb => cb.value);
+  const selCats = [...document.querySelectorAll('#exportCatChecks input:checked')].map(cb => cb.value);
+  const allCats = INTERNAL_CATS.concat(EXTERNAL_CATS);
+  const shared = events.filter(e => (e.visibility || 'shared') === 'shared');
+  const count = shared.filter(e => {
+    if (from && (e.start_date || '') < from) return false;
+    if (to && (e.start_date || '') > to + 'T23:59:59') return false;
+    if (selUnis.length < universities.length && !selUnis.includes(e.university)) return false;
+    const evCats = e.categories && e.categories.length ? e.categories : (e.category ? [e.category] : []);
+    if (selCats.length < allCats.length && !evCats.some(c => selCats.includes(c))) return false;
+    return true;
+  }).length;
+  document.getElementById('exportPreview').textContent = count + ' events will be exported';
+}
+
+function doExport(format) {
+  window.location.href = '/event-tracker-dev/api/export/' + format + '?' + getExportParams().toString();
+  document.getElementById('exportModal').classList.remove('open');
+}
+
+// -- KPI Report ---------------------------------------------------------------
+function openKpiModal() {
+  document.getElementById('kpiFrom').value = '';
+  document.getElementById('kpiTo').value = '';
+  document.getElementById('kpiFrom').onchange = updateKpiPreview;
+  document.getElementById('kpiTo').onchange = updateKpiPreview;
+  updateKpiPreview();
+  document.getElementById('kpiModal').classList.add('open');
+}
+
+function kpiFilteredEvents() {
+  const from = document.getElementById('kpiFrom').value;
+  const to = document.getElementById('kpiTo').value;
+  return events.filter(e => {
+    if ((e.visibility || 'shared') !== 'shared') return false;
+    if (from && (e.start_date || '') < from) return false;
+    if (to && (e.start_date || '') > to + 'T23:59:59') return false;
+    return true;
+  });
+}
+
+function eventStatus(ev) {
+  if (ev.date_tbc) return 'TBC';
+  if (!ev.end_date) return 'TBC';
+  const now = new Date(); now.setHours(0,0,0,0);
+  const end = new Date(ev.end_date); end.setHours(23,59,59,999);
+  return end < now ? 'Past' : 'Upcoming';
+}
+
+function eventMonth(ev) {
+  if (!ev.start_date) return 'No date';
+  return new Date(ev.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+}
+
+function componentDays(start, end) {
+  if (!start) return 0;
+  return Math.max(1, Math.round((new Date(end || start) - new Date(start)) / 86400000) + 1);
+}
+
+function eventDays(ev) {
+  // BIP-style events (physical + pre-event virtual + post-event virtual
+  // components) count each component's span separately and sum them, rather
+  // than spanning the gaps between components like a single continuous event.
+  if (ev.x_physical_start || ev.x_virtual_start || ev.x_posterior_start) {
+    return componentDays(ev.x_physical_start, ev.x_physical_end) +
+           componentDays(ev.x_virtual_start, ev.x_virtual_end) +
+           componentDays(ev.x_posterior_start, ev.x_posterior_end);
+  }
+  if (!ev.start_date || !ev.end_date) return 0;
+  return Math.max(1, Math.round((new Date(ev.end_date) - new Date(ev.start_date)) / 86400000) + 1);
+}
+
+function eventParticipantCount(ev) {
+  const ids = new Set(ev.participants || []);
+  (ev.participant_groups || []).forEach(gid => {
+    dirUsers.forEach(u => { if (u.groups.includes(gid) || u.subgroups.includes(gid)) ids.add(u.id); });
+  });
+  return ids.size;
+}
+
+function dimValues(ev, dim) {
+  if (dim === 'university') {
+    const unis = ev.universities && ev.universities.length ? ev.universities : (ev.university ? [ev.university] : []);
+    // Jointly-organised events go in their own "Multiple partners" bucket
+    // instead of being credited to each individual organising partner.
+    if (unis.length > 1) return ['Multiple partners'];
+    return unis.length ? unis : ['(none)'];
+  }
+  if (dim === 'category') return [ev.category || '(none)'];
+  if (dim === 'event_type') return [ev.event_type || 'Physical'];
+  if (dim === 'status') return [eventStatus(ev)];
+  if (dim === 'month') return [eventMonth(ev)];
+  return [''];
+}
+
+function buildKpiData() {
+  const evts = kpiFilteredEvents();
+  const rowDim = document.getElementById('kpiRowDim').value;
+  const colDim = document.getElementById('kpiColDim').value;
+  const wantCount = document.getElementById('kpiMetricCount').checked;
+  const wantDays = document.getElementById('kpiMetricDays').checked;
+  const wantPart = document.getElementById('kpiMetricParticipants').checked;
+  const rowVals = [...new Set(evts.flatMap(e => dimValues(e, rowDim)))].sort();
+  const colVals = colDim ? [...new Set(evts.flatMap(e => dimValues(e, colDim)))].sort() : ['Total'];
+  const rows = {};
+  rowVals.forEach(r => { rows[r] = {}; colVals.forEach(c => { rows[r][c] = { count: 0, days: 0, participants: 0 }; }); });
+  const totals = {};
+  colVals.forEach(c => { totals[c] = { count: 0, days: 0, participants: 0 }; });
+  evts.forEach(ev => {
+    const rVals = dimValues(ev, rowDim);
+    const cVals = colDim ? dimValues(ev, colDim) : ['Total'];
+    const d = eventDays(ev); const p = eventParticipantCount(ev);
+    rVals.forEach(r => { cVals.forEach(c => {
+      if (rows[r] && rows[r][c]) { rows[r][c].count++; rows[r][c].days += d; rows[r][c].participants += p; }
+      if (totals[c]) { totals[c].count++; totals[c].days += d; totals[c].participants += p; }
+    }); });
+  });
+  return { rowVals, colVals, rows, totals, wantCount, wantDays, wantPart, rowDim, colDim, total: evts.length };
+}
+
+function metricHeaders(wantCount, wantDays, wantPart) {
+  const h = [];
+  if (wantCount) h.push('Events');
+  if (wantDays) h.push('Days');
+  if (wantPart) h.push('Participants');
+  return h.length ? h : ['Events'];
+}
+
+function metricCells(m, wantCount, wantDays, wantPart) {
+  const cells = [];
+  if (wantCount || (!wantDays && !wantPart)) cells.push(m.count);
+  if (wantDays) cells.push(m.days);
+  if (wantPart) cells.push(m.participants);
+  return cells;
+}
+
+const DIM_LABELS = { category: 'Activity Type', university: 'Partner', event_type: 'Format', status: 'Status', month: 'Month' };
+
+function updateKpiPreview() {
+  const data = buildKpiData();
+  const mh = metricHeaders(data.wantCount, data.wantDays, data.wantPart);
+  const metricsPerCol = mh.length;
+  let html = '<table class="kpi-table"><thead><tr>';
+  html += `<th>${DIM_LABELS[data.rowDim] || data.rowDim}</th>`;
+  data.colVals.forEach(c => {
+    if (metricsPerCol === 1) html += `<th>${data.colDim ? c : mh[0]}</th>`;
+    else html += `<th colspan="${metricsPerCol}">${data.colDim ? c : ''}</th>`;
+  });
+  html += '</tr>';
+  if (metricsPerCol > 1) {
+    html += '<tr><th></th>';
+    data.colVals.forEach(() => { mh.forEach(h => { html += `<th>${h}</th>`; }); });
+    html += '</tr>';
+  }
+  html += '</thead><tbody>';
+  data.rowVals.forEach(r => {
+    html += `<tr><td><strong>${r}</strong></td>`;
+    data.colVals.forEach(c => { metricCells(data.rows[r][c], data.wantCount, data.wantDays, data.wantPart).forEach(v => { html += `<td class="num">${v}</td>`; }); });
+    html += '</tr>';
+  });
+  html += '<tr class="kpi-total"><td><strong>TOTAL</strong></td>';
+  data.colVals.forEach(c => { metricCells(data.totals[c], data.wantCount, data.wantDays, data.wantPart).forEach(v => { html += `<td class="num">${v}</td>`; }); });
+  html += '</tr></tbody></table>';
+  html += `<div style="padding:6px 10px;font-size:0.78rem;color:var(--text-light);">${data.total} events in report</div>`;
+  document.getElementById('kpiPreview').innerHTML = html;
+}
+
+function exportKpi(format) {
+  const data = buildKpiData();
+  const mh = metricHeaders(data.wantCount, data.wantDays, data.wantPart);
+  const headerRow = [DIM_LABELS[data.rowDim] || data.rowDim];
+  data.colVals.forEach(c => { const p = data.colDim ? c + ' - ' : ''; mh.forEach(h => { headerRow.push(p + h); }); });
+  const tableRows = [];
+  data.rowVals.forEach(r => {
+    const row = [r];
+    data.colVals.forEach(c => { metricCells(data.rows[r][c], data.wantCount, data.wantDays, data.wantPart).forEach(v => row.push(v)); });
+    tableRows.push(row);
+  });
+  const totalRow = ['TOTAL'];
+  data.colVals.forEach(c => { metricCells(data.totals[c], data.wantCount, data.wantDays, data.wantPart).forEach(v => totalRow.push(v)); });
+  tableRows.push(totalRow);
+  const from = document.getElementById('kpiFrom').value;
+  const to = document.getElementById('kpiTo').value;
+  const periodLabel = (from || to) ? `Period: ${from || '...'} to ${to || '...'}` : 'All periods';
+  if (format === 'csv') {
+    let csv = '# UNINOVIS Event Tracker KPI Report\n# ' + periodLabel + '\n';
+    csv += headerRow.map(h => '"' + String(h).replace(/"/g, '""') + '"').join(',') + '\n';
+    tableRows.forEach(r => { csv += r.map(v => typeof v === 'number' ? v : '"' + String(v).replace(/"/g,'""') + '"').join(',') + '\n'; });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    a.download = 'uninovis_kpi_report.csv'; a.click();
+  } else {
+    let html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>UNINOVIS KPI Report</title><style>body{font-family:-apple-system,sans-serif;margin:24px;color:#333;}h1{color:#2D3876;}table{border-collapse:collapse;width:100%;margin-top:16px;}th{background:#2D3876;color:#fff;padding:8px 12px;text-align:left;}td{padding:6px 12px;border-bottom:1px solid #e0e0e0;}.num{text-align:right;}.total{font-weight:700;background:#f0f1f5;}</style></head><body>';
+    html += '<h1>UNINOVIS Event Tracker KPI Report</h1><p>' + periodLabel + '</p><table><thead><tr>';
+    headerRow.forEach(h => { html += '<th>' + h + '</th>'; });
+    html += '</tr></thead><tbody>';
+    tableRows.forEach((r, i) => {
+      html += '<tr' + (i === tableRows.length - 1 ? ' class="total"' : '') + '>';
+      r.forEach((v, j) => { html += '<td' + (j > 0 ? ' class="num"' : '') + '>' + v + '</td>'; });
+      html += '</tr>';
+    });
+    html += '</tbody></table></body></html>';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8;' }));
+    a.download = 'uninovis_kpi_report.html'; a.click();
+  }
+}
+
+// -- Subscribe / iCal -------------------------------------------------------
+function showSubscribe() {
+  document.getElementById('icalUrl').value = window.location.origin + '/event-tracker-dev/api/feed/ical?token=' + TOKEN;
+  document.getElementById('icalCopyFeedback').textContent = '';
+  document.getElementById('subscribeModal').classList.add('open');
+}
+
+function copyIcalUrl() {
+  navigator.clipboard.writeText(document.getElementById('icalUrl').value).then(() => {
+    const fb = document.getElementById('icalCopyFeedback');
+    fb.textContent = 'URL copied!'; fb.style.color = '#34a853';
+    setTimeout(() => { fb.textContent = ''; }, 3000);
+  });
+}
+
+function downloadIcs() { window.location.href = '/event-tracker-dev/api/export/ical?token=' + TOKEN; }
+
+// -- Import ------------------------------------------------------------------
+async function doImport() {
+  const fmt = document.getElementById('importFormat').value;
+  const fileInput = document.getElementById('importFile');
+  const resultDiv = document.getElementById('importResult');
+  if (!fileInput.files || !fileInput.files[0]) { resultDiv.innerHTML = '<span style="color:#ea4335;">Please select a file.</span>'; return; }
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  resultDiv.innerHTML = 'Importing...';
+  try {
+    const res = await fetch('/event-tracker-dev/api/import/' + fmt, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) { resultDiv.innerHTML = '<span style="color:#ea4335;">Error: ' + (data.detail || 'Unknown error') + '</span>'; return; }
+    let msg = '<strong style="color:#34a853;">' + data.added + ' added, ' + data.updated + ' updated.</strong>';
+    if (data.errors && data.errors.length) {
+      msg += '<br><span style="color:#ea4335;">Errors (' + data.errors.length + '):</span><ul style="margin:4px 0 0 16px;font-size:0.8rem;">';
+      data.errors.slice(0, 10).forEach(e => { msg += '<li>' + e + '</li>'; });
+      if (data.errors.length > 10) msg += '<li>...and ' + (data.errors.length - 10) + ' more</li>';
+      msg += '</ul>';
+    }
+    resultDiv.innerHTML = msg;
+    await loadData(); render();
+  } catch (err) { resultDiv.innerHTML = '<span style="color:#ea4335;">Request failed: ' + err.message + '</span>'; }
+}
+</script>
+</body>
+</html>
