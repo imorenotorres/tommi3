@@ -16,18 +16,24 @@
         .auth-bar button { margin-left: 6px; }
         .auth-info { font-size: 0.85em; color: #666; margin-right: 8px; }
 
-        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
-        .toolbar input[type="text"] { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
-        .toolbar select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; min-width: 150px; }
+        .search-bar { margin-bottom: 10px; }
+        .search-bar input[type="text"] { width: 100%; box-sizing: border-box; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; }
 
-        .ms-dropdown { position: relative; }
-        .ms-dropdown-btn { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; min-width: 150px; background: #fff; cursor: pointer; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .toolbar { display: flex; gap: 10px; flex-wrap: nowrap; align-items: center; margin-bottom: 16px; overflow-x: auto; }
+        .toolbar select { width: auto; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; min-width: 150px; flex-shrink: 0; }
+
+        .ms-dropdown { position: relative; flex-shrink: 0; }
+        .ms-dropdown-btn { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95em; min-width: 150px; background: #fff; cursor: pointer; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; }
         .ms-dropdown-btn:hover { border-color: #999; }
         .ms-dropdown-btn .ms-caret { color: #888; font-size: 0.8em; }
         .ms-dropdown-panel { position: absolute; top: calc(100% + 4px); left: 0; z-index: 50; background: #fff; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); padding: 6px; min-width: 220px; max-height: 280px; overflow-y: auto; }
         .ms-dropdown-panel label { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 0.9em; white-space: nowrap; }
         .ms-dropdown-panel label:hover { background: #f0f0f8; }
         .ms-dropdown-panel .ms-empty { color: #999; font-size: 0.85em; padding: 6px 8px; }
+
+        .status-filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+        .status-filter-btn { padding: 6px 14px; border-radius: 20px; font-size: 0.85em; font-weight: 600; cursor: pointer; background: #fff; border: 1.5px solid #ccc; color: #888; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+        .status-filter-btn:hover { border-color: #999; }
 
         .view-toggle { display: flex; gap: 0; margin-bottom: 16px; border: 1px solid #4250b3; border-radius: 8px; overflow: hidden; width: fit-content; }
         .view-toggle button { border: none; background: #fff; color: #4250b3; padding: 8px 20px; cursor: pointer; font-size: 0.9em; font-weight: 600; }
@@ -218,19 +224,16 @@
             <button id="btn-view-all" onclick="setViewMode('all')">All tasks</button>
         </div>
 
-        <div class="toolbar">
+        <div class="search-bar">
             <input type="text" id="search-input" placeholder="Search by title or description..." oninput="renderTasks()" />
+        </div>
+
+        <div class="toolbar">
             <select id="filter-kind" onchange="renderTasks()">
                 <option value="">Tasks and Contact requests</option>
                 <option value="task">Tasks only</option>
                 <option value="contact">Contacts only</option>
             </select>
-            <div class="ms-dropdown" id="filter-status-dropdown">
-                <button type="button" class="ms-dropdown-btn" onclick="toggleMsDropdown('status')">
-                    <span id="filter-status-label">All statuses</span><span class="ms-caret">&#9662;</span>
-                </button>
-                <div class="ms-dropdown-panel hidden" id="filter-status-panel"></div>
-            </div>
             <div class="ms-dropdown" id="filter-unit-dropdown">
                 <button type="button" class="ms-dropdown-btn" onclick="toggleMsDropdown('unit')">
                     <span id="filter-unit-label">All units</span><span class="ms-caret">&#9662;</span>
@@ -244,6 +247,8 @@
                 <div class="ms-dropdown-panel hidden" id="filter-assignee-panel"></div>
             </div>
         </div>
+
+        <div class="status-filter-bar" id="status-filter-bar"></div>
 
         <div id="task-list"></div>
     </div>
@@ -310,6 +315,11 @@
                 <div class="form-field">
                     <label>Deadline</label>
                     <input type="date" name="deadline" />
+                </div>
+
+                <div class="form-field full">
+                    <label>Link to related information</label>
+                    <input type="url" name="link" placeholder="https://..." pattern="https?://.+" title="Must start with http:// or https://" />
                 </div>
 
                 <!-- Visibility is a hidden feature: always "public" from this
@@ -451,6 +461,7 @@
         directoryPeople: [],
         dashboardUnits: [],
         statuses: [],
+        statusFilterInitialized: false,
         filterStatuses: [],
         filterUnits: [],
         filterAssignees: [],
@@ -693,40 +704,34 @@
         document.getElementById('sel-status').innerHTML = options;
 
         var validIds = state.statuses.map(function(s) { return s.id; });
-        state.filterStatuses = state.filterStatuses.filter(function(id) { return validIds.indexOf(id) !== -1; });
-        renderStatusFilterPanel();
+        if (!state.statusFilterInitialized && validIds.length) {
+            // Default view: everything except completed tasks/contacts.
+            state.filterStatuses = validIds.filter(function(id) { return id !== 'completed'; });
+            state.statusFilterInitialized = true;
+        } else {
+            state.filterStatuses = state.filterStatuses.filter(function(id) { return validIds.indexOf(id) !== -1; });
+        }
+        renderStatusFilterButtons();
     }
 
-    function renderStatusFilterPanel() {
-        var panel = document.getElementById('filter-status-panel');
-        panel.innerHTML = state.statuses.map(function(s) {
-            var checked = state.filterStatuses.indexOf(s.id) !== -1 ? ' checked' : '';
-            return '<label><input type="checkbox" value="' + s.id + '"' + checked + ' onchange="toggleStatusFilter(\'' + s.id + '\', this.checked)" />' + esc(s.label) + '</label>';
-        }).join('') || '<p class="ms-empty">No statuses yet.</p>';
-        updateFilterStatusLabel();
+    function renderStatusFilterButtons() {
+        var bar = document.getElementById('status-filter-bar');
+        bar.innerHTML = state.statuses.map(function(s) {
+            var active = state.filterStatuses.indexOf(s.id) !== -1;
+            var style = active ? 'background:' + s.color + '22;color:' + s.color + ';border-color:' + s.color + ';' : '';
+            return '<button type="button" class="status-filter-btn' + (active ? ' active' : '') + '" style="' + style + '" onclick="toggleStatusFilter(\'' + s.id + '\')">' + esc(s.label) + '</button>';
+        }).join('') || '<span class="ms-empty">No statuses yet.</span>';
     }
 
-    function toggleStatusFilter(id, checked) {
+    function toggleStatusFilter(id) {
         var idx = state.filterStatuses.indexOf(id);
-        if (checked && idx === -1) state.filterStatuses.push(id);
-        if (!checked && idx !== -1) state.filterStatuses.splice(idx, 1);
-        updateFilterStatusLabel();
+        if (idx === -1) state.filterStatuses.push(id); else state.filterStatuses.splice(idx, 1);
+        renderStatusFilterButtons();
         renderTasks();
     }
 
-    function updateFilterStatusLabel() {
-        var el = document.getElementById('filter-status-label');
-        if (!state.filterStatuses.length) {
-            el.textContent = 'All statuses';
-        } else if (state.filterStatuses.length === 1) {
-            el.textContent = statusLabel(state.filterStatuses[0]);
-        } else {
-            el.textContent = state.filterStatuses.length + ' statuses';
-        }
-    }
-
     function toggleMsDropdown(which) {
-        ['status', 'unit', 'assignee'].forEach(function(w) {
+        ['unit', 'assignee'].forEach(function(w) {
             var panel = document.getElementById('filter-' + w + '-panel');
             if (w === which) panel.classList.toggle('hidden');
             else panel.classList.add('hidden');
@@ -833,10 +838,8 @@
         var filterKind = document.getElementById('filter-kind').value;
         var source = combinedSource(state.viewMode);
 
-        // No status filter selected means "all statuses" — whatever is
-        // currently defined in status.json, with no status hidden by
-        // default. Narrowing to specific statuses is entirely up to the
-        // "All statuses" dropdown filter below.
+        // Empty filterStatuses means "all statuses" (no filtering); it
+        // defaults to everything except "completed" — see populateStatusSelects.
         var filtered = source.filter(function(t) {
             if (filterKind && (t.kind || 'task') !== filterKind) return false;
             var effectiveStatus = taskStatus(t);
@@ -1011,6 +1014,7 @@
             '<div class="detail-value">' +
             '<div><strong>Unit:</strong> ' + (t.unit_id ? esc(unitName(t.unit_id)) : '<span class="muted">None</span>') + '</div>' +
             '<div><strong>Deadline:</strong> ' + (t.deadline ? esc(formatDate(t.deadline)) : '<span class="muted">None</span>') + '</div>' +
+            '<div><strong>Link:</strong> ' + (t.link ? '<a href="' + esc(t.link) + '" target="_blank" rel="noopener noreferrer">' + esc(t.link) + '</a>' : '<span class="muted">None</span>') + '</div>' +
             '<div><strong>Created by:</strong> ' + esc(t.created_by) + '</div>' +
             '</div></div>';
 
@@ -1260,6 +1264,7 @@
         form.elements['description'].value = t.description || '';
         form.elements['unit_id'].value = t.unit_id || '';
         form.elements['deadline'].value = t.deadline || '';
+        form.elements['link'].value = t.link || '';
         form.elements['assignee_id'].value = t.assignee ? t.assignee.person_id : '';
 
         onAssigneeChange();
@@ -1317,6 +1322,13 @@
             return;
         }
 
+        var link = form.elements['link'].value.trim();
+        if (link && !/^https?:\/\//i.test(link)) {
+            errEl.textContent = 'Link must start with http:// or https://';
+            errEl.classList.add('visible');
+            return;
+        }
+
         var assigneeId = form.elements['assignee_id'].value ? parseInt(form.elements['assignee_id'].value, 10) : null;
         var assignee = null;
         if (assigneeId) {
@@ -1335,6 +1347,7 @@
             unit_id: form.elements['unit_id'].value ? parseInt(form.elements['unit_id'].value, 10) : null,
             deadline: form.elements['deadline'].value || '',
             visibility: form.elements['visibility'].value,
+            link: link,
             assignee: assignee
         };
 

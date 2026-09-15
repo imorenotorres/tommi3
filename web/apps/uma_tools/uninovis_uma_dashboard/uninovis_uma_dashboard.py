@@ -156,6 +156,7 @@ class TaskBody(BaseModel):
     deadline: str = ""  # "YYYY-MM-DD" or ""
     visibility: str = "public"  # "private" | "public"
     assignee: Optional[AssigneeInput] = None
+    link: str = ""  # must start with "http://" or "https://" if set
 
 
 class StatusBody(BaseModel):
@@ -210,6 +211,7 @@ class ContactBody(BaseModel):
     deadline: str = ""
     visibility: str = "public"
     assignee: Optional[AssigneeInput] = None
+    link: str = ""  # must start with "http://" or "https://" if set
     goal: str = ""
     collaborators: List[ContactCollaborator] = []
     physical_mobility: bool = False
@@ -226,6 +228,11 @@ def _validate_visibility(visibility: str):
 def _validate_status(status: str):
     if status not in _status_ids():
         raise HTTPException(400, f"status must be one of {sorted(_status_ids())}")
+
+
+def _validate_link(link: str):
+    if link and not link.startswith(("http://", "https://")):
+        raise HTTPException(400, "Link must start with http:// or https://")
 
 
 def _assignable_accounts() -> set:
@@ -390,6 +397,7 @@ def get_data(session: dict = Depends(_require_staff)):
 def create_task(body: TaskBody, session: dict = Depends(_require_staff)):
     _validate_visibility(body.visibility)
     _validate_assignee(body.assignee)
+    _validate_link(body.link)
     data = load_data()
     now = datetime.utcnow().isoformat() + "Z"
     assignee = None
@@ -411,6 +419,7 @@ def create_task(body: TaskBody, session: dict = Depends(_require_staff)):
         "unit_id": body.unit_id,
         "deadline": body.deadline,
         "visibility": body.visibility,
+        "link": body.link,
         "created_by": session["username"].strip().lower(),
         "created_at": now,
         "updated_at": now,
@@ -425,6 +434,7 @@ def create_task(body: TaskBody, session: dict = Depends(_require_staff)):
 def update_task(task_id: str, body: TaskBody, session: dict = Depends(_require_staff)):
     _validate_visibility(body.visibility)
     _validate_assignee(body.assignee)
+    _validate_link(body.link)
     data = load_data()
     entry = _find_task(data, task_id)
     if not _can_edit_task(entry, session):
@@ -449,6 +459,7 @@ def update_task(task_id: str, body: TaskBody, session: dict = Depends(_require_s
         "unit_id": body.unit_id,
         "deadline": body.deadline,
         "visibility": body.visibility,
+        "link": body.link,
         "assignee": new_assignee,
         "updated_at": now,
     })
@@ -494,6 +505,7 @@ def _contact_dict(body: ContactBody, assignee: Optional[dict]) -> dict:
         "assignee": assignee,
         "title": body.title,
         "description": body.description,
+        "link": body.link,
         "goal": body.goal,
         "collaborators": [c.model_dump() for c in body.collaborators],
         "physical_mobility": body.physical_mobility,
@@ -507,6 +519,7 @@ def _contact_dict(body: ContactBody, assignee: Optional[dict]) -> dict:
 def create_contact(body: ContactBody, session: dict = Depends(_require_staff)):
     _validate_visibility(body.visibility)
     _validate_assignee(body.assignee)
+    _validate_link(body.link)
     data = load_contacts()
     now = datetime.utcnow().isoformat() + "Z"
     assignee = None
@@ -537,6 +550,7 @@ def create_contact(body: ContactBody, session: dict = Depends(_require_staff)):
 def update_contact(contact_id: str, body: ContactBody, session: dict = Depends(_require_staff)):
     _validate_visibility(body.visibility)
     _validate_assignee(body.assignee)
+    _validate_link(body.link)
     data = load_contacts()
     entry = _find_contact(data, contact_id)
     if not _can_edit_task(entry, session):
