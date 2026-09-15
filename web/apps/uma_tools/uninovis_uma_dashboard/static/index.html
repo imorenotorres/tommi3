@@ -197,7 +197,6 @@
     <div class="auth-bar">
         <span class="auth-info" id="authInfo"></span>
         <button class="btn-small" id="loginBtn" onclick="goToLogin()">Login</button>
-        <button class="btn-small" id="logoutBtn" style="display:none" onclick="doLogout()">Logout</button>
         <button class="btn-small" id="btn-settings" style="display:none" onclick="openSettingsModal()">Settings</button>
         <button class="btn" id="btn-new-task" style="display:none" onclick="openNewTaskModal()">+ New task/contact</button>
     </div>
@@ -477,12 +476,6 @@
         window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
     }
 
-    function doLogout() {
-        localStorage.removeItem('uninovis_token');
-        localStorage.removeItem('tommi_token');
-        location.reload();
-    }
-
     // ---- Init ----
 
     async function init() {
@@ -494,7 +487,6 @@
                     state.session = await res.json();
                     document.getElementById('authInfo').textContent = 'Logged in as ' + state.session.username;
                     document.getElementById('loginBtn').style.display = 'none';
-                    document.getElementById('logoutBtn').style.display = '';
                     document.getElementById('login-prompt').style.display = 'none';
                 }
             } catch(e) {}
