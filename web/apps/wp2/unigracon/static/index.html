@@ -394,7 +394,6 @@
             <span class="auth-info" id="authInfo"></span>
             <button class="auth-btn" id="loginBtn" onclick="goToLogin()">Login to Edit</button>
             <button class="auth-btn" id="userModeBtn" onclick="toggleEditorMode()" style="display:none">Switch to User Mode</button>
-            <button class="auth-btn" id="logoutBtn" onclick="doLogout()" style="display:none">Logout</button>
         </div>
 
         <!-- Converter card -->
@@ -447,6 +446,9 @@
                         <label id="homeSystemLabel" style="margin:0; white-space:nowrap; display:none;">Grading system:</label>
                         <select id="homeSystem" onchange="loadEditor()" style="display:none;font-size:0.88em;"></select>
                     </div>
+                    <p id="homeUniNotice" style="display:none; color:#dc3545; font-size:0.85em; margin-top:8px;">
+                        We could not determine your university from your login email, so editing is unavailable. Contact a superuser if you believe this is wrong.
+                    </p>
                 </div>
                 <p style="font-size:0.85em; color:#666; margin-top:8px;">
                     Edit conversions <strong>from</strong> other universities <strong>to</strong> your home university and selected grading system.
@@ -557,7 +559,6 @@
 
         function updateAuthUI() {
             const loginBtn = document.getElementById('loginBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
             const userModeBtn = document.getElementById('userModeBtn');
             const authInfo = document.getElementById('authInfo');
             const editorPanel = document.getElementById('editorPanel');
@@ -567,7 +568,6 @@
 
             if (authUser && authUser.can_edit && editorMode) {
                 loginBtn.style.display = 'none';
-                logoutBtn.style.display = '';
                 userModeBtn.style.display = '';
                 userModeBtn.textContent = 'Switch to User Mode';
                 authInfo.textContent = authUser.username + ' (' + authUser.role + ')';
@@ -578,16 +578,14 @@
                 populateHomeUniSelector();
             } else if (authUser && authUser.can_edit && !editorMode) {
                 loginBtn.style.display = 'none';
-                logoutBtn.style.display = '';
                 userModeBtn.style.display = '';
-                userModeBtn.textContent = 'Switch to Editor Mode';
+                userModeBtn.textContent = 'Edit';
                 authInfo.textContent = authUser.username;
                 editorPanel.style.display = 'none';
                 converterCard.style.display = '';
                 availableCard.style.display = '';
             } else if (authUser) {
                 loginBtn.style.display = 'none';
-                logoutBtn.style.display = '';
                 userModeBtn.style.display = 'none';
                 authInfo.textContent = authUser.username;
                 editorPanel.style.display = 'none';
@@ -595,7 +593,6 @@
                 availableCard.style.display = '';
             } else {
                 loginBtn.style.display = '';
-                logoutBtn.style.display = 'none';
                 userModeBtn.style.display = 'none';
                 authInfo.textContent = '';
                 editorPanel.style.display = 'none';
@@ -611,13 +608,6 @@
 
         function goToLogin() {
             window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
-        }
-
-        function doLogout() {
-            authToken = null;
-            authUser = null;
-            localStorage.removeItem('uninovis_token'); localStorage.removeItem('unigracon_token');
-            updateAuthUI();
         }
 
         /* ── Data loading ────────────────────────────────────── */
@@ -947,46 +937,44 @@
             return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
 
-        /* ── Editor panel ────────────────────────────────────── */
+        /* ── Editor panel ─────────────────────────────────────────────── */
 
-        // Map email TLD to default home university
-        const TLD_TO_UNI = {
-            'es': 'UMA', 'com': 'UMA',
-            'fi': 'TAMK',
-            'de': 'THWS',
-            'nl': 'THUAS',
-            'fr': 'USPN',
-            'it': 'UDCLV',
-            'lt': 'KK',
-            'al': 'UT',
-        };
-
-        function guessHomeUni() {
-            if (!authUser || !authUser.username) return '';
-            const email = authUser.username;
-            if (email.indexOf('@') < 0) return '';
-            const tld = email.split('.').pop().toLowerCase();
-            return TLD_TO_UNI[tld] || '';
-        }
-
+        // Content managers may only edit their own home university's data —
+        // the server resolves it from the login email (see /api/auth-check,
+        // authUser.home_university) and enforces the same restriction on
+        // every write endpoint, so this is not just a UI-level lock.
+        // Superuser (authUser.is_superuser) is exempt and may pick any
+        // university, same as before.
         function populateHomeUniSelector() {
             const sel = document.getElementById('homeUni');
-            const current = sel.value;
-            sel.innerHTML = '<option value="">-- Select your university --</option>';
-            const sorted = Object.keys(universities).sort();
-            for (const acro of sorted) {
-                const info = universities[acro];
-                sel.innerHTML += '<option value="' + acro + '">' + acro + ' \u2014 ' + escHtml(info.name) + '</option>';
-            }
-            // Restore previous selection, or auto-detect from email
-            if (current && universities[current]) {
-                sel.value = current;
-            } else {
-                const guess = guessHomeUni();
-                if (guess && universities[guess]) {
-                    sel.value = guess;
-                    loadEditor();
+            const notice = document.getElementById('homeUniNotice');
+            notice.style.display = 'none';
+
+            if (authUser && authUser.is_superuser) {
+                const current = sel.value;
+                sel.disabled = false;
+                sel.innerHTML = '<option value="">-- Select your university --</option>';
+                const sorted = Object.keys(universities).sort();
+                for (const acro of sorted) {
+                    const info = universities[acro];
+                    sel.innerHTML += '<option value="' + acro + '">' + acro + ' — ' + escHtml(info.name) + '</option>';
                 }
+                if (current && universities[current]) sel.value = current;
+                return;
+            }
+
+            const home = authUser && authUser.home_university;
+            if (home && universities[home]) {
+                const info = universities[home];
+                sel.innerHTML = '<option value="' + home + '">' + home + ' — ' + escHtml(info.name) + '</option>';
+                sel.value = home;
+                sel.disabled = true;
+                loadEditor();
+            } else {
+                sel.innerHTML = '<option value="">-- Unknown --</option>';
+                sel.disabled = true;
+                notice.style.display = '';
+                loadEditor();
             }
         }
 

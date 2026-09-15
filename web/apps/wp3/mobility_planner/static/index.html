@@ -184,7 +184,6 @@
             <span class="auth-info" id="authInfo"></span>
             <button class="auth-btn" id="loginBtn" onclick="goToLogin()">Login to Edit</button>
             <button class="auth-btn" id="userModeBtn" onclick="toggleEditorMode()" style="display:none">Switch to User Mode</button>
-            <button class="auth-btn" id="logoutBtn" onclick="doLogout()" style="display:none">Logout</button>
         </div>
 
         <!-- Planner card -->
@@ -215,7 +214,10 @@
         <div id="editorPanel" style="display:none;">
             <div class="card">
                 <h3 style="color:#1a3a5c; margin-bottom:6px;">University Data Editor</h3>
-                <p style="font-size:0.85em; color:#666;">Edit administrative periods (in calendar days) and holiday calendars for each university.</p>
+                <p style="font-size:0.85em; color:#666;">Edit administrative periods (in calendar days) and holiday calendars for your own university.</p>
+                <p id="editorNotice" style="display:none; color:#dc3545; font-size:0.85em; margin-top:8px;">
+                    We could not determine your university from the staff directory, so editing is unavailable. Make sure your directory profile has a university set, or contact a superuser.
+                </p>
             </div>
             <div id="editorCards"></div>
             <div class="card save-bar" id="saveBar" style="display:none;">
@@ -283,7 +285,6 @@
 
         function updateAuthUI() {
             var loginBtn = document.getElementById('loginBtn');
-            var logoutBtn = document.getElementById('logoutBtn');
             var userModeBtn = document.getElementById('userModeBtn');
             var authInfo = document.getElementById('authInfo');
             var editorPanel = document.getElementById('editorPanel');
@@ -292,7 +293,6 @@
 
             if (authUser && authUser.can_edit && editorMode) {
                 loginBtn.style.display = 'none';
-                logoutBtn.style.display = '';
                 userModeBtn.style.display = '';
                 userModeBtn.textContent = 'Switch to User Mode';
                 authInfo.textContent = authUser.username + ' (' + authUser.role + ')';
@@ -302,22 +302,19 @@
                 loadEditorData();
             } else if (authUser && authUser.can_edit && !editorMode) {
                 loginBtn.style.display = 'none';
-                logoutBtn.style.display = '';
                 userModeBtn.style.display = '';
-                userModeBtn.textContent = 'Switch to Editor Mode';
+                userModeBtn.textContent = 'Edit';
                 authInfo.textContent = authUser.username;
                 editorPanel.style.display = 'none';
                 plannerCard.style.display = '';
             } else if (authUser) {
                 loginBtn.style.display = 'none';
-                logoutBtn.style.display = '';
                 userModeBtn.style.display = 'none';
                 authInfo.textContent = authUser.username;
                 editorPanel.style.display = 'none';
                 plannerCard.style.display = '';
             } else {
                 loginBtn.style.display = '';
-                logoutBtn.style.display = 'none';
                 userModeBtn.style.display = 'none';
                 authInfo.textContent = '';
                 editorPanel.style.display = 'none';
@@ -332,12 +329,6 @@
 
         function goToLogin() {
             window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
-        }
-
-        function doLogout() {
-            authToken = null; authUser = null;
-            localStorage.removeItem('uninovis_token'); localStorage.removeItem('mobility_token');
-            updateAuthUI();
         }
 
         /* ── Data loading ────────────────────────────────────── */
@@ -504,7 +495,9 @@
                 if (resp.ok) {
                     editorData = await resp.json();
                     renderEditorCards();
-                    document.getElementById('saveBar').style.display = '';
+                    var hasData = Object.keys(editorData).length > 0;
+                    document.getElementById('saveBar').style.display = hasData ? '' : 'none';
+                    document.getElementById('editorNotice').style.display = hasData ? 'none' : '';
                 }
             } catch (e) {}
         }
@@ -572,7 +565,6 @@
             var result = {};
             for (var i = 0; i < unis.length; i++) {
                 var acro = unis[i];
-                var u = editorData[acro];
                 var sendDays = parseInt(document.getElementById('send_' + acro).value) || 0;
                 var recvDays = parseInt(document.getElementById('recv_' + acro).value) || 0;
                 var holidays = [];
@@ -587,8 +579,6 @@
                 }
                 var confirmedEl = document.getElementById('confirmed_' + acro);
                 result[acro] = {
-                    name: u.name,
-                    country: u.country,
                     sending_period_days: sendDays,
                     receiving_period_days: recvDays,
                     holidays: holidays,

@@ -22,8 +22,55 @@ router = APIRouter(prefix="/mobility-planner", tags=["mobility_planner"])
 
 
 # ── Auth helpers for edit protection ─────────────────────────────────
+# Mobility Planner is curated only by content managers, so it uses the
+# narrower content-manager-only editor check rather than the general
+# EDITOR_ROLES shared by most other apps.
 
-from auth import require_login as _require_auth, require_editor as _require_editor, can_edit as _can_edit_check
+from auth import require_login as _require_auth, require_content_manager_editor as _require_editor, can_edit_as_content_manager as _can_edit_check, user_roles as _user_roles
+
+# The UNINOVIS staff directory is the single source of truth for which
+# universities exist and each person's own university — adding/removing a
+# university there automatically adds/removes it here, and a content manager
+# may only edit the one their own directory entry belongs to.
+from apps.wp1.directory.directory import load_data as _load_directory_data, UNIVERSITIES as _DIRECTORY_UNIVERSITIES
+
+
+def _home_university(username: str) -> str:
+    """Return the UNINOVIS partner university acronym of the directory entry
+    matching this login email, or "" if there is no such entry or it has no
+    university recorded."""
+    if not username:
+        return ""
+    username_lower = username.lower()
+    directory_data = _load_directory_data()
+    person = next(
+        (p for p in directory_data.get("people", []) if p.get("email", "").lower() == username_lower),
+        None,
+    )
+    return (person or {}).get("university") or ""
+
+
+_DEFAULT_UNIVERSITY_ENTRY = {"sending_period_days": 0, "receiving_period_days": 0, "holidays": [], "confirmed": False}
+
+
+def _active_universities(data: dict) -> dict:
+    """Universities scoped to whatever the directory currently recognizes.
+
+    A university removed from the directory disappears here even if stale
+    scheduling data for it remains on disk; one added to the directory
+    appears immediately with blank defaults ready to be filled in. Identity
+    (name/country) always comes from the directory, not from our own data —
+    this file only owns each university's sending/receiving periods and
+    holiday calendar.
+    """
+    stored = data["universities"]
+    result = {}
+    for code, info in _DIRECTORY_UNIVERSITIES.items():
+        entry = dict(_DEFAULT_UNIVERSITY_ENTRY, **stored.get(code, {}))
+        entry["name"] = info["name"]
+        entry["country"] = info["country"]
+        result[code] = entry
+    return result
 
 
 # ── Data I/O ─────────────────────────────────────────────────────────
@@ -146,13 +193,14 @@ def universities(session: dict = Depends(_require_auth)):
             "receiving_period_days": info["receiving_period_days"],
             "confirmed": info.get("confirmed", False),
         }
-        for acro, info in data["universities"].items()
+        for acro, info in _active_universities(data).items()
     }
 
 
 @router.post("/api/compute")
 def compute(body: ComputeRequest, session: dict = Depends(_require_auth)):
     data = load_data()
+    data = {**data, "universities": _active_universities(data)}
     unis = data["universities"]
 
     if body.receiving_university not in unis:
@@ -176,7 +224,16 @@ def compute(body: ComputeRequest, session: dict = Depends(_require_auth)):
 @router.get("/api/auth-check")
 def auth_check(session: dict = Depends(_require_auth)):
     can_edit = _can_edit_check(session)
-    return {"username": session["username"], "role": session["role"], "can_edit": can_edit}
+    is_superuser = "superuser" in _user_roles(session)
+    return {
+        "username": session["username"],
+        "role": session["role"],
+        "can_edit": can_edit,
+        "is_superuser": is_superuser,
+        # Content managers may only edit their own home university's data;
+        # superuser is exempt and may edit any university.
+        "home_university": None if is_superuser else _home_university(session["username"]),
+    }
 
 
 # ── Full data endpoint (includes holidays, for editor) ───────────────
@@ -184,7 +241,13 @@ def auth_check(session: dict = Depends(_require_auth)):
 @router.get("/api/universities-full")
 def universities_full(session: dict = Depends(_require_editor)):
     data = load_data()
-    return data["universities"]
+    active = _active_universities(data)
+    if "superuser" in _user_roles(session):
+        return active
+    # Content managers only ever see (and can therefore only edit) their own
+    # home university's data — not the other partner universities'.
+    home = _home_university(session["username"])
+    return {home: active[home]} if home and home in active else {}
 
 
 # ── Save university data ─────────────────────────────────────────────
@@ -196,8 +259,6 @@ class HolidayEntry(BaseModel):
 
 
 class UniversityUpdate(BaseModel):
-    name: str
-    country: str
     sending_period_days: int
     receiving_period_days: int
     holidays: list[HolidayEntry] = []
@@ -214,10 +275,18 @@ def update_universities(
     session: dict = Depends(_require_editor),
 ):
     data = load_data()
-    errors = []
+    active_codes = set(_DIRECTORY_UNIVERSITIES.keys())
+    is_superuser = "superuser" in _user_roles(session)
+    home = None if is_superuser else _home_university(session["username"])
 
+    if not is_superuser:
+        for acro in body.universities:
+            if acro != home:
+                raise HTTPException(status_code=403, detail="You can only edit your own university's data")
+
+    errors = []
     for acro, uni in body.universities.items():
-        if acro not in data["universities"]:
+        if acro not in active_codes:
             errors.append(f"Unknown university: {acro}")
             continue
         if uni.sending_period_days < 0 or uni.receiving_period_days < 0:
@@ -237,9 +306,7 @@ def update_universities(
         raise HTTPException(400, detail={"errors": errors})
 
     for acro, uni in body.universities.items():
-        entry = data["universities"][acro]
-        entry["name"] = uni.name
-        entry["country"] = uni.country
+        entry = data["universities"].setdefault(acro, {})
         entry["sending_period_days"] = uni.sending_period_days
         entry["receiving_period_days"] = uni.receiving_period_days
         entry["holidays"] = [h.model_dump() for h in uni.holidays]

@@ -56,12 +56,10 @@ _DEFAULT_TOOL_ACCESS = {
     "research_portfolio": ["teaching_staff", "tester", "content_manager", "superuser"],
     "research_explorers": ["student", "teaching_staff", "tester", "content_manager", "superuser"],
     "european_projects":  ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
-    "collaboration_dashboard": ["uninovis_staff", "content_manager", "superuser"],
     "uninovis_uma_dashboard": ["uninovis_staff", "content_manager", "superuser"],
     # Events & Communication
     "event_catalogue":    ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     # Administration
-    "agora_directory_external": [],  # hidden for everyone, including superuser (Agora Directory link retired)
     "directory":          ["admin_staff", "uninovis_staff", "teaching_staff", "wp_leader", "tester", "content_manager", "superuser"],
     "event_tracker":      ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     "dp_status":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
@@ -72,8 +70,6 @@ _DEFAULT_TOOL_ACCESS = {
     "user_management":    ["superuser"],
     "agent_management":   ["superuser"],
     "tool_visibility":    ["superuser"],
-    # Apps in development — sandbox copies for trying things out, superuser-only
-    "event_tracker_dev":  ["superuser"],
 }
 
 TOOL_ACCESS_FILE = DATA_DIR / "tool_access.json"
@@ -102,6 +98,11 @@ TOOL_ACCESS = _load_tool_access()
 # Roles that grant editing rights in apps (equivalent to old "tester" check)
 EDITOR_ROLES = {"admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"}
 
+# Narrower editing rights for tools curated only by content managers (UNIGRACON,
+# Mobility Planner) — unlike EDITOR_ROLES above, teaching_staff/tester/admin_staff/
+# uninovis_staff no longer get an edit toggle on these two tools.
+CONTENT_MANAGER_EDITOR_ROLES = {"content_manager", "superuser"}
+
 
 def user_roles(user_or_session: dict) -> list:
     """Return the list of roles for a user/session. Supports both 'role' (str) and 'roles' (list)."""
@@ -113,9 +114,14 @@ def user_roles(user_or_session: dict) -> list:
 
 
 def can_access_tool(user_or_session: dict, tool_id: str) -> bool:
-    """Check if a user can access a given tool based on their roles."""
+    """Check if a user can access a given tool based on their roles.
+
+    Secure by default: a tool with no TOOL_ACCESS entry yet (e.g. a newly
+    added app nobody has configured in the Tool Visibility panel) is
+    accessible only to superuser, not to everyone, until an admin opens it up.
+    """
     if tool_id not in TOOL_ACCESS:
-        return True  # Tool not restricted
+        return "superuser" in set(user_roles(user_or_session))
     allowed = set(TOOL_ACCESS[tool_id])
     return bool(allowed & set(user_roles(user_or_session)))
 
@@ -123,6 +129,13 @@ def can_access_tool(user_or_session: dict, tool_id: str) -> bool:
 def can_edit(user_or_session: dict) -> bool:
     """Check if a user has editing rights (admin_staff, teaching_staff, tester, superuser)."""
     return bool(EDITOR_ROLES & set(user_roles(user_or_session)))
+
+
+def can_edit_as_content_manager(user_or_session: dict) -> bool:
+    """Check if a user has editing rights restricted to content_manager/superuser
+    (used by tools curated only by content managers, e.g. UNIGRACON and Mobility
+    Planner)."""
+    return bool(CONTENT_MANAGER_EDITOR_ROLES & set(user_roles(user_or_session)))
 
 
 def max_role_level(user_or_session: dict) -> int:
@@ -627,6 +640,14 @@ def require_editor(session: dict = Depends(require_session)) -> dict:
     """FastAPI dependency: require EDITOR_ROLES membership on top of a
     resolved session."""
     if not can_edit(session):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    return session
+
+
+def require_content_manager_editor(session: dict = Depends(require_session)) -> dict:
+    """FastAPI dependency: require CONTENT_MANAGER_EDITOR_ROLES membership on
+    top of a resolved session (content_manager/superuser only)."""
+    if not can_edit_as_content_manager(session):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return session
 

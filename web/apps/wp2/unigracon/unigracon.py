@@ -84,8 +84,41 @@ router = APIRouter(prefix="/unigracon", tags=["unigracon"])
 
 
 # ── Auth helpers for edit protection ─────────────────────────────────
+# UNIGRACON is curated only by content managers, so it uses the narrower
+# content-manager-only editor check rather than the general EDITOR_ROLES
+# shared by most other apps.
 
-from auth import require_login as _require_auth, require_editor as _require_editor, can_edit as _can_edit_check
+from auth import require_login as _require_auth, require_content_manager_editor as _require_editor, can_edit_as_content_manager as _can_edit_check, user_roles as _user_roles
+
+# The UNINOVIS staff directory is the single source of truth for which
+# university each person belongs to — every user has a directory entry, so
+# rather than guess from the email domain we look up their entry there.
+from apps.wp1.directory.directory import load_data as _load_directory_data
+
+
+def _home_university(username: str) -> str:
+    """Return the UNINOVIS partner university acronym of the directory entry
+    matching this login email, or "" if there is no such entry or it has no
+    university recorded."""
+    if not username:
+        return ""
+    username_lower = username.lower()
+    directory_data = _load_directory_data()
+    person = next(
+        (p for p in directory_data.get("people", []) if p.get("email", "").lower() == username_lower),
+        None,
+    )
+    return (person or {}).get("university") or ""
+
+
+def _require_own_university(acro: str, session: dict):
+    """Content managers may only edit their own home university's data;
+    superuser is exempt from this restriction."""
+    if "superuser" in _user_roles(session):
+        return
+    home = _home_university(session["username"])
+    if not home or acro.upper() != home:
+        raise HTTPException(status_code=403, detail="You can only edit your own university's data")
 
 
 # ── Data I/O ─────────────────────────────────────────────────────────
@@ -418,7 +451,16 @@ class TestRequest(BaseModel):
 @router.get("/api/auth-check")
 def auth_check(session: dict = Depends(_require_auth)):
     can_edit = _can_edit_check(session)
-    return {"username": session["username"], "role": session["role"], "can_edit": can_edit}
+    is_superuser = "superuser" in _user_roles(session)
+    return {
+        "username": session["username"],
+        "role": session["role"],
+        "can_edit": can_edit,
+        "is_superuser": is_superuser,
+        # Content managers may only edit their own home university's data;
+        # superuser is exempt and may pick any university in the editor.
+        "home_university": None if is_superuser else _home_university(session["username"]),
+    }
 
 
 # ── Batch conversion update (per target university) ─────────────────
@@ -448,6 +490,7 @@ def update_conversions_to(
     tgt_uni, _ = _parse_key(target)
     if tgt_uni not in data["universities"]:
         raise HTTPException(404, f"University {tgt_uni} not found")
+    _require_own_university(tgt_uni, session)
 
     errors = []
     for source_key, conv in body.conversions.items():
@@ -520,6 +563,7 @@ def add_grading_system(acro: str, body: GradingSystemBody, session: dict = Depen
     data = load_data()
     if acro not in data["universities"]:
         raise HTTPException(404, f"University {acro} not found")
+    _require_own_university(acro, session)
     uni = data["universities"][acro]
     systems = uni.setdefault("grading_systems", [])
     if any(gs["id"] == body.id for gs in systems):
@@ -534,6 +578,7 @@ def update_grading_system(acro: str, sys_id: str, body: GradingSystemBody, sessi
     data = load_data()
     if acro not in data["universities"]:
         raise HTTPException(404, f"University {acro} not found")
+    _require_own_university(acro, session)
     systems = data["universities"][acro].get("grading_systems", [])
     for i, gs in enumerate(systems):
         if gs["id"] == sys_id:
@@ -548,6 +593,7 @@ def delete_grading_system(acro: str, sys_id: str, session: dict = Depends(_requi
     data = load_data()
     if acro not in data["universities"]:
         raise HTTPException(404, f"University {acro} not found")
+    _require_own_university(acro, session)
     if sys_id == "general":
         raise HTTPException(400, "Cannot delete the general grading system")
     systems = data["universities"][acro].get("grading_systems", [])

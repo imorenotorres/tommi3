@@ -417,12 +417,6 @@ from apps.wp1.directory.directory import router as directory_router
 app.include_router(directory_router)
 app.mount("/directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp1" / "directory" / "static"), name="directory_static")
 
-# Mount Event Tracker (Dev) — sandbox copy under System Administration > Apps
-# in development, superuser-only (see TOOL_ACCESS["event_tracker_dev"])
-from apps.sysadmin.apps_in_development.event_tracker_dev.event_tracker_dev import router as event_tracker_dev_router
-app.include_router(event_tracker_dev_router)
-app.mount("/event-tracker-dev/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "sysadmin" / "apps_in_development" / "event_tracker_dev" / "static"), name="event_tracker_dev_static")
-
 # Mount Holiday Tracker app
 from apps.uma_tools.uma_holiday_tracker.uma_holiday_tracker import router as holiday_tracker_router
 app.include_router(holiday_tracker_router)
@@ -447,11 +441,6 @@ async def ultir_catalog():
 from apps.wp5.matomo_analytics.matomo_analytics import router as matomo_analytics_router
 app.include_router(matomo_analytics_router)
 app.mount("/site-analytics/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp5" / "matomo_analytics" / "static"), name="matomo_analytics_static")
-
-# Mount Collaboration Dashboard app
-from apps.uma_tools.collaboration_dashboard.collaboration_dashboard import router as collaboration_dashboard_router
-app.include_router(collaboration_dashboard_router)
-app.mount("/contactos-exploratorios/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uma_tools" / "collaboration_dashboard" / "static"), name="collaboration_dashboard_static")
 
 # Mount UNINOVIS-UMA Dashboard app
 from apps.uma_tools.uninovis_uma_dashboard.uninovis_uma_dashboard import router as uninovis_uma_dashboard_router

@@ -163,7 +163,6 @@ var TOOL_ACCESS = {
     // Research & Innovation
     'researcher_connect': ['teaching_staff', 'tester', 'content_manager', 'superuser'],
     'research_proposals': ['teaching_staff', 'tester', 'content_manager', 'superuser'],
-    'collaboration_dashboard': ['uninovis_staff', 'content_manager', 'superuser'],
     'uninovis_uma_dashboard':  ['uninovis_staff', 'content_manager', 'superuser'],
     'research_portfolio': ['teaching_staff', 'tester', 'content_manager', 'superuser'],
     'research_explorers': ['student', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
@@ -171,14 +170,12 @@ var TOOL_ACCESS = {
     // Events & Communication
     'event_catalogue':    ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
     // Administration
-    'agora_directory_external': [], // hidden for everyone, including superuser (Agora Directory link retired)
     'directory':          ['admin_staff', 'uninovis_staff', 'teaching_staff', 'wp_leader', 'tester', 'content_manager', 'superuser'],
     'event_tracker':      ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
     'dp_status':          ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
-    'intranet_services':  ['admin_staff', 'uninovis_staff', 'teaching_staff', 'tester', 'content_manager', 'superuser'],
-    // AI Agents
-    'tommi_agents':       ['teaching_staff', 'tester', 'content_manager', 'superuser'],
-    'tommi_testing':      ['tester', 'content_manager', 'superuser'],
+    // UMA internal tools — role check below; the @uma.es email gate is
+    // enforced separately by sectionVisible() via SECTIONS[].emailDomain and
+    // is not something the Tool Visibility panel can override.
     'holiday_tracker':    ['uninovis_staff', 'content_manager', 'superuser'],
     // System Administration — reserved for superuser
     'user_management':    ['superuser'],
@@ -186,8 +183,6 @@ var TOOL_ACCESS = {
     'tool_visibility':    ['superuser'],
     'log_analytics':      ['superuser'],
     'matomo_analytics':   ['superuser'],
-    // Apps in development — sandbox copies for trying things out, superuser-only
-    'event_tracker_dev':  ['superuser'],
 };
 
 // Tools grouped by functionality
@@ -229,7 +224,6 @@ var SECTIONS = [
         id: 'admin',
         title: 'WP1: Administration',
         tools: [
-            { id: 'agora_directory_external', name: 'Agora Directory', icon: '\uD83D\uDCCB', desc: 'Internal staff directory. Contacts, groups, work packages, and org charts.', url: 'https://uninovis.widening.eu/directory', status: 'data-update', external: true },
             { id: 'directory', name: 'Directory', icon: '\uD83D\uDCD2', desc: 'People, units, universities, and org charts from the UNINOVIS staff directory.', url: '/directory/', status: 'data-update' },
             { id: 'event_tracker', name: 'Event Tracker', icon: '\uD83D\uDCC5', desc: 'Unified calendar with UNINOVIS events and Agora catalogue integration.', url: '/event-tracker/', status: 'active' },
             { id: 'log_analytics', name: 'Agents Analytics', icon: '\uD83D\uDCCA', desc: 'View request summaries, visitor stats, and manage agent log files.', url: '#', status: 'prototype', action: 'openLogAnalytics' },
@@ -249,7 +243,6 @@ var SECTIONS = [
             { id: 'user_management', name: 'User Management', icon: '\uD83D\uDD10', desc: 'Create, edit, and delete users. Manage roles and invitations.', url: '#', status: 'active', action: 'openUserManagement' },
             { id: 'agent_management', name: 'Agent Management', icon: '\u2699\uFE0F', desc: 'Agent visibility, access control, data export, and log management.', url: '#', status: 'active', action: 'openAgentManagement' },
             { id: 'tool_visibility', name: 'Tool Visibility', icon: '\uD83D\uDC41', desc: 'Configure which intranet tools are visible to each role.', url: '#', status: 'active', action: 'openToolVisibility' },
-            { id: 'event_tracker_dev', name: 'Event Tracker (Dev)', icon: '\uD83E\uDDEA', desc: 'Sandbox copy of Event Tracker for trying out new features, isolated from production data.', url: '/event-tracker-dev/', status: 'prototype', group: 'Apps in development' },
         ]
     },
     {
@@ -258,18 +251,43 @@ var SECTIONS = [
         emailDomain: 'uma.es',
         tools: [
             { id: 'holiday_tracker', name: 'UMA Holiday Tracker', icon: '\uD83C\uDFD6\uFE0F', desc: 'Shared calendar of UMA holidays, personal days, and comisiones de servicio. Weekends and UMA festivities greyed.', url: '/uma-holiday-tracker/', status: 'active' },
-            { id: 'collaboration_dashboard', name: 'Contactos exploratorios', icon: '\uD83E\uDD1D', desc: 'Registro de contactos y visitas en UNINOVIS con vistas a acuerdos docentes, de investigación...', url: '/contactos-exploratorios/', status: 'active' },
             { id: 'uninovis_uma_dashboard', name: 'UNINOVIS-UMA Dashboard', icon: '📋', desc: 'Personal to-do manager: create tasks linked to units and directory colleagues, track status per assignee.', url: '/uninovis-uma-dashboard/', status: 'active' },
         ]
     },
 ];
+
+// ── Tool registry (auto-derived) ──────────────────────────────────
+// The Tool Visibility admin panel must show exactly the tools that are
+// currently live — every WP tab and the UMA site — and nothing else. Rather
+// than keep a second hand-maintained list in sync with SECTIONS (which is
+// how stale entries for retired tools crept in before), the registry is
+// built from SECTIONS itself: add a tool's card to a SECTIONS entry above
+// and it appears in the panel automatically; remove/retire the card and it
+// automatically disappears from the panel, no separate edit required.
+var TOOL_REGISTRY = {};
+SECTIONS.forEach(function(section) {
+    section.tools.forEach(function(tool) {
+        TOOL_REGISTRY[tool.id] = {
+            name: tool.name,
+            sectionTitle: section.title,
+            emailDomain: section.emailDomain || null,
+        };
+    });
+});
+
+function toolLabel(toolId) {
+    return (TOOL_REGISTRY[toolId] && TOOL_REGISTRY[toolId].name) || toolId;
+}
 
 function esc(s) {
     return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
 }
 
 function canAccess(toolId, roles) {
-    if (!TOOL_ACCESS[toolId]) return true;
+    // Secure by default: a tool with no TOOL_ACCESS entry yet (e.g. a newly
+    // added app nobody has configured in the Tool Visibility panel) is
+    // visible only to superuser, not to everyone, until an admin opens it up.
+    if (!TOOL_ACCESS[toolId]) return roles.indexOf('superuser') !== -1;
     if (TOOL_ACCESS[toolId].indexOf('public') !== -1) return true;
     for (var i = 0; i < roles.length; i++) {
         if (TOOL_ACCESS[toolId].indexOf(roles[i]) !== -1) return true;
@@ -430,11 +448,9 @@ var LEARN_GUIDES = {
     unigracon: [{ id: 'learn_unigracon', title: 'Learn: UNIGRACON', content: 'unigracon' }],
     mobility_planner: [{ id: 'learn_mobility_planner', title: 'Learn: Mobility Planner', content: 'mobility_planner' }],
     event_tracker: [{ id: 'learn_event_tracker', title: 'Learn: Event Tracker', content: 'event_tracker' }],
-    event_tracker_dev: [{ id: 'learn_event_tracker_dev', title: 'Learn: Event Tracker (Dev)', roles: ['superuser'], content: 'event_tracker' }],
     // UMA internal tools: restricted to uninovis_staff/superuser AND an
     // @uma.es login, mirroring the "UMA internal tools" section's own gate.
     holiday_tracker: [{ id: 'learn_holiday_tracker', title: 'Learn: UMA Holiday Tracker', roles: ['uninovis_staff', 'superuser'], emailDomain: 'uma.es', content: 'holiday_tracker' }],
-    collaboration_dashboard: [{ id: 'learn_collaboration_dashboard', title: 'Learn: Contactos exploratorios', roles: ['uninovis_staff', 'superuser'], emailDomain: 'uma.es', content: 'collaboration_dashboard' }],
     uninovis_uma_dashboard: [{ id: 'learn_uninovis_uma_dashboard', title: 'Learn: UNINOVIS-UMA Dashboard', roles: ['uninovis_staff', 'superuser'], emailDomain: 'uma.es', content: 'uninovis_uma_dashboard' }],
     directory: [
         { id: 'learn_directory', title: 'Learn: Directory', content: 'directory_overview' },
@@ -451,7 +467,7 @@ SECTIONS.forEach(function(section) {
         // loop and block checkAuth() later in the script.
         try {
             var accessRoles = TOOL_ACCESS[tool.id];
-            if (accessRoles && !accessRoles.length) return; // hidden for everyone (e.g. retired Agora Directory)
+            if (accessRoles && !accessRoles.length) return; // hidden for everyone (an explicitly empty TOOL_ACCESS entry)
             var defaultRoles = (accessRoles && accessRoles.length) ? accessRoles : null;
 
             if (LEARN_GUIDES[tool.id]) {
@@ -1578,42 +1594,6 @@ var _tvData = {};
 // tool access, not to real user accounts, so it isn't part of USER_ROLES.
 var ALL_ROLES = ['public'].concat(Object.keys(USER_ROLES));
 
-// Readable labels for tool IDs
-var TOOL_LABELS = {
-    // Learning & Mobility
-    course_catalogue: 'Course Catalogue',
-    module_overview: 'Module Overview',
-    module_recognition: 'Module Recognition',
-    micro_credentials: 'Micro Credentials',
-    learning_support: 'Learning Support',
-    unigracon: 'UNIGRACON',
-    mobility_planner: 'Mobility Planner',
-    // Research & Innovation
-    internships: 'Internships',
-    researcher_connect: 'Researcher Connect',
-    research_proposals: 'Research Proposals',
-    research_portfolio: 'Research Portfolio',
-    research_explorers: 'Research Explorers',
-    european_projects: 'European Projects',
-    collaboration_dashboard: 'Contactos exploratorios',
-    uninovis_uma_dashboard: 'UNINOVIS-UMA Dashboard',
-    // Events & Communication
-    event_catalogue: 'Event Catalogue',
-    // Administration
-    agora_directory_external: 'Agora Directory',
-    directory: 'Directory',
-    event_tracker: 'Event Tracker',
-    dp_status: 'Status of DP Services',
-    intranet_services: 'Services Catalogue',
-    // System Administration
-    log_analytics: 'Agents Analytics',
-    matomo_analytics: 'Site Analytics',
-    user_management: 'User Management',
-    agent_management: 'Agent Management',
-    tool_visibility: 'Tool Visibility',
-    holiday_tracker: 'UMA Holiday Tracker',
-};
-
 function openToolVisibility() {
     var existing = document.getElementById('tv-overlay');
     if (existing) existing.remove();
@@ -1685,16 +1665,30 @@ function tvRender() {
     });
     html += '</tr>';
 
-    // Sort tools by label
-    var toolIds = Object.keys(_tvData).sort(function(a, b) {
-        return (TOOL_LABELS[a] || a).localeCompare(TOOL_LABELS[b] || b);
+    // Every currently-live tool (every WP tab + the UMA site, derived from
+    // SECTIONS via TOOL_REGISTRY) gets a row, grouped by section, so a
+    // retired tool's row disappears the moment its card is removed from
+    // SECTIONS and a newly added tool's row appears with no extra wiring.
+    var toolIds = Object.keys(TOOL_REGISTRY).sort(function(a, b) {
+        var secA = TOOL_REGISTRY[a].sectionTitle, secB = TOOL_REGISTRY[b].sectionTitle;
+        if (secA !== secB) return secA.localeCompare(secB);
+        return toolLabel(a).localeCompare(toolLabel(b));
     });
 
+    var lastSection = null;
     toolIds.forEach(function(toolId) {
-        var roles = _tvData[toolId] || [];
-        var label = TOOL_LABELS[toolId] || toolId;
+        var info = TOOL_REGISTRY[toolId];
+        if (info.sectionTitle !== lastSection) {
+            lastSection = info.sectionTitle;
+            html += '<tr><td colspan="' + (ALL_ROLES.length + 1) + '" style="padding:10px 8px 2px;font-size:0.72rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;">' + esc(lastSection) + '</td></tr>';
+        }
+        // Fall back to the built-in default roles for a tool that has never
+        // been saved through this panel (e.g. it was added after the last save).
+        var roles = _tvData.hasOwnProperty(toolId) ? _tvData[toolId] : (TOOL_ACCESS[toolId] || []);
+        var label = toolLabel(toolId);
+        var umaBadge = info.emailDomain ? ' <span style="color:#888;font-size:0.65rem;" title="Also requires a @' + esc(info.emailDomain) + ' login, enforced independently of the roles below">(@' + esc(info.emailDomain) + ' required)</span>' : '';
         html += '<tr style="border-bottom:1px solid #f0f0f0;">';
-        html += '<td style="padding:6px 8px;font-weight:500;">' + label + ' <span style="color:#94a3b8;font-size:0.7rem;">' + toolId + '</span></td>';
+        html += '<td style="padding:6px 8px;font-weight:500;">' + esc(label) + umaBadge + ' <span style="color:#94a3b8;font-size:0.7rem;">' + esc(toolId) + '</span></td>';
         ALL_ROLES.forEach(function(r) {
             var checked = roles.indexOf(r) !== -1 ? ' checked' : '';
             var disabled = r === 'superuser' ? ' checked disabled' : '';

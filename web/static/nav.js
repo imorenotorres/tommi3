@@ -252,11 +252,6 @@ window.GUIDE_CONTENT = {
         { selector: '#statsPanel', text: 'In "Mis días registrados" you can see how many days you have taken and how many you have left.' },
         { selector: '#btnManageFestivities', text: 'As a content manager, "Configurar festivos" lets you manage the shared UMA festivities calendar.' },
     ],
-    collaboration_dashboard: [
-        { text: 'Track exploratory contacts and visits with UNINOVIS partners toward future teaching, research, or institutional agreements.' },
-        { selector: '#btn-new-collab', text: 'Register a new exploratory contact here.' },
-        { selector: '#search-input', text: 'Search and filter existing contacts here.' },
-    ],
     uninovis_uma_dashboard: [
         { text: 'A personal to-do manager: create tasks linked to a unit and, optionally, one directory colleague, each tracking its own status.' },
         { selector: '#btn-new-task', text: 'Create a new task here, optionally linking it to a unit and assigning it to a single directory colleague, with an initial status.' },
