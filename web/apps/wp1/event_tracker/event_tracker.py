@@ -314,6 +314,10 @@ def _html_to_plain(html: str) -> str:
     """Strip HTML tags for plain text description preview."""
     if not html or html == "False":
         return ""
+    # Drop <script>/<style> blocks (tags + content) first, so embedded JS/CSS
+    # is discarded rather than leaking through as visible text once the
+    # surrounding tags are stripped below.
+    html = re.sub(r'<(script|style)\b[^>]*>.*?</\1>', ' ', html, flags=re.IGNORECASE | re.DOTALL)
     return re.sub(r'<[^>]+>', ' ', html).replace('&nbsp;', ' ').strip()
 
 
@@ -380,7 +384,7 @@ def _agora_item_to_event(item: dict) -> dict:
         "catalogue_id": catalogue_id,
         "source": "catalogue",
         "name": name,
-        "description": description_html,
+        "description": _html_to_plain(description_html),
         "category": category,
         "categories": [category] if category else [],
         "university": unis[0] if unis else "",
