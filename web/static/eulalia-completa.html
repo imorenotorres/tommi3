@@ -368,6 +368,7 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                 <details open>
                     <summary>Herramientas</summary>
                     <div style="padding:6px 12px;">
+                        <button class="tema-link" style="font-weight:700;color:#4250b3;font-size:13px;" onclick="showView('chat');document.getElementById('message-input').focus();">⚠️ Pregunta a Eulalia</button>
                         <button class="tema-link" style="font-weight:600;color:#7c3aed;font-size:12px;" onclick="openWidget('conceptos')">📝 Práctica de redacción</button>
                         <button class="tema-link" style="font-weight:600;color:#4250b3;font-size:12px;" onclick="openWidget('transcripcion_ejercicio')">✏️ Prácticas de transcripción</button>
                         <button class="tema-link" style="font-weight:600;color:#dc2626;font-size:12px;" onclick="openWidget('informe_errores')">🔍 Análisis de errores</button>
@@ -383,6 +384,12 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
 
                         <!-- Ver como estudiante -->
                         <button onclick="toggleStudentView()" id="btn-student-view" style="width:100%;padding:8px 12px;margin-bottom:8px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">👁 Ver como estudiante</button>
+
+                        <!-- Proyectos -->
+                        <a href="/tutores-virtuales/eulalia/widgets/proyectos_docente" target="_blank"
+                           style="display:block;padding:8px 12px;margin-bottom:8px;background:#4250b3;color:#fff;border-radius:6px;text-align:center;text-decoration:none;font-size:12px;font-weight:600;">
+                            📋 Ver todos los proyectos
+                        </a>
 
                         <!-- Revisión de redacciones -->
                         <a href="/tutores-virtuales/eulalia/widgets/panel_revisiones" target="_blank"
@@ -1425,7 +1432,7 @@ function loadCourseData() {
     fetch('/api/public-agent/eulalia/temas')
     .then(function(r) { return r.json(); })
     .then(function(data) {
-        _temasData = (data.temas || []).filter(function(t) { return t.id >= 1 && t.id <= 4; });
+        _temasData = data.temas || [];
         _seccionesData = data.secciones || [];
         var container = document.getElementById('temario-cards');
         container.innerHTML = '';
@@ -1551,6 +1558,11 @@ function updateSidebar() {
             }
             html += '</div></div>';
         });
+
+        // Mi proyecto de investigación — debajo del listado de temas
+        html += '<div style="padding:8px 12px;border-top:1px solid #e2e8f0;">';
+        html += '<button onclick="openWidget(\'proyecto_investigacion\')" style="width:100%;padding:8px 14px;border-radius:8px;border:2px solid #0d948840;color:#0d9488;background:#fff;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;text-align:left;">📝 Mi proyecto de investigación</button>';
+        html += '</div>';
 
         // Valora a Eulalia — solo visible si el profesor lo ha activado
         html += '<div id="sidebar-valoracion" style="padding:4px 12px;display:none;">';

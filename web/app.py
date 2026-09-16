@@ -1579,6 +1579,12 @@ async def help_eulalia():
     return FileResponse(SCRIPT_DIR / "static" / "help_eulalia.html")
 
 
+@app.get("/tutores-virtuales/eulalia-completa")
+async def tutores_lali_completa(request: Request, moodle_token: str = Query(None)):
+    """Serve the full (complete) LALI tutor page."""
+    return FileResponse(SCRIPT_DIR / "static" / "eulalia-completa.html")
+
+
 @app.get("/tutores-virtuales/eulalia")
 async def tutores_lali(request: Request, moodle_token: str = Query(None)):
     """Serve the LALI tutor page.
