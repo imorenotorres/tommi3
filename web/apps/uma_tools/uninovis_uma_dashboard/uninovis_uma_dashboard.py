@@ -24,7 +24,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "tasks.json")
 CONTACTS_PATH = os.path.join(os.path.dirname(__file__), "contacts.json")
 STATUS_PATH = os.path.join(os.path.dirname(__file__), "status.json")
 UNITS_PATH = os.path.join(os.path.dirname(__file__), "dashboard_units.json")
-DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "wp1", "directory", "data.json")
+ASSIGNEES_PATH = os.path.join(os.path.dirname(__file__), "dashboard_assignees.json")
 
 router = APIRouter(prefix="/uninovis-uma-dashboard", tags=["uninovis_uma_dashboard"])
 
@@ -34,7 +34,7 @@ _SLUG_RE = re.compile(r"^[a-z0-9_]{1,40}$")
 
 # -- Auth helpers ---------------------------------------------------------------
 
-from auth import require_login as _require_auth, user_roles, list_users
+from auth import require_login as _require_auth, user_roles
 
 
 def _is_uma_email(username: str) -> bool:
@@ -76,6 +76,7 @@ DEFAULT_STATUSES = {
     ]
 }
 DEFAULT_UNITS = {"units": []}
+DEFAULT_ASSIGNEES = {"assignees": []}
 
 
 def load_data() -> dict:
@@ -139,6 +140,19 @@ def save_units(data: dict):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
+def load_assignees() -> dict:
+    if not os.path.exists(ASSIGNEES_PATH):
+        save_assignees(DEFAULT_ASSIGNEES.copy())
+        return json.loads(json.dumps(DEFAULT_ASSIGNEES))
+    with open(ASSIGNEES_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_assignees(data: dict):
+    with open(ASSIGNEES_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
 # -- Models ---------------------------------------------------------------
 
 class AssigneeInput(BaseModel):
@@ -180,6 +194,14 @@ class StatusOrderBody(BaseModel):
 
 class UnitBody(BaseModel):
     name: str
+
+
+class AssigneeConfigBody(BaseModel):
+    name: str
+
+
+class AssigneeConfigOrderBody(BaseModel):
+    order: List[int]
 
 
 # A "contact" carries every task field plus everything tracked for an
@@ -235,39 +257,12 @@ def _validate_link(link: str):
         raise HTTPException(400, "Link must start with http:// or https://")
 
 
-def _assignable_accounts() -> set:
-    """Usernames (emails) of accounts that could themselves pass
-    _require_staff — i.e. can actually open this app."""
-    return {
-        u["username"].strip().lower()
-        for u in list_users()
-        if (_ALLOWED_ROLES & set(u.get("roles") or [u.get("role")])) and _is_uma_email(u["username"])
-    }
-
-
-def _assignable_people() -> list:
-    """Directory people who hold an account that can access this app —
-    only they may be chosen as assignees."""
-    try:
-        with open(DIRECTORY_DATA_PATH, "r", encoding="utf-8") as f:
-            directory = json.load(f)
-    except Exception:
-        return []
-    accounts = _assignable_accounts()
-    people = []
-    for p in directory.get("people", []):
-        emails = {e.strip().lower() for e in (p.get("email") or "").split(";") if e.strip()}
-        if emails & accounts:
-            people.append(p)
-    return people
-
-
 def _validate_assignee(assignee: Optional[AssigneeInput]):
     if assignee is None:
         return
-    assignable_ids = {p["id"] for p in _assignable_people()}
+    assignable_ids = {a["id"] for a in load_assignees()["assignees"]}
     if assignee.person_id not in assignable_ids:
-        raise HTTPException(400, "Tasks can only be assigned to people who can access this app")
+        raise HTTPException(400, "Unknown assignee id")
 
 
 def _resolve_assignee_status(old_assignee: Optional[dict], body_assignee: AssigneeInput, session: dict, now: str):
@@ -352,14 +347,7 @@ def auth_check(session: dict = Depends(_require_auth)):
 
 @router.get("/api/assignable-people")
 def get_assignable_people(session: dict = Depends(_require_staff)):
-    return [
-        {
-            "id": p["id"],
-            "name": f"{p.get('first_name', '')} {p.get('family_name', '')}".strip(),
-            "email": (p.get("email") or "").split(";")[0].strip(),
-        }
-        for p in _assignable_people()
-    ]
+    return load_assignees()["assignees"]
 
 
 @router.get("/api/data")
@@ -727,4 +715,68 @@ def delete_dashboard_unit(unit_id: int, session: dict = Depends(_require_superus
     if contacts_changed:
         save_contacts(contact_data)
 
+    return {"ok": True}
+
+
+# -- Dashboard assignees (superuser/UMA editable) ---------------------------------------------------------------
+
+@router.get("/api/dashboard-assignees")
+def get_dashboard_assignees(session: dict = Depends(_require_staff)):
+    return load_assignees()["assignees"]
+
+
+@router.post("/api/dashboard-assignees")
+def create_dashboard_assignee(body: AssigneeConfigBody, session: dict = Depends(_require_superuser_uma)):
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(400, "Assignee name is required")
+    data = load_assignees()
+    new_id = max([a["id"] for a in data["assignees"]], default=0) + 1
+    entry = {"id": new_id, "name": name}
+    data["assignees"].append(entry)
+    save_assignees(data)
+    return entry
+
+
+@router.put("/api/dashboard-assignees/order")
+def reorder_dashboard_assignees(body: AssigneeConfigOrderBody, session: dict = Depends(_require_superuser_uma)):
+    data = load_assignees()
+    current_ids = {a["id"] for a in data["assignees"]}
+    if set(body.order) != current_ids or len(body.order) != len(data["assignees"]):
+        raise HTTPException(400, "Order must include exactly the current assignee ids")
+    by_id = {a["id"]: a for a in data["assignees"]}
+    data["assignees"] = [by_id[i] for i in body.order]
+    save_assignees(data)
+    return data["assignees"]
+
+
+@router.put("/api/dashboard-assignees/{assignee_id}")
+def update_dashboard_assignee(assignee_id: int, body: AssigneeConfigBody, session: dict = Depends(_require_superuser_uma)):
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(400, "Assignee name is required")
+    data = load_assignees()
+    entry = next((a for a in data["assignees"] if a["id"] == assignee_id), None)
+    if not entry:
+        raise HTTPException(404, "Assignee not found")
+    entry["name"] = name
+    save_assignees(data)
+    return entry
+
+
+@router.delete("/api/dashboard-assignees/{assignee_id}")
+def delete_dashboard_assignee(assignee_id: int, session: dict = Depends(_require_superuser_uma)):
+    data = load_assignees()
+    if not any(a["id"] == assignee_id for a in data["assignees"]):
+        raise HTTPException(404, "Assignee not found")
+    task_data = load_data()
+    contact_data = load_contacts()
+    in_use = (
+        any(t.get("assignee") and t["assignee"].get("person_id") == assignee_id for t in task_data["tasks"])
+        or any(c.get("assignee") and c["assignee"].get("person_id") == assignee_id for c in contact_data["contacts"])
+    )
+    if in_use:
+        raise HTTPException(400, "Cannot delete an assignee that is currently assigned to a task or contact")
+    data["assignees"] = [a for a in data["assignees"] if a["id"] != assignee_id]
+    save_assignees(data)
     return {"ok": True}
