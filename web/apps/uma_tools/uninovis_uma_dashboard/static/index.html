@@ -902,6 +902,7 @@
                     var taskName = (t.assignee.name || '').toLowerCase();
                     var matchedAssignee = state.filterAssignees.some(function(id) {
                         if (id === '__unassigned__') return false;
+                        if (t.assignee.person_id && String(t.assignee.person_id) === id) return true;
                         var p = state.directoryPeople.find(function(x) { return String(x.id) === id; });
                         return p && (p.name || '').toLowerCase() === taskName;
                     });
