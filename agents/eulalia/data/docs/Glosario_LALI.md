@@ -237,7 +237,7 @@ Frecuencia de vibración de las cuerdas vocales. Determina el tono percibido. Se
 
 | Símbolo | Nombre | Descripción | Fonema |
 |---------|--------|-------------|--------|
-| j | Yod | Semiconsonante palatal (prenuclear) | /i/ en diptongo creciente: [pje] "pie" |
+| j | Yod | Semiconsonante palatal (prenuclear) | /i/ en diptongo creciente: [ˈpje] "pie" |
 | i̯ | I no silábica | Semivocal palatal (postnuclear) | /i/ en diptongo decreciente: [ˈai̯.ɾe] "aire" |
 | w | W | Semiconsonante velar (prenuclear) | /u/ en diptongo creciente: [ˈfwe.ɣ̞o] "fuego" |
 | u̯ | U no silábica | Semivocal velar (postnuclear) | /u/ en diptongo decreciente: [ˈpau̯.sa] "pausa" |

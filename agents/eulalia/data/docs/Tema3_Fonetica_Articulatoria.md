@@ -89,7 +89,7 @@ Las vocales cerradas son más complejas: tienen **tres alófonos** cada una, dep
 | Alófono | Descripción | Contexto | Ejemplo |
 |---------|-------------|----------|---------|
 | [i] | vocal cerrada anterior | Núcleo silábico | *misa* [ˈmi.sa] |
-| [j] | semiconsonante palatal | Posición prenuclear (diptongo creciente) | *pie* [pje] |
+| [j] | semiconsonante palatal | Posición prenuclear (diptongo creciente) | *pie* [ˈpje] |
 | [i̯] | semivocal palatal | Posición postnuclear (diptongo decreciente) | *aire* [ˈai̯.ɾe] |
 
 #### Fonema /u/

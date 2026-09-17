@@ -68,7 +68,7 @@ INVENTARIO = [
         "simbolo": "j", "tipo": "semiconsonante", "subtipo": "cerrada",
         "lugar": "anterior (palatal)", "sonoridad": "sonora",
         "fonema": "/i/", "contexto": "En posición prenuclear (antes del núcleo silábico), en diptongos crecientes",
-        "ejemplo": ("pie", "[pje]"),
+        "ejemplo": ("pie", "[ˈpje]"),
         "descripcion_corta": "semiconsonante palatal",
     },
     {
