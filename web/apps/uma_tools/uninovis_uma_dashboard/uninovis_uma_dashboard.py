@@ -198,6 +198,7 @@ class UnitBody(BaseModel):
 
 class AssigneeConfigBody(BaseModel):
     name: str
+    email: str = ""
 
 
 class AssigneeConfigOrderBody(BaseModel):
@@ -300,9 +301,27 @@ def _find_contact(data: dict, contact_id: str) -> dict:
     return entry
 
 
+def _email_for_person_id(person_id) -> str:
+    """Look up the stored email for a dashboard assignee by their id."""
+    person = next(
+        (p for p in load_assignees().get("assignees", []) if p["id"] == person_id),
+        None
+    )
+    return (person.get("email", "") if person else "").lower()
+
+
 def _is_assignee(entry: dict, username: str) -> bool:
     a = entry.get("assignee")
-    return bool(a and a.get("email", "").lower() == username)
+    if not a:
+        return False
+    if a.get("email", "").lower() == username:
+        return True
+    # Also match by person_id for tasks assigned via the dropdown (email may be empty)
+    user_person = next(
+        (p for p in load_assignees().get("assignees", []) if p.get("email", "").lower() == username),
+        None
+    )
+    return user_person is not None and a.get("person_id") == user_person["id"]
 
 
 def _can_edit_task(entry: dict, session: dict) -> bool:
@@ -398,7 +417,7 @@ def create_task(body: TaskBody, session: dict = Depends(_require_staff)):
         assignee = {
             "person_id": body.assignee.person_id,
             "name": body.assignee.name,
-            "email": body.assignee.email.strip().lower(),
+            "email": body.assignee.email.strip().lower() or _email_for_person_id(body.assignee.person_id),
             "status": status_id,
             "updated_at": now,
         }
@@ -430,7 +449,6 @@ def update_task(task_id: str, body: TaskBody, session: dict = Depends(_require_s
     entry = _find_task(data, task_id)
     if not _can_edit_task(entry, session):
         raise HTTPException(403, "You can only edit tasks you created or are assigned to")
-
     now = datetime.utcnow().isoformat() + "Z"
     old_assignee = entry.get("assignee")
     new_assignee = None
@@ -439,7 +457,7 @@ def update_task(task_id: str, body: TaskBody, session: dict = Depends(_require_s
         new_assignee = {
             "person_id": body.assignee.person_id,
             "name": body.assignee.name,
-            "email": body.assignee.email.strip().lower(),
+            "email": body.assignee.email.strip().lower() or _email_for_person_id(body.assignee.person_id),
             "status": status,
             "updated_at": status_updated_at,
         }
@@ -520,7 +538,7 @@ def create_contact(body: ContactBody, session: dict = Depends(_require_staff)):
         assignee = {
             "person_id": body.assignee.person_id,
             "name": body.assignee.name,
-            "email": body.assignee.email.strip().lower(),
+            "email": body.assignee.email.strip().lower() or _email_for_person_id(body.assignee.person_id),
             "status": status_id,
             "updated_at": now,
         }
@@ -555,7 +573,7 @@ def update_contact(contact_id: str, body: ContactBody, session: dict = Depends(_
         new_assignee = {
             "person_id": body.assignee.person_id,
             "name": body.assignee.name,
-            "email": body.assignee.email.strip().lower(),
+            "email": body.assignee.email.strip().lower() or _email_for_person_id(body.assignee.person_id),
             "status": status,
             "updated_at": status_updated_at,
         }
@@ -735,7 +753,7 @@ def create_dashboard_assignee(body: AssigneeConfigBody, session: dict = Depends(
         raise HTTPException(400, "Assignee name is required")
     data = load_assignees()
     new_id = max([a["id"] for a in data["assignees"]], default=0) + 1
-    entry = {"id": new_id, "name": name}
+    entry = {"id": new_id, "name": name, "email": body.email.strip().lower()}
     data["assignees"].append(entry)
     save_assignees(data)
     return entry
@@ -763,6 +781,7 @@ def update_dashboard_assignee(assignee_id: int, body: AssigneeConfigBody, sessio
     if not entry:
         raise HTTPException(404, "Assignee not found")
     entry["name"] = name
+    entry["email"] = body.email.strip().lower()
     save_assignees(data)
     return entry
 
