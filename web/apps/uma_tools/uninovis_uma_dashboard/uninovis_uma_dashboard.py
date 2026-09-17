@@ -34,7 +34,7 @@ _SLUG_RE = re.compile(r"^[a-z0-9_]{1,40}$")
 
 # -- Auth helpers ---------------------------------------------------------------
 
-from auth import require_login as _require_auth, user_roles
+from auth import require_login as _require_auth, user_roles, list_users
 
 
 def _is_uma_email(username: str) -> bool:
@@ -334,8 +334,11 @@ def index():
 @router.get("/api/auth-check")
 def auth_check(session: dict = Depends(_require_auth)):
     has_access = bool(_ALLOWED_ROLES & set(user_roles(session))) and _is_uma_email(session["username"])
+    users = {u["username"]: u for u in list_users()}
+    user_name = users.get(session["username"], {}).get("name", "")
     return {
         "username": session["username"],
+        "name": user_name,
         "role": session["role"],
         "roles": session.get("roles", [session["role"]]),
         "has_access": has_access,
