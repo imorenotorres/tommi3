@@ -293,6 +293,48 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
         </table>
     </div>
 
+    <div class="admin-box">
+        <h3>Server resource requirements</h3>
+        <p style="margin-bottom:12px;">This table summarises what each tool consumes on the host server and whether it requires access to an external LLM API. Use it to plan infrastructure and API budget before deploying a tool.</p>
+        <table class="config-table" style="width:100%;">
+            <thead>
+                <tr>
+                    <th>Tool</th>
+                    <th>Server CPU</th>
+                    <th>Server disk</th>
+                    <th>External LLM API</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>FonESP</strong></td>
+                    <td>Transcription computation (IPA rules, allophone lookup) on every exercise request</td>
+                    <td>Exercise banks (~2 JSON files, a few KB) read per session; student scores written</td>
+                    <td>&mdash;</td>
+                </tr>
+                <tr>
+                    <td><strong>Writing: Basics</strong></td>
+                    <td>Lightweight (prompt assembly, request routing)</td>
+                    <td>Course configs and student revision history written per submission</td>
+                    <td>Required &mdash; one call per student submission (writing feedback)</td>
+                </tr>
+                <tr>
+                    <td><strong>Writing: Project</strong></td>
+                    <td>BM25 indexing when teacher uploads documents; BM25 retrieval on every student query</td>
+                    <td>Uploaded course documents, BM25 index, student interaction logs</td>
+                    <td>Required &mdash; one call per student message (RAG-augmented chat)</td>
+                </tr>
+                <tr>
+                    <td><strong>Circuit Analysis Trainer</strong></td>
+                    <td>Random circuit generation and numerical calculation per exercise</td>
+                    <td>&mdash;</td>
+                    <td>&mdash;</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="note"><strong>LLM API setup:</strong> Writing: Basics and Writing: Project require a configured LLM provider (<code>LLM_PROVIDER</code>, <code>LLM_API_KEY</code> and optionally <code>LLM_MODEL</code> in <code>web/.env</code>). Supported providers: Mistral Cloud, Ollama (local), vLLM. Tools without an LLM entry run fully on the host server with no external dependencies.</p>
+    </div>
+
     <h2 class="section-title" style="margin-top:40px;">For teachers</h2>
 
     <div class="admin-box">
