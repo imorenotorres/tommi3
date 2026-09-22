@@ -237,6 +237,19 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
                 <td>Class, Home</td>
                 <td><span class="badge badge-active">Active</span></td>
             </tr>
+            <tr>
+                <td>
+                    <div class="name">Python Practice</div>
+                    <div class="links"><a href="/lti/python/info" class="link-info">Info</a> <a href="/lti/python/test" class="link-test">Try it</a></div>
+                </td>
+                <td>Any (programming)</td>
+                <td>UMA</td>
+                <td><div class="desc-wrap"><div class="desc-text">Interactive Python coding exercises. Teachers create exercises with automatic test cases and hints; students write and run real Python code directly in the browser via Pyodide (WebAssembly) — no server execution, no installation. Progress tracked per student.</div><span class="desc-toggle" onclick="toggleDesc(this)">[+ more]</span></div></td>
+                <td>No</td>
+                <td>Yes</td>
+                <td>Class, Home</td>
+                <td><span class="badge badge-active">Active</span></td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -366,7 +379,25 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
                     <td><span class="res-badge res-none">None</span></td>
                     <td><span class="res-badge res-none">None</span></td>
                 </tr>
+                <tr>
+                    <td><strong>Python Practice</strong></td>
+                    <td><span class="res-badge res-low">Low</span>Session management only — all code execution is client-side (Pyodide/WASM)</td>
+                    <td><span class="res-badge res-low">Low</span>Exercise bank per course + student progress files (small JSON files)</td>
+                    <td><span class="res-badge res-none">None</span></td>
+                </tr>
             </tbody>
+        </table>
+    </div>
+
+    <div class="admin-box">
+        <h3>Python Practice &mdash; registration details</h3>
+        <table class="config-table">
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>Tool name</td><td>Python Practice</td></tr>
+            <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/python</code></td></tr>
+            <tr><td>Consumer key</td><td><code>python_uma</code></td></tr>
+            <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
+            <tr><td>Launch container</td><td>Embed</td></tr>
         </table>
     </div>
 

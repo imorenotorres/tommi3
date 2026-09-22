@@ -365,11 +365,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdn.matomo.cloud https://cdnjs.cloudflare.com https://3dmol.org; "
+            "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdn.matomo.cloud https://cdnjs.cloudflare.com https://3dmol.org; "
             "style-src 'self' 'unsafe-inline' https://unpkg.com; "
             "img-src 'self' data: https:; "
             "font-src 'self' https:; "
-            "connect-src 'self' https://*.matomo.cloud https://data.rcsb.org https://files.rcsb.org https://search.rcsb.org; "
+            "connect-src 'self' https://cdn.jsdelivr.net https://*.matomo.cloud https://data.rcsb.org https://files.rcsb.org https://search.rcsb.org; "
             "frame-src 'self' https:; "
             "frame-ancestors " + frame_ancestors
         )
@@ -433,6 +433,8 @@ from UltiR.circuits.lti_provider import router as lti_circuits_router
 app.include_router(lti_circuits_router)
 from UltiR.molecules.lti_provider import router as lti_molecules_router
 app.include_router(lti_molecules_router)
+from UltiR.python_practice.lti_provider import router as lti_python_router
+app.include_router(lti_python_router)
 
 @app.get("/ultir")
 async def ultir_catalog():

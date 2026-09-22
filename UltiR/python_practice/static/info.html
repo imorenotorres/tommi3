@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Practice — Info</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.header { background: #2D3876; padding: 20px 32px; }
+.header h1 { color: #fff; font-size: 22px; font-weight: 800; }
+.header p { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 4px; }
+.container { max-width: 800px; margin: 32px auto; padding: 0 20px; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+.card h2 { font-size: 16px; color: #2D3876; margin-bottom: 12px; }
+.card p, .card li { font-size: 14px; color: #475569; line-height: 1.7; }
+.card ol, .card ul { padding-left: 20px; margin-top: 8px; }
+.card li { margin-bottom: 6px; }
+.card code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'SF Mono', Consolas, monospace; }
+.config-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+.config-table th { text-align: left; padding: 6px 10px; background: #f8fafc; color: #64748b; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
+.config-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; }
+.config-table td:first-child { font-weight: 600; color: #1e293b; white-space: nowrap; }
+.note { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 6px; font-size: 13px; color: #92400e; margin-top: 16px; }
+.footer { text-align: center; padding: 32px 20px; font-size: 12px; color: #94a3b8; }
+.diff-row { display: flex; gap: 10px; margin-top: 10px; }
+.diff-chip { font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 10px; }
+.diff-beginner { background: #dcfce7; color: #166534; }
+.diff-intermediate { background: #fef9c3; color: #854d0e; }
+.diff-advanced { background: #fee2e2; color: #991b1b; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>&#128013; Python Practice</h1>
+  <p>Interactive Python coding exercises — runs entirely in the browser, no installation required</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>What this tool does</h2>
+    <p>Python Practice lets students write and run real Python code directly inside Moodle. Teachers create exercise banks with automatic test cases; students get instant pass/fail feedback on every attempt. No server execution is involved — Python runs locally in the student's browser via <strong>Pyodide</strong> (WebAssembly).</p>
+    <ul style="margin-top:10px;">
+      <li>Full Python 3 environment in the browser — <code>for</code>, <code>def</code>, <code>class</code>, standard library</li>
+      <li>Syntax highlighting editor (CodeMirror) with keyboard shortcut <code>Ctrl+Enter</code> to run</li>
+      <li>Automatic test runner: each exercise has test cases with expected outputs</li>
+      <li>Stdout capture — <code>print()</code> statements are shown in the output panel</li>
+      <li>Optional hints per exercise, revealed one by one on demand</li>
+      <li>Progress tracked per student — completed exercises marked with ✓ in the sidebar</li>
+      <li>No LLM — all execution and grading is fully client-side</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Exercise difficulty levels</h2>
+    <p>Each exercise is tagged with one of three difficulty levels:</p>
+    <div class="diff-row">
+      <span class="diff-chip diff-beginner">Principiante</span>
+      <span class="diff-chip diff-intermediate">Intermedio</span>
+      <span class="diff-chip diff-advanced">Avanzado</span>
+    </div>
+    <p style="margin-top:10px;">Exercises are grouped by level in the sidebar and sorted alphabetically within each group.</p>
+  </div>
+
+  <div class="card">
+    <h2>For teachers — creating exercises</h2>
+    <ol>
+      <li>Launch the tool from your Moodle course (you must be enrolled as instructor)</li>
+      <li>Click <strong>+ Añadir</strong> in the sidebar</li>
+      <li>Fill in the title, difficulty, description, and starter code</li>
+      <li>Add <strong>test cases</strong>: each test is a Python expression and its expected output (as a string). For example, expression <code>suma(1, 2)</code> → expected <code>3</code></li>
+      <li>Optionally add hints that students can reveal one at a time</li>
+      <li>Click <strong>Guardar</strong> — the exercise is immediately available to students</li>
+    </ol>
+    <div class="note">
+      <strong>Test format:</strong> The expression is evaluated with Python's <code>eval()</code> and the result compared as a string via <code>str()</code>.
+      Boolean results must be written as <code>True</code> / <code>False</code> (capital first letter).
+      List results must match Python's default repr exactly, e.g. <code>[1, 2, 3]</code> (with spaces after commas).
+      Use the <strong>Try it</strong> link on this page to test your exercises as a student.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>For students — using the tool</h2>
+    <ul>
+      <li>Select an exercise from the sidebar</li>
+      <li>Read the description and write your solution in the code editor</li>
+      <li>Press <strong>▶ Ejecutar</strong> (or <code>Ctrl+Enter</code>) to run your code against the test cases</li>
+      <li>Each test shows whether it passed (green ✓) or failed (red ✗) with the obtained vs expected value</li>
+      <li>Use <strong>💡 Pista</strong> to reveal hints one at a time if you get stuck</li>
+      <li>Use <strong>↺ Restablecer</strong> to restore the original starter code</li>
+      <li>Once all tests pass, the exercise is marked as completed in the sidebar</li>
+    </ul>
+    <div class="note"><strong>Note:</strong> Python loads in the background when you first open the tool (you will see "Cargando Python…" in the top-right corner). Wait for "Python listo" before running code.</div>
+  </div>
+
+  <div class="card">
+    <h2>Moodle registration details</h2>
+    <table class="config-table">
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Tool name</td><td>Python Practice</td></tr>
+      <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/python</code></td></tr>
+      <tr><td>Consumer key</td><td><code>python_uma</code></td></tr>
+      <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
+      <tr><td>Launch container</td><td>Embed</td></tr>
+    </table>
+  </div>
+
+</div>
+<div class="footer">UltiR &mdash; UNINOVIS LTI Repository</div>
+</body>
+</html>

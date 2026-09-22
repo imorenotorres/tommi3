@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Practice</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/theme/dracula.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; overflow: hidden; }
+
+/* HEADER */
+.header { height: 56px; background: #2D3876; display: flex; align-items: center; flex-shrink: 0; }
+.header-left { display: flex; align-items: center; gap: 10px; padding: 0 16px; flex: 1; min-width: 0; }
+.header-logo { color: #fff; font-size: 20px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.header-sep { color: rgba(255,255,255,0.4); font-size: 16px; }
+.header-title { color: rgba(255,255,255,0.9); font-size: 15px; font-weight: 600; white-space: nowrap; }
+.header-course { color: rgba(255,255,255,0.5); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-right { display: flex; align-items: center; gap: 8px; padding: 0 16px; background: rgba(255,255,255,0.12); border-left: 1px solid rgba(255,255,255,0.12); height: 100%; flex-shrink: 0; }
+.py-status { font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 20px; background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.75); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.py-status.ready { background: rgba(34,197,94,0.25); color: #4ade80; }
+.py-status.error  { background: rgba(239,68,68,0.25); color: #f87171; }
+.py-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: blink 1.4s infinite; }
+.py-status.ready .py-dot, .py-status.error .py-dot { animation: none; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* LAYOUT */
+.layout { display: flex; height: calc(100vh - 56px); }
+
+/* SIDEBAR */
+.sidebar { width: 260px; flex-shrink: 0; background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden; }
+.sidebar-hdr { padding: 11px 14px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.sidebar-hdr-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.btn-add-ex { background: #2D3876; color: #fff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: none; }
+.btn-add-ex:hover { background: #1e2a5a; }
+.sidebar-body { flex: 1; overflow-y: auto; padding: 6px 0; }
+
+.diff-group { margin-bottom: 2px; }
+.diff-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; padding: 8px 14px 3px; color: #94a3b8; }
+.ex-card { padding: 8px 14px; cursor: pointer; border-left: 3px solid transparent; transition: background 0.1s; }
+.ex-card:hover { background: #f1f5f9; }
+.ex-card.active { background: #eff6ff; border-left-color: #2D3876; }
+.ex-card-title { font-size: 13px; font-weight: 600; color: #1e293b; line-height: 1.3; }
+.ex-card-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+.diff-badge { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 8px; }
+.diff-beginner     { background: #dcfce7; color: #166534; }
+.diff-intermediate { background: #fef9c3; color: #854d0e; }
+.diff-advanced     { background: #fee2e2; color: #991b1b; }
+.done-badge { font-size: 11px; font-weight: 700; color: #16a34a; }
+
+/* MAIN */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* WELCOME */
+.welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; gap: 12px; }
+.welcome-icon { font-size: 52px; }
+.welcome h2 { font-size: 18px; color: #64748b; font-weight: 700; }
+.welcome p { font-size: 14px; }
+
+/* EXERCISE HEADER */
+.ex-header { padding: 9px 16px; background: #fff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 48px; }
+.ex-title { font-size: 15px; font-weight: 700; color: #1e293b; flex: 1; }
+.btn-instr { background: none; border: 1px solid #e2e8f0; color: #64748b; padding: 3px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.btn-instr:hover { border-color: #94a3b8; color: #1e293b; }
+.btn-instr-del { background: none; border: 1px solid #fee2e2; color: #ef4444; padding: 3px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.btn-instr-del:hover { background: #fee2e2; }
+
+/* DESCRIPTION */
+.ex-desc { padding: 10px 16px; background: #fafafa; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #475569; line-height: 1.7; overflow-y: auto; height: 140px; flex-shrink: 0; }
+.ex-desc code { background: #e2e8f0; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: 'SF Mono', Consolas, monospace; }
+
+/* EDITOR TOOLBAR */
+.editor-toolbar { height: 42px; background: #1e293b; border-bottom: 1px solid #0f172a; display: flex; align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; }
+.btn-run { background: #22c55e; color: #fff; border: none; padding: 6px 18px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+.btn-run:hover { background: #16a34a; }
+.btn-run:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-toolbar { background: rgba(255,255,255,0.08); color: #94a3b8; border: 1px solid rgba(255,255,255,0.12); padding: 5px 13px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.btn-toolbar:hover { background: rgba(255,255,255,0.14); color: #fff; }
+.btn-hint-tb { background: rgba(245,158,11,0.18); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); padding: 5px 13px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.btn-hint-tb:hover { background: rgba(245,158,11,0.28); }
+.toolbar-shortcut { font-size: 11px; color: #475569; margin-left: auto; }
+
+/* EDITOR */
+.editor-wrap { flex: 1; overflow: hidden; min-height: 100px; }
+.CodeMirror { height: 100% !important; font-size: 13.5px !important; font-family: 'SF Mono', Consolas, 'Courier New', monospace !important; line-height: 1.55 !important; }
+
+/* HINT BOX */
+.hint-box { flex-shrink: 0; background: #fffbeb; border-top: 1px solid #fde68a; padding: 9px 16px; font-size: 13px; color: #92400e; display: none; align-items: flex-start; gap: 10px; }
+.hint-box.show { display: flex; }
+.hint-box-text { flex: 1; }
+.hint-close { background: none; border: none; color: #b45309; cursor: pointer; font-size: 15px; line-height: 1; flex-shrink: 0; padding: 0 2px; }
+
+/* OUTPUT */
+.output { height: 210px; flex-shrink: 0; background: #0f172a; border-top: 2px solid #1e293b; overflow-y: auto; padding: 10px 14px; }
+.output-placeholder { color: #475569; font-size: 12px; font-family: 'SF Mono', Consolas, monospace; padding: 4px 0; }
+.test-row { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; font-family: 'SF Mono', Consolas, monospace; }
+.test-row:last-of-type { border-bottom: none; }
+.test-icon { font-size: 12px; flex-shrink: 0; }
+.test-desc { color: #94a3b8; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.test-result { white-space: nowrap; flex-shrink: 0; }
+.test-result.pass { color: #4ade80; }
+.test-result.fail { color: #f87171; }
+.output-summary { margin-top: 8px; padding: 7px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; font-family: system-ui; }
+.output-summary.pass { background: rgba(34,197,94,0.14); color: #4ade80; }
+.output-summary.fail { background: rgba(239,68,68,0.10); color: #f87171; }
+.output-error { padding: 8px 12px; background: rgba(239,68,68,0.10); border-radius: 6px; font-size: 12px; font-family: 'SF Mono', Consolas, monospace; color: #f87171; white-space: pre-wrap; }
+.output-stdout { margin-top: 8px; padding: 8px 12px; background: #1e293b; border-radius: 6px; font-size: 12px; font-family: 'SF Mono', Consolas, monospace; color: #94a3b8; white-space: pre-wrap; }
+.output-stdout-label { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+
+/* MODAL */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 200; }
+.modal-bg.open { display: flex; }
+.modal { background: #fff; border-radius: 12px; width: 700px; max-width: 96vw; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.3); }
+.modal-hdr { padding: 16px 22px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.modal-hdr h3 { font-size: 15px; font-weight: 700; }
+.modal-x { background: none; border: none; font-size: 18px; color: #64748b; cursor: pointer; line-height: 1; }
+.modal-body { padding: 18px 22px; overflow-y: auto; flex: 1; }
+.modal-footer { padding: 12px 22px; border-top: 1px solid #e2e8f0; display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0; }
+
+.form-row { margin-bottom: 13px; }
+.form-row label { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+.form-row input, .form-row select, .form-row textarea { width: 100%; padding: 7px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; font-family: inherit; color: #1e293b; }
+.form-row textarea { resize: vertical; min-height: 70px; }
+.form-row textarea.code { font-family: 'SF Mono', Consolas, monospace; font-size: 12px; min-height: 90px; }
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline: none; border-color: #2D3876; box-shadow: 0 0 0 2px rgba(45,56,118,0.1); }
+.form-section { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin: 16px 0 6px; padding-bottom: 5px; border-bottom: 1px solid #f1f5f9; }
+.form-hint { font-size: 11px; color: #94a3b8; margin-bottom: 8px; }
+
+.test-form-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 6px; margin-bottom: 5px; align-items: center; }
+.test-form-row input { font-family: 'SF Mono', Consolas, monospace; font-size: 12px; }
+.hint-form-row { display: flex; gap: 6px; margin-bottom: 5px; }
+.hint-form-row input { flex: 1; }
+.btn-rm { background: none; border: 1px solid #fee2e2; color: #ef4444; padding: 5px 9px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.btn-rm:hover { background: #fee2e2; }
+.btn-add-row { background: none; border: 1px dashed #cbd5e1; color: #64748b; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; width: 100%; margin-top: 4px; }
+.btn-add-row:hover { border-color: #94a3b8; background: #f8fafc; }
+.btn-primary { background: #2D3876; color: #fff; border: none; padding: 7px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-primary:hover { background: #1e2a5a; }
+.btn-secondary { background: #fff; color: #475569; border: 1px solid #e2e8f0; padding: 7px 20px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.btn-secondary:hover { background: #f8fafc; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <a href="/ultir" class="header-logo">UltiR</a>
+    <span class="header-sep">›</span>
+    <span class="header-title">Python Practice</span>
+    <span class="header-sep">›</span>
+    <span class="header-course" id="course-name">Cargando…</span>
+  </div>
+  <div class="header-right">
+    <div class="py-status" id="py-status">
+      <span class="py-dot"></span>Cargando Python…
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-hdr">
+      <span class="sidebar-hdr-title">Ejercicios</span>
+      <button class="btn-add-ex" id="btn-add-ex" onclick="openAddModal()">+ Añadir</button>
+    </div>
+    <div class="sidebar-body" id="sidebar-body">
+      <div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Cargando…</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main">
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">🐍</div>
+      <h2>Python Practice</h2>
+      <p>Selecciona un ejercicio de la barra lateral para empezar</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- EXERCISE MODAL -->
+<div class="modal-bg" id="ex-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3 id="modal-title">Añadir ejercicio</h3>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
+        <div class="form-row" style="margin:0">
+          <label>Título</label>
+          <input type="text" id="m-title" placeholder="Ej: Suma de dos números">
+        </div>
+        <div class="form-row" style="margin:0">
+          <label>Dificultad</label>
+          <select id="m-difficulty">
+            <option value="beginner">Principiante</option>
+            <option value="intermediate">Intermedio</option>
+            <option value="advanced">Avanzado</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:13px;">
+        <label>Descripción (visible para el estudiante)</label>
+        <textarea id="m-desc" placeholder="Explica qué debe hacer la función. Puedes usar `backticks` para código."></textarea>
+      </div>
+      <div class="form-row">
+        <label>Código inicial (starter code)</label>
+        <textarea id="m-starter" class="code" placeholder="def mi_funcion(a, b):&#10;    pass"></textarea>
+      </div>
+
+      <div class="form-section">Tests automáticos</div>
+      <p class="form-hint">Expresión Python evaluada → resultado esperado como str(). Ej: suma(1, 2) → 3</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;margin-bottom:4px;">
+        <span style="font-size:11px;color:#94a3b8;font-weight:600;">Expresión</span>
+        <span style="font-size:11px;color:#94a3b8;font-weight:600;">Esperado</span>
+        <span style="font-size:11px;color:#94a3b8;font-weight:600;">Descripción</span>
+        <span></span>
+      </div>
+      <div id="test-rows"></div>
+      <button class="btn-add-row" onclick="addTestRow()">+ Añadir test</button>
+
+      <div class="form-section" style="margin-top:18px;">Pistas (opcionales)</div>
+      <div id="hint-rows"></div>
+      <button class="btn-add-row" onclick="addHintRow()">+ Añadir pista</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveExercise()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+const TOKEN = new URLSearchParams(location.search).get('token') || '';
+const A = p => `/lti/python/api/${p}${p.includes('?') ? '&' : '?'}token=${TOKEN}`;
+
+let session = null, exercises = [], progress = {}, currentExercise = null;
+let editor = null, pyodide = null, editingId = null, hintIndex = -1;
+
+const DIFF_LABEL = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' };
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+async function init() {
+  initPyodide(); // fire-and-forget; status shown in header
+
+  try {
+    const [s, data] = await Promise.all([
+      fetch(A('session')).then(r => r.json()),
+      fetch(A('exercises')).then(r => r.json()),
+    ]);
+    session = s;
+    exercises = data.exercises || [];
+    progress = data.progress || {};
+    document.getElementById('course-name').textContent = s.course_name || 'Curso';
+    if (s.is_instructor) document.getElementById('btn-add-ex').style.display = 'block';
+    renderSidebar();
+  } catch (e) {
+    console.error('Init error:', e);
+  }
+}
+
+async function initPyodide() {
+  try {
+    pyodide = await loadPyodide();
+    const el = document.getElementById('py-status');
+    el.className = 'py-status ready';
+    el.innerHTML = '<span class="py-dot"></span>Python listo';
+  } catch (e) {
+    const el = document.getElementById('py-status');
+    el.className = 'py-status error';
+    el.innerHTML = '<span class="py-dot"></span>Error al cargar Python';
+  }
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const groups = { beginner: [], intermediate: [], advanced: [] };
+  exercises.forEach(ex => (groups[ex.difficulty] || groups.beginner).push(ex));
+
+  let html = '';
+  for (const [diff, list] of Object.entries(groups)) {
+    if (!list.length) continue;
+    html += `<div class="diff-group"><div class="diff-label">${DIFF_LABEL[diff]}</div>`;
+    list.forEach(ex => {
+      const done = progress[ex.id]?.completed;
+      const active = currentExercise?.id === ex.id ? ' active' : '';
+      html += `<div class="ex-card${active}" onclick="selectExercise('${ex.id}')">
+        <div class="ex-card-title">${esc(ex.title)}</div>
+        <div class="ex-card-meta">
+          <span class="diff-badge diff-${diff}">${DIFF_LABEL[diff]}</span>
+          ${done ? '<span class="done-badge">✓ Superado</span>' : ''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  if (!html) html = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">Sin ejercicios aún.</div>';
+  document.getElementById('sidebar-body').innerHTML = html;
+}
+
+// ── Exercise view ─────────────────────────────────────────────────────────────
+function selectExercise(id) {
+  currentExercise = exercises.find(e => e.id === id);
+  if (!currentExercise) return;
+  hintIndex = -1;
+  renderExercise();
+  renderSidebar();
+}
+
+function renderExercise() {
+  const ex = currentExercise;
+  const isInstr = session?.is_instructor;
+  const nTests = (ex.tests || []).length;
+
+  document.getElementById('main').innerHTML = `
+    <div class="ex-header">
+      <span class="ex-title">${esc(ex.title)}</span>
+      <span class="diff-badge diff-${ex.difficulty}">${DIFF_LABEL[ex.difficulty] || ex.difficulty}</span>
+      <span style="font-size:12px;color:#94a3b8;">${nTests} test${nTests !== 1 ? 's' : ''}</span>
+      ${isInstr ? `<button class="btn-instr" onclick="openEditModal('${ex.id}')">✎ Editar</button>` : ''}
+      ${isInstr ? `<button class="btn-instr-del" onclick="deleteExercise('${ex.id}')">✕ Eliminar</button>` : ''}
+    </div>
+    <div class="ex-desc" id="ex-desc">${fmtDesc(ex.description)}</div>
+    <div class="editor-toolbar">
+      <button class="btn-run" id="btn-run" onclick="runCode()">▶ Ejecutar</button>
+      <button class="btn-toolbar" onclick="resetCode()">↺ Restablecer</button>
+      ${(ex.hints || []).length ? '<button class="btn-hint-tb" onclick="showHint()">💡 Pista</button>' : ''}
+      <span class="toolbar-shortcut">Ctrl+Enter</span>
+    </div>
+    <div class="editor-wrap" id="editor-wrap"></div>
+    <div class="hint-box" id="hint-box">
+      <span class="hint-box-text" id="hint-text"></span>
+      <button class="hint-close" onclick="document.getElementById('hint-box').classList.remove('show')">✕</button>
+    </div>
+    <div class="output" id="output">
+      <span class="output-placeholder">Pulsa ▶ Ejecutar para ver los resultados de los tests.</span>
+    </div>
+  `;
+
+  editor = CodeMirror(document.getElementById('editor-wrap'), {
+    value: ex.starter_code || '',
+    mode: 'python',
+    theme: 'dracula',
+    lineNumbers: true,
+    indentUnit: 4,
+    tabSize: 4,
+    indentWithTabs: false,
+    autofocus: true,
+    extraKeys: {
+      'Ctrl-Enter': runCode,
+      'Cmd-Enter': runCode,
+      Tab: cm => cm.replaceSelection('    '),
+    },
+  });
+}
+
+function fmtDesc(text) {
+  if (!text) return '<em style="color:#94a3b8">Sin descripción.</em>';
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+// ── Code execution ────────────────────────────────────────────────────────────
+async function runCode() {
+  if (!currentExercise) return;
+  if (!pyodide) {
+    renderOutput(null, null, null, 'Python aún está cargando. Espera un momento.');
+    return;
+  }
+
+  const runBtn = document.getElementById('btn-run');
+  runBtn.disabled = true;
+  runBtn.textContent = '⟳ Ejecutando…';
+
+  const code = editor.getValue();
+  const tests = currentExercise.tests || [];
+  let stdout = '', codeError = null;
+
+  // Execute student code in isolated namespace, capture stdout
+  try {
+    pyodide.runPython(`
+import sys as _sys, io as _io
+_ns = {}
+_buf = _io.StringIO()
+_old = _sys.stdout
+_sys.stdout = _buf
+try:
+    exec(${JSON.stringify(code)}, _ns)
+finally:
+    _sys.stdout = _old
+_captured = _buf.getvalue()
+`);
+    stdout = pyodide.runPython('_captured') || '';
+  } catch (err) {
+    codeError = String(err.message || err);
+  }
+
+  let results = [], passed = 0;
+  if (!codeError) {
+    for (const t of tests) {
+      try {
+        const got = pyodide.runPython(`str(eval(${JSON.stringify(t.input)}, _ns))`);
+        const ok = got === t.expected;
+        if (ok) passed++;
+        results.push({ ...t, got, ok });
+      } catch (err) {
+        results.push({ ...t, got: 'Error: ' + (err.message || String(err)), ok: false });
+      }
+    }
+  }
+
+  renderOutput(results, passed, stdout, codeError);
+
+  if (!codeError && tests.length > 0) {
+    const completed = passed === tests.length;
+    await fetch(A(`progress/${currentExercise.id}`), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed, passed, total: tests.length, at: new Date().toISOString() }),
+    }).catch(() => {});
+    if (completed && !progress[currentExercise.id]?.completed) {
+      progress[currentExercise.id] = { completed: true, passed, total: tests.length };
+      renderSidebar();
+    }
+  }
+
+  runBtn.disabled = false;
+  runBtn.textContent = '▶ Ejecutar';
+}
+
+function renderOutput(results, passed, stdout, error) {
+  const out = document.getElementById('output');
+  let html = '';
+
+  if (error) {
+    html = `<div class="output-error">✗ Error en tu código:\n${esc(error)}</div>`;
+  } else {
+    results.forEach(r => {
+      const cls = r.ok ? 'pass' : 'fail';
+      const icon = r.ok ? '✓' : '✗';
+      const detail = r.ok ? esc(r.got) : `obtenido: <b>${esc(r.got)}</b> · esperado: ${esc(r.expected)}`;
+      html += `<div class="test-row">
+        <span class="test-icon" style="color:${r.ok ? '#4ade80' : '#f87171'}">${icon}</span>
+        <span class="test-desc">${esc(r.description || r.input)}</span>
+        <span class="test-result ${cls}">${detail}</span>
+      </div>`;
+    });
+    if (results.length) {
+      const all = passed === results.length;
+      html += `<div class="output-summary ${all ? 'pass' : 'fail'}">
+        ${all ? '🎉 ¡Todos los tests superados! Ejercicio completado.' : `✗ ${passed} de ${results.length} tests superados.`}
+      </div>`;
+    }
+  }
+
+  if (stdout) {
+    html += `<div class="output-stdout"><div class="output-stdout-label">Salida del programa</div>${esc(stdout)}</div>`;
+  }
+
+  out.innerHTML = html || '<span class="output-placeholder">Sin tests configurados.</span>';
+}
+
+function resetCode() {
+  if (editor && currentExercise) editor.setValue(currentExercise.starter_code || '');
+}
+
+function showHint() {
+  const hints = currentExercise?.hints || [];
+  if (!hints.length) return;
+  hintIndex = (hintIndex + 1) % hints.length;
+  document.getElementById('hint-text').innerHTML =
+    `<strong>Pista ${hintIndex + 1}/${hints.length}:</strong> ${esc(hints[hintIndex])}`;
+  document.getElementById('hint-box').classList.add('show');
+}
+
+// ── Instructor CRUD ───────────────────────────────────────────────────────────
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Añadir ejercicio';
+  document.getElementById('m-title').value = '';
+  document.getElementById('m-difficulty').value = 'beginner';
+  document.getElementById('m-desc').value = '';
+  document.getElementById('m-starter').value = '';
+  document.getElementById('test-rows').innerHTML = '';
+  document.getElementById('hint-rows').innerHTML = '';
+  addTestRow();
+  document.getElementById('ex-modal').classList.add('open');
+}
+
+function openEditModal(id) {
+  const ex = exercises.find(e => e.id === id);
+  if (!ex) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Editar ejercicio';
+  document.getElementById('m-title').value = ex.title || '';
+  document.getElementById('m-difficulty').value = ex.difficulty || 'beginner';
+  document.getElementById('m-desc').value = ex.description || '';
+  document.getElementById('m-starter').value = ex.starter_code || '';
+  document.getElementById('test-rows').innerHTML = '';
+  document.getElementById('hint-rows').innerHTML = '';
+  (ex.tests || []).forEach(t => addTestRow(t));
+  if (!(ex.tests || []).length) addTestRow();
+  (ex.hints || []).forEach(h => addHintRow(h));
+  document.getElementById('ex-modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('ex-modal').classList.remove('open'); }
+
+function addTestRow(t = {}) {
+  const row = document.createElement('div');
+  row.className = 'test-form-row';
+  row.innerHTML = `
+    <input type="text" placeholder="suma(1, 2)" value="${esc(t.input || '')}">
+    <input type="text" placeholder="3" value="${esc(t.expected || '')}">
+    <input type="text" placeholder="suma(1,2) → 3" value="${esc(t.description || '')}">
+    <button class="btn-rm" onclick="this.parentElement.remove()">✕</button>
+  `;
+  document.getElementById('test-rows').appendChild(row);
+}
+
+function addHintRow(h = '') {
+  const row = document.createElement('div');
+  row.className = 'hint-form-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Pista para el estudiante…" value="${esc(h)}">
+    <button class="btn-rm" onclick="this.parentElement.remove()">✕</button>
+  `;
+  document.getElementById('hint-rows').appendChild(row);
+}
+
+async function saveExercise() {
+  const title = document.getElementById('m-title').value.trim();
+  if (!title) { alert('El título es obligatorio.'); return; }
+
+  const tests = Array.from(document.querySelectorAll('.test-form-row')).map(row => {
+    const [inp, exp, desc] = row.querySelectorAll('input');
+    return { input: inp.value.trim(), expected: exp.value.trim(), description: desc.value.trim() };
+  }).filter(t => t.input && t.expected);
+
+  const hints = Array.from(document.querySelectorAll('.hint-form-row input'))
+    .map(i => i.value.trim()).filter(Boolean);
+
+  const body = {
+    title,
+    difficulty: document.getElementById('m-difficulty').value,
+    description: document.getElementById('m-desc').value.trim(),
+    starter_code: document.getElementById('m-starter').value,
+    tests,
+    hints,
+  };
+
+  const url = editingId ? A(`exercises/${editingId}`) : A('exercises');
+  const resp = await fetch(url, {
+    method: editingId ? 'PATCH' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) { alert('Error al guardar el ejercicio.'); return; }
+
+  const data = await resp.json();
+  exercises = data.exercises;
+  closeModal();
+  if (editingId && currentExercise?.id === editingId) {
+    currentExercise = exercises.find(e => e.id === editingId);
+    renderExercise();
+  }
+  renderSidebar();
+}
+
+async function deleteExercise(id) {
+  if (!confirm('¿Eliminar este ejercicio? Esta acción no se puede deshacer.')) return;
+  const data = await fetch(A(`exercises/${id}`), { method: 'DELETE' }).then(r => r.json());
+  exercises = data.exercises;
+  if (currentExercise?.id === id) {
+    currentExercise = null;
+    document.getElementById('main').innerHTML = `
+      <div class="welcome">
+        <div class="welcome-icon">🐍</div>
+        <h2>Python Practice</h2>
+        <p>Selecciona un ejercicio de la barra lateral</p>
+      </div>`;
+  }
+  renderSidebar();
+}
+
+// ── Util ──────────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+init();
+</script>
+</body>
+</html>
