@@ -3297,6 +3297,61 @@ async def lali_get_contenido_seccion(
 _LALI_CONFIG_PATH = _LALI_DIR / "transcripcion_config.json"
 
 
+_spell_checker_es = None
+
+def _get_spell_checker_es():
+    global _spell_checker_es
+    if _spell_checker_es is None:
+        try:
+            from spellchecker import SpellChecker
+            _spell_checker_es = SpellChecker(language='es', distance=1)
+        except ImportError:
+            pass
+    return _spell_checker_es
+
+
+def _check_ortografia_programatica(texto: str) -> dict:
+    """
+    Programmatic Spanish spell check. Returns a rubric-result dict:
+    {"cumplido": bool, "comentario": str}
+    Ignores IPA transcription (/.../ and [...]) and only flags words
+    where pyspellchecker finds a clear distance-1 correction.
+    """
+    import re as _re
+    spell = _get_spell_checker_es()
+    if spell is None:
+        return {"cumplido": True, "comentario": "Control ortográfico no disponible."}
+
+    # Strip phonological /.../ and phonetic [...] notation
+    limpio = _re.sub(r'/[^/\n]+/', ' ', texto)
+    limpio = _re.sub(r'\[[^\]\n]+\]', ' ', limpio)
+
+    # Extract alphabetic tokens (Spanish alphabet including accented chars and ñ)
+    words = _re.findall(r'[a-záéíóúüñA-ZÁÉÍÓÚÜÑ]+', limpio)
+    words_lower = [w.lower() for w in words]
+
+    if not words_lower:
+        return {"cumplido": True, "comentario": "Sin errores ortográficos detectados."}
+
+    unknown = spell.unknown(words_lower)
+    errors = []
+    for word in unknown:
+        correction = spell.correction(word)
+        if correction and correction != word:
+            errors.append((word, correction))
+
+    if not errors:
+        return {"cumplido": True, "comentario": "Sin errores ortográficos detectados."}
+
+    if len(errors) == 1:
+        w, c = errors[0]
+        comment = f"Posible error ortográfico: '{w}' (¿'{c}'?)."
+    else:
+        parts = ", ".join(f"'{w}' (¿'{c}'?)" for w, c in errors[:3])
+        comment = f"Posibles errores ortográficos: {parts}."
+    return {"cumplido": False, "comentario": comment}
+
+
 @app.post("/api/public-agent/eulalia/evaluar-definicion")
 async def lali_evaluar_definicion(request: Request):
     """Evaluate a student's definition of a concept using LLM with a closed rubric."""
@@ -3311,22 +3366,33 @@ async def lali_evaluar_definicion(request: Request):
     if not concepto or not definicion_alumno or not rubrica:
         return JSONResponse({"error": "Faltan campos obligatorios"}, status_code=400)
 
-    # Load docente config for spelling/style criteria
+    # Load config and concept list
     _config_path = _LALI_DIR / "data" / "conceptos_redaccion.json"
     _redaccion_config = {}
+    _rd = {}
     if _config_path.exists():
         _rd = json.loads(_config_path.read_text(encoding="utf-8"))
         if isinstance(_rd, dict):
             _redaccion_config = _rd.get("config", {})
 
-    _orto_tol = _redaccion_config.get("ortografia_tolerancia",
-        "Errores menores aislados (1-2) se toleran. Marca false solo si hay errores frecuentes o graves.")
     _estilo_crit = _redaccion_config.get("estilo_criterio",
         "Frases claras y bien construidas, sin ambigüedades, con un registro apropiado para un contexto académico. No se exige perfección literaria, solo claridad y corrección básica.")
 
-    # Add fixed criteria for spelling and style
+    # Check if this concept opts out of spell checking
+    _sin_ortografia = False
+    for _c in (_rd.get("conceptos", []) if isinstance(_rd, dict) else []):
+        if _c.get("nombre", "").lower() == concepto.lower():
+            _sin_ortografia = _c.get("sin_control_ortografico", False)
+            break
+
+    # Orthography: programmatic (not LLM)
+    if _sin_ortografia:
+        ortho_result = {"cumplido": True, "comentario": "Control ortográfico no aplicable para este concepto."}
+    else:
+        ortho_result = _check_ortografia_programatica(definicion_alumno)
+
+    # LLM evaluates content criteria + style only (not orthography)
     rubrica_con_extras = list(rubrica) + [
-        {"descripcion": f"ORTOGRAFÍA: El texto no contiene faltas de ortografía significativas (tildes, b/v, h, etc.). {_orto_tol}"},
         {"descripcion": f"ESTILO: El texto está bien redactado: {_estilo_crit}"},
     ]
     criterios_text = "\n".join(
@@ -3345,9 +3411,13 @@ RÚBRICA — Evalúa cada criterio como true (cumplido) o false (no cumplido):
 {criterios_text}
 
 INSTRUCCIONES:
+- Lee TODA la definición del estudiante de principio a fin antes de evaluar cualquier criterio. Una frase al final de la definición es tan válida como una al principio. No descartes ninguna parte del texto.
 - Tu ÚNICA fuente de conocimiento es la DEFINICIÓN DE REFERENCIA proporcionada arriba. NO uses tu conocimiento general sobre el tema. Si algo no está en la referencia, NO lo evalúes ni lo comentes.
 - Evalúa si la definición del estudiante cubre cada criterio según lo que dice la REFERENCIA, no según lo que tú sepas del tema.
-- Sé justo y generoso: si el concepto está expresado con otras palabras, con sinónimos o de forma implícita pero clara, marca true. Por ejemplo, si el criterio pide que asocie una subdisciplina a la "fase de producción" y el estudiante dice "cómo se producen los sonidos", eso CUMPLE el criterio aunque no use la palabra "fase".
+- Para criterios de CONTENIDO: si el concepto está expresado con otras palabras o sinónimos equivalentes, marca true. Por ejemplo, si el criterio pide que asocie una subdisciplina a la "fase de producción" y el estudiante dice "cómo se producen los sonidos", eso CUMPLE el criterio aunque no use la palabra "fase".
+- Para que un criterio se considere cumplido de forma implícita, la implicación debe ser directa e inequívoca. Una frase vaga, ambigua o que solo se relaciona indirectamente con el criterio NO cumple el criterio — marca false. No apliques el beneficio de la duda si hay ambigüedad.
+- DIRECCIÓN DE LA IMPLICACIÓN: presta atención a si el estudiante habla de la misma situación que describe el criterio. Un criterio sobre lo que ocurre DENTRO de un grupo (ej. "los sonidos de una misma clase permiten transmitir el mismo significado") NO se cumple describiendo lo que ocurre cuando se CAMBIA entre grupos distintos (ej. "si cambias el sonido cambia el significado"). Son afirmaciones sobre situaciones diferentes aunque relacionadas — la segunda NO implica la primera.
+- Para el criterio de ESTILO: marca false solo si hay problemas de redacción evidentes que dificultarían la comprensión a un lector familiarizado con la materia. Indicadores claros de redacción deficiente: (a) pronombre sin antecedente explícito en la misma oración (ej. "si lo cambias" sin que "lo" se refiera a nada mencionado antes), (b) coloquialismos evidentes (ej. "no se entiende" en lugar de "no permite distinguir el significado"), (c) frases incoherentes o gramaticalmente incorrectas. NO penalices construcciones que son gramaticalmente correctas y claras aunque admitan interpretación alternativa en un análisis muy detallado. En caso de duda, marca true.
 - Solo marca false si el concepto realmente falta o es incorrecto SEGÚN LA REFERENCIA.
 - IMPORTANTE: Asegúrate de que el valor "cumplido" (true/false) es coherente con tu comentario. Si tu comentario dice que la respuesta es correcta, el valor debe ser true.
 - IMPORTANTE para evaluar EJEMPLOS: un ejemplo es correcto si es coherente con la definición de referencia. Examina TODA la palabra, no solo una parte. Por ejemplo, en /la.pa/ → /pa.pa/, la /l/ se convierte en /p/ — y la /p/ SÍ existe en la palabra original (en la segunda sílaba). Evalúa ejemplos SOLO según lo que dice la referencia.
@@ -3375,6 +3445,11 @@ INSTRUCCIONES:
             if match:
                 llm_text = match.group(1)
         result = json.loads(llm_text)
+
+        # Inject programmatic orthography result between content criteria and style
+        n_content = len(rubrica)
+        llm_criterios = result.get("criterios", [])
+        result["criterios"] = llm_criterios[:n_content] + [ortho_result] + llm_criterios[n_content:]
 
         # Log the interaction (anonymous)
         try:
