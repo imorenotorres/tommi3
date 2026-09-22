@@ -125,6 +125,20 @@ def grafema_a_fonema(palabra: str) -> tuple:
         else:
             p_limpia += c
 
+    # Adjust pos_tilde for silent 'h' characters that precede the tilde in
+    # p_limpia. These are counted when setting pos_tilde but generate no
+    # phonemes after h-elimination, causing a position mismatch.
+    # Example: "héroe" → p_limpia="heroe", pos_tilde=1, but after h-removal
+    # the 'e' is at position 0, not 1.
+    if pos_tilde >= 0:
+        h_muda_before = sum(
+            1 for k in range(pos_tilde)
+            if p_limpia[k] == 'h' and (k == 0 or p_limpia[k - 1] != 'c')
+        )
+        if h_muda_before:
+            pos_tilde -= h_muda_before
+            tilde_en_cerrada = {pos - h_muda_before for pos in tilde_en_cerrada}
+
     p = p_limpia
 
     # hie- inicial → /ʝe/ (hierba → ʝerba, hielo → ʝelo, hiena → ʝena)
