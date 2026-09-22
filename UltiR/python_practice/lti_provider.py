@@ -168,6 +168,7 @@ async def python_add(request: Request):
         "difficulty": body.get("difficulty", "beginner"),
         "description": body.get("description", ""),
         "starter_code": body.get("starter_code", ""),
+        "solution": body.get("solution", ""),
         "tests": body.get("tests", []),
         "hints": body.get("hints", []),
     })
@@ -196,7 +197,7 @@ async def python_update(ex_id: str, request: Request):
     exercises = _load_exercises(course_id)
     for e in exercises:
         if e["id"] == ex_id:
-            for field in ("title", "difficulty", "description", "starter_code", "tests", "hints"):
+            for field in ("title", "difficulty", "description", "starter_code", "solution", "tests", "hints"):
                 if field in body:
                     e[field] = body[field]
             break
