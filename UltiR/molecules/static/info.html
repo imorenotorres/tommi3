@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Molecule Viewer — Info</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.header { background: #2D3876; padding: 20px 32px; }
+.header h1 { color: #fff; font-size: 22px; font-weight: 800; }
+.header p { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 4px; }
+.container { max-width: 800px; margin: 32px auto; padding: 0 20px; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+.card h2 { font-size: 16px; color: #2D3876; margin-bottom: 12px; }
+.card p, .card li { font-size: 14px; color: #475569; line-height: 1.7; }
+.card ol, .card ul { padding-left: 20px; margin-top: 8px; }
+.card li { margin-bottom: 6px; }
+.card code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.config-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+.config-table th { text-align: left; padding: 6px 10px; background: #f8fafc; color: #64748b; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
+.config-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; }
+.config-table td:first-child { font-weight: 600; color: #1e293b; white-space: nowrap; }
+.note { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 6px; font-size: 13px; color: #92400e; margin-top: 16px; }
+.footer { text-align: center; padding: 32px 20px; font-size: 12px; color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>&#128300; Molecule Viewer</h1>
+    <p>Interactive 3D molecular visualization for biology and chemistry courses</p>
+</div>
+<div class="container">
+
+    <div class="card">
+        <h2>What this tool does</h2>
+        <p>Molecule Viewer lets students explore 3D molecular structures directly inside Moodle. Teachers curate a list of molecules per course by PDB ID; students can rotate, zoom and change the rendering style in their browser — no software to install.</p>
+        <ul style="margin-top:10px;">
+            <li>Structures loaded from the <strong>RCSB Protein Data Bank</strong> (100,000+ structures)</li>
+            <li>Rendering styles: Cartoon, Stick, Sphere, Surface</li>
+            <li>Color schemes: Spectrum, Chain, Element (CPK)</li>
+            <li>No LLM — all rendering is client-side via 3Dmol.js</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>For teachers — how to add molecules</h2>
+        <ol>
+            <li>Launch the tool from your Moodle course</li>
+            <li>Click <strong>Add molecule</strong> in the sidebar</li>
+            <li>Enter a <strong>PDB ID</strong> (4-letter code, e.g. <code>1CRN</code>, <code>4HHB</code>) and click <strong>Preview</strong> to verify</li>
+            <li>Optionally set a display name, description and default rendering style</li>
+            <li>Click <strong>Add to course</strong> — the molecule appears immediately for all students</li>
+        </ol>
+        <p style="margin-top:10px;">Find PDB IDs at <a href="https://www.rcsb.org" target="_blank" style="color:#2D3876;font-weight:600;">rcsb.org</a> — search by molecule name, organism or function.</p>
+        <div class="note"><strong>Tip:</strong> Use <em>Cartoon</em> for proteins and nucleic acids, <em>Stick</em> for small molecules and drugs, and <em>Surface</em> to visualise binding pockets.</div>
+    </div>
+
+    <div class="card">
+        <h2>Exploration features</h2>
+        <ul>
+            <li><strong>Rendering styles:</strong> Cartoon (ribbons), Stick, Sphere (CPK) and Surface — switchable at any time from the controls bar.</li>
+            <li><strong>Color schemes:</strong> Spectrum (rainbow by residue), Chain (one colour per chain) and Element (Jmol/CPK palette).</li>
+            <li><strong>Ligands &#10003;</strong> — when active, cofactors, drugs and small molecules are automatically highlighted with stick+sphere style in element colours, overlaid on the protein representation. Toggle it off to focus on the macromolecule alone. Particularly useful for enzyme&#8211;inhibitor complexes.</li>
+            <li><strong>&#128247; Exportar</strong> — downloads the current 3D view as a PNG image. Students can include the image in reports or presentations.</li>
+            <li><strong>&#8862; Comparar</strong> — splits the viewer into two independent panels (A / B). Use the dropdowns to load different molecules side by side. Ideal for comparing conformational states (e.g. haemoglobin T vs R), or a protein before and after drug binding.</li>
+            <li><strong>Search RCSB by name</strong> — inside the <em>Add molecule</em> modal, teachers can type a molecule name (e.g. &ldquo;hemoglobin&rdquo;) and browse results directly, without leaving the tool.</li>
+        </ul>
+        <div class="note"><strong>Tip:</strong> For enzyme&#8211;drug complexes such as <code>6LU7</code> (SARS-CoV-2 protease) or <code>1HSG</code> (HIV protease with ritonavir), enable <em>Ligandos</em> to see the small-molecule inhibitor highlighted in the active site.</div>
+    </div>
+
+    <div class="card">
+        <h2>Moodle registration details</h2>
+        <table class="config-table">
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>Tool name</td><td>Molecule Viewer</td></tr>
+            <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/molecules</code></td></tr>
+            <tr><td>Consumer key</td><td><code>molecules_uma</code></td></tr>
+            <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
+            <tr><td>Launch container</td><td>Embed</td></tr>
+        </table>
+    </div>
+
+</div>
+<div class="footer">UltiR &mdash; UNINOVIS LTI Repository</div>
+</body>
+</html>

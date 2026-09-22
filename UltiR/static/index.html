@@ -208,6 +208,19 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
             </tr>
             <tr>
                 <td>
+                    <div class="name">Molecule Viewer</div>
+                    <div class="links"><a href="/lti/molecules/info" class="link-info">Info</a> <a href="/lti/molecules/test" class="link-test">Try it</a></div>
+                </td>
+                <td>Biology / Chemistry</td>
+                <td>UMA</td>
+                <td><div class="desc-wrap"><div class="desc-text">Interactive 3D molecular visualization. Teachers curate a molecule list per course by PDB ID; students explore structures in a 3Dmol.js viewer with Cartoon, Stick, Sphere and Surface rendering styles. Structures loaded from the RCSB Protein Data Bank (100,000+ structures). No software to install.</div><span class="desc-toggle" onclick="toggleDesc(this)">[+ more]</span></div></td>
+                <td>No</td>
+                <td>No</td>
+                <td>Class, Home</td>
+                <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr>
+                <td>
                     <div class="name">Circuit Analysis Trainer</div>
                     <div class="links"><a href="/lti/circuits/info" class="link-info">Info</a> <a href="/lti/circuits/test" class="link-test">Try it</a></div>
                 </td>
@@ -325,6 +338,12 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
                     <td>Required &mdash; one call per student message (RAG-augmented chat)</td>
                 </tr>
                 <tr>
+                    <td><strong>Molecule Viewer</strong></td>
+                    <td>Lightweight (session management, serve static HTML)</td>
+                    <td>Molecule list per course (small JSON file)</td>
+                    <td>&mdash;</td>
+                </tr>
+                <tr>
                     <td><strong>Circuit Analysis Trainer</strong></td>
                     <td>Random circuit generation and numerical calculation per exercise</td>
                     <td>&mdash;</td>
@@ -333,6 +352,18 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
             </tbody>
         </table>
         <p class="note"><strong>LLM API setup:</strong> Writing: Basics and Writing: Project require a configured LLM provider (<code>LLM_PROVIDER</code>, <code>LLM_API_KEY</code> and optionally <code>LLM_MODEL</code> in <code>web/.env</code>). Supported providers: Mistral Cloud, Ollama (local), vLLM. Tools without an LLM entry run fully on the host server with no external dependencies.</p>
+    </div>
+
+    <div class="admin-box">
+        <h3>Molecule Viewer &mdash; registration details</h3>
+        <table class="config-table">
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>Tool name</td><td>Molecule Viewer</td></tr>
+            <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/molecules</code></td></tr>
+            <tr><td>Consumer key</td><td><code>molecules_uma</code></td></tr>
+            <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
+            <tr><td>Launch container</td><td>Embed</td></tr>
+        </table>
     </div>
 
     <h2 class="section-title" style="margin-top:40px;">For teachers</h2>

@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Molecule Viewer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://3dmol.org/build/3Dmol-min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+.header { background: #2D3876; padding: 12px 20px; flex-shrink: 0; }
+.header .bc { font-size: 13px; margin-bottom: 4px; }
+.header .bc a { color: rgba(255,255,255,0.7); text-decoration: none; }
+.header .bc span { color: rgba(255,255,255,0.4); margin: 0 4px; }
+.header .bc .current { color: #fff; }
+.header .title-row { display: flex; align-items: center; gap: 12px; }
+.header .logo { color: #fff; font-weight: 700; font-size: 17px; }
+.header .info { color: rgba(255,255,255,0.65); font-size: 12px; margin-left: auto; }
+
+.layout { display: flex; flex: 1; overflow: hidden; }
+
+/* Sidebar */
+.sidebar { width: 260px; background: #fff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar-header { padding: 12px 14px; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f1f5f9; }
+.mol-list { flex: 1; overflow-y: auto; padding: 8px; }
+.mol-card { padding: 10px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 4px; border: 1px solid transparent; transition: all 0.12s; position: relative; }
+.mol-card:hover { background: #f8fafc; border-color: #e2e8f0; }
+.mol-card.active { background: #eff6ff; border-color: #bfdbfe; }
+.mol-card .mol-name { font-size: 13px; font-weight: 600; color: #1e293b; padding-right: 48px; }
+.mol-card .mol-pdb { font-size: 11px; color: #64748b; font-family: monospace; margin-top: 2px; }
+.mol-card .mol-desc { font-size: 11px; color: #94a3b8; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mol-card .card-btn {
+    position: absolute; top: 8px; width: 20px; height: 20px; border-radius: 4px; border: none;
+    background: none; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; transition: all 0.1s;
+}
+.mol-card .del-btn { right: 8px; color: #cbd5e1; }
+.mol-card .del-btn:hover { background: #fee2e2; color: #ef4444; }
+.mol-card .hl-btn { right: 30px; color: #cbd5e1; font-size: 12px; }
+.mol-card .hl-btn:hover { background: #eff6ff; color: #2D3876; }
+.empty-list { padding: 24px 14px; text-align: center; color: #94a3b8; font-size: 13px; line-height: 1.6; }
+.sidebar-footer { padding: 10px; border-top: 1px solid #f1f5f9; }
+.add-btn { width: 100%; padding: 8px; background: #2D3876; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.add-btn:hover { background: #1e2a5e; }
+
+/* Viewer area */
+.viewer-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.viewer-wrap { flex: 1; display: flex; background: #f1f5f9; overflow: hidden; }
+.viewer-panel { flex: 1; position: relative; min-width: 0; }
+.viewer-panel + .viewer-panel { border-left: 2px solid #cbd5e1; }
+#viewer, #viewer2 { width: 100%; height: 100%; }
+.panel-label { display: none; position: absolute; top: 8px; left: 8px; z-index: 10; background: rgba(45,56,118,0.85); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+.viewer-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; gap: 12px; background: #f1f5f9; }
+.viewer-placeholder svg { width: 64px; height: 64px; opacity: 0.3; }
+.viewer-placeholder p { font-size: 14px; }
+.loading-overlay { position: absolute; inset: 0; background: rgba(248,250,252,0.85); display: none; align-items: center; justify-content: center; font-size: 14px; color: #64748b; gap: 10px; }
+.spinner { width: 20px; height: 20px; border: 2px solid #e2e8f0; border-top-color: #2D3876; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Controls */
+.controls { background: #fff; border-top: 1px solid #e2e8f0; padding: 8px 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+.ctrl-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-right: 2px; }
+.ctrl-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #475569; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.1s; }
+.ctrl-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+.ctrl-btn.active { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+.ctrl-sep { width: 1px; height: 20px; background: #e2e8f0; margin: 0 4px; flex-shrink: 0; }
+
+/* Compare bar */
+.compare-bar { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 8px 14px; display: none; align-items: center; gap: 8px; flex-shrink: 0; }
+.compare-bar.visible { display: flex; }
+.compare-label { font-size: 11px; font-weight: 700; color: #fff; background: #2D3876; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; }
+.compare-select { flex: 1; padding: 5px 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; min-width: 0; }
+
+/* Info bar */
+.info-bar { background: #fff; border-top: 1px solid #f1f5f9; padding: 8px 14px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-height: 40px; flex-wrap: wrap; }
+.info-name { font-size: 13px; font-weight: 700; color: #1e293b; }
+.info-title { font-size: 11px; color: #94a3b8; }
+.info-desc { font-size: 12px; color: #64748b; }
+.hl-legend { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.hl-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #475569; background: #f8fafc; padding: 2px 8px; border-radius: 10px; border: 1px solid #e2e8f0; white-space: nowrap; }
+.hl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.info-link { font-size: 12px; color: #2D3876; text-decoration: none; font-weight: 600; white-space: nowrap; margin-left: auto; }
+.info-link:hover { text-decoration: underline; }
+
+/* Modal shared */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 100; }
+.modal-bg.open { display: flex; }
+.modal { background: #fff; border-radius: 12px; padding: 24px; width: 460px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1e293b; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #93c5fd; }
+.form-group small { font-size: 11px; color: #94a3b8; margin-top: 3px; display: block; }
+.search-results { max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 6px; display: none; }
+.search-result-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: baseline; gap: 8px; }
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: #f8fafc; }
+.search-result-item .pdb-tag { font-family: monospace; font-weight: 700; color: #2D3876; font-size: 13px; flex-shrink: 0; }
+.search-result-item .pdb-title { color: #475569; }
+.modal-preview { background: #f8fafc; border-radius: 8px; margin-bottom: 14px; display: none; }
+.modal-preview .preview-info { padding: 12px; font-size: 13px; color: #1e293b; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.btn-cancel { padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; color: #475569; font-size: 13px; cursor: pointer; }
+.btn-preview { padding: 8px 16px; border: 1px solid #2D3876; border-radius: 8px; background: #fff; color: #2D3876; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-add { padding: 8px 16px; border: none; border-radius: 8px; background: #2D3876; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
+.error-msg { color: #ef4444; font-size: 12px; margin-top: 8px; display: none; }
+
+/* Highlight edit modal */
+.hl-list-empty { padding: 14px; text-align: center; font-size: 12px; color: #94a3b8; background: #f8fafc; border-radius: 8px; border: 1px dashed #e2e8f0; }
+.hl-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+.hl-item:last-child { border-bottom: none; }
+.hl-item-info { flex: 1; color: #475569; }
+.hl-item-meta { font-size: 10px; color: #94a3b8; margin-top: 1px; }
+.hl-remove { border: none; background: none; color: #cbd5e1; cursor: pointer; font-size: 16px; padding: 0 2px; line-height: 1; }
+.hl-remove:hover { color: #ef4444; }
+.hl-add-section { background: #f8fafc; border-radius: 10px; padding: 14px; border: 1px solid #e2e8f0; margin-top: 12px; }
+.hl-add-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+.hl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="bc"><a href="/ultir">UltiR</a> <span>&#8250;</span> <span class="current">Molecule Viewer</span></div>
+    <div class="title-row">
+        <span class="logo">&#128300; Molecule Viewer</span>
+        <span class="info" id="course-name"></span>
+    </div>
+</div>
+
+<div class="layout">
+    <div class="sidebar">
+        <div class="sidebar-header">Course molecules</div>
+        <div class="mol-list" id="mol-list">
+            <div class="empty-list" id="empty-msg" style="display:none;">
+                No molecules added yet.<br>Click <strong>Add molecule</strong> to get started.
+            </div>
+        </div>
+        <div class="sidebar-footer" id="add-footer" style="display:none;">
+            <button class="add-btn" onclick="openModal()">+ Add molecule</button>
+        </div>
+    </div>
+
+    <div class="viewer-area">
+        <div class="viewer-wrap" id="viewer-wrap">
+            <div class="viewer-panel" id="panel-left">
+                <div class="panel-label" id="label-left">A</div>
+                <div id="viewer"></div>
+                <div class="viewer-placeholder" id="placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="3"/><circle cx="4" cy="6" r="2"/><circle cx="20" cy="6" r="2"/>
+                        <circle cx="4" cy="18" r="2"/><circle cx="20" cy="18" r="2"/>
+                        <line x1="6" y1="6" x2="10" y2="11"/><line x1="18" y1="6" x2="14" y2="11"/>
+                        <line x1="6" y1="18" x2="10" y2="13"/><line x1="18" y1="18" x2="14" y2="13"/>
+                    </svg>
+                    <p>Select a molecule from the list</p>
+                </div>
+                <div class="loading-overlay" id="loading">
+                    <div class="spinner"></div> Loading structure&#8230;
+                </div>
+            </div>
+            <div class="viewer-panel" id="panel-right" style="display:none">
+                <div class="panel-label" id="label-right">B</div>
+                <div id="viewer2"></div>
+                <div class="viewer-placeholder" id="placeholder2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="3"/><circle cx="4" cy="6" r="2"/><circle cx="20" cy="6" r="2"/>
+                        <circle cx="4" cy="18" r="2"/><circle cx="20" cy="18" r="2"/>
+                        <line x1="6" y1="6" x2="10" y2="11"/><line x1="18" y1="6" x2="14" y2="11"/>
+                        <line x1="6" y1="18" x2="10" y2="13"/><line x1="18" y1="18" x2="14" y2="13"/>
+                    </svg>
+                    <p>Select a molecule for comparison</p>
+                </div>
+                <div class="loading-overlay" id="loading2">
+                    <div class="spinner"></div> Loading structure&#8230;
+                </div>
+            </div>
+        </div>
+
+        <div class="controls" id="controls" style="display:none;">
+            <span class="ctrl-label">Style</span>
+            <button class="ctrl-btn active" id="btn-cartoon" onclick="setStyle('cartoon')">Cartoon</button>
+            <button class="ctrl-btn" id="btn-stick" onclick="setStyle('stick')">Stick</button>
+            <button class="ctrl-btn" id="btn-sphere" onclick="setStyle('sphere')">Sphere</button>
+            <button class="ctrl-btn" id="btn-surface" onclick="setStyle('surface')">Surface</button>
+            <div class="ctrl-sep"></div>
+            <span class="ctrl-label">Color</span>
+            <button class="ctrl-btn active" id="btn-spectrum" onclick="setColor('spectrum')">Spectrum</button>
+            <button class="ctrl-btn" id="btn-chain" onclick="setColor('chain')">Chain</button>
+            <button class="ctrl-btn" id="btn-element" onclick="setColor('element')">Element</button>
+            <div class="ctrl-sep"></div>
+            <button class="ctrl-btn active" id="btn-ligands" onclick="toggleLigands()">Ligandos &#10003;</button>
+            <button class="ctrl-btn" onclick="resetView()">&#8635; Reset</button>
+            <div class="ctrl-sep"></div>
+            <button class="ctrl-btn" onclick="exportPNG()">&#128247; Exportar</button>
+            <button class="ctrl-btn" id="btn-compare" onclick="toggleCompare()">&#8862; Comparar</button>
+        </div>
+
+        <div class="compare-bar" id="compare-bar">
+            <span class="compare-label">A</span>
+            <select class="compare-select" id="sel-left" onchange="loadBySelect('left')">
+                <option value="">&#8212; Select molecule &#8212;</option>
+            </select>
+            <span class="compare-label">B</span>
+            <select class="compare-select" id="sel-right" onchange="loadBySelect('right')">
+                <option value="">&#8212; Select molecule &#8212;</option>
+            </select>
+        </div>
+
+        <div class="info-bar" id="info-bar" style="display:none;">
+            <div>
+                <div class="info-name" id="info-name"></div>
+                <div class="info-title" id="info-title"></div>
+            </div>
+            <div class="info-desc" id="info-desc"></div>
+            <div class="hl-legend" id="hl-legend"></div>
+            <a class="info-link" id="info-link" href="#" target="_blank">View on RCSB &#8599;</a>
+        </div>
+    </div>
+</div>
+
+<!-- Add molecule modal -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+        <h3>Add molecule</h3>
+        <div class="form-group">
+            <label>Search RCSB by name (optional)</label>
+            <div style="display:flex;gap:6px;">
+                <input type="text" id="inp-search" placeholder="e.g. hemoglobin, insulin, collagen"
+                       onkeydown="if(event.key==='Enter')searchRCSB()">
+                <button type="button" class="btn-preview" onclick="searchRCSB()" style="white-space:nowrap;padding:8px 12px;">Search</button>
+            </div>
+            <div class="search-results" id="search-results"></div>
+        </div>
+        <div class="form-group">
+            <label>PDB ID *</label>
+            <input type="text" id="inp-pdb" placeholder="e.g. 1CRN, 4HHB, 6LU7" maxlength="10"
+                   style="font-family:monospace;text-transform:uppercase;"
+                   onkeydown="if(event.key==='Enter')previewMolecule()">
+            <small>4-letter code from the <a href="https://www.rcsb.org" target="_blank">RCSB Protein Data Bank</a></small>
+        </div>
+        <div class="form-group">
+            <label>Display name</label>
+            <input type="text" id="inp-label" placeholder="Leave blank to use PDB ID">
+        </div>
+        <div class="form-group">
+            <label>Description (optional)</label>
+            <textarea id="inp-desc" rows="2" placeholder="Brief note for students"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Default style</label>
+            <select id="inp-style">
+                <option value="cartoon">Cartoon (recommended for proteins)</option>
+                <option value="stick">Stick (recommended for small molecules / DNA)</option>
+                <option value="sphere">Sphere</option>
+                <option value="surface">Surface</option>
+            </select>
+        </div>
+        <div class="modal-preview" id="modal-preview">
+            <div class="preview-info" id="preview-info"></div>
+        </div>
+        <div class="error-msg" id="modal-error"></div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-preview" onclick="previewMolecule()">Preview</button>
+            <button class="btn-add" id="btn-add-confirm" onclick="addMolecule()" disabled>Add to course</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit highlights modal -->
+<div class="modal-bg" id="hl-modal-bg" onclick="if(event.target===this)closeEditHL()">
+    <div class="modal" style="width:500px;">
+        <h3>Highlights &mdash; <span id="hl-mol-name" style="color:#2D3876;"></span></h3>
+
+        <!-- Current list -->
+        <div id="hl-list-wrap" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:4px;"></div>
+
+        <!-- Add form -->
+        <div class="hl-add-section">
+            <div class="hl-add-title">A&#241;adir highlight</div>
+            <div class="form-group">
+                <label>Etiqueta *</label>
+                <input type="text" id="hl-inp-label" placeholder="e.g. D&#237;ada catal&#237;tica">
+            </div>
+            <div class="hl-grid" style="margin-bottom:8px;">
+                <div class="form-group" style="margin-bottom:0">
+                    <label>Cadena(s)</label>
+                    <input type="text" id="hl-inp-chain" placeholder="A o A,C" style="text-transform:uppercase;">
+                    <small>Una letra o varias (coma)</small>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label>Residuos n&#186;</label>
+                    <input type="text" id="hl-inp-resi" placeholder="41,145">
+                    <small>N&#250;meros separados por coma</small>
+                </div>
+            </div>
+            <div class="hl-grid" style="margin-bottom:8px;">
+                <div class="form-group" style="margin-bottom:0">
+                    <label>Nombre residuo</label>
+                    <input type="text" id="hl-inp-resn" placeholder="HEM, N3&#8230;" style="text-transform:uppercase;">
+                    <small>Filtro por nombre de residuo</small>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label>Color</label>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <input type="color" id="hl-inp-color" value="#ef4444" style="width:40px;height:36px;padding:2px;border-radius:6px;cursor:pointer;border:1px solid #e2e8f0;"
+                               oninput="document.getElementById('hl-color-hex').textContent=this.value">
+                        <span id="hl-color-hex" style="font-size:12px;color:#64748b;font-family:monospace;">#ef4444</span>
+                    </div>
+                </div>
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#475569;cursor:pointer;margin-bottom:10px;">
+                <input type="checkbox" id="hl-inp-hetflag" style="width:auto;margin:0;">
+                Solo HETATM (ligandos, cofactores)
+            </label>
+            <button type="button" class="btn-preview" onclick="addHighlightRow()" style="width:100%;padding:8px;">+ A&#241;adir</button>
+        </div>
+
+        <div class="modal-actions" style="margin-top:16px;">
+            <button class="btn-cancel" onclick="closeEditHL()">Cancelar</button>
+            <button class="btn-add" onclick="saveHighlights()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+const BASE = '/lti/molecules/api';
+function api(path, opts) {
+    const sep = path.includes('?') ? '&' : '?';
+    return fetch(BASE + path + sep + 'token=' + TOKEN, opts || {});
+}
+
+let viewer = null, viewer2 = null;
+let currentStyle = 'cartoon', currentColor = 'spectrum';
+let currentMol = null, currentMol2 = null;
+let surfaceAdded = false, surfaceAdded2 = false;
+let isInstructor = false, previewedPdbId = null;
+let allMolecules = [], compareMode = false, showLigands = true;
+let editMolId = null, editHighlights = [];
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+async function init() {
+    const [sess, mols] = await Promise.all([
+        api('/session').then(r => r.json()),
+        api('/molecules').then(r => r.json()),
+    ]);
+    isInstructor = sess.is_instructor;
+    document.getElementById('course-name').textContent = sess.course_name || '';
+    if (isInstructor) document.getElementById('add-footer').style.display = '';
+    renderList(mols.molecules || []);
+}
+
+// ── Molecule list ─────────────────────────────────────────────────────────────
+
+function renderList(molecules) {
+    allMolecules = molecules;
+    const list = document.getElementById('mol-list');
+    const empty = document.getElementById('empty-msg');
+    list.innerHTML = '';
+    if (!molecules.length) {
+        list.appendChild(empty);
+        empty.style.display = '';
+        updateCompareSelects();
+        return;
+    }
+    molecules.forEach(mol => {
+        const card = document.createElement('div');
+        card.className = 'mol-card' + (currentMol?.id === mol.id ? ' active' : '');
+        card.dataset.id = mol.id;
+        const hlCount = (mol.highlights || []).length;
+        card.innerHTML = `
+            <div class="mol-name">${mol.label}</div>
+            <div class="mol-pdb">${mol.pdb_id}${hlCount ? ` <span style="color:#2D3876;font-size:10px;">${hlCount} HL</span>` : ''}</div>
+            ${mol.description ? `<div class="mol-desc">${mol.description}</div>` : ''}
+            ${isInstructor ? `
+                <button class="card-btn hl-btn" onclick="openEditHL(event,'${mol.id}')" title="Editar highlights">&#9998;</button>
+                <button class="card-btn del-btn" onclick="deleteMol(event,'${mol.id}')" title="Remove">&#215;</button>
+            ` : ''}
+        `;
+        card.addEventListener('click', () => loadMolecule(mol));
+        list.appendChild(card);
+    });
+    updateCompareSelects();
+}
+
+// ── Compare selects ───────────────────────────────────────────────────────────
+
+function updateCompareSelects() {
+    const opts = '<option value="">&#8212; Select molecule &#8212;</option>' +
+        allMolecules.map(m => `<option value="${m.id}">${m.label} (${m.pdb_id})</option>`).join('');
+    document.getElementById('sel-left').innerHTML = opts;
+    document.getElementById('sel-right').innerHTML = opts;
+    if (currentMol) document.getElementById('sel-left').value = currentMol.id;
+    if (currentMol2) document.getElementById('sel-right').value = currentMol2.id;
+}
+
+async function loadBySelect(panel) {
+    const molId = document.getElementById(panel === 'left' ? 'sel-left' : 'sel-right').value;
+    const mol = allMolecules.find(m => m.id === molId);
+    if (!mol) return;
+    if (panel === 'left') loadMolecule(mol);
+    else loadMolecule2(mol);
+}
+
+// ── Load molecule — left panel ────────────────────────────────────────────────
+
+async function loadMolecule(mol) {
+    currentMol = mol;
+    currentStyle = mol.default_style || 'cartoon';
+    currentColor = 'spectrum';
+    document.querySelectorAll('.mol-card').forEach(c =>
+        c.classList.toggle('active', c.dataset.id === mol.id));
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('controls').style.display = '';
+    document.getElementById('info-bar').style.display = '';
+    document.getElementById('loading').style.display = 'flex';
+
+    if (!viewer) {
+        viewer = $3Dmol.createViewer(document.getElementById('viewer'), {
+            backgroundColor: 'white', antialias: true,
+        });
+    }
+    try {
+        const resp = await fetch(`https://files.rcsb.org/view/${mol.pdb_id}.pdb`);
+        if (!resp.ok) throw new Error(`PDB ${mol.pdb_id} not found`);
+        viewer.clear(); surfaceAdded = false;
+        viewer.addModel(await resp.text(), 'pdb');
+        applyStyle(currentStyle, currentColor);
+        viewer.zoomTo(); viewer.render();
+    } catch(e) { alert(`Could not load ${mol.pdb_id}: ${e.message}`); }
+
+    document.getElementById('loading').style.display = 'none';
+    updateStyleButtons();
+    document.getElementById('info-name').textContent = mol.label;
+    document.getElementById('info-desc').textContent = mol.description || '';
+    document.getElementById('info-link').href = `https://www.rcsb.org/structure/${mol.pdb_id}`;
+    document.getElementById('info-title').textContent = '';
+    renderHighlightLegend(mol);
+    fetch(`https://data.rcsb.org/rest/v1/core/entry/${mol.pdb_id}`)
+        .then(r => r.json())
+        .then(d => { document.getElementById('info-title').textContent = d?.struct?.title || ''; })
+        .catch(() => {});
+    if (compareMode) document.getElementById('sel-left').value = mol.id;
+}
+
+// ── Load molecule — right (compare) panel ────────────────────────────────────
+
+async function loadMolecule2(mol) {
+    currentMol2 = mol;
+    document.getElementById('placeholder2').style.display = 'none';
+    document.getElementById('loading2').style.display = 'flex';
+    if (!viewer2) {
+        viewer2 = $3Dmol.createViewer(document.getElementById('viewer2'), {
+            backgroundColor: 'white', antialias: true,
+        });
+    }
+    try {
+        const resp = await fetch(`https://files.rcsb.org/view/${mol.pdb_id}.pdb`);
+        if (!resp.ok) throw new Error(`PDB ${mol.pdb_id} not found`);
+        viewer2.clear(); surfaceAdded2 = false;
+        viewer2.addModel(await resp.text(), 'pdb');
+        applyStyle2(currentStyle, currentColor);
+        viewer2.zoomTo(); viewer2.render();
+    } catch(e) { alert(`Could not load ${mol.pdb_id}: ${e.message}`); }
+    document.getElementById('loading2').style.display = 'none';
+    document.getElementById('sel-right').value = mol.id;
+}
+
+// ── Style & highlights ────────────────────────────────────────────────────────
+
+function colorOption(color) {
+    if (color === 'spectrum') return {color: 'spectrum'};
+    if (color === 'chain') return {colorscheme: 'chainHetatm'};
+    if (color === 'element') return {colorscheme: 'Jmol'};
+    return {color: 'spectrum'};
+}
+
+function _applyBase(v, style, color) {
+    const c = colorOption(color);
+    if (style === 'cartoon') { v.setStyle({}, {cartoon: c}); return false; }
+    if (style === 'stick')   { v.setStyle({}, {stick: c}); return false; }
+    if (style === 'sphere')  { v.setStyle({}, {sphere: {...c, scale: 0.4}}); return false; }
+    if (style === 'surface') {
+        v.setStyle({}, {cartoon: {color: '#aabbcc', opacity: 0.2}});
+        v.addSurface($3Dmol.SurfaceType.VDW, {opacity: 0.75, ...c});
+        return true;
+    }
+    return false;
+}
+
+function _applyLigands(v) {
+    if (!showLigands) return;
+    v.setStyle({hetflag: true}, {stick: {colorscheme: 'Jmol', radius: 0.2}});
+    v.setStyle({hetflag: true, resn: 'HOH'}, {});
+    v.setStyle({hetflag: true, resn: 'WAT'}, {});
+}
+
+function _applyHighlights(v, mol) {
+    if (!mol) return;
+    (mol.highlights || []).forEach(h => {
+        const color = h.color || '#ef4444';
+        const hasResi = Array.isArray(h.resi) && h.resi.length > 0;
+
+        // Build base selection
+        const sel = {};
+        if (h.chain) sel.chain = h.chain; // string "A" or array ["A","C"]
+        if (hasResi) sel.resi = h.resi;
+        if (h.resn)  sel.resn = h.resn;
+        if (h.hetflag) sel.hetflag = true;
+
+        if (h.hetflag) {
+            // Ligand/cofactor highlight: override Jmol colors with named color
+            v.setStyle(sel, {stick: {color, radius: 0.25}});
+            // Re-hide water if no specific resn
+            if (!h.resn) {
+                v.setStyle({hetflag: true, resn: 'HOH'}, {});
+                v.setStyle({hetflag: true, resn: 'WAT'}, {});
+            }
+        } else if (hasResi) {
+            // Specific residues: sphere overlay at Cα
+            v.addStyle({...sel, atom: 'CA'}, {sphere: {color, scale: 1.0, opacity: 0.9}});
+        } else {
+            // Chain/region highlight: recolor backbone with current style
+            const c = {color};
+            if (currentStyle === 'cartoon') v.setStyle(sel, {cartoon: c});
+            else if (currentStyle === 'stick') v.setStyle(sel, {stick: c});
+            else if (currentStyle === 'sphere') v.setStyle(sel, {sphere: {...c, scale: 0.4}});
+            else v.setStyle(sel, {cartoon: c}); // surface fallback
+        }
+    });
+}
+
+function applyStyle(style, color) {
+    if (!viewer) return;
+    if (surfaceAdded) { viewer.removeAllSurfaces(); surfaceAdded = false; }
+    viewer.setStyle({}, {});
+    surfaceAdded = _applyBase(viewer, style, color);
+    _applyLigands(viewer);
+    _applyHighlights(viewer, currentMol);
+    viewer.render();
+}
+
+function applyStyle2(style, color) {
+    if (!viewer2) return;
+    if (surfaceAdded2) { viewer2.removeAllSurfaces(); surfaceAdded2 = false; }
+    viewer2.setStyle({}, {});
+    surfaceAdded2 = _applyBase(viewer2, style, color);
+    _applyLigands(viewer2);
+    _applyHighlights(viewer2, currentMol2);
+    viewer2.render();
+}
+
+function setStyle(style) {
+    currentStyle = style;
+    applyStyle(style, currentColor);
+    if (compareMode) applyStyle2(style, currentColor);
+    updateStyleButtons();
+}
+
+function setColor(color) {
+    currentColor = color;
+    applyStyle(currentStyle, color);
+    if (compareMode) applyStyle2(currentStyle, color);
+    updateColorButtons();
+}
+
+function resetView() {
+    if (viewer) { viewer.zoomTo(); viewer.render(); }
+    if (compareMode && viewer2) { viewer2.zoomTo(); viewer2.render(); }
+}
+
+function toggleLigands() {
+    showLigands = !showLigands;
+    const btn = document.getElementById('btn-ligands');
+    btn.textContent = 'Ligandos ' + (showLigands ? '\u2713' : '');
+    btn.classList.toggle('active', showLigands);
+    applyStyle(currentStyle, currentColor);
+    if (compareMode) applyStyle2(currentStyle, currentColor);
+}
+
+function updateStyleButtons() {
+    ['cartoon','stick','sphere','surface'].forEach(s =>
+        document.getElementById('btn-' + s)?.classList.toggle('active', s === currentStyle));
+}
+function updateColorButtons() {
+    ['spectrum','chain','element'].forEach(c =>
+        document.getElementById('btn-' + c)?.classList.toggle('active', c === currentColor));
+}
+
+// ── Highlight legend ──────────────────────────────────────────────────────────
+
+function renderHighlightLegend(mol) {
+    const legend = document.getElementById('hl-legend');
+    const hl = mol?.highlights || [];
+    legend.innerHTML = hl.map(h =>
+        `<span class="hl-pill">
+            <span class="hl-dot" style="background:${h.color||'#ef4444'}"></span>
+            ${h.label}
+        </span>`
+    ).join('');
+}
+
+// ── Export PNG ────────────────────────────────────────────────────────────────
+
+function exportPNG() {
+    if (!viewer || !currentMol) return;
+    const a = document.createElement('a');
+    a.href = viewer.pngURI();
+    a.download = currentMol.pdb_id + '.png';
+    a.click();
+}
+
+// ── Compare mode ──────────────────────────────────────────────────────────────
+
+function toggleCompare() {
+    compareMode = !compareMode;
+    document.getElementById('btn-compare').classList.toggle('active', compareMode);
+    document.getElementById('panel-right').style.display = compareMode ? '' : 'none';
+    document.getElementById('label-left').style.display = compareMode ? '' : 'none';
+    document.getElementById('label-right').style.display = compareMode ? '' : 'none';
+    document.getElementById('compare-bar').classList.toggle('visible', compareMode);
+    updateCompareSelects();
+    setTimeout(() => {
+        if (viewer) { viewer.resize(); viewer.render(); }
+        if (viewer2) { viewer2.resize(); viewer2.render(); }
+    }, 60);
+}
+
+// ── Delete molecule ───────────────────────────────────────────────────────────
+
+async function deleteMol(e, id) {
+    e.stopPropagation();
+    if (!confirm('Remove this molecule from the course?')) return;
+    const resp = await api(`/molecules/${id}`, {method: 'DELETE'});
+    const data = await resp.json();
+    if (currentMol?.id === id) {
+        currentMol = null;
+        if (viewer) { viewer.clear(); viewer.render(); }
+        document.getElementById('placeholder').style.display = '';
+        document.getElementById('controls').style.display = 'none';
+        document.getElementById('info-bar').style.display = 'none';
+    }
+    renderList(data.molecules || []);
+}
+
+// ── Edit highlights modal ─────────────────────────────────────────────────────
+
+function openEditHL(e, molId) {
+    e.stopPropagation();
+    const mol = allMolecules.find(m => m.id === molId);
+    if (!mol) return;
+    editMolId = molId;
+    editHighlights = JSON.parse(JSON.stringify(mol.highlights || []));
+    document.getElementById('hl-mol-name').textContent = `${mol.label} (${mol.pdb_id})`;
+    renderEditHLList();
+    // Reset form
+    document.getElementById('hl-inp-label').value = '';
+    document.getElementById('hl-inp-chain').value = '';
+    document.getElementById('hl-inp-resi').value = '';
+    document.getElementById('hl-inp-resn').value = '';
+    document.getElementById('hl-inp-hetflag').checked = false;
+    document.getElementById('hl-inp-color').value = '#ef4444';
+    document.getElementById('hl-color-hex').textContent = '#ef4444';
+    document.getElementById('hl-modal-bg').classList.add('open');
+}
+
+function closeEditHL() {
+    document.getElementById('hl-modal-bg').classList.remove('open');
+}
+
+function renderEditHLList() {
+    const wrap = document.getElementById('hl-list-wrap');
+    if (!editHighlights.length) {
+        wrap.innerHTML = '<div class="hl-list-empty">Sin highlights a&#250;n</div>';
+        return;
+    }
+    wrap.innerHTML = editHighlights.map((h, i) => {
+        const meta = [
+            h.chain ? `cadena ${Array.isArray(h.chain) ? h.chain.join(',') : h.chain}` : '',
+            Array.isArray(h.resi) && h.resi.length ? `res ${h.resi.join(',')}` : '',
+            h.resn ? `resn ${h.resn}` : '',
+            h.hetflag ? 'HETATM' : '',
+        ].filter(Boolean).join(' · ');
+        return `<div class="hl-item">
+            <span class="hl-dot" style="background:${h.color||'#ef4444'};flex-shrink:0;"></span>
+            <div class="hl-item-info">
+                <div>${h.label}</div>
+                ${meta ? `<div class="hl-item-meta">${meta}</div>` : ''}
+            </div>
+            <button class="hl-remove" onclick="removeHighlightRow(${i})">&#215;</button>
+        </div>`;
+    }).join('');
+}
+
+function addHighlightRow() {
+    const label = document.getElementById('hl-inp-label').value.trim();
+    if (!label) { document.getElementById('hl-inp-label').focus(); return; }
+    const chainRaw = document.getElementById('hl-inp-chain').value.trim().toUpperCase();
+    const resiRaw  = document.getElementById('hl-inp-resi').value.trim();
+    const resnRaw  = document.getElementById('hl-inp-resn').value.trim().toUpperCase();
+    const hetflag  = document.getElementById('hl-inp-hetflag').checked;
+    const color    = document.getElementById('hl-inp-color').value;
+
+    const h = {label, color};
+    if (chainRaw) h.chain = chainRaw.includes(',') ? chainRaw.split(',').map(s=>s.trim()) : chainRaw;
+    if (resiRaw)  h.resi  = resiRaw.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
+    if (resnRaw)  h.resn  = resnRaw;
+    if (hetflag)  h.hetflag = true;
+
+    editHighlights.push(h);
+    renderEditHLList();
+    document.getElementById('hl-inp-label').value = '';
+    document.getElementById('hl-inp-chain').value = '';
+    document.getElementById('hl-inp-resi').value = '';
+    document.getElementById('hl-inp-resn').value = '';
+    document.getElementById('hl-inp-hetflag').checked = false;
+}
+
+function removeHighlightRow(idx) {
+    editHighlights.splice(idx, 1);
+    renderEditHLList();
+}
+
+async function saveHighlights() {
+    const resp = await api(`/molecules/${editMolId}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({highlights: editHighlights}),
+    });
+    const data = await resp.json();
+    if (!resp.ok) { alert('Error guardando highlights'); return; }
+    renderList(data.molecules || []);
+    // Re-render if the edited molecule is currently loaded
+    const updated = (data.molecules || []).find(m => m.id === editMolId);
+    if (updated) {
+        if (currentMol?.id === editMolId) {
+            currentMol = updated;
+            renderHighlightLegend(updated);
+            applyStyle(currentStyle, currentColor);
+        }
+        if (currentMol2?.id === editMolId) {
+            currentMol2 = updated;
+            applyStyle2(currentStyle, currentColor);
+        }
+    }
+    closeEditHL();
+}
+
+// ── Add molecule modal ────────────────────────────────────────────────────────
+
+function openModal() {
+    ['inp-search','inp-pdb','inp-label','inp-desc'].forEach(id =>
+        document.getElementById(id).value = '');
+    document.getElementById('inp-style').value = 'cartoon';
+    document.getElementById('search-results').style.display = 'none';
+    document.getElementById('modal-preview').style.display = 'none';
+    document.getElementById('modal-error').style.display = 'none';
+    document.getElementById('btn-add-confirm').disabled = true;
+    document.getElementById('preview-info').textContent = '';
+    previewedPdbId = null;
+    document.getElementById('modal-bg').classList.add('open');
+    document.getElementById('inp-search').focus();
+}
+
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
+
+// ── RCSB search ───────────────────────────────────────────────────────────────
+
+async function searchRCSB() {
+    const term = document.getElementById('inp-search').value.trim();
+    if (!term) return;
+    const results = document.getElementById('search-results');
+    results.style.display = '';
+    results.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:#64748b;">Searching&#8230;</div>';
+    try {
+        const body = {
+            query: { type: 'terminal', service: 'full_text', parameters: { value: term } },
+            return_type: 'entry',
+            request_options: { paginate: { start: 0, rows: 6 } }
+        };
+        const resp = await fetch('https://search.rcsb.org/rcsbsearch/v2/query', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body),
+        });
+        if (!resp.ok) throw new Error();
+        const data = await resp.json();
+        const ids = (data.result_set || []).map(r => r.identifier).slice(0, 6);
+        if (!ids.length) { results.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:#64748b;">No results found.</div>'; return; }
+        const metas = await Promise.all(
+            ids.map(id => fetch(`https://data.rcsb.org/rest/v1/core/entry/${id}`).then(r=>r.json()).catch(()=>null))
+        );
+        results.innerHTML = '';
+        ids.forEach((id, i) => {
+            const title = metas[i]?.struct?.title || id;
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.innerHTML = `<span class="pdb-tag">${id}</span><span class="pdb-title">${title.length>55?title.slice(0,52)+'\u2026':title}</span>`;
+            item.addEventListener('click', () => {
+                document.getElementById('inp-pdb').value = id;
+                document.getElementById('inp-label').value = title.length>60?title.slice(0,57)+'\u2026':title;
+                results.style.display = 'none';
+                previewMolecule();
+            });
+            results.appendChild(item);
+        });
+    } catch { results.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:#ef4444;">Search error. Enter the PDB ID directly.</div>'; }
+}
+
+// ── Preview & add ─────────────────────────────────────────────────────────────
+
+async function previewMolecule() {
+    const pdbId = document.getElementById('inp-pdb').value.trim().toUpperCase();
+    const err = document.getElementById('modal-error');
+    err.style.display = 'none';
+    if (!pdbId) { err.textContent = 'Enter a PDB ID.'; err.style.display = ''; return; }
+    const preview = document.getElementById('modal-preview');
+    preview.style.display = '';
+    document.getElementById('preview-info').textContent = 'Checking\u2026';
+    previewedPdbId = null;
+    document.getElementById('btn-add-confirm').disabled = true;
+    try {
+        const resp = await fetch(`https://data.rcsb.org/rest/v1/core/entry/${pdbId}`);
+        if (!resp.ok) throw new Error(`PDB ID "${pdbId}" not found in RCSB.`);
+        const d = await resp.json();
+        const title = d?.struct?.title || pdbId;
+        document.getElementById('preview-info').textContent = '\u2713 ' + title;
+        if (!document.getElementById('inp-label').value)
+            document.getElementById('inp-label').value = title.length>60?title.slice(0,57)+'\u2026':title;
+        previewedPdbId = pdbId;
+        document.getElementById('btn-add-confirm').disabled = false;
+    } catch(e) {
+        preview.style.display = 'none';
+        err.textContent = e.message; err.style.display = '';
+    }
+}
+
+async function addMolecule() {
+    const pdbId = previewedPdbId || document.getElementById('inp-pdb').value.trim().toUpperCase();
+    const label = document.getElementById('inp-label').value.trim();
+    const desc  = document.getElementById('inp-desc').value.trim();
+    const style = document.getElementById('inp-style').value;
+    const err   = document.getElementById('modal-error');
+    err.style.display = 'none';
+    const resp = await api('/molecules', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({pdb_id: pdbId, label, description: desc, default_style: style}),
+    });
+    const data = await resp.json();
+    if (!resp.ok) { err.textContent = data.detail || 'Error adding molecule.'; err.style.display = ''; return; }
+    renderList(data.molecules || []);
+    closeModal();
+}
+
+init();
+</script>
+</body>
+</html>

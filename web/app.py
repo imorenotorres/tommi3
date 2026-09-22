@@ -365,11 +365,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdn.matomo.cloud; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdn.matomo.cloud https://cdnjs.cloudflare.com https://3dmol.org; "
             "style-src 'self' 'unsafe-inline' https://unpkg.com; "
             "img-src 'self' data: https:; "
             "font-src 'self' https:; "
-            "connect-src 'self' https://*.matomo.cloud; "
+            "connect-src 'self' https://*.matomo.cloud https://data.rcsb.org https://files.rcsb.org https://search.rcsb.org; "
             "frame-src 'self' https:; "
             "frame-ancestors " + frame_ancestors
         )
@@ -431,6 +431,8 @@ from UltiR.proyecto.lti_provider import router as lti_proyecto_router
 app.include_router(lti_proyecto_router)
 from UltiR.circuits.lti_provider import router as lti_circuits_router
 app.include_router(lti_circuits_router)
+from UltiR.molecules.lti_provider import router as lti_molecules_router
+app.include_router(lti_molecules_router)
 
 @app.get("/ultir")
 async def ultir_catalog():
@@ -3297,61 +3299,6 @@ async def lali_get_contenido_seccion(
 _LALI_CONFIG_PATH = _LALI_DIR / "transcripcion_config.json"
 
 
-_spell_checker_es = None
-
-def _get_spell_checker_es():
-    global _spell_checker_es
-    if _spell_checker_es is None:
-        try:
-            from spellchecker import SpellChecker
-            _spell_checker_es = SpellChecker(language='es', distance=1)
-        except ImportError:
-            pass
-    return _spell_checker_es
-
-
-def _check_ortografia_programatica(texto: str) -> dict:
-    """
-    Programmatic Spanish spell check. Returns a rubric-result dict:
-    {"cumplido": bool, "comentario": str}
-    Ignores IPA transcription (/.../ and [...]) and only flags words
-    where pyspellchecker finds a clear distance-1 correction.
-    """
-    import re as _re
-    spell = _get_spell_checker_es()
-    if spell is None:
-        return {"cumplido": True, "comentario": "Control ortográfico no disponible."}
-
-    # Strip phonological /.../ and phonetic [...] notation
-    limpio = _re.sub(r'/[^/\n]+/', ' ', texto)
-    limpio = _re.sub(r'\[[^\]\n]+\]', ' ', limpio)
-
-    # Extract alphabetic tokens (Spanish alphabet including accented chars and ñ)
-    words = _re.findall(r'[a-záéíóúüñA-ZÁÉÍÓÚÜÑ]+', limpio)
-    words_lower = [w.lower() for w in words]
-
-    if not words_lower:
-        return {"cumplido": True, "comentario": "Sin errores ortográficos detectados."}
-
-    unknown = spell.unknown(words_lower)
-    errors = []
-    for word in unknown:
-        correction = spell.correction(word)
-        if correction and correction != word:
-            errors.append((word, correction))
-
-    if not errors:
-        return {"cumplido": True, "comentario": "Sin errores ortográficos detectados."}
-
-    if len(errors) == 1:
-        w, c = errors[0]
-        comment = f"Posible error ortográfico: '{w}' (¿'{c}'?)."
-    else:
-        parts = ", ".join(f"'{w}' (¿'{c}'?)" for w, c in errors[:3])
-        comment = f"Posibles errores ortográficos: {parts}."
-    return {"cumplido": False, "comentario": comment}
-
-
 @app.post("/api/public-agent/eulalia/evaluar-definicion")
 async def lali_evaluar_definicion(request: Request):
     """Evaluate a student's definition of a concept using LLM with a closed rubric."""
@@ -3378,20 +3325,7 @@ async def lali_evaluar_definicion(request: Request):
     _estilo_crit = _redaccion_config.get("estilo_criterio",
         "Frases claras y bien construidas, sin ambigüedades, con un registro apropiado para un contexto académico. No se exige perfección literaria, solo claridad y corrección básica.")
 
-    # Check if this concept opts out of spell checking
-    _sin_ortografia = False
-    for _c in (_rd.get("conceptos", []) if isinstance(_rd, dict) else []):
-        if _c.get("nombre", "").lower() == concepto.lower():
-            _sin_ortografia = _c.get("sin_control_ortografico", False)
-            break
-
-    # Orthography: programmatic (not LLM)
-    if _sin_ortografia:
-        ortho_result = {"cumplido": True, "comentario": "Control ortográfico no aplicable para este concepto."}
-    else:
-        ortho_result = _check_ortografia_programatica(definicion_alumno)
-
-    # LLM evaluates content criteria + style only (not orthography)
+    # LLM evaluates content criteria + style only (orthography not assessed automatically)
     rubrica_con_extras = list(rubrica) + [
         {"descripcion": f"ESTILO: El texto está bien redactado: {_estilo_crit}"},
     ]
@@ -3445,11 +3379,6 @@ INSTRUCCIONES:
             if match:
                 llm_text = match.group(1)
         result = json.loads(llm_text)
-
-        # Inject programmatic orthography result between content criteria and style
-        n_content = len(rubrica)
-        llm_criterios = result.get("criterios", [])
-        result["criterios"] = llm_criterios[:n_content] + [ortho_result] + llm_criterios[n_content:]
 
         # Log the interaction (anonymous)
         try:
