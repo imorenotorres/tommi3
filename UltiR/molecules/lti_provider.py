@@ -53,6 +53,7 @@ def _load_molecules(course_id: str) -> list:
 
 
 def _save_molecules(course_id: str, molecules: list):
+    molecules.sort(key=lambda m: m.get("label", "").lower())
     _course_path(course_id).write_text(
         json.dumps(molecules, indent=2, ensure_ascii=False), encoding="utf-8"
     )
