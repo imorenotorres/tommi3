@@ -307,6 +307,18 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
     </div>
 
     <div class="admin-box">
+        <h3>Molecule Viewer &mdash; registration details</h3>
+        <table class="config-table">
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>Tool name</td><td>Molecule Viewer</td></tr>
+            <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/molecules</code></td></tr>
+            <tr><td>Consumer key</td><td><code>molecules_uma</code></td></tr>
+            <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
+            <tr><td>Launch container</td><td>Embed</td></tr>
+        </table>
+    </div>
+
+    <div class="admin-box">
         <h3>Server resource requirements</h3>
         <p style="margin-bottom:12px;">This table summarises what each tool consumes on the host server and whether it requires access to an external LLM API. Use it to plan infrastructure and API budget before deploying a tool.</p>
         <table class="config-table" style="width:100%;">
@@ -350,19 +362,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
                     <td>&mdash;</td>
                 </tr>
             </tbody>
-        </table>
-        <p class="note"><strong>LLM API setup:</strong> Writing: Basics and Writing: Project require a configured LLM provider (<code>LLM_PROVIDER</code>, <code>LLM_API_KEY</code> and optionally <code>LLM_MODEL</code> in <code>web/.env</code>). Supported providers: Mistral Cloud, Ollama (local), vLLM. Tools without an LLM entry run fully on the host server with no external dependencies.</p>
-    </div>
-
-    <div class="admin-box">
-        <h3>Molecule Viewer &mdash; registration details</h3>
-        <table class="config-table">
-            <tr><th>Field</th><th>Value</th></tr>
-            <tr><td>Tool name</td><td>Molecule Viewer</td></tr>
-            <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/molecules</code></td></tr>
-            <tr><td>Consumer key</td><td><code>molecules_uma</code></td></tr>
-            <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
-            <tr><td>Launch container</td><td>Embed</td></tr>
         </table>
     </div>
 
