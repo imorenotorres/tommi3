@@ -650,6 +650,12 @@ function transcribirLibre() {
 
 // -- Init --
 updateTipo();
+
+// Ocultar header cuando se carga dentro de un iframe (Moodle LTI)
+if (window.self !== window.top) {
+    var h = document.querySelector('.header');
+    if (h) h.style.display = 'none';
+}
 </script>
 </body>
 </html>

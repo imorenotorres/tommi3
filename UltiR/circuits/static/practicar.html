@@ -326,6 +326,11 @@ async function checkStep(stepId) {
         document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
     }
 }
+
+if (window.self !== window.top) {
+    var h = document.querySelector('.header');
+    if (h) h.style.display = 'none';
+}
 </script>
 </body>
 </html>

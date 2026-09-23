@@ -774,5 +774,11 @@ loadConceptos().then(function() { buildGrid(); });
 </script>
 
 <script src="/static/eulalia/informar_profesor.js"></script>
+<script>
+if (window.self !== window.top) {
+    var h = document.querySelector('.header');
+    if (h) h.style.display = 'none';
+}
+</script>
 </body>
 </html>
