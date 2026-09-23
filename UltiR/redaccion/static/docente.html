@@ -52,6 +52,11 @@ fetch('/lti/redaccion/api/session?token=' + token)
     .then(r => r.json())
     .then(d => { document.getElementById('course-info').textContent = d.course_name + ' — ' + d.name; })
     .catch(() => {});
+
+if (window.self !== window.top) {
+    var h = document.querySelector('.header');
+    if (h) h.style.display = 'none';
+}
 </script>
 </body>
 </html>
