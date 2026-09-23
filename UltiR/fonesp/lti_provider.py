@@ -17,8 +17,37 @@ Moodle setup:
 import json
 import os
 import random
+import re
 import sys
 from pathlib import Path
+
+_PALABRAS_INAPROPIADAS = {
+    'gilipollas', 'gilipollez', 'capullo', 'imbécil', 'imbecil', 'idiota',
+    'subnormal', 'retrasado', 'retrasada', 'mongolo', 'mongola',
+    'cabrón', 'cabron', 'cabrona', 'hijo de puta', 'hijoputa', 'hijaputa',
+    'puta', 'puto', 'zorra', 'zorro', 'pendejo', 'pendeja',
+    'maricón', 'maricon', 'marica', 'bollera',
+    'mierda', 'mierdas', 'cagada', 'cagar', 'cagarse',
+    'coño', 'cono', 'coñazo', 'joder', 'jódete', 'jodete',
+    'hostia', 'hostias', 'ostia', 'ostias',
+    'follar', 'follada', 'follón',
+    'culo', 'culos', 'culada',
+    'polla', 'pollas', 'pollón',
+    'cojones', 'cojón', 'cojonudo',
+    'tetas', 'tetón', 'tetona',
+    'mamada', 'mamón', 'mamon', 'mamona',
+    'chingar', 'chingada', 'verga',
+    'caca', 'pedo', 'pis', 'meada', 'mear',
+}
+
+
+def _contiene_palabra_inapropiada(texto: str) -> bool:
+    palabras = set(re.findall(r'[a-záéíóúüñ]+', texto.lower()))
+    if palabras & _PALABRAS_INAPROPIADAS:
+        return True
+    if 'hijo de puta' in texto.lower():
+        return True
+    return False
 
 from fastapi import APIRouter, Query, Request, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -259,7 +288,6 @@ async def api_transcribir(
     sessions.require(request)
     _ensure_transcriptor()
     from transcriptor import transcribir, transcribir_palabra, transcripcion_fonetica
-    from base_tutor import _contiene_palabra_inapropiada
 
     texto = texto.strip()
     if not texto:
