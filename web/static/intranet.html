@@ -1354,9 +1354,16 @@ async function umEditRoles(username) {
     var user = _umUsers.find(function(u) { return u.username === username; });
     if (!user) return;
     var currentRoles = user.roles || [user.role];
+    // A superuser can freely edit their own other roles, but the server
+    // refuses to remove 'superuser' from their own account (self-lockout
+    // guard) — lock that one checkbox here so it's not a round-trip error.
+    var isEditingSelf = !!(authUser && authUser.username === username);
     var checkboxes = Object.keys(USER_ROLES).map(function(r) {
         var checked = currentRoles.indexOf(r) !== -1 ? ' checked' : '';
-        return '<label style="display:block;font-size:0.85rem;margin:2px 0;"><input type="checkbox" value="' + r + '"' + checked + '> ' + r + '</label>';
+        var lockSelfSuperuser = isEditingSelf && r === 'superuser';
+        var disabled = lockSelfSuperuser ? ' disabled' : '';
+        var hint = lockSelfSuperuser ? ' <span style="color:#999;font-size:0.75em;">(you)</span>' : '';
+        return '<label style="display:block;font-size:0.85rem;margin:2px 0;"><input type="checkbox" value="' + r + '"' + checked + disabled + '> ' + r + hint + '</label>';
     }).join('');
 
     var dialog = document.createElement('div');

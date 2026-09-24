@@ -164,6 +164,7 @@
         .settings-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
         .settings-row .slug { font-family: monospace; font-size: 0.8em; color: #999; min-width: 90px; }
         .settings-row input[type="text"] { flex: 1; }
+        .settings-row-label { flex: 1; font-size: 0.92em; }
         .settings-add-row { display: flex; align-items: center; gap: 8px; padding-top: 10px; }
         .settings-add-row input[type="text"] { flex: 1; }
         .settings-add-row input.slug-input { flex: none; width: 110px; }
@@ -305,7 +306,7 @@
 
                 <div class="form-field">
                     <label>Assigned to</label>
-                    <select name="assignee_id" id="sel-assignee" onchange="onAssigneeChange()">
+                    <select name="assignee_id" id="sel-assignee" onchange="onAssigneeUserChange()">
                         <option value="">— Unassigned —</option>
                     </select>
                 </div>
@@ -317,7 +318,7 @@
 
                 <div class="form-field">
                     <label>Unit</label>
-                    <select name="unit_id" id="sel-unit">
+                    <select name="unit_id" id="sel-unit" onchange="onUnitUserChange()">
                         <option value="">— None —</option>
                     </select>
                 </div>
@@ -424,10 +425,12 @@
 
         <div class="settings-section">
             <h4>Assignees</h4>
+            <p style="color:#777;font-size:0.82em;margin:0 0 8px;">Only UNINOVIS-UMA staff accounts (uninovis_staff, content manager or superuser role, @uma.es login) can be added.</p>
             <div id="settings-assignees"></div>
             <div class="settings-add-row">
-                <input type="text" id="new-assignee-name" placeholder="Full name" />
-                <input type="email" id="new-assignee-email" placeholder="email@uma.es" />
+                <select id="new-assignee-select">
+                    <option value="">— Select a staff member —</option>
+                </select>
                 <button class="btn-secondary" type="button" onclick="addAssignee()">+ Add</button>
             </div>
         </div>
@@ -479,6 +482,7 @@
         contactInstitutions: [],
         contactAreasOfInterest: [],
         directoryPeople: [],
+        eligibleAssigneeUsers: [],
         dashboardUnits: [],
         statuses: [],
         statusFilterInitialized: false,
@@ -489,7 +493,15 @@
         editingId: null,
         editingKind: null,
         formKind: 'task',
-        form: { collaborators: [], mobility_visits: [], virtual_meetings: [] }
+        form: { collaborators: [], mobility_visits: [], virtual_meetings: [] },
+        // True only once the user actually touches the assignee dropdown
+        // themselves (see onAssigneeUserChange) — not when it's set
+        // programmatically while opening the form. Lets submitTask tell a
+        // deliberate unassignment apart from an untouched field, so a
+        // stale/incomplete assignee list can't silently wipe an assignment.
+        assigneeDirty: false,
+        // Same idea as assigneeDirty, for the unit dropdown (see onUnitUserChange).
+        unitDirty: false
     };
 
     // ---- Auth ----
@@ -776,6 +788,20 @@
         if (e.target.closest('.ms-dropdown')) return;
         document.querySelectorAll('.ms-dropdown-panel').forEach(function(p) { p.classList.add('hidden'); });
     });
+
+    // Bound to the dropdown's real onchange, which only ever fires from a
+    // user interaction (unlike setting .value from script) — so this is
+    // the one true signal that the user deliberately changed who's
+    // assigned, including deliberately clearing it.
+    function onAssigneeUserChange() {
+        state.assigneeDirty = true;
+        onAssigneeChange();
+    }
+
+    // Same rationale as onAssigneeUserChange, for the unit dropdown.
+    function onUnitUserChange() {
+        state.unitDirty = true;
+    }
 
     // Keeps the status field (and its "assign someone first" hint) in sync
     // with the assignee dropdown, live as the form is filled in — not just
@@ -1298,6 +1324,8 @@
         state.form = { collaborators: [], mobility_visits: [], virtual_meetings: [] };
         document.getElementById('task-form').reset();
         document.getElementById('form-error').classList.remove('visible');
+        state.assigneeDirty = false;
+        state.unitDirty = false;
         onAssigneeChange();
 
         document.getElementById('kind-toggle').classList.remove('hidden');
@@ -1333,6 +1361,8 @@
         form.elements['link'].value = t.link || '';
         form.elements['assignee_id'].value = t.assignee ? t.assignee.person_id : '';
 
+        state.assigneeDirty = false;
+        state.unitDirty = false;
         onAssigneeChange();
 
         // The type (task/contact) can't change once created.
@@ -1396,26 +1426,46 @@
         }
 
         var assigneeId = form.elements['assignee_id'].value ? parseInt(form.elements['assignee_id'].value, 10) : null;
-        var assignee = null;
-        if (assigneeId) {
-            var person = state.directoryPeople.find(function(p) { return p.id === assigneeId; });
-            if (person) {
-                assignee = { person_id: person.id, name: person.name || '', email: person.email || '' };
-                if (!document.getElementById('sel-status').disabled) {
-                    assignee.status = form.elements['status_id'].value || defaultStatusId();
-                }
-            }
-        }
+        var unitId = form.elements['unit_id'].value ? parseInt(form.elements['unit_id'].value, 10) : null;
 
         var body = {
             title: title,
             description: form.elements['description'].value.trim(),
-            unit_id: form.elements['unit_id'].value ? parseInt(form.elements['unit_id'].value, 10) : null,
             deadline: form.elements['deadline'].value || '',
             visibility: form.elements['visibility'].value,
-            link: link,
-            assignee: assignee
+            link: link
         };
+        // Only ever tell the server to touch the unit when the user
+        // actually interacted with the dropdown (state.unitDirty).
+        // Otherwise unit_id/clear_unit are left out of the body so a PUT
+        // keeps whatever unit the task already had — a stale or incomplete
+        // units list (see onUnitUserChange) can then never silently clear
+        // a task's unit just by saving an unrelated edit.
+        if (unitId) {
+            body.unit_id = unitId;
+        } else if (state.unitDirty) {
+            body.clear_unit = true;
+        }
+        // Only ever tell the server to touch the assignee when the user
+        // actually interacted with the dropdown (state.assigneeDirty).
+        // Otherwise assignee/clear_assignee are left out of the body so a
+        // PUT keeps whatever assignee the task already had — a stale or
+        // incomplete assignee list (see onAssigneeUserChange) can then
+        // never silently unassign a task just by saving an unrelated edit.
+        if (assigneeId) {
+            var person = state.directoryPeople.find(function(p) { return p.id === assigneeId; });
+            if (person) {
+                // name/email aren't sent — the server always resolves them
+                // itself from person_id, so the directory stays the single
+                // source of truth (see _directory_display_name server-side).
+                body.assignee = { person_id: person.id };
+                if (!document.getElementById('sel-status').disabled) {
+                    body.assignee.status = form.elements['status_id'].value || defaultStatusId();
+                }
+            }
+        } else if (state.assigneeDirty) {
+            body.clear_assignee = true;
+        }
 
         if (kind === 'contact') {
             var collaborators = state.form.collaborators.filter(function(p) { return p.name && p.name.trim(); });
@@ -1491,6 +1541,7 @@
         renderSettingsStatuses();
         renderSettingsUnits();
         renderSettingsAssignees();
+        loadEligibleAssigneeUsers();
         document.getElementById('settings-modal').classList.add('active');
     }
 
@@ -1629,6 +1680,10 @@
 
     // ---- Assignees settings ----
 
+    // Name/email are read-only here: they're resolved server-side from the
+    // staff directory by email (see _directory_display_name), never stored
+    // on the assignee entry — so an entry can only be added or removed,
+    // never edited in place.
     function renderSettingsAssignees() {
         var container = document.getElementById('settings-assignees');
         container.innerHTML = state.directoryPeople.map(function(a, idx) {
@@ -1637,8 +1692,7 @@
                 '<button type="button" class="btn-remove-row" title="Move up" ' + (idx === 0 ? 'disabled' : '') + ' onclick="moveAssignee(' + a.id + ', -1)">&#8593;</button>' +
                 '<button type="button" class="btn-remove-row" title="Move down" ' + (idx === state.directoryPeople.length - 1 ? 'disabled' : '') + ' onclick="moveAssignee(' + a.id + ', 1)">&#8595;</button>' +
                 '</span>' +
-                '<input type="text" value="' + esc(a.name) + '" placeholder="Full name" onchange="saveAssigneeName(' + a.id + ', this.value)" />' +
-                '<input type="email" value="' + esc(a.email || '') + '" placeholder="email@uma.es" onchange="saveAssigneeEmail(' + a.id + ', this.value)" />' +
+                '<span class="settings-row-label">' + esc(a.name || a.email) + ' <span style="color:#999;">(' + esc(a.email || '') + ')</span></span>' +
                 '<button type="button" class="btn-remove-row" onclick="deleteAssignee(' + a.id + ')">&#10005;</button>' +
                 '</div>';
         }).join('') || '<p style="color:#999;font-size:0.85em;">No assignees configured yet.</p>';
@@ -1660,44 +1714,38 @@
         } catch (e) { console.error('moveAssignee failed:', e); showToast('Network error.', 'error'); }
     }
 
-    async function addAssignee() {
-        var nameEl = document.getElementById('new-assignee-name');
-        var emailEl = document.getElementById('new-assignee-email');
-        var name = nameEl.value.trim();
-        var email = emailEl.value.trim();
-        if (!name) { showToast('Enter a name.', 'error'); return; }
+    // Only staff with actual dashboard access (uninovis_staff/content_manager/
+    // superuser + @uma.es) can be picked, so the assignee directory can't
+    // drift from who's really allowed to work the dashboard.
+    async function loadEligibleAssigneeUsers() {
         try {
-            var res = await fetch(BASE + '/api/dashboard-assignees', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name, email: email }) });
+            var res = await fetch(BASE + '/api/eligible-assignee-users', { headers: authHeaders() });
+            if (res.ok) state.eligibleAssigneeUsers = await res.json();
+        } catch (e) { console.error('loadEligibleAssigneeUsers failed:', e); }
+        renderEligibleAssigneeOptions();
+    }
+
+    function renderEligibleAssigneeOptions() {
+        var sel = document.getElementById('new-assignee-select');
+        sel.innerHTML = '<option value="">— Select a staff member —</option>' + state.eligibleAssigneeUsers.map(function(u) {
+            return '<option value="' + esc(u.username) + '">' + esc(u.name) + ' (' + esc(u.username) + ')</option>';
+        }).join('');
+    }
+
+    async function addAssignee() {
+        var sel = document.getElementById('new-assignee-select');
+        var username = sel.value;
+        var person = state.eligibleAssigneeUsers.find(function(u) { return u.username === username; });
+        if (!person) { showToast('Choose a staff member to add.', 'error'); return; }
+        try {
+            var res = await fetch(BASE + '/api/dashboard-assignees', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ email: person.username }) });
             if (!res.ok) { var err = await res.json(); showToast(err.detail || 'Could not add assignee.', 'error'); return; }
-            nameEl.value = ''; emailEl.value = '';
             await reloadAssignees();
+            await loadEligibleAssigneeUsers();
             showToast('Assignee added.', 'success');
         } catch (e) { console.error('addAssignee failed:', e); showToast('Network error.', 'error'); }
     }
 
-    async function saveAssigneeName(id, name) {
-        if (!name || !name.trim()) { showToast('Name cannot be empty.', 'error'); renderSettingsAssignees(); return; }
-        var current = state.directoryPeople.find(function(a) { return a.id === id; });
-        var email = current ? (current.email || '') : '';
-        return _saveAssignee(id, name.trim(), email);
-    }
-
-    async function saveAssigneeEmail(id, email) {
-        var current = state.directoryPeople.find(function(a) { return a.id === id; });
-        if (!current) return;
-        return _saveAssignee(id, current.name, email.trim());
-    }
-
-    async function _saveAssignee(id, name, email) {
-        try {
-            var res = await fetch(BASE + '/api/dashboard-assignees/' + id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ name: name, email: email }) });
-            if (!res.ok) { var err = await res.json(); showToast(err.detail || 'Could not update assignee.', 'error'); return; }
-            var updated = await res.json();
-            state.directoryPeople = state.directoryPeople.map(function(a) { return a.id === updated.id ? updated : a; });
-            populateAssigneeSelect();
-            populateAssigneeFilter();
-        } catch (e) { console.error('saveAssignee failed:', e); showToast('Network error.', 'error'); }
-    }
 
     async function deleteAssignee(id) {
         if (!confirm('Delete this assignee? This will fail if they are currently assigned to a task or contact.')) return;
@@ -1705,6 +1753,7 @@
             var res = await fetch(BASE + '/api/dashboard-assignees/' + id, { method: 'DELETE', headers: authHeaders() });
             if (!res.ok) { var err = await res.json(); showToast(err.detail || 'Could not delete assignee.', 'error'); return; }
             await reloadAssignees();
+            await loadEligibleAssigneeUsers();
             showToast('Assignee deleted.', 'success');
         } catch (e) { console.error('deleteAssignee failed:', e); showToast('Network error.', 'error'); }
     }

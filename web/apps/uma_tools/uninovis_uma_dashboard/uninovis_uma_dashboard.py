@@ -157,8 +157,8 @@ def save_assignees(data: dict):
 
 class AssigneeInput(BaseModel):
     person_id: int
-    name: str = ""
-    email: str = ""
+    # name/email are never taken from the client — see _directory_display_name
+    # and _email_for_person_id — so they can't go stale here either.
     status: Optional[str] = None  # honored on create, and on update only for
     # the current assignee or a superuser — see _resolve_assignee_status
 
@@ -167,9 +167,19 @@ class TaskBody(BaseModel):
     title: str
     description: str = ""
     unit_id: Optional[int] = None
+    # On PUT, omitting `unit_id` leaves the existing unit untouched; this is
+    # the only way to explicitly remove it. Same rationale as
+    # clear_assignee below — a stale/out-of-date unit dropdown must not be
+    # able to silently clear a task's unit.
+    clear_unit: bool = False
     deadline: str = ""  # "YYYY-MM-DD" or ""
     visibility: str = "public"  # "private" | "public"
     assignee: Optional[AssigneeInput] = None
+    # On PUT, omitting `assignee` leaves the existing assignee untouched;
+    # this is the only way to explicitly remove it. Prevents a stale client
+    # (e.g. an out-of-date assignee dropdown) from silently unassigning a
+    # task just because it couldn't resolve the assignee to resend.
+    clear_assignee: bool = False
     link: str = ""  # must start with "http://" or "https://" if set
 
 
@@ -197,8 +207,8 @@ class UnitBody(BaseModel):
 
 
 class AssigneeConfigBody(BaseModel):
-    name: str
-    email: str = ""
+    # name is never accepted from the client — see _directory_display_name.
+    email: str
 
 
 class AssigneeConfigOrderBody(BaseModel):
@@ -231,9 +241,11 @@ class ContactBody(BaseModel):
     title: str
     description: str = ""
     unit_id: Optional[int] = None
+    clear_unit: bool = False  # see TaskBody.clear_unit
     deadline: str = ""
     visibility: str = "public"
     assignee: Optional[AssigneeInput] = None
+    clear_assignee: bool = False  # see TaskBody.clear_assignee
     link: str = ""  # must start with "http://" or "https://" if set
     goal: str = ""
     collaborators: List[ContactCollaborator] = []
@@ -310,6 +322,66 @@ def _email_for_person_id(person_id) -> str:
     return (person.get("email", "") if person else "").lower()
 
 
+def _directory_display_name(email: str) -> str:
+    """Resolve a person's display name from the WP1 staff directory by
+    email, falling back to a title-cased guess from the email's local part
+    when they're not listed there.
+
+    A dashboard assignee's name is never stored — it's always resolved this
+    way, on every read, so editing someone's entry in the directory is
+    immediately reflected everywhere they're shown (settings, the "choose
+    other" filter, "assigned to" on tasks/contacts) without anyone having to
+    touch the dashboard's own assignee list.
+    """
+    if not email:
+        return ""
+    from app import _check_directory_email  # see auth_check for why this is a local import
+    name = _check_directory_email(email)
+    if name:
+        return name
+    local = email.split("@", 1)[0]
+    words = [w for w in re.split(r"[._-]+", local) if w]
+    return " ".join(w.capitalize() for w in words) or email
+
+
+def _is_eligible_assignee_email(email: str) -> bool:
+    """Whether `email` belongs to a platform account with actual dashboard
+    access (uninovis_staff/content_manager/superuser + @uma.es) — the only
+    people allowed to be added as a dashboard assignee."""
+    email = email.strip().lower()
+    user = next((u for u in list_users() if u["username"].lower() == email), None)
+    if not user:
+        return False
+    return bool(_ALLOWED_ROLES & set(user.get("roles", [user.get("role")]))) and _is_uma_email(email)
+
+
+def _hydrate_assignee(assignee: Optional[dict]) -> Optional[dict]:
+    """Return a copy of a stored assignee sub-object with `name` freshly
+    resolved from the directory instead of trusting whatever was persisted."""
+    if not assignee:
+        return assignee
+    out = dict(assignee)
+    out["name"] = _directory_display_name(assignee.get("email", ""))
+    return out
+
+
+def _hydrate_entry(entry: dict) -> dict:
+    """Return a copy of a task/contact with its assignee's name refreshed
+    from the directory before it's sent to the client."""
+    out = dict(entry)
+    out["assignee"] = _hydrate_assignee(entry.get("assignee"))
+    return out
+
+
+def _assignees_with_names() -> list:
+    """The dashboard-assignee directory (id/email) with each person's name
+    freshly resolved — never the other way around, see _directory_display_name."""
+    return [
+        {"id": a["id"], "email": a.get("email", ""), "name": _directory_display_name(a.get("email", ""))}
+        for a in load_assignees()["assignees"]
+    ]
+
+
 def _is_assignee(entry: dict, username: str) -> bool:
     a = entry.get("assignee")
     if not a:
@@ -352,12 +424,14 @@ def index():
 
 @router.get("/api/auth-check")
 def auth_check(session: dict = Depends(_require_auth)):
+    # Imported lazily: app.py imports this router at module load time, so a
+    # top-level `from app import ...` here would be a circular import.
+    from app import resolve_display_name
+
     has_access = bool(_ALLOWED_ROLES & set(user_roles(session))) and _is_uma_email(session["username"])
-    users = {u["username"]: u for u in list_users()}
-    user_name = users.get(session["username"], {}).get("name", "")
     return {
         "username": session["username"],
-        "name": user_name,
+        "name": resolve_display_name(session["username"]),
         "role": session["role"],
         "roles": session.get("roles", [session["role"]]),
         "has_access": has_access,
@@ -369,7 +443,7 @@ def auth_check(session: dict = Depends(_require_auth)):
 
 @router.get("/api/assignable-people")
 def get_assignable_people(session: dict = Depends(_require_staff)):
-    return load_assignees()["assignees"]
+    return _assignees_with_names()
 
 
 @router.get("/api/data")
@@ -394,10 +468,10 @@ def get_data(session: dict = Depends(_require_staff)):
         if p.get("area_of_interest", "").strip()
     })
     return {
-        "tasks_mine": tasks_mine,
-        "tasks_all": tasks_all,
-        "contacts_mine": contacts_mine,
-        "contacts_all": contacts_all,
+        "tasks_mine": [_hydrate_entry(t) for t in tasks_mine],
+        "tasks_all": [_hydrate_entry(t) for t in tasks_all],
+        "contacts_mine": [_hydrate_entry(c) for c in contacts_mine],
+        "contacts_all": [_hydrate_entry(c) for c in contacts_all],
         "contact_institutions": institutions,
         "contact_areas_of_interest": areas_of_interest,
     }
@@ -416,8 +490,7 @@ def create_task(body: TaskBody, session: dict = Depends(_require_staff)):
         _validate_status(status_id)
         assignee = {
             "person_id": body.assignee.person_id,
-            "name": body.assignee.name,
-            "email": body.assignee.email.strip().lower() or _email_for_person_id(body.assignee.person_id),
+            "email": _email_for_person_id(body.assignee.person_id),
             "status": status_id,
             "updated_at": now,
         }
@@ -437,7 +510,7 @@ def create_task(body: TaskBody, session: dict = Depends(_require_staff)):
     }
     data["tasks"].append(entry)
     save_data(data)
-    return entry
+    return _hydrate_entry(entry)
 
 
 @router.put("/api/tasks/{task_id}")
@@ -451,21 +524,30 @@ def update_task(task_id: str, body: TaskBody, session: dict = Depends(_require_s
         raise HTTPException(403, "You can only edit tasks you created or are assigned to")
     now = datetime.utcnow().isoformat() + "Z"
     old_assignee = entry.get("assignee")
-    new_assignee = None
     if body.assignee:
         status, status_updated_at = _resolve_assignee_status(old_assignee, body.assignee, session, now)
         new_assignee = {
             "person_id": body.assignee.person_id,
-            "name": body.assignee.name,
-            "email": body.assignee.email.strip().lower() or _email_for_person_id(body.assignee.person_id),
+            "email": _email_for_person_id(body.assignee.person_id),
             "status": status,
             "updated_at": status_updated_at,
         }
+    elif body.clear_assignee:
+        new_assignee = None
+    else:
+        new_assignee = old_assignee
+
+    if body.unit_id:
+        new_unit_id = body.unit_id
+    elif body.clear_unit:
+        new_unit_id = None
+    else:
+        new_unit_id = entry.get("unit_id")
 
     entry.update({
         "title": body.title,
         "description": body.description,
-        "unit_id": body.unit_id,
+        "unit_id": new_unit_id,
         "deadline": body.deadline,
         "visibility": body.visibility,
         "link": body.link,
@@ -473,7 +555,7 @@ def update_task(task_id: str, body: TaskBody, session: dict = Depends(_require_s
         "updated_at": now,
     })
     save_data(data)
-    return entry
+    return _hydrate_entry(entry)
 
 
 @router.put("/api/tasks/{task_id}/status")
@@ -490,7 +572,7 @@ def update_my_status(task_id: str, body: StatusBody, session: dict = Depends(_re
     assignee["updated_at"] = datetime.utcnow().isoformat() + "Z"
     entry["updated_at"] = assignee["updated_at"]
     save_data(data)
-    return entry
+    return _hydrate_entry(entry)
 
 
 @router.delete("/api/tasks/{task_id}")
@@ -506,9 +588,9 @@ def delete_task(task_id: str, session: dict = Depends(_require_staff)):
 
 # -- Contacts ---------------------------------------------------------------
 
-def _contact_dict(body: ContactBody, assignee: Optional[dict]) -> dict:
+def _contact_dict(body: ContactBody, assignee: Optional[dict], unit_id: Optional[int]) -> dict:
     return {
-        "unit_id": body.unit_id,
+        "unit_id": unit_id,
         "deadline": body.deadline,
         "visibility": body.visibility,
         "assignee": assignee,
@@ -537,12 +619,11 @@ def create_contact(body: ContactBody, session: dict = Depends(_require_staff)):
         _validate_status(status_id)
         assignee = {
             "person_id": body.assignee.person_id,
-            "name": body.assignee.name,
-            "email": body.assignee.email.strip().lower() or _email_for_person_id(body.assignee.person_id),
+            "email": _email_for_person_id(body.assignee.person_id),
             "status": status_id,
             "updated_at": now,
         }
-    entry = _contact_dict(body, assignee)
+    entry = _contact_dict(body, assignee, body.unit_id)
     entry.update({
         "id": "contact" + uuid.uuid4().hex[:8],
         "kind": "contact",
@@ -552,7 +633,7 @@ def create_contact(body: ContactBody, session: dict = Depends(_require_staff)):
     })
     data["contacts"].append(entry)
     save_contacts(data)
-    return entry
+    return _hydrate_entry(entry)
 
 
 @router.put("/api/contacts/{contact_id}")
@@ -567,21 +648,30 @@ def update_contact(contact_id: str, body: ContactBody, session: dict = Depends(_
 
     now = datetime.utcnow().isoformat() + "Z"
     old_assignee = entry.get("assignee")
-    new_assignee = None
     if body.assignee:
         status, status_updated_at = _resolve_assignee_status(old_assignee, body.assignee, session, now)
         new_assignee = {
             "person_id": body.assignee.person_id,
-            "name": body.assignee.name,
-            "email": body.assignee.email.strip().lower() or _email_for_person_id(body.assignee.person_id),
+            "email": _email_for_person_id(body.assignee.person_id),
             "status": status,
             "updated_at": status_updated_at,
         }
+    elif body.clear_assignee:
+        new_assignee = None
+    else:
+        new_assignee = old_assignee
 
-    entry.update(_contact_dict(body, new_assignee))
+    if body.unit_id:
+        new_unit_id = body.unit_id
+    elif body.clear_unit:
+        new_unit_id = None
+    else:
+        new_unit_id = entry.get("unit_id")
+
+    entry.update(_contact_dict(body, new_assignee, new_unit_id))
     entry["updated_at"] = now
     save_contacts(data)
-    return entry
+    return _hydrate_entry(entry)
 
 
 @router.put("/api/contacts/{contact_id}/status")
@@ -598,7 +688,7 @@ def update_my_contact_status(contact_id: str, body: StatusBody, session: dict = 
     assignee["updated_at"] = datetime.utcnow().isoformat() + "Z"
     entry["updated_at"] = assignee["updated_at"]
     save_contacts(data)
-    return entry
+    return _hydrate_entry(entry)
 
 
 @router.delete("/api/contacts/{contact_id}")
@@ -740,23 +830,53 @@ def delete_dashboard_unit(unit_id: int, session: dict = Depends(_require_superus
 
 
 # -- Dashboard assignees (superuser/UMA editable) ---------------------------------------------------------------
+#
+# An assignee entry stores only {id, email} — never a name. Every read
+# resolves the name fresh from the WP1 staff directory (see
+# _directory_display_name), so editing someone's directory entry is
+# reflected everywhere immediately, with nothing to keep in sync by hand.
+# Entries can only be added (from the pool of staff who actually have
+# dashboard access) or removed — never renamed/re-emailed in place.
 
 @router.get("/api/dashboard-assignees")
 def get_dashboard_assignees(session: dict = Depends(_require_staff)):
-    return load_assignees()["assignees"]
+    return _assignees_with_names()
+
+
+@router.get("/api/eligible-assignee-users")
+def get_eligible_assignee_users(session: dict = Depends(_require_superuser_uma)):
+    """Platform accounts that could be added as a dashboard assignee: UMA
+    staff (uninovis_staff/content_manager/superuser) with a @uma.es login,
+    minus anyone already in the assignee directory. Backs the "add from
+    directory" dropdown so only people with actual dashboard access can be
+    assigned tasks."""
+    existing_emails = {a["email"].lower() for a in load_assignees()["assignees"] if a.get("email")}
+    eligible = [
+        {"username": u["username"], "name": _directory_display_name(u["username"])}
+        for u in list_users()
+        if (_ALLOWED_ROLES & set(u.get("roles", [u.get("role")])))
+        and _is_uma_email(u["username"])
+        and u["username"].lower() not in existing_emails
+    ]
+    eligible.sort(key=lambda u: u["name"].lower())
+    return eligible
 
 
 @router.post("/api/dashboard-assignees")
 def create_dashboard_assignee(body: AssigneeConfigBody, session: dict = Depends(_require_superuser_uma)):
-    name = body.name.strip()
-    if not name:
-        raise HTTPException(400, "Assignee name is required")
+    email = body.email.strip().lower()
+    if not email:
+        raise HTTPException(400, "Assignee email is required")
+    if not _is_eligible_assignee_email(email):
+        raise HTTPException(400, "Only uninovis_staff (UMA) accounts can be added as assignees")
     data = load_assignees()
+    if any(a.get("email", "").lower() == email for a in data["assignees"]):
+        raise HTTPException(400, "This person is already an assignee")
     new_id = max([a["id"] for a in data["assignees"]], default=0) + 1
-    entry = {"id": new_id, "name": name, "email": body.email.strip().lower()}
+    entry = {"id": new_id, "email": email}
     data["assignees"].append(entry)
     save_assignees(data)
-    return entry
+    return {"id": new_id, "email": email, "name": _directory_display_name(email)}
 
 
 @router.put("/api/dashboard-assignees/order")
@@ -768,22 +888,7 @@ def reorder_dashboard_assignees(body: AssigneeConfigOrderBody, session: dict = D
     by_id = {a["id"]: a for a in data["assignees"]}
     data["assignees"] = [by_id[i] for i in body.order]
     save_assignees(data)
-    return data["assignees"]
-
-
-@router.put("/api/dashboard-assignees/{assignee_id}")
-def update_dashboard_assignee(assignee_id: int, body: AssigneeConfigBody, session: dict = Depends(_require_superuser_uma)):
-    name = body.name.strip()
-    if not name:
-        raise HTTPException(400, "Assignee name is required")
-    data = load_assignees()
-    entry = next((a for a in data["assignees"] if a["id"] == assignee_id), None)
-    if not entry:
-        raise HTTPException(404, "Assignee not found")
-    entry["name"] = name
-    entry["email"] = body.email.strip().lower()
-    save_assignees(data)
-    return entry
+    return _assignees_with_names()
 
 
 @router.delete("/api/dashboard-assignees/{assignee_id}")

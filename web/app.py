@@ -711,8 +711,12 @@ async def api_update_role(username: str, req: UpdateRoleRequest, session: dict =
     for r in all_roles:
         if r not in ROLES:
             raise HTTPException(status_code=400, detail=f"Invalid role '{r}'. Must be one of: {list(ROLES.keys())}")
-    if username == session["username"]:
-        raise HTTPException(status_code=400, detail="Cannot change your own role")
+    # Superusers may freely edit their own other roles, but never remove
+    # their own superuser status — otherwise they could lock themselves
+    # (and potentially everyone) out of admin tools with no way back short
+    # of editing web/data/users.json by hand.
+    if username == session["username"] and "superuser" not in all_roles:
+        raise HTTPException(status_code=400, detail="Cannot remove your own superuser role")
     ok = update_user_role(username, all_roles[0], all_roles)
     if not ok:
         raise HTTPException(status_code=404, detail="User not found")
