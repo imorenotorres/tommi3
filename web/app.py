@@ -565,7 +565,13 @@ async def api_change_password(req: ChangePasswordRequest, session: dict = Depend
 
 @app.get("/api/auth/users")
 async def api_list_users(session: dict = Depends(require_role("superuser"))):
-    return list_users()
+    users = list_users()
+    # The stored `name` field is usually empty (only ever set at bulk-create
+    # time) — resolve the same way /api/auth/me does so User Management
+    # shows real names from the staff directory instead of "-" for everyone.
+    for u in users:
+        u["name"] = resolve_display_name(u["username"])
+    return users
 
 
 @app.post("/api/auth/users")
