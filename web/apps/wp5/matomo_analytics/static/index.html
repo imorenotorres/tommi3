@@ -117,7 +117,7 @@
 
 <div id="accessDenied" style="display:none;max-width:520px;margin:60px auto;text-align:center;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
     <h2 style="color:#2D3876;">Access denied</h2>
-    <p style="color:#666;">You must be logged in as a superuser to view this page.</p>
+    <p style="color:#666;">You do not have access to Site Analytics. Ask a superuser to grant your role access in Tool Visibility.</p>
 </div>
 
 <div class="container" id="mainContainer">
@@ -159,7 +159,7 @@
         </select>
         <div style="flex:1;"></div>
         <button onclick="loadAll()">Apply</button>
-        <a href="/site-analytics/setup" style="font-size:0.72rem;color:#2D3876;text-decoration:none;margin-left:4px;" title="Configure tracked URLs">&#9881; Setup</a>
+        <a id="setupLink" href="/site-analytics/setup" style="font-size:0.72rem;color:#2D3876;text-decoration:none;margin-left:4px;" title="Configure tracked URLs">&#9881; Setup</a>
     </div>
 
     <!-- 2. Visits by Country -->
@@ -1768,7 +1768,11 @@ async function checkAuthAndInit() {
         if (!resp.ok) throw new Error('unauthenticated');
         var user = await resp.json();
         var roles = user.roles || [user.role];
-        if (roles.indexOf('superuser') === -1) throw new Error('forbidden');
+        var taResp = await fetch('/api/tool-access', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!taResp.ok) throw new Error('forbidden');
+        var allowed = ((await taResp.json()).tool_access || {})['matomo_analytics'] || ['superuser'];
+        if (!roles.some(function(r){ return allowed.indexOf(r) !== -1; })) throw new Error('forbidden');
+        if (roles.indexOf('superuser') === -1) { var sl = document.getElementById('setupLink'); if (sl) sl.style.display = 'none'; }
     } catch (e) {
         document.getElementById('accessDenied').style.display = '';
         document.getElementById('mainContainer').style.display = 'none';

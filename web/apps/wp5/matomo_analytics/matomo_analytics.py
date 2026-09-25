@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 
-from auth import require_login, user_roles
+from auth import can_access_tool, require_login, user_roles
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "url_config.json")
@@ -22,9 +22,14 @@ CONFIG_FILE = os.path.join(os.path.dirname(__file__), "url_config.json")
 router = APIRouter(prefix="/site-analytics", tags=["matomo_analytics"])
 
 
-# This tool is reserved for superuser (see TOOL_ACCESS["matomo_analytics"] in
-# auth.py) — every data endpoint requires it; none of this ever had any auth
-# check before.
+# Read access follows TOOL_ACCESS["matomo_analytics"] (editable in the Tool
+# Visibility panel). Editing the shared URL config stays superuser-only.
+def _require_tool_access(session: dict = Depends(require_login)) -> dict:
+    if not can_access_tool(session, "matomo_analytics"):
+        raise HTTPException(status_code=403, detail="Access to site analytics not granted")
+    return session
+
+
 def _require_superuser(session: dict = Depends(require_login)) -> dict:
     if "superuser" not in set(user_roles(session)):
         raise HTTPException(status_code=403, detail="superuser role required")
@@ -55,13 +60,13 @@ def save_url_config(config):
 
 
 @router.get("/api/sites")
-def get_sites(session: dict = Depends(_require_superuser)):
+def get_sites(session: dict = Depends(_require_tool_access)):
     """Return available Matomo sites."""
     return {"sites": [{"id": k, "name": v} for k, v in MATOMO_SITES.items()]}
 
 
 @router.get("/api/url-config")
-def get_url_config(session: dict = Depends(_require_superuser)):
+def get_url_config(session: dict = Depends(_require_tool_access)):
     """Return the URL configuration."""
     return load_url_config()
 
@@ -92,7 +97,7 @@ def matomo_proxy(
     flat: str = Query(""),
     filter_limit: str = Query("100"),
     idSite: str = Query(MATOMO_SITE_ID),
-    session: dict = Depends(_require_superuser),
+    session: dict = Depends(_require_tool_access),
 ):
     """Proxy a Matomo Reporting API call. Token is injected server-side."""
     params = {
