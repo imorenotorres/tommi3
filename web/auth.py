@@ -404,10 +404,22 @@ def _save_users(users: dict) -> None:
         json.dump(users, f, indent=2, ensure_ascii=False)
 
 
+def _find_username(users: dict, username: str) -> Optional[str]:
+    """Return the stored key matching `username` case-insensitively (emails
+    may be stored in any case), preferring an exact match. None if not found."""
+    if username in users:
+        return username
+    wanted = (username or "").strip().lower()
+    for key in users:
+        if key.lower() == wanted:
+            return key
+    return None
+
+
 def user_exists(username: str) -> bool:
-    """Check if a user exists."""
+    """Check if a user exists (case-insensitive)."""
     users = _load_users()
-    return username in users
+    return _find_username(users, username) is not None
 
 
 def create_user(username: str, password: str, role: str, provisional: bool = True, roles: list = None, name: str = "") -> bool:
@@ -503,11 +515,14 @@ def authenticate(username: str, password: str) -> Optional[dict]:
     """
     Authenticate a user. Returns session info dict or None.
     Session info: {"token", "username", "role", "provisional_password"}
+    The email is matched case-insensitively; the session carries the
+    username exactly as stored so per-app ownership checks keep matching.
     """
     users = _load_users()
-    user = users.get(username)
-    if not user:
+    username = _find_username(users, username)
+    if not username:
         return None
+    user = users[username]
 
     if not _verify_password(password, user["password_hash"], user["salt"]):
         return None
@@ -697,7 +712,8 @@ def create_invite_token(username: str) -> Optional[str]:
     Replaces any previous token for the same user.
     """
     users = _load_users()
-    if username not in users:
+    username = _find_username(users, username)
+    if not username:
         return None
 
     invites = _load_invites()
