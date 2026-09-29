@@ -121,7 +121,7 @@
 
 <div class="footer">UNINOVIS &mdash; European University Alliance</div>
 
-<script src="/static/nav.js?v=12"></script>
+<script src="/static/nav.js?v=13"></script>
 <script>
 // ── Roles ─────────────────────────────────────────────────────────
 // Single source of truth for every assignable user role and its display
@@ -226,6 +226,7 @@ var SECTIONS = [
         tools: [
             { id: 'directory', name: 'Directory', icon: '\uD83D\uDCD2', desc: 'People, units, universities, and org charts from the UNINOVIS staff directory.', url: '/directory/', status: 'data-update' },
             { id: 'event_tracker', name: 'Event Tracker', icon: '\uD83D\uDCC5', desc: 'Unified calendar with UNINOVIS events and Agora catalogue integration.', url: '/event-tracker/', status: 'active' },
+            { id: 'project_management', name: 'Project Management', icon: '✅', desc: 'Tasks for the UNINOVIS team, created automatically from new Event Tracker events.', url: '/project-management/', status: 'prototype' },
             { id: 'log_analytics', name: 'Agents Analytics', icon: '\uD83D\uDCCA', desc: 'View request summaries, visitor stats, and manage agent log files.', url: '#', status: 'prototype', action: 'openLogAnalytics' },
         ]
     },
@@ -448,6 +449,7 @@ var LEARN_GUIDES = {
     unigracon: [{ id: 'learn_unigracon', title: 'Learn: UNIGRACON', content: 'unigracon' }],
     mobility_planner: [{ id: 'learn_mobility_planner', title: 'Learn: Mobility Planner', content: 'mobility_planner' }],
     event_tracker: [{ id: 'learn_event_tracker', title: 'Learn: Event Tracker', content: 'event_tracker' }],
+    project_management: [{ id: 'learn_project_management', title: 'Learn: Project Management', content: 'project_management' }],
     // UMA internal tools: restricted to uninovis_staff/superuser AND an
     // @uma.es login, mirroring the "UMA internal tools" section's own gate.
     holiday_tracker: [{ id: 'learn_holiday_tracker', title: 'Learn: UMA Holiday Tracker', roles: ['uninovis_staff', 'superuser'], emailDomain: 'uma.es', content: 'holiday_tracker' }],
@@ -468,7 +470,9 @@ SECTIONS.forEach(function(section) {
         try {
             var accessRoles = TOOL_ACCESS[tool.id];
             if (accessRoles && !accessRoles.length) return; // hidden for everyone (an explicitly empty TOOL_ACCESS entry)
-            var defaultRoles = (accessRoles && accessRoles.length) ? accessRoles : null;
+            // No entry yet means superuser-only, matching canAccess() — the
+            // guide must not be offered to roles that can't see the tool.
+            var defaultRoles = (accessRoles && accessRoles.length) ? accessRoles : ['superuser'];
 
             if (LEARN_GUIDES[tool.id]) {
                 LEARN_GUIDES[tool.id].forEach(function(lg) {

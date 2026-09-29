@@ -656,6 +656,12 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/[^A-Za-z0-9]+/g, '_');
   try { await loadData(); } catch (e) { console.error('loadData failed:', e); }
   try { render(); } catch (e) { console.error('render failed:', e); }
 
+  // Deep link from Project Management: /event-tracker/?event=<id>
+  const linkedEventId = new URLSearchParams(location.search).get('event');
+  if (linkedEventId && events.some(e => e.id === linkedEventId)) {
+    try { showDetail(linkedEventId); } catch (e) { console.error('Could not open linked event:', e); }
+  }
+
   try {
     maybeAutoPlayGuideFromUrl(authRoles, authUsername);
   } catch (e) { console.error('Guide auto-play failed:', e); }
@@ -1446,6 +1452,13 @@ function showDetail(id) {
     html += `<div class="detail-field"><div class="dl">Recurring</div><div class="dv">Part of a series (${cnt} events)</div></div>`;
   }
 
+  if (ev.source !== 'catalogue' && !ev.linked_event) {
+    // A series' tasks are linked to its first occurrence.
+    const seriesFirst = ev.series_id ? events.filter(e => e.series_id === ev.series_id).sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''))[0] : null;
+    const taskEventId = seriesFirst ? seriesFirst.id : ev.id;
+    html += `<div class="detail-field"><div class="dl">Tasks</div><div class="dv"><a href="/project-management/?event=${encodeURIComponent(taskEventId)}">View this event's tasks in Project Management</a></div></div>`;
+  }
+
   const isOwner = ev.created_by === authUsername;
   const canModify = (isOwner || isSuperuser) && ev.source !== 'catalogue';
   if (canModify) {
@@ -1746,7 +1759,9 @@ async function saveEvent() {
         };
       }
       const result = await api('POST', '/api/events', body);
-      if (result.series_id) alert(result.count + ' recurring events created.');
+      const taskNote = result.tasks_created ? ' ' + result.tasks_created + ' follow-up task(s) were created in Project Management.' : '';
+      if (result.series_id) alert(result.count + ' recurring events created.' + taskNote);
+      else if (taskNote) alert('Event created.' + taskNote);
     }
     closeEdit();
     await loadData(); render();

@@ -244,6 +244,12 @@ window.GUIDE_CONTENT = {
         { selector: '#btnAdd', text: 'Add a new internal event here.' },
         { selector: '#btnSync', text: 'Synchronise the latest events from Agora.' },
     ],
+    project_management: [
+        { text: 'Project Management tracks tasks for the UNINOVIS team. Creating an event in the Event Tracker adds its follow-up tasks here automatically.' },
+        { selector: '#viewToggle', text: '"My tasks" shows tasks assigned to you; "All tasks" shows the whole team\'s.' },
+        { selector: '#board', text: 'Tasks are grouped by status. Open one to see its event, what is missing, and how its assignees were checked against the Directory.' },
+        { selector: '#btnNewTask', text: 'Create a task by hand here.' },
+    ],
     holiday_tracker: [
         { text: 'Log vacaciones, asuntos propios, comisiones de servicio, teletrabajo, and formación on a shared UMA calendar.' },
         { selector: '.view-group', text: 'Switch between month and week views here.' },

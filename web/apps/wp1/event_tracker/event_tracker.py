@@ -76,6 +76,11 @@ from auth import (
     can_edit as _can_edit_check, user_roles as _user_roles,
 )
 
+# Project Management hooks: every new internal event gets its follow-up tasks
+# (missing information, WP review). The hooks never raise, so a problem on the
+# task side cannot stop an event from being saved.
+from apps.wp1.project_management import project_management as _pm
+
 
 def _can_modify_event(session: dict, ev: dict) -> bool:
     """Only the event's creator (or a superuser) may edit/delete a shared event.
@@ -729,14 +734,17 @@ def create_event(body: EventBody, session: dict = Depends(_require_editor)):
         for ev in created:
             data["events"].append(ev)
         save_data(data)
-        return {"series_id": series_id, "count": len(created), "events": created}
+        # One set of tasks for the whole series, not one per occurrence.
+        tasks_created = _pm.on_event_created(created[0], session["username"])
+        return {"series_id": series_id, "count": len(created), "events": created, "tasks_created": tasks_created}
     else:
         ev = _build_event(body, body.start_date, body.end_date, "", session["username"])
         _store_event(ev, session["username"])
         components = _build_virtual_components(body, ev["id"], session["username"])
         for comp in components:
             _store_event(comp, session["username"])
-        return ev
+        tasks_created = _pm.on_event_created(ev, session["username"])
+        return {**ev, "tasks_created": tasks_created}
 
 
 def _update_ev_fields(ev: dict, body: EventBody):
@@ -776,6 +784,7 @@ def update_event(event_id: str, body: EventBody, session: dict = Depends(_requir
                 raise HTTPException(403, "Only the event's creator can edit it")
             _update_ev_fields(ev, body)
             save_data(data)
+            _pm.on_event_updated(ev, session["username"])
             return ev
     raise HTTPException(404, "Event not found")
 
@@ -813,6 +822,7 @@ def update_series(series_id: str, body: EventBody, session: dict = Depends(_requ
     if updated == 0:
         raise HTTPException(404, "Series not found")
     save_data(data)
+    _pm.on_event_updated(series_events[0], session["username"])
     return {"ok": True, "updated": updated}
 
 
@@ -826,6 +836,8 @@ def delete_event(event_id: str, session: dict = Depends(_require_auth)):
         raise HTTPException(403, "Only the event's creator can delete it")
     data["events"] = [ev for ev in data["events"] if ev["id"] != event_id]
     save_data(data)
+    # Deleting one occurrence of a series leaves the series' tasks alone.
+    _pm.on_events_deleted([event_id], "", session["username"])
     return {"ok": True}
 
 
@@ -839,6 +851,7 @@ def delete_series(series_id: str, session: dict = Depends(_require_auth)):
         raise HTTPException(403, "Only the series creator can delete it")
     data["events"] = [ev for ev in data["events"] if ev.get("series_id") != series_id]
     save_data(data)
+    _pm.on_events_deleted([ev["id"] for ev in series_events], series_id, session["username"])
     return {"ok": True, "deleted": len(series_events)}
 
 
@@ -1058,6 +1071,7 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
     existing_ids = {ev["id"] for ev in data["events"]}
     catalogue_ids = {ev["id"] for ev in data.get("catalogue_events", [])}
     result = ImportResult()
+    added_events = []
 
     for i, item in enumerate(imported):
         if not isinstance(item, dict):
@@ -1116,9 +1130,12 @@ async def import_json(file: UploadFile = File(...), session: dict = Depends(_req
             }
             data["events"].append(ev)
             existing_ids.add(ev["id"])
+            added_events.append(ev)
             result.added += 1
 
     save_data(data)
+    for ev in added_events:
+        _pm.on_event_created(ev, session["username"])
     return result
 
 
@@ -1131,6 +1148,7 @@ async def import_tsv(file: UploadFile = File(...), session: dict = Depends(_requ
     existing_ids = {ev["id"] for ev in data["events"]}
     catalogue_ids = {ev["id"] for ev in data.get("catalogue_events", [])}
     result = ImportResult()
+    added_events = []
 
     for i, row in enumerate(reader):
         name = row.get("name", "").strip()
@@ -1183,7 +1201,10 @@ async def import_tsv(file: UploadFile = File(...), session: dict = Depends(_requ
             }
             data["events"].append(ev)
             existing_ids.add(ev["id"])
+            added_events.append(ev)
             result.added += 1
 
     save_data(data)
+    for ev in added_events:
+        _pm.on_event_created(ev, session["username"])
     return result

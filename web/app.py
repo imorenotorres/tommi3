@@ -417,6 +417,11 @@ from apps.wp1.directory.directory import router as directory_router
 app.include_router(directory_router)
 app.mount("/directory/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp1" / "directory" / "static"), name="directory_static")
 
+# Mount Project Management app (tasks created from Event Tracker events)
+from apps.wp1.project_management.project_management import router as project_management_router
+app.include_router(project_management_router)
+app.mount("/project-management/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp1" / "project_management" / "static"), name="project_management_static")
+
 # Mount Holiday Tracker app
 from apps.uma_tools.uma_holiday_tracker.uma_holiday_tracker import router as holiday_tracker_router
 app.include_router(holiday_tracker_router)
