@@ -3539,8 +3539,9 @@ async def lali_ejercicio_transcripcion(nivel: int = Query(1, ge=1, le=5), items:
 
 @app.get("/api/public-agent/eulalia/ejercicio-informe-errores")
 async def lali_ejercicio_informe_errores(
-    num_errores: int = Query(5, ge=3, le=10),
+    num_errores: int = Query(8, ge=3, le=12),
     seed: int = Query(None),
+    categorias: str = Query(""),
 ):
     """Generate a phonological error report exercise dynamically."""
     import random
@@ -3553,6 +3554,12 @@ async def lali_ejercicio_informe_errores(
     from errores_fonologicos.generador import generar_errores
 
     rng = random.Random(seed)
+
+    # Parse category filter
+    cats = [c.strip() for c in categorias.split(',') if c.strip()] if categorias else []
+    apply_phonological = not cats or any(c in ('cuantitativo', 'silaba', 'palabra', 'sistemico') for c in cats)
+    apply_word_omission = not cats or 'palabra' in cats or 'cuantitativo' in cats
+    add_ritmico = not cats or 'ritmico' in cats or 'cuantitativo' in cats
 
     # Bank of sentences (ortographic)
     ORACIONES = [
@@ -3607,7 +3614,8 @@ async def lali_ejercicio_informe_errores(
 
     # Apply errors using patient profiles
     palabras_ort = oracion.split()
-    palabras_fon = correcta.strip().split(' ')
+    # Strip outer '/' markers so indices align with palabras_ort
+    palabras_fon = [p for p in correcta.strip().split(' ') if p.strip() and p.strip() != '/']
 
     # Patient profiles: consistent error tendencies
     PERFILES = {
@@ -3633,6 +3641,24 @@ async def lali_ejercicio_informe_errores(
     perfil = PERFILES[perfil_nombre]
     tipos_preferidos = perfil['tipos']
 
+    # Map selected categories to tipos for generar_errores
+    if not cats or 'cuantitativo' in cats:
+        tipos_para_generar = tipos_preferidos
+    else:
+        tipo_cats = [c for c in cats if c in ('silaba', 'palabra', 'sistemico')]
+        tipos_para_generar = tipo_cats if tipo_cats else tipos_preferidos
+
+    # Pre-select which content-word positions will receive errors (spread across sentence)
+    _content_idx = [
+        i for i, pf in enumerate(palabras_fon)
+        if pf.strip() and (
+            pf.strip().count('.') + 1 >= 2 or
+            len(pf.strip().replace('ˈ', '').replace('.', '')) > 3
+        )
+    ]
+    rng.shuffle(_content_idx)
+    _error_targets = set(_content_idx[:num_errores])
+
     # First pass: apply phonological errors to content words
     producidas = []
     todos_errores = []
@@ -3652,7 +3678,8 @@ async def lali_ejercicio_informe_errores(
         word_ort_lower = palabras_ort[idx].lower() if idx < len(palabras_ort) else ''
 
         # Lenition profile: occasional omission of function words
-        if (perfil_nombre == 'lenicion'
+        if (apply_word_omission
+                and perfil_nombre == 'lenicion'
                 and word_ort_lower in _PALABRAS_ATONAS
                 and not is_content
                 and len(todos_errores) < num_errores
@@ -3668,18 +3695,15 @@ async def lali_ejercicio_informe_errores(
             # Don't add this word to producidas (it's omitted)
             continue
 
-        if is_content and len(todos_errores) < num_errores:
+        if apply_phonological and is_content and idx in _error_targets:
             # Words with complex onsets (tɾ, pɾ, bɾ, kɾ, gɾ, pl, bl, fl, etc.) get 2 errors
             has_complex_onset = any(c in pf_clean for c in ['ɾ', 'l'] if pf_clean.find(c) > 0)
             n_err_word = 2 if has_complex_onset and rng.random() < 0.6 else 1
             n_err_word = min(n_err_word, num_errores - len(todos_errores))
 
             # Use profile-consistent error types
-            prod, errs = generar_errores(pf_clean, tipos=tipos_preferidos,
+            prod, errs = generar_errores(pf_clean, tipos=tipos_para_generar,
                                           num_errores=n_err_word, seed=rng.randint(0, 100000))
-
-            # Filter out tonic syllable omissions (very rare)
-            errs = [e for e in errs if e.get('tipo') != 'omision_silaba_tonica']
 
             if errs and prod != pf_clean:
                 word_ort = palabras_ort[idx] if idx < len(palabras_ort) else '?'
@@ -3711,7 +3735,7 @@ async def lali_ejercicio_informe_errores(
                           and producidas[i] != '#'
                           and (producidas[i].count('.') + 1) >= 2]
     rng.shuffle(palabras_sin_error)
-    max_ritmicos = rng.randint(1, max(1, min(3, len(palabras_sin_error))))
+    max_ritmicos = rng.randint(1, max(1, min(3, len(palabras_sin_error)))) if add_ritmico else 0
 
     for idx in palabras_sin_error[:max_ritmicos]:
         pf = producidas[idx]
@@ -3731,7 +3755,7 @@ async def lali_ejercicio_informe_errores(
             first_sil = sils[0].replace('ˈ', '')
             producidas[idx] = first_sil + '.' + pf
             errores_ritmicos.append(f"Titubeo (repetición de sílaba) en '{word_ort}'")
-        else:
+        elif idx < len(producidas) - 1:
             producidas.insert(idx + 1, '#')
             errores_ritmicos.append(f"Pausa indebida después de '{word_ort}'")
 
@@ -3754,14 +3778,13 @@ async def lali_ejercicio_informe_errores(
     for e in todos_errores:
         subtipo_map = {
             'sonorizacion': 'Sonorización', 'ensordecimiento': 'Ensordecimiento',
-            'adelantamiento': 'Adelantamiento', 'posteriorización': 'Posteriorización',
+            'adelantamiento': 'Adelantamiento', 'posteriorizacion': 'Posteriorización',
             'nasalizacion': 'Nasalización', 'desnasalizacion': 'Desnasalización',
             'lenicion': 'Lenición', 'forticion': 'Fortición',
             'omision_ataque': 'Omisión de ataque', 'simplificacion_ataque': 'Simplificación de ataque',
             'simplificacion_nucleo': 'Simplificación de núcleo', 'omision_coda': 'Omisión de coda',
             'asimilacion_regresiva': 'Asimilación regresiva', 'asimilacion_progresiva': 'Asimilación progresiva',
-            'metátesis': 'Metátesis', 'omision_silaba_atona': 'Omisión de sílaba átona',
-            'omision_silaba_tonica': 'Omisión de sílaba tónica',
+            'metátesis': 'Metátesis', 'omision_silaba_atona': 'Omisión de sílaba pretónica',
             'omision_palabra_atona': 'Omisión de palabra átona',
         }
         errores_fmt.append({
@@ -5718,6 +5741,14 @@ async def logs_summary(
         },
         "per_agent": per_agent,
     }
+
+
+@app.get("/algoria-map")
+async def algoria_map_page():
+    return FileResponse(
+        SCRIPT_DIR / "static" / "algoria_map.html",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
+    )
 
 
 @app.get("/algoria-map-report")

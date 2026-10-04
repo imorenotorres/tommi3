@@ -118,7 +118,9 @@ def grafema_a_fonema(palabra: str) -> tuple:
             pos_tilde = len(p_limpia)
             vocal_base = sin_tilde[0]
             if vocal_base in ('i', 'u'):
-                tilde_en_cerrada.add(len(p_limpia))
+                # Don't force hiato when preceded by ü (e.g. lingüística: /güis/ is a diphthong)
+                if not (p_limpia and p_limpia[-1] == 'ü'):
+                    tilde_en_cerrada.add(len(p_limpia))
             p_limpia += vocal_base
         elif c == 'ü':
             p_limpia += 'ü'

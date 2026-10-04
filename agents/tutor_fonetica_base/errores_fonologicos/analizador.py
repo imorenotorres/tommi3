@@ -27,7 +27,7 @@ def _extraer_palabras(transcripcion: str) -> list[str]:
     # Split by spaces, filter empty
     tokens = [w.strip() for w in t.split() if w.strip()]
     # Filter out stray markers
-    palabras = [w for w in tokens if any(c.isalpha() or c in 'ˈˌ.θʝʧɲɾʎ' for c in w)]
+    palabras = [w for w in tokens if any(c.isalpha() or c in 'ˈˌ.θʝʧɲɾ' for c in w)]
     return palabras
 
 

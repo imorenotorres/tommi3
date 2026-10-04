@@ -108,15 +108,29 @@ def error_posteriorizacion(palabra: Palabra, rng: random.Random = None) -> tuple
 
 
 def error_nasalizacion(palabra: Palabra, rng: random.Random = None) -> tuple[Palabra, dict]:
-    """Nasaliza una consonante oral (b>m, d>n, g>ŋ)."""
+    """Nasaliza una consonante oral (b>m, d>n).
+    Excepción contextual: /d/ puede nasalizarse como /ɲ/ cuando está adyacente a /i/ o /j/."""
     rng = rng or random.Random()
     p = deepcopy(palabra)
-    pares = {'b': 'm', 'd': 'n', 'g': 'ɲ'}
+    pares_base = {'b': 'm', 'd': 'n'}
     candidatos = []
     for si, sil in enumerate(p.silabas):
+        n_atq = len(sil.ataque)
         for fi, f in enumerate(sil.fonemas):
-            if f in pares:
-                candidatos.append((si, fi, f, pares[f]))
+            if f not in pares_base:
+                continue
+            # Skip consonants inside a complex onset to avoid unrealistic clusters (e.g. /nɾ/)
+            if fi < n_atq and n_atq > 1:
+                continue
+            nasal = pares_base[f]
+            # Contextual palatalisation: /d/ → /ɲ/ only when adjacent to /i/ or /j/
+            if f == 'd':
+                fons = sil.fonemas
+                has_palatal = any(0 <= fi + d < len(fons) and fons[fi + d] in ('i', 'j')
+                                  for d in (-1, 1))
+                if has_palatal and rng.random() < 0.5:
+                    nasal = 'ɲ'
+            candidatos.append((si, fi, f, nasal))
     if not candidatos:
         return p, None
     si, fi, orig, nuevo = rng.choice(candidatos)
@@ -129,7 +143,7 @@ def error_desnasalizacion(palabra: Palabra, rng: random.Random = None) -> tuple[
     """Desnasaliza una consonante nasal (m>b, n>d)."""
     rng = rng or random.Random()
     p = deepcopy(palabra)
-    pares = {'m': 'b', 'n': 'd', 'ɲ': 'g'}
+    pares = {'m': 'b', 'n': 'd'}
     candidatos = []
     for si, sil in enumerate(p.silabas):
         for fi, f in enumerate(sil.fonemas):
@@ -219,14 +233,18 @@ def error_asimilacion_regresiva(palabra: Palabra, rng: random.Random = None) -> 
     p = deepcopy(palabra)
     fonemas_planos = []
     for si, sil in enumerate(p.silabas):
+        n_atq = len(sil.ataque)
         for fi, f in enumerate(sil.fonemas):
-            fonemas_planos.append((si, fi, f))
+            fonemas_planos.append((si, fi, f, fi < n_atq))
 
     candidatos = []
     for i in range(len(fonemas_planos) - 1):
-        si1, fi1, f1 = fonemas_planos[i]
-        si2, fi2, f2 = fonemas_planos[i + 1]
+        si1, fi1, f1, in_atq1 = fonemas_planos[i]
+        si2, fi2, f2, in_atq2 = fonemas_planos[i + 1]
         if es_consonante(f1) and es_consonante(f2) and f1 != f2:
+            # Skip pairs within the same onset cluster (e.g. /bl/ in /blan/)
+            if si1 == si2 and in_atq1 and in_atq2:
+                continue
             candidatos.append((si1, fi1, f1, f2))
 
     if not candidatos:
@@ -243,14 +261,18 @@ def error_asimilacion_progresiva(palabra: Palabra, rng: random.Random = None) ->
     p = deepcopy(palabra)
     fonemas_planos = []
     for si, sil in enumerate(p.silabas):
+        n_atq = len(sil.ataque)
         for fi, f in enumerate(sil.fonemas):
-            fonemas_planos.append((si, fi, f))
+            fonemas_planos.append((si, fi, f, fi < n_atq))
 
     candidatos = []
     for i in range(1, len(fonemas_planos)):
-        si_prev, fi_prev, f_prev = fonemas_planos[i - 1]
-        si_curr, fi_curr, f_curr = fonemas_planos[i]
+        si_prev, fi_prev, f_prev, in_atq_prev = fonemas_planos[i - 1]
+        si_curr, fi_curr, f_curr, in_atq_curr = fonemas_planos[i]
         if es_consonante(f_prev) and es_consonante(f_curr) and f_prev != f_curr:
+            # Skip pairs within the same onset cluster (e.g. /bl/ → /bb/)
+            if si_prev == si_curr and in_atq_prev and in_atq_curr:
+                continue
             candidatos.append((si_curr, fi_curr, f_curr, f_prev))
 
     if not candidatos:
@@ -262,37 +284,38 @@ def error_asimilacion_progresiva(palabra: Palabra, rng: random.Random = None) ->
 
 
 def error_metátesis(palabra: Palabra, rng: random.Random = None) -> tuple[Palabra, dict]:
-    """Intercambia dos consonantes de la palabra."""
+    """Intercambia el contenido fonémico de dos sílabas adyacentes manteniendo el acento en su posición original."""
     rng = rng or random.Random()
     p = deepcopy(palabra)
-    consonantes = []
-    for si, sil in enumerate(p.silabas):
-        for fi, f in enumerate(sil.fonemas):
-            if es_consonante(f):
-                consonantes.append((si, fi, f))
-
-    if len(consonantes) < 2:
+    if len(p.silabas) < 2:
         return p, None
-    idx1, idx2 = rng.sample(range(len(consonantes)), 2)
-    si1, fi1, f1 = consonantes[idx1]
-    si2, fi2, f2 = consonantes[idx2]
-    _reemplazar_fonema(p.silabas[si1], fi1, f2)
-    _reemplazar_fonema(p.silabas[si2], fi2, f1)
-    return p, {'tipo': 'metatesis', 'descripcion': f'Metátesis: /{f1}/ ↔ /{f2}/'}
+    si = rng.randint(0, len(p.silabas) - 2)
+    sil1_str = str(p.silabas[si])
+    sil2_str = str(p.silabas[si + 1])
+    # Preserve stress positions before the swap
+    t1 = p.silabas[si].tonica
+    t2 = p.silabas[si + 1].tonica
+    p.silabas[si], p.silabas[si + 1] = p.silabas[si + 1], p.silabas[si]
+    p.silabas[si].tonica = t1
+    p.silabas[si + 1].tonica = t2
+    return p, {'tipo': 'metatesis', 'descripcion': f'Metátesis silábica: /{sil1_str}/ ↔ /{sil2_str}/'}
 
 
 def error_omision_silaba_atona(palabra: Palabra, rng: random.Random = None) -> tuple[Palabra, dict]:
-    """Omite una sílaba átona."""
+    """Omite una sílaba átona pretónica (antes del acento), p.ej. zapato > pato.
+    Solo aplica a palabras de 3 o más sílabas con sílabas previas al acento."""
     rng = rng or random.Random()
     p = deepcopy(palabra)
-    atonas = p.silabas_atonas
-    if not atonas or len(p.silabas) <= 1:
+    tonica = p.silaba_tonica
+    # Require 3+ syllables and at least one pre-tonic syllable
+    if len(p.silabas) < 3 or tonica <= 0:
         return p, None
-    si = rng.choice(atonas)
+    pretonic = list(range(tonica))  # indices before the stressed syllable
+    si = rng.choice(pretonic)
     silaba_omitida = str(p.silabas[si])
     p.silabas.pop(si)
     return p, {'tipo': 'omision_silaba_atona', 'silaba': si,
-               'descripcion': f'Omisión de sílaba átona: /{silaba_omitida}/ (sílaba {si+1})'}
+               'descripcion': f'Omisión de sílaba pretónica: /{silaba_omitida}/ (sílaba {si+1})'}
 
 
 def error_omision_silaba_tonica(palabra: Palabra, rng: random.Random = None) -> tuple[Palabra, dict]:
@@ -333,7 +356,6 @@ ERRORES_PALABRA = {
     'asimilacion_progresiva': error_asimilacion_progresiva,
     'metatesis': error_metátesis,
     'omision_silaba_atona': error_omision_silaba_atona,
-    'omision_silaba_tonica': error_omision_silaba_tonica,
 }
 
 TODOS_LOS_ERRORES = {**ERRORES_SISTEMICOS, **ERRORES_SILABA, **ERRORES_PALABRA}

@@ -55,6 +55,10 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
 .results-bar h3 { color: #166534; margin-bottom: 8px; }
 .score { font-size: 28px; font-weight: 700; color: #166534; }
 .score-detail { font-size: 13px; color: #475569; margin-top: 4px; }
+
+.cat-pill { display: inline-flex; align-items: center; padding: 5px 14px; border-radius: 20px; border: 2px solid #cbd5e1; background: #f8fafc; color: #475569; font-size: 13px; font-weight: 600; cursor: pointer; user-select: none; transition: background 0.12s, border-color 0.12s, color 0.12s; }
+.cat-pill:hover { border-color: #166534; color: #166534; }
+.cat-pill.active { background: #166534; border-color: #166534; color: #fff; }
 </style>
 </head>
 <body>
@@ -70,6 +74,17 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
 <div class="container">
     <h2>Informe de errores fonológicos</h2>
     <p class="subtitle">Analiza la producción de un paciente siguiendo los pasos del informe: transcripción correcta, medidas cuantitativas, errores cualitativos y errores rítmicos.</p>
+
+    <div style="margin-bottom:12px;">
+        <p style="font-size:12px;color:#64748b;font-weight:600;margin-bottom:6px;">Tipo de errores a practicar (selecciona uno o varios):</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="cat-pill" data-cat="cuantitativo" onclick="toggleCat(this)">Cuantitativos</span>
+            <span class="cat-pill" data-cat="palabra" onclick="toggleCat(this)">De palabra</span>
+            <span class="cat-pill" data-cat="silaba" onclick="toggleCat(this)">De sílaba</span>
+            <span class="cat-pill" data-cat="sistemico" onclick="toggleCat(this)">Sistémicos</span>
+            <span class="cat-pill" data-cat="ritmico" onclick="toggleCat(this)">Rítmicos</span>
+        </div>
+    </div>
 
     <div style="margin-bottom:16px;">
         <button class="btn btn-primary" onclick="generateExercise()">Nuevo ejercicio</button>
@@ -120,7 +135,7 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
         <div class="step-header"><div class="step-num">3</div><div class="step-title">Errores cualitativos</div></div>
 
         <!-- 3.1 Errores de palabra -->
-        <div style="margin-bottom:14px;">
+        <div id="s3-palabra" style="margin-bottom:14px;">
             <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:6px;">3.1. Errores de estructura de palabra</div>
             <div class="step-desc">Identifica asimilaciones, metátesis u omisiones de sílaba. Los fonemas afectados no se consideran en los pasos siguientes.</div>
             <div id="errores-palabra"></div>
@@ -128,7 +143,7 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
         </div>
 
         <!-- 3.2 Errores de sílaba -->
-        <div style="margin-bottom:14px;">
+        <div id="s3-silaba" style="margin-bottom:14px;">
             <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:6px;">3.2. Errores de estructura de sílaba</div>
             <div class="step-desc">Identifica omisiones de ataque/coda, simplificaciones de ataque o núcleo.</div>
             <div id="errores-silaba"></div>
@@ -136,7 +151,7 @@ input.incorrect, textarea.incorrect { border-color: #ef4444; background: #fef2f2
         </div>
 
         <!-- 3.3 Errores sistémicos -->
-        <div style="margin-bottom:14px;">
+        <div id="s3-sistemico" style="margin-bottom:14px;">
             <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:6px;">3.3. Errores sistémicos</div>
             <div class="step-desc">Identifica sustituciones de fonemas: sonorización, ensordecimiento, adelantamiento, posteriorización, etc.</div>
             <div id="errores-sistemico"></div>
@@ -227,6 +242,28 @@ function addErrorRow(tipo) {
     container.appendChild(div);
 }
 
+function toggleCat(el) {
+    el.classList.toggle('active');
+}
+
+function getSelectedCats() {
+    return Array.from(document.querySelectorAll('.cat-pill.active')).map(function(el) { return el.dataset.cat; });
+}
+
+function getActiveSteps() {
+    var cats = getSelectedCats();
+    if (!cats.length) return {s2: true, s3: true, s4: true};
+    return {
+        s2: cats.indexOf('cuantitativo') >= 0,
+        s3: cats.some(function(c) { return c === 'silaba' || c === 'palabra' || c === 'sistemico'; })
+            || cats.indexOf('cuantitativo') >= 0,
+        s4: cats.indexOf('ritmico') >= 0 || cats.indexOf('cuantitativo') >= 0,
+        s3_palabra: cats.indexOf('palabra') >= 0 || cats.indexOf('cuantitativo') >= 0 || !cats.length,
+        s3_silaba:  cats.indexOf('silaba')  >= 0 || cats.indexOf('cuantitativo') >= 0 || !cats.length,
+        s3_sistemico: cats.indexOf('sistemico') >= 0 || cats.indexOf('cuantitativo') >= 0 || !cats.length
+    };
+}
+
 // Exercise data — loaded from server
 var currentExercise = null;
 
@@ -236,7 +273,18 @@ function normalize(s) {
 
 async function generateExercise() {
     try {
-        var res = await fetch('/api/public-agent/eulalia/ejercicio-informe-errores?num_errores=5&seed=' + Math.floor(Math.random() * 100000));
+        var cats = getSelectedCats();
+        var st = getActiveSteps();
+        var nErr;
+        if (!st.s3 && !st.s4) {
+            nErr = 8;  // cuantitativo-only
+        } else if (cats.length === 0 || cats.length > 1) {
+            nErr = 8 + Math.floor(Math.random() * 3);  // 8-10 for all / multiple types
+        } else {
+            nErr = 5;  // single specific category
+        }
+        var catParam = cats.length ? '&categorias=' + cats.join(',') : '';
+        var res = await fetch('/api/public-agent/eulalia/ejercicio-informe-errores?num_errores=' + nErr + '&seed=' + Math.floor(Math.random() * 100000) + catParam);
         if (!res.ok) throw new Error('Error ' + res.status);
         currentExercise = await res.json();
     } catch(e) {
@@ -253,11 +301,19 @@ async function generateExercise() {
     // Show keyboard
     document.getElementById('pk-area').style.display = '';
 
-    // Unlock step 1, lock others
-    ['step1','step2','step3','step4'].forEach(function(id, i) {
+    // Show/hide steps based on active categories
+    document.getElementById('step1').className = 'step';
+    document.getElementById('step1').style.display = '';
+    var stepMap = {step2: st.s2, step3: st.s3, step4: st.s4};
+    ['step2','step3','step4'].forEach(function(id) {
         var el = document.getElementById(id);
-        el.className = i === 0 ? 'step' : 'step locked';
+        el.className = 'step locked';
+        el.style.display = stepMap[id] ? '' : 'none';
     });
+    // Show/hide step 3 subsections
+    document.getElementById('s3-palabra').style.display   = st.s3_palabra   ? '' : 'none';
+    document.getElementById('s3-silaba').style.display    = st.s3_silaba    ? '' : 'none';
+    document.getElementById('s3-sistemico').style.display = st.s3_sistemico ? '' : 'none';
 
     // Clear all inputs
     document.getElementById('resp-transcripcion').value = '';
@@ -289,9 +345,12 @@ function checkStep1() {
     if (userAns === expected) {
         inp.className = 'correct';
         _score.step1 = 1;
-        // Unlock step 2
         document.getElementById('step1').className = 'step done';
-        document.getElementById('step2').className = 'step';
+        var st = getActiveSteps();
+        if (st.s2) document.getElementById('step2').className = 'step';
+        else if (st.s3) document.getElementById('step3').className = 'step';
+        else if (st.s4) document.getElementById('step4').className = 'step';
+        else showResults();
     } else {
         inp.className = 'incorrect';
         sol.textContent = 'Correcto: ' + currentExercise.correcta;
@@ -323,7 +382,10 @@ function checkStep2() {
     sol.className = 'solution show';
 
     document.getElementById('step2').className = 'step done';
-    document.getElementById('step3').className = 'step';
+    var st = getActiveSteps();
+    if (st.s3) document.getElementById('step3').className = 'step';
+    else if (st.s4) document.getElementById('step4').className = 'step';
+    else showResults();
 }
 
 function checkStep3() {
@@ -397,7 +459,9 @@ function checkStep3() {
     sol.className = 'solution show';
 
     document.getElementById('step3').className = 'step done';
-    document.getElementById('step4').className = 'step';
+    var st = getActiveSteps();
+    if (st.s4) document.getElementById('step4').className = 'step';
+    else showResults();
 }
 
 function checkStep4() {
@@ -434,17 +498,19 @@ function showResults() {
     var detailText;
 
     if (_score.step1 === 0) {
-        // Prerequisite failed: automatic zero
         pct = 0;
         detailText = 'La transcripción correcta es un prerrequisito. Sin ella, la calificación es 0.';
     } else {
-        // Step 1 doesn't score, but steps 2-4 do (out of 100)
-        var total = (_score.step2 * 30 + _score.step3 * 50 + _score.step4 * 20);
-        pct = Math.round(total);
-        detailText =
-            'Cuantitativo: ' + Math.round(_score.step2 * 30) + '/30 | ' +
-            'Cualitativo: ' + Math.round(_score.step3 * 50) + '/50 | ' +
-            'Rítmico: ' + Math.round(_score.step4 * 20) + '/20';
+        var st = getActiveSteps();
+        var w2 = st.s2 ? 30 : 0, w3 = st.s3 ? 50 : 0, w4 = st.s4 ? 20 : 0;
+        var wTotal = w2 + w3 + w4 || 100;
+        var s2n = w2 / wTotal * 100, s3n = w3 / wTotal * 100, s4n = w4 / wTotal * 100;
+        pct = Math.round(_score.step2 * s2n + _score.step3 * s3n + _score.step4 * s4n);
+        var parts = [];
+        if (st.s2) parts.push('Cuantitativo: ' + Math.round(_score.step2 * s2n) + '/' + Math.round(s2n));
+        if (st.s3) parts.push('Cualitativo: '  + Math.round(_score.step3 * s3n) + '/' + Math.round(s3n));
+        if (st.s4) parts.push('Rítmico: '      + Math.round(_score.step4 * s4n) + '/' + Math.round(s4n));
+        detailText = parts.join(' | ');
     }
 
     document.getElementById('score-text').textContent = pct + '%';
