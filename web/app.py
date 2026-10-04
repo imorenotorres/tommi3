@@ -4112,6 +4112,56 @@ async def lali_auth_level(request: Request):
     return {"level": "student", "authenticated": True, "username": session.get("username")}
 
 
+# ── LALI tutor / Fonética: conversión de audio a WAV ───────────────────
+
+@app.post("/api/public-agent/eulalia/convertir-audio")
+async def eulalia_convertir_audio(file: UploadFile = FastFile(...)):
+    """Convierte cualquier archivo de audio (M4A, MP3, OGG, FLAC…) a WAV de 16 bits mono 44100 Hz.
+
+    Devuelve el archivo WAV directamente para descarga.
+    """
+    import subprocess, uuid, tempfile
+
+    fname = (file.filename or "audio").lower()
+    content_type = file.content_type or ""
+    if content_type not in _ALLOWED_AUDIO_TYPES and not fname.endswith(_ALLOWED_AUDIO_EXTENSIONS):
+        raise HTTPException(status_code=400, detail="Formato no soportado. Usa M4A, OGG, MP3, AMR, WMA, FLAC o WAV.")
+
+    audio_data = await file.read()
+    if len(audio_data) == 0:
+        raise HTTPException(status_code=400, detail="El archivo está vacío.")
+    if len(audio_data) > _MAX_AUDIO_SIZE:
+        raise HTTPException(status_code=400, detail="Archivo demasiado grande (máximo 10 MB).")
+
+    suffix = Path(fname).suffix or ".m4a"
+    file_id = uuid.uuid4().hex[:10]
+    tmp_in = Path(tempfile.gettempdir()) / f"eulalia_{file_id}_in{suffix}"
+    tmp_out = Path(tempfile.gettempdir()) / f"eulalia_{file_id}_out.wav"
+
+    try:
+        tmp_in.write_bytes(audio_data)
+        result = subprocess.run(
+            ["/opt/homebrew/bin/ffmpeg", "-y", "-i", str(tmp_in),
+             "-ar", "44100", "-ac", "1", "-sample_fmt", "s16", str(tmp_out)],
+            capture_output=True, timeout=60,
+        )
+        if result.returncode != 0 or not tmp_out.exists():
+            raise HTTPException(status_code=500, detail="Error al convertir el audio.")
+
+        wav_bytes = tmp_out.read_bytes()
+        import urllib.parse
+        out_name = Path(file.filename or "audio").stem + ".wav"
+        encoded_name = urllib.parse.quote(out_name)
+        return StreamingResponse(
+            iter([wav_bytes]),
+            media_type="audio/wav",
+            headers={"Content-Disposition": f"attachment; filename=\"audio.wav\"; filename*=UTF-8''{encoded_name}"},
+        )
+    finally:
+        tmp_in.unlink(missing_ok=True)
+        tmp_out.unlink(missing_ok=True)
+
+
 # ── LALI tutor / Fonética: análisis acústico con Praat ─────────────────
 
 _PRAAT_OUTPUT_DIR = SCRIPT_DIR / "temp" / "praat"
@@ -4123,8 +4173,15 @@ _ALLOWED_AUDIO_TYPES = {
     "audio/wav", "audio/wave", "audio/x-wav",
     "audio/mpeg", "audio/mp3",
     "audio/ogg", "audio/flac",
-    "audio/webm",
+    "audio/webm", "audio/opus",
+    "audio/mp4", "audio/x-m4a", "video/mp4",
+    "audio/amr", "audio/3gpp", "audio/3gpp2",
+    "audio/x-ms-wma", "audio/wma",
 }
+_ALLOWED_AUDIO_EXTENSIONS = (
+    ".wav", ".mp3", ".ogg", ".opus", ".flac", ".webm",
+    ".m4a", ".aac", ".mp4", ".amr", ".3gp", ".3gpp", ".wma",
+)
 
 
 @app.post("/api/public-agent/analyze-audio")
@@ -4143,8 +4200,8 @@ async def analyze_audio(
     """
     # Validate file type
     content_type = file.content_type or ""
-    if content_type not in _ALLOWED_AUDIO_TYPES and not file.filename.endswith((".wav", ".mp3", ".ogg", ".flac", ".webm")):
-        raise HTTPException(status_code=400, detail="Formato de audio no soportado. Usa WAV, MP3, OGG o FLAC.")
+    if content_type not in _ALLOWED_AUDIO_TYPES and not file.filename.lower().endswith(_ALLOWED_AUDIO_EXTENSIONS):
+        raise HTTPException(status_code=400, detail="Formato de audio no soportado. Usa WAV, MP3, M4A, OGG o FLAC.")
 
     # Read and validate size
     audio_data = await file.read()

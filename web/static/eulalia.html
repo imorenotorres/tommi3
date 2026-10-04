@@ -372,6 +372,9 @@ details[open] > summary .sub-arrow { transform: rotate(90deg); }
                         <button class="tema-link" style="font-weight:600;color:#4250b3;font-size:12px;" onclick="openWidget('transcripcion_ejercicio')">✏️ Prácticas de transcripción</button>
                         <button class="tema-link" style="font-weight:600;color:#dc2626;font-size:12px;" onclick="openWidget('informe_errores')">🔍 Análisis de errores</button>
                         <button class="tema-link" style="font-weight:600;color:#0d9488;font-size:12px;" onclick="openWidget('explorador_silabas')">🔍 Explorador de sílabas</button>
+                        <button class="tema-link" style="font-weight:600;color:#b45309;font-size:12px;" onclick="document.getElementById('m4a-input').click()">🔄 Convertir audio → WAV</button>
+                        <input type="file" id="m4a-input" accept=".m4a,.aac,.mp3,.ogg,.opus,.flac,.amr,.3gp,.mp4,.webm,.wma,audio/*,video/mp4" style="display:none" onchange="convertirAudioAWav(this)" />
+                        <span id="m4a-status" style="display:none;font-size:11px;color:#6b7280;margin-top:2px;display:block;"></span>
                     </div>
                 </details>
             </div>
@@ -2239,6 +2242,45 @@ function sendMessage(message) {
         if (!responseText) agentBubble.innerHTML = '<span style="color:#dc3545;">Error de conexión. Inténtalo de nuevo.</span>';
         isLoading = false; sendBtn.disabled = false;
     });
+}
+
+// ── Conversión M4A → WAV ──
+function convertirAudioAWav(input) {
+    var file = input.files[0];
+    if (!file) return;
+    input.value = '';
+    var status = document.getElementById('m4a-status');
+    status.style.display = 'block';
+    status.textContent = '⏳ Convirtiendo…';
+    if (file.size > 10 * 1024 * 1024) {
+        status.textContent = '❌ Archivo demasiado grande (máx. 10 MB).';
+        return;
+    }
+    var form = new FormData();
+    form.append('file', file);
+    fetch('/api/public-agent/eulalia/convertir-audio', { method: 'POST', body: form })
+        .then(function(r) {
+            if (!r.ok) return r.text().then(function(t) {
+                try { throw new Error(JSON.parse(t).detail || 'Error ' + r.status); }
+                catch(e) { throw new Error('Error ' + r.status + (e.message && !e.message.startsWith('Error') ? ': ' + e.message : '')); }
+            });
+            return r.blob();
+        })
+        .then(function(blob) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = file.name.replace(/\.[^.]+$/, '.wav');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            status.textContent = '✅ Descargado como ' + a.download;
+            setTimeout(function() { status.style.display = 'none'; }, 4000);
+        })
+        .catch(function(err) {
+            status.textContent = '❌ ' + err.message;
+        });
 }
 
 // ── Análisis acústico (subida de audio) ──
