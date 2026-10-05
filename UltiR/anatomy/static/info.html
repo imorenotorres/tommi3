@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anatomy Explorer — Info</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+.header { background: #2D3876; padding: 20px 32px; }
+.header h1 { color: #fff; font-size: 22px; font-weight: 800; }
+.header p { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 4px; }
+.container { max-width: 800px; margin: 32px auto; padding: 0 20px; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+.card h2 { font-size: 16px; color: #2D3876; margin-bottom: 12px; }
+.card p, .card li { font-size: 14px; color: #475569; line-height: 1.7; }
+.card ol, .card ul { padding-left: 20px; margin-top: 8px; }
+.card li { margin-bottom: 6px; }
+.card a { color: #2D3876; font-weight: 600; }
+.card code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.config-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+.config-table th { text-align: left; padding: 6px 10px; background: #f8fafc; color: #64748b; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
+.config-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; }
+.config-table td:first-child { font-weight: 600; color: #1e293b; white-space: nowrap; }
+.note { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 6px; font-size: 13px; color: #92400e; margin-top: 16px; }
+.footer { text-align: center; padding: 32px 20px; font-size: 12px; color: #94a3b8; }
+@media (max-width: 600px) { .header { padding: 20px 16px; } .container { padding: 0 16px; } .card { padding: 18px; } }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>&#129460; Anatomy Explorer</h1>
+    <p>Interactive human anatomy — explore and test yourself on muscles and bones</p>
+</div>
+<div class="container">
+
+    <div class="card">
+        <h2>What this tool does</h2>
+        <p>Anatomy Explorer shows clickable diagrams of the human body inside Moodle. Students switch between <strong>muscles</strong> and <strong>bones</strong> and between the <strong>anterior</strong> and <strong>posterior</strong> views, explore each structure, and practise with quizzes.</p>
+        <ul style="margin-top:10px;">
+            <li>About 50 muscles and 25 bones or bone groups, organised by region (head &amp; neck, trunk, upper limb, lower limb)</li>
+            <li>Spanish and English interface and names, with the Latin term (Terminologia Anatomica) for every structure</li>
+            <li>Left and right are always the <em>patient's</em> sides, as marked under the diagram</li>
+            <li>No LLM and nothing to install — everything runs in the browser</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>For students</h2>
+        <ol>
+            <li><strong>Explore</strong>: hover over the diagram (or tap it) to see each structure's name; pick one from the list to locate it. Your teacher may have added notes.</li>
+            <li><strong>Quiz</strong>: choose a region and start. Questions are either <em>"click this structure on the diagram"</em> or <em>"which structure is highlighted?"</em> (four options; keys 1–4 work too).</li>
+            <li>After a wrong answer the correct structure is shown in green and the tool tells you what you clicked. At the end you can retry only the ones you missed.</li>
+        </ol>
+        <div class="note">Practice mode: quiz results are not stored and are not sent to the Moodle gradebook.</div>
+    </div>
+
+    <div class="card">
+        <h2>For teachers</h2>
+        <p>Launch the tool from your course and click <strong>⚙ Settings</strong>. For each course you can:</p>
+        <ul>
+            <li>Turn muscles and/or bones on or off, and choose which regions are included</li>
+            <li>Tick or untick individual structures (unticked ones are shown faded and are never asked)</li>
+            <li>Set the number of quiz questions and the question types allowed</li>
+            <li>Ask for a specific side ("left deltoid") instead of accepting either side</li>
+            <li>Add a timer, either per question or for the whole quiz</li>
+        </ul>
+        <p style="margin-top:10px;">To add a note to a structure, select it in <strong>Explore</strong> mode and type in the box under the diagram. Students see the note when they select that structure.</p>
+    </div>
+
+    <div class="card">
+        <h2>Moodle setup (administrator)</h2>
+        <table class="config-table">
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>Tool name</td><td>Anatomy Explorer</td></tr>
+            <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/anatomy</code></td></tr>
+            <tr><td>LTI version</td><td>LTI 1.0/1.1</td></tr>
+            <tr><td>Consumer key</td><td><code>anatomy_uma</code></td></tr>
+            <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
+            <tr><td>Launch container</td><td>Embed</td></tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Image credits and licences</h2>
+        <ul>
+            <li>Muscle diagrams adapted from <a href="https://commons.wikimedia.org/wiki/File:Muscles_front_and_back.svg" target="_blank" rel="noopener">"Muscles front and back"</a> by OpenStax and Nefronus, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. The adapted muscle diagrams in this tool are shared under the same licence.</li>
+            <li>Skeleton diagrams adapted from <a href="https://commons.wikimedia.org/wiki/File:Human_skeleton_front_en.svg" target="_blank" rel="noopener">"Human skeleton front"</a> and <a href="https://commons.wikimedia.org/wiki/File:Human_skeleton_back_en.svg" target="_blank" rel="noopener">"Human skeleton back"</a> by Mariana Ruiz Villarreal (LadyofHats), public domain.</li>
+        </ul>
+        <p style="margin-top:10px;">Labels were removed and each structure was made individually clickable. Report any misidentified structure to the UNINOVIS team.</p>
+    </div>
+
+</div>
+<div class="footer">UltiR — UNINOVIS LTI Repository · Universidad de Málaga</div>
+</body>
+</html>

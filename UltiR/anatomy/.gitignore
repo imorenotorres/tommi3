@@ -1,0 +1,7 @@
+# Per-course settings written at runtime
+data/
+# Source art downloaded by tools/build_svgs.py
+tools/_src/
+# The root .gitignore ignores *.json; these two are part of the app
+!catalog.json
+!tools/viewboxes.json

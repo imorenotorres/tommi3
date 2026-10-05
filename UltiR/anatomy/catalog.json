@@ -1,0 +1,713 @@
+{
+ "regions": [
+  {
+   "id": "head_neck",
+   "es": "Cabeza y cuello",
+   "en": "Head and neck"
+  },
+  {
+   "id": "trunk",
+   "es": "Tronco",
+   "en": "Trunk"
+  },
+  {
+   "id": "upper_limb",
+   "es": "Miembro superior",
+   "en": "Upper limb"
+  },
+  {
+   "id": "lower_limb",
+   "es": "Miembro inferior",
+   "en": "Lower limb"
+  }
+ ],
+ "systems": [
+  {
+   "id": "muscle",
+   "es": "Músculos",
+   "en": "Muscles"
+  },
+  {
+   "id": "bone",
+   "es": "Huesos",
+   "en": "Bones"
+  }
+ ],
+ "structures": [
+  {
+   "id": "frontalis",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": true,
+   "es": "Frontal",
+   "en": "Frontalis",
+   "la": "venter frontalis musculi occipitofrontalis"
+  },
+  {
+   "id": "occipitalis",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": true,
+   "es": "Occipital",
+   "en": "Occipitalis",
+   "la": "venter occipitalis musculi occipitofrontalis"
+  },
+  {
+   "id": "temporalis",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": true,
+   "es": "Temporal",
+   "en": "Temporalis",
+   "la": "musculus temporalis"
+  },
+  {
+   "id": "orbicularis_oculi",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": true,
+   "es": "Orbicular de los ojos",
+   "en": "Orbicularis oculi",
+   "la": "musculus orbicularis oculi"
+  },
+  {
+   "id": "orbicularis_oris",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": false,
+   "es": "Orbicular de los labios",
+   "en": "Orbicularis oris",
+   "la": "musculus orbicularis oris"
+  },
+  {
+   "id": "zygomaticus_major",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": true,
+   "es": "Cigomático mayor",
+   "en": "Zygomaticus major",
+   "la": "musculus zygomaticus major"
+  },
+  {
+   "id": "masseter",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": true,
+   "es": "Masetero",
+   "en": "Masseter",
+   "la": "musculus masseter"
+  },
+  {
+   "id": "nasalis",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": false,
+   "es": "Nasal",
+   "en": "Nasalis",
+   "la": "musculus nasalis"
+  },
+  {
+   "id": "sternocleidomastoid",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": true,
+   "es": "Esternocleidomastoideo",
+   "en": "Sternocleidomastoid",
+   "la": "musculus sternocleidomastoideus"
+  },
+  {
+   "id": "sternohyoid",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": true,
+   "es": "Esternohioideo",
+   "en": "Sternohyoid",
+   "la": "musculus sternohyoideus"
+  },
+  {
+   "id": "splenius_capitis",
+   "system": "muscle",
+   "region": "head_neck",
+   "bilateral": true,
+   "es": "Esplenio de la cabeza",
+   "en": "Splenius capitis",
+   "la": "musculus splenius capitis"
+  },
+  {
+   "id": "trapezius",
+   "system": "muscle",
+   "region": "trunk",
+   "bilateral": true,
+   "es": "Trapecio",
+   "en": "Trapezius",
+   "la": "musculus trapezius"
+  },
+  {
+   "id": "pectoralis_major",
+   "system": "muscle",
+   "region": "trunk",
+   "bilateral": true,
+   "es": "Pectoral mayor",
+   "en": "Pectoralis major",
+   "la": "musculus pectoralis major"
+  },
+  {
+   "id": "serratus_anterior",
+   "system": "muscle",
+   "region": "trunk",
+   "bilateral": true,
+   "es": "Serrato anterior",
+   "en": "Serratus anterior",
+   "la": "musculus serratus anterior"
+  },
+  {
+   "id": "rectus_abdominis",
+   "system": "muscle",
+   "region": "trunk",
+   "bilateral": true,
+   "es": "Recto del abdomen",
+   "en": "Rectus abdominis",
+   "la": "musculus rectus abdominis"
+  },
+  {
+   "id": "external_oblique",
+   "system": "muscle",
+   "region": "trunk",
+   "bilateral": true,
+   "es": "Oblicuo externo del abdomen",
+   "en": "External abdominal oblique",
+   "la": "musculus obliquus externus abdominis"
+  },
+  {
+   "id": "latissimus_dorsi",
+   "system": "muscle",
+   "region": "trunk",
+   "bilateral": true,
+   "es": "Dorsal ancho",
+   "en": "Latissimus dorsi",
+   "la": "musculus latissimus dorsi"
+  },
+  {
+   "id": "infraspinatus",
+   "system": "muscle",
+   "region": "trunk",
+   "bilateral": true,
+   "es": "Infraespinoso",
+   "en": "Infraspinatus",
+   "la": "musculus infraspinatus"
+  },
+  {
+   "id": "teres_major",
+   "system": "muscle",
+   "region": "trunk",
+   "bilateral": true,
+   "es": "Redondo mayor",
+   "en": "Teres major",
+   "la": "musculus teres major"
+  },
+  {
+   "id": "rhomboid_major",
+   "system": "muscle",
+   "region": "trunk",
+   "bilateral": true,
+   "es": "Romboides mayor",
+   "en": "Rhomboid major",
+   "la": "musculus rhomboideus major"
+  },
+  {
+   "id": "deltoid",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Deltoides",
+   "en": "Deltoid",
+   "la": "musculus deltoideus"
+  },
+  {
+   "id": "biceps_brachii",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Bíceps braquial",
+   "en": "Biceps brachii",
+   "la": "musculus biceps brachii"
+  },
+  {
+   "id": "brachialis",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Braquial",
+   "en": "Brachialis",
+   "la": "musculus brachialis"
+  },
+  {
+   "id": "triceps_brachii",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Tríceps braquial",
+   "en": "Triceps brachii",
+   "la": "musculus triceps brachii"
+  },
+  {
+   "id": "brachioradialis",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Braquiorradial",
+   "en": "Brachioradialis",
+   "la": "musculus brachioradialis"
+  },
+  {
+   "id": "pronator_teres",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Pronador redondo",
+   "en": "Pronator teres",
+   "la": "musculus pronator teres"
+  },
+  {
+   "id": "flexor_carpi_radialis",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Flexor radial del carpo",
+   "en": "Flexor carpi radialis",
+   "la": "musculus flexor carpi radialis"
+  },
+  {
+   "id": "palmaris_longus",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Palmar largo",
+   "en": "Palmaris longus",
+   "la": "musculus palmaris longus"
+  },
+  {
+   "id": "flexor_carpi_ulnaris",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Flexor cubital del carpo",
+   "en": "Flexor carpi ulnaris",
+   "la": "musculus flexor carpi ulnaris"
+  },
+  {
+   "id": "flexor_digitorum_superficialis",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Flexor superficial de los dedos",
+   "en": "Flexor digitorum superficialis",
+   "la": "musculus flexor digitorum superficialis"
+  },
+  {
+   "id": "extensor_digitorum",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Extensor de los dedos",
+   "en": "Extensor digitorum",
+   "la": "musculus extensor digitorum"
+  },
+  {
+   "id": "extensor_carpi_ulnaris",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Extensor cubital del carpo",
+   "en": "Extensor carpi ulnaris",
+   "la": "musculus extensor carpi ulnaris"
+  },
+  {
+   "id": "thenar",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Músculos de la eminencia tenar",
+   "en": "Thenar muscles",
+   "la": "musculi thenares"
+  },
+  {
+   "id": "hypothenar",
+   "system": "muscle",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Músculos de la eminencia hipotenar",
+   "en": "Hypothenar muscles",
+   "la": "musculi hypothenares"
+  },
+  {
+   "id": "gluteus_maximus",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Glúteo mayor",
+   "en": "Gluteus maximus",
+   "la": "musculus gluteus maximus"
+  },
+  {
+   "id": "gluteus_medius",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Glúteo medio",
+   "en": "Gluteus medius",
+   "la": "musculus gluteus medius"
+  },
+  {
+   "id": "rectus_femoris",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Recto femoral",
+   "en": "Rectus femoris",
+   "la": "musculus rectus femoris"
+  },
+  {
+   "id": "vastus_lateralis",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Vasto lateral",
+   "en": "Vastus lateralis",
+   "la": "musculus vastus lateralis"
+  },
+  {
+   "id": "vastus_medialis",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Vasto medial",
+   "en": "Vastus medialis",
+   "la": "musculus vastus medialis"
+  },
+  {
+   "id": "sartorius",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Sartorio",
+   "en": "Sartorius",
+   "la": "musculus sartorius"
+  },
+  {
+   "id": "adductors",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Músculos aductores",
+   "en": "Adductor muscles",
+   "la": "musculi adductores"
+  },
+  {
+   "id": "gracilis",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Grácil",
+   "en": "Gracilis",
+   "la": "musculus gracilis"
+  },
+  {
+   "id": "biceps_femoris",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Bíceps femoral",
+   "en": "Biceps femoris",
+   "la": "musculus biceps femoris"
+  },
+  {
+   "id": "semitendinosus",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Semitendinoso",
+   "en": "Semitendinosus",
+   "la": "musculus semitendinosus"
+  },
+  {
+   "id": "semimembranosus",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Semimembranoso",
+   "en": "Semimembranosus",
+   "la": "musculus semimembranosus"
+  },
+  {
+   "id": "gastrocnemius",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Gastrocnemio",
+   "en": "Gastrocnemius",
+   "la": "musculus gastrocnemius"
+  },
+  {
+   "id": "soleus",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Sóleo",
+   "en": "Soleus",
+   "la": "musculus soleus"
+  },
+  {
+   "id": "tibialis_anterior",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Tibial anterior",
+   "en": "Tibialis anterior",
+   "la": "musculus tibialis anterior"
+  },
+  {
+   "id": "extensor_digitorum_longus",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Extensor largo de los dedos",
+   "en": "Extensor digitorum longus",
+   "la": "musculus extensor digitorum longus"
+  },
+  {
+   "id": "fibularis_longus",
+   "system": "muscle",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Peroneo (fibular) largo",
+   "en": "Fibularis (peroneus) longus",
+   "la": "musculus fibularis longus"
+  },
+  {
+   "id": "cranium",
+   "system": "bone",
+   "region": "head_neck",
+   "bilateral": false,
+   "es": "Cráneo",
+   "en": "Cranium",
+   "la": "cranium"
+  },
+  {
+   "id": "mandible",
+   "system": "bone",
+   "region": "head_neck",
+   "bilateral": false,
+   "es": "Mandíbula",
+   "en": "Mandible",
+   "la": "mandibula"
+  },
+  {
+   "id": "cervical_vertebrae",
+   "system": "bone",
+   "region": "trunk",
+   "bilateral": false,
+   "es": "Vértebras cervicales",
+   "en": "Cervical vertebrae",
+   "la": "vertebrae cervicales"
+  },
+  {
+   "id": "thoracic_vertebrae",
+   "system": "bone",
+   "region": "trunk",
+   "bilateral": false,
+   "es": "Vértebras torácicas",
+   "en": "Thoracic vertebrae",
+   "la": "vertebrae thoracicae"
+  },
+  {
+   "id": "lumbar_vertebrae",
+   "system": "bone",
+   "region": "trunk",
+   "bilateral": false,
+   "es": "Vértebras lumbares",
+   "en": "Lumbar vertebrae",
+   "la": "vertebrae lumbales"
+  },
+  {
+   "id": "sacrum",
+   "system": "bone",
+   "region": "trunk",
+   "bilateral": false,
+   "es": "Sacro",
+   "en": "Sacrum",
+   "la": "os sacrum"
+  },
+  {
+   "id": "coccyx",
+   "system": "bone",
+   "region": "trunk",
+   "bilateral": false,
+   "es": "Cóccix",
+   "en": "Coccyx",
+   "la": "os coccygis"
+  },
+  {
+   "id": "sternum",
+   "system": "bone",
+   "region": "trunk",
+   "bilateral": false,
+   "es": "Esternón",
+   "en": "Sternum",
+   "la": "sternum"
+  },
+  {
+   "id": "ribs",
+   "system": "bone",
+   "region": "trunk",
+   "bilateral": true,
+   "es": "Costillas",
+   "en": "Ribs",
+   "la": "costae"
+  },
+  {
+   "id": "clavicle",
+   "system": "bone",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Clavícula",
+   "en": "Clavicle",
+   "la": "clavicula"
+  },
+  {
+   "id": "scapula",
+   "system": "bone",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Escápula",
+   "en": "Scapula",
+   "la": "scapula"
+  },
+  {
+   "id": "humerus",
+   "system": "bone",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Húmero",
+   "en": "Humerus",
+   "la": "humerus"
+  },
+  {
+   "id": "radius",
+   "system": "bone",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Radio",
+   "en": "Radius",
+   "la": "radius"
+  },
+  {
+   "id": "ulna",
+   "system": "bone",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Cúbito",
+   "en": "Ulna",
+   "la": "ulna"
+  },
+  {
+   "id": "carpals",
+   "system": "bone",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Huesos del carpo",
+   "en": "Carpal bones",
+   "la": "ossa carpi"
+  },
+  {
+   "id": "metacarpals",
+   "system": "bone",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Metacarpianos",
+   "en": "Metacarpal bones",
+   "la": "ossa metacarpi"
+  },
+  {
+   "id": "phalanges_hand",
+   "system": "bone",
+   "region": "upper_limb",
+   "bilateral": true,
+   "es": "Falanges de la mano",
+   "en": "Phalanges of the hand",
+   "la": "phalanges manus"
+  },
+  {
+   "id": "hip_bone",
+   "system": "bone",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Hueso coxal",
+   "en": "Hip bone",
+   "la": "os coxae"
+  },
+  {
+   "id": "femur",
+   "system": "bone",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Fémur",
+   "en": "Femur",
+   "la": "femur"
+  },
+  {
+   "id": "patella",
+   "system": "bone",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Rótula",
+   "en": "Patella",
+   "la": "patella"
+  },
+  {
+   "id": "tibia",
+   "system": "bone",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Tibia",
+   "en": "Tibia",
+   "la": "tibia"
+  },
+  {
+   "id": "fibula",
+   "system": "bone",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Peroné",
+   "en": "Fibula",
+   "la": "fibula"
+  },
+  {
+   "id": "tarsals",
+   "system": "bone",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Huesos del tarso",
+   "en": "Tarsal bones",
+   "la": "ossa tarsi"
+  },
+  {
+   "id": "metatarsals",
+   "system": "bone",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Metatarsianos",
+   "en": "Metatarsal bones",
+   "la": "ossa metatarsi"
+  },
+  {
+   "id": "phalanges_foot",
+   "system": "bone",
+   "region": "lower_limb",
+   "bilateral": true,
+   "es": "Falanges del pie",
+   "en": "Phalanges of the foot",
+   "la": "phalanges pedis"
+  }
+ ]
+}

@@ -226,6 +226,19 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
             </tr>
             <tr>
                 <td>
+                    <div class="name">Anatomy Explorer</div>
+                    <div class="links"><a href="/lti/anatomy/info" class="link-info">Info</a> <a href="/lti/anatomy/test" class="link-test">Try it</a></div>
+                </td>
+                <td>Anatomy / Health Sciences / Sport Sciences</td>
+                <td>UMA</td>
+                <td><div class="desc-wrap"><div class="desc-text">Clickable 2D diagrams of the human body (muscles and bones, anterior and posterior views) in Spanish and English with Latin terminology. Students explore the structures and practise with quizzes: click the named structure on the diagram, or name the highlighted one. Teachers choose per course which systems, regions and structures are included, set the number of questions, an optional timer and left/right questions, and add notes per structure. Practice only: results are not stored.</div><span class="desc-toggle" onclick="toggleDesc(this)">[+ more]</span></div></td>
+                <td>No</td>
+                <td>No</td>
+                <td>Class, Home</td>
+                <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr>
+                <td>
                     <div class="name">Circuit Analysis Trainer</div>
                     <div class="links"><a href="/lti/circuits/info" class="link-info">Info</a> <a href="/lti/circuits/test" class="link-test">Try it</a></div>
                 </td>
@@ -380,6 +393,12 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
                     <td><span class="res-badge res-none">None</span></td>
                 </tr>
                 <tr>
+                    <td><strong>Anatomy Explorer</strong></td>
+                    <td><span class="res-badge res-low">Low</span>Session management and static files only — quizzes run client-side</td>
+                    <td><span class="res-badge res-low">Low</span>One settings file per course (small JSON); ~1.5 MB of diagrams</td>
+                    <td><span class="res-badge res-none">None</span></td>
+                </tr>
+                <tr>
                     <td><strong>Python Practice</strong></td>
                     <td><span class="res-badge res-low">Low</span>Session management only — all code execution is client-side (Pyodide/WASM)</td>
                     <td><span class="res-badge res-low">Low</span>Exercise bank per course + student progress files (small JSON files)</td>
@@ -396,6 +415,18 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
             <tr><td>Tool name</td><td>Python Practice</td></tr>
             <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/python</code></td></tr>
             <tr><td>Consumer key</td><td><code>python_uma</code></td></tr>
+            <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
+            <tr><td>Launch container</td><td>Embed</td></tr>
+        </table>
+    </div>
+
+    <div class="admin-box">
+        <h3>Anatomy Explorer &mdash; registration details</h3>
+        <table class="config-table">
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>Tool name</td><td>Anatomy Explorer</td></tr>
+            <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/anatomy</code></td></tr>
+            <tr><td>Consumer key</td><td><code>anatomy_uma</code></td></tr>
             <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
             <tr><td>Launch container</td><td>Embed</td></tr>
         </table>
