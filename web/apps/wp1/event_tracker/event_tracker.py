@@ -38,11 +38,12 @@ CATALOGUE_API_BASE = "https://uninovis.widening.eu/catalogue-api/v2"
 CATALOGUE_MODEL    = "alliance_catalogue_app.eventcatalogue"
 
 def _catalogue_token() -> str:
-    token = os.getenv("CATALOGUE_API_TOKEN") or os.getenv("EVENT_CATALOGUE_API_TOKEN", "")
+    token = os.getenv("DIRECTORY_API_TOKEN", "")
     if not token:
         env = dotenv_values(ENV_PATH)
-        token = env.get("CATALOGUE_API_TOKEN") or env.get("EVENT_CATALOGUE_API_TOKEN", "")
+        token = env.get("DIRECTORY_API_TOKEN", "")
     return token
+#same token as for the directory
 
 # University name → internal code
 _UNI_NAME_TO_CODE = {
