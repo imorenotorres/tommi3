@@ -161,12 +161,15 @@ def grafema_a_fonema(palabra: str) -> tuple:
         # Dígrafos primero
         if c == 'c' and next_c == 'h':
             fonemas.append('ʧ')
+            if pos_tilde > i: pos_tilde -= 1  # dígrafo: 2 grafemas → 1 fonema
             i += 2
         elif c == 'l' and next_c == 'l':
             fonemas.append('ʝ')  # yeísmo generalizado en peninsular moderno
+            if pos_tilde > i: pos_tilde -= 1
             i += 2
         elif c == 'r' and next_c == 'r':
             fonemas.append('r')  # vibrante múltiple
+            if pos_tilde > i: pos_tilde -= 1
             i += 2
         elif c == 'g' and next_c == 'u':
             # gu + e/i = /g/ (la u es muda)
@@ -186,6 +189,7 @@ def grafema_a_fonema(palabra: str) -> tuple:
                 i += 2
         elif c == 'q' and next_c == 'u':
             fonemas.append('k')
+            if pos_tilde > i: pos_tilde -= 1
             i += 2
             # la vocal siguiente va aparte
         # Consonantes simples con contexto
@@ -338,6 +342,16 @@ def silabificar(fonemas: str, hiato_positions: set = None) -> list[str]:
                     i += 1
                     continue
                 if _es_diptongo(v1, v2):
+                    # Lookahead: si v1 es abierta, v2 cerrada y v3 abierta,
+                    # preferir el diptongo v2+v3 (ej: a.[ue] en cacahuete)
+                    v3 = fonemas[i + 2] if i + 2 < len(fonemas) and tipos[i + 2] == 'V' else None
+                    if (v1 in VOCALES_ABIERTAS and v2 in VOCALES_CERRADAS
+                            and v3 is not None and v3 in VOCALES_ABIERTAS):
+                        # Hiato: cerrar sílaba actual, v2+v3 formarán diptongo en la siguiente
+                        silabas.append(silaba_actual)
+                        silaba_actual = ""
+                        i += 1
+                        continue
                     silaba_actual += v2
                     i += 2
                     # Posible triptongo
@@ -449,7 +463,7 @@ ATONAS = {
     # Conjunciones y relativos átonos
     'que', 'y', 'e', 'o', 'u', 'ni', 'si',
     # Verbos auxiliares monosilábicos (formas de haber)
-    'he', 'has', 'ha',
+    'he', 'has', 'ha', 'han',
 }
 
 
@@ -480,6 +494,10 @@ def acentuar(silabas: list[str], palabra_original: str, pos_tilde: int) -> int:
     # Reglas generales del español:
     ultima = silabas[-1]
     ultimo_fonema = ultima[-1] if ultima else ''
+
+    # 'y' al final de palabra es prosódicamente consonante (ej: Paraguay, Uruguay, hoy, rey)
+    if palabra_original.lower().strip().endswith('y'):
+        return len(silabas) - 1
 
     if ultimo_fonema in VOCALES or ultimo_fonema in ('n', 's'):
         # Llana (penúltima sílaba)
@@ -644,24 +662,33 @@ def transcribir(frase: str) -> str | tuple:
     if not frase:
         return ""
 
-    # Separar en palabras (eliminar puntuación)
-    palabras = re.findall(r"[a-záéíóúüñ]+", frase.lower())
+    # Separar en tokens: palabras y marcas de pausa (coma, punto, punto y coma)
+    # Cada token es o bien una palabra o bien una pausa '|'
+    tokens = re.findall(r"[a-záéíóúüñ]+|[,;.¡!¿?]", frase.lower())
 
     errores = []
     transcripciones = []
-    for p in palabras:
-        t = transcribir_palabra(p)
-        if isinstance(t, tuple):
-            # Error de validación
-            errores.append(t[1])
-        elif t:
-            transcripciones.append(t)
+    for tok in tokens:
+        if tok in (',', ';', '.', '¡', '!', '¿', '?'):
+            # Marca de pausa: solo añadir si no hay ya una pausa al final
+            if transcripciones and transcripciones[-1] != '|':
+                transcripciones.append('|')
+        else:
+            t = transcribir_palabra(tok)
+            if isinstance(t, tuple):
+                errores.append(t[1])
+            elif t:
+                transcripciones.append(t)
 
     if errores:
         return (None, "\n".join(errores))
 
     if not transcripciones:
         return ""
+
+    # Eliminar pausa final si la hubiera
+    if transcripciones[-1] == '|':
+        transcripciones.pop()
 
     return "/ " + " ".join(transcripciones) + " /"
 
@@ -1155,9 +1182,11 @@ def transcripcion_fonetica(frase: str) -> str | tuple:
     if not frase:
         return ""
 
-    palabras = re.findall(r"[a-záéíóúüñ]+", frase.lower())
+    # Tokenizar respetando pausas (coma, punto, etc.)
+    tokens = re.findall(r"[a-záéíóúüñ]+|[,;.¡!¿?]", frase.lower())
 
     # Pre-calcular fonemas de cada palabra para contexto inter-palabra
+    palabras = [t for t in tokens if t not in (',', ';', '.', '¡', '!', '¿', '?')]
     fonemas_por_palabra = []
     for p in palabras:
         resultado = grafema_a_fonema(p)
@@ -1166,12 +1195,29 @@ def transcripcion_fonetica(frase: str) -> str | tuple:
     errores = []
     transcripciones = []
     prev_last_fonema = None
-    for idx, p in enumerate(palabras):
-        is_start = (idx == 0)
-        # Primer fonema de la siguiente palabra
-        next_first = fonemas_por_palabra[idx + 1][0] if idx + 1 < len(palabras) and fonemas_por_palabra[idx + 1] else None
+    next_pausa = False
+    is_start = True
+    pal_idx = 0
+    for tok in tokens:
+        if tok in (',', ';', '.', '¡', '!', '¿', '?'):
+            if transcripciones and transcripciones[-1] != '|':
+                transcripciones.append('|')
+            next_pausa = True
+            prev_last_fonema = None
+            continue
+
+        p = tok
+        is_utterance_start = is_start or next_pausa
+        next_pausa = False
+        is_start = False
+
+        next_pal_idx = pal_idx + 1
+        next_first = (fonemas_por_palabra[next_pal_idx][0]
+                      if next_pal_idx < len(palabras) and fonemas_por_palabra[next_pal_idx]
+                      else None)
+
         t = transcripcion_fonetica_palabra(
-            p, is_utterance_start=is_start,
+            p, is_utterance_start=is_utterance_start,
             prev_word_last_fonema=prev_last_fonema,
             next_word_first_fonema=next_first
         )
@@ -1179,15 +1225,19 @@ def transcripcion_fonetica(frase: str) -> str | tuple:
             errores.append(t[1])
         elif t:
             transcripciones.append(t)
-        # Último fonema para la siguiente palabra
-        if fonemas_por_palabra[idx]:
-            prev_last_fonema = fonemas_por_palabra[idx][-1]
+
+        if fonemas_por_palabra[pal_idx]:
+            prev_last_fonema = fonemas_por_palabra[pal_idx][-1]
+        pal_idx += 1
 
     if errores:
         return (None, "\n".join(errores))
 
     if not transcripciones:
         return ""
+
+    if transcripciones[-1] == '|':
+        transcripciones.pop()
 
     return "[ " + " ".join(transcripciones) + " ]"
 
