@@ -4122,7 +4122,7 @@ async def eulalia_convertir_audio(file: UploadFile = FastFile(...)):
 
     Devuelve el archivo WAV directamente para descarga.
     """
-    import subprocess, uuid, tempfile
+    import subprocess, uuid, tempfile, shutil
 
     fname = (file.filename or "audio").lower()
     content_type = file.content_type or ""
@@ -4135,6 +4135,8 @@ async def eulalia_convertir_audio(file: UploadFile = FastFile(...)):
     if len(audio_data) > _MAX_AUDIO_SIZE:
         raise HTTPException(status_code=400, detail="Archivo demasiado grande (máximo 10 MB).")
 
+    ffmpeg_bin = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
+
     suffix = Path(fname).suffix or ".m4a"
     file_id = uuid.uuid4().hex[:10]
     tmp_in = Path(tempfile.gettempdir()) / f"eulalia_{file_id}_in{suffix}"
@@ -4143,12 +4145,13 @@ async def eulalia_convertir_audio(file: UploadFile = FastFile(...)):
     try:
         tmp_in.write_bytes(audio_data)
         result = subprocess.run(
-            ["/opt/homebrew/bin/ffmpeg", "-y", "-i", str(tmp_in),
+            [ffmpeg_bin, "-y", "-i", str(tmp_in),
              "-ar", "44100", "-ac", "1", "-sample_fmt", "s16", str(tmp_out)],
             capture_output=True, timeout=60,
         )
         if result.returncode != 0 or not tmp_out.exists():
-            raise HTTPException(status_code=500, detail="Error al convertir el audio.")
+            stderr = result.stderr.decode(errors="replace")[:300] if result.stderr else ""
+            raise HTTPException(status_code=500, detail=f"Error al convertir el audio. {stderr}".strip())
 
         wav_bytes = tmp_out.read_bytes()
         import urllib.parse
@@ -4159,6 +4162,12 @@ async def eulalia_convertir_audio(file: UploadFile = FastFile(...)):
             media_type="audio/wav",
             headers={"Content-Disposition": f"attachment; filename=\"audio.wav\"; filename*=UTF-8''{encoded_name}"},
         )
+    except HTTPException:
+        raise
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="ffmpeg no está instalado en el servidor.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)[:200]}")
     finally:
         tmp_in.unlink(missing_ok=True)
         tmp_out.unlink(missing_ok=True)
