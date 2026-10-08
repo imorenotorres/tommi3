@@ -70,6 +70,7 @@ _DEFAULT_TOOL_ACCESS = {
     "user_management":    ["superuser"],
     "agent_management":   ["superuser"],
     "tool_visibility":    ["superuser"],
+    "feedback":           ["superuser"],
 }
 
 TOOL_ACCESS_FILE = DATA_DIR / "tool_access.json"

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNINOVIS — User Feedback</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/nav.css?v=2">
+    <script src="/static/nav.js?v=14"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px 24px; }
+
+        .controls {
+            display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+            margin-bottom: 16px; padding: 12px 16px;
+            background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .controls label { font-size: 0.78rem; font-weight: 600; color: #555; }
+        .controls select {
+            padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 6px;
+            font-size: 0.78rem; background: #fff;
+        }
+        .controls .sep { width: 1px; height: 22px; background: #e2e8f0; }
+        .controls .count { margin-left: auto; font-size: 0.78rem; color: #888; }
+
+        .panel {
+            background: #fff; border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th {
+            text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px;
+            color: #2D3876; background: #f8f9fc; padding: 10px 12px; border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        td { padding: 10px 12px; border-bottom: 1px solid #f0f1f4; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr.is-new td { background: #f5f7ff; }
+        tr.is-new td:first-child { box-shadow: inset 3px 0 0 #2D3876; }
+        .who { font-weight: 600; white-space: nowrap; }
+        .who small { display: block; font-weight: 400; color: #888; font-size: 0.75rem; }
+        .when { white-space: nowrap; color: #555; }
+        .app a { color: #2D3876; text-decoration: none; }
+        .app a:hover { text-decoration: underline; }
+        .message { white-space: pre-wrap; word-break: break-word; min-width: 260px; }
+
+        .status-sel { padding: 3px 6px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.75rem; background: #fff; }
+        .status-sel.new { border-color: #2D3876; color: #2D3876; font-weight: 600; }
+        .status-sel.resolved { color: #15803d; border-color: #86efac; }
+        .del-btn {
+            background: none; border: 1px solid transparent; color: #dc2626; cursor: pointer;
+            border-radius: 6px; padding: 3px 8px; font-size: 0.75rem;
+        }
+        .del-btn:hover { border-color: #fca5a5; background: #fef2f2; }
+        .actions { white-space: nowrap; display: flex; gap: 6px; align-items: center; }
+
+        .empty, .loading { padding: 40px; text-align: center; color: #888; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+<script>uninovisNav({ crumbs: [{label:'System Administration', href:'/#superuser'}], current: 'User Feedback', feedback: false });</script>
+
+<div id="accessDenied" style="display:none;max-width:520px;margin:60px auto;text-align:center;">
+    <h2 style="color:#2D3876;">Access denied</h2>
+    <p style="color:#666;">You do not have access to User Feedback.</p>
+</div>
+
+<div class="container" id="mainContainer">
+    <div class="controls">
+        <label for="selApp">App:</label>
+        <select id="selApp" onchange="load()"><option value="">All apps</option></select>
+        <div class="sep"></div>
+        <label for="selStatus">Status:</label>
+        <select id="selStatus" onchange="load()">
+            <option value="">All</option>
+            <option value="new">New</option>
+            <option value="read">Read</option>
+            <option value="resolved">Resolved</option>
+        </select>
+        <span class="count" id="count"></span>
+    </div>
+
+    <div class="panel">
+        <table>
+            <thead>
+                <tr><th>From</th><th>Date &amp; time</th><th>App</th><th>Feedback</th><th>Status</th></tr>
+            </thead>
+            <tbody id="rows"><tr><td colspan="5" class="loading">Loading…</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+var token = localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
+
+function esc(s) {
+    return s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function api(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ 'Authorization': 'Bearer ' + token }, opts.headers || {});
+    return fetch('/feedback/api/' + path, opts);
+}
+
+function fmtDate(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+        + ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
+
+async function load() {
+    if (!token) { window.location.href = '/login?redirect=/feedback/'; return; }
+    var app = document.getElementById('selApp').value;
+    var status = document.getElementById('selStatus').value;
+    var qs = new URLSearchParams();
+    if (app) qs.set('app', app);
+    if (status) qs.set('status', status);
+
+    var res = await api('list?' + qs.toString());
+    if (res.status === 401) { window.location.href = '/login?redirect=/feedback/'; return; }
+    if (res.status === 403) {
+        document.getElementById('mainContainer').style.display = 'none';
+        document.getElementById('accessDenied').style.display = '';
+        return;
+    }
+    var data = await res.json();
+
+    var sel = document.getElementById('selApp');
+    sel.innerHTML = '<option value="">All apps</option>' + data.apps.map(function(a) {
+        return '<option value="' + esc(a) + '"' + (a === app ? ' selected' : '') + '>' + esc(a) + '</option>';
+    }).join('');
+
+    document.getElementById('count').textContent = data.entries.length + (data.entries.length === 1 ? ' entry' : ' entries');
+
+    var tbody = document.getElementById('rows');
+    if (!data.entries.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No feedback yet.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = data.entries.map(function(e) {
+        var safeUrl = e.page_url && e.page_url.charAt(0) === '/' && e.page_url.charAt(1) !== '/' && e.page_url.charAt(1) !== '\\';
+        var appCell = safeUrl
+            ? '<a href="' + esc(e.page_url) + '" title="' + esc(e.page_url) + '">' + esc(e.app) + '</a>'
+            : esc(e.app);
+        var statusSel = '<select class="status-sel ' + e.status + '" onchange="setStatus(\'' + e.id + '\', this.value)">'
+            + ['new', 'read', 'resolved'].map(function(s) {
+                return '<option value="' + s + '"' + (s === e.status ? ' selected' : '') + '>' + s.charAt(0).toUpperCase() + s.slice(1) + '</option>';
+            }).join('') + '</select>';
+        return '<tr class="' + (e.status === 'new' ? 'is-new' : '') + '">'
+            + '<td class="who">' + esc(e.name) + (e.name !== e.username ? '<small>' + esc(e.username) + '</small>' : '') + '</td>'
+            + '<td class="when">' + esc(fmtDate(e.created_at)) + '</td>'
+            + '<td class="app">' + appCell + '</td>'
+            + '<td class="message">' + esc(e.message) + '</td>'
+            + '<td><div class="actions">' + statusSel
+            + '<button class="del-btn" onclick="del(\'' + e.id + '\')" title="Delete">Delete</button></div></td>'
+            + '</tr>';
+    }).join('');
+}
+
+async function setStatus(id, status) {
+    var res = await api(id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: status })
+    });
+    if (!res.ok) alert('Could not update status.');
+    load();
+}
+
+async function del(id) {
+    if (!confirm('Delete this feedback? This cannot be undone.')) return;
+    var res = await api(id, { method: 'DELETE' });
+    if (!res.ok) alert('Could not delete feedback.');
+    load();
+}
+
+load();
+</script>
+</body>
+</html>

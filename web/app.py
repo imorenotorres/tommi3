@@ -458,6 +458,10 @@ from apps.uma_tools.uninovis_uma_dashboard.uninovis_uma_dashboard import router 
 app.include_router(uninovis_uma_dashboard_router)
 app.mount("/uninovis-uma-dashboard/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "uma_tools" / "uninovis_uma_dashboard" / "static"), name="uninovis_uma_dashboard_static")
 
+# Mount User Feedback app (submissions from the nav.js feedback bubble)
+from apps.sysadmin.feedback.feedback import router as feedback_router
+app.include_router(feedback_router)
+
 
 # ---------------------------------------------------------------------------
 # Auth helpers

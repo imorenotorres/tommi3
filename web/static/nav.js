@@ -1,7 +1,9 @@
 /**
  * UNINOVIS shared navigation bar.
  * Usage: call uninovisNav({ crumbs: [{label, href}, ...], current: 'Page Name' })
- * Inserts the nav bar at the top of the body.
+ * Inserts the nav bar at the top of the body. For logged-in users it also adds
+ * the feedback speech bubble (bottom right), attributed to `feedbackApp` if
+ * given, else `current`; pass `feedback: false` to leave it out.
  */
 function uninovisNav(opts) {
     opts = opts || {};
@@ -46,6 +48,9 @@ function uninovisNav(opts) {
                     if (btn) btn.style.display = '';
                     var roles = data.roles || [data.role];
                     renderGuidesMenu(guidesSlot, roles, data.username);
+                    if (opts.feedback !== false) {
+                        tommiFeedbackWidget(opts.feedbackApp || current || document.title);
+                    }
                     // Auto-playing a ?guide= link from here (rather than
                     // leaving it to each page) would race the page's own
                     // role-dependent DOM setup (e.g. a button only shown
@@ -57,6 +62,117 @@ function uninovisNav(opts) {
                 }
             }).catch(function(){});
     }
+}
+
+// ── Feedback speech bubble (shared across UNINOVIS pages) ──────────
+// Hovering the bubble opens the panel; clicking pins it open (and is the
+// only way to open it on touch screens). It stays open while the textarea
+// has focus or text, so moving the mouse away never loses a draft.
+function tommiFeedbackWidget(appName) {
+    if (document.getElementById('tommi-feedback')) return;
+
+    var style = document.createElement('style');
+    style.textContent =
+        '#tommi-feedback{position:fixed;right:24px;bottom:24px;z-index:1400;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;}'
+        + '#tommi-feedback-btn{width:56px;height:56px;border-radius:50%;border:none;background:#2D3876;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);transition:transform .15s,background .15s;}'
+        + '#tommi-feedback-btn:hover,#tommi-feedback.open #tommi-feedback-btn{background:#4a5299;transform:scale(1.06);}'
+        + '#tommi-feedback-btn:focus-visible{outline:3px solid #9aa5e6;outline-offset:2px;}'
+        + '#tommi-feedback-panel{position:absolute;right:0;bottom:72px;width:320px;max-width:calc(100vw - 32px);background:#fff;color:#333;border-radius:16px;padding:16px;box-shadow:0 8px 28px rgba(0,0,0,0.22);opacity:0;visibility:hidden;transform:translateY(8px) scale(.97);transform-origin:bottom right;transition:opacity .15s,transform .15s,visibility .15s;}'
+        + '#tommi-feedback.open #tommi-feedback-panel{opacity:1;visibility:visible;transform:none;}'
+        /* Speech-bubble tail pointing at the button; the invisible ::before
+           bridges the gap so moving the mouse up from the button keeps it open. */
+        + '#tommi-feedback-panel::after{content:"";position:absolute;right:20px;bottom:-10px;border-width:10px 10px 0;border-style:solid;border-color:#fff transparent transparent;}'
+        + '#tommi-feedback-panel::before{content:"";position:absolute;left:0;right:0;bottom:-18px;height:18px;}'
+        + '#tommi-feedback-panel h3{margin:0 0 2px;font-size:1em;color:#2D3876;}'
+        + '#tommi-feedback-app{margin:0 0 10px;font-size:0.78em;color:#777;}'
+        + '#tommi-feedback-text{width:100%;box-sizing:border-box;min-height:110px;resize:vertical;padding:9px 10px;border:1px solid #ccc;border-radius:8px;font:inherit;font-size:0.88em;}'
+        + '#tommi-feedback-text:focus{outline:none;border-color:#2D3876;box-shadow:0 0 0 2px rgba(45,56,118,0.15);}'
+        + '#tommi-feedback-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;}'
+        + '#tommi-feedback-msg{font-size:0.78em;}'
+        + '#tommi-feedback-send{background:#2D3876;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:0.88em;cursor:pointer;}'
+        + '#tommi-feedback-send:hover{background:#4a5299;}'
+        + '#tommi-feedback-send:disabled{opacity:.5;cursor:default;}'
+        + '@media (max-width:480px){#tommi-feedback{right:16px;bottom:16px;}}';
+    document.head.appendChild(style);
+
+    var root = document.createElement('div');
+    root.id = 'tommi-feedback';
+    root.innerHTML =
+        '<div id="tommi-feedback-panel" role="dialog" aria-labelledby="tommi-feedback-title">'
+        + '<h3 id="tommi-feedback-title">Send feedback</h3>'
+        + '<p id="tommi-feedback-app"></p>'
+        + '<textarea id="tommi-feedback-text" maxlength="5000" placeholder="What works well? What could be better?"></textarea>'
+        + '<div id="tommi-feedback-foot"><span id="tommi-feedback-msg"></span>'
+        + '<button id="tommi-feedback-send" type="button" disabled>Send</button></div>'
+        + '</div>'
+        + '<button id="tommi-feedback-btn" type="button" aria-label="Send feedback" aria-expanded="false" title="Send feedback">'
+        + '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+        + '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.8-.8L3 21l1.9-5.2A8.4 8.4 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></svg>'
+        + '</button>';
+    document.body.appendChild(root);
+    document.getElementById('tommi-feedback-app').textContent = 'About: ' + appName;
+
+    var btn = document.getElementById('tommi-feedback-btn');
+    var text = document.getElementById('tommi-feedback-text');
+    var send = document.getElementById('tommi-feedback-send');
+    var msg = document.getElementById('tommi-feedback-msg');
+    var pinned = false;
+    var closeTimer = null;
+
+    function setOpen(open) {
+        clearTimeout(closeTimer);
+        root.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (!open) { pinned = false; text.blur(); }
+    }
+    function hasDraft() {
+        return pinned || document.activeElement === text || text.value.trim() !== '';
+    }
+
+    root.addEventListener('mouseenter', function() { clearTimeout(closeTimer); setOpen(true); });
+    root.addEventListener('mouseleave', function() {
+        closeTimer = setTimeout(function() { if (!hasDraft()) setOpen(false); }, 400);
+    });
+    btn.addEventListener('click', function() {
+        if (pinned) { setOpen(false); return; }
+        setOpen(true);
+        pinned = true;
+        text.focus();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && root.classList.contains('open')) { setOpen(false); btn.focus(); }
+    });
+    document.addEventListener('click', function(e) {
+        if (!root.contains(e.target) && text.value.trim() === '') setOpen(false);
+    });
+    text.addEventListener('input', function() {
+        send.disabled = text.value.trim() === '';
+        msg.textContent = '';
+    });
+
+    send.addEventListener('click', function() {
+        var message = text.value.trim();
+        if (!message) return;
+        var token = localStorage.getItem('tommi_token') || localStorage.getItem('uninovis_token') || '';
+        send.disabled = true;
+        msg.style.color = '#666';
+        msg.textContent = 'Sending…';
+        fetch('/feedback/api/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ app: appName, page_url: window.location.pathname + window.location.hash, message: message })
+        }).then(function(r) {
+            if (!r.ok) throw new Error();
+            text.value = '';
+            msg.style.color = '#15803d';
+            msg.textContent = 'Thank you for your feedback!';
+            setTimeout(function() { msg.textContent = ''; setOpen(false); }, 1800);
+        }).catch(function() {
+            send.disabled = false;
+            msg.style.color = '#dc2626';
+            msg.textContent = 'Could not send. Please try again.';
+        });
+    });
 }
 
 // ── Account menu / change password (shared across UNINOVIS pages) ──

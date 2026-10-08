@@ -121,7 +121,7 @@
 
 <div class="footer">UNINOVIS &mdash; European University Alliance</div>
 
-<script src="/static/nav.js?v=13"></script>
+<script src="/static/nav.js?v=14"></script>
 <script>
 // ── Roles ─────────────────────────────────────────────────────────
 // Single source of truth for every assignable user role and its display
@@ -183,6 +183,7 @@ var TOOL_ACCESS = {
     'tool_visibility':    ['superuser'],
     'log_analytics':      ['superuser'],
     'matomo_analytics':   ['superuser'],
+    'feedback':           ['superuser'],
 };
 
 // Tools grouped by functionality
@@ -244,6 +245,7 @@ var SECTIONS = [
             { id: 'user_management', name: 'User Management', icon: '\uD83D\uDD10', desc: 'Create, edit, and delete users. Manage roles and invitations.', url: '#', status: 'active', action: 'openUserManagement' },
             { id: 'agent_management', name: 'Agent Management', icon: '\u2699\uFE0F', desc: 'Agent visibility, access control, data export, and log management.', url: '#', status: 'active', action: 'openAgentManagement' },
             { id: 'tool_visibility', name: 'Tool Visibility', icon: '\uD83D\uDC41', desc: 'Configure which intranet tools are visible to each role.', url: '#', status: 'active', action: 'openToolVisibility' },
+            { id: 'feedback', name: 'User Feedback', icon: '\uD83D\uDCAC', desc: 'Feedback sent by users from the speech bubble in each app.', url: '/feedback/', status: 'active' },
         ]
     },
     {
@@ -345,8 +347,10 @@ async function checkAuth() {
     } catch (e) { showLogin(); }
 }
 
-// ── Pending access-request notification bubble (superuser only) ────
-// Shown on the "Sys Admin" tab and the "User Management" tool card.
+// ── Notification bubbles (superuser only) ──────────────────────────
+// Pending access requests are shown on the "User Management" card, new
+// user feedback on the "User Feedback" card, and their sum on the
+// "Sys Admin" tab.
 async function updatePendingRequestsBadge() {
     var count = 0;
     try {
@@ -359,21 +363,24 @@ async function updatePendingRequestsBadge() {
         }
     } catch (e) { /* leave count at 0 */ }
 
-    var badgeHtml = count > 0 ? '<span class="notif-badge">' + count + '</span>' : '';
+    var feedbackCount = 0;
+    try {
+        var fres = await fetch('/feedback/api/count', {
+            headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        if (fres.ok) feedbackCount = (await fres.json()).new || 0;
+    } catch (e) { /* leave count at 0 */ }
 
-    var tab = document.querySelector('.wp-tab[data-tab="superuser"]');
-    if (tab) {
-        var existing = tab.querySelector('.notif-badge');
+    function setBadge(el, n, where) {
+        if (!el) return;
+        var existing = el.querySelector('.notif-badge');
         if (existing) existing.remove();
-        if (count > 0) tab.insertAdjacentHTML('beforeend', badgeHtml);
+        if (n > 0) el.insertAdjacentHTML(where, '<span class="notif-badge">' + n + '</span>');
     }
 
-    var card = document.getElementById('tool-card-user_management');
-    if (card) {
-        var existingCard = card.querySelector('.notif-badge');
-        if (existingCard) existingCard.remove();
-        if (count > 0) card.insertAdjacentHTML('afterbegin', badgeHtml);
-    }
+    setBadge(document.querySelector('.wp-tab[data-tab="superuser"]'), count + feedbackCount, 'beforeend');
+    setBadge(document.getElementById('tool-card-user_management'), count, 'afterbegin');
+    setBadge(document.getElementById('tool-card-feedback'), feedbackCount, 'afterbegin');
 }
 
 function showLogin() {
