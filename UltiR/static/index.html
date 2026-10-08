@@ -263,6 +263,19 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
                 <td>Class, Home</td>
                 <td><span class="badge badge-active">Active</span></td>
             </tr>
+            <tr>
+                <td>
+                    <div class="name">Statistics Explorer</div>
+                    <div class="links"><a href="/lti/stats/info" class="link-info">Info</a> <a href="/lti/stats/test" class="link-test">Try it</a></div>
+                </td>
+                <td>Statistics / Any quantitative discipline</td>
+                <td>UMA</td>
+                <td><div class="desc-wrap"><div class="desc-text">Step-by-step exercises on descriptive statistics (mean, median, variance), confidence intervals (90/95/99%) and one-sample z-tests with auto-grading and 2% tolerance. Includes a statistical power module with interactive two-distribution visualizer (H₀ vs H₁, shaded α/β/power regions) and exercises for power calculation and required sample size. Also features a normal distribution explorer with parameter sliders and probability calculator.</div><span class="desc-toggle" onclick="toggleDesc(this)">[+ more]</span></div></td>
+                <td>No</td>
+                <td>Yes</td>
+                <td>Class, Home</td>
+                <td><span class="badge badge-active">Active</span></td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -404,6 +417,12 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
                     <td><span class="res-badge res-low">Low</span>Exercise bank per course + student progress files (small JSON files)</td>
                     <td><span class="res-badge res-none">None</span></td>
                 </tr>
+                <tr>
+                    <td><strong>Statistics Explorer</strong></td>
+                    <td><span class="res-badge res-low">Low</span>Random exercise generation and numerical computation (Python math, no heavy libs)</td>
+                    <td><span class="res-badge res-none">None</span>No persistent data — exercises are stateless and server-verified per check</td>
+                    <td><span class="res-badge res-none">None</span></td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -427,6 +446,18 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
             <tr><td>Tool name</td><td>Anatomy Explorer</td></tr>
             <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/anatomy</code></td></tr>
             <tr><td>Consumer key</td><td><code>anatomy_uma</code></td></tr>
+            <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
+            <tr><td>Launch container</td><td>Embed</td></tr>
+        </table>
+    </div>
+
+    <div class="admin-box">
+        <h3>Statistics Explorer &mdash; registration details</h3>
+        <table class="config-table">
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>Tool name</td><td>Statistics Explorer</td></tr>
+            <tr><td>Tool URL</td><td><code>https://gloria.uma.es/lti/stats</code></td></tr>
+            <tr><td>Consumer key</td><td><code>stats_uma</code></td></tr>
             <tr><td>Shared secret</td><td>Contact the UNINOVIS ICT team</td></tr>
             <tr><td>Launch container</td><td>Embed</td></tr>
         </table>

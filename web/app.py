@@ -442,6 +442,8 @@ from UltiR.python_practice.lti_provider import router as lti_python_router
 app.include_router(lti_python_router)
 from UltiR.anatomy.lti_provider import router as lti_anatomy_router
 app.include_router(lti_anatomy_router)
+from UltiR.stats.lti_provider import router as lti_stats_router
+app.include_router(lti_stats_router)
 
 @app.get("/ultir")
 async def ultir_catalog():

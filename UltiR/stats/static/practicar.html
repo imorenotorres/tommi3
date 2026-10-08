@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistics Explorer</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; }
+
+/* ── Header & tabs ── */
+.header { background: #0d9488; padding: 12px 20px; }
+.header-row { display: flex; align-items: center; gap: 12px; }
+.logo { color: #fff; font-weight: 800; font-size: 18px; }
+.user-info { color: rgba(255,255,255,0.75); font-size: 12px; margin-left: auto; }
+
+.tabs { display: flex; gap: 0; background: #0f766e; padding: 0 20px; overflow-x: auto; }
+.tab {
+    padding: 10px 16px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.65);
+    border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent;
+    white-space: nowrap; flex-shrink: 0;
+}
+.tab.active { color: #fff; border-bottom-color: #fff; }
+.tab:hover:not(.active) { color: rgba(255,255,255,0.9); }
+
+/* ── Container ── */
+.container { max-width: 740px; margin: 0 auto; padding: 24px 20px 48px; }
+
+/* ── Buttons ── */
+.btn { padding: 8px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.btn-primary { background: #0d9488; color: #fff; }
+.btn-primary:hover { background: #0f766e; }
+.btn-sm { padding: 5px 14px; font-size: 12px; }
+
+/* ── Controls ── */
+.controls { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; }
+.control-group { display: flex; flex-direction: column; gap: 4px; }
+.control-group label { font-size: 12px; font-weight: 600; color: #475569; }
+.control-group select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px; background: #fff; }
+
+/* ── Problem card ── */
+.problem-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; }
+.problem-card h2 { font-size: 16px; color: #0d9488; margin-bottom: 6px; font-weight: 700; }
+.problem-card .desc { font-size: 13px; color: #475569; line-height: 1.6; font-family: 'SF Mono', Consolas, monospace; }
+
+/* ── Steps ── */
+.step { background: #fff; border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px 18px; margin-bottom: 10px; transition: border-color 0.15s; }
+.step.active  { border-color: #0d9488; }
+.step.correct { border-color: #16a34a; background: #f0fdf4; }
+.step.incorrect { border-color: #dc2626; }
+.step.locked  { opacity: 0.4; pointer-events: none; }
+
+.step .prompt { font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px; }
+.step .input-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.step input[type="number"] { width: 150px; padding: 8px 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 15px; font-family: 'SF Mono', Consolas, monospace; }
+.step input[type="number"]:focus { outline: none; border-color: #0d9488; }
+.step select.binary-select { padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px; background: #fff; }
+.step select.binary-select:focus { outline: none; border-color: #0d9488; }
+.step .feedback { font-size: 13px; margin-top: 8px; line-height: 1.5; }
+.step .feedback.ok   { color: #16a34a; }
+.step .feedback.wrong { color: #dc2626; }
+.hint-btn { font-size: 12px; color: #0d9488; cursor: pointer; border: none; background: none; text-decoration: underline; margin-left: 6px; }
+.hint { font-size: 12px; color: #0f766e; background: #f0fdfa; border-left: 3px solid #0d9488; padding: 6px 10px; border-radius: 4px; margin-top: 6px; display: none; }
+
+/* ── Results ── */
+.results { background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 24px; text-align: center; display: none; margin-top: 8px; }
+.results h3 { font-size: 18px; color: #0d9488; margin-bottom: 8px; }
+.score { font-size: 40px; font-weight: 800; }
+.score.good { color: #16a34a; }
+.score.mid  { color: #f59e0b; }
+.score.bad  { color: #dc2626; }
+
+/* ── Power tab ── */
+.power-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; }
+.power-card h2 { font-size: 15px; font-weight: 700; color: #0d9488; margin-bottom: 14px; }
+
+.slider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.slider-group label { font-size: 11px; font-weight: 700; color: #64748b; display: block; margin-bottom: 2px; }
+.slider-group .val { font-size: 22px; font-weight: 800; color: #0d9488; line-height: 1.2; }
+.slider-group .val-sub { font-size: 10px; color: #94a3b8; }
+.slider-group input[type="range"] { accent-color: #0d9488; width: 100%; margin-top: 4px; }
+
+.alpha-row { display: flex; gap: 6px; margin-top: 6px; }
+.alpha-btn { padding: 5px 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 12px; font-weight: 700; background: #fff; cursor: pointer; color: #64748b; }
+.alpha-btn.active { background: #0d9488; border-color: #0d9488; color: #fff; }
+
+.power-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; font-size: 11px; color: #475569; }
+.leg-item { display: flex; align-items: center; gap: 5px; }
+.leg-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+.power-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.pstat { background: #f8fafc; border-radius: 8px; padding: 10px 12px; }
+.pstat .label { font-size: 10px; color: #64748b; margin-bottom: 2px; font-weight: 600; }
+.pstat .value { font-size: 16px; font-weight: 800; color: #0f766e; }
+.pstat.highlight { background: #f0fdfa; border: 1px solid #99f6e4; }
+.pstat.highlight .value { color: #0d9488; font-size: 20px; }
+
+.section-divider { border-top: 2px solid #e2e8f0; padding-top: 18px; margin-top: 4px; }
+.section-divider h3 { font-size: 14px; font-weight: 700; color: #0d9488; margin-bottom: 14px; }
+
+/* ── Explorer tab ── */
+.explorer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.chart-card { background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+.prob-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
+.prob-row input[type="number"] { width: 130px; padding: 8px 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 14px; }
+.prob-row input[type="number"]:focus { outline: none; border-color: #0d9488; }
+.prob-results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.prob-box { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 12px; text-align: center; }
+.prob-box .label { font-size: 11px; color: #475569; margin-bottom: 4px; }
+.prob-box .value { font-size: 20px; font-weight: 800; color: #0d9488; }
+.dist-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+.dist-stat { background: #f8fafc; border-radius: 8px; padding: 10px; text-align: center; }
+.dist-stat .label { font-size: 10px; color: #64748b; margin-bottom: 2px; }
+.dist-stat .value { font-size: 15px; font-weight: 700; color: #0f766e; }
+
+@media (max-width: 600px) {
+    .slider-grid { grid-template-columns: 1fr; }
+    .power-stats { grid-template-columns: repeat(2, 1fr); }
+    .explorer-grid { grid-template-columns: 1fr; }
+    .prob-results { grid-template-columns: 1fr 1fr; }
+    .dist-stats { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div style="font-size:12px;margin-bottom:4px;color:rgba(255,255,255,0.7);">
+        <a href="/ultir" style="color:rgba(255,255,255,0.7);text-decoration:none;">UltiR</a>
+        <span style="margin:0 5px;opacity:.5;">›</span>Statistics Explorer
+    </div>
+    <div class="header-row">
+        <span class="logo">&#128200; Statistics Explorer</span>
+        <span class="user-info" id="user-info"></span>
+    </div>
+</div>
+
+<div class="tabs">
+    <button class="tab active" onclick="switchTab('descriptive',this)">Descriptive</button>
+    <button class="tab" onclick="switchTab('ic',this)">Conf. Interval</button>
+    <button class="tab" onclick="switchTab('z_test',this)">Z-Test</button>
+    <button class="tab" onclick="switchTab('power',this)">&#9889; Power</button>
+    <button class="tab" onclick="switchTab('explorer',this)">&#128064; Explorer</button>
+</div>
+
+<div class="container">
+
+    <!-- ════ Exercise tabs (descriptive / ic / z_test) ════ -->
+    <div id="tab-exercise">
+        <div class="controls">
+            <button class="btn btn-primary" onclick="newExercise()">New exercise</button>
+        </div>
+        <div id="exercise-area"></div>
+        <div class="results" id="results">
+            <h3>Exercise complete</h3>
+            <div class="score" id="score-text"></div>
+            <div style="margin-top:14px;">
+                <button class="btn btn-primary" onclick="newExercise()">New exercise</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════ Power tab ════ -->
+    <div id="tab-power" style="display:none;">
+
+        <!-- Visual -->
+        <div class="power-card">
+            <h2>&#128202; Power Visualizer</h2>
+
+            <div class="slider-grid">
+                <div class="slider-group">
+                    <label>Sample size (n)</label>
+                    <div class="val" id="pv-n-val">30</div>
+                    <input type="range" id="pv-n" min="5" max="200" step="5" value="30" oninput="updatePowerViz()">
+                </div>
+                <div class="slider-group">
+                    <label>Effect size  d = δ/σ</label>
+                    <div>
+                        <span class="val" id="pv-d-val">0.5</span>
+                        <span class="val-sub" id="pv-d-label">medium</span>
+                    </div>
+                    <input type="range" id="pv-d" min="0.1" max="2.0" step="0.1" value="0.5" oninput="updatePowerViz()">
+                    <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-top:2px;">
+                        <span>small (0.2)</span><span>medium (0.5)</span><span>large (0.8)</span>
+                    </div>
+                </div>
+                <div class="slider-group">
+                    <label>Significance (α)</label>
+                    <div class="alpha-row">
+                        <button class="alpha-btn active" onclick="setPowerAlpha(0.05,this)">0.05</button>
+                        <button class="alpha-btn" onclick="setPowerAlpha(0.01,this)">0.01</button>
+                        <button class="alpha-btn" onclick="setPowerAlpha(0.10,this)">0.10</button>
+                    </div>
+                </div>
+            </div>
+
+            <canvas id="power-chart" height="200"></canvas>
+
+            <div class="power-legend">
+                <span class="leg-item"><span class="leg-dot" style="background:#94a3b8;"></span>H₀  (μ = μ₀)</span>
+                <span class="leg-item"><span class="leg-dot" style="background:#0d9488;"></span>H₁  (μ = μ₀ + δ)</span>
+                <span class="leg-item"><span class="leg-dot" style="background:rgba(220,38,38,0.55);"></span>α  rejection region</span>
+                <span class="leg-item"><span class="leg-dot" style="background:rgba(59,130,246,0.45);"></span>β  type II error</span>
+                <span class="leg-item"><span class="leg-dot" style="background:rgba(22,163,74,0.5);"></span>Power  1−β</span>
+            </div>
+
+            <div class="power-stats" id="power-stats">
+                <div class="pstat"><div class="label">SE = σ/√n</div><div class="value" id="pstat-se">—</div></div>
+                <div class="pstat"><div class="label">λ = d × √n</div><div class="value" id="pstat-lambda">—</div></div>
+                <div class="pstat"><div class="label">β (type II error)</div><div class="value" id="pstat-beta">—</div></div>
+                <div class="pstat highlight"><div class="label">Power (1−β)</div><div class="value" id="pstat-power">—</div></div>
+                <div class="pstat"><div class="label">n for 80% power</div><div class="value" id="pstat-n80">—</div></div>
+                <div class="pstat"><div class="label">n for 90% power</div><div class="value" id="pstat-n90">—</div></div>
+            </div>
+        </div>
+
+        <!-- Exercises -->
+        <div class="section-divider">
+            <h3>Practice exercises</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <label>Exercise type</label>
+                    <select id="power-ex-type">
+                        <option value="power">Statistical Power</option>
+                        <option value="sample_size">Required Sample Size</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="newPowerExercise()">New exercise</button>
+            </div>
+            <div id="power-exercise-area"></div>
+            <div class="results" id="power-results">
+                <h3>Exercise complete</h3>
+                <div class="score" id="power-score-text"></div>
+                <div style="margin-top:14px;">
+                    <button class="btn btn-primary" onclick="newPowerExercise()">New exercise</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ════ Explorer tab ════ -->
+    <div id="tab-explorer" style="display:none;">
+        <div class="explorer-grid">
+            <div class="slider-group">
+                <label>Mean (μ)</label>
+                <div class="val" id="exp-mu-val">0</div>
+                <input type="range" id="exp-mu" min="-20" max="20" step="0.5" value="0" oninput="onExpSlider()">
+            </div>
+            <div class="slider-group">
+                <label>Standard deviation (σ)</label>
+                <div class="val" id="exp-sigma-val">1.0</div>
+                <input type="range" id="exp-sigma" min="0.5" max="5" step="0.1" value="1" oninput="onExpSlider()">
+            </div>
+        </div>
+        <div class="dist-stats" id="dist-stats"></div>
+        <div class="chart-card" style="margin-top:14px;">
+            <canvas id="dist-chart" height="180"></canvas>
+        </div>
+        <div style="background:#fff;border:2px solid #e2e8f0;border-radius:12px;padding:16px;">
+            <div style="font-size:13px;font-weight:700;color:#0d9488;margin-bottom:10px;">Probability Calculator</div>
+            <div class="prob-row">
+                <div class="control-group">
+                    <label>x value</label>
+                    <input type="number" id="prob-x" step="0.1" value="0" oninput="updateExpProbs()">
+                </div>
+                <div style="font-size:12px;color:#64748b;align-self:center;padding-bottom:6px;">Shading shows P(X ≤ x) on the chart</div>
+            </div>
+            <div class="prob-results" id="prob-results"></div>
+        </div>
+    </div>
+
+</div><!-- /container -->
+
+<script>
+// ════════════════════════════════════════════════════════════
+// Math utilities
+// ════════════════════════════════════════════════════════════
+function erf(x) {
+    var t = 1 / (1 + 0.3275911 * Math.abs(x));
+    var p = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
+    var y = 1 - p * Math.exp(-x * x);
+    return x >= 0 ? y : -y;
+}
+function normCDF(x, mu, sigma) { return 0.5 * (1 + erf((x - mu) / (sigma * Math.SQRT2))); }
+function normPDF(x, mu, sigma) { return Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2)) / (sigma * Math.sqrt(2 * Math.PI)); }
+
+// ════════════════════════════════════════════════════════════
+// API & session
+// ════════════════════════════════════════════════════════════
+var TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+var BASE  = '/lti/stats/api';
+
+function api(path, opts) {
+    var sep = path.indexOf('?') >= 0 ? '&' : '?';
+    return fetch(BASE + path + sep + 'token=' + TOKEN, opts || {});
+}
+
+api('/session').then(function(r) { return r.json(); }).then(function(d) {
+    document.getElementById('user-info').textContent =
+        (d.name || '') + (d.course_name ? ' — ' + d.course_name : '');
+}).catch(function() {});
+
+// ════════════════════════════════════════════════════════════
+// Tab switching
+// ════════════════════════════════════════════════════════════
+var _currentTab = 'descriptive';
+
+function switchTab(mode, btn) {
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+
+    document.getElementById('tab-exercise').style.display = 'none';
+    document.getElementById('tab-power').style.display    = 'none';
+    document.getElementById('tab-explorer').style.display = 'none';
+
+    if (mode === 'power') {
+        document.getElementById('tab-power').style.display = 'block';
+        initPowerChart();
+    } else if (mode === 'explorer') {
+        document.getElementById('tab-explorer').style.display = 'block';
+        initExpChart();
+    } else {
+        document.getElementById('tab-exercise').style.display = 'block';
+        if (mode !== _currentTab) {
+            exState.mode = mode;
+            exState.problem = null;
+            document.getElementById('exercise-area').innerHTML = '';
+            document.getElementById('results').style.display = 'none';
+        }
+    }
+    _currentTab = mode;
+}
+
+// ════════════════════════════════════════════════════════════
+// Generic exercise engine (shared by main + power tabs)
+// ════════════════════════════════════════════════════════════
+function makeExState(mode) {
+    return { mode: mode, problem: null, seed: 0, answered: {}, correct: 0, total: 0 };
+}
+
+async function fetchExercise(state, areaId, resultsId) {
+    state.seed = Math.floor(Math.random() * 1e6);
+    state.answered = {};
+    state.correct = 0;
+    state.total = 0;
+    document.getElementById(resultsId).style.display = 'none';
+    document.getElementById(areaId).innerHTML =
+        '<div style="color:#64748b;font-size:14px;padding:10px;">Loading…</div>';
+
+    var r = await api('/exercise?type=' + state.mode + '&seed=' + state.seed);
+    state.problem = await r.json();
+    state.total = state.problem.n_steps;
+    renderExercise(state, areaId);
+}
+
+function renderExercise(state, areaId) {
+    var p = state.problem;
+    if (!p) return;
+
+    var html = '<div class="problem-card"><h2>' + p.title + '</h2>'
+             + '<p class="desc">' + p.description + '</p></div>';
+
+    p.steps.forEach(function(step, i) {
+        var done = state.answered[step.id];
+        var unlocked = i === 0 || state.answered[p.steps[i - 1].id];
+        var cls = 'step' + (done ? (done.correct ? ' correct' : ' incorrect') : (unlocked ? ' active' : ' locked'));
+
+        html += '<div class="' + cls + '" id="s-' + areaId + '-' + step.id + '">';
+        html += '<div class="prompt">Step ' + (i + 1) + ': ' + step.prompt + '</div>';
+
+        if (done) {
+            html += '<div class="feedback ' + (done.correct ? 'ok' : 'wrong') + '">';
+            html += done.correct
+                ? '&#10003; Correct: ' + fmtAnswer(step, done.expected)
+                : '&#10007; Your answer: ' + done.student + '<br>Correct: ' + fmtAnswer(step, done.expected)
+                  + '<br><span style="color:#64748b;font-size:12px;">' + done.formula + '</span>';
+            html += '</div>';
+        } else if (unlocked) {
+            html += '<div class="input-row">';
+            if (step.input_type === 'binary') {
+                html += '<select class="binary-select" id="inp-' + areaId + '-' + step.id + '">'
+                      + '<option value="" disabled selected>Select…</option>'
+                      + '<option value="1">1 — Yes, reject H₀</option>'
+                      + '<option value="0">0 — No, fail to reject H₀</option>'
+                      + '</select>';
+            } else {
+                html += '<input type="number" step="any" id="inp-' + areaId + '-' + step.id + '" placeholder="0.0000"'
+                      + ' onkeydown="if(event.key===\'Enter\')doCheck(\'' + areaId + '\',\'' + step.id + '\')">';
+            }
+            html += '<button class="btn btn-primary btn-sm" onclick="doCheck(\'' + areaId + '\',\'' + step.id + '\')">Check</button>';
+            html += '<button class="hint-btn" onclick="toggleHint(\'' + areaId + '-' + step.id + '\')">Hint</button>';
+            html += '</div><div class="hint" id="h-' + areaId + '-' + step.id + '">' + step.hint + '</div>';
+        }
+        html += '</div>';
+    });
+
+    document.getElementById(areaId).innerHTML = html;
+    for (var i = 0; i < p.steps.length; i++) {
+        if (!state.answered[p.steps[i].id]) {
+            var inp = document.getElementById('inp-' + areaId + '-' + p.steps[i].id);
+            if (inp) { inp.focus(); break; }
+        }
+    }
+}
+
+function fmtAnswer(step, val) {
+    if (step.input_type === 'binary') return val === 1 ? '1 (Reject H₀)' : '0 (Fail to reject H₀)';
+    return val;
+}
+
+function toggleHint(key) {
+    var el = document.getElementById('h-' + key);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function doCheck(areaId, stepId) {
+    var state = areaId === 'exercise-area' ? exState : pwState;
+    var scoreId  = areaId === 'exercise-area' ? 'score-text'   : 'power-score-text';
+    var resultsId = areaId === 'exercise-area' ? 'results'      : 'power-results';
+
+    var input = document.getElementById('inp-' + areaId + '-' + stepId);
+    if (!input || input.value === '' || input.value === null) return;
+
+    var r = await fetch(BASE + '/check?token=' + TOKEN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: state.problem.type, seed: state.seed, step_id: stepId, answer: parseFloat(input.value) })
+    });
+    var result = await r.json();
+
+    state.answered[stepId] = { correct: result.correct, expected: result.expected, formula: result.formula, student: input.value };
+    if (result.correct) state.correct++;
+
+    renderExercise(state, areaId);
+
+    if (Object.keys(state.answered).length === state.total) {
+        var pct = Math.round(state.correct / state.total * 100);
+        var el = document.getElementById(scoreId);
+        el.textContent = state.correct + '/' + state.total + ' (' + pct + '%)';
+        el.className = 'score ' + (pct >= 75 ? 'good' : pct >= 50 ? 'mid' : 'bad');
+        document.getElementById(resultsId).style.display = 'block';
+        document.getElementById(resultsId).scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// ── Main exercise tab ──
+var exState = makeExState('descriptive');
+function newExercise() { fetchExercise(exState, 'exercise-area', 'results'); }
+
+// ── Power exercise ──
+var pwState = makeExState('power');
+function newPowerExercise() {
+    pwState.mode = document.getElementById('power-ex-type').value;
+    fetchExercise(pwState, 'power-exercise-area', 'power-results');
+}
+
+// ════════════════════════════════════════════════════════════
+// Power Visualizer
+// ════════════════════════════════════════════════════════════
+var powerChart = null;
+var pvAlpha    = 0.05;
+
+function initPowerChart() {
+    if (powerChart) { updatePowerViz(); return; }
+    var ctx = document.getElementById('power-chart').getContext('2d');
+    powerChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets: [
+            // 0: H₀ curve
+            { data: [], borderColor: '#94a3b8', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.3, order: 5 },
+            // 1: H₁ curve
+            { data: [], borderColor: '#0d9488', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.3, order: 4 },
+            // 2: α fill (rejection region from H₀)
+            { data: [], borderColor: 'transparent', backgroundColor: 'rgba(220,38,38,0.4)', pointRadius: 0, fill: 'origin', tension: 0, order: 3 },
+            // 3: β fill (H₁ inside critical region)
+            { data: [], borderColor: 'transparent', backgroundColor: 'rgba(59,130,246,0.35)', pointRadius: 0, fill: 'origin', tension: 0, order: 2 },
+            // 4: power fill (H₁ beyond critical region)
+            { data: [], borderColor: 'transparent', backgroundColor: 'rgba(22,163,74,0.45)', pointRadius: 0, fill: 'origin', tension: 0, order: 1 },
+        ]},
+        options: {
+            animation: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { type: 'linear', grid: { color: '#f1f5f9' },
+                     ticks: { color: '#64748b', font: { size: 10 },
+                              callback: function(v) { return v.toFixed(2); }, maxTicksLimit: 10 } },
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' },
+                     ticks: { color: '#64748b', font: { size: 10 } } }
+            }
+        }
+    });
+    updatePowerViz();
+}
+
+function setPowerAlpha(val, btn) {
+    pvAlpha = val;
+    document.querySelectorAll('.alpha-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    updatePowerViz();
+}
+
+function updatePowerViz() {
+    var n = parseInt(document.getElementById('pv-n').value);
+    var d = parseFloat(document.getElementById('pv-d').value);
+    var alpha = pvAlpha;
+
+    document.getElementById('pv-n-val').textContent = n;
+    document.getElementById('pv-d-val').textContent = d.toFixed(1);
+    document.getElementById('pv-d-label').textContent =
+        d <= 0.25 ? ' small' : d <= 0.65 ? ' medium' : ' large';
+
+    var Z_CRIT = alpha === 0.01 ? 2.576 : alpha === 0.05 ? 1.960 : 1.645;
+    var SE     = 1 / Math.sqrt(n);
+    var mu0    = 0;
+    var mu1    = d;                      // δ = d since σ=1
+    var xcrit  = mu0 + Z_CRIT * SE;     // upper critical value of x̄
+    var lambda = d * Math.sqrt(n);       // non-centrality
+    var beta   = normCDF(xcrit, mu1, SE);
+    var power  = 1 - beta;
+    var n80    = Math.ceil(Math.pow((Z_CRIT + 0.842) / d, 2));
+    var n90    = Math.ceil(Math.pow((Z_CRIT + 1.282) / d, 2));
+
+    // Stats
+    document.getElementById('pstat-se').textContent     = SE.toFixed(4);
+    document.getElementById('pstat-lambda').textContent  = lambda.toFixed(3);
+    document.getElementById('pstat-beta').textContent    = (beta * 100).toFixed(1) + '%';
+    document.getElementById('pstat-power').textContent   = (power * 100).toFixed(1) + '%';
+    document.getElementById('pstat-n80').textContent     = n80;
+    document.getElementById('pstat-n90').textContent     = n90;
+
+    if (!powerChart) return;
+
+    // Build curve points
+    var left  = mu0 - 4 * SE;
+    var right = mu1 + 4 * SE;
+    var N = 500;
+    var step  = (right - left) / N;
+
+    var h0 = [], h1 = [], alphaF = [], betaF = [], powerF = [];
+    for (var i = 0; i <= N; i++) {
+        var x  = left + i * step;
+        var y0 = normPDF(x, mu0, SE);
+        var y1 = normPDF(x, mu1, SE);
+        h0.push({ x: x, y: y0 });
+        h1.push({ x: x, y: y1 });
+        alphaF.push({ x: x, y: x >= xcrit ? y0 : 0 });
+        betaF.push({  x: x, y: x <  xcrit ? y1 : 0 });
+        powerF.push({ x: x, y: x >= xcrit ? y1 : 0 });
+    }
+
+    powerChart.data.datasets[0].data = h0;
+    powerChart.data.datasets[1].data = h1;
+    powerChart.data.datasets[2].data = alphaF;
+    powerChart.data.datasets[3].data = betaF;
+    powerChart.data.datasets[4].data = powerF;
+    powerChart.options.scales.x.min  = left;
+    powerChart.options.scales.x.max  = right;
+    powerChart.update('none');
+}
+
+// ════════════════════════════════════════════════════════════
+// Distribution Explorer
+// ════════════════════════════════════════════════════════════
+var distChart   = null;
+var expReady    = false;
+
+function initExpChart() {
+    if (expReady) return;
+    expReady = true;
+    var ctx = document.getElementById('dist-chart').getContext('2d');
+    distChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets: [
+            { data: [], borderColor: '#0d9488', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4, order: 2 },
+            { data: [], borderColor: 'transparent', backgroundColor: 'rgba(13,148,136,0.25)', pointRadius: 0, fill: 'origin', tension: 0.4, order: 1 },
+        ]},
+        options: {
+            animation: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { type: 'linear', grid: { color: '#f1f5f9' },
+                     ticks: { color: '#64748b', font: { size: 11 }, callback: function(v) { return v.toFixed(1); } } },
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' },
+                     ticks: { color: '#64748b', font: { size: 11 } } }
+            }
+        }
+    });
+    updateExpChart();
+}
+
+function onExpSlider() {
+    document.getElementById('exp-mu-val').textContent =
+        parseFloat(document.getElementById('exp-mu').value).toFixed(1);
+    document.getElementById('exp-sigma-val').textContent =
+        parseFloat(document.getElementById('exp-sigma').value).toFixed(1);
+    updateExpChart();
+    updateExpProbs();
+}
+
+function updateExpChart() {
+    if (!distChart) return;
+    var mu      = parseFloat(document.getElementById('exp-mu').value);
+    var sigma   = parseFloat(document.getElementById('exp-sigma').value);
+    var xThresh = parseFloat(document.getElementById('prob-x').value);
+
+    var N = 300, left = mu - 4 * sigma, right = mu + 4 * sigma;
+    var step = (right - left) / N;
+    var full = [], shaded = [];
+    for (var i = 0; i <= N; i++) {
+        var x = left + i * step;
+        var y = normPDF(x, mu, sigma);
+        full.push({ x: x, y: y });
+        shaded.push({ x: x, y: (!isNaN(xThresh) && x <= xThresh) ? y : 0 });
+    }
+    distChart.data.datasets[0].data = full;
+    distChart.data.datasets[1].data = shaded;
+    distChart.options.scales.x.min  = left;
+    distChart.options.scales.x.max  = right;
+    distChart.update('none');
+
+    // Summary stats
+    var sb = function(l, v) { return '<div class="dist-stat"><div class="label">' + l + '</div><div class="value">' + v + '</div></div>'; };
+    document.getElementById('dist-stats').innerHTML =
+        sb('Mean (μ)', mu.toFixed(2)) + sb('Std dev (σ)', sigma.toFixed(2)) +
+        sb('P25', (mu - 0.674 * sigma).toFixed(2)) + sb('P75', (mu + 0.674 * sigma).toFixed(2)) +
+        sb('P10', (mu - 1.282 * sigma).toFixed(2)) + sb('P90', (mu + 1.282 * sigma).toFixed(2)) +
+        sb('μ − σ', (mu - sigma).toFixed(2)) + sb('μ + σ', (mu + sigma).toFixed(2));
+}
+
+function updateExpProbs() {
+    var mu    = parseFloat(document.getElementById('exp-mu').value);
+    var sigma = parseFloat(document.getElementById('exp-sigma').value);
+    var x     = parseFloat(document.getElementById('prob-x').value);
+    if (isNaN(x)) { document.getElementById('prob-results').innerHTML = ''; return; }
+
+    var p_le = normCDF(x, mu, sigma);
+    var p_gt = 1 - p_le;
+    var half = Math.abs(x - mu);
+    var p_in = normCDF(mu + half, mu, sigma) - normCDF(mu - half, mu, sigma);
+
+    var pb = function(l, v) { return '<div class="prob-box"><div class="label">' + l + '</div><div class="value">' + v + '</div></div>'; };
+    document.getElementById('prob-results').innerHTML =
+        pb('P(X ≤ ' + x.toFixed(2) + ')', p_le.toFixed(4)) +
+        pb('P(X > ' + x.toFixed(2) + ')', p_gt.toFixed(4)) +
+        pb('P(|X−μ| ≤ ' + half.toFixed(2) + ')', p_in.toFixed(4));
+
+    updateExpChart();
+}
+
+// ════════════════════════════════════════════════════════════
+// Hide header inside iframe
+// ════════════════════════════════════════════════════════════
+if (window.self !== window.top) {
+    var h = document.querySelector('.header');
+    if (h) h.style.display = 'none';
+}
+</script>
+</body>
+</html>
