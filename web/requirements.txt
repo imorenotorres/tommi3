@@ -11,4 +11,5 @@ sentence-transformers>=2.2.0
 pypdf>=4.0.0
 cryptography>=3.1
 openpyxl>=3.1.0  # For bulk user import from Excel
+imageio-ffmpeg>=0.4.9  # Bundled ffmpeg binary for audio conversion
 

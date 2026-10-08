@@ -4127,6 +4127,7 @@ async def eulalia_convertir_audio(file: UploadFile = FastFile(...)):
     Devuelve el archivo WAV directamente para descarga.
     """
     import subprocess, uuid, tempfile, shutil
+    import imageio_ffmpeg
 
     fname = (file.filename or "audio").lower()
     content_type = file.content_type or ""
@@ -4139,7 +4140,7 @@ async def eulalia_convertir_audio(file: UploadFile = FastFile(...)):
     if len(audio_data) > _MAX_AUDIO_SIZE:
         raise HTTPException(status_code=400, detail="Archivo demasiado grande (máximo 10 MB).")
 
-    ffmpeg_bin = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
+    ffmpeg_bin = shutil.which("ffmpeg") or imageio_ffmpeg.get_ffmpeg_exe()
 
     suffix = Path(fname).suffix or ".m4a"
     file_id = uuid.uuid4().hex[:10]
