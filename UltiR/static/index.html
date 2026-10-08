@@ -265,6 +265,19 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
             </tr>
             <tr>
                 <td>
+                    <div class="name">Bloom's Taxonomy Trainer</div>
+                    <div class="links"><a href="/lti/bloom/info" class="link-info">Info</a> <a href="/lti/bloom/test" class="link-test">Try it</a></div>
+                </td>
+                <td>Education Sciences / Teacher Training</td>
+                <td>UMA</td>
+                <td><div class="desc-wrap"><div class="desc-text">Interactive Bloom's revised taxonomy trainer. An interactive pyramid (clickable levels with verbs, descriptions and example objectives) serves as a permanent reference. Three exercise modes: Classify — given an objective, identify its level and confirm with a matching verb; Verb Match — given a verb, identify its level and select a matching objective; Design — pick the objective at a target level and identify the adjacent level. Bank of 60+ authentic education objectives across all six levels. No LLM.</div><span class="desc-toggle" onclick="toggleDesc(this)">[+ more]</span></div></td>
+                <td>No</td>
+                <td>Yes</td>
+                <td>Class, Home</td>
+                <td><span class="badge badge-active">Active</span></td>
+            </tr>
+            <tr>
+                <td>
                     <div class="name">Statistics Explorer</div>
                     <div class="links"><a href="/lti/stats/info" class="link-info">Info</a> <a href="/lti/stats/test" class="link-test">Try it</a></div>
                 </td>
@@ -415,6 +428,12 @@ body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; c
                     <td><strong>Python Practice</strong></td>
                     <td><span class="res-badge res-low">Low</span>Session management only — all code execution is client-side (Pyodide/WASM)</td>
                     <td><span class="res-badge res-low">Low</span>Exercise bank per course + student progress files (small JSON files)</td>
+                    <td><span class="res-badge res-none">None</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Bloom's Taxonomy Trainer</strong></td>
+                    <td><span class="res-badge res-low">Low</span>Random exercise generation from an in-memory data bank; no computation beyond random selection</td>
+                    <td><span class="res-badge res-none">None</span>No persistent data — stateless, seed-based exercise regeneration</td>
                     <td><span class="res-badge res-none">None</span></td>
                 </tr>
                 <tr>
