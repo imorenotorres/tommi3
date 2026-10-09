@@ -392,6 +392,11 @@ from apps.wp2.unigracon.unigracon import router as unigracon_router
 app.include_router(unigracon_router)
 app.mount("/unigracon/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp2" / "unigracon" / "static"), name="unigracon_static")
 
+# Mount Gloria Learner Support app (private section of the UNINOVIS Learning Support site)
+from apps.wp2.gloria_learner_support.gloria_learner_support import router as gloria_learner_support_router
+app.include_router(gloria_learner_support_router)
+app.mount("/gloria-learner-support/static", StaticFiles(directory=SCRIPT_DIR / "apps" / "wp2" / "gloria_learner_support" / "static"), name="gloria_learner_support_static")
+
 # Mount Mobility Planner app
 from apps.wp3.mobility_planner.mobility_planner import router as mobility_router
 app.include_router(mobility_router)
@@ -528,9 +533,15 @@ class UpdateRoleRequest(BaseModel):
 
 @app.post("/api/auth/login")
 async def api_login(req: LoginRequest):
+    from auth import login_locked_for, record_failed_login, clear_failed_logins
+    locked = login_locked_for(req.username)
+    if locked:
+        raise HTTPException(status_code=429, detail=f"Too many failed login attempts. Try again in {max(1, locked // 60)} minute(s).")
     result = authenticate(req.username, req.password)
     if not result:
+        record_failed_login(req.username)
         raise HTTPException(status_code=401, detail="Invalid username or password")
+    clear_failed_logins(req.username)
     return result
 
 
@@ -568,11 +579,11 @@ async def api_onboarding_seen(session: dict = Depends(require_auth)):
 
 
 @app.post("/api/auth/change-password")
-async def api_change_password(req: ChangePasswordRequest, session: dict = Depends(require_auth)):
+async def api_change_password(req: ChangePasswordRequest, request: Request, session: dict = Depends(require_auth)):
     pwd_error = validate_password(req.new_password)
     if pwd_error:
         raise HTTPException(status_code=400, detail=pwd_error)
-    ok = change_password(session["username"], req.old_password, req.new_password)
+    ok = change_password(session["username"], req.old_password, req.new_password, keep_token=_get_token(request))
     if not ok:
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     return {"ok": True}
@@ -1096,9 +1107,12 @@ async def api_request_access(req: AccessRequestBody, request: Request):
     if not req.full_name.strip():
         raise HTTPException(status_code=400, detail="Full name is required")
 
-    # Check if user already exists
+    # The same answer is given whether or not an account or a pending request
+    # already exists, so this form can't be used to find out who has an account.
+    _generic_msg = ("Thank you. If this email can be given access, you will receive an email with the next steps. "
+                    "If you already have an account, use 'Forgot password' on the login page.")
     if user_exists(email):
-        raise HTTPException(status_code=409, detail="An account with this email already exists. Use 'Forgot password' if you need to reset it.")
+        return {"ok": True, "message": _generic_msg}
 
     # Check if the email is in the directory
     directory_match = _check_directory_email(email)
@@ -1126,7 +1140,7 @@ async def api_request_access(req: AccessRequestBody, request: Request):
                         )
                     except Exception:
                         pass
-            return {"ok": True, "message": f"Your email was found in the UNINOVIS directory ({directory_match}). An invitation has been sent to {email}."}
+            return {"ok": True, "message": _generic_msg}
         except Exception:
             pass  # Fall through to manual request
 
@@ -1138,9 +1152,26 @@ async def api_request_access(req: AccessRequestBody, request: Request):
         profile_url=getattr(req, 'profile_url', ''),
         reason=reason,
     )
-    if not ok:
-        raise HTTPException(status_code=409, detail="A request with this email already exists")
-    return {"ok": True, "message": "Access request submitted. A UNINOVIS administrator will review your request and you will receive an email when approved."}
+    return {"ok": True, "message": _generic_msg}
+
+
+# At most one reset email per address every _RESET_EMAIL_COOLDOWN seconds and
+# _RESET_EMAIL_DAILY_MAX per 24 hours (in memory; the response never says so).
+_RESET_EMAIL_COOLDOWN = 5 * 60
+_RESET_EMAIL_DAILY_MAX = 5
+_reset_email_log: dict[str, list[float]] = {}
+
+
+def _reset_email_allowed(email: str) -> bool:
+    import time as _t
+    now = _t.time()
+    sent = [t for t in _reset_email_log.get(email, []) if now - t < 86400]
+    if (sent and now - sent[-1] < _RESET_EMAIL_COOLDOWN) or len(sent) >= _RESET_EMAIL_DAILY_MAX:
+        _reset_email_log[email] = sent
+        return False
+    sent.append(now)
+    _reset_email_log[email] = sent
+    return True
 
 
 @app.post("/api/auth/forgot-password")
@@ -1157,7 +1188,8 @@ async def api_forgot_password(request: Request, body: dict = None):
     # Always perform the same work regardless of whether user exists,
     # to prevent timing-based user enumeration.
     _generic_msg = "If this email is registered, a password reset link has been sent."
-    exists = user_exists(email)
+    # Limit reset emails per address so the form can't flood someone's inbox.
+    exists = user_exists(email) and _reset_email_allowed(email)
     invite_token = create_invite_token(email) if exists else None
 
     if exists and invite_token:

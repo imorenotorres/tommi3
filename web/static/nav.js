@@ -64,6 +64,35 @@ function uninovisNav(opts) {
     }
 }
 
+// ── "No access" notice (shared) ─────────────────────────────────────
+// Shown by an app page when its server answers 403: the user is logged in
+// but their role isn't allowed this tool in Tool Visibility. Hides the page
+// content (keeping the nav bar) instead of bouncing to /login, which would
+// loop straight back here.
+function tommiShowNoAccess(toolName) {
+    if (document.getElementById('tommi-no-access')) return;
+    Array.prototype.forEach.call(document.body.children, function(el) {
+        if (!el.classList.contains('uninovis-nav') && el.tagName !== 'SCRIPT') el.style.display = 'none';
+    });
+    var box = document.createElement('div');
+    box.id = 'tommi-no-access';
+    box.setAttribute('role', 'alert');
+    box.style.cssText = 'max-width:620px;margin:60px auto;padding:24px;background:#fff;border-radius:8px;'
+        + 'box-shadow:0 2px 8px rgba(0,0,0,0.1);font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;color:#333;';
+    var title = document.createElement('h2');
+    title.style.cssText = 'color:#1a3a5c;margin:0 0 10px;font-size:1.2em;';
+    title.textContent = 'No access to ' + (toolName || 'this tool');
+    var text = document.createElement('p');
+    text.textContent = 'Your account is logged in, but your role does not have access to this tool. '
+        + 'If you need it, ask a superuser to enable it for your role.';
+    var back = document.createElement('a');
+    back.href = '/';
+    back.textContent = '← Back to the UNINOVIS intranet';
+    back.style.cssText = 'display:inline-block;margin-top:12px;color:#1a3a5c;';
+    box.appendChild(title); box.appendChild(text); box.appendChild(back);
+    document.body.appendChild(box);
+}
+
 // ── Feedback speech bubble (shared across UNINOVIS pages) ──────────
 // Hovering the bubble opens the panel; clicking pins it open (and is the
 // only way to open it on touch screens). It stays open while the textarea

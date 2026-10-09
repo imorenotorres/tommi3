@@ -47,6 +47,7 @@ _DEFAULT_TOOL_ACCESS = {
     "module_recognition": ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     "micro_credentials":  ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     "learning_support":   ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
+    "gloria_learner_support": ["student", "admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     "unigracon":          ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     "mobility_planner":   ["admin_staff", "uninovis_staff", "teaching_staff", "tester", "content_manager", "superuser"],
     # Research & Innovation
@@ -307,8 +308,34 @@ def mark_study_completed(username: str) -> bool:
     return True
 
 
-# Active sessions: {token: {"username": str, "role": str, "created": float}}
+# Active sessions: {token: {"username", "role", "roles", "created", "last_seen"}}
 _sessions: dict[str, dict] = {}
+
+# A session ends after SESSION_IDLE_HOURS without any request, and in any case
+# SESSION_MAX_DAYS after login (both overridable in .env).
+import os as _os
+SESSION_IDLE_SECONDS = float(_os.getenv("SESSION_IDLE_HOURS", "8")) * 3600
+SESSION_MAX_AGE_SECONDS = float(_os.getenv("SESSION_MAX_DAYS", "7")) * 86400
+
+
+def _purge_expired_sessions() -> None:
+    now = time.time()
+    expired = [
+        t for t, s in _sessions.items()
+        if now - s.get("created", now) > SESSION_MAX_AGE_SECONDS
+        or now - s.get("last_seen", s.get("created", now)) > SESSION_IDLE_SECONDS
+    ]
+    for t in expired:
+        _sessions.pop(t, None)
+
+
+def revoke_user_sessions(username: str, keep_token: Optional[str] = None) -> int:
+    """End every active session of `username` (except `keep_token`). Used when
+    the password changes, so a stolen token stops working. Returns the count."""
+    tokens = [t for t, s in _sessions.items() if s["username"] == username and t != keep_token]
+    for t in tokens:
+        _sessions.pop(t, None)
+    return len(tokens)
 
 # Invitation tokens: {token: {"username": str, "created": float}}
 # Tokens expire after 72 hours
@@ -512,6 +539,65 @@ def update_user_role(username: str, new_role: str, roles: list = None) -> bool:
 # Authentication
 # ---------------------------------------------------------------------------
 
+# ── Login lockout ──────────────────────────────────────────────────
+# After LOGIN_MAX_FAILURES failed logins for the same username within
+# LOGIN_FAILURE_WINDOW seconds, that username is locked for LOGIN_LOCKOUT
+# seconds. Keyed on the typed username (lowercased) whether or not the account
+# exists, so the lock itself doesn't reveal which accounts are real.
+LOGIN_MAX_FAILURES = 5
+LOGIN_FAILURE_WINDOW = 15 * 60
+LOGIN_LOCKOUT = 15 * 60
+_failed_logins: dict[str, list[float]] = {}
+_locked_until: dict[str, float] = {}
+
+
+def login_locked_for(username: str) -> int:
+    """Seconds left on this username's lockout (0 if not locked)."""
+    key = username.strip().lower()
+    remaining = _locked_until.get(key, 0) - time.time()
+    if remaining <= 0:
+        _locked_until.pop(key, None)
+        return 0
+    return int(remaining) + 1
+
+
+def record_failed_login(username: str) -> None:
+    key = username.strip().lower()
+    now = time.time()
+    recent = [t for t in _failed_logins.get(key, []) if now - t < LOGIN_FAILURE_WINDOW]
+    recent.append(now)
+    if len(recent) >= LOGIN_MAX_FAILURES:
+        _locked_until[key] = now + LOGIN_LOCKOUT
+        recent = []
+    _failed_logins[key] = recent
+    # Keep the maps from growing without bound under a spray of usernames.
+    if len(_failed_logins) > 10_000:
+        for k in [k for k, v in _failed_logins.items() if not v or now - v[-1] > LOGIN_FAILURE_WINDOW]:
+            _failed_logins.pop(k, None)
+    if len(_locked_until) > 10_000:
+        for k in [k for k, v in _locked_until.items() if v < now]:
+            _locked_until.pop(k, None)
+
+
+def clear_failed_logins(username: str) -> None:
+    key = username.strip().lower()
+    _failed_logins.pop(key, None)
+    _locked_until.pop(key, None)
+
+
+# Hash checked when the username doesn't exist, so an unknown username takes as
+# long to reject as a wrong password (no timing difference to enumerate users).
+_DUMMY_SALT = secrets.token_hex(16)
+_DUMMY_HASH = ""
+
+
+def _dummy_verify(password: str) -> None:
+    global _DUMMY_HASH
+    if not _DUMMY_HASH:
+        _DUMMY_HASH, _ = _hash_password(secrets.token_hex(16), _DUMMY_SALT)
+    _verify_password(password, _DUMMY_HASH, _DUMMY_SALT)
+
+
 def authenticate(username: str, password: str) -> Optional[dict]:
     """
     Authenticate a user. Returns session info dict or None.
@@ -522,6 +608,7 @@ def authenticate(username: str, password: str) -> Optional[dict]:
     users = _load_users()
     username = _find_username(users, username)
     if not username:
+        _dummy_verify(password)
         return None
     user = users[username]
 
@@ -531,12 +618,14 @@ def authenticate(username: str, password: str) -> Optional[dict]:
     roles = user.get("roles") or [user.get("role", "user")]
     primary_role = roles[0] if roles else "user"
 
+    _purge_expired_sessions()
     token = secrets.token_hex(32)
     _sessions[token] = {
         "username": username,
         "role": primary_role,
         "roles": roles,
         "created": time.time(),
+        "last_seen": time.time(),
     }
 
     # Study info
@@ -561,8 +650,9 @@ def authenticate(username: str, password: str) -> Optional[dict]:
     return result
 
 
-def change_password(username: str, old_password: str, new_password: str) -> bool:
-    """Change a user's password. Clears provisional flag. Returns True if successful."""
+def change_password(username: str, old_password: str, new_password: str, keep_token: Optional[str] = None) -> bool:
+    """Change a user's password. Clears provisional flag and ends the user's
+    other sessions (all but `keep_token`). Returns True if successful."""
     users = _load_users()
     user = users.get(username)
     if not user:
@@ -576,22 +666,31 @@ def change_password(username: str, old_password: str, new_password: str) -> bool
     user["salt"] = salt
     user["provisional_password"] = False
     _save_users(users)
+    revoke_user_sessions(username, keep_token=keep_token)
     return True
 
 
 def get_session(token: str) -> Optional[dict]:
-    """Get session info for a token. Returns None if invalid."""
+    """Get session info for a token. Returns None if invalid or expired."""
     session = _sessions.get(token)
     if not session:
+        return None
+    now = time.time()
+    last_seen = session.get("last_seen", session.get("created", now))
+    if now - session.get("created", now) > SESSION_MAX_AGE_SECONDS or now - last_seen > SESSION_IDLE_SECONDS:
+        _sessions.pop(token, None)
         return None
     # Check if user still exists with same role
     users = _load_users()
     user = users.get(session["username"])
     if not user:
-        del _sessions[token]
+        _sessions.pop(token, None)
         return None
-    # Update role if changed
-    session["role"] = user["role"]
+    session["last_seen"] = now
+    # Roles are re-read on every lookup so a role change or demotion applies
+    # immediately — user_roles() reads "roles" first, so both must be fresh.
+    session["roles"] = user.get("roles") or [user["role"]]
+    session["role"] = session["roles"][0]
     # Kept fresh on every lookup (not just at login) so a password change
     # mid-session takes effect immediately, without requiring a re-login.
     session["provisional_password"] = user.get("provisional_password", False)
@@ -650,6 +749,23 @@ def require_login(request: Request) -> dict:
     if not session:
         raise HTTPException(status_code=401, detail="Invalid or expired session")
     return session
+
+
+def tool_access_guard(tool_id: str, exempt_suffixes: tuple = ()):
+    """Router-level dependency that applies the Tool Visibility settings
+    (TOOL_ACCESS) on the server, not only by hiding the intranet card.
+    Checks every */api/* route of the router except paths ending in one of
+    `exempt_suffixes`; the HTML page itself stays loadable so it can explain
+    the missing access."""
+    def guard(request: Request, session: dict = Depends(require_session)) -> None:
+        path = request.url.path
+        if "/api/" not in path or path.endswith(exempt_suffixes):
+            return
+        if session.get("role") == "public":
+            raise HTTPException(status_code=401, detail="Authentication required")
+        if not can_access_tool(session, tool_id):
+            raise HTTPException(status_code=403, detail="You do not have access to this tool")
+    return guard
 
 
 def require_editor(session: dict = Depends(require_session)) -> dict:
@@ -772,6 +888,7 @@ def set_password_from_invite(token: str, new_password: str) -> Optional[str]:
     user["provisional_password"] = False
     user.pop("pending_invite", None)
     _save_users(users)
+    revoke_user_sessions(username)
 
     # Consume the token
     del invites[token]

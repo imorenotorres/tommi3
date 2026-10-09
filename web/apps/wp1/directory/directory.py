@@ -16,7 +16,10 @@ from pydantic import BaseModel
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 
-router = APIRouter(prefix="/directory", tags=["directory"])
+# Tool Visibility is enforced on the server for every /api/ route (see auth.tool_access_guard).
+from auth import tool_access_guard as _tool_access_guard
+
+router = APIRouter(prefix="/directory", tags=["directory"], dependencies=[Depends(_tool_access_guard("directory", ("/api/my-profile",)))])
 
 # ---------------------------------------------------------------------------
 # Auth helpers (same pattern as apps/old apps/directory and apps/event_tracker)
@@ -630,8 +633,12 @@ class MyProfileUpdate(BaseModel):
     family_name: str
     phone: str = ""
     position: str = ""
-    university: str = ""
-    units: list[PersonUnitAssignment] = []
+    # The university drives every per-university permission (Directory,
+    # UNIGRACON, Mobility Planner, Gloria), so only a superuser may change their
+    # own here; everyone else's is set through the scoped person-edit endpoint.
+    # Units can be edited by everyone. None = keep the current value.
+    university: str | None = None
+    units: list[PersonUnitAssignment] | None = None
 
 
 def _find_person_by_email(data: dict, email: str) -> dict | None:
@@ -650,12 +657,31 @@ def get_my_profile(session: dict = Depends(_require_auth)):
     if not person:
         raise HTTPException(status_code=404, detail="No directory profile found")
 
+    all_units = data.get("units", [])
+    unit_names = {u["id"]: u.get("name", "") for u in all_units}
     memberships = [
-        {"unit_id": m["unit_id"], "role": m.get("role", "")}
+        {"unit_id": m["unit_id"], "unit_name": unit_names.get(m["unit_id"], ""), "role": m.get("role", "")}
         for m in data.get("memberships", [])
         if m["person_id"] == person["id"]
     ]
-    return {**person, "memberships": memberships}
+    return {**person, "memberships": memberships, "unit_tree": _unit_name_tree(all_units)}
+
+
+def _unit_name_tree(units: list) -> list:
+    """Units as a names-only tree (no members), so users without Directory
+    access can still pick their own units in the profile form."""
+    ids = {u["id"] for u in units}
+    children: dict = {}
+    for u in units:
+        parent = u.get("parent_id") if u.get("parent_id") in ids else None
+        children.setdefault(parent, []).append(u)
+
+    def build(parent, seen):
+        return [
+            {"id": u["id"], "name": u.get("name", ""), "subunits": build(u["id"], seen | {u["id"]})}
+            for u in children.get(parent, []) if u["id"] not in seen
+        ]
+    return build(None, frozenset())
 
 
 @router.put("/api/my-profile")
@@ -676,8 +702,12 @@ def update_my_profile(body: MyProfileUpdate, session: dict = Depends(_require_au
     if not person:
         raise HTTPException(status_code=404, detail="No directory profile found for your account")
 
+    is_superuser = "superuser" in set(_user_roles(session))
+    if not is_superuser and body.university is not None and body.university != (person.get("university") or ""):
+        raise HTTPException(status_code=403, detail="Your university can only be changed by a content manager of your university or a superuser")
+
     unit_ids = {u["id"] for u in data.get("units", [])}
-    for assignment in body.units:
+    for assignment in body.units or []:
         if assignment.unit_id not in unit_ids:
             raise HTTPException(status_code=400, detail=f"Unknown unit: {assignment.unit_id}")
 
@@ -685,21 +715,24 @@ def update_my_profile(body: MyProfileUpdate, session: dict = Depends(_require_au
     person["family_name"] = family_name
     person["phone"] = body.phone.strip()
     person["position"] = body.position.strip()
-    person["university"] = body.university
-    person["university_name"] = UNIVERSITIES.get(body.university, {}).get("name", "")
+    # A non-superuser reaching this point submitted their unchanged university (or none).
+    if is_superuser and body.university is not None:
+        person["university"] = body.university
+        person["university_name"] = UNIVERSITIES.get(body.university, {}).get("name", "")
 
-    # Replace this person's memberships wholesale with the submitted set
-    data["memberships"] = [m for m in data.get("memberships", []) if m["person_id"] != person["id"]]
-    seen_units = set()
-    for assignment in body.units:
-        if assignment.unit_id in seen_units:
-            continue
-        seen_units.add(assignment.unit_id)
-        data["memberships"].append({
-            "person_id": person["id"],
-            "unit_id": assignment.unit_id,
-            "role": assignment.role.strip(),
-        })
+    if body.units is not None:
+        # Replace this person's memberships wholesale with the submitted set
+        data["memberships"] = [m for m in data.get("memberships", []) if m["person_id"] != person["id"]]
+        seen_units = set()
+        for assignment in body.units:
+            if assignment.unit_id in seen_units:
+                continue
+            seen_units.add(assignment.unit_id)
+            data["memberships"].append({
+                "person_id": person["id"],
+                "unit_id": assignment.unit_id,
+                "role": assignment.role.strip(),
+            })
 
     save_data(data)
     return {"ok": True, "id": person["id"]}

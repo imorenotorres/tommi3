@@ -90,7 +90,7 @@
     </script>
 </head>
 <body>
-<script src="/static/nav.js?v=14"></script>
+<script src="/static/nav.js?v=15"></script>
 <script>uninovisNav({ crumbs: [{label:'Administration', href:'/#admin'}], current: 'Directory' });</script>
     <div class="container">
         <h1>UNINOVIS Directory</h1>
@@ -172,7 +172,11 @@
     var status = {};
     var currentUser = null;
 
-    function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+    function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : ''; }
+    // Safe JS string literal for use inside a double-quoted inline handler attribute.
+    function jsArg(v) { return esc(JSON.stringify(String(v))); }
+    // Only allow http(s) URLs as link targets.
+    function isHttpUrl(u) { return /^https?:\/\//i.test(String(u || '').trim()); }
 
     function authFetch(url, opts) {
         opts = opts || {};
@@ -205,7 +209,7 @@
 
     function emailBtn(email) {
         if (!email) return '';
-        return ' <button class="btn-small" onclick="event.stopPropagation();copyEmail(\'' + esc(email) + '\', this)" style="font-size:0.7em;padding:1px 5px;margin-left:4px;" title="' + esc(email) + '">&#9993;</button>';
+        return ' <button class="btn-small" onclick="event.stopPropagation();copyEmail(' + jsArg(email) + ', this)" style="font-size:0.7em;padding:1px 5px;margin-left:4px;" title="' + esc(email) + '">&#9993;</button>';
     }
 
     function collectMemberEmails(node, out) {
@@ -566,7 +570,7 @@
                 var label = person ? (person.first_name + ' ' + person.family_name) : email;
                 return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#f0f2f5;border-radius:6px;margin-bottom:6px;">'
                     + '<span>' + esc(label) + (person ? ' <span style="color:#888;font-size:0.85em;">(' + esc(email) + ')</span>' : '') + '</span>'
-                    + '<button type="button" onclick="removeEditUnitLeaderEmail(\'' + esc(email) + '\')" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1.1em;padding:0 4px;" title="Remove">&times;</button>'
+                    + '<button type="button" onclick="removeEditUnitLeaderEmail(' + jsArg(email) + ')" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1.1em;padding:0 4px;" title="Remove">&times;</button>'
                     + '</div>';
             }).join('')
             : '<p style="font-size:0.85em;color:#888;">No leaders set.</p>';
@@ -691,9 +695,9 @@
                 + '<td><strong>' + esc(u.code) + '</strong></td>'
                 + '<td>' + esc(u.name) + '</td>'
                 + '<td>' + esc(u.country) + '</td>'
-                + '<td>' + (u.website ? '<a href="' + esc(u.website) + '" target="_blank" rel="noopener">' + esc(u.website) + '</a>' : '—') + '</td>'
-                + '<td>' + u.staff_count + '</td>'
-                + (canEditAny ? '<td>' + (canEditUniversity(u) ? '<button class="btn-small" onclick="openEditUniversityModal(\'' + esc(u.code) + '\')" style="font-size:0.75em;padding:2px 8px;" title="Edit website">Edit</button>' : '') + '</td>' : '')
+                + '<td>' + (u.website ? (isHttpUrl(u.website) ? '<a href="' + esc(u.website) + '" target="_blank" rel="noopener">' + esc(u.website) + '</a>' : esc(u.website)) : '—') + '</td>'
+                + '<td>' + esc(String(u.staff_count)) + '</td>'
+                + (canEditAny ? '<td>' + (canEditUniversity(u) ? '<button class="btn-small" onclick="openEditUniversityModal(' + jsArg(u.code) + ')" style="font-size:0.75em;padding:2px 8px;" title="Edit website">Edit</button>' : '') + '</td>' : '')
                 + '</tr>';
         });
         html += '</table>';
@@ -717,7 +721,7 @@
             + '<div id="edit-uni-msg" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.85rem;margin-bottom:12px;"></div>'
             + fieldRow('Website', '<input type="url" id="euni-website" value="' + esc(u.website) + '" placeholder="https://…" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
             + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
-            + '<button class="btn" onclick="submitEditUniversity(\'' + esc(u.code) + '\')">Save</button>'
+            + '<button class="btn" onclick="submitEditUniversity(' + jsArg(u.code) + ')">Save</button>'
             + '<button class="btn-small" onclick="closeAddModal()" style="padding:8px 20px;">Cancel</button>'
             + '</div>'
             + '</div>';
@@ -883,8 +887,25 @@
             + fieldRow('Email', '<input type="email" value="' + esc(profile.email) + '" disabled style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;background:#f0f2f5;color:#888;">')
             + fieldRow('Phone', '<input type="text" id="mp-phone" value="' + esc(profile.phone) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
             + fieldRow('Position', '<input type="text" id="mp-position" value="' + esc(profile.position) + '" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">')
-            + fieldRow('University', '<select id="mp-university" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + universityOptions('— none —', profile.university) + '</select>')
-            + fieldRow('Units / Subunits', '<div id="mp-units-list">' + rowsHtml + '</div><button type="button" class="btn-small" onclick="addUnitRow(\'mp-units-list\')">+ Add another unit</button>');
+            + myProfileAffiliationHtml(profile, rowsHtml);
+    }
+
+    // The university decides what a person may edit across UNINOVIS apps, so
+    // only a superuser may change their own; for everyone else it is shown
+    // locked (the server rejects changes too). Units are editable by everyone.
+    function myProfileAffiliationHtml(profile, rowsHtml) {
+        var unitsField = fieldRow('Units / Subunits', '<div id="mp-units-list">' + rowsHtml + '</div>'
+            + '<button type="button" class="btn-small" onclick="addUnitRow(\'mp-units-list\')">+ Add another unit</button>');
+        if (isSuperuser()) {
+            return fieldRow('University', '<select id="mp-university" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:6px;">' + universityOptions('— none —', profile.university) + '</select>')
+                + unitsField;
+        }
+        // Read-only text from the profile itself, so it also works for users
+        // who can't load the Directory's university list.
+        var note = '<div style="font-size:0.8em;color:#666;margin-top:4px;">Only a content manager of your university or a superuser can change this.</div>';
+        var box = 'padding:8px 10px;border:1px solid #ddd;border-radius:6px;background:#f0f2f5;color:#555;';
+        return fieldRow('University', '<div style="' + box + '">' + (esc(profile.university_name || profile.university) || '— none —') + '</div>' + note)
+            + unitsField;
     }
 
     function unitFormHtml() {
@@ -965,6 +986,9 @@
         var resp = await authFetch(BASE + '/api/my-profile');
         if (!resp.ok) return; // no directory entry for this account — nothing to edit
         var profile = await resp.json();
+        // Users without Directory access can't load the full unit tree (it
+        // includes members); the profile carries a names-only one for the picker.
+        if (!units.length && profile.unit_tree) units = profile.unit_tree;
 
         closeAddModal();
         var overlay = document.createElement('div');
@@ -991,6 +1015,7 @@
         if (window.location.hash === '#my-profile') {
             history.replaceState(null, '', window.location.pathname + window.location.search);
         }
+        if (noDirectoryAccess) tommiShowNoAccess('the Directory');
     }
 
     async function submitMyProfile() {
@@ -1002,9 +1027,9 @@
             family_name: familyName,
             phone: document.getElementById('mp-phone').value.trim(),
             position: document.getElementById('mp-position').value.trim(),
-            university: document.getElementById('mp-university').value,
-            units: collectUnitRows('mp-units-list'),
         };
+        body.units = collectUnitRows('mp-units-list');
+        if (isSuperuser()) body.university = document.getElementById('mp-university').value;
         try {
             var resp = await authFetch(BASE + '/api/my-profile', {
                 method: 'PUT',
@@ -1013,7 +1038,7 @@
             });
             if (!resp.ok) { var err = await resp.json(); addMsg(err.detail || 'Error saving profile', false); return; }
             closeMyProfileModal();
-            await loadAll();
+            if (!noDirectoryAccess) await loadAll();
         } catch (e) { addMsg('Connection error', false); }
     }
 
@@ -1272,6 +1297,8 @@
             var resp = await authFetch(BASE + '/api/auth-check');
             if (resp.ok) {
                 currentUser = await resp.json();
+            } else if (resp.status === 403) {
+                return 'noaccess';
             } else {
                 window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.hash);
                 return false;
@@ -1400,9 +1427,19 @@
         });
     } catch (e) { console.error('Guide registration failed:', e); }
 
+    var noDirectoryAccess = false;
+
     async function init() {
         var authed = await checkAuth();
         if (!authed) return; // already redirecting to /login
+        if (authed === 'noaccess') {
+            // No Directory access, but everyone may still edit their own
+            // profile (reached from the user menu as /directory/#my-profile).
+            noDirectoryAccess = true;
+            if (window.location.hash === '#my-profile') openMyProfileModal();
+            else tommiShowNoAccess('the Directory');
+            return;
+        }
         try { await loadAll(); } catch (e) { console.error('Failed to load directory data:', e); }
         if (window.location.hash === '#my-profile') openMyProfileModal();
         try {

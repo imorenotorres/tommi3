@@ -444,7 +444,7 @@ const PALETTE_SIZE = 30;
 const PALETTE_HUES = Array.from({ length: PALETTE_SIZE }, (_, i) => Math.round(i * 360 / PALETTE_SIZE));
 
 function hueToColor(hue) {
-  return `hsl(${hue}, 62%, 42%)`;
+  return `hsl(${Number(hue)}, 62%, 42%)`;
 }
 
 // Every viewer computes the same color per person from the same shared
@@ -498,11 +498,11 @@ function chipHTML(ev) {
   const locked = ev.username === ME && ev.is_editable === false;
   const cls = 'event-chip ' + ev.type + (locked ? ' locked' : '');
   const dest = ev.type === 'comision_servicio' && ev.destination ? ' → ' + esc(ev.destination) : '';
-  const hoursLabel = ev.type === 'formacion' ? ' (' + (ev.hours != null ? ev.hours : FULL_DAY_HOURS) + 'h)' : '';
+  const hoursLabel = ev.type === 'formacion' ? ' (' + esc(String(ev.hours != null ? ev.hours : FULL_DAY_HOURS)) + 'h)' : '';
   const title = ev.type === 'comision_servicio' && ev.description ? esc(ev.description) : '';
   const name = esc(ev.display_name || ev.username);
-  const id = esc(String(ev.id));
-  return `<span class="${cls}" style="background:${color};" onclick="event.stopPropagation(); onChipClick('${id}')" title="${title}">${icon} ${name}${dest}${hoursLabel}${locked ? ' 🔒' : ''}</span>`;
+  const id = jsArg(ev.id);
+  return `<span class="${esc(cls)}" style="background:${color};" onclick="event.stopPropagation(); onChipClick(${id})" title="${title}">${icon} ${name}${dest}${hoursLabel}${locked ? ' 🔒' : ''}</span>`;
 }
 
 function renderLegend() {
@@ -537,8 +537,8 @@ function renderMonth() {
     const dayEvents = eventsOnDate(dStr).sort((a,b) => (a.display_name||a.username).localeCompare(b.display_name||b.username));
     const nw = isNonWorking(d);
     const nwClass = nw ? (nw.type === 'weekend' ? ' non-working' : ' non-working festivity') : '';
-    const nwTitle = nw && nw.type === 'festivity' ? ` title="${nw.name}"` : '';
-    const nwLabel = nw && nw.type === 'festivity' ? `<div class="festivity-label">${nw.icon} ${nw.name}</div>` : '';
+    const nwTitle = nw && nw.type === 'festivity' ? ` title="${esc(nw.name)}"` : '';
+    const nwLabel = nw && nw.type === 'festivity' ? `<div class="festivity-label">${esc(nw.icon)} ${esc(nw.name)}</div>` : '';
     html += `<div class="day-cell${otherMonth?' other-month':''}${isToday?' today':''}${nwClass}" style="cursor:pointer;"${nwTitle} onclick="openLogModal('holiday','${dStr}')">`
           + `<div class="day-num">${d.getDate()}</div>`
           + nwLabel
@@ -581,8 +581,8 @@ function renderWeek() {
     const isToday = dStr === todayStr;
     const nw = isNonWorking(d);
     const nwClass = nw ? (nw.type === 'weekend' ? ' non-working' : ' non-working festivity') : '';
-    const nwTitle = nw && nw.type === 'festivity' ? ` title="${nw.name}"` : '';
-    const nwLabel = nw && nw.type === 'festivity' ? `<div class="festivity-label">${nw.icon} ${nw.name}</div>` : '';
+    const nwTitle = nw && nw.type === 'festivity' ? ` title="${esc(nw.name)}"` : '';
+    const nwLabel = nw && nw.type === 'festivity' ? `<div class="festivity-label">${esc(nw.icon)} ${esc(nw.name)}</div>` : '';
     const dayEvents = eventsOnDate(dStr).sort((a,b) => (a.display_name||a.username).localeCompare(b.display_name||b.username));
     html += `<div class="day-cell${isToday ? ' today' : ''}${nwClass}" style="cursor:pointer;"${nwTitle} onclick="openLogModal('holiday','${dStr}')">`
           + nwLabel
@@ -958,7 +958,7 @@ function onChipClick(id) {
           + (ev.description ? '<div class="detail-row"><b>Descripción:</b> ' + esc(ev.description) + '</div>' : '');
         detailExtra.style.display = '';
       } else if (ev.type === 'formacion') {
-        detailExtra.innerHTML = '<div class="detail-row"><b>Hours:</b> ' + (ev.hours != null ? ev.hours : FULL_DAY_HOURS) + 'h</div>';
+        detailExtra.innerHTML = '<div class="detail-row"><b>Hours:</b> ' + esc(String(ev.hours != null ? ev.hours : FULL_DAY_HOURS)) + 'h</div>';
         detailExtra.style.display = '';
       } else {
         detailExtra.style.display = 'none';
@@ -974,7 +974,12 @@ let festManageData = { recurring: [], by_year: {} };
 let editingFestivityId = null;
 
 function esc(s) {
-  return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+  return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') : '';
+}
+
+// Safe JS string literal for use inside a double-quoted inline handler attribute.
+function jsArg(v) {
+  return esc(JSON.stringify(String(v)));
 }
 
 async function openFestivitiesModal() {
@@ -1031,7 +1036,7 @@ function renderFestivitiesList() {
   const years = Object.keys(festManageData.by_year || {}).sort((a, b) => b.localeCompare(a));
   years.forEach(year => {
     const entries = (festManageData.by_year[year] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
-    html += `<div style="font-weight:600;font-size:0.85rem;margin:14px 0 4px;">${year}</div>`;
+    html += `<div style="font-weight:600;font-size:0.85rem;margin:14px 0 4px;">${esc(year)}</div>`;
     html += entries.length ? entries.map(festRowHTML).join('') : '<p class="stats-empty" style="margin-bottom:8px;">None.</p>';
   });
 
@@ -1044,8 +1049,8 @@ function festRowHTML(entry) {
   return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.88rem;">`
     + `<span style="width:130px;color:var(--text-light);">${esc(dateLabel)}</span>`
     + `<span style="flex:1;">${esc(entry.icon || '🔴')} ${esc(entry.name)}</span>`
-    + `<button class="btn" style="padding:3px 10px;font-size:0.8rem;" onclick="openFestEditModal('${entry.id}')">Edit</button>`
-    + `<button class="btn btn-danger" style="padding:3px 10px;font-size:0.8rem;" onclick="deleteFestivityRow('${entry.id}')">Delete</button>`
+    + `<button class="btn" style="padding:3px 10px;font-size:0.8rem;" onclick="openFestEditModal(${jsArg(entry.id)})">Edit</button>`
+    + `<button class="btn btn-danger" style="padding:3px 10px;font-size:0.8rem;" onclick="deleteFestivityRow(${jsArg(entry.id)})">Delete</button>`
     + `</div>`;
 }
 
@@ -1227,10 +1232,10 @@ function renderAllowanceList() {
   if (!rows.length) { el.innerHTML = '<p class="stats-empty">No allowance set yet.</p>'; return; }
   el.innerHTML = '<div style="font-weight:600;font-size:0.85rem;margin:8px 0 4px;">Saved years</div>' + rows.map(a => `
     <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.88rem;">
-      <span style="width:50px;color:var(--text-light);">${a.year}</span>
+      <span style="width:50px;color:var(--text-light);">${esc(String(a.year))}</span>
       <span style="flex:1;">🌴 ${fmtDays(a.vacation_days)} d &nbsp; 🙂 ${fmtDays(a.personal_days)} d &nbsp; 🎓 ${fmtDays(a.formacion_days || 0)} d</span>
-      <button class="btn" style="padding:3px 10px;font-size:0.8rem;" onclick="editAllowanceRow('${a.id}')">Edit</button>
-      <button class="btn btn-danger" style="padding:3px 10px;font-size:0.8rem;" onclick="deleteAllowanceRow('${a.id}')">Delete</button>
+      <button class="btn" style="padding:3px 10px;font-size:0.8rem;" onclick="editAllowanceRow(${jsArg(a.id)})">Edit</button>
+      <button class="btn btn-danger" style="padding:3px 10px;font-size:0.8rem;" onclick="deleteAllowanceRow(${jsArg(a.id)})">Delete</button>
     </div>
   `).join('');
 }

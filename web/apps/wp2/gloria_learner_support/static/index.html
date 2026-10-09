@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gloria Learner Support — UNINOVIS</title>
+    <link rel="stylesheet" href="/static/nav.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #f0f2f5; --card: #fff; --text: #333; --muted: #666; --primary: #1a3a5c; --primary-hover: #274d73;
+            --border: #dde1e6; --soft: #f6f8fa; --draft: #fff4d6; --draft-text: #7a5a00; --danger: #b3261e;
+        }
+        body.high-contrast {
+            --bg: #fff; --card: #fff; --text: #000; --muted: #222; --primary: #000; --primary-hover: #222;
+            --border: #000; --soft: #fff; --draft: #fff; --draft-text: #000; --danger: #8b0000;
+        }
+        body.high-contrast .card, body.high-contrast .tile, body.high-contrast .service { border-width: 2px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.45; }
+        a { color: var(--primary); }
+        :focus-visible { outline: 3px solid #9aa5e6; outline-offset: 2px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        h1 { color: var(--primary); margin-bottom: 4px; }
+        h2 { color: var(--primary); font-size: 1.25em; margin-bottom: 12px; }
+        h3 { color: var(--primary); font-size: 1.05em; margin: 22px 0 10px; }
+        .subtitle { color: var(--muted); margin-bottom: 20px; }
+        .muted { color: var(--muted); }
+        .small { font-size: 0.85em; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .toolbar .right { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .btn { background: var(--primary); color: #fff; border: 1px solid var(--primary); padding: 8px 16px; border-radius: 6px; font-size: 0.92em; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn:hover { background: var(--primary-hover); }
+        .btn.secondary { background: var(--card); color: var(--primary); }
+        .btn.secondary:hover { background: var(--soft); }
+        .btn.danger { background: var(--card); color: var(--danger); border-color: var(--danger); }
+        .btn.small { padding: 4px 10px; font-size: 0.82em; }
+        .btn:disabled { opacity: 0.5; cursor: default; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+        .tile { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-decoration: none; color: var(--text); display: block; transition: box-shadow .15s, transform .15s; }
+        .tile:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.1); transform: translateY(-1px); }
+        .tile .code { font-weight: 700; color: var(--primary); font-size: 1.1em; }
+        .tile .flag { font-size: 1.3em; margin-right: 6px; }
+        .tile .name { font-size: 0.88em; color: var(--muted); margin-top: 4px; }
+        .tile .count { font-size: 0.8em; color: var(--muted); margin-top: 8px; }
+        .tile.own { border: 2px solid var(--primary); }
+        .own-badge { font-size: 0.72em; background: var(--primary); color: #fff; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+
+        .framework { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .framework ul { list-style: none; }
+        .framework li { margin-bottom: 8px; font-size: 0.92em; }
+        .dot { display: inline-block; width: 11px; height: 11px; border-radius: 2px; margin-right: 6px; vertical-align: baseline; }
+
+        .partner-head .tagline { font-weight: 600; margin: 8px 0; }
+        .partner-head .people { margin-top: 12px; font-size: 0.92em; }
+        .partner-head .people span + span::before { content: ' | '; color: var(--muted); }
+
+        .filters { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+        .filter-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .filter-group > .lbl { font-size: 0.8em; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+        .chip { border: 1px solid var(--border); background: var(--card); color: var(--text); border-radius: 14px; padding: 3px 12px; font-size: 0.85em; cursor: pointer; }
+        .chip[aria-pressed="true"] { background: var(--primary); color: #fff; border-color: var(--primary); }
+        input[type="search"], input[type="text"], input[type="email"], input[type="number"], select, textarea {
+            padding: 7px 10px; border: 1px solid #b8bec6; border-radius: 6px; font-size: 0.92em; background: #fff; color: #222; font-family: inherit;
+        }
+        textarea { width: 100%; min-height: 90px; resize: vertical; }
+
+        .services { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+        .service { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+        .service.draft { background: var(--draft); border-style: dashed; }
+        .service .title { font-weight: 700; color: var(--primary); }
+        .service .desc { font-size: 0.9em; }
+        .service .meta { font-size: 0.84em; color: var(--muted); }
+        .service .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+        .service .actions { display: flex; gap: 6px; margin-top: auto; padding-top: 6px; flex-wrap: wrap; }
+        .tag { font-size: 0.75em; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--soft); color: var(--text); }
+        .tag.group { color: #fff; border: none; }
+        .tag.access-own { background: #fde8e6; border-color: #f2b8b2; color: #7a1d14; }
+        .tag.access-alliance { background: #e3f4e8; border-color: #a9d8b8; color: #145c2c; }
+        .tag.draft { background: var(--draft-text); color: #fff; border: none; }
+        .tag.scope { background: var(--primary); color: #fff; border: none; }
+        body.high-contrast .tag { background: #fff !important; color: #000 !important; border: 1px solid #000 !important; }
+
+        .empty { color: var(--muted); padding: 16px 0; }
+        .notice { background: var(--draft); color: var(--draft-text); border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.9em; }
+        .error-box { background: #fde8e6; color: #7a1d14; border-radius: 6px; padding: 12px 16px; }
+
+        table.list { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        table.list th, table.list td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        table.list th { color: var(--muted); font-weight: 600; }
+
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: flex-start; justify-content: center; z-index: 2000; overflow-y: auto; padding: 40px 12px; }
+        .modal-bg.open { display: flex; }
+        .modal { background: #fff; color: #222; border-radius: 10px; width: 100%; max-width: 640px; padding: 22px; }
+        .modal h2 { margin-bottom: 14px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+        .form-grid .full { grid-column: 1 / -1; }
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        .field label, .field .lbl { font-weight: 600; font-size: 0.85em; color: #1a3a5c; }
+        .field .hint { font-size: 0.78em; color: #666; }
+        .field .hint:empty, .field .field-error:empty { display: none; }
+        .field .field-error { font-size: 0.8em; color: var(--danger); font-weight: 600; }
+        .field [aria-invalid="true"] { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(179,38,30,0.15); }
+        .checks { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.9em; }
+        .modal .buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+        .modal .form-error { color: var(--danger); font-size: 0.88em; margin-top: 10px; min-height: 1em; }
+
+        .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+        .back { display: inline-block; margin-bottom: 12px; font-size: 0.9em; }
+        @media (max-width: 700px) {
+            body { padding: 12px; }
+            .framework, .form-grid { grid-template-columns: 1fr; }
+            .services { grid-template-columns: 1fr; }
+        }
+    </style>
+    <!-- Matomo -->
+    <script>
+      var _paq = window._paq = window._paq || [];
+      _paq.push(['disableCookies']);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="https://uninovis.matomo.cloud/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '3']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src='https://cdn.matomo.cloud/uninovis.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
+</head>
+<body>
+<script src="/static/nav.js?v=14"></script>
+<script>uninovisNav({ crumbs: [{label:'Learning & Mobility', href:'/#learning'}], current: 'Gloria Learner Support' });</script>
+    <div class="container">
+        <div class="toolbar">
+            <div>
+                <h1>Gloria Learner Support</h1>
+                <p class="muted">Learning that lasts a lifetime — support that travels with you.</p>
+            </div>
+            <div class="right">
+                <a class="btn secondary" href="#" id="homeBtn">All partners</a>
+                <a class="btn secondary" href="#settings" id="settingsBtn" style="display:none;">Settings</a>
+                <button class="btn secondary" id="contrastBtn" aria-pressed="false" onclick="toggleContrast()">High contrast</button>
+            </div>
+        </div>
+        <main id="view" aria-live="polite"><p class="muted">Loading…</p></main>
+    </div>
+
+    <div class="modal-bg" id="modalBg" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal">
+            <h2 id="modalTitle"></h2>
+            <form id="modalForm" novalidate></form>
+            <div class="form-error" id="modalError" role="alert"></div>
+            <div class="buttons">
+                <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+                <button type="button" class="btn" id="modalSave">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    var BASE = '/gloria-learner-support';
+    var ALLIANCE = 'ALLIANCE';
+    var authToken = localStorage.getItem('uninovis_token') || localStorage.getItem('tommi_token');
+    var me = null;
+    var cat = null;  // { types, learner_groups, target_groups, rooms, universities, services }
+    var filters = { groups: [], types: [], target: '', access: '', q: '' };
+
+    function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+    function safeUrl(u) { return /^(https?:\/\/|mailto:)/i.test(u || '') ? u : ''; }
+    function flag(country) {
+        if (!country || country.length !== 2) return '';
+        return String.fromCodePoint.apply(null, country.toUpperCase().split('').map(function(c) { return 127397 + c.charCodeAt(0); }));
+    }
+    function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+    function uni(code) { for (var i = 0; i < cat.universities.length; i++) if (cat.universities[i].code === code) return cat.universities[i]; return null; }
+    function canEdit(scope) { return !!me && me.editable_scopes.indexOf(scope) !== -1; }
+
+    function authFetch(url, opts) {
+        opts = opts || {};
+        opts.headers = opts.headers || {};
+        if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+        return fetch(url, opts);
+    }
+
+    async function api(method, path, body) {
+        var opts = { method: method, headers: {} };
+        if (body !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+        var resp = await authFetch(BASE + path, opts);
+        var data = null;
+        try { data = await resp.json(); } catch (e) {}
+        if (!resp.ok) {
+            var detail = data && data.detail;
+            if (Array.isArray(detail)) detail = detail.map(function(d) { return (d.loc ? d.loc[d.loc.length - 1] + ': ' : '') + d.msg; }).join('; ');
+            throw new Error(detail || ('Request failed (' + resp.status + ')'));
+        }
+        return data;
+    }
+
+    function goLogin() {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.hash);
+    }
+
+    // ── Accessibility: high-contrast toggle (remembered per browser) ──
+
+    function applyContrast(on) {
+        document.body.classList.toggle('high-contrast', on);
+        document.getElementById('contrastBtn').setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    function toggleContrast() {
+        var on = !document.body.classList.contains('high-contrast');
+        applyContrast(on);
+        try { localStorage.setItem('gloria_high_contrast', on ? '1' : ''); } catch (e) {}
+    }
+
+    // ── Loading and routing ───────────────────────────────────────
+
+    async function reload() {
+        cat = await api('GET', '/api/catalogue');
+        route();
+    }
+
+    function route() {
+        var h = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+        var parts = h.split('/');
+        if (parts[0] === 'partner' && uni(parts[1])) return renderPartner(parts[1]);
+        if (parts[0] === 'room' && byId(cat.rooms, parts[1])) return renderRoom(parts[1]);
+        if (parts[0] === 'settings' && me.is_superuser) return renderSettings();
+        renderHome();
+    }
+
+    function servicesOf(scope) { return cat.services.filter(function(s) { return s.scope === scope; }); }
+    function publishedCount(scope) { return servicesOf(scope).filter(function(s) { return s.status === 'published'; }).length; }
+    function draftCount(scope) { return servicesOf(scope).filter(function(s) { return s.status !== 'published'; }).length; }
+
+    // ── Home ──────────────────────────────────────────────────────
+
+    function renderHome() {
+        var html = '';
+        html += '<div class="card"><h2>How the Learning Support is organised</h2>'
+            + '<p class="small muted" style="margin-bottom:14px;">UNINOVIS Learning Support is not only about academic tutoring. It also includes mentoring, orientation, '
+            + 'wellbeing, language confidence and a sense of belonging in the UNINOVIS community. Services are organised along two principles:</p>'
+            + '<div class="framework"><div><h3 style="margin-top:0;">Learner groups</h3><ul>'
+            + cat.learner_groups.map(function(g) {
+                return '<li><span class="dot" style="background:' + esc(g.color) + '"></span><strong>' + esc(g.name) + '</strong> — ' + esc(g.description) + '</li>';
+            }).join('')
+            + '</ul></div><div><h3 style="margin-top:0;">Support categories</h3><ul>'
+            + cat.types.map(function(t) { return '<li><strong>' + esc(t.name) + '</strong> — ' + esc(t.description) + '</li>'; }).join('')
+            + '</ul></div></div></div>';
+
+        html += '<div class="card"><h2>Search all services</h2>'
+            + '<input type="search" id="globalSearch" style="width:100%;" placeholder="e.g. psychological counselling, housing, buddy…" aria-label="Search all services" value="' + esc(filters.q) + '">'
+            + '<div id="globalResults"></div></div>';
+
+        html += '<h2>Choose your university</h2><div class="grid" style="margin-bottom:24px;">';
+        cat.universities.forEach(function(u) {
+            var own = me.own_university === u.code;
+            var drafts = canEdit(u.code) ? draftCount(u.code) : 0;
+            html += '<a class="tile' + (own ? ' own' : '') + '" href="#partner/' + esc(u.code) + '">'
+                + '<div><span class="flag" aria-hidden="true">' + flag(u.country) + '</span><span class="code">' + esc(u.code) + '</span>'
+                + (own ? '<span class="own-badge">Your university</span>' : '') + '</div>'
+                + '<div class="name">' + esc(u.name) + '</div>'
+                + '<div class="count">' + publishedCount(u.code) + ' service(s)' + (drafts ? ' · ' + drafts + ' draft(s)' : '') + '</div></a>';
+        });
+        html += '</div>';
+
+        html += '<div class="toolbar"><h2 style="margin:0;">Cross-Alliance support</h2>'
+            + (canEdit(ALLIANCE) ? '<button class="btn small" onclick="openRoomForm()">+ Add room</button>' : '') + '</div>'
+            + '<div class="grid">';
+        cat.rooms.forEach(function(r) {
+            html += '<a class="tile" href="#room/' + esc(r.id) + '"><div class="code">' + esc(r.name) + '</div>'
+                + '<div class="name">' + esc(truncate(r.intro, 140)) + '</div>'
+                + '<div class="count">' + cat.services.filter(function(s) { return s.room_id === r.id && s.status === 'published'; }).length + ' service(s)</div></a>';
+        });
+        if (!cat.rooms.length) html += '<p class="empty">No cross-alliance rooms yet.</p>';
+        html += '</div>';
+
+        document.getElementById('view').innerHTML = html;
+        var input = document.getElementById('globalSearch');
+        input.addEventListener('input', function() { filters.q = input.value; renderGlobalResults(); });
+        renderGlobalResults();
+    }
+
+    function truncate(s, n) { s = s || ''; return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+    function renderGlobalResults() {
+        var box = document.getElementById('globalResults');
+        var q = filters.q.trim().toLowerCase();
+        if (!q) { box.innerHTML = ''; return; }
+        var hits = cat.services.filter(function(s) { return matchesText(s, q); });
+        box.innerHTML = '<p class="small muted" style="margin:10px 0;">' + hits.length + ' result(s)</p>'
+            + '<div class="services">' + hits.slice(0, 60).map(function(s) { return serviceCard(s, true); }).join('') + '</div>';
+    }
+
+    // ── Filters ───────────────────────────────────────────────────
+
+    function matchesText(s, q) {
+        return [s.name, s.description, s.languages, s.contact_name].join(' ').toLowerCase().indexOf(q) !== -1;
+    }
+
+    function matchesFilters(s) {
+        // A service with no learner group tags is for every learner group.
+        if (filters.groups.length && s.learner_group_ids.length
+            && !s.learner_group_ids.some(function(g) { return filters.groups.indexOf(g) !== -1; })) return false;
+        if (filters.types.length && filters.types.indexOf(s.type_id) === -1) return false;
+        if (filters.target && s.target_group_id && s.target_group_id !== filters.target) return false;
+        if (filters.access && s.access !== filters.access) return false;
+        var q = filters.q.trim().toLowerCase();
+        if (q && !matchesText(s, q)) return false;
+        return true;
+    }
+
+    function filterBar(showTypes) {
+        function chips(list, key) {
+            return list.map(function(x) {
+                var on = filters[key].indexOf(x.id) !== -1;
+                return '<button type="button" class="chip" aria-pressed="' + on + '" onclick="toggleFilter(\'' + key + '\',\'' + esc(x.id) + '\')">' + esc(x.name) + '</button>';
+            }).join('');
+        }
+        return '<div class="card filters" role="search">'
+            + '<div class="filter-group"><span class="lbl">Learner group</span>' + chips(cat.learner_groups, 'groups') + '</div>'
+            + (showTypes ? '<div class="filter-group"><span class="lbl">Category</span>' + chips(cat.types, 'types') + '</div>' : '')
+            + '<div class="filter-group"><label class="lbl" for="fTarget">Target</label><select id="fTarget" onchange="setFilter(\'target\', this.value)"><option value="">All</option>'
+            + cat.target_groups.map(function(t) { return '<option value="' + esc(t.id) + '"' + (filters.target === t.id ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('')
+            + '</select></div>'
+            + '<div class="filter-group"><label class="lbl" for="fAccess">Access</label><select id="fAccess" onchange="setFilter(\'access\', this.value)">'
+            + '<option value="">All</option><option value="alliance"' + (filters.access === 'alliance' ? ' selected' : '') + '>Open to all UNINOVIS learners</option>'
+            + '<option value="own"' + (filters.access === 'own' ? ' selected' : '') + '>Own institution only</option></select></div>'
+            + '<div class="filter-group"><input type="search" id="fQ" placeholder="Search…" aria-label="Search services" value="' + esc(filters.q) + '" oninput="setFilter(\'q\', this.value, true)"></div>'
+            + '</div>';
+    }
+
+    function toggleFilter(key, id) {
+        var i = filters[key].indexOf(id);
+        if (i === -1) filters[key].push(id); else filters[key].splice(i, 1);
+        route();
+    }
+
+    function setFilter(key, value, keepFocus) {
+        filters[key] = value;
+        if (keepFocus) { renderServiceArea(); return; }
+        route();
+    }
+
+    // ── Service cards ─────────────────────────────────────────────
+
+    function serviceCard(s, showScope) {
+        var type = byId(cat.types, s.type_id);
+        var target = byId(cat.target_groups, s.target_group_id);
+        var tags = '';
+        if (showScope) {
+            var scopeLabel = s.scope === ALLIANCE ? ((byId(cat.rooms, s.room_id) || {}).name || 'Alliance') : s.scope;
+            tags += '<span class="tag scope">' + esc(scopeLabel) + '</span>';
+            if (type) tags += '<span class="tag">' + esc(type.name) + '</span>';
+        }
+        if (s.status !== 'published') tags += '<span class="tag draft">Draft — not visible to learners</span>';
+        if (s.learner_group_ids.length) {
+            s.learner_group_ids.forEach(function(gid) {
+                var g = byId(cat.learner_groups, gid);
+                if (g) tags += '<span class="tag group" style="background:' + esc(g.color) + '">' + esc(g.name) + '</span>';
+            });
+        } else {
+            tags += '<span class="tag">All learner groups</span>';
+        }
+        if (target) tags += '<span class="tag">' + esc(target.name) + '</span>';
+        tags += s.access === 'alliance'
+            ? '<span class="tag access-alliance">Open to all UNINOVIS learners</span>'
+            : '<span class="tag access-own">Own institution\'s learners only</span>';
+
+        var contact = [];
+        if (s.contact_name) contact.push(esc(s.contact_name));
+        if (s.contact_email) contact.push('<a href="mailto:' + esc(s.contact_email) + '">' + esc(s.contact_email) + '</a>');
+        if (s.contact_phone) contact.push('<a href="tel:' + esc(s.contact_phone.replace(/\s+/g, '')) + '">' + esc(s.contact_phone) + '</a>');
+
+        var link = safeUrl(s.link);
+        var actions = '';
+        if (link) actions += '<a class="btn small" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">Visit service<span class="sr-only"> (opens in a new tab)</span></a>';
+        if (canEdit(s.scope)) {
+            actions += '<button class="btn small secondary" onclick="openServiceForm(\'' + esc(s.id) + '\')">Edit</button>'
+                + '<button class="btn small danger" onclick="deleteService(\'' + esc(s.id) + '\')">Delete</button>';
+        }
+
+        return '<article class="service' + (s.status !== 'published' ? ' draft' : '') + '">'
+            + '<div class="title">' + esc(s.name) + '</div>'
+            + (s.description ? '<div class="desc">' + esc(s.description) + '</div>' : '')
+            + '<div class="tags">' + tags + '</div>'
+            + (s.languages ? '<div class="meta"><strong>Languages:</strong> ' + esc(s.languages) + '</div>' : '')
+            + (contact.length ? '<div class="meta"><strong>Contact:</strong> ' + contact.join(' · ') + '</div>' : '')
+            + (actions ? '<div class="actions">' + actions + '</div>' : '')
+            + '</article>';
+    }
+
+    // ── Partner page ──────────────────────────────────────────────
+
+    var currentScope = null;
+
+    function renderPartner(code) {
+        currentScope = code;
+        var u = uni(code);
+        var editable = canEdit(code);
+        var drafts = editable ? draftCount(code) : 0;
+        var people = [];
+        people.push('<span><strong>Institutional Coordinator:</strong> ' + personLine(u.coordinator, u.coordinator_email) + '</span>');
+        people.push('<span><strong>Excellence Hub:</strong> ' + personLine(u.excellence_hub, u.excellence_hub_email) + '</span>');
+
+        var html = '<a class="back" href="#">← All partners</a>'
+            + '<div class="card partner-head">'
+            + '<div class="toolbar" style="margin-bottom:0;"><h2 style="margin:0;"><span aria-hidden="true">' + flag(u.country) + '</span> ' + esc(u.code) + ' — ' + esc(u.name) + '</h2>'
+            + (editable ? '<div class="right"><button class="btn small secondary" onclick="openPartnerForm(\'' + esc(code) + '\')">Edit page</button>'
+                + '<button class="btn small" onclick="openServiceForm(null)">+ Add service</button></div>' : '')
+            + '</div>'
+            + (u.tagline ? '<p class="tagline">' + esc(u.tagline) + '</p>' : '')
+            + (u.intro ? '<p>' + esc(u.intro) + '</p>' : '')
+            + '<div class="people">' + people.join('') + '</div></div>';
+
+        if (drafts) {
+            html += '<div class="notice">' + drafts + ' draft service(s) are only visible to content managers. Check them, then '
+                + '<button class="btn small" onclick="publishDrafts(\'' + esc(code) + '\',' + drafts + ')">Publish all drafts</button></div>';
+        }
+        html += filterBar(true) + '<div id="serviceArea"></div>';
+        document.getElementById('view').innerHTML = html;
+        renderServiceArea();
+    }
+
+    function personLine(name, email) {
+        if (!name && !email) return '<span class="muted">to be confirmed</span>';
+        return esc(name) + (email ? ' (<a href="mailto:' + esc(email) + '">' + esc(email) + '</a>)' : '');
+    }
+
+    function renderServiceArea() {
+        var area = document.getElementById('serviceArea');
+        if (!area) return;
+        var list = currentScope === ALLIANCE
+            ? cat.services.filter(function(s) { return s.scope === ALLIANCE && s.room_id === currentRoom; })
+            : servicesOf(currentScope);
+        var shown = list.filter(matchesFilters);
+        var html = '';
+        if (currentScope === ALLIANCE) {
+            html = shown.length ? '<div class="services">' + shown.map(function(s) { return serviceCard(s, false); }).join('') + '</div>'
+                : '<p class="empty">' + (list.length ? 'No services match these filters.' : 'No services in this room yet.') + '</p>';
+        } else {
+            cat.types.forEach(function(t) {
+                var inType = shown.filter(function(s) { return s.type_id === t.id; });
+                if (filters.types.length && filters.types.indexOf(t.id) === -1) return;
+                html += '<h3>' + esc(t.name) + '</h3>';
+                html += inType.length ? '<div class="services">' + inType.map(function(s) { return serviceCard(s, false); }).join('') + '</div>'
+                    : '<p class="empty small">No ' + esc(t.name.toLowerCase()) + ' services' + (list.length ? ' match these filters' : '') + '.</p>';
+            });
+        }
+        area.innerHTML = html;
+    }
+
+    // ── Cross-alliance room page ──────────────────────────────────
+
+    var currentRoom = null;
+
+    function renderRoom(id) {
+        currentScope = ALLIANCE;
+        currentRoom = id;
+        var r = byId(cat.rooms, id);
+        var editable = canEdit(ALLIANCE);
+        var drafts = editable ? cat.services.filter(function(s) { return s.room_id === id && s.status !== 'published'; }).length : 0;
+        var html = '<a class="back" href="#">← All partners</a>'
+            + '<div class="card"><div class="toolbar" style="margin-bottom:8px;"><h2 style="margin:0;">' + esc(r.name) + '</h2>'
+            + (editable ? '<div class="right"><button class="btn small secondary" onclick="openRoomForm(\'' + esc(id) + '\')">Edit room</button>'
+                + '<button class="btn small danger" onclick="deleteRoom(\'' + esc(id) + '\')">Delete room</button>'
+                + '<button class="btn small" onclick="openServiceForm(null)">+ Add service</button></div>' : '')
+            + '</div><p>' + esc(r.intro) + '</p>'
+            + '<p class="small muted" style="margin-top:8px;">Cross-alliance services are open to learners from all UNINOVIS partners.</p></div>';
+        if (drafts) {
+            html += '<div class="notice">' + drafts + ' draft service(s) in the cross-alliance rooms are only visible to content managers. '
+                + '<button class="btn small" onclick="publishDrafts(\'' + ALLIANCE + '\',' + drafts + ')">Publish all cross-alliance drafts</button></div>';
+        }
+        html += filterBar(false) + '<div id="serviceArea"></div>';
+        document.getElementById('view').innerHTML = html;
+        renderServiceArea();
+    }
+
+    // ── Settings (superuser): shared lists ────────────────────────
+
+    var TAXONOMY_LABELS = {
+        types: { title: 'Support types', single: 'support type', hint: 'Every service belongs to exactly one type. A type in use cannot be deleted.' },
+        learner_groups: { title: 'Learner groups', single: 'learner group', hint: 'Optional tags. Deleting a group removes the tag from its services.' },
+        target_groups: { title: 'Target groups', single: 'target group', hint: 'Optional tag. Deleting a group removes the tag from its services.' },
+    };
+
+    function renderSettings() {
+        var html = '<a class="back" href="#">← All partners</a>'
+            + '<p class="subtitle">These lists are shared by all 8 partners and the cross-alliance rooms. Only superusers can change them.</p>';
+        Object.keys(TAXONOMY_LABELS).forEach(function(kind) {
+            var L = TAXONOMY_LABELS[kind];
+            var items = cat[kind];
+            html += '<div class="card"><div class="toolbar"><h2 style="margin:0;">' + L.title + '</h2>'
+                + '<button class="btn small" onclick="openTaxonomyForm(\'' + kind + '\', null)">+ Add ' + L.single + '</button></div>'
+                + '<p class="small muted" style="margin-bottom:10px;">' + L.hint + '</p>'
+                + '<table class="list"><thead><tr><th>Order</th><th>Name</th><th>Description</th><th>Services</th><th></th></tr></thead><tbody>'
+                + items.map(function(it) {
+                    var used = cat.services.filter(function(s) {
+                        return kind === 'types' ? s.type_id === it.id : kind === 'learner_groups' ? s.learner_group_ids.indexOf(it.id) !== -1 : s.target_group_id === it.id;
+                    }).length;
+                    return '<tr><td>' + esc(String(it.order || 0)) + '</td><td>'
+                        + (it.color ? '<span class="dot" style="background:' + esc(it.color) + '"></span>' : '') + esc(it.name) + '</td>'
+                        + '<td class="small">' + esc(it.description) + '</td><td>' + used + '</td>'
+                        + '<td style="white-space:nowrap;"><button class="btn small secondary" onclick="openTaxonomyForm(\'' + kind + '\',\'' + esc(it.id) + '\')">Edit</button> '
+                        + '<button class="btn small danger" onclick="deleteTaxonomy(\'' + kind + '\',\'' + esc(it.id) + '\')">Delete</button></td></tr>';
+                }).join('')
+                + '</tbody></table></div>';
+        });
+        document.getElementById('view').innerHTML = html;
+    }
+
+    // ── Modal helpers ─────────────────────────────────────────────
+
+    var modalSaveHandler = null;
+    var lastFocus = null;
+
+    function openModal(title, formHtml, onSave) {
+        lastFocus = document.activeElement;
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalForm').innerHTML = '<p class="small muted" style="margin-bottom:12px;">Fields marked * are required. '
+            + 'Each field says what it accepts; problems are shown under the field before anything is saved.</p>' + formHtml;
+        document.getElementById('modalError').textContent = '';
+        modalSaveHandler = onSave;
+        wireFieldChecks();
+        document.getElementById('modalBg').classList.add('open');
+        var first = document.querySelector('#modalForm input, #modalForm select, #modalForm textarea');
+        if (first) first.focus();
+    }
+
+    function closeModal() {
+        document.getElementById('modalBg').classList.remove('open');
+        modalSaveHandler = null;
+        if (lastFocus) lastFocus.focus();
+    }
+
+    document.getElementById('modalSave').addEventListener('click', async function() {
+        if (!modalSaveHandler) return;
+        if (!validateForm()) {
+            document.getElementById('modalError').textContent = 'Please correct the fields marked in red.';
+            return;
+        }
+        var btn = this;
+        btn.disabled = true;
+        try {
+            await modalSaveHandler();
+            closeModal();
+            await reload();
+        } catch (e) {
+            document.getElementById('modalError').textContent = e.message;
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('modalBg').classList.contains('open')) closeModal();
+    });
+
+    function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+
+    // ── Field checks ──────────────────────────────────────────────
+    // Mirror of the server-side rules in gloria_learner_support.py (_check_text,
+    // _check_link, _check_email, _check_phone, _check_languages). The server
+    // re-checks everything; these only explain problems before saving.
+
+    var EMAIL_RE = /^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$/;
+    var HTML_RE = /<\s*[a-zA-Z\/!][^>]*>/;
+    var LINK_LIKE_RE = /^(https?:\/\/|www\.|mailto:)/i;
+    var PHONE_RE = /^\+?[0-9 ().\/-]{5,30}$/;
+    var LANGUAGES_RE = /^[\p{L}\s,;\/()'-]*$/u;
+
+    var FIELD_CHECKS = {
+        // Longer free text (descriptions, introductions).
+        text: function(v) {
+            return HTML_RE.test(v) ? 'Plain text only: remove the HTML tags (< >).' : '';
+        },
+        // Short text (names, titles, people): no HTML and not a bare link/email.
+        name: function(v) {
+            if (HTML_RE.test(v)) return 'Plain text only: remove the HTML tags (< >).';
+            if (LINK_LIKE_RE.test(v) || EMAIL_RE.test(v)) return 'This is a text field: write a name here and put links or emails in their own fields.';
+            return '';
+        },
+        link: function(v) {
+            if (!v) return '';
+            if (/^mailto:/i.test(v)) return EMAIL_RE.test(v.slice(7)) ? '' : 'After mailto: write one email address, e.g. mailto:office@university.eu';
+            if (/^www\./i.test(v)) return 'Add https:// in front, e.g. https://' + v;
+            if (!/^https?:\/\//i.test(v)) return 'A link must be a full web address starting with https://';
+            try {
+                var u = new URL(v);
+                if (u.hostname.indexOf('.') === -1 || /\s/.test(v)) return 'This is not a valid web address (check for spaces or a missing domain).';
+            } catch (e) { return 'This is not a valid web address.'; }
+            return '';
+        },
+        email: function(v) {
+            if (!v) return '';
+            if (/^mailto:/i.test(v)) return 'Write only the address, without mailto:';
+            return EMAIL_RE.test(v) ? '' : 'Enter one email address, e.g. office@university.eu';
+        },
+        phone: function(v) {
+            if (!v) return '';
+            var digits = v.replace(/\D/g, '').length;
+            return PHONE_RE.test(v) && digits >= 5 ? '' : 'Use digits with optional + ( ) . - / and spaces, e.g. +34 952 13 10 00';
+        },
+        languages: function(v) {
+            if (LINK_LIKE_RE.test(v) || EMAIL_RE.test(v) || HTML_RE.test(v) || !LANGUAGES_RE.test(v)) return 'Only language names separated by commas, e.g. English, German';
+            return '';
+        },
+        number: function(v) {
+            return /^\d{0,3}$/.test(v) ? '' : 'Enter a whole number from 0 to 999.';
+        },
+    };
+
+    var formFields = [];  // [{id, check, required}] for the form being built
+
+    function startForm() { formFields = []; }
+
+    function checkField(f) {
+        var el = document.getElementById(f.id);
+        if (!el) return true;
+        var v = el.value.trim();
+        var msg = (f.required && !v) ? 'This field is required.' : (f.check ? FIELD_CHECKS[f.check](v) : '');
+        el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+        document.getElementById(f.id + '-err').textContent = msg;
+        return !msg;
+    }
+
+    function validateForm() {
+        var firstBad = null;
+        formFields.forEach(function(f) { if (!checkField(f) && !firstBad) firstBad = document.getElementById(f.id); });
+        if (firstBad) firstBad.focus();
+        return !firstBad;
+    }
+
+    function wireFieldChecks() {
+        formFields.forEach(function(f) {
+            var el = document.getElementById(f.id);
+            if (!el) return;
+            el.setAttribute('aria-describedby', f.id + '-hint ' + f.id + '-err');
+            if (f.required) el.setAttribute('aria-required', 'true');
+            el.addEventListener('blur', function() { checkField(f); });
+            // Once a field has been flagged, re-check as the user fixes it.
+            el.addEventListener('input', function() { if (el.getAttribute('aria-invalid') === 'true') checkField(f); });
+        });
+    }
+
+    // opts: { hint, check (key of FIELD_CHECKS), required, full }
+    function field(id, label, input, opts) {
+        opts = opts || {};
+        formFields.push({ id: id, check: opts.check || null, required: !!opts.required });
+        return '<div class="field' + (opts.full ? ' full' : '') + '"><label for="' + id + '">' + label + (opts.required ? ' *' : '') + '</label>' + input
+            + '<span class="hint" id="' + id + '-hint">' + (opts.hint || '') + '</span>'
+            + '<span class="field-error" id="' + id + '-err" aria-live="polite"></span></div>';
+    }
+    function textInput(id, value, type, max, extra) {
+        return '<input type="' + (type || 'text') + '" id="' + id + '" value="' + esc(value) + '"' + (max ? ' maxlength="' + max + '"' : '') + (extra || '') + '>';
+    }
+    function textArea(id, value, max, minHeight) {
+        return '<textarea id="' + id + '" maxlength="' + max + '"' + (minHeight ? ' style="min-height:' + minHeight + 'px;"' : '') + '>' + esc(value) + '</textarea>';
+    }
+    function options(list, selected, emptyLabel) {
+        return (emptyLabel !== undefined ? '<option value="">' + esc(emptyLabel) + '</option>' : '')
+            + list.map(function(x) { return '<option value="' + esc(x.id) + '"' + (x.id === selected ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join('');
+    }
+
+    var HINT = {
+        shortText: function(max, eg) { return 'Plain text, up to ' + max + ' characters' + (eg ? ', e.g. ' + eg : '') + '. Not a link or email.'; },
+        longText: function(max) { return 'Plain text (no HTML), up to ' + max + ' characters. Links go in the Link field.'; },
+        email: 'One email address, e.g. office@university.eu (without mailto:).',
+        order: 'Whole number from 0 to 999. Lower numbers are listed first.',
+    };
+
+    // ── Service form ──────────────────────────────────────────────
+
+    function openServiceForm(id) {
+        var s = id ? byId(cat.services, id) : null;
+        var scope = s ? s.scope : currentScope;
+        var isAlliance = scope === ALLIANCE;
+        s = s || { name: '', description: '', link: '', contact_name: '', contact_email: '', contact_phone: '', languages: '',
+                   learner_group_ids: [], target_group_id: '', access: 'own', status: 'draft',
+                   type_id: isAlliance ? '' : (filters.types[0] || (cat.types[0] || {}).id || ''), room_id: isAlliance ? currentRoom : '' };
+
+        startForm();
+        var html = '<div class="form-grid">'
+            + field('sName', 'Name', textInput('sName', s.name, 'text', 200), { full: true, required: true, check: 'name', hint: HINT.shortText(200, 'Psychological Counselling') })
+            + field('sDesc', 'Short description', textArea('sDesc', s.description, 3000), { full: true, check: 'text', hint: HINT.longText(3000) + ' One or two sentences on what the service offers.' })
+            + (isAlliance
+                ? field('sRoom', 'Room', '<select id="sRoom">' + options(cat.rooms, s.room_id) + '</select>', { required: true, hint: 'The cross-alliance room this service is listed in.' })
+                  + field('sType', 'Category', '<select id="sType">' + options(cat.types, s.type_id, '— none —') + '</select>', { hint: 'Optional. Choose from the list (managed by superusers).' })
+                : field('sType', 'Category', '<select id="sType">' + options(cat.types, s.type_id) + '</select>', { required: true, hint: 'Choose from the list (managed by superusers).' })
+                  + field('sAccess', 'Who can use it?', '<select id="sAccess">'
+                      + '<option value="own"' + (s.access === 'own' ? ' selected' : '') + '>Own institution\'s learners only</option>'
+                      + '<option value="alliance"' + (s.access === 'alliance' ? ' selected' : '') + '>Open to all UNINOVIS learners</option></select>',
+                      { required: true, hint: 'Choose "own institution" when only your learners can use it (e.g. financial aid).' }))
+            + '<div class="field full"><span class="lbl">Learner groups</span><div class="checks">'
+            + cat.learner_groups.map(function(g) {
+                return '<label><input type="checkbox" class="sGroup" value="' + esc(g.id) + '"' + (s.learner_group_ids.indexOf(g.id) !== -1 ? ' checked' : '') + '> ' + esc(g.name) + '</label>';
+            }).join('')
+            + '</div><span class="hint">Tick the groups it is meant for. Leave all unticked if it is for every learner group.</span></div>'
+            + field('sTarget', 'Target group', '<select id="sTarget">' + options(cat.target_groups, s.target_group_id, '— not specified —') + '</select>', { hint: 'Optional. Choose from the list.' })
+            + field('sLang', 'Languages offered', textInput('sLang', s.languages, 'text', 200), { check: 'languages', hint: 'Language names separated by commas, e.g. English, German.' })
+            + field('sLink', 'Link', textInput('sLink', s.link, 'url', 500, ' placeholder="https://"'), { full: true, check: 'link',
+                hint: 'Full web address starting with https:// (copy it from the browser address bar), or mailto:office@university.eu.' })
+            + field('sCName', 'Contact person / office', textInput('sCName', s.contact_name, 'text', 200), { check: 'name', hint: HINT.shortText(200, 'International Office') })
+            + field('sCEmail', 'Contact email', textInput('sCEmail', s.contact_email, 'email', 200), { check: 'email', hint: HINT.email })
+            + field('sCPhone', 'Contact phone', textInput('sCPhone', s.contact_phone, 'tel', 60), { check: 'phone', hint: 'Digits with optional + ( ) . - / and spaces, e.g. +34 952 13 10 00.' })
+            + field('sStatus', 'Status', '<select id="sStatus"><option value="draft"' + (s.status !== 'published' ? ' selected' : '') + '>Draft (only content managers see it)</option>'
+                + '<option value="published"' + (s.status === 'published' ? ' selected' : '') + '>Published</option></select>', { required: true, hint: 'Learners only see published services.' })
+            + '</div>';
+
+        var title = (id ? 'Edit service — ' : 'Add service — ') + (isAlliance ? 'Cross-Alliance' : scope);
+        openModal(title, html, function() {
+            var body = {
+                scope: scope, name: val('sName').trim(), description: val('sDesc').trim(), type_id: val('sType'), room_id: isAlliance ? val('sRoom') : '',
+                access: isAlliance ? 'alliance' : val('sAccess'), target_group_id: val('sTarget'), languages: val('sLang').trim(), link: val('sLink').trim(),
+                contact_name: val('sCName').trim(), contact_email: val('sCEmail').trim(), contact_phone: val('sCPhone').trim(), status: val('sStatus'),
+                learner_group_ids: Array.prototype.map.call(document.querySelectorAll('.sGroup:checked'), function(c) { return c.value; }),
+            };
+            return id ? api('PUT', '/api/services/' + encodeURIComponent(id), body) : api('POST', '/api/services', body);
+        });
+    }
+
+    async function deleteService(id) {
+        var s = byId(cat.services, id);
+        if (!confirm('Delete "' + s.name + '"? This cannot be undone.')) return;
+        try { await api('DELETE', '/api/services/' + encodeURIComponent(id)); await reload(); }
+        catch (e) { alert(e.message); }
+    }
+
+    async function publishDrafts(scope, n) {
+        if (!confirm('Publish ' + n + ' draft service(s)? Learners will then see them.')) return;
+        try { await api('POST', '/api/scopes/' + encodeURIComponent(scope) + '/publish-drafts'); await reload(); }
+        catch (e) { alert(e.message); }
+    }
+
+    // ── Partner page form ─────────────────────────────────────────
+
+    function openPartnerForm(code) {
+        var u = uni(code);
+        startForm();
+        var html = '<div class="form-grid">'
+            + field('pTagline', 'Tagline', textInput('pTagline', u.tagline, 'text', 500), { full: true, check: 'text', hint: 'One sentence of plain text (no HTML), up to 500 characters.' })
+            + field('pIntro', 'Introduction', textArea('pIntro', u.intro, 5000, 140), { full: true, check: 'text', hint: HINT.longText(5000) })
+            + field('pCoord', 'Institutional Coordinator', textInput('pCoord', u.coordinator, 'text', 200), { check: 'name', hint: HINT.shortText(200, 'Ana García') + ' Email goes in the next field.' })
+            + field('pCoordEmail', 'Coordinator email', textInput('pCoordEmail', u.coordinator_email, 'email', 200), { check: 'email', hint: HINT.email })
+            + field('pHub', 'Excellence Hub contact', textInput('pHub', u.excellence_hub, 'text', 200), { check: 'name', hint: HINT.shortText(200, 'Paris (Villetaneuse)') + ' Email goes in the next field.' })
+            + field('pHubEmail', 'Excellence Hub email', textInput('pHubEmail', u.excellence_hub_email, 'email', 200), { check: 'email', hint: HINT.email })
+            + '</div>';
+        openModal('Edit page — ' + code, html, function() {
+            return api('PUT', '/api/partners/' + encodeURIComponent(code), {
+                tagline: val('pTagline').trim(), intro: val('pIntro').trim(), coordinator: val('pCoord').trim(), coordinator_email: val('pCoordEmail').trim(),
+                excellence_hub: val('pHub').trim(), excellence_hub_email: val('pHubEmail').trim(),
+            });
+        });
+    }
+
+    // ── Room form ─────────────────────────────────────────────────
+
+    function openRoomForm(id) {
+        var r = id ? byId(cat.rooms, id) : { name: '', intro: '', order: cat.rooms.length };
+        startForm();
+        var html = '<div class="form-grid">'
+            + field('rName', 'Name', textInput('rName', r.name, 'text', 200), { required: true, check: 'name', hint: HINT.shortText(200, 'Language Confidence') })
+            + field('rOrder', 'Order', textInput('rOrder', String(r.order || 0), 'number', null, ' min="0" max="999" step="1" inputmode="numeric"'), { check: 'number', hint: HINT.order })
+            + field('rIntro', 'Introduction', textArea('rIntro', r.intro, 5000, 120), { full: true, check: 'text', hint: HINT.longText(5000) })
+            + '</div>';
+        openModal(id ? 'Edit room' : 'Add cross-alliance room', html, async function() {
+            var body = { name: val('rName').trim(), intro: val('rIntro').trim(), order: parseInt(val('rOrder'), 10) || 0 };
+            var saved = id ? await api('PUT', '/api/rooms/' + encodeURIComponent(id), body) : await api('POST', '/api/rooms', body);
+            if (!id) window.location.hash = 'room/' + saved.id;
+        });
+    }
+
+    async function deleteRoom(id) {
+        var r = byId(cat.rooms, id);
+        if (!confirm('Delete the room "' + r.name + '"?')) return;
+        try { await api('DELETE', '/api/rooms/' + encodeURIComponent(id)); window.location.hash = ''; await reload(); }
+        catch (e) { alert(e.message); }
+    }
+
+    // ── Taxonomy form ─────────────────────────────────────────────
+
+    function openTaxonomyForm(kind, id) {
+        var L = TAXONOMY_LABELS[kind];
+        var it = id ? byId(cat[kind], id) : { name: '', description: '', color: '#5c6b7a', order: cat[kind].length };
+        startForm();
+        var html = '<div class="form-grid">'
+            + field('tName', 'Name', textInput('tName', it.name, 'text', 120), { required: true, check: 'name', hint: HINT.shortText(120) })
+            + field('tOrder', 'Order', textInput('tOrder', String(it.order || 0), 'number', null, ' min="0" max="999" step="1" inputmode="numeric"'), { check: 'number', hint: HINT.order })
+            + (kind === 'learner_groups' ? field('tColor', 'Colour', '<input type="color" id="tColor" value="' + esc(it.color || '#5c6b7a') + '">', { hint: 'Pick from the colour picker. Used for this group\'s tag.' }) : '')
+            + field('tDesc', 'Description', textArea('tDesc', it.description, 1000), { full: true, check: 'text', hint: HINT.longText(1000) })
+            + '</div>';
+        openModal((id ? 'Edit ' : 'Add ') + L.single, html, function() {
+            var body = { name: val('tName').trim(), description: val('tDesc').trim(), order: parseInt(val('tOrder'), 10) || 0, color: val('tColor') };
+            return id ? api('PUT', '/api/taxonomy/' + kind + '/' + encodeURIComponent(id), body) : api('POST', '/api/taxonomy/' + kind, body);
+        });
+    }
+
+    async function deleteTaxonomy(kind, id) {
+        var it = byId(cat[kind], id);
+        if (!confirm('Delete "' + it.name + '"?')) return;
+        try { await api('DELETE', '/api/taxonomy/' + kind + '/' + encodeURIComponent(id)); await reload(); }
+        catch (e) { alert(e.message); }
+    }
+
+    // ── Init ──────────────────────────────────────────────────────
+
+    (async function init() {
+        try { applyContrast(localStorage.getItem('gloria_high_contrast') === '1'); } catch (e) {}
+        if (!authToken) return goLogin();
+        try {
+            var resp = await authFetch(BASE + '/api/me');
+            if (resp.status === 401) return goLogin();
+            if (resp.status === 403) {
+                document.getElementById('view').innerHTML = '<div class="error-box">Your account does not have access to Gloria Learner Support. '
+                    + 'Please contact your institutional coordinator.</div>';
+                return;
+            }
+            me = await resp.json();
+            if (me.is_superuser) document.getElementById('settingsBtn').style.display = '';
+            if (me.is_content_manager && !me.is_superuser && !me.own_university) {
+                document.getElementById('view').insertAdjacentHTML('beforebegin', '<div class="notice">You are a content manager, but no Directory entry '
+                    + 'matches your login email, so the app cannot tell which university you edit for. Ask a superuser to add you to the Directory.</div>');
+            }
+            window.addEventListener('hashchange', function() { route(); window.scrollTo(0, 0); });
+            await reload();
+        } catch (e) {
+            document.getElementById('view').innerHTML = '<div class="error-box">Could not load Gloria Learner Support: ' + esc(e.message) + '</div>';
+        }
+    })();
+    </script>
+</body>
+</html>

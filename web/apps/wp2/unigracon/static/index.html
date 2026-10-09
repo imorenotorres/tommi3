@@ -383,7 +383,7 @@
     <!-- End Matomo Code -->
 </head>
 <body>
-<script src="/static/nav.js?v=14"></script>
+<script src="/static/nav.js?v=15"></script>
 <script>uninovisNav({ crumbs: [{label:'Learning & Mobility', href:'/#learning'}], current: 'UNIGRACON' });</script>
     <div class="container">
         <h1>UNIGRACON</h1>
@@ -545,6 +545,9 @@
                 });
                 if (resp.ok) {
                     authUser = await resp.json();
+                } else if (resp.status === 403) {
+                    tommiShowNoAccess('UNIGRACON');
+                    return false;
                 } else {
                     window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
                     return false;
@@ -617,9 +620,9 @@
             sourceEl.innerHTML = '<option value="">-- Select source --</option>';
             targetEl.innerHTML = '<option value="">-- Select target --</option>';
             for (const [acro, info] of sorted) {
-                const label = acro + ' \u2014 ' + info.name + ' (' + info.country + ')';
-                sourceEl.innerHTML += '<option value="' + acro + '">' + label + '</option>';
-                targetEl.innerHTML += '<option value="' + acro + '">' + label + '</option>';
+                const label = escHtml(acro) + ' \u2014 ' + escHtml(info.name) + ' (' + escHtml(info.country) + ')';
+                sourceEl.innerHTML += '<option value="' + escHtml(acro) + '">' + label + '</option>';
+                targetEl.innerHTML += '<option value="' + escHtml(acro) + '">' + label + '</option>';
             }
         }
 
@@ -725,11 +728,11 @@
                 const srcLabel = fmtSys(c.source, c.source_system);
                 const tgtLabel = fmtSys(c.target, c.target_system);
                 html += '<tr style="background:' + bg + ';">'
-                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + srcLabel + '</td>'
-                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + tgtLabel + '</td>'
+                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + escHtml(srcLabel) + '</td>'
+                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + escHtml(tgtLabel) + '</td>'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + mBadge + '</td>'
                     + '<td style="padding:4px 8px;border-bottom:1px solid #eee;">' + statusBadge + '</td>'
-                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;color:#666;">' + c.notes + '</td>'
+                    + '<td style="padding:4px 8px;border-bottom:1px solid #eee;color:#666;">' + escHtml(c.notes) + '</td>'
                     + '</tr>';
             }
             html += '</table>';
@@ -753,7 +756,7 @@
             var systems = universities[uniAcro].grading_systems || [];
             if (systems.length <= 1) {
                 selectEl.style.display = 'none';
-                selectEl.innerHTML = '<option value="' + (systems.length ? systems[0].id : 'general') + '">' + (systems.length ? escHtml(systems[0].name) : 'General') + '</option>';
+                selectEl.innerHTML = '<option value="' + (systems.length ? escHtml(systems[0].id) : 'general') + '">' + (systems.length ? escHtml(systems[0].name) : 'General') + '</option>';
                 return;
             }
             selectEl.innerHTML = '';
@@ -791,8 +794,8 @@
                         ? lbl.max <= info.pass_grade
                         : lbl.min >= info.pass_grade;
                     const cls = isPass ? 'pass-row' : 'fail-row';
-                    const range = lbl.min === lbl.max ? lbl.min : lbl.min + ' \u2013 ' + lbl.max;
-                    html += '<tr class="' + cls + '"><td>' + range + '</td><td>' + lbl.label + '</td></tr>';
+                    const range = lbl.min === lbl.max ? escHtml(String(lbl.min)) : escHtml(String(lbl.min)) + ' \u2013 ' + escHtml(String(lbl.max));
+                    html += '<tr class="' + cls + '"><td>' + range + '</td><td>' + escHtml(lbl.label) + '</td></tr>';
                 }
                 html += '</table>';
                 scaleEl.innerHTML = html;
@@ -840,7 +843,7 @@
                 (c.source_system || 'general') === srcSys && (c.target_system || 'general') === tgtSys
             );
             if (!exists) {
-                resultsEl.innerHTML = '<div class="no-conversion">No conversion defined from ' + source + ' (' + srcSys + ') to ' + target + ' (' + tgtSys + ').<br>'
+                resultsEl.innerHTML = '<div class="no-conversion">No conversion defined from ' + escHtml(source) + ' (' + escHtml(srcSys) + ') to ' + escHtml(target) + ' (' + escHtml(tgtSys) + ').<br>'
                     + '<span style="font-weight:400;font-size:0.9em;">Check the available conversions table below.</span></div>';
                 resultsEl.style.display = 'block';
                 return;
@@ -857,11 +860,11 @@
                 if (resp.ok) {
                     renderResult(data);
                 } else {
-                    resultsEl.innerHTML = '<p class="error">' + (data.detail || data.error || 'Conversion error') + '</p>';
+                    resultsEl.innerHTML = '<p class="error">' + escHtml(data.detail || data.error || 'Conversion error') + '</p>';
                 }
                 resultsEl.style.display = 'block';
             } catch (e) {
-                resultsEl.innerHTML = '<p class="error">Request failed: ' + e.message + '</p>';
+                resultsEl.innerHTML = '<p class="error">Request failed: ' + escHtml(e.message) + '</p>';
                 resultsEl.style.display = 'block';
             }
             convertBtn.disabled = false;
@@ -884,7 +887,7 @@
                 tooltipContent = '<strong>Conversion Table:</strong><br>' + tbl;
                 return '<span class="tooltip-wrap" style="color:#6f42c1;">Table<span class="tooltip-box">' + tooltipContent + '</span></span>';
             }
-            return conv.method;
+            return escHtml(conv.method);
         }
 
         function buildResultMethodTooltip(r) {
@@ -902,7 +905,7 @@
             const methodHtml = '<strong>Method:</strong> ' + buildResultMethodTooltip(r);
             const conv = conversionPairs.find(c => c.source === r.source_university && c.target === r.target_university);
             const isConfirmed = conv && conv.confirmed;
-            const tgtName = r.target_name ? escHtml(r.target_name) + ' (' + r.target_university + ')' : r.target_university;
+            const tgtName = r.target_name ? escHtml(r.target_name) + ' (' + escHtml(r.target_university) + ')' : escHtml(r.target_university);
             const verificationHtml = isConfirmed
                 ? '<div style="margin-bottom:12px;padding:6px 10px;border-radius:6px;background:#d4edda;color:#155724;font-size:0.85em;">'
                 +   '<strong>&#10003; Confirmed</strong> — This conversion has been verified by ' + tgtName + '.</div>'
@@ -913,14 +916,14 @@
                 verificationHtml
                 + '<div class="conversion-detail">'
                 + '<div class="conv-side source">'
-                +   '<div class="uni-name">' + r.source_university + ' \u2014 ' + escHtml(r.source_name) + '</div>'
-                +   '<div class="grade-val">' + r.source_grade + '</div>'
+                +   '<div class="uni-name">' + escHtml(r.source_university) + ' \u2014 ' + escHtml(r.source_name) + '</div>'
+                +   '<div class="grade-val">' + escHtml(String(r.source_grade)) + '</div>'
                 +   '<div class="grade-lbl">' + escHtml(r.source_label) + '</div>'
                 +   '<div class="grade-sys">' + escHtml(r.source_system) + '</div>'
                 + '</div>'
                 + '<div class="conv-arrow">&#10132;</div>'
                 + '<div class="conv-side target ' + failCls + '">'
-                +   '<div class="uni-name">' + r.target_university + ' \u2014 ' + escHtml(r.target_name) + '</div>'
+                +   '<div class="uni-name">' + escHtml(r.target_university) + ' \u2014 ' + escHtml(r.target_name) + '</div>'
                 +   '<div class="grade-val" style="' + (isFail ? 'color:#dc3545' : 'color:#28a745') + '">' + escHtml(r.target_grade_display) + '</div>'
                 +   '<div class="grade-lbl">' + escHtml(r.target_label) + '</div>'
                 +   '<div class="grade-sys">' + escHtml(r.target_system) + '</div>'
@@ -934,7 +937,13 @@
 
         function escHtml(s) {
             if (!s) return '';
-            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        // Safe argument for an inline handler inside a double-quoted attribute:
+        // JSON-quote it as a JS string literal, then HTML-escape the result.
+        function jsArg(v) {
+            return escHtml(JSON.stringify(String(v)));
         }
 
         /* ── Editor panel ─────────────────────────────────────────────── */
@@ -957,7 +966,7 @@
                 const sorted = Object.keys(universities).sort();
                 for (const acro of sorted) {
                     const info = universities[acro];
-                    sel.innerHTML += '<option value="' + acro + '">' + acro + ' — ' + escHtml(info.name) + '</option>';
+                    sel.innerHTML += '<option value="' + escHtml(acro) + '">' + escHtml(acro) + ' — ' + escHtml(info.name) + '</option>';
                 }
                 if (current && universities[current]) sel.value = current;
                 return;
@@ -966,7 +975,7 @@
             const home = authUser && authUser.home_university;
             if (home && universities[home]) {
                 const info = universities[home];
-                sel.innerHTML = '<option value="' + home + '">' + home + ' — ' + escHtml(info.name) + '</option>';
+                sel.innerHTML = '<option value="' + escHtml(home) + '">' + escHtml(home) + ' — ' + escHtml(info.name) + '</option>';
                 sel.value = home;
                 sel.disabled = true;
                 loadEditor();
@@ -999,7 +1008,7 @@
             var savedSys = homeSysEl.value;
             homeSysEl.innerHTML = '';
             systems.forEach(function(gs) {
-                homeSysEl.innerHTML += '<option value="' + escHtml(gs.id) + '">' + (gs.id === 'general' ? 'General' : gs.name) + '</option>';
+                homeSysEl.innerHTML += '<option value="' + escHtml(gs.id) + '">' + (gs.id === 'general' ? 'General' : escHtml(gs.name)) + '</option>';
             });
             if (savedSys && systems.some(function(s) { return s.id === savedSys; })) homeSysEl.value = savedSys;
             var showSys = systems.length > 1;
@@ -1011,7 +1020,7 @@
             newConvUni.innerHTML = '';
             Object.keys(universities).sort().forEach(function(a) {
                 if (a !== homeUni) {
-                    newConvUni.innerHTML += '<option value="' + a + '">' + a + ' \u2014 ' + escHtml(universities[a].name) + '</option>';
+                    newConvUni.innerHTML += '<option value="' + escHtml(a) + '">' + escHtml(a) + ' \u2014 ' + escHtml(universities[a].name) + '</option>';
                 }
             });
             updateNewConvSystems();
@@ -1031,7 +1040,7 @@
             if (!uni || !universities[uni]) return;
             var systems = universities[uni].grading_systems || [];
             systems.forEach(function(gs) {
-                sysSel.innerHTML += '<option value="' + escHtml(gs.id) + '">' + (gs.id === 'general' ? 'General' : gs.name) + '</option>';
+                sysSel.innerHTML += '<option value="' + escHtml(gs.id) + '">' + (gs.id === 'general' ? 'General' : escHtml(gs.name)) + '</option>';
             });
         }
 
@@ -1092,7 +1101,7 @@
                     +   (gs.description ? ' | ' + escHtml(gs.description) : '') + '</div>'
                     + '</div>';
                 if (!isGeneral) {
-                    html += '<button class="btn-small" onclick="deleteGradingSystem(\'' + escHtml(acro) + '\', \'' + escHtml(gs.id) + '\')" style="color:#dc3545;font-size:0.78em;">Delete</button>';
+                    html += '<button class="btn-small" onclick="deleteGradingSystem(' + jsArg(acro) + ', ' + jsArg(gs.id) + ')" style="color:#dc3545;font-size:0.78em;">Delete</button>';
                 }
                 html += '</div>';
             });
@@ -1198,13 +1207,13 @@
                 const confirmed = conv ? (conv.confirmed || false) : false;
 
                 const dataKey = src + ':' + srcSysId;
-                html += '<div class="card editor-card ' + (hasConv ? 'has-conversion' : 'no-conversion') + '" data-source="' + dataKey + '">'
+                html += '<div class="card editor-card ' + (hasConv ? 'has-conversion' : 'no-conversion') + '" data-source="' + escHtml(dataKey) + '">'
                     + '<div class="editor-header">'
                     +   '<div style="width:100%">'
-                    +     '<strong>From: ' + srcLabel + ' &rarr; To: ' + dstLabel + '</strong>'
+                    +     '<strong>From: ' + escHtml(srcLabel) + ' &rarr; To: ' + escHtml(dstLabel) + '</strong>'
                     +     '<div class="editor-grade-info" style="display:flex;justify-content:space-between;gap:16px;">'
-                    +       '<span>' + escHtml(srcInfo.name) + ' (' + srcInfo.country + ')</span>'
-                    +       '<span>' + escHtml(dstInfo.name) + ' (' + dstInfo.country + ')</span>'
+                    +       '<span>' + escHtml(srcInfo.name) + ' (' + escHtml(srcInfo.country) + ')</span>'
+                    +       '<span>' + escHtml(dstInfo.name) + ' (' + escHtml(dstInfo.country) + ')</span>'
                     +     '</div>'
                     +     '<div class="editor-grade-info" style="display:flex;justify-content:space-between;gap:16px;">'
                     +       '<span>' + escHtml(srcSys.name) + ' | Range: ' + srcSys.min_grade + '\u2013' + srcSys.max_grade
@@ -1218,38 +1227,40 @@
                     + '</div>'
 
                 var safeKey = dataKey.replace(/:/g, '_');
+                var safeKeyAttr = escHtml(safeKey);
+                var safeKeyArg = jsArg(safeKey);
                 html += '<div class="editor-method">'
-                    +   '<label><input type="radio" name="method_' + safeKey + '" value="formula"'
-                    +     (method === 'formula' ? ' checked' : '') + ' onchange="toggleMethod(\'' + safeKey + '\')"> Formula</label>'
-                    +   '<label><input type="radio" name="method_' + safeKey + '" value="table"'
-                    +     (method === 'table' ? ' checked' : '') + ' onchange="toggleMethod(\'' + safeKey + '\')"> Table</label>'
+                    +   '<label><input type="radio" name="method_' + safeKeyAttr + '" value="formula"'
+                    +     (method === 'formula' ? ' checked' : '') + ' onchange="toggleMethod(' + safeKeyArg + ')"> Formula</label>'
+                    +   '<label><input type="radio" name="method_' + safeKeyAttr + '" value="table"'
+                    +     (method === 'table' ? ' checked' : '') + ' onchange="toggleMethod(' + safeKeyArg + ')"> Table</label>'
                     + '</div>'
 
-                    + '<div class="formula-section" id="formula_' + safeKey + '" style="' + (method === 'formula' ? '' : 'display:none') + '">'
-                    +   '<input type="text" class="formula-input" id="formulaInput_' + safeKey + '"'
+                    + '<div class="formula-section" id="formula_' + safeKeyAttr + '" style="' + (method === 'formula' ? '' : 'display:none') + '">'
+                    +   '<input type="text" class="formula-input" id="formulaInput_' + safeKeyAttr + '"'
                     +     ' value="' + escHtml(formula) + '"'
                     +     ' placeholder="e.g. X * 2 or IF(X&lt;5, 0, X+10)">'
                     +   '<div class="formula-hint">Use X for the input grade. Supports: +, -, *, /, IF(cond, true_val, false_val)</div>'
                     + '</div>'
 
-                    + '<div class="table-section" id="table_' + safeKey + '" style="' + (method === 'table' ? '' : 'display:none') + '">'
-                    +   '<div class="table-rows" id="tableRows_' + safeKey + '">'
+                    + '<div class="table-section" id="table_' + safeKeyAttr + '" style="' + (method === 'table' ? '' : 'display:none') + '">'
+                    +   '<div class="table-rows" id="tableRows_' + safeKeyAttr + '">'
                     +     table.map(function(r) { return tableRowHtml(r.from_min, r.from_max, r.to); }).join('')
                     +   '</div>'
-                    +   '<button type="button" class="btn-small" onclick="addTableRow(\'' + safeKey + '\')">+ Add Row</button>'
+                    +   '<button type="button" class="btn-small" onclick="addTableRow(' + safeKeyArg + ')">+ Add Row</button>'
                     + '</div>'
 
                     + '<div class="editor-notes">'
-                    +   '<input type="text" id="notes_' + safeKey + '" value="' + escHtml(notes) + '" placeholder="Notes (optional)">'
+                    +   '<input type="text" id="notes_' + safeKeyAttr + '" value="' + escHtml(notes) + '" placeholder="Notes (optional)">'
                     + '</div>'
 
                     + '<div class="test-area">'
                     +   '<span class="test-label">Test:</span>'
-                    +   '<input type="number" id="testGrade_' + safeKey + '" step="0.01" placeholder="Grade"'
+                    +   '<input type="number" id="testGrade_' + safeKeyAttr + '" step="0.01" placeholder="Grade"'
                     +     ' min="' + srcSys.min_grade + '" max="' + srcSys.max_grade + '">'
-                    +   '<button type="button" class="btn-small" onclick="testConv(\'' + safeKey + '\')">Test</button>'
-                    +   '<span id="testResult_' + safeKey + '" class="test-result"></span>'
-                    +   '<label class="confirmed-toggle"><input type="checkbox" id="confirmed_' + safeKey + '"'
+                    +   '<button type="button" class="btn-small" onclick="testConv(' + safeKeyArg + ')">Test</button>'
+                    +   '<span id="testResult_' + safeKeyAttr + '" class="test-result"></span>'
+                    +   '<label class="confirmed-toggle"><input type="checkbox" id="confirmed_' + safeKeyAttr + '"'
                     +     (confirmed ? ' checked' : '') + '> Human validated data</label>'
                     + '</div>'
 

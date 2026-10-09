@@ -232,7 +232,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 </head>
 <body>
 
-<script src="/static/nav.js?v=14"></script>
+<script src="/static/nav.js?v=15"></script>
 <script>uninovisNav({ crumbs: [{label:'WP1: Administration', href:'/#admin'}], current: 'Event Tracker' });</script>
 
 <!-- Agora sync bar (shown to editors only) -->
@@ -406,6 +406,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <button class="btn btn-primary" onclick="copyIcalUrl()" style="white-space:nowrap;padding:8px 14px;">Copy</button>
       </div>
       <span class="copy-feedback" id="icalCopyFeedback" style="font-size:0.8rem;"></span>
+      <p style="font-size:0.78rem;color:var(--text-light);margin-top:6px;">This URL only gives read access to the shared calendar. Keep it private; if it leaks,
+        <a href="#" onclick="regenerateIcalUrl(); return false;">create a new URL</a>.</p>
       <div style="margin-top:16px;padding:12px;background:#f5f6fa;border-radius:var(--radius);font-size:0.82rem;">
         <strong>Apple Calendar:</strong> File &rarr; New Calendar Subscription &rarr; paste URL<br>
         <strong>Google Calendar:</strong> Settings &rarr; Add calendar &rarr; From URL<br>
@@ -618,7 +620,10 @@ const CAT_CSS_CLASS = c => 'cat-' + c.replace(/[^A-Za-z0-9]+/g, '_');
   }
   let auth;
   try {
-    auth = await api('GET', '/api/auth-check');
+    const res = await fetch('/event-tracker/api/auth-check', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+    if (res.status === 403) { tommiShowNoAccess('Event Tracker'); return; }
+    if (!res.ok) throw new Error(res.statusText);
+    auth = await res.json();
   } catch (e) {
     window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
     return;
@@ -737,7 +742,7 @@ function updateSyncStatus(s) {
     const d = new Date(s.last_sync);
     const ago = Math.round((Date.now() - d) / 60000);
     const agoStr = ago < 60 ? ago + ' min ago' : Math.round(ago/60) + 'h ago';
-    el.innerHTML = 'Synchronised from Agora Catalogue: <strong>' + s.count + ' events</strong> &mdash; last sync ' + agoStr;
+    el.innerHTML = 'Synchronised from Agora Catalogue: <strong>' + esc(s.count) + ' events</strong> &mdash; last sync ' + agoStr;
   }
 }
 
@@ -748,11 +753,11 @@ async function syncCatalogue() {
   btn.textContent = 'Syncing...';
   try {
     const result = await api('POST', '/api/catalogue/sync');
-    statusEl.innerHTML = 'Synchronised from Agora Catalogue: <strong style="color:#34a853;">Synced ' + result.synced + ' events</strong> (' + result.total_in_api + ' total in API)';
+    statusEl.innerHTML = 'Synchronised from Agora Catalogue: <strong style="color:#34a853;">Synced ' + esc(result.synced) + ' events</strong> (' + esc(result.total_in_api) + ' total in API)';
     await loadData();
     render();
   } catch (e) {
-    statusEl.innerHTML = '<span style="color:#ea4335;">Sync failed: ' + e.message + '</span>';
+    statusEl.innerHTML = '<span style="color:#ea4335;">Sync failed: ' + esc(e.message) + '</span>';
   }
   btn.disabled = false;
   btn.textContent = 'Synchronised from Agora';
@@ -782,7 +787,7 @@ function buildFilters() {
 
 function btn(val, label, active, prefix, isGroup) {
   const cls = (active === val ? ' active' : '') + (isGroup ? ' group-btn' : '');
-  return `<button class="filter-btn${cls}" data-val="${val}" data-prefix="${prefix}">${label}</button>`;
+  return `<button class="filter-btn${cls}" data-val="${esc(val)}" data-prefix="${esc(prefix)}">${esc(label)}</button>`;
 }
 
 function setCatFilter(val) { activeCatFilter = val; refreshFilterUI(); render(); }
@@ -1107,7 +1112,7 @@ function timedBlockHTML(item) {
   const leftPct = widthPct * lane;
   const style = `top:${top}px;height:${height}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);`;
   const timePrefix = ev.all_day ? '' : fmtTime(seg.start, evTZ(ev)) + ' ';
-  return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail('${ev.id}')" title="${esc(displayName)}${esc(uni)}">${timePrefix}${esc(displayName)}${esc(uni)}</div>`;
+  return `<div class="tl-block ${cls}${ev.date_tbc ? ' tbc' : ''}" style="${style}" onclick="showDetail(${jsArg(ev.id)})" title="${esc(displayName)}${esc(uni)}">${timePrefix}${esc(displayName)}${esc(uni)}</div>`;
 }
 
 function evTZ(ev) { return ev.timezone || 'CEST'; }
@@ -1127,7 +1132,7 @@ function chipHTML(ev, date) {
   const tbcCls = ev.date_tbc ? ' tbc' : '';
   const tbcPrefix = ev.date_tbc ? '<span style="font-size:0.6rem;opacity:0.85;">TBC</span> ' : '';
   const segLabel = seg && seg.label ? ' — ' + esc(seg.label) : '';
-  return `<div class="event-chip ${cls}${catCls}${tbcCls}" onclick="showDetail('${ev.id}')" title="${esc(displayName)}${esc(uni)}${segLabel}${isCat ? ' [Agora Catalogue]' : ''}">${tbcPrefix}${timeLabel}${esc(shortName)}</div>`;
+  return `<div class="event-chip ${cls}${catCls}${tbcCls}" onclick="showDetail(${jsArg(ev.id)})" title="${esc(displayName)}${esc(uni)}${segLabel}${isCat ? ' [Agora Catalogue]' : ''}">${tbcPrefix}${timeLabel}${esc(shortName)}</div>`;
 }
 
 // -- Month view --------------------------------------------------------------
@@ -1317,14 +1322,14 @@ function renderList() {
     const rowCls = isCat ? ' class="is-catalogue"' : '';
     const loc = eType === 'Virtual' ? (ev.meeting_url || '') : (ev.place || '');
     const locDisplay = loc.length > 40 ? loc.slice(0, 40) + '...' : loc;
-    html += `<tr${rowCls} onclick="showDetail('${ev.id}')">`;
+    html += `<tr${rowCls} onclick="showDetail(${jsArg(ev.id)})">`;
     const tz = evTZ(ev);
     html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.start_date ? '<span class="tbc-badge">' + esc(ev.date_tbc_label || 'TBC') + '</span>' : fmtShort(ev.start_date, ev.all_day, tz)}</td>`;
     html += `<td style="white-space:nowrap;">${ev.date_tbc && !ev.end_date ? '&mdash;' : fmtShort(ev.end_date, ev.all_day, tz)}</td>`;
     html += `<td>${ev.date_tbc ? '<span class="tbc-badge">TBC</span> ' : ''}${isCat ? 'Synchronised ' : ''}<strong>${esc(ev.name)}</strong></td>`;
     html += `<td>${(ev.categories && ev.categories.length ? ev.categories : (ev.category ? [ev.category] : [])).map(c => `<span class="cat-badge ${CAT_CSS_CLASS(c)}">${esc(c)}</span>`).join(' ')}</td>`;
     html += `<td>${esc((ev.universities || (ev.university ? [ev.university] : [])).join(', '))}</td>`;
-    html += `<td><span class="type-badge${eType==='Virtual'?' virtual':''}">${eType}</span></td>`;
+    html += `<td><span class="type-badge${eType==='Virtual'?' virtual':''}">${esc(eType)}</span></td>`;
     html += `<td style="font-size:0.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${isCat ? '<span class="catalogue-badge">Agora</span>' : esc(locDisplay)}</td>`;
     html += '</tr>';
   });
@@ -1355,7 +1360,14 @@ function fmtShort(isoStr, allDay, tz) {
   return dd + ' ' + mm + ' ' + yy + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+// HTML-escape for both text content and quoted attribute values.
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+// Safe JS string-literal argument for an inline handler inside a double-quoted
+// attribute: JSON-quote, then HTML-escape (the browser decodes entities before
+// running the handler, so the JS sees an intact string literal).
+function jsArg(v) { return esc(JSON.stringify(String(v == null ? '' : v))); }
+// Only http(s) links may be rendered as href.
+function isHttpUrl(u) { return /^https?:\/\//i.test(String(u || '').trim()); }
 
 function fmtDateTZ(isoStr, tz, allDay) {
   if (!isoStr) return '<em>Not set</em>';
@@ -1411,7 +1423,7 @@ function showDetail(id) {
     html += `<div class="detail-field"><div class="dl">Component</div><div class="dv">${compLabel} of <strong>${esc(parentEv ? parentEv.name : ev.linked_event)}</strong></div></div>`;
   }
   if (eType === 'Physical' && ev.place) html += `<div class="detail-field"><div class="dl">Place</div><div class="dv">${esc(ev.place)}</div></div>`;
-  if (eType === 'Virtual' && ev.meeting_url) html += `<div class="detail-field"><div class="dl">Meeting URL</div><div class="dv"><a href="${esc(ev.meeting_url)}" target="_blank" rel="noopener">${esc(ev.meeting_url)}</a></div></div>`;
+  if (eType === 'Virtual' && ev.meeting_url) html += `<div class="detail-field"><div class="dl">Meeting URL</div><div class="dv">${isHttpUrl(ev.meeting_url) ? `<a href="${esc(ev.meeting_url)}" target="_blank" rel="noopener">${esc(ev.meeting_url)}</a>` : esc(ev.meeting_url)}</div></div>`;
 
   const descHtml = ev.description ? esc(ev.description) : '<em>No description</em>';
   html += `
@@ -1419,7 +1431,7 @@ function showDetail(id) {
     <div class="detail-field"><div class="dl">Start</div><div class="dv">${ev.date_tbc ? tbcDateDisplay(ev) : fmtDateTZ(ev.start_date, evTZ(ev), ev.all_day)}${ev.all_day && !ev.date_tbc ? ' <span class="tbc-badge">All day</span>' : ''}</div></div>
     <div class="detail-field"><div class="dl">End</div><div class="dv">${ev.date_tbc ? (ev.end_date ? fmtDateTZ(ev.end_date, evTZ(ev), ev.all_day) + ' <span class="tbc-badge">TBC</span>' : '<span class="tbc-badge">TBC</span>') : fmtDateTZ(ev.end_date, evTZ(ev), ev.all_day)}</div></div>
   `;
-  if (ev.registration_link) html += `<div class="detail-field"><div class="dl">Registration</div><div class="dv"><a href="${esc(ev.registration_link)}" target="_blank" rel="noopener">${esc(ev.registration_link)}</a></div></div>`;
+  if (ev.registration_link) html += `<div class="detail-field"><div class="dl">Registration</div><div class="dv">${isHttpUrl(ev.registration_link) ? `<a href="${esc(ev.registration_link)}" target="_blank" rel="noopener">${esc(ev.registration_link)}</a>` : esc(ev.registration_link)}</div></div>`;
 
   // Agora-specific extra dates
   if (ev.source === 'catalogue') {
@@ -1440,7 +1452,7 @@ function showDetail(id) {
         html += `<div class="detail-part-item">${esc(u.first_name)} ${esc(u.family_name)} <span class="dpi-uni">(${esc(u.university)})</span> &mdash; <span style="font-size:0.8rem;">${esc(u.email)}</span></div>`;
       });
       html += '</div>';
-      html += `<div style="margin-top:8px;"><button class="btn-copy-emails" onclick="copyEmails('${ev.id}')">Copy all emails</button><span class="copy-feedback" id="copyFeedback"></span></div>`;
+      html += `<div style="margin-top:8px;"><button class="btn-copy-emails" onclick="copyEmails(${jsArg(ev.id)})">Copy all emails</button><span class="copy-feedback" id="copyFeedback"></span></div>`;
     } else {
       html += '<em style="font-size:0.85rem;">No participants assigned</em>';
     }
@@ -1463,11 +1475,11 @@ function showDetail(id) {
   const canModify = (isOwner || isSuperuser) && ev.source !== 'catalogue';
   if (canModify) {
     html += '<div class="detail-actions">';
-    html += `<button class="btn btn-primary" onclick="closeDetail();openEdit('${ev.id}')">Edit this event</button>`;
-    html += `<button class="btn btn-danger" onclick="deleteEvent('${ev.id}')">Delete this event</button>`;
+    html += `<button class="btn btn-primary" onclick="closeDetail();openEdit(${jsArg(ev.id)})">Edit this event</button>`;
+    html += `<button class="btn btn-danger" onclick="deleteEvent(${jsArg(ev.id)})">Delete this event</button>`;
     if (ev.series_id) {
-      html += `<button class="btn btn-primary" onclick="editSeries('${ev.series_id}','${ev.id}')">Edit all in series</button>`;
-      html += `<button class="btn btn-danger" onclick="deleteSeries('${ev.series_id}')">Delete entire series</button>`;
+      html += `<button class="btn btn-primary" onclick="editSeries(${jsArg(ev.series_id)},${jsArg(ev.id)})">Edit all in series</button>`;
+      html += `<button class="btn btn-danger" onclick="deleteSeries(${jsArg(ev.series_id)})">Delete entire series</button>`;
     }
     html += '</div>';
   }
@@ -1556,8 +1568,8 @@ function populateGroupSelect() {
   const sel = document.getElementById('partGroupSelect');
   let opts = '<option value="">-- Add group / subgroup --</option>';
   dirGroups.forEach(g => {
-    opts += `<option value="${g.id}">${g.name}</option>`;
-    (g.subgroups || []).forEach(sg => { opts += `<option value="${sg.id}">&nbsp;&nbsp;&darr; ${sg.name}</option>`; });
+    opts += `<option value="${esc(g.id)}">${esc(g.name)}</option>`;
+    (g.subgroups || []).forEach(sg => { opts += `<option value="${esc(sg.id)}">&nbsp;&nbsp;&darr; ${esc(sg.name)}</option>`; });
   });
   sel.innerHTML = opts;
 }
@@ -1577,7 +1589,7 @@ function removeGroup(gid) {
 
 function renderPartGroupTags() {
   document.getElementById('partGroupTags').innerHTML = editPartGroups.map(gid =>
-    `<span class="part-group-tag">${groupLabel(gid)}<button class="tag-remove" onclick="removeGroup('${gid}')">&times;</button></span>`
+    `<span class="part-group-tag">${esc(groupLabel(gid))}<button class="tag-remove" onclick="removeGroup(${jsArg(gid)})">&times;</button></span>`
   ).join('');
 }
 
@@ -1605,11 +1617,11 @@ function renderPartPersonList() {
     : [];
   let html = '';
   selected.sort((a,b) => a.family_name.localeCompare(b.family_name)).forEach(u => {
-    html += `<div class="part-item"><div class="part-info"><span class="part-name">${u.first_name} ${u.family_name} (${u.university})</span><span class="part-email">${u.email}</span></div><button class="part-remove" onclick="removePerson('${u.id}')">&times;</button></div>`;
+    html += `<div class="part-item"><div class="part-info"><span class="part-name">${esc(u.first_name)} ${esc(u.family_name)} (${esc(u.university)})</span><span class="part-email">${esc(u.email)}</span></div><button class="part-remove" onclick="removePerson(${jsArg(u.id)})">&times;</button></div>`;
   });
   searchResults.slice(0, 15).forEach(u => {
     const inGroup = allIds.has(u.id);
-    html += `<div class="part-item" style="${inGroup?'opacity:0.5;':''}"><div class="part-info"><span class="part-name">${u.first_name} ${u.family_name} (${u.university})</span><span class="part-email">${u.email}</span></div><button class="btn-sm" onclick="addPerson('${u.id}')" ${inGroup?'disabled title="Already via group"':''}>+ Add</button></div>`;
+    html += `<div class="part-item" style="${inGroup?'opacity:0.5;':''}"><div class="part-info"><span class="part-name">${esc(u.first_name)} ${esc(u.family_name)} (${esc(u.university)})</span><span class="part-email">${esc(u.email)}</span></div><button class="btn-sm" onclick="addPerson(${jsArg(u.id)})" ${inGroup?'disabled title="Already via group"':''}>+ Add</button></div>`;
   });
   if (!html) html = '<div style="padding:8px;font-size:0.8rem;color:var(--text-light);">Type to search or add groups above</div>';
   document.getElementById('partPersonList').innerHTML = html;
@@ -1622,13 +1634,13 @@ function openEdit(id) {
   const modal = document.getElementById('editModal');
   const catContainer = document.getElementById('editCategories');
   catContainer.innerHTML = INTERNAL_CATS.map(c =>
-    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" class="cat-cb" value="${c}" onchange="showParticipantsSection(shouldShowParticipants())"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" class="cat-cb" value="${esc(c)}" onchange="showParticipantsSection(shouldShowParticipants())"><span style="min-width:0;overflow-wrap:break-word;">${esc(c)}</span></label>`
   ).join('');
   const grpSel = document.getElementById('editUninovisGroup');
-  grpSel.innerHTML = '<option value="">— None —</option>' + dirGroups.map(g => `<option value="${g.name}">${g.name}</option>`).join('');
+  grpSel.innerHTML = '<option value="">— None —</option>' + dirGroups.map(g => `<option value="${esc(g.name)}">${esc(g.name)}</option>`).join('');
   const uniContainer = document.getElementById('editUniversities');
   uniContainer.innerHTML = universities.map(u =>
-    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="uni-cb" value="${u}"> ${u}</label>`
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" class="uni-cb" value="${esc(u)}"> ${esc(u)}</label>`
   ).join('');
   populateGroupSelect();
 
@@ -1786,7 +1798,7 @@ function editSeries(seriesId, evId) {
   const ev = events.find(e => e.id === evId); if (!ev) return;
   const catContainer = document.getElementById('editCategories');
   catContainer.innerHTML = INTERNAL_CATS.map(c =>
-    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" class="cat-cb" value="${c}" onchange="showParticipantsSection(shouldShowParticipants())"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" class="cat-cb" value="${esc(c)}" onchange="showParticipantsSection(shouldShowParticipants())"><span style="min-width:0;overflow-wrap:break-word;">${esc(c)}</span></label>`
   ).join('');
   populateGroupSelect();
   document.getElementById('editModalTitle').textContent = 'Edit Series (' + events.filter(e => e.series_id === seriesId).length + ' events)';
@@ -1821,10 +1833,10 @@ function editSeries(seriesId, evId) {
 // -- Export / Import ---------------------------------------------------------
 function openExportModal() {
   document.getElementById('exportUniChecks').innerHTML = universities.map(u =>
-    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" value="${u}" checked onchange="updateExportPreview()"> ${u}</label>`
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;"><input type="checkbox" value="${esc(u)}" checked onchange="updateExportPreview()"> ${esc(u)}</label>`
   ).join('');
   document.getElementById('exportCatChecks').innerHTML = INTERNAL_CATS.concat(EXTERNAL_CATS).map(c =>
-    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" value="${c}" checked onchange="updateExportPreview()"><span style="min-width:0;overflow-wrap:break-word;">${c}</span></label>`
+    `<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;font-weight:400;margin:0;cursor:pointer;min-width:0;"><input type="checkbox" value="${esc(c)}" checked onchange="updateExportPreview()"><span style="min-width:0;overflow-wrap:break-word;">${esc(c)}</span></label>`
   ).join('');
   document.getElementById('exportFrom').value = '';
   document.getElementById('exportTo').value = '';
@@ -1995,25 +2007,25 @@ function updateKpiPreview() {
   const mh = metricHeaders(data.wantCount, data.wantDays, data.wantPart);
   const metricsPerCol = mh.length;
   let html = '<table class="kpi-table"><thead><tr>';
-  html += `<th>${DIM_LABELS[data.rowDim] || data.rowDim}</th>`;
+  html += `<th>${esc(DIM_LABELS[data.rowDim] || data.rowDim)}</th>`;
   data.colVals.forEach(c => {
-    if (metricsPerCol === 1) html += `<th>${data.colDim ? c : mh[0]}</th>`;
-    else html += `<th colspan="${metricsPerCol}">${data.colDim ? c : ''}</th>`;
+    if (metricsPerCol === 1) html += `<th>${esc(data.colDim ? c : mh[0])}</th>`;
+    else html += `<th colspan="${metricsPerCol}">${esc(data.colDim ? c : '')}</th>`;
   });
   html += '</tr>';
   if (metricsPerCol > 1) {
     html += '<tr><th></th>';
-    data.colVals.forEach(() => { mh.forEach(h => { html += `<th>${h}</th>`; }); });
+    data.colVals.forEach(() => { mh.forEach(h => { html += `<th>${esc(h)}</th>`; }); });
     html += '</tr>';
   }
   html += '</thead><tbody>';
   data.rowVals.forEach(r => {
-    html += `<tr><td><strong>${r}</strong></td>`;
-    data.colVals.forEach(c => { metricCells(data.rows[r][c], data.wantCount, data.wantDays, data.wantPart).forEach(v => { html += `<td class="num">${v}</td>`; }); });
+    html += `<tr><td><strong>${esc(r)}</strong></td>`;
+    data.colVals.forEach(c => { metricCells(data.rows[r][c], data.wantCount, data.wantDays, data.wantPart).forEach(v => { html += `<td class="num">${esc(v)}</td>`; }); });
     html += '</tr>';
   });
   html += '<tr class="kpi-total"><td><strong>TOTAL</strong></td>';
-  data.colVals.forEach(c => { metricCells(data.totals[c], data.wantCount, data.wantDays, data.wantPart).forEach(v => { html += `<td class="num">${v}</td>`; }); });
+  data.colVals.forEach(c => { metricCells(data.totals[c], data.wantCount, data.wantDays, data.wantPart).forEach(v => { html += `<td class="num">${esc(v)}</td>`; }); });
   html += '</tr></tbody></table>';
   html += `<div style="padding:6px 10px;font-size:0.78rem;color:var(--text-light);">${data.total} events in report</div>`;
   document.getElementById('kpiPreview').innerHTML = html;
@@ -2045,12 +2057,12 @@ function exportKpi(format) {
     a.download = 'uninovis_kpi_report.csv'; a.click();
   } else {
     let html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>UNINOVIS KPI Report</title><style>body{font-family:-apple-system,sans-serif;margin:24px;color:#333;}h1{color:#2D3876;}table{border-collapse:collapse;width:100%;margin-top:16px;}th{background:#2D3876;color:#fff;padding:8px 12px;text-align:left;}td{padding:6px 12px;border-bottom:1px solid #e0e0e0;}.num{text-align:right;}.total{font-weight:700;background:#f0f1f5;}</style></head><body>';
-    html += '<h1>UNINOVIS Event Tracker KPI Report</h1><p>' + periodLabel + '</p><table><thead><tr>';
-    headerRow.forEach(h => { html += '<th>' + h + '</th>'; });
+    html += '<h1>UNINOVIS Event Tracker KPI Report</h1><p>' + esc(periodLabel) + '</p><table><thead><tr>';
+    headerRow.forEach(h => { html += '<th>' + esc(h) + '</th>'; });
     html += '</tr></thead><tbody>';
     tableRows.forEach((r, i) => {
       html += '<tr' + (i === tableRows.length - 1 ? ' class="total"' : '') + '>';
-      r.forEach((v, j) => { html += '<td' + (j > 0 ? ' class="num"' : '') + '>' + v + '</td>'; });
+      r.forEach((v, j) => { html += '<td' + (j > 0 ? ' class="num"' : '') + '>' + esc(v) + '</td>'; });
       html += '</tr>';
     });
     html += '</tbody></table></body></html>';
@@ -2061,10 +2073,28 @@ function exportKpi(format) {
 }
 
 // -- Subscribe / iCal -------------------------------------------------------
-function showSubscribe() {
-  document.getElementById('icalUrl').value = window.location.origin + '/event-tracker/api/feed/ical?token=' + TOKEN;
+// The subscription URL uses a separate read-only feed token, never the login token.
+async function showSubscribe(regenerate) {
   document.getElementById('icalCopyFeedback').textContent = '';
+  try {
+    const res = await fetch('/event-tracker/api/feed/token' + (regenerate ? '/regenerate' : ''), {
+      method: regenerate ? 'POST' : 'GET', headers: { 'Authorization': 'Bearer ' + TOKEN },
+    });
+    if (!res.ok) throw new Error();
+    const { token } = await res.json();
+    document.getElementById('icalUrl').value = window.location.origin + '/event-tracker/api/feed/ical?token=' + encodeURIComponent(token);
+  } catch (e) {
+    document.getElementById('icalUrl').value = '';
+    document.getElementById('icalCopyFeedback').textContent = 'Could not load the subscription URL.';
+  }
   document.getElementById('subscribeModal').classList.add('open');
+}
+
+async function regenerateIcalUrl() {
+  if (!confirm('Create a new subscription URL? Calendars using the old URL will stop updating.')) return;
+  await showSubscribe(true);
+  const fb = document.getElementById('icalCopyFeedback');
+  fb.textContent = 'New URL created. Update it in your calendar app.'; fb.style.color = '#34a853';
 }
 
 function copyIcalUrl() {
@@ -2093,17 +2123,17 @@ async function doImport() {
       body: formData,
     });
     const data = await res.json();
-    if (!res.ok) { resultDiv.innerHTML = '<span style="color:#ea4335;">Error: ' + (data.detail || 'Unknown error') + '</span>'; return; }
-    let msg = '<strong style="color:#34a853;">' + data.added + ' added, ' + data.updated + ' updated.</strong>';
+    if (!res.ok) { resultDiv.innerHTML = '<span style="color:#ea4335;">Error: ' + esc(data.detail || 'Unknown error') + '</span>'; return; }
+    let msg = '<strong style="color:#34a853;">' + esc(data.added) + ' added, ' + esc(data.updated) + ' updated.</strong>';
     if (data.errors && data.errors.length) {
       msg += '<br><span style="color:#ea4335;">Errors (' + data.errors.length + '):</span><ul style="margin:4px 0 0 16px;font-size:0.8rem;">';
-      data.errors.slice(0, 10).forEach(e => { msg += '<li>' + e + '</li>'; });
+      data.errors.slice(0, 10).forEach(e => { msg += '<li>' + esc(e) + '</li>'; });
       if (data.errors.length > 10) msg += '<li>...and ' + (data.errors.length - 10) + ' more</li>';
       msg += '</ul>';
     }
     resultDiv.innerHTML = msg;
     await loadData(); render();
-  } catch (err) { resultDiv.innerHTML = '<span style="color:#ea4335;">Request failed: ' + err.message + '</span>'; }
+  } catch (err) { resultDiv.innerHTML = '<span style="color:#ea4335;">Request failed: ' + esc(err.message) + '</span>'; }
 }
 </script>
 </body>

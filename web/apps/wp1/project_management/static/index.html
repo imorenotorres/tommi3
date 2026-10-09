@@ -265,7 +265,12 @@ const STATUS_COLUMNS = [
 const STATUS_LABEL = Object.fromEntries(STATUS_COLUMNS.map(s => [s.id, s.label]));
 const KIND_LABEL = { complete_event_info: 'Complete Event information', review_event: 'Review New Event', manual: 'Manual' };
 
-function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+// HTML-escape for both text content and quoted attribute values.
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+// Safe JS string-literal argument for an inline handler inside a double-quoted
+// attribute: JSON-quote, then HTML-escape (the browser decodes entities before
+// running the handler, so the JS sees an intact string literal).
+function jsArg(v) { return esc(JSON.stringify(String(v == null ? '' : v))); }
 
 async function api(method, path, body) {
   const opts = { method, headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' } };
@@ -601,7 +606,7 @@ function showDetail(id) {
 
   html += `<div class="detail-field"><div class="dl">Status</div><div class="dv status-row">` +
     (canChangeStatus(t)
-      ? `<select onchange="changeStatus('${esc(t.id)}', this.value)">${STATUS_COLUMNS.map(s => `<option value="${s.id}"${s.id === t.status ? ' selected' : ''}>${s.label}</option>`).join('')}</select>`
+      ? `<select onchange="changeStatus(${jsArg(t.id)}, this.value)">${STATUS_COLUMNS.map(s => `<option value="${s.id}"${s.id === t.status ? ' selected' : ''}>${s.label}</option>`).join('')}</select>`
       : esc(STATUS_LABEL[t.status] || t.status)) +
     ` <span class="badge">${esc(t.priority)} priority</span>` +
     (t.due_date ? ` <span class="badge due${isOverdue(t) ? ' overdue' : ''}">Due ${esc(fmtDate(t.due_date))}</span>` : '') +
@@ -644,16 +649,16 @@ function showDetail(id) {
   html += `<div class="detail-field"><div class="dl">Activity</div><ul class="history">` +
     [...(t.history || [])].reverse().map(h => `<li><span class="when">${esc(fmtDateTime(h.at))} · ${esc(h.by === 'system' ? 'System' : personName(h.by))}</span><br>${esc(h.text)}</li>`).join('') +
     `</ul>` +
-    (canChangeStatus(t) ? `<div class="comment-row"><input id="commentInput" placeholder="Add a comment…" maxlength="2000"><button class="btn" onclick="addComment('${esc(t.id)}')">Add</button></div>` : '') +
+    (canChangeStatus(t) ? `<div class="comment-row"><input id="commentInput" placeholder="Add a comment…" maxlength="2000"><button class="btn" onclick="addComment(${jsArg(t.id)})">Add</button></div>` : '') +
     `</div>`;
 
   document.getElementById('detailBody').innerHTML = html;
 
   let footer = '';
-  if (isManager && t.kind !== 'manual') footer += `<button class="btn" onclick="recheck('${esc(t.id)}')" title="Look up the content manager / WP leader again in the Directory">Re-check assignees</button>`;
+  if (isManager && t.kind !== 'manual') footer += `<button class="btn" onclick="recheck(${jsArg(t.id)})" title="Look up the content manager / WP leader again in the Directory">Re-check assignees</button>`;
   if (canEditTask(t)) {
-    footer += `<button class="btn btn-danger" onclick="deleteTask('${esc(t.id)}')">Delete</button>`;
-    footer += `<button class="btn btn-primary" onclick="closeModal('detailModal');openEdit('${esc(t.id)}')">Edit</button>`;
+    footer += `<button class="btn btn-danger" onclick="deleteTask(${jsArg(t.id)})">Delete</button>`;
+    footer += `<button class="btn btn-primary" onclick="closeModal('detailModal');openEdit(${jsArg(t.id)})">Edit</button>`;
   }
   footer += `<button class="btn" onclick="closeModal('detailModal')">Close</button>`;
   document.getElementById('detailFooter').innerHTML = footer;

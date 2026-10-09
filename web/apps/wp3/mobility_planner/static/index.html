@@ -173,7 +173,7 @@
     <!-- End Matomo Code -->
 </head>
 <body>
-<script src="/static/nav.js?v=14"></script>
+<script src="/static/nav.js?v=15"></script>
 <script>uninovisNav({ crumbs: [{label:'Teaching & Research', href:'/#research'}], current: 'Mobility Planner' });</script>
     <div class="container">
         <h1>UNINOVIS Mobility Planner</h1>
@@ -271,6 +271,9 @@
                 });
                 if (resp.ok) {
                     authUser = await resp.json();
+                } else if (resp.status === 403) {
+                    tommiShowNoAccess('Mobility Planner');
+                    return false;
                 } else {
                     window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
                     return false;
@@ -339,9 +342,9 @@
             sendingSel.innerHTML = '';
             for (var i = 0; i < sorted.length; i++) {
                 var acro = sorted[i][0], info = sorted[i][1];
-                var label = acro + ' - ' + info.name + ' (' + info.country + ')';
-                receivingSel.innerHTML += '<option value="' + acro + '">' + label + '</option>';
-                sendingSel.innerHTML += '<option value="' + acro + '">' + label + '</option>';
+                var label = esc(acro) + ' - ' + esc(info.name) + ' (' + esc(info.country) + ')';
+                receivingSel.innerHTML += '<option value="' + esc(acro) + '">' + label + '</option>';
+                sendingSel.innerHTML += '<option value="' + esc(acro) + '">' + label + '</option>';
             }
         }
 
@@ -411,13 +414,13 @@
                 });
                 var data = await resp.json();
                 if (data.error) {
-                    resultsBody.innerHTML = '<p class="error">' + data.error + '</p>';
+                    resultsBody.innerHTML = '<p class="error">' + esc(data.error) + '</p>';
                 } else {
                     renderResults(data.results);
                 }
                 resultsDiv.style.display = 'block';
             } catch (e) {
-                resultsBody.innerHTML = '<p class="error">Request failed: ' + e.message + '</p>';
+                resultsBody.innerHTML = '<p class="error">Request failed: ' + esc(e.message) + '</p>';
                 resultsDiv.style.display = 'block';
             }
             computeBtn.disabled = false;
@@ -431,7 +434,13 @@
 
         function esc(s) {
             if (!s) return '';
-            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        // Safe argument for an inline handler inside a double-quoted attribute:
+        // JSON-quote it as a JS string literal, then HTML-escape the result.
+        function jsArg(v) {
+            return esc(JSON.stringify(String(v)));
         }
 
         function renderResults(results) {
@@ -441,14 +450,14 @@
             var recvAcro = results[0].receiving_university;
             var actDate  = results[0].activity_date;
 
-            var html = '<p style="margin-bottom:16px;">Receiving: <strong>' + recvAcro + '</strong> (' + esc(recvName) + ') &mdash; Activity date: <strong>' + fmtDate(actDate) + '</strong></p>';
+            var html = '<p style="margin-bottom:16px;">Receiving: <strong>' + esc(recvAcro) + '</strong> (' + esc(recvName) + ') &mdash; Activity date: <strong>' + fmtDate(actDate) + '</strong></p>';
 
             for (var i = 0; i < results.length; i++) {
                 var r = results[i];
                 var sendHolNote = r.sending_holidays_hit.length > 0
-                    ? '<p class="holiday-note">+' + r.sending_holiday_days_added + ' day(s) added due to ' + r.sending_university + ' holidays: ' + r.sending_holidays_hit.join(', ') + '</p>' : '';
+                    ? '<p class="holiday-note">+' + r.sending_holiday_days_added + ' day(s) added due to ' + esc(r.sending_university) + ' holidays: ' + r.sending_holidays_hit.map(esc).join(', ') + '</p>' : '';
                 var recvHolNote = r.receiving_holidays_hit.length > 0
-                    ? '<p class="holiday-note">+' + r.receiving_holiday_days_added + ' day(s) added due to ' + r.receiving_university + ' holidays: ' + r.receiving_holidays_hit.join(', ') + '</p>' : '';
+                    ? '<p class="holiday-note">+' + r.receiving_holiday_days_added + ' day(s) added due to ' + esc(r.receiving_university) + ' holidays: ' + r.receiving_holidays_hit.map(esc).join(', ') + '</p>' : '';
 
                 var allConfirmed = r.sending_confirmed && r.receiving_confirmed;
                 var unverifiedUnis = [];
@@ -457,14 +466,14 @@
                 var verificationHtml = allConfirmed
                     ? '<div class="verification-banner verification-ok"><strong>&#10003; Verified</strong> — Data from both institutions has been validated.</div>'
                     : '<div class="verification-banner verification-ai"><strong>&#9888; AI-generated</strong> — Data from '
-                    +   unverifiedUnis.join(' and ') + ' has not been verified. Results are indicative.</div>';
+                    +   unverifiedUnis.map(esc).join(' and ') + ' has not been verified. Results are indicative.</div>';
 
                 var sendArrowCls = 'tl-arrow' + (!r.sending_confirmed ? ' unverified' : '');
                 var recvArrowCls = 'tl-arrow' + (!r.receiving_confirmed ? ' unverified' : '');
 
                 html += '<div class="result-card">'
                     + verificationHtml
-                    + '<h3>' + r.sending_university + ' (' + esc(r.sending_name) + ')</h3>'
+                    + '<h3>' + esc(r.sending_university) + ' (' + esc(r.sending_name) + ')</h3>'
                     + '<div class="timeline">'
                     +   '<div class="tl-node call"><strong>Call opens</strong><br>' + fmtDate(r.call_open_date) + '</div>'
                     +   '<div class="' + sendArrowCls + '">' + r.sending_period_days + ' days<br>sending'
@@ -511,32 +520,32 @@
                 var statusBadge = u.confirmed
                     ? '<span class="editor-status-badge badge-confirmed">Validated</span>'
                     : '<span class="editor-status-badge badge-ai">AI-generated</span>';
-                html += '<div class="card editor-card" data-acro="' + acro + '">'
+                html += '<div class="card editor-card" data-acro="' + esc(acro) + '">'
                     + '<div class="editor-card-header">'
-                    +   '<h4>' + acro + ' \u2014 ' + esc(u.name) + ' (' + u.country + ')</h4>'
+                    +   '<h4>' + esc(acro) + ' \u2014 ' + esc(u.name) + ' (' + esc(u.country) + ')</h4>'
                     +   statusBadge
                     + '</div>'
                     + '<div class="fields">'
                     +   '<div class="form-group">'
                     +     '<label>Sending period (days)</label>'
-                    +     '<input type="number" min="0" id="send_' + acro + '" value="' + u.sending_period_days + '">'
+                    +     '<input type="number" min="0" id="send_' + esc(acro) + '" value="' + esc(String(u.sending_period_days)) + '">'
                     +   '</div>'
                     +   '<div class="form-group">'
                     +     '<label>Receiving period (days)</label>'
-                    +     '<input type="number" min="0" id="recv_' + acro + '" value="' + u.receiving_period_days + '">'
+                    +     '<input type="number" min="0" id="recv_' + esc(acro) + '" value="' + esc(String(u.receiving_period_days)) + '">'
                     +   '</div>'
                     + '</div>'
                     + '<div class="holidays-section">'
                     +   '<h5>Holidays / Closure periods</h5>'
-                    +   '<div id="holidays_' + acro + '">';
+                    +   '<div id="holidays_' + esc(acro) + '">';
                 for (var j = 0; j < (u.holidays || []).length; j++) {
                     var h = u.holidays[j];
                     html += holidayRowHtml(h.start, h.end, h.label);
                 }
                 html += '</div>'
                     +   '<div class="holidays-footer">'
-                    +     '<button type="button" class="btn-small" onclick="addHolidayRow(\'' + acro + '\')">+ Add Holiday</button>'
-                    +     '<label class="confirmed-toggle"><input type="checkbox" id="confirmed_' + acro + '"'
+                    +     '<button type="button" class="btn-small" onclick="addHolidayRow(' + jsArg(acro) + ')">+ Add Holiday</button>'
+                    +     '<label class="confirmed-toggle"><input type="checkbox" id="confirmed_' + esc(acro) + '"'
                     +       (u.confirmed ? ' checked' : '') + '> Human validated data</label>'
                     +   '</div>'
                     + '</div>'
@@ -548,8 +557,8 @@
         function holidayRowHtml(start, end, label) {
             start = start || ''; end = end || ''; label = label || '';
             return '<div class="holiday-row">'
-                + '<input type="date" value="' + start + '" class="hol-start">'
-                + '<input type="date" value="' + end + '" class="hol-end">'
+                + '<input type="date" value="' + esc(start) + '" class="hol-start">'
+                + '<input type="date" value="' + esc(end) + '" class="hol-end">'
                 + '<input type="text" value="' + esc(label) + '" placeholder="Label (e.g. Summer)" class="hol-label">'
                 + '<button type="button" class="btn-remove" onclick="this.parentElement.remove()">\u00d7</button>'
                 + '</div>';

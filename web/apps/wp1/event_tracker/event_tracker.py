@@ -13,6 +13,7 @@ import io
 import json
 import os
 import re
+import secrets
 import uuid
 from datetime import datetime, timedelta
 
@@ -28,7 +29,10 @@ DATA_PATH   = os.path.join(os.path.dirname(__file__), "data.json")
 DIRECTORY_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "directory", "data.json")
 ENV_PATH    = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env")
 
-router = APIRouter(prefix="/event-tracker", tags=["event_tracker"])
+# Tool Visibility is enforced on the server for every /api/ route (see auth.tool_access_guard).
+from auth import tool_access_guard as _tool_access_guard
+
+router = APIRouter(prefix="/event-tracker", tags=["event_tracker"], dependencies=[Depends(_tool_access_guard("event_tracker", ("/api/feed/ical",)))])
 
 # ---------------------------------------------------------------------------
 # Catalogue API config
@@ -74,7 +78,7 @@ _EVENT_TYPE_MAP = {
 
 from auth import (
     get_session, require_login as _require_auth, require_editor as _require_editor,
-    can_edit as _can_edit_check, user_roles as _user_roles,
+    can_edit as _can_edit_check, user_roles as _user_roles, list_users as _list_users,
 )
 
 # Project Management hooks: every new internal event gets its follow-up tasks
@@ -936,12 +940,38 @@ def _generate_ics(events_list: list) -> str:
     return "\r\n".join(lines)
 
 
+# Calendar apps poll the subscription URL for months, so it carries a
+# per-user feed token (stored in data["feed_tokens"]) that can only read this
+# feed, never the user's login token. Regenerating it cuts off old copies.
+
+def _feed_token_for(data: dict, username: str, regenerate: bool = False) -> str:
+    tokens = data.setdefault("feed_tokens", {})
+    if regenerate or username not in tokens:
+        tokens[username] = secrets.token_urlsafe(32)
+        save_data(data)
+    return tokens[username]
+
+
+@router.get("/api/feed/token")
+def get_feed_token(session: dict = Depends(_require_auth)):
+    return {"token": _feed_token_for(load_data(), session["username"])}
+
+
+@router.post("/api/feed/token/regenerate")
+def regenerate_feed_token(session: dict = Depends(_require_auth)):
+    return {"token": _feed_token_for(load_data(), session["username"], regenerate=True)}
+
+
 @router.get("/api/feed/ical")
 def ical_feed(token: str = Query("")):
-    session = get_session(token) if token else None
-    if not session:
-        raise HTTPException(401, "Invalid or expired token")
     data = load_data()
+    owner = next(
+        (u for u, t in data.get("feed_tokens", {}).items() if token and secrets.compare_digest(t, token)),
+        None,
+    )
+    # The token stops working once its owner is deleted.
+    if not owner or not any(u["username"] == owner for u in _list_users()):
+        raise HTTPException(401, "Invalid or expired token")
     catalogue = data.get("catalogue_events", [])
     catalogue_ids = {ev["id"] for ev in catalogue}
     shared = [

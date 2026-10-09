@@ -18,7 +18,10 @@ from pydantic import BaseModel, field_validator
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 
-router = APIRouter(prefix="/researcher-connect", tags=["researcher_connect"])
+# Tool Visibility is enforced on the server for every /api/ route (see auth.tool_access_guard).
+from auth import tool_access_guard as _tool_access_guard
+
+router = APIRouter(prefix="/researcher-connect", tags=["researcher_connect"], dependencies=[Depends(_tool_access_guard("researcher_connect", ()))])
 
 
 # -- Auth helpers (shared with tommi server) -----------------------------------

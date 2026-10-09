@@ -39,8 +39,15 @@ _SAFE_OPS = {
 }
 
 
+_MAX_EXPONENT = 10
+_MAX_POW_BASE = 1000
+_MAX_FORMULA_LENGTH = 500
+
+
 def _safe_eval(expr: str):
     """Evaluate a math expression safely using AST parsing (no exec/eval)."""
+    if len(expr) > _MAX_FORMULA_LENGTH:
+        raise ValueError(f"Formula is too long (max {_MAX_FORMULA_LENGTH} characters)")
     try:
         tree = ast.parse(expr.strip(), mode='eval')
     except SyntaxError as e:
@@ -57,7 +64,14 @@ def _eval_node(node):
         op = _SAFE_OPS.get(type(node.op))
         if not op:
             raise ValueError(f"Unsupported operator: {type(node.op).__name__}")
-        return op(_eval_node(node.left), _eval_node(node.right))
+        left, right = _eval_node(node.left), _eval_node(node.right)
+        if isinstance(node.op, ast.Pow):
+            # Grade formulas never need large powers; unbounded ones (e.g.
+            # 9**9**9) would tie up the server computing a huge integer.
+            if abs(right) > _MAX_EXPONENT or abs(left) > _MAX_POW_BASE:
+                raise ValueError(f"Powers are limited to a base of at most {_MAX_POW_BASE} and an exponent of at most {_MAX_EXPONENT}")
+            return float(left) ** right
+        return op(left, right)
     elif isinstance(node, ast.UnaryOp):
         op = _SAFE_OPS.get(type(node.op))
         if not op:
@@ -80,7 +94,10 @@ def _eval_node(node):
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data.json")
 
-router = APIRouter(prefix="/unigracon", tags=["unigracon"])
+# Tool Visibility is enforced on the server for every /api/ route (see auth.tool_access_guard).
+from auth import tool_access_guard as _tool_access_guard
+
+router = APIRouter(prefix="/unigracon", tags=["unigracon"], dependencies=[Depends(_tool_access_guard("unigracon", ()))])
 
 
 # ── Auth helpers for edit protection ─────────────────────────────────

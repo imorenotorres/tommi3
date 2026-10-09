@@ -108,7 +108,7 @@
 <!-- End Matomo Code -->
 </head>
 <body>
-<script src="/static/nav.js?v=14"></script>
+<script src="/static/nav.js?v=15"></script>
 <script>uninovisNav({ crumbs: [{label:'Teaching & Research', href:'/#research'}], current: 'Researcher Connect' });</script>
 <div class="container">
     <h1>UNINOVIS Researcher Connect</h1>
@@ -244,6 +244,9 @@ async function checkAuth() {
         if (resp.ok) {
             authUser = await resp.json();
             canEdit = authUser.can_edit;
+        } else if (resp.status === 403) {
+            tommiShowNoAccess('Researcher Connect');
+            return false;
         } else {
             window.location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
             return false;
@@ -315,7 +318,7 @@ function renderFilters() {
     uniSel.innerHTML = '<option value="">All Universities</option>';
     Object.keys(DATA.universities).sort().forEach(function(code) {
         var u = DATA.universities[code];
-        uniSel.innerHTML += '<option value="' + code + '">' + code + ' - ' + u.name + '</option>';
+        uniSel.innerHTML += '<option value="' + esc(code) + '">' + esc(code) + ' - ' + esc(u.name) + '</option>';
     });
     uniSel.value = current;
 
@@ -323,7 +326,7 @@ function renderFilters() {
     var currentArea = areaSel.value;
     areaSel.innerHTML = '<option value="">All Research Areas</option>';
     (DATA.research_areas || []).forEach(function(a) {
-        areaSel.innerHTML += '<option value="' + a + '">' + a + '</option>';
+        areaSel.innerHTML += '<option value="' + esc(a) + '">' + esc(a) + '</option>';
     });
     areaSel.value = currentArea;
 }
@@ -364,17 +367,17 @@ function renderGrid() {
         var areas = (r.research_areas || []).map(function(a) { return '<span class="badge badge-area">' + esc(a) + '</span>'; }).join('');
         var kws = (r.keywords || []).map(function(k) { return '<span class="badge badge-kw">' + esc(k) + '</span>'; }).join('');
         var links = '';
-        if (r.email) links += '<a href="mailto:' + esc(r.email) + '">Email</a>';
+        if (r.email) links += '<a href="' + mailtoHref(r.email) + '">Email</a>';
         if (r.orcid) links += '<a href="https://orcid.org/' + esc(r.orcid) + '" target="_blank">ORCID</a>';
-        if (r.website) links += '<a href="' + esc(r.website) + '" target="_blank">Website</a>';
+        if (r.website) links += isHttpUrl(r.website) ? '<a href="' + esc(r.website) + '" target="_blank">Website</a>' : '<span>' + esc(r.website) + '</span>';
         var actions = '';
         if (canEdit) {
             actions = '<div class="actions">' +
-                '<button class="btn-small" onclick="openEditModal(\'' + r.id + '\')">Edit</button>' +
-                '<button class="btn-danger" onclick="deleteResearcher(\'' + r.id + '\')">Delete</button>' +
+                '<button class="btn-small" onclick="openEditModal(' + jsArg(r.id) + ')">Edit</button>' +
+                '<button class="btn-danger" onclick="deleteResearcher(' + jsArg(r.id) + ')">Delete</button>' +
                 '</div>';
         }
-        return '<div class="researcher-card" onclick="showDetail(\'' + r.id + '\')" style="cursor:pointer">' +
+        return '<div class="researcher-card" onclick="showDetail(' + jsArg(r.id) + ')" style="cursor:pointer">' +
             '<div class="name">' + esc(r.first_name) + ' ' + esc(r.family_name) + '</div>' +
             '<div class="position">' + esc(r.position || '') + (r.department ? ' — ' + esc(r.department) : '') + '</div>' +
             '<div class="university"><span class="badge badge-uni">' + esc(r.university) + '</span> ' + esc(uniName) + '</div>' +
@@ -392,7 +395,26 @@ function esc(s) {
     if (!s) return '';
     var d = document.createElement('div');
     d.textContent = s;
-    return d.innerHTML;
+    return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Safe JS string literal for use inside a double-quoted inline handler attribute.
+function jsArg(v) {
+    return esc(JSON.stringify(String(v)));
+}
+
+// Only allow http(s) URLs as link targets.
+function isHttpUrl(u) {
+    return /^https?:\/\//i.test(String(u || '').trim());
+}
+
+// mailto: href built only from the address (no injected ?subject=/&body= etc.).
+function mailtoHref(email) {
+    return 'mailto:' + esc(encodeURI(String(email).trim()).replace(/[?#&]/g, encodeURIComponent));
+}
+
+function websiteLink(url, label) {
+    return isHttpUrl(url) ? '<a href="' + esc(url) + '" target="_blank">' + esc(label) + '</a>' : esc(label);
 }
 
 // -- Search & filter --
@@ -423,12 +445,12 @@ function showDetail(id) {
     if (r.bio) html += '<p style="margin-bottom:8px;"><strong>Bio:</strong><br>' + esc(r.bio) + '</p>';
     if (r.looking_for) html += '<p style="margin-bottom:8px;color:#4250b3;"><strong>Looking for:</strong> ' + esc(r.looking_for) + '</p>';
     html += '<p style="margin-bottom:8px;">';
-    if (r.email) html += '<strong>Email:</strong> <a href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a><br>';
+    if (r.email) html += '<strong>Email:</strong> <a href="' + mailtoHref(r.email) + '">' + esc(r.email) + '</a><br>';
     if (r.orcid) html += '<strong>ORCID:</strong> <a href="https://orcid.org/' + esc(r.orcid) + '" target="_blank">' + esc(r.orcid) + '</a><br>';
-    if (r.website) html += '<strong>Website:</strong> <a href="' + esc(r.website) + '" target="_blank">' + esc(r.website) + '</a><br>';
+    if (r.website) html += '<strong>Website:</strong> ' + websiteLink(r.website, r.website) + '<br>';
     html += '</p>';
     html += '<div class="modal-footer"><button class="btn-small" onclick="closeModal(\'detailModal\')">Close</button>';
-    if (canEdit) html += '<button class="btn" onclick="closeModal(\'detailModal\');openEditModal(\'' + r.id + '\')">Edit</button>';
+    if (canEdit) html += '<button class="btn" onclick="closeModal(\'detailModal\');openEditModal(' + jsArg(r.id) + ')">Edit</button>';
     html += '</div>';
 
     document.getElementById('detailContent').innerHTML = html;
@@ -448,7 +470,7 @@ function populateUniSelect() {
     var sel = document.getElementById('rUniversity');
     sel.innerHTML = '<option value="">-- Select --</option>';
     Object.keys(DATA.universities).sort().forEach(function(code) {
-        sel.innerHTML += '<option value="' + code + '">' + code + ' - ' + DATA.universities[code].name + '</option>';
+        sel.innerHTML += '<option value="' + esc(code) + '">' + esc(code) + ' - ' + esc(DATA.universities[code].name) + '</option>';
     });
 }
 
