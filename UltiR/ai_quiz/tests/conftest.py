@@ -30,12 +30,13 @@ ID_KEY = "test-only-id-key"
 
 
 @pytest.fixture(autouse=True)
-def configured(monkeypatch):
-    """A fully configured tool, with the local test route off (the default)."""
+def configured(monkeypatch, tmp_path):
+    """A fully configured tool, the local test route off (the default), data in a temp folder."""
     monkeypatch.setenv("AI_QUIZ_LTI_KEY", KEY)
     monkeypatch.setenv("AI_QUIZ_LTI_SECRET", SECRET)
     monkeypatch.setenv("AI_QUIZ_ID_KEY", ID_KEY)
     monkeypatch.delenv("AI_QUIZ_DEV_TEST", raising=False)
+    monkeypatch.setenv("AI_QUIZ_DATA_DIR", str(tmp_path / "data"))
 
 
 @pytest.fixture

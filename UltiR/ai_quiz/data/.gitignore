@@ -1,0 +1,4 @@
+# Runtime data: uploaded documents, drafts, published quizzes, attempts.
+# None of it belongs in git. The repo ignores *.json only, so ignore everything here.
+*
+!.gitignore
