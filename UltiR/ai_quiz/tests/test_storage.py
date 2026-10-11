@@ -88,6 +88,75 @@ def test_a_failed_write_leaves_the_old_content_and_no_leftovers(tmp_path):
     assert [p.name for p in tmp_path.iterdir()] == ["file.json"]
 
 
+# ── Files that are written once ─────────────────────────────────────────────
+
+def test_a_new_file_is_created_with_its_content(tmp_path):
+    path = tmp_path / "sub" / "rev-0001.json"
+
+    storage.write_json_new(path, {"revision": 1})
+
+    assert storage.read_json(path) == {"revision": 1}
+    assert [p.name for p in path.parent.iterdir()] == ["rev-0001.json"]
+
+
+def test_a_file_that_exists_is_never_replaced_by_a_create(tmp_path):
+    path = tmp_path / "rev-0001.json"
+    storage.write_json_new(path, {"revision": 1, "by": "first writer"})
+    before = (path.read_bytes(), path.stat().st_mtime_ns)
+
+    with pytest.raises(FileExistsError):
+        storage.write_json_new(path, {"revision": 1, "by": "second writer"})
+
+    assert (path.read_bytes(), path.stat().st_mtime_ns) == before
+    assert [p.name for p in tmp_path.iterdir()] == ["rev-0001.json"]
+
+
+def test_of_many_writers_creating_the_same_file_exactly_one_wins(tmp_path):
+    path = tmp_path / "rev-0001.json"
+    outcomes = []
+
+    def create(n):
+        try:
+            storage.write_json_new(path, {"writer": n, "padding": "x" * 20000})
+            outcomes.append(("created", n))
+        except FileExistsError:
+            outcomes.append(("exists", n))
+
+    threads = [threading.Thread(target=create, args=(n,)) for n in range(16)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    winners = [n for outcome, n in outcomes if outcome == "created"]
+    assert len(winners) == 1
+    assert storage.read_json(path)["writer"] == winners[0]          # whole, and the winner's
+    assert [p.name for p in tmp_path.iterdir()] == ["rev-0001.json"]
+
+
+def test_on_a_file_system_without_hard_links_a_create_is_still_exclusive(tmp_path, monkeypatch):
+    def no_links(src, dst):
+        raise PermissionError("hard links are not supported here")
+    monkeypatch.setattr(storage.os, "link", no_links)
+    path = tmp_path / "rev-0001.json"
+
+    storage.write_json_new(path, {"by": "first writer"})
+    with pytest.raises(FileExistsError):
+        storage.write_json_new(path, {"by": "second writer"})
+
+    assert storage.read_json(path) == {"by": "first writer"}
+    assert [p.name for p in tmp_path.iterdir()] == ["rev-0001.json"]
+
+
+def test_a_failed_create_leaves_nothing_behind(tmp_path):
+    path = tmp_path / "rev-0001.json"
+
+    with pytest.raises(TypeError):
+        storage.write_json_new(path, {"bad": object()})
+
+    assert list(tmp_path.iterdir()) == []
+
+
 def test_concurrent_updates_in_one_course_are_not_lost():
     course = "course-1"
     path = storage.course_dir(course) / "counter.json"

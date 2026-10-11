@@ -311,6 +311,30 @@ def test_a_quiz_that_is_not_published_cannot_be_unpublished(client, instructor, 
     assert (response.status_code, code(response)) == (409, "not_published")
 
 
+def test_a_revision_another_process_wrote_first_is_never_overwritten(client, instructor, quiz, monkeypatch):
+    """Two server processes publish the same quiz at the same moment. The per-course lock is per
+    process, so both may get as far as writing revision 1. The second must fail, not replace it."""
+    from UltiR.ai_quiz import review
+
+    approve(client, instructor, quiz, 0)
+    path = revision_file(quiz["quiz_id"], 1)
+    other_process_wrote = {"quiz_id": quiz["quiz_id"], "revision": 1, "title": "From the other process",
+                           "published_at": "2026-01-01T00:00:00+00:00", "questions": [{"question_id": "q_theirs"}]}
+    real_now = review._now
+
+    def now_while_the_other_process_publishes():
+        if not path.exists():
+            storage.write_json(path, other_process_wrote)       # it gets there first, mid-way through ours
+        return real_now()
+    monkeypatch.setattr(review, "_now", now_while_the_other_process_publishes)
+
+    response = publish(client, instructor, quiz["quiz_id"])
+
+    assert (response.status_code, code(response)) == (409, "revision_exists")
+    assert storage.read_json(path) == other_process_wrote
+    assert [p.name for p in path.parent.iterdir() if p.name.startswith(("rev-", "."))] == ["rev-0001.json"]
+
+
 def test_a_flagged_question_cannot_reach_a_revision_even_if_the_draft_file_says_approved(
         client, instructor, doc, fake_llm):
     quiz = ungrounded_quiz(client, instructor, doc, fake_llm)

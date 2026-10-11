@@ -83,6 +83,39 @@ def read_json(path: Path, default=None):
         return default
 
 
+def write_json_new(path: Path, data) -> None:
+    """Create `path` with `data`, or raise FileExistsError. Never replaces a file.
+
+    For files that are written once, such as published revisions. The content
+    goes to a temp file, which is then hard-linked to the final name: the link
+    either creates the name or fails, in one step. So no reader sees a
+    half-written file, and of several writers (threads or server processes)
+    exactly one wins. This does not rely on the per-course lock.
+    """
+    path = Path(path)
+    text = json.dumps(data, indent=2, ensure_ascii=False)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())
+        try:
+            os.link(tmp, path)
+        except FileExistsError:
+            raise
+        except OSError:
+            # A file system without hard links: still exclusive, though not written in one step.
+            with open(path, "x", encoding="utf-8") as f:
+                f.write(text)
+    finally:
+        try:
+            os.unlink(tmp)
+        except FileNotFoundError:
+            pass
+
+
 def write_json(path: Path, data) -> None:
     """Replace `path` with `data` in one step; on any error the old file stays as it was."""
     path = Path(path)

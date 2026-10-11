@@ -210,10 +210,13 @@ def publish(course_id: str, quiz_id: str) -> dict:
             return _save(course_id, quiz)
 
         number = (meta["current_revision"] or 0) + 1
-        path = _revision_path(course_id, quiz_id, number)
-        if path.exists():
-            raise QuizError(500, "revision_exists")
-        storage.write_json(path, {"quiz_id": quiz_id, "revision": number, "published_at": _now(), **content})
+        revision = {"quiz_id": quiz_id, "revision": number, "published_at": _now(), **content}
+        try:
+            # Exclusive create: if another server process published this number a moment ago,
+            # this fails instead of replacing what that process wrote.
+            storage.write_json_new(_revision_path(course_id, quiz_id, number), revision)
+        except FileExistsError:
+            raise QuizError(409, "revision_exists") from None
         meta["current_revision"] = number
         meta["published"] = True
         return _save(course_id, quiz)
