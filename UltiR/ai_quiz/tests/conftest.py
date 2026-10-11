@@ -51,6 +51,15 @@ def fake_llm(monkeypatch):
     return fake
 
 
+@pytest.fixture(autouse=True)
+def no_job_outlives_its_test():
+    """A reading job still running when a test ends would write into the next test's folder."""
+    yield
+    from UltiR.ai_quiz import jobs
+
+    jobs.stop_all()
+
+
 @pytest.fixture
 def client():
     from UltiR.ai_quiz.lti_provider import router

@@ -238,7 +238,8 @@ async def ai_quiz_upload_document(request: Request):
             documents.add_document, session["course_id"], upload.filename or "", data, mode)
     except documents.UploadRejected as rejected:
         _refuse(rejected.status, rejected.code, **rejected.extra)
-    return JSONResponse(document, status_code=201)
+    # 202: stored, and still being read in the background. The page asks again with GET.
+    return JSONResponse(document, status_code=202 if document["status"] == "processing" else 201)
 
 
 @router.get(f"{BASE}/api/documents")
@@ -295,6 +296,8 @@ async def ai_quiz_generate(request: Request):
         document = documents.get_document(course_id, doc_id)
         if document is None:
             _refuse(404, "document_not_found")
+        if document["status"] != "ready":
+            _refuse(409, "document_not_ready")
         chosen.append(document)
     quiz = None
     if quiz_id is not None:

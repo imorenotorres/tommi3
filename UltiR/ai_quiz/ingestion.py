@@ -53,11 +53,18 @@ class ReaderUnavailable(Exception):
         self.reason = reason
 
 
+class ReadingStopped(Exception):
+    """The reader gave up because it was told to stop. There is no result."""
+
+
 class Reader(Protocol):
     name: str
     mode: str
 
-    def read(self, path: Path) -> ParsedDocument: ...
+    def read(self, path: Path, stop=None) -> ParsedDocument:
+        """`stop` is a threading.Event or None. A reader that can take long looks at it
+        and raises ReadingStopped once it is set."""
+        ...
 
 
 # ── Text cleaning ─────────────────────────────────────────────────────────────
@@ -116,7 +123,7 @@ class TextReader:
     name = "text"
     mode = "text"
 
-    def read(self, path: Path) -> ParsedDocument:
+    def read(self, path: Path, stop=None) -> ParsedDocument:
         if path.suffix.lower() == ".pdf":
             return self._read_pdf(path)
         return self._read_plain(path)

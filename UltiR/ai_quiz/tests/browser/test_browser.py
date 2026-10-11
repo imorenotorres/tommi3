@@ -9,6 +9,7 @@ from playwright.sync_api import expect  # noqa: E402
 
 from ..fake_llm import question, sources_in  # noqa: E402
 from ..pdfs import GARBLED_PASSAGE, evaluation_pdf, handout_pdf  # noqa: E402
+from ..readers import SlowReader, install  # noqa: E402
 
 PAYLOAD = '<img src=x onerror="window.__pwned=1"><script>window.__pwned=1</script>'
 
@@ -352,3 +353,59 @@ def test_a_question_without_a_located_passage_needs_the_tick_before_it_can_be_ap
     page.locator(".sheet").first.get_by_role("checkbox").check()
     page.locator(".sheet").first.get_by_role("button", name="Approve", exact=True).click()
     expect(page.locator(".sheet").first).to_have_attribute("data-status", "approved")
+
+
+# ── Full reading: a background job the page follows ─────────────────────────
+
+def choose_file(page, name="handout.pdf", data=None):
+    page.set_input_files("#upload-file", files=[{"name": name, "mimeType": "application/pdf",
+                                                 "buffer": handout_pdf() if data is None else data}])
+
+
+def test_the_reading_mode_is_not_offered_when_the_server_has_no_full_reader(site):
+    page = site.instructor()
+
+    expect(page.locator("#upload-button")).to_be_visible()
+    expect(page.locator("#reading-mode-field")).to_be_hidden()
+
+
+def test_a_full_reading_is_followed_in_the_page_until_the_document_is_ready(site, monkeypatch):
+    reader = install(monkeypatch, SlowReader())
+    page = site.instructor()
+    expect(page.locator("#reading-mode-field")).to_be_visible()
+    assert unlabelled_controls(page) == []
+
+    page.locator("#mode-full").check()
+    choose_file(page)
+    page.get_by_role("button", name="Upload document").click()
+
+    row = page.locator("#documents tbody tr").first
+    expect(row.locator(".reading")).to_have_text("Being read…")
+    expect(page.locator("#status")).to_contain_text("is being read")
+    expect(page.locator("#generate-documents")).to_contain_text("Add a document first.")
+    expect(page.locator("#generate-button")).to_be_disabled()
+
+    reader.release()                                          # the page finds out by asking again, without a reload
+
+    expect(page.locator("#documents tbody tr").first.locator(".reading")).to_have_text("Full")
+    expect(page.locator("#status")).to_contain_text("has been read and is ready")
+    expect(page.locator("#generate-button")).to_be_enabled()
+    draft(page, count=1)
+    expect(page.locator(".sheet-source").first).to_contain_text("handout.pdf, page")
+
+
+def test_a_reading_that_fails_is_reported_in_words(site, monkeypatch):
+    reader = install(monkeypatch, SlowReader(error=RuntimeError("engine details that stay in the log")))
+    page = site.instructor()
+    page.locator("#mode-full").check()
+    choose_file(page)
+    page.get_by_role("button", name="Upload document").click()
+    expect(page.locator("#documents tbody tr").first.locator(".reading")).to_have_text("Being read…")
+
+    reader.release()
+
+    expect(page.locator("#documents tbody tr").first.locator(".reading")).to_have_text(
+        "Not read. The document could not be read in full. Try text only.")
+    expect(page.locator("#status")).to_contain_text("could not be read")
+    expect(page.locator("#content")).not_to_contain_text("engine details")
+    expect(page.locator("#generate-button")).to_be_disabled()

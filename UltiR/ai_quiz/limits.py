@@ -10,6 +10,10 @@ MAX_LABEL_CHARS = 120
 MAX_PAGES = 300
 MAX_TEXT_CHARS = 1_500_000
 
+# Full reading (formulas, figures): slow, so it runs as a background job
+MAX_FULL_READING_PAGES = 40     # about 40 s per page without a graphics card
+FULL_READING_SECONDS = 45 * 60  # per document; the job is stopped after this
+
 # Generation
 MAX_QUESTIONS_PER_REQUEST = 15
 MAX_DOCS_PER_REQUEST = 5

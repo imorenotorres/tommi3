@@ -16,12 +16,38 @@
 
   // ── Documents ───────────────────────────────────────────────────────────
 
+  var POLL_MS = 2000;
+  var pollTimer = null;
+
   function loadDocuments() {
     return A.api('/api/documents').then(function (body) {
+      var before = {};
+      state.documents.forEach(function (doc) { before[doc.doc_id] = doc.status; });
       state.documents = body.documents;
       renderDocuments();
       renderGenerateForm();
+      // Say so when a reading that was under way has ended, and keep asking while one is under way.
+      state.documents.forEach(function (doc) {
+        if (before[doc.doc_id] !== 'processing') { return; }
+        if (doc.status === 'ready') { A.say(t('docs_reading_done', { name: doc.label }), 'good'); }
+        if (doc.status === 'failed') { A.say(t('docs_reading_ended_failed', { name: doc.label, reason: failureReason(doc) })); }
+      });
+      var reading = state.documents.some(function (doc) { return doc.status === 'processing'; });
+      if (reading && !pollTimer) {
+        pollTimer = window.setTimeout(function () {
+          pollTimer = null;
+          loadDocuments().catch(function () { /* asked again on the next change */ });
+        }, POLL_MS);
+      }
     });
+  }
+
+  function failureReason(doc) { return A.errorText({ code: doc.error }); }
+
+  function readingText(doc) {
+    if (doc.status === 'processing') { return t('docs_reading_processing'); }
+    if (doc.status === 'failed') { return t('docs_reading_failed', { reason: failureReason(doc) }); }
+    return t(doc.mode === 'full' ? 'docs_reading_full' : 'docs_reading_text');
   }
 
   function renderDocuments() {
@@ -36,12 +62,13 @@
         'aria-label': t('docs_delete_label', { name: doc.label }),
         on: { click: function () { confirmDelete(doc, remove); } }
       });
-      var notes = doc.warnings.map(function (w) {
+      var notes = (doc.warnings || []).map(function (w) {
         return w.code === 'pages_without_text' ? t('docs_warning_empty_pages', { pages: w.pages.join(', ') }) : w.code;
       });
-      return el('tr', {}, [
+      return el('tr', { 'data-status': doc.status }, [
         el('td', {}, [el('span', { text: doc.label }), notes.length ? el('p', { class: 'hint', text: notes.join(' ') }) : null]),
-        el('td', { class: 'num', text: doc.n_pages > 1 || doc.engine === 'pypdf' ? t('docs_pages', { n: doc.n_pages }) : '–' }),
+        el('td', { class: 'num', text: doc.n_pages > 1 || doc.engine !== 'plain' ? t('docs_pages', { n: doc.n_pages }) : '–' }),
+        el('td', { class: 'reading', text: readingText(doc) }),
         el('td', { class: 'num', text: A.formatDate(doc.uploaded_at) }),
         el('td', { class: 'end' }, [remove])
       ]);
@@ -50,6 +77,7 @@
       el('thead', {}, [el('tr', {}, [
         el('th', { scope: 'col', text: t('docs_col_name') }),
         el('th', { scope: 'col', text: t('docs_col_pages') }),
+        el('th', { scope: 'col', text: t('docs_col_reading') }),
         el('th', { scope: 'col', text: t('docs_col_uploaded') }),
         el('th', { scope: 'col' }, [el('span', { class: 'visually-hidden', text: t('docs_col_actions') })])
       ])]),
@@ -82,27 +110,36 @@
     if (!input.files.length) { return; }
     var form = new FormData();
     form.append('file', input.files[0]);
-    form.append('reading_mode', 'text');
+    var full = !byId('reading-mode-field').hidden && byId('mode-full').checked;
+    form.append('reading_mode', full ? 'full' : 'text');
     busy(button, true);
     A.say(t('docs_uploading'), 'plain');
     A.api('/api/documents', { method: 'POST', body: form }).then(function (doc) {
       input.value = '';
-      A.say(t('docs_uploaded', { name: doc.label }), 'good');
-      return loadDocuments();
+      return loadDocuments().then(function () {
+        if (doc.status === 'processing') { A.say(t('docs_reading_started', { name: doc.label }), 'plain'); }
+        else { A.say(t('docs_uploaded', { name: doc.label }), 'good'); }
+      });
     }).catch(A.showError).then(function () { busy(button, false); });
   }
 
   // ── Generation ──────────────────────────────────────────────────────────
 
   function renderGenerateForm() {
+    // Only a document that has been read can be drawn on. The list is rebuilt whenever the
+    // documents are loaded again, so what was ticked is kept.
+    var ready = state.documents.filter(function (doc) { return doc.status === 'ready'; });
+    var shown = document.querySelectorAll('#generate-documents input');
+    var ticked = shown.length ? Array.prototype.filter.call(shown, function (b) { return b.checked; })
+                                                      .map(function (b) { return b.value; }) : null;
     var box = clear(byId('generate-documents'));
-    if (!state.documents.length) {
+    if (!ready.length) {
       box.appendChild(el('p', { class: 'empty', text: t('gen_no_documents') }));
     }
-    state.documents.forEach(function (doc, index) {
+    ready.forEach(function (doc, index) {
       var id = 'gen-doc-' + doc.doc_id;
       box.appendChild(el('label', { class: 'check', for: id }, [
-        el('input', { type: 'checkbox', id: id, value: doc.doc_id, checked: index === 0 }),
+        el('input', { type: 'checkbox', id: id, value: doc.doc_id, checked: ticked ? ticked.indexOf(doc.doc_id) >= 0 : index === 0 }),
         el('span', { text: doc.label })
       ]));
     });
@@ -114,7 +151,7 @@
     target.value = chosen;
     if (target.selectedIndex < 0) { target.value = ''; }
     byId('gen-title-field').hidden = target.value !== '';
-    byId('generate-button').disabled = !state.documents.length;
+    byId('generate-button').disabled = !ready.length;
   }
 
   function generate(event) {
@@ -364,7 +401,8 @@
     renderReview();
   });
 
-  A.start(function () {
+  A.start(function (session) {
+    byId('reading-mode-field').hidden = !(session.reading_modes && session.reading_modes.full);
     loadDocuments().then(loadQuizzes).catch(A.showError);
   });
 })();
