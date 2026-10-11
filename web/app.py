@@ -451,6 +451,8 @@ from UltiR.stats.lti_provider import router as lti_stats_router
 app.include_router(lti_stats_router)
 from UltiR.bloom.lti_provider import router as lti_bloom_router
 app.include_router(lti_bloom_router)
+from UltiR.ai_quiz.lti_provider import router as lti_ai_quiz_router
+app.include_router(lti_ai_quiz_router)
 
 @app.get("/ultir")
 async def ultir_catalog():

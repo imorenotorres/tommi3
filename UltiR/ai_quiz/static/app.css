@@ -1,0 +1,102 @@
+/* AI Quiz tool. Plain CSS, no framework. Sized to sit inside a Moodle frame. */
+:root {
+  --ink: #1c2530;
+  --ink-soft: #55616f;
+  --paper: #ffffff;
+  --wash: #f4f6f8;
+  --line: #d5dbe2;
+  --accent: #14506e;
+  --accent-ink: #ffffff;
+  --warn-bg: #fff4e0;
+  --warn-line: #b36b00;
+  --focus: #b3470b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--wash);
+  color: var(--ink);
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+a { color: var(--accent); }
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.skip {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  background: var(--paper);
+  padding: 0.5rem 0.75rem;
+}
+.skip:focus { left: 0.5rem; top: 0.5rem; z-index: 10; }
+
+.bar {
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+}
+.bar h1 { font-size: 1.15rem; font-weight: 600; margin: 0; flex: 1 1 14rem; }
+.bar .who { font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.bar .who span.label { opacity: 0.85; }
+.bar .badge {
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0 0.6rem;
+  font-size: 0.8rem;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0.35rem 0.8rem;
+  min-height: 2.25rem;
+}
+.bar button { border-color: var(--accent-ink); background: transparent; color: var(--accent-ink); }
+
+main {
+  max-width: 54rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+}
+main h2 { font-size: 1.3rem; margin: 0 0 0.75rem; }
+main h3 { font-size: 1.05rem; margin: 1.75rem 0 0.5rem; }
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+.empty { color: var(--ink-soft); }
+
+.notice {
+  background: var(--warn-bg);
+  border-left: 4px solid var(--warn-line);
+  padding: 0.6rem 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.lead { font-size: 1.1rem; margin-top: 0; }
+ol.steps { padding-left: 1.25rem; }
+ol.steps li { margin-bottom: 0.4rem; }
+dl.settings { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0.5rem 0; }
+dl.settings dt { font-weight: 600; }
+dl.settings dd { margin: 0; }
+code { background: var(--wash); border: 1px solid var(--line); border-radius: 4px; padding: 0 0.3rem; }
+
+[hidden] { display: none !important; }

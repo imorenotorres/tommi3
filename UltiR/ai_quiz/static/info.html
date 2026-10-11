@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Quiz Generator</title>
+<link rel="stylesheet" href="/lti/ai-quiz/assets/app.css">
+</head>
+<body>
+<a class="skip" href="#content" data-i18n="skip_to_content">Skip to content</a>
+<header class="bar">
+  <h1 data-i18n="app_title">AI Quiz Generator</h1>
+  <button type="button" id="lang-switch" data-i18n="lang_switch" data-i18n-label="lang_switch_label">Español</button>
+</header>
+
+<main id="content">
+  <p class="lead" data-i18n="info_lead"></p>
+
+  <h3 data-i18n="info_how_title"></h3>
+  <ol class="steps">
+    <li data-i18n="info_how_1"></li>
+    <li data-i18n="info_how_2"></li>
+    <li data-i18n="info_how_3"></li>
+    <li data-i18n="info_how_4"></li>
+  </ol>
+
+  <h3 data-i18n="info_ai_title"></h3>
+  <p data-i18n="info_ai_text"></p>
+
+  <h3 data-i18n="info_moodle_title"></h3>
+  <p data-i18n="info_moodle_text"></p>
+  <dl class="settings">
+    <dt data-i18n="info_moodle_url"></dt>
+    <dd><code id="tool-url"></code></dd>
+  </dl>
+  <p data-i18n="info_moodle_privacy"></p>
+
+  <h3 data-i18n="info_status_title"></h3>
+  <p class="notice" data-i18n="info_status_text"></p>
+</main>
+
+<script src="/lti/ai-quiz/assets/strings.js"></script>
+<script src="/lti/ai-quiz/assets/app.js"></script>
+<script>
+  document.getElementById('tool-url').textContent = window.location.origin + '/lti/ai-quiz';
+  AiQuiz.start();
+</script>
+</body>
+</html>

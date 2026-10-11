@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Quiz Generator</title>
+<link rel="stylesheet" href="/lti/ai-quiz/assets/app.css">
+</head>
+<body>
+<a class="skip" href="#content" data-i18n="skip_to_content">Skip to content</a>
+<header class="bar">
+  <h1 data-i18n="app_title">AI Quiz Generator</h1>
+  <div class="who" id="session" hidden>
+    <span><span class="label" data-i18n="course_label"></span>: <span id="course-name"></span></span>
+    <span><span class="label" data-i18n="signed_in_as"></span> <span id="user-name"></span></span>
+    <span class="badge" id="user-role"></span>
+  </div>
+  <button type="button" id="lang-switch" data-i18n="lang_switch" data-i18n-label="lang_switch_label">Español</button>
+</header>
+
+<main>
+  <p class="notice" id="status" role="alert" hidden></p>
+  <div id="content" hidden>
+    <h2 data-i18n="student_heading"></h2>
+    <p class="notice" data-i18n="practice_notice"></p>
+    <div class="card">
+      <p class="empty" data-i18n="student_empty"></p>
+    </div>
+  </div>
+</main>
+
+<script src="/lti/ai-quiz/assets/strings.js"></script>
+<script src="/lti/ai-quiz/assets/app.js"></script>
+<script>AiQuiz.start();</script>
+</body>
+</html>
