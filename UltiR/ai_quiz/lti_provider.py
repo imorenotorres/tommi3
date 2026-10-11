@@ -47,6 +47,7 @@ sessions = LTISessionStore()
 _ASSETS = {
     "strings.js": "text/javascript",
     "app.js": "text/javascript",
+    "instructor.js": "text/javascript",
     "app.css": "text/css",
 }
 
@@ -296,3 +297,57 @@ async def ai_quiz_generate(request: Request):
     except (generation.GenerationFailed, review.QuizError) as failed:
         _refuse(failed.status, failed.code)
     return JSONResponse({"quiz": review.instructor_view(quiz), "stats": result["stats"]}, status_code=201)
+
+
+# ── Review and publishing (instructor only) ───────────────────────────────────
+
+def _reviewed(action, *args) -> dict:
+    """Run a review action and answer with the instructor's view of the quiz."""
+    try:
+        return review.instructor_view(action(*args))
+    except review.QuizError as error:
+        _refuse(error.status, error.code)
+
+
+@router.get(f"{BASE}/api/quizzes")
+async def ai_quiz_list_quizzes(request: Request):
+    session = require_instructor(request)
+    return {"quizzes": review.list_quizzes(session["course_id"])}
+
+
+@router.get(f"{BASE}/api/quizzes/{{quiz_id}}")
+async def ai_quiz_get_quiz(quiz_id: str, request: Request):
+    session = require_instructor(request)
+    quiz = review.load_quiz(session["course_id"], quiz_id)
+    if quiz is None:
+        _refuse(404, "quiz_not_found")
+    return review.instructor_view(quiz)
+
+
+@router.put(f"{BASE}/api/quizzes/{{quiz_id}}")
+async def ai_quiz_rename_quiz(quiz_id: str, request: Request):
+    session = require_instructor(request)
+    body = await _json_object(request)
+    title = _text_field(body, "title", limits.MAX_TITLE_CHARS) if isinstance(body.get("title"), str) else ""
+    if not title:
+        _refuse(400, "bad_request", field="title")
+    return _reviewed(review.rename_quiz, session["course_id"], quiz_id, title)
+
+
+@router.put(f"{BASE}/api/quizzes/{{quiz_id}}/questions/{{question_id}}")
+async def ai_quiz_update_question(quiz_id: str, question_id: str, request: Request):
+    session = require_instructor(request)
+    body = await _json_object(request)
+    return _reviewed(review.update_question, session["course_id"], quiz_id, question_id, body)
+
+
+@router.post(f"{BASE}/api/quizzes/{{quiz_id}}/publish")
+async def ai_quiz_publish(quiz_id: str, request: Request):
+    session = require_instructor(request)
+    return _reviewed(review.publish, session["course_id"], quiz_id)
+
+
+@router.post(f"{BASE}/api/quizzes/{{quiz_id}}/unpublish")
+async def ai_quiz_unpublish(quiz_id: str, request: Request):
+    session = require_instructor(request)
+    return _reviewed(review.unpublish, session["course_id"], quiz_id)

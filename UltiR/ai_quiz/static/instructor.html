@@ -19,17 +19,111 @@
 </header>
 
 <main>
-  <p class="notice" id="status" role="alert" hidden></p>
+  <p class="notice" id="status" role="status" aria-live="polite" hidden></p>
+
   <div id="content" hidden>
-    <h2 data-i18n="instructor_heading"></h2>
-    <div class="card">
-      <p class="empty" data-i18n="instructor_empty"></p>
+
+    <!-- Overview: documents, generation, list of quizzes -->
+    <div id="overview">
+      <section aria-labelledby="docs-heading">
+        <h2 id="docs-heading" data-i18n="docs_heading"></h2>
+        <form id="upload-form" class="panel">
+          <div class="row">
+            <div class="field">
+              <label for="upload-file" data-i18n="docs_choose"></label>
+              <input type="file" id="upload-file" name="file" accept=".pdf,.md,.txt" required>
+              <p class="hint" data-i18n="docs_choose_hint"></p>
+            </div>
+            <div class="field">
+              <button type="submit" class="primary" id="upload-button" data-i18n="docs_upload"></button>
+            </div>
+          </div>
+        </form>
+        <div id="documents"></div>
+      </section>
+
+      <section aria-labelledby="gen-heading">
+        <h2 id="gen-heading" data-i18n="gen_heading"></h2>
+        <form id="generate-form" class="panel">
+          <fieldset class="field">
+            <legend data-i18n="gen_documents"></legend>
+            <div id="generate-documents"></div>
+          </fieldset>
+          <div class="row">
+            <div class="field">
+              <label for="gen-count" data-i18n="gen_count"></label>
+              <input type="number" id="gen-count" min="1" max="15" value="5" required>
+            </div>
+            <div class="field">
+              <label for="gen-difficulty" data-i18n="gen_difficulty"></label>
+              <select id="gen-difficulty">
+                <option value="mixed" data-i18n="difficulty_mixed"></option>
+                <option value="basic" data-i18n="difficulty_basic"></option>
+                <option value="intermediate" data-i18n="difficulty_intermediate"></option>
+                <option value="advanced" data-i18n="difficulty_advanced"></option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="gen-target" data-i18n="gen_target"></label>
+              <select id="gen-target"></select>
+            </div>
+          </div>
+          <div class="field" style="margin-top:0.9rem">
+            <label for="gen-topic" data-i18n="gen_topic"></label>
+            <input type="text" id="gen-topic" maxlength="200">
+            <p class="hint" data-i18n="gen_topic_hint"></p>
+          </div>
+          <div class="field" id="gen-title-field">
+            <label for="gen-title" data-i18n="gen_title"></label>
+            <input type="text" id="gen-title" maxlength="200">
+          </div>
+          <p class="hint" data-i18n="gen_note"></p>
+          <div class="actions">
+            <button type="submit" class="primary" id="generate-button" data-i18n="gen_button"></button>
+          </div>
+        </form>
+      </section>
+
+      <section aria-labelledby="quizzes-heading">
+        <h2 id="quizzes-heading" data-i18n="quizzes_heading"></h2>
+        <div id="quizzes"></div>
+      </section>
     </div>
+
+    <!-- Review of one quiz -->
+    <div id="review" hidden>
+      <p><button type="button" class="quiet" id="back-button" data-i18n="review_back"></button></p>
+      <section aria-labelledby="review-heading">
+        <h2 id="review-heading" tabindex="-1"></h2>
+        <div class="panel">
+          <div class="row">
+            <div class="field" style="flex:1 1 18rem">
+              <label for="quiz-title" data-i18n="review_title"></label>
+              <input type="text" id="quiz-title" maxlength="200">
+            </div>
+            <div class="field">
+              <button type="button" id="rename-button" data-i18n="review_rename"></button>
+            </div>
+          </div>
+          <p id="publish-state" style="margin:0.9rem 0 0"></p>
+          <div class="actions">
+            <button type="button" class="primary" id="publish-button" data-i18n="review_publish"></button>
+            <button type="button" id="unpublish-button" data-i18n="review_unpublish"></button>
+          </div>
+        </div>
+      </section>
+      <section aria-labelledby="questions-heading">
+        <h2 id="questions-heading" data-i18n="review_questions"></h2>
+        <p class="hint" data-i18n="review_hint" style="margin-bottom:0.9rem"></p>
+        <div id="questions"></div>
+      </section>
+    </div>
+
   </div>
 </main>
 
 <script src="/lti/ai-quiz/assets/strings.js"></script>
 <script src="/lti/ai-quiz/assets/app.js"></script>
-<script>AiQuiz.start();</script>
+<script src="/lti/ai-quiz/assets/instructor.js"></script>
 </body>
 </html>
