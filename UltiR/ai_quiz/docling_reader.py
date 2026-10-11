@@ -196,6 +196,9 @@ def formula_is_sound(latex: str) -> bool:
     begins, ends = len(re.findall(r"\\begin\s*\{", latex)), len(re.findall(r"\\end\s*\{", latex))
     if begins != ends or ("&" in latex.replace("\\&", "") and not begins):
         return False
+    # \left and \right come in pairs (\leftarrow and the like are other commands)
+    if len(re.findall(r"\\left(?![A-Za-z])", latex)) != len(re.findall(r"\\right(?![A-Za-z])", latex)):
+        return False
     return not _LONG_TEXT_IN_FORMULA.search(latex)       # a sentence inside \text{}: prose read as a formula
 
 

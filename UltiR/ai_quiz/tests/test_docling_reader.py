@@ -172,6 +172,7 @@ def test_the_text_used_instead_of_a_broken_formula_carries_no_private_use_charac
     r"\tau = \begin{cases} 1 & \text {if } a < b , \\ 0 & \text {otherwise,} \end{cases}",
     r"\{ x \} \cup \{ y \}",
     r"a \& b",
+    r"N = \left \lceil \frac { \log ( 1 - p ) } { \log \left ( 1 - w ^ { s } \right ) } \right \rceil \leftarrow \rightarrow",
 ])
 def test_ordinary_formulas_pass_the_check(latex):
     assert docling_reader.formula_is_sound(latex)
@@ -184,6 +185,8 @@ def test_ordinary_formulas_pass_the_check(latex):
     r"\frac { 1 } { 2",
     r"x } { y",
     r"\begin{cases} 1 & a \\ 0 & b",
+    r"F = K ^ { \prime - \top } \left [ t | _ { \times } \, R \, K ^ { - 1 } , \quad \left [ t \right ] _ { \times }",   # \left without its \right
+    r"\left ( a \right ) \right ]",
     r"a $ b",
     r"\frac { \text {Algorithm 1 RANSAC with an adaptive number of iterations} } { x }",
     "x + " * 400,
