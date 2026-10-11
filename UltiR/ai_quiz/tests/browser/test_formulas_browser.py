@@ -239,3 +239,45 @@ def test_a_passage_with_a_recognised_formula_is_drawn_for_the_instructor_and_wit
     answer_all(student, 1)
     student.get_by_role("button", name="Check my answers").click()
     expect(student.locator("#results .cite")).to_have_text("From handout.pdf, page 3.")
+
+
+# ── Every command KaTeX knows, under the strict policy ──────────────────────
+
+def katex_vocabulary() -> tuple[list[str], list[str]]:
+    """The command and environment names in the shipped KaTeX script."""
+    import re
+    from pathlib import Path
+
+    script = (Path(__file__).resolve().parents[2] / "static" / "vendor" / "katex" / "katex.min.js").read_text(encoding="utf-8")
+    commands = sorted(set(re.findall(r'"\\\\([A-Za-z]+)"', script)))      # in the script a name is written "\\frac"
+    in_name_lists = {name for names in re.findall(r"names:\[([^\]]*)\]", script) for name in re.findall(r'"([A-Za-z*]+)"', names)}
+    return commands, sorted(in_name_lists)
+
+
+def test_no_command_katex_knows_makes_it_write_a_style_the_strict_policy_blocks(site):
+    """A net under the check in test_katex.py: whatever KaTeX does for any of its commands, drawn the way the
+    pages draw, the browser must have nothing to block. The `site` fixture fails the test on any violation."""
+    commands, environments = katex_vocabulary()
+    assert len(commands) > 500 and "frac" in commands and "pmb" in commands and "fcolorbox" in commands
+    assert "pmatrix" in environments and "cases" in environments
+    tries = [[name, form.replace("NAME", name)] for name in commands for form in (
+        r"\NAME", r"\NAME{a}", r"\NAME{a}{b}", r"\NAME{red}{a}", r"\NAME{red}{blue}{a}", r"\NAME[b]{a}",
+        r"a \NAME b", r"\left\NAME a \right\NAME", r"\NAME{3em}", r"\NAME x^2_i")]
+    tries += [[name, rf"\begin{{{name}}} a & b \\ c & d \end{{{name}}}"] for name in environments]
+    tries += [[name, rf"\begin{{{name}}}{{cc}} a & b \\ c & d \end{{{name}}}"] for name in environments]
+    page = site.instructor()
+
+    drawn = page.evaluate("""tries => {
+        const box = document.createElement('div');
+        document.body.appendChild(box);
+        let drawn = 0, names = new Set();
+        for (const [name, tex] of tries) {
+            if (window.AiQuiz.math.fill(box, '$$' + tex + '$$') === 0) { drawn += 1; names.add(name); }
+        }
+        box.remove();
+        return {drawn, names: names.size, native: Element.prototype.setAttribute.toString().includes('[native code]')};
+    }""", tries)
+
+    # On 2026-10-11, with KaTeX 0.19.0: 1022 commands and 33 environments, 10,286 tries, about 8,000 of them drawn.
+    assert drawn["drawn"] > 6000 and drawn["names"] > 850, drawn    # most of the vocabulary was really drawn
+    assert drawn["native"]                                          # also after the many tries that could not be drawn

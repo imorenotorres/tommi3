@@ -110,3 +110,63 @@ def test_the_public_info_page_names_katex_and_links_to_the_licence_the_tool_serv
     assert client.get(link.group(1)).status_code == 200
     assert strings.count("KaTeX 0.19.0") == 2                  # said in both languages
     assert 'data-i18n="info_reading_text"' in html
+
+
+# ── How KaTeX can put a style into the page ─────────────────────────────────
+# math.js keeps the pages clean under a policy without inline styles by catching one thing while a
+# formula is drawn: Element.setAttribute("style", ...). That is enough only as long as every style
+# KaTeX writes outside an element's style object goes through that function. The checks below state
+# what was true of KaTeX 0.19.0. After an update of the shipped files, a failure here means: look
+# at how the new version writes styles before trusting math.js with it.
+
+OTHER_WAYS_TO_WRITE_A_STYLE = [
+    "setAttributeNS",               # an attribute set without Element.setAttribute
+    "createAttribute", "setNamedItem",
+    "innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "DOMParser", "createContextualFragment",   # markup
+    'createElement("style")', "createElement('style')", "insertRule", "adoptedStyleSheets", "CSSStyleSheet",   # style sheets
+    ".cssText", "attributeStyleMap",
+]
+
+
+def style_writes(script: str) -> dict:
+    """What a KaTeX script does that matters to math.js: {"literal": n, "other": [names found]}."""
+    return {
+        "literal": len(re.findall(r"""\.setAttribute\(\s*["']style["']""", script)),
+        "other": [way for way in OTHER_WAYS_TO_WRITE_A_STYLE if way in script],
+    }
+
+
+def test_katex_writes_style_attributes_only_in_the_ways_math_js_catches():
+    script = (KATEX / "katex.min.js").read_text(encoding="utf-8")
+
+    assert style_writes(script) == {"literal": 3, "other": []}
+    # elements come from createElement and createElementNS and from nowhere else; attributes are set on them directly
+    assert set(re.findall(r"createElement\(([^)]{1,12})\)", script)) == {'"span"', '"img"', "e"}
+    assert len(re.findall(r"createElementNS\(", script)) == 5
+
+
+@pytest.mark.parametrize("script, found", [
+    ('n.setAttribute("style","border: 1px")', {"literal": 1, "other": []}),
+    ("n.setAttribute( 'style', x)", {"literal": 1, "other": []}),
+    ('n.setAttribute("width","3")', {"literal": 0, "other": []}),
+    ('n.setAttributeNS(null,"style",x)', {"literal": 0, "other": ["setAttributeNS"]}),
+    ('e.innerHTML="<span style=\\"color:red\\">"', {"literal": 0, "other": ["innerHTML"]}),
+    ('e.insertAdjacentHTML("beforeend",m)', {"literal": 0, "other": ["insertAdjacentHTML"]}),
+    ('const s=document.createElement("style");s.sheet.insertRule(r)', {"literal": 0, "other": ['createElement("style")', "insertRule"]}),
+    ('e.style.cssText="width:1em"', {"literal": 0, "other": [".cssText"]}),
+    ("const a=document.createAttribute('style');e.attributes.setNamedItem(a)", {"literal": 0, "other": ["createAttribute", "setNamedItem"]}),
+    ("e.style.width=w", {"literal": 0, "other": []}),                   # through the style object: allowed by any policy
+])
+def test_the_check_on_katex_itself_finds_what_it_should(script, found):
+    assert style_writes(script) == found
+
+
+def test_math_js_draws_through_katex_render_and_never_through_markup():
+    source = (MODULE_DIR / "static" / "math.js").read_text(encoding="utf-8")
+    code = re.sub(r"/\*.*?\*/|//[^\n]*", "", source, flags=re.DOTALL)        # without its comments
+
+    assert code.count("katex.render(") == 1
+    assert not [way for way in ("renderToString", "innerHTML", "outerHTML", "insertAdjacentHTML") if way in code]
+    assert "trust: false" in code
+    # the one browser function it replaces is put back in a `finally`, so also when drawing fails
+    assert re.search(r"try\s*\{\s*draw\(\);\s*\}\s*finally\s*\{\s*Element\.prototype\.setAttribute = setAttribute;\s*\}", code)
