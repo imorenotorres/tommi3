@@ -187,17 +187,42 @@ async def ai_quiz_session(request: Request):
 _FORM_OVERHEAD = 64 * 1024
 
 
+class _BodyTooLarge(Exception):
+    pass
+
+
+def _capped(request: Request, limit: int) -> Request:
+    """The same request, except that reading its body stops once more than `limit` bytes have arrived.
+
+    The count is of the bytes actually received. What the request declares
+    as its length plays no part: it can be missing or wrong.
+    """
+    received = 0
+
+    async def receive():
+        nonlocal received
+        message = await request.receive()
+        if message["type"] == "http.request":
+            received += len(message.get("body", b""))
+            if received > limit:
+                raise _BodyTooLarge()
+        return message
+
+    return Request(request.scope, receive)
+
+
 @router.post(f"{BASE}/api/documents")
 async def ai_quiz_upload_document(request: Request):
     session = require_instructor(request)
-    try:
-        declared = int(request.headers.get("content-length", ""))
-    except ValueError:
-        _refuse(411, "length_required")
-    if declared > limits.MAX_UPLOAD_BYTES + _FORM_OVERHEAD:
-        _refuse(413, "file_too_large")
+    limit = limits.MAX_UPLOAD_BYTES + _FORM_OVERHEAD
+    declared = request.headers.get("content-length", "")
+    if declared.isdigit() and int(declared) > limit:
+        _refuse(413, "file_too_large")      # an honest oversized request is refused before any of it is read
 
-    form = await request.form(max_files=1, max_fields=4)
+    try:
+        form = await _capped(request, limit).form(max_files=1, max_fields=4)
+    except _BodyTooLarge:
+        _refuse(413, "file_too_large")
     upload = form.get("file")
     if not isinstance(upload, UploadFile):
         _refuse(400, "no_file")
