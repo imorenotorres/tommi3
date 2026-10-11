@@ -22,13 +22,11 @@ import re
 import secrets
 import time
 
-from UltiR.ai_quiz import ingestion, limits, storage
+from UltiR.ai_quiz import ingestion, limits, schema, storage
 
 log = logging.getLogger("ultir.ai_quiz")
 
-DIFFICULTIES = ("basic", "intermediate", "advanced")
-_OPTION_IDS = ("A", "B", "C", "D")
-_CONTROL = re.compile(r"[\x00-\x1f\x7f]")
+DIFFICULTIES = schema.DIFFICULTIES
 
 # Signs that a passage held typeset mathematics. Both local readers flatten
 # inline exponents, fractions and subscripts, so the instructor is told to
@@ -138,70 +136,6 @@ def parse_reply(reply) -> list:
     return data
 
 
-class _Invalid(Exception):
-    pass
-
-
-def _text(value, max_chars: int, required: bool = True) -> str:
-    """Model text as one clean line, or _Invalid. Never truncated: text that is too long is refused."""
-    if not isinstance(value, str):
-        if required:
-            raise _Invalid("not text")
-        return ""
-    flat = " ".join(value.split())                       # line breaks and tabs become spaces
-    cleaned = " ".join(_CONTROL.sub("", flat).split())   # other control characters are removed
-    if required and not cleaned:
-        raise _Invalid("empty")
-    if len(cleaned) > max_chars:
-        raise _Invalid("too long")
-    return cleaned
-
-
-def _same(text: str) -> str:
-    return " ".join(text.casefold().split())
-
-
-def validate_question(raw, default_difficulty: str = "intermediate") -> dict:
-    """A clean question built from untrusted input, or _Invalid. Unknown fields are not copied."""
-    if not isinstance(raw, dict):
-        raise _Invalid("not an object")
-    question = _text(raw.get("question"), limits.MAX_QUESTION_CHARS)
-
-    options_in = raw.get("options")
-    if not isinstance(options_in, list) or len(options_in) != 4 or not all(isinstance(o, dict) for o in options_in):
-        raise _Invalid("options")
-    options = {}
-    for option in options_in:
-        if option.get("id") not in _OPTION_IDS or option["id"] in options:
-            raise _Invalid("option ids")
-        options[option["id"]] = _text(option.get("text"), limits.MAX_OPTION_CHARS)
-    if len({_same(t) for t in options.values()}) != 4:
-        raise _Invalid("options not distinct")
-
-    correct = raw.get("correct_option_id")
-    if correct not in _OPTION_IDS:
-        raise _Invalid("correct option")
-
-    difficulty = raw.get("difficulty")
-    if difficulty not in DIFFICULTIES:
-        difficulty = default_difficulty if default_difficulty in DIFFICULTIES else "intermediate"
-
-    try:
-        excerpt = _text(raw.get("excerpt"), 10 * limits.MAX_EXCERPT_CHARS, required=False)
-    except _Invalid:
-        excerpt = ""
-    source = raw.get("source")
-    return {
-        "question": question,
-        "options": [{"id": i, "text": options[i]} for i in _OPTION_IDS],
-        "correct_option_id": correct,
-        "explanation": _text(raw.get("explanation"), limits.MAX_EXPLANATION_CHARS, required=False),
-        "difficulty": difficulty,
-        "_excerpt": excerpt,
-        "_source": source if isinstance(source, str) else "",
-    }
-
-
 # ── Grounding ─────────────────────────────────────────────────────────────────
 
 def _letters(text: str) -> tuple[str, list[int]]:
@@ -236,10 +170,17 @@ def has_math_notation(text: str) -> bool:
     return any(c in _MATH_CHARS or "Α" <= c <= "ω" for c in text)
 
 
-def _ground(item: dict, sources: dict[str, dict]) -> dict:
-    """Turn a validated item into a stored question, with its source located by the server."""
-    excerpt, named = item.pop("_excerpt"), item.pop("_source")
-    chunk = sources.get(named)
+def _ground(item: dict, raw: dict, sources: dict[str, dict]) -> dict:
+    """Turn a validated item into a stored question, with its source located by the server.
+
+    `raw` is the model's own item: only its claimed excerpt and source id are read from it.
+    """
+    try:
+        excerpt = schema.clean_text(raw.get("excerpt"), 10 * limits.MAX_EXCERPT_CHARS, required=False)
+    except schema.InvalidQuestion:
+        excerpt = ""
+    named = raw.get("source")
+    chunk = sources.get(named) if isinstance(named, str) else None
     found = locate_excerpt(excerpt, chunk["text"]) if chunk else None
     if found is None:
         # the model often names the wrong source for a passage it did copy
@@ -303,7 +244,7 @@ async def generate(chunks: list[dict], count: int, difficulty: str, topic: str,
     """
     if not chunks:
         raise GenerationFailed(409, "no_text_in_documents")
-    seen = {_same(stem) for stem in existing_stems}
+    seen = {schema.same(stem) for stem in existing_stems}
     stems = list(existing_stems)
     accepted, rejected, calls, failures = [], 0, 0, []
 
@@ -338,18 +279,18 @@ async def generate(chunks: list[dict], count: int, difficulty: str, topic: str,
 
             for raw in items:
                 try:
-                    item = validate_question(raw, difficulty)
-                except _Invalid:
+                    item = schema.validate_question(raw, difficulty)
+                except schema.InvalidQuestion:
                     rejected += 1
                     continue
-                if _same(item["question"]) in seen:
+                if schema.same(item["question"]) in seen:
                     rejected += 1
                     continue
                 if got >= size:
                     break                       # more than was asked for: the surplus is ignored
-                seen.add(_same(item["question"]))
+                seen.add(schema.same(item["question"]))
                 stems.append(item["question"])
-                accepted.append(_ground(item, sources))
+                accepted.append(_ground(item, raw, sources))
                 got += 1
 
     log.info("AI Quiz: generated %d of %d questions in %d model calls, %d rejected",
