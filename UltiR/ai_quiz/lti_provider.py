@@ -24,9 +24,11 @@ Moodle setup:
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from starlette.concurrency import run_in_threadpool
+from starlette.datastructures import UploadFile
 
-from UltiR.ai_quiz import config
+from UltiR.ai_quiz import config, documents, ingestion, limits
 from UltiR.lti_common import (
     LTISessionStore, is_instructor, lti_launch, lti_test_launch,
 )
@@ -66,6 +68,15 @@ def require_instructor(request: Request) -> dict:
 
 def _page(name: str) -> HTMLResponse:
     return HTMLResponse((_STATIC_DIR / name).read_text(encoding="utf-8"))
+
+
+def _refuse(status: int, code: str, **extra):
+    """Errors carry a code, not a sentence: the page shows the text in the user's language."""
+    raise HTTPException(status, {"code": code, **extra})
+
+
+# Handlers take the raw request and call a guard before they read the body, so
+# an unauthenticated request is refused before any of it is parsed.
 
 
 # ── LTI launch ────────────────────────────────────────────────────────────────
@@ -137,4 +148,62 @@ async def ai_quiz_session(request: Request):
         "name": session["name"],
         "course_name": session["course_name"],
         "is_instructor": is_instructor(session),
+        "reading_modes": {"text": True, "full": ingestion.full_reading_available()},
     }
+
+
+# ── Documents (instructor only) ───────────────────────────────────────────────
+
+# Room for the multipart envelope around the file itself.
+_FORM_OVERHEAD = 64 * 1024
+
+
+@router.post(f"{BASE}/api/documents")
+async def ai_quiz_upload_document(request: Request):
+    session = require_instructor(request)
+    try:
+        declared = int(request.headers.get("content-length", ""))
+    except ValueError:
+        _refuse(411, "length_required")
+    if declared > limits.MAX_UPLOAD_BYTES + _FORM_OVERHEAD:
+        _refuse(413, "file_too_large")
+
+    form = await request.form(max_files=1, max_fields=4)
+    upload = form.get("file")
+    if not isinstance(upload, UploadFile):
+        _refuse(400, "no_file")
+    mode = form.get("reading_mode") or "text"
+    if not isinstance(mode, str):
+        _refuse(400, "bad_mode")
+    data = await upload.read(limits.MAX_UPLOAD_BYTES + 1)
+
+    try:
+        # Reading a PDF is slow, blocking work: keep it off the event loop.
+        document = await run_in_threadpool(
+            documents.add_document, session["course_id"], upload.filename or "", data, mode)
+    except documents.UploadRejected as rejected:
+        _refuse(rejected.status, rejected.code, **rejected.extra)
+    return JSONResponse(document, status_code=201)
+
+
+@router.get(f"{BASE}/api/documents")
+async def ai_quiz_list_documents(request: Request):
+    session = require_instructor(request)
+    return {"documents": documents.list_documents(session["course_id"])}
+
+
+@router.get(f"{BASE}/api/documents/{{doc_id}}")
+async def ai_quiz_get_document(doc_id: str, request: Request):
+    session = require_instructor(request)
+    document = documents.get_document(session["course_id"], doc_id)
+    if document is None:
+        _refuse(404, "not_found")
+    return document
+
+
+@router.delete(f"{BASE}/api/documents/{{doc_id}}")
+async def ai_quiz_delete_document(doc_id: str, request: Request):
+    session = require_instructor(request)
+    if not documents.delete_document(session["course_id"], doc_id):
+        _refuse(404, "not_found")
+    return {"ok": True}

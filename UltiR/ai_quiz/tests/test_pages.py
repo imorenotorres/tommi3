@@ -53,6 +53,7 @@ def test_session_endpoint_describes_the_launch(client, launch):
         "name": "Synthetic Teacher",
         "course_name": "Computer Vision (synthetic)",
         "is_instructor": True,
+        "reading_modes": {"text": True, "full": False},
     }
 
 
