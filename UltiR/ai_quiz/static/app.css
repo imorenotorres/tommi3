@@ -172,7 +172,8 @@ code { background: var(--page); border: 1px solid var(--line); border-radius: 3p
 .sheet-mark .mark::before { content: attr(data-sign) " "; }
 .sheet[data-status="approved"] .mark { color: var(--ok); }
 .sheet[data-status="rejected"] .mark { text-decoration: line-through; }
-.sheet[data-status="rejected"] .sheet-body { opacity: 0.7; }
+/* a rejected question is dimmed, but its buttons are not: they must not look disabled */
+.sheet[data-status="rejected"] .sheet-body .field { opacity: 0.65; }
 
 .sheet-body { padding: 1rem 1.1rem; }
 .sheet-body textarea, .sheet-body input[type="text"], .content { font-family: var(--serif); font-size: 1.05rem; line-height: 1.55; }
@@ -216,6 +217,7 @@ code { background: var(--page); border: 1px solid var(--line); border-radius: 3p
 .choice input { margin-top: 0.4rem; flex: none; }
 .choice .letter { font-weight: 600; }
 ul.choices { list-style: none; padding: 0; margin: 0; }
+ul.choices .choice { align-items: baseline; flex-wrap: wrap; }
 .verdict { font-weight: 600; margin: 0.5rem 0 0.3rem; }
 .verdict.right { color: var(--ok); }
 .verdict.wrong { color: var(--rule); }

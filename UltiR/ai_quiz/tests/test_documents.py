@@ -172,6 +172,17 @@ def test_a_hostile_file_name_cannot_place_a_file_outside_the_course_folder(clien
     assert label and "/" not in label and "\\" not in label and ".." not in label and "\x00" not in label
 
 
+@pytest.mark.parametrize("name, label", [
+    ("../../outside.txt", "outside.txt"),
+    ("C:\\Users\\teacher\\Lecture 7.txt", "Lecture 7.txt"),
+    ("/home/teacher/notes.txt", "notes.txt"),
+])
+def test_only_the_last_part_of_a_file_path_is_kept_as_the_label(client, instructor, name, label):
+    response = upload(client, instructor, name, b"Harmless text that is long enough to be read as a document.")
+
+    assert response.json()["label"] == label
+
+
 def test_a_very_long_file_name_is_shortened_for_display(client, instructor):
     response = upload(client, instructor, "a" * 400 + ".txt", b"Enough text for the reader to accept this document.")
 
