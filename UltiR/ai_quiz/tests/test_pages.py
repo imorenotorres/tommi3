@@ -222,6 +222,20 @@ def test_every_error_code_the_server_can_send_has_a_text_in_both_languages(clien
     assert sorted(c for c in codes if f"err_{c}" not in strings["en"] or f"err_{c}" not in strings["es"]) == []
 
 
+@pytest.mark.parametrize("language", ["en", "es"])
+def test_the_formula_warning_is_two_sentences_and_names_the_page_to_check(client, language):
+    strings = load_strings(client)[language]
+    with_page, without = strings["flag_math"], strings["flag_math_no_page"]
+
+    for text in (with_page, without):
+        assert len(re.findall(r"\.(?=\s|$)", text)) == 2, text          # two sentences, no more
+    assert "{n}" in with_page and "{n}" not in without                  # the page of the passage, when there is one
+    assert with_page.split(":")[0] == without.split(":")[0]             # the same text up to what to check it against
+    for word in {"en": ("read by machine", "bold", "function names"),
+                 "es": ("leídas por una máquina", "negrita", "nombres de funciones")}[language]:
+        assert word in with_page and word in without
+
+
 def test_every_interface_text_exists_in_spanish_and_in_english(client):
     strings = load_strings(client)
 

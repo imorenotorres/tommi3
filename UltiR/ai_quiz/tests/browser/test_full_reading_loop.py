@@ -65,7 +65,9 @@ def test_from_a_full_reading_upload_to_a_student_s_result(site, monkeypatch, fak
     expect(sheet.locator(".preview .preview-stem .katex")).to_have_count(2)
     expect(sheet.locator(".preview .preview-options .katex")).to_have_count(2)
     expect(sheet.locator(".flags")).to_contain_text("A figure is shown with this question.")
-    expect(sheet.locator(".flags")).to_contain_text("contains mathematical notation")
+    expect(sheet.locator(".flags")).to_contain_text("contains formulas, which were read by machine.")
+    expect(sheet.locator(".flags")).to_contain_text("bold letters and function names can come out wrong")
+    expect(sheet.locator(".flags")).to_contain_text("against page 3 of the document.")
     assert sheet.locator("textarea").first.input_value() == STEM                 # the field holds the LaTeX as written
     approve_all_and_publish(page, count=1)
 
@@ -195,6 +197,8 @@ def test_the_full_reading_parts_of_the_page_are_in_spanish_too(site, monkeypatch
     expect(sheet).to_contain_text("Figura que se muestra con la pregunta")
     expect(sheet.locator(".preview h4")).to_have_text("Como lo verá el alumnado")
     expect(sheet.locator(".flags")).to_contain_text("Esta pregunta se muestra con una figura.")
+    expect(sheet.locator(".flags")).to_contain_text("fórmulas, que han sido leídas por una máquina.")
+    expect(sheet.locator(".flags")).to_contain_text("con la página 3 del documento.")
     expect(page.locator("#gallery-heading")).to_have_text("Figuras de los documentos de origen (3)")
     expect(sheet.locator(".preview .preview-stem .katex")).to_have_count(2)      # the formulas are still drawn
     page.get_by_role("button", name="Volver a documentos y cuestionarios").click()

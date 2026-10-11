@@ -420,7 +420,10 @@
       ]));
     }
     if (question.passage_for_students === 'hidden_math') { flags.push(el('li', { text: t('flag_passage_hidden_math') })); }
-    if (question.math_in_source) { flags.push(el('li', { text: t('flag_math') })); }
+    if (question.math_in_source) {
+      // names the page of the passage; a plain text file has no pages
+      flags.push(el('li', { text: source.page ? t('flag_math', { n: source.page }) : t('flag_math_no_page') }));
+    }
     if (attached) { flags.push(el('li', { text: t('flag_figure') })); }
 
     var where = [source.doc_label || t('source_unknown')];

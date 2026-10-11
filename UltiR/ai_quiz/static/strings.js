@@ -118,7 +118,7 @@ window.AI_QUIZ_STRINGS = {
     "source_unlocated": "This is the passage the model gave. It was not found in the document.",
     "flag_ungrounded": "The passage this question claims to rest on was not found in the document. Check the question yourself before approving it.",
     "flag_ungrounded_accept": "I have checked this question against the document and accept it.",
-    "flag_math": "This question was written from a part of the document that contains mathematical notation. Formulas inside a sentence lose exponents, fractions and subscripts when the document is read: check the numbers and symbols in the question against the document.",
+    "flag_math": "This question was written from a part of the document that contains formulas, which were read by machine. Symbols, exponents, bold letters and function names can come out wrong: check the numbers and symbols in the question against page {n} of the document.",
     "err_unsupported_type": "That file type is not accepted. Upload a PDF, Markdown or plain text file.",
     "err_file_too_large": "The file is larger than 20 MB.",
     "err_not_a_pdf": "The file has a .pdf name but is not a PDF.",
@@ -222,7 +222,8 @@ window.AI_QUIZ_STRINGS = {
     "info_reading_title": "Reading documents",
     "info_reading_text": "Documents are read as text by default. Where the server is set up for it, a PDF can also be read in full: numbered formulas are kept as formulas and figures are found. That reading happens on the server itself; the document is not sent anywhere for it. Formulas inside a sentence are read as plain text either way, so the instructor is asked to check them.",
     "info_software_text": "Formulas are drawn with KaTeX 0.19.0, which this tool serves itself and which is distributed under the MIT licence:",
-    "info_software_licence": "licence text"
+    "info_software_licence": "licence text",
+    "flag_math_no_page": "This question was written from a part of the document that contains formulas, which were read by machine. Symbols, exponents, bold letters and function names can come out wrong: check the numbers and symbols in the question against the document."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -340,7 +341,7 @@ window.AI_QUIZ_STRINGS = {
     "source_unlocated": "Este es el pasaje que indicó el modelo. No se ha encontrado en el documento.",
     "flag_ungrounded": "No se ha encontrado en el documento el pasaje en el que dice basarse esta pregunta. Compruébala tú antes de aprobarla.",
     "flag_ungrounded_accept": "He comprobado esta pregunta con el documento y la acepto.",
-    "flag_math": "Esta pregunta se ha escrito a partir de una parte del documento que contiene notación matemática. Las fórmulas dentro de una frase pierden exponentes, fracciones y subíndices al leer el documento: comprueba los números y símbolos de la pregunta con el documento.",
+    "flag_math": "Esta pregunta se ha escrito a partir de una parte del documento que contiene fórmulas, que han sido leídas por una máquina. Los símbolos, los exponentes, la negrita y los nombres de funciones pueden salir mal: comprueba los números y símbolos de la pregunta con la página {n} del documento.",
     "err_unsupported_type": "Ese tipo de archivo no se admite. Sube un PDF, un archivo Markdown o un texto plano.",
     "err_file_too_large": "El archivo supera los 20 MB.",
     "err_not_a_pdf": "El archivo tiene extensión .pdf pero no es un PDF.",
@@ -444,6 +445,7 @@ window.AI_QUIZ_STRINGS = {
     "info_reading_title": "Lectura de documentos",
     "info_reading_text": "Por defecto, los documentos se leen como texto. Si el servidor está preparado para ello, un PDF también se puede leer por completo: las fórmulas numeradas se conservan como fórmulas y se detectan las figuras. Esa lectura se hace en el propio servidor; el documento no se envía a ningún sitio para ello. Las fórmulas dentro de una frase se leen como texto plano en ambos casos, por lo que se pide al docente que las compruebe.",
     "info_software_text": "Las fórmulas se dibujan con KaTeX 0.19.0, que esta herramienta sirve ella misma y que se distribuye bajo la licencia MIT:",
-    "info_software_licence": "texto de la licencia"
+    "info_software_licence": "texto de la licencia",
+    "flag_math_no_page": "Esta pregunta se ha escrito a partir de una parte del documento que contiene fórmulas, que han sido leídas por una máquina. Los símbolos, los exponentes, la negrita y los nombres de funciones pueden salir mal: comprueba los números y símbolos de la pregunta con el documento."
   }
 };

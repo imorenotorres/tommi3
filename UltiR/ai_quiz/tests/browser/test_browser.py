@@ -93,6 +93,7 @@ def test_an_instructor_publishes_a_quiz_and_a_student_takes_it(site):
     draft(page, count=3, title="Week 7")
     expect(page.locator("#review-heading")).to_have_text("Week 7")
     expect(page.locator(".sheet-source").first).to_contain_text("handout.pdf, page 1")
+    expect(page.locator("#questions")).not_to_contain_text("read by machine")     # no formula in this handout: no warning
     expect(page.locator("#publish-state")).to_contain_text("Not published.")
 
     first = page.locator(".sheet").first
@@ -273,6 +274,8 @@ def test_a_garbled_passage_is_flagged_for_the_instructor_and_not_quoted_to_the_s
     draft(page, count=1)
     sheet = page.locator(".sheet").first
     expect(sheet.locator(".flags")).to_contain_text("Students will see only the page number")
+    expect(sheet.locator(".flags")).to_contain_text("formulas, which were read by machine.")
+    expect(sheet.locator(".flags")).to_contain_text("against page 2 of the document.")   # the page the passage is on
     expect(sheet.locator(".sheet-source")).to_contain_text("F1 = 21 P + 1R")       # the instructor still sees it
     expect(sheet.locator(".sheet-source")).to_contain_text("Not shown to students.")
     approve_all_and_publish(page, count=1)
@@ -285,6 +288,19 @@ def test_a_garbled_passage_is_flagged_for_the_instructor_and_not_quoted_to_the_s
 
     expect(student.locator("#results .cite")).to_have_text("From evaluation.pdf, page 2.")
     expect(student.locator("#results")).not_to_contain_text("21 P")
+
+
+def test_the_formula_warning_names_no_page_for_a_document_that_has_none(site):
+    page = site.instructor()
+    notes = ("The harmonic mean of precision and recall is dominated by the smaller of the two values, "
+             "and it is written F1 = 2 P R / (P + R). ") * 3
+    upload(page, "notes.txt", notes.encode("utf-8"), "text/plain")            # a text file has no pages
+    draft(page, count=1)
+
+    warning = page.locator(".sheet").first.locator(".flags li").filter(has_text="read by machine")
+    expect(warning).to_have_count(1)
+    expect(warning).to_contain_text("in the question against the document.")
+    expect(warning).not_to_contain_text("page")
 
 
 # ── The public info page ────────────────────────────────────────────────────
