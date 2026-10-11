@@ -17,6 +17,13 @@ Configuration (web/.env):
 Until both required settings have a value the tool answers 503 everywhere
 except its info page. It never falls back to a placeholder secret.
 
+Full reading (formulas, figures) is optional and needs Docling in a Python
+environment of its own; see docling_reader.py. Without it the tool offers
+text-only reading and everything else works.
+    AI_QUIZ_DOCLING_PYTHON=/path/to/env/bin/python   full path of that interpreter
+    AI_QUIZ_DOCLING_MODELS=/path/to/models           default ~/.cache/docling/models
+    AI_QUIZ_DOCLING_DEVICE=auto                      auto, cpu or cuda
+
 Moodle setup:
     Tool URL: https://<host>/lti/ai-quiz
 """

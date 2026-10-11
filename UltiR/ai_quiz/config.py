@@ -41,6 +41,21 @@ def dev_test_enabled() -> bool:
     return os.environ.get("AI_QUIZ_DEV_TEST", "") == "1"
 
 
+def docling_python() -> str:
+    """The interpreter of a Python environment that has Docling. Unset means: no full reading."""
+    return os.environ.get("AI_QUIZ_DOCLING_PYTHON", "").strip()
+
+
+def docling_models() -> str:
+    """The folder that holds Docling's models. They must be there already; nothing is fetched."""
+    return os.environ.get("AI_QUIZ_DOCLING_MODELS", "").strip() or os.path.expanduser("~/.cache/docling/models")
+
+
+def docling_device() -> str:
+    value = os.environ.get("AI_QUIZ_DOCLING_DEVICE", "").strip().lower()
+    return value if value in ("auto", "cpu", "cuda") else "auto"
+
+
 def missing_settings() -> list[str]:
     required = {"AI_QUIZ_LTI_SECRET": lti_secret(), "AI_QUIZ_ID_KEY": id_key()}
     return [name for name, value in required.items() if not value]

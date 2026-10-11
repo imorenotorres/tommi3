@@ -118,7 +118,7 @@ def test_a_request_without_a_file_is_refused(client, instructor):
     assert (response.status_code, error_code(response)) == (400, "no_file")
 
 
-def test_full_reading_is_refused_until_a_reader_for_it_exists(client, instructor):
+def test_full_reading_is_refused_on_a_server_that_is_not_set_up_for_it(client, instructor):
     response = upload(client, instructor, mode="full")
 
     assert (response.status_code, error_code(response)) == (409, "full_reading_unavailable")

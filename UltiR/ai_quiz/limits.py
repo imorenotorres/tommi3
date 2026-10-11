@@ -13,6 +13,11 @@ MAX_TEXT_CHARS = 1_500_000
 # Full reading (formulas, figures): slow, so it runs as a background job
 MAX_FULL_READING_PAGES = 40     # about 40 s per page without a graphics card
 FULL_READING_SECONDS = 45 * 60  # per document; the job is stopped after this
+MAX_FORMULA_CHARS = 600         # a longer "formula" is a block of text that was misread as one
+MIN_FIGURE_PIXELS = 100         # smaller in either direction: a logo, not a figure
+MAX_FIGURES_PER_DOCUMENT = 60
+MAX_FIGURE_BYTES = 3 * 1024 * 1024
+MAX_CAPTION_CHARS = 500
 
 # Generation
 MAX_QUESTIONS_PER_REQUEST = 15

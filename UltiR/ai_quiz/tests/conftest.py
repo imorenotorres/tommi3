@@ -36,6 +36,8 @@ def configured(monkeypatch, tmp_path):
     monkeypatch.setenv("AI_QUIZ_LTI_SECRET", SECRET)
     monkeypatch.setenv("AI_QUIZ_ID_KEY", ID_KEY)
     monkeypatch.delenv("AI_QUIZ_DEV_TEST", raising=False)
+    for name in ("AI_QUIZ_DOCLING_PYTHON", "AI_QUIZ_DOCLING_MODELS", "AI_QUIZ_DOCLING_DEVICE"):
+        monkeypatch.delenv(name, raising=False)      # no full reading unless a test sets it up
     monkeypatch.setenv("AI_QUIZ_DATA_DIR", str(tmp_path / "data"))
 
 

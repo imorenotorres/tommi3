@@ -7,9 +7,10 @@ from; `select_chunks` picks the chunks for one request.
 Page numbers are written here, by the reader, and nowhere else. The model is
 never asked for one.
 
-Readers: "text" (pypdf for PDFs, plain decoding for .md/.txt) is the default
-and the only one so far. "full" (formulas, figures) arrives with the Docling
-reader; the interface below already has its place.
+Readers: "text" (pypdf for PDFs, plain decoding for .md/.txt) is the default.
+"full" (display formulas as LaTeX between $$ and $$, figures) is the Docling
+reader in docling_reader.py, which exists only where the server is set up
+for it.
 """
 
 import math
@@ -32,11 +33,23 @@ class Page:
 
 
 @dataclass(frozen=True)
+class Figure:
+    figure_id: str          # "f0001": given by the reader, never taken from the engine or the file
+    page: int               # 1-based
+    caption: str            # "" when none was found
+    image: bytes
+    media_type: str         # "image/png" | "image/jpeg", decided from the first bytes of the image
+    width: int
+    height: int
+
+
+@dataclass(frozen=True)
 class ParsedDocument:
     pages: list[Page]
     mode: str               # "text" | "full"
-    engine: str             # "pypdf" | "plain"
+    engine: str             # "pypdf" | "plain" | "docling"
     warnings: list[dict] = field(default_factory=list)
+    figures: list[Figure] = field(default_factory=list)     # full reading only
 
 
 class Unreadable(Exception):
@@ -74,7 +87,7 @@ _CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _LINE_END_HYPHEN = re.compile(r"(?<=[^\W\d_])-\n(?=[^\W\d_])")
 
 
-def _clean(text: str) -> str:
+def clean(text: str) -> str:
     """Repair what extraction breaks, and nothing else.
 
     No Unicode normalisation: NFKC would turn ² into 2 and ½ into 1/2-like
@@ -135,7 +148,7 @@ class TextReader:
             reader = PdfReader(str(path))
             if len(reader.pages) > limits.MAX_PAGES:
                 raise Unreadable("too_long")
-            texts = [_clean(page.extract_text() or "") for page in reader.pages]
+            texts = [clean(page.extract_text() or "") for page in reader.pages]
         except Unreadable:
             raise
         except Exception:
@@ -146,7 +159,7 @@ class TextReader:
 
     def _read_plain(self, path: Path) -> ParsedDocument:
         try:
-            text = _clean(path.read_bytes().decode("utf-8-sig"))
+            text = clean(path.read_bytes().decode("utf-8-sig"))
         except UnicodeDecodeError:
             raise Unreadable("corrupt") from None
         return self._finish([text], numbered=False, engine="plain")
@@ -166,14 +179,21 @@ class TextReader:
 
 
 def full_reading_available() -> bool:
-    return False
+    from UltiR.ai_quiz import docling_reader    # imported here: that module builds on this one
+
+    return docling_reader.unavailable_reason() is None
 
 
 def get_reader(mode: str) -> Reader:
     if mode == "text":
         return TextReader()
     if mode == "full":
-        raise ReaderUnavailable("no full-reading engine is installed")
+        from UltiR.ai_quiz import docling_reader
+
+        reason = docling_reader.unavailable_reason()
+        if reason:
+            raise ReaderUnavailable(reason)
+        return docling_reader.DoclingReader()
     raise ValueError(f"unknown reading mode: {mode!r}")
 
 
@@ -183,6 +203,24 @@ def _flow(text: str) -> str:
     """One line per paragraph: line breaks inside a paragraph become spaces."""
     paragraphs = re.split(r"\n\s*\n", text)
     return "\n\n".join(" ".join(p.split()) for p in paragraphs if p.strip())
+
+
+def _outside_formulas(text: str, cut: int) -> int:
+    """Where to cut `text` instead of at `cut`, so that no $$…$$ formula is cut in two.
+
+    A cut inside a formula moves in front of it. If the formula opens the
+    text, the cut moves behind it: the piece is then longer than a chunk
+    should be, which is better than half a formula.
+    """
+    if text[cut - 1: cut + 1] == "$$":                  # between the two dollar signs of a delimiter
+        cut -= 1
+    if text.count("$$", 0, cut) % 2 == 0:
+        return cut
+    start = text.rfind("$$", 0, cut)
+    if text[:start].strip():
+        return start
+    end = text.find("$$", start + 2)
+    return len(text) if end < 0 else end + 2
 
 
 def _split(text: str) -> list[str]:
@@ -198,6 +236,7 @@ def _split(text: str) -> list[str]:
             cut = window.rfind(" ")
         if cut <= 0:
             cut = CHUNK_CHARS
+        cut = _outside_formulas(rest, cut)
         pieces.append(rest[:cut].strip())
         rest = rest[cut:].strip()
     if rest:

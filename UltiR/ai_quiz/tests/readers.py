@@ -57,3 +57,35 @@ def install(monkeypatch, reader):
     monkeypatch.setattr(ingestion, "get_reader", lambda mode: reader if mode == "full" else text_reader)
     monkeypatch.setattr(ingestion, "full_reading_available", lambda: True)
     return reader
+
+
+# ── Docling, without Docling ────────────────────────────────────────────────
+
+def install_recorded_docling(monkeypatch):
+    """Full reading by the real Docling reader, fed the recorded worker result instead of running Docling."""
+    import copy
+
+    from UltiR.ai_quiz import docling_reader
+
+    from .docling_recorded import RAW, images
+
+    monkeypatch.setattr(docling_reader, "unavailable_reason", lambda: None)
+    monkeypatch.setattr(docling_reader, "run_worker", lambda pdf, stop=None: (copy.deepcopy(RAW), images()))
+
+
+def upload_full(client, token, name="handout.pdf", data=None) -> dict:
+    """Upload a PDF for full reading and wait until it has been read. Returns the document."""
+    import time
+
+    from .test_documents import DOCS, upload
+
+    response = upload(client, token, name, data, mode="full")
+    assert response.status_code == 202, response.text
+    doc_id, deadline = response.json()["doc_id"], time.monotonic() + 10
+    while True:
+        document = client.get(f"{DOCS}/{doc_id}", params={"token": token}).json()
+        if document["status"] != "processing":
+            assert document["status"] == "ready", document
+            return document
+        assert time.monotonic() < deadline, "the reading did not end"
+        time.sleep(0.01)
