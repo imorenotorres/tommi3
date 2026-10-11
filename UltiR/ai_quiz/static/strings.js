@@ -118,7 +118,7 @@ window.AI_QUIZ_STRINGS = {
     "source_unlocated": "This is the passage the model gave. It was not found in the document.",
     "flag_ungrounded": "The passage this question claims to rest on was not found in the document. Check the question yourself before approving it.",
     "flag_ungrounded_accept": "I have checked this question against the document and accept it.",
-    "flag_math": "This question was written from a part of the document that contains mathematical notation. Text reading can lose exponents, fractions and subscripts: check the numbers and symbols in the question against the document.",
+    "flag_math": "This question was written from a part of the document that contains mathematical notation. Formulas inside a sentence lose exponents, fractions and subscripts when the document is read: check the numbers and symbols in the question against the document.",
     "err_unsupported_type": "That file type is not accepted. Upload a PDF, Markdown or plain text file.",
     "err_file_too_large": "The file is larger than 20 MB.",
     "err_not_a_pdf": "The file has a .pdf name but is not a PDF.",
@@ -182,7 +182,7 @@ window.AI_QUIZ_STRINGS = {
     "err_no_user": "Moodle did not tell the tool who you are, so your answers cannot be recorded. Open the tool again from Moodle.",
     "err_too_many_attempts": "You have reached the limit of attempts for this quiz.",
     "err_attempt_not_found": "That result no longer exists.",
-    "flag_passage_hidden_math": "The source passage contains a formula that text reading may have garbled. Students will see only the page number, not this passage.",
+    "flag_passage_hidden_math": "The source passage contains a formula. Students will see only the page number, not this passage.",
     "flag_passage_hidden_unlocated": "Students will see only the page number for this question, not a passage.",
     "source_not_shown": "Not shown to students.",
     "docs_mode": "How to read the document",
@@ -216,7 +216,9 @@ window.AI_QUIZ_STRINGS = {
     "docs_warning_formulas_as_text": "Some formulas on page {pages} could not be recognised and are kept as plain text.",
     "docs_warning_table_collapsed": "A table on page {pages} was not recognised as a table; its content is kept as text.",
     "docs_warning_figures_dropped": "Figures left out because they were too large or not images: {count}.",
-    "docs_figures": "{n} figures"
+    "docs_figures": "{n} figures",
+    "preview_heading": "As students will see it",
+    "flag_formula_failed": "Formulas that could not be displayed: {n}. They are shown as written. Correct them, or reject the question."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -334,7 +336,7 @@ window.AI_QUIZ_STRINGS = {
     "source_unlocated": "Este es el pasaje que indicó el modelo. No se ha encontrado en el documento.",
     "flag_ungrounded": "No se ha encontrado en el documento el pasaje en el que dice basarse esta pregunta. Compruébala tú antes de aprobarla.",
     "flag_ungrounded_accept": "He comprobado esta pregunta con el documento y la acepto.",
-    "flag_math": "Esta pregunta se ha redactado a partir de una parte del documento que contiene notación matemática. La lectura de texto puede perder exponentes, fracciones y subíndices: comprueba los números y símbolos de la pregunta con el documento.",
+    "flag_math": "Esta pregunta se ha escrito a partir de una parte del documento que contiene notación matemática. Las fórmulas dentro de una frase pierden exponentes, fracciones y subíndices al leer el documento: comprueba los números y símbolos de la pregunta con el documento.",
     "err_unsupported_type": "Ese tipo de archivo no se admite. Sube un PDF, un archivo Markdown o un texto plano.",
     "err_file_too_large": "El archivo supera los 20 MB.",
     "err_not_a_pdf": "El archivo tiene extensión .pdf pero no es un PDF.",
@@ -398,7 +400,7 @@ window.AI_QUIZ_STRINGS = {
     "err_no_user": "Moodle no ha indicado a la herramienta quién eres, así que no se pueden registrar tus respuestas. Vuelve a abrir la herramienta desde Moodle.",
     "err_too_many_attempts": "Has alcanzado el límite de intentos de este cuestionario.",
     "err_attempt_not_found": "Ese resultado ya no existe.",
-    "flag_passage_hidden_math": "El pasaje de origen contiene una fórmula que la lectura de texto puede haber alterado. El alumnado verá solo el número de página, no este pasaje.",
+    "flag_passage_hidden_math": "El pasaje de origen contiene una fórmula. El alumnado verá solo el número de página, no este pasaje.",
     "flag_passage_hidden_unlocated": "El alumnado verá solo el número de página de esta pregunta, no un pasaje.",
     "source_not_shown": "No se muestra al alumnado.",
     "docs_mode": "Cómo leer el documento",
@@ -432,6 +434,8 @@ window.AI_QUIZ_STRINGS = {
     "docs_warning_formulas_as_text": "Algunas fórmulas de la página {pages} no se han podido reconocer y se conservan como texto plano.",
     "docs_warning_table_collapsed": "Una tabla de la página {pages} no se ha reconocido como tabla; su contenido se conserva como texto.",
     "docs_warning_figures_dropped": "Figuras omitidas por ser demasiado grandes o no ser imágenes: {count}.",
-    "docs_figures": "{n} figuras"
+    "docs_figures": "{n} figuras",
+    "preview_heading": "Como lo verá el alumnado",
+    "flag_formula_failed": "Fórmulas que no se han podido mostrar: {n}. Se muestran tal como están escritas. Corrígelas o rechaza la pregunta."
   }
 };

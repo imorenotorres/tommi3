@@ -1,6 +1,7 @@
 /* Student page: choose a published quiz, answer it, see the result the server computed.
    The page never knows the correct answers before it has submitted: the server does not send them.
-   All content is placed as text; see the rule at the top of app.js. */
+   All content is placed as text; see the rule at the top of app.js. Formulas in a question that
+   was written from a full reading are drawn by math.js, which builds elements and assigns no HTML. */
 (function () {
   'use strict';
 
@@ -88,13 +89,13 @@
         el('legend', {}, [
           el('span', { class: 'number', text: (index + 1) + '.' }),
           el('span', { class: 'visually-hidden', text: t('student_question', { n: index + 1, total: quiz.questions.length }) + ' ' }),
-          el('span', { text: question.question })
+          A.math.shown('span', {}, question.question, question.math === 'latex')
         ])
       ].concat(figuresOf(question)).concat(question.options.map(function (option) {
         var id = name + '-' + option.id;
         return el('label', { class: 'choice', for: id }, [
           el('input', { type: 'radio', name: name, id: id, value: option.id }),
-          el('span', {}, [el('span', { class: 'letter', text: option.id + '. ' }), el('span', { text: option.text })])
+          el('span', {}, [el('span', { class: 'letter', text: option.id + '. ' }), A.math.shown('span', {}, option.text, question.math === 'latex')])
         ]);
       }))));
     });
@@ -151,7 +152,7 @@
         var picked = option.id === item.selected, key = option.id === item.correct_option_id;
         var cls = 'choice' + (key ? ' is-key' : '') + (picked ? ' is-picked' : '') + (picked && !key ? ' is-wrong' : '');
         return el('li', { class: cls }, [
-          el('span', {}, [el('span', { class: 'letter', text: option.id + '. ' }), el('span', { text: option.text })]),
+          el('span', {}, [el('span', { class: 'letter', text: option.id + '. ' }), A.math.shown('span', {}, option.text, item.math === 'latex')]),
           picked ? el('span', { class: 'tag', text: '(' + t('student_tag_yours') + ')' }) : null,
           key ? el('span', { class: 'tag', text: '(' + t('student_tag_key') + ')' }) : null
         ]);
@@ -166,11 +167,11 @@
           : [where + '.']);
       }
       list.appendChild(el('article', { class: 'paper' }, [
-        el('p', { class: 'stem' }, [el('span', { class: 'number', text: (index + 1) + '.' }), el('span', { text: item.question })])
+        el('p', { class: 'stem' }, [el('span', { class: 'number', text: (index + 1) + '.' }), A.math.shown('span', {}, item.question, item.math === 'latex')])
       ].concat(figuresOf(item)).concat([
         el('p', { class: 'verdict ' + (item.correct ? 'right' : 'wrong'), text: (item.correct ? '✓ ' : '✕ ') + t(verdict) }),
         el('ul', { class: 'choices' }, choices),
-        item.explanation ? el('p', { class: 'because' }, [el('strong', { text: t('student_why') + ' ' }), el('span', { class: 'content', text: item.explanation })]) : null,
+        item.explanation ? el('p', { class: 'because' }, [el('strong', { text: t('student_why') + ' ' }), A.math.shown('span', { class: 'content' }, item.explanation, item.math === 'latex')]) : null,
         cite
       ])));
     });

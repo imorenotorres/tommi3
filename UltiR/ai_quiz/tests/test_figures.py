@@ -316,7 +316,7 @@ def test_the_published_question_tells_the_student_which_figure_to_show_and_nothi
     quiz = client.get(f"{BASE}/api/published/{published['quiz_id']}", params={"token": learner}).json()
 
     q = quiz["questions"][0]
-    assert set(q) == {"question_id", "question", "options", "difficulty", "figures"}
+    assert set(q) == {"question_id", "question", "options", "difficulty", "figures", "math"}   # math: see test_formulas.py
     assert len(q["figures"]) == 1
     assert set(q["figures"][0]) == {"doc_id", "figure_id", "caption"}
     assert (q["figures"][0]["doc_id"], q["figures"][0]["figure_id"]) == (doc["doc_id"], "f0001")
@@ -359,13 +359,12 @@ def test_the_prompt_for_a_text_reading_is_exactly_what_it_was(client, instructor
     assert '"figure"' not in system_prompt(fake_llm)
 
 
-def test_the_prompt_for_a_full_reading_takes_nothing_away_and_adds_only_the_figure_rule(client, instructor, doc, fake_llm):
+def test_the_prompt_for_a_full_reading_has_the_rule_about_figures(client, instructor, doc, fake_llm):
     draft(client, instructor, doc["doc_id"])
 
-    full, text = system_prompt(fake_llm).split("\n"), generation.SYSTEM_PROMPTS["text"].split("\n")
-    added = [line for line in full if line not in text]
-    assert added and all("figure" in line.lower() for line in added)
-    assert [line for line in text if line not in full] == []
+    assert system_prompt(fake_llm) == generation.SYSTEM_PROMPTS["full"]
+    assert sum("[FIGURE" in line for line in system_prompt(fake_llm).split("\n")) == 1
+    # (how exactly the two prompts differ is checked in test_formulas.py)
 
 
 # ── Second lines of defence ─────────────────────────────────────────────────

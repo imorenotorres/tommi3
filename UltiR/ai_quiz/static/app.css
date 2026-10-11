@@ -227,6 +227,17 @@ code { background: var(--page); border: 1px solid var(--line); border-radius: 3p
 .gallery .where { font-size: 0.85rem; color: var(--text-soft); margin: 0.3rem 0 0; }
 details > summary { cursor: pointer; font-weight: 600; color: var(--ink); }
 
+/* ── Formulas (drawn by KaTeX, see math.js) ──────────────────────────────── */
+
+.formula.set-apart { display: block; margin: 0.4rem 0; overflow-x: auto; overflow-y: hidden; }
+.formula-source { font-size: 0.9em; }
+.preview { border: 1px dashed #8793a3; padding: 0.6rem 0.8rem; margin-bottom: 0.9rem; }
+.preview h4 { margin: 0 0 0.4rem; font: 600 0.9rem var(--sans); color: var(--text-soft); }
+.preview p { margin: 0 0 0.4rem; }
+.preview-options { list-style: none; padding: 0; margin: 0 0 0.4rem; }
+.preview-options .letter { font: 600 1rem var(--serif); }
+.formula-problem { background: var(--warn-bg); color: var(--warn-ink); border-left: 4px solid var(--warn-ink); padding: 0.4rem 0.7rem; font-family: var(--sans); }
+
 /* ── Taking a quiz ───────────────────────────────────────────────────────── */
 
 .paper { background: var(--sheet); border: 1px solid var(--line); border-left: 2px solid var(--rule); padding: 1.1rem 1.25rem; margin-bottom: 1rem; }

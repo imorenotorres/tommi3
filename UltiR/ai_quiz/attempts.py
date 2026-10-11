@@ -74,6 +74,8 @@ def _learner_question(question: dict) -> dict:
                for f in question.get("figures") or [] if doc_id]
     if figures:
         view["figures"] = figures
+    if question.get("math") == "latex":
+        view["math"] = "latex"                  # the page draws what stands between dollar signs as formulas
     return view
 
 

@@ -57,7 +57,18 @@ _ASSETS = {
     "info.js": "text/javascript",
     "instructor.js": "text/javascript",
     "student.js": "text/javascript",
+    "math.js": "text/javascript",
     "app.css": "text/css",
+    # KaTeX 0.19.0 draws the formulas. It is shipped in static/vendor/katex with its licence, so
+    # that no page asks another host for anything.
+    "vendor/katex/katex.min.js": "text/javascript",
+    "vendor/katex/katex.min.css": "text/css",
+    "vendor/katex/LICENSE": "text/plain",
+    **{f"vendor/katex/fonts/KaTeX_{font}.woff2": "font/woff2" for font in (
+        "AMS-Regular", "Caligraphic-Bold", "Caligraphic-Regular", "Fraktur-Bold", "Fraktur-Regular", "Main-Bold",
+        "Main-BoldItalic", "Main-Italic", "Main-Regular", "Math-BoldItalic", "Math-Italic", "SansSerif-Bold",
+        "SansSerif-Italic", "SansSerif-Regular", "Script-Regular", "Size1-Regular", "Size2-Regular", "Size3-Regular",
+        "Size4-Regular", "Typewriter-Regular")},
 }
 
 

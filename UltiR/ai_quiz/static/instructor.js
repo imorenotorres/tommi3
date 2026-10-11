@@ -349,6 +349,38 @@
     ].concat(choices.map(function (fig) { return el('option', { value: fig.figure_id, text: figureLabel(fig) }); }))) : null;
     if (figureChoice) { figureChoice.value = attached ? attached.figure_id : ''; }
 
+    // A question written from a full reading carries LaTeX between dollar signs. The fields hold
+    // it as written; this shows it as students will see it, and follows what is typed.
+    var preview = null;
+    if (question.math === 'latex') {
+      var seen = {
+        stem: el('p', { class: 'preview-stem content' }),
+        options: options.map(function () { return el('span', { class: 'content' }); }),
+        why: el('p', { class: 'preview-why content' }),
+        problem: el('p', { class: 'formula-problem', hidden: true })
+      };
+      var drawPreview = function () {
+        var failed = A.math.fill(seen.stem, stem.value);
+        options.forEach(function (o, i) { failed += A.math.fill(seen.options[i], o.text.value); });
+        failed += A.math.fill(seen.why, explanation.value);
+        seen.problem.textContent = failed ? t('flag_formula_failed', { n: failed }) : '';
+        seen.problem.hidden = !failed;
+      };
+      [stem, explanation].concat(options.map(function (o) { return o.text; })).forEach(function (field) {
+        field.addEventListener('input', drawPreview);
+      });
+      drawPreview();
+      preview = el('div', { class: 'preview', role: 'group', 'aria-label': t('preview_heading') }, [
+        el('h4', { text: t('preview_heading') }),
+        seen.stem,
+        el('ol', { class: 'preview-options' }, options.map(function (o, i) {
+          return el('li', {}, [el('span', { class: 'letter', text: o.id + '. ' }), seen.options[i]]);
+        })),
+        seen.why,
+        seen.problem
+      ]);
+    }
+
     function content() {
       var picked = options.filter(function (o) { return o.radio.checked; })[0];
       return {
@@ -413,6 +445,7 @@
           el('label', { for: 'f-' + id, text: t('figure_field') }), figureChoice,
           attached && source.doc_id ? A.figure(source.doc_id, attached) : null
         ]) : null,
+        preview,
         flags.length ? el('ul', { class: 'flags' }, flags) : null,
         el('div', { class: 'actions' }, [
           question.review_status === 'approved' ? null : action('review_approve', { review_status: 'approved' }, 'review_approved', 'primary'),
@@ -424,7 +457,8 @@
       el('aside', { class: 'sheet-source' + (question.grounded ? '' : ' unlocated'), 'aria-label': t('source_heading') }, [
         el('h4', { text: t('source_heading') }),
         el('p', { class: 'where', text: where.join(', ') }),
-        source.excerpt ? el('blockquote', { text: source.excerpt }) : null,
+        // a passage of a full reading can hold formulas the reader recognised: they are drawn
+        source.excerpt ? A.math.shown('blockquote', {}, source.excerpt, source.mode === 'full') : null,
         question.grounded ? null : el('p', { class: 'hint', text: t('source_unlocated') }),
         question.passage_for_students === 'shown' ? null : el('p', { class: 'hint', text: t('source_not_shown') })
       ])

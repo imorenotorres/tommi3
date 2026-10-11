@@ -56,7 +56,7 @@ def no_markup_was_created(page):
     """Nothing from the payload became an element or ran."""
     assert page.evaluate("window.__pwned") is None
     assert page.locator("img").count() == 0
-    assert page.evaluate("document.scripts.length") == 3          # the three script files of the page itself
+    assert page.evaluate("document.scripts.length") == 5          # the five script files of the page itself
 
 
 def unlabelled_controls(page) -> list[str]:

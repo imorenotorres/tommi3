@@ -100,14 +100,24 @@ def _with(prompt: str, after: str, addition: str) -> str:
 
 
 # The prompt for sources that come from a full reading. The prompt for text reading is the one
-# above, unchanged; this one adds to it and takes nothing away.
+# above, unchanged. This one differs from it in two rules: formulas are written in LaTeX,
+# because the pages can draw them, and a question may name a figure.
 _FIGURE_RULE = """- A line that starts with a mark such as [FIGURE f0001] is the caption of a figure of the document. \
 If a question is about what that caption describes, add the field "figure" with the id from the mark, for \
 example "figure": "f0001", and the student is shown that figure beside the question. Leave "figure" out otherwise."""
 
+_PLAIN_FORMULAS = "- Write formulas in plain text, for example w^s or sqrt(n)/2. Do not use LaTeX."
+_LATEX_FORMULAS = """- Write formulas in LaTeX between single dollar signs, for example $w^s$ or $\\sqrt{n}/2$. In the \
+sources, the numbered formulas between $$ and $$ are LaTeX already; formulas inside a sentence may have lost their \
+exponents, fractions and subscripts, so check them against the numbered ones before you use them. Inside a JSON \
+string every backslash is written twice: "$\\\\sqrt{n}$"."""
+
+assert _PLAIN_FORMULAS in _SYSTEM.split("\n")       # the rule that is exchanged must be there, word for word
+
 SYSTEM_PROMPTS = {
     "text": _SYSTEM,
-    "full": _with(_SYSTEM, "- A question must be answerable from the text alone", _FIGURE_RULE),
+    "full": _with(_SYSTEM, "- A question must be answerable from the text alone", _FIGURE_RULE)
+            .replace(_PLAIN_FORMULAS, _LATEX_FORMULAS),
 }
 
 
@@ -133,6 +143,40 @@ def build_messages(sources: list[tuple[str, str]], count: int, difficulty: str, 
 
 
 # ── Reading the reply ─────────────────────────────────────────────────────────
+
+# LaTeX commands that begin with a letter JSON also uses for an escape: \frac would be read as
+# a form feed and "rac", \theta as a tab and "heta", \nabla as a line break and "abla".
+_LATEX_BEHIND_A_JSON_ESCAPE = frozenset("""
+    backslash bar because begin beta beth between big bigcap bigcirc bigcup bigg biggl biggr bigl bigoplus bigotimes
+    bigr bigsqcup bigtriangledown bigtriangleup bigvee bigwedge binom bm bmod boldsymbol bot bowtie boxed breve bullet
+    flat forall frac frown
+    nabla natural ncong ne nearrow neg neq nexists ngeq ni nleq nmid nolimits nonumber not notin nparallel nsubseteq
+    nu nwarrow
+    rangle rbrace rbrack rceil rfloor rho right rightarrow rightharpoonup rightleftharpoons rm rtimes rvert
+    tan tanh tau tbinom text textbf textit textrm textstyle tfrac therefore theta thickapprox thinspace tilde times
+    to top triangle triangleleft triangleright
+    underbrace underline uparrow updownarrow uplus upsilon
+""".split())
+_SINGLE_BACKSLASH = re.compile(r"(?<!\\)\\([A-Za-z]+|[{}%&_#,;:!|\s()\[\]])")
+
+
+def repair_latex_escapes(reply: str) -> str:
+    r"""Double the backslashes of LaTeX that a model wrote singly inside its JSON.
+
+    Asked for LaTeX in JSON, models often write "$\frac{1}{2}$" where JSON
+    needs "$\\frac{1}{2}$". Some of that is not JSON at all (\s, \{), and
+    some is JSON with another meaning (\f, \t, \n, \b, \r, \u). A backslash
+    is doubled when a LaTeX command or one of LaTeX's escaped signs follows
+    it. What JSON itself means is left alone: \" \/ \\, a \n or \t that is
+    not the start of a known command, and \u with a character code.
+    """
+    def doubled(match: re.Match) -> str:
+        word = match.group(1)
+        if word[0] in "bfnrtu" and word not in _LATEX_BEHIND_A_JSON_ESCAPE:
+            return match.group(0)
+        return "\\\\" + word
+    return _SINGLE_BACKSLASH.sub(doubled, reply)
+
 
 def parse_reply(reply) -> list:
     """The list of question items in a model reply. Raises ValueError when there is none."""
@@ -177,7 +221,15 @@ def locate_excerpt(excerpt: str, text: str) -> str | None:
     at = haystack.find(needle)
     if at < 0:
         return None
-    return text[positions[at]: positions[at + len(needle) - 1] + 1]
+    start, end = positions[at], positions[at + len(needle) - 1] + 1
+    # A passage of a full reading does not begin or end in the middle of a $$…$$ formula:
+    # it is widened to take the whole formula, so that what is shown can be drawn.
+    if text.count("$$", 0, start) % 2:
+        start = text.rfind("$$", 0, start)
+    if text.count("$$", 0, end) % 2:
+        closing = text.find("$$", end)
+        end = len(text) if closing < 0 else closing + 2
+    return text[start:end]
 
 
 def _named_figure(raw: dict, chunk: dict | None) -> list[dict]:
@@ -193,7 +245,7 @@ def _named_figure(raw: dict, chunk: dict | None) -> list[dict]:
     return [{"figure_id": named}]
 
 
-def _ground(item: dict, raw: dict, sources: dict[str, dict]) -> dict:
+def _ground(item: dict, raw: dict, sources: dict[str, dict], reading: str = "text") -> dict:
     """Turn a validated item into a stored question, with its source located by the server.
 
     `raw` is the model's own item: only its claimed excerpt and source id are read from it.
@@ -221,6 +273,7 @@ def _ground(item: dict, raw: dict, sources: dict[str, dict]) -> dict:
             "doc_id": chunk["doc_id"] if chunk else None,
             "doc_label": chunk["doc_label"] if chunk else None,
             "chunk_id": chunk["chunk_id"] if chunk else None,
+            "mode": chunk.get("mode", "text") if chunk else None,   # how the document was read
             "page": chunk["page"] if chunk else None,     # from our chunk record, never from the model
             # located: the document's own wording. Not located: the model's claim, kept for the instructor.
             "excerpt": (found if grounded else excerpt)[: limits.MAX_EXCERPT_CHARS],
@@ -229,6 +282,8 @@ def _ground(item: dict, raw: dict, sources: dict[str, dict]) -> dict:
         "ungrounded_accepted": False,
         "math_in_source": bool(chunk) and has_math_notation(chunk["text"]),
         "figures": _named_figure(raw, chunk),         # ids only; whoever stores the question adds caption and page
+        # Set only when the model was asked for LaTeX: the pages then draw what stands between dollar signs.
+        **({"math": "latex"} if reading == "full" else {}),
         "review_status": "draft",
         "edited": False,
     }
@@ -297,6 +352,8 @@ async def generate(chunks: list[dict], count: int, difficulty: str, topic: str,
                 failures.append("error")
                 continue
             try:
+                if reading == "full" and isinstance(reply, str):
+                    reply = repair_latex_escapes(reply)
                 items = parse_reply(reply)
             except ValueError:
                 failures.append("invalid")
@@ -315,7 +372,7 @@ async def generate(chunks: list[dict], count: int, difficulty: str, topic: str,
                     break                       # more than was asked for: the surplus is ignored
                 seen.add(schema.same(item["question"]))
                 stems.append(item["question"])
-                accepted.append(_ground(item, raw, sources))
+                accepted.append(_ground(item, raw, sources, reading))
                 got += 1
 
     log.info("AI Quiz: generated %d of %d questions in %d model calls, %d rejected",
