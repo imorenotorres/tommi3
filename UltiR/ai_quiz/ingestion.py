@@ -25,6 +25,9 @@ from UltiR.ai_quiz import limits
 CHUNK_CHARS = 1200
 _MIN_CHUNK_CHARS = 200
 
+# How a full reading marks the place of a figure in the text of its page: the mark, then the caption.
+FIGURE_MARK = re.compile(r"\[FIGURE (f\d{4})\]")
+
 
 @dataclass(frozen=True)
 class Page:

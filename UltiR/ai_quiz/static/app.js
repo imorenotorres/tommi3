@@ -93,8 +93,27 @@
 
   // ── API ─────────────────────────────────────────────────────────────────
 
+  /* The address of something the tool serves to this session. */
+  function address(path) {
+    return BASE + path + (path.indexOf('?') < 0 ? '?' : '&') + 'token=' + encodeURIComponent(TOKEN);
+  }
+
+  /* A figure of a course document with its caption. The server decides whether this session may
+     have the image; if it may not, or the document is gone, a line of text takes its place. */
+  function figure(docId, fig) {
+    var img = el('img', {
+      src: address('/api/figures/' + encodeURIComponent(docId) + '/' + encodeURIComponent(fig.figure_id)),
+      alt: fig.caption || t('figure_alt'), loading: 'lazy'
+    });
+    var node = el('figure', { class: 'figure' }, [img, fig.caption ? el('figcaption', { text: fig.caption }) : null]);
+    img.addEventListener('error', function () {
+      node.replaceChild(el('p', { class: 'hint', text: t('figure_unavailable') }), img);
+    });
+    return node;
+  }
+
   function api(path, options) {
-    var url = BASE + path + (path.indexOf('?') < 0 ? '?' : '&') + 'token=' + encodeURIComponent(TOKEN);
+    var url = address(path);
     return fetch(url, options).then(function (response) {
       return response.json().catch(function () { return null; }).then(function (body) {
         if (response.ok) { return body; }
@@ -161,7 +180,7 @@
   }
 
   window.AiQuiz = {
-    start: start, api: api, send: send, t: t, el: el, clear: clear,
+    start: start, api: api, send: send, t: t, el: el, clear: clear, figure: figure,
     say: say, showError: showError, errorText: errorText, formatDate: formatDate,
     onLanguageChange: function (fn) { langListeners.push(fn); },
     language: function () { return lang; }

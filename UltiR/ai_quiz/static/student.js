@@ -90,7 +90,7 @@
           el('span', { class: 'visually-hidden', text: t('student_question', { n: index + 1, total: quiz.questions.length }) + ' ' }),
           el('span', { text: question.question })
         ])
-      ].concat(question.options.map(function (option) {
+      ].concat(figuresOf(question)).concat(question.options.map(function (option) {
         var id = name + '-' + option.id;
         return el('label', { class: 'choice', for: id }, [
           el('input', { type: 'radio', name: name, id: id, value: option.id }),
@@ -98,6 +98,11 @@
         ]);
       }))));
     });
+  }
+
+  /* The figures the instructor published with a question, if any. */
+  function figuresOf(question) {
+    return (question.figures || []).map(function (fig) { return A.figure(fig.doc_id, fig); });
   }
 
   function chosenAnswers() {
@@ -161,12 +166,13 @@
           : [where + '.']);
       }
       list.appendChild(el('article', { class: 'paper' }, [
-        el('p', { class: 'stem' }, [el('span', { class: 'number', text: (index + 1) + '.' }), el('span', { text: item.question })]),
+        el('p', { class: 'stem' }, [el('span', { class: 'number', text: (index + 1) + '.' }), el('span', { text: item.question })])
+      ].concat(figuresOf(item)).concat([
         el('p', { class: 'verdict ' + (item.correct ? 'right' : 'wrong'), text: (item.correct ? '✓ ' : '✕ ') + t(verdict) }),
         el('ul', { class: 'choices' }, choices),
         item.explanation ? el('p', { class: 'because' }, [el('strong', { text: t('student_why') + ' ' }), el('span', { class: 'content', text: item.explanation })]) : null,
         cite
-      ]));
+      ])));
     });
   }
 

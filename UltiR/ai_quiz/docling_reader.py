@@ -53,7 +53,7 @@ WORKER = Path(__file__).with_name("docling_worker.py")
 RESULT_VERSION = 1
 MAX_RESULT_BYTES = 20 * 1024 * 1024
 
-FIGURE_MARK = re.compile(r"\[FIGURE (f\d{4})\]")
+FIGURE_MARK = ingestion.FIGURE_MARK
 _CAPTION = re.compile(r"(?:Figure|Fig\.|Figura)\s*\d+", re.IGNORECASE)
 _EQUATION_NUMBER = re.compile(r"\((\d{1,3}[a-z]?)\)\s*$")
 _PRIVATE_USE = re.compile(r"[\ue000-\uf8ff]")

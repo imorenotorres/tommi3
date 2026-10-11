@@ -111,7 +111,8 @@ def instructor_view(quiz: dict) -> dict:
     Each question also says what students will see of its source passage, so the page can
     warn the instructor. That field is derived here and never stored.
     """
-    questions = [{**q, "passage_for_students": passage_for_students(q)} for q in quiz["questions"]]
+    questions = [{**q, "figures": q.get("figures") or [], "passage_for_students": passage_for_students(q)}
+                 for q in quiz["questions"]]
     return {**quiz["meta"], "questions": questions}
 
 
@@ -151,12 +152,16 @@ def rename_quiz(course_id: str, quiz_id: str, title: str) -> dict:
         return _save(course_id, quiz)
 
 
-def update_question(course_id: str, quiz_id: str, question_id: str, changes: dict) -> dict:
+def update_question(course_id: str, quiz_id: str, question_id: str, changes: dict, figures: list | None = None) -> dict:
     """Apply an instructor's edit or decision to one draft question.
 
     Only the content fields, the review status and the acceptance flag can
     change. The source, the grounding result and the ids cannot: they were
     established by the server and an edit does not get to rewrite them.
+
+    `changes` is what the browser sent. `figures` is not: when given, it is
+    the list of figure notes the caller has looked up, and it replaces the
+    question's figures. Nothing in `changes` can set them.
     """
     with storage.locked(course_id):
         quiz = _require(course_id, quiz_id)
@@ -176,6 +181,9 @@ def update_question(course_id: str, quiz_id: str, question_id: str, changes: dic
             if any(content[field] != question[field] for field in CONTENT_FIELDS):
                 question.update(content)
                 question["edited"] = True
+
+        if figures is not None:
+            question["figures"] = figures
 
         if "accept_ungrounded" in changes:
             if not isinstance(changes["accept_ungrounded"], bool):

@@ -28,6 +28,7 @@ LEARNER_ALLOWED = {
     ("GET", f"{BASE}/api/published/{{quiz_id}}"),            # questions and options, no key
     ("POST", f"{BASE}/api/quizzes/{{quiz_id}}/attempts"),    # submit answers; the server grades
     ("GET", f"{BASE}/api/attempts/{{attempt_id}}"),          # own result
+    ("GET", f"{BASE}/api/figures/{{doc_id}}/{{figure_id}}"), # a figure, only while a published question shows it
 }
 
 

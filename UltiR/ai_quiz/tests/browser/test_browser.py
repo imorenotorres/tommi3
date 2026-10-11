@@ -9,7 +9,7 @@ from playwright.sync_api import expect  # noqa: E402
 
 from ..fake_llm import question, sources_in  # noqa: E402
 from ..pdfs import GARBLED_PASSAGE, evaluation_pdf, handout_pdf  # noqa: E402
-from ..readers import SlowReader, install  # noqa: E402
+from ..readers import SlowReader, install, install_recorded_docling  # noqa: E402
 
 PAYLOAD = '<img src=x onerror="window.__pwned=1"><script>window.__pwned=1</script>'
 
@@ -409,3 +409,119 @@ def test_a_reading_that_fails_is_reported_in_words(site, monkeypatch):
     expect(page.locator("#status")).to_contain_text("could not be read")
     expect(page.locator("#content")).not_to_contain_text("engine details")
     expect(page.locator("#generate-button")).to_be_disabled()
+
+
+# ── Figures of a full reading ───────────────────────────────────────────────
+
+def naming_figure(figure_id):
+    """A model reply with one question that rests on the caption of this figure and names it."""
+    def reply(messages):
+        sources = sources_in(messages)
+        sid = next(s for s, text in sources.items() if f"[FIGURE {figure_id}]" in text)
+        return json.dumps({"questions": [question(sid, sources[sid].split("] ", 1)[1], 1, figure=figure_id)]})
+    return reply
+
+
+def upload_full(page):
+    page.locator("#mode-full").check()
+    choose_file(page)
+    page.get_by_role("button", name="Upload document").click()
+    expect(page.locator("#documents tbody tr").first.locator(".reading")).to_have_text("Full, 3 figures")
+
+
+def eventually(condition, seconds=5.0):
+    import time
+
+    deadline = time.monotonic() + seconds
+    while not condition():
+        assert time.monotonic() < deadline, "did not happen in time"
+        time.sleep(0.05)
+
+
+def loaded_images(scope) -> list[str]:
+    """The alternative texts of the images inside `scope` that the browser really loaded."""
+    return scope.evaluate("""node => Array.from(node.querySelectorAll('img'))
+        .filter(img => img.complete && img.naturalWidth > 0).map(img => img.alt)""")
+
+
+def test_an_instructor_sees_every_figure_and_chooses_the_one_shown_with_a_question(site, monkeypatch, fake_llm):
+    install_recorded_docling(monkeypatch)
+    fake_llm.queue(naming_figure("f0001"))
+    page = site.instructor()
+    upload_full(page)
+    page.fill("#gen-topic", "scale-space pyramid octaves")
+    draft(page, count=1)
+    sheet = page.locator(".sheet").first
+
+    # the figure the model named is attached, shown, and flagged for a check
+    expect(sheet.locator("select[id^='f-']")).to_have_value("f0001")
+    expect(sheet.locator(".figure figcaption")).to_contain_text("Figure 1: Scale-space pyramid")
+    expect(sheet.locator(".flags")).to_contain_text("A figure is shown with this question.")
+    eventually(lambda: len(loaded_images(sheet)) == 1)
+    assert unlabelled_controls(page) == []
+
+    # every figure of the document can be looked through
+    expect(page.locator("#gallery-heading")).to_have_text("Figures in the source documents (3)")
+    page.locator("#gallery-heading").click()
+    expect(page.locator("#gallery-figures .figure")).to_have_count(3)
+    expect(page.locator("#gallery-figures")).to_contain_text("handout.pdf, page 7")
+    eventually(lambda: len(loaded_images(page.locator("#gallery-figures"))) == 3)
+
+    # another figure is chosen with the keyboard, then none
+    sheet.locator("select[id^='f-']").focus()
+    sheet.locator("select[id^='f-']").select_option("f0003")
+    sheet.get_by_role("button", name="Save changes").click()
+    expect(page.locator(".sheet").first.locator(".figure figcaption")).to_contain_text("Figure 5: Construction")
+    page.locator(".sheet").first.locator("select[id^='f-']").select_option("")
+    page.locator(".sheet").first.get_by_role("button", name="Save changes").click()
+    expect(page.locator(".sheet").first.locator(".figure")).to_have_count(0)
+    expect(page.locator(".sheet").first.locator(".flags")).not_to_contain_text("A figure is shown")
+
+
+def test_a_student_sees_the_figure_of_a_published_question_and_no_other(site, monkeypatch, fake_llm):
+    install_recorded_docling(monkeypatch)
+    fake_llm.queue(naming_figure("f0001"))
+    page = site.instructor()
+    upload_full(page)
+    page.fill("#gen-topic", "scale-space pyramid octaves")
+    draft(page, count=1)
+    approve_all_and_publish(page, count=1)
+
+    student = site.student()
+    requested = []
+    student.on("request", lambda r: requested.append(r.url.split("?")[0]) if "/api/figures/" in r.url else None)
+    student.locator("#quizzes button").first.click()
+    paper = student.locator("#quiz-view fieldset.paper").first
+    expect(paper.locator(".figure figcaption")).to_contain_text("Figure 1: Scale-space pyramid")
+    caption = paper.locator(".figure figcaption").inner_text()
+    eventually(lambda: loaded_images(paper) == [caption])              # the caption is the image's alternative text
+    answer_all(student, 1)
+    student.get_by_role("button", name="Check my answers").click()
+    result = student.locator("#results article").first
+    eventually(lambda: len(loaded_images(result)) == 1)
+
+    assert requested and all(url.endswith("/f0001") for url in requested)
+    other = student.evaluate("""async url => (await fetch(url)).status""",
+                             student.evaluate("document.querySelector('.figure img').src").replace("/f0001", "/f0002"))
+    assert other == 404
+
+
+def test_a_figure_that_is_gone_is_replaced_by_a_line_of_text(site, monkeypatch, fake_llm):
+    install_recorded_docling(monkeypatch)
+    fake_llm.queue(naming_figure("f0001"))
+    page = site.instructor()
+    upload_full(page)
+    page.fill("#gen-topic", "scale-space pyramid octaves")
+    draft(page, count=1)
+    approve_all_and_publish(page, count=1)
+    page.get_by_role("button", name="Back to documents and quizzes").click()
+    page.locator("#documents").get_by_role("button", name="Delete").first.click()
+    page.locator("#documents").get_by_role("button", name="Delete").first.click()      # the confirmation
+    expect(page.locator("#documents")).to_contain_text("No documents yet")
+
+    student = site.student()
+    student.locator("#quizzes button").first.click()
+
+    paper = student.locator("#quiz-view fieldset.paper").first
+    expect(paper.locator(".figure")).to_contain_text("This figure is no longer available.")
+    expect(paper.locator(".figure img")).to_have_count(0)

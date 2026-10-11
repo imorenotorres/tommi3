@@ -92,8 +92,27 @@ Answer with JSON only, no code fence, no commentary, in exactly this shape:
 "correct_option_id": "A", "explanation": "...", "difficulty": "intermediate", "excerpt": "..."}]}"""
 
 
+def _with(prompt: str, after: str, addition: str) -> str:
+    """`prompt` with `addition` put in as a new rule behind the rule that starts with `after`."""
+    lines = prompt.split("\n")
+    at = next(i for i, line in enumerate(lines) if line.startswith(after))
+    return "\n".join(lines[: at + 1] + [addition] + lines[at + 1:])
+
+
+# The prompt for sources that come from a full reading. The prompt for text reading is the one
+# above, unchanged; this one adds to it and takes nothing away.
+_FIGURE_RULE = """- A line that starts with a mark such as [FIGURE f0001] is the caption of a figure of the document. \
+If a question is about what that caption describes, add the field "figure" with the id from the mark, for \
+example "figure": "f0001", and the student is shown that figure beside the question. Leave "figure" out otherwise."""
+
+SYSTEM_PROMPTS = {
+    "text": _SYSTEM,
+    "full": _with(_SYSTEM, "- A question must be answerable from the text alone", _FIGURE_RULE),
+}
+
+
 def build_messages(sources: list[tuple[str, str]], count: int, difficulty: str, topic: str,
-                   avoid: list[str]) -> list[dict]:
+                   avoid: list[str], reading: str = "text") -> list[dict]:
     token = secrets.token_hex(8)
     parts = [f"BEGIN SOURCE {sid} {token}\n{text}\nEND SOURCE {sid} {token}" for sid, text in sources]
     ask = [f"Write exactly {count} question{'s' if count != 1 else ''} now."]
@@ -108,7 +127,7 @@ def build_messages(sources: list[tuple[str, str]], count: int, difficulty: str, 
         ask.append("These questions already exist. Do not write them again:")
         ask.extend(f"- {stem}" for stem in avoid[-20:])
     return [
-        {"role": "system", "content": _SYSTEM},
+        {"role": "system", "content": SYSTEM_PROMPTS[reading]},
         {"role": "user", "content": "\n\n".join(parts) + "\n\n" + "\n".join(ask)},
     ]
 
@@ -161,6 +180,19 @@ def locate_excerpt(excerpt: str, text: str) -> str | None:
     return text[positions[at]: positions[at + len(needle) - 1] + 1]
 
 
+def _named_figure(raw: dict, chunk: dict | None) -> list[dict]:
+    """The figure the model attached to its question, if the server can see why.
+
+    The id must be the one in a figure mark of the very source the question
+    rests on. Anything else the model says about a figure is dropped: an id
+    it made up, or the id of a figure it was not shown.
+    """
+    named = raw.get("figure")
+    if not chunk or named not in ingestion.FIGURE_MARK.findall(chunk["text"]):     # whatever `named` is
+        return []
+    return [{"figure_id": named}]
+
+
 def _ground(item: dict, raw: dict, sources: dict[str, dict]) -> dict:
     """Turn a validated item into a stored question, with its source located by the server.
 
@@ -196,6 +228,7 @@ def _ground(item: dict, raw: dict, sources: dict[str, dict]) -> dict:
         "grounded": grounded,
         "ungrounded_accepted": False,
         "math_in_source": bool(chunk) and has_math_notation(chunk["text"]),
+        "figures": _named_figure(raw, chunk),         # ids only; whoever stores the question adds caption and page
         "review_status": "draft",
         "edited": False,
     }
@@ -229,7 +262,7 @@ async def generate(chunks: list[dict], count: int, difficulty: str, topic: str,
                    existing_stems: list[str]) -> dict:
     """Draft up to `count` questions about `chunks`.
 
-    `chunks` are dicts with doc_id, doc_label, chunk_id, page and text.
+    `chunks` are dicts with doc_id, doc_label, mode, chunk_id, page and text.
     Returns {"questions": [...], "stats": {...}} with at least one question,
     or raises GenerationFailed.
     """
@@ -241,13 +274,14 @@ async def generate(chunks: list[dict], count: int, difficulty: str, topic: str,
 
     for size, batch_chunks in _batches(chunks, count, topic):
         sources = {f"S{i}": chunk for i, chunk in enumerate(batch_chunks, start=1)}
+        reading = "full" if any(chunk.get("mode") == "full" for chunk in batch_chunks) else "text"
         got = 0
         for _attempt in range(limits.MAX_MODEL_ATTEMPTS):
             missing = size - got
             if missing <= 0:
                 break
             messages = build_messages([(sid, c["text"]) for sid, c in sources.items()],
-                                      missing, difficulty, topic, stems)
+                                      missing, difficulty, topic, stems, reading)
             calls += 1
             try:
                 reply = await _ask(messages, min(limits.MAX_OUTPUT_TOKENS, 300 + 450 * missing))

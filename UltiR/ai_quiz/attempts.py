@@ -62,12 +62,36 @@ def _published(course_id: str, quiz_id: str) -> dict | None:
 # Built field by field. Anything not named here does not leave the server.
 
 def _learner_question(question: dict) -> dict:
-    return {
+    view = {
         "question_id": question["question_id"],
         "question": question["question"],
         "options": [{"id": o["id"], "text": o["text"]} for o in question["options"]],
         "difficulty": question["difficulty"],
     }
+    # A figure the instructor published with the question: where to fetch it and its caption.
+    doc_id = (question.get("source") or {}).get("doc_id")
+    figures = [{"doc_id": doc_id, "figure_id": f["figure_id"], "caption": f.get("caption") or ""}
+               for f in question.get("figures") or [] if doc_id]
+    if figures:
+        view["figures"] = figures
+    return view
+
+
+def figure_is_published(course_id: str, doc_id: str, figure_id: str) -> bool:
+    """Whether a question that learners can see right now shows this figure.
+
+    Only the current revision of a quiz that is published counts. A draft, an
+    approved question that has not been published and an unpublished quiz do not.
+    """
+    for quiz_id in review.quiz_ids(course_id):
+        quiz = _published(course_id, quiz_id)
+        revision = review.load_revision(course_id, quiz_id, quiz["meta"]["current_revision"]) if quiz else None
+        for question in (revision or {}).get("questions", []):
+            if (question.get("source") or {}).get("doc_id") != doc_id:
+                continue
+            if any(f.get("figure_id") == figure_id for f in question.get("figures") or []):
+                return True
+    return False
 
 
 def published_quizzes(course_id: str, user_id: str) -> list[dict]:

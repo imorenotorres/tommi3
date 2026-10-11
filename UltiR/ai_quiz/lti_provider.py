@@ -272,6 +272,46 @@ async def ai_quiz_delete_document(doc_id: str, request: Request):
     return {"ok": True}
 
 
+# ── Figures ───────────────────────────────────────────────────────────────────
+
+@router.get(f"{BASE}/api/documents/{{doc_id}}/figures")
+async def ai_quiz_list_figures(doc_id: str, request: Request):
+    """Every figure of a document, for the instructor: id, page, caption. The images come from the route below."""
+    session = require_instructor(request)
+    figures = documents.list_figures(session["course_id"], doc_id)
+    if figures is None:
+        _refuse(404, "not_found")
+    return {"figures": figures}
+
+
+@router.get(f"{BASE}/api/figures/{{doc_id}}/{{figure_id}}")
+async def ai_quiz_figure(doc_id: str, figure_id: str, request: Request):
+    """One figure as an image.
+
+    The course is the one of the session. An instructor gets any figure of
+    the course. A student gets a figure only while a published question of
+    the course shows it. Every refusal is the same 404, so the answer does
+    not tell whether a figure exists.
+    """
+    session = require_session(request)
+    course_id = session["course_id"]
+    allowed = is_instructor(session) or attempts.figure_is_published(course_id, doc_id, figure_id)
+    found = documents.figure_file(course_id, doc_id, figure_id) if allowed else None
+    if found is None:
+        _refuse(404, "not_found")
+    path, media_type = found
+    return FileResponse(path, media_type=media_type,
+                        headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "private, max-age=300"})
+
+
+def _figure_note(course_id: str, doc_id: str, figure_id) -> dict | None:
+    """What a question keeps about a figure it shows: id, caption and page, from the stored record."""
+    record = documents.get_figure(course_id, doc_id, figure_id) if doc_id else None
+    if record is None:
+        return None
+    return {"figure_id": record["figure_id"], "caption": record.get("caption") or "", "page": record.get("page")}
+
+
 # ── Generation (instructor only) ──────────────────────────────────────────────
 
 @router.post(f"{BASE}/api/generate")
@@ -321,12 +361,17 @@ async def ai_quiz_generate(request: Request):
         _refuse(429, "rate_limited", retry_after_seconds=wait)
 
     chunks = [
-        {"doc_id": d["doc_id"], "doc_label": d["label"], **chunk}
+        {"doc_id": d["doc_id"], "doc_label": d["label"], "mode": d["mode"], **chunk}
         for d in chosen for chunk in documents.load_chunks(course_id, d["doc_id"])
     ]
     existing = [q["question"] for q in quiz["questions"]] if quiz else []
     try:
         result = await generation.generate(chunks, count, difficulty, topic, existing)
+        for question in result["questions"]:
+            # The generator names a figure by id. The stored question carries what was found under that id.
+            notes = [_figure_note(course_id, question["source"]["doc_id"], named["figure_id"])
+                     for named in question["figures"]]
+            question["figures"] = [note for note in notes if note]
         if quiz is None:
             quiz = review.create_quiz(course_id, title or chosen[0]["label"], result["questions"])
         else:
@@ -374,8 +419,23 @@ async def ai_quiz_rename_quiz(quiz_id: str, request: Request):
 @router.put(f"{BASE}/api/quizzes/{{quiz_id}}/questions/{{question_id}}")
 async def ai_quiz_update_question(quiz_id: str, question_id: str, request: Request):
     session = require_instructor(request)
+    course_id = session["course_id"]
     body = await _json_object(request)
-    return _reviewed(review.update_question, session["course_id"], quiz_id, question_id, body)
+    figures = None                              # None: the request does not touch the figure
+    if "figure_id" in body:
+        # The browser names a figure by id or sends null for "none". What is stored comes from
+        # the record of that figure in the question's own source document, and from nowhere else.
+        quiz = review.load_quiz(course_id, quiz_id)
+        question = next((q for q in quiz["questions"] if q["question_id"] == question_id), None) if quiz else None
+        if question is None:
+            _refuse(404, "question_not_found")
+        figures = []
+        if body["figure_id"] is not None:
+            note = _figure_note(course_id, (question.get("source") or {}).get("doc_id"), body["figure_id"])
+            if note is None:
+                _refuse(400, "unknown_figure")
+            figures = [note]
+    return _reviewed(review.update_question, course_id, quiz_id, question_id, body, figures)
 
 
 @router.post(f"{BASE}/api/quizzes/{{quiz_id}}/publish")

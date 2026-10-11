@@ -134,8 +134,64 @@ def _store_reading(folder: Path, parsed: ingestion.ParsedDocument) -> dict:
     chunks = ingestion.chunk_pages(parsed.pages)
     storage.write_json(folder / "pages.json", [{"page": p.number, "text": p.text} for p in parsed.pages])
     storage.write_json(folder / "chunks.json", chunks)
+    records = []
+    for figure in parsed.figures:
+        # The file is named by us, from our id and the type we found in the image's first bytes.
+        name = figure.figure_id + _FIGURE_EXTENSIONS[figure.media_type]
+        (folder / "figures").mkdir(exist_ok=True)
+        (folder / "figures" / name).write_bytes(figure.image)
+        records.append({"figure_id": figure.figure_id, "page": figure.page, "caption": figure.caption, "file": name,
+                        "media_type": figure.media_type, "bytes": len(figure.image),
+                        "width": figure.width, "height": figure.height})
+    if records:
+        storage.write_json(folder / "figures.json", records)
     return {"engine": parsed.engine, "status": "ready", "n_pages": len(parsed.pages), "n_chunks": len(chunks),
-            "warnings": parsed.warnings}
+            "n_figures": len(records), "warnings": parsed.warnings}
+
+
+# ── Figures ───────────────────────────────────────────────────────────────────
+# Figures exist only inside the folder of their document, which is inside the folder of its
+# course. Nothing here builds a path from what a request says: an id is compared with the ids
+# in figures.json, and the file name comes from that record.
+
+_FIGURE_EXTENSIONS = {"image/png": ".png", "image/jpeg": ".jpg"}
+_FIGURE_ID = re.compile(r"f\d{4}")
+
+
+def _figure_records(course_id: str, doc_id: str) -> list[dict] | None:
+    document = get_document(course_id, doc_id)
+    if document is None or document["status"] != "ready":
+        return None
+    return storage.read_json(_doc_dir(course_id, doc_id) / "figures.json", default=[])
+
+
+def list_figures(course_id: str, doc_id: str) -> list[dict] | None:
+    """What the figures of a document are, without where they are kept. None: no such document that is ready."""
+    records = _figure_records(course_id, doc_id)
+    if records is None:
+        return None
+    return [{key: record.get(key) for key in ("figure_id", "page", "caption", "width", "height")} for record in records]
+
+
+def get_figure(course_id: str, doc_id: str, figure_id) -> dict | None:
+    """The stored record of one figure of this course, or None."""
+    if not isinstance(figure_id, str) or not _FIGURE_ID.fullmatch(figure_id):
+        return None
+    return next((r for r in _figure_records(course_id, doc_id) or [] if r.get("figure_id") == figure_id), None)
+
+
+def figure_file(course_id: str, doc_id: str, figure_id) -> tuple[Path, str] | None:
+    """Where the image of a figure is, and its type. None if there is no such figure in this course."""
+    record = get_figure(course_id, doc_id, figure_id)
+    if record is None:
+        return None
+    extension = _FIGURE_EXTENSIONS.get(record.get("media_type"))
+    # The record was written by us. It is checked all the same: if it has been damaged or
+    # tampered with, the name it gives is not used.
+    if extension is None or record.get("file") != figure_id + extension:
+        return None
+    path = _doc_dir(course_id, doc_id) / "figures" / record["file"]
+    return (path, record["media_type"]) if path.is_file() else None
 
 
 def add_document(course_id: str, filename: str, data: bytes, mode: str = "text") -> dict:

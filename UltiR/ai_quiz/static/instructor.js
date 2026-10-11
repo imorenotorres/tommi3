@@ -4,7 +4,7 @@
   'use strict';
 
   var A = window.AiQuiz, t = A.t, el = A.el, clear = A.clear;
-  var state = { documents: [], quizzes: [], quiz: null };
+  var state = { documents: [], quizzes: [], quiz: null, figures: {} };   // figures: by document id
   var SIGNS = { draft: '✎', approved: '✓', rejected: '✕' };
 
   function byId(id) { return document.getElementById(id); }
@@ -47,7 +47,14 @@
   function readingText(doc) {
     if (doc.status === 'processing') { return t('docs_reading_processing'); }
     if (doc.status === 'failed') { return t('docs_reading_failed', { reason: failureReason(doc) }); }
-    return t(doc.mode === 'full' ? 'docs_reading_full' : 'docs_reading_text');
+    if (doc.mode !== 'full') { return t('docs_reading_text'); }
+    return t('docs_reading_full') + (doc.n_figures ? ', ' + t('docs_figures', { n: doc.n_figures }) : '');
+  }
+
+  /* What the reader had to say about a document, in words. */
+  function warningText(w) {
+    var key = 'docs_warning_' + (w.code === 'pages_without_text' ? 'empty_pages' : w.code);
+    return t(key, { pages: (w.pages || []).join(', '), count: w.count });
   }
 
   function renderDocuments() {
@@ -62,9 +69,7 @@
         'aria-label': t('docs_delete_label', { name: doc.label }),
         on: { click: function () { confirmDelete(doc, remove); } }
       });
-      var notes = (doc.warnings || []).map(function (w) {
-        return w.code === 'pages_without_text' ? t('docs_warning_empty_pages', { pages: w.pages.join(', ') }) : w.code;
-      });
+      var notes = (doc.warnings || []).map(warningText);
       return el('tr', { 'data-status': doc.status }, [
         el('td', {}, [el('span', { text: doc.label }), notes.length ? el('p', { class: 'hint', text: notes.join(' ') }) : null]),
         el('td', { class: 'num', text: doc.n_pages > 1 || doc.engine !== 'plain' ? t('docs_pages', { n: doc.n_pages }) : '–' }),
@@ -225,11 +230,27 @@
 
   // ── Review ──────────────────────────────────────────────────────────────
 
+  /* The figures of every document the open quiz draws on. Asked for once per document. */
+  function loadFigures() {
+    var wanted = [];
+    state.quiz.questions.forEach(function (question) {
+      var docId = question.source && question.source.doc_id;
+      if (docId && state.figures[docId] === undefined && wanted.indexOf(docId) < 0) { wanted.push(docId); }
+    });
+    return Promise.all(wanted.map(function (docId) {
+      return A.api('/api/documents/' + docId + '/figures')
+        .then(function (body) { state.figures[docId] = body.figures; })
+        .catch(function () { state.figures[docId] = []; });      // the document is gone: nothing to choose from
+    }));
+  }
+
   function showReview() {
-    byId('overview').hidden = true;
-    byId('review').hidden = false;
-    renderReview();
-    byId('review-heading').focus();
+    return loadFigures().then(function () {
+      byId('overview').hidden = true;
+      byId('review').hidden = false;
+      renderReview();
+      byId('review-heading').focus();
+    });
   }
 
   function showOverview() {
@@ -250,8 +271,32 @@
     byId('publish-state').textContent = line + ' ' + t('review_approved_count', { n: approved, total: quiz.questions.length });
     byId('unpublish-button').hidden = !quiz.published;
     renderSummary();
+    renderGallery();
     var list = clear(byId('questions'));
     quiz.questions.forEach(function (question, index) { list.appendChild(sheet(question, index + 1)); });
+  }
+
+  /* Every figure of the documents this quiz draws on, for the instructor to look through. */
+  function renderGallery() {
+    var box = clear(byId('gallery-figures')), labels = {}, count = 0;
+    state.quiz.questions.forEach(function (question) {
+      if (question.source && question.source.doc_id) { labels[question.source.doc_id] = question.source.doc_label || ''; }
+    });
+    Object.keys(labels).forEach(function (docId) {
+      (state.figures[docId] || []).forEach(function (fig) {
+        var node = A.figure(docId, fig);
+        node.appendChild(el('p', { class: 'where', text: t('gallery_where', { doc: labels[docId], n: fig.page }) }));
+        box.appendChild(node);
+        count += 1;
+      });
+    });
+    byId('gallery-heading').textContent = t('gallery_heading', { n: count });
+    byId('gallery').hidden = count === 0;
+  }
+
+  function figureLabel(fig) {
+    if (!fig.caption) { return t('figure_on_page', { n: fig.page }); }
+    return fig.caption.length > 90 ? fig.caption.slice(0, 89) + '…' : fig.caption;
   }
 
   /* Aggregate results only: how many attempts, by how many students, the average. No names. */
@@ -292,6 +337,18 @@
     });
     var accept = el('input', { type: 'checkbox', id: 'a-' + id, checked: question.ungrounded_accepted });
 
+    // One figure of the question's own source document can be shown with it.
+    var source = question.source || {};
+    var attached = (question.figures || [])[0] || null;
+    var choices = (source.doc_id && state.figures[source.doc_id]) || [];
+    if (attached && !choices.some(function (fig) { return fig.figure_id === attached.figure_id; })) {
+      choices = choices.concat([attached]);
+    }
+    var figureChoice = choices.length ? el('select', { id: 'f-' + id }, [
+      el('option', { value: '', text: t('figure_none') })
+    ].concat(choices.map(function (fig) { return el('option', { value: fig.figure_id, text: figureLabel(fig) }); }))) : null;
+    if (figureChoice) { figureChoice.value = attached ? attached.figure_id : ''; }
+
     function content() {
       var picked = options.filter(function (o) { return o.radio.checked; })[0];
       return {
@@ -306,6 +363,8 @@
     function save(extra, message, button) {
       var body = content();
       if (!question.grounded) { body.accept_ungrounded = accept.checked; }
+      // The figure is sent only when the choice was changed; null means "no figure".
+      if (figureChoice && figureChoice.value !== (attached ? attached.figure_id : '')) { body.figure_id = figureChoice.value || null; }
       Object.keys(extra || {}).forEach(function (key) { body[key] = extra[key]; });
       busy(button, true);
       A.send('PUT', '/api/quizzes/' + state.quiz.quiz_id + '/questions/' + id, body).then(function (quiz) {
@@ -330,8 +389,8 @@
     }
     if (question.passage_for_students === 'hidden_math') { flags.push(el('li', { text: t('flag_passage_hidden_math') })); }
     if (question.math_in_source) { flags.push(el('li', { text: t('flag_math') })); }
+    if (attached) { flags.push(el('li', { text: t('flag_figure') })); }
 
-    var source = question.source || {};
     var where = [source.doc_label || t('source_unknown')];
     if (source.page) { where.push(t('source_page', { n: source.page })); }
 
@@ -350,6 +409,10 @@
         }))),
         el('div', { class: 'field' }, [el('label', { for: 'e-' + id, text: t('review_explanation') }), explanation]),
         el('div', { class: 'field' }, [el('label', { for: 'd-' + id, text: t('gen_difficulty') }), difficulty]),
+        figureChoice ? el('div', { class: 'field' }, [
+          el('label', { for: 'f-' + id, text: t('figure_field') }), figureChoice,
+          attached && source.doc_id ? A.figure(source.doc_id, attached) : null
+        ]) : null,
         flags.length ? el('ul', { class: 'flags' }, flags) : null,
         el('div', { class: 'actions' }, [
           question.review_status === 'approved' ? null : action('review_approve', { review_status: 'approved' }, 'review_approved', 'primary'),

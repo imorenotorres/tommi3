@@ -202,7 +202,21 @@ window.AI_QUIZ_STRINGS = {
     "err_document_not_ready": "That document is not ready: it is still being read, or its reading failed.",
     "err_reading_timeout": "Reading took too long and was stopped.",
     "err_reading_interrupted": "Reading was interrupted because the server restarted. Upload the document again.",
-    "err_reading_failed": "The document could not be read in full. Try text only."
+    "err_reading_failed": "The document could not be read in full. Try text only.",
+    "err_unknown_figure": "That figure does not belong to the document this question comes from.",
+    "figure_field": "Figure shown with the question",
+    "figure_none": "No figure",
+    "figure_on_page": "Figure on page {n}",
+    "figure_alt": "Figure from the course document",
+    "figure_unavailable": "This figure is no longer available.",
+    "flag_figure": "A figure is shown with this question. Check that the question can be answered from its text alone: the model that wrote it has read the caption, not seen the figure.",
+    "gallery_heading": "Figures in the source documents ({n})",
+    "gallery_hint": "Every figure found in the documents this quiz draws on. Students see a figure only when it is attached to a question you have published.",
+    "gallery_where": "{doc}, page {n}",
+    "docs_warning_formulas_as_text": "Some formulas on page {pages} could not be recognised and are kept as plain text.",
+    "docs_warning_table_collapsed": "A table on page {pages} was not recognised as a table; its content is kept as text.",
+    "docs_warning_figures_dropped": "Figures left out because they were too large or not images: {count}.",
+    "docs_figures": "{n} figures"
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -404,6 +418,20 @@ window.AI_QUIZ_STRINGS = {
     "err_document_not_ready": "Ese documento no está listo: todavía se está leyendo o su lectura ha fallado.",
     "err_reading_timeout": "La lectura tardó demasiado y se detuvo.",
     "err_reading_interrupted": "La lectura se interrumpió porque el servidor se reinició. Vuelve a subir el documento.",
-    "err_reading_failed": "No se ha podido leer el documento por completo. Prueba con solo texto."
+    "err_reading_failed": "No se ha podido leer el documento por completo. Prueba con solo texto.",
+    "err_unknown_figure": "Esa figura no pertenece al documento del que procede esta pregunta.",
+    "figure_field": "Figura que se muestra con la pregunta",
+    "figure_none": "Sin figura",
+    "figure_on_page": "Figura de la página {n}",
+    "figure_alt": "Figura del documento del curso",
+    "figure_unavailable": "Esta figura ya no está disponible.",
+    "flag_figure": "Esta pregunta se muestra con una figura. Comprueba que se puede responder solo con el texto: el modelo que la escribió ha leído el pie de figura, no ha visto la figura.",
+    "gallery_heading": "Figuras de los documentos de origen ({n})",
+    "gallery_hint": "Todas las figuras encontradas en los documentos que usa este cuestionario. El alumnado solo ve una figura cuando está asociada a una pregunta que has publicado.",
+    "gallery_where": "{doc}, página {n}",
+    "docs_warning_formulas_as_text": "Algunas fórmulas de la página {pages} no se han podido reconocer y se conservan como texto plano.",
+    "docs_warning_table_collapsed": "Una tabla de la página {pages} no se ha reconocido como tabla; su contenido se conserva como texto.",
+    "docs_warning_figures_dropped": "Figuras omitidas por ser demasiado grandes o no ser imágenes: {count}.",
+    "docs_figures": "{n} figuras"
   }
 };
