@@ -33,11 +33,13 @@
   /* Run `draw` so that no element gets a style attribute.
 
      KaTeX sets nearly all its styles through an element's style object, which a content security
-     policy without inline styles allows. In a few places (large delimiters and other drawn
-     shapes, boxes with a border, bold symbols in the MathML it writes for screen readers) it
-     writes a style attribute instead, which such a policy blocks and reports. While `draw` runs,
-     which is one synchronous call, setting the attribute "style" is turned into the same change
-     through the style object. The shipped KaTeX files stay as released. */
+     policy without inline styles allows. For five of its commands it writes a style attribute
+     instead, which such a policy blocks and reports: the arrow of \vec and the signs of \oiint
+     and \oiiint, which it draws as pictures, and \pmb and \fcolorbox in the MathML it writes for
+     screen readers. (Measured on KaTeX 0.19.0 over all its commands; see the tests.) While `draw`
+     runs, which is one synchronous call, setting the attribute "style" on any element is turned
+     into the same change through that element's style object. Afterwards the browser's own
+     function is back, also when drawing failed. The shipped KaTeX files stay as released. */
   function withoutStyleAttributes(draw) {
     var setAttribute = Element.prototype.setAttribute;
     Element.prototype.setAttribute = function (name, value) {
