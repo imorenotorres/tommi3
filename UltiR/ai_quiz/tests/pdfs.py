@@ -72,6 +72,24 @@ HANDOUT = [
 HEADER = "CV301 Computer Vision"
 
 
+# A two-page document whose second page holds the passage behind draft 9 of the real model run
+# (2026-10-10): text reading had turned F1 = 2 / (1/P + 1/R) into "F1 = 21 P + 1R".
+GARBLED_PASSAGE = "Both are combined in the harmonic mean F1 = 21 P + 1R = 2P RP + R"
+CLEAN_PASSAGE = "Precision is the fraction of returned matches that are correct"
+EVALUATION_PAGES = [
+    ["Evaluation needs reference correspondences between the two images of the pair.",
+     "A proposed match is counted as correct when it lies within a small tolerance."],
+    [f"{CLEAN_PASSAGE}, and recall is the fraction",
+     "of all true correspondences that are returned.",
+     f"{GARBLED_PASSAGE} . (45)",
+     "The harmonic mean is dominated by the smaller of the two values."],
+]
+
+
+def evaluation_pdf() -> bytes:
+    return make_pdf(EVALUATION_PAGES)
+
+
 def handout_pdf() -> bytes:
     return make_pdf(HANDOUT)
 

@@ -152,10 +152,13 @@
         ]);
       });
       var cite = null;
-      if (item.source && item.source.excerpt) {
+      if (item.source) {
         var where = t('student_from', { doc: item.source.doc_label || '' });
         if (item.source.page) { where += ', ' + t('source_page', { n: item.source.page }); }
-        cite = el('p', { class: 'cite' }, [where + ': ', el('q', { text: item.source.excerpt })]);
+        // The server sends the passage only when it may be quoted; otherwise the page is the citation.
+        cite = el('p', { class: 'cite' }, item.source.excerpt
+          ? [where + ': ', el('q', { text: item.source.excerpt })]
+          : [where + '.']);
       }
       list.appendChild(el('article', { class: 'paper' }, [
         el('p', { class: 'stem' }, [el('span', { class: 'number', text: (index + 1) + '.' }), el('span', { text: item.question })]),

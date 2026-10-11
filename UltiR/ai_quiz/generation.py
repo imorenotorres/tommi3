@@ -23,16 +23,11 @@ import secrets
 import time
 
 from UltiR.ai_quiz import ingestion, limits, schema, storage
+from UltiR.ai_quiz.mathflag import has_math_notation
 
 log = logging.getLogger("ultir.ai_quiz")
 
 DIFFICULTIES = schema.DIFFICULTIES
-
-# Signs that a passage held typeset mathematics. Both local readers flatten
-# inline exponents, fractions and subscripts, so the instructor is told to
-# check numbers and symbols against the document.
-_MATH_CHARS = frozenset("∑∏∫√∞≈≠≤≥±×÷∈∉⊂⊆∪∩∥⊤⊥←→↔⇒⇔∂∇⌈⌉⌊⌋−")
-
 
 class GenerationFailed(Exception):
     def __init__(self, status: int, code: str):
@@ -164,10 +159,6 @@ def locate_excerpt(excerpt: str, text: str) -> str | None:
     if at < 0:
         return None
     return text[positions[at]: positions[at + len(needle) - 1] + 1]
-
-
-def has_math_notation(text: str) -> bool:
-    return any(c in _MATH_CHARS or "Α" <= c <= "ω" for c in text)
 
 
 def _ground(item: dict, raw: dict, sources: dict[str, dict]) -> dict:

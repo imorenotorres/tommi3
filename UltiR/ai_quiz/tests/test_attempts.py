@@ -8,7 +8,7 @@ from UltiR.ai_quiz import limits, storage
 
 from .conftest import BASE
 from .fake_llm import question, sources_in
-from .pdfs import handout_pdf
+from .pdfs import CLEAN_PASSAGE, GARBLED_PASSAGE, evaluation_pdf, handout_pdf
 
 DOCS = f"{BASE}/api/documents"
 QUIZZES = f"{BASE}/api/quizzes"
@@ -349,7 +349,76 @@ def test_a_learner_of_another_course_cannot_see_or_take_the_quiz(client, launch,
     assert attempt_files() == []
 
 
-# ── A question accepted without a located passage ───────────────────────────
+# ── What a student sees as the source ───────────────────────────────────────
+# A clean, located passage is quoted. A passage that carries flattened mathematics, or that
+# the server could not locate, is never quoted: the student gets the page number only.
+
+# The test document and its two passages are in pdfs.py: page 2 is the passage behind draft 9
+# of the real model run, where text reading had flattened the F1 formula.
+GARBLED, CLEAN = GARBLED_PASSAGE, CLEAN_PASSAGE
+
+
+def quiz_quoting(client, course, fake_llm, excerpt, accept=False):
+    """A published one-question quiz on the math document whose question quotes `excerpt`."""
+    doc = client.post(DOCS, params={"token": course.instructor},
+                      files={"file": ("evaluation.pdf", evaluation_pdf())}).json()
+
+    def reply(messages):
+        sources = sources_in(messages)
+        sid = next(s for s, text in sources.items() if "harmonic mean" in text)
+        return json.dumps({"questions": [question(sid, sources[sid], 1, excerpt=excerpt)]})
+    fake_llm.queue(reply)
+    response = client.post(f"{BASE}/api/generate", params={"token": course.instructor},
+                           json={"doc_ids": [doc["doc_id"]], "count": 1})
+    draft = response.json()["quiz"]
+    changes = {"review_status": "approved", **({"accept_ungrounded": True} if accept else {})}
+    course.edit(draft, 0, **changes)
+    return course.publish(draft)
+
+
+def instructor_question(client, course, quiz):
+    return client.get(f"{QUIZZES}/{quiz['quiz_id']}", params={"token": course.instructor}).json()["questions"][0]
+
+
+def test_a_clean_located_passage_is_quoted_to_the_student_with_its_page(client, course, fake_llm):
+    quiz = quiz_quoting(client, course, fake_llm, CLEAN)
+
+    response = submit(client, course.learner(), quiz, all_answers(quiz))
+
+    assert response.json()["results"][0]["source"] == {"doc_label": "evaluation.pdf", "page": 2, "excerpt": CLEAN}
+    assert instructor_question(client, course, quiz)["passage_for_students"] == "shown"
+
+
+def test_a_passage_with_a_flattened_formula_is_never_quoted_to_the_student(client, course, fake_llm):
+    quiz = quiz_quoting(client, course, fake_llm, GARBLED)
+
+    response = submit(client, course.learner(), quiz, all_answers(quiz))
+
+    assert response.status_code == 201
+    assert response.json()["results"][0]["source"] == {"doc_label": "evaluation.pdf", "page": 2, "excerpt": None}
+    assert "21 P + 1R" not in response.text
+    again = client.get(f"{ATTEMPTS}/{response.json()['attempt_id']}", params={"token": course.learner()})
+    assert "21 P + 1R" not in again.text
+
+
+def test_the_instructor_is_told_that_students_will_not_see_that_passage(client, course, fake_llm):
+    quiz = quiz_quoting(client, course, fake_llm, GARBLED)
+
+    q = instructor_question(client, course, quiz)
+
+    assert q["grounded"] is True                          # it is in the document, as the reader extracted it
+    assert q["source"]["excerpt"] == GARBLED              # the instructor still sees it, to check against the PDF
+    assert q["passage_for_students"] == "hidden_math"
+
+
+def test_a_question_from_a_mathematical_part_of_the_document_can_still_quote_clean_prose(client, course, fake_llm):
+    quiz = quiz_quoting(client, course, fake_llm, CLEAN)
+
+    q = instructor_question(client, course, quiz)
+
+    assert q["math_in_source"] is True                    # the chunk it was written from holds a formula
+    assert q["passage_for_students"] == "shown"           # but the passage it quotes does not
+
 
 def test_an_unverified_passage_is_never_shown_to_a_learner_as_the_source(client, course, fake_llm):
     invented = "An invented passage that the handout does not contain anywhere at all."
@@ -365,8 +434,10 @@ def test_an_unverified_passage_is_never_shown_to_a_learner_as_the_source(client,
     response = submit(client, course.learner(), published, all_answers(published))
 
     assert response.status_code == 201
-    assert response.json()["results"][0]["source"] is None
+    # the page of the part of the document the question was written from, and no passage
+    assert response.json()["results"][0]["source"] == {"doc_label": "handout.pdf", "page": 1, "excerpt": None}
     assert invented not in response.text
+    assert instructor_question(client, course, published)["passage_for_students"] == "hidden_unlocated"
 
 
 # ── The instructor's summary ────────────────────────────────────────────────

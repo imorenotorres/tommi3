@@ -8,7 +8,7 @@ pytest.importorskip("playwright.sync_api")
 from playwright.sync_api import expect  # noqa: E402
 
 from ..fake_llm import question, sources_in  # noqa: E402
-from ..pdfs import handout_pdf  # noqa: E402
+from ..pdfs import GARBLED_PASSAGE, evaluation_pdf, handout_pdf  # noqa: E402
 
 PAYLOAD = '<img src=x onerror="window.__pwned=1"><script>window.__pwned=1</script>'
 
@@ -256,6 +256,34 @@ def test_an_instructor_can_review_and_publish_with_the_keyboard_alone(site):
     page.keyboard.press("Enter")
 
     expect(page.locator("#status")).to_contain_text("Published as version 1")
+
+
+# ── A passage that text reading garbled ─────────────────────────────────────
+
+def test_a_garbled_passage_is_flagged_for_the_instructor_and_not_quoted_to_the_student(site, fake_llm):
+    def quoting_the_formula(messages):
+        sources = sources_in(messages)
+        sid = next(s for s, text in sources.items() if "harmonic mean" in text)
+        return json.dumps({"questions": [question(sid, sources[sid], 1, excerpt=GARBLED_PASSAGE)]})
+    fake_llm.queue(quoting_the_formula)
+
+    page = site.instructor()
+    upload(page, "evaluation.pdf", evaluation_pdf())
+    draft(page, count=1)
+    sheet = page.locator(".sheet").first
+    expect(sheet.locator(".flags")).to_contain_text("Students will see only the page number")
+    expect(sheet.locator(".sheet-source")).to_contain_text("F1 = 21 P + 1R")       # the instructor still sees it
+    expect(sheet.locator(".sheet-source")).to_contain_text("Not shown to students.")
+    approve_all_and_publish(page, count=1)
+
+    student = site.student()
+    student.locator("#quizzes button").first.click()
+    expect(student.locator("#quiz-view fieldset.paper")).to_have_count(1)
+    answer_all(student, 1)
+    student.get_by_role("button", name="Check my answers").click()
+
+    expect(student.locator("#results .cite")).to_have_text("From evaluation.pdf, page 2.")
+    expect(student.locator("#results")).not_to_contain_text("21 P")
 
 
 # ── The public info page ────────────────────────────────────────────────────

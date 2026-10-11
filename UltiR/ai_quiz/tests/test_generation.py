@@ -553,16 +553,3 @@ def test_an_excerpt_is_found_despite_case_spacing_hyphens_and_punctuation(excerp
 ])
 def test_an_excerpt_that_is_not_there_or_too_short_is_not_found(excerpt):
     assert generation.locate_excerpt(excerpt, TEXT) is None
-
-
-# ── The flattened-math flag (unit) ──────────────────────────────────────────
-
-@pytest.mark.parametrize("text, flagged", [
-    ("The ratio test compares two distances and accepts the match below a threshold.", False),
-    ("The probability is approximately ws, with Pgood = ∏ (nin − i)/(n − i) ≈ ws.", True),
-    ("so that ∥a − b∥2 = 2 − 2 a⊤b for unit vectors", True),
-    ("N ← ⌈log(1 − p)/ log(1 − ws)⌉", True),
-    ("The detector was published in 2004 and uses 128 dimensions.", False),
-])
-def test_passages_with_mathematical_notation_are_flagged_for_the_instructor(text, flagged):
-    assert generation.has_math_notation(text) is flagged

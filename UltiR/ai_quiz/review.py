@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from UltiR.ai_quiz import limits, schema, storage
+from UltiR.ai_quiz.mathflag import has_math_notation
 
 STATUSES = ("draft", "approved", "rejected")
 CONTENT_FIELDS = ("question", "options", "correct_option_id", "explanation", "difficulty")
@@ -85,9 +86,33 @@ def add_questions(course_id: str, quiz_id: str, questions: list[dict]) -> dict:
         return quiz
 
 
+def passage_for_students(question: dict) -> str:
+    """Whether students are shown the source passage of a question after answering.
+
+    "shown"            the passage was located in the document and reads as plain prose
+    "hidden_math"      located, but it carries mathematical notation that text reading may
+                       have garbled: students get the page number only
+    "hidden_unlocated" the server could not locate it: it is the model's claim, not a
+                       quotation, and students get the page number only
+
+    Worked out when asked, from the stored passage, so a better flag also covers revisions
+    that were published before it.
+    """
+    if not question.get("grounded"):
+        return "hidden_unlocated"
+    if has_math_notation((question.get("source") or {}).get("excerpt") or ""):
+        return "hidden_math"
+    return "shown"
+
+
 def instructor_view(quiz: dict) -> dict:
-    """Everything about a quiz, for instructors only: it includes the answer key."""
-    return {**quiz["meta"], "questions": quiz["questions"]}
+    """Everything about a quiz, for instructors only: it includes the answer key.
+
+    Each question also says what students will see of its source passage, so the page can
+    warn the instructor. That field is derived here and never stored.
+    """
+    questions = [{**q, "passage_for_students": passage_for_students(q)} for q in quiz["questions"]]
+    return {**quiz["meta"], "questions": questions}
 
 
 def list_quizzes(course_id: str) -> list[dict]:

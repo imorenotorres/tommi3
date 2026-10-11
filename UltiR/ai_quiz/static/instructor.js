@@ -287,9 +287,11 @@
     if (!question.grounded) {
       flags.push(el('li', {}, [
         el('span', { text: t('flag_ungrounded') }),
-        el('label', { class: 'check', for: 'a-' + id }, [accept, el('span', { text: t('flag_ungrounded_accept') })])
+        el('label', { class: 'check', for: 'a-' + id }, [accept, el('span', { text: t('flag_ungrounded_accept') })]),
+        el('span', { text: t('flag_passage_hidden_unlocated') })
       ]));
     }
+    if (question.passage_for_students === 'hidden_math') { flags.push(el('li', { text: t('flag_passage_hidden_math') })); }
     if (question.math_in_source) { flags.push(el('li', { text: t('flag_math') })); }
 
     var source = question.source || {};
@@ -323,7 +325,8 @@
         el('h4', { text: t('source_heading') }),
         el('p', { class: 'where', text: where.join(', ') }),
         source.excerpt ? el('blockquote', { text: source.excerpt }) : null,
-        question.grounded ? null : el('p', { class: 'hint', text: t('source_unlocated') })
+        question.grounded ? null : el('p', { class: 'hint', text: t('source_unlocated') }),
+        question.passage_for_students === 'shown' ? null : el('p', { class: 'hint', text: t('source_not_shown') })
       ])
     ]);
   }

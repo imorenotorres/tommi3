@@ -118,7 +118,7 @@ window.AI_QUIZ_STRINGS = {
     "source_unlocated": "This is the passage the model gave. It was not found in the document.",
     "flag_ungrounded": "The passage this question claims to rest on was not found in the document. Check the question yourself before approving it.",
     "flag_ungrounded_accept": "I have checked this question against the document and accept it.",
-    "flag_math": "The source passage contains mathematical notation. Text reading can lose exponents, fractions and subscripts: check numbers and symbols against the document.",
+    "flag_math": "This question was written from a part of the document that contains mathematical notation. Text reading can lose exponents, fractions and subscripts: check the numbers and symbols in the question against the document.",
     "err_unsupported_type": "That file type is not accepted. Upload a PDF, Markdown or plain text file.",
     "err_file_too_large": "The file is larger than 20 MB.",
     "err_not_a_pdf": "The file has a .pdf name but is not a PDF.",
@@ -181,7 +181,10 @@ window.AI_QUIZ_STRINGS = {
     "quizzes_student_view": "See this course as a student",
     "err_no_user": "Moodle did not tell the tool who you are, so your answers cannot be recorded. Open the tool again from Moodle.",
     "err_too_many_attempts": "You have reached the limit of attempts for this quiz.",
-    "err_attempt_not_found": "That result no longer exists."
+    "err_attempt_not_found": "That result no longer exists.",
+    "flag_passage_hidden_math": "The source passage contains a formula that text reading may have garbled. Students will see only the page number, not this passage.",
+    "flag_passage_hidden_unlocated": "Students will see only the page number for this question, not a passage.",
+    "source_not_shown": "Not shown to students."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -299,7 +302,7 @@ window.AI_QUIZ_STRINGS = {
     "source_unlocated": "Este es el pasaje que indicó el modelo. No se ha encontrado en el documento.",
     "flag_ungrounded": "No se ha encontrado en el documento el pasaje en el que dice basarse esta pregunta. Compruébala tú antes de aprobarla.",
     "flag_ungrounded_accept": "He comprobado esta pregunta con el documento y la acepto.",
-    "flag_math": "El pasaje de origen contiene notación matemática. La lectura de texto puede perder exponentes, fracciones y subíndices: comprueba los números y símbolos con el documento.",
+    "flag_math": "Esta pregunta se ha redactado a partir de una parte del documento que contiene notación matemática. La lectura de texto puede perder exponentes, fracciones y subíndices: comprueba los números y símbolos de la pregunta con el documento.",
     "err_unsupported_type": "Ese tipo de archivo no se admite. Sube un PDF, un archivo Markdown o un texto plano.",
     "err_file_too_large": "El archivo supera los 20 MB.",
     "err_not_a_pdf": "El archivo tiene extensión .pdf pero no es un PDF.",
@@ -362,6 +365,9 @@ window.AI_QUIZ_STRINGS = {
     "quizzes_student_view": "Ver este curso como estudiante",
     "err_no_user": "Moodle no ha indicado a la herramienta quién eres, así que no se pueden registrar tus respuestas. Vuelve a abrir la herramienta desde Moodle.",
     "err_too_many_attempts": "Has alcanzado el límite de intentos de este cuestionario.",
-    "err_attempt_not_found": "Ese resultado ya no existe."
+    "err_attempt_not_found": "Ese resultado ya no existe.",
+    "flag_passage_hidden_math": "El pasaje de origen contiene una fórmula que la lectura de texto puede haber alterado. El alumnado verá solo el número de página, no este pasaje.",
+    "flag_passage_hidden_unlocated": "El alumnado verá solo el número de página de esta pregunta, no un pasaje.",
+    "source_not_shown": "No se muestra al alumnado."
   }
 };

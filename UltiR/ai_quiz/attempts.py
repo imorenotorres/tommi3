@@ -114,15 +114,17 @@ def _result(attempt: dict, revision: dict) -> dict:
     for question in revision["questions"]:
         selected = attempt["answers"].get(question["question_id"])
         source = question.get("source") or {}
+        quoted = review.passage_for_students(question) == "shown"
         results.append({
             **_learner_question(question),
             "selected": selected,
             "correct_option_id": question["correct_option_id"],
             "correct": selected == question["correct_option_id"],
             "explanation": question["explanation"],
-            # A passage the server did not locate is the model's claim, not a citation: it is not shown.
+            # Where in the document the question comes from. The passage itself is quoted only when
+            # the server located it and it reads as plain prose; otherwise the page number is all.
             "source": {"doc_label": source.get("doc_label"), "page": source.get("page"),
-                       "excerpt": source.get("excerpt")} if question.get("grounded") else None,
+                       "excerpt": source.get("excerpt") if quoted else None} if source.get("doc_id") else None,
         })
     return {
         "attempt_id": attempt["attempt_id"],
