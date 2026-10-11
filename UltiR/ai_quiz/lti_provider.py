@@ -47,6 +47,7 @@ sessions = LTISessionStore()
 _ASSETS = {
     "strings.js": "text/javascript",
     "app.js": "text/javascript",
+    "info.js": "text/javascript",
     "instructor.js": "text/javascript",
     "student.js": "text/javascript",
     "app.css": "text/css",

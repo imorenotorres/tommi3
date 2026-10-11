@@ -115,6 +115,15 @@ legend { font-weight: 600; padding: 0; margin-bottom: 0.3rem; }
 .check { display: flex; gap: 0.5rem; align-items: flex-start; font-weight: 400; margin-bottom: 0.3rem; }
 .check input { margin-top: 0.3rem; flex: none; }
 
+/* Spacing helpers. The pages carry no style attributes, so that they keep working
+   under a content security policy that does not allow inline styles. */
+.space-above { margin-top: 0.9rem; }
+.space-below { margin-bottom: 0.9rem; }
+.flush-above { margin-top: 0; }
+.flush-below { margin-bottom: 0; }
+.roomy-below { margin-bottom: 1.25rem; }
+.row > .field.grow { flex: 1 1 18rem; }
+
 /* ── Page layout ─────────────────────────────────────────────────────────── */
 
 main {

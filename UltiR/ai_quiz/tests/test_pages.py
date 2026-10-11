@@ -2,6 +2,7 @@
 
 import json
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
@@ -83,6 +84,7 @@ def test_each_token_sees_its_own_course(client, launch):
 @pytest.mark.parametrize("name, content_type", [
     ("strings.js", "text/javascript"),
     ("app.js", "text/javascript"),
+    ("info.js", "text/javascript"),
     ("instructor.js", "text/javascript"),
     ("student.js", "text/javascript"),
     ("app.css", "text/css"),
@@ -115,6 +117,80 @@ def load_strings(client) -> dict:
 
 
 MODULE_DIR = Path(__file__).resolve().parents[1]
+
+
+# ── No inline code in the pages ─────────────────────────────────────────────
+
+class InlineCodeFinder(HTMLParser):
+    """Collects everything in a page that a policy without 'unsafe-inline' would block."""
+
+    def __init__(self):
+        super().__init__()
+        self.found: list[str] = []
+        self._in_script = False
+
+    def handle_starttag(self, tag, attrs):
+        line = self.getpos()[0]
+        attrs = dict(attrs)
+        if tag == "script":
+            self._in_script = True
+            if not attrs.get("src"):
+                self.found.append(f"line {line}: <script> without src")
+        if tag == "style":
+            self.found.append(f"line {line}: <style> element")
+        for name, value in attrs.items():
+            if name == "style":
+                self.found.append(f"line {line}: style attribute on <{tag}>")
+            elif name.startswith("on"):
+                self.found.append(f"line {line}: {name} handler on <{tag}>")
+            elif name in ("href", "src", "action", "formaction") and (value or "").strip().lower().startswith("javascript:"):
+                self.found.append(f"line {line}: javascript: URL in {name} on <{tag}>")
+
+    def handle_endtag(self, tag):
+        if tag == "script":
+            self._in_script = False
+
+    def handle_data(self, data):
+        if self._in_script and data.strip():
+            self.found.append(f"line {self.getpos()[0]}: script code inside the page")
+
+
+def inline_code_in(html: str) -> list[str]:
+    finder = InlineCodeFinder()
+    finder.feed(html)
+    return finder.found
+
+
+PAGES = sorted(p.name for p in (MODULE_DIR / "static").glob("*.html"))
+
+
+def test_the_tool_has_pages_to_check():
+    assert PAGES == ["info.html", "instructor.html", "student.html"]
+
+
+@pytest.mark.parametrize("page", PAGES)
+def test_a_page_has_no_inline_script_style_or_event_handler(page):
+    """So the pages keep working if the platform's policy stops allowing inline code."""
+    html = (MODULE_DIR / "static" / page).read_text(encoding="utf-8")
+
+    assert inline_code_in(html) == []
+
+
+@pytest.mark.parametrize("html, expected", [
+    ("<script>go()</script>", ["<script> without src", "script code inside the page"]),
+    ('<script src="/a.js">go()</script>', ["script code inside the page"]),
+    ('<p style="color:red">x</p>', ["style attribute on <p>"]),
+    ("<style>p{}</style>", ["<style> element"]),
+    ('<button onclick="go()">x</button>', ["onclick handler on <button>"]),
+    ('<body onload="go()">', ["onload handler on <body>"]),
+    ('<a href=" JavaScript:go()">x</a>', ["javascript: URL in href on <a>"]),
+    ('<script src="/a.js"></script><link rel="stylesheet" href="/a.css"><p class="x">ok</p>', []),
+])
+def test_the_inline_code_check_itself_finds_what_it_should(html, expected):
+    found = inline_code_in(html)
+
+    assert len(found) == len(expected)
+    assert all(any(e in f for f in found) for e in expected)
 
 
 def test_every_text_key_the_pages_use_is_defined(client):

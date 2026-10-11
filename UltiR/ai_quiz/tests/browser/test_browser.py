@@ -258,6 +258,18 @@ def test_an_instructor_can_review_and_publish_with_the_keyboard_alone(site):
     expect(page.locator("#status")).to_contain_text("Published as version 1")
 
 
+# ── The public info page ────────────────────────────────────────────────────
+
+def test_the_info_page_shows_the_tool_url_and_switches_language(site):
+    page = site.open("/info")
+
+    expect(page.locator("#tool-url")).to_have_text(f"{site.url}/lti/ai-quiz")
+    expect(page.locator("h1")).to_have_text("AI Quiz Generator")
+    expect(page.locator("main")).to_contain_text("How it works")
+    page.locator("#lang-switch").click()
+    expect(page.locator("main")).to_contain_text("Cómo funciona")
+
+
 # ── Two languages ───────────────────────────────────────────────────────────
 
 def test_the_page_can_be_switched_to_spanish_and_back(site):
