@@ -84,6 +84,7 @@ def test_each_token_sees_its_own_course(client, launch):
     ("strings.js", "text/javascript"),
     ("app.js", "text/javascript"),
     ("instructor.js", "text/javascript"),
+    ("student.js", "text/javascript"),
     ("app.css", "text/css"),
 ])
 def test_assets_are_served_with_their_content_type(client, name, content_type):

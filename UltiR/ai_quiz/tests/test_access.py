@@ -24,6 +24,10 @@ PUBLIC = {
 LEARNER_ALLOWED = {
     ("GET", f"{BASE}/student"),
     ("GET", f"{BASE}/api/session"),
+    ("GET", f"{BASE}/api/published"),                       # published quizzes, safe fields only
+    ("GET", f"{BASE}/api/published/{{quiz_id}}"),            # questions and options, no key
+    ("POST", f"{BASE}/api/quizzes/{{quiz_id}}/attempts"),    # submit answers; the server grades
+    ("GET", f"{BASE}/api/attempts/{{attempt_id}}"),          # own result
 }
 
 

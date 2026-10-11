@@ -29,7 +29,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import UploadFile
 
-from UltiR.ai_quiz import config, documents, generation, ingestion, limits, review, storage
+from UltiR.ai_quiz import attempts, config, documents, generation, ingestion, limits, review, storage
 from UltiR.lti_common import (
     LTISessionStore, is_instructor, lti_launch, lti_test_launch,
 )
@@ -48,6 +48,7 @@ _ASSETS = {
     "strings.js": "text/javascript",
     "app.js": "text/javascript",
     "instructor.js": "text/javascript",
+    "student.js": "text/javascript",
     "app.css": "text/css",
 }
 
@@ -351,3 +352,54 @@ async def ai_quiz_publish(quiz_id: str, request: Request):
 async def ai_quiz_unpublish(quiz_id: str, request: Request):
     session = require_instructor(request)
     return _reviewed(review.unpublish, session["course_id"], quiz_id)
+
+
+@router.get(f"{BASE}/api/quizzes/{{quiz_id}}/summary")
+async def ai_quiz_summary(quiz_id: str, request: Request):
+    """Aggregate results of one quiz. No names, no single attempts."""
+    session = require_instructor(request)
+    summary = attempts.summary(session["course_id"], quiz_id)
+    if summary is None:
+        _refuse(404, "quiz_not_found")
+    return summary
+
+
+# ── Practising (any session of the course) ────────────────────────────────────
+# Identity and course come from the session. The responses of the first two
+# routes are built from an allow-list and carry no key, explanation or source.
+
+@router.get(f"{BASE}/api/published")
+async def ai_quiz_published(request: Request):
+    session = require_session(request)
+    return {"quizzes": attempts.published_quizzes(session["course_id"], session.get("user_id", ""))}
+
+
+@router.get(f"{BASE}/api/published/{{quiz_id}}")
+async def ai_quiz_published_quiz(quiz_id: str, request: Request):
+    session = require_session(request)
+    quiz = attempts.learner_quiz(session["course_id"], quiz_id)
+    if quiz is None:
+        _refuse(404, "quiz_not_found")
+    return quiz
+
+
+@router.post(f"{BASE}/api/quizzes/{{quiz_id}}/attempts")
+async def ai_quiz_submit_attempt(quiz_id: str, request: Request):
+    """Grade an attempt on the server. Any score the browser sends is not read."""
+    session = require_session(request)
+    body = await _json_object(request)
+    try:
+        result = attempts.submit(session["course_id"], quiz_id, session.get("user_id", ""),
+                                 is_instructor(session), body)
+    except attempts.AttemptError as error:
+        _refuse(error.status, error.code)
+    return JSONResponse(result, status_code=201)
+
+
+@router.get(f"{BASE}/api/attempts/{{attempt_id}}")
+async def ai_quiz_get_attempt(attempt_id: str, request: Request):
+    session = require_session(request)
+    result = attempts.read(session["course_id"], attempt_id, session.get("user_id", ""), is_instructor(session))
+    if result is None:
+        _refuse(404, "attempt_not_found")
+    return result

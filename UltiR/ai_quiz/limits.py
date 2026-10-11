@@ -31,3 +31,6 @@ MAX_OPTION_CHARS = 300
 MAX_EXPLANATION_CHARS = 800
 MAX_EXCERPT_CHARS = 600
 MIN_EXCERPT_LETTERS = 30        # a located excerpt shorter than this proves nothing
+
+# Attempts
+MAX_ATTEMPTS_PER_QUIZ = 50      # per learner and quiz

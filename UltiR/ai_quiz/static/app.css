@@ -215,6 +215,7 @@ code { background: var(--page); border: 1px solid var(--line); border-radius: 3p
 .choice:hover { border-color: var(--line); }
 .choice input { margin-top: 0.4rem; flex: none; }
 .choice .letter { font-weight: 600; }
+ul.choices { list-style: none; padding: 0; margin: 0; }
 .verdict { font-weight: 600; margin: 0.5rem 0 0.3rem; }
 .verdict.right { color: var(--ok); }
 .verdict.wrong { color: var(--rule); }

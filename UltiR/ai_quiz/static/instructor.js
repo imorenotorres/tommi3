@@ -212,8 +212,22 @@
     var line = quiz.published ? t('state_published', { n: quiz.current_revision }) : t('state_unpublished');
     byId('publish-state').textContent = line + ' ' + t('review_approved_count', { n: approved, total: quiz.questions.length });
     byId('unpublish-button').hidden = !quiz.published;
+    renderSummary();
     var list = clear(byId('questions'));
     quiz.questions.forEach(function (question, index) { list.appendChild(sheet(question, index + 1)); });
+  }
+
+  /* Aggregate results only: how many attempts, by how many students, the average. No names. */
+  function renderSummary() {
+    var line = byId('summary-line'), quizId = state.quiz.quiz_id;
+    line.textContent = '';
+    if (!state.quiz.current_revision) { return; }
+    A.api('/api/quizzes/' + quizId + '/summary').then(function (summary) {
+      if (!state.quiz || state.quiz.quiz_id !== quizId) { return; }
+      line.textContent = summary.attempts
+        ? t('review_summary', { attempts: summary.attempts, learners: summary.learners, percent: summary.average_percent })
+        : t('review_summary_none');
+    }).catch(function () { line.textContent = ''; });
   }
 
   function replaceQuiz(quiz, message) {
@@ -331,6 +345,7 @@
 
   // ── Wiring ──────────────────────────────────────────────────────────────
 
+  byId('student-link').href = '/lti/ai-quiz/student' + window.location.search;
   byId('upload-form').addEventListener('submit', upload);
   byId('generate-form').addEventListener('submit', generate);
   byId('gen-target').addEventListener('change', function () { byId('gen-title-field').hidden = this.value !== ''; });

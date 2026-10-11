@@ -19,18 +19,43 @@
 </header>
 
 <main>
-  <p class="notice" id="status" role="alert" hidden></p>
+  <p class="notice" id="status" role="status" aria-live="polite" hidden></p>
+
   <div id="content" hidden>
-    <h2 data-i18n="student_heading"></h2>
-    <p class="notice" data-i18n="practice_notice"></p>
-    <div class="card">
-      <p class="empty" data-i18n="student_empty"></p>
-    </div>
+
+    <section id="list-view" aria-labelledby="list-heading">
+      <h2 id="list-heading" tabindex="-1" data-i18n="student_heading"></h2>
+      <p class="notice plain" data-i18n="practice_notice"></p>
+      <div id="quizzes"></div>
+    </section>
+
+    <section id="quiz-view" aria-labelledby="quiz-heading" hidden>
+      <p><button type="button" class="quiet" data-back data-i18n="student_back"></button></p>
+      <h2 id="quiz-heading" tabindex="-1"></h2>
+      <form id="quiz-form">
+        <div id="questions"></div>
+        <div class="actions">
+          <button type="submit" class="primary" id="submit-button" data-i18n="student_submit"></button>
+        </div>
+      </form>
+    </section>
+
+    <section id="result-view" aria-labelledby="result-heading" hidden>
+      <p><button type="button" class="quiet" data-back data-i18n="student_back"></button></p>
+      <h2 id="result-heading" tabindex="-1"></h2>
+      <p class="score" id="score"></p>
+      <div class="actions" style="margin:0 0 1.25rem">
+        <button type="button" class="primary" id="again-button" data-i18n="student_again"></button>
+      </div>
+      <div id="results"></div>
+      <p class="hint" data-i18n="student_ai_note"></p>
+    </section>
+
   </div>
 </main>
 
 <script src="/lti/ai-quiz/assets/strings.js"></script>
 <script src="/lti/ai-quiz/assets/app.js"></script>
-<script>AiQuiz.start();</script>
+<script src="/lti/ai-quiz/assets/student.js"></script>
 </body>
 </html>
