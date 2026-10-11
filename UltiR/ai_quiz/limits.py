@@ -9,3 +9,25 @@ MAX_LABEL_CHARS = 120
 # Reading
 MAX_PAGES = 300
 MAX_TEXT_CHARS = 1_500_000
+
+# Generation
+MAX_QUESTIONS_PER_REQUEST = 15
+MAX_DOCS_PER_REQUEST = 5
+MAX_TOPIC_CHARS = 200
+MAX_TITLE_CHARS = 200
+QUESTIONS_PER_CALL = 5          # a large request is split into calls of this many questions
+SOURCES_PER_CALL = 6            # chunks handed to the model in one call
+MAX_MODEL_ATTEMPTS = 3          # calls for one batch, the first one included
+MAX_OUTPUT_TOKENS = 3000        # reply length asked of the model, per call
+MAX_REPLY_CHARS = 60_000        # anything longer is not read at all
+MODEL_TIMEOUT_SECONDS = 60      # per call
+MAX_GENERATIONS_PER_HOUR = 20   # per course, failed ones included
+
+# Quizzes
+MAX_QUIZZES_PER_COURSE = 100
+MAX_QUESTIONS_PER_QUIZ = 60
+MAX_QUESTION_CHARS = 600
+MAX_OPTION_CHARS = 300
+MAX_EXPLANATION_CHARS = 800
+MAX_EXCERPT_CHARS = 600
+MIN_EXCERPT_LETTERS = 30        # a located excerpt shorter than this proves nothing

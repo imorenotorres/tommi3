@@ -21,6 +21,7 @@ Moodle setup:
     Tool URL: https://<host>/lti/ai-quiz
 """
 
+import json
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
@@ -28,7 +29,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import UploadFile
 
-from UltiR.ai_quiz import config, documents, ingestion, limits
+from UltiR.ai_quiz import config, documents, generation, ingestion, limits, review, storage
 from UltiR.lti_common import (
     LTISessionStore, is_instructor, lti_launch, lti_test_launch,
 )
@@ -77,6 +78,32 @@ def _refuse(status: int, code: str, **extra):
 
 # Handlers take the raw request and call a guard before they read the body, so
 # an unauthenticated request is refused before any of it is parsed.
+
+_MAX_JSON_BYTES = 256 * 1024
+
+
+async def _json_object(request: Request) -> dict:
+    """The request body as a JSON object, or 400. Call only after a guard."""
+    raw = await request.body()
+    if len(raw) > _MAX_JSON_BYTES:
+        _refuse(413, "request_too_large")
+    try:
+        body = json.loads(raw)
+    except ValueError:
+        _refuse(400, "bad_request", field="body")
+    if not isinstance(body, dict):
+        _refuse(400, "bad_request", field="body")
+    return body
+
+
+def _text_field(body: dict, name: str, max_chars: int) -> str:
+    """An optional short text field from untrusted input: trimmed, bounded, or 400."""
+    value = body.get(name, "")
+    if value is None:
+        return ""
+    if not isinstance(value, str) or len(value) > max_chars:
+        _refuse(400, "bad_request", field=name)
+    return " ".join(value.split())
 
 
 # ── LTI launch ────────────────────────────────────────────────────────────────
@@ -207,3 +234,65 @@ async def ai_quiz_delete_document(doc_id: str, request: Request):
     if not documents.delete_document(session["course_id"], doc_id):
         _refuse(404, "not_found")
     return {"ok": True}
+
+
+# ── Generation (instructor only) ──────────────────────────────────────────────
+
+@router.post(f"{BASE}/api/generate")
+async def ai_quiz_generate(request: Request):
+    """Draft questions from course documents. The result is always an unpublished draft."""
+    session = require_instructor(request)
+    course_id = session["course_id"]
+    body = await _json_object(request)
+
+    count = body.get("count")
+    if isinstance(count, bool) or not isinstance(count, int) or not 1 <= count <= limits.MAX_QUESTIONS_PER_REQUEST:
+        _refuse(400, "bad_request", field="count")
+    difficulty = body.get("difficulty", "mixed")
+    if difficulty not in ("mixed", *generation.DIFFICULTIES):
+        _refuse(400, "bad_request", field="difficulty")
+    topic = _text_field(body, "topic", limits.MAX_TOPIC_CHARS)
+    title = _text_field(body, "title", limits.MAX_TITLE_CHARS)
+    doc_ids = body.get("doc_ids")
+    if (not isinstance(doc_ids, list) or not 1 <= len(doc_ids) <= limits.MAX_DOCS_PER_REQUEST
+            or not all(storage.is_id(d, "d") for d in doc_ids)):
+        _refuse(400, "bad_request", field="doc_ids")
+    quiz_id = body.get("quiz_id")
+    if quiz_id is not None and not storage.is_id(quiz_id, "z"):
+        _refuse(400, "bad_request", field="quiz_id")
+
+    # Everything is looked up inside the course of the session.
+    chosen = []
+    for doc_id in dict.fromkeys(doc_ids):
+        document = documents.get_document(course_id, doc_id)
+        if document is None:
+            _refuse(404, "document_not_found")
+        chosen.append(document)
+    quiz = None
+    if quiz_id is not None:
+        quiz = review.load_quiz(course_id, quiz_id)
+        if quiz is None:
+            _refuse(404, "quiz_not_found")
+        if len(quiz["questions"]) + count > limits.MAX_QUESTIONS_PER_QUIZ:
+            _refuse(409, "quiz_full")
+    elif len(review.quiz_ids(course_id)) >= limits.MAX_QUIZZES_PER_COURSE:
+        _refuse(409, "too_many_quizzes")
+
+    wait = generation.take_generation_slot(course_id)
+    if wait:
+        _refuse(429, "rate_limited", retry_after_seconds=wait)
+
+    chunks = [
+        {"doc_id": d["doc_id"], "doc_label": d["label"], **chunk}
+        for d in chosen for chunk in documents.load_chunks(course_id, d["doc_id"])
+    ]
+    existing = [q["question"] for q in quiz["questions"]] if quiz else []
+    try:
+        result = await generation.generate(chunks, count, difficulty, topic, existing)
+        if quiz is None:
+            quiz = review.create_quiz(course_id, title or chosen[0]["label"], result["questions"])
+        else:
+            quiz = review.add_questions(course_id, quiz_id, result["questions"])
+    except (generation.GenerationFailed, review.QuizError) as failed:
+        _refuse(failed.status, failed.code)
+    return JSONResponse({"quiz": review.instructor_view(quiz), "stats": result["stats"]}, status_code=201)

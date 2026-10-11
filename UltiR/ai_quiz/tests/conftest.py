@@ -39,6 +39,18 @@ def configured(monkeypatch, tmp_path):
     monkeypatch.setenv("AI_QUIZ_DATA_DIR", str(tmp_path / "data"))
 
 
+@pytest.fixture(autouse=True)
+def fake_llm(monkeypatch):
+    """Every test talks to the fake model. Nothing in the suite can reach a real one."""
+    from UltiR.ai_quiz import generation
+
+    from .fake_llm import FakeLLM
+
+    fake = FakeLLM()
+    monkeypatch.setattr(generation, "call_model", fake)
+    return fake
+
+
 @pytest.fixture
 def client():
     from UltiR.ai_quiz.lti_provider import router

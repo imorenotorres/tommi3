@@ -213,7 +213,7 @@ def chunk_pages(pages: list[Page]) -> list[dict]:
 
 # ── Choosing chunks ───────────────────────────────────────────────────────────
 
-_WORD = re.compile(r"[^\W\d_]{3,}")
+_WORD = re.compile(r"[^\W_]{3,}")   # letters and digits in any script, three or more
 _STOP = frozenset(
     "the and for are was were been being have has had does did will would shall should may might can could "
     "this that these those its with from not nor than too very also about above after before between into "
