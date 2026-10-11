@@ -218,7 +218,11 @@ window.AI_QUIZ_STRINGS = {
     "docs_warning_figures_dropped": "Figures left out because they were too large or not images: {count}.",
     "docs_figures": "{n} figures",
     "preview_heading": "As students will see it",
-    "flag_formula_failed": "Formulas that could not be displayed: {n}. They are shown as written. Correct them, or reject the question."
+    "flag_formula_failed": "Formulas that could not be displayed: {n}. They are shown as written. Correct them, or reject the question.",
+    "info_reading_title": "Reading documents",
+    "info_reading_text": "Documents are read as text by default. Where the server is set up for it, a PDF can also be read in full: numbered formulas are kept as formulas and figures are found. That reading happens on the server itself; the document is not sent anywhere for it. Formulas inside a sentence are read as plain text either way, so the instructor is asked to check them.",
+    "info_software_text": "Formulas are drawn with KaTeX 0.19.0, which this tool serves itself and which is distributed under the MIT licence:",
+    "info_software_licence": "licence text"
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -436,6 +440,10 @@ window.AI_QUIZ_STRINGS = {
     "docs_warning_figures_dropped": "Figuras omitidas por ser demasiado grandes o no ser imágenes: {count}.",
     "docs_figures": "{n} figuras",
     "preview_heading": "Como lo verá el alumnado",
-    "flag_formula_failed": "Fórmulas que no se han podido mostrar: {n}. Se muestran tal como están escritas. Corrígelas o rechaza la pregunta."
+    "flag_formula_failed": "Fórmulas que no se han podido mostrar: {n}. Se muestran tal como están escritas. Corrígelas o rechaza la pregunta.",
+    "info_reading_title": "Lectura de documentos",
+    "info_reading_text": "Por defecto, los documentos se leen como texto. Si el servidor está preparado para ello, un PDF también se puede leer por completo: las fórmulas numeradas se conservan como fórmulas y se detectan las figuras. Esa lectura se hace en el propio servidor; el documento no se envía a ningún sitio para ello. Las fórmulas dentro de una frase se leen como texto plano en ambos casos, por lo que se pide al docente que las compruebe.",
+    "info_software_text": "Las fórmulas se dibujan con KaTeX 0.19.0, que esta herramienta sirve ella misma y que se distribuye bajo la licencia MIT:",
+    "info_software_licence": "texto de la licencia"
   }
 };

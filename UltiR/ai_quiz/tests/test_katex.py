@@ -99,3 +99,14 @@ def test_the_pages_that_show_questions_load_katex_before_the_page_script(page):
     assert scripts.index("vendor/katex/katex.min.js") < scripts.index("math.js") < len(scripts) - 1
     assert scripts.index("app.js") < scripts.index("math.js")
     assert "/lti/ai-quiz/assets/vendor/katex/katex.min.css" in html
+
+
+def test_the_public_info_page_names_katex_and_links_to_the_licence_the_tool_serves(client):
+    html = (MODULE_DIR / "static" / "info.html").read_text(encoding="utf-8")
+    strings = client.get(f"{ASSETS}/strings.js").text
+
+    link = re.search(r'<a href="([^"]+)" data-i18n="info_software_licence">', html)
+    assert link and link.group(1) == "/lti/ai-quiz/assets/vendor/katex/LICENSE"
+    assert client.get(link.group(1)).status_code == 200
+    assert strings.count("KaTeX 0.19.0") == 2                  # said in both languages
+    assert 'data-i18n="info_reading_text"' in html
