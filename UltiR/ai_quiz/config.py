@@ -85,6 +85,19 @@ def dev_test_enabled() -> bool:
     return os.environ.get("AI_QUIZ_DEV_TEST", "") == "1"
 
 
+DEFAULT_MIN_GROUP = 3
+
+
+def min_group() -> int:
+    """How many students must have answered a question before the instructor is shown totals for it.
+
+    AI_QUIZ_MIN_GROUP, a whole number of at least 1; anything else counts as the default, 3.
+    With fewer answers a total says what one student did. (1 switches the rule off.)
+    """
+    value = os.environ.get("AI_QUIZ_MIN_GROUP", "").strip()
+    return int(value) if re.fullmatch(r"[1-9][0-9]{0,3}", value) else DEFAULT_MIN_GROUP
+
+
 def docling_python() -> str:
     """The interpreter of a Python environment that has Docling. Unset means: no full reading."""
     return os.environ.get("AI_QUIZ_DOCLING_PYTHON", "").strip()

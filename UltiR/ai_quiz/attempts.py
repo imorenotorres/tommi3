@@ -257,40 +257,73 @@ def read(course_id: str, attempt_id: str, user_id: str, is_instructor: bool) -> 
 
 # ── The instructor's summary ──────────────────────────────────────────────────
 
+def _question_totals(question: dict, given: list[dict], asks: bool) -> dict:
+    """The totals of one question over the attempts that answered it. Never built for a group that is too small."""
+    qid, key = question["question_id"], question["correct_option_id"]
+    chosen = [a["answers"][qid] for a in given]
+    per_option = {option: chosen.count(option) for option in schema.OPTION_IDS}
+    # The wrong option that was chosen most; of two that were chosen equally often, the first.
+    wrong = max((o for o in schema.OPTION_IDS if o != key and per_option[o]), key=lambda o: per_option[o], default=None)
+    text = {o["id"]: o["text"] for o in question["options"]}
+    totals = {
+        "answered": len(chosen),
+        "correct": per_option[key],
+        "chosen": per_option,
+        "top_wrong": {"id": wrong, "text": text[wrong], "count": per_option[wrong]} if wrong else None,
+    }
+    if asks:
+        # The answers marked "I know this", and how many of those were wrong: where students
+        # are mistaken without knowing it.
+        sure = [a["answers"][qid] for a in given if (a.get("confidence") or {}).get(qid) == "sure"]
+        totals["sure"] = len(sure)
+        totals["sure_wrong"] = sum(1 for option in sure if option != key)
+    return totals
+
+
 def summary(course_id: str, quiz_id: str) -> dict | None:
-    """Counts for one quiz. Aggregates only: no owner, no single attempt."""
+    """The class summary of one quiz, for instructors. Totals only: no owner, no single attempt.
+
+    Per question of the current version: the question, its key, the passage of the document it rests
+    on with its page, and, once enough students have answered it, how many answers, how many right,
+    how often each option was chosen, the wrong option chosen most and (in a version that asks) how
+    many answers were sure and wrong. "Enough" is config.min_group(), counted in students, not in
+    attempts: below it a question carries `too_few` and no number at all, because a total over one
+    or two students says what a person did. The average follows the same rule.
+    """
     quiz = review.load_quiz(course_id, quiz_id)
     if quiz is None:
         return None
+    minimum = config.min_group()
     attempts = [a for a in _attempts(course_id, quiz_id) if not a.get("preview")]
+    learners = len({a["owner"] for a in attempts})
     percents = [100 * a["score"] / a["total"] for a in attempts if a["total"]]
     revision = review.load_revision(course_id, quiz_id, quiz["meta"]["current_revision"])
     asks = review.asks_confidence(revision)
     questions = []
     for question in (revision or {}).get("questions", []):
         qid = question["question_id"]
+        source = question.get("source") or {}
         given = [a for a in attempts if a["revision"] == revision["revision"] and qid in a["answers"]]
-        chosen = [a["answers"][qid] for a in given]
-        counts = {
+        enough = len({a["owner"] for a in given}) >= minimum
+        questions.append({
             "question_id": qid,
             "question": question["question"],
-            "answered": len(chosen),
-            "correct": sum(1 for option in chosen if option == question["correct_option_id"]),
-        }
-        if asks:
-            # The answers marked "I know this", and how many of those were wrong: where students
-            # are mistaken without knowing it.
-            sure = [a["answers"][qid] for a in given if (a.get("confidence") or {}).get(qid) == "sure"]
-            counts["sure"] = len(sure)
-            counts["sure_wrong"] = sum(1 for option in sure if option != question["correct_option_id"])
-        questions.append(counts)
+            "correct_option_id": question["correct_option_id"],
+            **({"math": "latex"} if question.get("math") == "latex" else {}),
+            # The instructor's own document: shown whatever the number of answers.
+            "source": {"doc_label": source.get("doc_label"), "page": source.get("page"), "excerpt": source.get("excerpt"),
+                       "mode": source.get("mode") or "text", "located": bool(question.get("grounded"))}
+                      if source.get("doc_id") else None,
+            **(_question_totals(question, given, asks) if enough else {"too_few": True}),
+        })
     return {
         "quiz_id": quiz_id,
         "title": quiz["meta"]["title"],
         "current_revision": quiz["meta"]["current_revision"],
         "confidence": asks,
         "attempts": len(attempts),
-        "learners": len({a["owner"] for a in attempts}),
-        "average_percent": round(sum(percents) / len(percents)) if percents else None,
+        "learners": learners,
+        "min_group": minimum,
+        "average_percent": round(sum(percents) / len(percents)) if percents and learners >= minimum else None,
         "questions": questions,
     }

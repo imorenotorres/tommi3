@@ -15,6 +15,9 @@ Configuration (web/.env):
     AI_QUIZ_LTI_SECRET_2=<its_secret>     with a key and a secret of its own (_3 ...)
     AI_QUIZ_DEV_TEST=1                    optional, local machines only: opens
                                           /lti/ai-quiz/test
+    AI_QUIZ_MIN_GROUP=3                   optional, this is the default: how many
+                                          students must have answered a question
+                                          before the instructor sees totals for it
 
 One consumer key and secret per Moodle installation, never shared: the key is
 part of the id under which a course and its users are kept, because every

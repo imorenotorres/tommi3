@@ -4,7 +4,7 @@
   'use strict';
 
   var A = window.AiQuiz, t = A.t, el = A.el, clear = A.clear;
-  var state = { documents: [], quizzes: [], quiz: null, figures: {} };   // figures: by document id
+  var state = { documents: [], quizzes: [], quiz: null, summary: null, figures: {} };   // figures: by document id
   var SIGNS = { draft: '✎', approved: '✓', rejected: '✕' };
 
   function byId(id) { return document.getElementById(id); }
@@ -326,38 +326,68 @@
   function renderSummary() {
     var line = byId('summary-line'), quizId = state.quiz.quiz_id;
     line.textContent = '';
-    byId('sure-summary').hidden = true;
+    state.summary = null;
+    renderClass();
     if (!state.quiz.current_revision) { return; }
     A.api('/api/quizzes/' + quizId + '/summary').then(function (summary) {
       if (!state.quiz || state.quiz.quiz_id !== quizId) { return; }
-      line.textContent = summary.attempts
-        ? t('review_summary', { attempts: summary.attempts, learners: summary.learners, percent: summary.average_percent })
-        : t('review_summary_none');
-      renderSure(summary);
+      state.summary = summary;
+      renderClass();
     }).catch(function () { line.textContent = ''; });
   }
 
-  /* For a published version that asks students how sure they are: per question, the answers
-     marked "I know this" and how many of those were wrong. Counts only. */
-  function renderSure(summary) {
-    var answered = summary.questions.some(function (q) { return q.answered > 0; });
-    byId('sure-summary').hidden = !(summary.confidence && answered);
-    if (byId('sure-summary').hidden) { return; }
+  /* The class summary of the published version: per question, totals and the passage it rests on.
+     The server sends no number for a question that too few students have answered; the row says so. */
+  function renderClass() {
+    var summary = state.summary, box = byId('class-summary');
+    box.hidden = !(summary && summary.attempts);
+    if (!summary) { return; }
+    var few = summary.average_percent === null;
+    byId('summary-line').textContent = !summary.attempts ? t('review_summary_none')
+      : t(few ? 'review_summary_few' : 'review_summary',
+          { attempts: summary.attempts, learners: summary.learners, percent: summary.average_percent, min: summary.min_group });
+    if (box.hidden) { return; }
+    byId('class-hint').textContent = t('class_hint', { min: summary.min_group });
+    var asks = summary.confidence;
     var rows = summary.questions.map(function (q, index) {
+      var latex = q.math === 'latex';
+      var head = el('th', { scope: 'row' }, [(index + 1) + '. ', A.math.shown('span', { class: 'content' }, q.question, latex), passageOf(q)]);
+      if (q.too_few) {
+        return el('tr', {}, [head, el('td', { colspan: asks ? 4 : 3, text: t('class_too_few') })]);
+      }
+      var top = q.top_wrong;
       return el('tr', {}, [
-        el('th', { scope: 'row' }, [(index + 1) + '. ', el('span', { class: 'content', text: q.question })]),
-        el('td', { class: 'num', text: String(q.sure) }),
-        el('td', { class: 'num', text: String(q.sure_wrong) })
+        head,
+        el('td', { class: 'num', text: String(q.answered) }),
+        el('td', { class: 'num', text: String(q.correct) }),
+        asks ? el('td', { class: 'num', text: String(q.sure_wrong) }) : null,
+        top ? el('td', {}, [top.id + '. ', A.math.shown('span', {}, top.text, latex), ' (' + t('class_times', { n: top.count }) + ')'])
+            : el('td', { text: t('class_no_wrong') })
       ]);
     });
-    clear(byId('sure-table')).appendChild(el('table', { class: 'list' }, [
+    clear(byId('class-table')).appendChild(el('table', { class: 'list' }, [
       el('thead', {}, [el('tr', {}, [
         el('th', { scope: 'col', text: t('review_question') }),
-        el('th', { scope: 'col', text: t('review_sure_col_sure') }),
-        el('th', { scope: 'col', text: t('review_sure_col_wrong') })
+        el('th', { scope: 'col', text: t('class_col_answers') }),
+        el('th', { scope: 'col', text: t('class_col_correct') }),
+        asks ? el('th', { scope: 'col', text: t('class_col_sure_wrong') }) : null,
+        el('th', { scope: 'col', text: t('class_col_top_wrong') })
       ])]),
       el('tbody', {}, rows)
     ]));
+  }
+
+  /* Where in the document a question comes from: the document, the page, and the passage itself. */
+  function passageOf(q) {
+    var source = q.source;
+    if (!source) { return el('p', { class: 'cite', text: t('class_source_none') }); }
+    var where = source.doc_label || t('source_unknown');
+    if (source.page) { where += ', ' + t('source_page', { n: source.page }); }
+    return el('p', { class: 'cite' }, [
+      where + (source.excerpt ? ': ' : '.'),
+      source.excerpt ? A.math.shown('q', {}, source.excerpt, source.mode === 'full') : null,
+      source.located ? null : ' ' + t('source_unlocated')
+    ]);
   }
 
   function replaceQuiz(quiz, message) {

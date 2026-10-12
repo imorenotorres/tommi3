@@ -31,7 +31,8 @@ def answer(student, picks, levels):
             papers.nth(i).locator(".confidence").get_by_label(levels[i], exact=True).check()
 
 
-def test_a_student_says_how_sure_before_checking_and_sees_what_became_of_it(site):
+def test_a_student_says_how_sure_before_checking_and_sees_what_became_of_it(site, monkeypatch):
+    monkeypatch.setenv("AI_QUIZ_MIN_GROUP", "1")                       # one student here; small groups have their own tests
     teacher = asking_quiz(site)
     student = site.student()
     student.locator("#quizzes button").first.click()
@@ -60,14 +61,15 @@ def test_a_student_says_how_sure_before_checking_and_sees_what_became_of_it(site
     assert said.all_inner_texts() == ["You said: I know this.", "You said: I know this.", "You said: I am guessing."]
     assert hard_to_read(student) == []
 
-    # The instructor: per question, the answers marked "I know this" and how many of those were wrong.
+    # The instructor: per question, how many answers, how many right, and how many were sure and wrong.
     teacher.reload()
     teacher.get_by_role("button", name="Review “Week 7”").click()
-    expect(teacher.locator("#sure-summary")).to_be_visible()
-    rows = teacher.locator("#sure-table tbody tr")
+    expect(teacher.locator("#class-summary")).to_be_visible()
+    rows = teacher.locator("#class-table tbody tr")
     expect(rows).to_have_count(3)
-    assert [rows.nth(i).locator("td").all_inner_texts() for i in range(3)] == [["1", "1"], ["1", "0"], ["0", "0"]]
-    expect(teacher.locator("#sure-summary")).to_contain_text("No names.")
+    assert [rows.nth(i).locator("td").all_inner_texts()[:3] for i in range(3)] == [
+        ["1", "0", "1"], ["1", "1", "0"], ["1", "1", "0"]]
+    expect(teacher.locator("#class-summary")).to_contain_text("no names.")
     expect(teacher.get_by_label("Ask students how sure they are")).to_be_checked()
     assert unlabelled_controls(teacher) == [] and hard_to_read(teacher) == []
 
@@ -91,7 +93,8 @@ def test_a_quiz_that_was_not_switched_on_asks_nothing(site):
     teacher.reload()
     teacher.get_by_role("button", name="Review “Week 7”").click()
     expect(teacher.locator("#summary-line")).to_contain_text("1 attempts")
-    expect(teacher.locator("#sure-summary")).to_be_hidden()
+    expect(teacher.locator("#class-summary")).to_be_visible()
+    assert "Sure and wrong" not in teacher.locator("#class-table thead").inner_text()   # this version did not ask
 
 
 def test_all_sure_answers_right_is_said_too(site):

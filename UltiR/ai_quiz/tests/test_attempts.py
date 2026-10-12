@@ -442,7 +442,8 @@ def test_an_unverified_passage_is_never_shown_to_a_learner_as_the_source(client,
 
 # ── The instructor's summary ────────────────────────────────────────────────
 
-def test_the_summary_counts_attempts_without_naming_anyone(client, course, quiz):
+def test_the_summary_counts_attempts_without_naming_anyone(client, course, quiz, monkeypatch):
+    monkeypatch.setenv("AI_QUIZ_MIN_GROUP", "1")               # the rule about small groups has its own tests
     ids = [q["question_id"] for q in quiz["questions"]]
     submit(client, course.learner("student-1", name="Ada Synthetic"), quiz, all_answers(quiz, "B"))       # 3 of 3
     submit(client, course.learner("student-1", name="Ada Synthetic"), quiz, {ids[0]: "B"})                # 1 of 3

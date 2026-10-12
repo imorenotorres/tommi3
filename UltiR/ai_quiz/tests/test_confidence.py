@@ -218,7 +218,8 @@ def test_confidence_for_a_question_that_is_not_in_the_quiz_is_refused(client, co
     assert (response.status_code, code(response)) == (400, "bad_request")
 
 
-def test_a_quiz_that_does_not_ask_ignores_a_confidence_that_is_sent(client, course):
+def test_a_quiz_that_does_not_ask_ignores_a_confidence_that_is_sent(client, course, monkeypatch):
+    monkeypatch.setenv("AI_QUIZ_MIN_GROUP", "1")               # so that the summary shows its numbers for one student
     quiz = course.published_quiz(2)
     a, b = ids(quiz)
 
@@ -227,7 +228,8 @@ def test_a_quiz_that_does_not_ask_ignores_a_confidence_that_is_sent(client, cour
     assert "calibration" not in result and all("confidence" not in r for r in result["results"])
     assert "confidence" not in stored_attempts(quiz)[0]
     report = summary(client, course, quiz)
-    assert report["confidence"] is False and all("sure" not in q for q in report["questions"])
+    assert report["confidence"] is False and [q["answered"] for q in report["questions"]] == [1, 1]
+    assert all("sure" not in q and "sure_wrong" not in q for q in report["questions"])
 
 
 def test_the_attempt_file_holds_the_confidence_under_the_keyed_hash_and_nothing_of_the_person(client, course):
@@ -274,7 +276,8 @@ def test_another_student_cannot_read_what_one_stated(client, course):
 
 # ── The instructor's summary ────────────────────────────────────────────────
 
-def test_the_summary_counts_per_question_who_was_sure_and_wrong(client, course):
+def test_the_summary_counts_per_question_who_was_sure_and_wrong(client, course, monkeypatch):
+    monkeypatch.setenv("AI_QUIZ_MIN_GROUP", "1")               # the rule about small groups has its own tests
     quiz = asking_quiz(course, 3)
     a, b, c = ids(quiz)
     submit(client, course.learner(user="s-1"), quiz, {a: "A", b: "B", c: "A"}, confidence={a: "sure", b: "sure", c: "guess"})
@@ -308,18 +311,24 @@ def test_an_instructors_own_try_is_not_counted_among_the_sure_and_wrong(client, 
     a, b = ids(quiz)
     submit(client, course.instructor, quiz, {a: "A", b: "A"}, confidence={a: "sure", b: "sure"})
 
-    assert [(q["sure"], q["sure_wrong"]) for q in summary(client, course, quiz)["questions"]] == [(0, 0), (0, 0)]
+    report = summary(client, course, quiz)
+    assert (report["attempts"], report["learners"]) == (0, 0)
+    assert all(q["too_few"] is True and "sure" not in q and "sure_wrong" not in q for q in report["questions"])
 
 
-def test_answers_to_an_earlier_version_are_not_counted_for_the_current_one(client, course):
+def test_answers_to_an_earlier_version_are_not_counted_for_the_current_one(client, course, monkeypatch):
+    monkeypatch.setenv("AI_QUIZ_MIN_GROUP", "1")
     quiz = asking_quiz(course, 2)
     a, b = ids(quiz)
     submit(client, course.learner(), quiz, {a: "A", b: "A"}, confidence={a: "sure", b: "sure"})
     course.edit(quiz, 0, question="A rewritten first question?")
     course.edit(quiz, 0, review_status="approved")
-    course.publish(quiz)
+    again = course.publish(quiz)
+    submit(client, course.learner(user="student-2"), again, {a: "B"}, confidence={a: "sure"})
 
-    assert [(q["sure"], q["sure_wrong"]) for q in summary(client, course, quiz)["questions"]] == [(0, 0), (0, 0)]
+    first, second = summary(client, course, again)["questions"]
+    assert (first["answered"], first["sure"], first["sure_wrong"]) == (1, 1, 0)      # only the answer to version 2
+    assert second["too_few"] is True                                                 # nobody answered it in version 2
 
 
 def test_a_learner_cannot_read_the_summary(client, course):
