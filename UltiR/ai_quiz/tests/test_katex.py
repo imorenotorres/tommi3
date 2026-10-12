@@ -82,7 +82,7 @@ def test_the_stylesheet_and_the_script_name_no_other_host_to_load_from():
         f"fonts/{name[:-6]}.ttf" for name in FONTS}
 
 
-@pytest.mark.parametrize("page", ["instructor.html", "student.html", "info.html", "expired.html"])
+@pytest.mark.parametrize("page", ["instructor.html", "student.html", "info.html", "expired.html", "denied.html"])
 def test_a_page_loads_scripts_styles_and_fonts_from_the_tool_only(page):
     html = (MODULE_DIR / "static" / page).read_text(encoding="utf-8")
 

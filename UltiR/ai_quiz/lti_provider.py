@@ -63,6 +63,7 @@ _ASSETS = {
     "app.js": "text/javascript",
     "info.js": "text/javascript",
     "expired.js": "text/javascript",
+    "denied.js": "text/javascript",
     "instructor.js": "text/javascript",
     "student.js": "text/javascript",
     "math.js": "text/javascript",
@@ -105,18 +106,27 @@ def _page(name: str) -> HTMLResponse:
     return HTMLResponse((_STATIC_DIR / name).read_text(encoding="utf-8"))
 
 
+# What a person is shown when a page is refused. The refusal itself does not change: same status,
+# and nothing of the page that was asked for.
+_REFUSAL_PAGES = {
+    401: "expired.html",    # no session: open the activity again from the course
+    403: "denied.html",     # a session, but not an instructor's: this page is for instructors
+}
+
+
 def _page_behind(guard, request: Request, name: str) -> HTMLResponse:
-    """A page for whoever passes `guard`. Without a session the answer is a page of the tool that says
-    to open the activity again from the course, in the reader's language: a person who reloads the tab
-    after a restart of the server should not be shown the bare JSON of the shared session check.
-    Every other refusal (not an instructor, tool not configured) stays what it was.
+    """A page for whoever passes `guard`. Who does not gets a page of the tool that says why, in the
+    reader's language, not the bare JSON of the check: a person who reloads the tab after a restart
+    of the server, or a student who opens the instructors' address. A tool that is not configured
+    answers as before.
     """
     try:
         guard(request)
     except HTTPException as refusal:
-        if refusal.status_code != 401:
+        told = _REFUSAL_PAGES.get(refusal.status_code)
+        if told is None:
             raise
-        return HTMLResponse((_STATIC_DIR / "expired.html").read_text(encoding="utf-8"), status_code=401,
+        return HTMLResponse((_STATIC_DIR / told).read_text(encoding="utf-8"), status_code=refusal.status_code,
                             headers={"Cache-Control": "no-store"})
     return _page(name)
 

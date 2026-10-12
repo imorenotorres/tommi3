@@ -94,6 +94,41 @@ def test_a_learner_on_the_instructor_page_is_refused_not_told_the_session_ended(
     assert "expired_title" not in response.text
 
 
+@pytest.mark.parametrize("role", ["Learner", "urn:lti:role:ims/lis/TeachingAssistant", ""])
+def test_who_is_not_an_instructor_gets_a_page_of_the_tool_on_the_instructor_address(client, launch, role):
+    """Until 2026-10-11 the answer was the bare text {"detail":"Instructors only"}."""
+    response = client.get(f"{BASE}/instructor", params={"token": launch.token(role=role)})
+
+    assert response.status_code == 403                      # still refused
+    assert response.headers["content-type"].startswith("text/html")
+    assert 'data-i18n="denied_title"' in response.text
+    assert '"detail"' not in response.text
+    assert response.headers.get("cache-control") == "no-store"
+    for private in ("upload", "api/", "generate"):          # nothing of the instructor's page comes with it
+        assert private not in response.text.lower()
+
+
+def test_the_instructor_api_still_answers_a_learner_in_json(client, launch):
+    response = client.get(f"{BASE}/api/documents", params={"token": launch.token(role="Learner")})
+
+    assert response.status_code == 403
+    assert response.headers["content-type"].startswith("application/json")
+
+
+def test_an_instructor_is_not_shown_the_page_for_learners(client, launch):
+    response = client.get(f"{BASE}/instructor", params={"token": launch.token(role="Instructor")})
+
+    assert response.status_code == 200 and "denied_title" not in response.text
+
+
+@pytest.mark.parametrize("language, words", [("en", ("instructors", "student")), ("es", ("docentes", "estudiante"))])
+def test_the_page_for_learners_says_whose_page_it_is_and_where_to_go(client, language, words):
+    strings = load_strings(client)[language]
+
+    assert all(word in strings["denied_title"] + " " + strings["denied_text"] for word in words)
+    assert strings["denied_link"]
+
+
 def test_a_page_of_an_unconfigured_tool_says_so_and_not_that_the_session_ended(client, launch, monkeypatch):
     token = launch.token()
     monkeypatch.delenv("AI_QUIZ_ID_KEY")
@@ -152,6 +187,7 @@ def test_each_token_sees_its_own_course(client, launch):
     ("app.js", "text/javascript"),
     ("info.js", "text/javascript"),
     ("expired.js", "text/javascript"),
+    ("denied.js", "text/javascript"),
     ("instructor.js", "text/javascript"),
     ("student.js", "text/javascript"),
     ("app.css", "text/css"),
@@ -232,7 +268,7 @@ PAGES = sorted(p.name for p in (MODULE_DIR / "static").glob("*.html"))
 
 
 def test_the_tool_has_pages_to_check():
-    assert PAGES == ["expired.html", "info.html", "instructor.html", "student.html"]
+    assert PAGES == ["denied.html", "expired.html", "info.html", "instructor.html", "student.html"]
 
 
 class HeadingFinder(HTMLParser):

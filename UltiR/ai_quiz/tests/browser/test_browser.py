@@ -607,3 +607,23 @@ def test_a_figure_that_is_gone_is_replaced_by_a_line_of_text(site, monkeypatch, 
     paper = student.locator("#quiz-view fieldset.paper").first
     expect(paper.locator(".figure")).to_contain_text("This figure is no longer available.")
     expect(paper.locator(".figure img")).to_have_count(0)
+
+
+def test_a_student_on_the_instructor_address_is_told_so_and_led_to_the_quizzes_in_both_languages(site):
+    token = site.token("Learner", user="student-1", context_title="Computer Vision (synthetic)")
+    page = site.open("/instructor", token)
+
+    expect(page.locator("h1")).to_have_text("AI Quiz Generator")
+    expect(page.locator("main h2")).to_have_text("This page is for instructors")
+    expect(page.locator("main")).to_contain_text("You opened the tool as a student")
+    expect(page.locator("main")).not_to_contain_text("detail")
+    assert unlabelled_controls(page) == []
+    page.locator("#lang-switch").click()
+    expect(page.locator("main h2")).to_have_text("Esta página es para docentes")
+    assert page.evaluate("document.documentElement.lang") == "es"
+    page.locator("#lang-switch").click()
+
+    page.get_by_role("link", name="Go to the practice quizzes").click()
+
+    expect(page.locator("#list-heading")).to_have_text("Practice quizzes")      # the student page, same session
+    expect(page.locator("#session")).to_contain_text("Computer Vision (synthetic)")

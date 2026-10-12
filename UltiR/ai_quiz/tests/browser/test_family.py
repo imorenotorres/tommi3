@@ -200,8 +200,8 @@ def test_every_text_can_be_read_and_every_button_is_large_enough_on_every_page(s
     expect(student.locator("#score")).to_be_visible()
     assert hard_to_read(student) == [] and small_buttons(student) == []   # results, with "not correct"
 
-    for path, token in (("/info", ""), ("/student", "0" * 64)):
-        public = site.open(path, token)
+    for path, token in (("/info", ""), ("/student", "0" * 64), ("/instructor", site.token("Learner"))):
+        public = site.open(path, token)                              # info; session ended; not an instructor
         assert hard_to_read(public) == [] and small_buttons(public) == []
 
 

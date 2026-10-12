@@ -276,7 +276,10 @@ window.AI_QUIZ_STRINGS = {
     "review_sure_heading": "Sure and wrong",
     "review_sure_hint": "For each question of the published version: the answers students marked “I know this”, and how many of those were wrong. No names.",
     "review_sure_col_sure": "Marked “I know this”",
-    "review_sure_col_wrong": "Of those, wrong"
+    "review_sure_col_wrong": "Of those, wrong",
+    "denied_title": "This page is for instructors",
+    "denied_text": "You opened the tool as a student, so the instructors' page is not available to you. The practice quizzes of your course are on the student page.",
+    "denied_link": "Go to the practice quizzes"
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -552,6 +555,9 @@ window.AI_QUIZ_STRINGS = {
     "review_sure_heading": "Con seguridad y con error",
     "review_sure_hint": "Para cada pregunta de la versión publicada: las respuestas que el alumnado marcó con «Lo sé» y cuántas de ellas eran incorrectas. Sin nombres.",
     "review_sure_col_sure": "Marcadas «Lo sé»",
-    "review_sure_col_wrong": "De ellas, incorrectas"
+    "review_sure_col_wrong": "De ellas, incorrectas",
+    "denied_title": "Esta página es para docentes",
+    "denied_text": "Has abierto la herramienta como estudiante, por lo que la página de docentes no está disponible para ti. Los cuestionarios de práctica de tu curso están en la página de estudiante.",
+    "denied_link": "Ir a los cuestionarios de práctica"
   }
 };
