@@ -82,11 +82,14 @@ def test_the_stylesheet_and_the_script_name_no_other_host_to_load_from():
         f"fonts/{name[:-6]}.ttf" for name in FONTS}
 
 
-@pytest.mark.parametrize("page", ["instructor.html", "student.html", "info.html"])
+@pytest.mark.parametrize("page", ["instructor.html", "student.html", "info.html", "expired.html"])
 def test_a_page_loads_scripts_styles_and_fonts_from_the_tool_only(page):
     html = (MODULE_DIR / "static" / page).read_text(encoding="utf-8")
 
-    addresses = re.findall(r"""(?:src|href)=["']([^"']+)["']""", html)
+    # Nothing is loaded from anywhere else. The one address outside the tool is a link a person may
+    # follow: "UltiR" in the trail, to the catalogue on the same server, as in the other nine tools.
+    assert html.count('<a href="/ultir">UltiR</a>') == 1
+    addresses = re.findall(r"""(?:src|href)=["']([^"']+)["']""", html.replace('<a href="/ultir">UltiR</a>', ""))
     assert addresses
     assert [a for a in addresses if not (a.startswith("/lti/ai-quiz/") or a.startswith("#"))] == []
 

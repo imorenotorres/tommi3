@@ -1,18 +1,21 @@
 /* AI Quiz tool. Plain CSS, no framework, no external fonts: everything is served by the tool itself.
 
-   Two voices. Controls and chrome speak in the system sans. Anything that is course content
-   (a question, its options, the passage it rests on) is set in a book serif, on a white sheet
-   with a ruled margin, the way a marked exam script looks. The margin is where the review
-   mark sits; the passage from the document is the note beside the question. */
+   The look is the one the other UltiR tools share: a navy band with the trail "UltiR › Tool", a
+   light page, white cards with round corners, borderless buttons in the accent colour, one
+   sans-serif face. What this tool does not take over from them: it keeps a visible focus outline,
+   real buttons, text dark enough to read, and no inline code. */
 
 :root {
-  --ink: #17324d;            /* headings, primary actions */
-  --text: #1d2733;
+  --ink: #2D3876;            /* the band, headings, primary actions: the accent of the UltiR family */
+  --ink-dark: #1e2a5e;
+  --text: #1e293b;
   --text-soft: #56637a;
-  --page: #eef1f4;
+  --page: #f8fafc;
   --sheet: #ffffff;
-  --line: #cfd6de;
-  --rule: #c2413a;           /* the margin rule of a question sheet, and nothing else */
+  --line: #e2e8f0;
+  --quiet: #e2e8f0;          /* a secondary button */
+  --quiet-ink: #475569;
+  --wrong: #c2413a;          /* a wrong answer; always said in words as well */
   --marker: #fff2a8;         /* highlighter: a passage quoted from the document */
   --ok: #1c6b3c;
   --warn-ink: #6b4500;
@@ -20,7 +23,6 @@
   --focus: #b3470b;
 
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
 }
 
 * { box-sizing: border-box; }
@@ -58,37 +60,48 @@ a { color: var(--ink); }
   white-space: nowrap;
 }
 
-/* ── Top bar ─────────────────────────────────────────────────────────────── */
+/* ── The band ────────────────────────────────────────────────────────────── */
 
-.bar {
+.band {
   background: var(--ink);
   color: #fff;
-  padding: 0.7rem 1.25rem;
+  padding: 0.75rem 1.25rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem 1.5rem;
 }
-.bar h1 { font-size: 1.1rem; font-weight: 600; margin: 0; flex: 1 1 14rem; }
-.bar .who { font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; align-items: baseline; }
-.bar .who .label { opacity: 0.8; }
-.bar .badge { border: 1px solid currentColor; border-radius: 999px; padding: 0 0.6rem; font-size: 0.8rem; }
-.bar button { border-color: #fff; background: transparent; color: #fff; }
+.band .title { flex: 1 1 14rem; min-width: 0; }
+.trail { font-size: 0.8125rem; margin-bottom: 0.25rem; }
+.trail a { color: rgba(255, 255, 255, 0.7); text-decoration: none; }
+.trail a:hover, .trail a:focus-visible { color: #fff; text-decoration: underline; }
+.trail [aria-hidden] { color: rgba(255, 255, 255, 0.7); margin: 0 0.25rem; }
+.band h1 { font-size: 1.125rem; font-weight: 800; margin: 0; }
+.band .who { font-size: 0.8125rem; color: rgba(255, 255, 255, 0.7); margin: 0; }
+.band .sub { font-size: 0.875rem; color: rgba(255, 255, 255, 0.8); margin: 0.15rem 0 0; max-width: 46rem; }
+.band button { border: 1px solid #fff; background: transparent; color: #fff; }
+.band button:hover { background: rgba(255, 255, 255, 0.15); }
+.band :focus-visible { outline-color: #fff; }
+.band.tall { padding: 1rem 1.5rem; }
+.band.tall h1 { font-size: 1.375rem; }
 
 /* ── Controls ────────────────────────────────────────────────────────────── */
 
 button, .button {
   font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  border-radius: 4px;
-  border: 1px solid var(--ink);
-  background: var(--sheet);
-  color: var(--ink);
-  padding: 0.35rem 0.85rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--quiet);
+  color: var(--quiet-ink);
+  padding: 0.5rem 1.25rem;
   min-height: 2.4rem;
 }
+button:hover { background: #cbd5e1; }
 button.primary { background: var(--ink); color: #fff; }
-button.quiet { border-color: var(--line); color: var(--text); }
+button.primary:hover { background: var(--ink-dark); }
 button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 input[type="text"], input[type="number"], input[type="file"], select, textarea {
@@ -131,29 +144,44 @@ main {
   margin: 0 auto;
   padding: 1.25rem 1.25rem 4rem;
 }
+main.narrow { max-width: 50rem; padding-bottom: 1.5rem; }
 main > section, #content > section { margin-bottom: 2.25rem; }
 h2 { font-size: 1.35rem; line-height: 1.25; margin: 0 0 0.6rem; color: var(--ink); }
 h3 { font-size: 1.1rem; margin: 1.5rem 0 0.4rem; color: var(--ink); }
 .lead { font-size: 1.1rem; max-width: 42rem; margin-top: 0; }
-.panel { background: var(--sheet); border: 1px solid var(--line); padding: 1rem 1.25rem; }
+.panel, .card { background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem; }
+main > section.card { margin-bottom: 1rem; }
+.card h2 { font-size: 1rem; }
+.card h3 { font-size: 0.95rem; margin-top: 1.25rem; }
+.card > :last-child { margin-bottom: 0; }
 .empty { color: var(--text-soft); margin: 0; }
+.foot { text-align: center; color: var(--text-soft); font-size: 0.8rem; margin: 0; padding: 0 1rem 2.5rem; }
 
 .notice {
   background: var(--warn-bg);
   color: var(--warn-ink);
   border-left: 4px solid var(--warn-ink);
+  border-radius: 6px;
   padding: 0.55rem 0.9rem;
   margin: 0 0 1rem;
 }
 .notice.good { background: #e9f5ee; color: var(--ok); border-left-color: var(--ok); }
 .notice.plain { background: var(--sheet); color: var(--text); border-left-color: var(--ink); }
 
-table.list { width: 100%; border-collapse: collapse; background: var(--sheet); border: 1px solid var(--line); }
+table.list {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
 table.list th, table.list td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.list tbody tr:last-child > * { border-bottom: 0; }
 table.list th { font-weight: 600; color: var(--text-soft); font-size: 0.9rem; }
 table.list td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 table.list td.end { text-align: right; white-space: nowrap; }
-
 table.list th[scope="row"] { color: var(--text); font-size: 1rem; }
 ul.points { padding-left: 1.25rem; max-width: 46rem; }
 ul.points li { margin-bottom: 0.5rem; }
@@ -165,22 +193,24 @@ dl.settings dt { font-weight: 600; }
 dl.settings dd { margin: 0; }
 code { background: var(--page); border: 1px solid var(--line); border-radius: 3px; padding: 0 0.3rem; }
 
-/* ── The question sheet ──────────────────────────────────────────────────── */
+/* ── A question under review: status, the question itself, its source ────── */
 
 .sheet {
   background: var(--sheet);
   border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
   margin-bottom: 1.1rem;
   display: grid;
   grid-template-columns: 7.5rem minmax(0, 1fr) minmax(0, 17rem);
 }
 .sheet-mark {
-  border-right: 2px solid var(--rule);
+  border-right: 1px solid var(--line);
   padding: 1rem 0.75rem;
   font-size: 0.9rem;
   color: var(--text-soft);
 }
-.sheet-mark .number { font: 600 1.6rem/1 var(--serif); color: var(--ink); display: block; margin-bottom: 0.5rem; }
+.sheet-mark .number { font-size: 1.6rem; font-weight: 600; line-height: 1; color: var(--ink); display: block; margin-bottom: 0.5rem; }
 .sheet-mark .mark { display: block; font-weight: 600; color: var(--text); }
 .sheet-mark .mark::before { content: attr(data-sign) " "; }
 .sheet[data-status="approved"] .mark { color: var(--ok); }
@@ -189,9 +219,9 @@ code { background: var(--page); border: 1px solid var(--line); border-radius: 3p
 .sheet[data-status="rejected"] .sheet-body .field { opacity: 0.65; }
 
 .sheet-body { padding: 1rem 1.1rem; }
-.sheet-body textarea, .sheet-body input[type="text"], .content { font-family: var(--serif); font-size: 1.05rem; line-height: 1.55; }
+.sheet-body textarea, .sheet-body input[type="text"], .content { font-size: 1.05rem; line-height: 1.55; }
 .option-row { display: grid; grid-template-columns: auto 1.5rem minmax(0, 1fr); gap: 0.5rem; align-items: center; margin-bottom: 0.4rem; }
-.option-row .letter { font: 600 1rem var(--serif); }
+.option-row .letter { font-weight: 600; }
 
 .sheet-source {
   border-left: 1px solid var(--line);
@@ -203,7 +233,8 @@ code { background: var(--page); border: 1px solid var(--line); border-radius: 3p
 .sheet-source .where { margin: 0 0 0.5rem; }
 .sheet-source blockquote {
   margin: 0;
-  font: 1rem/1.5 var(--serif);
+  font-size: 1rem;
+  line-height: 1.5;
   background: linear-gradient(transparent 12%, var(--marker) 12%, var(--marker) 88%, transparent 88%);
   display: inline;
   box-decoration-break: clone;
@@ -211,11 +242,11 @@ code { background: var(--page); border: 1px solid var(--line); border-radius: 3p
 }
 .sheet-source.unlocated blockquote { background: none; font-style: italic; }
 .flags { list-style: none; padding: 0; margin: 0.9rem 0 0; }
-.flags li { background: var(--warn-bg); color: var(--warn-ink); border-left: 4px solid var(--warn-ink); padding: 0.4rem 0.7rem; margin-bottom: 0.4rem; }
+.flags li { background: var(--warn-bg); color: var(--warn-ink); border-left: 4px solid var(--warn-ink); border-radius: 6px; padding: 0.4rem 0.7rem; margin-bottom: 0.4rem; }
 
 @media (max-width: 52rem) {
   .sheet { grid-template-columns: 1fr; }
-  .sheet-mark { border-right: 0; border-bottom: 2px solid var(--rule); display: flex; gap: 1rem; align-items: baseline; padding: 0.6rem 1rem; }
+  .sheet-mark { border-right: 0; border-bottom: 1px solid var(--line); display: flex; gap: 1rem; align-items: baseline; padding: 0.6rem 1rem; }
   .sheet-mark .number { margin: 0; }
   .sheet-source { border-left: 0; border-top: 1px solid var(--line); }
 }
@@ -224,10 +255,10 @@ code { background: var(--page); border: 1px solid var(--line); border-radius: 3p
 
 .figure { margin: 0.6rem 0; }
 .figure img { display: block; max-width: 100%; height: auto; background: #fff; border: 1px solid var(--line); }
-.figure figcaption { font: 0.95rem/1.45 var(--serif); color: var(--text-soft); margin-top: 0.3rem; }
+.figure figcaption { font-size: 0.95rem; line-height: 1.45; color: var(--text-soft); margin-top: 0.3rem; }
 .sheet-body .figure img { max-height: 16rem; width: auto; }
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; margin-top: 0.75rem; }
-.gallery .figure { margin: 0; border: 1px solid var(--line); padding: 0.6rem; }
+.gallery .figure { margin: 0; border: 1px solid var(--line); border-radius: 12px; padding: 0.6rem; }
 .gallery .where { font-size: 0.85rem; color: var(--text-soft); margin: 0.3rem 0 0; }
 details > summary { cursor: pointer; font-weight: 600; color: var(--ink); }
 
@@ -235,19 +266,19 @@ details > summary { cursor: pointer; font-weight: 600; color: var(--ink); }
 
 .formula.set-apart { display: block; margin: 0.4rem 0; overflow-x: auto; overflow-y: hidden; }
 .formula-source { font-size: 0.9em; }
-.preview { border: 1px dashed #8793a3; padding: 0.6rem 0.8rem; margin-bottom: 0.9rem; }
-.preview h4 { margin: 0 0 0.4rem; font: 600 0.9rem var(--sans); color: var(--text-soft); }
+.preview { border: 1px dashed #8793a3; border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 0.9rem; }
+.preview h4 { margin: 0 0 0.4rem; font-size: 0.9rem; font-weight: 600; color: var(--text-soft); }
 .preview p { margin: 0 0 0.4rem; }
 .preview-options { list-style: none; padding: 0; margin: 0 0 0.4rem; }
-.preview-options .letter { font: 600 1rem var(--serif); }
-.formula-problem { background: var(--warn-bg); color: var(--warn-ink); border-left: 4px solid var(--warn-ink); padding: 0.4rem 0.7rem; font-family: var(--sans); }
+.preview-options .letter { font-weight: 600; }
+.formula-problem { background: var(--warn-bg); color: var(--warn-ink); border-left: 4px solid var(--warn-ink); padding: 0.4rem 0.7rem; }
 
 /* ── Taking a quiz ───────────────────────────────────────────────────────── */
 
-.paper { background: var(--sheet); border: 1px solid var(--line); border-left: 2px solid var(--rule); padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
-.paper legend, .paper .stem { font: 1.12rem/1.5 var(--serif); font-weight: 400; margin-bottom: 0.6rem; color: var(--text); }
-.paper .number { font: 600 1.1rem var(--serif); color: var(--ink); margin-right: 0.4rem; }
-.choice { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.45rem 0.5rem; border: 1px solid transparent; border-radius: 4px; font: 1.05rem/1.5 var(--serif); font-weight: 400; margin: 0; }
+.paper { background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
+.paper legend, .paper .stem { font-size: 1.12rem; line-height: 1.5; font-weight: 400; margin-bottom: 0.6rem; color: var(--text); }
+.paper .number { font-size: 1.1rem; font-weight: 600; color: var(--ink); margin-right: 0.4rem; }
+.choice { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.45rem 0.5rem; border: 1px solid transparent; border-radius: 8px; font-size: 1.05rem; line-height: 1.5; font-weight: 400; margin: 0; }
 .choice:hover { border-color: var(--line); }
 .choice input { margin-top: 0.4rem; flex: none; }
 .choice .letter { font-weight: 600; }
@@ -255,11 +286,11 @@ ul.choices { list-style: none; padding: 0; margin: 0; }
 ul.choices .choice { align-items: baseline; flex-wrap: wrap; }
 .verdict { font-weight: 600; margin: 0.5rem 0 0.3rem; }
 .verdict.right { color: var(--ok); }
-.verdict.wrong { color: var(--rule); }
+.verdict.wrong { color: var(--wrong); }
 .choice.is-key { border-color: var(--ok); }
-.choice.is-picked.is-wrong { border-color: var(--rule); }
-.choice .tag { font: 600 0.85rem var(--sans); margin-left: 0.5rem; white-space: nowrap; }
+.choice.is-picked.is-wrong { border-color: var(--wrong); }
+.choice .tag { font-size: 0.85rem; font-weight: 600; margin-left: 0.5rem; white-space: nowrap; }
 .because { margin: 0.6rem 0 0; }
 .cite { margin: 0.6rem 0 0; font-size: 0.92rem; color: var(--text-soft); }
-.cite q { font: 1rem/1.5 var(--serif); color: var(--text); background: var(--marker); quotes: none; }
-.score { font: 600 1.6rem/1.2 var(--serif); color: var(--ink); margin: 0 0 0.25rem; }
+.cite q { font-size: 1rem; line-height: 1.5; color: var(--text); background: var(--marker); quotes: none; }
+.score { font-size: 1.6rem; font-weight: 600; line-height: 1.2; color: var(--ink); margin: 0 0 0.25rem; }

@@ -46,7 +46,8 @@
     document.querySelectorAll('[data-i18n-label]').forEach(function (node) {
       node.setAttribute('aria-label', t(node.getAttribute('data-i18n-label')));
     });
-    document.title = t('app_title');
+    // The info page names itself "<Tool> — Info", as the other tools' info pages do.
+    document.title = t(document.documentElement.getAttribute('data-title') || 'app_title');
   }
 
   function setLang(next) {
@@ -159,7 +160,8 @@
 
   // ── Start ───────────────────────────────────────────────────────────────
 
-  /* Fill the page header from the session and hand the session to the page. */
+  /* Fill the who line of the band from the session ("user — course", as the other UltiR tools write
+     it) and hand the session to the page. */
   function start(onSession) {
     applyStrings();
     var button = document.getElementById('lang-switch');
@@ -172,9 +174,6 @@
       document.getElementById('user-name').textContent = session.name;
       // Moodle sends no name when the tool is registered not to share it: then nothing is said about who.
       document.getElementById('user-line').hidden = !session.name;
-      var role = document.getElementById('user-role');
-      role.setAttribute('data-i18n', session.is_instructor ? 'role_instructor' : 'role_student');
-      role.textContent = t(role.getAttribute('data-i18n'));
       document.getElementById('session').hidden = false;
       document.getElementById('content').hidden = false;
       if (onSession) { onSession(session); }

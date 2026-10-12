@@ -8,15 +8,22 @@
 </head>
 <body>
 <a class="skip" href="#content" data-i18n="skip_to_content">Skip to content</a>
-<header class="bar">
-  <h1 data-i18n="app_title">AI Quiz Generator</h1>
+<header class="band">
+  <div class="title">
+    <nav class="trail" aria-label="UltiR">
+      <a href="/ultir">UltiR</a> <span aria-hidden="true">›</span> <span data-i18n="app_title">AI Quiz Generator</span>
+    </nav>
+    <h1 data-i18n="app_title">AI Quiz Generator</h1>
+  </div>
   <button type="button" id="lang-switch" data-i18n="lang_switch" data-i18n-label="lang_switch_label">Español</button>
 </header>
 
-<main id="content">
-  <h2 data-i18n="expired_title"></h2>
-  <p class="lead" data-i18n="expired_text"></p>
-  <p data-i18n="expired_kept"></p>
+<main id="content" class="narrow">
+  <section class="card">
+    <h2 data-i18n="expired_title"></h2>
+    <p data-i18n="expired_text"></p>
+    <p data-i18n="expired_kept"></p>
+  </section>
 </main>
 
 <script src="/lti/ai-quiz/assets/strings.js"></script>

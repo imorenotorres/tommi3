@@ -1,38 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-title="info_doc_title">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Quiz Generator</title>
+<title>AI Quiz Generator — Info</title>
 <link rel="stylesheet" href="/lti/ai-quiz/assets/app.css">
 </head>
 <body>
 <a class="skip" href="#content" data-i18n="skip_to_content">Skip to content</a>
-<header class="bar">
-  <h1 data-i18n="app_title">AI Quiz Generator</h1>
+<header class="band tall">
+  <div class="title">
+    <nav class="trail" aria-label="UltiR">
+      <a href="/ultir">UltiR</a> <span aria-hidden="true">›</span> <span data-i18n="app_title">AI Quiz Generator</span>
+    </nav>
+    <h1 data-i18n="app_title">AI Quiz Generator</h1>
+    <p class="sub" data-i18n="info_lead"></p>
+  </div>
   <button type="button" id="lang-switch" data-i18n="lang_switch" data-i18n-label="lang_switch_label">Español</button>
 </header>
 
-<main id="content">
-  <p class="lead" data-i18n="info_lead"></p>
+<main id="content" class="narrow">
+  <section class="card">
+    <h2 data-i18n="info_what_title"></h2>
+    <ol class="steps">
+      <li data-i18n="info_how_1"></li>
+      <li data-i18n="info_how_2"></li>
+      <li data-i18n="info_how_3"></li>
+      <li data-i18n="info_how_4"></li>
+    </ol>
+  </section>
 
-  <h2 data-i18n="info_how_title"></h2>
-  <ol class="steps">
-    <li data-i18n="info_how_1"></li>
-    <li data-i18n="info_how_2"></li>
-    <li data-i18n="info_how_3"></li>
-    <li data-i18n="info_how_4"></li>
-  </ol>
+  <section class="card">
+    <h2 data-i18n="info_ai_title"></h2>
+    <p data-i18n="info_ai_text"></p>
+  </section>
 
-  <h2 data-i18n="info_ai_title"></h2>
-  <p data-i18n="info_ai_text"></p>
+  <section class="card">
+    <h2 data-i18n="info_students_title"></h2>
+    <p data-i18n="info_students_text"></p>
+  </section>
 
-  <h2 data-i18n="info_reading_title"></h2>
-  <p data-i18n="info_reading_text"></p>
-  <p><span data-i18n="info_software_text"></span>
-    <a href="/lti/ai-quiz/assets/vendor/katex/LICENSE" data-i18n="info_software_licence"></a>.</p>
+  <section class="card">
+    <h2 data-i18n="info_teachers_title"></h2>
+    <p data-i18n="info_teachers_text"></p>
+    <h3 data-i18n="info_reading_title"></h3>
+    <p data-i18n="info_reading_text"></p>
+    <p><span data-i18n="info_software_text"></span>
+      <a href="/lti/ai-quiz/assets/vendor/katex/LICENSE" data-i18n="info_software_licence"></a>.</p>
+  </section>
 
-  <section id="moodle-setup" aria-labelledby="moodle-setup-heading">
+  <section class="card" id="moodle-setup" aria-labelledby="moodle-setup-heading">
     <h2 id="moodle-setup-heading" data-i18n="info_moodle_title"></h2>
     <p data-i18n="info_setup_who"></p>
     <table class="list" id="setup-fields">
@@ -77,9 +94,13 @@
     </table>
   </section>
 
-  <h2 data-i18n="info_status_title"></h2>
-  <p class="notice" data-i18n="info_status_text"></p>
+  <section class="card">
+    <h2 data-i18n="info_status_title"></h2>
+    <p class="notice" data-i18n="info_status_text"></p>
+  </section>
 </main>
+
+<footer><p class="foot">UltiR — UNINOVIS LTI Repository</p></footer>
 
 <script src="/lti/ai-quiz/assets/strings.js"></script>
 <script src="/lti/ai-quiz/assets/app.js"></script>

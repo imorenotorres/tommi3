@@ -8,10 +8,6 @@ window.AI_QUIZ_STRINGS = {
     "lang_switch": "Español",
     "lang_switch_label": "Cambiar idioma a español",
     "loading": "Loading…",
-    "course_label": "Course",
-    "signed_in_as": "Signed in as",
-    "role_instructor": "Instructor",
-    "role_student": "Student",
     "student_heading": "Practice quizzes",
     "student_empty": "No quiz has been published for this course yet.",
     "practice_notice": "These quizzes are for practice. They do not count towards your grade, and you can take them as often as you like.",
@@ -20,7 +16,6 @@ window.AI_QUIZ_STRINGS = {
     "error_unconfigured": "The tool is not configured on this server yet.",
     "error_generic": "Something went wrong. Please try again.",
     "info_lead": "Turn your own course material into practice quizzes that you review before students see them.",
-    "info_how_title": "How it works",
     "info_how_1": "The instructor opens the tool from a Moodle course and uploads course material.",
     "info_how_2": "A language model drafts multiple-choice questions from that material, each with the passage it is based on.",
     "info_how_3": "The instructor edits, discards or approves each question and publishes the quiz.",
@@ -257,7 +252,13 @@ window.AI_QUIZ_STRINGS = {
     "info_trouble_signature": "The shared secret in Moodle is not the one that belongs to this key, or the tool URL differs from the address above.",
     "info_trouble_frame_see": "An empty box inside the Moodle page",
     "info_trouble_frame": "The activity is embedded from an address the platform does not allow. Set the launch container to “New window”.",
-    "info_trouble_session": "The session has ended or the server was restarted. Open the activity again from the course."
+    "info_trouble_session": "The session has ended or the server was restarted. Open the activity again from the course.",
+    "info_doc_title": "AI Quiz Generator — Info",
+    "info_what_title": "What this tool does",
+    "info_students_title": "For students",
+    "info_students_text": "Open the activity from your course in Moodle. You see the quizzes your instructor has published. They are for practice: they do not count towards your grade, and you can take them as often as you like. When you check your answers you see which were right, why, and where in the course material each question comes from.",
+    "info_teachers_title": "For teachers",
+    "info_teachers_text": "Open the activity from your course in Moodle. Upload a PDF with selectable text, a Markdown file or a plain-text file of up to 20 MB. Ask for up to 15 draft questions at a time, on the whole document or on one topic. Check each draft against the passage shown beside it, edit it, and approve or reject it. Then publish the approved questions. Publishing again makes a new version, and answers already given keep their meaning."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -265,10 +266,6 @@ window.AI_QUIZ_STRINGS = {
     "lang_switch": "English",
     "lang_switch_label": "Change language to English",
     "loading": "Cargando…",
-    "course_label": "Curso",
-    "signed_in_as": "Sesión iniciada como",
-    "role_instructor": "Docente",
-    "role_student": "Estudiante",
     "student_heading": "Cuestionarios de práctica",
     "student_empty": "Todavía no se ha publicado ningún cuestionario para este curso.",
     "practice_notice": "Estos cuestionarios son de práctica. No cuentan para tu nota y puedes hacerlos tantas veces como quieras.",
@@ -277,7 +274,6 @@ window.AI_QUIZ_STRINGS = {
     "error_unconfigured": "La herramienta todavía no está configurada en este servidor.",
     "error_generic": "Algo ha fallado. Inténtalo de nuevo.",
     "info_lead": "Convierte tu propio material del curso en cuestionarios de práctica que revisas antes de que los vea el alumnado.",
-    "info_how_title": "Cómo funciona",
     "info_how_1": "El docente abre la herramienta desde un curso de Moodle y sube material del curso.",
     "info_how_2": "Un modelo de lenguaje redacta preguntas de opción múltiple a partir de ese material, cada una con el pasaje en el que se basa.",
     "info_how_3": "El docente edita, descarta o aprueba cada pregunta y publica el cuestionario.",
@@ -514,6 +510,12 @@ window.AI_QUIZ_STRINGS = {
     "info_trouble_signature": "El secreto compartido de Moodle no es el que corresponde a esta clave, o la URL de la herramienta no coincide con la dirección indicada arriba.",
     "info_trouble_frame_see": "Un recuadro vacío dentro de la página de Moodle",
     "info_trouble_frame": "La actividad está incrustada desde una dirección que la plataforma no permite. Pon «Nueva ventana» como contenedor de lanzamiento.",
-    "info_trouble_session": "La sesión ha terminado o el servidor se ha reiniciado. Abre de nuevo la actividad desde el curso."
+    "info_trouble_session": "La sesión ha terminado o el servidor se ha reiniciado. Abre de nuevo la actividad desde el curso.",
+    "info_doc_title": "Generador de cuestionarios con IA — Información",
+    "info_what_title": "Qué hace esta herramienta",
+    "info_students_title": "Para estudiantes",
+    "info_students_text": "Abre la actividad desde tu curso en Moodle. Verás los cuestionarios que ha publicado tu docente. Son para practicar: no cuentan para la nota y puedes hacerlos tantas veces como quieras. Al comprobar tus respuestas verás cuáles eran correctas, por qué, y de qué parte del material del curso procede cada pregunta.",
+    "info_teachers_title": "Para docentes",
+    "info_teachers_text": "Abre la actividad desde tu curso en Moodle. Sube un PDF con texto seleccionable, un archivo Markdown o un archivo de texto de hasta 20 MB. Pide hasta 15 borradores de preguntas cada vez, sobre todo el documento o sobre un tema. Comprueba cada borrador con el pasaje que aparece a su lado, edítalo y apruébalo o recházalo. Después publica las preguntas aprobadas. Al publicar de nuevo se crea una versión nueva, y las respuestas ya dadas conservan su sentido."
   }
 };

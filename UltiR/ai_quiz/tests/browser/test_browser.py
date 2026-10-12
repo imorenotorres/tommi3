@@ -86,7 +86,7 @@ def tab_to(page, wanted, limit=40):
 def test_an_instructor_publishes_a_quiz_and_a_student_takes_it(site):
     page = site.instructor(context_title="Computer Vision (synthetic)", name="Synthetic Teacher")
     expect(page.locator("#course-name")).to_have_text("Computer Vision (synthetic)")
-    expect(page.locator("#user-role")).to_have_text("Instructor")
+    expect(page.locator("header nav.trail")).to_contain_text("Instructor")
 
     upload(page)
     expect(page.locator("#documents")).to_contain_text("handout.pdf")
@@ -104,7 +104,7 @@ def test_an_instructor_publishes_a_quiz_and_a_student_takes_it(site):
     expect(page.locator("#publish-state")).to_contain_text("Published (version 1).")
 
     student = site.student(name="Synthetic Student")
-    expect(student.locator("#user-role")).to_have_text("Student")
+    expect(student.locator("header nav.trail")).not_to_contain_text("Instructor")
     expect(student.locator("#quizzes")).to_contain_text("Week 7")
     expect(student.locator("#quizzes")).to_contain_text("Not tried yet")
     student.locator("#quizzes button").first.click()
@@ -310,9 +310,9 @@ def test_the_info_page_shows_the_tool_url_and_switches_language(site):
 
     expect(page.locator("#tool-url")).to_have_text(f"{site.url}/lti/ai-quiz")
     expect(page.locator("h1")).to_have_text("AI Quiz Generator")
-    expect(page.locator("main")).to_contain_text("How it works")
+    expect(page.locator("main")).to_contain_text("What this tool does")
     page.locator("#lang-switch").click()
-    expect(page.locator("main")).to_contain_text("Cómo funciona")
+    expect(page.locator("main")).to_contain_text("Qué hace esta herramienta")
 
 
 def test_the_info_page_gives_the_setup_for_moodle_field_by_field(site):
@@ -341,25 +341,22 @@ def test_the_info_page_gives_the_setup_for_moodle_field_by_field(site):
 
 # ── A launch without a name, and a page without a session ───────────────────
 
-def test_the_header_of_a_launch_without_a_name_does_not_end_in_signed_in_as(site):
+def test_the_header_of_a_launch_without_a_name_names_the_course_and_nothing_dangling(site):
     """Moodle sends no name when the tool is registered with "Share launcher's name: Never"."""
     page = site.instructor(name="", context_title="Computer Vision (synthetic)")
 
-    expect(page.locator("#session")).to_contain_text("Computer Vision (synthetic)")
-    expect(page.locator("#session")).to_contain_text("Instructor")
     # What a person sees and what a screen reader reads: the hidden part of the line does not count.
-    expect(page.locator("#session")).not_to_contain_text("Signed in as", use_inner_text=True)
+    expect(page.locator("#session")).to_have_text("Computer Vision (synthetic)", use_inner_text=True)
     expect(page.locator("#user-name")).to_be_hidden()
     page.locator("#lang-switch").click()
-    expect(page.locator("#session")).to_contain_text("Docente")
-    expect(page.locator("#session")).not_to_contain_text("Sesión iniciada como", use_inner_text=True)
+    expect(page.locator("#session")).to_have_text("Computer Vision (synthetic)", use_inner_text=True)
 
 
 def test_the_header_of_a_launch_with_a_name_shows_it(site):
     page = site.student(name="Zoë D'Alençon Muñoz")
 
     expect(page.locator("#user-name")).to_be_visible()
-    expect(page.locator("#session")).to_contain_text("Zoë D'Alençon Muñoz")
+    expect(page.locator("#session")).to_have_text("Zoë D'Alençon Muñoz — Synthetic course", use_inner_text=True)
 
 
 @pytest.mark.parametrize("path", ["/instructor", "/student"])
@@ -393,7 +390,7 @@ def test_the_page_can_be_switched_to_spanish_and_back(site):
     page.locator("#lang-switch").click()
 
     expect(page.locator("#docs-heading")).to_have_text("Documentos del curso")
-    expect(page.locator("#user-role")).to_have_text("Docente")
+    expect(page.locator("header h1")).to_have_text("Generador de cuestionarios con IA")
     assert page.evaluate("document.documentElement.lang") == "es"
     page.locator("#lang-switch").click()
     expect(page.locator("#docs-heading")).to_have_text("Course documents")
@@ -403,7 +400,7 @@ def test_a_spanish_browser_starts_in_spanish(site):
     page = site.open("/student", site.token("Learner"), locale="es-ES")
 
     expect(page.locator("#list-heading")).to_have_text("Cuestionarios de práctica")
-    expect(page.locator("#user-role")).to_have_text("Estudiante")
+    expect(page.locator("#lang-switch")).to_have_text("English")
 
 
 # ── What a person sees when something is wrong ──────────────────────────────
