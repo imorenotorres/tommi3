@@ -270,6 +270,7 @@
     var line = quiz.published ? t('state_published', { n: quiz.current_revision }) : t('state_unpublished');
     byId('publish-state').textContent = line + ' ' + t('review_approved_count', { n: approved, total: quiz.questions.length });
     byId('unpublish-button').hidden = !quiz.published;
+    byId('confidence-switch').checked = quiz.confidence === true;
     renderSummary();
     renderGallery();
     var list = clear(byId('questions'));
@@ -303,13 +304,38 @@
   function renderSummary() {
     var line = byId('summary-line'), quizId = state.quiz.quiz_id;
     line.textContent = '';
+    byId('sure-summary').hidden = true;
     if (!state.quiz.current_revision) { return; }
     A.api('/api/quizzes/' + quizId + '/summary').then(function (summary) {
       if (!state.quiz || state.quiz.quiz_id !== quizId) { return; }
       line.textContent = summary.attempts
         ? t('review_summary', { attempts: summary.attempts, learners: summary.learners, percent: summary.average_percent })
         : t('review_summary_none');
+      renderSure(summary);
     }).catch(function () { line.textContent = ''; });
+  }
+
+  /* For a published version that asks students how sure they are: per question, the answers
+     marked "I know this" and how many of those were wrong. Counts only. */
+  function renderSure(summary) {
+    var answered = summary.questions.some(function (q) { return q.answered > 0; });
+    byId('sure-summary').hidden = !(summary.confidence && answered);
+    if (byId('sure-summary').hidden) { return; }
+    var rows = summary.questions.map(function (q, index) {
+      return el('tr', {}, [
+        el('th', { scope: 'row' }, [(index + 1) + '. ', el('span', { class: 'content', text: q.question })]),
+        el('td', { class: 'num', text: String(q.sure) }),
+        el('td', { class: 'num', text: String(q.sure_wrong) })
+      ]);
+    });
+    clear(byId('sure-table')).appendChild(el('table', { class: 'list' }, [
+      el('thead', {}, [el('tr', {}, [
+        el('th', { scope: 'col', text: t('review_question') }),
+        el('th', { scope: 'col', text: t('review_sure_col_sure') }),
+        el('th', { scope: 'col', text: t('review_sure_col_wrong') })
+      ])]),
+      el('tbody', {}, rows)
+    ]));
   }
 
   function replaceQuiz(quiz, message) {
@@ -476,6 +502,18 @@
     }).catch(A.showError).then(function () { busy(button, false); });
   }
 
+  /* Whether students are asked how sure they are. Saved at once; it reaches students with the next version. */
+  function setConfidence() {
+    var box = byId('confidence-switch'), wanted = box.checked;
+    box.disabled = true;
+    A.send('PUT', '/api/quizzes/' + state.quiz.quiz_id, { confidence: wanted }).then(function (quiz) {
+      replaceQuiz(quiz, t(wanted ? 'review_confidence_on' : 'review_confidence_off'));
+    }).catch(function (error) {
+      box.checked = !wanted;                     // not saved: show what is stored
+      A.showError(error);
+    }).then(function () { box.disabled = false; box.focus(); });
+  }
+
   function publish(path, message, button) {
     busy(button, true);
     A.send('POST', '/api/quizzes/' + state.quiz.quiz_id + path).then(function (quiz) {
@@ -491,6 +529,7 @@
   byId('gen-target').addEventListener('change', function () { byId('gen-title-field').hidden = this.value !== ''; });
   byId('back-button').addEventListener('click', showOverview);
   byId('rename-button').addEventListener('click', rename);
+  byId('confidence-switch').addEventListener('change', setConfidence);
   byId('publish-button').addEventListener('click', function () { publish('/publish', 'review_published', this); });
   byId('unpublish-button').addEventListener('click', function () { publish('/unpublish', 'review_unpublished', this); });
 

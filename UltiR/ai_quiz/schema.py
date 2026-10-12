@@ -10,6 +10,8 @@ from UltiR.ai_quiz import limits
 
 DIFFICULTIES = ("basic", "intermediate", "advanced")
 OPTION_IDS = ("A", "B", "C", "D")
+# How sure a student says they are of an answer, in a quiz that asks: "I know this", "I think so", "I am guessing".
+CONFIDENCE_LEVELS = ("sure", "fairly", "guess")
 _CONTROL = re.compile(r"[\x00-\x1f\x7f]")
 
 

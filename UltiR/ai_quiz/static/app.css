@@ -282,6 +282,11 @@ details > summary { cursor: pointer; font-weight: 600; color: var(--ink); }
 .choice:hover { border-color: var(--line); }
 .choice input { margin-top: 0.4rem; flex: none; }
 .choice .letter { font-weight: 600; }
+/* "How sure are you?" under a question, in a quiz that asks. */
+.confidence { margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px solid var(--line); }
+.paper .confidence legend { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.15rem; }
+.confidence .choice { display: inline-flex; font-size: 0.95rem; margin-right: 0.5rem; }
+.said { margin: 0 0 0.4rem; }
 ul.choices { list-style: none; padding: 0; margin: 0; }
 ul.choices .choice { align-items: baseline; flex-wrap: wrap; }
 .verdict { font-weight: 600; margin: 0.5rem 0 0.3rem; }

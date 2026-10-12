@@ -469,13 +469,22 @@ async def ai_quiz_get_quiz(quiz_id: str, request: Request):
 
 
 @router.put(f"{BASE}/api/quizzes/{{quiz_id}}")
-async def ai_quiz_rename_quiz(quiz_id: str, request: Request):
+async def ai_quiz_change_quiz(quiz_id: str, request: Request):
+    """The settings of a quiz: its title, and whether students are asked how sure they are. One or both."""
     session = require_instructor(request)
     body = await _json_object(request)
-    title = _text_field(body, "title", limits.MAX_TITLE_CHARS) if isinstance(body.get("title"), str) else ""
-    if not title:
+    title = confidence = None
+    if "title" in body:
+        title = _text_field(body, "title", limits.MAX_TITLE_CHARS) if isinstance(body["title"], str) else ""
+        if not title:
+            _refuse(400, "bad_request", field="title")
+    if "confidence" in body:
+        confidence = body["confidence"]
+        if not isinstance(confidence, bool):            # true or false, not 1, "yes" or null
+            _refuse(400, "bad_request", field="confidence")
+    if title is None and confidence is None:
         _refuse(400, "bad_request", field="title")
-    return _reviewed(review.rename_quiz, session["course_id"], quiz_id, title)
+    return _reviewed(review.change_quiz, session["course_id"], quiz_id, title, confidence)
 
 
 @router.put(f"{BASE}/api/quizzes/{{quiz_id}}/questions/{{question_id}}")

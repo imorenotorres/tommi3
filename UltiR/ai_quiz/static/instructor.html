@@ -119,11 +119,24 @@
               <button type="button" id="rename-button" data-i18n="review_rename"></button>
             </div>
           </div>
+          <div class="field space-above">
+            <label class="check" for="confidence-switch">
+              <input type="checkbox" id="confidence-switch">
+              <span data-i18n="review_confidence"></span>
+            </label>
+            <p class="hint" data-i18n="review_confidence_hint"></p>
+          </div>
           <p id="publish-state" class="space-above flush-below"></p>
           <p id="summary-line" class="hint"></p>
           <div class="actions">
             <button type="button" class="primary" id="publish-button" data-i18n="review_publish"></button>
             <button type="button" id="unpublish-button" data-i18n="review_unpublish"></button>
+          </div>
+          <!-- Only for a published version that asks students how sure they are, once there are answers. -->
+          <div id="sure-summary" hidden>
+            <h3 data-i18n="review_sure_heading"></h3>
+            <p class="hint space-below" data-i18n="review_sure_hint"></p>
+            <div id="sure-table"></div>
           </div>
         </div>
       </section>

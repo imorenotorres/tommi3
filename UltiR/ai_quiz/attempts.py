@@ -128,6 +128,7 @@ def learner_quiz(course_id: str, quiz_id: str) -> dict | None:
         "quiz_id": quiz_id,
         "title": revision["title"],
         "revision": revision["revision"],
+        "confidence": review.asks_confidence(revision),     # the page then asks how sure, per question
         "questions": [_learner_question(q) for q in revision["questions"]],
     }
 
@@ -136,6 +137,8 @@ def learner_quiz(course_id: str, quiz_id: str) -> dict | None:
 
 def _result(attempt: dict, revision: dict) -> dict:
     """An attempt with its feedback. Only ever built for the owner or the course instructor, after submission."""
+    asks = review.asks_confidence(revision)
+    stated = attempt.get("confidence") or {}
     results = []
     for question in revision["questions"]:
         selected = attempt["answers"].get(question["question_id"])
@@ -143,6 +146,7 @@ def _result(attempt: dict, revision: dict) -> dict:
         quoted = review.passage_for_students(question) == "shown"
         results.append({
             **_learner_question(question),
+            **({"confidence": stated.get(question["question_id"])} if asks else {}),
             "selected": selected,
             "correct_option_id": question["correct_option_id"],
             "correct": selected == question["correct_option_id"],
@@ -161,11 +165,33 @@ def _result(attempt: dict, revision: dict) -> dict:
         "total": attempt["total"],
         "submitted_at": attempt["submitted_at"],
         "results": results,
+        # In a quiz that asks: per level, how many answers were given at it and how many were right.
+        **({"calibration": {level: {
+            "answered": sum(1 for r in results if r["confidence"] == level),
+            "correct": sum(1 for r in results if r["confidence"] == level and r["correct"]),
+        } for level in schema.CONFIDENCE_LEVELS}} if asks else {}),
     }
 
 
+def _stated_confidence(body: dict, answers: dict, question_ids: set) -> dict:
+    """How sure the student said they were, for each answered question of a quiz that asks.
+
+    One of the three levels for every answer, or the attempt is refused: the quiz asks before it
+    checks. What is stated for a question that was left unanswered is dropped.
+    """
+    stated = body.get("confidence", {})
+    if not isinstance(stated, dict) or not set(stated) <= question_ids:
+        raise AttemptError(400, "bad_request")
+    if any(not isinstance(level, str) or level not in schema.CONFIDENCE_LEVELS for level in stated.values()):
+        raise AttemptError(400, "bad_request")
+    if not set(answers) <= set(stated):
+        raise AttemptError(400, "confidence_missing")
+    return {question_id: stated[question_id] for question_id in answers}
+
+
 def submit(course_id: str, quiz_id: str, user_id: str, is_instructor: bool, body: dict) -> dict:
-    """Grade and store one attempt. Reads `revision` and `answers` from the body and nothing else."""
+    """Grade and store one attempt. Reads `revision` and `answers` from the body and, in a quiz
+    that asks how sure the student is, `confidence`. Nothing else: no score, no identity."""
     quiz = _published(course_id, quiz_id)
     if quiz is None:
         raise AttemptError(404, "quiz_not_found")
@@ -188,6 +214,9 @@ def submit(course_id: str, quiz_id: str, user_id: str, is_instructor: bool, body
         if not isinstance(option, str) or option not in schema.OPTION_IDS:
             raise AttemptError(400, "bad_request")
         answers[question_id] = option
+    # Stored with the attempt, so under the same keyed hash as the answers. Never part of the score.
+    # A quiz that does not ask keeps nothing of a confidence that is sent anyway.
+    confidence = _stated_confidence(body, answers, question_ids) if review.asks_confidence(revision) else None
 
     owner = owner_key(course_id, user_id)
     with storage.locked(course_id):
@@ -201,6 +230,7 @@ def submit(course_id: str, quiz_id: str, user_id: str, is_instructor: bool, body
             "owner": owner,
             "preview": bool(is_instructor),     # an instructor trying the quiz; kept out of the summary
             "answers": answers,
+            **({} if confidence is None else {"confidence": confidence}),
             "score": sum(1 for q in revision["questions"] if answers.get(q["question_id"]) == q["correct_option_id"]),
             "total": len(revision["questions"]),
             "submitted_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -235,20 +265,30 @@ def summary(course_id: str, quiz_id: str) -> dict | None:
     attempts = [a for a in _attempts(course_id, quiz_id) if not a.get("preview")]
     percents = [100 * a["score"] / a["total"] for a in attempts if a["total"]]
     revision = review.load_revision(course_id, quiz_id, quiz["meta"]["current_revision"])
+    asks = review.asks_confidence(revision)
     questions = []
     for question in (revision or {}).get("questions", []):
-        chosen = [a["answers"][question["question_id"]] for a in attempts
-                  if a["revision"] == revision["revision"] and question["question_id"] in a["answers"]]
-        questions.append({
-            "question_id": question["question_id"],
+        qid = question["question_id"]
+        given = [a for a in attempts if a["revision"] == revision["revision"] and qid in a["answers"]]
+        chosen = [a["answers"][qid] for a in given]
+        counts = {
+            "question_id": qid,
             "question": question["question"],
             "answered": len(chosen),
             "correct": sum(1 for option in chosen if option == question["correct_option_id"]),
-        })
+        }
+        if asks:
+            # The answers marked "I know this", and how many of those were wrong: where students
+            # are mistaken without knowing it.
+            sure = [a["answers"][qid] for a in given if (a.get("confidence") or {}).get(qid) == "sure"]
+            counts["sure"] = len(sure)
+            counts["sure_wrong"] = sum(1 for option in sure if option != question["correct_option_id"])
+        questions.append(counts)
     return {
         "quiz_id": quiz_id,
         "title": quiz["meta"]["title"],
         "current_revision": quiz["meta"]["current_revision"],
+        "confidence": asks,
         "attempts": len(attempts),
         "learners": len({a["owner"] for a in attempts}),
         "average_percent": round(sum(percents) / len(percents)) if percents else None,

@@ -15,7 +15,7 @@ QUIZZES = f"{BASE}/api/quizzes"
 PUBLISHED = f"{BASE}/api/published"
 ATTEMPTS = f"{BASE}/api/attempts"
 
-LEARNER_QUIZ_KEYS = {"quiz_id", "title", "revision", "questions"}
+LEARNER_QUIZ_KEYS = {"quiz_id", "title", "revision", "confidence", "questions"}
 LEARNER_QUESTION_KEYS = {"question_id", "question", "options", "difficulty"}
 LISTING_KEYS = {"quiz_id", "title", "revision", "n_questions", "my_attempts", "my_best"}
 PRIVATE_WORDS = ("correct_option_id", "explanation", "Explanation", "excerpt", "grounded", '"source"',

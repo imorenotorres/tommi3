@@ -67,7 +67,7 @@ def create_quiz(course_id: str, title: str, questions: list[dict]) -> dict:
         quiz_id = storage.new_id("z")
         now = _now()
         meta = {"quiz_id": quiz_id, "title": title, "activity": "quiz", "created_at": now, "updated_at": now,
-                "published": False, "current_revision": None}
+                "published": False, "current_revision": None, "confidence": False}
         storage.write_json(_quiz_dir(course_id, quiz_id) / "draft.json", questions)
         storage.write_json(_quiz_dir(course_id, quiz_id) / "meta.json", meta)
         return {"meta": meta, "questions": questions}
@@ -113,7 +113,15 @@ def instructor_view(quiz: dict) -> dict:
     """
     questions = [{**q, "figures": q.get("figures") or [], "passage_for_students": passage_for_students(q)}
                  for q in quiz["questions"]]
-    return {**quiz["meta"], "questions": questions}
+    return {**quiz["meta"], "confidence": asks_confidence(quiz["meta"]), "questions": questions}
+
+
+def asks_confidence(holder: dict | None) -> bool:
+    """Whether a quiz (its settings) or a published revision asks students how sure they are.
+
+    Off unless it was switched on: quizzes and revisions written before the switch existed do not ask.
+    """
+    return (holder or {}).get("confidence") is True
 
 
 def list_quizzes(course_id: str) -> list[dict]:
@@ -145,10 +153,18 @@ def _require(course_id: str, quiz_id: str) -> dict:
     return quiz
 
 
-def rename_quiz(course_id: str, quiz_id: str, title: str) -> dict:
+def change_quiz(course_id: str, quiz_id: str, title: str | None = None, confidence: bool | None = None) -> dict:
+    """Change the settings of a quiz: its title, and whether it asks students how sure they are.
+
+    None leaves a setting as it is. Both are settings of the draft: what students get is fixed
+    in a revision, so a change reaches them with the next publication.
+    """
     with storage.locked(course_id):
         quiz = _require(course_id, quiz_id)
-        quiz["meta"]["title"] = title
+        if title is not None:
+            quiz["meta"]["title"] = title
+        if confidence is not None:
+            quiz["meta"]["confidence"] = confidence is True
         return _save(course_id, quiz)
 
 
@@ -233,10 +249,13 @@ def publish(course_id: str, quiz_id: str) -> dict:
             raise QuizError(409, "nothing_approved")
         if not all(_may_be_published(q) for q in approved):
             raise QuizError(409, "needs_acceptance")
-        content = {"title": meta["title"], "questions": approved}
+        # Whether students are asked how sure they are is part of what is published: a revision
+        # asks or does not, for as long as it exists.
+        content = {"title": meta["title"], "questions": approved, "confidence": asks_confidence(meta)}
 
         current = load_revision(course_id, quiz_id, meta["current_revision"])
-        if current and {"title": current["title"], "questions": current["questions"]} == content:
+        if current and {"title": current["title"], "questions": current["questions"],
+                        "confidence": asks_confidence(current)} == content:
             if meta["published"]:
                 raise QuizError(409, "no_changes")
             meta["published"] = True        # published again unchanged: same revision

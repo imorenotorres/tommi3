@@ -7,6 +7,8 @@
 
   var A = window.AiQuiz, t = A.t, el = A.el, clear = A.clear;
   var state = { quizzes: [], quiz: null, result: null, warned: false };
+  // How sure a student can say they are, in a quiz that asks. The server accepts these three.
+  var LEVELS = ['sure', 'fairly', 'guess'];
 
   function byId(id) { return document.getElementById(id); }
 
@@ -82,6 +84,7 @@
     var quiz = state.quiz;
     if (!quiz) { return; }
     byId('quiz-heading').textContent = quiz.title;
+    byId('confidence-note').hidden = !quiz.confidence;
     var list = clear(byId('questions'));
     quiz.questions.forEach(function (question, index) {
       var name = 'answer-' + question.question_id;
@@ -97,8 +100,25 @@
           el('input', { type: 'radio', name: name, id: id, value: option.id }),
           el('span', {}, [el('span', { class: 'letter', text: option.id + '. ' }), A.math.shown('span', {}, option.text, question.math === 'latex')])
         ]);
-      }))));
+      })).concat(quiz.confidence ? [confidenceOf(question, index)] : [])));
     });
+  }
+
+  /* "How sure are you?" under a question: a group of its own, three choices. Only in a quiz that asks. */
+  function confidenceOf(question, index) {
+    var name = 'sure-' + question.question_id;
+    return el('fieldset', { class: 'confidence' }, [
+      el('legend', {}, [
+        el('span', { class: 'visually-hidden', text: t('student_question', { n: index + 1, total: state.quiz.questions.length }) + ': ' }),
+        t('confidence_legend')
+      ])
+    ].concat(LEVELS.map(function (level) {
+      var id = name + '-' + level;
+      return el('label', { class: 'choice', for: id }, [
+        el('input', { type: 'radio', name: name, id: id, value: level }),
+        el('span', { text: t('confidence_' + level) })
+      ]);
+    })));
   }
 
   /* The figures the instructor published with a question, if any. */
@@ -115,6 +135,15 @@
     return answers;
   }
 
+  function statedConfidence() {
+    var stated = {};
+    state.quiz.questions.forEach(function (question) {
+      var picked = document.querySelector('input[name="sure-' + question.question_id + '"]:checked');
+      if (picked) { stated[question.question_id] = picked.value; }
+    });
+    return stated;
+  }
+
   function submit(event) {
     event.preventDefault();
     var answers = chosenAnswers();
@@ -124,13 +153,23 @@
       A.say(t('student_unanswered', { n: missing }));
       return;
     }
+    var body = { revision: state.quiz.revision, answers: answers };
+    if (state.quiz.confidence) {
+      // Commit first: every answer needs its "how sure" before anything is checked. The server asks the same.
+      var stated = statedConfidence();
+      var unsure = Object.keys(answers).filter(function (questionId) { return !stated[questionId]; });
+      if (unsure.length) {
+        A.say(t('student_confidence_missing', { n: unsure.length }));
+        byId('sure-' + unsure[0] + '-' + LEVELS[0]).focus();
+        return;
+      }
+      body.confidence = stated;
+    }
     var button = byId('submit-button');
     button.disabled = true;
     A.say(t('student_checking'), 'plain');
-    // Only the chosen options are sent. The server computes the score.
-    A.send('POST', '/api/quizzes/' + state.quiz.quiz_id + '/attempts', {
-      revision: state.quiz.revision, answers: answers
-    }).then(function (result) {
+    // Only the chosen options, and how sure the student said they were, are sent. The server computes the score.
+    A.send('POST', '/api/quizzes/' + state.quiz.quiz_id + '/attempts', body).then(function (result) {
       state.result = result;
       A.say('');
       renderResult();
@@ -145,6 +184,14 @@
     if (!result) { return; }
     byId('result-heading').textContent = t('student_result_heading') + ': ' + result.title;
     byId('score').textContent = t('student_score', { score: result.score, total: result.total });
+    // In a quiz that asked: what became of the answers the student was sure of.
+    var sure = result.calibration ? result.calibration.sure : null, note = byId('calibration');
+    note.hidden = !(sure && sure.answered);
+    if (!note.hidden) {
+      note.textContent = sure.correct === sure.answered
+        ? t('student_sure_right', { n: sure.answered })
+        : t('student_sure_wrong', { n: sure.answered, k: sure.answered - sure.correct });
+    }
     var list = clear(byId('results'));
     result.results.forEach(function (item, index) {
       var verdict = item.selected === null ? 'student_skipped' : (item.correct ? 'student_right' : 'student_wrong');
@@ -170,6 +217,7 @@
         el('p', { class: 'stem' }, [el('span', { class: 'number', text: (index + 1) + '.' }), A.math.shown('span', {}, item.question, item.math === 'latex')])
       ].concat(figuresOf(item)).concat([
         el('p', { class: 'verdict ' + (item.correct ? 'right' : 'wrong'), text: (item.correct ? '✓ ' : '✕ ') + t(verdict) }),
+        item.confidence ? el('p', { class: 'hint said', text: t('student_you_said', { level: t('confidence_' + item.confidence) }) }) : null,
         el('ul', { class: 'choices' }, choices),
         item.explanation ? el('p', { class: 'because' }, [el('strong', { text: t('student_why') + ' ' }), A.math.shown('span', { class: 'content' }, item.explanation, item.math === 'latex')]) : null,
         cite
@@ -189,10 +237,14 @@
     renderList();
     renderResult();
     if (state.quiz && !state.result) {
-      var kept = chosenAnswers();                 // keep what was already ticked
+      var kept = chosenAnswers(), sure = statedConfidence();     // keep what was already ticked
       renderQuiz();
       Object.keys(kept).forEach(function (questionId) {
         var again = byId('answer-' + questionId + '-' + kept[questionId]);
+        if (again) { again.checked = true; }
+      });
+      Object.keys(sure).forEach(function (questionId) {
+        var again = byId('sure-' + questionId + '-' + sure[questionId]);
         if (again) { again.checked = true; }
       });
     }
