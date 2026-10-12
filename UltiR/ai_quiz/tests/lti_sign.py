@@ -40,8 +40,13 @@ def sign_launch(
     email: str = "synthetic.user@example.invalid",
     timestamp: int | None = None,
     nonce: str | None = None,
+    omit: tuple = (),
 ) -> dict:
-    """Return the full form body for a basic LTI 1.1 launch, signature included."""
+    """Return the full form body for a basic LTI 1.1 launch, signature included.
+
+    `omit` names fields to leave out before signing, for a launch that lacks one (a correct signature
+    over a form without `context_id`, as a tool opened from outside any course would send).
+    """
     params = {
         "lti_message_type": "basic-lti-launch-request",
         "lti_version": "LTI-1p0",
@@ -58,5 +63,7 @@ def sign_launch(
         "oauth_signature_method": "HMAC-SHA1",
         "oauth_version": "1.0",
     }
+    for field in omit:
+        del params[field]
     params["oauth_signature"] = signature("POST", url, params, consumer_secret)
     return params

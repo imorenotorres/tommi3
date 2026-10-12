@@ -279,7 +279,8 @@ window.AI_QUIZ_STRINGS = {
     "review_sure_col_wrong": "Of those, wrong",
     "denied_title": "This page is for instructors",
     "denied_text": "You opened the tool as a student, so the instructors' page is not available to you. The practice quizzes of your course are on the student page.",
-    "denied_link": "Go to the practice quizzes"
+    "denied_link": "Go to the practice quizzes",
+    "info_trouble_course": "Moodle sent no course id: the tool was opened from outside a course. Add it as an activity inside a course."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -558,6 +559,7 @@ window.AI_QUIZ_STRINGS = {
     "review_sure_col_wrong": "De ellas, incorrectas",
     "denied_title": "Esta página es para docentes",
     "denied_text": "Has abierto la herramienta como estudiante, por lo que la página de docentes no está disponible para ti. Los cuestionarios de práctica de tu curso están en la página de estudiante.",
-    "denied_link": "Ir a los cuestionarios de práctica"
+    "denied_link": "Ir a los cuestionarios de práctica",
+    "info_trouble_course": "Moodle no ha enviado ningún identificador de curso: la herramienta se abrió desde fuera de un curso. Añádela como actividad dentro de un curso."
   }
 };

@@ -58,6 +58,53 @@ def test_launch_with_an_unknown_consumer_key_is_rejected(launch):
     assert launch.post(launch.form(key="someone_elses_key")).status_code == 403
 
 
+# ── A launch that names no course ───────────────────────────────────────────
+# The shared launch code puts such a launch into a course called "default": every launch without a
+# course id, from anywhere in a Moodle, would share one course. The tool refuses it.
+
+def no_course(launch, **extra):
+    """Correctly signed launches without a course id: the field left out, empty, or blank."""
+    return [launch.form(omit=("context_id",), **extra), launch.form(course="", **extra), launch.form(course="   ", **extra)]
+
+
+def test_a_launch_without_a_course_id_is_refused_and_says_why_in_both_languages(launch):
+    for form in no_course(launch):
+        response = launch.post(form)
+
+        assert response.status_code == 400
+        assert "token=" not in response.headers.get("location", "")
+        assert response.headers["content-type"].startswith("text/html")
+        for words in ("names no course", "context_id", "inside a course", "no indica ningún curso", "dentro de un curso"):
+            assert words in response.text
+
+
+def test_a_launch_without_a_course_id_leaves_no_session_and_no_folder(launch):
+    from UltiR.ai_quiz import storage
+    from UltiR.ai_quiz.lti_provider import sessions
+    before = len(sessions._sessions)
+
+    for form in no_course(launch, role="Instructor"):
+        launch.post(form)
+
+    assert len(sessions._sessions) == before
+    assert list(storage.data_root().iterdir()) == []
+
+
+def test_a_launch_without_a_course_id_and_with_a_wrong_signature_is_refused_for_the_signature(launch):
+    """Nothing about the tool's own rule is told to a caller who could not sign."""
+    response = launch.post(launch.form(omit=("context_id",), secret="some-other-secret"))
+
+    assert response.status_code == 403
+    assert "context_id" not in response.text
+
+
+def test_a_course_that_moodle_really_calls_default_is_a_course_like_any_other(client, launch):
+    token = launch.token(role="Instructor", course="default", context_title="A course whose id is the word default")
+
+    assert session_of(client, token).json()["course_name"] == "A course whose id is the word default"
+    assert client.get(f"{BASE}/api/documents", params={"token": token}).status_code == 200
+
+
 # ── A1: no secret, no launch; no placeholder ────────────────────────────────
 
 def test_launch_is_refused_when_the_lti_secret_is_not_set(launch, monkeypatch):

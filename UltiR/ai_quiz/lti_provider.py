@@ -181,12 +181,46 @@ def _bind(response, consumer_key: str):
     session (the course folder, and the stored user, whose hash includes the course id) belongs to
     one installation. A refused launch created no session, and its response passes through unchanged.
     """
-    location = response.headers.get("location", "") if response.status_code == 303 else ""
-    session = sessions.get(parse_qs(urlparse(location).query).get("token", [""])[0])
+    session = sessions.get(_session_token(response))
     if session is not None:
         session["course_id"] = config.course_id(consumer_key, session["course_id"])
         session["consumer"] = consumer_key
     return response
+
+
+def _session_token(response) -> str:
+    """The token of the session a launch has just created, or "" when the launch was refused."""
+    location = response.headers.get("location", "") if response.status_code == 303 else ""
+    return parse_qs(urlparse(location).query).get("token", [""])[0]
+
+
+# Shown when a correctly signed launch names no course. In both languages at once: at this point
+# there is no session and no page script that could choose one.
+_NO_COURSE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Quiz Generator</title>
+<link rel="stylesheet" href="/lti/ai-quiz/assets/app.css">
+</head>
+<body>
+<header class="band"><div class="title"><h1>AI Quiz Generator</h1></div></header>
+<main class="narrow">
+  <section class="card">
+    <h2>Error: the launch names no course</h2>
+    <p>Moodle sent no course id (context_id), so the tool cannot tell which course this is. Open the tool
+      from an activity inside a course.</p>
+  </section>
+  <section class="card" lang="es">
+    <h2>Error: el lanzamiento no indica ningún curso</h2>
+    <p>Moodle no ha enviado ningún identificador de curso (context_id), así que la herramienta no puede saber
+      de qué curso se trata. Abre la herramienta desde una actividad dentro de un curso.</p>
+  </section>
+</main>
+</body>
+</html>
+"""
 
 
 @router.post(BASE)
@@ -203,6 +237,14 @@ async def ai_quiz_launch(request: Request):
         redirect_instructor=f"{BASE}/instructor",
         redirect_learner=f"{BASE}/student",
     )
+    token = _session_token(response)
+    if token and not str(form.get("context_id", "")).strip():
+        # Signed correctly, but it names no course. The shared code has put it into a course it calls
+        # "default", which every such launch would share. That session is withdrawn before anyone
+        # is given its token, and the launch is refused. (A course whose id really is "default" is
+        # not affected: the check is on what Moodle sent.)
+        sessions.revoke(token)
+        return HTMLResponse(_NO_COURSE, status_code=400)
     return _bind(response, consumer_key)
 
 
