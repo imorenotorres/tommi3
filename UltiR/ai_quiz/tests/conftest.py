@@ -4,6 +4,7 @@ Mounts only this tool's router on a bare FastAPI app (importing web/app.py
 would load every agent). Launches go through the real signed LTI path.
 """
 
+import os
 import sys
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -27,6 +28,14 @@ LAUNCH_URL = "http://testserver" + BASE
 KEY = "ai_quiz_test_key"
 SECRET = "test-only-lti-secret"
 ID_KEY = "test-only-id-key"
+# A second Moodle installation has a key and a secret of its own.
+KEY_2 = "second_moodle_test_key"
+SECRET_2 = "test-only-lti-secret-of-the-second-moodle"
+
+
+def cid(course: str, key: str = KEY) -> str:
+    """The id under which the tool keeps the course that Moodle calls `course`: the consumer key is part of it."""
+    return f"{key}:{course}"
 
 
 @pytest.fixture(autouse=True)
@@ -36,6 +45,8 @@ def configured(monkeypatch, tmp_path):
     monkeypatch.setenv("AI_QUIZ_LTI_SECRET", SECRET)
     monkeypatch.setenv("AI_QUIZ_ID_KEY", ID_KEY)
     monkeypatch.delenv("AI_QUIZ_DEV_TEST", raising=False)
+    for name in [n for n in os.environ if n.startswith(("AI_QUIZ_LTI_KEY_", "AI_QUIZ_LTI_SECRET_"))]:
+        monkeypatch.delenv(name)                     # one Moodle unless a test adds a second
     for name in ("AI_QUIZ_DOCLING_PYTHON", "AI_QUIZ_DOCLING_MODELS", "AI_QUIZ_DOCLING_DEVICE"):
         monkeypatch.delenv(name, raising=False)      # no full reading unless a test sets it up
     monkeypatch.setenv("AI_QUIZ_DATA_DIR", str(tmp_path / "data"))
@@ -72,11 +83,14 @@ def client():
 
 
 class Launcher:
-    def __init__(self, client):
-        self.client = client
+    """Launches as one Moodle installation would send them: signed with that installation's key and secret."""
 
-    def form(self, role="Instructor", course="course-A", user="user-1", *, key=KEY, secret=SECRET, **extra):
-        return sign_launch(LAUNCH_URL, key, secret, roles=role, context_id=course, user_id=user, **extra)
+    def __init__(self, client, key=KEY, secret=SECRET):
+        self.client, self.key, self.secret = client, key, secret
+
+    def form(self, role="Instructor", course="course-A", user="user-1", *, key=None, secret=None, **extra):
+        return sign_launch(LAUNCH_URL, self.key if key is None else key, self.secret if secret is None else secret,
+                           roles=role, context_id=course, user_id=user, **extra)
 
     def post(self, form):
         return self.client.post(BASE, data=form)
@@ -90,3 +104,11 @@ class Launcher:
 @pytest.fixture
 def launch(client):
     return Launcher(client)
+
+
+@pytest.fixture
+def second_moodle(client, monkeypatch):
+    """A second Moodle installation is registered with the tool, with a key and a secret of its own."""
+    monkeypatch.setenv("AI_QUIZ_LTI_KEY_2", KEY_2)
+    monkeypatch.setenv("AI_QUIZ_LTI_SECRET_2", SECRET_2)
+    return Launcher(client, KEY_2, SECRET_2)

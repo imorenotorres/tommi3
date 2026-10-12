@@ -11,10 +11,16 @@ Configuration (web/.env):
     AI_QUIZ_ID_KEY=<random_secret>        required, no default; keys the hash
                                           of the user id stored with attempts
     AI_QUIZ_LTI_KEY=ai_quiz_uma           optional, this is the default
+    AI_QUIZ_LTI_KEY_2=<another_key>       optional: one more Moodle installation,
+    AI_QUIZ_LTI_SECRET_2=<its_secret>     with a key and a secret of its own (_3 ...)
     AI_QUIZ_DEV_TEST=1                    optional, local machines only: opens
                                           /lti/ai-quiz/test
 
-Until both required settings have a value the tool answers 503 everywhere
+One consumer key and secret per Moodle installation, never shared: the key is
+part of the id under which a course and its users are kept, because every
+Moodle numbers its courses 1, 2, 3 ...
+
+Until every required setting has a valid value the tool answers 503 everywhere
 except its info page. It never falls back to a placeholder secret.
 
 Full reading (formulas, figures) is optional and needs Docling in a Python
@@ -30,6 +36,7 @@ Moodle setup:
 
 import json
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
@@ -78,7 +85,12 @@ _ASSETS = {
 
 def require_session(request: Request) -> dict:
     config.require_configured()
-    return sessions.require(request)
+    session = sessions.require(request)
+    # A session belongs to the Moodle installation it was launched from. One that names none, or one
+    # whose installation is no longer registered, is not a session.
+    if session.get("consumer") not in config.consumers():
+        raise HTTPException(401, "Sesion no valida. Accede desde Moodle.")
+    return session
 
 
 def require_instructor(request: Request) -> dict:
@@ -134,14 +146,37 @@ async def ai_quiz_get():
     return RedirectResponse(f"{BASE}/info", status_code=303)
 
 
+def _bind(response, consumer_key: str):
+    """Tie the session a launch has just created to the Moodle installation it came from.
+
+    The shared launch code names the course by Moodle's own course id, a small number that every
+    Moodle uses. Here the consumer key is put in front of it, so everything this tool keeps for the
+    session (the course folder, and the stored user, whose hash includes the course id) belongs to
+    one installation. A refused launch created no session, and its response passes through unchanged.
+    """
+    location = response.headers.get("location", "") if response.status_code == 303 else ""
+    session = sessions.get(parse_qs(urlparse(location).query).get("token", [""])[0])
+    if session is not None:
+        session["course_id"] = config.course_id(consumer_key, session["course_id"])
+        session["consumer"] = consumer_key
+    return response
+
+
 @router.post(BASE)
 async def ai_quiz_launch(request: Request):
     config.require_configured()
-    return await lti_launch(
-        request, config.lti_key(), config.lti_secret(), sessions,
+    registered = config.consumers()
+    form = await request.form()                # the shared code reads the same parsed form again
+    consumer_key = str(form.get("oauth_consumer_key", ""))
+    if consumer_key not in registered:
+        # Not one of ours. The shared code refuses it in its own words when it is given another key.
+        consumer_key = next(iter(registered))
+    response = await lti_launch(
+        request, consumer_key, registered[consumer_key], sessions,
         redirect_instructor=f"{BASE}/instructor",
         redirect_learner=f"{BASE}/student",
     )
+    return _bind(response, consumer_key)
 
 
 @router.get(f"{BASE}/test")
@@ -150,12 +185,13 @@ async def ai_quiz_test(role: str = "learner"):
     if not config.dev_test_enabled():
         raise HTTPException(404)
     config.require_configured()
-    return await lti_test_launch(
+    response = await lti_test_launch(
         sessions,
         redirect_instructor=f"{BASE}/instructor",
         redirect_learner=f"{BASE}/student",
         role="instructor" if role.lower() == "instructor" else "learner",
     )
+    return _bind(response, config.lti_key())
 
 
 # ── Pages and assets ──────────────────────────────────────────────────────────

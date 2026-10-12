@@ -7,6 +7,7 @@ rest of the platform is unaffected.
 
 import logging
 import os
+import re
 
 from fastapi import HTTPException
 
@@ -30,6 +31,49 @@ def lti_key() -> str:
 
 def lti_secret() -> str:
     return _secret("AI_QUIZ_LTI_SECRET")
+
+
+# ── One consumer key and secret per Moodle installation ──────────────────────
+# Moodle numbers its courses and users 1, 2, 3 ..., so "course 2" means something only inside one
+# Moodle. The consumer key says which Moodle a launch comes from, and it is part of the id under
+# which a course is kept. AI_QUIZ_LTI_KEY / AI_QUIZ_LTI_SECRET register the first installation;
+# AI_QUIZ_LTI_KEY_2 / AI_QUIZ_LTI_SECRET_2 (then _3 ...) register one more each.
+
+COURSE_SEPARATOR = ":"                                 # between consumer key and Moodle's course id
+_KEY_RE = re.compile(r"[A-Za-z0-9_.-]{1,64}")          # so a key can never contain the separator
+_NUMBERED = re.compile(r"AI_QUIZ_LTI_(?:KEY|SECRET)_(\d+)")
+
+
+def _registrations() -> tuple[dict[str, str], list[str]]:
+    """Every registered consumer key with its secret, and the names of the settings that are missing or wrong.
+
+    Wrong means: a key without a secret or a secret without a key, a blank or placeholder secret, a key
+    with other characters than letters, digits, "_", "." and "-", a key that is registered twice, or a
+    secret that two registrations share. Two Moodles with one secret are not two registrations.
+    """
+    numbers = sorted({int(m.group(1)) for name in os.environ if (m := _NUMBERED.fullmatch(name))})
+    pairs = [("AI_QUIZ_LTI_KEY", "AI_QUIZ_LTI_SECRET", lti_key(), lti_secret())]
+    pairs += [(f"AI_QUIZ_LTI_KEY_{n}", f"AI_QUIZ_LTI_SECRET_{n}",
+               os.environ.get(f"AI_QUIZ_LTI_KEY_{n}", "").strip(), _secret(f"AI_QUIZ_LTI_SECRET_{n}")) for n in numbers]
+    consumers, faulty = {}, []
+    for key_name, secret_name, key, secret in pairs:
+        key_ok = bool(_KEY_RE.fullmatch(key)) and key not in consumers
+        secret_ok = bool(secret) and secret not in consumers.values()
+        if key_ok and secret_ok:
+            consumers[key] = secret
+        faulty += ([] if key_ok else [key_name]) + ([] if secret_ok else [secret_name])
+    return consumers, faulty
+
+
+def consumers() -> dict[str, str]:
+    """Consumer key -> secret for every registered Moodle. Empty when any registration is faulty."""
+    registered, faulty = _registrations()
+    return {} if faulty else registered
+
+
+def course_id(consumer_key: str, context_id: str) -> str:
+    """The id under which this tool keeps a course: which Moodle it is in, then that Moodle's own course id."""
+    return f"{consumer_key}{COURSE_SEPARATOR}{context_id}"
 
 
 def id_key() -> str:
@@ -57,13 +101,13 @@ def docling_device() -> str:
 
 
 def missing_settings() -> list[str]:
-    required = {"AI_QUIZ_LTI_SECRET": lti_secret(), "AI_QUIZ_ID_KEY": id_key()}
-    return [name for name, value in required.items() if not value]
+    """The names of the settings that are missing or not valid."""
+    return _registrations()[1] + ([] if id_key() else ["AI_QUIZ_ID_KEY"])
 
 
 def require_configured() -> None:
-    """Raise 503 unless every required setting has a value. Logs names, never values."""
+    """Raise 503 unless every required setting has a valid value. Logs names, never values."""
     missing = missing_settings()
     if missing:
-        log.error("AI Quiz is not configured: %s not set in web/.env", ", ".join(missing))
+        log.error("AI Quiz is not configured: %s missing or not valid in web/.env", ", ".join(missing))
         raise HTTPException(503, "AI Quiz is not configured")

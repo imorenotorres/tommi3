@@ -6,7 +6,7 @@ import pytest
 
 from UltiR.ai_quiz import ingestion, jobs, limits, storage
 
-from .conftest import BASE
+from .conftest import BASE, cid
 from .pdfs import handout_pdf, make_pdf, scanned_pdf
 from .readers import SlowReader, install
 from .test_documents import DOCS, error_code, stored_files, upload
@@ -63,7 +63,7 @@ def test_a_full_reading_upload_answers_at_once_and_becomes_ready_when_the_reader
 
     assert (done["status"], done["engine"], done["n_pages"]) == ("ready", "fake", 2)
     assert done["n_chunks"] >= 2
-    chunks = storage.read_json(storage.course_dir("course-A") / "docs" / doc["doc_id"] / "chunks.json")
+    chunks = storage.read_json(storage.course_dir(cid("course-A")) / "docs" / doc["doc_id"] / "chunks.json")
     assert [c["page"] for c in chunks] == [1, 2]
 
 
@@ -261,10 +261,10 @@ def test_the_chunks_of_a_document_are_not_handed_out_unless_it_is_ready(client, 
     from UltiR.ai_quiz import documents
 
     doc = upload(client, instructor).json()
-    assert documents.load_chunks("course-A", doc["doc_id"]) != []
-    index = storage.course_dir("course-A") / "documents.json"
+    assert documents.load_chunks(cid("course-A"), doc["doc_id"]) != []
+    index = storage.course_dir(cid("course-A")) / "documents.json"
     records = storage.read_json(index)
     records[0]["status"] = "failed"                            # its files are still there: only the status says no
     storage.write_json(index, records)
 
-    assert documents.load_chunks("course-A", doc["doc_id"]) == []
+    assert documents.load_chunks(cid("course-A"), doc["doc_id"]) == []

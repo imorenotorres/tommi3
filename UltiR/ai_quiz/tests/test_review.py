@@ -6,7 +6,7 @@ import pytest
 
 from UltiR.ai_quiz import limits, storage
 
-from .conftest import BASE
+from .conftest import BASE, cid
 from .fake_llm import question, sources_in
 from .pdfs import handout_pdf
 
@@ -64,7 +64,7 @@ def unpublish(client, token, quiz_id):
 
 
 def revision_file(quiz_id, number, course="course-A"):
-    return storage.course_dir(course) / "quizzes" / quiz_id / f"rev-{number:04d}.json"
+    return storage.course_dir(cid(course)) / "quizzes" / quiz_id / f"rev-{number:04d}.json"
 
 
 def ungrounded_quiz(client, token, doc, fake_llm):
@@ -338,7 +338,7 @@ def test_a_revision_another_process_wrote_first_is_never_overwritten(client, ins
 def test_a_flagged_question_cannot_reach_a_revision_even_if_the_draft_file_says_approved(
         client, instructor, doc, fake_llm):
     quiz = ungrounded_quiz(client, instructor, doc, fake_llm)
-    draft = storage.course_dir("course-A") / "quizzes" / quiz["quiz_id"] / "draft.json"
+    draft = storage.course_dir(cid("course-A")) / "quizzes" / quiz["quiz_id"] / "draft.json"
     questions = storage.read_json(draft)
     questions[0]["review_status"] = "approved"          # as if written around the API
     storage.write_json(draft, questions)

@@ -6,7 +6,7 @@ import pytest
 
 from UltiR.ai_quiz import limits, storage
 
-from .conftest import BASE
+from .conftest import BASE, cid
 from .pdfs import handout_pdf, scanned_pdf
 
 DOCS = f"{BASE}/api/documents"
@@ -72,7 +72,7 @@ def test_uploaded_documents_are_listed_newest_first_and_can_be_fetched(client, i
 
 def test_page_numbers_reach_the_stored_chunks(client, instructor):
     doc = upload(client, instructor).json()
-    course_dir = storage.course_dir("course-A")
+    course_dir = storage.course_dir(cid("course-A"))
 
     chunks = storage.read_json(course_dir / "docs" / doc["doc_id"] / "chunks.json")
 
@@ -164,7 +164,7 @@ def test_the_number_of_documents_per_course_is_capped(client, instructor, monkey
 def test_a_hostile_file_name_cannot_place_a_file_outside_the_course_folder(client, instructor, name):
     response = upload(client, instructor, name, b"Harmless text that is long enough to be read as a document.")
 
-    course_dir = storage.course_dir("course-A")
+    course_dir = storage.course_dir(cid("course-A"))
     assert response.status_code == 201
     assert stored_files() != []
     assert all(course_dir in p.parents for p in stored_files())

@@ -20,6 +20,7 @@ import pytest
 
 from UltiR.ai_quiz import docling_reader, ingestion, limits, storage
 
+from .conftest import cid
 from .docling_recorded import RAW, images
 from .images import SVG, jpeg_start, png
 from .pdfs import handout_pdf
@@ -593,7 +594,7 @@ def test_a_pdf_uploaded_for_full_reading_ends_up_as_pages_and_chunks_from_doclin
 
     assert (done["status"], done["mode"], done["engine"], done["n_pages"]) == ("ready", "full", "docling", 18)
     assert {"code": "formulas_as_text", "pages": [15]} in done["warnings"]
-    chunks = storage.read_json(storage.course_dir("course-A") / "docs" / doc["doc_id"] / "chunks.json")
+    chunks = storage.read_json(storage.course_dir(cid("course-A")) / "docs" / doc["doc_id"] / "chunks.json")
     assert any(r"$$\hat { \delta } = - H ^ { - 1 } g ,$$ (12)" in c["text"] and c["page"] == 4 for c in chunks)
 
 

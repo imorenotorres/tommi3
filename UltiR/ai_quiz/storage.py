@@ -2,7 +2,9 @@
 
 Everything a course owns lives in one folder under the data root. The folder
 name is derived from the course id of the LTI session and from nothing else,
-so one course cannot reach another course's files.
+so one course cannot reach another course's files. That course id is the
+consumer key of the Moodle installation followed by Moodle's own course id
+(see config.course_id), so two installations never share a folder.
 
 Writes are atomic (temp file, then rename). Read-modify-write sequences must
 run inside `locked(course_id)`. The lock is per process: this assumes the
@@ -41,7 +43,8 @@ def _folder_name(course_id: str) -> str:
     cleaning (or differ only in case or beyond the kept length) still get
     different folders.
     """
-    readable = "".join(c for c in course_id if c.isascii() and (c.isalnum() or c in "-_"))[:40]
+    # The id is "<consumer key>:<Moodle's course id>"; the colon is kept readable as a hyphen.
+    readable = "".join(c for c in course_id.replace(":", "-") if c.isascii() and (c.isalnum() or c in "-_"))[:40]
     digest = hashlib.sha256(course_id.encode("utf-8", "replace")).hexdigest()[:16]
     return f"{readable or 'course'}-{digest}"
 

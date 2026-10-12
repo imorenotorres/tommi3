@@ -7,7 +7,7 @@ import pytest
 
 from UltiR.ai_quiz import documents, generation, storage
 
-from .conftest import BASE
+from .conftest import BASE, cid
 from .docling_recorded import images
 from .fake_llm import question, sources_in
 from .readers import install_recorded_docling, upload_full
@@ -84,7 +84,7 @@ def published(client, instructor, doc, fake_llm) -> dict:
 # ── Stored with the document ────────────────────────────────────────────────
 
 def test_the_figures_of_a_full_reading_are_stored_in_the_course_folder_under_our_names(doc):
-    folder = storage.course_dir("course-A") / "docs" / doc["doc_id"]
+    folder = storage.course_dir(cid("course-A")) / "docs" / doc["doc_id"]
 
     assert doc["n_figures"] == 3
     assert sorted(p.name for p in (folder / "figures").iterdir()) == ["f0001.png", "f0002.png", "f0003.png"]
@@ -203,7 +203,7 @@ def test_an_unknown_or_malformed_document_id_has_no_figures(client, instructor, 
 
 @pytest.mark.parametrize("file", ["../source.pdf", "../../../documents.json", "/etc/passwd", "f0002.png/../../source.pdf", "f0001.svg", ""])
 def test_even_a_tampered_record_cannot_make_the_route_serve_another_file(client, instructor, doc, file):
-    path = storage.course_dir("course-A") / "docs" / doc["doc_id"] / "figures.json"
+    path = storage.course_dir(cid("course-A")) / "docs" / doc["doc_id"] / "figures.json"
     records = storage.read_json(path)
     records[0]["file"] = file
     storage.write_json(path, records)
@@ -213,13 +213,13 @@ def test_even_a_tampered_record_cannot_make_the_route_serve_another_file(client,
 
 
 def test_a_document_that_is_not_ready_serves_no_figures(client, instructor, doc):
-    index = storage.course_dir("course-A") / "documents.json"
+    index = storage.course_dir(cid("course-A")) / "documents.json"
     records = storage.read_json(index)
     records[0].update(status="failed", error="reading_failed")
     storage.write_json(index, records)
 
     assert figure(client, instructor, doc["doc_id"], "f0001").status_code == 404
-    assert documents.list_figures("course-A", doc["doc_id"]) is None
+    assert documents.list_figures(cid("course-A"), doc["doc_id"]) is None
 
 
 # ── A figure named by the model ─────────────────────────────────────────────
@@ -370,18 +370,18 @@ def test_the_prompt_for_a_full_reading_has_the_rule_about_figures(client, instru
 # ── Second lines of defence ─────────────────────────────────────────────────
 
 def test_a_record_whose_id_is_not_of_our_shape_is_never_served(doc):
-    folder = storage.course_dir("course-A") / "docs" / doc["doc_id"]
+    folder = storage.course_dir(cid("course-A")) / "docs" / doc["doc_id"]
     records = storage.read_json(folder / "figures.json")
     records.append({"figure_id": "x0001", "page": 1, "caption": "", "file": "x0001.png", "media_type": "image/png"})
     storage.write_json(folder / "figures.json", records)
     (folder / "figures" / "x0001.png").write_bytes(images()["p0004.png"])
 
-    assert documents.figure_file("course-A", doc["doc_id"], "x0001") is None
-    assert documents.figure_file("course-A", doc["doc_id"], "f0001") is not None
+    assert documents.figure_file(cid("course-A"), doc["doc_id"], "x0001") is None
+    assert documents.figure_file(cid("course-A"), doc["doc_id"], "f0001") is not None
 
 
 def test_a_figure_named_by_the_model_is_dropped_if_its_record_is_gone(client, instructor, doc, fake_llm):
-    path = storage.course_dir("course-A") / "docs" / doc["doc_id"] / "figures.json"
+    path = storage.course_dir(cid("course-A")) / "docs" / doc["doc_id"] / "figures.json"
     storage.write_json(path, [r for r in storage.read_json(path) if r["figure_id"] != "f0001"])
     fake_llm.queue(about_figure("f0001"))                       # its mark is still in the text
 
