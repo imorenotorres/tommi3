@@ -337,6 +337,16 @@ def test_the_info_page_gives_the_setup_for_moodle_field_by_field(site):
     expect(setup).to_contain_text("Nueva ventana")
     expect(setup).to_contain_text("Una clave y un secreto por cada sitio Moodle")
     expect(setup).to_contain_text("profesorado sin permiso de edición")
+    # The names a Spanish Moodle 4.5 shows, read from one on 2026-10-11 (language pack "es").
+    for moodles_own in ("Administrar herramientas", "configurar la herramienta manualmente", "Herramientas Externas LTI",
+                        "Versión LTI", "Clave de cliente", "Secreto compartido", "Configuración del uso de la herramienta",
+                        "Mostrar en el selector de actividad como una herramienta preconfigurada",
+                        "Contenedor de inicio por defecto", "Compartir el nombre del usuario con la herramienta",
+                        "Compartir el e-mail del usuario con la herramienta", "Aceptar calificaciones desde la herramienta",
+                        "Privacidad"):
+        expect(setup).to_contain_text(moodles_own)
+    for not_moodles in ("Clave de consumidor", "Gestionar herramientas", "Contenedor de lanzamiento", "contenedor de lanzamiento"):
+        expect(setup).not_to_contain_text(not_moodles)
 
 
 # ── A launch without a name, and a page without a session ───────────────────
