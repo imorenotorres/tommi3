@@ -187,6 +187,12 @@ table.list td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 table.list td.end { text-align: right; white-space: nowrap; }
 table.list th[scope="row"] { color: var(--text); font-size: 1rem; }
 table.list th .cite { font-weight: 400; margin-top: 0.3rem; }
+/* The class summary: the question and its passage get the room and are set as running text; the counts stay narrow. */
+#class-table table { table-layout: fixed; }
+#class-table thead th:first-child { width: 42%; }
+#class-table thead th:not(:first-child):not(:last-child) { width: 13.5%; overflow-wrap: break-word; }
+#class-table th[scope="row"] { font-weight: 400; }
+#class-table th[scope="row"] .content { font-size: 1rem; line-height: 1.45; }
 ul.points { padding-left: 1.25rem; max-width: 46rem; }
 ul.points li { margin-bottom: 0.5rem; }
 

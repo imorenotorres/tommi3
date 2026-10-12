@@ -83,6 +83,15 @@ def test_with_three_students_each_question_shows_its_totals_its_most_chosen_wron
     expect(first).to_contain_text("1. Question 1 about source S1")
     expect(first.locator(".cite")).to_contain_text("handout.pdf, page 1:")
     assert len(first.locator(".cite q").inner_text()) > 30                                  # the passage itself
+    # The question and its passage are running text and get most of the width; the counts stay narrow.
+    widths = teacher.evaluate("""() => { const row = document.querySelector('#class-table tbody tr');
+        const table = document.querySelector('#class-table table').getBoundingClientRect().width;
+        return {question: row.querySelector('th').getBoundingClientRect().width / table,
+                count: row.querySelector('td.num').getBoundingClientRect().width / table,
+                weight: getComputedStyle(row.querySelector('th')).fontWeight,
+                layout: getComputedStyle(document.querySelector('#class-table table')).tableLayout}; }""")
+    assert 0.40 < widths["question"] < 0.44 and widths["count"] < 0.15 and widths["weight"] == "400", widths
+    assert widths["layout"] == "fixed"             # so that a long option cannot take the room from the question
     assert unlabelled_controls(teacher) == [] and hard_to_read(teacher) == [] and small_buttons(teacher) == []
 
 
