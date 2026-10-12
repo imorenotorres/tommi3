@@ -82,6 +82,12 @@ def test_an_unanswered_question_is_listed_last(site):
     expect(items.nth(0)).to_contain_text("Question 3")
     expect(items.nth(1)).to_contain_text("Question 1")
     expect(items.nth(1)).to_contain_text("Not answered.")
+    # This quiz did not ask how sure: the line above the list says nothing about what the student "said".
+    expect(student.locator("#review-box-intro")).to_have_text(
+        "The questions you did not get right, with where to read in the course material.")
+    student.locator("#lang-switch").click()
+    expect(student.locator("#review-box-intro")).to_have_text(
+        "Las preguntas que no has acertado y dónde leer en el material del curso.")
 
 
 def test_the_box_is_in_spanish_too_and_is_gone_when_a_new_attempt_starts(site):

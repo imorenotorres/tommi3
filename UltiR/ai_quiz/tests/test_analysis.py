@@ -137,6 +137,32 @@ def test_a_question_that_too_few_students_answered_is_not_sent(client, course, f
     assert [p["number"] for p in response.json()["analysis"]["points"]] == [1]
 
 
+def test_a_version_that_did_not_ask_how_sure_is_analysed_without_a_word_about_it(client, course, fake_llm):
+    quiz = course.published_quiz(2)                                  # "Commit first" is off
+    for user, _, _ in STUDENTS:
+        submit(client, course.learner(user=user), quiz, dict.fromkeys(ids(quiz), "A"))
+    fake_llm.queue(points(("Q1", "Everybody chose A.")))
+
+    response = analyse(client, course.instructor, quiz)
+
+    assert response.status_code == 201
+    system, user = (m["content"] for m in fake_llm.calls[-1]["messages"])
+    assert "a confusion that stands out (many students chose the same wrong option), or what" in system
+    assert "chosen 3 times" in user and "Answers: 3. Correct: 0." in user
+    for words in ("sure and wrong", "I know this", "Marked"):
+        assert words not in system and words not in user
+
+
+def test_a_version_that_asked_how_sure_is_analysed_with_it(client, course, fake_llm):
+    quiz = answered_quiz(client, course)
+    fake_llm.queue(points(("Q1", "A point.")))
+
+    analyse(client, course.instructor, quiz)
+
+    system = fake_llm.calls[-1]["messages"][0]["content"]
+    assert "a confusion that stands out (many students chose the same wrong option, or were sure and wrong), or what" in system
+
+
 # ── What the model says is checked ──────────────────────────────────────────
 
 def test_a_point_is_kept_only_if_it_names_a_question_that_was_sent(client, course, fake_llm):

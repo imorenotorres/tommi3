@@ -233,6 +233,8 @@
     byId('review-box').hidden = false;
     byId('review-box-none').hidden = entries.length > 0;
     byId('review-box-intro').hidden = !entries.length;
+    // Only a quiz that asked how sure has answers "you said you knew" to put first; only then does the line say so.
+    byId('review-box-intro').textContent = t(result.calibration ? 'review_box_intro' : 'review_box_intro_plain');
     list.hidden = !entries.length;
     entries.forEach(function (entry) {
       var item = result.results[entry.number - 1];

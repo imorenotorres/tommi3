@@ -310,7 +310,8 @@ window.AI_QUIZ_STRINGS = {
     "analysis_stale": "There are {now} attempts now.",
     "analysis_point_about": "Question {n}",
     "err_too_few_answers": "Too few students have answered yet for an analysis.",
-    "err_analysis_invalid": "The model did not return a usable analysis this time. Try again."
+    "err_analysis_invalid": "The model did not return a usable analysis this time. Try again.",
+    "review_box_intro_plain": "The questions you did not get right, with where to read in the course material."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -620,6 +621,7 @@ window.AI_QUIZ_STRINGS = {
     "analysis_stale": "Ahora hay {now} intentos.",
     "analysis_point_about": "Pregunta {n}",
     "err_too_few_answers": "Todavía han respondido muy pocos estudiantes para hacer un análisis.",
-    "err_analysis_invalid": "El modelo no ha devuelto un análisis utilizable esta vez. Inténtalo de nuevo."
+    "err_analysis_invalid": "El modelo no ha devuelto un análisis utilizable esta vez. Inténtalo de nuevo.",
+    "review_box_intro_plain": "Las preguntas que no has acertado y dónde leer en el material del curso."
   }
 };
