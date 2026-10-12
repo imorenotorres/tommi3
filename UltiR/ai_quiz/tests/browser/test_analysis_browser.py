@@ -101,6 +101,29 @@ def test_what_the_model_wrote_is_shown_as_text(site, fake_llm):
     assert teacher.locator("#analysis-result img").count() == 0
 
 
+def test_the_page_says_when_points_were_left_out_for_contradicting_the_answer_key(site, fake_llm):
+    teacher = answered(site)                                         # the key is B in every fake question
+    bad = json.dumps({"points": [{"question": "Q1", "text": "The correct option (A) was chosen twice."},
+                                 {"question": "Q2", "text": "Everybody got this one right."}]})
+    fake_llm.queue(bad, bad)
+
+    teacher.locator("#analysis-button").click()
+
+    expect(teacher.locator("#analysis-result")).to_be_visible()
+    expect(teacher.locator("#analysis-points li")).to_have_count(1)
+    expect(teacher.locator("#analysis-points li")).to_contain_text("Everybody got this one right.")
+    expect(teacher.locator("#analysis-result")).not_to_contain_text("The correct option (A)")
+    expect(teacher.locator("#analysis-dropped")).to_be_visible()
+    expect(teacher.locator("#analysis-dropped")).to_have_text(
+        "Points left out: 1. Each called a wrong option correct, or the correct one wrong; "
+        "the tool checks that against the answer key.")
+    assert hard_to_read(teacher) == []
+
+    teacher.locator("#analysis-button").click()                      # made again, this time without such a point
+    expect(teacher.locator("#analysis-points li")).to_have_count(2)
+    expect(teacher.locator("#analysis-dropped")).to_be_hidden()
+
+
 def test_a_model_that_fails_is_reported_and_the_button_can_be_pressed_again(site, fake_llm):
     teacher = answered(site)
     fake_llm.queue("not json", "not json")

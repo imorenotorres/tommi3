@@ -11,6 +11,8 @@ What comes back is untrusted, like every model output. It is parsed, a point mus
 that was sent, and it is kept only if that question has a passage or a page in the stored
 revision. The passage and the page shown with a point are read from that revision: nothing the
 model says about a page or a passage is used. At most limits.MAX_ANALYSIS_POINTS points are kept.
+A point that calls a wrong option correct, or the correct one wrong, is left out (contradicts_key),
+the model is asked once more, and if points are still left out the stored result says how many.
 
 The result is stored with the quiz, so opening the page again asks no model:
 
@@ -56,6 +58,8 @@ go over again in class.
 user message.
 - Use only the totals and texts you are given. Do not invent numbers. You have totals only: say nothing about \
 single students.
+- In each question the line "Correct option" names the one right answer by its letter, and "Wrong options" names \
+the others. When you name an option by its letter, call it correct only if it is that one.
 - Write the points in {language}.
 
 Answer with JSON only, no code fence, no commentary, in exactly this shape:
@@ -75,10 +79,12 @@ def available(summary: dict) -> bool:
 
 def _block(label: str, totals: dict, question: dict, token: str) -> str:
     """One question as the model sees it. Built field by field: what is not named here is not sent."""
+    key = question["correct_option_id"]
     lines = [f"BEGIN QUESTION {label} {token}", f"Question: {question['question']}"]
     for option in question["options"]:
-        key = " (the correct answer)" if option["id"] == question["correct_option_id"] else ""
-        lines.append(f"{option['id']}. {option['text']}{key}: chosen {totals['chosen'][option['id']]} times")
+        lines.append(f"{option['id']}. {option['text']}: chosen {totals['chosen'][option['id']]} times")
+    # Which option is right, on a line of its own and by its letter: a mark inside the option's line is easy to miss.
+    lines.append(f"Correct option: {key}. Wrong options: {', '.join(o for o in schema.OPTION_IDS if o != key)}.")
     lines.append(f"Answers: {totals['answered']}. Correct: {totals['correct']}.")
     if "sure_wrong" in totals:
         lines.append(f"Marked \"I know this\": {totals['sure']}. Of those, wrong: {totals['sure_wrong']}.")
@@ -152,6 +158,31 @@ def parse_points(reply, known: dict[str, str]) -> list[dict]:
     return points
 
 
+# A point that says which option is right must agree with the answer key. The model is told the key
+# and still gets it wrong at times (seen 2026-10-12: "the correct option (A) and the incorrect one (B)"
+# for a question whose key is B). The check reads the phrasings a model uses for this in the two
+# languages of the pages: a word for right or wrong directly before an option letter ("the correct
+# answer is B", "la incorrecta (B)") or directly after one ("option A is wrong", "la B es correcta").
+# It is a net for explicit claims, not a proof: a claim worded another way passes. A letter counts
+# only in upper case, so that the Spanish word "a" is never taken for option A.
+_RIGHT = ("correct", "correcta", "correcto", "right", "acertada")
+_SAYS = r"(incorrect[ao]?|correct[ao]?|wrong|right|err[oó]nea|equivocada|acertada)"
+_CLAIM_BEFORE = re.compile(
+    r"(?i:\b" + _SAYS + r"\b(?:\s+(?:answer|option|one))?[\s:,]*(?:(?:is|was|es|era)\s+)?(?:(?:la|the)\s+)?"
+    r"(?:(?:option|opci[oó]n)\s+)?)\(?([A-D])\)?(?!\w)")
+_CLAIM_AFTER = re.compile(
+    r"(?i:\b(?:option|opci[oó]n|answer|respuesta|la|the)\s+)\(?([A-D])\)?(?!\w)"
+    r"(?i:\s*[,(:]?\s*(?:(?:is|was|es|era|fue|as|como)\s+)?(?:(?:the|la)\s+)?"
+    r"(?:(?:option|opci[oó]n|answer|respuesta)\s+)?" + _SAYS + r"\b)")
+
+
+def contradicts_key(text: str, key: str) -> bool:
+    """Whether `text` calls an option other than `key` correct, or calls `key` wrong."""
+    claims = [(said, letter) for said, letter in _CLAIM_BEFORE.findall(text)]
+    claims += [(said, letter) for letter, said in _CLAIM_AFTER.findall(text)]
+    return any((said.lower() in _RIGHT) != (letter == key) for said, letter in claims)
+
+
 # ── Making, storing, reading ──────────────────────────────────────────────────
 
 def _path(course_id: str, quiz_id: str):
@@ -168,7 +199,9 @@ def _view(stored: dict, revision: dict) -> dict:
     points = [{"number": numbered[point["question_id"]][0], "text": point["text"],
                "source": _pointer(numbered[point["question_id"]][1])} for point in stored["points"]]
     return {"revision": stored["revision"], "made_at": stored["made_at"], "attempts": stored["attempts"],
-            "learners": stored["learners"], "language": stored["language"], "points": points}
+            "learners": stored["learners"], "language": stored["language"], "points": points,
+            # How many points were left out because they contradicted the answer key; the page says so.
+            "dropped": stored.get("dropped", 0)}
 
 
 def _current(course_id: str, quiz_id: str) -> tuple[dict, dict]:
@@ -209,8 +242,12 @@ async def make(course_id: str, quiz_id: str, language: str) -> dict:
              if _pointer(stored_questions[totals["question_id"]])}
     messages = build_messages(summary, revision, language)
 
-    points, failures = None, []
+    # The points of the last reply that could be read, without those that contradict the answer key, and how
+    # many those were. A reply with such a point is asked for once more; if the next one has them too, or cannot
+    # be read, what was kept is stored and the page says that points were left out.
+    points, dropped, calls, failures = None, 0, 0, []
     for _attempt in range(limits.MAX_ANALYSIS_ATTEMPTS):
+        calls += 1
         try:
             reply = await asyncio.wait_for(
                 asyncio.to_thread(generation.call_model, messages, limits.MAX_ANALYSIS_TOKENS),
@@ -226,14 +263,20 @@ async def make(course_id: str, quiz_id: str, language: str) -> dict:
             failures.append("error")
             continue
         try:
-            points = parse_points(reply, known)
-            break
+            got = parse_points(reply, known)
         except ValueError:
             failures.append("invalid")
-    if points is None:
-        if all(f == "timeout" for f in failures):
+            continue
+        kept = [point for point in got
+                if not contradicts_key(point["text"], stored_questions[point["question_id"]]["correct_option_id"])]
+        if points is None or len(kept) == len(got) or len(kept) > len(points):
+            points, dropped = kept, len(got) - len(kept)     # a reply without such points, or else the one that keeps more
+        if not dropped:
+            break
+    if not points:                                   # no reply could be read, or none of its points agrees with the key
+        if failures and all(f == "timeout" for f in failures):
             raise AnalysisFailed(504, "model_timeout")
-        if all(f == "error" for f in failures):
+        if failures and all(f == "error" for f in failures):
             raise AnalysisFailed(502, "model_error")
         raise AnalysisFailed(502, "analysis_invalid")
 
@@ -245,8 +288,11 @@ async def make(course_id: str, quiz_id: str, language: str) -> dict:
         "learners": summary["learners"],
         "language": language,
         "points": points,
+        "dropped": dropped,
+        "calls": calls,
     }
     with storage.locked(course_id):
         storage.write_json(_path(course_id, quiz_id), stored)
-    log.info("AI Quiz: analysis of %d questions, %d points kept", len(known), len(points))
+    log.info("AI Quiz: analysis of %d questions in %d model calls, %d points kept, %d left out",
+             len(known), calls, len(points), dropped)
     return _view(stored, revision)

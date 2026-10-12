@@ -11,7 +11,7 @@ import json
 
 import pytest
 
-from UltiR.ai_quiz import attempts, limits, storage
+from UltiR.ai_quiz import analysis, attempts, limits, storage
 
 from .conftest import ID_KEY, KEY, cid
 from .fake_llm import good_reply
@@ -69,7 +69,8 @@ def test_an_instructor_gets_points_that_each_show_the_stored_passage_and_page_of
     assert response.status_code == 201, response.text
     assert len(fake_llm.calls) == before + 1
     analysis = response.json()["analysis"]
-    assert set(analysis) == {"revision", "made_at", "attempts", "learners", "language", "points"}
+    assert set(analysis) == {"revision", "made_at", "attempts", "learners", "language", "points", "dropped"}
+    assert analysis["dropped"] == 0
     assert (analysis["revision"], analysis["attempts"], analysis["learners"], analysis["language"]) == (1, 3, 3, "en")
     assert analysis["made_at"].endswith("+00:00") and len(analysis["made_at"]) == 25
     assert [(p["number"], p["text"]) for p in analysis["points"]] == [
@@ -93,7 +94,10 @@ def test_the_model_is_sent_totals_texts_and_passages(client, course, fake_llm):
     first = quiz["questions"][0]
     assert f"Question: {first['question']}" in user
     assert f"A. {first['options'][0]['text']}: chosen 3 times" in user
-    assert f"B. {first['options'][1]['text']} (the correct answer): chosen 0 times" in user
+    assert f"B. {first['options'][1]['text']}: chosen 0 times" in user
+    # Which option is right is said on a line of its own, by its letter, for every question.
+    assert user.count("Correct option: B. Wrong options: A, C, D.") == 3
+    assert 'the line "Correct option" names the one right answer' in call["messages"][0]["content"]
     assert "Answers: 3. Correct: 0." in user
     assert 'Marked "I know this": 2. Of those, wrong: 2.' in user
     assert f"Passage of the course material: {first['source']['excerpt']}" in user
@@ -281,6 +285,109 @@ def test_a_point_about_a_question_whose_passage_was_not_located_shows_the_page_a
     assert point["source"]["excerpt"] is None and point["source"]["page"] == published["questions"][0]["source"]["page"]
 
 
+# ── A point must agree with the answer key ──────────────────────────────────
+
+@pytest.mark.parametrize("text, key, contradicts", [
+    # the slip of 2026-10-12, word for word: the key of that question is B
+    ("Respuestas divididas entre la opción correcta (A) y la incorrecta (B). Repasar el efecto del umbral.", "B", True),
+    ("Respuestas divididas entre la opción correcta (A) y la incorrecta (B). Repasar el efecto del umbral.", "A", False),
+    ("La mayoría confundió precisión con exhaustividad (opción B). Revisar la definición.", "A", False),
+    ("La opción B (exhaustividad) fue elegida 7 veces frente a las 5 correctas.", "A", False),
+    ("La respuesta correcta es la B, pero 6 eligieron la A.", "B", False),
+    ("La respuesta correcta es la B, pero 6 eligieron la A.", "C", True),
+    ("La opción B es incorrecta y la eligieron 7.", "B", True),
+    ("La opción B es incorrecta y la eligieron 7.", "A", False),
+    ("Respondieron de forma correcta a la pregunta 10 de 12.", "B", False),          # "a" is a word here, not option A
+    ("The correct answer is B, but half the class chose A.", "B", False),
+    ("The correct answer is B, but half the class chose A.", "A", True),
+    ("Option A is wrong, yet it was chosen 6 times.", "A", True),
+    ("Option A is wrong, yet it was chosen 6 times.", "B", False),
+    ("Option C (correct) was chosen 9 times.", "C", False),
+    ("Option C (correct) was chosen 9 times.", "D", True),
+    ("Only 9 were correct. A third of the class chose option B.", "A", False),       # a sentence that begins with "A"
+    ("Many students chose the same wrong option in this question.", "B", False),      # no letter, no claim
+    ("Option A was chosen twice.", "B", False),
+])
+def test_a_text_that_calls_a_wrong_option_correct_or_the_correct_one_wrong_is_recognised(text, key, contradicts):
+    assert analysis.contradicts_key(text, key) is contradicts
+
+
+def test_a_point_that_contradicts_the_key_is_left_out_and_the_model_is_asked_once_more(client, course, fake_llm):
+    quiz = answered_quiz(client, course)                             # the key is B in every fake question
+    fake_llm.queue(points(("Q1", "Split between the correct option (A) and the incorrect one (B)."), ("Q2", "Fine.")),
+                   points(("Q1", "Most chose A; the correct answer is B."), ("Q2", "Fine again.")))
+    before = len(fake_llm.calls)
+
+    response = analyse(client, course.instructor, quiz)
+
+    assert response.status_code == 201 and len(fake_llm.calls) == before + 2
+    made = response.json()["analysis"]
+    assert [p["text"] for p in made["points"]] == ["Most chose A; the correct answer is B.", "Fine again."]
+    assert made["dropped"] == 0
+    on_disk = json.loads(stored_file(quiz).read_text(encoding="utf-8"))
+    assert (on_disk["dropped"], on_disk["calls"]) == (0, 2)
+    assert "the correct option (A)" not in stored_file(quiz).read_text(encoding="utf-8")
+
+
+def test_if_the_second_reply_contradicts_the_key_too_the_rest_is_kept_and_the_count_is_said(client, course, fake_llm):
+    quiz = answered_quiz(client, course)
+    fake_llm.queue(points(("Q1", "The correct option (A) was chosen 3 times."), ("Q2", "First, fine.")),
+                   points(("Q1", "Option B is wrong."), ("Q2", "Second, fine."), ("Q3", "Also fine.")))
+
+    made = analyse(client, course.instructor, quiz).json()["analysis"]
+
+    assert [p["text"] for p in made["points"]] == ["Second, fine.", "Also fine."]     # the reply that keeps more
+    assert made["dropped"] == 1
+    assert saved(client, course.instructor, quiz).json()["analysis"]["dropped"] == 1
+
+
+def test_of_two_replies_that_contradict_the_key_the_one_that_keeps_more_points_is_stored(client, course, fake_llm):
+    quiz = answered_quiz(client, course)
+    fake_llm.queue(points(("Q1", "The correct option (A) was chosen 3 times."), ("Q2", "First, fine."), ("Q3", "First, too.")),
+                   points(("Q1", "Option B is wrong."), ("Q2", "Second, fine.")))
+
+    made = analyse(client, course.instructor, quiz).json()["analysis"]
+
+    assert [p["text"] for p in made["points"]] == ["First, fine.", "First, too."] and made["dropped"] == 1
+
+
+def test_a_second_reply_that_cannot_be_read_leaves_what_the_first_one_kept(client, course, fake_llm):
+    quiz = answered_quiz(client, course)
+    fake_llm.queue(points(("Q1", "The correct option (A) was chosen 3 times."), ("Q2", "Fine.")), "not json")
+
+    made = analyse(client, course.instructor, quiz).json()["analysis"]
+
+    assert [p["text"] for p in made["points"]] == ["Fine."] and made["dropped"] == 1
+
+
+def test_if_every_point_contradicts_the_key_nothing_is_stored(client, course, fake_llm):
+    quiz = answered_quiz(client, course)
+    bad = points(("Q1", "The correct option (A) was chosen 3 times."), ("Q2", "Option B is wrong."))
+    fake_llm.queue(bad, bad)
+    before = len(fake_llm.calls)
+
+    response = analyse(client, course.instructor, quiz)
+
+    assert (response.status_code, code(response)) == (502, "analysis_invalid")
+    assert len(fake_llm.calls) == before + 2 and not stored_file(quiz).exists()
+
+
+def test_a_point_is_judged_by_the_key_of_its_own_question(client, course, fake_llm):
+    quiz = course.draft(2)
+    course.edit(quiz, 0, correct_option_id="A")                      # the first question's key is A, the second's stays B
+    for index in range(2):
+        course.edit(quiz, index, review_status="approved")
+    published = course.publish(quiz)
+    for user, _, _ in STUDENTS:
+        submit(client, course.learner(user=user), published, dict.fromkeys(ids(published), "A"))
+    fake_llm.queue(points(("Q1", "The correct answer is A."), ("Q2", "The correct answer is A.")),
+                   points(("Q1", "The correct answer is A."), ("Q2", "The correct answer is A.")))
+
+    made = analyse(client, course.instructor, published).json()["analysis"]
+
+    assert [p["number"] for p in made["points"]] == [1] and made["dropped"] == 1
+
+
 # ── Small groups ────────────────────────────────────────────────────────────
 
 def test_below_the_minimum_group_no_model_is_asked(client, course, fake_llm):
@@ -327,7 +434,9 @@ def test_the_result_is_stored_and_reading_it_again_asks_no_model(client, course,
     assert len(fake_llm.calls) == after
 
     on_disk = json.loads(stored_file(quiz).read_text(encoding="utf-8"))
-    assert set(on_disk) == {"quiz_id", "revision", "made_at", "attempts", "learners", "language", "points"}
+    assert set(on_disk) == {"quiz_id", "revision", "made_at", "attempts", "learners", "language", "points",
+                            "dropped", "calls"}
+    assert (on_disk["dropped"], on_disk["calls"]) == (0, 1)
     assert on_disk["points"] == [{"question_id": ids(quiz)[0], "text": "Stored once."}]
 
 

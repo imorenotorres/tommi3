@@ -315,6 +315,7 @@ ul.choices .choice { align-items: baseline; flex-wrap: wrap; }
 .suggestion ol { margin: 0.6rem 0 0; padding-left: 1.4rem; }
 .suggestion li { margin-bottom: 0.7rem; }
 .suggestion .cite { margin-top: 0.25rem; }
+.suggestion .dropped { background: var(--warn-bg); color: var(--warn-ink); border-left: 4px solid var(--warn-ink); border-radius: 0 4px 4px 0; padding: 0.4rem 0.7rem; margin: 0.5rem 0 0; }
 
 /* "What to review" on the result page */
 #review-box h3 { margin-top: 0; }

@@ -403,6 +403,9 @@
     // Labelled as what it is, with when it was made and from how many attempts.
     byId('analysis-made').textContent = t('analysis_made', { when: A.formatDateTime(made.made_at), attempts: made.attempts })
       + (body.attempts !== made.attempts ? ' ' + t('analysis_stale', { now: body.attempts }) : '');
+    // The server leaves out a point that calls a wrong option correct, or the reverse. When it did, the page says so.
+    byId('analysis-dropped').hidden = !made.dropped;
+    byId('analysis-dropped').textContent = made.dropped ? t('analysis_dropped', { n: made.dropped }) : '';
     var list = clear(byId('analysis-points'));
     made.points.forEach(function (point) {
       var source = point.source;
