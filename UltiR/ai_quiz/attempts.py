@@ -135,6 +135,25 @@ def learner_quiz(course_id: str, quiz_id: str) -> dict | None:
 
 # ── Submitting and reading an attempt ─────────────────────────────────────────
 
+def _to_review(results: list[dict]) -> list[dict]:
+    """What the student should look at again, the most pressing first.
+
+    Every question that was not answered right: first the answers the student said they knew
+    ("sure and wrong"), then the other wrong answers, then the questions left unanswered, each
+    group in the order of the quiz. Worked out from the graded result alone. No model is asked,
+    and an entry holds only an order and a reason: the page takes the question, its passage and
+    its page from the result it already has.
+    """
+    def rank(result: dict) -> int:
+        if result["selected"] is None:
+            return 2
+        return 0 if result.get("confidence") == "sure" else 1
+
+    missed = [(rank(result), number, result) for number, result in enumerate(results, start=1) if not result["correct"]]
+    return [{"question_id": result["question_id"], "number": number, "reason": ("sure_wrong", "wrong", "skipped")[order]}
+            for order, number, result in sorted(missed, key=lambda entry: entry[:2])]
+
+
 def _result(attempt: dict, revision: dict) -> dict:
     """An attempt with its feedback. Only ever built for the owner or the course instructor, after submission."""
     asks = review.asks_confidence(revision)
@@ -165,6 +184,7 @@ def _result(attempt: dict, revision: dict) -> dict:
         "total": attempt["total"],
         "submitted_at": attempt["submitted_at"],
         "results": results,
+        "review": _to_review(results),
         # In a quiz that asks: per level, how many answers were given at it and how many were right.
         **({"calibration": {level: {
             "answered": sum(1 for r in results if r["confidence"] == level),

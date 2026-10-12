@@ -192,6 +192,7 @@
         ? t('student_sure_right', { n: sure.answered })
         : t('student_sure_wrong', { n: sure.answered, k: sure.answered - sure.correct });
     }
+    renderReviewBox(result);
     var list = clear(byId('results'));
     result.results.forEach(function (item, index) {
       var verdict = item.selected === null ? 'student_skipped' : (item.correct ? 'student_right' : 'student_wrong');
@@ -204,15 +205,7 @@
           key ? el('span', { class: 'tag', text: '(' + t('student_tag_key') + ')' }) : null
         ]);
       });
-      var cite = null;
-      if (item.source) {
-        var where = t('student_from', { doc: item.source.doc_label || '' });
-        if (item.source.page) { where += ', ' + t('source_page', { n: item.source.page }); }
-        // The server sends the passage only when it may be quoted; otherwise the page is the citation.
-        cite = el('p', { class: 'cite' }, item.source.excerpt
-          ? [where + ': ', el('q', { text: item.source.excerpt })]
-          : [where + '.']);
-      }
+      var cite = item.source ? citation(item.source) : null;
       list.appendChild(el('article', { class: 'paper' }, [
         el('p', { class: 'stem' }, [el('span', { class: 'number', text: (index + 1) + '.' }), A.math.shown('span', {}, item.question, item.math === 'latex')])
       ].concat(figuresOf(item)).concat([
@@ -222,6 +215,34 @@
         item.explanation ? el('p', { class: 'because' }, [el('strong', { text: t('student_why') + ' ' }), A.math.shown('span', { class: 'content' }, item.explanation, item.math === 'latex')]) : null,
         cite
       ])));
+    });
+  }
+
+  /* Where a question comes from: the document and the page, and the passage when the server sent it. */
+  function citation(source) {
+    var where = t('student_from', { doc: source.doc_label || '' });
+    if (source.page) { where += ', ' + t('source_page', { n: source.page }); }
+    // The server sends the passage only when it may be quoted; otherwise the page is the citation.
+    return el('p', { class: 'cite' }, source.excerpt ? [where + ': ', el('q', { text: source.excerpt })] : [where + '.']);
+  }
+
+  /* "What to review": the questions that were not answered right, in the order the server gives
+     (sure and wrong first), each with where to read. The server works it out from the answers. */
+  function renderReviewBox(result) {
+    var entries = result.review || [], list = clear(byId('review-box-list'));
+    byId('review-box').hidden = false;
+    byId('review-box-none').hidden = entries.length > 0;
+    byId('review-box-intro').hidden = !entries.length;
+    list.hidden = !entries.length;
+    entries.forEach(function (entry) {
+      var item = result.results[entry.number - 1];
+      if (!item) { return; }
+      list.appendChild(el('li', {}, [
+        el('strong', { text: t('review_box_question', { n: entry.number }) + '. ' }),
+        A.math.shown('span', { class: 'content' }, item.question, item.math === 'latex'),
+        el('p', { class: 'why-listed ' + entry.reason, text: t('review_box_' + entry.reason) }),
+        item.source ? citation(item.source) : null
+      ]));
     });
   }
 

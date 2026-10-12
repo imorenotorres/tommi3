@@ -291,7 +291,14 @@ window.AI_QUIZ_STRINGS = {
     "class_too_few": "Too few answers yet.",
     "class_times": "chosen {n} times",
     "class_no_wrong": "None: every answer was right.",
-    "class_source_none": "No source passage is stored for this question."
+    "class_source_none": "No source passage is stored for this question.",
+    "review_box_heading": "What to review",
+    "review_box_intro": "The questions you did not get right, with where to read in the course material. The ones you said you knew come first.",
+    "review_box_none": "Nothing to review: every answer was right.",
+    "review_box_question": "Question {n}",
+    "review_box_sure_wrong": "You said “I know this”, and it was not correct.",
+    "review_box_wrong": "Not correct.",
+    "review_box_skipped": "Not answered."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -582,6 +589,13 @@ window.AI_QUIZ_STRINGS = {
     "class_too_few": "Todavía hay muy pocas respuestas.",
     "class_times": "elegida {n} veces",
     "class_no_wrong": "Ninguna: todas las respuestas eran correctas.",
-    "class_source_none": "No hay ningún pasaje de origen guardado para esta pregunta."
+    "class_source_none": "No hay ningún pasaje de origen guardado para esta pregunta.",
+    "review_box_heading": "Qué repasar",
+    "review_box_intro": "Las preguntas que no has acertado y dónde leer en el material del curso. Primero, las que dijiste que sabías.",
+    "review_box_none": "Nada que repasar: todas las respuestas eran correctas.",
+    "review_box_question": "Pregunta {n}",
+    "review_box_sure_wrong": "Dijiste «Lo sé» y no era correcta.",
+    "review_box_wrong": "Incorrecta.",
+    "review_box_skipped": "Sin responder."
   }
 };

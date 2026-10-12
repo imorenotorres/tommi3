@@ -302,4 +302,11 @@ ul.choices .choice { align-items: baseline; flex-wrap: wrap; }
 .because { margin: 0.6rem 0 0; }
 .cite { margin: 0.6rem 0 0; font-size: 0.92rem; color: var(--text-soft); }
 .cite q { font-size: 1rem; line-height: 1.5; color: var(--text); background: var(--marker); quotes: none; }
+/* "What to review" on the result page */
+#review-box h3 { margin-top: 0; }
+ol.to-review { list-style: none; padding: 0; margin: 0.6rem 0 0; }
+ol.to-review li { padding: 0.6rem 0; border-top: 1px solid var(--line); }
+ol.to-review .why-listed { margin: 0.2rem 0 0; font-weight: 600; color: var(--wrong); }
+ol.to-review .why-listed.skipped { color: var(--text-soft); }
+ol.to-review .cite { margin-top: 0.3rem; }
 .score { font-size: 1.6rem; font-weight: 600; line-height: 1.2; color: var(--ink); margin: 0 0 0.25rem; }
