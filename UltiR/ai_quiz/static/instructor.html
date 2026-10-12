@@ -131,7 +131,10 @@
           <div class="actions">
             <button type="button" class="primary" id="publish-button" data-i18n="review_publish"></button>
             <button type="button" id="unpublish-button" data-i18n="review_unpublish"></button>
+            <!-- Only for a quiz that has a published version: that version as a file for Moodle's question bank. -->
+            <a class="button" id="export-link" download data-i18n="export_moodle" hidden></a>
           </div>
+          <p class="hint" id="export-hint" hidden></p>
           <!-- Only for a published version that asks students how sure they are, once there are answers. -->
           <div id="sure-summary" hidden>
             <h3 data-i18n="review_sure_heading"></h3>

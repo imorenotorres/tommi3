@@ -39,11 +39,11 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import UploadFile
 
-from UltiR.ai_quiz import attempts, config, documents, generation, ingestion, limits, review, storage
+from UltiR.ai_quiz import attempts, config, documents, generation, ingestion, limits, moodle_xml, review, storage
 from UltiR.lti_common import (
     LTISessionStore, is_instructor, lti_launch, lti_test_launch,
 )
@@ -581,6 +581,26 @@ async def ai_quiz_summary(quiz_id: str, request: Request):
     if summary is None:
         _refuse(404, "quiz_not_found")
     return summary
+
+
+@router.get(f"{BASE}/api/quizzes/{{quiz_id}}/export.xml")
+async def ai_quiz_export(quiz_id: str, request: Request):
+    """The questions of the last published version as a Moodle XML file, for Moodle's question bank.
+
+    Only what was published: a draft, a rejected question and an edit that has not been published
+    are not in it. A quiz that was withdrawn from students can still be exported.
+    """
+    session = require_instructor(request)
+    quiz = review.load_quiz(session["course_id"], quiz_id)
+    if quiz is None:
+        _refuse(404, "quiz_not_found")
+    revision = review.load_revision(session["course_id"], quiz_id, quiz["meta"]["current_revision"])
+    if revision is None:
+        _refuse(409, "never_published")
+    return Response(moodle_xml.export(revision), media_type="application/xml", headers={
+        # A download, never a page: the file holds text typed by people and written by a model.
+        "Content-Disposition": f'attachment; filename="{moodle_xml.file_name(revision)}"',
+        "X-Content-Type-Options": "nosniff", "Cache-Control": "no-store"})
 
 
 # ── Practising (any session of the course) ────────────────────────────────────

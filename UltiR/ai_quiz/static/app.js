@@ -181,7 +181,7 @@
   }
 
   window.AiQuiz = {
-    start: start, api: api, send: send, t: t, el: el, clear: clear, figure: figure,
+    start: start, api: api, send: send, address: address, t: t, el: el, clear: clear, figure: figure,
     say: say, showError: showError, errorText: errorText, formatDate: formatDate,
     onLanguageChange: function (fn) { langListeners.push(fn); },
     language: function () { return lang; }

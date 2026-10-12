@@ -280,7 +280,11 @@ window.AI_QUIZ_STRINGS = {
     "denied_title": "This page is for instructors",
     "denied_text": "You opened the tool as a student, so the instructors' page is not available to you. The practice quizzes of your course are on the student page.",
     "denied_link": "Go to the practice quizzes",
-    "info_trouble_course": "Moodle sent no course id: the tool was opened from outside a course. Add it as an activity inside a course."
+    "info_trouble_course": "Moodle sent no course id: the tool was opened from outside a course. Add it as an activity inside a course.",
+    "export_moodle": "Export to Moodle",
+    "export_moodle_label": "Export to Moodle: “{title}”, version {n}, as a Moodle XML file",
+    "export_hint": "“Export to Moodle” downloads the questions of version {n} as a Moodle XML file. In Moodle: Question bank → Import → Moodle XML format.",
+    "err_never_published": "This quiz has not been published yet, so there is nothing to export."
   },
   "es": {
     "app_title": "Generador de cuestionarios con IA",
@@ -560,6 +564,10 @@ window.AI_QUIZ_STRINGS = {
     "denied_title": "Esta página es para docentes",
     "denied_text": "Has abierto la herramienta como estudiante, por lo que la página de docentes no está disponible para ti. Los cuestionarios de práctica de tu curso están en la página de estudiante.",
     "denied_link": "Ir a los cuestionarios de práctica",
-    "info_trouble_course": "Moodle no ha enviado ningún identificador de curso: la herramienta se abrió desde fuera de un curso. Añádela como actividad dentro de un curso."
+    "info_trouble_course": "Moodle no ha enviado ningún identificador de curso: la herramienta se abrió desde fuera de un curso. Añádela como actividad dentro de un curso.",
+    "export_moodle": "Exportar a Moodle",
+    "export_moodle_label": "Exportar a Moodle: «{title}», versión {n}, como archivo Moodle XML",
+    "export_hint": "«Exportar a Moodle» descarga las preguntas de la versión {n} como archivo Moodle XML. En Moodle: Banco de preguntas → Importar → Formato Moodle XML.",
+    "err_never_published": "Este cuestionario todavía no se ha publicado, así que no hay nada que exportar."
   }
 };

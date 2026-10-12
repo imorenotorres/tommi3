@@ -203,7 +203,7 @@
         el('td', { text: quiz.title }),
         el('td', { text: quiz.published ? t('state_published', { n: quiz.current_revision }) : t('state_unpublished') }),
         el('td', { class: 'num', text: t('quizzes_counts', quiz.counts) }),
-        el('td', { class: 'end' }, [el('button', {
+        el('td', { class: 'end' }, [exportLink(quiz), el('button', {
           type: 'button', text: t('quizzes_open'), 'aria-label': t('quizzes_open_label', { title: quiz.title }),
           on: { click: function () { openQuiz(quiz.quiz_id); } }
         })])
@@ -218,6 +218,19 @@
       ])]),
       el('tbody', {}, rows)
     ]));
+  }
+
+  /* Where the last published version of a quiz is downloaded as a Moodle XML file, for Moodle's
+     question bank. A plain link: the server answers with a file. */
+  function exportAddress(quiz) { return A.address('/api/quizzes/' + quiz.quiz_id + '/export.xml'); }
+
+  function exportLabel(quiz) { return t('export_moodle_label', { title: quiz.title, n: quiz.current_revision }); }
+
+  /* The link for one row of the list, or nothing for a quiz that was never published. */
+  function exportLink(quiz) {
+    if (!quiz.current_revision) { return null; }
+    return el('a', { class: 'button', href: exportAddress(quiz), download: true, text: t('export_moodle'),
+                     'aria-label': exportLabel(quiz) });
   }
 
   function openQuiz(quizId) {
@@ -270,6 +283,15 @@
     var line = quiz.published ? t('state_published', { n: quiz.current_revision }) : t('state_unpublished');
     byId('publish-state').textContent = line + ' ' + t('review_approved_count', { n: approved, total: quiz.questions.length });
     byId('unpublish-button').hidden = !quiz.published;
+    var link = byId('export-link'), hint = byId('export-hint');
+    link.hidden = hint.hidden = !quiz.current_revision;
+    if (quiz.current_revision) {
+      link.href = exportAddress(quiz);
+      link.setAttribute('aria-label', exportLabel(quiz));
+      hint.textContent = t('export_hint', { n: quiz.current_revision });
+    } else {
+      link.removeAttribute('href');
+    }
     byId('confidence-switch').checked = quiz.confidence === true;
     renderSummary();
     renderGallery();
