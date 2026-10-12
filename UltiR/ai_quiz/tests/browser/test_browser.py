@@ -315,6 +315,75 @@ def test_the_info_page_shows_the_tool_url_and_switches_language(site):
     expect(page.locator("main")).to_contain_text("Cómo funciona")
 
 
+def test_the_info_page_gives_the_setup_for_moodle_field_by_field(site):
+    """What the local Moodle 4.5 taught on 2026-10-11: who registers, the ten fields, and four things to know."""
+    page = site.open("/info")
+    setup = page.locator("#moodle-setup")
+
+    expect(setup.locator("#setup-fields tbody tr")).to_have_count(10)
+    row = lambda field: setup.locator("#setup-fields tbody tr").filter(has=page.get_by_role("rowheader", name=field, exact=True))  # noqa: E731
+    expect(row("Tool URL")).to_contain_text(f"{site.url}/lti/ai-quiz")
+    expect(row("Default launch container")).to_contain_text("New window")
+    expect(row("Share launcher's name with tool")).to_contain_text("Always")
+    expect(row("Share launcher's email with tool")).to_contain_text("Never")
+    expect(row("Accept grades from the tool")).to_contain_text("Never")
+    expect(row("Consumer key")).to_contain_text("One for each Moodle site")
+    for fact in ("A Moodle administrator registers the tool", "One key and secret per Moodle site", "uma.es",
+                 "non-editing teachers", "Consumer key no reconocido", "Firma OAuth no valida"):
+        expect(setup).to_contain_text(fact)
+
+    page.locator("#lang-switch").click()
+
+    expect(setup).to_contain_text("Nueva ventana")
+    expect(setup).to_contain_text("Una clave y un secreto por cada sitio Moodle")
+    expect(setup).to_contain_text("profesorado sin permiso de edición")
+
+
+# ── A launch without a name, and a page without a session ───────────────────
+
+def test_the_header_of_a_launch_without_a_name_does_not_end_in_signed_in_as(site):
+    """Moodle sends no name when the tool is registered with "Share launcher's name: Never"."""
+    page = site.instructor(name="", context_title="Computer Vision (synthetic)")
+
+    expect(page.locator("#session")).to_contain_text("Computer Vision (synthetic)")
+    expect(page.locator("#session")).to_contain_text("Instructor")
+    # What a person sees and what a screen reader reads: the hidden part of the line does not count.
+    expect(page.locator("#session")).not_to_contain_text("Signed in as", use_inner_text=True)
+    expect(page.locator("#user-name")).to_be_hidden()
+    page.locator("#lang-switch").click()
+    expect(page.locator("#session")).to_contain_text("Docente")
+    expect(page.locator("#session")).not_to_contain_text("Sesión iniciada como", use_inner_text=True)
+
+
+def test_the_header_of_a_launch_with_a_name_shows_it(site):
+    page = site.student(name="Zoë D'Alençon Muñoz")
+
+    expect(page.locator("#user-name")).to_be_visible()
+    expect(page.locator("#session")).to_contain_text("Zoë D'Alençon Muñoz")
+
+
+@pytest.mark.parametrize("path", ["/instructor", "/student"])
+def test_a_reload_without_a_session_shows_a_page_that_says_what_to_do_in_both_languages(site, path):
+    page = site.open(path, "0" * 64)
+
+    expect(page.locator("h1")).to_have_text("AI Quiz Generator")
+    expect(page.locator("main h2")).to_have_text("Open this tool from your course in Moodle")
+    expect(page.locator("main")).to_contain_text("open the activity again")
+    expect(page.locator("main")).not_to_contain_text("detail")
+    assert page.evaluate("document.documentElement.lang") == "en"
+    page.locator("#lang-switch").click()
+    expect(page.locator("main h2")).to_have_text("Abre esta herramienta desde tu curso en Moodle")
+    expect(page.locator("main")).to_contain_text("abre de nuevo la actividad")
+    assert page.evaluate("document.documentElement.lang") == "es"
+    assert unlabelled_controls(page) == []
+
+
+def test_a_spanish_browser_reads_the_page_for_an_ended_session_in_spanish(site):
+    page = site.open("/student", "0" * 64, locale="es-ES")
+
+    expect(page.locator("main h2")).to_have_text("Abre esta herramienta desde tu curso en Moodle")
+
+
 # ── Two languages ───────────────────────────────────────────────────────────
 
 def test_the_page_can_be_switched_to_spanish_and_back(site):

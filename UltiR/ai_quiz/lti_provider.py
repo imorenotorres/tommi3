@@ -62,6 +62,7 @@ _ASSETS = {
     "strings.js": "text/javascript",
     "app.js": "text/javascript",
     "info.js": "text/javascript",
+    "expired.js": "text/javascript",
     "instructor.js": "text/javascript",
     "student.js": "text/javascript",
     "math.js": "text/javascript",
@@ -102,6 +103,22 @@ def require_instructor(request: Request) -> dict:
 
 def _page(name: str) -> HTMLResponse:
     return HTMLResponse((_STATIC_DIR / name).read_text(encoding="utf-8"))
+
+
+def _page_behind(guard, request: Request, name: str) -> HTMLResponse:
+    """A page for whoever passes `guard`. Without a session the answer is a page of the tool that says
+    to open the activity again from the course, in the reader's language: a person who reloads the tab
+    after a restart of the server should not be shown the bare JSON of the shared session check.
+    Every other refusal (not an instructor, tool not configured) stays what it was.
+    """
+    try:
+        guard(request)
+    except HTTPException as refusal:
+        if refusal.status_code != 401:
+            raise
+        return HTMLResponse((_STATIC_DIR / "expired.html").read_text(encoding="utf-8"), status_code=401,
+                            headers={"Cache-Control": "no-store"})
+    return _page(name)
 
 
 def _refuse(status: int, code: str, **extra):
@@ -203,14 +220,12 @@ async def ai_quiz_info():
 
 @router.get(f"{BASE}/instructor")
 async def ai_quiz_instructor(request: Request):
-    require_instructor(request)
-    return _page("instructor.html")
+    return _page_behind(require_instructor, request, "instructor.html")
 
 
 @router.get(f"{BASE}/student")
 async def ai_quiz_student(request: Request):
-    require_session(request)
-    return _page("student.html")
+    return _page_behind(require_session, request, "student.html")
 
 
 @router.get(f"{BASE}/assets/{{name:path}}")

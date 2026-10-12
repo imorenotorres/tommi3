@@ -44,6 +44,72 @@ def test_student_page_loads_for_a_learner_and_for_an_instructor(client, launch):
         assert response.status_code == 200, role
 
 
+# ── A page asked for without a session ──────────────────────────────────────
+# Seen from Moodle on 2026-10-11: after a restart of the server, a reload showed the bare text
+# {"detail":"Sesion no valida. Accede desde Moodle."}. The pages now answer with a page of the tool.
+
+def is_the_tools_own_page(response) -> bool:
+    return (response.status_code == 401
+            and response.headers["content-type"].startswith("text/html")
+            and 'data-i18n="expired_title"' in response.text
+            and '"detail"' not in response.text
+            and response.headers.get("cache-control") == "no-store")
+
+
+@pytest.mark.parametrize("path", ["/instructor", "/student"])
+@pytest.mark.parametrize("params", [None, {"token": ""}, {"token": "0" * 64}])
+def test_a_page_opened_without_a_session_is_a_page_of_the_tool_not_bare_json(client, path, params):
+    assert is_the_tools_own_page(client.get(f"{BASE}{path}", params=params))
+
+
+@pytest.mark.parametrize("path, role", [("/instructor", "Instructor"), ("/student", "Learner")])
+def test_a_reload_after_the_session_has_ended_is_a_page_of_the_tool(client, launch, path, role):
+    from UltiR.ai_quiz.lti_provider import sessions
+    token = launch.token(role=role)
+    assert client.get(f"{BASE}{path}", params={"token": token}).status_code == 200
+
+    sessions.revoke(token)                          # what a restart of the server does to every session
+
+    assert is_the_tools_own_page(client.get(f"{BASE}{path}", params={"token": token}))
+
+
+def test_the_page_for_an_ended_session_holds_nothing_of_the_tool_but_its_name(client):
+    text = client.get(f"{BASE}/instructor").text
+
+    for private in ("upload", "api/", "token"):
+        assert private not in text.lower()
+
+
+def test_the_api_still_answers_in_json_when_there_is_no_session(client):
+    response = client.get(f"{BASE}/api/session", params={"token": "0" * 64})
+
+    assert response.status_code == 401
+    assert response.headers["content-type"].startswith("application/json")
+
+
+def test_a_learner_on_the_instructor_page_is_refused_not_told_the_session_ended(client, launch):
+    response = client.get(f"{BASE}/instructor", params={"token": launch.token(role="Learner")})
+
+    assert response.status_code == 403
+    assert "expired_title" not in response.text
+
+
+def test_a_page_of_an_unconfigured_tool_says_so_and_not_that_the_session_ended(client, launch, monkeypatch):
+    token = launch.token()
+    monkeypatch.delenv("AI_QUIZ_ID_KEY")
+
+    assert client.get(f"{BASE}/instructor", params={"token": token}).status_code == 503
+
+
+@pytest.mark.parametrize("language, words", [("en", ("Moodle", "open the activity again")),
+                                             ("es", ("Moodle", "abre de nuevo la actividad"))])
+def test_both_messages_about_an_ended_session_say_to_open_the_activity_again(client, language, words):
+    strings = load_strings(client)[language]
+
+    for key in ("expired_text", "error_session"):
+        assert all(word in strings[key] for word in words), key
+
+
 # ── Session endpoint ────────────────────────────────────────────────────────
 
 def test_session_endpoint_describes_the_launch(client, launch):
@@ -85,6 +151,7 @@ def test_each_token_sees_its_own_course(client, launch):
     ("strings.js", "text/javascript"),
     ("app.js", "text/javascript"),
     ("info.js", "text/javascript"),
+    ("expired.js", "text/javascript"),
     ("instructor.js", "text/javascript"),
     ("student.js", "text/javascript"),
     ("app.css", "text/css"),
@@ -165,7 +232,36 @@ PAGES = sorted(p.name for p in (MODULE_DIR / "static").glob("*.html"))
 
 
 def test_the_tool_has_pages_to_check():
-    assert PAGES == ["info.html", "instructor.html", "student.html"]
+    assert PAGES == ["expired.html", "info.html", "instructor.html", "student.html"]
+
+
+class HeadingFinder(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.levels: list[int] = []
+
+    def handle_starttag(self, tag, attrs):
+        if re.fullmatch(r"h[1-6]", tag):
+            self.levels.append(int(tag[1]))
+
+
+def heading_levels(html: str) -> list[int]:
+    finder = HeadingFinder()
+    finder.feed(html)
+    return finder.levels
+
+
+@pytest.mark.parametrize("page", PAGES)
+def test_the_headings_of_a_page_go_down_one_level_at_a_time(page):
+    """One h1, the tool's name, first; after that no level is skipped on the way down."""
+    levels = heading_levels((MODULE_DIR / "static" / page).read_text(encoding="utf-8"))
+
+    assert levels[0] == 1 and levels.count(1) == 1
+    assert [(a, b) for a, b in zip(levels, levels[1:]) if b > a + 1] == []
+
+
+def test_the_heading_check_itself_sees_a_skipped_level():
+    assert heading_levels("<h1>a</h1><h3>b</h3><h2>c</h2>") == [1, 3, 2]
 
 
 @pytest.mark.parametrize("page", PAGES)

@@ -16,7 +16,7 @@
 <main id="content">
   <p class="lead" data-i18n="info_lead"></p>
 
-  <h3 data-i18n="info_how_title"></h3>
+  <h2 data-i18n="info_how_title"></h2>
   <ol class="steps">
     <li data-i18n="info_how_1"></li>
     <li data-i18n="info_how_2"></li>
@@ -24,23 +24,60 @@
     <li data-i18n="info_how_4"></li>
   </ol>
 
-  <h3 data-i18n="info_ai_title"></h3>
+  <h2 data-i18n="info_ai_title"></h2>
   <p data-i18n="info_ai_text"></p>
 
-  <h3 data-i18n="info_reading_title"></h3>
+  <h2 data-i18n="info_reading_title"></h2>
   <p data-i18n="info_reading_text"></p>
   <p><span data-i18n="info_software_text"></span>
     <a href="/lti/ai-quiz/assets/vendor/katex/LICENSE" data-i18n="info_software_licence"></a>.</p>
 
-  <h3 data-i18n="info_moodle_title"></h3>
-  <p data-i18n="info_moodle_text"></p>
-  <dl class="settings">
-    <dt data-i18n="info_moodle_url"></dt>
-    <dd><code id="tool-url"></code></dd>
-  </dl>
-  <p data-i18n="info_moodle_privacy"></p>
+  <section id="moodle-setup" aria-labelledby="moodle-setup-heading">
+    <h2 id="moodle-setup-heading" data-i18n="info_moodle_title"></h2>
+    <p data-i18n="info_setup_who"></p>
+    <table class="list" id="setup-fields">
+      <thead>
+        <tr><th scope="col" data-i18n="info_setup_field"></th><th scope="col" data-i18n="info_setup_value"></th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row" data-i18n="info_f_name"></th><td>AI Quiz Generator</td></tr>
+        <tr><th scope="row" data-i18n="info_moodle_url"></th><td><code id="tool-url"></code></td></tr>
+        <tr><th scope="row" data-i18n="info_f_version"></th><td>LTI 1.0/1.1</td></tr>
+        <tr><th scope="row" data-i18n="info_f_key"></th><td data-i18n="info_v_key"></td></tr>
+        <tr><th scope="row" data-i18n="info_f_secret"></th><td data-i18n="info_v_secret"></td></tr>
+        <tr><th scope="row" data-i18n="info_f_usage"></th><td data-i18n="info_v_usage"></td></tr>
+        <tr><th scope="row" data-i18n="info_f_container"></th><td data-i18n="info_v_container"></td></tr>
+        <tr><th scope="row" data-i18n="info_f_sendname"></th><td data-i18n="info_v_always"></td></tr>
+        <tr><th scope="row" data-i18n="info_f_sendemail"></th><td data-i18n="info_v_never"></td></tr>
+        <tr><th scope="row" data-i18n="info_f_grades"></th><td data-i18n="info_v_never"></td></tr>
+      </tbody>
+    </table>
+    <p class="space-above" data-i18n="info_setup_defaults"></p>
 
-  <h3 data-i18n="info_status_title"></h3>
+    <h3 data-i18n="info_know_title"></h3>
+    <ul class="points">
+      <li data-i18n="info_know_key"></li>
+      <li data-i18n="info_know_window"></li>
+      <li data-i18n="info_know_roles"></li>
+      <li data-i18n="info_know_privacy"></li>
+      <li data-i18n="info_know_popup"></li>
+    </ul>
+
+    <h3 data-i18n="info_trouble_title"></h3>
+    <table class="list">
+      <thead>
+        <tr><th scope="col" data-i18n="info_trouble_see"></th><th scope="col" data-i18n="info_trouble_means"></th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Error: Consumer key no reconocido</code></td><td data-i18n="info_trouble_key"></td></tr>
+        <tr><td><code>Error: Firma OAuth no valida</code></td><td data-i18n="info_trouble_signature"></td></tr>
+        <tr><td data-i18n="info_trouble_frame_see"></td><td data-i18n="info_trouble_frame"></td></tr>
+        <tr><td data-i18n="expired_title"></td><td data-i18n="info_trouble_session"></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <h2 data-i18n="info_status_title"></h2>
   <p class="notice" data-i18n="info_status_text"></p>
 </main>
 

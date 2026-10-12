@@ -170,6 +170,8 @@
     api('/api/session').then(function (session) {
       document.getElementById('course-name').textContent = session.course_name;
       document.getElementById('user-name').textContent = session.name;
+      // Moodle sends no name when the tool is registered not to share it: then nothing is said about who.
+      document.getElementById('user-line').hidden = !session.name;
       var role = document.getElementById('user-role');
       role.setAttribute('data-i18n', session.is_instructor ? 'role_instructor' : 'role_student');
       role.textContent = t(role.getAttribute('data-i18n'));
